@@ -45,14 +45,14 @@
     </v-toolbar>
     <template v-if="columns">
       <p class="title mt-6 mb-6">
-        Table : <span class="text-capitalize">{{ columns._tn }}</span><br>
+        Table : <span class="text-capitalize">{{ columns.title }}</span><br>
         <span class="font-weight-thin">Write Validations For Columns</span>
       </p>
 
       <!--      <v-row justify="center">
               <v-col cols="4" class="d-flex align-center">
                 <label class="mr-3">Table Alias</label>
-                <v-text-field @input="edited = true" v-model="columns._tn">
+                <v-text-field @input="edited = true" v-model="columns.title">
 
                 </v-text-field>
               </v-col>
@@ -69,13 +69,13 @@
           </thead>
           <tbody>
             <tr v-for="(item,i) in columns.columns" :key="i">
-              <td>{{ item.cn }}</td>
+              <td>{{ item.column_name }}</td>
               <td>
                 <v-edit-dialog lazy>
-                  <span> {{ item._cn }}</span>
+                  <span> {{ item.title }}</span>
                   <template #input>
                     <v-text-field
-                      v-model="item._cn"
+                      v-model="item.title"
                       :label="$t('general.edit')"
                       single-line
                       @input="edited=true"
@@ -85,7 +85,7 @@
               </td>
               <td>
                 <x-btn
-                  :tooltip="`Edit/Add validation for '${item.cn}' column`"
+                  :tooltip="`Edit/Add validation for '${item.column_name}' column`"
                   color="primary"
                   style="text-transform:capitalize"
                   x-small
@@ -108,7 +108,7 @@
       <!--          v-for="(item,i) in columns.columns"-->
       <!--          :key="i"-->
       <!--        >-->
-      <!--          <v-expansion-panel-header>{{ item.cn }} <span-->
+      <!--          <v-expansion-panel-header>{{ item.column_name }} <span-->
       <!--            class="caption grey&#45;&#45;text ml-2">({{ item.validate.func.length }} validations)</span>-->
       <!--          </v-expansion-panel-header>-->
       <!--          <v-expansion-panel-content>-->
@@ -194,7 +194,7 @@
       <!--            <div v-else class="d-flex justify-center">-->
       <!--              <v-alert dense outlined type="info" color="grey lighten-1" icon="mdi-information-outline" class="caption"-->
       <!--                       style="width:auto">-->
-      <!--                No validation for '{{ item.cn }}'-->
+      <!--                No validation for '{{ item.column_name }}'-->
       <!--              </v-alert>-->
       <!--            </div>-->
       <!--          </v-expansion-panel-content>-->
@@ -205,7 +205,7 @@
     <v-dialog v-model="validatorEditDialog" max-width="700px">
       <v-card v-if="clickedItem">
         <v-card-title class="headline justify-center mb-5">
-          Validations for '{{ clickedItem.cn }}({{ clickedItem.dt }})'
+          Validations for '{{ clickedItem.column_name }}({{ clickedItem.dt }})'
         </v-card-title>
         <v-card-text>
           <div class="d-flex">
@@ -313,7 +313,7 @@
               class="caption mt-4"
               style="width:auto"
             >
-              No validation for '{{ clickedItem.cn }}'
+              No validation for '{{ clickedItem.column_name }}'
             </v-alert>
           </div>
         </v-card-text>
@@ -500,14 +500,7 @@ export default {
     validatorEditDialog: false
   }),
   async created() {
-    // try {
-    // await this.loadColumnList();
     await this.loadTableModelMeta()
-    // } catch (e) {
-    //   throw e
-    // } finally {
-    //
-    // }
   },
   methods: {
 
@@ -521,7 +514,7 @@ export default {
     //     env: this.nodes.env,
     //     dbAlias: this.nodes.dbAlias
     //   }, 'columnList', {
-    //     tn: this.nodes.tn
+    //     table_name: this.nodes.table_name
     //   }]);
     //   console.log("table ", result.data.list);
     //   this.columns = result.data.list;
@@ -532,7 +525,7 @@ export default {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
-        tn: this.nodes.tn
+        table_name: this.nodes.table_name
       }])
       this.columns = JSON.parse(this.tableMeta.meta)
     },
@@ -570,7 +563,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'xcModelSet', {
-          tn: this.nodes.tn,
+          table_name: this.nodes.table_name,
           meta: this.columns
         }])
         this.$toast.success('Successfully updated validations').goAway(3000)
@@ -580,7 +573,7 @@ export default {
     },
     async saveValidationForColumn(clickedItem) {
       if (clickedItem) {
-        const item = this.columns.columns.find(it => it.cn === clickedItem.cn)
+        const item = this.columns.columns.find(it => it.column_name === clickedItem.column_name)
         if (item) {
           Object.assign(item, clickedItem)
           await this.saveValidations()
@@ -592,7 +585,7 @@ export default {
     onFunctionChange(i, item) {
       this.edited = true
       const fn = validatorFnList.find(({ func }) => func === item.validate.func[i])
-      item.validate.msg[i] = `Validation failed : ${item.validate.func[i]}(${this.nodes.tn}.${item.cn})`
+      item.validate.msg[i] = `Validation failed : ${item.validate.func[i]}(${this.nodes.table_name}.${item.column_name})`
       item.validate.args[i] = fn.args
     },
     deleteValidation(item, i) {

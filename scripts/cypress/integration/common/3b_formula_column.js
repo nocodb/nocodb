@@ -1,3 +1,4 @@
+import { mainPage } from "../../support/page_objects/mainPage";
 import {
     isTestSuiteActive,
     isXcdb,
@@ -10,6 +11,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            mainPage.tabReset();
             // open a table to work on views
             //
             cy.openTableTab("City", 25);

@@ -219,121 +219,6 @@ export class PgUi {
     }
   }
 
-  // static getDefaultLengthForDatatype(type) {
-  //   switch (type) {
-  //     case "int":
-  //       return 11;
-  //       break;
-  //     case "tinyint":
-  //       return 1;
-  //       break;
-  //     case "smallint":
-  //       return 5;
-  //       break;
-  //
-  //     case "mediumint":
-  //       return 9;
-  //       break;
-  //     case "bigint":
-  //       return 20;
-  //       break;
-  //     case "bit":
-  //       return 64;
-  //       break;
-  //     case "boolean":
-  //       return '';
-  //       break;
-  //     case "float":
-  //       return 12;
-  //       break;
-  //     case "decimal":
-  //       return 10;
-  //       break;
-  //     case "double":
-  //       return 22;
-  //       break;
-  //     case "serial":
-  //       return 20;
-  //       break;
-  //     case "date":
-  //       return '';
-  //       break;
-  //     case "datetime":
-  //     case "timestamp":
-  //       return 6;
-  //       break;
-  //     case "time":
-  //       return '';
-  //       break;
-  //     case "year":
-  //       return '';
-  //       break;
-  //     case "char":
-  //       return 255;
-  //       break;
-  //     case "varchar":
-  //       return 45;
-  //       break;
-  //     case "nchar":
-  //       return 255;
-  //       break;
-  //     case "text":
-  //       return '';
-  //       break;
-  //     case "tinytext":
-  //       return '';
-  //       break;
-  //     case "mediumtext":
-  //       return '';
-  //       break;
-  //     case "longtext":
-  //       return ''
-  //       break;
-  //     case "binary":
-  //       return 255;
-  //       break;
-  //     case "varbinary":
-  //       return 65500;
-  //       break;
-  //     case "blob":
-  //       return '';
-  //       break;
-  //     case "tinyblob":
-  //       return '';
-  //       break;
-  //     case "mediumblob":
-  //       return '';
-  //       break;
-  //     case "longblob":
-  //       return '';
-  //       break;
-  //     case "enum":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "set":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "geometry":
-  //       return '';
-  //     case "point":
-  //       return '';
-  //     case "linestring":
-  //       return '';
-  //     case "polygon":
-  //       return '';
-  //     case "multipoint":
-  //       return '';
-  //     case "multilinestring":
-  //       return '';
-  //     case "multipolygon":
-  //       return '';
-  //     case "json":
-  //       return ''
-  //       break;
-  //
-  //   }
-  //
-  // }
 
   static getDefaultLengthForDatatype(type) {
     switch (type) {
@@ -1066,7 +951,7 @@ export class PgUi {
       col.dt === 'bigint' ||
       col.dt === 'smallint') {
       for (let i = 0; i < columns.length; ++i) {
-        if (columns[i].cn !== col.cn && columns[i].ai) {
+        if (columns[i].column_name !== col.column_name && columns[i].ai) {
           return true
         }
       }
@@ -1131,14 +1016,13 @@ export class PgUi {
         columns[i].dt === 'smallint' ||
         columns[i].dt === 'mediumint'))) {
         columns[i].un = false
-        console.log('>> resetting unsigned value', columns[i].cn)
+        console.log('>> resetting unsigned value', columns[i].column_name)
       }
-      console.log(columns[i].cn)
     }
   }
 
   static columnEditable(colObj) {
-    return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions'
+    return colObj.table_name !== '_evolutions' || colObj.table_name !== 'nc_evolutions'
   }
 
   static extractFunctionName(query) {
@@ -1715,7 +1599,6 @@ export class PgUi {
 
       case 'SingleSelect':
         return [
-          'anyenum',
           'text'
         ]
 
@@ -1753,6 +1636,7 @@ export class PgUi {
           'int2',
           'int4',
           'int8',
+          'numeric',
           'serial',
           'serial2',
           'serial8',
@@ -1760,16 +1644,15 @@ export class PgUi {
           'float4',
           'float8',
           'smallint',
-          'smallserial',
-          'numeric'
+          'smallserial'
         ]
 
       case 'Decimal':
         return [
           'double precision',
+          'numeric',
           'float4',
-          'float8',
-          'numeric'
+          'float8'
         ]
 
       case 'Currency':
@@ -1781,13 +1664,13 @@ export class PgUi {
           'int2',
           'int4',
           'int8',
+          'numeric',
           'serial',
           'serial2',
           'serial8',
           'double precision',
           'money', 'float4',
-          'float8',
-          'numeric'
+          'float8'
         ]
 
       case 'Percent':
@@ -1799,6 +1682,7 @@ export class PgUi {
           'int2',
           'int4',
           'int8',
+          'numeric',
           'serial',
           'serial2',
           'serial8',
@@ -1806,8 +1690,7 @@ export class PgUi {
           'float4',
           'float8',
           'smallint',
-          'smallserial',
-          'numeric'
+          'smallserial'
         ]
 
       case 'Duration':
@@ -1819,6 +1702,7 @@ export class PgUi {
           'int2',
           'int4',
           'int8',
+          'numeric',
           'serial',
           'serial2',
           'serial8',
@@ -1826,8 +1710,7 @@ export class PgUi {
           'float4',
           'float8',
           'smallint',
-          'smallserial',
-          'numeric'
+          'smallserial'
         ]
 
       case 'Rating':
@@ -1839,6 +1722,7 @@ export class PgUi {
           'int2',
           'int4',
           'int8',
+          'numeric',
           'serial',
           'serial2',
           'serial8',
@@ -1846,8 +1730,7 @@ export class PgUi {
           'float4',
           'float8',
           'smallint',
-          'smallserial',
-          'numeric'
+          'smallserial'
         ]
 
       case 'Formula':

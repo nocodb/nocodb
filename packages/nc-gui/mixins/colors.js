@@ -8,5 +8,13 @@ export default {
     textColors() {
       return this.$store.state.windows.darkTheme ? colors.light : colors.dark
     }
+  },
+  methods: {
+    getColor(i) {
+      return this.colors[i % this.colors.length]
+    },
+    getTextColor(i) {
+      return this.textColors[i % this.textColors.length]
+    }
   }
 }

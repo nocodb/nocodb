@@ -565,7 +565,7 @@ class ModelXcMetaMssql extends BaseModelXcMeta {
   }
 */
 
-  _getUIDataType(col): any {
+  getUIDataType(col): any {
     switch (this.getAbstractType(col)) {
       case 'integer':
         return 'Number';

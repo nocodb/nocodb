@@ -362,18 +362,12 @@ export default {
           return false
         })
 
-        // await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        //   dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
-        //   env: this.$store.getters['project/GtrEnv']
-        // }, 'xcCronSave', this.selectedItem]);
         if (!errorCrons.length) {
           for (const cron of saveList) {
-            // if (cron !== this.selectedItem && !cron.id) {
             await this.$store.dispatch('sqlMgr/ActSqlOp', [{
               dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
               env: this.$store.getters['project/GtrEnv']
             }, 'xcCronSave', cron])
-            // }
           }
 
           await this.loadCrons()

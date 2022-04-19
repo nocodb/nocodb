@@ -8,6 +8,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            mainPage.tabReset();
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
@@ -76,18 +77,18 @@ export const genTest = (apiType, dbType) => {
 
                 // check if add/ expand options available for 'has many' column type
                 mainPage
-                    .getCell("Country => City", 1)
+                    .getCell("CityList", 1)
                     .click()
                     .find("button.mdi-plus")
                     .should(`${vString}exist`);
                 mainPage
-                    .getCell("Country => City", 1)
+                    .getCell("CityList", 1)
                     .click()
                     .find("button.mdi-arrow-expand")
                     .should(`${vString}exist`);
 
                 // update row option (right click) - should not be available for Lock view
-                mainPage.getCell("Country => City", 1).rightclick();
+                mainPage.getCell("CityList", 1).rightclick();
                 cy.get(".menuable__content__active").should(
                     `${vString}be.visible`
                 );

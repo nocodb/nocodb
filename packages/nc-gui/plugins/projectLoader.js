@@ -1,4 +1,4 @@
-export default async({ store, redirect, $axios, $toast, route }) => {
+export default async({ store, redirect, $axios, $toast, $api, route }) => {
   // if (!route.path || !route.path.startsWith('/nc/')) { await store.dispatch('plugins/pluginPostInstall', 'Branding') }
   if (window.location.search &&
     /\bscope=|\bstate=/.test(window.location.search) &&
@@ -50,27 +50,27 @@ export default async({ store, redirect, $axios, $toast, route }) => {
   )
 
   try {
-    // window.onNuxtReady(async () => {
-    console.log('===== Within nuxt ready handler =====')
     await store.dispatch('project/ActLoadProjectInfo')
-    console.log('==== Projectinfo ', store.state.project.projectInfo)
     if (!store.state.project.projectInfo.projectHasDb) {
       redirect('/')
     } else if (store.state.project.projectInfo.projectHasAdmin === false) {
       redirect('/')
     }
-    // })
   } catch (e) {
     console.log(e)
   }
+
   // fetch latest release info
   const fetchReleaseInfo = async() => {
     try {
-      const releaseInfo = await store.dispatch('sqlMgr/ActSqlOp', [null, 'xcRelease'])
-      if (releaseInfo && releaseInfo.docker && releaseInfo.docker.upgrade) {
-        store.commit('app/MutReleaseVersion', releaseInfo.docker.name)
+      const releaseInfo = await $api.utils.appInfo()
+      const latestRelease = await $api.utils.appVersion()
+      if (releaseInfo && latestRelease && releaseInfo.version) {
+        store.commit('app/MutReleaseVersion', releaseInfo.version)
+        store.commit('app/MutLatestRelease', latestRelease.releaseVersion || null)
       } else {
         store.commit('app/MutReleaseVersion', null)
+        store.commit('app/MutLatestRelease', null)
       }
     } catch (e) {
       // ignore

@@ -22,7 +22,7 @@ export default {
     PasswordValidate(p) {
       if (!p) {
         this.passwordProgress = 0
-        this.passwordValidateMsg = 'Atleast 8 letters with one Uppercase, one number and one special letter'
+        this.passwordValidateMsg = 'At least 8 letters with one Uppercase, one number and one special letter'
         return false
       }
 

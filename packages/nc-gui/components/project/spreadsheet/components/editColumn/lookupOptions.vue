@@ -12,15 +12,15 @@
             :label="$t('labels.childTable')"
             :full-width="false"
             :items="refTables"
-            item-text="_ltn"
+            item-text="title"
             :item-value="v => v"
             :rules="[v => !!v || 'Required']"
             dense
           >
             <template #item="{item}">
               <span class="caption"><span class="font-weight-bold"> {{
-                item._ltn
-              }}</span> <small>({{ relationNames[item.type] }})
+                item.title || item.table_name
+              }}</span> <small>({{ relationNames[item.col.type] }})
               </small></span>
             </template>
           </v-autocomplete>
@@ -35,7 +35,7 @@
             :label="$t('labels.childColumn')"
             :full-width="false"
             :items="columnList"
-            item-text="_lcn"
+            item-text="title"
             dense
             :loading="loadingColumns"
             :item-value="v => v"
@@ -48,6 +48,8 @@
 </template>
 
 <script>
+
+import { isSystemColumn, UITypes } from 'nocodb-sdk'
 
 export default {
   name: 'LookupOptions',
@@ -64,71 +66,27 @@ export default {
   }),
   computed: {
     refTables() {
-      const findVirtualColumnName = (relation, type) => {
-        return this.meta.v.find(
-          v =>
-            v?.[type]?.rtn === relation?.rtn &&
-            v?.[type]?.tn === relation?.tn &&
-            v?.[type]?.cn === relation?.cn
-        )?._cn
+      if (!this.tables || !this.tables.length) {
+        return []
       }
 
-      return (this.meta
-        ? [
-            ...(this.meta.belongsTo || []).map(({ rtn, _rtn, rcn, tn, cn }) => ({
-              type: 'bt',
-              rtn,
-              _rtn,
-              rcn,
-              tn,
-              cn,
-              ltn: rtn,
-              _ltn: findVirtualColumnName({ tn, cn, rtn }, 'bt')
-            })),
-            ...(this.meta.hasMany || []).map(({
-              tn,
-              _tn,
-              cn,
-              rcn,
-              rtn
-            }) => ({
-              type: 'hm',
-              tn,
-              _tn,
-              cn,
-              rcn,
-              rtn,
-              ltn: tn,
-              _ltn: findVirtualColumnName({ tn, cn, rtn }, 'hm')
-            })),
-            ...(this.meta.manyToMany || []).map(({ vtn, _vtn, vrcn, vcn, rtn, _rtn, rcn, tn, cn }) => ({
-              type: 'mm',
-              tn,
-              cn,
-              vtn,
-              _vtn,
-              vrcn,
-              rcn,
-              rtn,
-              vcn,
-              _rtn,
-              ltn: rtn,
-              _ltn: _rtn
-            }))
-          ]
-        : []).filter(t => this.tables.includes(t.ltn))
+      const refTables = this.meta.columns.filter(c =>
+        c.uidt === UITypes.LinkToAnotherRecord && !c.system
+      ).map(c => ({
+        col: c.colOptions,
+        ...this.tables.find(t => t.id === c.colOptions.fk_related_model_id)
+      }))
+
+      return refTables
     },
     columnList() {
       return ((
         this.lookup &&
         this.lookup.table &&
         this.$store.state.meta.metas &&
-        this.$store.state.meta.metas[this.lookup.table.ltn] &&
-        this.$store.state.meta.metas[this.lookup.table.ltn].columns
-      ) || []).map(({ cn, _cn }) => ({
-        lcn: cn,
-        _lcn: _cn
-      }))
+        this.$store.state.meta.metas[this.lookup.table.id] &&
+        this.$store.state.meta.metas[this.lookup.table.id].columns
+      ) || []).filter(c => !isSystemColumn(c))
     }
   },
   async mounted() {
@@ -136,12 +94,8 @@ export default {
   },
   methods: {
     async loadTablesList() {
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'tableList'])
-
-      this.tables = result.data.list.map(({ tn }) => tn)
+      const result = (await this.$api.dbTable.list(this.$store.state.project.projectId, this.$store.state.project.project.bases[0].id))
+      this.tables = result.list
     },
     checkLookupExist(v) {
       return (this.lookup.table && (this.meta.v || []).every(c => !(
@@ -158,7 +112,7 @@ export default {
           await this.$store.dispatch('meta/ActLoadMeta', {
             dbAlias: this.nodes.dbAlias,
             env: this.nodes.env,
-            tn: this.lookup.table.ltn
+            id: this.lookup.table.id
           })
         } catch (e) {
           // ignore
@@ -169,32 +123,18 @@ export default {
     },
     async save() {
       try {
-        await this.$store.dispatch('meta/ActLoadMeta', {
-          dbAlias: this.nodes.dbAlias,
-          env: this.nodes.env,
-          tn: this.meta.tn,
-          force: true
-        })
-        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
+        const lookupCol = {
+          title: this.alias,
+          fk_relation_column_id: this.lookup.table.col.fk_column_id,
+          fk_lookup_column_id: this.lookup.column.id,
+          uidt: UITypes.Lookup
+        }
 
-        meta.v.push({
-          _cn: this.alias,
-          lk: {
-            ...this.lookup.table,
-            ...this.lookup.column
-          }
-        })
-
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'xcModelSet', {
-          tn: this.nodes.tn,
-          meta
-        }])
+        await this.$api.dbTableColumn.create(this.meta.id, lookupCol)
 
         return this.$emit('saved', this.alias)
       } catch (e) {
+        console.log(e)
         this.$toast.error(e.message).goAway(3000)
       }
     }

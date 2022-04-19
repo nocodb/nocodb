@@ -10,8 +10,6 @@ import { SqliteUi } from './SqliteUi'
 
 export class SqlUI {
   static create(connectionConfig) {
-    // connectionConfig.meta = connectionConfig.meta || {};
-    // connectionConfig.meta.dbtype = connectionConfig.meta.dbtype || "";
     if (connectionConfig.client === 'mysql' || connectionConfig.client === 'mysql2') {
       // if (connectionConfig.meta.dbtype === "tidb")
       //   return Tidb;

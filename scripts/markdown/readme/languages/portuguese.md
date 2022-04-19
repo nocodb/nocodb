@@ -11,7 +11,7 @@ Transforma qualquer MySQL, PostgreSQL, SQL Server, Sqlite e MariaDB em uma plani
 <div align="center">
  
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
-[![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2014.18.0-brightgreen)](http://nodejs.org/download/)
 [![Conventional Commits](https://img.shields.io/badge/Conventional%20Commits-1.0.0-green.svg)](https://conventionalcommits.org)
 
 </div>
@@ -59,7 +59,7 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   Example:
 
   ```
-  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
   ```
 
 ### Usando npm.

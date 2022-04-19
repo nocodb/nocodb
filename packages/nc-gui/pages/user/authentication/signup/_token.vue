@@ -34,7 +34,8 @@
               </div>
               <v-form v-if=" type === 'jwt'" ref="formType" v-model="formUtil.valid" elevation-20 @submit="MtdOnSignup">
                 <p v-if="firstUser" class="success--text">
-                  {{ $t('signup.message_1') }}
+                  <!-- You will be the 'Super Admin' -->
+                  {{ $t('msg.info.signUp.superAdmin') }}
                 </p>
 
                 <v-text-field
@@ -431,7 +432,6 @@ export default {
           if (err) {
             this.formUtil.formErr = true
             this.formUtil.formErrMsg = err.data.msg
-            console.log(err.data.msg)
             return
           }
 

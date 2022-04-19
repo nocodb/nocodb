@@ -15,7 +15,7 @@
                        href: '#'
                      },
                      {
-                       text: nodes.tn + ' (ACL)',
+                       text: nodes.table_name + ' (ACL)',
                        disabled: true,
                        href: '#'
                      }]"
@@ -78,7 +78,7 @@
         dense
         hide-details
         class="ma-2"
-        :placeholder="`Search ${nodes.tn} resolvers`"
+        :placeholder="`Search ${nodes.table_name} resolvers`"
         prepend-inner-icon="search"
         outlined
       />
@@ -99,9 +99,9 @@
                       v-on="on"
                     />
                   </template>
-                  <span>{{ allToggle ? 'Disable' : 'Enable' }} all {{ nodes.tn }} resolvers for all roles</span>
+                  <span>{{ allToggle ? 'Disable' : 'Enable' }} all {{ nodes.table_name }} resolvers for all roles</span>
                 </v-tooltip>
-                <span class="title">{{ nodes.tn }} Resolvers</span>
+                <span class="title">{{ nodes.table_name }} Resolvers</span>
               </div>
             </th>
             <th
@@ -272,12 +272,12 @@ export default {
         // this.policies = (await this.sqlMgr.xcResolverPolicyGet({
         //   env: this.nodes.env,
         //   dbAlias: this.nodes.dbAlias,
-        //   tn: this.nodes.tn
+        //   tn: this.nodes.table_name
         // })).data.list;
         this.policies = (await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcResolverPolicyGet', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
-          tn: this.nodes.tn
+          tn: this.nodes.table_name
         }])).data.list
 
         // .data.list;
@@ -297,17 +297,10 @@ export default {
     },
     async save() {
       try {
-        // await this.sqlMgr.xcResolverPolicyUpdate({
-        //   env: this.nodes.env,
-        //   dbAlias: this.nodes.dbAlias,
-        //   tn: this.nodes.tn,
-        //   data: this.data
-        // })
-
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcResolverPolicyUpdate', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
-          tn: this.nodes.tn,
+          tn: this.nodes.table_name,
           data: this.data
         }])
 

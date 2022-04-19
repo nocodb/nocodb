@@ -30,10 +30,10 @@
           <v-list dense>
             <v-list-item
               v-for="col in availableRealColumns"
-              :key="col.cn"
-              @click="searchField = col._cn"
+              :key="col.column_name"
+              @click="searchField = col.title"
             >
-              <span class="caption">{{ col._cn }}</span>
+              <span class="caption">{{ col.title }}</span>
             </v-list-item>
           </v-list>
         </v-menu>
@@ -45,7 +45,7 @@
         <v-text-field
           v-model="searchQueryVal"
           autocomplete="new-password"
-          style="min-width: 100px ; width: 150px"
+          style="min-width: 100px ; width: 120px"
           flat
           dense
           solo
@@ -64,37 +64,47 @@
         relationPrimaryValue
       }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
       <div class="d-inline-flex">
-        <fields
-          v-if="!isForm"
-          v-model="showFields"
-          :field-list="fieldList"
-          :meta="meta"
-          :is-locked="isLocked"
-          :fields-order.sync="fieldsOrder"
-          :sql-ui="sqlUi"
-          :show-system-fields.sync="showSystemFields"
-          :cover-image-field.sync="coverImageField"
-          :grouping-field.sync="groupingField"
-          :is-gallery="isGallery"
-          :is-kanban="isKanban"
-        />
+        <div>
+          <fields
+            v-if="!isForm"
+            ref="fields"
+            v-model="showFields"
+            :field-list="fieldList"
+            :meta="meta"
+            :is-locked="isLocked"
+            :fields-order.sync="fieldsOrder"
+            :sql-ui="sqlUi"
+            :show-system-fields.sync="showSystemFields"
+            :cover-image-field.sync="coverImageField"
+            :grouping-field.sync="groupingField"
+            :is-gallery="isGallery"
+            :is-kanban="isKanban"
+            :view-id="selectedViewId"
+            @updated="loadTableData"
+          />
 
-        <sort-list
-          v-if="!isForm"
-          v-model="sortList"
-          :is-locked="isLocked"
-          :field-list="[...realFieldList, ...formulaFieldList]"
-        />
-        <column-filter
-          v-if="!isForm"
-          v-model="filters"
-          :meta="meta"
-          :is-locked="isLocked"
-          :field-list="[...realFieldList, ...formulaFieldList]"
-          dense
-        />
-
-        <share-view-menu @share="$refs.drawer && $refs.drawer.genShareLink()" />
+          <sort-list
+            v-if="!isForm "
+            v-model="sortList"
+            :is-locked="isLocked"
+            :meta="meta"
+            :view-id="selectedViewId"
+            @updated="loadTableData"
+          />
+          <!--        v-model="sortList"-->
+          <!--        :field-list="[...realFieldList, ...formulaFieldList]"-->
+          <column-filter
+            v-if="!isForm "
+            v-model="filters"
+            :meta="meta"
+            :is-locked="isLocked"
+            :field-list="[...realFieldList, ...formulaFieldList]"
+            dense
+            :view-id="selectedViewId"
+            @updated="loadTableData"
+          />
+        </div>
+        <share-view-menu v-if="!isGallery" @share="$refs.drawer && $refs.drawer.genShareLink()" />
 
         <MoreActions
           v-if="!isForm"
@@ -108,14 +118,35 @@
             showFields
           }"
           :selected-view="selectedView"
+          :is-view="isView"
           @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
           @webhook="showAdditionalFeatOverlay('webhooks')"
           @reload="reload"
         />
       </div>
-      <v-spacer class="h-100" @dblclick="debug=true" />
+      <v-spacer class="h-100" @click="clickCount = clickCount + 1; debug=clickCount >= 4" />
 
       <template v-if="!isForm">
+        <!-- Export Cache -->
+        <v-tooltip v-if="debug" bottom>
+          <template #activator="{on}">
+            <v-icon class="mr-3" small v-on="on" @click="exportCache">
+              mdi-export
+            </v-icon>
+          </template>
+          <span class="caption"> Export Cache
+          </span>
+        </v-tooltip>
+        <!-- Delete Cache -->
+        <v-tooltip v-if="debug" bottom>
+          <template #activator="{on}">
+            <v-icon class="mr-3" small v-on="on" @click="deleteCache">
+              mdi-delete
+            </v-icon>
+          </template>
+          <span class="caption"> Delete Cache
+          </span>
+        </v-tooltip>
         <debug-metas v-if="debug" class="mr-3" />
         <v-tooltip bottom>
           <template #activator="{on}">
@@ -126,7 +157,7 @@
           <span class="caption">          Update & Delete not allowed since the table doesn't have any primary key
           </span>
         </v-tooltip>
-        <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
+        <lock-menu v-if="_isUIAllowed('view-type')" v-model="lockType" />
 
         <!--        <x-btn
           tooltip="Reload view data"
@@ -144,7 +175,7 @@
           :tooltip="$t('general.reload')"
           icon.class="nc-table-reload-btn mx-1"
           small
-          @click="reload"
+          @click="reloadClick"
         >
           mdi-reload
         </x-icon>
@@ -170,13 +201,13 @@
 
         <!--          tooltip="Add new row"-->
         <x-icon
-          v-if="isEditable && relationType !== 'bt'"
+          v-if="!isView &&isEditable && relationType !== 'bt'"
           icon.class="nc-add-new-row-btn mx-1"
           :tooltip="$t('activity.addRow')"
           :disabled="isLocked"
           small
           :color="['success','']"
-          @click="insertNewRow(true,true)"
+          @click="clickAddNewIcon"
         >
           mdi-plus-outline
         </x-icon>
@@ -252,7 +283,7 @@
         small
         text
         :btn-class="{ 'primary lighten-5 nc-toggle-nav-drawer' : !toggleDrawer}"
-        @click="toggleDrawer = !toggleDrawer"
+        @click="toggleDrawer = !toggleDrawer; toggleClick()"
       >
         <v-icon
           small
@@ -270,15 +301,17 @@
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
         <div
+          v-if="selectedViewId && selectedView"
           ref="table"
           :style="{height:isForm ? '100%' : 'calc(100% - 36px)'}"
           style="overflow: auto;width:100%"
         >
-          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />
-          <template v-else-if="selectedView && (selectedView.type === 'table' || selectedView.show_as === 'grid' )">
+          <!--          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />-->
+          <template v-if=" selectedView.type === viewTypes.GRID">
             <xc-grid-view
-              :key="key + selectedViewId"
               ref="ncgridview"
+              :loading="loadingData"
+              :is-view="isView"
               droppable
               :relation-type="relationType"
               :columns-width.sync="columnsWidth"
@@ -295,23 +328,25 @@
               :data="data"
               :visible-col-length="visibleColLength"
               :meta="meta"
-              :is-virtual="selectedView.type === 'vtable'"
+              :is-virtual="selectedView && selectedView.type === 'vtable'"
               :api="api"
               :is-pk-avail="isPkAvail"
+              :view-id="selectedViewId"
               @drop="onFileDrop"
               @onNewColCreation="onNewColCreation"
+              @colDelete="onColDelete"
               @onCellValueChange="onCellValueChange"
               @insertNewRow="insertNewRow"
               @showRowContextMenu="showRowContextMenu"
-              @addNewRelationTab="addNewRelationTab"
               @expandRow="expandRow"
               @onRelationDelete="loadMeta"
               @loadTableData="loadTableData"
               @loadMeta="loadMeta"
             />
           </template>
-          <template v-else-if="isGallery ">
+          <template v-else-if="selectedView.type === viewTypes.GALLERY ">
             <gallery-view
+              :is-locked="isLocked"
               :nodes="nodes"
               :table="table"
               :show-fields="showFields"
@@ -319,8 +354,9 @@
               :meta="meta"
               :data="data"
               :sql-ui="sqlUi"
+              :view-id="selectedViewId"
               :primary-value-column="primaryValueColumn"
-              :cover-image-field="coverImageField"
+              :cover-image-field.sync="coverImageField"
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
@@ -361,10 +397,12 @@
               @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
             />
           </template>
-          <template v-else-if="isForm">
+          <template v-else-if=" selectedView.type === viewTypes.FORM">
             <form-view
               :id="selectedViewId"
+              ref="formView"
               :key="selectedViewId + viewKey"
+              :view-id="selectedViewId"
               :nodes="nodes"
               :table="table"
               :available-columns="availableColumns"
@@ -380,22 +418,25 @@
               :fields-order.sync="fieldsOrder"
               :primary-value-column="primaryValueColumn"
               :form-params.sync="extraViewParams.formParams"
+              :view.sync="selectedView"
+              :view-title="selectedView.title"
               @onNewColCreation="loadMeta(false)"
             />
           </template>
         </div>
-        <template v-if="data && !isForm && !isKanban">
+        <template v-if="data && (isGrid || isGallery)">
           <pagination
             v-model="page"
             :count="count"
             :size="size"
-            @input="loadTableData"
+            @input="clickPagination"
           />
         </template>
       </div>
-
       <spreadsheet-nav-drawer
+        v-if="meta"
         ref="drawer"
+        :is-view="isView"
         :current-api-url="currentApiUrl"
         :toggle-drawer="toggleDrawer"
         :nodes="nodes"
@@ -419,6 +460,8 @@
         :columns-width.sync="columnsWidth"
         :show-system-fields.sync="showSystemFields"
         :extra-view-params.sync="extraViewParams"
+        :views.sync="meta.views"
+        @rerender="viewKey++"
         @generateNewViewKey="generateNewViewKey"
         @mapFieldsAndShowFields="mapFieldsAndShowFields"
         @loadTableData="loadTableData"
@@ -508,6 +551,7 @@
         <template v-if="isEditable && !isLocked">
           <v-list-item
             v-if="relationType !== 'bt'"
+            v-t="['record:right-click:insert']"
             @click="insertNewRow(false)"
           >
             <span class="caption">
@@ -515,13 +559,13 @@
               {{ $t('activity.insertRow') }}
             </span>
           </v-list-item>
-          <v-list-item @click="deleteRow">
+          <v-list-item v-t="['record:right-click:delete']" @click="deleteRow">
             <span class="caption">
               <!-- Delete Row -->
               {{ $t('activity.deleteRow') }}
             </span>
           </v-list-item>
-          <v-list-item @click="deleteSelectedRows">
+          <v-list-item v-t="['record:right-click:delete-selected']" @click="deleteSelectedRows">
             <span class="caption">
               <!-- Delete Selected Rows -->
               {{ $t('activity.deleteSelectedRow') }}
@@ -531,7 +575,7 @@
         <template v-if="rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual">
           <v-tooltip bottom>
             <template #activator="{on}">
-              <v-list-item v-on="on" @click="clearCellValue">
+              <v-list-item v-t="['record:right-click:clear']" v-on="on" @click="clearCellValue">
                 <span class="caption">Clear</span>
               </v-list-item>
             </template>
@@ -539,24 +583,6 @@
             <span class="caption">Set column value to <strong>null</strong></span>
           </v-tooltip>
         </template>
-
-        <!--        <template v-if="meta.hasMany && meta.hasMany.length">
-          <v-divider v-if="isEditable && !isLocked" />
-          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Has Many</span>
-
-          <v-list-item v-for="(hm,i) in meta.hasMany" :key="i" @click="addNewRelationTabCtxMenu(hm,'hm')">
-            <span class="caption text-capitalize">{{ hm._tn }}</span>
-          </v-list-item>
-        </template>
-
-        <template v-if="meta.belongsTo && meta.belongsTo.length">
-          <v-divider />
-          <span class="ml-3 grey&#45;&#45;text " style="font-size: 9px">Belongs To</span>
-
-          <v-list-item v-for="(bt,i) in belongsTo" :key="i" @click="addNewRelationTabCtxMenu(bt,'bt')">
-            <span class="caption text-capitalize">{{ bt._rtn }}</span>
-          </v-list-item>
-        </template>-->
       </v-list>
     </v-menu>
     <v-dialog
@@ -583,10 +609,12 @@
         :primary-value-column="primaryValueColumn"
         :api="api"
         :available-columns="availableColumns"
+        :show-fields="showFields"
         :nodes="nodes"
         :query-params="queryParams"
         :show-next-prev="false"
         :preset-values="presetValues"
+        :is-locked="isLocked"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (kanban.selectedExpandRow && kanban.selectedExpandRow.rowMeta && delete kanban.selectedExpandRow.rowMeta.new) ; loadKanbanData(false)"
         @commented="reloadComments"
@@ -600,6 +628,7 @@
         :db-alias="nodes.dbAlias"
         :has-many="hasMany"
         :belongs-to="belongsTo"
+        :show-fields="showFields"
         :table="table"
         :old-row.sync="data[selectedExpandRowIndex].oldRow"
         :is-new="data[selectedExpandRowIndex].rowMeta.new"
@@ -613,6 +642,7 @@
         :query-params="queryParams"
         :show-next-prev="true"
         :preset-values="presetValues"
+        :is-locked="isLocked"
         @cancel="showExpandModal = false;"
         @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
         @commented="reloadComments"
@@ -628,6 +658,7 @@
       :nodes="nodes"
       :type="featureType"
       :table="table"
+      :meta="meta"
     />
   </v-container>
 </template>
@@ -636,6 +667,8 @@
 
 import { mapActions } from 'vuex'
 import debounce from 'debounce'
+import { SqlUiFactory, ViewTypes } from 'nocodb-sdk'
+import FileSaver from 'file-saver'
 import FormView from './views/formView'
 import XcGridView from './views/xcGridView'
 import spreadsheet from './mixins/spreadsheet'
@@ -651,7 +684,6 @@ import SpreadsheetNavDrawer from '@/components/project/spreadsheet/components/sp
 import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
 import ExpandedForm from '@/components/project/spreadsheet/components/expandedForm'
 import Pagination from '@/components/project/spreadsheet/components/pagination'
-import { SqlUI } from '~/helpers/sqlUi'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
 import MoreActions from '~/components/project/spreadsheet/components/moreActions'
 import ShareViewMenu from '~/components/project/spreadsheet/components/shareViewMenu'
@@ -678,11 +710,11 @@ export default {
   },
   mixins: [spreadsheet],
   props: {
+    isView: Boolean,
     isActive: Boolean,
     tabId: String,
     env: String,
     nodes: Object,
-    addNewRelationTab: Function,
     relationType: String,
     relation: Object,
     relationIdValue: [String, Number],
@@ -711,7 +743,7 @@ export default {
     fieldsOrder: [],
     coverImageField: null,
     groupingField: null,
-    showSystemFields: false,
+    // showSystemFields: false,
     showAdvanceOptions: false,
     loadViews: false,
     selectedView: {},
@@ -727,7 +759,7 @@ export default {
     loadingMeta: true,
     loadingData: true,
     toggleDrawer: false,
-    selectedViewId: 0,
+    selectedViewId: '',
     searchField: null,
     searchQuery: '',
     showExpandModal: false,
@@ -783,7 +815,8 @@ export default {
       selectedExpandRow: null,
       selectedExpandOldRow: null,
       selectedExpandRowMeta: null
-    }
+    },
+    clickCount: 0
   }),
   watch: {
     isActive(n, o) {
@@ -823,47 +856,24 @@ export default {
         if (this.tabsState[this.uniqueId].page) {
           this.page = this.tabsState[this.uniqueId].page
         }
-        // if (this.tabsState[this.tabId].selectedViewId) {
-        //   this.selectedViewId = this.tabsState[this.tabId].selectedViewId
-        // }
       }
-
       await this.createTableIfNewTable()
       this.loadingMeta = true
       await this.loadMeta(false)
       this.loadingMeta = false
-      if (this.relationType === 'hm') {
-        this.filters.push({
-          field: this.meta.columns.find(c => c.cn === this.relation.cn)._cn,
-          op: 'is equal',
-          value: this.relationIdValue,
-          readOnly: true
-        })
-      } else if (this.relationType === 'bt') {
-        this.filters.push({
-          // field: this.relation.rcn,
-          field: this.meta.columns.find(c => c.cn === this.relation.rcn)._cn,
-          op: 'is equal',
-          value: this.relationIdValue,
-          readOnly: true
-        })
-      } else {
-        // await this.$refs.drawer.loadViews();
-        if (this.selectedView && this.selectedView.show_as === 'kanban') {
-          await this.loadKanbanData()
-        } else {
-          await this.loadTableData()
-        }
-      }
-      // this.mapFieldsAndShowFields()
     } catch (e) {
       console.log(e)
     }
     this.searchField = this.primaryValueColumn
-    this.dataLoaded = true
-    // await this.loadViews();
   },
   methods: {
+    clickAddNewIcon() {
+      this.insertNewRow(true, true)
+      this.$tele.emit('record:add-row:icon:trigger')
+    },
+    toggleClick() {
+      this.$tele.emit('right-nav:toggle')
+    },
     ...mapActions({
       loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
     }),
@@ -876,16 +886,25 @@ export default {
     loadPrev() {
       this.selectedExpandRowIndex = --this.selectedExpandRowIndex === -1 ? this.data.length - 1 : this.selectedExpandRowIndex
     },
-    checkAndDeleteTable() {
-      if (
-        !this.meta || (
-          (this.meta.hasMany && this.meta.hasMany.length) ||
-          (this.meta.manyToMany && this.meta.manyToMany.length) ||
-          (this.meta.belongsTo && this.meta.belongsTo.length))
-      ) {
-        return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
-      }
-      this.deleteTable('showDialog')
+    async checkAndDeleteTable() {
+      // if (
+      //   !this.meta || (
+      //     (this.meta.hasMany && this.meta.hasMany.length) ||
+      //     (this.meta.manyToMany && this.meta.manyToMany.length) ||
+      //     (this.meta.belongsTo && this.meta.belongsTo.length))
+      // ) {
+      //   return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
+      // }
+      this.deleteTable('showDialog', this.meta.id)
+
+      // if (confirm('Do you want to delete the table?')) {
+      //   await this.$api.meta.tableDelete(this.meta.id)
+      // }
+      this.$tele.emit('table:delete:trigger')
+    },
+    async reloadClick() {
+      await this.reload()
+      this.$tele.emit('table:reload')
     },
     async reload() {
       this.$store.dispatch('meta/ActLoadMeta', {
@@ -907,43 +926,6 @@ export default {
       }
     },
     async syncData() {
-      if (this.relation) {
-        return
-      }
-      try {
-        const queryParams = {
-          filters: this.filters,
-          sortList: this.sortList,
-          showFields: this.showFields,
-          fieldsOrder: this.fieldsOrder,
-          viewStatus: this.viewStatus,
-          columnsWidth: this.columnsWidth,
-          showSystemFields: this.showSystemFields,
-          extraViewParams: this.extraViewParams
-        }
-
-        if (this.isGallery) {
-          queryParams.coverImageField = this.coverImageField
-        }
-
-        if (this.isKanban) {
-          queryParams.groupingField = this.groupingField
-        }
-
-        this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams))
-
-        if (!this._isUIAllowed('xcVirtualTableUpdate')) {
-          return
-        }
-        await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableUpdate', {
-          id: this.selectedViewId,
-          query_params: queryParams,
-          tn: this.meta.tn,
-          view_name: this.$route.query.view
-        })
-      } catch (e) {
-        // this.$toast.error(e.message).goAway(3000);
-      }
     },
     showAdditionalFeatOverlay(feat) {
       this.showAddFeatOverlay = true
@@ -951,18 +933,16 @@ export default {
     },
     async createTableIfNewTable() {
       if (this.nodes.newTable && !this.nodes.tableCreated) {
-        const columns = this.sqlUi.getNewTableColumns().filter(col => this.nodes.newTable.columns.includes(col.cn))
-        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+        const columns = this.sqlUi.getNewTableColumns().filter(col => this.nodes.newTable.columns.includes(col.column_name))
+        await this.$api.dbTable.create(
+          this.projectId,
           {
-            env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
-          },
-          'tableCreate',
-          {
-            tn: this.nodes.tn,
-            _tn: this.nodes._tn,
+            table_name: this.nodes.table_name,
+            title: this.nodes.title,
             columns
-          }])
+          }
+        )
+
         await this.loadTablesFromChildTreeNode({
           _nodes: {
             ...this.nodes
@@ -978,31 +958,18 @@ export default {
     comingSoon() {
       this.$toast.info('Coming soon!').goAway(3000)
     },
-    addNewRelationTabCtxMenu(obj, type) {
-      const rowObj = this.rowContextMenu.row
-
-      this.addNewRelationTab(
-        obj,
-        this.table,
-        this.meta._tn || this.table,
-        type === 'hm' ? obj.tn : obj.rtn,
-        type === 'hm' ? obj._tn : obj._rtn,
-        // todo: column name alias
-        rowObj[type === 'hm' ? obj.rcn : obj._cn],
-        type,
-        rowObj,
-        rowObj[this.primaryValueColumn]
-      )
-    },
     changed(col, row) {
       this.$set(this.data[row].rowMeta, 'changed', this.data[row].rowMeta.changed || {})
       if (this.data[row].rowMeta) {
-        this.$set(this.data[row].rowMeta.changed, this.availableColumns[col].cn, true)
+        this.$set(this.data[row].rowMeta.changed, this.availableColumns[col].column_name, true)
       }
     },
     async save() {
       for (let row = 0; row < this.rowLength; row++) {
-        const { row: rowObj, rowMeta } = this.data[row]
+        const {
+          row: rowObj,
+          rowMeta
+        } = this.data[row]
         if (rowMeta.new) {
           try {
             this.$set(this.data[row], 'saving', true)
@@ -1011,23 +978,29 @@ export default {
             })
             if (this.meta.columns.every((col) => {
               return !col.ai
-            }) && pks.length && pks.every(col => !rowObj[col._cn] && !(col.columnDefault || col.default))) {
+            }) && pks.length && pks.every(col => !rowObj[col.title] && !(col.columnDefault || col.default))) {
               return this.$toast.info('Primary column is empty please provide some value').goAway(3000)
             }
             if (this.meta.columns.some((col) => {
-              return !col.ai && col.rqd && (rowObj[col._cn] === undefined || rowObj[col._cn] === null) && !col.default
+              return !col.ai && col.rqd && (rowObj[col.title] === undefined || rowObj[col.title] === null) && !col.cdf
             })) {
               return
             }
 
             const insertObj = this.meta.columns.reduce((o, col) => {
-              if (!col.ai && (rowObj && rowObj[col._cn]) !== null) {
-                o[col._cn] = rowObj && rowObj[col._cn]
+              if (!col.ai && (rowObj && rowObj[col.title]) !== null) {
+                o[col.title] = rowObj && rowObj[col.title]
               }
               return o
             }, {})
 
-            const insertedData = await this.api.insert(insertObj)
+            // const insertedData = await this.api.insert(insertObj)
+            const insertedData = await this.$api.dbViewRow.create(
+              'noco',
+              this.projectName,
+              this.meta.title,
+              this.selectedView.title, insertObj
+            )
 
             this.data.splice(row, 1, {
               row: insertedData,
@@ -1039,16 +1012,19 @@ export default {
               position: 'bottom-center'
             }).goAway(3000) */
           } catch (e) {
-            if (e.response && e.response.data && e.response.data.msg) {
-              this.$toast.error(e.response.data.msg).goAway(3000)
-            } else {
-              this.$toast.error(`Failed to save row : ${e.message}`).goAway(3000)
-            }
+            // if (e.response && e.response.data && e.response.data.msg) {
+            this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
+            // } else {
+            //   this.$toast.error(`Failed to
+            //
+            //   row : ${e.message}`).goAway(3000)
+            // }
           } finally {
             this.$set(this.data[row], 'saving', false)
           }
         }
       }
+      this.syncCount()
     },
     // // todo: move debounce to cell since this will skip few update api call
     // onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
@@ -1057,27 +1033,33 @@ export default {
     // onCellValueChange(col, row, column) {
     //   this.onCellValueChangeFn(col, row, column)
     // },
-    async onCellValueChange(col, row, column) {
+    async onCellValueChange(col, row, column, saved = true) {
       if (!this.data[row]) {
         return
       }
-      const { row: rowObj, rowMeta, oldRow, saving } = this.data[row]
+      const { row: rowObj, rowMeta, oldRow, saving, lastSave } = this.data[row]
+      if (!lastSave) {
+        this.$set(this.data[row], 'lastSave', rowObj[column.title])
+      }
       if (rowMeta.new) {
         // return if there is no change
-        if (oldRow[column._cn] === rowObj[column._cn] || saving) {
+        if ((column && oldRow[column.title] === rowObj[column.title]) || saving) {
           return
         }
         await this.save()
       } else {
         try {
-          if (!this.api) {
-            return
-          }
+          // if (!this.api) {
+          //   return
+          // }
           // return if there is no change
-          if (oldRow[column._cn] === rowObj[column._cn]) {
+          if (!column || (oldRow[column.title] === rowObj[column.title] && ((lastSave || rowObj[column.title]) === rowObj[column.title]))) {
             return
           }
-          const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
+          if (saved) {
+            this.$set(this.data[row], 'lastSave', oldRow[column.title])
+          }
+          const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c.title]).join('___')
 
           if (!id) {
             return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
@@ -1085,21 +1067,39 @@ export default {
           this.$set(this.data[row], 'saving', true)
 
           // eslint-disable-next-line promise/param-names
-          const newData = await this.api.update(id, {
-            [column._cn]: rowObj[column._cn]
-          }, { [column._cn]: oldRow[column._cn] })
+          const newData = (await this.$api.dbViewRow.update(
+            'noco',
+            this.projectName,
+            this.meta.title,
+            this.selectedView.title,
+            id, {
+              [column.title]: rowObj[column.title]
+            }, {
+              query: { ignoreWebhook: !saved }
+            }))
+
+          // audit
+          this.$api.utils.auditRowUpdate(id, {
+            fk_model_id: this.meta.id,
+            column_name: column.title,
+            row_id: id,
+            value: rowObj[column.title],
+            prev_value: oldRow[column.title]
+          }).then(() => {
+          })
+
           this.$set(this.data[row], 'row', { ...rowObj, ...newData })
 
-          this.$set(oldRow, column._cn, rowObj[column._cn])
-          /*    this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.cn}' updated successfully.`, {
+          this.$set(oldRow, column.title, rowObj[column.title])
+          /*    this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.column_name}' updated successfully.`, {
             position: 'bottom-center'
           }).goAway(3000) */
         } catch (e) {
-          if (e.response && e.response.data && e.response.data.msg) {
-            this.$toast.error(e.response.data.msg).goAway(3000)
-          } else {
-            this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
-          }
+          // if (e.response && e.response.data && e.response.data.msg) {
+          this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
+          // } else {
+          //   this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
+          // }
         }
 
         this.$set(this.data[row], 'saving', false)
@@ -1109,15 +1109,15 @@ export default {
       try {
         const rowObj = this.rowContextMenu.row
         if (!this.rowContextMenu.rowMeta.new) {
-          const id = this.meta && this.meta.columns && this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
+          const id = this.meta && this.meta.columns && this.meta.columns.filter(c => c.pk).map(c => rowObj[c.title]).join('___')
 
           if (!id) {
             return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
           }
-
-          await this.api.delete(id)
+          await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.title, this.selectedView.title, id)
         }
         this.data.splice(this.rowContextMenu.index, 1)
+        this.syncCount()
         // this.$toast.success('Deleted row successfully').goAway(3000)
       } catch (e) {
         this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
@@ -1128,35 +1128,41 @@ export default {
       // let success = 0
       while (row--) {
         try {
-          const { row: rowObj, rowMeta } = this.data[row]
+          const {
+            row: rowObj,
+            rowMeta
+          } = this.data[row]
           if (!rowMeta.selected) {
             continue
           }
           if (!rowMeta.new) {
-            const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c._cn]).join('___')
+            const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c.title]).join('___')
 
             if (!id) {
               return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
             }
-
-            await this.api.delete(id)
+            await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.title, this.selectedView.title, id)
           }
           this.data.splice(row, 1)
-          // success++
         } catch (e) {
           return this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
         }
       }
-      // if (success) { this.$toast.success(`Deleted ${success} selected row${success > 1 ? 's' : ''} successfully`).goAway(3000) }
+      this.syncCount()
     },
 
     async clearCellValue() {
-      const { col, colIndex, row, index } = this.rowContextMenu
-      if (row[col._cn] === null) {
+      const {
+        col,
+        colIndex,
+        row,
+        index
+      } = this.rowContextMenu
+      if (row[col.title] === null) {
         return
       }
-      this.$set(this.data[index].row, col._cn, null)
-      await this.onCellValueChange(colIndex, index, col)
+      this.$set(this.data[index].row, col.title, null)
+      await this.onCellValueChange(colIndex, index, col, true)
     },
     async insertNewRow(atEnd = false, expand = false, presetValues = {}) {
       const isKanban = this.selectedView && this.selectedView.show_as === 'kanban'
@@ -1166,10 +1172,16 @@ export default {
       data.splice(focusRow, 0, {
         row: this.relationType === 'hm'
           ? {
-              ...this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
-              [this.relation.cn]: this.relationIdValue
+              ...this.fieldList.reduce((o, f) => ({
+                ...o,
+                [f]: presetValues[f] ?? null
+              }), {}),
+              [this.relation.column_name]: this.relationIdValue
             }
-          : this.fieldList.reduce((o, f) => ({ ...o, [f]: presetValues[f] ?? null }), {}),
+          : this.fieldList.reduce((o, f) => ({
+            ...o,
+            [f]: presetValues[f] ?? null
+          }), {}),
         rowMeta: {
           new: true
         },
@@ -1178,8 +1190,14 @@ export default {
       if (data[focusRow].row[this.groupingField] === 'Uncategorized') {
         data[focusRow].row[this.groupingField] = null
       }
-      this.selected = { row: focusRow, col: focusCol }
-      this.editEnabled = { row: focusRow, col: focusCol }
+      this.selected = {
+        row: focusRow,
+        col: focusCol
+      }
+      this.editEnabled = {
+        row: focusRow,
+        col: focusCol
+      }
       this.presetValues = presetValues
 
       if (expand) {
@@ -1190,10 +1208,15 @@ export default {
           this.expandRow(data.length - 1, rowMeta)
         }
       }
-      // this.save()
     },
 
-    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+    async handleKeyDown({
+      metaKey,
+      key,
+      altKey,
+      shiftKey,
+      ctrlKey
+    }) {
       switch ([
         this._isMac ? metaKey : ctrlKey,
         key].join('_')) {
@@ -1208,56 +1231,67 @@ export default {
           break
       }
     },
-    async loadMeta(updateShowFields = true, col, oldCol) {
-      // update column name in column meta data
-      if (oldCol && col) {
-        this.$set(this.columnsWidth, col, this.columnsWidth[oldCol])
-        this.$set(this.showFields, col, this.showFields[oldCol])
-        const i = (this.fieldsOrder || []).indexOf(oldCol)
-        if (i > -1) {
-          this.$set(this.fieldsOrder, i, col)
-        }
-        const s = (this.sortList || []).find(s => s.field === oldCol)
-        if (s) {
-          this.$set(s, 'field', col)
-        }
-      }
-
+    async loadMeta() {
       // load latest table meta
-      const tableMeta = await this.$store.dispatch('meta/ActLoadMeta', {
+      await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        tn: this.table,
+        table_name: this.table,
         force: true
       })
-
-      // update column visibility
-      if (updateShowFields) {
-        try {
-          const qp = JSON.parse(tableMeta.query_params)
-          this.showFields = qp.showFields || this.showFields
-          if (col) {
-            this.$set(this.showFields, col, true)
-          }
-        } catch (e) {
-        }
-      }
+    },
+    clickPagination() {
+      this.loadTableData()
+      this.$tele.emit('pagination:click')
     },
     loadTableData() {
       this.loadTableDataDeb(this)
     },
     async loadTableDataFn() {
+      if (this.isForm || !this.selectedView || !this.selectedView.title) {
+        return
+      }
       this.loadingData = true
       try {
-        if (this.api) {
-          const { list, count } = await this.api.paginatedList(this.queryParams)
-          this.count = count
-          this.data = list.map(row => ({
-            row,
-            oldRow: { ...row },
-            rowMeta: {}
-          }))
-        }
+        // if (this.api) {
+        // const { list, count } = await this.api.paginatedList(this.queryParams)
+        // const {
+        //   list,
+        //   pageInfo
+        // } = (await this.$api.data.list(
+        //   this.selectedViewId || this.meta.views[0].id,
+        //   {
+        //     query: {
+        //       ...this.queryParams,
+        //       ...(this._isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(this.sortList) }),
+        //       ...(this._isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(this.filters) })
+        //     }
+        //   })).data.data
+
+        const {
+          list,
+          pageInfo
+        } = (await this.$api.dbViewRow.list(
+          'noco',
+          this.projectName,
+          this.meta.title,
+          this.selectedView.title,
+          {
+            ...this.queryParams,
+            ...(this._isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(this.sortList) }),
+            ...(this._isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(this.filters) })
+            // sort: ['-FirstName'],
+            // where: '(FirstName,like,%ro)~or((FirstName,like,%a)~and(FirstName,like,%e%))'
+          }
+        ))
+
+        this.count = pageInfo.totalRows// count
+        this.data = list.map(row => ({
+          row,
+          oldRow: { ...row },
+          rowMeta: {}
+        }))
+        // }
       } catch (e) {
         console.log(e)
       }
@@ -1287,14 +1321,18 @@ export default {
       this.selectedExpandRowMeta = rowMeta
     },
     async onNewColCreation(col, oldCol) {
-      if (this.$refs.drawer) {
-        await this.$refs.drawer.loadViews()
-        this.$refs.drawer.onViewIdChange(this.selectedViewId)
-      }
+      // if (this.$refs.drawer) {
+      //   await this.$refs.drawer.loadViews()
+      //   this.$refs.drawer.onViewIdChange(this.selectedViewId)
+      // }
       await this.loadMeta(true, col, oldCol)
       this.$nextTick(async() => {
         await this.loadTableData()
       })
+      this.$refs.fields && this.$refs.fields.loadFields()
+    },
+    onColDelete() {
+      this.$refs.fields && this.$refs.fields.loadFields()
     },
     onFileDrop(ev) {
       let file
@@ -1333,12 +1371,11 @@ export default {
         }
 
         if (this.api) {
-          const groupingColumn = this.meta.columns.find(c => c._cn === this.groupingField)
+          const groupingColumn = this.meta.columns.find(c => c.title === this.groupingField)
 
           if (!groupingColumn) {
             return
           }
-
           const initialLimit = 10
           const uncategorized = 'Uncategorized'
 
@@ -1351,38 +1388,42 @@ export default {
           kanban.groupingColumnItems.unshift(uncategorized)
           kanban.recordCnt[uncategorized] = 0
           for (const groupingColumnItem of kanban.groupingColumnItems) {
-            // enrich Kanban data
-            var {
-              data
-            } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
-              limit: initialLimit,
-              where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
-            })
-            data.map((d) => {
-              // handle composite primary key
-              d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c._cn]).join('___')
-              if (!d.id) {
-                // id is required for <kanban-board/>
-                d.id = d.c_pk
-              }
-              kanban.data.push({
-                row: d,
-                oldRow: d,
-                rowMeta: {}
+            {
+              // enrich Kanban data
+              const {
+                data
+              } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
+                limit: initialLimit,
+                where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
               })
-              kanban.recordCnt[groupingColumnItem] += 1
-              kanban.blocks.push({
-                status: groupingColumnItem,
-                ...d
+              data.forEach((d) => {
+                // handle composite primary key
+                d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c.title]).join('___')
+                if (!d.id) {
+                  // id is required for <kanban-board/>
+                  d.id = d.c_pk
+                }
+                kanban.data.push({
+                  row: d,
+                  oldRow: d,
+                  rowMeta: {}
+                })
+                kanban.recordCnt[groupingColumnItem] += 1
+                kanban.blocks.push({
+                  status: groupingColumnItem,
+                  ...d
+                })
               })
-            })
-            // enrich recordTotalCnt
-            var {
-              data
-            } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}/count`, {
-              where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
-            })
-            kanban.recordTotalCnt[groupingColumnItem] = data.count
+            }
+            {
+              // enrich recordTotalCnt
+              const {
+                data
+              } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}/count`, {
+                where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
+              })
+              kanban.recordTotalCnt[groupingColumnItem] = data.count
+            }
           }
         }
         this.kanban = kanban
@@ -1411,7 +1452,7 @@ export default {
       })
       data.map((d) => {
         // handle composite primary key
-        d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c._cn]).join('___')
+        d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c.title]).join('___')
         if (!d.id) {
           // id is required for <kanban-board/>
           d.id = d.c_pk
@@ -1437,9 +1478,71 @@ export default {
       this.kanban.selectedExpandRow = data.row
       this.kanban.selectedExpandOldRow = data.oldRow
       this.kanban.selectedExpandRowMeta = data.rowMeta
+    },
+    async exportCache() {
+      try {
+        const data = (await this.$api.utils.cacheGet())
+        if (!data) {
+          this.$toast.info('Cache is empty').goAway(3000)
+          return
+        }
+        const blob = new Blob([JSON.stringify(data)], { type: 'text/plain;charset=utf-8' })
+        FileSaver.saveAs(blob, 'cache_exported.json')
+        this.$toast.info('Exported Cache Successfully').goAway(3000)
+      } catch (e) {
+        console.log(e)
+        this.$toast.error(e.message).goAway(3000)
+      }
+    },
+    async deleteCache() {
+      try {
+        await this.$api.utils.cacheDelete()
+        this.$toast.info('Deleted Cache Successfully').goAway(3000)
+      } catch (e) {
+        console.log(e)
+        this.$toast.error(e.message).goAway(3000)
+      }
+    },
+    async syncCount() {
+      const { count } = await this.$api.dbViewRow.count('noco', this.$store.getters['project/GtrProjectName'], this.meta.title, this.selectedView.title)
+      this.count = count
     }
   },
   computed: {
+    isLocked() {
+      return this.lockType === 'locked'
+    },
+    lockType: {
+      get() {
+        return this.selectedView && this.selectedView.lock_type
+      },
+      set(type) {
+        this.selectedView.lock_type = type
+        this.$api.dbView.update(this.selectedViewId, {
+          lock_type: type
+        })
+      }
+    },
+    showSystemFields: {
+      get() {
+        return this.selectedView && this.selectedView.show_system_fields
+      },
+      set(v) {
+        if (this.selectedView) {
+          this.selectedView.show_system_fields = v
+          this.$api.dbView.update(this.selectedViewId, {
+            show_system_fields: v
+          }).then(() => {
+            if (v) {
+              this.loadTableData()
+            }
+          })
+        }
+      }
+    },
+    viewTypes() {
+      return ViewTypes
+    },
     tabsState() {
       return this.$store.state.tabs.tabsState || {}
     },
@@ -1453,13 +1556,16 @@ export default {
       return this.meta && this.meta.columns.some(c => c.pk)
     },
     isGallery() {
-      return this.selectedView && this.selectedView.show_as === 'gallery'
+      return this.selectedView && this.selectedView.type === ViewTypes.GALLERY
     },
     isForm() {
-      return this.selectedView && this.selectedView.show_as === 'form'
+      return this.selectedView && this.selectedView.type === ViewTypes.FORM
     },
     isKanban() {
-      return this.selectedView && this.selectedView.show_as === 'kanban'
+      return this.selectedView && this.selectedView.type === ViewTypes.KANBAN
+    },
+    isGrid() {
+      return this.selectedView && this.selectedView.type === ViewTypes.GRID
     },
     meta() {
       return this.$store.state.meta.metas[this.table]
@@ -1471,15 +1577,16 @@ export default {
       return this._isUIAllowed('xcDatatableEditable')
     },
     sqlUi() {
-      return SqlUI.create(this.nodes.dbConnection)
+      // return SqlUI.create(this.nodes.dbConnection)
+      return SqlUiFactory.create(this.nodes.dbConnection)
     },
     api() {
       return this.meta && this.$ncApis.get({
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        table: this.meta.tn
+        table: this.meta.table_name
       })
-      // return this.meta && this.meta._tn ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta._tn, this.meta && this.meta.columns, this, this.meta) : null
+      // return this.meta && this.meta.title ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta.title, this.meta && this.meta.columns, this, this.meta) : null
     }
   }
 }

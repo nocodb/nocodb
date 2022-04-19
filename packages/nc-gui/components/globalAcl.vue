@@ -225,64 +225,6 @@
         </template>
       </tbody>
     </v-simple-table>
-
-    <!--    <v-data-table-->
-    <!--      :headers="headers"-->
-    <!--      :items="acls"-->
-    <!--      item-key="name"-->
-    <!--      show-expand-->
-    <!--      class="elevation-1"-->
-    <!--    >-->
-
-    <!--      <template v-slot:expanded-item="{ headers, item }">-->
-    <!--        <td :colspan="headers.length">More info about {{ item }}</td>-->
-    <!--      </template>-->
-
-    <!--      &lt;!&ndash;      <template v-slot:item="{ headers, item }">&ndash;&gt;-->
-    <!--      &lt;!&ndash;      <tr>&ndash;&gt;-->
-    <!--      &lt;!&ndash;        <td>test</td>&ndash;&gt;-->
-    <!--      &lt;!&ndash;      </tr>&ndash;&gt;-->
-    <!--      &lt;!&ndash;      </template>&ndash;&gt;-->
-
-    <!--      &lt;!&ndash;      <template v-slot:header="{ headers, item }">&ndash;&gt;-->
-    <!--      &lt;!&ndash;        <tr>&ndash;&gt;-->
-    <!--      &lt;!&ndash;          <th>test</th>&ndash;&gt;-->
-    <!--      &lt;!&ndash;        </tr>&ndash;&gt;-->
-    <!--      &lt;!&ndash;      </template>&ndash;&gt;-->
-
-    <!--    </v-data-table>-->
-
-    <!--    <v-virtual-scroll-->
-    <!--      :items="data"-->
-    <!--      :item-height="50"-->
-    <!--      height="100%"-->
-    <!--    >-->
-    <!--      <template v-slot="{ item }">-->
-    <!--    <acl-ts-file-db-child-->
-    <!--      v-if="data"-->
-    <!--      :nodes="nodes" :policies="data"></acl-ts-file-db-child>-->
-    <!--      </template>-->
-    <!--    </v-virtual-scroll>-->
-
-    <!--    <v-tabs-->
-    <!--      v-model="aclTabs"-->
-    <!--    >-->
-    <!--      <template v-for="table in tables">-->
-    <!--        <v-tab :key="table">{{ table }}</v-tab>-->
-    <!--        &lt;!&ndash;        <v-tab-item :key="table">&ndash;&gt;-->
-    <!--        &lt;!&ndash;              <acl-ts-file-db-child&ndash;&gt;-->
-    <!--        &lt;!&ndash;                v-if="i === aclTabs"&ndash;&gt;-->
-    <!--        &lt;!&ndash;                key="acl"&ndash;&gt;-->
-    <!--        &lt;!&ndash;                :nodes="nodes" :policies="item"></acl-ts-file-db-child>&ndash;&gt;-->
-    <!--        &lt;!&ndash;        </v-tab-item>&ndash;&gt;-->
-    <!--      </template>-->
-
-    <!--    </v-tabs>-->
-
-    <!--    <acl-ts-file-db-child-->
-    <!--      key="acl"-->
-    <!--      v-if="groupedData"-->
-    <!--      :nodes="nodes" :policies="acls[aclTabs]"></acl-ts-file-db-child>-->
   </div>
 </template>
 
@@ -334,8 +276,8 @@ export default {
         const groupedData = {}
 
         for (const item of data) {
-          groupedData[item.tn] = groupedData[item.tn] || []
-          groupedData[item.tn].push(item)
+          groupedData[item.table_name] = groupedData[item.table_name] || []
+          groupedData[item.table_name].push(item)
         }
 
         this.groupedData = groupedData

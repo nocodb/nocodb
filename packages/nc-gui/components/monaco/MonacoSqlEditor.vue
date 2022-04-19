@@ -189,23 +189,15 @@ export default {
       this.codeLocal = newValue
     }
   },
-  beforeCreate() {
-    // console.log(MonacoEditor)
-  },
-  created() {
-    //
-  },
   methods: {
     selectionFn() {
       const editor = this.$refs.editor.getMonaco()
       const range = editor.getSelection()
       const selectedText = editor.getModel().getValueInRange(range)
-      // console.log('getValue', editor.getModel())
       this.selection = selectedText
       this.selectionRange = range
     },
     pretify() {
-      // console.log("this.code", this.code);
       const editor = this.$refs.editor.getMonaco()
 
       if (this.selection && this.selectionRange) {

@@ -13,107 +13,121 @@
       <div class="text-center caption grey--text mt-3 mb-1">
         Built with Vue JS<br><img src="vue.svg" class="vue-icon mt-1 mb-n1" alt="vue.js" width="30">
       </div>
-
-      <!--      <div class="justify-center caption grey&#45;&#45;text mt-2 d-flex align-center ">
-        <img src="favicon-32.png" alt="nocodb" width="20px">
-        <v-icon size="13" color="red" class="mx-3">
-          mdi-heart
-        </v-icon>
-        <img src="vue.svg" class="vue-icon" alt="vue.js" width="20px">
-      </div>-->
     </div>
     <template v-else>
       <div class="d-flex justify-end">
         <v-list
           width="100%"
           class="
+          py-0
           flex-shrink-1
           text-left
-          elevation-1
+          elevation-0
           rounded-sm
           community-card
           item
         "
-          :class="{ active: showCommunity }"
+          :class="{ active: true }"
           dense
         >
-          <v-list-item dense href="https://discord.gg/5RgZmkW" target="_blank">
-            <!-- Get your questions answered -->
+          <v-list-item>
+            <div class="d-flex justify-space-between d-100 pr-2">
+              <v-icon v-t="['community:discord']" class="mr-1" size="22" :color="textColors[0]" @click="open('https://discord.gg/5RgZmkW')">
+                mdi-discord
+              </v-icon>
+              <v-icon v-t="['community:discourse']" class="mr-1 discourse" size="22" :color="textColors[0]" @click="open('https://community.nocodb.com/')">
+                mdi-discourse
+              </v-icon>
+              <v-icon v-t="['community:discord']" class="mr-1" size="22" color="#ff4600" @click="open('https://www.reddit.com/r/NocoDB/')">
+                mdi-reddit
+              </v-icon>
+              <v-icon v-t="['community:twitter']" class="mr-1" size="22" :color="textColors[1]" @click="open('https://twitter.com/NocoDB')">
+                mdi-twitter
+              </v-icon>
+              <v-icon v-t="['community:book-demo']" class="mr-1" size="22" :color="textColors[3]" @click="open('https://calendly.com/nocodb-meeting')">
+                mdi-calendar-month
+              </v-icon>
+            </div>
+          </v-list-item>
+
+          <!--          <v-list-item dense href="https://discord.gg/5RgZmkW" target="_blank">
+            &lt;!&ndash; Join Discord &ndash;&gt;
             <v-list-item-title>
               <v-icon class="mr-1" small :color="textColors[0]">
                 mdi-discord
               </v-icon>
-              <span class="caption" :title="$t('labels.community.joinDiscord')">{{
+              <span v-t="['community:discord']" class="caption" :title="$t('labels.community.joinDiscord')">{{
                 $t('labels.community.joinDiscord')
+              }}</span>
+            </v-list-item-title>
+          </v-list-item>
+          &lt;!&ndash; Join Community &ndash;&gt;
+          <v-list-item dense href="https://community.nocodb.com/" target="_blank">
+            <v-list-item-title>
+              <v-icon class="mr-1 discourse" small :color="textColors[0]">
+                mdi-discourse
+              </v-icon>
+              <span v-t="['community:discourse']" class="caption" :title="$t('labels.community.joinCommunity')">{{
+                $t('labels.community.joinCommunity')
               }}</span>
             </v-list-item-title>
           </v-list-item>
           <v-divider />
           <v-list-item dense href="https://twitter.com/NocoDB" target="_blank">
-            <!-- Follow NocoDB -->
-            <v-list-item-title>
-              <v-icon class="mr-1" small :color="textColors[1]">
-                mdi-twitter
-              </v-icon>
-              <span class="caption" title="$t('labels.community.followNocodb')"> {{
-                $t('labels.community.followNocodb')
-              }}</span>
-            </v-list-item-title>
-          </v-list-item>
-          <v-divider />
-          <v-list-item dense href="https://www.reddit.com/r/NocoDB/" target="_blank">
-            <!-- Get your questions answered -->
+            &lt;!&ndash; Join Reddit &ndash;&gt;
             <v-list-item-title>
               <v-icon class="mr-1" small color="#ff4600">
                 mdi-reddit
               </v-icon>
-              <span class="caption" :title="$t('labels.community.joinReddit')">{{
-                $t('labels.community.joinReddit')
-              }}</span>
+              <span class="caption" :title="$t('labels.community.joinReddit')" v-t="['community:reddit']">{{
+                  $t('labels.community.joinReddit')
+                }}</span>
             </v-list-item-title>
           </v-list-item>
-          <v-divider />
           <v-list-item
             dense
             target="_blank"
             href="https://calendly.com/nocodb-meeting"
           >
-            <!-- Book a Free DEMO -->
+            &lt;!&ndash; Follow NocoDB &ndash;&gt;
+            <v-list-item-title>
+              <v-icon class="mr-1" small :color="textColors[1]">
+                mdi-twitter
+              </v-icon>
+              <span class="caption" title="$t('labels.community.followNocodb')" v-t="['community:twitter']"> {{
+                  $t('labels.community.followNocodb')
+                }}</span>
+            </v-list-item-title>
+          </v-list-item>-->
+          <!--          <v-list-item dense href="https://www.reddit.com/r/NocoDB/" target="_blank">
+            &lt;!&ndash; Book a Free DEMO &ndash;&gt;
             <v-list-item-title>
               <v-icon class="mr-1" small :color="textColors[3]">
                 mdi-calendar-month
               </v-icon>
-              <span class="caption" :title="$t('labels.community.bookDemo')">{{
+              <span v-t="['community:book-demo']" class="caption" :title="$t('labels.community.bookDemo')">{{
                 $t('labels.community.bookDemo')
               }}</span>
             </v-list-item-title>
-          </v-list-item>
+          </v-list-item>-->
         </v-list>
       </div>
-
-      <sponsor-mini
-        :class="{ active: !showCommunity }"
-        class="item"
-        :nav="true"
-      />
     </template>
   </div>
 </template>
 
 <script>
 import ShareIcons from '../../../share-icons'
-import SponsorMini from '~/components/sponsorMini'
 import colors from '~/mixins/colors'
 
 export default {
   name: 'Extras',
-  components: { ShareIcons, SponsorMini },
+  components: { ShareIcons },
   mixins: [colors],
   data: () => ({
     showCommunity: true
   }),
-  computed: {
-  },
+  computed: {},
   mounted() {
     setInterval(() => {
       this.showCommunity = !this.showCommunity
@@ -143,19 +157,17 @@ export default {
   }
 }
 
-//
-//@keyframes anim {
-//  0%, 100% {
-//    opacity: .2;
-//    transform: scale(.5);
-//  }
-//  50% {
-//    opacity: 1;
-//    transform: scale(1);
-//  }
-//}
-//
-//.vue-icon {
-//  animation: anim 2s infinite;
-//}
+.v-icon.discourse {
+  height: 22px;
+  width: 22px;
+  background-image: url('~/assets/img/discourse-icon.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.v-icon.discourse::before {
+  visibility: hidden;
+  content: "";
+}
+
 </style>

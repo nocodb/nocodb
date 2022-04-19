@@ -1,7 +1,7 @@
 export default class RestApi {
   constructor(table, $ctx) {
     this.$ctx = $ctx
-    this.table = $ctx.$store.state.meta.metas[table]._tn
+    this.table = $ctx.$store.state.meta.metas[table].title
   }
 
   // todo:  - get version letter and use table alias
@@ -64,13 +64,13 @@ export default class RestApi {
     return { list, count }
   }
 
-  async update(id, data, oldData) {
+  async update(id, data, oldData, cellSaved = true) {
     const res = await this.$axios({
       method: 'put',
       url: `/nc/${this.$ctx.projectId}/api/v1/${this.table}/${encodeURIComponent(id)}`,
-      data
+      data,
+      params: { ignoreWebhook: !cellSaved }
     })
-
     return res.data
   }
 

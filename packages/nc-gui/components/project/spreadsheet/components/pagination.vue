@@ -55,7 +55,8 @@ export default {
       this.page = v
     },
     count(c) {
-      this.$emit('input', Math.max(1, Math.min(this.page, Math.ceil(c / this.size))))
+      const page = Math.max(1, Math.min(this.page, Math.ceil(c / this.size)))
+      if (this.value !== page) { this.$emit('input', page) }
     }
   },
   mounted() {

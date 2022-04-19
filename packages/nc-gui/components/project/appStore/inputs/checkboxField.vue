@@ -29,9 +29,6 @@ export default {
       return $listeners
     }
   },
-  created() {
-    this.localState = false 
-  },
 }
 </script>
 

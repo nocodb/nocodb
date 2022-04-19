@@ -73,7 +73,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'defaultRpcServiceCodeGet', {
-          tn: this.nodes.tn || this.nodes.view_name,
+          tn: this.nodes.table_name || this.nodes.view_name,
           service: this.service,
           relation_type: this.serviceData.relation_type,
           tnc: this.serviceData.tnc
@@ -92,7 +92,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'xcRpcHandlerUpdate', {
-          tn: this.nodes.tn || this.nodes.view_name,
+          tn: this.nodes.table_name || this.nodes.view_name,
           service: this.service,
           functions: [this.code]
         }])

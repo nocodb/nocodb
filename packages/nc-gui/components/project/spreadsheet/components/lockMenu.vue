@@ -86,6 +86,7 @@ export default {
   }),
   methods: {
     changeLockType(type) {
+      this.$tele.emit(`lockmenu:${type}`)
       if (type === 'personal') {
         return this.$toast.info('Coming soon').goAway(3000)
       }

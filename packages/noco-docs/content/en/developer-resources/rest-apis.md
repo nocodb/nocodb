@@ -5,59 +5,156 @@ category: 'Developer Resources'
 menuTitle: 'REST APIs'
 ---
 
-## Features
+Once you've created the schemas, you can manipulate the data or invoke actions using the REST APIs. We provide several types of APIs for different usages as below.
 
-* **Automatic REST APIs for any SQL database** 
-  * Generates REST APIs for **ANY** MySql, Postgres, MSSQL, Sqlite database
-  * Serves APIs irrespective of naming conventions of primary keys, foreign keys, tables etc
-  * Support for composite primary keys
-  * REST APIs : 
-      * CRUD, List, FindOne, Count, Exists, Distinct (Usual suspects)
-          * Pagination 
-          * Sorting
-          * Column filtering - Fields
-          * Row filtering - Where
-      * Bulk insert, Bulk delete, Bulk read
-      * Relations - automatically detected
-      * Aggregate functions
-  * More
-      * Upload single file
-      * Upload multiple files
-      * Download file
-  * Authentication
-  * Access Control
+## API Overview
 
+Here's the overview of all APIs. For the details, please check out <a href="https://all-apis.nocodb.com/" target="_blank">NocoDB API Documentation</a>.
 
-## Data APIs
+### Auth APIs
 
-|  **Method**  |  **Path**  | **Query Params** | **Description**  |
-|---|---|---|---|
-|  **GET** | [/api/v1/tableName](#list)  | [where, limit, offset, sort, fields, mm, bt, hm](#query-params) | List rows of the table |
-|  **POST** | [/api/v1/tableName](#create)  | | Insert row into table |
-|  **PUT** | [/api/v1/tableName/:id](#update)  | | Update existing row in table |
-|  **GET** | [/api/v1/tableName/:id](#get-by-primary-key)  | | Get row by primary key |
-|  **GET** | [/api/v1/tableName/:id/exists](#exists)  | | Check row with provided primary key exists or not |
-|  **DELETE** | [/api/v1/tableName/:id](#delete)  | | Delete existing row in table |
-|  **GET** | [/api/v1/tableName/findOne](#find-one)  | [where, limit, offset, sort, fields](#query-params) | Find first row which matches the conditions in table |
-|  **GET** | [/api/v1/tableName/groupby/:columnName](#group-by) | | Group by columns |
-|  **GET** | [/api/v1/tableName/distribution/:columnName](#distribution) | |  Distribute data based on column |
-|  **GET** | [/api/v1/tableName/distinct/:columnName](#distinct) | |  Find distinct column values |
-|  **GET** | [/api/v1/tableName/aggregate/:columnName](#aggregate) | |  Do aggregation on columns |
-|  **GET** | [/api/v1/tableName/count](#count) | [where](#query-params) |  Get total rows count |
-|  **POST** | [/api/v1/tableName/bulk](#bulk-insert) |  |  Bulk row insert |
-|  **PUT** | [/api/v1/tableName/bulk](#bulk-update) |  |  Bulk row update |
-|  **DELETE** | [/api/v1/tableName/bulk](#bulk-delete) |  |  Bulk row delete |
+| Category | Method | Tag | Function Name | Path |
+|---|---|---|---|---|
+| Auth | Post | auth | signup | /api/v1/db/auth/user/signup |
+| Auth | Post | auth | signin | /api/v1/db/auth/user/signin |
+| Auth | Get | auth | me | /api/v1/db/auth/user/me |
+| Auth | Post | auth | passwordForgot | /api/v1/db/auth/password/forgot |
+| Auth | Post | auth | passwordChange | /api/v1/db/auth/password/change |
+| Auth | Post | auth | passwordReset | /api/v1/db/auth/password/reset/{token} |
+| Auth | Post | auth | tokenRefresh | /api/v1/db/auth/token/refresh |
+| Auth | Post | auth | passwordResetTokenValidate | /api/v1/db/auth/token/validate/{token} |
+| Auth | Post | auth | emailValidate | /api/v1/db/auth/email/validate/{email} |
 
+### Public APIs
 
-<alert>
-    <em>
-        * <strong>tableName</strong> - Alias of the corresponding table <br>
-        * <strong>columnName</strong> - Alias of the column in table
-    </em>
-</alert>
+| Category | Method | Tag | Function Name | Path |
+|---|---|---|---|---|
+| Public | Get | public | sharedBaseGet | /api/v1/db/public/shared-base/{sharedBaseUuid}/meta |
+| Public | Post | public | dataList | /api/v1/db/public/shared-view/{sharedViewUuid}/rows |
+| Public | Get | public | dataNestedList | /api/v1/db/public/shared-view/{sharedViewUuid}/rows/{rowId}/{relationType}/{columnName} |
+| Public | Post | public | dataCreate | /api/v1/db/public/shared-view/{sharedViewUuid}/rows |
+| Public | Get | public | csvExport | /api/v1/db/public/shared-view/{sharedViewUuid}/rows/export/{type} |
+| Public | Get | public | dataRelationList | /api/v1/db/public/shared-view/{sharedViewUuid}/nested/{columnName} |
+| Public | Get | public | sharedViewMetaGet | /api/v1/db/public/shared-view/{sharedViewUuid}/meta |
 
-### Query params
+### Data APIs
 
+| Category | Method | Tag | Function Name | Path |
+|---|---|---|---|---|
+| Data | Delete| dbTableRow | bulkDelete | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/ |
+| Data | Post | dbTableRow | bulkCreate | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/ |
+| Data | Patch | dbTableRow | bulkUpdate | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/ |
+| Data | Patch | dbTableRow | bulkUpdateAll | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all |
+| Data | Delete| dbTableRow | bulkDeleteAll | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all |
+| Data | Get | dbTableRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
+| Data | Post | dbTableRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
+| Data | Get | dbTableRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
+| Data | Patch | dbTableRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
+| Data | Delete| dbTableRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
+| Data | Get | dbTableRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/count |
+| Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |
+| Data | Post | dbViewRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |
+| Data | Get | dbViewRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
+| Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
+| Data | Delete| dbViewRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
+| Data | Get | dbViewRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count |
+
+### Meta APIs
+
+| Category | Method | Tag | Function Name | Path |
+|---|---|---|---|---|
+| Meta | Get | apiToken | list | /api/v1/db/meta/projects/{projectId}/api-tokens |
+| Meta | Post | apiToken | create | /api/v1/db/meta/projects/{projectId}/api-tokens |
+| Meta | Delete| apiToken | delete | /api/v1/db/meta/projects/{projectId}/api-tokens/{token} |
+| Meta | Get | auth | projectUserList | /api/v1/db/meta/projects/{projectId}/users |
+| Meta | Post | auth | projectUserAdd | /api/v1/db/meta/projects/{projectId}/users |
+| Meta | Patch | auth | projectUserUpdate | /api/v1/db/meta/projects/{projectId}/users/{userId} |
+| Meta | Delete| auth | projectUserRemove | /api/v1/db/meta/projects/{projectId}/users/{userId} |
+| Meta | Post | dbTable | create | /api/v1/db/meta/projects/{projectId}/tables |
+| Meta | Get | dbTable | list | /api/v1/db/meta/projects/{projectId}/tables |
+| Meta | Post | dbTableColumn | create | /api/v1/db/meta/tables/{tableId}/columns |
+| Meta | Patch | dbTableColumn | update | /api/v1/db/meta/tables/{tableId}/columns/{columnId} |
+| Meta | Delete| dbTableColumn | delete | /api/v1/db/meta/tables/{tableId}/columns/{columnId} |
+| Meta | Post | dbTableColumn | primaryColumnSet | /api/v1/db/meta/tables/{tableId}/columns/{columnId}/primary |
+| Meta | Get | dbTableFilter | get | /api/v1/db/meta/filters/{filterId} |
+| Meta | Patch | dbTableFilter | update | /api/v1/db/meta/filters/{filterId} |
+| Meta | Delete| dbTableFilter | delete | /api/v1/db/meta/filters/{filterId} |
+| Meta | Get | dbTableFilter | read | /api/v1/db/meta/views/{viewId}/filters |
+| Meta | Post | dbTableFilter | create | /api/v1/db/meta/views/{viewId}/filters |
+| Meta | Get | dbTableFilter | get | /api/v1/db/meta/filters/{filterId} |
+| Meta | Patch | dbTableFilter | update | /api/v1/db/meta/filters/{filterId} |
+| Meta | Delete| dbTableFilter | delete | /api/v1/db/meta/filters/{filterId} |
+| Meta | Get | dbTableFilter | childrenRead | /api/v1/db/meta/filters/{filterGroupId}/children |
+| Meta | Get | dbTableSort | list | /api/v1/db/meta/views/{viewId}/sorts |
+| Meta | Post | dbTableSort | create | /api/v1/db/meta/views/{viewId}/sorts |
+| Meta | Get | dbTableSort | read | /api/v1/db/meta/sorts/{sortId} |
+| Meta | Patch | dbTableSort | update | /api/v1/db/meta/sorts/{sortId} |
+| Meta | Delete| dbTableSort | delete | /api/v1/db/meta/sorts/{sortId}/api/v1/db |
+| Meta | Patch | dbTableWebhook | update | /api/v1/db/meta/hooks/{hookId} |
+| Meta | Delete| dbTableWebhook | delete | /api/v1/db/meta/hooks/{hookId} |
+| Meta | Get | dbTableWebhook | list | /api/v1/db/meta/tables/{tableId}/hooks |
+| Meta | Post | dbTableWebhook | create | /api/v1/db/meta/tables/{tableId}/hooks |
+| Meta | Post | dbTableWebhook | test | /api/v1/db/meta/tables/{tableId}/hooks/test |
+| Meta | Get | dbTableWebhook | samplePayloadGet | /api/v1/db/meta/tables/{tableId}/hooks/samplePayload/{operation} |
+| Meta | Get | dbTableWebhookFilter | read | /api/v1/db/meta/hooks/{hookId}/filters |
+| Meta | Post | dbTableWebhookFilter | create | /api/v1/db/meta/hooks/{hookId}/filters |
+| Meta | Get | dbView | list | /api/v1/db/meta/tables/{tableId}/views |
+| Meta | Get | dbView | read | /api/v1/db/meta/tables/{tableId} |
+| Meta | Patch | dbView | update | /api/v1/db/meta/tables/{tableId} |
+| Meta | Delete| dbView | delete | /api/v1/db/meta/tables/{tableId} |
+| Meta | Post | dbView | reorder | /api/v1/db/meta/tables/{tableId}/reorder |
+| Meta | Post | dbView | formCreate | /api/v1/db/meta/forms |
+| Meta | Patch | dbView | formUpdate | /api/v1/db/meta/forms/{formId} |
+| Meta | Get | dbView | formRead | /api/v1/db/meta/forms/{formId} |
+| Meta | Patch | dbView | formColumnUpdate | /api/v1/db/meta/form-columns/{formViewColumnId} |
+| Meta | Post | dbView | galleryCreate | /api/v1/db/meta/galleries |
+| Meta | Patch | dbView | galleryUpdate | /api/v1/db/meta/galleries/{galleriesId} |
+| Meta | Get | dbView | galleryRead | /api/v1/db/meta/galleries/{galleriesId} |
+| Meta | Post | dbView | gridCreate | /api/v1/db/meta/tables/${tableId}/grids |
+| Meta | Get | dbView | gridColumnsList | /api/v1/db/meta/grids/{gridId}/grid-columns |
+| Meta | Patch | dbView | gridColumnUpdate | /api/v1/db/meta/grid-columns/{columnId} |
+| Meta | Patch | dbView | update | /api/v1/db/meta/views/{viewId} |
+| Meta | Delete| dbView | delete | /api/v1/db/meta/views/{viewId} |
+| Meta | Post | dbView | showAllColumn | /api/v1/db/meta/views/{viewId}/show-all |
+| Meta | Post | dbView | hideAllColumn | /api/v1/db/meta/views/{viewId}/hide-all |
+| Meta | Get | dbViewColumn | list | /api/v1/db/meta/views/{viewId}/columns |
+| Meta | Post | dbViewColumn | create | /api/v1/db/meta/views/{viewId}/columns |
+| Meta | Patch | dbViewColumn | update | /api/v1/db/meta/views/{viewId}/columns/{columnId} |
+| Meta | Get | dbViewShare | list | /api/v1/db/meta/views/{viewId}/share |
+| Meta | Post | dbViewShare | create | /api/v1/db/meta/views/{viewId}/share |
+| Meta | Patch | dbViewShare | update | /api/v1/db/meta/views/{viewId}/share |
+| Meta | Delete| dbViewShare | delete | /api/v1/db/meta/views/{viewId}/share |
+| Meta | Get | plugin | list | /api/v1/db/meta/plugins |
+| Meta | Get | plugin | status | /api/v1/db/meta/plugins/{pluginTitle}/status |
+| Meta | Post | plugin | test | /api/v1/db/meta/plugins/test |
+| Meta | PATCH | plugin | update | /api/v1/db/meta/plugins/{pluginId} |
+| Meta | Get | plugin | read | /api/v1/db/meta/plugins/{pluginId} |
+| Meta | Get | project | metaGet | /api/v1/db/meta/projects/{projectId}/info |
+| Meta | Get | project | modelVisibilityList | /api/v1/db/meta/projects/{projectId}/visibility-rules |
+| Meta | Post | project | modelVisibilitySet | /api/v1/db/meta/projects/{projectId}/visibility-rules |
+| Meta | Get | project | list | /api/v1/db/meta/projects |
+| Meta | Post | project | create | /api/v1/db/meta/projects |
+| Meta | Get | project | read | /api/v1/db/meta/projects/{projectId} |
+| Meta | Delete| project | delete | /api/v1/db/meta/projects/{projectId} |
+| Meta | Get | project | auditList | /api/v1/db/meta/projects/{projectId}/audits |
+| Meta | Get | project | metaDiffGet | /api/v1/db/meta/projects/{projectId}/meta-diff |
+| Meta | Post | project | metaDiffSync | /api/v1/db/meta/projects/{projectId}/meta-diff |
+| Meta | Get | project | sharedBaseGet | /api/v1/db/meta/projects/{projectId}/shared |
+| Meta | Delete| project | sharedBaseDisable | /api/v1/db/meta/projects/{projectId}/shared |
+| Meta | Post | project | sharedBaseCreate | /api/v1/db/meta/projects/{projectId}/shared |
+| Meta | Patch | project | sharedBaseUpdate | /api/v1/db/meta/projects/{projectId}/shared |
+| Meta | Post | storage | upload | /api/v1/db/storage/upload |
+| Meta | Get | utils | commentList | /api/v1/db/meta/audits/comments |
+| Meta | Post | utils | commentRow | /api/v1/db/meta/audits/comments |
+| Meta | Get | utils | commentCount | /api/v1/db/meta/audits/comments/count |
+| Meta | Post | utils | auditRowUpdate | /api/v1/db/meta/audits/update |
+| Meta | Get | utils | cacheGet | /api/v1/db/meta/cache |
+| Meta | Delete| utils | cacheDelete | /api/v1/db/meta/cache |
+| Meta | Post | utils | testConnection | /api/v1/db/meta/projects/connection/test |
+| Meta | Get | utils | appInfo | /api/v1/db/meta/nocodb/info |
+| Meta | Get | utils | appVersion | /api/v1/db/meta/nocodb/version |
+
+## Query params
 
 |  **Name**    | **Alias** | **Use case** | **Default value**  |**Example value**  |
 |---|---|---|---|---|
@@ -66,6 +163,8 @@ menuTitle: 'REST APIs'
 |  offset  | o |  Offset for pagination(SQL offset value)  | 0  | 20 |
 |  sort  | s |  Sort by column name, Use `-` as prefix for descending sort  |   | column_name |
 |  fields  | f |  Required column names in result  |  * | column_name1,column_name2 |
+
+<!-- 
 |  fields1  | f1 |  Required column names in child result  |  * | column_name1,column_name2 |
 |  bt  |  |  Comma-separated belongs to tables  | `All belongs to tables` | [click here for example](#nested-parentbelongs-to) |
 |  bfields`<p>`  | bf`<p>`  |  Required belongs to table column names in result. Where `<p>` refers to position of table name in `bt` parameter(starts from `1`)  | primary key and primary value | [click here for example](#nested-parentbelongs-to) |
@@ -73,1134 +172,29 @@ menuTitle: 'REST APIs'
 |  hfields`<p>`  | hf`<p>`  |  Required has many table column names in result. Where `<p>` refers to position of table name in `hm` parameter(starts from `1`) | primary key and primary value | [click here for example](#nested-childrenhas-many) |
 |  mm  |  |  Comma-separated many to many tables  | `All many to many tables` | [click here for example](#nested-childrenmany-to-many) |
 |  mfields`<p>`  | mf`<p>`  |  Required many to many table column names in result. Where `<p>` refers to position of table name in `mm` parameter(starts from `1`) | primary key and primary value | [click here for example](#nested-childrenmany-to-many) |
-
-
-## HasMany APIs
-
-|  **Method**  |  **Path**  | **Query Params** | **Description**  |
-|---|---|---|---|
-|  **GET** | [/api/v1/tableName/has/childTableName](#with-children)  | [where, limit, offset, sort, fields, fields1](#query-params) | List rows of the table with children |
-|  **GET** | [/api/v1/tableName/:parentId/childTableName](#children-of-parent)  | [where, limit, offset, sort, fields, fields1](#query-params) | Get children under a certain parent |
-|  **POST** | [/api/v1/tableName/:parentId/childTableName](#insert-to-child-table)  |  | Insert children under a certain parent |
-|  **GET** | [/api/v1/tableName/:parentId/childTableName/findOne](#findone-under-parent)  | where, limit, offset, sort, fields | Find children under a parent with conditions |
-|  **GET** | [/api/v1/tableName/:parentId/childTableName/count](#child-count)  |  | Find children count |
-|  **GET** | [/api/v1/tableName/:parentId/childTableName/:id](#get-child-by-primary-key)  |  | Find child by id |
-|  **PUT** | [/api/v1/tableName/:parentId/childTableName/:id](#update-child-by-primary-key)  |  | Update child by id |
-
-<alert>
-    <em>
-        * <strong>tableName</strong> - Name of the parent table <br>
-        * <strong>parentId</strong> - Id in parent table <br>
-        * <strong>childTableName</strong> - Name of the child table
-        * <strong>id</strong> - Id in child table
-    </em>
-</alert>
-
-## BelongsTo APIs
-
-|  **Method**  |  **Path**  | **Query Params** | **Description**  |
-|---|---|---|---|
-|  **GET** | [/api/v1/childTableName/belongs/parentTablename](#with-parent)  | where, limit, offset, sort, fields | List rows of the table with parent |
-
-
-<alert>
-    <em>
-        * <strong>tableName</strong> - Name of the parent table <br>
-        * <strong>childTableName</strong> - Name of the child table
-    </em>
-</alert>
-
-
-#### Comparison operators
-
-```
-eq      -   '='         -  (colName,eq,colValue)
-not     -   '!='        -  (colName,not,colValue)
-gt      -   '>'         -  (colName,gt,colValue)
-ge      -   '>='        -  (colName,ge,colValue)
-lt      -   '<'         -  (colName,lt,colValue)
-le      -   '<='        -  (colName,le,colValue)
-is      -   'is'        -  (colName,is,true/false/null)
-isnot   -   'is not'    -  (colName,isnot,true/false/null)
-in      -   'in'        -  (colName,in,val1,val2,val3,val4)
-btw     -   'between'   -  (colName,btw,val1,val2) 
-nbtw    -  'not between'-  (colName,nbtw,val1,val2) 
-like    -   'like'      -  (colName,like,%name)
-```
-
-#### Example use of comparison operators - complex example
-```
-/api/payments?where=(checkNumber,eq,JM555205)~or((amount,gt,200)~and(amount,lt,2000))
-```
-
-#### Logical operators
-```
-~or     -   'or'
-~and    -   'and'
-~not    -   'not'
-```
-
-
-## Examples
-
-### List
-
-
-<code-group>
-  <code-block label="Request" active> 
-  
-  ```text
-  GET /api/v1/country
-  ```
-  
-  </code-block>
-  <code-block label="Response">
-  
-  ```json
-[
-    {
-        "country_id": 1,
-        "country": "Afghanistan",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    }
-]
-  ```
-  </code-block>
-</code-group> 
-
-
-
-### List + where
-
-<code-group>
-  <code-block label="Request" active> 
-  
-  ```text
-  GET /api/v1/country?where=(country,like,United%)
-  ```
-
-  </code-block>
-    <code-block label="Response">
-  
-  ```json
-[
-    {
-        "country_id": 101,
-        "country": "United Arab Emirates",
-        "last_update": "2006-02-15T04:44:00.000Z"
-    },
-    {
-        "country_id": 102,
-        "country": "United Kingdom",
-        "last_update": "2006-02-15T04:44:00.000Z"
-    },
-    {
-        "country_id": 103,
-        "country": "United States",
-        "last_update": "2006-02-15T04:44:00.000Z"
-    }
-]
-  ```
-  </code-block>
-</code-group> 
-<em><a href="#comparison-operators">Usage : comparison operators</a></em>
-
-#### List + where + sort
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country?where=(country,like,United%)&sort=-country
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```
-[
-    {
-        country_id: 103,
-        country: "United States",
-        last_update: "2006-02-15T04:44:00.000Z"
-    },
-    {
-        country_id: 102,
-        country: "United Kingdom",
-        last_update: "2006-02-15T04:44:00.000Z"
-    },
-    {
-        country_id: 101,
-        country: "United Arab Emirates",
-        last_update: "2006-02-15T04:44:00.000Z"
-    }
-]
-```
-    
-  </code-block>
-</code-group>
-
-
-### List + where + sort + offset
-
-<code-group>
-  <code-block label="Request" active> 
-  
-``` 
-GET  /api/v1/country?where=(country,like,United%)&sort=-country&offset=1
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    {
-        country_id: 102,
-        country: "United Kingdom",
-        last_update: "2006-02-15T04:44:00.000Z"
-    },
-    {
-        country_id: 101,
-        country: "United Arab Emirates",
-        last_update: "2006-02-15T04:44:00.000Z"
-    }
-]
-```
-  </code-block>
-</code-group>
-
-
-### List + limit
-
-
-<code-group>
-  <code-block label="Request" active> 
-  
-``` 
-GET  /api/v1/country?limit=6
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    {
-        "country_id": 1,
-        "country": "Afghanistan",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    },
-    {
-        "country_id": 2,
-        "country": "Algeria",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    },
-    {
-        "country_id": 3,
-        "country": "American Samoa",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    },
-    {
-        "country_id": 4,
-        "country": "Angola",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    },
-    {
-        "country_id": 5,
-        "country": "Anguilla",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    },
-    {
-        "country_id": 6,
-        "country": "Argentina",
-        "last_update": "2006-02-14T23:14:00.000Z"
-    }
-]
-```
-  </code-block>
-</code-group>
-    
-[⤴️](#api-overview)
-
-  
-### Get By Primary Key
-
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country/1
-```
-
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-{
-    "country_id": 1,
-    "country": "Afghanistan",
-    "last_update": "2006-02-14T23:14:00.000Z"
-}
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-
-### Create
-
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-POST  /api/v1/country
-```
-
-```json
-{
-    "country": "Afghanistan"
-}
-```
-
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-{
-    "country_id": 1,
-    "country": "Afghanistan",
-    "last_update": "2006-02-14T23:14:00.000Z"
-}
-```
-
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-
-### Update
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-PUT  /api/v1/country/1
-```
-
-```
-{
-    "country": "Afghanistan1"
-}
-```
-
-</code-block>
-<code-block label="Response">
-
-```json
-{
-    "country_id": 1,
-    "country": "Afghanistan1",
-    "last_update": "20020-02-14T23:14:00.000Z"
-}
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-
-### Exists
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-DELETE  /api/v1/country/1/exists
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-true
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-
-### Delete
-
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-DELETE  /api/v1/country/1
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-1
-```
-  </code-block>
-</code-group>
-
-
-
-[⤴️](#api-overview)
-
-  
-### Find One
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country/findOne?where=(country_id,eq,1)
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-{
-    "country_id": 1,
-    "country": "Afghanistan",
-    "last_update": "2006-02-14T23:14:00.000Z"
-}
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-  
-### Group By
-
-<code-group>
-  <code-block label="Request" active> 
-    
-```
-GET  /api/v1/country/groupby/last_update
-```
-
-</code-block>
-<code-block label="Response">
- 
-```json
-[
-    {
-        "count": 109,
-        "last_update": "2006-02-14T23:14:00.000Z"
-    },
-    {
-        "count": 1,
-        "last_update": "2020-01-06T15:18:13.000Z"
-    },
-    {
-        "count": 1,
-        "last_update": "2020-01-06T14:33:21.000Z"
-    }
-]
- ``` 
-  </code-block>
-</code-group>  
-
-[⤴️](#api-overview)
-
-  
-### Distribution
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/payment/distribution/amount
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    {
-        "count": 8302,
-        "range": "0-4"
-    },
-    {
-        "count": 3100,
-        "range": "5-8"
-    },
-    {
-        "count": 371,
-        "range": "9-11.99"
-    }
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-  
-### Distinct
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country/distinct/last_update
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    {
-        "last_update": "2006-02-14T23:14:00.000Z"
-    },
-    {
-        "last_update": "2020-01-06T15:18:13.000Z"
-    },
-    {
-        "last_update": "2020-01-06T14:33:21.000Z"
-    },
-    {
-        "last_update": "2020-01-07T13:42:01.000Z"
-    }
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-  
-### Aggregate
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/payment/aggregate/amount?func=min,max,avg,sum,count
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    {
-        "min": 0,
-        "max": 11.99,
-        "avg": 4.200743,
-        "sum": 67413.52,
-        "count": 16048
-    }
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-  
-### Count
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country/count
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-{
-    "count": 161
-}
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)  
-
-
-
-
-### Nested Parent(Belongs To)
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/City?bt=country&bfields1=Country,CountryId
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-  {
-    "CityId": 1,
-    "City": "A Corua (La Corua)",
-    "CountryId": 87,
-    "LastUpdate": "2006-02-14T23:15:25.000Z",
-    "CountryRead": {
-      "CountryId": 87,
-      "Country": "Spain"
-    }
-  },
-  {
-    "CityId": 2,
-    "City": "Abha",
-    "CountryId": 82,
-    "LastUpdate": "2006-02-14T23:15:25.000Z",
-    "CountryRead": {
-      "CountryId": 82,
-      "Country": "Saudi Arabia"
-    }
-  },
-  {
-    "CityId": 3,
-    "City": "Abu Dhabi",
-    "CountryId": 101,
-    "LastUpdate": "2006-02-14T23:15:25.000Z",
-    "CountryRead": {
-      "CountryId": 101,
-      "Country": "United Arab Emirates"
-    }
-  }
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-### Nested Children(Has Many)
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/Country?hm=city&hfields1=City,CityId
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-  {
-    "CountryId": 1,
-    "Country": "Afghanistan",
-    "LastUpdate": "2021-11-15T14:11:37.000Z",
-    "CityList": [
-      {
-        "CityId": 251,
-        "City": "Kabul",
-        "CountryId": 1
-      }
-    ]
-  },
-  {
-    "CountryId": 2,
-    "Country": "Algeria",
-    "LastUpdate": "2021-11-15T14:11:42.000Z",
-    "CityList": [
-      {
-        "CityId": 59,
-        "City": "Batna",
-        "CountryId": 2
-      },
-      {
-        "CityId": 63,
-        "City": "Bchar",
-        "CountryId": 2
-      },
-      {
-        "CityId": 483,
-        "City": "Skikda",
-        "CountryId": 2
-      }
-    ]
-  },
-  {
-    "CountryId": 3,
-    "Country": "American Samoa",
-    "LastUpdate": "2006-02-14T23:14:00.000Z",
-    "CityList": [
-      {
-        "CityId": 516,
-        "City": "Tafuna",
-        "CountryId": 3
-      }
-    ]
-  }
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-
-
-### Nested Children(Many To Many)
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/Actor?l=3&mm=film&mfields1=ReleaseYear
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-  {
-    "ActorId": 1,
-    "FirstName": "PENELOPE",
-    "LastName": "GUINESS",
-    "LastUpdate": "2021-11-24T14:43:23.000Z",
-    "FilmMMList": [
-      {
-        "actor_actor_id": 1,
-        "FilmId": 1,
-        "Title": "Test Movie 1",
-        "ReleaseYear": 2001
-      }
-    ]
-  },
-  {
-    "ActorId": 2,
-    "FirstName": "NICK",
-    "LastName": "WAHLBERG",
-    "LastUpdate": "2006-02-14T23:04:33.000Z",
-    "FilmMMList": [
-      {
-        "actor_actor_id": 2,
-        "FilmId": 1,
-        "Title": "Test Movie 2",
-        "ReleaseYear": 2002
-      }
-    ]
-  },
-  {
-    "ActorId": 3,
-    "FirstName": "ED",
-    "LastName": "CHASE",
-    "LastUpdate": "2006-02-14T23:04:33.000Z",
-    "FilmMMList": [
-      {
-        "actor_actor_id": 3,
-        "FilmId": 1,
-        "Title": "Test Movie 3",
-        "ReleaseYear": 2000
-      }
-    ]
-  }
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-  
-### Bulk Insert
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-POST  /api/v1/country/bulk
-```
-
-```json
-[
-    {
-        "country": "test 1"
-    },
-    {
-        "country": "test 2"
-    }
-]
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    10262
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-  
-### Bulk Update
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-PUT  /api/v1/country/bulk
-```
-
-```json
-[
-    {
-        "country_id" : 10261,
-        "country": "test 3"
-    },
-    {
-        "country_id" : 10262,
-        "country": "test 4"
-    }
-]
-```
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    1,
-    1
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-  
-### Bulk Delete
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-DELETE  /api/v1/country/bulk
-```
-
-```json
-[
-    {
-        "country_id" : 10261
-    },
-    {
-        "country_id" : 10262
-    }
-]
-```
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    1,
-    1
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#api-overview)
-
-  
-### With Children
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country/has/city
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    {
-        "country_id": 1,
-        "country": "Afghanistan",
-        "last_update": "2006-02-14T23:14:00.000Z",
-        "city": [
-            {
-                "city_id": 251,
-                "city": "Kabul",
-                "country_id": 1,
-                "last_update": "2006-02-14T23:15:25.000Z"
-            },
-            ...
-        ]
-    }
-]
-```
-  </code-block>
-</code-group>
-
-[⤴️](#hasmany-apis)
-
-### Children of parent
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country/1/city
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    {
-        "city_id": 251,
-        "city": "Kabul",
-        "country_id": 1,
-        "last_update": "2006-02-14T23:15:25.000Z"
-    }
-]
-```  
-  </code-block>
-</code-group>
-
-[⤴️](#hasmany-apis)
-    
-### Insert to child table
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-POST  /api/v1/country/1/city
-```
-
-```json
-    {
-        "city": "test"
-    }
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-{
-    "city": "test",
-    "country_id": "1",
-    "city_id": 10000
-}
-```
-  </code-block>
-</code-group>
-
-[⤴️](#hasmany-apis)
-
-### Findone under parent
-
-<code-group>
-  <code-block label="Request" active> 
-
-```
-GET  /api/v1/country/1/city/findOne?where=(city,like,ka%)
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json   
-{
-    "city": "test",
-    "country_id": "1",
-    "city_id": 10000
-}
-```
-  </code-block>
-</code-group>
-
-
-[⤴️](#hasmany-apis)
-
-### Child count
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country/1/city/count
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-{
-    "count": 37
-}
-```
-  </code-block>
-</code-group>
-
-
-[⤴️](#hasmany-apis)
-
-### Get Child By Primary key
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country/1/city/251
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    {
-        "city_id": 251,
-        "city": "Kabul",
-        "country_id": 1,
-        "last_update": "2006-02-14T23:15:25.000Z"
-    }
-]
-```
-  </code-block>
-</code-group>
-
-
-[⤴️](#hasmany-apis)
-
-### Update Child By Primary key
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-POST  /api/v1/country/1/city/251
-```
-
-```
-{
-    "city": "Kabul-1"
-}
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-1
-```
-  </code-block>
-</code-group>
-
-
-[⤴️](#hasmany-apis)
-
-### Get parent and chlidren within
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/country/has/city
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json
-[
-    {
-        "city_id": 1,
-        "city": "sdsdsdsd",
-        "country_id": 87,
-        "last_update": "2020-01-02T14:50:49.000Z",
-        "country": {
-            "country_id": 87,
-            "country": "Spain",
-            "last_update": "2006-02-14T23:14:00.000Z"
-        }
-    },
-    ...
-]
-```
-  </code-block>
-</code-group>
-
-
-[⤴️](#belongsto-apis)
-
-### Get table and parent class within
-
-<code-group>
-  <code-block label="Request" active> 
-  
-```
-GET  /api/v1/city/belongs/country
-```
-
-</code-block>
-<code-block label="Response"> 
-
-```json5
-[
-    {
-        city_id: 1,
-        city: "A Corua (La Corua)",
-        country_id: 87,
-        last_update: "2006-02-15T04:45:25.000Z",
-        country: {
-        country_id: 87,
-        country: "Spain",
-        last_update: "2006-02-15T04:44:00.000Z"
-    }
-]
-```
-  </code-block>
-</code-group>
+ -->
+
+## Comparison Operators
+
+| Operation | Meaning | Example |
+|---|---|---|
+| eq | equal | (colName,eq,colValue) |
+| not | not equal | (colName,not,colValue) |
+| gt | greater than | (colName,gt,colValue) |
+| ge | greater or equal | (colName,ge,colValue) |
+| lt | less than | (colName,lt,colValue) |
+| le | less or equal | (colName,le,colValue) |
+| is | is | (colName,is,true/false/null) |
+| isnot | is not | (colName,isnot,true/false/null) |
+| in | in | (colName,in,val1,val2,val3,val4) |
+| btw | between | (colName,btw,val1,val2) |
+| nbtw | not between | (colName,nbtw,val1,val2) |
+| like | like | (colName,like,%name) |
+
+## Logical Operators
+
+| Operation | Example |
+|---|---|
+| ~or | (checkNumber,eq,JM555205)~or((amount, gt, 200)~and(amount, lt, 2000)) |
+| ~and | (checkNumber,eq,JM555205)~and((amount, gt, 200)~and(amount, lt, 2000)) |
+| ~not | ~not(checkNumber,eq,JM555205) |

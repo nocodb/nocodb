@@ -52,6 +52,10 @@ export const genTest = (apiType, dbType) => {
             getAuditCell(1, 0).contains("TABLE").should("exist");
             getAuditCell(1, 1).contains("CREATED").should("exist");
             getAuditCell(1, 3).contains("user@nocodb.com").should("exist");
+
+            // click on home icon to close modal
+            // cy.get(".nc-noco-brand-icon").click({ force: true });
+            cy.get("body").click("bottomRight");
         });
 
         it("Table Rename operation", () => {
@@ -76,9 +80,9 @@ export const genTest = (apiType, dbType) => {
             // 4a. Address table, has many field
             cy.openTableTab("Address", 25);
 
-            mainPage.getCell("City <= Address", 1).scrollIntoView();
+            mainPage.getCell("CityRead", 1).scrollIntoView();
             mainPage
-                .getCell("City <= Address", 1)
+                .getCell("CityRead", 1)
                 .find(".name")
                 .contains("Lethbridge")
                 .should("exist");
@@ -88,7 +92,7 @@ export const genTest = (apiType, dbType) => {
             cy.openTableTab("Country", 25);
 
             mainPage
-                .getCell("Country => City", 1)
+                .getCell("CityList", 1)
                 .find(".name")
                 .contains("Kabul")
                 .should("exist");

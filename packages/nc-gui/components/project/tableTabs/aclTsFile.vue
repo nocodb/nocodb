@@ -15,7 +15,7 @@
                        href: '#'
                      },
                      {
-                       text: nodes.tn + ' (ACL)',
+                       text: nodes.table_name + ' (ACL)',
                        disabled: true,
                        href: '#'
                      }]"
@@ -79,7 +79,7 @@
         dense
         hide-details
         class="ma-2"
-        :placeholder="`Search ${nodes.tn} routes`"
+        :placeholder="`Search ${nodes.table_name} routes`"
         prepend-inner-icon="search"
         outlined
       />
@@ -124,14 +124,14 @@ export default {
       // this.policyPaths = await this.sqlMgr.projectGetTsPolicyPath({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias,
-      //   tn: this.nodes.tn
+      //   tn: this.nodes.table_name
       // });
 
       this.policyPaths = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'projectGetTsPolicyPath', {
-        tn: this.nodes.tn
+        table_name: this.nodes.table_name
       }])
     },
     reload() {

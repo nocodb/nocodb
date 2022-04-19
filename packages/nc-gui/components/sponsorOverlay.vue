@@ -26,10 +26,7 @@
         <p class="text-left body-1 ">
           We are a tiny team working full time to make NocoDB open source. We believe a tool like NocoDB should be
           available freely to every problem solver on internet.
-          <br><!--
-        Your donation would help us to focus better and ship faster. And your donations are much appreciated by our
-        team & families.
-        <br>-->
+          <br>
           <br>
           Sincerely,
           Team NocoDB

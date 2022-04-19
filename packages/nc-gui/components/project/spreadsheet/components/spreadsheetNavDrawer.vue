@@ -10,7 +10,7 @@
     <v-container fluid class="h-100 py-0">
       <div class="d-flex flex-column h-100">
         <div class="flex-grow-1" style="overflow: auto; min-height: 350px">
-          <v-list v-if="viewsList && viewsList.length" dense>
+          <v-list v-if="views && views.length" dense>
             <v-list-item dense>
               <!-- Views -->
               <span class="body-2 font-weight-medium">{{ $t('objects.views') }}</span>
@@ -27,12 +27,12 @@
                   <v-list-item
                     v-for="(view, i) in viewsList"
                     :key="view.id"
+                    v-t="['view:open']"
                     dense
                     :value="view.id"
                     active-class="x-active--text"
-                    class="body-2  view nc-view-item nc-draggable-child"
-                    :class="`nc-${view.show_as}-view-item`"
-                    @click="$emit('generateNewViewKey')"
+                    :class="`body-2  view nc-view-item nc-draggable-child nc-${viewTypeAlias[view.type]}-view-item`"
+                    @click="$emit('rerender')"
                   >
                     <v-icon
                       v-if="_isUIAllowed('viewlist-drag-n-drop')"
@@ -44,11 +44,11 @@
                     </v-icon>
                     <v-list-item-icon class="mr-n1">
                       <v-icon
-                        v-if="viewIcons[view.show_as]"
+                        v-if="viewIcons[view.type]"
                         x-small
-                        :color="viewIcons[view.show_as].color"
+                        :color="viewIcons[view.type].color"
                       >
-                        {{ viewIcons[view.show_as].icon }}
+                        {{ viewIcons[view.type].icon }}
                       </v-icon>
                       <v-icon v-else color="primary" small>
                         mdi-table
@@ -83,7 +83,7 @@
                     <template v-if="_isUIAllowed('virtualViewsCreateOrEdit')">
                       <!-- Copy view -->
                       <x-icon
-                        v-if="view.type === 'vtable' && !view.edit"
+                        v-if="!view.edit"
                         :tooltip="$t('activity.copyView')"
                         x-small
                         color="primary"
@@ -94,7 +94,7 @@
                       </x-icon>
                       <!-- Rename view -->
                       <x-icon
-                        v-if="view.type === 'vtable' && !view.edit"
+                        v-if="!view.edit"
                         :tooltip="$t('activity.renameView')"
                         x-small
                         color="primary"
@@ -105,7 +105,7 @@
                       </x-icon>
                       <!-- Delete view" -->
                       <x-icon
-                        v-if="view.type === 'vtable'"
+                        v-if="!view.is_default"
                         :tooltip="$t('activity.deleteView')"
                         small
                         color="error"
@@ -162,7 +162,7 @@
               </v-list-item>
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2  nc-create-grid-view" v-on="on" @click="openCreateViewDlg('grid')">
+                  <v-list-item dense class="body-2  nc-create-grid-view" v-on="on" @click="openCreateViewDlg(viewTypes.GRID)">
                     <v-list-item-icon class="mr-n1">
                       <v-icon color="blue" x-small>
                         mdi-grid-large
@@ -189,7 +189,7 @@
                     dense
                     class="body-2 nc-create-gallery-view"
                     v-on="on"
-                    @click="openCreateViewDlg('gallery')"
+                    @click="openCreateViewDlg(viewTypes.GALLERY)"
                   >
                     <v-list-item-icon class="mr-n1">
                       <v-icon color="orange" x-small>
@@ -212,75 +212,20 @@
                 <!-- Add Gallery View -->
                 {{ $t('msg.info.addView.gallery') }}
               </v-tooltip>
-              <!-- <v-tooltip bottom>
-                <template #activator="{ on }">
-                  <v-list-item
-                    dense
-                    class="body-2"
-                    v-on="on"
-                    @click="enableDummyFeat ? openCreateViewDlg('calendar') : comingSoon()"
-                  >
-                    <v-list-item-icon class="mr-n1">
-                      <v-icon x-small>
-                        mdi-calendar
-                      </v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>
-                      <span class="font-weight-regular">
-                        &lt;!&ndash; Calendar &ndash;&gt;
-                        {{ $t('objects.viewType.calendar') }}
-                      </span>
-                    </v-list-item-title>
 
-                    <v-spacer />
-                    <v-icon class="mr-1" small>
-                      mdi-plus
-                    </v-icon>
-                  </v-list-item>
-                </template>
-                &lt;!&ndash; Add Calendar View &ndash;&gt;
-                {{ $t('msg.info.addView.calendar') }}
-              </v-tooltip> -->
-              <!--              <v-tooltip bottom>
-                <template #activator="{ on }">
-                  <v-list-item
-                    dense
-                    open-class="body-2"
-                    v-on="on"
-                    @click="openCreateViewDlg('kanban')"
-                  >
-                    <v-list-item-icon class="mr-n1">
-                      <v-icon x-small>
-                        mdi-tablet-dashboard
-                      </v-icon>
-                    </v-list-item-icon>
-                    <v-list-item-title>
-                      <span class="font-weight-regular">
-                        &lt;!&ndash; Kanban &ndash;&gt;
-                        {{ $t('objects.viewType.kanban') }}
-                      </span>
-                    </v-list-item-title>
-                    <v-spacer />
-                    <v-icon class="mr-1" small>
-                      mdi-plus
-                    </v-icon>
-                  </v-list-item>
-                </template>
-                Add Kanban View
-                {{ $t('msg.info.addView.kanban') }}
-              </v-tooltip>-->
               <v-tooltip
                 bottom
               >
                 <template #activator="{ on }">
                   <v-list-item
+                    v-if="!isView"
                     dense
                     class="body-2 nc-create-form-view"
                     v-on="on"
-                    @click="openCreateViewDlg('form')"
+                    @click="openCreateViewDlg(viewTypes.FORM)"
                   >
                     <v-list-item-icon class="mr-n1">
-                      <v-icon x-small :color="viewIcons['form'].color" class="mt-n1">
+                      <v-icon x-small :color="viewIcons[viewTypes.FORM].color" class="mt-n1">
                         mdi-form-select
                       </v-icon>
                     </v-list-item-icon>
@@ -317,7 +262,8 @@
             mdi-close-circle-outline
           </v-icon>
 
-          <extras />
+          <!--          <extras />-->
+          <sponsor-mini nav />
         </div>
         <!--<div class="text-center">
           <v-hover >
@@ -435,12 +381,13 @@
       :nodes="nodes"
       :table="table"
       :show_as="createViewType"
-      :views-count="viewsList.length"
+      :views-count="views.length"
       :primary-value-column="primaryValueColumn"
       :meta="meta"
       :copy-view="copyViewRef"
-      :alias="meta._tn"
-      :views-list="viewsList"
+      :alias="meta.title"
+      :views-list="views"
+      :selected-view-id="selectedViewId"
       @created="onViewCreate"
     />
 
@@ -458,6 +405,7 @@
             {{ sharedViewUrl }}
             <v-spacer />
             <a
+              v-t="['share-view:open-url']"
               :href="`${sharedViewUrl}`"
               style="text-decoration: none"
               target="_blank"
@@ -519,16 +467,20 @@
 
 <script>
 import draggable from 'vuedraggable'
+import { ViewTypes } from 'nocodb-sdk'
 import CreateViewDialog from '@/components/project/spreadsheet/dialog/createViewDialog'
 import Extras from '~/components/project/spreadsheet/components/extras'
 import viewIcons from '~/helpers/viewIcons'
+import { copyTextToClipboard } from '~/helpers/xutils'
+import SponsorMini from '~/components/sponsorMini'
 
 export default {
   name: 'SpreadsheetNavDrawer',
-  components: { Extras, CreateViewDialog, draggable },
+  components: { SponsorMini, Extras, CreateViewDialog, draggable },
   props: {
     extraViewParams: Object,
     showAdvanceOptions: Boolean,
+    isView: Boolean,
     hideViews: Boolean,
     primaryValueColumn: [Number, String],
     toggleDrawer: {
@@ -552,10 +504,11 @@ export default {
     currentApiUrl: String,
     fieldsOrder: Array,
     viewStatus: Object,
-    columnsWidth: Object,
-    coverImageField: String,
+    // columnsWidth: Object,
+    // coverImageField: String,
     groupingField: String,
-    showSystemFields: Boolean
+    // showSystemFields: Boolean,
+    views: Array
   },
   data: () => ({
     drag: false,
@@ -574,15 +527,26 @@ export default {
     sharedViewPassword: '',
     overAdvShieldIcon: false,
     overShieldIcon: false,
-    viewsList: [],
     viewIcons,
     copyViewRef: null,
     shareLink: {},
     showShareModel: false,
     showCreateView: false,
-    loading: false
+    loading: false,
+    viewTypeAlias: { [ViewTypes.GRID]: 'grid', [ViewTypes.FORM]: 'form', [ViewTypes.GALLERY]: 'gallery' }
   }),
   computed: {
+    viewsList: {
+      set(v) {
+        this.$emit('update:views', v)
+      },
+      get() {
+        return this.views
+      }
+    },
+    viewTypes() {
+      return ViewTypes
+    },
     newViewParams() {
       if (!this.showFields) {
         return {}
@@ -595,37 +559,37 @@ export default {
     },
     selectedViewIdLocal: {
       set(val) {
-        const view = (this.viewsList || []).find(v => v.id === val)
+        const view = (this.views || []).find(v => v.id === val)
         this.$router.push({
           query: {
             ...this.$route.query,
-            view: view && (view.alias || view.title)
+            view: view && (view.id)
           }
         })
       },
       get() {
         let id
-        if (this.viewsList) {
-          console.log(this.viewsList)
-          const view = this.viewsList.find(v => (v.alias ? v.alias : v.title) === this.$route.query.view)
-          id = (view && view.id) || ((this.viewsList && this.viewsList[0]) || {}).id
+        if (this.views) {
+          const view = this.views.find(v => v.id === this.$route.query.view)
+          id = (view && view.id) || ((this.views && this.views[0]) || {}).id
         }
         return id
       }
     },
     sharedViewUrl() {
       let viewType
-      switch (this.shareLink.view_type) {
-        case 'form':
+
+      switch (this.shareLink.type) {
+        case this.viewTypes.FORM:
           viewType = 'form'
           break
-        case 'kanban':
+        case this.viewTypes.KANBAN:
           viewType = 'kanban'
           break
         default:
           viewType = 'view'
       }
-      return `${this.dashboardUrl}#/nc/${viewType}/${this.shareLink.view_id}`
+      return `${this.dashboardUrl}#/nc/${viewType}/${this.shareLink.uuid}`
     }
   },
   watch: {
@@ -648,47 +612,46 @@ export default {
   methods: {
     async onMove(event) {
       if (this.viewsList.length - 1 === event.moved.newIndex) {
-        this.$set(this.viewsList[event.moved.newIndex], 'view_order', this.viewsList[event.moved.newIndex - 1].view_order + 1)
+        this.$set(this.viewsList[event.moved.newIndex], 'order', this.viewsList[event.moved.newIndex - 1].order + 1)
       } else if (event.moved.newIndex === 0) {
-        this.$set(this.viewsList[event.moved.newIndex], 'view_order', this.viewsList[1].view_order / 2)
+        this.$set(this.viewsList[event.moved.newIndex], 'order', this.viewsList[1].order / 2)
       } else {
-        this.$set(this.viewsList[event.moved.newIndex], 'view_order', (this.viewsList[event.moved.newIndex - 1].view_order + this.viewsList[event.moved.newIndex + 1].view_order) / 2)
+        this.$set(this.viewsList[event.moved.newIndex], 'order', (this.viewsList[event.moved.newIndex - 1].order + this.viewsList[event.moved.newIndex + 1].order) / 2)
       }
+      await this.$api.dbView.update(this.viewsList[event.moved.newIndex].id, {
+        title: this.viewsList[event.moved.newIndex].title,
+        order: this.viewsList[event.moved.newIndex].order
+      })
 
-      console.log(this.viewsList)
-
-      await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: 'db' }, 'xcModelViewOrderSet', {
-        id: this.viewsList[event.moved.newIndex].id,
-        view_order: this.viewsList[event.moved.newIndex].view_order
-      }])
+      this.$tele.emit('view:drag')
     },
     onViewIdChange(id) {
-      const selectedView = this.viewsList && this.viewsList.find(v => v.id === id)
-      let queryParams = {}
+      const selectedView = this.views && this.views.find(v => v.id === id)
+      // const queryParams = {}
       this.$emit('update:selectedViewId', id)
       this.$emit('update:selectedView', selectedView)
       // if (selectedView.type === 'table') {
       //   return;
       // }
-      try {
-        queryParams = JSON.parse(selectedView.query_params) || {}
-      } catch (e) {
-        // console.log(e)
-      }
-      this.$emit('update:filters', queryParams.filters || [])
-      this.$emit('update:sortList', queryParams.sortList || [])
-      this.$emit('update:fieldsOrder', queryParams.fieldsOrder || [])
-      this.$emit('update:viewStatus', queryParams.viewStatus || {})
-      this.$emit('update:columnsWidth', queryParams.columnsWidth || {})
-      this.$emit('update:extraViewParams', queryParams.extraViewParams || {})
-      this.$emit('update:coverImageField', queryParams.coverImageField)
-      this.$emit('update:groupingField', queryParams.groupingField)
-      this.$emit('update:showSystemFields', queryParams.showSystemFields)
-      if (queryParams.showFields) {
-        this.$emit('update:showFields', queryParams.showFields)
-      } else {
-        this.$emit('mapFieldsAndShowFields')
-      }
+      // try {
+      //   queryParams = JSON.parse(selectedView.query_params) || {}
+      // } catch (e) {
+      //   // console.log(e)
+      // }
+      // this.$emit('update:filters', queryParams.filters || [])
+      // this.$emit('update:sortList', queryParams.sortList || [])
+      // this.$emit('update:fieldsOrder', queryParams.fieldsOrder || [])
+      // this.$emit('update:viewStatus', queryParams.viewStatus || {})
+      // this.$emit('update:columnsWidth', queryParams.columnsWidth || {})
+      // this.$emit('update:extraViewParams', queryParams.extraViewParams || {})
+      // this.$emit('update:coverImageField', queryParams.coverImageField)
+      // this.$emit('update:groupingField', queryParams.groupingField)
+      // this.$emit('update:showSystemFields', queryParams.showSystemFields)
+      // if (queryParams.showFields) {
+      //   this.$emit('update:showFields', queryParams.showFields)
+      // } else {
+      //   this.$emit('mapFieldsAndShowFields')
+      // }
       this.$emit('loadTableData')
     },
     hideMiniSponsorCard() {
@@ -707,6 +670,7 @@ export default {
       }
       this.createViewType = type
       this.showCreateView = true
+      this.$tele.emit(`view:create:trigger:${type}`)
     },
     isCentrallyAligned(col) {
       return ![
@@ -730,30 +694,41 @@ export default {
     },
     async saveShareLinkPassword() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [
-          { dbAlias: this.nodes.dbAlias },
-          'updateSharedViewLinkPassword',
-          {
-            id: this.shareLink.id,
-            password: this.shareLink.password
-          }
-        ])
+        await this.$api.dbViewShare.update(this.shareLink.id, {
+          password: this.shareLink.password
+        })
+
+        // await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        //   { dbAlias: this.nodes.dbAlias },
+        //   'updateSharedViewLinkPassword',
+        //   {
+        //     id: this.shareLink.id,
+        //     password: this.shareLink.password
+        //   }
+        // ])
         this.$toast.success('Successfully updated').goAway(3000)
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
+
+      this.$tele.emit('share-view:enable-pwd')
     },
     async loadViews() {
-      this.viewsList = await this.sqlOp(
-        {
-          dbAlias: this.nodes.dbAlias
-        },
-        'xcVirtualTableList',
-        {
-          tn: this.table
-        }
-      )
+      // this.viewsList = await this.sqlOp(
+      //   {
+      //     dbAlias: this.nodes.dbAlias
+      //   },
+      //   'xcVirtualTableList',
+      //   {
+      //     tn: this.table
+      //   }
+      // )
       // this.selectedViewIdLocal = this.viewsList && this.viewsList[0] && this.viewsList[0].id
+
+      // this.viewsList = []
+
+      const views = (await this.$api.dbView.list(this.meta.id)).list
+      this.$emit('update:views', views)
     },
     // async onViewChange() {
     //   let query_params = {}
@@ -773,7 +748,7 @@ export default {
     //   this.$emit('loadTableData');
     // },
     copyapiUrlToClipboard() {
-      this.$clipboard(this.currentApiUrl)
+      copyTextToClipboard(this.currentApiUrl)
       this.clipboardSuccessHandler()
     },
     async updateViewName(view, index) {
@@ -781,7 +756,7 @@ export default {
         return
       }
 
-      const oldTitle = view.title
+      // const oldTitle = view.title
 
       this.$set(view, 'edit', false)
       if (view.title_temp === view.title) {
@@ -792,25 +767,22 @@ export default {
         return
       }
       try {
-        if (this.selectedViewIdLocal === view.id) {
-          await this.$router.push({
-            query: {
-              ...this.$route.query,
-              view: view.title_temp
-            }
-          })
-        }
+        // if (this.selectedViewIdLocal === view.id) {
+        //   await this.$router.push({
+        //     query: {
+        //       ...this.$route.query,
+        //       view: view.title_temp
+        //     }
+        //   })
+        // }
         this.$set(view, 'title', view.title_temp)
-        await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableRename', {
-          id: view.id,
-          old_title: oldTitle,
-          title: view.title_temp,
-          alias: view.alias,
-          parent_model_title: this.meta.tn
+        await this.$api.dbView.update(view.id, {
+          title: view.title,
+          order: view.order
         })
         this.$toast.success('View renamed successfully').goAway(3000)
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
     },
     showRenameTextBox(view, i) {
@@ -821,59 +793,61 @@ export default {
         input.focus()
         input.setSelectionRange(0, input.value.length)
       })
+      this.$tele.emit(`view:rename:trigger:${view.type}`)
     },
     async deleteView(view) {
       try {
-        await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableDelete', {
-          id: view.id,
-          title: view.alias || view.title,
-          view_name: view.alias || view.title,
-          parent_model_title: this.table
-        })
+        await this.$api.dbView.delete(view.id)
         this.$toast.success('View deleted successfully').goAway(3000)
         await this.loadViews()
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
+      this.$tele.emit(`view:delete:submit:${view.type}`)
     },
     async genShareLink() {
-      const sharedViewUrl = await this.$store.dispatch('sqlMgr/ActSqlOp', [
-        { dbAlias: this.nodes.dbAlias },
-        'createSharedViewLink',
-        {
-          model_name: this.table,
-          // meta: this.meta,
-          query_params: {
-            where: this.concatenatedXWhere,
-            sort: this.sort,
-            fields: Object.keys(this.showFields)
-              .filter(f => this.showFields[f])
-              .join(','),
-            showFields: this.showFields,
-            fieldsOrder: this.fieldsOrder,
-            extraViewParams: this.extraViewParams,
-            selectedViewId: this.selectedViewId,
-            columnsWidth: this.columnsWidth
-          },
-          view_name: this.selectedView.title,
-          type: this.selectedView.type,
-          show_as: this.selectedView.show_as,
-          password: this.sharedViewPassword
-        }
-      ])
-      this.shareLink = sharedViewUrl
+      // const sharedViewUrl = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+      //   { dbAlias: this.nodes.dbAlias },
+      //   'createSharedViewLink',
+      //   {
+      //     model_name: this.table,
+      //     // meta: this.meta,
+      //     query_params: {
+      //       where: this.concatenatedXWhere,
+      //       sort: this.sort,
+      //       fields: Object.keys(this.showFields)
+      //         .filter(f => this.showFields[f])
+      //         .join(','),
+      //       showFields: this.showFields,
+      //       fieldsOrder: this.fieldsOrder,
+      //       extraViewParams: this.extraViewParams,
+      //       selectedViewId: this.selectedViewId,
+      //       columnsWidth: this.columnsWidth
+      //     },
+      //     view_name: this.selectedView.title,
+      //     type: this.selectedView.type,
+      //     show_as: this.selectedView.show_as,
+      //     password: this.sharedViewPassword
+      //   }
+      // ])
+      const shared = (await this.$api.dbViewShare.create(this.selectedViewId))
+
+      // todo: url
+      this.shareLink = shared
       this.showShareModel = true
     },
     copyView(view, i) {
-      this.createViewType = view.show_as
+      this.createViewType = view.type
       this.showCreateView = true
       this.copyViewRef = view
+      this.$tele.emit(`view:copy:trigger${view.type}`)
     },
     async onViewCreate(viewMeta) {
       this.copyViewRef = null
       await this.loadViews()
       this.selectedViewIdLocal = viewMeta.id
       // await this.onViewChange();
+      this.$tele.emit(`view:create:submit:${viewMeta.type}`)
     },
     clipboard(str) {
       const el = document.createElement('textarea')
@@ -890,6 +864,7 @@ export default {
     copyShareUrlToClipboard() {
       this.clipboard(this.sharedViewUrl)
       this.clipboardSuccessHandler()
+      this.$tele.emit('share-view:copy-url')
     }
   }
 }

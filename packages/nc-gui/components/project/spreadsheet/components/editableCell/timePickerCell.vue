@@ -40,7 +40,6 @@ export default {
         return dateTime.format('HH:mm:ss')
       },
       set(val) {
-        console.log(val)
         const dateTime = dayjs(`1999-01-01 ${val}:00`)
         if (dateTime.isValid()) { this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ssZ')) }
       }

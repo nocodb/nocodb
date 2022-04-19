@@ -1,3 +1,4 @@
+import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
@@ -9,6 +10,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            mainPage.tabReset();
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
@@ -31,7 +33,7 @@ export const genTest = (apiType, dbType) => {
                 cy.toastWait("View created successfully");
 
                 // validate if view was creted && contains default name 'Country1'
-                cy.get(`.nc-view-item.nc-${viewType}-view-item`)
+                cy.get(`.nc-${viewType}-view-item`)
                     .contains("Country1")
                     .should("exist");
 
@@ -40,7 +42,7 @@ export const genTest = (apiType, dbType) => {
 
             it(`Edit ${viewType} view name`, () => {
                 // click on edit-icon (becomes visible on hovering mouse)
-                cy.get(".nc-view-edit-icon").click({
+                cy.get(".nc-view-edit-icon").last().click({
                     force: true,
                     timeout: 1000,
                 });
@@ -52,7 +54,7 @@ export const genTest = (apiType, dbType) => {
                 cy.toastWait("View renamed successfully");
 
                 // validate
-                cy.get(`.nc-view-item.nc-${viewType}-view-item`)
+                cy.get(`.nc-${viewType}-view-item`)
                     .contains(`${viewType}View-1`)
                     .should("exist");
             });

@@ -7,8 +7,8 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Language support`, () => {
         before(() => {
-            //loginPage.signIn(roles.owner.credentials)
-            mainPage.toolBarTopLeft(mainPage.HOME).click();
+            loginPage.signIn(roles.owner.credentials)
+            // mainPage.toolBarTopLeft(mainPage.HOME).click();
             cy.screenshot("Debug 6d-1", { overwrite: true });
         });
 
@@ -43,31 +43,39 @@ export const genTest = (apiType, dbType) => {
             });
         };
 
+        let langMenu = [
+            "da.json",
+            "de.json",
+            "en.json",
+            "es.json",
+            "fa.json",
+            "fi.json",
+            "fr.json",
+            "hr.json",
+            "id.json",
+            "it_IT.json",
+            "iw.json",
+            "ja.json",
+            "ko.json",
+            "lv.json",
+            "nl.json",
+            "no.json",
+            "pt_BR.json",
+            "ru.json",
+            "sl.json",
+            "sv.json",
+            "th.json",
+            "tr.json",
+            "uk.json",
+            "vi.json",
+            "zh_CN.json",
+            "zh_HK.json",
+            "zh_TW.json",
+        ];
+
         // Index is the order in which menu options appear
-        langVerification(0, "da.json");
-        langVerification(1, "de.json");
-        langVerification(2, "en.json");
-        langVerification(3, "es.json");
-        langVerification(4, "fi.json");
-        langVerification(5, "fr.json");
-        langVerification(6, "hr.json");
-        langVerification(7, "id.json");
-        langVerification(8, "it_IT.json");
-        langVerification(9, "iw.json");
-        langVerification(10, "ja.json");
-        langVerification(11, "ko.json");
-        langVerification(12, "nl.json");
-        langVerification(13, "no.json");
-        langVerification(14, "pt_BR.json");
-        langVerification(15, "ru.json");
-        langVerification(16, "sl.json");
-        langVerification(17, "sv.json");
-        langVerification(18, "th.json");
-        langVerification(19, "uk.json");
-        langVerification(20, "vi.json");
-        langVerification(21, "zh_CN.json");
-        langVerification(22, "zh_HK.json");
-        langVerification(23, "zh_TW.json");
+        for (let i = 0; i < langMenu.length; i++)
+            langVerification(i, langMenu[i]);
     });
 };
 

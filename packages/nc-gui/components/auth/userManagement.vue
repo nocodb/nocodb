@@ -1,19 +1,19 @@
 <template>
   <div class="h-100">
-    <v-toolbar flat height="38" class="toolbar-border-bottom">
+    <v-toolbar flat height="38" class="mt-5">
       <v-text-field
         v-model="query"
         style="max-width: 300px"
         dense
-        solo
         flat
+        solo
         class="search-field caption"
         hide-details
         placeholder="Filter by email"
         @keypress.enter="loadUsers"
       >
         <template #prepend-inner>
-          <v-icon class="mt-1" small>
+          <v-icon small class="mt-1">
             search
           </v-icon>
         </template>
@@ -28,7 +28,7 @@
         color="primary"
         small
         :disabled="loading"
-        @click="loadUsers"
+        @click="clickReload"
         @click.prevent
       >
         <v-icon small left>
@@ -40,6 +40,7 @@
       <!-- tooltip="Add new role" -->
       <x-btn
         v-if="_isUIAllowed('newUser')"
+        class="nc-new-user"
         v-ge="['roles','add new']"
         outlined
         :tooltip="$t('tooltip.addRole')"
@@ -56,26 +57,13 @@
       </x-btn>
     </v-toolbar>
 
-    <v-card style="height:calc(100% - 38px)">
+    <v-card style="height:calc(100% - 38px)" class="elevation-0">
       <v-container style="height: 100%" fluid>
-        <!--          <div class="d-flex d-100 justify-center">-->
-
         <v-row style="height:100%">
           <v-col cols="12" class="h-100">
             <v-card class="h-100 elevation-0">
               <v-row style="height:100%">
                 <v-col offset="2" :cols="8" class="h-100" style="overflow-y: auto">
-                  <!--                  <v-card class="h-100 px-4 py-2">-->
-
-                  <!--                <v-row>
-                                    <v-col>
-
-                                    </v-col>
-                                    <v-col class="flex-shrink-1 flex-grow-0"><h4 class="text-center text-capitalize mt-2 d-100"
-                                                                                 style="min-width:100px">User List</h4></v-col>
-                                    <v-col></v-col>
-
-                                  </v-row>-->
                   <v-data-table
                     v-if="users"
                     dense
@@ -116,12 +104,6 @@
 
                     <template #item="{item}">
                       <tr @click="selectedUser = item">
-                        <!--          <td>
-                                    <v-radio-group dense hide-details v-model="selectedUserIndex" class="mt-n2">
-                                      <v-radio :value="index"
-                                      ></v-radio>
-                                    </v-radio-group>
-                                  </td>-->
                         <td>{{ item.email }}</td>
                         <td>
                           <!--                          {{ item.roles }}-->
@@ -133,23 +115,6 @@
                           >
                             {{ getRole(item.roles) }}
                           </v-chip>
-
-                          <!--                    <v-edit-dialog-->
-                          <!--                    >-->
-                          <!--                      <div-->
-                          <!--                        :title="item.roles"-->
-                          <!--                        style="width:180px;overflow:hidden;white-space: nowrap;text-overflow:ellipsis"> {{-->
-                          <!--                          item.roles-->
-                          <!--                        }}-->
-                          <!--                      </div>-->
-                          <!--                      <template v-slot:input>-->
-                          <!--                        <v-text-field-->
-                          <!--                          v-model="item.roles"-->
-                          <!--                          label="Edit"-->
-                          <!--                          single-line-->
-                          <!--                        ></v-text-field>-->
-                          <!--                      </template>-->
-                          <!--                    </v-edit-dialog>-->
                         </td>
                         <td>
                           <!-- tooltip="Edit User" -->
@@ -168,28 +133,18 @@
                               tooltip="Add user to project"
                               color="primary"
                               small
-                              @click="inviteUser(item.email)"
+                              @click="inviteUser(item)"
                             >
                               mdi-plus
                             </x-icon>
-                            <!-- <x-icon
-                              tooltip="Remove user from NocoDB"
-                              class="ml-2"
-                              color="error"
-                              small
-                              @click.prevent.stop="deleteId = item.id; deleteItem = item.id;showConfirmDlg = true;deleteUserType='DELETE_FROM_NOCODB'"
-                            >
-                              mdi-delete-forever-outline
-                            </x-icon> -->
                           </span>
-                          <!-- tooltip="Remove user from project" -->
                           <x-icon
                             v-else
                             :tooltip="$t('activity.deleteUser')"
                             class="ml-2"
                             color="error"
                             small
-                            @click.prevent.stop="deleteId = item.id; deleteItem = item.id;showConfirmDlg = true;deleteUserType='DELETE_FROM_PROJECT'"
+                            @click.prevent.stop="clickDeleteUser(item.id)"
                           >
                             mdi-delete-outline
                           </x-icon>
@@ -201,7 +156,7 @@
                             icon-class="mt-n1"
                             color="primary"
                             small
-                            @click.prevent.stop="rensendInvite(item.id)"
+                            @click.prevent.stop="resendInvite(item.id)"
                           >
                             mdi-email-send-outline
                           </x-icon>
@@ -222,7 +177,7 @@
                     </template>
                   </v-data-table>
                   <!-- tooltip="Add new user" -->
-                  <div class="mt-10 text-center">
+                  <!--                  <div class="mt-10 text-center">
                     <x-btn
                       v-if="_isUIAllowed('newUser')"
                       v-ge="['roles','add new']"
@@ -236,10 +191,10 @@
                       <v-icon small left>
                         mdi-plus
                       </v-icon>
-                      <!-- New User -->
+                      &lt;!&ndash; New User &ndash;&gt;
                       {{ $t('activity.newUser') }}
                     </x-btn>
-                  </div>
+                  </div>-->
 
                   <feedback-form class="mx-auto mt-6" />
                 </v-col>
@@ -324,21 +279,9 @@
 
     <!-- todo: move to a separate component-->
     <v-dialog v-model="userEditDialog" :width="invite_token ? 700 :700" @close="invite_token = null">
-      <v-card v-if="selectedUser" style="min-height: 100%">
+      <v-card v-if="selectedUser" style="min-height: 100%" class="elevation-0">
         <v-card-title>
           {{ $t('activity.share') }} : {{ $store.getters['project/GtrProjectName'] }}
-          <!--
-          <h4 class="text-center text-capitalize mt-2 d-100 display-1">
-            <template v-if="invite_token">
-              Copy Invite Token
-            </template>
-            <template v-else-if="selectedUser.id">
-              Edit User
-            </template>
-            <template v-else>
-              Invite
-            </template>
-          </h4>-->
 
           <div class="nc-header-border" />
         </v-card-title>
@@ -394,7 +337,7 @@
                   small
                   outlined
                   btn.class="grey--text"
-                  @click="invite_token = null, selectedUser = {}"
+                  @click="clickInviteMore"
                 >
                   <v-icon small color="grey" class="mr-1">
                     mdi-account-multiple-plus-outline
@@ -418,7 +361,7 @@
                       dense
                       validate-on-blur
                       outlined
-                      :rules="validate && emailRules"
+                      :rules="emailRules"
                       class="caption"
                       :hint="$t('msg.info.addMultipleUsers')"
                       label="Email"
@@ -437,6 +380,7 @@
                     <v-combobox
                       v-model="selectedRoles"
                       outlined
+                      :rules="roleRules"
                       class="role-select caption"
                       hide-details="auto"
                       :items="roles"
@@ -462,10 +406,6 @@
                   </v-col>
                 </v-row>
               </v-form>
-              <!--        </v-card-text>
-        <v-card-actions class="justify-center">-->
-
-              <!-- tooltip="Save Changes" -->
               <div class="text-center mt-0">
                 <x-btn
                   v-ge="['rows','save']"
@@ -528,6 +468,10 @@ export default {
         const invalidEmails = (v || '').split(/\s*,\s*/).filter(e => !isEmail(e))
         return !invalidEmails.length || `"${invalidEmails.join(', ')}" - invalid email`
       }
+    ],
+    roleRules: [
+      v => !!v || 'User Role is required',
+      v => ['creator', 'editor', 'commenter', 'viewer'].includes(v) || 'invalid user role'
     ],
     userList: [],
     roleDescriptions: {},
@@ -599,6 +543,22 @@ export default {
     this.$eventBus.$off('show-add-user', this.addUser)
   },
   methods: {
+    clickReload() {
+      this.loadUsers()
+      this.$tele.emit('user-mgmt:reload')
+    },
+    clickDeleteUser(id) {
+      this.$tele.emit('user-mgmt:delete:trigger')
+      this.deleteId = id
+      this.deleteItem = id
+      this.showConfirmDlg = true
+      this.deleteUserType = 'DELETE_FROM_PROJECT'
+    },
+    clickInviteMore() {
+      this.$tele.emit('user-mgmt:invite-more')
+      this.invite_token = null
+      this.selectedUser = { roles: 'editor' }
+    },
     getRole(roles) {
       return (roles ? roles.split(',') : []).sort((a, b) => this.roleNames.indexOf(a) - this.roleNames.indexOf(a))[0]
     },
@@ -650,8 +610,10 @@ export default {
       el.select()
       document.execCommand('copy')
       document.body.removeChild(el)
+
+      this.$tele.emit('user-mgmt:copy-url')
     },
-    async rensendInvite(id) {
+    async resendInvite(id) {
       try {
         await this.$axios.post('/admin/resendInvite/' + id, {
           projectName: this.$store.getters['project/GtrProjectName']
@@ -668,23 +630,34 @@ export default {
       } catch (e) {
         this.$toast.error(e.response.data.msg).goAway(3000)
       }
+
+      this.$tele.emit('user-mgmt:resend-invite')
     },
     async loadUsers() {
       try {
         const { page = 1, itemsPerPage = 20 } = this.options
-        const data = (await this.$axios.get('/admin', {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          },
-          params: {
+        // const data = (await this.$axios.get('/admin', {
+        //   headers: {
+        //     'xc-auth': this.$store.state.users.token
+        //   },
+        //   params: {
+        //     limit: itemsPerPage,
+        //     offset: (page - 1) * itemsPerPage,
+        //     query: this.query,
+        //     project_id: this.$route.params.project_id
+        //   }
+        // })).data
+
+        const userData = (await this.$api.auth.projectUserList(this.$store.state.project.projectId, {
+          query: {
             limit: itemsPerPage,
             offset: (page - 1) * itemsPerPage,
-            query: this.query,
-            project_id: this.$route.params.project_id
+            query: this.query
           }
-        })).data
-        this.count = data.count
-        this.users = data.list
+        }))
+
+        this.count = userData.users.pageInfo.totalRows
+        this.users = userData.users.list
         if (!this.selectedUser && this.users && this.users[0]) {
           this.selectedUserIndex = 0
         }
@@ -694,33 +667,27 @@ export default {
     },
     async loadRoles() {
       try {
-        this.roles = (await this.$axios.get('/admin/roles', {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          },
-          params: {
-            project_id: this.$route.params.project_id
-          }
-        })).data.map((role) => {
-          this.roleDescriptions[role.title] = role.description
-          return role.title
-        }).filter(role => role !== 'guest')
+        this.roles = ['creator', 'editor', 'commenter', 'viewer']
+
+        // todo:
+        //   (await this.$axios.get('/admin/roles', {
+        //   headers: {
+        //     'xc-auth': this.$store.state.users.token
+        //   },
+        //   params: {
+        //     project_id: this.$route.params.project_id
+        //   }
+        // })).data.map((role) => {
+        //   this.roleDescriptions[role.title] = role.description
+        //   return role.title
+        // }).filter(role => role !== 'guest')
       } catch (e) {
         console.log(e)
       }
     },
     async deleteUser(id, type) {
       try {
-        await this.$axios.delete('/admin/' + id, {
-          params: {
-            project_id: this.$route.params.project_id,
-            email: this.deleteItem.email,
-            type
-          },
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          }
-        })
+        await this.$api.auth.projectUserRemove(this.$route.params.project_id, id)
         this.$toast.success(`Successfully removed the user from ${type === 'DELETE_FROM_PROJECT' ? 'project' : 'NocoDB'}`).goAway(3000)
         await this.loadUsers()
       } catch (e) {
@@ -734,6 +701,8 @@ export default {
       }
       await this.deleteUser(this.deleteId, this.deleteUserType)
       this.showConfirmDlg = false
+
+      this.$tele.emit('user-mgmt:delete:submit')
     },
     addUser() {
       this.invite_token = null
@@ -741,23 +710,19 @@ export default {
         roles: 'editor'
       }
       this.userEditDialog = true
+
+      this.$tele.emit('user-mgmt:add-user:trigger')
     },
-    async inviteUser(email) {
+    async inviteUser(item) {
       try {
-        await this.$axios.post('/admin', {
-          email,
-          project_id: this.$route.params.project_id,
-          projectName: this.$store.getters['project/GtrProjectName']
-        }, {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          }
-        })
+        await this.$api.auth.projectUserAdd(this.$route.params.project_id, item)
         this.$toast.success('Successfully added user to project').goAway(3000)
         await this.loadUsers()
       } catch (e) {
         this.$toast.error(e.response.data.msg).goAway(3000)
       }
+
+      this.$tele.emit('user-mgmt:invite-user')
     },
     async saveUser() {
       this.validate = true
@@ -765,6 +730,7 @@ export default {
       if (this.loading || !this.$refs.form.validate() || !this.selectedUser) {
         return
       }
+      this.$tele.emit(`user-mgmt:add:${this.selectedUser.roles}`)
 
       if (!this.edited) {
         this.userEditDialog = false
@@ -773,31 +739,23 @@ export default {
       try {
         let data
         if (this.selectedUser.id) {
-          await this.$axios.put('/admin/' + this.selectedUser.id, {
+          await this.$api.auth.projectUserUpdate(this.$route.params.project_id, this.selectedUser.id, {
             roles: this.selectedUser.roles,
             email: this.selectedUser.email,
             project_id: this.$route.params.project_id,
             projectName: this.$store.getters['project/GtrProjectName']
-          }, {
-            headers: {
-              'xc-auth': this.$store.state.users.token
-            }
           })
         } else {
-          data = await this.$axios.post('/admin', {
+          data = (await this.$api.auth.projectUserAdd(this.$route.params.project_id, {
             ...this.selectedUser,
             project_id: this.$route.params.project_id,
             projectName: this.$store.getters['project/GtrProjectName']
-          }, {
-            headers: {
-              'xc-auth': this.$store.state.users.token
-            }
-          })
+          }))
         }
         this.$toast.success('Successfully updated the user details').goAway(3000)
         await this.loadUsers()
-        if (data && data.data && data.data.invite_token) {
-          this.invite_token = data.data
+        if (data && data.invite_token) {
+          this.invite_token = data
           this.simpleAnim()
           return
         }
@@ -805,7 +763,6 @@ export default {
         this.$toast.error(e.response.data.msg).goAway(3000)
       }
 
-      this.userEditDialog = false
       await this.loadUsers()
     }
   }

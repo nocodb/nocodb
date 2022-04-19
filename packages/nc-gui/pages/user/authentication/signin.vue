@@ -79,6 +79,7 @@
                 <!--                </v-btn>-->
 
                 <v-btn
+                  v-t="['login:sign-in']"
                   v-ge="['Sign In', '']"
                   color="primary"
                   large
@@ -285,10 +286,11 @@ export default {
       return this.$store.getters['users/GtrUser']
     },
     type() {
-      return (
-        this.$store.state.project.projectInfo &&
-        this.$store.state.project.projectInfo.authType
-      )
+      return 'jwt'
+      // return (
+      //   this.$store.state.project.projectInfo &&
+      //   this.$store.state.project.projectInfo.authType
+      // )
     },
     googleAuthEnabled() {
       return (
@@ -344,21 +346,15 @@ export default {
       if (this.type === 'jwt') {
         if (this.$refs.formType.validate()) {
           let err = null
-          // this.$nuxt.$loading.start()
           this.form.firstName = this.form.email
           this.form.lastName = this.form.email
-          console.log(process.env.xgene)
 
-          // await this.$recaptchaLoaded()
-          // const recaptchaToken = await this.$recaptcha('login')
-
-          err = await this.$store.dispatch('users/ActSignIn', { ...this.form }) //, recaptchaToken});
+          err = await this.$store.dispatch('users/ActSignIn', { ...this.form })
           if (err) {
             this.formUtil.formErr = true
             this.formUtil.formErrMsg = err.data.msg
             return
           }
-          // this.$nuxt.$loading.finish()
         }
       } else if (this.type === 'masterKey') {
         const valid = await this.$store.dispatch(

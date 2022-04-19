@@ -7,36 +7,61 @@ import { roles } from "../../support/page_objects/projectConstants";
 //  3. Preview mode menu
 //
 export function _advSettings(roleType, previewMode) {
+    cy.log(roleType, previewMode);
+
     let validationString =
         true == roles[roleType].validations.advSettings ? "exist" : "not.exist";
 
-    // audit/advance settings menu visible only for owner/ creator
-    mainPage.navigationDraw(mainPage.AUDIT).should(validationString);
-    mainPage.navigationDraw(mainPage.APPSTORE).should(validationString);
-    mainPage.navigationDraw(mainPage.TEAM_N_AUTH).should(validationString);
-    mainPage.navigationDraw(mainPage.PROJ_METADATA).should(validationString);
+    cy.get(".nc-team-settings").should(validationString);
+
+    if (true === roles[roleType].validations.advSettings) {
+        // audit/advance settings menu visible only for owner/ creator
+        mainPage.navigationDraw(mainPage.AUDIT).should(validationString);
+        mainPage.closeMetaTab();
+        mainPage.navigationDraw(mainPage.APPSTORE).should(validationString);
+        mainPage.closeMetaTab();
+        mainPage.navigationDraw(mainPage.TEAM_N_AUTH).should(validationString);
+        mainPage.closeMetaTab();
+        mainPage
+            .navigationDraw(mainPage.PROJ_METADATA)
+            .should(validationString);
+        mainPage.closeMetaTab();
+    }
 
     // option to add new user conditionally visible only to owner/ creator
     cy.get('button:contains("New User")').should(validationString);
 
-    if (true == previewMode) {
-        // preview mode, role toggle menubar is visible
-        mainPage.navigationDraw(mainPage.ROLE_VIEW_EDITOR).should("exist");
-        mainPage.navigationDraw(mainPage.ROLE_VIEW_COMMENTER).should("exist");
-        mainPage.navigationDraw(mainPage.ROLE_VIEW_VIEWER).should("exist");
-        mainPage.navigationDraw(mainPage.ROLE_VIEW_RESET).should("exist");
-    } else {
-        // normal mode, role toggle menubar is visible only for owner/ creator
-        mainPage
-            .navigationDraw(mainPage.ROLE_VIEW_EDITOR)
-            .should(validationString);
-        mainPage
-            .navigationDraw(mainPage.ROLE_VIEW_COMMENTER)
-            .should(validationString);
-        mainPage
-            .navigationDraw(mainPage.ROLE_VIEW_VIEWER)
-            .should(validationString);
+    // preview button visibility
+    cy.get(".nc-btn-preview:visible").should(validationString);
+
+    // float menu in preview mode
+    if (true === previewMode) {
+        cy.get(".nc-floating-preview-btn").should("exist");
+        cy.getActiveMenu()
+            .find(`[type="radio"][value="${roles[roleType].name}"]`)
+            .should("be.checked");
     }
+
+    // if (true == previewMode) {
+    //     // preview mode, role toggle menubar is visible
+    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_EDITOR).should("exist");
+    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_COMMENTER).should("exist");
+    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_VIEWER).should("exist");
+    //     mainPage.navigationDraw(mainPage.ROLE_VIEW_RESET).should("exist");
+    // } else {
+    //     // normal mode, role toggle menubar is visible only for owner/ creator
+    //     mainPage
+    //         .navigationDraw(mainPage.ROLE_VIEW_EDITOR)
+    //         .should(validationString);
+    //     mainPage
+    //         .navigationDraw(mainPage.ROLE_VIEW_COMMENTER)
+    //         .should(validationString);
+    //     mainPage
+    //         .navigationDraw(mainPage.ROLE_VIEW_VIEWER)
+    //         .should(validationString);
+    // }
+
+    cy.get("body").click("bottomRight");
 }
 
 export function _editSchema(roleType, previewMode) {
@@ -85,7 +110,10 @@ export function _editData(roleType, previewMode) {
     // update row option (right click)
     //
     cy.get(`tbody > :nth-child(4) > [data-col="City"]`).rightclick();
-    cy.get(".menuable__content__active").should(validationString);
+
+    if (previewMode)
+        cy.getActiveMenu().contains("Insert New Row").should(validationString);
+    else cy.get(".menuable__content__active").should(validationString);
 
     if (validationString == "exist") {
         // right click options will exist (only for 'exist' case)
@@ -186,7 +214,7 @@ export function _editComment(roleType, previewMode) {
 //      Rest: can create/edit
 export function _viewMenu(roleType, previewMode) {
     let columnName = "City";
-    let navDrawListCnt = 2;
+    let navDrawListCnt = 1;
     let actionsMenuItemsCnt = 1;
 
     cy.openTableTab(columnName, 25);
@@ -202,7 +230,7 @@ export function _viewMenu(roleType, previewMode) {
 
     // Owner, Creator will have two navigation drawer (on each side of center panel)
     if (roleType == "owner" || roleType == "creator") {
-        navDrawListCnt = 3;
+        navDrawListCnt = 2;
         actionsMenuItemsCnt = 4;
     }
 
@@ -236,6 +264,11 @@ export function _viewMenu(roleType, previewMode) {
 }
 
 export function _topRightMenu(roleType, previewMode) {
+    // kludge; download csv menu persists until clicked
+    let columnName = "City";
+    cy.closeTableTab(columnName);
+    cy.openTableTab(columnName, 25);
+
     let validationString =
         true == roles[roleType].validations.shareView ? "exist" : "not.exist";
     cy.get(".nc-topright-menu").find(".nc-menu-share").should(validationString);
@@ -244,7 +277,7 @@ export function _topRightMenu(roleType, previewMode) {
     // cy.get(".nc-topright-menu").find(".nc-menu-dark-theme").should("exist");
     cy.get(".nc-topright-menu").find(".nc-menu-translate").should("exist");
     cy.get(".nc-topright-menu").find(".nc-menu-account").should("exist");
-    cy.get(".nc-topright-menu").find(".nc-menu-alert").should("exist");
+    // cy.get(".nc-topright-menu").find(".nc-menu-alert").should("exist");
 }
 
 // Access control list

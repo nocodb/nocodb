@@ -3,7 +3,7 @@ export default function isDev() {
     (process.env.NODE_ENV.toLowerCase() === 'development' || process.env.NODE_ENV.toLowerCase() === 'dev')
 }
 
-export function isMetaTable(tn) {
+export function isMetaTable(table_name) {
   return [
     '_evolutions',
     'nc_models',
@@ -32,7 +32,7 @@ export function isMetaTable(tn) {
     'xc_users',
     'nc_plugins',
     'nc_disabled_models_for_role'
-  ].includes(tn)
+  ].includes(table_name)
 }
 
 export function insertKey(key, value, obj, pos) {
@@ -99,7 +99,6 @@ export function copyTextToClipboard(text) {
   try {
     const successful = document.execCommand('copy')
     const msg = successful ? 'successful' : 'unsuccessful'
-    console.log('Copying text command was ' + msg)
   } catch (err) {
     console.log('Oops, unable to copy')
   }

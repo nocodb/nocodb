@@ -14,7 +14,7 @@
                        href: '#'
                      },
                      {
-                       text: (nodes._tn || nodes.view_name|| nodes.tn) + ' (RBAC)',
+                       text: (nodes.title || nodes.view_name|| nodes.table_name) + ' (RBAC)',
                        disabled: true,
                        href: '#'
                      }]"
@@ -63,7 +63,7 @@
       </v-toolbar>
 
       <p class="title mt-6 mb-6">
-        Table : <span class="text-capitalize">{{ nodes._tn || nodes.view_name }}</span><br>
+        Table : <span class="text-capitalize">{{ nodes.title || nodes.view_name }}</span><br>
         <span class="font-weight-thin">Role Based Access Control (RBAC) For Columns</span>
       </p>
 
@@ -107,7 +107,7 @@
                 <custom-acl
                   v-model="customAcl"
                   :nodes="nodes"
-                  :table="nodes.tn || nodes.view_name"
+                  :table="nodes.table_name || nodes.view_name"
                 />
               </v-card-text>
             </v-card>
@@ -124,7 +124,7 @@
               <!--          <v-text-field dense hide-details class="my-2 caption font-weight-regular"
                                                             flat
                                                             outlined
-                                                            :placeholder="`Search columns in '${nodes._tn|| nodes.view_name}'`"
+                                                            :placeholder="`Search columns in '${nodes.title|| nodes.view_name}'`"
                                                             prepend-inner-icon="search" v-model="search"
           ></v-text-field>-->
               <!--            </div>-->
@@ -169,7 +169,7 @@
                         role
                       }}</span> {{ aclRoleOpAll[`${role}___${op.name}`] ? 'can' : 'can\'t' }} {{
                         op.name
-                      }} '{{ nodes.tn }}' rows</span>
+                      }} '{{ nodes.table_name }}' rows</span>
                     </v-tooltip>
 
                     <v-icon
@@ -178,7 +178,7 @@
                       class="custom-acl"
                       @click="(
                         showCustomAcl = true,
-                        custoAclTitle = [nodes.tn,role,op.name],
+                        custoAclTitle = [nodes.table_name,role,op.name],
                         customAcl=(data[role] && data[role][op.name] && data[role][op.name].custom ) || {}
                       )"
                     >
@@ -203,12 +203,12 @@
           <tbody>
             <tr
               v-for="column in columns"
-              v-show="column._cn.toLowerCase().indexOf(search.toLowerCase()) > -1"
-              :key="column._cn"
+              v-show="column.title.toLowerCase().indexOf(search.toLowerCase()) > -1"
+              :key="column.title"
               class="caption"
             >
               <td>
-                {{ column._cn }}
+                {{ column.title }}
               </td>
               <template v-for="role in roles">
                 <template
@@ -229,12 +229,12 @@
                         >
                           <v-checkbox
                             v-if="!op.ignore"
-                            v-model="aclObj[`${column._cn}___${role}___${op.name}`]"
+                            v-model="aclObj[`${column.title}___${role}___${op.name}`]"
                             class="mt-n1"
                             dense
                             color="primary lighten-2"
                             style=""
-                            @change="onPermissionChange(aclObj[`${column._cn}___${role}___${op.name}`],`${role}___${op.name}`)"
+                            @change="onPermissionChange(aclObj[`${column.title}___${role}___${op.name}`],`${role}___${op.name}`)"
                           />
 
                           <v-checkbox
@@ -252,9 +252,9 @@
                         class="text-capitalize"
                       >{{
                         role
-                      }}</span> {{ aclObj[`${column._cn}___${role}___${op.name}`] ? 'can' : 'can\'t' }} {{
+                      }}</span> {{ aclObj[`${column.title}___${role}___${op.name}`] ? 'can' : 'can\'t' }} {{
                         op.name
-                      }} column '{{ column._cn }}'</span>
+                      }} column '{{ column.title }}'</span>
                     </v-tooltip>
                   </td>
                 </template>
@@ -311,7 +311,7 @@ export default {
       return (this.data ? Object.keys(this.data) : []).filter(r => r !== 'guest')
     },
     operations() {
-      return this.allOperations.filter(({ name }) => this.nodes.tn || name === 'read')
+      return this.allOperations.filter(({ name }) => this.nodes.table_name || name === 'read')
     }
   },
   async created() {
@@ -385,7 +385,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'xcAclSave', {
-          tn: this.nodes.tn || this.nodes.view_name,
+          tn: this.nodes.table_name || this.nodes.view_name,
           acl: obj
         }])
         if (this.showCustomAcl) {
@@ -406,14 +406,14 @@ export default {
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // }, 'columnList', {
-      //   tn: this.nodes.tn || this.nodes.view_name
+      //   tn: this.nodes.table_name || this.nodes.view_name
       // }]);
       // this.columns = result.data.list;
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
-        tn: this.nodes.tn || this.nodes.view_name
+        tn: this.nodes.table_name || this.nodes.view_name
       }])
 
       const meta = JSON.parse(result.meta)
@@ -425,7 +425,7 @@ export default {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'xcAclGet', {
-        tn: this.nodes.tn || this.nodes.view_name
+        tn: this.nodes.table_name || this.nodes.view_name
       }])
       this.data = JSON.parse(result.acl)
 

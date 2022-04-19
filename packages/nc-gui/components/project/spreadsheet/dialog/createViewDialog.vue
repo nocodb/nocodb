@@ -4,7 +4,7 @@
       <v-card-title class="grey darken-2 subheading" style="height:30px" />
       <v-card-text class="pt-4 pl-4">
         <p class="headline">
-          {{ $t('general.create') }} <span class="text-capitalize">{{ show_as }}</span> {{ $t('objects.view') }}
+          {{ $t('general.create') }} <span class="text-capitalize">{{ typeAlias }}</span> {{ $t('objects.view') }}
         </p>
         <v-form ref="form" v-model="valid" @submit.prevent="createView">
           <!-- label="View Name" -->
@@ -38,9 +38,11 @@
 
 <script>
 
+import { ViewTypes } from 'nocodb-sdk'
+
 export default {
   name: 'CreateViewDialog',
-  props: ['value', 'nodes', 'table', 'alias', 'show_as', 'viewsCount', 'primaryValueColumn', 'meta', 'copyView', 'viewsList'],
+  props: ['value', 'nodes', 'table', 'alias', 'show_as', 'viewsCount', 'primaryValueColumn', 'meta', 'copyView', 'viewsList', 'selectedViewId'],
   data: () => ({
     valid: false,
     view_name: '',
@@ -55,6 +57,14 @@ export default {
       set(v) {
         this.$emit('input', v)
       }
+    },
+    typeAlias() {
+      return ({
+        [ViewTypes.GRID]: 'grid',
+        [ViewTypes.GALLERY]: 'gallery',
+        [ViewTypes.FORM]: 'form',
+        [ViewTypes.KANBAN]: 'kanban'
+      })[this.show_as]
     }
   },
   mounted() {
@@ -75,53 +85,35 @@ export default {
   },
   methods: {
     async createView() {
-      if (!this.valid) { return }
-      let showFields = null
-      let attachmentCol
-      let singleSelectCol
-      if (this.show_as === 'gallery') {
-        showFields = { [this.primaryValueColumn]: true }
-        attachmentCol = this.meta.columns.find(c => c.uidt === 'Attachment')
-        if (attachmentCol) {
-          showFields[attachmentCol.cn] = true
-        }
-        this.meta.columns.forEach((c) => {
-          if (c.pk) {
-            showFields[c.cn] = true
-          }
-        })
-      }
-
-      if (this.show_as === 'kanban') {
-        showFields = { [this.primaryValueColumn]: true }
-        singleSelectCol = this.meta.columns.find(c => c.uidt === 'SingleSelect')
-        if (singleSelectCol) {
-          showFields[singleSelectCol.cn] = true
-        }
-        this.meta.columns.forEach((c) => {
-          if (c.pk) {
-            showFields[c.cn] = true
-          }
-        })
+      if (!this.valid) {
+        return
       }
 
       this.loading = true
       try {
-        const viewMeta = await this.sqlOp({
-          dbAlias: this.nodes.dbAlias
-        }, 'xcVirtualTableCreate', {
-          title: this.view_name,
-          query_params: {
-            showFields,
-            coverImageField: attachmentCol ? attachmentCol._cn : '',
-            groupingField: singleSelectCol ? singleSelectCol._cn : '',
-            ...this.queryParams
-          },
-          parent_model_title: this.table,
-          show_as: this.show_as
-        })
+        let data
+        switch (this.show_as) {
+          case ViewTypes.GRID:
+            data = (await this.$api.dbView.gridCreate(this.meta.id, {
+              title: this.view_name,
+              copy_from_id: this.selectedViewId
+            }))
+            break
+          case ViewTypes.GALLERY:
+            data = (await this.$api.dbView.galleryCreate(this.meta.id, {
+              title: this.view_name,
+              copy_from_id: this.selectedViewId
+            }))
+            break
+          case ViewTypes.FORM:
+            data = (await this.$api.dbView.formCreate(this.meta.id, {
+              title: this.view_name,
+              copy_from_id: this.selectedViewId
+            }))
+            break
+        }
         this.$toast.success('View created successfully').goAway(3000)
-        this.$emit('created', viewMeta)
+        this.$emit('created', data)
         this.$emit('input', false)
       } catch (e) {
         this.$toast.error(e.message).goAway(3000)

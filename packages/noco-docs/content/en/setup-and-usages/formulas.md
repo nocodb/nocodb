@@ -56,9 +56,10 @@ menuTitle: "Formulas"
 | `*`      | `column1 * column2`     | Multiplication of numeric values |
 | `/`      | `column1 / column2`     | Division of numeric values       |
 
-> To change order of arithmetic operation, use round bracket parantheses `()`  
-> Example: `(column1 + (column2 * column3) / (3 - column4 ))`
-
+<alert type="success">
+Tip :To change the order of arithmetic operation, you can use round bracket parantheses (). <br/>
+Example: (column1 + (column2 * column3) / (3 - column4 ))
+</alert>
 
 ### String Functions
 

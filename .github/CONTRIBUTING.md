@@ -43,11 +43,7 @@ We encourage all contributors to commit messages following [Commit Message Conve
 
 ### Applying License
 
-NocoDB doesn't require a CLA (Contributor License Agreement). 
-We require [Developer Certificate of Origin (DCO)](https://github.com/nocodb/nocodb/blob/master/.github/developer-certificate-of-origin) as an additional safeguard
-for the NocoDB project. This is a well established and widely used
-mechanism to assure contributors have confirmed their right to license
-their contribution under the project's license.
+We require a CLA (Contributor License Agreement). This is a one-time process. Please click this [link](https://cla-assistant.io/nocodb/nocodb) to agree to the CLA for nocodb/nocodb. 
 
 #### Modifying existing file
 If you modify an existing file, please keep the existing license header as

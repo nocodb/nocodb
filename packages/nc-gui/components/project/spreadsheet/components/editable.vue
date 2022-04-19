@@ -19,6 +19,13 @@ export default {
       return { ...this.$listeners, input: this.onInput }
     }
   },
+  watch: {
+    value(v) {
+      if (this.$refs.editable.innerText !== v) {
+        this.$refs.editable.innerText = v
+      }
+    }
+  },
   mounted() {
     this.$refs.editable.innerText = this.value
   },

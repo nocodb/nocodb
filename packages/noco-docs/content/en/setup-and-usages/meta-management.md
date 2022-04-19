@@ -6,13 +6,17 @@ category: 'Product'
 menuTitle: 'Metadata'
 ---
 
-To go to the Meta Management Portal, click ``Project Metadata`` under ``Settings`` on the leftmost menu.
+Project Metadata can be found by clicking `Team & Settings` from the left navigation drawer
 
-![image](https://user-images.githubusercontent.com/35857179/126929430-1ad086a8-0611-4f39-8c7f-580637574056.png)
+![image](https://user-images.githubusercontent.com/35857179/161902474-fd06678c-a171-4237-b171-dc028b3753de.png)
+
+and clicking `Project Metadata`.
+
+![image](https://user-images.githubusercontent.com/35857179/161905030-6c5deef7-3a3d-4e71-8763-88e57586e5b4.png)
 
 ## Project Metadata
 
-The metadata is stored in meta directory in project level, database level, and API level. 
+The metadata is stored in meta directory in project level, database level, and API level.
 
 Under ``Project Metadata``, you can perform the following operations.
 
@@ -31,34 +35,29 @@ Under ``Project Metadata``, you can perform the following operations.
   Import / Export will only transfer metadata and files related to the project and not any table data in the project.
 </alert>
 
-## Migration example
-### Export metadata
-Source project : Under ``Meta Management`` tab, select ``Export zip``, click ``Submit``. This step extracts project metadata and stores it in compressed (zip) format  
+## Migration Example
 
-![meta-dev](https://user-images.githubusercontent.com/86527202/130780497-89578bd0-a417-468a-92d8-88c5c07a72b0.png "Step-Export")
+### Export Metadata
 
-### Import metadata
-Destination project : Under ``Meta Management`` tab, select ``Import zip``, select ``meta.zip`` file stored in previous step. This step imports project metadata from compressed file (zip) selected and restarts project.  
+From the source project, go to `Project Metadata`. Under ``Export / Import Metadata`` tab, select ``Export zip``, click ``Submit``. This step extracts project metadata and stores it in compressed (zip) format.
 
-![meta-prod](https://user-images.githubusercontent.com/86527202/130781015-3477e596-b1bc-4189-9853-bfd850157ba8.png)
+![image](https://user-images.githubusercontent.com/35857179/161904400-b926494a-4533-41e4-85c3-5c6ca9ea0803.png)
 
----
+### Import Metadata
 
+From the destination project, go to `Project Metadata`. Under ``Export / Import Metadata`` tab, select ``Import zip``, select ``meta.zip`` file stored in previous step. This step imports project metadata from compressed file (zip) selected and restarts the project.
+
+![image](https://user-images.githubusercontent.com/35857179/161904452-da0ac683-1715-438a-9c9c-91b34f8f45ba.png)
 
 ## Database Metadata
 
-Under ``DB Metadata``, You can manage your models. For example, if you do not want to expose some APIs, you can untick those under APIs here.
+Go to `Project Metadata`, under ``Metadata``, you can see your metadata sync status. If it is out of sync, you can sync the schema. See <a href="./sync-schema">Sync Schema</a> for more.
 
-![image](https://user-images.githubusercontent.com/35857179/127611038-a10ccee5-72ca-42cf-a55b-c8268c9fbe5c.png)
+![image](https://user-images.githubusercontent.com/35857179/161904869-e6c8fe74-3156-49bc-be66-09f8d676aa83.png)
 
-The relations of all tables are listed under ``Relations``.
-
-![image](https://user-images.githubusercontent.com/35857179/127611116-0289f739-bad7-45a0-b2bd-bfd8565f50b8.png)
 
 ## UI Access Control
 
-You can control the access to each table and relation by roles. 
+Go to `Project Metadata`, under ``UI Access Control``, you can control the access to each table by roles. 
 
-![image](https://user-images.githubusercontent.com/35857179/127611188-339de6ca-e648-47c0-a358-eee0d03ae9d0.png)
-
-![image](https://user-images.githubusercontent.com/35857179/127611237-5c43e194-a8ba-4e33-b473-5b690a38e80d.png)
+![image](https://user-images.githubusercontent.com/35857179/161904939-6869e36d-0612-4ae5-a123-fee371472ede.png)

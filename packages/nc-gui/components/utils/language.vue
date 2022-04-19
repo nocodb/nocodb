@@ -1,6 +1,6 @@
 <template>
   <div>
-    <v-menu bottom offset-y>
+    <v-menu top offset-y>
       <template #activator="{on}">
         <v-icon size="20" class="ml-2 nc-menu-translate" v-on="on">
           mdi-translate
@@ -36,7 +36,6 @@
 </template>
 
 <script>
-const order = l => ({ zh_CN: 10, en: 11, id: -2 })[l] || 0
 export default {
   name: 'Language',
   data: () => ({
@@ -44,17 +43,20 @@ export default {
       de: 'Deutsch',
       en: 'English',
       es: 'Español',
+      fa: 'فارسی',
       fr: 'Français',
       id: 'Bahasa Indonesia',
-      it_IT: 'Italiano',
       ja: '日本語',
+      it_IT: 'Italiano',
       ko: '한국인',
+      lv: 'Latviešu',
       nl: 'Nederlandse',
       ru: 'Pусский',
       zh_CN: '大陆简体',
       zh_HK: '香港繁體',
       zh_TW: '臺灣正體',
       sv: 'Svenska',
+      tr: 'Turkish',
       da: 'Dansk',
       vi: 'Tiếng Việt',
       no: 'Norsk',
@@ -77,10 +79,20 @@ export default {
       },
       set(val) {
         this.$store.commit('windows/MutLanguage', val)
+        this.applyDirection()
       }
     }
   },
+  mounted() {
+    this.applyDirection()
+  },
   methods: {
+    applyDirection() {
+      document.body.style.direction = this.isRtlLang() ? 'rtl' : 'ltr'
+    },
+    isRtlLang() {
+      return ['fa'].includes(this.language)
+    },
     changeLan(lan) {
       this.language = lan
       const count = 200
@@ -116,6 +128,7 @@ export default {
         spread: 120,
         startVelocity: 45
       })
+      this.$tele.emit(`toolbar:lang:${lan}`)
     }
   }
 }

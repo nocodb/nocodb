@@ -1,4 +1,4 @@
-import { XcActionType, XcType } from 'nc-common';
+import { XcActionType, XcType } from 'nocodb-sdk';
 import { XcPluginConfig } from 'nc-plugin';
 
 import SMTPPlugin from './SMTPPlugin';
@@ -47,9 +47,9 @@ const config: XcPluginConfig = {
       },
       {
         key: 'ignoreTLS',
-        label: 'IgnoreTLS',
-        placeholder: 'IgnoreTLS',
-        type: XcType.SingleLineText,
+        label: 'Ignore TLS',
+        placeholder: 'Ignore TLS',
+        type: XcType.Checkbox,
         required: false
       },
       {

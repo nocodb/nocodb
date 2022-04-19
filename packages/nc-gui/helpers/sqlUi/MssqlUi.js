@@ -40,7 +40,7 @@ export class MssqlUi {
   static getNewTableColumns() {
     return [
       {
-        cn: 'id',
+        column_name: 'id',
         dt: 'int',
         dtx: 'integer',
         ct: 'int(11)',
@@ -62,7 +62,7 @@ export class MssqlUi {
         uicn: ''
       },
       {
-        cn: 'title',
+        column_name: 'title',
         dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -84,7 +84,7 @@ export class MssqlUi {
         uicn: ''
       },
       {
-        cn: 'created_at',
+        column_name: 'created_at',
         dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -106,7 +106,7 @@ export class MssqlUi {
         uicn: ''
       },
       {
-        cn: 'updated_at',
+        column_name: 'updated_at',
         dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -155,122 +155,6 @@ export class MssqlUi {
       uicn: ''
     }
   }
-
-  // static getDefaultLengthForDatatype(type) {
-  //   switch (type) {
-  //     case "int":
-  //       return 11;
-  //       break;
-  //     case "tinyint":
-  //       return 1;
-  //       break;
-  //     case "smallint":
-  //       return 5;
-  //       break;
-  //
-  //     case "mediumint":
-  //       return 9;
-  //       break;
-  //     case "bigint":
-  //       return 20;
-  //       break;
-  //     case "bit":
-  //       return 64;
-  //       break;
-  //     case "boolean":
-  //       return '';
-  //       break;
-  //     case "float":
-  //       return 12;
-  //       break;
-  //     case "decimal":
-  //       return 10;
-  //       break;
-  //     case "double":
-  //       return 22;
-  //       break;
-  //     case "serial":
-  //       return 20;
-  //       break;
-  //     case "date":
-  //       return '';
-  //       break;
-  //     case "datetime":
-  //     case "timestamp":
-  //       return 6;
-  //       break;
-  //     case "time":
-  //       return '';
-  //       break;
-  //     case "year":
-  //       return '';
-  //       break;
-  //     case "char":
-  //       return 255;
-  //       break;
-  //     case "varchar":
-  //       return 45;
-  //       break;
-  //     case "nchar":
-  //       return 255;
-  //       break;
-  //     case "text":
-  //       return '';
-  //       break;
-  //     case "tinytext":
-  //       return '';
-  //       break;
-  //     case "mediumtext":
-  //       return '';
-  //       break;
-  //     case "longtext":
-  //       return ''
-  //       break;
-  //     case "binary":
-  //       return 255;
-  //       break;
-  //     case "varbinary":
-  //       return 65500;
-  //       break;
-  //     case "blob":
-  //       return '';
-  //       break;
-  //     case "tinyblob":
-  //       return '';
-  //       break;
-  //     case "mediumblob":
-  //       return '';
-  //       break;
-  //     case "longblob":
-  //       return '';
-  //       break;
-  //     case "enum":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "set":
-  //       return '\'a\',\'b\'';
-  //       break;
-  //     case "geometry":
-  //       return '';
-  //     case "point":
-  //       return '';
-  //     case "linestring":
-  //       return '';
-  //     case "polygon":
-  //       return '';
-  //     case "multipoint":
-  //       return '';
-  //     case "multilinestring":
-  //       return '';
-  //     case "multipolygon":
-  //       return '';
-  //     case "json":
-  //       return ''
-  //       break;
-  //
-  //   }
-  //
-  // }
 
   static getDefaultLengthForDatatype(type) {
     switch (type) {
@@ -661,7 +545,7 @@ export class MssqlUi {
       col.dt === 'bigint' ||
       col.dt === 'smallint') {
       for (let i = 0; i < columns.length; ++i) {
-        if (columns[i].cn !== col.cn && columns[i].ai) {
+        if (columns[i].column_name !== col.column_name && columns[i].ai) {
           return true
         }
       }
@@ -686,16 +570,9 @@ export class MssqlUi {
   }
 
   static onCheckboxChangeAI(col) {
-    console.log(col)
     if (col.dt === 'int' || col.dt === 'bigint' || col.dt === 'smallint' || col.dt === 'tinyint') {
       col.altered = col.altered || 2
     }
-
-    // if (!col.ai) {
-    //   col.dtx = 'specificType'
-    // } else {
-    //   col.dtx = ''
-    // }
   }
 
   static showScale(columnObj) {
@@ -710,14 +587,13 @@ export class MssqlUi {
         columns[i].dt === 'smallint' ||
         columns[i].dt === 'mediumint'))) {
         columns[i].un = false
-        console.log('>> resetting unsigned value', columns[i].cn)
+        console.log('>> resetting unsigned value', columns[i].column_name)
       }
-      console.log(columns[i].cn)
     }
   }
 
   static columnEditable(colObj) {
-    return colObj.tn !== '_evolutions' || colObj.tn !== 'nc_evolutions'
+    return colObj.table_name !== '_evolutions' || colObj.table_name !== 'nc_evolutions'
   }
 
   static extractFunctionName(query) {
@@ -733,8 +609,6 @@ export class MssqlUi {
   }
 
   static handleRawOutput(result, headers) {
-    console.log(result)
-
     if (Array.isArray(result) && result[0]) {
       const keys = Object.keys(result[0])
       // set headers before settings result
@@ -778,7 +652,7 @@ export class MssqlUi {
     return q
   }
 
-  static getColumnsFromJson(json, tn) {
+  static getColumnsFromJson(json, table_name) {
     const columns = []
 
     try {
@@ -787,7 +661,7 @@ export class MssqlUi {
         for (let i = 0; i < keys.length; ++i) {
           const column = {
             dp: null,
-            tn,
+            table_name,
             cn: keys[i],
             cno: keys[i],
             np: 10,

@@ -2976,8 +2976,8 @@ export default class NcMetaMgr {
     return (
       args?.dbAlias ||
       args?.args?.dbAlias ||
-      args?.db_alias ||
-      args?.args?.db_alias
+      args?.base_id ||
+      args?.args?.base_id
     );
   }
 
@@ -3729,7 +3729,7 @@ export default class NcMetaMgr {
 
       const viewMeta = await this.xcMeta.metaGet(
         sharedViewMeta.project_id,
-        sharedViewMeta.db_alias,
+        sharedViewMeta.base_id,
         'nc_models',
         {
           title: sharedViewMeta.view_name
@@ -3750,7 +3750,7 @@ export default class NcMetaMgr {
 
       const apiBuilder = this.app?.projectBuilders
         ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
       const model = apiBuilder?.xcModels?.[sharedViewMeta.model_name];
 
       if (model) {
@@ -3803,7 +3803,7 @@ export default class NcMetaMgr {
 
       const viewMeta = await this.xcMeta.metaGet(
         sharedViewMeta.project_id,
-        sharedViewMeta.db_alias,
+        sharedViewMeta.base_id,
         'nc_models',
         {
           title: sharedViewMeta.view_name
@@ -3829,7 +3829,7 @@ export default class NcMetaMgr {
 
       const apiBuilder = this.app?.projectBuilders
         ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
 
       // todo: only allow related table
       // if(tn &&){
@@ -3883,7 +3883,7 @@ export default class NcMetaMgr {
 
       const viewMeta = await this.xcMeta.metaGet(
         sharedViewMeta.project_id,
-        sharedViewMeta.db_alias,
+        sharedViewMeta.base_id,
         'nc_models',
         {
           title: sharedViewMeta.view_name
@@ -3914,7 +3914,7 @@ export default class NcMetaMgr {
 
       const apiBuilder = this.app?.projectBuilders
         ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
 
       const model = apiBuilder.xcModels?.[tn];
       const parentMeta = apiBuilder.getMeta(ptn);
@@ -3996,7 +3996,7 @@ export default class NcMetaMgr {
 
     const viewMeta = await this.xcMeta.metaGet(
       sharedViewMeta.project_id,
-      sharedViewMeta.db_alias,
+      sharedViewMeta.base_id,
       'nc_models',
       {
         title: sharedViewMeta.view_name
@@ -4023,7 +4023,7 @@ export default class NcMetaMgr {
 
     const apiBuilder = this.app?.projectBuilders
       ?.find(pb => pb.id === sharedViewMeta.project_id)
-      ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
+      ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
 
     const tableMeta = (viewMeta.meta = apiBuilder?.getMeta(
       sharedViewMeta.model_name
@@ -4090,7 +4090,7 @@ export default class NcMetaMgr {
 
     const viewMeta = await this.xcMeta.metaGet(
       sharedViewMeta.project_id,
-      sharedViewMeta.db_alias,
+      sharedViewMeta.base_id,
       'nc_models',
       {
         title: sharedViewMeta.view_name
@@ -4113,7 +4113,7 @@ export default class NcMetaMgr {
     try {
       const apiBuilder = this.app?.projectBuilders
         ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.db_alias);
+        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
 
       const tableMeta = (viewMeta.meta = apiBuilder?.getMeta(
         sharedViewMeta.model_name
@@ -4195,7 +4195,7 @@ export default class NcMetaMgr {
 
     const viewMeta = await this.xcMeta.metaGet(
       sharedViewMeta.project_id,
-      sharedViewMeta.db_alias,
+      sharedViewMeta.base_id,
       'nc_models',
       {
         title: sharedViewMeta.view_name

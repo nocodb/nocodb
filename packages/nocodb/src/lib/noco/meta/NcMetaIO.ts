@@ -64,6 +64,10 @@ export default abstract class NcMetaIO {
     this.config = config;
   }
 
+  public getConfig() {
+    return this.config;
+  }
+
   public abstract metaInit(): Promise<boolean>;
 
   public abstract metaInsert(
@@ -72,6 +76,18 @@ export default abstract class NcMetaIO {
     target: string,
     data: any
   ): Promise<any>;
+
+  public abstract metaInsert2(
+    project_id: string,
+    base_id: string,
+    target: string,
+    data: any,
+    ignoreIdGeneration?: boolean
+  ): Promise<any>;
+  public abstract metaGetNextOrder(
+    target: string,
+    condition: { [key: string]: any }
+  ): Promise<number>;
 
   public abstract audit(
     project_id: string,
@@ -110,10 +126,31 @@ export default abstract class NcMetaIO {
     fields?: string[],
     xcCondition?: XcCondition
   ): Promise<any>;
+  public abstract metaGet2(
+    project_id: string,
+    base_id: string,
+    target: string,
+    idOrCondition: string | { [key: string]: any },
+    fields?: string[],
+    xcCondition?: XcCondition
+  ): Promise<any>;
 
   public abstract metaList(
     project_id: string,
     dbAlias: string,
+    target: string,
+    args?: {
+      condition?: { [key: string]: any };
+      limit?: number;
+      offset?: number;
+      xcCondition?: XcCondition;
+      fields?: string[];
+      orderBy?: { [key: string]: 'asc' | 'desc' };
+    }
+  ): Promise<any[]>;
+  public abstract metaList2(
+    project_id: string,
+    base_id: string,
     target: string,
     args?: {
       condition?: { [key: string]: any };
@@ -204,7 +241,7 @@ export default abstract class NcMetaIO {
   public abstract projectDelete(title: string): Promise<any>;
   public abstract projectDeleteById(id: string): Promise<any>;
 
-  public abstract startTransaction();
+  public abstract startTransaction(): Promise<NcMetaIO>;
 
   public abstract commit();
 
@@ -222,7 +259,10 @@ type XcConditionStr = {
     | string
     | number
     | boolean
-    | Date;
+    | Date
+    | null
+    | string[]
+    | number[];
 };
 
 interface XcCondition {

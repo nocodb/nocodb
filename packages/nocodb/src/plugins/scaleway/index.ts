@@ -1,6 +1,5 @@
-import { XcActionType, XcType } from 'nc-common';
+import { XcActionType, XcType } from 'nocodb-sdk';
 import { XcPluginConfig } from 'nc-plugin';
-
 import ScalewayObjectStoragePlugin from './ScalewayObjectStoragePlugin';
 
 const config: XcPluginConfig = {
@@ -10,21 +9,21 @@ const config: XcPluginConfig = {
   logo: 'plugins/scaleway.png',
   tags: 'Storage',
   description:
-    'S3-compatible Scaleway Object Storage makes it easy and more affordable to store and access data on Scaleway Cloud Platform infrastructure. The service also gives a 75GB free storage and external outgoing transfer on Object Storage every month',
+    'Scaleway Object Storage is an S3-compatible object store from Scaleway Cloud Platform.',
   inputs: {
-    title: 'Configure Scaleway Object Storage',
+    title: 'Setup Scaleway',
     items: [
       {
         key: 'bucket',
-        label: 'Bucket Name',
-        placeholder: 'Bucket Name',
+        label: 'Bucket name',
+        placeholder: 'Bucket name',
         type: XcType.SingleLineText,
         required: true
       },
       {
         key: 'region',
-        label: 'Region',
-        placeholder: 'Region',
+        label: 'Region of bucket',
+        placeholder: 'Region of bucket',
         type: XcType.SingleLineText,
         required: true
       },
@@ -59,8 +58,7 @@ const config: XcPluginConfig = {
         type: XcType.Button
       }
     ],
-    msgOnInstall:
-      'Successfully installed and attachment will be stored in Scaleway Object Storage',
+    msgOnInstall: 'Successfully installed Scaleway Object Storage',
     msgOnUninstall: ''
   },
   category: 'Storage'

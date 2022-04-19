@@ -11,17 +11,19 @@ Simple installation - takes about three minutes!
 
 ## Prerequisites
 
-- __Must haves__
-    * [node.js >= 12](https://nodejs.org/en/download) / [Docker](https://www.docker.com/get-started)
-    * [MySql](https://dev.mysql.com/downloads/mysql/) / [Postgres](https://www.postgresql.org/download/) / [SQLserver](https://www.microsoft.com/en-gb/sql-server/sql-server-downloads) / SQLite Database
+- Must haves
+    - [Node.js with version >= 14](https://nodejs.org/en/download) / [Docker](https://www.docker.com/get-started)
 - Nice to haves
+    - [MySQL](https://dev.mysql.com/downloads/mysql/) / [Postgres](https://www.postgresql.org/download/) / [SQL Server](https://www.microsoft.com/en-gb/sql-server/sql-server-downloads) / SQLite Database
     - Existing schemas can help to create APIs quickly.
-    - An example database schema can be found <a class="grey--text" href="https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources"> <u>here</u></a>.
+      - An example database schema can be found <a class="grey--text" href="https://github.com/lerocha/chinook-database/tree/master/ChinookDatabase/DataSources"> <u>here</u></a>.
     
 ## Quick try
 
 
 ### 1-Click Deploy to Heroku
+
+Before doing so, make sure you have a Heroku account. By default, an add-on Heroku Postgres will be used as meta database. You can see the connection string defined in `DATABASE_URL` by navigating to Heroku App Settings and selecting Config Vars.
 
 <a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
     <img 
@@ -31,57 +33,55 @@ Simple installation - takes about three minutes!
     />
 </a>
 
-### Node app / Docker 
+### NPX
+
+You can run below command if you need an interactive configuration.
+
+```bash
+npx create-nocodb-app
+```
+
+#### Preview: 
+
+<img width="587" alt="image" src="https://user-images.githubusercontent.com/35857179/161526235-5ee0d592-0105-4a57-aa53-b1048dca6aad.png">
 
 
-<code-group>
-  <code-block label="NPX" active> 
+### Node Application
 
-  ```bash
-  npx create-nocodb-app
-  ```
+We provide a simple NodeJS Application for getting started.
 
-  </code-block>
-
-  <code-block label="Docker" >
-
-  ```bash
-  docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-  ```
-
-  </code-block>
-
-  <code-block label="Using Git" >
-
-  ```bash
-  git clone https://github.com/nocodb/nocodb-seed
-  cd nocodb-seed
-  npm install
-  npm start
-  ```
-
-  </code-block>
-</code-group>  
-
-> To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
-        
-
-
-## Production Setup 
-
-NocoDB requires a database to store metadata of spreadsheets views and external databases. 
-And connection params for this database can be specified in `NC_DB` environment variable. 
+```bash
+git clone https://github.com/nocodb/nocodb-seed
+cd nocodb-seed
+npm install
+npm start
+```
 
 ### Docker 
 
+If you are a Docker user, you may try this way!
+
 <code-group>
-  <code-block label="MySQL" active>
+  <code-block label="SQLite" active>
 
   ```bash
-  docker run -d -p 8080:8080 \
-      -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-      -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-      nocodb/nocodb:latest
+  docker run -d --name nocodb \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  nocodb/nocodb:latest
+  ```
+    
+  </code-block> 
+
+  <code-block label="MySQL">
+
+  ```bash
+  docker run -d --name nocodb-mysql \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
   ```
     
   </code-block> 
@@ -89,10 +89,12 @@ And connection params for this database can be specified in `NC_DB` environment 
   <code-block label="Postgres">
 
   ```bash
-  docker run -d -p 8080:8080 \
-      -e NC_DB="pg://host:port?u=user&p=password&d=database" \
-      -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-      nocodb/nocodb:latest
+  docker run -d --name nocodb-postgres \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
   ```
 
   </code-block> 
@@ -100,65 +102,35 @@ And connection params for this database can be specified in `NC_DB` environment 
   <code-block label="SQL Server">
 
   ```bash
-  docker run -d -p 8080:8080 \
-      -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-      -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-      nocodb/nocodb:latest
+  docker run -d --name nocodb-mssql \
+  -v "$(pwd)"/nocodb:/usr/app/data/ \
+  -p 8080:8080 \
+  -e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
+  -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+  nocodb/nocodb:latest
   ```
 
   </code-block> 
 </code-group> 
 
-<alert>
-If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for <a href="https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043" target="_blank">MySQL Docker</a> and <a href="https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974" target="_blank">MySQL Docker Compose</a>.
+<alert type="success">
+Tip 1: To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`. Otherwise your data will be lost after recreating the container.
 </alert>
 
-### Environment variables
-
-| Variable                | Mandatory | Comments                                                                         | If absent                                  |
-|-------------------------|-----------|----------------------------------------------------------------------------------|--------------------------------------------|
-| NC_DB                   | Yes       | See our database URLs                                                            | A local SQLite will be created in root folder  |
-| NC_DB_JSON              | Yes       | Can be used instead of `NC_DB` and value should be valid knex connection JSON |  |
-| NC_DB_JSON_FILE              | Yes       | Can be used instead of `NC_DB` and value should be a valid path to knex connection JSON |  |
-| DATABASE_URL            | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| DATABASE_URL_FILE       | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment|   |
-| NC_DASHBOARD_URL | No | Custom dashboard url path | `/dashboard` |
-| NC_TOOL_DIR | No | App directory to keep metadata and app related files | Defaults to current working directory. In docker maps to `/usr/app/data/` for mounting volume. |
-| NC_PUBLIC_URL           | Yes       | Used for sending Email invitations                   | Best guess from http request params        |
-| NC_AUTH_JWT_SECRET      | Yes       | JWT secret used for auth and storing other secrets                               | A Random secret will be generated          |
-| NC_JWT_EXPIRES_IN | No | JWT token expiry time | `10h` |
-| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No | Disable Project creation with external database                              |   |
-| NC_INVITE_ONLY_SIGNUP | No | Allow users to signup only via invite url, value should be any non-empty string. |  |
-| NC_BACKEND_URL | No | Custom Backend URL                              | ``http://localhost:8080`` will be used  |
-| NC_REQUEST_BODY_SIZE | No | Request body size [limit](https://expressjs.com/en/resources/middleware/body-parser.html#limit) | `1048576` |
-| NC_EXPORT_MAX_TIMEOUT | No | After NC_EXPORT_MAX_TIMEOUT csv gets downloaded in batches | Default value 5000(in millisecond) will be used  |
-| DB_QUERY_LIMIT_DEFAULT | No | Default pagination limit | 25 |
-| DB_QUERY_LIMIT_MAX | No | Maximum allowed pagination limit | 100 |
-| DB_QUERY_LIMIT_MIN | No | Minimum allowed pagination limit | 1 |
-| NC_DISABLE_TELE | No | Disable telemetry                              |   |
-| NC_GOOGLE_CLIENT_ID | No | Google client id to enable google authentication |  |
-| NC_GOOGLE_CLIENT_SECRET | No | Google client secret to enable google authentication |  |
-| NC_MIGRATIONS_DISABLED | No | Disable NocoDB migration |  |
-| NC_ONE_CLICK | No | Used for Heroku one-click deployment |  |
-| NC_MIN | No | If set to any non-empty string the default splash screen(initial welcome animation) and matrix screensaver will disable |  |
-| PORT | No | For setting app running port | `8080` |
-| NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
-| NC_DISABLE_ERR_REPORT | No | Disable error reporting  |  |
-| AWS_ACCESS_KEY_ID | No | For Litestream - S3 access key id               | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-| AWS_SECRET_ACCESS_KEY | No | For Litestream - S3 secret access key         | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-| AWS_BUCKET | No | For Litestream - S3 bucket                              | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-| AWS_BUCKET_PATH | No | For Litestream - S3 bucket path (like folder within S3 bucket) | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
+<alert type="success">
+Tip 2: If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for <a href="https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043" target="_blank">MySQL Docker</a>.
+</alert>
 
 ### Docker Compose
+
+We provide different docker-compose.yml files under <a href="https://github.com/nocodb/nocodb/tree/master/docker-compose" target="_blank">this directory</a>. Here are some examples.
 
 <code-group>
   <code-block label="MySQL" active> 
   
   ```bash
   git clone https://github.com/nocodb/nocodb
-  cd nocodb
-  cd docker-compose
-  cd mysql
+  cd nocodb/docker-compose/mysql
   docker-compose up -d
   ```
 
@@ -168,9 +140,7 @@ If you plan to input some special characters, you may need to change the charact
 
   ```bash
   git clone https://github.com/nocodb/nocodb
-  cd nocodb
-  cd docker-compose
-  cd pg
+  cd nocodb/docker-compose/pg
   docker-compose up -d
   ```
 
@@ -180,14 +150,63 @@ If you plan to input some special characters, you may need to change the charact
 
   ```bash
   git clone https://github.com/nocodb/nocodb
-  cd nocodb
-  cd docker-compose
-  cd mssql
+  cd nocodb/docker-compose/mssql
   docker-compose up -d
   ```
 
   </code-block> 
 </code-group> 
+
+<alert type="success">
+Tip 1: To persist data in docker you can mount volume at `/usr/app/data/` since 0.10.6. In older version mount at `/usr/src/app`.
+</alert>
+
+<alert type="success">
+Tip 2: If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for <a href="https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974" target="_blank">MySQL Docker Compose</a>.
+</alert>
+
+## Production Setup
+
+By default, SQLite is used for storing meta data. However, you can specify your own database. The connection params for this database can be specified in `NC_DB` environment variable. Moreover, we also provide the below environment variables for configuration.
+
+
+### Environment variables
+
+| Variable                           | Mandatory | Comments                                                                                                                | If absent                                                                                      |   |
+|------------------------------------|-----------|-------------------------------------------------------------------------------------------------------------------------|------------------------------------------------------------------------------------------------|---|
+| AWS_ACCESS_KEY_ID                  | No        | For Litestream - S3 access key id                                                                                       | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
+| AWS_SECRET_ACCESS_KEY              | No        | For Litestream - S3 secret access key                                                                                   | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
+| AWS_BUCKET                         | No        | For Litestream - S3 bucket                                                                                              | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
+| AWS_BUCKET_PATH                    | No        | For Litestream - S3 bucket path (like folder within S3 bucket)                                                          | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
+| DB_QUERY_LIMIT_DEFAULT             | No        | Default pagination limit                                                                                                | 25                                                                                             |   |
+| DB_QUERY_LIMIT_MAX                 | No        | Maximum allowed pagination limit                                                                                        | 100                                                                                            |   |
+| DB_QUERY_LIMIT_MIN                 | No        | Minimum allowed pagination limit                                                                                        | 1                                                                                              |   |
+| DATABASE_URL                       | No        | JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment                                        |                                                                                                |   |
+| DATABASE_URL_FILE                  | No        | path to file containing JDBC URL Format. Can be used instead of NC_DB. Used in 1-Click Heroku deployment                |                                                                                                |   |
+| PORT                               | No        | For setting app running port                                                                                            | `8080`                                                                                         |   |
+| NC_DB                              | Yes       | See our database URLs                                                                                                   | A local SQLite will be created in root folder                                                  |   |
+| NC_DB_JSON                         | Yes       | Can be used instead of `NC_DB` and value should be valid knex connection JSON                                           |                                                                                                |   |
+| NC_DB_JSON_FILE                    | Yes       | Can be used instead of `NC_DB` and value should be a valid path to knex connection JSON                                 |                                                                                                |   |
+| NC_DASHBOARD_URL                   | No        | Custom dashboard url path                                                                                               | `/dashboard`                                                                                   |   |
+| NC_TOOL_DIR                        | No        | App directory to keep metadata and app related files                                                                    | Defaults to current working directory. In docker maps to `/usr/app/data/` for mounting volume. |   |
+| NC_PUBLIC_URL                      | Yes       | Used for sending Email invitations                                                                                      | Best guess from http request params                                                            |   |
+| NC_AUTH_JWT_SECRET                 | Yes       | JWT secret used for auth and storing other secrets                                                                      | A Random secret will be generated                                                              |   |
+| NC_JWT_EXPIRES_IN                  | No        | JWT token expiry time                                                                                                   | `10h`                                                                                          |   |
+| NC_CONNECT_TO_EXTERNAL_DB_DISABLED | No        | Disable Project creation with external database                                                                         |                                                                                                |   |
+| NC_INVITE_ONLY_SIGNUP              | No        | Allow users to signup only via invite url, value should be any non-empty string.                                        |                                                                                                |   |
+| NC_BACKEND_URL                     | No        | Custom Backend URL                                                                                                      | ``http://localhost:8080`` will be used                                                         |   |
+| NC_REQUEST_BODY_SIZE               | No        | Request body size [limit](https://expressjs.com/en/resources/middleware/body-parser.html#limit)                         | `1048576`                                                                                      |   |
+| NC_EXPORT_MAX_TIMEOUT              | No        | After NC_EXPORT_MAX_TIMEOUT csv gets downloaded in batches                                                              | Default value 5000(in millisecond) will be used                                                |   |
+| NC_DISABLE_TELE                    | No        | Disable telemetry                                                                                                       |                                                                                                |   |
+| NC_GOOGLE_CLIENT_ID                | No        | Google client id to enable google authentication                                                                        |                                                                                                |   |
+| NC_GOOGLE_CLIENT_SECRET            | No        | Google client secret to enable google authentication                                                                    |                                                                                                |   |
+| NC_MIGRATIONS_DISABLED             | No        | Disable NocoDB migration                                                                                                |                                                                                                |   |
+| NC_ONE_CLICK                       | No        | Used for Heroku one-click deployment                                                                                    |                                                                                                |   |
+| NC_MIN                             | No        | If set to any non-empty string the default splash screen(initial welcome animation) and matrix screensaver will disable |                                                                                                |   |
+| NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                                   |                                                                                                |   |
+| NC_DISABLE_ERR_REPORT              | No        | Disable error reporting                                                                                                 |                                                                                                |   |
+| NC_REDIS_URL                       | No        | Custom Redis URL. Example: `redis://:authpassword@127.0.0.1:6380/4`                                                     | Meta data will be stored in memory                                                             |   |
+| NC_DISABLE_CACHE                   | No        | If it is set to `true`, then meta data will not be cached.                                                              | `false`                                                                                        |   |
 
 ### AWS ECS (Fargate)
 

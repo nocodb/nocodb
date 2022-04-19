@@ -10,7 +10,7 @@ export const genTest = (apiType, dbType) => {
             loginPage.signIn(roles.owner.credentials);
         });
 
-        it("Stop Project", () => {
+        it.skip("Stop Project", () => {
             //cy.visit('./#/projects')
             cy.get(`.nc-${apiType}-project-row .mdi-stop-circle-outline`, {
                 timeout: 10000,
@@ -25,7 +25,7 @@ export const genTest = (apiType, dbType) => {
             cy.toastWait("stopped successfully");
         });
 
-        it("Start Project", () => {
+        it.skip("Start Project", () => {
             //cy.visit('./#/projects')
             cy.get(`.nc-${apiType}-project-row .mdi-play-circle-outline`, {
                 timeout: 10000,
@@ -41,7 +41,7 @@ export const genTest = (apiType, dbType) => {
             cy.toastWait("started successfully");
         });
 
-        it("Restart Project", () => {
+        it.skip("Restart Project", () => {
             if (!isXcdb()) {
                 //cy.visit('./#/projects')
                 cy.get(`.nc-${apiType}-project-row .mdi-restart`, {
@@ -61,17 +61,19 @@ export const genTest = (apiType, dbType) => {
 
         it("Delete Project", () => {
             //cy.visit('./#/projects')
-            cy.get(`.nc-${apiType}-project-row .mdi-delete-circle-outline`, {
+            cy.get(`.mdi-delete-outline`, {
                 timeout: 10000,
             })
                 .should("exist")
                 .last()
-                .invoke("show")
                 .click();
             cy.snipActiveModal("Modal_DeleteProject");
 
-            cy.contains("Submit").closest("button").click();
-
+            cy.getActiveModal()
+                .find("button")
+                .contains("Submit")
+                .should("exist")
+                .click();
             cy.toastWait("deleted successfully");
         });
     });

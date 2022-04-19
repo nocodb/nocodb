@@ -43,9 +43,9 @@ export default async function(ctx: NcUpgraderCtx) {
     await projectBuilder.init();
   }
 
-  await migrateUsers(ncMeta);
+  const usersObj = await migrateUsers(ncMeta);
   const projectsObj = await migrateProjects(ncMeta);
-  await migrateProjectUsers(ncMeta);
+  await migrateProjectUsers(projectsObj, usersObj, ncMeta);
   const migrationCtx = await migrateProjectModels(ncMeta);
 
   await migrateUIAcl(migrationCtx, ncMeta);
@@ -58,12 +58,13 @@ export default async function(ctx: NcUpgraderCtx) {
 
 async function migrateUsers(ncMeta = Noco.ncMeta) {
   const users = await ncMeta.metaList(null, null, 'xc_users');
-  const userList: User[] = [];
+  const userObj: { [id: string]: User } = {};
 
   for (const user of users) {
-    userList.push(await User.insert(user, ncMeta));
+    const user1 = await User.insert(user, ncMeta);
+    userObj[user1.id] = user1;
   }
-  return userList;
+  return userObj;
 }
 
 async function migrateProjects(
@@ -101,10 +102,20 @@ async function migrateProjects(
   return projectsObj;
 }
 
-async function migrateProjectUsers(ncMeta = Noco.ncMeta) {
+async function migrateProjectUsers(
+  projectsObj: { [p: string]: Project },
+  usersObj: { [p: string]: User },
+  ncMeta = Noco.ncMeta
+) {
   const projectUsers = await ncMeta.metaList(null, null, 'nc_projects_users');
 
   for (const projectUser of projectUsers) {
+    // skip if project is missing
+    if (!(projectUser.project_id in projectsObj)) continue;
+
+    // skip if user is missing
+    if (!(projectUser.user_id in usersObj)) continue;
+
     await ProjectUser.insert(
       {
         project_id: projectUser.project_id,

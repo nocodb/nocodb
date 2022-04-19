@@ -1106,11 +1106,15 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
 
   for (const sharedView of sharedViews) {
     let fk_view_id;
+
+    // if missing view name or model name skip the shared view migration
+    if (!sharedView.view_name || !sharedView.model_name) continue;
+
     if (sharedView.view_type !== 'table' && sharedView.view_type !== 'view') {
       fk_view_id =
         ctx.objViewRef[sharedView.project_id][sharedView.model_name][
           sharedView.view_name
-        ].id;
+        ]?.id;
     } else {
       fk_view_id =
         ctx.objViewRef[sharedView.project_id][sharedView.model_name][
@@ -1118,8 +1122,11 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
         ].id ||
         ctx.objViewRef[sharedView.project_id][sharedView.model_name][
           sharedView.model_name
-        ].id;
+        ]?.id;
     }
+
+    // if view id missing skip shared view migration
+    if (!fk_view_id) continue;
 
     await View.update(
       fk_view_id,

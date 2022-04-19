@@ -440,6 +440,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
   </tr>
   <tr>
     <td align="center"><a href="https://github.com/RobinFrcd"><img src="https://avatars.githubusercontent.com/u/29704178?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robin Fourcade</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=RobinFrcd" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/zprial"><img src="https://avatars.githubusercontent.com/u/33095380?v=4?s=100" width="100px;" alt=""/><br /><sub><b>zprial</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=zprial" title="Code">💻</a></td>
   </tr>
 </table>
 

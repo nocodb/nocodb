@@ -4,9 +4,9 @@ import {
   OracleUi,
   PgUi,
   SqliteUi,
-  SqlUiFactory
-} from '../sqlUi';
-import UITypes from '../sqlUi/UITypes';
+  SqlUiFactory,
+  UITypes
+} from 'nocodb-sdk';
 
 export default class NcTemplateParser {
   sqlUi:

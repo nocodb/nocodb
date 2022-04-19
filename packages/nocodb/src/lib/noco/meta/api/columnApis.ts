@@ -1,6 +1,5 @@
 import { Request, Response, Router } from 'express';
 import Model from '../../../noco-models/Model';
-import UITypes from '../../../sqlUi/UITypes';
 import ProjectMgrv2 from '../../../sqlMgr/v2/ProjectMgrv2';
 import Base from '../../../noco-models/Base';
 import Column from '../../../noco-models/Column';
@@ -20,7 +19,8 @@ import {
   isVirtualCol,
   LinkToAnotherRecordType,
   RelationTypes,
-  TableType
+  TableType,
+  UITypes
 } from 'nocodb-sdk';
 import Audit from '../../../noco-models/Audit';
 import SqlMgrv2 from '../../../sqlMgr/v2/SqlMgrv2';

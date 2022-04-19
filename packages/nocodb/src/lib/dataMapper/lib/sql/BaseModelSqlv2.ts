@@ -4,7 +4,6 @@ import _ from 'lodash';
 import Model from '../../../noco-models/Model';
 import { XKnex } from '../..';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
-import UITypes from '../../../sqlUi/UITypes';
 import RollupColumn from '../../../noco-models/RollupColumn';
 import LookupColumn from '../../../noco-models/LookupColumn';
 import DataLoader from 'dataloader';
@@ -25,6 +24,7 @@ import {
   isSystemColumn,
   RelationTypes,
   SortType,
+  UITypes,
   ViewTypes
 } from 'nocodb-sdk';
 import formSubmissionEmailTemplate from '../../../noco/common/formSubmissionEmailTemplate';
@@ -1864,10 +1864,13 @@ class BaseModelSqlv2 {
         {
           await this.dbDriver(childTable.table_name)
             .update({
-              [childColumn.column_name]: this.dbDriver(parentTable.table_name)
-                .select(parentColumn.column_name)
-                .where(_wherePk(parentTable.primaryKeys, rowId))
-                .first()
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTable.table_name)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, rowId))
+                  .first()
+                  .as('___cn_alias')
+              )
             })
             .where(_wherePk(childTable.primaryKeys, childId));
         }
@@ -1876,10 +1879,13 @@ class BaseModelSqlv2 {
         {
           await this.dbDriver(childTable.table_name)
             .update({
-              [childColumn.column_name]: this.dbDriver(parentTable.table_name)
-                .select(parentColumn.column_name)
-                .where(_wherePk(parentTable.primaryKeys, childId))
-                .first()
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTable.table_name)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, childId))
+                  .first()
+                  .as('___cn_alias')
+              )
             })
             .where(_wherePk(childTable.primaryKeys, rowId));
         }

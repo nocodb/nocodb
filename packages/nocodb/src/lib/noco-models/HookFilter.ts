@@ -1,7 +1,6 @@
 import Noco from '../../lib/noco/Noco';
 import Model from './Model';
 import Column from './Column';
-import UITypes from '../sqlUi/UITypes';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -9,7 +8,7 @@ import {
   MetaTable
 } from '../utils/globals';
 import View from './View';
-import { FilterType } from 'nocodb-sdk';
+import { FilterType, UITypes } from 'nocodb-sdk';
 import NocoCache from '../noco-cache/NocoCache';
 
 export default class Filter {

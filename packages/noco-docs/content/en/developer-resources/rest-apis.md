@@ -11,6 +11,14 @@ Once you've created the schemas, you can manipulate the data or invoke actions u
 
 Here's the overview of all APIs. For the details, please check out <a href="https://all-apis.nocodb.com/" target="_blank">NocoDB API Documentation</a>.
 
+<alert type="danger">
+Swagger UI has been removed from GUI and may be supported in the future release.
+</alert>
+
+<alert type="success">
+Currently, the default value for {orgs} is <b>noco</b>. Users will be able to change it in the future release.
+</alert>
+
 ### Auth APIs
 
 | Category | Method | Tag | Function Name | Path |

@@ -245,7 +245,11 @@ async function projectUserInviteResend(req, res): Promise<any> {
   res.json({ msg: 'success' });
 }
 
-async function sendInviteEmail(email, token, req): Promise<any> {
+async function sendInviteEmail(
+  email: string,
+  token: string,
+  req: any
+): Promise<any> {
   try {
     const template = (await import('./userApi/ui/emailTemplates/invite'))
       .default;

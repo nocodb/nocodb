@@ -1864,10 +1864,13 @@ class BaseModelSqlv2 {
         {
           await this.dbDriver(childTable.table_name)
             .update({
-              [childColumn.column_name]: this.dbDriver(parentTable.table_name)
-                .select(parentColumn.column_name)
-                .where(_wherePk(parentTable.primaryKeys, rowId))
-                .first()
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTable.table_name)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, rowId))
+                  .first()
+                  .as('___cn_alias')
+              )
             })
             .where(_wherePk(childTable.primaryKeys, childId));
         }
@@ -1876,10 +1879,13 @@ class BaseModelSqlv2 {
         {
           await this.dbDriver(childTable.table_name)
             .update({
-              [childColumn.column_name]: this.dbDriver(parentTable.table_name)
-                .select(parentColumn.column_name)
-                .where(_wherePk(parentTable.primaryKeys, childId))
-                .first()
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTable.table_name)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, childId))
+                  .first()
+                  .as('___cn_alias')
+              )
             })
             .where(_wherePk(childTable.primaryKeys, rowId));
         }

@@ -9,10 +9,11 @@ import User from '../../../noco-models/User';
 import { Tele } from 'nc-help';
 import Audit from '../../../noco-models/Audit';
 import NocoCache from '../../../noco-cache/NocoCache';
-import { CacheGetType, CacheScope } from '../../../utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '../../../utils/globals';
 import * as ejs from 'ejs';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Noco from '../../Noco';
+import { PluginCategory } from 'nocodb-sdk';
 
 async function userList(req, res) {
   res.json({
@@ -229,6 +230,17 @@ async function projectUserInviteResend(req, res): Promise<any> {
     invite_token,
     invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
   });
+
+  const pluginData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
+    category: PluginCategory.EMAIL,
+    active: true
+  });
+
+  if (!pluginData) {
+    NcError.badRequest(
+      `No Email Plugin is found. Please go to App Store to configure first or copy the invitation URL to users instead.`
+    );
+  }
 
   await sendInviteEmail(user.email, invite_token, req);
 

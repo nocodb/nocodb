@@ -10,7 +10,7 @@ We use ``Lerna`` to manage multi-packages. We have the following [packages](http
 
 - ``packages/nc-cli`` : A CLI to create NocoDB app.
 
-- ``packages/nc-common``: A common library package used internally.
+- ``packages/nocodb-sdk``: API client sdk of nocodb.
 
 - ``packages/nc-gui``: NocoDB Frontend.
 

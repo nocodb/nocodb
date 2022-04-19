@@ -113,7 +113,7 @@ git push -f
 
 ## Project Structure
 
-Please refer to [NocoDB Repository Structure](https://docs.nocodb.com/#nocodb-repository-structure).
+Please refer to [NocoDB Repository Structure](https://docs.nocodb.com/engineering/repository-structure).
 
 ## Financial Contribution
 

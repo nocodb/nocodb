@@ -1112,15 +1112,15 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
 
     if (sharedView.view_type !== 'table' && sharedView.view_type !== 'view') {
       fk_view_id =
-        ctx.objViewRef[sharedView.project_id][sharedView.model_name][
+        ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[
           sharedView.view_name
         ]?.id;
     } else {
       fk_view_id =
-        ctx.objViewRef[sharedView.project_id][sharedView.model_name][
-          ctx.objModelRef[sharedView.project_id][sharedView.model_name].title
-        ].id ||
-        ctx.objViewRef[sharedView.project_id][sharedView.model_name][
+        ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[
+          ctx.objModelRef[sharedView.project_id]?.[sharedView.model_name]?.title
+        ]?.id ||
+        ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[
           sharedView.model_name
         ]?.id;
     }

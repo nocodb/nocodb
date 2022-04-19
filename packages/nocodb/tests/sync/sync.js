@@ -1,5 +1,4 @@
 const Api = require('nocodb-sdk').Api;
-const axios = require('axios');
 const jsonfile = require('jsonfile');
 const { UITypes } = require('nocodb-sdk');
 
@@ -14,7 +13,7 @@ const api = new Api({
   baseURL: 'http://localhost:8080',
   headers: {
     'xc-auth':
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfODd1eXhkcngxbm03dHAiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NDk4MzUwNDJ9.6jMNG4Mjio6HxWrVKIzRopnAbBC2KEn1vHif3a0BTrc'
+      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYXZmd2Z4bmNsaGQzcG8iLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTAyODIxMzh9.WRXsAjEk9-tF_TGk5gOLhD8S-4TURAZZtPDAumj4M7c'
   }
 });
 
@@ -70,13 +69,17 @@ function aTbl_getColumnName(colId) {
   for (let i = 0; i < aTblSchema.length; i++) {
     let sheetObj = aTblSchema[i];
     const column = sheetObj.columns.find(col => col.id === colId);
-    if (column != undefined)
+    if (column !== undefined)
       return {
         tn: sheetObj.name,
         cn: column.name
       };
   }
 }
+
+// Nc: retrieve column datatype from column-name
+//
+
 
 // map UIDT
 //
@@ -90,29 +93,20 @@ function getNocoType(col) {
 
   switch (col.type) {
     case 'text':
-      if (col.typeOptions && col.typeOptions.validatorName) {
-        if (col.typeOptions.validatorName === 'email') ncType = UITypes.Email;
-        else if (col.typeOptions.validatorName === 'url') ncType = UITypes.URL;
-      }
+      if (col.typeOptions?.validatorName === 'email') ncType = UITypes.Email;
+      else if (col.typeOptions?.validatorName === 'url') ncType = UITypes.URL;
       break;
 
     case 'number':
-      if (col.typeOptions && col.typeOptions.format) {
-        if (col.typeOptions.format === 'currency') ncType = UITypes.Currency;
-        else if (col.typeOptions.format === 'percentV2')
-          ncType = UITypes.Percent;
-        else if (col.typeOptions.format === 'duration')
-          ncType = UITypes.Duration;
-      }
+      // kludge: currency validation error with decimal places
+      if (col.typeOptions?.format === 'percentV2') ncType = UITypes.Percent;
+      else if (col.typeOptions?.format === 'duration') ncType = UITypes.Duration;
+      else if (col.typeOptions?.format === 'currency') ncType = UITypes.Currency;
       break;
 
     case 'formula':
-      if (col.typeOptions && col.typeOptions.formulaTextParsed) {
-        if (col.typeOptions.formulaTextParsed === 'CREATED_TIME()')
-          ncType = UITypes.CreateTime;
-        else if (col.typeOptions.formulaTextParsed === 'LAST_MODIFIED_TIME()')
-          ncType = UITypes.LastModifiedTime;
-      }
+      if (col.typeOptions?.formulaTextParsed === 'CREATED_TIME()') ncType = UITypes.CreateTime;
+      else if (col.typeOptions?.formulaTextParsed === 'LAST_MODIFIED_TIME()') ncType = UITypes.LastModifiedTime;
       break;
     /**
     case 'foreignKey':
@@ -156,16 +150,20 @@ function getNocoType(col) {
 }
 
 function getNocoTypeOptions(col) {
-  const tOpt = col.typeOptions;
+
   switch (col.type) {
     case 'select':
     case 'multiSelect':
+      // prepare options list in CSV format
+      // note: NC doesn't allow comma's in options
+      //
       let opt = [];
-      for (let [key, value] of Object.entries(col.typeOptions.choices)) {
+      for (let [, value] of Object.entries(col.typeOptions.choices)) {
         opt.push(value.name);
       }
       let csvOpt = "'" + opt.join("','") + "'";
       return { type: 'select', data: csvOpt };
+
     // case `foreignKey`:
     //   return {
     //     type: 'manyToMany',
@@ -189,12 +187,17 @@ function getNocoTypeOptions(col) {
   }
 }
 
+// convert to Nc schema
+//
 function tablesPrepare(tblSchema) {
   let tables = [];
   for (let i = 0; i < tblSchema.length; ++i) {
     let table = {};
 
+    // table name
     table.table_name = tblSchema[i].name;
+
+    // insert record_id of type ID by default
     table.columns = [{
       title: 'record_id',
       column_name: 'record_id',
@@ -203,6 +206,9 @@ function tablesPrepare(tblSchema) {
 
     for (let j = 0; j < tblSchema[i].columns.length; j++) {
       let col = tblSchema[i].columns[j];
+
+      // base column schema
+      // kludge: error observed in Nc with space around column-name
       let ncCol = {
         title: col.name.trim(),
         column_name: col.name.trim(),
@@ -216,6 +222,7 @@ function tablesPrepare(tblSchema) {
         case 'select':
           ncCol.dtxp = colOptions.data;
           break;
+
         case undefined:
           break;
       }
@@ -228,13 +235,13 @@ function tablesPrepare(tblSchema) {
   return tables;
 }
 
-async function tablesCreate() {}
+// async function tablesCreate() {}
 
 async function nocoCreateSchema(srcSchema) {
   let tables = tablesPrepare(srcSchema.tableSchemas);
 
   // debug
-  console.log(JSON.stringify(tables, null, 2));
+  // console.log(JSON.stringify(tables, null, 2));
   return tables;
 }
 
@@ -247,21 +254,30 @@ let base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
   syncDB.airtable.baseId
 );
 
-async function nocoReadData(tableName) {
-  base(tableName)
+async function nocoReadData(table) {
+
+  // console.log(table)
+
+  base(table.title)
     .select({
-      pageSize: 1,
+      pageSize: 2,
       maxRecords:2,
       view: 'Grid view'
     })
     .eachPage(
       function page(records, fetchNextPage) {
+
+        console.log(`>>>>>>>>>>>>>>>>>>>>>>>>>>>`)
+        console.log(JSON.stringify(records, null, 2));
         // This function (`page`) will get called for each page of records.
         records.forEach(function(record) {
 
           (async()=>{
-            // await api.dbTableRow.bulkInsert('nc', 'sample-1', 'Finance', [record.fields])
             let rec = record.fields
+
+            // kludge -
+            // trim spaces on either side of column name
+            // leads to error in NocoDB
             Object.keys(rec).forEach((key) => {
               let replacedKey = key.trim();
               if (key !== replacedKey) {
@@ -269,13 +285,26 @@ async function nocoReadData(tableName) {
                 delete rec[key];
               }
             });
-            console.log(rec)
-            let returnValue = await api.dbTableRow.bulkCreate('nc', 'sample-4', 'Finance', [rec])
-            console.log('>>', returnValue)
+
+            // post-processing on the record
+            for (const [key, value] of Object.entries(rec)) {
+
+              // retrieve datatype
+              let dt = table.columns.find(x => x.title === key).uidt
+
+              // https://www.npmjs.com/package/validator
+              // default value: digits_after_decimal: [2]
+              // if currency, set decimal place to 2
+              //
+              if(dt === 'Currency')
+                rec[key] = value.toFixed(2)
+            }
+
+            // bulk Insert
+            let returnValue = await api.dbTableRow.bulkCreate('nc', 'sample-4', table.title, [rec])
           })().catch(e => {
             console.log(e);
           });
-
         });
 
         // To fetch the next page of records, call `fetchNextPage`.
@@ -286,7 +315,6 @@ async function nocoReadData(tableName) {
       function done(err) {
         if (err) {
           console.error(err);
-          return;
         }
       }
     );
@@ -309,25 +337,29 @@ async function nocoReadData(tableName) {
   // console.log(project)
   // console.log(project.id, project.bases[0].id);
 
+  // for each table schema,
+  //  a. create table
+  //  b. populate data using airtable data APIs
   for (let idx = 0; idx < ncTblSchema.length; idx++) {
     let table = await api.dbTable.create(
       project.id,
       ncTblSchema[idx]
     );
-    console.log(table);
+    // console.log(table);
+
+    // read data
+    await nocoReadData(table)
   }
 
-  // read data
-  await nocoReadData('Finance')
-
-  // await api.dbTableRow.bulkInsert('nc', 'x', 'x', [{Title: 'abc'}, {Title: 'abc'}, {Title: 'abc'}])
-
-  // await api.data.bulkInsert();
-
-  // let column = await api.meta.columnCreate('md_vnesap07k24lku', {
-  //   uidt: UITypes.SingleLineText,
-  //   cn: 'col-1',
-  // })
 })().catch(e => {
   console.log(e);
 });
+
+
+// Scratch pad
+// await api.dbTableRow.bulkInsert('nc', 'x', 'x', [{Title: 'abc'}, {Title: 'abc'}, {Title: 'abc'}])
+// await api.data.bulkInsert();
+// let column = await api.meta.columnCreate('md_vnesap07k24lku', {
+//   uidt: UITypes.SingleLineText,
+//   cn: 'col-1',
+// })

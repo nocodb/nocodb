@@ -612,16 +612,7 @@ export default {
     },
     async resendInvite(id) {
       try {
-        await this.$axios.post('/admin/resendInvite/' + id, {
-          projectName: this.$store.getters['project/GtrProjectName']
-        }, {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          },
-          params: {
-            project_id: this.$route.params.project_id
-          }
-        })
+        await this.$api.auth.projectUserResendInvite(this.$route.params.project_id, id)
         this.$toast.success('Invite email sent successfully').goAway(3000)
         await this.loadUsers()
       } catch (e) {

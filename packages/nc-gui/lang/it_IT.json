@@ -406,7 +406,7 @@
       "deleteProject": "Vuoi cancellare il progetto?",
       "shareBasePrivate": "Genera base readonly condivisibile pubblicamente condivisa",
       "shareBasePublic": "Chiunque su Internet con questo link può visualizzare",
-      "userInviteNoSMTP": "Sembra che non abbia ancora configurato mailer! \\ n Si prega di copiare sopra Invita link e invialo a",
+      "userInviteNoSMTP": "Sembra che non abbia ancora configurato mailer!\nSi prega di copiare sopra Invita link e invialo a",
       "dragDropHide": "Trascina e rilascia i campi qui per nascondersi",
       "formInput": "Inserisci l'etichetta di input del modulo",
       "formHelpText": "Aggiungi un po 'di testo di aiuto",

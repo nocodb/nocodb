@@ -406,7 +406,7 @@
       "deleteProject": "프로젝트를 삭제 하시겠습니까?",
       "shareBasePrivate": "공개적으로 공유 할 수있는 ReadOnly Base를 생성합니다",
       "shareBasePublic": "이 링크가있는 인터넷의 모든 사람은 볼 수 있습니다",
-      "userInviteNoSMTP": "아직 메일러를 구성하지 않은 것처럼 보입니다! \\ n 초대장 링크를 복사하여 보냅니다.",
+      "userInviteNoSMTP": "아직 메일러를 구성하지 않은 것처럼 보입니다!\n초대장 링크를 복사하여 보냅니다.",
       "dragDropHide": "여기에서 필드를 드래그 앤 드롭하십시오",
       "formInput": "양식 입력 레이블을 입력하십시오",
       "formHelpText": "도움말 텍스트를 추가하십시오",

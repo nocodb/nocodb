@@ -406,7 +406,7 @@
       "deleteProject": "Apakah Anda ingin menghapus proyek?",
       "shareBasePrivate": "Menghasilkan basis readonly yang dapat dibagikan secara publik",
       "shareBasePublic": "Siapa pun di Internet dengan tautan ini dapat dilihat",
-      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer! \\ n Harap salin tautan undangan di atas dan kirimkan ke",
+      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer!\nHarap salin tautan undangan di atas dan kirimkan ke",
       "dragDropHide": "Seret dan jatuhkan bidang di sini untuk bersembunyi",
       "formInput": "Masukkan label input formulir",
       "formHelpText": "Tambahkan beberapa teks bantuan",

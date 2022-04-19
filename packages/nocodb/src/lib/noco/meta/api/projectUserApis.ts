@@ -215,7 +215,6 @@ async function projectUserDelete(req, res): Promise<any> {
   });
 }
 
-// todo: map api
 async function projectUserInviteResend(req, res): Promise<any> {
   const user = await User.get(req.params.userId);
 

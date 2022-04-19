@@ -1,5 +1,4 @@
 import Filter from '../../../noco-models/Filter';
-import UITypes from '../../../sqlUi/UITypes';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
 import { QueryBuilder } from 'knex';
 import { XKnex } from '../..';
@@ -9,7 +8,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import RollupColumn from '../../../noco-models/RollupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../noco-models/FormulaColumn';
-import { RelationTypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 // import LookupColumn from '../../../noco-models/LookupColumn';
 
 export default async function conditionV2(

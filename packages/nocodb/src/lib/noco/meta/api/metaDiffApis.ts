@@ -4,7 +4,7 @@ import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import Model from '../../../noco-models/Model';
 import Project from '../../../noco-models/Project';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
-import { isVirtualCol, ModelTypes, RelationTypes } from 'nocodb-sdk';
+import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
 import { Router } from 'express';
 import Base from '../../../noco-models/Base';
 import ModelXcMetaFactory from '../../../sqlMgr/code/models/xc/ModelXcMetaFactory';
@@ -13,7 +13,6 @@ import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordC
 import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import NcHelp from '../../../utils/NcHelp';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import UITypes from '../../../sqlUi/UITypes';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { Tele } from 'nc-help';
 import getColumnUiType from '../helpers/getColumnUiType';

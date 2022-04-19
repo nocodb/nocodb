@@ -125,14 +125,13 @@
 <script>
 /* eslint-disable camelcase */
 
-import { ErrorMessages } from 'nocodb-sdk'
+import { ErrorMessages, SqlUiFactory } from 'nocodb-sdk'
 import spreadsheet from '../mixins/spreadsheet'
 import ApiFactory from '../apis/apiFactory'
 import FieldsMenu from '../components/fieldsMenu'
 import SortListMenu from '../components/sortListMenu'
 import ColumnFilterMenu from '../components/columnFilterMenu'
 import XcGridView from '../views/xcGridView'
-import { SqlUI } from '@/helpers/sqlUi'
 import CsvExportImport from '~/components/project/spreadsheet/components/moreActions'
 
 export default {
@@ -247,7 +246,7 @@ export default {
     },
     sqlUi() {
       // todo: replace with correct client
-      return SqlUI.create({ client: this.client })
+      return SqlUiFactory.create({ client: this.client })
     },
     queryParams() {
       return {

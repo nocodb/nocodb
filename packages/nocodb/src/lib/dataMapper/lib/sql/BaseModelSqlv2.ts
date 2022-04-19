@@ -4,7 +4,6 @@ import _ from 'lodash';
 import Model from '../../../noco-models/Model';
 import { XKnex } from '../..';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
-import UITypes from '../../../sqlUi/UITypes';
 import RollupColumn from '../../../noco-models/RollupColumn';
 import LookupColumn from '../../../noco-models/LookupColumn';
 import DataLoader from 'dataloader';
@@ -25,6 +24,7 @@ import {
   isSystemColumn,
   RelationTypes,
   SortType,
+  UITypes,
   ViewTypes
 } from 'nocodb-sdk';
 import formSubmissionEmailTemplate from '../../../noco/common/formSubmissionEmailTemplate';

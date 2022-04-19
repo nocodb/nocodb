@@ -199,6 +199,7 @@ interface Formulav1 {
   formula: {
     value: string;
     tree: any;
+    error: string[] | string;
   };
 }
 
@@ -649,10 +650,20 @@ async function migrateProjectModels(
               const colBody: any = {
                 _cn: columnMeta._cn
               };
-              colBody.formula = await substituteColumnAliasWithIdInFormula(
-                columnMeta.formula.value,
-                await model.getColumns(ncMeta)
-              );
+              if (columnMeta?.formula?.error?.length) {
+                colBody.error = Array.isArray(columnMeta.formula.error)
+                  ? columnMeta.formula.error.join(',')
+                  : columnMeta.formula.error;
+              } else {
+                try {
+                  colBody.formula = await substituteColumnAliasWithIdInFormula(
+                    columnMeta.formula.value,
+                    await model.getColumns(ncMeta)
+                  );
+                } catch {
+                  colBody.error = 'Invalid formula';
+                }
+              }
               colBody.formula_raw = columnMeta.formula.value;
               const column = await Column.insert(
                 {

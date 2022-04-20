@@ -580,7 +580,7 @@ export default {
     },
     columns: {
       get() {
-        return this.fields.filter(f => f.show).sort((a, b) => a.order - b.order)
+        return this.fields.filter(f => f.show && f.uidt != UITypes.Rollup && f.uidt != UITypes.Lookup).sort((a, b) => a.order - b.order)
       },
       set(v) {
       }

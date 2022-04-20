@@ -10,7 +10,7 @@ menuTitle: "Rollup"
 
 Sample simple Organization structure:
 
-- 5 verticals, each vertical has a team name & associated team code
+- 5 verticals (company departments), each vertical/department has a team name & associated team code
 - 5 employees working at different verticals
 - Vertical **has many** Employees : relationship has been defined
 

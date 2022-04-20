@@ -37,7 +37,7 @@ const mysql2 = {
       .raw(`CAST(${args.fn(args.pt.arguments[0])} as DOUBLE)${args.colAlias}`)
       .wrap('(', ')');
   },
-  DATE_ADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return knex.raw(
       `CASE
       WHEN ${fn(pt.arguments[0])} LIKE '%:%' THEN
@@ -52,20 +52,6 @@ const mysql2 = {
         /["']/g,
         ''
       )}))
-      END${colAlias}`
-    );
-  },
-  DATE_SUB: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    return knex.raw(
-      `CASE
-      WHEN ${fn(pt.arguments[0])} LIKE '%:%' THEN
-        DATE_FORMAT(DATE_ADD(${fn(pt.arguments[0])}, INTERVAL 
-        ${fn(pt.arguments[1])}.argument.value 
-        ${String(fn(pt.arguments[2])).replace(/["']/g, '')}), '%Y-%m-%d %H:%i')
-      ELSE
-        DATE(DATE_ADD(${fn(pt.arguments[0])}, INTERVAL 
-        ${fn(pt.arguments[1])}.argument.value 
-        ${String(fn(pt.arguments[2])).replace(/["']/g, '')}))
       END${colAlias}`
     );
   }

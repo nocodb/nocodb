@@ -564,15 +564,6 @@ export default async function formulaQueryBuilderv2(
             }
           }
           break;
-        case 'DATEADD':
-          if (pt.arguments[1].value) {
-            pt.callee.name = 'DATE_ADD';
-            return fn(pt, alias, prevBinaryOp);
-          } else if (pt.arguments[1].operator == '-') {
-            pt.callee.name = 'DATE_SUB';
-            return fn(pt, alias, prevBinaryOp);
-          }
-          break;
         case 'URL':
           return fn(
             {
@@ -649,6 +640,14 @@ export default async function formulaQueryBuilderv2(
           null,
           pt.operator
         ).toQuery()}${colAlias}`
+      );
+      if (prevBinaryOp && pt.operator !== prevBinaryOp) {
+        query.wrap('(', ')');
+      }
+      return query;
+    } else if (pt.type === 'UnaryExpression') {
+      const query = knex.raw(
+        `${pt.operator}${fn(pt.argument, null, pt.operator).toQuery()}${colAlias}`
       );
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');

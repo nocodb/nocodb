@@ -10,11 +10,11 @@ menuTitle: "Lookup"
 
 ### Sample simple Organization structure
 
-- 5 verticals (company departments), each vertical/department has a team name & associated team code. Vertical **has many** Employees - relationship has been defined
+- 5 departments (company departments), each department has a team name & associated team code. Vertical **has many** Employees - relationship has been defined
 
 <img src="https://user-images.githubusercontent.com/35857179/161894091-6b6092c2-7184-4fe6-aa17-64ce5a7e97d5.png" width="70%"/>
 
-- 5 employees working at different verticals
+- 5 employees working at different departments
 
 <img src="https://user-images.githubusercontent.com/35857179/161894109-9b1a45da-c721-4d42-b676-a7c801cc160d.png" width="50%"/>
 

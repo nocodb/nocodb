@@ -302,19 +302,20 @@
 </template>
 
 <script>
-import { mapGetters, mapActions, mapMutations } from "vuex";
-import ReleaseInfo from "@/components/releaseInfo";
-import "splitpanes/dist/splitpanes.css";
-import XBtn from "../components/global/xBtn";
-import dlgUnexpectedError from "../components/utils/dlgUnexpectedError";
-import settings from "../components/settings";
-import { copyTextToClipboard } from "@/helpers/xutils";
-import Snackbar from "~/components/snackbar";
-import Language from "~/components/utils/language";
-import Loader from "~/components/loader";
-import PreviewAs from "~/components/previewAs";
-import ShareOrInviteModal from "~/components/auth/shareOrInviteModal";
-import ImportantAnnouncement from "../components/importantAnnouncement.vue";
+
+import { mapGetters, mapActions, mapMutations } from 'vuex'
+import ReleaseInfo from '@/components/releaseInfo'
+import 'splitpanes/dist/splitpanes.css'
+import XBtn from '../components/global/xBtn'
+import dlgUnexpectedError from '../components/utils/dlgUnexpectedError'
+import settings from '../components/settings'
+import { copyTextToClipboard } from '@/helpers/xutils'
+import Snackbar from '~/components/snackbar'
+import Language from '~/components/utils/language'
+import Loader from '~/components/loader'
+import PreviewAs from '~/components/previewAs'
+import ShareOrInviteModal from '~/components/auth/shareOrInviteModal'
+import ImportantAnnouncement from '../components/importantAnnouncement.vue'
 
 export default {
   components: {

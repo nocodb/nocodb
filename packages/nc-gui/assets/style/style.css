@@ -362,3 +362,10 @@ html {
 .cursor-pointer{
   cursor: pointer;
 }
+
+
+/* sorting and filter */
+.menu-filter-dropdown {
+  max-height: 500px;
+  overflow-y: auto;
+}

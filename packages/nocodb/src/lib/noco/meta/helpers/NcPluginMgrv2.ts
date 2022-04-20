@@ -134,6 +134,8 @@ class NcPluginMgrv2 {
       active: true
     });
 
+    if (!pluginData) return null;
+
     const pluginConfig = defaultPlugins.find(
       c => c.title === pluginData.title && c.category === PluginCategory.EMAIL
     );

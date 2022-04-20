@@ -442,6 +442,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/RobinFrcd"><img src="https://avatars.githubusercontent.com/u/29704178?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Robin Fourcade</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=RobinFrcd" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/zprial"><img src="https://avatars.githubusercontent.com/u/33095380?v=4?s=100" width="100px;" alt=""/><br /><sub><b>zprial</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=zprial" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/nilsreichardt"><img src="https://avatars.githubusercontent.com/u/24459435?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Nils Reichardt</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=nilsreichardt" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/iamnamananand996"><img src="https://avatars.githubusercontent.com/u/31537362?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Naman Anand</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=iamnamananand996" title="Code">💻</a></td>
   </tr>
 </table>
 

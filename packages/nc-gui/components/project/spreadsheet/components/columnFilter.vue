@@ -1,7 +1,9 @@
 <template>
   <div
-    class="backgroundColor pa-2"
-    :style="{ width: nested ? '100%' : '530px' }"
+
+    class="backgroundColor pa-2 menu-filter-dropdown"
+    :style="{width:nested ? '100%' : '530px'}"
+
   >
     <div class="grid" @click.stop>
       <template v-for="(filter, i) in filters" dense>

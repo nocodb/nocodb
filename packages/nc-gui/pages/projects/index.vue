@@ -790,7 +790,7 @@ export default {
           this.statusUpdatingProjectId = projectId;
           this.projectStatusUpdating = true;
           try {
-            await this.$api.project.delete(projectId);
+            await this.$api.project.delete(projectId)
             this.$toast
               .success(`Project '${project.title}' deleted successfully`)
               .goAway(3000);

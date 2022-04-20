@@ -127,7 +127,8 @@ export default {
     bulkDataDeleteAll: true,
     relationDataRemove: true,
     relationDataAdd: true,
-    dataCount: true
+    dataCount: true,
+    upload: true
   },
   commenter: {
     formViewGet: true,

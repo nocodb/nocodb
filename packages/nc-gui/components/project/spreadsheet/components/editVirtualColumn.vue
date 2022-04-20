@@ -6,7 +6,7 @@
     style="overflow: auto"
     class=" card nc-col-create-or-edit-card"
   >
-    <v-form v-model="valid">
+    <v-form v-model="valid" @submit.prevent="save">
       <v-container fluid @click.stop.prevent>
         <v-row>
           <v-col cols="12">

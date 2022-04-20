@@ -314,15 +314,10 @@
               </v-alert>
 
               <p class="caption grey--text mt-3">
-                {{ $t("msg.info.userInviteNoSMTP") }}
-                <!-- Looks like you have not configured mailer yet! <br>Please copy above -->
-                <!-- invite -->
-                <!-- link and send it to -->
-                {{
-                  invite_token &&
-                  (invite_token.email ||
-                    (invite_token.emails && invite_token.emails.join(", ")))
-                }}.
+
+                <!-- Looks like you have not configured mailer yet! <br> Please copy above invite link and send it to -->
+                <pre>{{ $t('msg.info.userInviteNoSMTP') }} {{ invite_token && (invite_token.email || invite_token.emails && invite_token.emails.join(', ')) }}.</pre>
+
               </p>
 
               <div class="text-right">
@@ -646,22 +641,11 @@ export default {
     },
     async resendInvite(id) {
       try {
-        await this.$axios.post(
-          "/admin/resendInvite/" + id,
-          {
-            projectName: this.$store.getters["project/GtrProjectName"],
-          },
-          {
-            headers: {
-              "xc-auth": this.$store.state.users.token,
-            },
-            params: {
-              project_id: this.$route.params.project_id,
-            },
-          }
-        );
-        this.$toast.success("Invite email sent successfully").goAway(3000);
-        await this.loadUsers();
+
+        await this.$api.auth.projectUserResendInvite(this.$route.params.project_id, id)
+        this.$toast.success('Invite email sent successfully').goAway(3000)
+        await this.loadUsers()
+
       } catch (e) {
         this.$toast.error(e.response.data.msg).goAway(3000);
       }

@@ -406,7 +406,7 @@
       "deleteProject": "Vill du radera projektet?",
       "shareBasePrivate": "Generera offentligt delbar readonly base",
       "shareBasePublic": "Någon på internet med den här länken kan visa",
-      "userInviteNoSMTP": "Det verkar som om du inte har konfigurerat Mailer än! \\ n Vänligen kopiera ovanför bjudningslänk och skicka den till",
+      "userInviteNoSMTP": "Det verkar som om du inte har konfigurerat Mailer än!\nVänligen kopiera ovanför bjudningslänk och skicka den till",
       "dragDropHide": "Dra och släpp fält här för att dölja",
       "formInput": "Ange formulärinmatningslabel",
       "formHelpText": "Lägg till lite hjälptext",

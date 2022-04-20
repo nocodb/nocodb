@@ -591,7 +591,7 @@
             </span>
           </v-list-item>
         </template>
-        <template v-if="rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual">
+        <template v-if="isEditable && !isLocked && rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual">
           <v-tooltip bottom>
             <template #activator="{on}">
               <v-list-item v-t="['record:right-click:clear']" v-on="on" @click="clearCellValue">

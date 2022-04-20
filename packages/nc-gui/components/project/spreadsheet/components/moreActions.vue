@@ -309,10 +309,10 @@ export default {
             return res
           }, {}))
           await this.$api.dbTableRow.bulkCreate(
-              'noco', 
-              this.projectName,
-              this.meta.title,
-              batchData
+            'noco',
+            this.projectName,
+            this.meta.title,
+            batchData
           )
           progress += batchData.length
           this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${data.length}`)

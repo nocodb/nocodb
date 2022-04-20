@@ -28,7 +28,7 @@ export default {
       const $listeners = {}
       return $listeners
     }
-  },
+  }
 }
 </script>
 

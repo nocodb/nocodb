@@ -341,7 +341,6 @@ export default {
     },
     async save() {
       try {
-
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcRoutesPolicyUpdate', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,

@@ -39,38 +39,39 @@ export default {
         description: 'Add tables',
         mac: '<kbd>Command</kbd> + <kbd>Control</kbd> + <kbd>T</kbd>',
         windows: '<kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>T</kbd>'
-      },{
+      }, {
         description: 'Add columns',
         mac: '<kbd>Command</kbd> + <kbd>Control</kbd> + <kbd>C</kbd>',
         windows: '<kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>C</kbd>'
-      },{
+      }, {
         description: 'Add new column row',
         mac: '<kbd>Command</kbd> + <kbd>Control</kbd> + <kbd>A</kbd>',
         windows: '<kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>A</kbd>'
-      },{
+      }, {
         description: 'Table navigation',
         mac: '<kbd>Command</kbd> + <kbd>Control</kbd> + <kbd>Arrow Down</kbd> <br>AND<br> <kbd>Command</kbd> + <kbd>Control</kbd> + <kbd>Arrow Up</kbd>',
         windows: '<kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Arrow Down</kbd> <br>AND<br> <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Arrow Up</kbd>'
-      },{
+      }, {
         description: 'Column navigation',
         mac: '<kbd>Command</kbd> + <kbd>Control</kbd> + <kbd>Arrow Right</kbd> <br>AND<br> <kbd>Command</kbd> + <kbd>Control</kbd> + <kbd>Arrow Left</kbd>',
         windows: '<kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Arrow Right</kbd> <br>AND<br> <kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>Arrow Right</kbd>'
-      },{
+      }, {
         description: 'Copy json to clipboard',
         mac: '<kbd>Command</kbd> + <kbd>Control</kbd> + <kbd>J</kbd>',
         windows: '<kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>J</kbd>'
-      },{
+      }, {
         description: 'Submit template',
         mac: '<kbd>Command</kbd> + <kbd>Control</kbd> + <kbd>S</kbd>',
         windows: '<kbd>Alt</kbd> + <kbd>Shift</kbd> + <kbd>S</kbd>'
-      },]
+      }]
     }
   },
   computed: {
     localState: {
       get() {
         return this.value
-      }, set(val) {
+      },
+      set(val) {
         this.$emit('input', val)
       }
     }

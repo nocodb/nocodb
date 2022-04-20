@@ -78,7 +78,6 @@ export default {
       }))
 
       return refTables
-
     },
     columnList() {
       return ((

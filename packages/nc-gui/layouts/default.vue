@@ -271,8 +271,8 @@
 </template>
 
 <script>
-import ReleaseInfo from '@/components/releaseInfo'
 import { mapGetters, mapActions, mapMutations } from 'vuex'
+import ReleaseInfo from '@/components/releaseInfo'
 import 'splitpanes/dist/splitpanes.css'
 import XBtn from '../components/global/xBtn'
 import dlgUnexpectedError from '../components/utils/dlgUnexpectedError'

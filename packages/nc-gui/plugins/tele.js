@@ -45,6 +45,7 @@ export default function({
 
   const tele = {
     emit(evt, data) {
+      // debugger
       if (socket) {
         socket.emit('event', {
           event: evt,
@@ -56,6 +57,7 @@ export default function({
   }
 
   inject('tele', tele)
+  inject('e', tele.emit)
 
   function getListener(binding) {
     return function(e) {
@@ -76,7 +78,11 @@ export default function({
   Vue.directive('t', {
     bind(el, binding, vnode) {
       if (vnode.componentInstance) {
-        vnode.componentInstance.$on('click', getListener(binding))
+        if (vnode.componentInstance.$el) {
+          vnode.componentInstance.$el.addEventListener('click', getListener(binding))
+        } else {
+          vnode.componentInstance.$on('click', getListener(binding))
+        }
       } else {
         el.addEventListener('click', getListener(binding))
       }

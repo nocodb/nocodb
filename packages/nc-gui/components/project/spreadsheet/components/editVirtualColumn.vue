@@ -49,7 +49,7 @@
               {{ $t('general.cancel') }}
             </v-btn>
             <v-btn
-              v-t="['virtual:column:edit']"
+              v-t="['c:column:edit']"
               x-small
               color="primary"
               :disabled="!valid"

@@ -68,7 +68,6 @@
                 <!--                </vue-recaptcha>-->
 
                 <v-btn
-                  v-t="['login:sign-up']"
                   v-ge="['Sign Up ','']"
                   color="primary"
                   class="btn--large"
@@ -379,6 +378,7 @@ export default {
         this.$router.push('/projects?toast')
       }
       this.signUpButtonLoading = false
+      this.$e('a:auth:sign-up')
     },
 
     MtdOnReset() {

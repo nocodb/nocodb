@@ -6,23 +6,21 @@
     <template v-else>
       <v-tabs
         v-model="active"
-        :height="relationTabs && relationTabs.length ?38:0"
+        :height="relationTabs && relationTabs.length ? 38 : 0"
         class="table-tabs"
-        :class="{'hidden-tab':!relationTabs || !relationTabs.length}"
+        :class="{ 'hidden-tab': !relationTabs || !relationTabs.length }"
         color="pink"
         @change="onTabChange"
       >
         <template v-if="_isUIAllowed('smartSheet')">
           <v-tab v-show="relationTabs && relationTabs.length" class="">
-            <v-icon small>
-              mdi-table-edit
-            </v-icon>&nbsp;<span
-              class="caption text-capitalize  font-weight-bold"
-            > {{ nodes.title }}</span>
+            <v-icon small> mdi-table-edit </v-icon>&nbsp;<span
+              class="caption text-capitalize font-weight-bold"
+            >
+              {{ nodes.title }}</span
+            >
           </v-tab>
-          <v-tab-item
-            style="height:100%"
-          >
+          <v-tab-item style="height: 100%">
             <rows-xc-data-table
               ref="tabs7"
               :is-view="isView"
@@ -51,15 +49,15 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
-import dlgLabelSubmitCancel from '../utils/dlgLabelSubmitCancel'
-import { isMetaTable } from '@/helpers/xutils'
-import RowsXcDataTable from '@/components/project/spreadsheet/rowsXcDataTable'
+import { mapActions } from "vuex";
+import dlgLabelSubmitCancel from "../utils/dlgLabelSubmitCancel";
+import { isMetaTable } from "@/helpers/xutils";
+import RowsXcDataTable from "@/components/project/spreadsheet/rowsXcDataTable";
 
 export default {
   components: {
     RowsXcDataTable,
-    dlgLabelSubmitCancel
+    dlgLabelSubmitCancel,
   },
   data() {
     return {
@@ -74,90 +72,90 @@ export default {
       loadRows: false,
       loadColumnsMock: false,
       relationTabs: [],
-      deleteId: null
-    }
+      deleteId: null,
+    };
   },
   methods: {
     async handleKeyDown(event) {
-      const activeTabEleKey = `tabs${this.active}`
-      if (this.$refs[activeTabEleKey] &&
+      const activeTabEleKey = `tabs${this.active}`;
+      if (
+        this.$refs[activeTabEleKey] &&
         this.$refs[activeTabEleKey].handleKeyDown
       ) {
-        await this.$refs[activeTabEleKey].handleKeyDown(event)
+        await this.$refs[activeTabEleKey].handleKeyDown(event);
       }
     },
     ...mapActions({
-      removeTableTab: 'tabs/removeTableTab',
-      loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode'
+      removeTableTab: "tabs/removeTableTab",
+      loadTablesFromParentTreeNode: "project/loadTablesFromParentTreeNode",
     }),
     mtdNewTableUpdate(value) {
-      this.newTableCopy = value
+      this.newTableCopy = value;
     },
-    async deleteTable(action = '', id) {
+    async deleteTable(action = "", id) {
       if (id) {
-        this.deleteId = id
+        this.deleteId = id;
       }
-      if (action === 'showDialog') {
-        this.dialogShow = true
-      } else if (action === 'hideDialog') {
-        this.dialogShow = false
+      if (action === "showDialog") {
+        this.dialogShow = true;
+      } else if (action === "hideDialog") {
+        this.dialogShow = false;
       } else {
         // todo : check relations and triggers
         try {
-          await this.$api.dbTable.delete(this.deleteId)
+          await this.$api.dbTable.delete(this.deleteId);
 
           this.removeTableTab({
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias,
-            table_name: this.nodes.table_name
-          })
+            table_name: this.nodes.table_name,
+          });
 
           await this.loadTablesFromParentTreeNode({
             _nodes: {
-              ...this.nodes
-            }
-          })
+              ...this.nodes,
+            },
+          });
 
-          this.$store.commit('meta/MutMeta', {
+          this.$store.commit("meta/MutMeta", {
             key: this.nodes.table_name,
-            value: null
-          })
-          this.$store.commit('meta/MutMeta', {
+            value: null,
+          });
+          this.$store.commit("meta/MutMeta", {
             key: this.deleteId,
-            value: null
-          })
+            value: null,
+          });
         } catch (e) {
-          const msg = await this._extractSdkResponseErrorMsg(e)
-          this.$toast.error(msg).goAway(3000)
+          const msg = await this._extractSdkResponseErrorMsg(e);
+          this.$toast.error(msg).goAway(3000);
         }
-        this.dialogShow = false
-        this.$tele.emit('table:delete:submit')
+        this.dialogShow = false;
+        this.$e("a:table:delete");
       }
     },
     onTabChange() {
-      this.$emit('update:hideLogWindows', this.active === 2)
-    }
+      this.$emit("update:hideLogWindows", this.active === 2);
+    },
   },
   computed: {
     isMetaTable() {
-      return isMetaTable(this.nodes.table_name)
-    }
+      return isMetaTable(this.nodes.table_name);
+    },
   },
   mounted() {
-    this.onTabChange()
+    this.onTabChange();
   },
   props: {
     nodes: Object,
     hideLogWindows: Boolean,
     tabId: String,
     isActive: Boolean,
-    isView: Boolean
-  }
-}
+    isView: Boolean,
+  },
+};
 </script>
 
 <style scoped>
-
 /*/deep/ .table-tabs > .v-tabs-items {
   border-top: 1px solid #7F828B33;
 }*/
@@ -166,12 +164,13 @@ export default {
   margin-top: -2px;
 }
 
-.table-tabs, /deep/ .table-tabs > .v-windows {
+.table-tabs,
+/deep/ .table-tabs > .v-windows {
   height: 100%;
 }
 
 /deep/ .v-window-item {
-  height: 100%
+  height: 100%;
 }
 
 .rel-row-parent {
@@ -189,7 +188,6 @@ export default {
   overflow: hidden;
   color: grey;
 }
-
 </style>
 <!--
 /**

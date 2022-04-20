@@ -6,23 +6,17 @@
       class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1"
       style="z-index: 7"
     >
-      <div v-if="!isForm" class="d-flex xc-border align-center search-box" style="min-width:156px">
+      <div
+        v-if="!isForm"
+        class="d-flex xc-border align-center search-box"
+        style="min-width: 156px"
+      >
         <v-menu bottom offset-y>
-          <template #activator="{on}">
+          <template #activator="{ on }">
             <div style="min-width: 56px" v-on="on">
-              <v-icon
-                class="ml-2"
-                small
-                color="grey"
-              >
-                mdi-magnify
-              </v-icon>
+              <v-icon class="ml-2" small color="grey"> mdi-magnify </v-icon>
 
-              <v-icon
-                color="grey"
-                class="pl-0 pa-1"
-                small
-              >
+              <v-icon color="grey" class="pl-0 pa-1" small>
                 mdi-menu-down
               </v-icon>
             </div>
@@ -38,31 +32,32 @@
           </v-list>
         </v-menu>
 
-        <v-divider
-          vertical
-        />
+        <v-divider vertical />
 
         <v-text-field
           v-model="searchQueryVal"
           autocomplete="new-password"
-          style="min-width: 100px ; width: 120px"
+          style="min-width: 100px; width: 120px"
           flat
           dense
           solo
           hide-details
-          :placeholder="searchField ? $t('placeholder.searchColumn', {searchField}) : 'Search all columns'"
+          :placeholder="
+            searchField
+              ? $t('placeholder.searchColumn', { searchField })
+              : 'Search all columns'
+          "
           class="elevation-0 pa-0 flex-grow-1 caption search-field"
           @keyup.enter="searchQuery = searchQueryVal"
           @blur="searchQuery = searchQueryVal"
         />
       </div>
 
-      <span
-        v-if="relationType && false"
-        class="caption grey--text"
-      >{{ refTable }}({{
-        relationPrimaryValue
-      }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
+      <span v-if="relationType && false" class="caption grey--text"
+        >{{ refTable }}({{ relationPrimaryValue }}) ->
+        {{ relationType === "hm" ? " Has Many " : " Belongs To " }} ->
+        {{ table }}</span
+      >
       <div class="d-inline-flex">
         <div>
           <fields
@@ -84,7 +79,7 @@
           />
 
           <sort-list
-            v-if="!isForm "
+            v-if="!isForm"
             v-model="sortList"
             :is-locked="isLocked"
             :meta="meta"
@@ -94,7 +89,7 @@
           <!--        v-model="sortList"-->
           <!--        :field-list="[...realFieldList, ...formulaFieldList]"-->
           <column-filter
-            v-if="!isForm "
+            v-if="!isForm"
             v-model="filters"
             :meta="meta"
             :is-locked="isLocked"
@@ -104,7 +99,10 @@
             @updated="loadTableData"
           />
         </div>
-        <share-view-menu v-if="!isGallery" @share="$refs.drawer && $refs.drawer.genShareLink()" />
+        <share-view-menu
+          v-if="!isGallery"
+          @share="$refs.drawer && $refs.drawer.genShareLink()"
+        />
 
         <MoreActions
           v-if="!isForm"
@@ -115,7 +113,7 @@
             fieldsOrder,
             fieldFilter,
             sortList,
-            showFields
+            showFields,
           }"
           :selected-view="selectedView"
           :is-view="isView"
@@ -124,37 +122,49 @@
           @reload="reload"
         />
       </div>
-      <v-spacer class="h-100" @click="clickCount = clickCount + 1; debug=clickCount >= 4" />
+      <v-spacer
+        class="h-100"
+        @click="
+          clickCount = clickCount + 1;
+          debug = clickCount >= 4;
+        "
+      />
 
       <template v-if="!isForm">
         <!-- Export Cache -->
         <v-tooltip v-if="debug" bottom>
-          <template #activator="{on}">
+          <template #activator="{ on }">
             <v-icon class="mr-3" small v-on="on" @click="exportCache">
               mdi-export
             </v-icon>
           </template>
-          <span class="caption"> Export Cache
-          </span>
+          <span class="caption"> Export Cache </span>
         </v-tooltip>
         <!-- Delete Cache -->
         <v-tooltip v-if="debug" bottom>
-          <template #activator="{on}">
+          <template #activator="{ on }">
             <v-icon class="mr-3" small v-on="on" @click="deleteCache">
               mdi-delete
             </v-icon>
           </template>
-          <span class="caption"> Delete Cache
-          </span>
+          <span class="caption"> Delete Cache </span>
         </v-tooltip>
         <debug-metas v-if="debug" class="mr-3" />
         <v-tooltip bottom>
-          <template #activator="{on}">
-            <v-icon v-if="!isPkAvail && !isForm" color="warning" small class="mr-3" v-on="on">
+          <template #activator="{ on }">
+            <v-icon
+              v-if="!isPkAvail && !isForm"
+              color="warning"
+              small
+              class="mr-3"
+              v-on="on"
+            >
               mdi-information-outline
             </v-icon>
           </template>
-          <span class="caption">          Update & Delete not allowed since the table doesn't have any primary key
+          <span class="caption">
+            Update & Delete not allowed since the table doesn't have any primary
+            key
           </span>
         </v-tooltip>
         <lock-menu v-if="_isUIAllowed('view-type')" v-model="lockType" />
@@ -201,12 +211,12 @@
 
         <!--          tooltip="Add new row"-->
         <x-icon
-          v-if="!isView &&isEditable && relationType !== 'bt'"
+          v-if="!isView && isEditable && relationType !== 'bt'"
           icon.class="nc-add-new-row-btn mx-1"
           :tooltip="$t('activity.addRow')"
           :disabled="isLocked"
           small
-          :color="['success','']"
+          :color="['success', '']"
           @click="clickAddNewIcon"
         >
           mdi-plus-outline
@@ -253,7 +263,7 @@
           icon.class="nc-table-delete-btn mx-1 mr-1"
           :disabled="isLocked"
           small
-          :color="['red',''] "
+          :color="['red', '']"
           :tooltip="$t('activity.deleteTable')"
           @click="checkAndDeleteTable"
         >
@@ -301,32 +311,31 @@
         outlined
         small
         text
-        :btn-class="{ 'primary lighten-5 nc-toggle-nav-drawer' : !toggleDrawer}"
-        @click="toggleDrawer = !toggleDrawer; toggleClick()"
+        :btn-class="{ 'primary lighten-5 nc-toggle-nav-drawer': !toggleDrawer }"
+        @click="
+          toggleDrawer = !toggleDrawer;
+          toggleClick();
+        "
       >
-        <v-icon
-          small
-          class="mx-0"
-          color="grey  darken-3"
-        >
-          {{ toggleDrawer ? 'mdi-door-closed' : 'mdi-door-open' }}
+        <v-icon small class="mx-0" color="grey  darken-3">
+          {{ toggleDrawer ? "mdi-door-closed" : "mdi-door-open" }}
         </v-icon>
       </x-btn>
     </v-toolbar>
     <div
       :class="`cell-height-${cellHeight}`"
-      style=" height:calc(100% - 32px);overflow:auto;transition: width 100ms "
+      style="height: calc(100% - 32px); overflow: auto; transition: width 100ms"
       class="d-flex"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
         <div
           v-if="selectedViewId && selectedView"
           ref="table"
-          :style="{height:isForm ? '100%' : 'calc(100% - 36px)'}"
-          style="overflow: auto;width:100%"
+          :style="{ height: isForm ? '100%' : 'calc(100% - 36px)' }"
+          style="overflow: auto; width: 100%"
         >
           <!--          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />-->
-          <template v-if=" selectedView.type === viewTypes.GRID">
+          <template v-if="selectedView.type === viewTypes.GRID">
             <xc-grid-view
               ref="ncgridview"
               :loading="loadingData"
@@ -363,7 +372,7 @@
               @loadMeta="loadMeta"
             />
           </template>
-          <template v-else-if="selectedView.type === viewTypes.GALLERY ">
+          <template v-else-if="selectedView.type === viewTypes.GALLERY">
             <gallery-view
               :is-locked="isLocked"
               :nodes="nodes"
@@ -376,7 +385,9 @@
               :view-id="selectedViewId"
               :primary-value-column="primaryValueColumn"
               :cover-image-field.sync="coverImageField"
-              @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
+              @expandForm="
+                ({ rowIndex, rowMeta }) => expandRow(rowIndex, rowMeta)
+              "
             />
           </template>
           <template v-else-if="isKanban">
@@ -399,12 +410,16 @@
               :primary-value-column="primaryValueColumn"
               :grouping-field.sync="groupingField"
               :api="api"
-              @expandKanbanForm="({rowIdx}) => expandKanbanForm(rowIdx)"
+              @expandKanbanForm="({ rowIdx }) => expandKanbanForm(rowIdx)"
               @insertNewRow="insertNewRow"
-              @loadMoreKanbanData="(groupingFieldVal) => loadMoreKanbanData(groupingFieldVal)"
+              @loadMoreKanbanData="
+                (groupingFieldVal) => loadMoreKanbanData(groupingFieldVal)
+              "
             />
           </template>
-          <template v-else-if="selectedView && selectedView.show_as === 'calendar' ">
+          <template
+            v-else-if="selectedView && selectedView.show_as === 'calendar'"
+          >
             <calendar-view
               :nodes="nodes"
               :table="table"
@@ -413,10 +428,12 @@
               :meta="meta"
               :data="data"
               :primary-value-column="primaryValueColumn"
-              @expandForm="({rowIndex,rowMeta}) => expandRow(rowIndex,rowMeta)"
+              @expandForm="
+                ({ rowIndex, rowMeta }) => expandRow(rowIndex, rowMeta)
+              "
             />
           </template>
-          <template v-else-if=" selectedView.type === viewTypes.FORM">
+          <template v-else-if="selectedView.type === viewTypes.FORM">
             <form-view
               :id="selectedViewId"
               ref="formView"
@@ -518,41 +535,30 @@
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('validators')"
         >
-          <v-icon x-small class="mr-2">
-            mdi-sticker-check-outline
-          </v-icon>
+          <v-icon x-small class="mr-2"> mdi-sticker-check-outline </v-icon>
           <span class="caption"> API Validators</span>
         </v-list-item>
-        <v-divider
-          v-if="showAdvanceOptions"
-          class="advance-menu-divider"
-        />
+        <v-divider v-if="showAdvanceOptions" class="advance-menu-divider" />
 
         <v-list-item
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('columns')"
         >
-          <v-icon x-small class="mr-2">
-            mdi-view-column
-          </v-icon>
+          <v-icon x-small class="mr-2"> mdi-view-column </v-icon>
           <span class="caption font-weight-light">SQL Columns</span>
         </v-list-item>
         <v-list-item
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('indexes')"
         >
-          <v-icon x-small class="mr-2">
-            mdi-blur
-          </v-icon>
+          <v-icon x-small class="mr-2"> mdi-blur </v-icon>
           <span class="caption font-weight-light">SQL Indexes</span>
         </v-list-item>
         <v-list-item
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('triggers')"
         >
-          <v-icon x-small class="mr-2">
-            mdi-shield-edit-outline
-          </v-icon>
+          <v-icon x-small class="mr-2"> mdi-shield-edit-outline </v-icon>
           <span class="caption font-weight-light">SQL Triggers</span>
         </v-list-item>
       </spreadsheet-nav-drawer>
@@ -570,36 +576,48 @@
         <template v-if="isEditable && !isLocked">
           <v-list-item
             v-if="relationType !== 'bt'"
-            v-t="['record:right-click:insert']"
+            v-t="['a:row:insert']"
             @click="insertNewRow(false)"
           >
             <span class="caption">
               <!-- Insert New Row -->
-              {{ $t('activity.insertRow') }}
+              {{ $t("activity.insertRow") }}
             </span>
           </v-list-item>
-          <v-list-item v-t="['record:right-click:delete']" @click="deleteRow">
+          <v-list-item v-t="['a:row:delete']" @click="deleteRow">
             <span class="caption">
               <!-- Delete Row -->
-              {{ $t('activity.deleteRow') }}
+              {{ $t("activity.deleteRow") }}
             </span>
           </v-list-item>
-          <v-list-item v-t="['record:right-click:delete-selected']" @click="deleteSelectedRows">
+          <v-list-item v-t="['a:row:delete-bulk']" @click="deleteSelectedRows">
             <span class="caption">
               <!-- Delete Selected Rows -->
-              {{ $t('activity.deleteSelectedRow') }}
+              {{ $t("activity.deleteSelectedRow") }}
             </span>
           </v-list-item>
         </template>
-        <template v-if="rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual">
+        <template
+          v-if="
+            rowContextMenu.col &&
+            !rowContextMenu.col.rqd &&
+            !rowContextMenu.col.virtual
+          "
+        >
           <v-tooltip bottom>
-            <template #activator="{on}">
-              <v-list-item v-t="['record:right-click:clear']" v-on="on" @click="clearCellValue">
+            <template #activator="{ on }">
+              <v-list-item
+                v-t="['a:row:clear']"
+                v-on="on"
+                @click="clearCellValue"
+              >
                 <span class="caption">Clear</span>
               </v-list-item>
             </template>
 
-            <span class="caption">Set column value to <strong>null</strong></span>
+            <span class="caption"
+              >Set column value to <strong>null</strong></span
+            >
           </v-tooltip>
         </template>
       </v-list>
@@ -610,7 +628,7 @@
       :overlay-opacity="0.8"
       width="1000px"
       max-width="100%"
-      class=" mx-auto"
+      class="mx-auto"
     >
       <expanded-form
         v-if="isKanban && kanban.selectedExpandRow"
@@ -634,14 +652,24 @@
         :show-next-prev="false"
         :preset-values="presetValues"
         :is-locked="isLocked"
-        @cancel="showExpandModal = false;"
-        @input="showExpandModal = false; (kanban.selectedExpandRow && kanban.selectedExpandRow.rowMeta && delete kanban.selectedExpandRow.rowMeta.new) ; loadKanbanData(false)"
+        @cancel="showExpandModal = false"
+        @input="
+          showExpandModal = false;
+          kanban.selectedExpandRow &&
+            kanban.selectedExpandRow.rowMeta &&
+            delete kanban.selectedExpandRow.rowMeta.new;
+          loadKanbanData(false);
+        "
         @commented="reloadComments"
         @next="loadNext"
         @prev="loadPrev"
       />
       <expanded-form
-        v-if="!isKanban && (selectedExpandRowIndex != null && data[selectedExpandRowIndex])"
+        v-if="
+          !isKanban &&
+          selectedExpandRowIndex != null &&
+          data[selectedExpandRowIndex]
+        "
         :key="selectedExpandRowIndex"
         v-model="data[selectedExpandRowIndex].row"
         :db-alias="nodes.dbAlias"
@@ -662,8 +690,14 @@
         :show-next-prev="true"
         :preset-values="presetValues"
         :is-locked="isLocked"
-        @cancel="showExpandModal = false;"
-        @input="showExpandModal = false; (data[selectedExpandRowIndex] && data[selectedExpandRowIndex].rowMeta && delete data[selectedExpandRowIndex].rowMeta.new) ; loadTableData()"
+        @cancel="showExpandModal = false"
+        @input="
+          showExpandModal = false;
+          data[selectedExpandRowIndex] &&
+            data[selectedExpandRowIndex].rowMeta &&
+            delete data[selectedExpandRowIndex].rowMeta.new;
+          loadTableData();
+        "
         @commented="reloadComments"
         @loadTableData="loadTableData"
         @next="loadNext"
@@ -683,32 +717,31 @@
 </template>
 
 <script>
+import { mapActions } from "vuex";
+import debounce from "debounce";
+import { SqlUiFactory, ViewTypes } from "nocodb-sdk";
+import FileSaver from "file-saver";
+import FormView from "./views/formView";
+import XcGridView from "./views/xcGridView";
+import spreadsheet from "./mixins/spreadsheet";
+import DebugMetas from "@/components/project/spreadsheet/components/debugMetas";
 
-import { mapActions } from 'vuex'
-import debounce from 'debounce'
-import { SqlUiFactory, ViewTypes } from 'nocodb-sdk'
-import FileSaver from 'file-saver'
-import FormView from './views/formView'
-import XcGridView from './views/xcGridView'
-import spreadsheet from './mixins/spreadsheet'
-import DebugMetas from '@/components/project/spreadsheet/components/debugMetas'
-
-import AdditionalFeatures from '@/components/project/spreadsheet/overlay/additinalFeatures'
-import GalleryView from '@/components/project/spreadsheet/views/galleryView'
-import CalendarView from '@/components/project/spreadsheet/views/calendarView'
-import KanbanView from '@/components/project/spreadsheet/views/kanbanView'
-import SortList from '@/components/project/spreadsheet/components/sortListMenu'
-import Fields from '@/components/project/spreadsheet/components/fieldsMenu'
-import SpreadsheetNavDrawer from '@/components/project/spreadsheet/components/spreadsheetNavDrawer'
-import LockMenu from '@/components/project/spreadsheet/components/lockMenu'
-import ExpandedForm from '@/components/project/spreadsheet/components/expandedForm'
-import Pagination from '@/components/project/spreadsheet/components/pagination'
-import ColumnFilter from '~/components/project/spreadsheet/components/columnFilterMenu'
-import MoreActions from '~/components/project/spreadsheet/components/moreActions'
-import ShareViewMenu from '~/components/project/spreadsheet/components/shareViewMenu'
+import AdditionalFeatures from "@/components/project/spreadsheet/overlay/additinalFeatures";
+import GalleryView from "@/components/project/spreadsheet/views/galleryView";
+import CalendarView from "@/components/project/spreadsheet/views/calendarView";
+import KanbanView from "@/components/project/spreadsheet/views/kanbanView";
+import SortList from "@/components/project/spreadsheet/components/sortListMenu";
+import Fields from "@/components/project/spreadsheet/components/fieldsMenu";
+import SpreadsheetNavDrawer from "@/components/project/spreadsheet/components/spreadsheetNavDrawer";
+import LockMenu from "@/components/project/spreadsheet/components/lockMenu";
+import ExpandedForm from "@/components/project/spreadsheet/components/expandedForm";
+import Pagination from "@/components/project/spreadsheet/components/pagination";
+import ColumnFilter from "~/components/project/spreadsheet/components/columnFilterMenu";
+import MoreActions from "~/components/project/spreadsheet/components/moreActions";
+import ShareViewMenu from "~/components/project/spreadsheet/components/shareViewMenu";
 
 export default {
-  name: 'RowsXcDataTable',
+  name: "RowsXcDataTable",
   components: {
     ShareViewMenu,
     MoreActions,
@@ -725,7 +758,7 @@ export default {
     CalendarView,
     GalleryView,
     ColumnFilter,
-    AdditionalFeatures
+    AdditionalFeatures,
   },
   mixins: [spreadsheet],
   props: {
@@ -740,24 +773,24 @@ export default {
     refTable: String,
     relationPrimaryValue: [String, Number],
     deleteTable: Function,
-    showTabs: [Boolean, Number]
+    showTabs: [Boolean, Number],
   },
   data: () => ({
-    syncDataDebounce: debounce(async function(self) {
-      await self.syncData()
+    syncDataDebounce: debounce(async function (self) {
+      await self.syncData();
     }, 500),
-    loadTableDataDeb: debounce(async function(self) {
-      await self.loadTableDataFn()
+    loadTableDataDeb: debounce(async function (self) {
+      await self.loadTableDataFn();
     }, 200),
     viewKey: 0,
     extraViewParams: {},
     debug: false,
     key: 1,
     dataLoaded: false,
-    searchQueryVal: '',
+    searchQueryVal: "",
     columnsWidth: null,
     viewStatus: {
-      type: null
+      type: null,
     },
     fieldsOrder: [],
     coverImageField: null,
@@ -768,7 +801,7 @@ export default {
     selectedView: {},
     overShieldIcon: false,
     progress: false,
-    createViewType: '',
+    createViewType: "",
     addNewColModal: false,
     showAddFeatOverlay: false,
     featureType: null,
@@ -778,49 +811,54 @@ export default {
     loadingMeta: true,
     loadingData: true,
     toggleDrawer: false,
-    selectedViewId: '',
+    selectedViewId: "",
     searchField: null,
-    searchQuery: '',
+    searchQuery: "",
     showExpandModal: false,
     selectedExpandRowIndex: null,
     selectedExpandRowMeta: null,
     navDrawer: true,
     selected: {
       row: null,
-      col: null
+      col: null,
     },
     editEnabled: {
       row: null,
-      col: null
+      col: null,
     },
     page: 1,
     count: 0,
     // size: 25,
-    xWhere: '',
-    sort: '',
+    xWhere: "",
+    sort: "",
 
-    cellHeight: 'small',
+    cellHeight: "small",
 
     spreadsheet: null,
     options: {
       allowToolbar: true,
-      columnSorting: false
+      columnSorting: false,
     },
     filteredData: [],
 
-    cellHeights: [{
-      size: 'small',
-      icon: 'mdi-view-headline'
-    }, {
-      size: 'medium',
-      icon: 'mdi-view-sequential'
-    }, {
-      size: 'large',
-      icon: 'mdi-view-stream'
-    }, {
-      size: 'xlarge',
-      icon: 'mdi-ca rd'
-    }],
+    cellHeights: [
+      {
+        size: "small",
+        icon: "mdi-view-headline",
+      },
+      {
+        size: "medium",
+        icon: "mdi-view-sequential",
+      },
+      {
+        size: "large",
+        icon: "mdi-view-stream",
+      },
+      {
+        size: "xlarge",
+        icon: "mdi-ca rd",
+      },
+    ],
     rowContextMenu: null,
     presetValues: {},
     kanban: {
@@ -833,28 +871,28 @@ export default {
       loadingData: true,
       selectedExpandRow: null,
       selectedExpandOldRow: null,
-      selectedExpandRowMeta: null
+      selectedExpandRowMeta: null,
     },
-    clickCount: 0
+    clickCount: 0,
   }),
   watch: {
     isActive(n, o) {
       if (!o && n) {
-        this.reload()
+        this.reload();
       }
     },
     page(p) {
-      this.$store.commit('tabs/MutSetTabState', {
+      this.$store.commit("tabs/MutSetTabState", {
         id: this.uniqueId,
-        key: 'page',
-        val: p
-      })
+        key: "page",
+        val: p,
+      });
     },
     selectedViewId(id) {
       if (this.tabsState[this.tabId] && this.tabsState[this.tabId].page) {
-        this.page = this.tabsState[this.tabId].page || 1
+        this.page = this.tabsState[this.tabId].page || 1;
       } else {
-        this.page = 1
+        this.page = 1;
       }
       // this.$store.commit('tabs/MutSetTabState', {
       //   id: this.tabId,
@@ -863,47 +901,51 @@ export default {
       // })
     },
     async groupingField(newVal) {
-      this.groupingField = newVal
-      if (this.selectedView && this.selectedView.show_as === 'kanban') {
-        await this.loadKanbanData()
+      this.groupingField = newVal;
+      if (this.selectedView && this.selectedView.show_as === "kanban") {
+        await this.loadKanbanData();
       }
-    }
+    },
   },
   async mounted() {
     try {
       if (this.tabsState && this.tabsState[this.uniqueId]) {
         if (this.tabsState[this.uniqueId].page) {
-          this.page = this.tabsState[this.uniqueId].page
+          this.page = this.tabsState[this.uniqueId].page;
         }
       }
-      await this.createTableIfNewTable()
-      this.loadingMeta = true
-      await this.loadMeta(false)
-      this.loadingMeta = false
+      await this.createTableIfNewTable();
+      this.loadingMeta = true;
+      await this.loadMeta(false);
+      this.loadingMeta = false;
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-    this.searchField = this.primaryValueColumn
+    this.searchField = this.primaryValueColumn;
   },
   methods: {
     clickAddNewIcon() {
-      this.insertNewRow(true, true)
-      this.$tele.emit('record:add-row:icon:trigger')
+      this.insertNewRow(true, true);
+      this.$e("c:row:add:grid-top");
     },
     toggleClick() {
-      this.$tele.emit('right-nav:toggle')
+      this.$e("c:grid:toggle-navdraw");
     },
     ...mapActions({
-      loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
+      loadTablesFromChildTreeNode: "project/loadTablesFromChildTreeNode",
     }),
     generateNewViewKey() {
-      this.viewKey = Math.random()
+      this.viewKey = Math.random();
     },
     loadNext() {
-      this.selectedExpandRowIndex = ++this.selectedExpandRowIndex % this.data.length
+      this.selectedExpandRowIndex =
+        ++this.selectedExpandRowIndex % this.data.length;
     },
     loadPrev() {
-      this.selectedExpandRowIndex = --this.selectedExpandRowIndex === -1 ? this.data.length - 1 : this.selectedExpandRowIndex
+      this.selectedExpandRowIndex =
+        --this.selectedExpandRowIndex === -1
+          ? this.data.length - 1
+          : this.selectedExpandRowIndex;
     },
     async checkAndDeleteTable() {
       // if (
@@ -914,136 +956,161 @@ export default {
       // ) {
       //   return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
       // }
-      this.deleteTable('showDialog', this.meta.id)
+      this.deleteTable("showDialog", this.meta.id);
 
       // if (confirm('Do you want to delete the table?')) {
       //   await this.$api.meta.tableDelete(this.meta.id)
       // }
-      this.$tele.emit('table:delete:trigger')
+      this.$e("c:table:delete");
     },
     async reloadClick() {
-      await this.reload()
-      this.$tele.emit('table:reload')
+      await this.reload();
+      this.$e("a:table:reload:navbar");
     },
     async reload() {
-      this.$store.dispatch('meta/ActLoadMeta', {
+      this.$store.dispatch("meta/ActLoadMeta", {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
         tn: this.table,
-        force: true
-      })
-      if (this.selectedView && this.selectedView.show_as === 'kanban') {
-        await this.loadKanbanData()
+        force: true,
+      });
+      if (this.selectedView && this.selectedView.show_as === "kanban") {
+        await this.loadKanbanData();
       } else {
-        await this.loadTableData()
+        await this.loadTableData();
       }
-      this.key = Math.random()
+      this.key = Math.random();
     },
     reloadComments() {
       if (this.$refs.ncgridview) {
-        this.$refs.ncgridview.xcAuditModelCommentsCount()
+        this.$refs.ncgridview.xcAuditModelCommentsCount();
       }
     },
-    async syncData() {
-    },
+    async syncData() {},
     showAdditionalFeatOverlay(feat) {
-      this.showAddFeatOverlay = true
-      this.featureType = feat
+      this.showAddFeatOverlay = true;
+      this.featureType = feat;
     },
     async createTableIfNewTable() {
       if (this.nodes.newTable && !this.nodes.tableCreated) {
-        const columns = this.sqlUi.getNewTableColumns().filter(col => this.nodes.newTable.columns.includes(col.column_name))
-        await this.$api.dbTable.create(
-          this.projectId,
-          {
-            table_name: this.nodes.table_name,
-            title: this.nodes.title,
-            columns
-          }
-        )
+        const columns = this.sqlUi
+          .getNewTableColumns()
+          .filter((col) =>
+            this.nodes.newTable.columns.includes(col.column_name)
+          );
+        await this.$api.dbTable.create(this.projectId, {
+          table_name: this.nodes.table_name,
+          title: this.nodes.title,
+          columns,
+        });
 
         await this.loadTablesFromChildTreeNode({
           _nodes: {
-            ...this.nodes
-          }
-        })
+            ...this.nodes,
+          },
+        });
         // eslint-disable-next-line vue/no-mutating-props
-        this.nodes.tableCreated = true
+        this.nodes.tableCreated = true;
       }
 
-      this.loadViews = true
+      this.loadViews = true;
     },
 
     comingSoon() {
-      this.$toast.info('Coming soon!').goAway(3000)
+      this.$toast.info("Coming soon!").goAway(3000);
     },
     changed(col, row) {
-      this.$set(this.data[row].rowMeta, 'changed', this.data[row].rowMeta.changed || {})
+      this.$set(
+        this.data[row].rowMeta,
+        "changed",
+        this.data[row].rowMeta.changed || {}
+      );
       if (this.data[row].rowMeta) {
-        this.$set(this.data[row].rowMeta.changed, this.availableColumns[col].column_name, true)
+        this.$set(
+          this.data[row].rowMeta.changed,
+          this.availableColumns[col].column_name,
+          true
+        );
       }
     },
     async save() {
       for (let row = 0; row < this.rowLength; row++) {
-        const {
-          row: rowObj,
-          rowMeta
-        } = this.data[row]
+        const { row: rowObj, rowMeta } = this.data[row];
         if (rowMeta.new) {
           try {
-            this.$set(this.data[row], 'saving', true)
+            this.$set(this.data[row], "saving", true);
             const pks = this.meta.columns.filter((col) => {
-              return col.pk
-            })
-            if (this.meta.columns.every((col) => {
-              return !col.ai
-            }) && pks.length && pks.every(col => !rowObj[col.title] && !(col.columnDefault || col.default))) {
-              return this.$toast.info('Primary column is empty please provide some value').goAway(3000)
+              return col.pk;
+            });
+            if (
+              this.meta.columns.every((col) => {
+                return !col.ai;
+              }) &&
+              pks.length &&
+              pks.every(
+                (col) =>
+                  !rowObj[col.title] && !(col.columnDefault || col.default)
+              )
+            ) {
+              return this.$toast
+                .info("Primary column is empty please provide some value")
+                .goAway(3000);
             }
-            if (this.meta.columns.some((col) => {
-              return !col.ai && col.rqd && (rowObj[col.title] === undefined || rowObj[col.title] === null) && !col.cdf
-            })) {
-              return
+            if (
+              this.meta.columns.some((col) => {
+                return (
+                  !col.ai &&
+                  col.rqd &&
+                  (rowObj[col.title] === undefined ||
+                    rowObj[col.title] === null) &&
+                  !col.cdf
+                );
+              })
+            ) {
+              return;
             }
 
             const insertObj = this.meta.columns.reduce((o, col) => {
               if (!col.ai && (rowObj && rowObj[col.title]) !== null) {
-                o[col.title] = rowObj && rowObj[col.title]
+                o[col.title] = rowObj && rowObj[col.title];
               }
-              return o
-            }, {})
+              return o;
+            }, {});
 
             // const insertedData = await this.api.insert(insertObj)
             const insertedData = await this.$api.dbViewRow.create(
-              'noco',
+              "noco",
               this.projectName,
               this.meta.title,
-              this.selectedView.title, insertObj
-            )
+              this.selectedView.title,
+              insertObj
+            );
 
             this.data.splice(row, 1, {
               row: insertedData,
               rowMeta: {},
-              oldRow: { ...insertedData }
-            })
+              oldRow: { ...insertedData },
+            });
 
             /* this.$toast.success(`${insertedData[this.primaryValueColumn] ? `${insertedData[this.primaryValueColumn]}'s r` : 'R'}ow saved successfully.`, {
               position: 'bottom-center'
             }).goAway(3000) */
           } catch (e) {
             // if (e.response && e.response.data && e.response.data.msg) {
-            this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
+            this.$toast
+              .error(await this._extractSdkResponseErrorMsg(e))
+              .goAway(3000);
             // } else {
             //   this.$toast.error(`Failed to
             //
             //   row : ${e.message}`).goAway(3000)
             // }
           } finally {
-            this.$set(this.data[row], 'saving', false)
+            this.$set(this.data[row], "saving", false);
           }
         }
       }
-      this.syncCount()
+      this.syncCount();
     },
     // // todo: move debounce to cell since this will skip few update api call
     // onCellValueChangeDebounce: debounce(async function(col, row, column, self) {
@@ -1054,223 +1121,270 @@ export default {
     // },
     async onCellValueChange(col, row, column, saved = true) {
       if (!this.data[row]) {
-        return
+        return;
       }
-      const { row: rowObj, rowMeta, oldRow, saving, lastSave } = this.data[row]
+      const { row: rowObj, rowMeta, oldRow, saving, lastSave } = this.data[row];
       if (!lastSave) {
-        this.$set(this.data[row], 'lastSave', rowObj[column.title])
+        this.$set(this.data[row], "lastSave", rowObj[column.title]);
       }
       if (rowMeta.new) {
         // return if there is no change
-        if ((column && oldRow[column.title] === rowObj[column.title]) || saving) {
-          return
+        if (
+          (column && oldRow[column.title] === rowObj[column.title]) ||
+          saving
+        ) {
+          return;
         }
-        await this.save()
+        await this.save();
       } else {
         try {
           // if (!this.api) {
           //   return
           // }
           // return if there is no change
-          if (!column || (oldRow[column.title] === rowObj[column.title] && ((lastSave || rowObj[column.title]) === rowObj[column.title]))) {
-            return
+          if (
+            !column ||
+            (oldRow[column.title] === rowObj[column.title] &&
+              (lastSave || rowObj[column.title]) === rowObj[column.title])
+          ) {
+            return;
           }
           if (saved) {
-            this.$set(this.data[row], 'lastSave', oldRow[column.title])
+            this.$set(this.data[row], "lastSave", oldRow[column.title]);
           }
-          const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c.title]).join('___')
+          const id = this.meta.columns
+            .filter((c) => c.pk)
+            .map((c) => rowObj[c.title])
+            .join("___");
 
           if (!id) {
-            return this.$toast.info('Update not allowed for table which doesn\'t have primary Key').goAway(3000)
+            return this.$toast
+              .info(
+                "Update not allowed for table which doesn't have primary Key"
+              )
+              .goAway(3000);
           }
-          this.$set(this.data[row], 'saving', true)
+          this.$set(this.data[row], "saving", true);
 
           // eslint-disable-next-line promise/param-names
-          const newData = (await this.$api.dbViewRow.update(
-            'noco',
+          const newData = await this.$api.dbViewRow.update(
+            "noco",
             this.projectName,
             this.meta.title,
             this.selectedView.title,
-            id, {
-              [column.title]: rowObj[column.title]
-            }, {
-              query: { ignoreWebhook: !saved }
-            }))
+            id,
+            {
+              [column.title]: rowObj[column.title],
+            },
+            {
+              query: { ignoreWebhook: !saved },
+            }
+          );
 
           // audit
-          this.$api.utils.auditRowUpdate(id, {
-            fk_model_id: this.meta.id,
-            column_name: column.title,
-            row_id: id,
-            value: rowObj[column.title],
-            prev_value: oldRow[column.title]
-          }).then(() => {
-          })
+          this.$api.utils
+            .auditRowUpdate(id, {
+              fk_model_id: this.meta.id,
+              column_name: column.title,
+              row_id: id,
+              value: rowObj[column.title],
+              prev_value: oldRow[column.title],
+            })
+            .then(() => {});
 
-          this.$set(this.data[row], 'row', { ...rowObj, ...newData })
+          this.$set(this.data[row], "row", { ...rowObj, ...newData });
 
-          this.$set(oldRow, column.title, rowObj[column.title])
+          this.$set(oldRow, column.title, rowObj[column.title]);
           /*    this.$toast.success(`${rowObj[this.primaryValueColumn] ? `${rowObj[this.primaryValueColumn]}'s c` : 'C'}olumn '${column.column_name}' updated successfully.`, {
             position: 'bottom-center'
           }).goAway(3000) */
         } catch (e) {
           // if (e.response && e.response.data && e.response.data.msg) {
-          this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
+          this.$toast
+            .error(await this._extractSdkResponseErrorMsg(e))
+            .goAway(3000);
           // } else {
           //   this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
           // }
         }
 
-        this.$set(this.data[row], 'saving', false)
+        this.$set(this.data[row], "saving", false);
       }
     },
     async deleteRow() {
       try {
-        const rowObj = this.rowContextMenu.row
+        const rowObj = this.rowContextMenu.row;
         if (!this.rowContextMenu.rowMeta.new) {
-          const id = this.meta && this.meta.columns && this.meta.columns.filter(c => c.pk).map(c => rowObj[c.title]).join('___')
+          const id =
+            this.meta &&
+            this.meta.columns &&
+            this.meta.columns
+              .filter((c) => c.pk)
+              .map((c) => rowObj[c.title])
+              .join("___");
 
           if (!id) {
-            return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
+            return this.$toast
+              .info(
+                "Delete not allowed for table which doesn't have primary Key"
+              )
+              .goAway(3000);
           }
-          await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.title, this.selectedView.title, id)
+          await this.$api.dbViewRow.delete(
+            "noco",
+            this.projectName,
+            this.meta.title,
+            this.selectedView.title,
+            id
+          );
         }
-        this.data.splice(this.rowContextMenu.index, 1)
-        this.syncCount()
+        this.data.splice(this.rowContextMenu.index, 1);
+        this.syncCount();
         // this.$toast.success('Deleted row successfully').goAway(3000)
       } catch (e) {
-        this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
+        this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000);
       }
     },
     async deleteSelectedRows() {
-      let row = this.rowLength
+      let row = this.rowLength;
       // let success = 0
       while (row--) {
         try {
-          const {
-            row: rowObj,
-            rowMeta
-          } = this.data[row]
+          const { row: rowObj, rowMeta } = this.data[row];
           if (!rowMeta.selected) {
-            continue
+            continue;
           }
           if (!rowMeta.new) {
-            const id = this.meta.columns.filter(c => c.pk).map(c => rowObj[c.title]).join('___')
+            const id = this.meta.columns
+              .filter((c) => c.pk)
+              .map((c) => rowObj[c.title])
+              .join("___");
 
             if (!id) {
-              return this.$toast.info('Delete not allowed for table which doesn\'t have primary Key').goAway(3000)
+              return this.$toast
+                .info(
+                  "Delete not allowed for table which doesn't have primary Key"
+                )
+                .goAway(3000);
             }
-            await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.title, this.selectedView.title, id)
+            await this.$api.dbViewRow.delete(
+              "noco",
+              this.projectName,
+              this.meta.title,
+              this.selectedView.title,
+              id
+            );
           }
-          this.data.splice(row, 1)
+          this.data.splice(row, 1);
         } catch (e) {
-          return this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000)
+          return this.$toast
+            .error(`Failed to delete row : ${e.message}`)
+            .goAway(3000);
         }
       }
-      this.syncCount()
+      this.syncCount();
     },
 
     async clearCellValue() {
-      const {
-        col,
-        colIndex,
-        row,
-        index
-      } = this.rowContextMenu
+      const { col, colIndex, row, index } = this.rowContextMenu;
       if (row[col.title] === null) {
-        return
+        return;
       }
-      this.$set(this.data[index].row, col.title, null)
-      await this.onCellValueChange(colIndex, index, col, true)
+      this.$set(this.data[index].row, col.title, null);
+      await this.onCellValueChange(colIndex, index, col, true);
     },
     async insertNewRow(atEnd = false, expand = false, presetValues = {}) {
-      const isKanban = this.selectedView && this.selectedView.show_as === 'kanban'
-      const data = isKanban ? this.kanban.data : this.data
-      const focusRow = isKanban ? data.length : (atEnd ? this.rowLength : this.rowContextMenu.index + 1)
-      const focusCol = this.availableColumns.findIndex(c => !c.ai)
+      const isKanban =
+        this.selectedView && this.selectedView.show_as === "kanban";
+      const data = isKanban ? this.kanban.data : this.data;
+      const focusRow = isKanban
+        ? data.length
+        : atEnd
+        ? this.rowLength
+        : this.rowContextMenu.index + 1;
+      const focusCol = this.availableColumns.findIndex((c) => !c.ai);
       data.splice(focusRow, 0, {
-        row: this.relationType === 'hm'
-          ? {
-              ...this.fieldList.reduce((o, f) => ({
-                ...o,
-                [f]: presetValues[f] ?? null
-              }), {}),
-              [this.relation.column_name]: this.relationIdValue
-            }
-          : this.fieldList.reduce((o, f) => ({
-            ...o,
-            [f]: presetValues[f] ?? null
-          }), {}),
+        row:
+          this.relationType === "hm"
+            ? {
+                ...this.fieldList.reduce(
+                  (o, f) => ({
+                    ...o,
+                    [f]: presetValues[f] ?? null,
+                  }),
+                  {}
+                ),
+                [this.relation.column_name]: this.relationIdValue,
+              }
+            : this.fieldList.reduce(
+                (o, f) => ({
+                  ...o,
+                  [f]: presetValues[f] ?? null,
+                }),
+                {}
+              ),
         rowMeta: {
-          new: true
+          new: true,
         },
-        oldRow: {}
-      })
-      if (data[focusRow].row[this.groupingField] === 'Uncategorized') {
-        data[focusRow].row[this.groupingField] = null
+        oldRow: {},
+      });
+      if (data[focusRow].row[this.groupingField] === "Uncategorized") {
+        data[focusRow].row[this.groupingField] = null;
       }
       this.selected = {
         row: focusRow,
-        col: focusCol
-      }
+        col: focusCol,
+      };
       this.editEnabled = {
         row: focusRow,
-        col: focusCol
-      }
-      this.presetValues = presetValues
+        col: focusCol,
+      };
+      this.presetValues = presetValues;
 
       if (expand) {
         if (isKanban) {
-          this.expandKanbanForm(-1, data[focusRow])
+          this.expandKanbanForm(-1, data[focusRow]);
         } else {
-          const { rowMeta } = data[data.length - 1]
-          this.expandRow(data.length - 1, rowMeta)
+          const { rowMeta } = data[data.length - 1];
+          this.expandRow(data.length - 1, rowMeta);
         }
       }
     },
 
-    async handleKeyDown({
-      metaKey,
-      key,
-      altKey,
-      shiftKey,
-      ctrlKey
-    }) {
-      switch ([
-        this._isMac ? metaKey : ctrlKey,
-        key].join('_')) {
-        case 'true_s' :
-          this.edited && await this.save()
-          break
-        case 'true_l' :
-          await this.loadTableData()
-          break
-        case 'true_n' :
-          this.insertNewRow(true)
-          break
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
+      switch ([this._isMac ? metaKey : ctrlKey, key].join("_")) {
+        case "true_s":
+          this.edited && (await this.save());
+          break;
+        case "true_l":
+          await this.loadTableData();
+          break;
+        case "true_n":
+          this.insertNewRow(true);
+          break;
       }
     },
     async loadMeta() {
       // load latest table meta
-      await this.$store.dispatch('meta/ActLoadMeta', {
+      await this.$store.dispatch("meta/ActLoadMeta", {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
         table_name: this.table,
-        force: true
-      })
+        force: true,
+      });
     },
     clickPagination() {
-      this.loadTableData()
-      this.$tele.emit('pagination:click')
+      this.loadTableData();
+      this.$e("a:grid:pagination");
     },
     loadTableData() {
-      this.loadTableDataDeb(this)
+      this.loadTableDataDeb(this);
     },
     async loadTableDataFn() {
       if (this.isForm || !this.selectedView || !this.selectedView.title) {
-        return
+        return;
       }
-      this.loadingData = true
+      this.loadingData = true;
       try {
         // if (this.api) {
         // const { list, count } = await this.api.paginatedList(this.queryParams)
@@ -1287,41 +1401,42 @@ export default {
         //     }
         //   })).data.data
 
-        const {
-          list,
-          pageInfo
-        } = (await this.$api.dbViewRow.list(
-          'noco',
+        const { list, pageInfo } = await this.$api.dbViewRow.list(
+          "noco",
           this.projectName,
           this.meta.title,
           this.selectedView.title,
           {
             ...this.queryParams,
-            ...(this._isUIAllowed('sortSync') ? {} : { sortArrJson: JSON.stringify(this.sortList) }),
-            ...(this._isUIAllowed('filterSync') ? {} : { filterArrJson: JSON.stringify(this.filters) })
+            ...(this._isUIAllowed("sortSync")
+              ? {}
+              : { sortArrJson: JSON.stringify(this.sortList) }),
+            ...(this._isUIAllowed("filterSync")
+              ? {}
+              : { filterArrJson: JSON.stringify(this.filters) }),
             // sort: ['-FirstName'],
             // where: '(FirstName,like,%ro)~or((FirstName,like,%a)~and(FirstName,like,%e%))'
           }
-        ))
+        );
 
-        this.count = pageInfo.totalRows// count
-        this.data = list.map(row => ({
+        this.count = pageInfo.totalRows; // count
+        this.data = list.map((row) => ({
           row,
           oldRow: { ...row },
-          rowMeta: {}
-        }))
+          rowMeta: {},
+        }));
         // }
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
-      this.loadingData = false
+      this.loadingData = false;
     },
     showRowContextMenu(e, row, rowMeta, index, colIndex, col) {
       if (!this.isEditable) {
-        return
+        return;
       }
-      e.preventDefault()
-      this.rowContextMenu = false
+      e.preventDefault();
+      this.rowContextMenu = false;
       this.$nextTick(() => {
         this.rowContextMenu = {
           x: e.clientX,
@@ -1330,45 +1445,48 @@ export default {
           index,
           rowMeta,
           colIndex,
-          col
-        }
-      })
+          col,
+        };
+      });
     },
     expandRow(row, rowMeta) {
-      this.showExpandModal = true
-      this.selectedExpandRowIndex = row
-      this.selectedExpandRowMeta = rowMeta
+      this.showExpandModal = true;
+      this.selectedExpandRowIndex = row;
+      this.selectedExpandRowMeta = rowMeta;
     },
     async onNewColCreation(col, oldCol) {
       // if (this.$refs.drawer) {
       //   await this.$refs.drawer.loadViews()
       //   this.$refs.drawer.onViewIdChange(this.selectedViewId)
       // }
-      await this.loadMeta(true, col, oldCol)
-      this.$nextTick(async() => {
-        await this.loadTableData()
-      })
-      this.$refs.fields && this.$refs.fields.loadFields()
+      await this.loadMeta(true, col, oldCol);
+      this.$nextTick(async () => {
+        await this.loadTableData();
+      });
+      this.$refs.fields && this.$refs.fields.loadFields();
     },
     onColDelete() {
-      this.$refs.fields && this.$refs.fields.loadFields()
+      this.$refs.fields && this.$refs.fields.loadFields();
     },
     onFileDrop(ev) {
-      let file
+      let file;
       if (ev.dataTransfer.items) {
         // Use DataTransferItemList interface to access the file(s)
-        if (ev.dataTransfer.items.length && ev.dataTransfer.items[0].kind === 'file') {
-          file = ev.dataTransfer.items[0].getAsFile()
+        if (
+          ev.dataTransfer.items.length &&
+          ev.dataTransfer.items[0].kind === "file"
+        ) {
+          file = ev.dataTransfer.items[0].getAsFile();
         }
       } else if (ev.dataTransfer.files.length) {
-        file = ev.dataTransfer.files[0]
+        file = ev.dataTransfer.files[0];
       }
 
-      if (file && !file.name.endsWith('.csv')) {
-        return
+      if (file && !file.name.endsWith(".csv")) {
+        return;
       }
 
-      this.$refs.csvExportImport.onCsvFileSelection(file)
+      this.$refs.csvExportImport.onCsvFileSelection(file);
     },
     // Kanban
     async loadKanbanData(initKanbanProps = true) {
@@ -1383,254 +1501,308 @@ export default {
           loadingData: true,
           selectedExpandRow: null,
           selectedExpandOldRow: null,
-          selectedExpandRowMeta: null
-        }
+          selectedExpandRowMeta: null,
+        };
         if (initKanbanProps) {
-          this.kanban = kanban
+          this.kanban = kanban;
         }
 
         if (this.api) {
-          const groupingColumn = this.meta.columns.find(c => c.title === this.groupingField)
+          const groupingColumn = this.meta.columns.find(
+            (c) => c.title === this.groupingField
+          );
 
           if (!groupingColumn) {
-            return
+            return;
           }
-          const initialLimit = 10
-          const uncategorized = 'Uncategorized'
+          const initialLimit = 10;
+          const uncategorized = "Uncategorized";
 
-          kanban.groupingColumnItems = groupingColumn.dtxp.split(',').map((c) => {
-            const trimCol = c.replace(/'/g, '')
-            kanban.recordCnt[trimCol] = 0
-            return trimCol
-          }).sort()
+          kanban.groupingColumnItems = groupingColumn.dtxp
+            .split(",")
+            .map((c) => {
+              const trimCol = c.replace(/'/g, "");
+              kanban.recordCnt[trimCol] = 0;
+              return trimCol;
+            })
+            .sort();
 
-          kanban.groupingColumnItems.unshift(uncategorized)
-          kanban.recordCnt[uncategorized] = 0
+          kanban.groupingColumnItems.unshift(uncategorized);
+          kanban.recordCnt[uncategorized] = 0;
           for (const groupingColumnItem of kanban.groupingColumnItems) {
             {
               // enrich Kanban data
-              const {
-                data
-              } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
-                limit: initialLimit,
-                where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
-              })
+              const { data } = await this.api.get(
+                `/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`,
+                {
+                  limit: initialLimit,
+                  where:
+                    groupingColumnItem === uncategorized
+                      ? `(${this.groupingField},is,null)`
+                      : `(${this.groupingField},eq,${groupingColumnItem})`,
+                }
+              );
               data.forEach((d) => {
                 // handle composite primary key
-                d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c.title]).join('___')
+                d.c_pk = this.meta.columns
+                  .filter((c) => c.pk)
+                  .map((c) => d[c.title])
+                  .join("___");
                 if (!d.id) {
                   // id is required for <kanban-board/>
-                  d.id = d.c_pk
+                  d.id = d.c_pk;
                 }
                 kanban.data.push({
                   row: d,
                   oldRow: d,
-                  rowMeta: {}
-                })
-                kanban.recordCnt[groupingColumnItem] += 1
+                  rowMeta: {},
+                });
+                kanban.recordCnt[groupingColumnItem] += 1;
                 kanban.blocks.push({
                   status: groupingColumnItem,
-                  ...d
-                })
-              })
+                  ...d,
+                });
+              });
             }
             {
               // enrich recordTotalCnt
-              const {
-                data
-              } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}/count`, {
-                where: groupingColumnItem === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingColumnItem})`
-              })
-              kanban.recordTotalCnt[groupingColumnItem] = data.count
+              const { data } = await this.api.get(
+                `/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}/count`,
+                {
+                  where:
+                    groupingColumnItem === uncategorized
+                      ? `(${this.groupingField},is,null)`
+                      : `(${this.groupingField},eq,${groupingColumnItem})`,
+                }
+              );
+              kanban.recordTotalCnt[groupingColumnItem] = data.count;
             }
           }
         }
-        this.kanban = kanban
+        this.kanban = kanban;
       } catch (e) {
         if (e.response && e.response.data && e.response.data.msg) {
-          this.$toast.error(e.response.data.msg, {
-            position: 'bottom-center'
-          }).goAway(3000)
+          this.$toast
+            .error(e.response.data.msg, {
+              position: "bottom-center",
+            })
+            .goAway(3000);
         } else {
-          this.$toast.error(`Error occurred : ${e.message}`, {
-            position: 'bottom-center'
-          }).goAway(3000)
+          this.$toast
+            .error(`Error occurred : ${e.message}`, {
+              position: "bottom-center",
+            })
+            .goAway(3000);
         }
       } finally {
-        this.kanban.loadingData = false
+        this.kanban.loadingData = false;
       }
     },
     async loadMoreKanbanData(groupingFieldVal) {
-      const uncategorized = 'uncategorized'
-      const {
-        data
-      } = await this.api.get(`/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`, {
-        limit: 5,
-        where: groupingFieldVal === uncategorized ? `(${this.groupingField},is,null)` : `(${this.groupingField},eq,${groupingFieldVal})`,
-        offset: this.kanban.recordCnt[groupingFieldVal]
-      })
+      const uncategorized = "uncategorized";
+      const { data } = await this.api.get(
+        `/nc/${this.$store.state.project.projectId}/api/v1/${this.$route.query.name}`,
+        {
+          limit: 5,
+          where:
+            groupingFieldVal === uncategorized
+              ? `(${this.groupingField},is,null)`
+              : `(${this.groupingField},eq,${groupingFieldVal})`,
+          offset: this.kanban.recordCnt[groupingFieldVal],
+        }
+      );
       data.map((d) => {
         // handle composite primary key
-        d.c_pk = this.meta.columns.filter(c => c.pk).map(c => d[c.title]).join('___')
+        d.c_pk = this.meta.columns
+          .filter((c) => c.pk)
+          .map((c) => d[c.title])
+          .join("___");
         if (!d.id) {
           // id is required for <kanban-board/>
-          d.id = d.c_pk
+          d.id = d.c_pk;
         }
         this.kanban.data.push({
           row: d,
           oldRow: d,
-          rowMeta: {}
-        })
+          rowMeta: {},
+        });
         this.kanban.blocks.push({
           status: groupingFieldVal,
-          ...d
-        })
-      })
-      this.kanban.recordCnt[groupingFieldVal] += data.length
+          ...d,
+        });
+      });
+      this.kanban.recordCnt[groupingFieldVal] += data.length;
     },
     expandKanbanForm(rowIdx, data) {
       if (rowIdx != -1) {
         // not a new record -> find the target record
-        data = this.kanban.data.filter(o => o.row.c_pk == rowIdx)[0]
+        data = this.kanban.data.filter((o) => o.row.c_pk == rowIdx)[0];
       }
-      this.showExpandModal = true
-      this.kanban.selectedExpandRow = data.row
-      this.kanban.selectedExpandOldRow = data.oldRow
-      this.kanban.selectedExpandRowMeta = data.rowMeta
+      this.showExpandModal = true;
+      this.kanban.selectedExpandRow = data.row;
+      this.kanban.selectedExpandOldRow = data.oldRow;
+      this.kanban.selectedExpandRowMeta = data.rowMeta;
     },
     async exportCache() {
       try {
-        const data = (await this.$api.utils.cacheGet())
+        const data = await this.$api.utils.cacheGet();
         if (!data) {
-          this.$toast.info('Cache is empty').goAway(3000)
-          return
+          this.$toast.info("Cache is empty").goAway(3000);
+          return;
         }
-        const blob = new Blob([JSON.stringify(data)], { type: 'text/plain;charset=utf-8' })
-        FileSaver.saveAs(blob, 'cache_exported.json')
-        this.$toast.info('Exported Cache Successfully').goAway(3000)
+        const blob = new Blob([JSON.stringify(data)], {
+          type: "text/plain;charset=utf-8",
+        });
+        FileSaver.saveAs(blob, "cache_exported.json");
+        this.$toast.info("Exported Cache Successfully").goAway(3000);
       } catch (e) {
-        console.log(e)
-        this.$toast.error(e.message).goAway(3000)
+        console.log(e);
+        this.$toast.error(e.message).goAway(3000);
       }
     },
     async deleteCache() {
       try {
-        await this.$api.utils.cacheDelete()
-        this.$toast.info('Deleted Cache Successfully').goAway(3000)
+        await this.$api.utils.cacheDelete();
+        this.$toast.info("Deleted Cache Successfully").goAway(3000);
       } catch (e) {
-        console.log(e)
-        this.$toast.error(e.message).goAway(3000)
+        console.log(e);
+        this.$toast.error(e.message).goAway(3000);
       }
     },
     async syncCount() {
-      const { count } = await this.$api.dbViewRow.count('noco', this.$store.getters['project/GtrProjectName'], this.meta.title, this.selectedView.title)
-      this.count = count
-    }
+      const { count } = await this.$api.dbViewRow.count(
+        "noco",
+        this.$store.getters["project/GtrProjectName"],
+        this.meta.title,
+        this.selectedView.title
+      );
+      this.count = count;
+    },
   },
   computed: {
     isLocked() {
-      return this.lockType === 'locked'
+      return this.lockType === "locked";
     },
     lockType: {
       get() {
-        return this.selectedView && this.selectedView.lock_type
+        return this.selectedView && this.selectedView.lock_type;
       },
       set(type) {
-        this.selectedView.lock_type = type
+        this.selectedView.lock_type = type;
         this.$api.dbView.update(this.selectedViewId, {
-          lock_type: type
-        })
-      }
+          lock_type: type,
+        });
+      },
     },
     showSystemFields: {
       get() {
-        return this.selectedView && this.selectedView.show_system_fields
+        return this.selectedView && this.selectedView.show_system_fields;
       },
       set(v) {
         if (this.selectedView) {
-          this.selectedView.show_system_fields = v
-          this.$api.dbView.update(this.selectedViewId, {
-            show_system_fields: v
-          }).then(() => {
-            if (v) {
-              this.loadTableData()
-            }
-          })
+          this.selectedView.show_system_fields = v;
+          this.$api.dbView
+            .update(this.selectedViewId, {
+              show_system_fields: v,
+            })
+            .then(() => {
+              if (v) {
+                this.loadTableData();
+              }
+            });
         }
-      }
+      },
     },
     viewTypes() {
-      return ViewTypes
+      return ViewTypes;
     },
     tabsState() {
-      return this.$store.state.tabs.tabsState || {}
+      return this.$store.state.tabs.tabsState || {};
     },
     uniqueId() {
-      return `${this.tabId}_${this.selectedViewId}`
+      return `${this.tabId}_${this.selectedViewId}`;
     },
     size() {
-      return (this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.defaultLimit) || 25
+      return (
+        (this.$store.state.project.projectInfo &&
+          this.$store.state.project.projectInfo.defaultLimit) ||
+        25
+      );
     },
     isPkAvail() {
-      return this.meta && this.meta.columns.some(c => c.pk)
+      return this.meta && this.meta.columns.some((c) => c.pk);
     },
     isGallery() {
-      return this.selectedView && this.selectedView.type === ViewTypes.GALLERY
+      return this.selectedView && this.selectedView.type === ViewTypes.GALLERY;
     },
     isForm() {
-      return this.selectedView && this.selectedView.type === ViewTypes.FORM
+      return this.selectedView && this.selectedView.type === ViewTypes.FORM;
     },
     isKanban() {
-      return this.selectedView && this.selectedView.type === ViewTypes.KANBAN
+      return this.selectedView && this.selectedView.type === ViewTypes.KANBAN;
     },
     isGrid() {
-      return this.selectedView && this.selectedView.type === ViewTypes.GRID
+      return this.selectedView && this.selectedView.type === ViewTypes.GRID;
     },
     meta() {
-      return this.$store.state.meta.metas[this.table]
+      return this.$store.state.meta.metas[this.table];
     },
     currentApiUrl() {
-      return this.api && `${this.api.apiUrl}?` + Object.entries(this.queryParams).filter(p => p[1]).map(([key, val]) => `${encodeURIComponent(key)}=${encodeURIComponent(val)}`).join('&')
+      return (
+        this.api &&
+        `${this.api.apiUrl}?` +
+          Object.entries(this.queryParams)
+            .filter((p) => p[1])
+            .map(
+              ([key, val]) =>
+                `${encodeURIComponent(key)}=${encodeURIComponent(val)}`
+            )
+            .join("&")
+      );
     },
     isEditable() {
-      return this._isUIAllowed('xcDatatableEditable')
+      return this._isUIAllowed("xcDatatableEditable");
     },
     sqlUi() {
       // return SqlUI.create(this.nodes.dbConnection)
-      return SqlUiFactory.create(this.nodes.dbConnection)
+      return SqlUiFactory.create(this.nodes.dbConnection);
     },
     api() {
-      return this.meta && this.$ncApis.get({
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias,
-        table: this.meta.table_name
-      })
+      return (
+        this.meta &&
+        this.$ncApis.get({
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+          table: this.meta.table_name,
+        })
+      );
       // return this.meta && this.meta.title ? ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.meta && this.meta.title, this.meta && this.meta.columns, this, this.meta) : null
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
-
 /deep/ .v-input__control .v-input__slot .v-input--selection-controls__input {
-  transform: scale(.85);
+  transform: scale(0.85);
   margin-right: 0;
 }
 
-/deep/ .xc-toolbar .v-input__slot, .navigation .v-input__slot {
+/deep/ .xc-toolbar .v-input__slot,
+.navigation .v-input__slot {
   box-shadow: none !important;
 }
 
 /deep/ .navigation .v-input__slot input::placeholder {
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
 
 /deep/ .v-btn {
   text-transform: capitalize;
 }
 
-.row-expand-icon, .row-checkbox {
+.row-expand-icon,
+.row-checkbox {
   opacity: 0;
 }
 
@@ -1638,19 +1810,22 @@ export default {
   height: 24px !important;
 }
 
-.cell-height-medium td, .cell-height-medium tr {
+.cell-height-medium td,
+.cell-height-medium tr {
   min-height: 35px !important;
   /*height: 35px !important;*/
   /*max-height: 35px !important;*/
 }
 
-.cell-height-large td, .cell-height-large tr {
+.cell-height-large td,
+.cell-height-large tr {
   min-height: 40px !important;
   /*height: 40px !important;*/
   /*max-height: 40px !important;*/
 }
 
-.cell-height-xlarge td, .cell-height-xlarge tr {
+.cell-height-xlarge td,
+.cell-height-xlarge tr {
   min-height: 50px !important;
   /*height: 50px !important;*/
   /*max-height: 50px !important;*/
@@ -1662,7 +1837,7 @@ export default {
 }
 
 /deep/ .xc-border.search-box .v-input {
-  transition: .4s border-color;
+  transition: 0.4s border-color;
 }
 
 /deep/ .xc-border.search-box .v-input--is-focused {
@@ -1670,12 +1845,14 @@ export default {
   margin: -1px;
 }
 
-/deep/ .search-field.v-text-field.v-text-field--solo.v-input--dense > .v-input__control {
+/deep/
+  .search-field.v-text-field.v-text-field--solo.v-input--dense
+  > .v-input__control {
   min-height: auto;
 }
 
 .views-navigation-drawer {
-  transition: .4s max-width, .4s min-width;
+  transition: 0.4s max-width, 0.4s min-width;
 }
 
 .new-column-header {

@@ -16,7 +16,7 @@
                 class="my-2 mx-auto caption"
                 :placeholder="$t('placeholder.searchModels')"
                 prepend-inner-icon="search"
-                style="max-width:500px"
+                style="max-width: 500px"
                 outlined
               />
 
@@ -31,7 +31,7 @@
                 @click="clickReload"
               >
                 <!-- Reload -->
-                {{ $t('general.reload') }}
+                {{ $t("general.reload") }}
               </x-btn>
               <!--              <x-btn
                 outlined
@@ -63,12 +63,12 @@
                   <tr>
                     <th class="grey--text">
                       <!--Models-->
-                      {{ $t('labels.models') }}
+                      {{ $t("labels.models") }}
                     </th>
                     <!--                    <th>APIs</th>-->
                     <th class="grey--text">
                       <!--Sync state-->
-                      {{ $t('labels.syncState') }}
+                      {{ $t("labels.syncState") }}
                     </th>
                     <th />
                   </tr>
@@ -76,7 +76,12 @@
                 <tbody>
                   <tr
                     v-for="model in diff"
-                    v-show="!filter.trim() || (model.table_name || model.title || '').toLowerCase().includes(filter.toLowerCase())"
+                    v-show="
+                      !filter.trim() ||
+                      (model.table_name || model.title || '')
+                        .toLowerCase()
+                        .includes(filter.toLowerCase())
+                    "
                     :key="model.table_name"
                     :class="`nc-metasync-row nc-metasync-row-${model.table_name}`"
                   >
@@ -86,8 +91,11 @@
                         {{ viewIcons[model.type === 'table' ? 'grid' : 'view'].icon }}
                       </v-icon>-->
                       <v-tooltip bottom>
-                        <template #activator="{on}">
-                          <span v-on="on">{{ model.table_name && model.table_name.slice(prefix.length) }}</span>
+                        <template #activator="{ on }">
+                          <span v-on="on">{{
+                            model.table_name &&
+                            model.table_name.slice(prefix.length)
+                          }}</span>
                         </template>
                         <span class="caption">{{ model.title }}</span>
                       </v-tooltip>
@@ -112,18 +120,19 @@
 
                     <td>
                       <span
-                        v-if="model.detectedChanges && model.detectedChanges.length"
-
+                        v-if="
+                          model.detectedChanges && model.detectedChanges.length
+                        "
                         class="caption error--text"
-                      >{{ model.detectedChanges.map(m => m.msg).join(', ') }}</span>
-                      <span
-                        v-else
-                        class="caption grey--text"
+                        >{{
+                          model.detectedChanges.map((m) => m.msg).join(", ")
+                        }}</span
                       >
+                      <span v-else class="caption grey--text">
                         <!--{{ 'No change identified' }}-->
-                        {{ $t('msg.info.metaNoChange') }}
+                        {{ $t("msg.info.metaNoChange") }}
                       </span>
-                    <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
+                      <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
                     </td>
                   </tr>
                 </tbody>
@@ -200,7 +209,7 @@
             </div>
           </v-card>
         </v-col>
-        <v-col cols="4" style="padding-top:100px">
+        <v-col cols="4" style="padding-top: 100px">
           <div class="d-flex">
             <v-spacer />
 
@@ -244,7 +253,7 @@
           <div class="d-flex justify-center">
             <v-btn
               v-if="isChanged"
-              v-t="['proj-meta:metadata:metasync']"
+              v-t="['a:proj-meta:meta-data:sync']"
               x-large
               class="mx-auto primary nc-btn-metasync-sync-now"
               @click="syncMetaDiff"
@@ -255,12 +264,7 @@
               Sync Now
             </v-btn>
 
-            <v-alert
-              v-else
-              dense
-              outlined
-              type="success"
-            >
+            <v-alert v-else dense outlined type="success">
               Tables metadata is in sync
             </v-alert>
           </div>
@@ -271,29 +275,32 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import viewIcons from '~/helpers/viewIcons'
+import { mapGetters } from "vuex";
+import viewIcons from "~/helpers/viewIcons";
 
 export default {
-  name: 'DisableOrEnableTables',
-  props: ['nodes', 'db'],
+  name: "DisableOrEnableTables",
+  props: ["nodes", "db"],
   data: () => ({
     viewIcons,
     edited: false,
     models: null,
     updating: false,
     dbsTab: 0,
-    filter: '',
+    filter: "",
     tables: null,
-    diff: null
+    diff: null,
   }),
   async mounted() {
-    await this.loadXcDiff()
+    await this.loadXcDiff();
     // await this.loadMode// await this.loadTableList()
   },
   methods: {
     async loadXcDiff() {
-      this.diff = (await this.$api.project.metaDiffGet(this.$store.state.project.projectId, this.db.id))
+      this.diff = await this.$api.project.metaDiffGet(
+        this.$store.state.project.projectId,
+        this.db.id
+      );
 
       // this.diff = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   dbAlias: this.db.meta.dbAlias,
@@ -301,8 +308,8 @@ export default {
       // }, 'xcMetaDiff'])
     },
     clickReload() {
-      this.loadXcDiff()
-      this.$tele.emit('proj-meta:metadata:reload')
+      this.loadXcDiff();
+      this.$e("a:proj-meta:meta-data:reload");
     },
     /* async addTableMeta(tables) {
       try {
@@ -349,30 +356,37 @@ export default {
 */
     async syncMetaDiff() {
       try {
-        await this.$api.project.metaDiffSync(this.$store.state.project.projectId, this.db.id)
+        await this.$api.project.metaDiffSync(
+          this.$store.state.project.projectId,
+          this.db.id
+        );
         // await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         //   dbAlias: this.db.meta.dbAlias,
         //   env: this.$store.getters['project/GtrEnv']
         // }, 'xcMetaDiffSync', {}])
-        this.$toast.success('Table metadata recreated successfully').goAway(3000)
-        await this.loadXcDiff()
+        this.$toast
+          .success("Table metadata recreated successfully")
+          .goAway(3000);
+        await this.loadXcDiff();
 
-        this.$store.commit('tabs/removeTableOrViewTabs')
-        await this.$nextTick()
-        await this.$store.dispatch('project/_loadTables', {
-          dbKey: '0.projectJson.envs._noco.db.0',
-          key: '0.projectJson.envs._noco.db.0.tables',
+        this.$store.commit("tabs/removeTableOrViewTabs");
+        await this.$nextTick();
+        await this.$store.dispatch("project/_loadTables", {
+          dbKey: "0.projectJson.envs._noco.db.0",
+          key: "0.projectJson.envs._noco.db.0.tables",
           _nodes: {
-            dbAlias: 'db',
-            env: '_noco',
-            type: 'tableDir'
-          }
-        })
-        await this.$store.commit('meta/MutClear')
+            dbAlias: "db",
+            env: "_noco",
+            type: "tableDir",
+          },
+        });
+        await this.$store.commit("meta/MutClear");
       } catch (e) {
-        this.$toast[e.response?.status === 402 ? 'info' : 'error'](e.message).goAway(3000)
+        this.$toast[e.response?.status === 402 ? "info" : "error"](
+          e.message
+        ).goAway(3000);
       }
-    }
+    },
 
     /*  async recreateTableMeta(table) {
         try {
@@ -424,14 +438,19 @@ export default {
   },
   computed: {
     ...mapGetters({
-      dbAliasList: 'project/GtrDbAliasList'
+      dbAliasList: "project/GtrDbAliasList",
     }),
     isChanged() {
-      return this.diff && this.diff.some(d => d && d.detectedChanges && d.detectedChanges.length)
+      return (
+        this.diff &&
+        this.diff.some(
+          (d) => d && d.detectedChanges && d.detectedChanges.length
+        )
+      );
     },
     prefix() {
-      return this.$store.getters['project/GtrProjectPrefix'] || ''
-    }
+      return this.$store.getters["project/GtrProjectPrefix"] || "";
+    },
     /* enableCountText() {
       return this.models
         ? `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled`
@@ -470,8 +489,8 @@ export default {
       res.sort((a, b) => getPriority(b) - getPriority(a))
       return res
     } */
-  }
-}
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -484,7 +503,6 @@ export default {
     border-right: 1px solid #7f828b33;
   }
 }
-
 </style>
 <!--
 /**

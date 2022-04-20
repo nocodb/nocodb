@@ -34,7 +34,7 @@
                   <v-tooltip bottom>
                     <template #activator="{ on }">
                       <v-list-item
-                        v-t="['settings:team-auth']"
+                        v-t="['c:settings:team-auth']"
                         value="roles"
                         dense
                         class="body-2 nc-settings-teamauth"
@@ -61,7 +61,7 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <v-list-item
-                          v-t="['settings:appstore']"
+                          v-t="['c:settings:appstore']"
                           dense
                           class="body-2 nc-settings-appstore"
                           value="appStore"
@@ -87,7 +87,7 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <v-list-item
-                          v-t="['settings:proj-metadata']"
+                          v-t="['c:settings:proj-metadata']"
                           dense
                           class="body-2 nc-settings-projmeta"
                           value="disableOrEnableModel"
@@ -113,7 +113,7 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <v-list-item
-                          v-t="['settings:audit']"
+                          v-t="['c:settings:audit']"
                           dense
                           class="body-2 nc-settings-audit"
                           value="audit"

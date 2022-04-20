@@ -106,7 +106,7 @@
             {{ $t('general.cancel') }}
           </v-btn>
           <v-btn
-            v-t="['vitual:column:delete']"
+            v-t="['a:column:delete']"
             small
             color="error"
             @click="deleteColumn"

@@ -44,11 +44,8 @@
             </v-alert>
 
             <p class="caption grey--text mt-3">
-              {{ $t('msg.info.userInviteNoSMTP') }}
-              <!-- Looks like you have not configured mailer yet! <br>Please copy above -->
-              <!-- invite -->
-              <!-- link and send it to -->
-              {{ invite_token && (invite_token.email || invite_token.emails && invite_token.emails.join(', ')) }}.
+              <!-- Looks like you have not configured mailer yet! <br> Please copy above invite link and send it to -->
+              <pre>{{ $t('msg.info.userInviteNoSMTP') }} {{ invite_token && (invite_token.email || invite_token.emails && invite_token.emails.join(', ')) }}.</pre>
             </p>
 
             <div class="text-right">

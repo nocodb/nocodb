@@ -406,7 +406,7 @@
       "deleteProject": "Voulez-vous supprimer le projet ?",
       "shareBasePrivate": "Générer une base partagée en lecture seule",
       "shareBasePublic": "Toute personne avec ce lien peut consulter",
-      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer! \\ n Merci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
+      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer!\nMerci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
       "dragDropHide": "Glisser et déposer des champs ici pour masquer",
       "formInput": "Entrer le libelé du formulaire",
       "formHelpText": "Ajouter du texte d'assitance",

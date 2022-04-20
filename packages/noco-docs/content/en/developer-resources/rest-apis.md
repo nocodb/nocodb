@@ -78,6 +78,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Meta | Post | auth | projectUserAdd | /api/v1/db/meta/projects/{projectId}/users |
 | Meta | Patch | auth | projectUserUpdate | /api/v1/db/meta/projects/{projectId}/users/{userId} |
 | Meta | Delete| auth | projectUserRemove | /api/v1/db/meta/projects/{projectId}/users/{userId} |
+| Meta | Post | auth | projectUserResendInvite | /api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite |
 | Meta | Post | dbTable | create | /api/v1/db/meta/projects/{projectId}/tables |
 | Meta | Get | dbTable | list | /api/v1/db/meta/projects/{projectId}/tables |
 | Meta | Post | dbTableColumn | create | /api/v1/db/meta/tables/{tableId}/columns |

@@ -12,7 +12,11 @@ export default class Backblaze implements IStorageAdapter {
     this.input = input;
   }
 
-  async fileCreate(key: string, file: XcFile): Promise<any> {
+  async fileCreate(
+    key: string,
+    file: XcFile,
+    _isPublic?: boolean
+  ): Promise<any> {
     const uploadParams: any = {
       ACL: 'public-read'
     };

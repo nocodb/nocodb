@@ -2,37 +2,37 @@
   <div class="d-flex align-center">
     <v-tooltip bottom>
       <template #activator="{on}">
-        <v-icon v-if="column.hm" color="warning" x-small class="mr-1" v-on="on">
+        <v-icon v-if="type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
           mdi-table-arrow-right
         </v-icon>
-        <v-icon v-else-if="column.bt" color="info" x-small class="mr-1" v-on="on">
+        <v-icon v-else-if="type === 'bt'" color="info" x-small class="mr-1" v-on="on">
           mdi-table-arrow-left
         </v-icon>
-        <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">
+        <v-icon v-else-if="type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
           mdi-table-network
         </v-icon>
-        <v-icon v-else-if="column.formula" x-small class="mr-1" v-on="on">
+        <v-icon v-else-if="type === 'formula'" x-small class="mr-1" v-on="on">
           mdi-math-integral
         </v-icon>
-        <template v-else-if="column.lk">
-          <v-icon v-if="column.lk.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
+        <template v-else-if="type === 'lk'">
+          <v-icon v-if="relationType === 'hm'" color="warning" x-small class="mr-1" v-on="on">
             mdi-table-column-plus-before
           </v-icon>
-          <v-icon v-else-if="column.lk.type === 'bt'" color="info" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="relationType === 'bt'" color="info" x-small class="mr-1" v-on="on">
             mdi-table-column-plus-before
           </v-icon>
-          <v-icon v-else-if="column.lk.type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="relationType === 'mm'" color="pink" x-small class="mr-1" v-on="on">
             mdi-table-column-plus-before
           </v-icon>
         </template>
-        <template v-else-if="column.rl">
-          <v-icon v-if="column.rl.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
+        <template v-else-if="type === 'rl'">
+          <v-icon v-if="relationType === 'hm'" color="warning" x-small class="mr-1" v-on="on">
             {{ rollupIcon }}
           </v-icon>
-          <v-icon v-else-if="column.rl.type === 'bt'" color="info" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="relationType === 'bt'" color="info" x-small class="mr-1" v-on="on">
             {{ rollupIcon }}
           </v-icon>
-          <v-icon v-else-if="column.rl.type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="relationType === 'mm'" color="pink" x-small class="mr-1" v-on="on">
             {{ rollupIcon }}
           </v-icon>
         </template>
@@ -135,6 +135,7 @@
   </div>
 </template>
 <script>
+import { UITypes } from 'nocodb-sdk'
 import { getUIDTIcon } from '../helpers/uiTypes'
 import EditVirtualColumn from '@/components/project/spreadsheet/components/editVirtualColumn'
 
@@ -145,7 +146,8 @@ export default {
   data: () => ({
     columnDeleteDialog: false,
     editColumnMenu: false,
-    rollupIcon: getUIDTIcon('Rollup')
+    rollupIcon: getUIDTIcon('Rollup'),
+    rels: ['bt', 'hm', 'mm']
   }),
   computed: {
     alias() {
@@ -153,62 +155,67 @@ export default {
       return this.column.title
     },
     type() {
-      if (this.column.bt) {
-        return 'bt'
+      if (this.column?.colOptions?.type) {
+        return this.column.colOptions.type
       }
-      if (this.column.hm) {
-        return 'hm'
+      if (this.column?.colOptions?.formula) {
+        return 'formula'
       }
-      if (this.column.mm) {
-        return 'mm'
+      if (this.column.uidt === UITypes.Lookup) {
+        return 'lk'
+      }
+      if (this.column.uidt === UITypes.Rollup) {
+        return 'rl'
       }
       return ''
     },
+    relation() {
+      if (this.rels.includes(this.type)) {
+        return this.column
+      } else if (this.column.colOptions?.fk_relation_column_id) {
+        return this.meta.columns.find(c => c.id === this.column.colOptions?.fk_relation_column_id)
+      }
+      return undefined
+    },
+    relationType() {
+      return this.relation?.colOptions?.type
+    },
+    relationMeta() {
+      if (this.rels.includes(this.type)) {
+        return this.getMeta(this.column.colOptions.fk_related_model_id)
+      } else if (this.relation) {
+        return this.getMeta(this.relation.colOptions.fk_related_model_id)
+      }
+      return undefined
+    },
     childColumn() {
-      if (this.column.bt) {
-        return this.column.bt.column_name
-      }
-      if (this.column.hm) {
-        return this.column.hm.column_name
-      }
-      if (this.column.mm) {
-        return this.column.mm.rcn
+      if (this.relationMeta?.columns) {
+        if (this.type === 'rl') {
+          const ch = this.relationMeta.columns.find(c => c.id === this.column.colOptions.fk_rollup_column_id)
+          return ch
+        }
+        if (this.type === 'lk') {
+          const ch = this.relationMeta.columns.find(c => c.id === this.column.colOptions.fk_lookup_column_id)
+          return ch
+        }
       }
       return ''
     },
     childTable() {
-      if (this.column.bt) {
-        return this.column.bt.table_name
-      }
-      if (this.column.hm) {
-        return this.column.hm.table_name
-      }
-      if (this.column.mm) {
-        return this.column.mm.rtn
+      if (this.relationMeta?.table_name) {
+        return this.relationMeta.table_name
       }
       return ''
     },
     parentTable() {
-      if (this.column.bt) {
-        return this.column.bt.rtn
-      }
-      if (this.column.hm) {
-        return this.column.hm.rtn
-      }
-      if (this.column.mm) {
-        return this.column.mm.table_name
+      if (this.rels.includes(this.type)) {
+        return this.meta.table_name
       }
       return ''
     },
     parentColumn() {
-      if (this.column.bt) {
-        return this.column.bt.rcn
-      }
-      if (this.column.hm) {
-        return this.column.hm.rcn
-      }
-      if (this.column.mm) {
-        return this.column.mm.column_name
+      if (this.rels.includes(this.type)) {
+        return this.column.column_name
       }
       return ''
     },
@@ -216,23 +223,26 @@ export default {
       if (!this.column) {
         return ''
       }
-      if (this.column.hm) {
-        return `'${this.column.hm._rtn}' has many '${this.column.hm.title}'`
-      } else if (this.column.mm) {
-        return `'${this.column.mm.title}' & '${this.column.mm._rtn}' have <br>many to many relation`
-      } else if (this.column.bt) {
-        return `'${this.column.bt.title}' belongs to '${this.column.bt._rtn}'`
-      } else if (this.column.lk) {
-        return `'${this.column.lk._lcn}' from '${this.column.lk._ltn}' (${this.column.lk.type})`
-      } else if (this.column.formula) {
-        return `Formula - ${this.column.formula.value}`
-      } else if (this.column.rl) {
-        return `${this.column.rl.fn} of ${this.column.rl._rlcn} (${this.column.rl._rltn})`
+      if (this.type === 'hm') {
+        return `'${this.parentTable}' has many '${this.childTable}'`
+      } else if (this.type === 'mm') {
+        return `'${this.childTable}' & '${this.parentTable}' have <br>many to many relation`
+      } else if (this.type === 'bt') {
+        return `'${this.childColumn.column_name}' belongs to '${this.childTable}'`
+      } else if (this.type === 'lk') {
+        return `'${this.childColumn.column_name}' from '${this.childTable}' (${this.childColumn.uidt})`
+      } else if (this.type === 'formula') {
+        return `Formula - ${this.column.colOptions.formula}`
+      } else if (this.type === 'rl') {
+        return `'${this.childColumn.column_name}' of '${this.childTable}' (${this.childColumn.uidt})`
       }
       return ''
     }
   },
   methods: {
+    getMeta(id) {
+      return this.$store.state.meta.metas[id] || {}
+    },
     async deleteColumn() {
       try {
         await this.$api.dbTableColumn.delete(this.column.id)
@@ -259,6 +269,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Mert Ersoy <mertmit99@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

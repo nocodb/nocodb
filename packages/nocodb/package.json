@@ -150,7 +150,7 @@
     "mysql2": "^2.2.5",
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
-    "nc-lib-gui": "npm:finn-nc-lib-gui@0.90.2-finn.1",
+    "nc-lib-gui": "npm:finn-nc-lib-gui@0.90.2-finn.2",
     "nc-help": "^0.2.44",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",

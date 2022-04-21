@@ -12,7 +12,7 @@
     "add": "Agregar",
     "edit": "Editar",
     "remove": "Eliminar",
-    "save": "Salvar",
+    "save": "Guardar",
     "cancel": "Cancelar",
     "submit": "Enviar",
     "create": "Crear",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL y parámetros avanzados",
     "headCreateProject": "Crear proyecto | NocoDB",
     "headLogin": "Acceder | NocoDB",
-    "resetPassword": "Cambiar contraseña"
+    "resetPassword": "Cambiar contraseña",
+    "team&settings": "Equipo y configuración",
+    "apiDocs": "Documentación de la API"
   },
   "labels": {
     "notifyVia": "Notificar a través de",

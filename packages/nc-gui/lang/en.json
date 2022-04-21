@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Advanced parameters",
     "headCreateProject": "Create Project | NocoDB",
     "headLogin": "Log In | NocoDB",
-    "resetPassword": "Reset your password"
+    "resetPassword": "Reset your password",
+    "team&settings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Notify Via",

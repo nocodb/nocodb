@@ -163,6 +163,7 @@
                 :search="search"
                 :footer-props="{
                   'items-per-page-options': [20, -1],
+                  'items-per-page-text': $t('msg.info.footerInfo')
                 }"
                 class="pa-4 text-left mx-auto"
                 style="cursor: pointer; max-width: 100%"

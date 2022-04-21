@@ -1,0 +1,415 @@
+{
+  "appBlanket": {
+    "userInfoById": {
+      "usr4igCON6LbGyntr": {
+        "id": "usr4igCON6LbGyntr",
+        "firstName": "Raju",
+        "lastName": "Udava",
+        "email": "raju.us@gmail.com",
+        "profilePicUrl": "https://static.airtable.com/images/userIcons/user_icon_3.png",
+        "permissionLevel": "create",
+        "appBlanketUserState": "active"
+      },
+      "usrwtsmaHUDNWzIA2": {
+        "id": "usrwtsmaHUDNWzIA2",
+        "firstName": "dstala",
+        "lastName": "siva",
+        "email": "sivadstala@gmail.com",
+        "profilePicUrl": "https://static.airtable.com/images/userIcons/user_icon_9.png",
+        "permissionLevel": "owner",
+        "appBlanketUserState": "active"
+      }
+    },
+    "externalAccountInfoById": {},
+    "userGroupInfoById": {},
+    "workspaceSyncSources": [],
+    "activeUserIdByAcceptedInviteId": {
+      "invRcd1fKsdXQQO1C": "usr4igCON6LbGyntr"
+    },
+    "isWorkspaceOptedOutOfUserContentCdnAuth": false,
+    "isEnterpriseAccountOptedOutOfUserContentCdnAuth": false,
+    "enterpriseAttachmentRestrictions": {
+      "restrictionType": "unrestricted",
+      "attachmentTypeAllowlist": []
+    },
+    "isWorkspaceLinkedToEnterpriseAccount": false
+  },
+  "description": null,
+  "sortTiebreakerKey": "appNGAcKwq7eq0xuY",
+  "defaultViewMutability": null,
+  "maintenanceModeSettings": null,
+  "sharesById": {
+    "shrO8aYf3ybwSdDKn": {
+      "id": "shrO8aYf3ybwSdDKn",
+      "modelId": "appNGAcKwq7eq0xuY",
+      "createdByUserId": "usrwtsmaHUDNWzIA2",
+      "canBeCloned": true,
+      "canBeExported": true,
+      "includeHiddenColumns": false,
+      "includeBlocks": true,
+      "emailDomain": null,
+      "hasPassword": false,
+      "generationNumber": 0,
+      "metadata": null
+    }
+  },
+  "workflowSectionsById": {},
+  "applicationTransactionNumber": 53,
+  "tableSchemas": [
+    {
+      "id": "tbl75rNUaOe2AtM0j",
+      "name": "Country",
+      "primaryColumnId": "fldEpcGr69PTquHkd",
+      "columns": [
+        {
+          "id": "fldEpcGr69PTquHkd",
+          "name": "Name",
+          "type": "text"
+        },
+        {
+          "id": "fldl175BtydGirrl3",
+          "name": "City",
+          "type": "foreignKey",
+          "typeOptions": {
+            "relationship": "many",
+            "foreignTableId": "tblWKo9UkafkB22yg",
+            "symmetricColumnId": "fldMpOroAO0hiJxDB",
+            "unreversed": true
+          }
+        },
+        {
+          "id": "fldnrjUU3uwB4OxbY",
+          "name": "Pincode (from City)",
+          "type": "lookup",
+          "typeOptions": {
+            "relationColumnId": "fldl175BtydGirrl3",
+            "foreignTableRollupColumnId": "fld8Le010NTfk46Jq",
+            "canUseSelectResultType": true,
+            "dependencies": {
+              "referencedColumnIdsForValue": [
+                "fldl175BtydGirrl3",
+                "fld8Le010NTfk46Jq"
+              ]
+            },
+            "resultType": "text",
+            "resultIsArray": true
+          }
+        },
+        {
+          "id": "fldzbINIdYFlqAYkd",
+          "name": "Population Rollup (from City)",
+          "type": "rollup",
+          "typeOptions": {
+            "relationColumnId": "fldl175BtydGirrl3",
+            "foreignTableRollupColumnId": "fldgk70cKPEc64vyG",
+            "format": "decimal",
+            "precision": 1,
+            "formulaTextParsed": "SUM(values)",
+            "dependencies": {
+              "referencedColumnIdsForValue": [
+                "fldl175BtydGirrl3",
+                "fldgk70cKPEc64vyG"
+              ]
+            },
+            "resultType": "number",
+            "resultIsArray": false
+          }
+        }
+      ],
+      "meaningfulColumnOrder": [
+        {
+          "columnId": "fldEpcGr69PTquHkd",
+          "visibility": true
+        },
+        {
+          "columnId": "fldl175BtydGirrl3",
+          "visibility": true
+        },
+        {
+          "columnId": "fldnrjUU3uwB4OxbY",
+          "visibility": true
+        },
+        {
+          "columnId": "fldzbINIdYFlqAYkd",
+          "visibility": true
+        }
+      ],
+      "views": [
+        {
+          "id": "viwrLb148p9z9nm1E",
+          "name": "Grid view",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      ],
+      "viewOrder": [
+        "viwrLb148p9z9nm1E"
+      ],
+      "viewsById": {
+        "viwrLb148p9z9nm1E": {
+          "id": "viwrLb148p9z9nm1E",
+          "name": "Grid view",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      },
+      "viewSectionsById": {},
+      "schemaChecksum": "33ae88dc9008a121ae8e7fea519aaf38e88abd0860caecddd811f337e7185325"
+    },
+    {
+      "id": "tblWKo9UkafkB22yg",
+      "name": "City",
+      "primaryColumnId": "fld5hf2zJZNba6mcp",
+      "columns": [
+        {
+          "id": "fld5hf2zJZNba6mcp",
+          "name": "Name",
+          "type": "text"
+        },
+        {
+          "id": "fldgk70cKPEc64vyG",
+          "name": "Population",
+          "type": "number",
+          "typeOptions": {
+            "format": "decimal",
+            "precision": 1,
+            "negative": false,
+            "validatorName": "positive"
+          }
+        },
+        {
+          "id": "fld8Le010NTfk46Jq",
+          "name": "Pincode",
+          "type": "text"
+        },
+        {
+          "id": "fldMpOroAO0hiJxDB",
+          "name": "Country",
+          "type": "foreignKey",
+          "typeOptions": {
+            "foreignTableId": "tbl75rNUaOe2AtM0j",
+            "symmetricColumnId": "fldl175BtydGirrl3",
+            "relationship": "many",
+            "unreversed": true
+          }
+        }
+      ],
+      "meaningfulColumnOrder": [
+        {
+          "columnId": "fld5hf2zJZNba6mcp",
+          "visibility": true
+        },
+        {
+          "columnId": "fldgk70cKPEc64vyG",
+          "visibility": true
+        },
+        {
+          "columnId": "fld8Le010NTfk46Jq",
+          "visibility": true
+        },
+        {
+          "columnId": "fldMpOroAO0hiJxDB",
+          "visibility": true
+        }
+      ],
+      "views": [
+        {
+          "id": "viwE9n9HfqDbLnwGA",
+          "name": "Grid view",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      ],
+      "viewOrder": [
+        "viwE9n9HfqDbLnwGA"
+      ],
+      "viewsById": {
+        "viwE9n9HfqDbLnwGA": {
+          "id": "viwE9n9HfqDbLnwGA",
+          "name": "Grid view",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      },
+      "viewSectionsById": {},
+      "schemaChecksum": "464c195c2ed70f51385a67271619ef287b475f8b7bcb0b5dc49d6e433b558c51"
+    }
+  ],
+  "tableDatas": [
+    {
+      "id": "tbl75rNUaOe2AtM0j",
+      "rows": [
+        {
+          "id": "recK9c37CLUeJt9Ql",
+          "createdTime": "2022-04-21T04:50:27.000Z",
+          "cellValuesByColumnId": {
+            "fldEpcGr69PTquHkd": "US",
+            "fldl175BtydGirrl3": [
+              {
+                "foreignRowId": "reccLTK7VqyBgA5d0",
+                "foreignRowDisplayName": "Atlanta"
+              },
+              {
+                "foreignRowId": "recI8Fb3E0MUV7h3o",
+                "foreignRowDisplayName": "Dallas"
+              }
+            ],
+            "fldnrjUU3uwB4OxbY": {
+              "valuesByForeignRowId": {
+                "reccLTK7VqyBgA5d0": "123",
+                "recI8Fb3E0MUV7h3o": "101"
+              },
+              "foreignRowIdOrder": [
+                "reccLTK7VqyBgA5d0",
+                "recI8Fb3E0MUV7h3o"
+              ]
+            },
+            "fldzbINIdYFlqAYkd": 50
+          }
+        },
+        {
+          "id": "recgWlEKQDjEIuz9V",
+          "createdTime": "2022-04-21T04:50:27.000Z",
+          "cellValuesByColumnId": {
+            "fldEpcGr69PTquHkd": "UK",
+            "fldzbINIdYFlqAYkd": 0
+          }
+        },
+        {
+          "id": "recFa6dQFVAJfMuoY",
+          "createdTime": "2022-04-21T04:50:27.000Z",
+          "cellValuesByColumnId": {
+            "fldEpcGr69PTquHkd": "India",
+            "fldl175BtydGirrl3": [
+              {
+                "foreignRowId": "recKD3BrkJEy0WXEy",
+                "foreignRowDisplayName": "Blore"
+              },
+              {
+                "foreignRowId": "recbD4p7HgovtCINN",
+                "foreignRowDisplayName": "Chennai"
+              }
+            ],
+            "fldnrjUU3uwB4OxbY": {
+              "valuesByForeignRowId": {
+                "recKD3BrkJEy0WXEy": "456",
+                "recbD4p7HgovtCINN": "789"
+              },
+              "foreignRowIdOrder": [
+                "recKD3BrkJEy0WXEy",
+                "recbD4p7HgovtCINN"
+              ]
+            },
+            "fldzbINIdYFlqAYkd": 50
+          }
+        }
+      ],
+      "viewDatas": [
+        {
+          "id": "viwrLb148p9z9nm1E",
+          "frozenColumnCount": 1,
+          "columnOrder": [
+            {
+              "columnId": "fldEpcGr69PTquHkd",
+              "visibility": true
+            },
+            {
+              "columnId": "fldl175BtydGirrl3",
+              "visibility": true
+            },
+            {
+              "columnId": "fldnrjUU3uwB4OxbY",
+              "visibility": true
+            },
+            {
+              "columnId": "fldzbINIdYFlqAYkd",
+              "visibility": true
+            }
+          ],
+          "filters": null,
+          "lastSortsApplied": null,
+          "groupLevels": null,
+          "colorConfig": null,
+          "sharesById": {},
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2",
+          "applicationTransactionNumber": 53,
+          "rowOrder": [
+            {
+              "rowId": "recK9c37CLUeJt9Ql",
+              "visibility": true
+            },
+            {
+              "rowId": "recgWlEKQDjEIuz9V",
+              "visibility": true
+            },
+            {
+              "rowId": "recFa6dQFVAJfMuoY",
+              "visibility": true
+            }
+          ]
+        }
+      ],
+      "hasOnlyIncludedRowAndCellDataForIncludedViews": false
+    }
+  ],
+  "hasBlockInstallations": false,
+  "applicationAdminFlags": {
+    "UPDATE_PRIMITIVE_CELL_THROTTLE_MS": null,
+    "MAX_WORKFLOWS_PER_APPLICATION": null,
+    "MAX_SYNC_SOURCES_PER_APPLICATION": null,
+    "MAX_SYNC_SOURCES_PER_TABLE": null,
+    "MAX_SYNCED_TABLES_PER_APPLICATION": null,
+    "CUSTOM_MAX_NUM_ROWS_PER_TABLE": null,
+    "ENABLE_PROJECT_TABLE_DATA_TO_VIEWS_FOR_APPLICATION": "no"
+  },
+  "pageBundles": [],
+  "uploadedUserContentCdnSetting": {
+    "applicationScopedAuthMode": "public"
+  },
+  "applicationV2TargetedFeatureFlagClientConfiguration": {
+    "nonCollaboratorsInCollaboratorField": {
+      "trafficLevel": 0
+    },
+    "applicationInsights": {
+      "trafficLevel": 0
+    },
+    "autoOpenInsightsPaneOnUnseenSuggestion": {
+      "trafficLevel": 0
+    },
+    "disabledWorkflowOnSchemaChangeSuggestion": {
+      "trafficLevel": 0
+    },
+    "syncFailureSuggestion": {
+      "trafficLevel": 0
+    },
+    "unusedViewsSuggestion": {
+      "trafficLevel": 0
+    },
+    "filterUnusedViewsUsingDependencyGraph": {
+      "trafficLevel": 100
+    },
+    "unusedSelectChoicesSuggestion": {
+      "trafficLevel": 0
+    },
+    "unifiedEventLog": {
+      "trafficLevel": 0
+    },
+    "constantPoolingForCrudResponses": {
+      "trafficLevel": 50
+    }
+  },
+  "applicationV2EnabledFeatureNames": [
+    "filterUnusedViewsUsingDependencyGraph",
+    "constantPoolingForCrudResponses"
+  ],
+  "isConstantPooledData": false
+}

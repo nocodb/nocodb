@@ -11,6 +11,31 @@
   ],
   "paths": {
   },
+  "components": {
+    "schemas": {
+      "Paginated": {
+        "title": "Paginated",
+        "type": "object",
+        "properties": {
+          "pageSize": {
+            "type": "integer"
+          },
+          "totalRows": {
+            "type": "integer"
+          },
+          "isFirstPage": {
+            "type": "boolean"
+          },
+          "isLastPage": {
+            "type": "boolean"
+          },
+          "page": {
+            "type": "number"
+          }
+        }
+      }
+    }
+  },
   "securitySchemes": {
     "xc-auth": {
       "name": "API Key",

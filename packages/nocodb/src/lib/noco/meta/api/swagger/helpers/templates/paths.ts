@@ -1,4 +1,18 @@
 import { ModelTypes } from 'nocodb-sdk';
+import {
+  columnNameParam,
+  csvExportOffsetParam,
+  exportTypeParam,
+  fieldsParam,
+  limitParam,
+  offsetParam,
+  referencedRowIdParam,
+  relationTypeParam,
+  rowIdParam,
+  sortParam,
+  whereParam
+} from './params';
+import { csvExportResponseHeader } from './headers';
 
 export default (ctx: {
   tableName: string;
@@ -12,47 +26,15 @@ export default (ctx: {
       operationId: 'db-table-row-list',
       description: `List of all rows from ${ctx.tableName} ${ctx.type} and data of fields can be filtered based on query params.`,
       tags: [ctx.tableName],
-      parameters: [
-        {
-          schema: {
-            type: 'array'
-          },
-          in: 'query',
-          name: 'fields',
-          description:
-            'Array of field names or comma separated filed names to include in the response objects.',
-          example: 'field1,field2'
-        },
-        {
-          schema: {
-            type: 'array'
-          },
-          in: 'query',
-          name: 'sort',
-          description:
-            'Comma separated field names to sort rows, rows will sort in ascending order based on provided columns. To sort in descending order provide `-` prefix along with column name, like `-field`',
-          example: 'field1,-field2'
-        },
-        {
-          schema: {
-            type: 'string'
-          },
-          in: 'query',
-          name: 'where',
-          description: '',
-          example: '(field1,eq,value)'
-        }
-      ],
+      parameters: [fieldsParam, sortParam, whereParam, limitParam, offsetParam],
       responses: {
         '200': {
           description: 'OK',
           content: {
             'application/json': {
               schema: {
-                type: 'array',
-                items: {
-                  $ref: `#/components/schemas/${ctx.tableName}Response`
-                }
+                type: 'object',
+                properties: getPaginatedResponseType(`${ctx.tableName}Response`)
               }
             }
           }
@@ -63,6 +45,8 @@ export default (ctx: {
       ? {
           post: {
             summary: `Row create`,
+            description:
+              'Insert a new row in table by providing a key value pair object where key refers to the column alias. All the required fields should be included with payload excluding `autoincrement` and column with default value.',
             operationId: `${ctx.tableName.toLowerCase()}-create`,
             responses: {
               '200': {
@@ -91,20 +75,14 @@ export default (ctx: {
       : {})
   },
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}`]: {
-    parameters: [
-      {
-        schema: {
-          type: 'string'
-        },
-        name: 'rowId',
-        in: 'path',
-        required: true
-      }
-    ],
+    parameters: [rowIdParam],
     ...(ctx.type === ModelTypes.TABLE
       ? {
           get: {
+            parameters: [fieldsParam],
             summary: `Row read`,
+            description:
+              'Read a row data by using the **primary key** column value.',
             operationId: `${ctx.tableName.toLowerCase()}-read`,
             responses: {
               '201': {
@@ -118,12 +96,13 @@ export default (ctx: {
                 }
               }
             },
-            description: '',
             tags: [ctx.tableName]
           },
           patch: {
             summary: `Row update`,
             operationId: `${ctx.tableName.toLowerCase()}-update`,
+            description:
+              'Partial update row in table by providing a key value pair object where key refers to the column alias. You need to only include columns which you want to update.',
             responses: {
               '200': {
                 description: 'OK',
@@ -163,23 +142,9 @@ export default (ctx: {
     get: {
       summary: 'Rows count',
       operationId: `${ctx.tableName.toLowerCase()}-count`,
-      description: '',
+      description: 'Get rows count of a table by applying optional filters.',
       tags: [ctx.tableName],
-      parameters: [
-        {
-          schema: {
-            type: 'string'
-          },
-          in: 'query',
-          name: 'where'
-        },
-        {
-          schema: {},
-          in: 'query',
-          name: 'nested',
-          description: 'Query params for nested data'
-        }
-      ],
+      parameters: [whereParam],
       responses: {
         '200': {
           description: 'OK',
@@ -197,6 +162,8 @@ export default (ctx: {
         [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}`]: {
           post: {
             summary: 'Bulk insert',
+            description:
+              "To insert large amount of data in a single api call you can use this api. It's similar to insert method but here you can pass array of objects to insert into table. Array object will be key value paired column name and value.",
             operationId: `${ctx.tableName.toLowerCase()}-bulk-create`,
             responses: {
               '200': {
@@ -218,7 +185,9 @@ export default (ctx: {
             }
           },
           patch: {
-            summary: 'Bulk update by IDs',
+            summary: 'Bulk update',
+            description:
+              "To update multiple records using it's primary key you can use this api. Bulk updated api accepts array object in which each object should contain it's primary columns value mapped to corresponding alias. In addition to primary key you can include the fields which you want to update",
             operationId: `${ctx.tableName.toLowerCase()}-bulk-update`,
             responses: {
               '200': {
@@ -241,6 +210,8 @@ export default (ctx: {
           },
           delete: {
             summary: 'Bulk delete by IDs',
+            description:
+              "To delete multiple records using it's primary key you can use this api. Bulk delete api accepts array object in which each object should contain it's primary columns value mapped to corresponding alias.",
             operationId: `${ctx.tableName.toLowerCase()}-bulk-delete`,
             responses: {
               '200': {
@@ -263,9 +234,11 @@ export default (ctx: {
           }
         },
         [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/all`]: {
-          parameters: [],
+          parameters: [whereParam],
           patch: {
             summary: 'Bulk update with conditions',
+            description:
+              "This api helps you update multiple table rows in a single api call. You don't have to pass the record id instead you can filter records and apply the changes to filtered records. Payload is similar as normal update in which you can pass any partial row data to be updated.",
             operationId: `${ctx.tableName.toLowerCase()}-bulk-update-all`,
             responses: {
               '200': {
@@ -288,6 +261,8 @@ export default (ctx: {
           },
           delete: {
             summary: 'Bulk delete with conditions',
+            description:
+              "This api helps you delete multiple table rows in a single api call. You don't have to pass the record id instead you can filter records and delete filtered records.",
             operationId: `${ctx.tableName.toLowerCase()}-bulk-delete-all`,
             responses: {
               '200': {
@@ -310,33 +285,7 @@ export default (ctx: {
           }
         },
         [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}`]: {
-          parameters: [
-            {
-              schema: {
-                type: 'string'
-              },
-              name: 'rowId',
-              in: 'path',
-              required: true
-            },
-            {
-              schema: {
-                type: 'string',
-                enum: ['mm', 'hm']
-              },
-              name: 'relationType',
-              in: 'path',
-              required: true
-            },
-            {
-              schema: {
-                type: 'string'
-              },
-              name: 'columnName',
-              in: 'path',
-              required: true
-            }
-          ],
+          parameters: [rowIdParam, relationTypeParam, columnNameParam],
           get: {
             summary: 'Relation row list',
             operationId: `${ctx.tableName.toLowerCase()}-nested-list`,
@@ -351,59 +300,15 @@ export default (ctx: {
               }
             },
             tags: [ctx.tableName],
-            parameters: [
-              {
-                schema: {
-                  type: 'string'
-                },
-                in: 'query',
-                name: 'limit'
-              },
-              {
-                schema: {
-                  type: 'string'
-                },
-                in: 'query',
-                name: 'offset'
-              }
-            ]
+            parameters: [limitParam, offsetParam]
           }
         },
         [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/{refRowId}`]: {
           parameters: [
-            {
-              schema: {
-                type: 'string'
-              },
-              name: 'rowId',
-              in: 'path',
-              required: true
-            },
-            {
-              schema: {
-                type: 'string',
-                enum: ['mm', 'hm']
-              },
-              name: 'relationType',
-              in: 'path',
-              required: true
-            },
-            {
-              schema: {
-                type: 'string'
-              },
-              name: 'columnName',
-              in: 'path',
-              required: true
-            },
-            {
-              schema: {
-                type: 'string'
-              },
-              name: 'refRowId',
-              in: 'path',
-              required: true
-            }
+            rowIdParam,
+            relationTypeParam,
+            columnNameParam,
+            referencedRowIdParam
           ],
           post: {
             summary: 'Relation row add',
@@ -419,22 +324,7 @@ export default (ctx: {
               }
             },
             tags: [ctx.tableName],
-            parameters: [
-              {
-                schema: {
-                  type: 'string'
-                },
-                in: 'query',
-                name: 'limit'
-              },
-              {
-                schema: {
-                  type: 'string'
-                },
-                in: 'query',
-                name: 'offset'
-              }
-            ],
+            parameters: [limitParam, offsetParam],
             description: ''
           },
           delete: {
@@ -454,33 +344,7 @@ export default (ctx: {
           }
         },
         [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/exclude`]: {
-          parameters: [
-            {
-              schema: {
-                type: 'string'
-              },
-              name: 'rowId',
-              in: 'path',
-              required: true
-            },
-            {
-              schema: {
-                type: 'string',
-                enum: ['mm', 'hm']
-              },
-              name: 'relationType',
-              in: 'path',
-              required: true
-            },
-            {
-              schema: {
-                type: 'string'
-              },
-              name: 'columnName',
-              in: 'path',
-              required: true
-            }
-          ],
+          parameters: [rowIdParam, relationTypeParam, columnNameParam],
           get: {
             summary:
               'Referenced tables rows excluding current records children/parent',
@@ -496,42 +360,17 @@ export default (ctx: {
               }
             },
             tags: [ctx.tableName],
-            parameters: [
-              {
-                schema: {
-                  type: 'string'
-                },
-                in: 'query',
-                name: 'limit'
-              },
-              {
-                schema: {
-                  type: 'string'
-                },
-                in: 'query',
-                name: 'offset'
-              }
-            ]
+            parameters: [limitParam, offsetParam]
           }
         }
       }
     : {}),
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/export/{type}`]: {
-    parameters: [
-      {
-        schema: {
-          type: 'string',
-          enum: ['csv', 'excel']
-        },
-        name: 'type',
-        in: 'path',
-        required: true
-      }
-    ],
+    parameters: [exportTypeParam],
     get: {
       summary: 'Rows export',
       operationId: `${ctx.tableName.toLowerCase()}-csv-export`,
-      description: 'CSV or Excel export',
+      description: 'Export all the records from a',
       tags: [ctx.tableName],
       wrapped: true,
       responses: {
@@ -542,16 +381,10 @@ export default (ctx: {
               schema: {}
             }
           },
-          headers: {
-            'nc-export-offset': {
-              schema: {
-                type: 'integer'
-              }
-            }
-          }
+          headers: csvExportResponseHeader
         }
       },
-      parameters: []
+      parameters: [csvExportOffsetParam]
     }
   }
 });
@@ -664,13 +497,10 @@ export const viewPaths = (ctx: {
             type: 'string'
           },
           in: 'query',
-          name: 'where'
-        },
-        {
-          schema: {},
-          in: 'query',
-          name: 'nested',
-          description: 'Query params for nested data'
+          name: 'where',
+          description:
+            'This can be used for filtering rows, which accepts complicated where conditions. For more info visit [here](https://docs.nocodb.com/developer-resources/rest-apis#comparison-operators)',
+          example: '(field1,eq,value)'
         }
       ],
       responses: {
@@ -801,3 +631,17 @@ export const viewPaths = (ctx: {
     }
   }
 });
+
+function getPaginatedResponseType(type: string) {
+  return {
+    list: {
+      type: 'array',
+      items: {
+        $ref: `#/components/schemas/${type}`
+      }
+    },
+    PageInfo: {
+      $ref: `#/components/schemas/Paginated`
+    }
+  };
+}

@@ -1,9 +1,9 @@
-import Noco from '../noco/Noco';
-import Model from '../noco-models/Model';
+import Noco from '../../../../Noco';
+import Model from '../../../../../noco-models/Model';
 import swaggerBase from './swagger-base.json';
 import getPaths from './getPaths';
 import getSchemas from './getSchemas';
-import Project from '../noco-models/Project';
+import Project from '../../../../../noco-models/Project';
 
 export default async function getSwaggerJSON(
   project: Project,
@@ -19,7 +19,9 @@ export default async function getSwaggerJSON(
   };
 
   for (const model of models) {
-    const paths = await getPaths(project, model, ncMeta);
+    let paths = {};
+    // skip mm tables
+    if (!model.mm) paths = await getPaths(project, model, ncMeta);
     const schemas = await getSchemas(project, model, ncMeta);
 
     Object.assign(swaggerObj.paths, paths);

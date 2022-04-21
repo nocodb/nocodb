@@ -1,6 +1,6 @@
-import Noco from '../noco/Noco';
-import Model from '../noco-models/Model';
-import Project from '../noco-models/Project';
+import Noco from '../../../../Noco';
+import Model from '../../../../../noco-models/Model';
+import Project from '../../../../../noco-models/Project';
 import paths from './templates/paths';
 
 export default async function getPaths(
@@ -10,8 +10,8 @@ export default async function getPaths(
 ) {
   return paths({
     tableName: model.title,
+    type: model.type,
     orgs: 'noco',
-    projectName: project.title,
-    columns: []
+    projectName: project.title
   });
 }

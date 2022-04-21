@@ -2,6 +2,7 @@ class SwaggerTypes {
   static setSwaggerType(column, field, dbType = 'mysql') {
     switch (dbType) {
       case 'mysql':
+      case 'mysql2':
       case 'mariadb':
         SwaggerTypes.setSwaggerTypeForMysql(column, field);
         break;

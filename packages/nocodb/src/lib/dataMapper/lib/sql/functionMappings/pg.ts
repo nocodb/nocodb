@@ -37,13 +37,13 @@ const pg = {
     return knex.raw(
       `CASE
       WHEN CAST(${fn(pt.arguments[0])} AS text) LIKE '%:%' THEN
-        ${fn(pt.arguments[0])} + INTERVAL '${fn(pt.arguments[1])} 
+        ${fn(pt.arguments[0])}::timestamptz + INTERVAL '${fn(pt.arguments[1])} 
         ${String(fn(pt.arguments[2])).replace(
           /["']/g,
           ''
         )}'
       ELSE
-        ${fn(pt.arguments[0])} + INTERVAL '${fn(pt.arguments[1])} 
+        ${fn(pt.arguments[0])}::timestamptz + INTERVAL '${fn(pt.arguments[1])} 
         ${String(fn(pt.arguments[2])).replace(/["']/g, '')}'
       END${colAlias}`
     );

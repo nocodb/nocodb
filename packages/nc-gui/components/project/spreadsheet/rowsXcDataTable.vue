@@ -1035,7 +1035,7 @@ export default {
           //   return
           // }
           // return if there is no change
-          if (!column || (oldRow[column.title] === rowObj[column.title] && ((lastSave || rowObj[column.title]) === rowObj[column.title]))) {
+          if (!column || saving || (oldRow[column.title] === rowObj[column.title] && ((lastSave || rowObj[column.title]) === rowObj[column.title]))) {
             return
           }
           if (saved) {

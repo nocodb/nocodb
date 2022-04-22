@@ -221,7 +221,7 @@
               :is-locked="isLocked"
               :is-public="isPublicView"
               :view-id="viewId"
-              @save="editEnabled = {};"
+              @save="editEnabled = {}; onCellValueChange(col, row, columnObj, true);"
               @cancel="editEnabled = {};"
               @update="onCellValueChange(col, row, columnObj, false)"
               @blur="onCellValueChange(col, row, columnObj, true)"

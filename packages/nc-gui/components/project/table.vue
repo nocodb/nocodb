@@ -93,47 +93,6 @@ export default {
     mtdNewTableUpdate(value) {
       this.newTableCopy = value
     },
-    async deleteTable(action = '', id) {
-      if (id) {
-        this.deleteId = id
-      }
-      if (action === 'showDialog') {
-        this.dialogShow = true
-      } else if (action === 'hideDialog') {
-        this.dialogShow = false
-      } else {
-        // todo : check relations and triggers
-        try {
-          await this.$api.dbTable.delete(this.deleteId)
-
-          this.removeTableTab({
-            env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias,
-            table_name: this.nodes.table_name
-          })
-
-          await this.loadTablesFromParentTreeNode({
-            _nodes: {
-              ...this.nodes
-            }
-          })
-
-          this.$store.commit('meta/MutMeta', {
-            key: this.nodes.table_name,
-            value: null
-          })
-          this.$store.commit('meta/MutMeta', {
-            key: this.deleteId,
-            value: null
-          })
-        } catch (e) {
-          const msg = await this._extractSdkResponseErrorMsg(e)
-          this.$toast.error(msg).goAway(3000)
-        }
-        this.dialogShow = false
-        this.$tele.emit('table:delete:submit')
-      }
-    },
     onTabChange() {
       this.$emit('update:hideLogWindows', this.active === 2)
     }

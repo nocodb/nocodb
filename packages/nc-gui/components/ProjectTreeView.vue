@@ -320,7 +320,7 @@
                                       </span>
                                     </v-list-item-title>
                                   </v-list-item>
-                                  <!-- <v-list-item v-if="_isUIAllowed('table-delete')" dense @click="checkAndDeleteTable(child)">
+                                  <v-list-item v-if="_isUIAllowed('table-delete')" dense @click="checkAndDeleteTable(child)">
                                     <v-list-item-icon>
                                       <v-icon x-small>
                                         mdi-delete-outline
@@ -329,7 +329,7 @@
                                     <v-list-item-title>
                                       <span classs="caption">Delete</span>
                                     </v-list-item-title>
-                                  </v-list-item> -->
+                                  </v-list-item>
                                 </v-list>
                               </v-menu>
 
@@ -670,13 +670,13 @@
       :heading="selectedNodeForDelete.heading"
       type="error"
     />
-    <!-- <dlgLabelSubmitCancel
+    <dlgLabelSubmitCancel
       v-if="dialogDeleteTable.dialogShow"
       type="error"
       :actions-mtd="deleteTable"
       :dialog-show="dialogDeleteTable.dialogShow"
-      :heading="dialogDeleteTable.heading + ' ' + dialogDeleteTable.nodes.tn"
-    /> -->
+      :heading="dialogDeleteTable.heading + ' ' + dialogDeleteTable.nodes.table_name"
+    />
     <excel-import
       ref="excelImport"
       v-model="excelImportDialog"
@@ -813,6 +813,10 @@ export default {
       dialog: false,
       item: null,
       heading: null
+    },
+    dialogDeleteTable: {
+      dialogShow: false,
+      heading: 'Delete Table'
     },
   }),
   computed: {
@@ -953,24 +957,58 @@ export default {
     openLink(link) {
       window.open(link, '_blank')
     },
-    // async checkAndDeleteTable(table) {
-    //   const meta = this.$store.state.meta.metas[table.tn] || await this.loadTableSchema(table);
-    //   if (
-    //     !meta || (
-    //       (meta.hasMany && meta.hasMany.length) ||
-    //       (meta.manyToMany && meta.manyToMany.length) ||
-    //       (meta.belongsTo && meta.belongsTo.length))
-    //   ) {
-    //     return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
-    //   }
-    //   await this.deleteTable('showDialog', table._nodes)
-    // },
+    async checkAndDeleteTable(table) {
+      this.dialogDeleteTable.nodes = table._nodes
+      await this.deleteTable('showDialog', table.id)
+      this.$tele.emit('table:delete:trigger')
+    },
     async loadTableSchema(table) {
       return await this.$store.dispatch('meta/ActLoadMeta', {
         env: table._nodes.env,
         dbAlias: table._nodes.dbAlias,
         tn: table.tn
       })
+    },
+    async deleteTable(action = '', id) {
+      if (id) {
+        this.deleteId = id
+      }
+      if (action === 'showDialog') {
+        this.dialogDeleteTable.dialogShow = true
+      } else if (action === 'hideDialog') {
+        this.dialogDeleteTable.dialogShow = false
+      } else {
+        // todo : check relations and triggers
+        try {
+          await this.$api.dbTable.delete(this.deleteId)
+
+          this.removeTableTab({
+            env: this.dialogDeleteTable.nodes.env,
+            dbAlias: this.dialogDeleteTable.nodes.dbAlias,
+            table_name: this.dialogDeleteTable.nodes.table_name
+          })
+
+          await this.loadTablesFromParentTreeNode({
+            _nodes: {
+              ...this.dialogDeleteTable.nodes
+            }
+          })
+
+          this.$store.commit('meta/MutMeta', {
+            key: this.dialogDeleteTable.nodes.table_name,
+            value: null
+          })
+          this.$store.commit('meta/MutMeta', {
+            key: this.deleteId,
+            value: null
+          })
+        } catch (e) {
+          const msg = await this._extractSdkResponseErrorMsg(e)
+          this.$toast.error(msg).goAway(3000)
+        }
+        this.dialogDeleteTable.dialogShow = false
+        this.$tele.emit('table:delete:submit')
+      }
     },
     // async deleteTable(action = '', nodes=null) {
     //   if(nodes) this.dialogDeleteTable.nodes = nodes;

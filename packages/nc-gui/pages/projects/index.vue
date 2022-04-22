@@ -52,17 +52,17 @@
               </v-text-field>
               <v-spacer />
               <!-- Import NocoDB Project by uploading metadata zip file -->
-              <x-btn
-                vbind:tooltip="$t('msg.info.importText')"
-                outlined
-                color="grey"
-                @click="
-                  $refs.importFile.click();
-                  project_id = null;
-                "
-              >
-                <v-icon>mdi-import</v-icon>
-              </x-btn>
+<!--              <x-btn-->
+<!--                vbind:tooltip="$t('msg.info.importText')"-->
+<!--                outlined-->
+<!--                color="grey"-->
+<!--                @click="-->
+<!--                  $refs.importFile.click();-->
+<!--                  project_id = null;-->
+<!--                "-->
+<!--              >-->
+<!--                <v-icon>mdi-import</v-icon>-->
+<!--              </x-btn>-->
 
               <template v-if="connectToExternalDB">
                 <v-menu offset-y bottom open-on-hover>
@@ -71,8 +71,8 @@
                       <x-btn
                         v-if="_isUIAllowed('projectCreate', true)"
                         v-ge="['home', 'project-new']"
-                        outlined
                         data-v-step="1"
+                        outlined
                         color="primary"
                         class="nc-new-project-menu"
                         v-on="on"

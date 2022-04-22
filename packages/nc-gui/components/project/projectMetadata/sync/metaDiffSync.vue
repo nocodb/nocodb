@@ -1,12 +1,12 @@
 <template>
   <v-container fluid>
-    <v-card>
-      <v-row>
+
+      <v-row class="pt-4">
         <!--                    <v-col cols="12">-->
         <!--                      <h4 class="text-center my-2 grey&#45;&#45;text text&#45;&#45;darken-2 title"> Metadata Management-->
         <!--                      </h4></v-col>-->
         <v-col cols="8">
-          <v-card class="pb-2">
+          <v-card class="pb-2 pa">
             <v-toolbar flat height="50" class="toolbar-border-bottom">
               <v-text-field
                 v-if="dbAliasList && dbAliasList[dbsTab]"
@@ -270,8 +270,8 @@
           </div>
         </v-col>
       </v-row>
-    </v-card>
-  </v-container>
+
+  </v-container fluid>
 </template>
 
 <script>

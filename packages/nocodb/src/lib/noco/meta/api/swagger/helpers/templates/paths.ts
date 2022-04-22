@@ -16,7 +16,7 @@ import {
 import { csvExportResponseHeader } from './headers';
 import { SwaggerColumn } from '../getSwaggerColumnMetas';
 
-export default async (ctx: {
+export const getModelPaths = async (ctx: {
   tableName: string;
   orgs: string;
   type: ModelTypes;
@@ -25,9 +25,9 @@ export default async (ctx: {
 }): Promise<{ [path: string]: any }> => ({
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}`]: {
     get: {
-      summary: `Row list`,
+      summary: `${ctx.tableName} list`,
       operationId: 'db-table-row-list',
-      description: `List of all rows from ${ctx.tableName} ${ctx.type} and data of fields can be filtered based on query params.`,
+      description: `List of all rows from ${ctx.tableName} ${ctx.type} and response data fields can be filtered based on query params.`,
       tags: [ctx.tableName],
       parameters: [
         fieldsParam,
@@ -42,10 +42,7 @@ export default async (ctx: {
           description: 'OK',
           content: {
             'application/json': {
-              schema: {
-                type: 'object',
-                properties: getPaginatedResponseType(`${ctx.tableName}Response`)
-              }
+              schema: getPaginatedResponseType(`${ctx.tableName}Response`)
             }
           }
         }
@@ -54,7 +51,7 @@ export default async (ctx: {
     ...(ctx.type === ModelTypes.TABLE
       ? {
           post: {
-            summary: `Row create`,
+            summary: `${ctx.tableName} create`,
             description:
               'Insert a new row in table by providing a key value pair object where key refers to the column alias. All the required fields should be included with payload excluding `autoincrement` and column with default value.',
             operationId: `${ctx.tableName.toLowerCase()}-create`,
@@ -90,7 +87,7 @@ export default async (ctx: {
       ? {
           get: {
             parameters: [fieldsParam],
-            summary: `Row read`,
+            summary: `${ctx.tableName} read`,
             description:
               'Read a row data by using the **primary key** column value.',
             operationId: `${ctx.tableName.toLowerCase()}-read`,
@@ -109,7 +106,7 @@ export default async (ctx: {
             tags: [ctx.tableName]
           },
           patch: {
-            summary: `Row update`,
+            summary: `${ctx.tableName} update`,
             operationId: `${ctx.tableName.toLowerCase()}-update`,
             description:
               'Partial update row in table by providing a key value pair object where key refers to the column alias. You need to only include columns which you want to update.',
@@ -135,7 +132,7 @@ export default async (ctx: {
             }
           },
           delete: {
-            summary: `Row delete`,
+            summary: `${ctx.tableName} delete`,
             operationId: `${ctx.tableName.toLowerCase()}-delete`,
             responses: {
               '200': {
@@ -150,7 +147,7 @@ export default async (ctx: {
   },
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/count`]: {
     get: {
-      summary: 'Rows count',
+      summary: `${ctx.tableName} count`,
       operationId: `${ctx.tableName.toLowerCase()}-count`,
       description: 'Get rows count of a table by applying optional filters.',
       tags: [ctx.tableName],
@@ -171,7 +168,7 @@ export default async (ctx: {
     ? {
         [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}`]: {
           post: {
-            summary: 'Bulk insert',
+            summary: `${ctx.tableName} bulk insert`,
             description:
               "To insert large amount of data in a single api call you can use this api. It's similar to insert method but here you can pass array of objects to insert into table. Array object will be key value paired column name and value.",
             operationId: `${ctx.tableName.toLowerCase()}-bulk-create`,
@@ -195,7 +192,7 @@ export default async (ctx: {
             }
           },
           patch: {
-            summary: 'Bulk update',
+            summary: `${ctx.tableName} bulk  update`,
             description:
               "To update multiple records using it's primary key you can use this api. Bulk updated api accepts array object in which each object should contain it's primary columns value mapped to corresponding alias. In addition to primary key you can include the fields which you want to update",
             operationId: `${ctx.tableName.toLowerCase()}-bulk-update`,
@@ -219,7 +216,7 @@ export default async (ctx: {
             }
           },
           delete: {
-            summary: 'Bulk delete by IDs',
+            summary: `${ctx.tableName} bulk delete by IDs`,
             description:
               "To delete multiple records using it's primary key you can use this api. Bulk delete api accepts array object in which each object should contain it's primary columns value mapped to corresponding alias.",
             operationId: `${ctx.tableName.toLowerCase()}-bulk-delete`,
@@ -246,7 +243,7 @@ export default async (ctx: {
         [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/all`]: {
           parameters: [whereParam],
           patch: {
-            summary: 'Bulk update with conditions',
+            summary: `${ctx.tableName} Bulk update with conditions`,
             description:
               "This api helps you update multiple table rows in a single api call. You don't have to pass the record id instead you can filter records and apply the changes to filtered records. Payload is similar as normal update in which you can pass any partial row data to be updated.",
             operationId: `${ctx.tableName.toLowerCase()}-bulk-update-all`,
@@ -412,226 +409,159 @@ export default async (ctx: {
   }
 });
 
-export const viewPaths = (ctx: {
+export const getViewPaths = async (ctx: {
   tableName: string;
   viewName: string;
+  type: ModelTypes;
   orgs: string;
   projectName: string;
-  columns: Array<{ type: string; title: string }>;
-}): any => ({
+  columns: SwaggerColumn[];
+}): Promise<any> => ({
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/views/${ctx.viewName}`]: {
-    parameters: [
-      {
-        schema: {
-          type: 'string'
-        },
-        name: 'viewName',
-        in: 'path',
-        required: true
-      }
-    ],
     get: {
-      summary: 'Table view row list',
-      operationId: 'db-view-row-list',
-      description: '',
-      tags: ['DB view row'],
+      summary: `${ctx.viewName} list`,
+      operationId: `${ctx.tableName}-${ctx.viewName}-row-list`,
+      description: `List of all rows from ${ctx.viewName} grid view and data of fields can be filtered based on query params. Data and fields in a grid view will be filtered and sorted by default based on the applied options in Dashboard.`,
+      tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`],
       parameters: [
-        {
-          schema: {
-            type: 'array'
-          },
-          in: 'query',
-          name: 'fields'
-        },
-        {
-          schema: {
-            type: 'array'
-          },
-          in: 'query',
-          name: 'sort'
-        },
-        {
-          schema: {
-            type: 'string'
-          },
-          in: 'query',
-          name: 'where'
-        },
-        {
-          schema: {},
-          in: 'query',
-          name: 'nested',
-          description: 'Query params for nested data'
-        }
+        fieldsParam,
+        sortParam,
+        whereParam,
+        ...(await getNestedParams(ctx.columns))
       ],
       responses: {
         '200': {
           description: 'OK',
           content: {
             'application/json': {
-              schema: {}
+              schema: getPaginatedResponseType(
+                `${ctx.tableName}${ctx.viewName}GridResponse`
+              )
             }
           }
         }
       }
     },
-    post: {
-      summary: 'Table view row create',
-      operationId: 'db-view-row-create',
-      responses: {
-        '200': {
-          description: 'OK',
-          content: {
-            'application/json': {
-              schema: {}
+    ...(ctx.type === ModelTypes.TABLE
+      ? {
+          post: {
+            summary: `${ctx.viewName} create`,
+            operationId: `${ctx.tableName}-${ctx.viewName}-row-create`,
+            responses: {
+              '200': {
+                description: 'OK',
+                content: {
+                  'application/json': {
+                    schema: {}
+                  }
+                }
+              }
+            },
+            tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`],
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: `#/components/schemas/${ctx.tableName}${ctx.viewName}GridRequest`
+                  }
+                }
+              }
             }
           }
         }
-      },
-      tags: ['DB view row'],
-      requestBody: {
-        content: {
-          'application/json': {
-            schema: {}
-          }
-        }
-      }
-    }
+      : {})
   },
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/views/${ctx.viewName}/count`]: {
-    parameters: [
-      {
-        schema: {
-          type: 'string'
-        },
-        name: 'viewName',
-        in: 'path',
-        required: true
-      }
-    ],
     get: {
-      summary: 'Table view rows count',
-      operationId: 'db-view-row-count',
+      summary: `${ctx.viewName} count`,
+      operationId: `${ctx.tableName}-${ctx.viewName}-row-count`,
       description: '',
-      tags: ['DB view row'],
-      parameters: [
-        {
-          schema: {
-            type: 'string'
+      tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`],
+      parameters: [whereParam],
+      responses: {
+        '200': {
+          description: 'OK',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  count: 'number'
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  ...(ctx.type === ModelTypes.TABLE
+    ? {
+        [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/views/${ctx.viewName}/{rowId}`]: {
+          parameters: [rowIdParam],
+          get: {
+            summary: `${ctx.viewName} read`,
+            operationId: `${ctx.tableName}-${ctx.viewName}-row-read`,
+            responses: {
+              '200': {
+                description: 'Created',
+                content: {
+                  'application/json': {
+                    schema: {
+                      $ref: `#/components/schemas/${ctx.tableName}${ctx.viewName}GridResponse`
+                    }
+                  }
+                }
+              }
+            },
+            description: '',
+            tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`]
           },
-          in: 'query',
-          name: 'where',
-          description:
-            'This can be used for filtering rows, which accepts complicated where conditions. For more info visit [here](https://docs.nocodb.com/developer-resources/rest-apis#comparison-operators)',
-          example: '(field1,eq,value)'
-        }
-      ],
-      responses: {
-        '200': {
-          description: 'OK',
-          content: {
-            'application/json': {
-              schema: {}
+          patch: {
+            summary: `${ctx.viewName} update`,
+            operationId: `${ctx.tableName}-${ctx.viewName}-row-update`,
+            responses: {
+              '200': {
+                description: 'OK',
+                content: {
+                  'application/json': {
+                    schema: {}
+                  }
+                }
+              }
+            },
+            tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`],
+            requestBody: {
+              content: {
+                'application/json': {
+                  schema: {
+                    $ref: `#/components/schemas/${ctx.tableName}${ctx.viewName}GridRequest`
+                  }
+                }
+              }
             }
+          },
+          delete: {
+            summary: `${ctx.viewName} delete`,
+            operationId: `${ctx.tableName}-${ctx.viewName}-row-delete`,
+            responses: {
+              '200': {
+                description: 'OK'
+              }
+            },
+            tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`],
+            description: ''
           }
         }
       }
-    }
-  },
-  [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/views/${ctx.viewName}/{rowId}`]: {
-    parameters: [
-      {
-        schema: {
-          type: 'string'
-        },
-        name: 'viewName',
-        in: 'path',
-        required: true
-      },
-      {
-        schema: {
-          type: 'string'
-        },
-        name: 'rowId',
-        in: 'path',
-        required: true
-      }
-    ],
-    get: {
-      summary: 'Table view row read',
-      operationId: 'db-view-row-read',
-      responses: {
-        '201': {
-          description: 'Created',
-          content: {
-            'application/json': {
-              schema: {}
-            }
-          }
-        }
-      },
-      description: '',
-      tags: ['DB view row']
-    },
-    patch: {
-      summary: 'Table view row update',
-      operationId: 'db-view-row-update',
-      responses: {
-        '200': {
-          description: 'OK',
-          content: {
-            'application/json': {
-              schema: {}
-            }
-          }
-        }
-      },
-      tags: ['DB view row'],
-      requestBody: {
-        content: {
-          'application/json': {
-            schema: {}
-          }
-        }
-      }
-    },
-    delete: {
-      summary: 'Table view row delete',
-      operationId: 'db-view-row-delete',
-      responses: {
-        '200': {
-          description: 'OK'
-        }
-      },
-      tags: ['DB view row'],
-      description: ''
-    }
-  },
+    : {}),
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/views/${ctx.viewName}/export/{type}`]: {
-    parameters: [
-      {
-        schema: {
-          type: 'string'
-        },
-        name: 'viewName',
-        in: 'path',
-        required: true
-      },
-      {
-        schema: {
-          type: 'string',
-          enum: ['csv', 'excel']
-        },
-        name: 'type',
-        in: 'path',
-        required: true
-      }
-    ],
+    parameters: [exportTypeParam],
     get: {
-      summary: 'Table view rows export',
-      operationId: 'db-view-row-export',
+      summary: `${ctx.viewName} export`,
+      operationId: `${ctx.tableName}-${ctx.viewName}-row-export`,
       description: 'CSV or Excel export',
-      tags: ['DB view row'],
+      tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`],
       wrapped: true,
       responses: {
         '200': {
@@ -641,13 +571,7 @@ export const viewPaths = (ctx: {
               schema: {}
             }
           },
-          headers: {
-            'nc-export-offset': {
-              schema: {
-                type: 'integer'
-              }
-            }
-          }
+          headers: csvExportResponseHeader
         }
       },
       parameters: []
@@ -657,14 +581,17 @@ export const viewPaths = (ctx: {
 
 function getPaginatedResponseType(type: string) {
   return {
-    list: {
-      type: 'array',
-      items: {
-        $ref: `#/components/schemas/${type}`
+    type: 'object',
+    properties: {
+      list: {
+        type: 'array',
+        items: {
+          $ref: `#/components/schemas/${type}`
+        }
+      },
+      PageInfo: {
+        $ref: `#/components/schemas/Paginated`
       }
-    },
-    PageInfo: {
-      $ref: `#/components/schemas/Paginated`
     }
   };
 }

@@ -443,6 +443,7 @@ const mapRoutes = router => {
   );
   router.post('/auth/token/refresh', ncMetaAclMw(refreshToken, 'refreshToken'));
 
+  // new API
   router.post('/api/v1/db/auth/user/signup', catchError(signup));
   router.post('/api/v1/db/auth/user/signin', catchError(signin));
   router.get(
@@ -464,7 +465,7 @@ const mapRoutes = router => {
     catchError(emailVerification)
   );
   router.post(
-    '/user/password/change',
+    '/api/v1/db/auth/password/change',
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
   router.post(

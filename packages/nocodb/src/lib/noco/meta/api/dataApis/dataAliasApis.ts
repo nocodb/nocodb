@@ -13,6 +13,11 @@ async function dataList(req: Request, res: Response) {
   res.json(await getDataList(model, view, req));
 }
 
+async function dataFindOne(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+  res.json(await getDataList(model, view, req, true));
+}
+
 async function dataCount(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -72,7 +77,7 @@ async function dataDelete(req: Request, res: Response) {
 
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
 }
-async function getDataList(model, view: View, req) {
+async function getDataList(model, view: View, req, findOne = false) {
   const base = await Base.get(model.base_id);
 
   const baseModel = await Model.getBaseModelSQL({
@@ -91,6 +96,10 @@ async function getDataList(model, view: View, req) {
     listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
   } catch (e) {}
 
+  if (findOne) {
+    listArgs.limit = 1;
+  }
+
   const data = await nocoExecute(
     requestObj,
     await baseModel.list(listArgs),
@@ -98,11 +107,9 @@ async function getDataList(model, view: View, req) {
     listArgs
   );
 
-  const count = await baseModel.count(listArgs);
-
   return new PagedResponseImpl(data, {
     ...req.query,
-    count
+    count: data.length
   });
 }
 
@@ -136,6 +143,11 @@ router.get(
 );
 
 router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/find-one',
+  ncMetaAclMw(dataFindOne, 'dataFindOne')
+);
+
+router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/count',
   ncMetaAclMw(dataCount, 'dataCount')
 );
@@ -166,6 +178,11 @@ router.get(
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
   ncMetaAclMw(dataList, 'dataList')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/find-one',
+  ncMetaAclMw(dataFindOne, 'dataFindOne')
 );
 
 router.post(

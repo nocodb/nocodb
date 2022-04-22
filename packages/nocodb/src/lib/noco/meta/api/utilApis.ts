@@ -12,7 +12,7 @@ import axios from 'axios';
 export async function testConnection(req: Request, res: Response) {
   res.json(await SqlMgrv2.testConnection(req.body));
 }
-export async function appInfo(_req: Request, res: Response) {
+export async function appInfo(req: Request, res: Response) {
   const projectHasAdmin = !(await User.isFirst());
   const result = {
     authType: 'jwt',
@@ -38,17 +38,24 @@ export async function appInfo(_req: Request, res: Response) {
     ),
     timezone: defaultConnectionConfig.timezone,
     ncMin: !!process.env.NC_MIN,
-    teleEnabled: !process.env.NC_DISABLE_TELE
+    teleEnabled: !process.env.NC_DISABLE_TELE,
+    ncSiteUrl: (req as any).ncSiteUrl
   };
 
   res.json(result);
 }
 
 export async function releaseVersion(_req: Request, res: Response) {
-  const result = await axios.get('https://github.com/nocodb/nocodb/releases/latest')
-    .then((response) => {
-      return { releaseVersion: response.request.res.responseUrl.replace('https://github.com/nocodb/nocodb/releases/tag/', '') }
-    })
+  const result = await axios
+    .get('https://github.com/nocodb/nocodb/releases/latest')
+    .then(response => {
+      return {
+        releaseVersion: response.request.res.responseUrl.replace(
+          'https://github.com/nocodb/nocodb/releases/tag/',
+          ''
+        )
+      };
+    });
 
   res.json(result);
 }

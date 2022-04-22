@@ -31,8 +31,7 @@ export const fieldsParam = {
   in: 'query',
   name: 'fields',
   description:
-    'Array of field names or comma separated filed names to include in the response objects. In array syntax pass it like `fields[]=field1&fields[]=field2`.',
-  example: 'field1,field2'
+    'Array of field names or comma separated filed names to include in the response objects. In array syntax pass it like `fields[]=field1&fields[]=field2` or alternately `fields=field1,field2`.'
 };
 export const sortParam = {
   schema: {
@@ -41,8 +40,7 @@ export const sortParam = {
   in: 'query',
   name: 'sort',
   description:
-    'Comma separated field names to sort rows, rows will sort in ascending order based on provided columns. To sort in descending order provide `-` prefix along with column name, like `-field`',
-  example: 'field1,-field2'
+    'Comma separated field names to sort rows, rows will sort in ascending order based on provided columns. To sort in descending order provide `-` prefix along with column name, like `-field`. Example : `sort=field1,-field2`'
 };
 export const whereParam = {
   schema: {
@@ -51,8 +49,7 @@ export const whereParam = {
   in: 'query',
   name: 'where',
   description:
-    'This can be used for filtering rows, which accepts complicated where conditions. For more info visit [here](https://docs.nocodb.com/developer-resources/rest-apis#comparison-operators)',
-  example: '(field1,eq,value)'
+    'This can be used for filtering rows, which accepts complicated where conditions. For more info visit [here](https://docs.nocodb.com/developer-resources/rest-apis#comparison-operators). Example : `where=(field1,eq,value)`'
 };
 export const limitParam = {
   schema: {
@@ -63,7 +60,7 @@ export const limitParam = {
   name: 'limit',
   description:
     'The `limit` parameter used for pagination, the response collection size depends on limit value and default value is `25`.',
-  example: '25'
+  example: 25
 };
 export const offsetParam = {
   schema: {
@@ -132,8 +129,7 @@ export const nestedWhereParam = colName => ({
   },
   in: 'query',
   name: `nested[${colName}][where]`,
-  description: `This can be used for filtering rows in nested column \`${colName}\`, which accepts complicated where conditions. For more info visit [here](https://docs.nocodb.com/developer-resources/rest-apis#comparison-operators)`,
-  example: '(field1,eq,value)'
+  description: `This can be used for filtering rows in nested column \`${colName}\`, which accepts complicated where conditions. For more info visit [here](https://docs.nocodb.com/developer-resources/rest-apis#comparison-operators). Example : \`nested[${colName}][where]=(field1,eq,value)\``
 });
 
 export const nestedFieldParam = colName => ({
@@ -142,8 +138,7 @@ export const nestedFieldParam = colName => ({
   },
   in: 'query',
   name: `nested[${colName}][fields]`,
-  description: `Array of field names or comma separated filed names to include in the in nested column \`${colName}\` result. In array syntax pass it like \`fields[]=field1&fields[]=field2.\``,
-  example: 'field1,field2'
+  description: `Array of field names or comma separated filed names to include in the in nested column \`${colName}\` result. In array syntax pass it like \`fields[]=field1&fields[]=field2.\`. Example : \`nested[${colName}][fields]=field1,field2\``
 });
 export const nestedSortParam = colName => ({
   schema: {
@@ -151,8 +146,7 @@ export const nestedSortParam = colName => ({
   },
   in: 'query',
   name: `nested[${colName}][sort]`,
-  description: `Comma separated field names to sort rows in nested column \`${colName}\` rows, it will sort in ascending order based on provided columns. To sort in descending order provide \`-\` prefix along with column name, like \`-field\``,
-  example: 'field1,-field2'
+  description: `Comma separated field names to sort rows in nested column \`${colName}\` rows, it will sort in ascending order based on provided columns. To sort in descending order provide \`-\` prefix along with column name, like \`-field\`. Example : \`nested[${colName}][sort]=field1,-field2\``
 });
 export const nestedLimitParam = colName => ({
   schema: {

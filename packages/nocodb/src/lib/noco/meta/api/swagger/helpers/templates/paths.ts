@@ -140,7 +140,8 @@ export const getModelPaths = async (ctx: {
               }
             },
             tags: [ctx.tableName],
-            description: ''
+            description:
+              'Delete a row by using the **primary key** column value.'
           }
         }
       : {})
@@ -390,7 +391,8 @@ export const getModelPaths = async (ctx: {
     get: {
       summary: 'Rows export',
       operationId: `${ctx.tableName.toLowerCase()}-csv-export`,
-      description: 'Export all the records from a',
+      description:
+        'Export all the records from a table.Currently we are only supports `csv` export.',
       tags: [ctx.tableName],
       wrapped: true,
       responses: {
@@ -446,6 +448,8 @@ export const getViewPaths = async (ctx: {
       ? {
           post: {
             summary: `${ctx.viewName} create`,
+            description:
+              'Insert a new row in table by providing a key value pair object where key refers to the column alias. All the required fields should be included with payload excluding `autoincrement` and column with default value.',
             operationId: `${ctx.tableName}-${ctx.viewName}-row-create`,
             responses: {
               '200': {
@@ -501,6 +505,8 @@ export const getViewPaths = async (ctx: {
           parameters: [rowIdParam],
           get: {
             summary: `${ctx.viewName} read`,
+            description:
+              'Read a row data by using the **primary key** column value.',
             operationId: `${ctx.tableName}-${ctx.viewName}-row-read`,
             responses: {
               '200': {
@@ -514,11 +520,12 @@ export const getViewPaths = async (ctx: {
                 }
               }
             },
-            description: '',
             tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`]
           },
           patch: {
             summary: `${ctx.viewName} update`,
+            description:
+              'Partial update row in table by providing a key value pair object where key refers to the column alias. You need to only include columns which you want to update.',
             operationId: `${ctx.tableName}-${ctx.viewName}-row-update`,
             responses: {
               '200': {
@@ -550,7 +557,8 @@ export const getViewPaths = async (ctx: {
               }
             },
             tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`],
-            description: ''
+            description:
+              'Delete a row by using the **primary key** column value.'
           }
         }
       }
@@ -560,7 +568,8 @@ export const getViewPaths = async (ctx: {
     get: {
       summary: `${ctx.viewName} export`,
       operationId: `${ctx.tableName}-${ctx.viewName}-row-export`,
-      description: 'CSV or Excel export',
+      description:
+        'Export all the records from a table view. Currently we are only supports `csv` export.',
       tags: [`${ctx.viewName} ( ${ctx.tableName} grid )`],
       wrapped: true,
       responses: {

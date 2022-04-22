@@ -15,7 +15,7 @@ async function dataList(req: Request, res: Response) {
 
 async function dataFindOne(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  res.json(await getDataList(model, view, req, true));
+  res.json(await getFindOne(model, view, req));
 }
 
 async function dataCount(req: Request, res: Response) {
@@ -77,7 +77,7 @@ async function dataDelete(req: Request, res: Response) {
 
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
 }
-async function getDataList(model, view: View, req, findOne = false) {
+async function getDataList(model, view: View, req) {
   const base = await Base.get(model.base_id);
 
   const baseModel = await Model.getBaseModelSQL({
@@ -96,10 +96,6 @@ async function getDataList(model, view: View, req, findOne = false) {
     listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
   } catch (e) {}
 
-  if (findOne) {
-    listArgs.limit = 1;
-  }
-
   const data = await nocoExecute(
     requestObj,
     await baseModel.list(listArgs),
@@ -107,10 +103,37 @@ async function getDataList(model, view: View, req, findOne = false) {
     listArgs
   );
 
+  const count = await baseModel.count(listArgs);
+
   return new PagedResponseImpl(data, {
     ...req.query,
-    count: data.length
+    count
   });
+}
+
+async function getFindOne(model, view: View, req) {
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base)
+  });
+
+  const args: any = { ...req.query };
+  try {
+    args.filterArr = JSON.parse(args.filterArrJson);
+  } catch (e) {}
+  try {
+    args.sortArr = JSON.parse(args.sortArrJson);
+  } catch (e) {}
+
+  return await nocoExecute(
+    await baseModel.defaultResolverReq(),
+    await baseModel.findOne(args),
+    {},
+    {}
+  );
 }
 
 async function dataRead(req: Request, res: Response) {

@@ -97,23 +97,26 @@ export default {
   beforeDestroy() {
   },
   methods: {
-
     onNormalVerify() {
       this.recpatcha = true
     },
-
     async resetPasswordHandle(e) {
       if (this.$refs.formType.validate()) {
         e.preventDefault()
         // await this.$recaptchaLoaded()
         // const recaptchaToken = await this.$recaptcha('login')
-
-        const err = await this.$store.dispatch('users/ActPasswordForgot', { ...this.form })// recaptchaToken});
-        if (err) {
-          this.formUtil.formErr = true
-          this.formUtil.formErrMsg = err.data.msg
-        } else {
+        try {
+          await this.$api.auth.passwordForgot(
+            {
+              email: this.form.email
+            }
+          )
           this.showMsg = true
+        } catch (e) {
+          const err = await this._extractSdkResponseErrorMsg(e)
+          this.formUtil.formErr = true
+          this.formUtil.formErrMsg = err
+          return;
         }
       }
     }

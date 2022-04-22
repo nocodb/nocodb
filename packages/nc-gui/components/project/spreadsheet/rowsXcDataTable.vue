@@ -654,7 +654,6 @@
     <additional-features
       v-model="showAddFeatOverlay"
       :selected-view="selectedView"
-      :delete-table="deleteTable"
       :nodes="nodes"
       :type="featureType"
       :table="table"
@@ -720,7 +719,6 @@ export default {
     relationIdValue: [String, Number],
     refTable: String,
     relationPrimaryValue: [String, Number],
-    deleteTable: Function,
     showTabs: [Boolean, Number]
   },
   data: () => ({
@@ -885,22 +883,6 @@ export default {
     },
     loadPrev() {
       this.selectedExpandRowIndex = --this.selectedExpandRowIndex === -1 ? this.data.length - 1 : this.selectedExpandRowIndex
-    },
-    async checkAndDeleteTable() {
-      // if (
-      //   !this.meta || (
-      //     (this.meta.hasMany && this.meta.hasMany.length) ||
-      //     (this.meta.manyToMany && this.meta.manyToMany.length) ||
-      //     (this.meta.belongsTo && this.meta.belongsTo.length))
-      // ) {
-      //   return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
-      // }
-      this.deleteTable('showDialog', this.meta.id)
-
-      // if (confirm('Do you want to delete the table?')) {
-      //   await this.$api.meta.tableDelete(this.meta.id)
-      // }
-      this.$tele.emit('table:delete:trigger')
     },
     async reloadClick() {
       await this.reload()

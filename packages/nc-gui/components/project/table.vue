@@ -33,33 +33,23 @@
               :nodes="nodes"
               :new-table="newTableCopy"
               :mtd-new-table-update="mtdNewTableUpdate"
-              :delete-table="deleteTable"
               :is-meta-table="isMetaTable"
             />
           </v-tab-item>
         </template>
       </v-tabs>
     </template>
-    <dlgLabelSubmitCancel
-      v-if="dialogShow"
-      type="error"
-      :actions-mtd="deleteTable"
-      :dialog-show="dialogShow"
-      heading="Click Submit to Delete the Table"
-    />
   </v-container>
 </template>
 
 <script>
 import { mapActions } from 'vuex'
-import dlgLabelSubmitCancel from '../utils/dlgLabelSubmitCancel'
 import { isMetaTable } from '@/helpers/xutils'
 import RowsXcDataTable from '@/components/project/spreadsheet/rowsXcDataTable'
 
 export default {
   components: {
-    RowsXcDataTable,
-    dlgLabelSubmitCancel
+    RowsXcDataTable
   },
   data() {
     return {

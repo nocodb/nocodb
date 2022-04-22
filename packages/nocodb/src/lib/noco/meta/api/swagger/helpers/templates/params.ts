@@ -74,7 +74,7 @@ export const offsetParam = {
   name: 'offset',
   description:
     'The `offset` parameter used for pagination, the value helps to select collection from a certain index.',
-  example: '25'
+  example: 0
 };
 
 export const columnNameParam = {
@@ -114,7 +114,7 @@ export const csvExportOffsetParam = {
   name: 'offset',
   description:
     'Helps to start export from a certain index. You can get the next set of data offset from previous response header named `nc-export-offset`.',
-  example: '25'
+  example: 0
 };
 
 export const nestedWhereParam = colName => ({
@@ -163,7 +163,7 @@ export const nestedOffsetParam = colName => ({
   in: 'query',
   name: `nested[${colName}][offset]`,
   description: `The \`offset\` parameter used for pagination  of nested \`${colName}\` rows, the value helps to select collection from a certain index.`,
-  example: '25'
+  example: 0
 });
 
 export const getNestedParams = async (

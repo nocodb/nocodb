@@ -15,6 +15,7 @@ export default async function getSwaggerJSON(
     ...swaggerBase,
     paths: {},
     components: {
+      ...swaggerBase.components,
       schemas: { ...swaggerBase.components.schemas }
     }
   };

@@ -1,13 +1,10 @@
+import { SwaggerColumn } from '../getSwaggerColumnMetas';
+
 export default (ctx: {
   tableName: string;
   orgs: string;
   projectName: string;
-  columns: Array<{
-    type: any;
-    title: string;
-    description?: string;
-    virtual?: boolean;
-  }>;
+  columns: Array<SwaggerColumn>;
 }) => ({
   [`${ctx.tableName}Response`]: {
     title: `${ctx.tableName} Response`,
@@ -16,7 +13,7 @@ export default (ctx: {
     'x-internal': false,
     properties: {
       ...(ctx.columns?.reduce(
-        (colsObj, { title, virtual, ...fieldProps }) => ({
+        (colsObj, { title, virtual, column, ...fieldProps }) => ({
           ...colsObj,
           [title]: fieldProps
         }),
@@ -31,7 +28,7 @@ export default (ctx: {
     'x-internal': false,
     properties: {
       ...(ctx.columns?.reduce(
-        (colsObj, { title, virtual, ...fieldProps }) => ({
+        (colsObj, { title, virtual, column, ...fieldProps }) => ({
           ...colsObj,
           ...(virtual
             ? {}

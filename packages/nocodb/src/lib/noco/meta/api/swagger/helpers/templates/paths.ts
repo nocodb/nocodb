@@ -4,6 +4,7 @@ import {
   csvExportOffsetParam,
   exportTypeParam,
   fieldsParam,
+  getNestedParams,
   limitParam,
   offsetParam,
   referencedRowIdParam,
@@ -13,20 +14,29 @@ import {
   whereParam
 } from './params';
 import { csvExportResponseHeader } from './headers';
+import { SwaggerColumn } from '../getSwaggerColumnMetas';
 
-export default (ctx: {
+export default async (ctx: {
   tableName: string;
   orgs: string;
   type: ModelTypes;
+  columns: SwaggerColumn[];
   projectName: string;
-}): any => ({
+}): Promise<{ [path: string]: any }> => ({
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}`]: {
     get: {
       summary: `Row list`,
       operationId: 'db-table-row-list',
       description: `List of all rows from ${ctx.tableName} ${ctx.type} and data of fields can be filtered based on query params.`,
       tags: [ctx.tableName],
-      parameters: [fieldsParam, sortParam, whereParam, limitParam, offsetParam],
+      parameters: [
+        fieldsParam,
+        sortParam,
+        whereParam,
+        limitParam,
+        offsetParam,
+        ...(await getNestedParams(ctx.columns))
+      ],
       responses: {
         '200': {
           description: 'OK',

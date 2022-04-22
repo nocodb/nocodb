@@ -1,3 +1,7 @@
+import { SwaggerColumn } from '../getSwaggerColumnMetas';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
+import LinkToAnotherRecordColumn from '../../../../../../noco-models/LinkToAnotherRecordColumn';
+
 export const rowIdParam = {
   schema: {
     type: 'string'
@@ -5,7 +9,7 @@ export const rowIdParam = {
   name: 'rowId',
   in: 'path',
   required: true,
-  example: ['1'],
+  example: 1,
   description:
     'Primary key of the record you want to read. If the table have composite primary key then combine them by using `___` and pass it as primary key.'
 };
@@ -22,7 +26,7 @@ export const relationTypeParam = {
 
 export const fieldsParam = {
   schema: {
-    type: 'array'
+    type: 'string'
   },
   in: 'query',
   name: 'fields',
@@ -32,7 +36,7 @@ export const fieldsParam = {
 };
 export const sortParam = {
   schema: {
-    type: 'array'
+    type: 'string'
   },
   in: 'query',
   name: 'sort',
@@ -111,4 +115,75 @@ export const csvExportOffsetParam = {
   description:
     'Helps to start export from a certain index. You can get the next set of data offset from previous response header named `nc-export-offset`.',
   example: '25'
+};
+
+export const nestedWhereParam = colName => ({
+  schema: {
+    type: 'string'
+  },
+  in: 'query',
+  name: `nested[${colName}][where]`,
+  description: `This can be used for filtering rows in nested column \`${colName}\`, which accepts complicated where conditions. For more info visit [here](https://docs.nocodb.com/developer-resources/rest-apis#comparison-operators)`,
+  example: '(field1,eq,value)'
+});
+
+export const nestedFieldParam = colName => ({
+  schema: {
+    type: 'string'
+  },
+  in: 'query',
+  name: `nested[${colName}][fields]`,
+  description: `Array of field names or comma separated filed names to include in the in nested column \`${colName}\` result. In array syntax pass it like \`fields[]=field1&fields[]=field2.\``,
+  example: 'field1,field2'
+});
+export const nestedSortParam = colName => ({
+  schema: {
+    type: 'string'
+  },
+  in: 'query',
+  name: `nested[${colName}][sort]`,
+  description: `Comma separated field names to sort rows in nested column \`${colName}\` rows, it will sort in ascending order based on provided columns. To sort in descending order provide \`-\` prefix along with column name, like \`-field\``,
+  example: 'field1,-field2'
+});
+export const nestedLimitParam = colName => ({
+  schema: {
+    type: 'number',
+    minimum: 1
+  },
+  in: 'query',
+  name: `nested[${colName}][limit]`,
+  description: `The \`limit\` parameter used for pagination of nested \`${colName}\` rows, the response collection size depends on limit value and default value is \`25\`.`,
+  example: '25'
+});
+export const nestedOffsetParam = colName => ({
+  schema: {
+    type: 'number',
+    minimum: 0
+  },
+  in: 'query',
+  name: `nested[${colName}][offset]`,
+  description: `The \`offset\` parameter used for pagination  of nested \`${colName}\` rows, the value helps to select collection from a certain index.`,
+  example: '25'
+});
+
+export const getNestedParams = async (
+  columns: SwaggerColumn[]
+): Promise<any[]> => {
+  return await columns.reduce(async (paramsArr, { column }) => {
+    if (column.uidt === UITypes.LinkToAnotherRecord) {
+      const colOpt = await column.getColOptions<LinkToAnotherRecordColumn>();
+      if (colOpt.type !== RelationTypes.BELONGS_TO) {
+        return [
+          ...(await paramsArr),
+          nestedWhereParam(column.title),
+          nestedOffsetParam(column.title),
+          nestedLimitParam(column.title),
+          nestedFieldParam(column.title),
+          nestedSortParam(column.title)
+        ];
+      }
+    }
+
+    return paramsArr;
+  }, Promise.resolve([]));
 };

@@ -47,7 +47,7 @@ export default {
   name: 'JsonEditableCell',
   components: { MonacoJsonObjectEditor },
   props: {
-    value: String,
+    value: [String, Object],
     isForm: Boolean
   },
   data: () => ({

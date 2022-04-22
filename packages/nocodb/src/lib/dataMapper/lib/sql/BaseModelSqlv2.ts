@@ -1283,7 +1283,7 @@ class BaseModelSqlv2 {
       const response = await this.dbDriver(this.tnPath)
         .del()
         .where(await this._wherePk(id));
-      await this.afterDelete(response, trx, cookie);
+      await this.afterDelete(id, trx, cookie);
       return response;
     } catch (e) {
       console.log(e);
@@ -1702,9 +1702,8 @@ class BaseModelSqlv2 {
     await this.handleHooks('Before.delete', data, req);
   }
 
-  public async afterDelete(data: any, _trx: any, req): Promise<void> {
+  public async afterDelete(id: any, _trx: any, req): Promise<void> {
     // if (req?.headers?.['xc-gui']) {
-    const id = req?.params?.id;
     Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
@@ -1716,7 +1715,7 @@ class BaseModelSqlv2 {
       user: req?.user?.email
     });
     // }
-    await this.handleHooks('After.delete', data, req);
+    await this.handleHooks('After.delete', id, req);
   }
 
   private async handleHooks(hookName, data, req): Promise<void> {

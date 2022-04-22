@@ -215,6 +215,7 @@ export function _editComment(roleType, previewMode) {
 export function _viewMenu(roleType, previewMode) {
     let columnName = "City";
     let navDrawListCnt = 1;
+    // Download CSV
     let actionsMenuItemsCnt = 1;
 
     cy.openTableTab(columnName, 25);
@@ -231,7 +232,11 @@ export function _viewMenu(roleType, previewMode) {
     // Owner, Creator will have two navigation drawer (on each side of center panel)
     if (roleType == "owner" || roleType == "creator") {
         navDrawListCnt = 2;
+        // Download CSV / Upload CSV / Shared View List / Webhook
         actionsMenuItemsCnt = 4;
+    } else if (roleType == "editor") {
+        // Download CSV / Upload CSV 
+        actionsMenuItemsCnt = 2;
     }
 
     cy.get(".v-navigation-drawer__content")

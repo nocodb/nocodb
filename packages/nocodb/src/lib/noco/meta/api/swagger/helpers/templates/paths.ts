@@ -1,4 +1,4 @@
-import { ModelTypes } from 'nocodb-sdk';
+import { ModelTypes, UITypes } from 'nocodb-sdk';
 import {
   columnNameParam,
   csvExportOffsetParam,
@@ -294,85 +294,98 @@ export default async (ctx: {
             }
           }
         },
-        [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}`]: {
-          parameters: [rowIdParam, relationTypeParam, columnNameParam],
-          get: {
-            summary: 'Relation row list',
-            operationId: `${ctx.tableName.toLowerCase()}-nested-list`,
-            responses: {
-              '200': {
-                description: 'OK',
-                content: {
-                  'application/json': {
-                    schema: {}
-                  }
+
+        ...(isRelationExist(ctx.columns)
+          ? {
+              [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}`]: {
+                parameters: [
+                  rowIdParam,
+                  relationTypeParam,
+                  columnNameParam(ctx.columns)
+                ],
+                get: {
+                  summary: 'Relation row list',
+                  operationId: `${ctx.tableName.toLowerCase()}-nested-list`,
+                  responses: {
+                    '200': {
+                      description: 'OK',
+                      content: {
+                        'application/json': {
+                          schema: {}
+                        }
+                      }
+                    }
+                  },
+                  tags: [ctx.tableName],
+                  parameters: [limitParam, offsetParam]
+                }
+              },
+              [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/{refRowId}`]: {
+                parameters: [
+                  rowIdParam,
+                  relationTypeParam,
+                  columnNameParam(ctx.columns),
+                  referencedRowIdParam
+                ],
+                post: {
+                  summary: 'Relation row add',
+                  operationId: `${ctx.tableName.toLowerCase()}-nested-add`,
+                  responses: {
+                    '200': {
+                      description: 'OK',
+                      content: {
+                        'application/json': {
+                          schema: {}
+                        }
+                      }
+                    }
+                  },
+                  tags: [ctx.tableName],
+                  parameters: [limitParam, offsetParam],
+                  description: ''
+                },
+                delete: {
+                  summary: 'Relation row remove',
+                  operationId: `${ctx.tableName.toLowerCase()}-nested-remove`,
+                  responses: {
+                    '200': {
+                      description: 'OK',
+                      content: {
+                        'application/json': {
+                          schema: {}
+                        }
+                      }
+                    }
+                  },
+                  tags: [ctx.tableName]
+                }
+              },
+              [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/exclude`]: {
+                parameters: [
+                  rowIdParam,
+                  relationTypeParam,
+                  columnNameParam(ctx.columns)
+                ],
+                get: {
+                  summary:
+                    'Referenced tables rows excluding current records children/parent',
+                  operationId: `${ctx.tableName.toLowerCase()}-nested-children-excluded-list`,
+                  responses: {
+                    '200': {
+                      description: 'OK',
+                      content: {
+                        'application/json': {
+                          schema: {}
+                        }
+                      }
+                    }
+                  },
+                  tags: [ctx.tableName],
+                  parameters: [limitParam, offsetParam]
                 }
               }
-            },
-            tags: [ctx.tableName],
-            parameters: [limitParam, offsetParam]
-          }
-        },
-        [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/{refRowId}`]: {
-          parameters: [
-            rowIdParam,
-            relationTypeParam,
-            columnNameParam,
-            referencedRowIdParam
-          ],
-          post: {
-            summary: 'Relation row add',
-            operationId: `${ctx.tableName.toLowerCase()}-nested-add`,
-            responses: {
-              '200': {
-                description: 'OK',
-                content: {
-                  'application/json': {
-                    schema: {}
-                  }
-                }
-              }
-            },
-            tags: [ctx.tableName],
-            parameters: [limitParam, offsetParam],
-            description: ''
-          },
-          delete: {
-            summary: 'Relation row remove',
-            operationId: `${ctx.tableName.toLowerCase()}-nested-remove`,
-            responses: {
-              '200': {
-                description: 'OK',
-                content: {
-                  'application/json': {
-                    schema: {}
-                  }
-                }
-              }
-            },
-            tags: [ctx.tableName]
-          }
-        },
-        [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/{rowId}/{relationType}/{columnName}/exclude`]: {
-          parameters: [rowIdParam, relationTypeParam, columnNameParam],
-          get: {
-            summary:
-              'Referenced tables rows excluding current records children/parent',
-            operationId: `${ctx.tableName.toLowerCase()}-nested-children-excluded-list`,
-            responses: {
-              '200': {
-                description: 'OK',
-                content: {
-                  'application/json': {
-                    schema: {}
-                  }
-                }
-              }
-            },
-            tags: [ctx.tableName],
-            parameters: [limitParam, offsetParam]
-          }
-        }
+            }
+          : {})
       }
     : {}),
   [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/export/{type}`]: {
@@ -654,4 +667,9 @@ function getPaginatedResponseType(type: string) {
       $ref: `#/components/schemas/Paginated`
     }
   };
+}
+function isRelationExist(columns: SwaggerColumn[]) {
+  return columns.some(
+    c => c.column.uidt === UITypes.LinkToAnotherRecord && !c.column.system
+  );
 }

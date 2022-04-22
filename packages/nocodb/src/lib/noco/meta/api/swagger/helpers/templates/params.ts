@@ -77,13 +77,22 @@ export const offsetParam = {
   example: 0
 };
 
-export const columnNameParam = {
-  schema: {
-    type: 'string'
-  },
-  name: 'columnName',
-  in: 'path',
-  required: true
+export const columnNameParam = (columns: SwaggerColumn[]) => {
+  const columnNames = [];
+  for (const { column } of columns) {
+    if (column.uidt !== UITypes.LinkToAnotherRecord || column.system) continue;
+    columnNames.push(column.title);
+  }
+
+  return {
+    schema: {
+      type: 'enum',
+      enum: columnNames
+    },
+    name: 'columnName',
+    in: 'path',
+    required: true
+  };
 };
 
 export const referencedRowIdParam = {

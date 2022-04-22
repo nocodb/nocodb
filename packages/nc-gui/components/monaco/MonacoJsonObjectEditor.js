@@ -37,7 +37,7 @@ export default {
   },
   watch: {
     value(newVal) {
-      if (!this.deepcompare(newVal, JSON.parse(this.editor.getValue())))
+      if (this.editor && !this.deepcompare(newVal, JSON.parse(this.editor.getValue())))
         this.editor.setValue(JSON.stringify(newVal, 0, 2));
 
     }

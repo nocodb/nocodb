@@ -2,10 +2,13 @@ const Api = require('nocodb-sdk').Api;
 const jsonfile = require('jsonfile');
 const { UITypes } = require('nocodb-sdk');
 
+// apiKey & baseID configurations required to read data using Airtable APIs
+//
 const syncDB = {
   airtable: {
     apiKey: 'keyeZla3k0desT8fU',
-    baseId: 'appb8CCITtLXZsYqV'
+    // baseId: 'appb8CCITtLXZsYqV',
+    baseId: 'appNGAcKwq7eq0xuY'
   }
 };
 
@@ -241,15 +244,17 @@ let base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
 );
 
 async function nocoReadData(table) {
+
   base(table.title)
     .select({
-      pageSize: 2,
-      maxRecords: 2,
+      pageSize: 25,
+      // maxRecords: 100,
       view: 'Grid view'
     })
     .eachPage(
       function page(records, fetchNextPage) {
-        // console.log(JSON.stringify(records, null, 2));
+        console.log(JSON.stringify(records, null, 2));
+
 
         // This function (`page`) will get called for each page of records.
         records.forEach(function(record) {
@@ -315,6 +320,7 @@ function nc_isLinkExists(atblFieldId) {
   return false;
 }
 
+// start function
 (async () => {
   // read schema file
   const schema = getAtableSchema();
@@ -325,7 +331,7 @@ function nc_isLinkExists(atblFieldId) {
     title: 'sample-4'
   });
 
-  // prepare table schema
+  // prepare table schema (basic)
   let ncTblSchema = await nocoCreateSchema(schema);
 
   // for each table schema, create nc table
@@ -372,7 +378,8 @@ function nc_isLinkExists(atblFieldId) {
                 : 'hm'
           });
 
-          // clean up
+          // store link information in separate table
+          // this information will be helpful in identifying relation pair
           let link = {
             nc: {
               title: aTblLinkColumns[i].name,
@@ -389,7 +396,13 @@ function nc_isLinkExists(atblFieldId) {
           ncLinkMappingTable.push(link);
         } else {
 
-          // extract associated link information
+          // if link already exists, we need to change name of linked column
+          // to what is represented in airtable
+
+          // 1. extract associated link information from link table
+          // 2. retrieve parent table information (source)
+          // 3. using foreign parent & child column ID, find associated mapping in child table
+          // 4. update column name
           let x = ncLinkMappingTable.findIndex(
             x =>
               x.aTbl.tblId === aTblLinkColumns[i].typeOptions.foreignTableId &&
@@ -410,6 +423,9 @@ function nc_isLinkExists(atblFieldId) {
 
           let childLinkColumn = {};
           if (parentLinkColumn.colOptions.type == 'hm') {
+            // for hm:
+            // mapping between child & parent column id is direct
+            //
             childLinkColumn = childTblSchema.columns.find(
               col =>
                 col.uidt === 'LinkToAnotherRecord' &&
@@ -419,6 +435,9 @@ function nc_isLinkExists(atblFieldId) {
                   parentLinkColumn.colOptions.fk_parent_column_id
             );
           } else {
+            // for mm:
+            // mapping between child & parent column id is inverted
+            //
             childLinkColumn = childTblSchema.columns.find(
               col =>
                 col.uidt === 'LinkToAnotherRecord' &&
@@ -429,6 +448,9 @@ function nc_isLinkExists(atblFieldId) {
             );
           }
 
+          // rename
+          // note that: current rename API requires us to send all parameters,
+          // not just title being renamed
           await api.dbTableColumn.update(childLinkColumn.id, {
             ...childLinkColumn,
             title: aTblLinkColumns[i].name
@@ -454,8 +476,6 @@ function nc_isLinkExists(atblFieldId) {
         let ncLookupColumn = await nc_getColumnSchema(
           aTblColumns[i].typeOptions.foreignTableRollupColumnId
         );
-
-        // console.log('xxx', ncRelationColumnId, ncLookupColumnId)
 
         let lookupColumn = await api.dbTableColumn.create(srcTableId, {
           uidt: 'Lookup',
@@ -497,10 +517,13 @@ function nc_isLinkExists(atblFieldId) {
 
   // await nc_DumpTableSchema();
 
-  // read data
-  // await nocoReadData(table)
+  let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id)
+  for(let i=0; i<ncTblList.list.length; i++) {
+    let ncTbl = await api.dbTable.read(ncTblList.list[i].id)
+    await nocoReadData(ncTbl)
+  }
 
-})().catch(e => {
+  })().catch(e => {
   console.log(e);
 });
 

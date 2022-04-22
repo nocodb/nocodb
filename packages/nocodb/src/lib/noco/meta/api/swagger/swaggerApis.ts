@@ -1,6 +1,6 @@
 // @ts-ignore
 import catchError from '../../helpers/catchError';
-import { Router } from 'express';
+import { Request, Router } from 'express';
 import Model from '../../../../noco-models/Model';
 import getSwaggerJSON from './helpers/getSwaggerJSON';
 import Project from '../../../../noco-models/Project';
@@ -19,7 +19,7 @@ async function swaggerJson(req, res) {
   res.json(swagger);
 }
 
-async function postmanJson(req, res) {
+async function postmanJson(req: Request, res) {
   const project = await Project.get(req.params.projectId);
   const models = await Model.list({
     project_id: req.params.project_id,
@@ -27,6 +27,12 @@ async function postmanJson(req, res) {
   });
 
   const swagger = await getSwaggerJSON(project, models);
+
+  swagger.servers = [
+    {
+      url: (req as any).ncSiteUrl
+    }
+  ];
 
   Converter.convert(
     { type: 'json', data: swagger },

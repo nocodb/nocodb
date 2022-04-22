@@ -168,13 +168,13 @@
                 >
                   <v-list-item-title>
                     <v-icon key="terminal-dash" small>
-                      mdi-graphql
+                      mdi-code-json
                     </v-icon>&nbsp;
                     <span class="font-weight-regular caption">
                       {{ "Swagger API Doc" }}</span>
                   </v-list-item-title>
                 </v-list-item>
-                <v-list-item
+                <!--                <v-list-item
                   v-t="['a:navbar:user:redoc']"
                   dense
                   @click.stop="
@@ -188,7 +188,7 @@
                     <span class="font-weight-regular caption">
                       {{ "Redoc API Doc" }}</span>
                   </v-list-item-title>
-                </v-list-item>
+                </v-list-item>-->
                 <v-divider />
                 <v-list-item
                   v-if="isDashboard"

@@ -119,7 +119,7 @@
     "express-graphql": "^0.11.0",
     "express-status-monitor": "^1.3.3",
     "extract-zip": "^2.0.1",
-    "fast-levenshtein": "^2.0.6",
+    "fastest-levenshtein": "^1.0.12",
     "fs-extra": "^9.0.1",
     "glob": "^7.1.6",
     "graphql": "^15.3.0",

@@ -129,7 +129,7 @@
 import { mapGetters } from 'vuex'
 import fakerFunctionList from '../../../helpers/fakerFunctionList'
 import dataTypeMapping from '../../../helpers/findDataTypeMapping'
-const levenshtein = require('fast-levenshtein')
+const levenshtein = require('fastest-levenshtein')
 
 export default {
   components: {},
@@ -192,14 +192,14 @@ export default {
           if (nativeType !== 'string' && nativeType !== fakerFn.type) { return }
 
           if (i) {
-            const ls = levenshtein.get(col.column_name.toLowerCase(), fakerFn.name.toLowerCase())
+            const ls = levenshtein.distance(col.column_name.toLowerCase(), fakerFn.name.toLowerCase())
             if (lScore > ls) {
               lScore = ls
               suggestion = fakerFn
             }
           } else {
             suggestion = fakerFn
-            lScore = levenshtein.get(col.column_name.toLowerCase(), fakerFn.name.toLowerCase())
+            lScore = levenshtein.distance(col.column_name.toLowerCase(), fakerFn.name.toLowerCase())
           }
         })
 

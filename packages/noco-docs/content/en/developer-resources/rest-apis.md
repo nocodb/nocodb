@@ -55,16 +55,18 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Patch | dbTableRow | bulkUpdateAll | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all |
 | Data | Delete| dbTableRow | bulkDeleteAll | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all |
 | Data | Get | dbTableRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
+| Data | Get | dbTableRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one |
 | Data | Post | dbTableRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
 | Data | Get | dbTableRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Patch | dbTableRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Delete| dbTableRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Get | dbTableRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/count |
-| Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |
-| Data | Post | dbViewRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |
-| Data | Get | dbViewRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
-| Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
-| Data | Delete| dbViewRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
+| Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
+| Data | Get | dbViewRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one |
+| Data | Post | dbViewRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
+| Data | Get | dbViewRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
+| Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
+| Data | Delete| dbViewRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
 | Data | Get | dbViewRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count |
 
 ### Meta APIs

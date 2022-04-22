@@ -38,7 +38,8 @@ export async function appInfo(_req: Request, res: Response) {
     ),
     timezone: defaultConnectionConfig.timezone,
     ncMin: !!process.env.NC_MIN,
-    teleEnabled: !process.env.NC_DISABLE_TELE
+    teleEnabled: !process.env.NC_DISABLE_TELE,
+    noSignUp: process.env.NC_NO_SIGN_UP === '1'
   };
 
   res.json(result);

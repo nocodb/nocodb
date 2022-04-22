@@ -244,7 +244,8 @@ export default class NcMetaMgrv2 {
                   ),
                   +process.env.DB_QUERY_LIMIT_MIN || 1
                 ),
-                timezone: defaultConnectionConfig.timezone
+                timezone: defaultConnectionConfig.timezone,
+                noSignUp: process.env.NC_NO_SIGN_UP === '1'
               };
               return res.json(result);
             }

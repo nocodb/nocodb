@@ -31,7 +31,7 @@ export default {
       default: true
     }
   },
-
+  emits: ['validate'],
   model: {
     event: "change"
   },
@@ -109,7 +109,9 @@ export default {
           if (!this.deepcompare(this.value, JSON.parse(value))) {
             this.$emit("change", JSON.parse(value), event);
           }
+          this.$emit("validate", true);
         } catch (e) {
+          this.$emit("validate", false, e);
           // console.log('monaco', e)
         }
       });

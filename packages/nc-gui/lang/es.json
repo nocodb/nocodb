@@ -151,7 +151,7 @@
     "lockedView": "Vista bloqueada",
     "personalView": "Vista personal",
     "appStore": "Tienda de aplicaciones",
-    "team&auth": "Equipo y autenticación",
+    "teamAndAuth": "Equipo y autenticación",
     "rolesUserMgmt": "Roles y gestión de usuarios",
     "userMgmt": "Administrar usuarios",
     "apiTokenMgmt": "Administrar tokens del API",
@@ -170,7 +170,7 @@
     "headCreateProject": "Crear proyecto | NocoDB",
     "headLogin": "Acceder | NocoDB",
     "resetPassword": "Cambiar contraseña",
-    "team&settings": "Equipo y configuración",
+    "teamAndSettings": "Equipo y configuración",
     "apiDocs": "Documentación de la API"
   },
   "labels": {

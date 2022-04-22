@@ -151,7 +151,7 @@
     "lockedView": "נוף נעול",
     "personalView": "תצוגה אישית",
     "appStore": "חנות אפליקציות",
-    "team&auth": "צוות & auth.",
+    "teamAndAuth": "צוות & auth.",
     "rolesUserMgmt": "תפקידים & ניהול משתמשים",
     "userMgmt": "ניהול משתמשים.",
     "apiTokenMgmt": "ניהול אסינס API.",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & פרמטרים מתקדמים",
     "headCreateProject": "יצירת פרויקט נוקודב",
     "headLogin": "התחבר | נוקודב",
-    "resetPassword": "לאפס את הסיסמה שלך"
+    "resetPassword": "לאפס את הסיסמה שלך",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "להודיע ​​דרך",

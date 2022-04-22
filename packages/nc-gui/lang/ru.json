@@ -151,7 +151,7 @@
     "lockedView": "Заблокированное представление",
     "personalView": "Персональное представление",
     "appStore": "Магазин приложений",
-    "team&auth": "Пользватели и API",
+    "teamAndAuth": "Пользватели и API",
     "rolesUserMgmt": "Роли и управление пользователями",
     "userMgmt": "Управление пользователями",
     "apiTokenMgmt": "Управление токенами API",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL и расширенные параметры",
     "headCreateProject": "Создать проект |. NOCODB",
     "headLogin": "Войти |. NOCODB",
-    "resetPassword": "Сбросить пароль"
+    "resetPassword": "Сбросить пароль",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Уведомлять через",

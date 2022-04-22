@@ -151,7 +151,7 @@
     "lockedView": "มุมมองล็อค",
     "personalView": "มุมมองส่วนบุคคล",
     "appStore": "แอพสโตร์",
-    "team&auth": "ทีม & Auth",
+    "teamAndAuth": "ทีม & Auth",
     "rolesUserMgmt": "บทบาทและผู้ใช้การจัดการ",
     "userMgmt": "การจัดการผู้ใช้",
     "apiTokenMgmt": "การจัดการโทเค็น API",
@@ -169,7 +169,9 @@
     "advancedParameters": "พารามิเตอร์ SSL และขั้นสูง",
     "headCreateProject": "สร้างโครงการ | nocodb",
     "headLogin": "เข้าสู่ระบบ nocodb",
-    "resetPassword": "รีเซ็ตรหัสผ่านของคุณ"
+    "resetPassword": "รีเซ็ตรหัสผ่านของคุณ",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "แจ้งเตือนผ่าน",

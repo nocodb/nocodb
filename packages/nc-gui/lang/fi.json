@@ -151,7 +151,7 @@
     "lockedView": "Lukittu näkymä",
     "personalView": "Henkilökohtainen näkymä",
     "appStore": "Sovelluskauppa",
-    "team&auth": "Team & Auth",
+    "teamAndAuth": "Team & Auth",
     "rolesUserMgmt": "Roolit ja käyttäjien hallinta",
     "userMgmt": "Käyttäjien hallinta",
     "apiTokenMgmt": "API Tokensin hallinta",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Advanced Parameters",
     "headCreateProject": "Luo projekti Nokodb",
     "headLogin": "Kirjaudu sisään | Nokodb",
-    "resetPassword": "Nollaa salasana"
+    "resetPassword": "Nollaa salasana",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Ilmoittaa kautta",

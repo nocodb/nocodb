@@ -151,7 +151,7 @@
     "lockedView": "Låst udsigt",
     "personalView": "Personlig visning",
     "appStore": "App butik",
-    "team&auth": "Team & Auth.",
+    "teamAndAuth": "Team & Auth.",
     "rolesUserMgmt": "Roller & Brugere Management",
     "userMgmt": "Bruger Management",
     "apiTokenMgmt": "API TOKENS MANAGEMENT",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Avancerede parametre",
     "headCreateProject": "Opret projekt | Nocodb.",
     "headLogin": "Log ind | Nocodb.",
-    "resetPassword": "Nulstil din adgangskode"
+    "resetPassword": "Nulstil din adgangskode",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Bemærk Via.",

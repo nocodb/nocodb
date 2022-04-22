@@ -151,7 +151,7 @@
     "lockedView": "Vista travada",
     "personalView": "Vista pessoal",
     "appStore": "Loja de Aplicações",
-    "team&auth": "Equipa & Autenticação",
+    "teamAndAuth": "Equipa & Autenticação",
     "rolesUserMgmt": "Papéis & Gestão de Utilizadores",
     "userMgmt": "Gestão de Utilizadores",
     "apiTokenMgmt": "Gestão de Tokens API Tokens",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & parâmetros avançados",
     "headCreateProject": "Criar Projecto | Noco",
     "headLogin": "Autentique-se | Noco",
-    "resetPassword": "Redefina a sua palavra-passe"
+    "resetPassword": "Redefina a sua palavra-passe",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Notificar via.",

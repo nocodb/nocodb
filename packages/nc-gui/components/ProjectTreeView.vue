@@ -10,7 +10,7 @@
       class="primary nc-project-title theme--dark"
       :class="{ shared: sharedBase }"
     >
-      <img v-if="sharedBase" src="favicon-32.png" height="18" class="ml-2" />
+      <img v-if="sharedBase" src="favicon-32.png" height="18" class="ml-2">
       <h3
         v-if="sharedBase"
         class="nc-project-title white--text text-capitalize"
@@ -43,7 +43,9 @@
             class="elevation-0 mr-2 pl-3 pr-1 caption nc-table-list-filter"
           >
             <template #prepend-inner>
-              <v-icon small class="mt-2 ml-2 mr-1"> mdi-magnify </v-icon>
+              <v-icon small class="mt-2 ml-2 mr-1">
+                mdi-magnify
+              </v-icon>
             </template>
             <template #append>
               <v-icon
@@ -91,7 +93,9 @@
                     @click.stop="addTab({ ...item }, open, leaf)"
                   >
                     <template v-if="item._nodes.type === 'db'">
-                      <v-icon size="16"> mdi-database </v-icon>
+                      <v-icon size="16">
+                        mdi-database
+                      </v-icon>
                       <!--                  <img-->
                       <!--                    class="grey lighten-3"-->
                       <!--                    :width="16" :src="`/db-icons/${dbIcons[item._nodes.dbConnection.client]}`"/>-->
@@ -120,8 +124,7 @@
                         icons[item._nodes.type].class,
                         item.active ? 'font-weight-bold' : '',
                       ]"
-                      >{{ item.name }}</span
-                    >
+                    >{{ item.name }}</span>
                   </div>
                 </template>
                 <span>{{ item.tooltip || item.name }}</span>
@@ -149,7 +152,9 @@
                   @contextmenu.prevent="showCTXMenu($event, item, true, false)"
                 >
                   <template #appendIcon>
-                    <v-icon small color="grey"> mdi-chevron-down </v-icon>
+                    <v-icon small color="grey">
+                      mdi-chevron-down
+                    </v-icon>
                   </template>
                   <template #activator>
                     <v-list-item-icon>
@@ -190,16 +195,13 @@
                                       .toLowerCase()
                                       .includes(search.toLowerCase())
                                 ).length
-                              }})</template
-                            ></span
-                          >
+                              }})</template></span>
                           <span
                             v-else
                             class="body-2 font-weight-medium"
                             v-on="on"
                           >
-                            {{ item.name }}</span
-                          >
+                            {{ item.name }}</span>
                         </template>
                         <span class="caption">Only visible to Creator</span>
                       </v-tooltip>
@@ -220,12 +222,9 @@
                                     .toLowerCase()
                                     .includes(search.toLowerCase())
                               ).length
-                            }})</template
-                          ></span
-                        >
+                            }})</template></span>
                         <span v-else class="caption font-weight-regular">
-                          {{ item.name }}</span
-                        >
+                          {{ item.name }}</span>
                       </template>
                     </v-list-item-title>
 
@@ -236,7 +235,7 @@
                         <x-icon
                           v-if="
                             _isUIAllowed('treeview-add-button') &&
-                            item.type !== 'viewDir'
+                              item.type !== 'viewDir'
                           "
                           :color="['x-active', 'grey']"
                           small
@@ -248,12 +247,12 @@
                           mdi-plus-circle-outline
                         </x-icon>
                       </template>
-                      <span class="caption"
-                        >Add new
+                      <span
+                        class="caption"
+                      >Add new
                         <span class="text-capitalize">{{
                           item.type.slice(0, -3)
-                        }}</span></span
-                      >
+                        }}</span></span>
                     </v-tooltip>
                   </template>
 
@@ -277,9 +276,9 @@
                           v-for="child in item.children || []"
                           v-show="
                             !search ||
-                            child.name
-                              .toLowerCase()
-                              .includes(search.toLowerCase())
+                              child.name
+                                .toLowerCase()
+                                .includes(search.toLowerCase())
                           "
                           :key="child.key"
                           v-t="['a:table:open']"
@@ -327,7 +326,7 @@
                             <v-tooltip
                               v-if="
                                 _isUIAllowed('creator_tooltip') &&
-                                child.creator_tooltip
+                                  child.creator_tooltip
                               "
                               bottom
                             >
@@ -354,7 +353,7 @@
                                   <v-icon
                                     v-if="
                                       _isUIAllowed('treeview-rename-button') ||
-                                      _isUIAllowed('ui-acl')
+                                        _isUIAllowed('ui-acl')
                                     "
                                     small
                                     v-on="on"
@@ -422,7 +421,7 @@
                 <v-list-item
                   v-else-if="
                     (item.type !== 'sqlClientDir' || showSqlClient) &&
-                    (item.type !== 'migrationsDir' || _isUIAllowed('audit'))
+                      (item.type !== 'migrationsDir' || _isUIAllowed('audit'))
                   "
                   :key="item.key"
                   :selectable="false"
@@ -458,8 +457,7 @@
                           class="caption font-weight-regular"
                           v-on="on"
                           @dblclick="showSqlClient = true"
-                          >{{ item.name }}</span
-                        >
+                        >{{ item.name }}</span>
                       </template>
                       <span class="caption">Only visible to Creator</span>
                     </v-tooltip>
@@ -467,8 +465,7 @@
                       v-else
                       class="caption font-weight-regular"
                       @dblclick="showSqlClient = true"
-                      >{{ item.name }}</span
-                    >
+                    >{{ item.name }}</span>
                   </v-list-item-title>
                 </v-list-item>
               </template>
@@ -528,7 +525,9 @@
                     v-on="on"
                   >
                     <v-list-item-icon>
-                      <v-icon x-small> mdi-storefront-outline </v-icon>
+                      <v-icon x-small>
+                        mdi-storefront-outline
+                      </v-icon>
                     </v-list-item-icon>
                     <!-- App Store -->
                     <v-list-item-title>
@@ -552,7 +551,9 @@
                     v-on="on"
                   >
                     <v-list-item-icon>
-                      <v-icon x-small> mdi-account-group </v-icon>
+                      <v-icon x-small>
+                        mdi-account-group
+                      </v-icon>
                     </v-list-item-icon>
                     <!-- Team & Auth -->
                     <v-list-item-title>
@@ -575,7 +576,9 @@
                     v-on="on"
                   >
                     <v-list-item-icon>
-                      <v-icon x-small> mdi-table-multiple </v-icon>
+                      <v-icon x-small>
+                        mdi-table-multiple
+                      </v-icon>
                     </v-list-item-icon>
                     <!-- Project Metadata -->
                     <v-list-item-title>
@@ -599,7 +602,9 @@
                     v-on="on"
                   >
                     <v-list-item-icon>
-                      <v-icon x-small> mdi-notebook-outline </v-icon>
+                      <v-icon x-small>
+                        mdi-notebook-outline
+                      </v-icon>
                     </v-list-item-icon>
                     <!-- Project Metadata -->
                     <v-list-item-title>
@@ -622,7 +627,9 @@
               <span class="body-2 font-weight-medium">{{
                 $t("activity.previewAs")
               }}</span>
-              <v-icon small class="ml-1"> mdi-drama-masks </v-icon>
+              <v-icon small class="ml-1">
+                mdi-drama-masks
+              </v-icon>
             </v-list-item>
 
             <v-list dense>
@@ -649,15 +656,16 @@
                     <span
                       class="caption text-capitalize"
                       :class="{ 'x-active--text': role.title === previewAs }"
-                      >{{ role.title }}</span
-                    >
+                    >{{ role.title }}</span>
                   </div>
                 </template>
               </div>
               <template v-if="previewAs">
                 <!--                <v-divider></v-divider>-->
                 <v-list-item @click="setPreviewUSer(null)">
-                  <v-icon small class="mr-1"> mdi-close </v-icon>
+                  <v-icon small class="mr-1">
+                    mdi-close
+                  </v-icon>
                   <!-- Reset Preview -->
                   <span class="caption nc-preview-reset">{{
                     $t("activity.resetReview")
@@ -679,7 +687,9 @@
                   class="caption pointer nc-team-settings"
                   @click="click"
                 >
-                  <v-icon color="brown" small class="mr-1"> mdi-cog </v-icon>
+                  <v-icon color="brown" small class="mr-1">
+                    mdi-cog
+                  </v-icon>
                   Team & Settings
                 </div>
               </template>
@@ -690,9 +700,11 @@
         <div
           v-t="['e:api-docs']"
           class="caption pointer nc-docs pb-3 pl-5 pr-3 pt-2 d-flex align-center"
-          @click="openLink('https://apis.nocodb.com')"
+          @click="openLink(apiLink)"
         >
-          <v-icon small class="mr-2"> mdi-api </v-icon>
+          <v-icon small class="mr-2">
+            mdi-api
+          </v-icon>
           API Docs
         </div>
         <v-divider />
@@ -894,6 +906,9 @@ export default {
     },
   }),
   computed: {
+    apiLink(){
+      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.projectInfo &&  this.$store.state.project.projectInfo.ncSiteUrl)
+    },
     previewAs: {
       get() {
         return this.$store.state.users.previewAs;

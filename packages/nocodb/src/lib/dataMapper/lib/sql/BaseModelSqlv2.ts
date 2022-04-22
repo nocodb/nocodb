@@ -291,6 +291,8 @@ class BaseModelSqlv2 {
                 ? allowedCols[col.id] &&
                   (!isSystemColumn(col) || view.show_system_fields) &&
                   (!fields?.length || fields.includes(col.title))
+                : fields?.length
+                ? fields.includes(col.title)
                 : 1
           }),
           {}

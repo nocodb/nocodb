@@ -63,7 +63,7 @@
           </v-list-item-title>
         </v-list-item>
         <v-list-item
-          v-if="_isUIAllowed('csvImport') && !isView"
+          v-if="_isUIAllowed('SharedViewList') && !isView"
           v-t="['a:actions:shared-view-list']"
           dense
           @click="$emit('showAdditionalFeatOverlay', 'shared-views')"
@@ -79,7 +79,7 @@
           </v-list-item-title>
         </v-list-item>
         <v-list-item
-          v-if="_isUIAllowed('csvImport') && !isView"
+          v-if="_isUIAllowed('webhook') && !isView"
           v-t="['c:actions:webhook']"
           dense
           @click="$emit('webhook')"

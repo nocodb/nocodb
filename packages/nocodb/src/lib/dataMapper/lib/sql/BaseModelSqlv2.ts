@@ -40,6 +40,7 @@ import {
 } from '../../../noco/meta/helpers/webhookHelpers';
 import Validator from 'validator';
 import { NcError } from '../../../noco/meta/helpers/catchError';
+import { generateS3SignedUrls } from './decorators/GenerateS3SignedUrls';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -80,8 +81,8 @@ class BaseModelSqlv2 {
     const qb = this.dbDriver(this.model.table_name);
 
     await this.selectObject({ qb });
-
-    const data = await qb.where(this.model.primaryKey.column_name, id).first();
+    qb.where(this.model.primaryKey.column_name, id).first();
+    const data = await this.run(qb);
 
     if (data) {
       const proto = await this.getProto();
@@ -179,7 +180,7 @@ class BaseModelSqlv2 {
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
 
-    return (await qb).map(d => {
+    return (await this.run(qb)).map(d => {
       d.__proto__ = proto;
       return d;
     });
@@ -246,7 +247,7 @@ class BaseModelSqlv2 {
       as: 'count'
     }).first();
 
-    return ((await qb) as any).count;
+    return ((await this.run(qb)) as any).count;
   }
 
   public async defaultResolverReq(
@@ -476,7 +477,7 @@ class BaseModelSqlv2 {
 
       await childModel.selectObject({ qb });
 
-      const children = await qb;
+      const children = await this.run(qb);
 
       const proto = await (
         await Model.getBaseModelSQL({
@@ -619,7 +620,7 @@ class BaseModelSqlv2 {
     qb.limit(args?.limit || 20);
     qb.offset(args?.offset || 0);
 
-    const children = await qb;
+    const children = await this.run(qb);
     const proto = await (
       await Model.getBaseModelSQL({ table_name: rtn, dbDriver: this.dbDriver })
     ).getProto();
@@ -703,7 +704,7 @@ class BaseModelSqlv2 {
       )
       .first();
 
-    const { count } = await qb;
+    const { count } = await this.run(qb);
 
     return count;
   }
@@ -747,7 +748,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
-    return (await qb.first())?.count;
+    qb.first();
+    return (await this.run(qb))?.count;
   }
 
   // todo: naming & optimizing
@@ -800,7 +802,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
 
-    return (await qb).map(c => {
+    return (await this.run(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -840,8 +842,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
-
-    return (await qb.first())?.count;
+    qb.first();
+    return (await this.run(qb))?.count;
   }
 
   // todo: naming & optimizing
@@ -887,7 +889,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
 
-    return (await qb).map(c => {
+    return (await this.run(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -928,7 +930,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
-    return (await qb.first())?.count;
+    qb.first();
+    return (await this.run(qb))?.count;
   }
 
   // todo: naming & optimizing
@@ -974,7 +977,7 @@ class BaseModelSqlv2 {
 
     const proto = await parentModel.getProto();
 
-    return (await qb).map(c => {
+    return (await this.run(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -1581,7 +1584,7 @@ class BaseModelSqlv2 {
           this.dbDriver
         );
         qb.update(updateData);
-        res = ((await qb) as any).count;
+        res = ((await this.run(qb)) as any).count;
       }
       return res;
     } catch (e) {
@@ -1643,7 +1646,7 @@ class BaseModelSqlv2 {
         this.dbDriver
       );
       qb.del();
-      return ((await qb) as any).count;
+      return ((await this.run(qb)) as any).count;
     } catch (e) {
       throw e;
     }
@@ -1959,6 +1962,11 @@ class BaseModelSqlv2 {
         }
         break;
     }
+  }
+
+  @generateS3SignedUrls()
+  async run(qb) {
+    return await qb;
   }
 }
 

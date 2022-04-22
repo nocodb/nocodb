@@ -61,7 +61,11 @@ export default class ScalewayObjectStorage implements IStorageAdapter {
     this.s3Client = new AWS.S3(s3Options);
   }
 
-  async fileCreate(key: string, file: XcFile): Promise<any> {
+  async fileCreate(
+    key: string,
+    file: XcFile,
+    _isPublic?: boolean
+  ): Promise<any> {
     const uploadParams: any = {
       ACL: 'public-read'
     };

@@ -1,15 +1,20 @@
 import * as _ from 'lodash';
 import S3 from '../../../../../plugins/s3/S3';
+import NcPluginMgrv2 from '../../../../noco/meta/helpers/NcPluginMgrv2';
 
 /**
  * Decorate function to Replace private S3 URLs with signed URLs.
  * @returns {Function} Decorator function.
  */
+
 export function generateS3SignedUrls() {
   return function(_target, _key, fn: PropertyDescriptor) {
     const originalFn = fn.value;
 
     fn.value = async function(...args) {
+      if (!this.storageAdapter) {
+        this.storageAdapter = await NcPluginMgrv2.storageAdapter();
+      }
       const result = await originalFn.call(this, ...args);
       if (typeof result !== 'object' || !isS3PluginActive.call(this))
         return result;

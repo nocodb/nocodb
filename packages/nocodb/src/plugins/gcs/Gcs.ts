@@ -13,7 +13,11 @@ export default class Gcs implements IStorageAdapter {
     this.input = input;
   }
 
-  async fileCreate(key: string, file: XcFile): Promise<any> {
+  async fileCreate(
+    key: string,
+    file: XcFile,
+    _isPublic?: boolean
+  ): Promise<any> {
     const uploadResponse = await this.storageClient
       .bucket(this.bucketName)
       .upload(file.path, {

@@ -1078,16 +1078,6 @@ export default {
               query: { ignoreWebhook: !saved }
             }))
 
-          // audit
-          this.$api.utils.auditRowUpdate(id, {
-            fk_model_id: this.meta.id,
-            column_name: column.title,
-            row_id: id,
-            value: rowObj[column.title],
-            prev_value: oldRow[column.title]
-          }).then(() => {
-          })
-
           this.$set(this.data[row], 'row', { ...rowObj, ...newData })
 
           this.$set(oldRow, column.title, rowObj[column.title])

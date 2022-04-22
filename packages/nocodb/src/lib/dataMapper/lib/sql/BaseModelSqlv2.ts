@@ -1675,6 +1675,7 @@ class BaseModelSqlv2 {
   }
 
   public async beforeUpdate(data: any, _trx: any, req): Promise<void> {
+    req.oldData = await this.readByPk(req.params.rowId);
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
@@ -1687,6 +1688,7 @@ class BaseModelSqlv2 {
   }
 
   public async afterUpdate(data: any, _trx: any, req): Promise<void> {
+    await this.auditRowUpdate(req);
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
@@ -1696,6 +1698,53 @@ class BaseModelSqlv2 {
     if (ignoreWebhook === undefined || ignoreWebhook === 'false') {
       await this.handleHooks('After.update', data, req);
     }
+  }
+
+  private async auditRowUpdate(req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      row_id: req.params.rowId,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.UPDATE,
+      description: this._updateAuditDescription(req),
+      details: this._updateAuditDetails(req),
+      ip: (req as any).clientIp,
+      user: (req as any).user?.email
+    });
+  }
+
+  private _updateAuditDescription(req) {
+    const data = req.body;
+    const oldData = req.oldData;
+    return `Table ${this.model.table_name} : ${req.params.rowId} ${(() => {
+      const keys = Object.keys(data);
+      const result = [];
+      keys.forEach(key => {
+        if (req.oldData[key] !== data[key]) {
+          result.push(
+            `field ${key} got changed from ${oldData[key]} to ${data[key]}`
+          );
+        }
+      });
+      return result.join(',\n');
+    })()}`;
+  }
+
+  private _updateAuditDetails(req) {
+    const data = req.body;
+    const oldData = req.oldData;
+    return (() => {
+      const keys = Object.keys(data);
+      const result = [];
+      keys.forEach(key => {
+        if (oldData[key] !== data[key]) {
+          result.push(`<span class="">${key}</span>
+          : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${oldData[key]}</span>
+          <span class="black--text green lighten-4 px-2">${data[key]}</span>`);
+        }
+      });
+      return result.join(',<br/>');
+    })();
   }
 
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {

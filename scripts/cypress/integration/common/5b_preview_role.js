@@ -58,7 +58,7 @@ export const genTest = (apiType, dbType, roleType) => {
             // open Project metadata tab
             //
             mainPage.navigationDraw(mainPage.PROJ_METADATA).click();
-            cy.get(".nc-exp-imp-metadata").dblclick({ force: true });
+            // cy.get(".nc-exp-imp-metadata").dblclick({ force: true });
             cy.get(".nc-ui-acl-tab").click({ force: true });
 
             // validate if it has 19 entries representing tables & views

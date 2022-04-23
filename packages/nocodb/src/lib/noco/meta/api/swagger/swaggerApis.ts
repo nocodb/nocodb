@@ -15,6 +15,22 @@ async function swaggerJson(req, res) {
   });
 
   const swagger = await getSwaggerJSON(project, models);
+
+  swagger.servers = [
+    {
+      url: req.ncSiteUrl
+    },
+    {
+      url: '{customUrl}',
+      variables: {
+        customUrl: {
+          default: req.ncSiteUrl,
+          description: 'Provide custom nocodb app base url'
+        }
+      }
+    }
+  ] as any;
+
   res.json(swagger);
 }
 

@@ -1,5 +1,5 @@
 // @ts-ignore
-import catchError from '../../helpers/catchError';
+import catchError, { NcError } from '../../helpers/catchError';
 import { Router } from 'express';
 import Model from '../../../../noco-models/Model';
 import getSwaggerJSON from './helpers/getSwaggerJSON';
@@ -9,6 +9,9 @@ import redocHtml from './redocHtml';
 
 async function swaggerJson(req, res) {
   const project = await Project.get(req.params.projectId);
+
+  if (!project) NcError.notFound();
+
   const models = await Model.list({
     project_id: req.params.project_id,
     base_id: null

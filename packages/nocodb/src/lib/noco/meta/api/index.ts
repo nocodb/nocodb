@@ -45,6 +45,7 @@ import { Server } from 'socket.io';
 import passport from 'passport';
 
 import crypto from 'crypto';
+import swaggerApis from './swagger/swaggerApis';
 
 export default function(router: Router, server) {
   initStrategies(router);
@@ -83,6 +84,7 @@ export default function(router: Router, server) {
   router.use(cacheApis);
   router.use(apiTokenApis);
   router.use(hookFilterApis);
+  router.use(swaggerApis);
 
   userApis(router);
 

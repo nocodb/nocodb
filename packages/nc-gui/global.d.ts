@@ -6,6 +6,7 @@ declare module "vue/types/options" {
     $tele: {
       emit: (event: string, data?) => void
     },
+    $e: (event: string, data?) => void,
     $api: Api<any>
   }
 }

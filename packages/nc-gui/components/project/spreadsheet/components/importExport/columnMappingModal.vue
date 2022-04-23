@@ -154,8 +154,8 @@ export default {
       // check if the input contains null value for a required column
       if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
         if (this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)
-        .some(r => r[row.sourceCn] === null || r[row.sourceCn] === undefined || r[row.sourceCn] === "" )) {
-          return `null value violates not-null constraint`
+          .some(r => r[row.sourceCn] === null || r[row.sourceCn] === undefined || r[row.sourceCn] === '')) {
+          return 'null value violates not-null constraint'
         }
       }
 

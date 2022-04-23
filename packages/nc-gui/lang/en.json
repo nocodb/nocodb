@@ -151,7 +151,7 @@
     "lockedView": "Locked View",
     "personalView": "Personal View",
     "appStore": "App Store",
-    "team&auth": "Team & Auth",
+    "teamAndAuth": "Team & Auth",
     "rolesUserMgmt": "Roles & Users Management",
     "userMgmt": "Users management",
     "apiTokenMgmt": "API Tokens Management",
@@ -159,7 +159,7 @@
     "projMeta": "Project Metadata",
     "metaMgmt": "Meta Management",
     "metadata": "Metadata",
-    "exportImportMeta": "Export/ Import Metadata",
+    "exportImportMeta": "Export / Import Metadata",
     "uiACL": "UI Access Control",
     "metaOperations": "Metadata Operations",
     "audit": "Audit",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Advanced parameters",
     "headCreateProject": "Create Project | NocoDB",
     "headLogin": "Log In | NocoDB",
-    "resetPassword": "Reset your password"
+    "resetPassword": "Reset your password",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Notify Via",
@@ -406,7 +408,7 @@
       "deleteProject": "Do you want to delete the project?",
       "shareBasePrivate": "Generate publicly shareable readonly base",
       "shareBasePublic": "Anyone on the internet with this link can view",
-      "userInviteNoSMTP": "Looks like you have not configured mailer yet! \\n Please copy above invite link and send it to",
+      "userInviteNoSMTP": "Looks like you have not configured mailer yet!\nPlease copy above invite link and send it to",
       "dragDropHide": "Drag and drop fields here to hide",
       "formInput": "Enter form input label",
       "formHelpText": "Add some help text",

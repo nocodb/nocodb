@@ -151,7 +151,7 @@
     "lockedView": "Vista travada",
     "personalView": "Vista pessoal",
     "appStore": "Loja de Aplicações",
-    "team&auth": "Time & Autenticação",
+    "teamAndAuth": "Time & Autenticação",
     "rolesUserMgmt": "Papéis & Gestão de Usuários",
     "userMgmt": "Gestão de Usuários",
     "apiTokenMgmt": "Gestão de Tokens API",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & parâmetros avançados",
     "headCreateProject": "Criar Projeto | NocoDB",
     "headLogin": "Autentique-se | NocoDB",
-    "resetPassword": "Redefina a sua senha"
+    "resetPassword": "Redefina a sua senha",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Notificar via.",
@@ -406,7 +408,7 @@
       "deleteProject": "Você quer excluir o projeto?",
       "shareBasePrivate": "Gerar base readonly compartilhável publicamente",
       "shareBasePublic": "Qualquer pessoa na internet com este link pode ver",
-      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer! \\ n por favor copie o link acima do convite e envie-o para",
+      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer!\npor favor copie o link acima do convite e envie-o para",
       "dragDropHide": "Arraste e solte os campos aqui para se esconder",
       "formInput": "Digite a etiqueta de entrada do formulário",
       "formHelpText": "Adicione um texto de ajuda",

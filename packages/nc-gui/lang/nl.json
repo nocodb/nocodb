@@ -151,7 +151,7 @@
     "lockedView": "Vergrendelde weergave",
     "personalView": "Persoonlijke weergave",
     "appStore": "App Store",
-    "team&auth": "Team & Auth",
+    "teamAndAuth": "Team & Auth",
     "rolesUserMgmt": "Rollen & Gebruikersbeheer",
     "userMgmt": "Gebruikersbeheer",
     "apiTokenMgmt": "API Tokenbeheer",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Geavanceerde Parameters",
     "headCreateProject": "Project maken | Nocodb",
     "headLogin": "Log in | Nocodb",
-    "resetPassword": "Stel je wachtwoord opnieuw in"
+    "resetPassword": "Stel je wachtwoord opnieuw in",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Melding via",

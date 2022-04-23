@@ -15,7 +15,7 @@
                   <v-icon
                     x-large
                     :color="$vuetify.theme.dark ? 'primary':'primary'"
-                    @click="toggleDarkTheme"
+                    @click="toggleDarkTheme($vuetify.theme.dark)"
                     v-on="on"
                   >
                     mdi-bat
@@ -67,6 +67,7 @@
                 <template #activator="{ on }">
                   <v-checkbox
                     v-model="includeM2M"
+                    v-t="[`c:themes:show-m2m-tables`]"
                     x-large
                     color="primary"
                     v-on="on"
@@ -276,9 +277,11 @@ export default {
       this.item = theme
       if (theme === 'Custom') { await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, custom: true }) }
       await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, themeName: theme })
+      this.$e('c:themes:change', { mode: theme })
     },
-    toggleDarkTheme() {
+    toggleDarkTheme(mode) {
       this.$store.commit('windows/MutToggleDarkMode')
+      this.$e('c:themes:dark-mode', { dark: mode })
     }
   },
   beforeCreated() {

@@ -16,7 +16,7 @@
             left
             permanent
             height="90vh"
-            style="background-color: #f7f6f3"
+            class="backgroundColor1"
           >
             <div class=" advance-menu ">
               <v-list
@@ -34,7 +34,7 @@
                   <v-tooltip bottom>
                     <template #activator="{ on }">
                       <v-list-item
-                        v-t="['settings:team-auth']"
+                        v-t="['c:settings:team-auth']"
                         value="roles"
                         dense
                         class="body-2 nc-settings-teamauth"
@@ -48,7 +48,7 @@
                         <!-- Team & Auth -->
                         <v-list-item-title>
                           <span :class="{'font-weight-medium': activePage === 'roles', 'font-weight-regular':activePage !=='roles'}">{{
-                            $t('title.team&auth')
+                            $t('title.teamAndAuth')
                           }}</span>
                         </v-list-item-title>
                       </v-list-item>
@@ -61,7 +61,7 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <v-list-item
-                          v-t="['settings:appstore']"
+                          v-t="['c:settings:appstore']"
                           dense
                           class="body-2 nc-settings-appstore"
                           value="appStore"
@@ -87,7 +87,7 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <v-list-item
-                          v-t="['settings:proj-metadata']"
+                          v-t="['c:settings:proj-metadata']"
                           dense
                           class="body-2 nc-settings-projmeta"
                           value="disableOrEnableModel"
@@ -113,7 +113,7 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <v-list-item
-                          v-t="['settings:audit']"
+                          v-t="['c:settings:audit']"
                           dense
                           class="body-2 nc-settings-audit"
                           value="audit"

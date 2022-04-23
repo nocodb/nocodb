@@ -729,6 +729,33 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "iamnamananand996",
+      "name": "Naman Anand",
+      "avatar_url": "https://avatars.githubusercontent.com/u/31537362?v=4",
+      "profile": "https://github.com/iamnamananand996",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "GeoffMaciolek",
+      "name": "Geo Maciolek",
+      "avatar_url": "https://avatars.githubusercontent.com/u/10995633?v=4",
+      "profile": "https://github.com/GeoffMaciolek",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "mudream4869",
+      "name": "神楽坂帕琪",
+      "avatar_url": "https://avatars.githubusercontent.com/u/6008539?v=4",
+      "profile": "http://blog.mukyu.tw/",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

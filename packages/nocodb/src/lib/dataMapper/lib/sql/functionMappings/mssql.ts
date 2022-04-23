@@ -89,31 +89,16 @@ const mssql = {
       .raw(`CAST(${args.fn(args.pt.arguments[0])} as FLOAT)${args.colAlias}`)
       .wrap('(', ')');
   },
-  DATE_ADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+  DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const dateIN = fn(pt.arguments[1]);
     return knex.raw(
       `CASE
       WHEN ${fn(pt.arguments[0])} LIKE '%:%' THEN
         FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
-        +${fn(pt.arguments[1])}, ${fn(pt.arguments[0])}), 'yyyy-MM-dd HH:mm')
+        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])}, ${fn(pt.arguments[0])}), 'yyyy-MM-dd HH:mm')
       ELSE
        FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
-        +${fn(pt.arguments[1])}, ${fn(pt.arguments[0])}), 'yyyy-MM-dd')
-      END${colAlias}`
-    );
-  },
-  DATE_SUB: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
-    return knex.raw(
-      `CASE
-      WHEN ${fn(pt.arguments[0])} LIKE '%:%' THEN
-        FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
-        -${fn(pt.arguments[1])}.argument.value, ${fn(
-        pt.arguments[0]
-      )}), 'yyyy-MM-dd HH:mm')
-      ELSE
-       FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
-        -${fn(pt.arguments[1])}.argument.value, ${fn(
-        pt.arguments[0]
-      )}), 'yyyy-MM-dd')
+       ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])}, ${fn(pt.arguments[0])}), 'yyyy-MM-dd')
       END${colAlias}`
     );
   }

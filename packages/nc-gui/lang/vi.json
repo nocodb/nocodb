@@ -151,7 +151,7 @@
     "lockedView": "LOCKED View.",
     "personalView": "Quan điểm cá nhân",
     "appStore": "Cửa hàng ứng dụng",
-    "team&auth": "Đội & auth.",
+    "teamAndAuth": "Đội & auth.",
     "rolesUserMgmt": "Vai trò & Quản lý người dùng",
     "userMgmt": "Quản lý người dùng",
     "apiTokenMgmt": "Quản lý Token API",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Tham số nâng cao",
     "headCreateProject": "Tạo dự án |. NOCODB.",
     "headLogin": "Đăng nhập |. NOCODB.",
-    "resetPassword": "Đặt lại mật khẩu của bạn"
+    "resetPassword": "Đặt lại mật khẩu của bạn",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Thông báo qua",
@@ -406,7 +408,7 @@
       "deleteProject": "Bạn có muốn xóa dự án?",
       "shareBasePrivate": "Tạo cơ sở chỉ đọc chia sẻ công khai",
       "shareBasePublic": "Bất cứ ai trên Internet với liên kết này có thể xem",
-      "userInviteNoSMTP": "Có vẻ như bạn chưa định cấu hình Mailer! \\ n Vui lòng sao chép liên kết mời trên và gửi nó đến",
+      "userInviteNoSMTP": "Có vẻ như bạn chưa định cấu hình Mailer!\nVui lòng sao chép liên kết mời trên và gửi nó đến",
       "dragDropHide": "Kéo và thả các trường ở đây để ẩn",
       "formInput": "Nhập nhãn đầu vào Mẫu",
       "formHelpText": "Thêm một số văn bản trợ giúp",

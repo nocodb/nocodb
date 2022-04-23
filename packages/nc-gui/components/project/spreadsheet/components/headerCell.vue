@@ -72,7 +72,7 @@
           </span>
         </v-list-item>
         <v-list-item
-          v-t="['column:set-as-primary']"
+          v-t="['a:column:set-primary']"
           dense
           @click="setAsPrimaryValue"
         >
@@ -143,7 +143,6 @@
         <v-card-actions class="d-flex pa-4">
           <v-spacer />
           <v-btn
-            v-t="['column:delete:cancel']"
             small
             @click="columnDeleteDialog = false"
           >
@@ -151,7 +150,7 @@
             {{ $t('general.cancel') }}
           </v-btn>
           <v-btn
-            v-t="['column:delete']"
+            v-t="['a:column:delete']"
             small
             color="error"
             @click="deleteColumn"

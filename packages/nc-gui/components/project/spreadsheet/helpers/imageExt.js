@@ -1,22 +1,22 @@
 const imageExt = [
-  "jpeg",
-  "gif",
-  "png",
-  "png",
-  "svg",
-  "bmp",
-  "ico",
-  "jpg",
-  "webp",
-];
+  'jpeg',
+  'gif',
+  'png',
+  'png',
+  'svg',
+  'bmp',
+  'ico',
+  'jpg',
+  'webp'
+]
 
-export default imageExt;
+export default imageExt
 
 const isImage = (name) => {
-  return imageExt.some((e) => name.toLowerCase().endsWith(`.${e}`));
-};
+  return imageExt.some(e => name.toLowerCase().endsWith(`.${e}`))
+}
 
-export { isImage };
+export { isImage }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

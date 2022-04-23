@@ -10,8 +10,8 @@ menuTitle: "Rollup"
 
 Sample simple Organization structure:
 
-- 5 verticals, each vertical has a team name & associated team code
-- 5 employees working at different verticals
+- 5 Departments (company departments), each department has a team name & associated team code
+- 5 employees working at different Departments
 - Vertical **has many** Employees : relationship has been defined
 
 ![LookUp](https://user-images.githubusercontent.com/86527202/144038845-402d5401-a214-4166-bc07-fcf8dcc8a961.png)
@@ -33,7 +33,7 @@ Now, we can explore how to extract employee count information per vertical using
 
 ### 1. Add new column
 
-Click on '+' icon to the left of column headers in Verticals table
+Click on '+' icon to the left of column headers in Departments table
 
 ![1](https://user-images.githubusercontent.com/86527202/144236273-484edc5b-7f5f-4041-b480-db08d4459d07.png)
 

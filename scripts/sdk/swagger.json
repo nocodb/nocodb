@@ -573,6 +573,16 @@
         },
         "tags": [
           "Project"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "number",
+              "minimum": 1,
+              "multipleOf": 1
+            },
+            "in": "query"
+          }
         ]
       }
     },
@@ -2521,6 +2531,75 @@
         }
       }
     },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table row FindOne",
+        "operationId": "db-table-row-find-one",
+        "description": "",
+        "tags": [
+          "DB table row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/count": {
       "parameters": [
         {
@@ -2684,6 +2763,89 @@
           "content": {
             "application/json": {
               "schema": {}
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table view row FindOne",
+        "operationId": "db-view-row-find-one",
+        "description": "",
+        "tags": [
+          "DB view row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "fields"
+          },
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {},
+            "in": "query",
+            "name": "nested",
+            "description": "Query params for nested data"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
             }
           }
         }
@@ -4820,6 +4982,51 @@
             "required": true
           }
         ]
+      }
+    },
+    "/api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectId",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "userId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "post": {
+        "summary": "",
+        "operationId": "auth-project-user-resend-invite",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Auth"
+        ],
+        "description": "Resend Invitation to a specific user",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {}
+            }
+          }
+        }
       }
     }
   },

@@ -90,6 +90,45 @@ class BaseModelSqlv2 {
     return data;
   }
 
+  public async findOne(
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+    } = {}
+  ): Promise<any> {
+    const qb = this.dbDriver(this.model.table_name);
+    await this.selectObject({ qb });
+
+    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
+
+    await conditionV2(
+      [
+        new Filter({
+          children: args.filterArr || [],
+          is_group: true,
+          logical_op: 'and'
+        }),
+        new Filter({
+          children: filterObj,
+          is_group: true,
+          logical_op: 'and'
+        }),
+        ...(args.filterArr || [])
+      ],
+      qb,
+      this.dbDriver
+    );
+
+    const data = await qb.first();
+
+    if (data) {
+      const proto = await this.getProto();
+      data.__proto__ = proto;
+    }
+    return data;
+  }
+
   public async list(
     args: {
       where?: string;
@@ -291,6 +330,8 @@ class BaseModelSqlv2 {
                 ? allowedCols[col.id] &&
                   (!isSystemColumn(col) || view.show_system_fields) &&
                   (!fields?.length || fields.includes(col.title))
+                : fields?.length
+                ? fields.includes(col.title)
                 : 1
           }),
           {}

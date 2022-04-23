@@ -134,10 +134,10 @@
     }
   },
   "filterOperation": {
-    "isEqual": "是平等的",
-    "isNotEqual": "不平等",
-    "isLike": "就好像",
-    "isNot like": "不喜欢",
+    "isEqual": "完全一致",
+    "isNotEqual": "完全不一致",
+    "isLike": "部分一致",
+    "isNot like": "部分不一致",
     "isEmpty": "是空的",
     "isNotEmpty": "不是空的",
     "isNull": "一片空白",

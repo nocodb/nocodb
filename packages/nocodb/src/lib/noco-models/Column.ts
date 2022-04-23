@@ -48,6 +48,7 @@ export default class Column<T = any> implements ColumnType {
   public dtxp: string;
   public dtxs: string;
   public au: boolean;
+  public system: boolean;
 
   public colOptions: T;
   public model: Model;

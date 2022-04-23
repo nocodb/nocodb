@@ -700,7 +700,7 @@
         <div
           v-t="['e:api-docs']"
           class="caption pointer nc-docs pb-3 pl-5 pr-3 pt-2 d-flex align-center"
-          @click="openLink('https://apis.nocodb.com')"
+          @click="openLink(apiLink)"
         >
           <v-icon small class="mr-2">
             mdi-api
@@ -906,6 +906,9 @@ export default {
     },
   }),
   computed: {
+    apiLink(){
+      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.projectInfo &&  this.$store.state.project.projectInfo.ncSiteUrl)
+    },
     previewAs: {
       get() {
         return this.$store.state.users.previewAs;

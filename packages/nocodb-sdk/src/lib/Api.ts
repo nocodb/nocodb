@@ -1097,7 +1097,7 @@ export class Api<
      * @request GET:/api/v1/db/meta/projects/{projectId}/info
      * @response `200` `{ Node?: string, Arch?: string, Platform?: string, Docker?: boolean, Database?: string, ProjectOnRootDB?: string, RootDB?: string, PackageVersion?: string }` OK
      */
-    metaGet: (projectId: string, params: RequestParams = {}) =>
+    metaGet: (projectId: string, params: RequestParams = {}, query: object) =>
       this.request<
         {
           Node?: string;
@@ -1113,6 +1113,7 @@ export class Api<
       >({
         path: `/api/v1/db/meta/projects/${projectId}/info`,
         method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),
@@ -2237,6 +2238,30 @@ export class Api<
      * No description
      *
      * @tags DB table row
+     * @name FindOne
+     * @summary Table row FindOne
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one
+     * @response `200` `any` OK
+     */
+    findOne: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      query?: { fields?: any[]; sort?: any[]; where?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/find-one`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
      * @name Count
      * @summary table rows count
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/count
@@ -2632,6 +2657,31 @@ export class Api<
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB view row
+     * @name FindOne
+     * @summary Table view row FindOne
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one
+     * @response `200` `any` OK
+     */
+    findOne: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/find-one`,
+        method: 'GET',
+        query: query,
         format: 'json',
         ...params,
       }),

@@ -340,7 +340,7 @@
     "testDbConn": "測試資料庫連線",
     "removeDbFromEnv": "從環境移除資料庫",
     "editConnJson": "編輯連線 JSON",
-    "sponsorUs": "贊助美國",
+    "sponsorUs": "贊助我們",
     "sendEmail": "傳送電子郵件"
   },
   "tooltip": {

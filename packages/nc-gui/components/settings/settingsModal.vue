@@ -16,7 +16,7 @@
             left
             permanent
             height="90vh"
-            style="background-color: #f7f6f3"
+            class="backgroundColor1"
           >
             <div class=" advance-menu ">
               <v-list

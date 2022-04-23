@@ -494,7 +494,7 @@ export default {
       const colors = this.$store.state.windows.darkTheme
         ? enumColor.dark
         : enumColor.light;
-      return this.roles.reduce((o, r, i) => {
+      return ['owner'].concat(this.roles).reduce((o, r, i) => {
         o[r] = colors[i % colors.length];
         return o;
       }, {});

@@ -1140,6 +1140,7 @@ export default {
           // return if there is no change
           if (
             !column ||
+            saving ||
             (oldRow[column.title] === rowObj[column.title] &&
               (lastSave || rowObj[column.title]) === rowObj[column.title])
           ) {

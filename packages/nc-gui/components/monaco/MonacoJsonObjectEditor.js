@@ -31,13 +31,13 @@ export default {
       default: true
     }
   },
-
+  emits: ['validate'],
   model: {
     event: "change"
   },
   watch: {
     value(newVal) {
-      if (!this.deepcompare(newVal, JSON.parse(this.editor.getValue())))
+      if (this.editor && !this.deepcompare(newVal, JSON.parse(this.editor.getValue())))
         this.editor.setValue(JSON.stringify(newVal, 0, 2));
 
     }
@@ -109,7 +109,9 @@ export default {
           if (!this.deepcompare(this.value, JSON.parse(value))) {
             this.$emit("change", JSON.parse(value), event);
           }
+          this.$emit("validate", true);
         } catch (e) {
+          this.$emit("validate", false, e);
           // console.log('monaco', e)
         }
       });

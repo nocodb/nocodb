@@ -19,7 +19,10 @@ import View from '../../../noco-models/View';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { NcError } from '../helpers/catchError';
-import getTableNameAlias from '../helpers/getTableName';
+import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
+import Column from '../../../noco-models/Column';
+import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
+import getColumnUiType from '../helpers/getColumnUiType';
 export async function tableGet(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
     id: req.params.tableId
@@ -124,6 +127,8 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   }
 
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+  const sqlClient = NcConnectionMgrv2.getSqlClient(base);
+
   req.body.columns = req.body.columns?.map(c => ({
     ...getColumnPropsFromUIDT(c as any, base),
     cn: c.column_name
@@ -132,6 +137,11 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     ...req.body,
     tn: req.body.table_name
   });
+
+  const columns: Array<Omit<Column, 'column_name' | 'title'> & {
+    cn: string;
+    system?: boolean;
+  }> = (await sqlClient.columnList({ tn: req.body.table_name }))?.data?.list;
 
   const tables = await Model.list({
     project_id: project.id,
@@ -154,7 +164,15 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   res.json(
     await Model.insert(project.id, base.id, {
       ...req.body,
-      // todo: sanitise
+      columns: columns.map((c, i) => ({
+        uidt: c.uidt || getColumnUiType(base, c),
+        ...c,
+        title:
+          req.body?.columns?.find(c1 => c.cn === c1.column_name)?.title ||
+          getColumnNameAlias(c.cn, base),
+        column_name: c.cn,
+        order: i + 1
+      })),
       order: +(tables?.pop()?.order ?? 0) + 1
     })
   );

@@ -30,6 +30,7 @@ import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { NcError } from '../helpers/catchError';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
+import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 
@@ -481,10 +482,21 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           ]
         };
 
+        const sqlClient = NcConnectionMgrv2.getSqlClient(base);
         const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
         await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+
+        const columns: Array<Omit<Column, 'column_name' | 'title'> & {
+          cn: string;
+          system?: boolean;
+        }> = (await sqlClient.columnList({ tn: table.table_name }))?.data?.list;
+
+        const insertedColumnMeta =
+          columns.find(c => c.cn === colBody.column_name) || {};
+
         await Column.insert({
           ...colBody,
+          ...insertedColumnMeta,
           fk_model_id: table.id
         });
       }

@@ -38,6 +38,7 @@ import {
   parseBody
 } from '../../../noco/meta/helpers/webhookHelpers';
 import Validator from 'validator';
+import { customValidators } from './customValidators';
 import { NcError } from '../../../noco/meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
 
@@ -1855,7 +1856,7 @@ class BaseModelSqlv2 {
       if (!validate) continue;
       const { func, msg } = validate;
       for (let j = 0; j < func.length; ++j) {
-        const fn = typeof func[j] === 'string' ? Validator[func[j]] : func[j];
+        const fn = typeof func[j] === 'string' ? (customValidators[func[j]] ? customValidators[func[j]] : Validator[func[j]]) : func[j];
         const arg =
           typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
         if (

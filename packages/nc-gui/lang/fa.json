@@ -151,7 +151,7 @@
     "lockedView": "نمایش قفل‌شده",
     "personalView": "نمایش شخصی",
     "appStore": "اپلیکیشن‌ها",
-    "team&auth": "تیم و نویسندگان",
+    "teamAndAuth": "تیم و نویسندگان",
     "rolesUserMgmt": "مدیریت نقش‌ها و کاربران",
     "userMgmt": "مدیریت کاربران",
     "apiTokenMgmt": "مدیریت توکن‌های API",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL و پارامترهای پیشرفته",
     "headCreateProject": "ایجاد پروژه | NocoDB",
     "headLogin": "ورود | NocoDB",
-    "resetPassword": "بازنشانی کلمه عبور شما"
+    "resetPassword": "بازنشانی کلمه عبور شما",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "اعلان از طریق",

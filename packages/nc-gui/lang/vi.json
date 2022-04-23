@@ -151,7 +151,7 @@
     "lockedView": "LOCKED View.",
     "personalView": "Quan điểm cá nhân",
     "appStore": "Cửa hàng ứng dụng",
-    "team&auth": "Đội & auth.",
+    "teamAndAuth": "Đội & auth.",
     "rolesUserMgmt": "Vai trò & Quản lý người dùng",
     "userMgmt": "Quản lý người dùng",
     "apiTokenMgmt": "Quản lý Token API",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Tham số nâng cao",
     "headCreateProject": "Tạo dự án |. NOCODB.",
     "headLogin": "Đăng nhập |. NOCODB.",
-    "resetPassword": "Đặt lại mật khẩu của bạn"
+    "resetPassword": "Đặt lại mật khẩu của bạn",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Thông báo qua",

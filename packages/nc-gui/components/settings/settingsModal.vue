@@ -48,7 +48,7 @@
                         <!-- Team & Auth -->
                         <v-list-item-title>
                           <span :class="{'font-weight-medium': activePage === 'roles', 'font-weight-regular':activePage !=='roles'}">{{
-                            $t('title.team&auth')
+                            $t('title.teamAndAuth')
                           }}</span>
                         </v-list-item-title>
                       </v-list-item>

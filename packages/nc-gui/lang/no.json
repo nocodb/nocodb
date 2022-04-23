@@ -151,7 +151,7 @@
     "lockedView": "Låst visning",
     "personalView": "Personlig utsikt",
     "appStore": "App Store",
-    "team&auth": "Team og Auth.",
+    "teamAndAuth": "Team og Auth.",
     "rolesUserMgmt": "Roller og brukeradministrasjon",
     "userMgmt": "Brukeradministrasjon",
     "apiTokenMgmt": "Administrering av API-nøkler",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL og avanserte parametere",
     "headCreateProject": "Opprett prosjektet | NocoDB",
     "headLogin": "Logg inn | NocoDB.",
-    "resetPassword": "Tilbakestill passordet ditt"
+    "resetPassword": "Tilbakestill passordet ditt",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Varsle Via.",

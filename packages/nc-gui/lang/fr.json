@@ -151,7 +151,7 @@
     "lockedView": "Vue verrouillée",
     "personalView": "Vue personnelle",
     "appStore": "Magasin d'applications",
-    "team&auth": "Équipe & Authentification",
+    "teamAndAuth": "Équipe & Authentification",
     "rolesUserMgmt": "Rôles & Gestion utilisateurs",
     "userMgmt": "Gestion des utilisateurs",
     "apiTokenMgmt": "Gestion des jetons API",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL et paramètres avancés",
     "headCreateProject": "Créer un projet | Nocodb",
     "headLogin": "Connexion | Nocodb",
-    "resetPassword": "Réinitialiser le mot de passe"
+    "resetPassword": "Réinitialiser le mot de passe",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Notifier via",

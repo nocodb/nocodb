@@ -151,7 +151,7 @@
     "lockedView": "鎖定視圖",
     "personalView": "個人觀",
     "appStore": "應用商店",
-    "team&auth": "團隊＆auth",
+    "teamAndAuth": "團隊＆auth",
     "rolesUserMgmt": "角色和用戶管理",
     "userMgmt": "用戶管理",
     "apiTokenMgmt": "API Tokens 管理",
@@ -169,7 +169,9 @@
     "advancedParameters": "安全證書及高級參數",
     "headCreateProject": "開新Project | NocoDB",
     "headLogin": "登入 | NocoDB",
-    "resetPassword": "reset你嗰密碼"
+    "resetPassword": "reset你嗰密碼",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "通知Via",

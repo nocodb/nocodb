@@ -151,7 +151,7 @@
     "lockedView": "Заблокований вигляд",
     "personalView": "Особистий погляд",
     "appStore": "App Store",
-    "team&auth": "Команда та автор",
+    "teamAndAuth": "Команда та автор",
     "rolesUserMgmt": "Ролі та управління користувачами",
     "userMgmt": "Управління користувачами",
     "apiTokenMgmt": "Управління токенами API",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL і розширені параметри",
     "headCreateProject": "Створити проект | Нокодб",
     "headLogin": "Вхід | Нокодб",
-    "resetPassword": "Скинути пароль"
+    "resetPassword": "Скинути пароль",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Повідомити через",

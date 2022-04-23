@@ -151,7 +151,7 @@
     "lockedView": "ロックビュー",
     "personalView": "パーソナルビュー",
     "appStore": "アプリストア",
-    "team&auth": "チームと認可",
+    "teamAndAuth": "チームと認可",
     "rolesUserMgmt": "ロールとユーザー管理",
     "userMgmt": "ユーザー管理",
     "apiTokenMgmt": "APIトークン管理",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL＆高度なパラメータ",
     "headCreateProject": "プロジェクトを作成 | NocoDB",
     "headLogin": "ログイン | NocoDB",
-    "resetPassword": "パスワードをリセットする"
+    "resetPassword": "パスワードをリセットする",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "次で通知する",

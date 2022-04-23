@@ -151,7 +151,7 @@
     "lockedView": "잠긴보기",
     "personalView": "개인적인 견해",
     "appStore": "앱 스토어",
-    "team&auth": "팀 및 인증",
+    "teamAndAuth": "팀 및 인증",
     "rolesUserMgmt": "역할 및 사용자 관리",
     "userMgmt": "사용자 관리",
     "apiTokenMgmt": "API 토큰 관리",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL 및 고급 매개 변수",
     "headCreateProject": "프로젝트 만들기 | nocodb.",
     "headLogin": "로그인 | NocoDB.",
-    "resetPassword": "비밀번호를 재설정"
+    "resetPassword": "비밀번호를 재설정",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "통지를 통지합니다",

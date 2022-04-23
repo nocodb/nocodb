@@ -151,7 +151,7 @@
     "lockedView": "Locked View",
     "personalView": "Personal View",
     "appStore": "App Store",
-    "team&auth": "Team & Auth",
+    "teamAndAuth": "Team & Auth",
     "rolesUserMgmt": "Roles & Users Management",
     "userMgmt": "Users management",
     "apiTokenMgmt": "API Tokens Management",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Advanced parameters",
     "headCreateProject": "Create Project | NocoDB",
     "headLogin": "Log In | NocoDB",
-    "resetPassword": "Reset your password"
+    "resetPassword": "Reset your password",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Notify Via",

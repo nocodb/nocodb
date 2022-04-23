@@ -151,7 +151,7 @@
     "lockedView": "Tampilan yang terkunci",
     "personalView": "Tampilan pribadi",
     "appStore": "Toko aplikasi",
-    "team&auth": "Tim & AUTH.",
+    "teamAndAuth": "Tim & AUTH.",
     "rolesUserMgmt": "Manajemen Peran & Pengguna",
     "userMgmt": "Manajemen Pengguna",
     "apiTokenMgmt": "API Token Management.",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Parameter Lanjutan",
     "headCreateProject": "Buat Proyek | Nocodb.",
     "headLogin": "Masuk | Nocodb.",
-    "resetPassword": "Mereset password Anda"
+    "resetPassword": "Mereset password Anda",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Beri tahu VIA.",

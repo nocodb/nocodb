@@ -558,7 +558,7 @@
                     <!-- Team & Auth -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t("title.team&auth")
+                        $t("title.teamAndAuth")
                       }}</span>
                     </v-list-item-title>
                   </v-list-item>
@@ -690,7 +690,7 @@
                   <v-icon color="brown" small class="mr-1">
                     mdi-cog
                   </v-icon>
-                  Team & Settings
+                  {{ $t('title.teamAndSettings') }}
                 </div>
               </template>
             </settings-modal>
@@ -705,7 +705,7 @@
           <v-icon small class="mr-2">
             mdi-api
           </v-icon>
-          API Docs
+          {{ $t('title.apiDocs') }}
         </div>
         <v-divider />
         <extras class="pl-1" />
@@ -1089,7 +1089,7 @@ export default {
         this.changeActiveTab(tabIndex);
       } else {
         let item = {
-          name: `${this.$t("title.team&auth")} `,
+          name: `${this.$t("title.teamAndAuth")} `,
           key: `roles`,
         };
         item._nodes = { env: "_noco" };

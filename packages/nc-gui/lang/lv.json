@@ -151,7 +151,7 @@
     "lockedView": "Bloķētais skats",
     "personalView": "Personīgais skats",
     "appStore": "Veikals",
-    "team&auth": "Komanda & Autentifikācija",
+    "teamAndAuth": "Komanda & Autentifikācija",
     "rolesUserMgmt": "Lomas & Lietotāju pārvaldība",
     "userMgmt": "Lietotāju pārvaldība",
     "apiTokenMgmt": "API Atslēgu pārvaldība",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Paplašinātie parametri",
     "headCreateProject": "Izveidot projektu | NocoDB",
     "headLogin": "Pieslēgties | NocoDB",
-    "resetPassword": "Atjaunot paroli"
+    "resetPassword": "Atjaunot paroli",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Paziņot izmantojot",

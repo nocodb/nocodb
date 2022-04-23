@@ -7,6 +7,7 @@ import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
+import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 async function dataList(req: Request, res: Response) {
@@ -163,70 +164,85 @@ const router = Router({ mergeParams: true });
 // table data crud apis
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName',
+  apiMetrics,
   ncMetaAclMw(dataList, 'dataList')
 );
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/find-one',
+  apiMetrics,
   ncMetaAclMw(dataFindOne, 'dataFindOne')
 );
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/count',
+  apiMetrics,
   ncMetaAclMw(dataCount, 'dataCount')
 );
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/count',
+  apiMetrics,
   ncMetaAclMw(dataCount, 'dataCount')
 );
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
+  apiMetrics,
   ncMetaAclMw(dataRead, 'dataRead')
 );
 router.patch(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
+  apiMetrics,
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
 router.delete(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
+  apiMetrics,
   ncMetaAclMw(dataDelete, 'dataDelete')
 );
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName',
+  apiMetrics,
   ncMetaAclMw(dataList, 'dataList')
 );
 
 // table view data crud apis
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
+  apiMetrics,
   ncMetaAclMw(dataList, 'dataList')
 );
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/find-one',
+  apiMetrics,
   ncMetaAclMw(dataFindOne, 'dataFindOne')
 );
 
 router.post(
   '/api/v1/db/data/:orgs/:projectName/:tableName',
+  apiMetrics,
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
 router.post(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
+  apiMetrics,
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
 router.patch(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
+  apiMetrics,
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
+  apiMetrics,
   ncMetaAclMw(dataRead, 'dataRead')
 );
 router.delete(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
+  apiMetrics,
   ncMetaAclMw(dataDelete, 'dataDelete')
 );
 

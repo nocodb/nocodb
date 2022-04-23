@@ -8,6 +8,7 @@ import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import Project from '../../../../noco-models/Project';
 import { NcError } from '../../helpers/catchError';
+import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 export async function dataList(req: Request, res: Response) {
@@ -141,18 +142,22 @@ router.get(
 
 router.post(
   '/nc/:projectId/api/v1/:tableName',
+  apiMetrics,
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
 router.get(
   '/nc/:projectId/api/v1/:tableName/:rowId',
+  apiMetrics,
   ncMetaAclMw(dataRead, 'dataRead')
 );
 router.patch(
   '/nc/:projectId/api/v1/:tableName/:rowId',
+  apiMetrics,
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
 router.delete(
   '/nc/:projectId/api/v1/:tableName/:rowId',
+  apiMetrics,
   ncMetaAclMw(dataDelete, 'dataDelete')
 );
 

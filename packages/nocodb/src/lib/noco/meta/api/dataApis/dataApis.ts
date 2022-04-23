@@ -7,6 +7,7 @@ import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { NcError } from '../../helpers/catchError';
+import apiMetrics from '../../helpers/apiMetrics';
 import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 export async function dataList(req: Request, res: Response, next) {
@@ -540,7 +541,7 @@ async function relationDataAdd(req, res) {
 
 const router = Router({ mergeParams: true });
 
-// router.get('/data/:orgs/:projectName/:tableName', ncMetaAclMw(dataListNew));
+// router.get('/data/:orgs/:projectName/:tableName',apiMetrics,ncMetaAclMw(dataListNew));
 // router.get(
 //   '/data/:orgs/:projectName/:tableName/views/:viewName',
 //   ncMetaAclMw(dataListNew)
@@ -559,14 +560,38 @@ const router = Router({ mergeParams: true });
 //   ncMetaAclMw(dataDeleteNew)
 // );
 
-router.get('/data/:viewId/', ncMetaAclMw(dataList, 'dataList'));
-router.post('/data/:viewId/', ncMetaAclMw(dataInsert, 'dataInsert'));
-router.get('/data/:viewId/:rowId', ncMetaAclMw(dataRead, 'dataRead'));
-router.patch('/data/:viewId/:rowId', ncMetaAclMw(dataUpdate, 'dataUpdate'));
-router.delete('/data/:viewId/:rowId', ncMetaAclMw(dataDelete, 'dataDelete'));
+router.get('/data/:viewId/', apiMetrics, ncMetaAclMw(dataList, 'dataList'));
+router.post(
+  '/data/:viewId/',
+  apiMetrics,
+  ncMetaAclMw(dataInsert, 'dataInsert')
+);
+router.get(
+  '/data/:viewId/:rowId',
+  apiMetrics,
+  ncMetaAclMw(dataRead, 'dataRead')
+);
+router.patch(
+  '/data/:viewId/:rowId',
+  apiMetrics,
+  ncMetaAclMw(dataUpdate, 'dataUpdate')
+);
+router.delete(
+  '/data/:viewId/:rowId',
+  apiMetrics,
+  ncMetaAclMw(dataDelete, 'dataDelete')
+);
 
-router.get('/data/:viewId/:rowId/mm/:colId', ncMetaAclMw(mmList, 'mmList'));
-router.get('/data/:viewId/:rowId/hm/:colId', ncMetaAclMw(hmList, 'hmList'));
+router.get(
+  '/data/:viewId/:rowId/mm/:colId',
+  apiMetrics,
+  ncMetaAclMw(mmList, 'mmList')
+);
+router.get(
+  '/data/:viewId/:rowId/hm/:colId',
+  apiMetrics,
+  ncMetaAclMw(hmList, 'hmList')
+);
 
 router.get(
   '/data/:viewId/:rowId/mm/:colId/exclude',

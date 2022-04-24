@@ -385,7 +385,7 @@
     "searchColumn": "搜索{search}列",
     "searchApps": "搜索應用程序",
     "searchModels": "搜索模型",
-    "noItemsFound": "未找到任何專案",
+    "noItemsFound": "未找到任何項目",
     "defaultValue": "默認值",
     "filterByEmail": "通過電子郵件過濾"
   },

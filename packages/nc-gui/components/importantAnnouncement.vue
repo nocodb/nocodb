@@ -67,7 +67,7 @@ export default {
       set(val) {
         return this.$store.commit('app/MutHiddenAnnouncement', val ? null : true)
       }
-    },
+    }
   },
   mounted() {
     setTimeout(() => {

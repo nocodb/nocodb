@@ -1,5 +1,4 @@
 import Filter from '../../../noco-models/Filter';
-import UITypes from '../../../sqlUi/UITypes';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
 import { QueryBuilder } from 'knex';
 import { XKnex } from '../..';
@@ -9,7 +8,7 @@ import genRollupSelectv2 from './genRollupSelectv2';
 import RollupColumn from '../../../noco-models/RollupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../noco-models/FormulaColumn';
-import { RelationTypes } from 'nocodb-sdk';
+import { RelationTypes, UITypes } from 'nocodb-sdk';
 // import LookupColumn from '../../../noco-models/LookupColumn';
 
 export default async function conditionV2(
@@ -111,7 +110,7 @@ const parseConditionV2 = async (
         };
       } else if (colOptions.type === RelationTypes.BELONGS_TO) {
         const selectQb = knex(parentModel.table_name).select(
-          childColumn.column_name
+          parentColumn.column_name
         );
         (
           await parseConditionV2(
@@ -324,7 +323,7 @@ async function generateLookupCondition(
     const parentModel = await parentColumn.getModel();
     await parentModel.getColumns();
 
-    if (relationColumnOptions.type === 'hm') {
+    if (relationColumnOptions.type === RelationTypes.HAS_MANY) {
       qb = knex(`${childModel.table_name} as ${alias}`);
 
       qb.select(`${alias}.${childColumn.column_name}`);
@@ -348,7 +347,7 @@ async function generateLookupCondition(
           qbP.whereNotIn(parentColumn.column_name, qb);
         else qbP.whereIn(parentColumn.column_name, qb);
       };
-    } else if (relationColumnOptions.type === 'bt') {
+    } else if (relationColumnOptions.type === RelationTypes.BELONGS_TO) {
       qb = knex(`${parentModel.table_name} as ${alias}`);
       qb.select(`${alias}.${childColumn.column_name}`);
 
@@ -440,7 +439,7 @@ async function nestedConditionJoin(
     await parentModel.getColumns();
     {
       switch (relationColOptions.type) {
-        case 'hm':
+        case RelationTypes.HAS_MANY:
           {
             qb.join(
               `${childModel.table_name} as ${relAlias}`,
@@ -449,7 +448,7 @@ async function nestedConditionJoin(
             );
           }
           break;
-        case 'bt':
+        case RelationTypes.BELONGS_TO:
           {
             qb.join(
               `${parentModel.table_name} as ${relAlias}`,
@@ -493,7 +492,7 @@ async function nestedConditionJoin(
       );
     } else {
       switch (relationColOptions.type) {
-        case 'hm':
+        case RelationTypes.HAS_MANY:
           {
             (
               await parseConditionV2(
@@ -509,7 +508,7 @@ async function nestedConditionJoin(
             )(qb);
           }
           break;
-        case 'bt':
+        case RelationTypes.BELONGS_TO:
           {
             (
               await parseConditionV2(

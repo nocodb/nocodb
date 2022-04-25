@@ -4,7 +4,6 @@ import _ from 'lodash';
 import Model from '../../../noco-models/Model';
 import { XKnex } from '../..';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
-import UITypes from '../../../sqlUi/UITypes';
 import RollupColumn from '../../../noco-models/RollupColumn';
 import LookupColumn from '../../../noco-models/LookupColumn';
 import DataLoader from 'dataloader';
@@ -25,6 +24,7 @@ import {
   isSystemColumn,
   RelationTypes,
   SortType,
+  UITypes,
   ViewTypes
 } from 'nocodb-sdk';
 import formSubmissionEmailTemplate from '../../../noco/common/formSubmissionEmailTemplate';
@@ -83,6 +83,45 @@ class BaseModelSqlv2 {
     await this.selectObject({ qb });
     qb.where(this.model.primaryKey.column_name, id).first();
     const data = await this.run(qb);
+
+    if (data) {
+      const proto = await this.getProto();
+      data.__proto__ = proto;
+    }
+    return data;
+  }
+
+  public async findOne(
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+    } = {}
+  ): Promise<any> {
+    const qb = this.dbDriver(this.model.table_name);
+    await this.selectObject({ qb });
+
+    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
+
+    await conditionV2(
+      [
+        new Filter({
+          children: args.filterArr || [],
+          is_group: true,
+          logical_op: 'and'
+        }),
+        new Filter({
+          children: filterObj,
+          is_group: true,
+          logical_op: 'and'
+        }),
+        ...(args.filterArr || [])
+      ],
+      qb,
+      this.dbDriver
+    );
+
+    const data = await qb.first();
 
     if (data) {
       const proto = await this.getProto();
@@ -292,6 +331,8 @@ class BaseModelSqlv2 {
                 ? allowedCols[col.id] &&
                   (!isSystemColumn(col) || view.show_system_fields) &&
                   (!fields?.length || fields.includes(col.title))
+                : fields?.length
+                ? fields.includes(col.title)
                 : 1
           }),
           {}
@@ -1915,10 +1956,13 @@ class BaseModelSqlv2 {
         {
           await this.dbDriver(childTable.table_name)
             .update({
-              [childColumn.column_name]: this.dbDriver(parentTable.table_name)
-                .select(parentColumn.column_name)
-                .where(_wherePk(parentTable.primaryKeys, rowId))
-                .first()
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTable.table_name)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, rowId))
+                  .first()
+                  .as('___cn_alias')
+              )
             })
             .where(_wherePk(childTable.primaryKeys, childId));
         }
@@ -1927,10 +1971,13 @@ class BaseModelSqlv2 {
         {
           await this.dbDriver(childTable.table_name)
             .update({
-              [childColumn.column_name]: this.dbDriver(parentTable.table_name)
-                .select(parentColumn.column_name)
-                .where(_wherePk(parentTable.primaryKeys, childId))
-                .first()
+              [childColumn.column_name]: this.dbDriver.from(
+                this.dbDriver(parentTable.table_name)
+                  .select(parentColumn.column_name)
+                  .where(_wherePk(parentTable.primaryKeys, childId))
+                  .first()
+                  .as('___cn_alias')
+              )
             })
             .where(_wherePk(childTable.primaryKeys, rowId));
         }

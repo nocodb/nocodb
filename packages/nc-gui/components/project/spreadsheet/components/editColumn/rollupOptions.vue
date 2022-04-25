@@ -64,7 +64,7 @@
 
 <script>
 
-import { isSystemColumn, UITypes } from 'nocodb-sdk'
+import { isSystemColumn, isVirtualCol, UITypes } from 'nocodb-sdk'
 
 export default {
   name: 'RollupOptions',
@@ -110,7 +110,7 @@ export default {
         this.$store.state.meta.metas &&
         this.$store.state.meta.metas[this.rollup.table.table_name] &&
         this.$store.state.meta.metas[this.rollup.table.table_name].columns
-      ) || []).filter(col => ![UITypes.Lookup, UITypes.Rollup, UITypes.LinkToAnotherRecord].includes(col.uidt) && !isSystemColumn(col))
+      ) || []).filter(col => !isVirtualCol(col.uidt) && !isSystemColumn(col))
     }
   },
   async mounted() {

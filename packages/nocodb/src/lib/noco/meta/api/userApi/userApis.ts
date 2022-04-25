@@ -285,8 +285,8 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
   }
 
   const email = _email.toLowerCase();
-
   const user = await User.getByEmail(email);
+
   if (user) {
     const token = uuidv4();
     await User.update(user.id, {
@@ -302,15 +302,16 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
           subject: 'Password Reset Link',
           text: `Visit following link to update your password : ${
             (req as any).ncSiteUrl
-          }/password/reset/${token}.`,
+          }/api/v1/db/auth/password/reset/${token}.`,
           html: ejs.render(template, {
-            resetLink: (req as any).ncSiteUrl + `/password/reset/${token}`
+            resetLink: (req as any).ncSiteUrl + `/api/v1/db/auth/password/reset/${token}`
           })
         })
       );
     } catch (e) {
-      console.log(
-        'Warning : `mailSend` failed, Please configure emailClient configuration.'
+      console.log(e)
+      return NcError.badRequest(
+        'Email Plugin is not found. Please contact administrators to configure it in App Store first.'
       );
     }
 
@@ -321,12 +322,16 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
       description: `requested for password reset `,
       ip: (req as any).clientIp
     });
+  } else {
+    return NcError.badRequest(
+      'Your email has not been registered.'
+    );
   }
-  res.json({ msg: 'Check your email if you are registered with us.' });
+  res.json({ msg: 'Please check your email to reset the password' });
 }
 
 async function tokenValidate(req, res): Promise<any> {
-  const token = req.params.token;
+  const token = req.params.tokenId;
 
   const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
     reset_password_token: token
@@ -342,7 +347,7 @@ async function tokenValidate(req, res): Promise<any> {
 }
 
 async function passwordReset(req, res): Promise<any> {
-  const token = req.params.token;
+  const token = req.params.tokenId;
 
   const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
     reset_password_token: token
@@ -380,7 +385,7 @@ async function passwordReset(req, res): Promise<any> {
 }
 
 async function emailVerification(req, res): Promise<any> {
-  const token = req.params.token;
+  const token = req.params.tokenId;
 
   const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
     email_verification_token: token
@@ -444,6 +449,19 @@ async function refreshToken(req, res): Promise<any> {
   }
 }
 
+async function renderPasswordReset(req, res): Promise<any> {
+  try {
+    res.send(
+      ejs.render((await import('./ui/auth/resetPassword')).default, {
+        token: JSON.stringify(req.params.tokenId),
+        baseUrl: `/`
+      })
+    );
+  } catch (e) {
+    return res.status(400).json({ msg: e.message });
+  }
+}
+
 const mapRoutes = router => {
   // todo: old api - /auth/signup?tool=1
   router.post('/auth/user/signup', catchError(signup));
@@ -459,6 +477,7 @@ const mapRoutes = router => {
   );
   router.post('/auth/token/refresh', ncMetaAclMw(refreshToken, 'refreshToken'));
 
+  // new API
   router.post('/api/v1/db/auth/user/signup', catchError(signup));
   router.post('/api/v1/db/auth/user/signin', catchError(signin));
   router.get(
@@ -480,12 +499,16 @@ const mapRoutes = router => {
     catchError(emailVerification)
   );
   router.post(
-    '/user/password/change',
+    '/api/v1/db/auth/password/change',
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
   router.post(
     '/api/v1/db/auth/token/refresh',
     ncMetaAclMw(refreshToken, 'refreshToken')
+  );
+  router.get(
+    '/api/v1/db/auth/password/reset/:tokenId',
+    catchError(renderPasswordReset)
   );
 };
 export { mapRoutes as userApis };

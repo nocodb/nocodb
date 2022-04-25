@@ -151,7 +151,7 @@
     "lockedView": "Kilitli görünüm",
     "personalView": "Kişisel görünüm",
     "appStore": "Uygulama mağazası",
-    "team&auth": "Takım ve Yetki",
+    "teamAndAuth": "Takım ve Yetki",
     "rolesUserMgmt": "Roller ve Kullanıcıları Yönet",
     "userMgmt": "Kullanıcıları Yönet",
     "apiTokenMgmt": "API Tokenları Yönet",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL ve Gelişmiş Parametreler",
     "headCreateProject": "Proje Oluştur | Nocodb",
     "headLogin": "Giriş | Nocodb",
-    "resetPassword": "Şifrenizi sıfırlayın"
+    "resetPassword": "Şifrenizi sıfırlayın",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Aracılığıyla Bildir",

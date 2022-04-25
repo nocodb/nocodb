@@ -7,7 +7,7 @@
     >
       <template #activator="{on}">
         <v-btn
-          v-t="['actions:trigger']"
+          v-t="['c:actions']"
           outlined
           class="nc-actions-menu-btn caption px-2 nc-remove-border font-weight-medium"
           small
@@ -28,7 +28,7 @@
 
       <v-list dense>
         <v-list-item
-          v-t="['actions:download-csv']"
+          v-t="['a:actions:download-csv']"
           dense
           @click="exportCsv"
         >
@@ -44,7 +44,7 @@
         </v-list-item>
         <v-list-item
           v-if="_isUIAllowed('csvImport') && !isView"
-          v-t="['actions:upload-csv']"
+          v-t="['a:actions:upload-csv']"
           dense
           @click="importModal = true"
         >
@@ -63,8 +63,8 @@
           </v-list-item-title>
         </v-list-item>
         <v-list-item
-          v-if="_isUIAllowed('csvImport') && !isView"
-          v-t="['actions:shared-view-list']"
+          v-if="_isUIAllowed('SharedViewList') && !isView"
+          v-t="['a:actions:shared-view-list']"
           dense
           @click="$emit('showAdditionalFeatOverlay', 'shared-views')"
         >
@@ -79,8 +79,8 @@
           </v-list-item-title>
         </v-list-item>
         <v-list-item
-          v-if="_isUIAllowed('csvImport') && !isView"
-          v-t="['actions:webhook:trigger']"
+          v-if="_isUIAllowed('webhook') && !isView"
+          v-t="['c:actions:webhook']"
           dense
           @click="$emit('webhook')"
         >
@@ -309,10 +309,10 @@ export default {
             return res
           }, {}))
           await this.$api.dbTableRow.bulkCreate(
-              'noco', 
-              this.projectName,
-              this.meta.title,
-              batchData
+            'noco',
+            this.projectName,
+            this.meta.title,
+            batchData
           )
           progress += batchData.length
           this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${data.length}`)

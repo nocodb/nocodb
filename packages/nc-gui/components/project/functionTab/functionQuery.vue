@@ -73,10 +73,9 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 
+import { SqlUiFactory } from 'nocodb-sdk'
 import MonacoEditor from '../../monaco/Monaco'
 import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
-
-import { SqlUI } from '../../../helpers/sqlUi/SqlUiFactory'
 
 export default {
   components: { MonacoEditor, dlgLabelSubmitCancel },
@@ -244,7 +243,7 @@ export default {
   },
   watch: {},
   created() {
-    this.sqlUi = SqlUI.create(this.nodes.dbConnection)
+    this.sqlUi = SqlUiFactory.create(this.nodes.dbConnection)
   },
   mounted() {
     this.loadFunction()

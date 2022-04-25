@@ -709,10 +709,10 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 import JSON5 from 'json5'
+import { SqlUiFactory } from 'nocodb-sdk'
 import addRelationDlg from '../dlgs/dlgAddRelation.vue'
 import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel.vue'
 
-import { SqlUI } from '../../../helpers/sqlUi/SqlUiFactory'
 import jsonToColumn from './columnActions/jsonToColumn'
 import uiTypes from '@/components/project/spreadsheet/helpers/uiTypes'
 
@@ -1271,7 +1271,7 @@ export default {
   },
   watch: {},
   async created() {
-    this.sqlUi = SqlUI.create(this.nodes.dbConnection)
+    this.sqlUi = SqlUiFactory.create(this.nodes.dbConnection)
 
     try {
       this.loading = true

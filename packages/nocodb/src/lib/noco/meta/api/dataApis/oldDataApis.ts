@@ -86,7 +86,7 @@ async function getDataList(model, view: View, req) {
   });
 }
 async function getViewAndModelFromRequest(req) {
-  const project = await Project.get(req.params.projectId);
+  const project = await Project.getWithInfo(req.params.projectId);
   const model = await Model.getByAliasOrId({
     project_id: project.id,
     base_id: project.bases?.[0]?.id,
@@ -126,24 +126,24 @@ async function dataRead(req: Request, res: Response) {
 const router = Router({ mergeParams: true });
 
 router.get(
-  '/nc/:projectId/api/v2/:tableName',
+  '/nc/:projectId/api/v1/:tableName',
   ncMetaAclMw(dataList, 'dataList')
 );
 
 router.post(
-  '/nc/:projectId/api/v2/:tableName',
+  '/nc/:projectId/api/v1/:tableName',
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
 router.get(
-  '/nc/:projectId/api/v2/:tableName/:rowId',
+  '/nc/:projectId/api/v1/:tableName/:rowId',
   ncMetaAclMw(dataRead, 'dataRead')
 );
 router.patch(
-  '/nc/:projectId/api/v2/:tableName/:rowId',
+  '/nc/:projectId/api/v1/:tableName/:rowId',
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
 router.delete(
-  '/nc/:projectId/api/v2/:tableName/:rowId',
+  '/nc/:projectId/api/v1/:tableName/:rowId',
   ncMetaAclMw(dataDelete, 'dataDelete')
 );
 

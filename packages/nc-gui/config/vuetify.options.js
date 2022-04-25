@@ -21,6 +21,7 @@ export default function({ app }) {
           text: '#ffffff',
           textLight: '#b3b3b3',
           backgroundColor: '#565656',
+          backgroundColor1: '#252525',
           backgroundColorDefault: '#1f1f1f'
         },
         light: {
@@ -31,6 +32,7 @@ export default function({ app }) {
           text: '#333333',
           textLight: '#929292',
           backgroundColor: '#f7f7f7',
+          backgroundColor1: '#f7f6f3',
           backgroundColorDefault: '#ffffff'
         }
       }

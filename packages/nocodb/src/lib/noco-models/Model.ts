@@ -8,9 +8,9 @@ import {
   ModelTypes,
   TableReqType,
   TableType,
+  UITypes,
   ViewTypes
 } from 'nocodb-sdk';
-import UITypes from '../sqlUi/UITypes';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -425,12 +425,8 @@ export default class Model implements TableType {
     );
     await ncMeta.metaDelete(null, null, MetaTable.MODELS, this.id);
 
-    await NocoCache.del(
-      `${CacheScope.MODEL}:${this.project_id}:${this.id}`
-    );
-    await NocoCache.del(
-      `${CacheScope.MODEL}:${this.project_id}:${this.title}`
-    );
+    await NocoCache.del(`${CacheScope.MODEL}:${this.project_id}:${this.id}`);
+    await NocoCache.del(`${CacheScope.MODEL}:${this.project_id}:${this.title}`);
     return true;
   }
 

@@ -1,5 +1,6 @@
 import {
   IEmailAdapter,
+  IStorageAdapter,
   IWebhookNotificationAdapter
   // XcEmailPlugin,
   // XcPlugin,
@@ -120,7 +121,7 @@ class NcPluginMgrv2 {
     }
 
     await plugin.init(pluginData?.input);
-    return plugin.getAdapter();
+    return plugin.adapter as IStorageAdapter;
   }
 
   public static async emailAdapter(
@@ -130,6 +131,8 @@ class NcPluginMgrv2 {
       category: PluginCategory.EMAIL,
       active: true
     });
+
+    if (!pluginData) return null;
 
     const pluginConfig = defaultPlugins.find(
       c => c.title === pluginData.title && c.category === PluginCategory.EMAIL

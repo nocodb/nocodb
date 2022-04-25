@@ -85,6 +85,7 @@
         v-else-if="formula"
         :row="row"
         :column="column"
+        :client="nodes.dbConnection.client"
       />
       <rollup-cell
         v-else-if="rollup"

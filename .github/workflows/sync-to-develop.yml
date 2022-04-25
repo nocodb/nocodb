@@ -9,16 +9,11 @@ jobs:
   sync-to-develop:
     runs-on: ubuntu-latest
     steps:
-      # See https://github.com/actions/checkout/issues/766
-      - name: Workaround for unsafe repository issue
-        run: |
-          git config --global --add safe.directory ${GITHUB_WORKSPACE}
- 
       - name: Checkout
         uses: actions/checkout@v1
 
       - name: Merge from master to develop
-        uses: robotology/gh-action-nightly-merge@v1.3.1
+        uses: wingkwong/gh-action-nightly-merge@master
         with:
           stable_branch: 'master'
           development_branch: 'develop'

@@ -9,7 +9,13 @@ Once you've created the schemas, you can manipulate the data or invoke actions u
 
 ## API Overview
 
-Here's the overview of all APIs. For the details, please check out <a href="https://all-apis.nocodb.com/" target="_blank">NocoDB API Documentation</a>.
+Here's the overview of all APIs. For the details, please check out <a href="https://all-apis.nocodb.com/" target="_blank">NocoDB API Documentation</a>. 
+
+You may also interact with the API's resources via <a href="./accessing-apis#swagger-ui" target="_blank">Swagger UI</a>.
+
+<alert type="success">
+Currently, the default value for {orgs} is <b>noco</b>. Users will be able to change it in the future release.
+</alert>
 
 ### Auth APIs
 
@@ -47,16 +53,18 @@ Here's the overview of all APIs. For the details, please check out <a href="http
 | Data | Patch | dbTableRow | bulkUpdateAll | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all |
 | Data | Delete| dbTableRow | bulkDeleteAll | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all |
 | Data | Get | dbTableRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
+| Data | Get | dbTableRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one |
 | Data | Post | dbTableRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
 | Data | Get | dbTableRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Patch | dbTableRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Delete| dbTableRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Get | dbTableRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/count |
-| Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |
-| Data | Post | dbViewRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName} |
-| Data | Get | dbViewRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
-| Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
-| Data | Delete| dbViewRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/view/{viewName}/{rowId} |
+| Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
+| Data | Get | dbViewRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one |
+| Data | Post | dbViewRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
+| Data | Get | dbViewRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
+| Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
+| Data | Delete| dbViewRow | delete | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
 | Data | Get | dbViewRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count |
 
 ### Meta APIs
@@ -70,6 +78,7 @@ Here's the overview of all APIs. For the details, please check out <a href="http
 | Meta | Post | auth | projectUserAdd | /api/v1/db/meta/projects/{projectId}/users |
 | Meta | Patch | auth | projectUserUpdate | /api/v1/db/meta/projects/{projectId}/users/{userId} |
 | Meta | Delete| auth | projectUserRemove | /api/v1/db/meta/projects/{projectId}/users/{userId} |
+| Meta | Post | auth | projectUserResendInvite | /api/v1/db/meta/projects/{projectId}/users/{userId}/resend-invite |
 | Meta | Post | dbTable | create | /api/v1/db/meta/projects/{projectId}/tables |
 | Meta | Get | dbTable | list | /api/v1/db/meta/projects/{projectId}/tables |
 | Meta | Post | dbTableColumn | create | /api/v1/db/meta/tables/{tableId}/columns |

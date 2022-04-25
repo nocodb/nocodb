@@ -220,14 +220,20 @@ export default {
     async resetUserPassword(e) {
       e.preventDefault()
       if (this.$refs.formType[0].validate()) {
-        // console.log('passworDetails',this.passwordDetails);
-        const err = await this.$store.dispatch('users/ActPostPasswordChange', this.passwordDetails)
-        if (err) {
-          this.formUtil.formErr = true
-          this.formUtil.formErrMsg = err.data.msg
-        } else {
+        try {
+          await this.$api.auth.passwordChange(
+            {
+              currentPassword: this.passwordDetails.currentPassword,
+              newPassword: this.passwordDetails.newPassword
+            }
+          )
           this.$toast.success('Password changed successfully.').goAway(3000)
           this.$refs.formType[0].reset()
+        } catch (e) {
+          this.$toast
+            .error(await this._extractSdkResponseErrorMsg(e))
+            .goAway(3000);
+          return;
         }
       }
     },
@@ -251,6 +257,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

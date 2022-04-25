@@ -229,13 +229,12 @@
 
 import { validationMixin } from 'vuelidate'
 import { required, minLength } from 'vuelidate/lib/validators'
-import { ErrorMessages, isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk'
+import { ErrorMessages, isVirtualCol, RelationTypes, UITypes, SqlUiFactory } from 'nocodb-sdk'
 import form from '../mixins/form'
 import VirtualHeaderCell from '../components/virtualHeaderCell'
 import HeaderCell from '../components/headerCell'
 import VirtualCell from '../components/virtualCell'
 import EditableCell from '../components/editableCell'
-import { SqlUI } from '../../../../helpers/sqlUi'
 
 export default {
   name: 'XcForm',
@@ -273,7 +272,7 @@ export default {
 
     sqlUiLoc() {
       // todo: replace with correct client
-      return this.client && SqlUI.create({ client: this.client })
+      return this.client && SqlUiFactory.create({ client: this.client })
     }
   },
   watch: {

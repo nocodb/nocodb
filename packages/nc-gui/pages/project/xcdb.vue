@@ -69,7 +69,7 @@
           </div>
           <div class="text-center">
             <v-btn
-              v-t="['project:create:xcdb:submit']"
+              v-t="['a:project:create:xcdb']"
               class="mt-3"
               large
               :loading="loading"

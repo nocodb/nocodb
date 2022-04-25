@@ -1,4 +1,3 @@
-import UITypes from '../sqlUi/UITypes';
 import FormulaColumn from './FormulaColumn';
 import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
@@ -7,7 +6,7 @@ import SingleSelectColumn from './SingleSelectColumn';
 import MultiSelectColumn from './MultiSelectColumn';
 import Model from './Model';
 import NocoCache from '../noco-cache/NocoCache';
-import { ColumnType } from 'nocodb-sdk';
+import { ColumnType, UITypes } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -49,6 +48,7 @@ export default class Column<T = any> implements ColumnType {
   public dtxp: string;
   public dtxs: string;
   public au: boolean;
+  public system: boolean;
 
   public colOptions: T;
   public model: Model;

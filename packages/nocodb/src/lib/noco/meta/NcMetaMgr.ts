@@ -37,10 +37,10 @@ import { packageVersion } from 'nc-help';
 import NcMetaIO, { META_TABLES } from './NcMetaIO';
 import { promisify } from 'util';
 import NcTemplateParser from '../../templateParser/NcTemplateParser';
-import UITypes from '../../sqlUi/UITypes';
 import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
 import S3 from '../../../plugins/s3/S3';
+import { UITypes } from 'nocodb-sdk';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
 

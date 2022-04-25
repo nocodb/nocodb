@@ -9,7 +9,11 @@ import User from '../../../noco-models/User';
 import { Tele } from 'nc-help';
 import Audit from '../../../noco-models/Audit';
 import NocoCache from '../../../noco-cache/NocoCache';
-import { CacheGetType, CacheScope } from '../../../utils/globals';
+import { CacheGetType, CacheScope, MetaTable } from '../../../utils/globals';
+import * as ejs from 'ejs';
+import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
+import Noco from '../../Noco';
+import { PluginCategory } from 'nocodb-sdk';
 
 async function userList(req, res) {
   res.json({
@@ -112,15 +116,12 @@ async function userInvite(req, res, next): Promise<any> {
         // in case of single user check for smtp failure
         // and send back token if failed
         if (
-          emails.length === 1
-          // todo: email
-          // &&
-          // !(await sendInviteEmail(email, invite_token, req))
+          emails.length === 1 &&
+          !(await sendInviteEmail(email, invite_token, req))
         ) {
           return res.json({ invite_token, email });
         } else {
-          // todo: email
-          // sendInviteEmail(email, invite_token, req);
+          sendInviteEmail(email, invite_token, req);
         }
       } catch (e) {
         console.log(e);
@@ -209,16 +210,13 @@ async function projectUserDelete(req, res): Promise<any> {
       NcError.forbidden('Insufficient privilege to delete a owner user.');
   }
 
-  // await this.users.where('id', req.params.id).del();
   await ProjectUser.delete(project_id, req.params.userId);
   res.json({
     msg: 'success'
   });
 }
 
-// todo: map api
-// @ts-ignore
-async function resendInvite(req, res, next): Promise<any> {
+async function projectUserInviteResend(req, res): Promise<any> {
   const user = await User.get(req.params.userId);
 
   if (!user) {
@@ -233,8 +231,18 @@ async function resendInvite(req, res, next): Promise<any> {
     invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
   });
 
-  // todo:
-  // await sendInviteEmail(user.email, invite_token, req);
+  const pluginData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
+    category: PluginCategory.EMAIL,
+    active: true
+  });
+
+  if (!pluginData) {
+    NcError.badRequest(
+      `No Email Plugin is found. Please go to App Store to configure first or copy the invitation URL to users instead.`
+    );
+  }
+
+  await sendInviteEmail(user.email, invite_token, req);
 
   Audit.insert({
     op_type: 'AUTHENTICATION',
@@ -246,6 +254,44 @@ async function resendInvite(req, res, next): Promise<any> {
   });
 
   res.json({ msg: 'success' });
+}
+
+async function sendInviteEmail(
+  email: string,
+  token: string,
+  req: any
+): Promise<any> {
+  try {
+    const template = (await import('./userApi/ui/emailTemplates/invite'))
+      .default;
+
+    const emailAdapter = await NcPluginMgrv2.emailAdapter();
+
+    if (emailAdapter) {
+      await emailAdapter.mailSend({
+        to: email,
+        subject: 'Verify email',
+        html: ejs.render(template, {
+          signupLink: `${req.ncSiteUrl}${
+            Noco.getConfig()?.dashboardPath
+          }#/user/authentication/signup/${token}`,
+          projectName: req.body?.projectName,
+          roles: (req.body?.roles || '')
+            .split(',')
+            .map(r => r.replace(/^./, m => m.toUpperCase()))
+            .join(', '),
+          adminEmail: req.session?.passport?.user?.email
+        })
+      });
+      return true;
+    }
+  } catch (e) {
+    console.log(
+      'Warning : `mailSend` failed, Please configure emailClient configuration.',
+      e.message
+    );
+    throw e;
+  }
 }
 
 const router = Router({ mergeParams: true });
@@ -264,5 +310,9 @@ router.patch(
 router.delete(
   '/api/v1/db/meta/projects/:projectId/users/:userId',
   ncMetaAclMw(projectUserDelete, 'projectUserDelete')
+);
+router.post(
+  '/api/v1/db/meta/projects/:projectId/users/:userId/resend-invite',
+  ncMetaAclMw(projectUserInviteResend, 'projectUserInviteResend')
 );
 export default router;

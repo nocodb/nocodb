@@ -407,7 +407,6 @@ export default {
     },
     async migrationUp(steps = 99999999999) {
       try {
-
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsUp', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,

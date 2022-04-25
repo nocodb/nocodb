@@ -184,10 +184,8 @@ export default {
           this.$emit('input', val === '' ? null : val)
           if (this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime || this.isDateTime || this.isDate) {
             this.syncData()
-          } else {
-            if (!this.isCurrency) {
-              this.syncDataDebounce(this)
-            }
+          } else if (!this.isCurrency) {
+            this.syncDataDebounce(this)
           }
         }
       }
@@ -205,7 +203,6 @@ export default {
       if (this.$listeners.cancel) {
         $listeners.cancel = this.$listeners.cancel
       }
-
 
       return $listeners
     }

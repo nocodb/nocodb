@@ -1,6 +1,6 @@
 import BaseRender from '../../BaseRender';
-import UITypes from '../../../../sqlUi/UITypes';
 import mapDefaultPrimaryValue from '../../../../noco/meta/helpers/mapDefaultPrimaryValue';
+import { UITypes } from 'nocodb-sdk';
 
 abstract class BaseModelXcMeta extends BaseRender {
   protected abstract _getAbstractType(column: any): any;

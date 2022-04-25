@@ -44,15 +44,15 @@
     "title": "عنوان",
     "upload": "بارگذاری",
     "download": "دانلود",
-    "default": "پیش فرض",
+    "default": "پیش‌فرض",
     "more": "بیشتر",
     "less": "کمتر",
     "event": "رویداد",
-    "condition": "شرایط. شرط",
+    "condition": "شرط",
     "after": "بعد از",
     "before": "قبل از",
-    "search": "جستجو کردن",
-    "notification": "اطلاع",
+    "search": "جست‌و‌جو کردن",
+    "notification": "اعلان",
     "reference": "ارجاع",
     "function": "تابع"
   },
@@ -126,11 +126,11 @@
     "Button": "دکمه",
     "Password": "کلمه عبور",
     "relationProperties": {
-      "noAction": "هیچ اقدام",
+      "noAction": "هیچ اقدامی",
       "cascade": "آبشار",
       "restrict": "محدود کردن",
-      "setNull": "تنظیم صفر",
-      "setDefault": "مجموعه پیش فرض"
+      "setNull": "تهی قرار دادن",
+      "setDefault": "تنظیم پیش‌فرض"
     }
   },
   "filterOperation": {
@@ -151,7 +151,7 @@
     "lockedView": "نمایش قفل‌شده",
     "personalView": "نمایش شخصی",
     "appStore": "اپلیکیشن‌ها",
-    "team&auth": "تیم و نویسندگان",
+    "teamAndAuth": "تیم و نویسندگان",
     "rolesUserMgmt": "مدیریت نقش‌ها و کاربران",
     "userMgmt": "مدیریت کاربران",
     "apiTokenMgmt": "مدیریت توکن‌های API",
@@ -169,10 +169,12 @@
     "advancedParameters": "SSL و پارامترهای پیشرفته",
     "headCreateProject": "ایجاد پروژه | NocoDB",
     "headLogin": "ورود | NocoDB",
-    "resetPassword": "بازنشانی کلمه عبور شما"
+    "resetPassword": "بازنشانی کلمه عبور شما",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
-    "notifyVia": "از طریق اطلاع",
+    "notifyVia": "اعلان از طریق",
     "projName": "نام پروژه",
     "tableName": "نام جدول",
     "viewName": "نام نمایش",
@@ -207,7 +209,7 @@
     "syncState": "حالت همگام‌سازی",
     "created": "ایجاد شده",
     "sqlOutput": "خروجی SQL",
-    "addOption": "گزینه اضافه کردن",
+    "addOption": "افزودن گزینه",
     "aggregateFunction": "تابع جمع",
     "dbCreateIfNotExists": "پایگاه داده: ایجاد در صورت عدم وجود",
     "clientKey": "کلید Client",
@@ -231,10 +233,10 @@
     },
     "docReference": "مرجع سند",
     "selectUserRole": "نقش کاربر را انتخاب کنید",
-    "childTable": "جدول کودک",
-    "childColumn": "ستون کودک",
-    "onUpdate": "در به روز رسانی",
-    "onDelete": "در حذف"
+    "childTable": "جدول فرزند",
+    "childColumn": "ستون فرزند",
+    "onUpdate": "هنگام به روز رسانی",
+    "onDelete": "هنگام حذف"
   },
   "activity": {
     "createProject": "ایجاد پروژه",
@@ -472,10 +474,10 @@
         "kanban": "افزودن نمایش کانبان",
         "calendar": "افزودن نمایش تقویم"
       },
-      "tablesMetadataInSync": "متاداده جداول همگام سازی است",
-      "addMultipleUsers": "شما می توانید چندین ایمیل جداگانه کاما (،) را اضافه کنید",
+      "tablesMetadataInSync": "متاداده جداول در حالت همگام‌سازی است",
+      "addMultipleUsers": "می‌توانید چندین ایمیل را به صورت لیست جدا شده با کاما اضافه کنید",
       "enterTableName": "نام جدول را وارد کنید",
-      "addDefaultColumns": "ستون های پیش فرض را اضافه کنید",
+      "addDefaultColumns": "افزودن ستون‌های پیش‌فرض",
       "tableNameInDb": "نام جدول به عنوان ذخیره شده در پایگاه داده"
     },
     "error": {

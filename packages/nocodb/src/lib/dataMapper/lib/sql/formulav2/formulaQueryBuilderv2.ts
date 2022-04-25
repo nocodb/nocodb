@@ -1,13 +1,13 @@
 import jsep from 'jsep';
 import mapFunctionName from '../mapFunctionName';
 import Model from '../../../../noco-models/Model';
-import UITypes from '../../../../sqlUi/UITypes';
 import genRollupSelectv2 from '../genRollupSelectv2';
 import RollupColumn from '../../../../noco-models/RollupColumn';
 import FormulaColumn from '../../../../noco-models/FormulaColumn';
 import { XKnex } from '../../..';
 import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../../noco-models/LookupColumn';
+import { UITypes } from 'nocodb-sdk';
 
 // todo: switch function based on database
 
@@ -564,15 +564,6 @@ export default async function formulaQueryBuilderv2(
             }
           }
           break;
-        case 'DATEADD':
-          if (pt.arguments[1].value) {
-            pt.callee.name = 'DATE_ADD';
-            return fn(pt, alias, prevBinaryOp);
-          } else if (pt.arguments[1].operator == '-') {
-            pt.callee.name = 'DATE_SUB';
-            return fn(pt, alias, prevBinaryOp);
-          }
-          break;
         case 'URL':
           return fn(
             {
@@ -649,6 +640,14 @@ export default async function formulaQueryBuilderv2(
           null,
           pt.operator
         ).toQuery()}${colAlias}`
+      );
+      if (prevBinaryOp && pt.operator !== prevBinaryOp) {
+        query.wrap('(', ')');
+      }
+      return query;
+    } else if (pt.type === 'UnaryExpression') {
+      const query = knex.raw(
+        `${pt.operator}${fn(pt.argument, null, pt.operator).toQuery()}${colAlias}`
       );
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');

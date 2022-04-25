@@ -151,7 +151,7 @@
     "lockedView": "Zaklenjen pogled",
     "personalView": "Osebni pogled",
     "appStore": "Trgovina z aplikacijami",
-    "team&auth": "Ekipa in avtorizacija",
+    "teamAndAuth": "Ekipa in avtorizacija",
     "rolesUserMgmt": "Upravljanje vlog in uporabnikov",
     "userMgmt": "Upravljanje uporabnikov",
     "apiTokenMgmt": "Upravljanje žetonov API",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL in napredni parametri",
     "headCreateProject": "Ustvari projekt | NocoDB.",
     "headLogin": "Prijava | Nocodb.",
-    "resetPassword": "Ponastavi geslo"
+    "resetPassword": "Ponastavi geslo",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Obvestite VIO.",

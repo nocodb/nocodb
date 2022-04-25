@@ -4,10 +4,9 @@ import User from '../../../noco-models/User';
 import Project from '../../../noco-models/Project';
 import ProjectUser from '../../../noco-models/ProjectUser';
 import Model from '../../../noco-models/Model';
-import { ModelTypes, ViewTypes } from 'nocodb-sdk';
+import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
 import Column from '../../../noco-models/Column';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
-import UITypes from '../../../sqlUi/UITypes';
 import NcHelp from '../../../utils/NcHelp';
 import { substituteColumnAliasWithIdInFormula } from '../../meta/helpers/formulaHelpers';
 import RollupColumn from '../../../noco-models/RollupColumn';
@@ -44,9 +43,9 @@ export default async function(ctx: NcUpgraderCtx) {
     await projectBuilder.init();
   }
 
-  await migrateUsers(ncMeta);
+  const usersObj = await migrateUsers(ncMeta);
   const projectsObj = await migrateProjects(ncMeta);
-  await migrateProjectUsers(ncMeta);
+  await migrateProjectUsers(projectsObj, usersObj, ncMeta);
   const migrationCtx = await migrateProjectModels(ncMeta);
 
   await migrateUIAcl(migrationCtx, ncMeta);
@@ -59,12 +58,13 @@ export default async function(ctx: NcUpgraderCtx) {
 
 async function migrateUsers(ncMeta = Noco.ncMeta) {
   const users = await ncMeta.metaList(null, null, 'xc_users');
-  const userList: User[] = [];
+  const userObj: { [id: string]: User } = {};
 
   for (const user of users) {
-    userList.push(await User.insert(user, ncMeta));
+    const user1 = await User.insert(user, ncMeta);
+    userObj[user1.id] = user1;
   }
-  return userList;
+  return userObj;
 }
 
 async function migrateProjects(
@@ -102,10 +102,20 @@ async function migrateProjects(
   return projectsObj;
 }
 
-async function migrateProjectUsers(ncMeta = Noco.ncMeta) {
+async function migrateProjectUsers(
+  projectsObj: { [p: string]: Project },
+  usersObj: { [p: string]: User },
+  ncMeta = Noco.ncMeta
+) {
   const projectUsers = await ncMeta.metaList(null, null, 'nc_projects_users');
 
   for (const projectUser of projectUsers) {
+    // skip if project is missing
+    if (!(projectUser.project_id in projectsObj)) continue;
+
+    // skip if user is missing
+    if (!(projectUser.user_id in usersObj)) continue;
+
     await ProjectUser.insert(
       {
         project_id: projectUser.project_id,
@@ -200,6 +210,7 @@ interface Formulav1 {
   formula: {
     value: string;
     tree: any;
+    error: string[] | string;
   };
 }
 
@@ -650,10 +661,20 @@ async function migrateProjectModels(
               const colBody: any = {
                 _cn: columnMeta._cn
               };
-              colBody.formula = await substituteColumnAliasWithIdInFormula(
-                columnMeta.formula.value,
-                await model.getColumns(ncMeta)
-              );
+              if (columnMeta?.formula?.error?.length) {
+                colBody.error = Array.isArray(columnMeta.formula.error)
+                  ? columnMeta.formula.error.join(',')
+                  : columnMeta.formula.error;
+              } else {
+                try {
+                  colBody.formula = await substituteColumnAliasWithIdInFormula(
+                    columnMeta.formula.value,
+                    await model.getColumns(ncMeta)
+                  );
+                } catch {
+                  colBody.error = 'Invalid formula';
+                }
+              }
               colBody.formula_raw = columnMeta.formula.value;
               const column = await Column.insert(
                 {
@@ -1085,20 +1106,27 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
 
   for (const sharedView of sharedViews) {
     let fk_view_id;
+
+    // if missing view name or model name skip the shared view migration
+    if (!sharedView.view_name || !sharedView.model_name) continue;
+
     if (sharedView.view_type !== 'table' && sharedView.view_type !== 'view') {
       fk_view_id =
-        ctx.objViewRef[sharedView.project_id][sharedView.model_name][
+        ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[
           sharedView.view_name
-        ].id;
+        ]?.id;
     } else {
       fk_view_id =
-        ctx.objViewRef[sharedView.project_id][sharedView.model_name][
-          ctx.objModelRef[sharedView.project_id][sharedView.model_name].title
-        ].id ||
-        ctx.objViewRef[sharedView.project_id][sharedView.model_name][
+        ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[
+          ctx.objModelRef[sharedView.project_id]?.[sharedView.model_name]?.title
+        ]?.id ||
+        ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[
           sharedView.model_name
-        ].id;
+        ]?.id;
     }
+
+    // if view id missing skip shared view migration
+    if (!fk_view_id) continue;
 
     await View.update(
       fk_view_id,

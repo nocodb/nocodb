@@ -349,7 +349,7 @@ async function generateLookupCondition(
       };
     } else if (relationColumnOptions.type === RelationTypes.BELONGS_TO) {
       qb = knex(`${parentModel.table_name} as ${alias}`);
-      qb.select(`${alias}.${childColumn.column_name}`);
+      qb.select(`${alias}.${parentColumn.column_name}`);
 
       await nestedConditionJoin(
         {

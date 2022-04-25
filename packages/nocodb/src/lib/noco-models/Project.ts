@@ -179,13 +179,16 @@ export default class Project implements ProjectType {
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o?.uuid) {
-      await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
-    }
-    if (o) await NocoCache.del(`${CacheScope.PROJECT}:${projectId}`);
-
-    if (o?.title) {
+    if (o) {
+      // delete <scope>:<id>
+      await NocoCache.del(`${CacheScope.PROJECT}:${projectId}`);
+      // delete <scope>:<title>
       await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
+      // delete <scope>:<uuid>
+      await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
+      // delete <scope>:ref:<titleOfId>
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.title}`);
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
     }
 
     // remove item in cache list
@@ -264,12 +267,17 @@ export default class Project implements ProjectType {
       await base.delete(ncMeta);
     }
     const project = await this.get(projectId);
-    if (project.uuid) {
+
+    if (project) {
+      // delete <scope>:<uuid>
       await NocoCache.del(`${CacheScope.PROJECT}:${project.uuid}`);
-    }
-    if (project.title) {
+      // delete <scope>:<title>
       await NocoCache.del(`${CacheScope.PROJECT}:${project.title}`);
+      // delete <scope>:ref:<titleOfId>
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${project.title}`);
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${project.id}`);
     }
+
     await NocoCache.deepDel(
       CacheScope.PROJECT,
       `${CacheScope.PROJECT}:${projectId}`,
@@ -328,7 +336,7 @@ export default class Project implements ProjectType {
     const projectId =
       titleOrId &&
       (await NocoCache.get(
-        `${CacheScope.PROJECT}:${titleOrId}`,
+        `${CacheScope.PROJECT}:ref:${titleOrId}`,
         CacheGetType.TYPE_OBJECT
       ));
     let projectData = null;
@@ -357,7 +365,7 @@ export default class Project implements ProjectType {
         }
       );
       await NocoCache.set(
-        `${CacheScope.PROJECT}:${titleOrId}`,
+        `${CacheScope.PROJECT}:ref:${titleOrId}`,
         projectData?.id
       );
     } else {

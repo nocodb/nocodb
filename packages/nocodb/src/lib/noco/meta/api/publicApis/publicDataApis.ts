@@ -191,28 +191,18 @@ async function relDataList(req, res) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  const key = `${model.title}List`;
-  const requestObj = {
-    [key]: getAst({
-      query: req.query,
-      model,
-      view,
-      extractOnlyPrimaries: true
-    })
-  };
+  const requestObj = await getAst({
+    query: req.query,
+    model,
+    extractOnlyPrimaries: true
+  });
 
-  const data = (
-    await nocoExecute(
-      requestObj,
-      {
-        [key]: async args => {
-          return await baseModel.list(args);
-        }
-      },
-      {},
-      { nested: { [key]: req.query } }
-    )
-  )?.[key];
+  const data = await nocoExecute(
+    requestObj,
+    await baseModel.list(req.query),
+    {},
+    req.query
+  );
 
   const count = await baseModel.count(req.query);
 

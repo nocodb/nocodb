@@ -63,7 +63,7 @@ async function getDataList(model, view: View, req) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  const requestObj = getAst({
+  const requestObj = await getAst({
     query: req.query,
     model,
     view

@@ -1090,6 +1090,11 @@ export default {
       window.open(link, "_blank");
     },
     async checkAndDeleteTable(table) {
+      const tableMeta = this.$store.state.meta.metas[table.table_name] || await this.loadTableSchema(table);
+      if(tableMeta.columns.some((col) => col.uidt === "LinkToAnotherRecord")) {
+        this.$toast.error(`drop table ${table.table_name} - cannot drop table ${table.table_name} because other objects depend on it`).goAway(3000);
+        return;
+      }
       this.dialogDeleteTable.nodes = table._nodes
       this.deleteTable("showDialog", table.id);
       this.$e("c:table:delete");
@@ -1098,7 +1103,7 @@ export default {
       return await this.$store.dispatch('meta/ActLoadMeta', {
         env: table._nodes.env,
         dbAlias: table._nodes.dbAlias,
-        tn: table.tn
+        table_name: table.table_name
       })
     },
     async deleteTable(action = "", id) {

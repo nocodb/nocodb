@@ -7,6 +7,7 @@ import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
+import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
@@ -86,7 +87,7 @@ async function getDataList(model, view: View, req) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  const requestObj = await baseModel.defaultResolverReq(req.query);
+  const requestObj = await getAst({ model, query: req.query, view });
 
   const listArgs: any = { ...req.query };
   try {
@@ -129,7 +130,7 @@ async function getFindOne(model, view: View, req) {
   } catch (e) {}
 
   return await nocoExecute(
-    await baseModel.defaultResolverReq(),
+    await getAst({ model, query: args, view }),
     await baseModel.findOne(args),
     {},
     {}
@@ -149,7 +150,7 @@ async function dataRead(req: Request, res: Response) {
 
   res.json(
     await nocoExecute(
-      await baseModel.defaultResolverReq(),
+      await getAst({ model, query: req.query, view }),
       await baseModel.readByPk(req.params.rowId),
       {},
       {}

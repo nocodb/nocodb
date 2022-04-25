@@ -21,7 +21,6 @@ import View from '../../../noco-models/View';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
-  isSystemColumn,
   RelationTypes,
   SortType,
   UITypes,
@@ -288,69 +287,8 @@ class BaseModelSqlv2 {
     return ((await qb) as any).count;
   }
 
-  public async defaultResolverReq(
-    query?: any,
-    extractOnlyPrimaries = false,
-    includePkByDefault = true
-  ) {
-    await this.model.getColumns();
-    if (extractOnlyPrimaries) {
-      return {
-        [this.model.primaryKey.title]: 1,
-        [this.model.primaryValue.title]: 1
-      };
-    }
-
-    let fields = query?.fields || query?.f;
-    if (fields && fields !== '*') {
-      fields = Array.isArray(fields) ? fields : fields.split(',');
-    } else {
-      fields = null;
-    }
-
-    let allowedCols = null;
-    if (this.viewId)
-      allowedCols = (await View.getColumns(this.viewId)).reduce(
-        (o, c) => ({
-          ...o,
-          [c.fk_column_id]: c.show
-        }),
-        {}
-      );
-
-    const view = await View.get(this.viewId);
-
-    return this.model.getColumns().then(columns =>
-      Promise.resolve(
-        columns.reduce(
-          (obj, col) => ({
-            ...obj,
-            [col.title]:
-              allowedCols && (!includePkByDefault || !col.pk)
-                ? allowedCols[col.id] &&
-                  (!isSystemColumn(col) || view.show_system_fields) &&
-                  (!fields?.length || fields.includes(col.title))
-                : fields?.length
-                ? fields.includes(col.title)
-                : 1
-          }),
-          {}
-        )
-      )
-    );
-  }
-
   async multipleHmList({ colId, ids }, args?: { limit?; offset? }) {
     try {
-      // const {
-      //   where,
-      //   limit,
-      //   offset,
-      //   conditionGraph,
-      //   sort
-      //   // ...restArgs
-      // } = this.dbModels[child]._getChildListArgs(args);
-      // let { fields } = restArgs;
       // todo: get only required fields
       let fields = '*';
 

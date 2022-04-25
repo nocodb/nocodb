@@ -64,12 +64,14 @@ export default class Model implements TableType {
   }
 
   public async getColumns(ncMeta = Noco.ncMeta): Promise<Column[]> {
-    this.columns = await Column.list(
-      {
-        fk_model_id: this.id
-      },
-      ncMeta
-    );
+    if (!this.columns?.length) {
+      this.columns = await Column.list(
+        {
+          fk_model_id: this.id
+        },
+        ncMeta
+      );
+    }
     return this.columns;
   }
 

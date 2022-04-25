@@ -317,24 +317,14 @@ async function dataRead(req: Request, res: Response, next) {
       id: model.id,
       dbDriver: NcConnectionMgrv2.get(base)
     });
-    const key = `${model.title}Read`;
 
     res.json(
-      (
-        await nocoExecute(
-          {
-            [key]: await getAst({ model, query: req.query })
-          },
-          {
-            [key]: async id => {
-              return await baseModel.readByPk(id);
-              // return row ? new ctx.types[model.title](row) : null;
-            }
-          },
-          {},
-          { nested: { [key]: req.params.rowId } }
-        )
-      )?.[key]
+      await nocoExecute(
+        await getAst({ model, query: req.query }),
+        await baseModel.readByPk(req.params.rowId),
+        {},
+        {}
+      )
     );
   } catch (e) {
     console.log(e);
@@ -452,10 +442,7 @@ async function getDataList(model, view: View, req) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  const key = `${model._tn}List`;
-  const requestObj = {
-    [key]: getAst({ query: req.query, model, view })
-  };
+  const requestObj = await getAst({ query: req.query, model, view });
 
   const listArgs: any = { ...req.query };
   try {
@@ -465,18 +452,12 @@ async function getDataList(model, view: View, req) {
     listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
   } catch (e) {}
 
-  const data = (
-    await nocoExecute(
-      requestObj,
-      {
-        [key]: async args => {
-          return await baseModel.list(args);
-        }
-      },
-      {},
-      { nested: { [key]: listArgs } }
-    )
-  )?.[key];
+  const data = await nocoExecute(
+    requestObj,
+    await baseModel.list(listArgs),
+    {},
+    listArgs
+  );
 
   const count = await baseModel.count(listArgs);
 

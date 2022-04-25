@@ -51,15 +51,12 @@ async function exportCsv(req: Request, res: Response) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  const key = `${model.title}List`;
-  const requestObj = {
-    [key]: getAst({
-      query: req.query,
-      model,
-      view,
-      includePkByDefault: false
-    })
-  };
+  const requestObj = await getAst({
+    query: req.query,
+    model,
+    view,
+    includePkByDefault: false
+  });
 
   let offset = +req.query.offset || 0;
   const limit = 100;
@@ -76,22 +73,12 @@ async function exportCsv(req: Request, res: Response) {
       temp = process.hrtime(startTime),
       elapsed = temp[0] * 1000 + temp[1] / 1000000
   ) {
-    const rows = (
-      await nocoExecute(
-        requestObj,
-        {
-          [key]: async args => {
-            return await baseModel.list({ ...args, offset, limit });
-          }
-        },
-        {},
-        {
-          nested: {
-            [key]: listArgs
-          }
-        }
-      )
-    )?.[key];
+    const rows = await nocoExecute(
+      requestObj,
+      await baseModel.list({ ...listArgs, offset, limit }),
+      {},
+      listArgs
+    );
 
     if (!rows?.length) {
       offset = -1;

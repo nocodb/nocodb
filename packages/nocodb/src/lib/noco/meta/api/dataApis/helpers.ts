@@ -13,6 +13,7 @@ import LookupColumn from '../../../../noco-models/LookupColumn';
 import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
 
 import papaparse from 'papaparse';
+import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 export async function getViewAndModelFromRequestByAliasOrId(
   req:
     | Request<{ projectName: string; tableName: string; viewName?: string }>
@@ -75,7 +76,12 @@ export async function extractCsvData(view: View, req: Request) {
       elapsed = temp[0] * 1000 + temp[1] / 1000000
   ) {
     const rows = await nocoExecute(
-      await baseModel.defaultResolverReq(req.query, false, false),
+      getAst({
+        query: req.query,
+        includePkByDefault: false,
+        model: view.model,
+        view
+      }),
       await baseModel.list({ ...req.query, offset, limit }),
       {},
       req.query

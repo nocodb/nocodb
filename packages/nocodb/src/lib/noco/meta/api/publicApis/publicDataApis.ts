@@ -16,6 +16,7 @@ import { nanoid } from 'nanoid';
 import { mimeIcons } from '../../../../utils/mimeTypes';
 import slash from 'slash';
 import { sanitizeUrlPath } from '../attachmentApis';
+import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 export async function dataList(req: Request, res: Response) {
   try {
@@ -49,7 +50,11 @@ export async function dataList(req: Request, res: Response) {
     } catch (e) {}
 
     const data = await nocoExecute(
-      await baseModel.defaultResolverReq(req.query),
+      await getAst({
+        query: req.query,
+        model,
+        view
+      }),
       await baseModel.list(listArgs),
       {},
       listArgs
@@ -188,7 +193,12 @@ async function relDataList(req, res) {
 
   const key = `${model.title}List`;
   const requestObj = {
-    [key]: await baseModel.defaultResolverReq(req.query, true)
+    [key]: getAst({
+      query: req.query,
+      model,
+      view,
+      extractOnlyPrimaries: true
+    })
   };
 
   const data = (

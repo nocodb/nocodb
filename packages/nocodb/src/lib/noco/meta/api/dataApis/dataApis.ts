@@ -7,6 +7,7 @@ import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { NcError } from '../../helpers/catchError';
+import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 export async function dataList(req: Request, res: Response, next) {
   const view = await View.get(req.params.viewId);
@@ -321,7 +322,7 @@ async function dataRead(req: Request, res: Response, next) {
       (
         await nocoExecute(
           {
-            [key]: await baseModel.defaultResolverReq()
+            [key]: await getAst({ model, query: req.query })
           },
           {
             [key]: async id => {
@@ -452,7 +453,7 @@ async function getDataList(model, view: View, req) {
 
   const key = `${model._tn}List`;
   const requestObj = {
-    [key]: await baseModel.defaultResolverReq(req.query)
+    [key]: getAst({ query: req.query, model, view })
   };
 
   const listArgs: any = { ...req.query };

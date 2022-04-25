@@ -10,6 +10,7 @@ import Column from '../../../../noco-models/Column';
 import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../../noco-models/LookupColumn';
 import catchError, { NcError } from '../../helpers/catchError';
+import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 async function exportCsv(req: Request, res: Response) {
   const view = await View.getByUUID(req.params.publicDataUuid);
@@ -52,7 +53,12 @@ async function exportCsv(req: Request, res: Response) {
 
   const key = `${model.title}List`;
   const requestObj = {
-    [key]: await baseModel.defaultResolverReq(req.query, false, false)
+    [key]: getAst({
+      query: req.query,
+      model,
+      view,
+      includePkByDefault: false
+    })
   };
 
   let offset = +req.query.offset || 0;

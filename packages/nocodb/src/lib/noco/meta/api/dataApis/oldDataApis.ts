@@ -8,6 +8,7 @@ import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import Project from '../../../../noco-models/Project';
 import { NcError } from '../../helpers/catchError';
+import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 export async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);
@@ -61,7 +62,11 @@ async function getDataList(model, view: View, req) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  const requestObj = await baseModel.defaultResolverReq(req.query);
+  const requestObj = getAst({
+    query: req.query,
+    model,
+    view
+  });
 
   const listArgs: any = { ...req.query };
   try {
@@ -115,7 +120,11 @@ async function dataRead(req: Request, res: Response) {
 
   res.json(
     await nocoExecute(
-      await baseModel.defaultResolverReq(),
+      await getAst({
+        query: req.query,
+        model,
+        view
+      }),
       await baseModel.readByPk(req.params.rowId),
       {},
       {}

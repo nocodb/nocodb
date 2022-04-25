@@ -323,4 +323,53 @@ export default class Project implements ProjectType {
     }
     return projectData?.id && this.get(projectData?.id, ncMeta);
   }
+
+  static async getByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
+    const projectId =
+      titleOrId &&
+      (await NocoCache.get(
+        `${CacheScope.PROJECT}:${titleOrId}`,
+        CacheGetType.TYPE_OBJECT
+      ));
+    let projectData = null;
+    if (!projectId) {
+      projectData = await Noco.ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.PROJECT,
+        {
+          deleted: false
+        },
+        null,
+        {
+          _or: [
+            {
+              id: {
+                eq: titleOrId
+              }
+            },
+            {
+              title: {
+                eq: titleOrId
+              }
+            }
+          ]
+        }
+      );
+      await NocoCache.set(
+        `${CacheScope.PROJECT}:${titleOrId}`,
+        projectData?.id
+      );
+    } else {
+      return this.get(projectId);
+    }
+    return projectData?.id && this.get(projectData?.id, ncMeta);
+  }
+
+  static async getWithInfoByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
+    const project = await this.getByTitleOrId(titleOrId, ncMeta);
+    if (project) await project.getBases(ncMeta);
+
+    return project;
+  }
 }

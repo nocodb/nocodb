@@ -6,6 +6,7 @@ import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import { NcError } from '../../helpers/catchError';
+import apiMetrics from '../../helpers/apiMetrics';
 
 export async function mmList(req: Request, res: Response, next) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
@@ -256,32 +257,39 @@ const router = Router({ mergeParams: true });
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/mm/:columnName/exclude',
+  apiMetrics,
   ncMetaAclMw(mmExcludedList, 'mmExcludedList')
 );
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/hm/:columnName/exclude',
+  apiMetrics,
   ncMetaAclMw(hmExcludedList, 'hmExcludedList')
 );
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/bt/:columnName/exclude',
+  apiMetrics,
   ncMetaAclMw(btExcludedList, 'btExcludedList')
 );
 
 router.post(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/:relationType/:columnName/:refRowId',
+  apiMetrics,
   ncMetaAclMw(relationDataAdd, 'relationDataAdd')
 );
 router.delete(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/:relationType/:columnName/:refRowId',
+  apiMetrics,
   ncMetaAclMw(relationDataRemove, 'relationDataRemove')
 );
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/mm/:columnName',
+  apiMetrics,
   ncMetaAclMw(mmList, 'mmList')
 );
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/hm/:columnName',
+  apiMetrics,
   ncMetaAclMw(hmList, 'hmList')
 );
 

@@ -957,7 +957,12 @@ export default {
           .getNewTableColumns()
           .filter((col) =>
             this.nodes.newTable.columns.includes(col.column_name)
-          );
+          ).map((col) => {
+            if (this.nodes.dbConnection.inflection_column === 'none') {
+              col.title = col.column_name
+            }
+            return col
+          })
         await this.$api.dbTable.create(this.projectId, {
           table_name: this.nodes.table_name,
           title: this.nodes.title,

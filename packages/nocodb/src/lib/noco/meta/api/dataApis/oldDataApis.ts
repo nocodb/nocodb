@@ -3,7 +3,6 @@ import Model from '../../../../noco-models/Model';
 import { nocoExecute } from 'nc-help';
 import Base from '../../../../noco-models/Base';
 import NcConnectionMgrv2 from '../../../common/NcConnectionMgrv2';
-import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import Project from '../../../../noco-models/Project';
@@ -13,7 +12,57 @@ import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 export async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequest(req);
-  res.json(await getDataList(model, view, req));
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base)
+  });
+
+  const requestObj = await getAst({
+    query: req.query,
+    model,
+    view
+  });
+
+  const listArgs: any = { ...req.query };
+  try {
+    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+  } catch (e) {}
+  try {
+    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
+  } catch (e) {}
+
+  const data = await nocoExecute(
+    requestObj,
+    await baseModel.list(listArgs),
+    {},
+    listArgs
+  );
+
+  res.json(data);
+}
+export async function dataCount(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequest(req);
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base)
+  });
+
+  const listArgs: any = { ...req.query };
+  try {
+    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
+  } catch (e) {}
+
+  const count = await baseModel.count(listArgs);
+
+  res.json({
+    count
+  });
 }
 
 async function dataInsert(req: Request, res: Response) {
@@ -54,43 +103,7 @@ async function dataDelete(req: Request, res: Response) {
 
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
 }
-async function getDataList(model, view: View, req) {
-  const base = await Base.get(model.base_id);
 
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
-  });
-
-  const requestObj = await getAst({
-    query: req.query,
-    model,
-    view
-  });
-
-  const listArgs: any = { ...req.query };
-  try {
-    listArgs.filterArr = JSON.parse(listArgs.filterArrJson);
-  } catch (e) {}
-  try {
-    listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
-  } catch (e) {}
-
-  const data = await nocoExecute(
-    requestObj,
-    await baseModel.list(listArgs),
-    {},
-    listArgs
-  );
-
-  const count = await baseModel.count(listArgs);
-
-  return new PagedResponseImpl(data, {
-    ...req.query,
-    count
-  });
-}
 async function getViewAndModelFromRequest(req) {
   const project = await Project.getWithInfo(req.params.projectId);
   const model = await Model.getByAliasOrId({
@@ -138,6 +151,11 @@ const router = Router({ mergeParams: true });
 router.get(
   '/nc/:projectId/api/v1/:tableName',
   ncMetaAclMw(dataList, 'dataList')
+);
+
+router.get(
+  '/nc/:projectId/api/v1/:tableName/count',
+  ncMetaAclMw(dataCount, 'dataCount')
 );
 
 router.post(

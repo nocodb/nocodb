@@ -109,7 +109,10 @@ export default function(router: Router, server) {
       }
     )(socket.handshake, {}, next);
   }).on('connection', socket => {
-    const id = getHash(Tele.id + (socket?.handshake as any)?.user?.id);
+    const id = getHash(
+      (process.env.NC_SERVER_UUID || Tele.id) +
+        (socket?.handshake as any)?.user?.id
+    );
 
     socket.on('page', args => {
       Tele.page({ ...args, id });

@@ -64,13 +64,13 @@ const sqlite3 = {
         STRFTIME('%Y-%m-%d %H:%M', DATETIME(DATETIME(${fn(
           pt.arguments[0]
         )}, 'localtime'), 
-        '${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} ${String(fn(pt.arguments[2])).replace(
+        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} || ' ${String(fn(pt.arguments[2])).replace(
         /["']/g,
         ''
       )}'))
       ELSE 
         DATE(DATETIME(${fn(pt.arguments[0])}, 'localtime'), 
-        '${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} ${String(fn(pt.arguments[2])).replace(
+        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} || ' ${String(fn(pt.arguments[2])).replace(
         /["']/g,
         ''
       )}')

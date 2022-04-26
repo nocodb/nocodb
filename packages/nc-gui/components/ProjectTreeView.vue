@@ -686,8 +686,8 @@
           class="caption pointer nc-docs pb-2 pl-5 pr-3 pt-2 d-flex align-center"
           @click="openLink(apiLink)"
         >
-          <v-icon small class="mr-2">
-            mdi-api
+          <v-icon color="brown" small class="mr-2">
+            mdi-open-in-new
           </v-icon>
           {{ $t('title.apiDocs') }}
         </div>

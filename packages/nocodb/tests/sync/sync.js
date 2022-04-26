@@ -7,16 +7,19 @@ const { UITypes } = require('nocodb-sdk');
 const syncDB = {
   airtable: {
     apiKey: 'keyeZla3k0desT8fU',
-    // baseId: 'appb8CCITtLXZsYqV',
-    baseId: 'appNGAcKwq7eq0xuY'
-  }
+    baseId: 'appNGAcKwq7eq0xuY',
+    schemaJson: './ltar.json'
+  },
+  projectName: 'sample',
+  baseURL: 'http://localhost:8080',
+  authToken:
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfNWVhZDc5NHBkbjRuZTkiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTA5ODA3MTZ9.qlTuirKjUiSCfCwjtW6wVYPdPGQuT-8gfcXVIllIVUc'
 };
 
 const api = new Api({
-  baseURL: 'http://localhost:8080',
+  baseURL: syncDB.baseURL,
   headers: {
-    'xc-auth':
-      'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfN2NuZmpxMGt5NjczaXkiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTA0NzM3MTl9.VVZKink3FSpajxnfaTVPn2iuCNH3lTjepNQNb4Q8VOE'
+    'xc-auth': syncDB.authToken
   }
 });
 
@@ -25,7 +28,7 @@ let aTblSchema = {};
 
 function getAtableSchema() {
   // let file = jsonfile.readFileSync('./t0v0.json');
-  let file = jsonfile.readFileSync('./ltar.json');
+  let file = jsonfile.readFileSync(syncDB.airtable.schemaJson);
 
   // store copy of atbl schema globally
   aTblSchema = file.tableSchemas;
@@ -85,14 +88,14 @@ function aTbl_getColumnName(colId) {
 // nc dump schema
 //
 async function nc_DumpTableSchema() {
-  console.log('[')
-  let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id)
-  for(let i=0; i<ncTblList.list.length; i++) {
-    let ncTbl = await api.dbTable.read(ncTblList.list[i].id)
-    console.log(JSON.stringify(ncTbl, null, 2))
-    console.log(',')
+  console.log('[');
+  let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+  for (let i = 0; i < ncTblList.list.length; i++) {
+    let ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+    console.log(JSON.stringify(ncTbl, null, 2));
+    console.log(',');
   }
-  console.log(']')
+  console.log(']');
 }
 
 // retrieve nc column schema from using aTbl field ID as reference
@@ -113,7 +116,6 @@ async function nc_getTableSchema(tableName) {
   let ncTbl = await api.dbTable.read(ncTblId);
   return ncTbl;
 }
-
 
 // map UIDT
 //
@@ -172,7 +174,7 @@ function getNocoTypeOptions(col) {
   }
 }
 
-// convert to Nc schema
+// convert to Nc schema (basic, excluding relations)
 //
 function tablesPrepare(tblSchema) {
   let tables = [];
@@ -225,123 +227,24 @@ function tablesPrepare(tblSchema) {
   return tables;
 }
 
-
-async function nocoCreateSchema(srcSchema) {
+async function nocoCreateBaseSchema(srcSchema) {
   // base schema preparation: exclude
   let tables = tablesPrepare(srcSchema.tableSchemas);
+
+  // for each table schema, create nc table
+  for (let idx = 0; idx < tables.length; idx++) {
+    let table = await api.dbTable.create(
+      ncCreatedProjectSchema.id,
+      tables[idx]
+    );
+  }
 
   // debug
   // console.log(JSON.stringify(tables, null, 2));
   return tables;
 }
 
-//////////  Data processing
-
-// https://www.airtable.com/app1ivUy7ba82jOPn/api/docs#javascript/metadata
-let Airtable = require('airtable');
-let base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
-  syncDB.airtable.baseId
-);
-
-async function nocoReadData(table) {
-
-  base(table.title)
-    .select({
-      pageSize: 25,
-      // maxRecords: 100,
-      view: 'Grid view'
-    })
-    .eachPage(
-      function page(records, fetchNextPage) {
-        console.log(JSON.stringify(records, null, 2));
-
-
-        // This function (`page`) will get called for each page of records.
-        records.forEach(function(record) {
-          (async () => {
-            let rec = record.fields;
-
-            // kludge -
-            // trim spaces on either side of column name
-            // leads to error in NocoDB
-            Object.keys(rec).forEach(key => {
-              let replacedKey = key.trim();
-              if (key !== replacedKey) {
-                rec[replacedKey] = rec[key];
-                delete rec[key];
-              }
-            });
-
-            // post-processing on the record
-            for (const [key, value] of Object.entries(rec)) {
-              // retrieve datatype
-              let dt = table.columns.find(x => x.title === key).uidt;
-
-              // https://www.npmjs.com/package/validator
-              // default value: digits_after_decimal: [2]
-              // if currency, set decimal place to 2
-              //
-              if (dt === 'Currency') rec[key] = value.toFixed(2);
-            }
-
-            // bulk Insert
-            let returnValue = await api.dbTableRow.bulkCreate(
-              'nc',
-              'sample-4',
-              table.title,
-              [rec]
-            );
-          })().catch(e => {
-            console.log(e);
-          });
-        });
-
-        // To fetch the next page of records, call `fetchNextPage`.
-        // If there are more records, `page` will get called again.
-        // If there are no more records, `done` will get called.
-        fetchNextPage();
-      },
-      function done(err) {
-        if (err) {
-          console.error(err);
-        }
-      }
-    );
-}
-
-//////////
-// holds response for all created tables
-let ncCreatedProjectSchema = [];
-let ncLinkMappingTable = [];
-
-function nc_isLinkExists(atblFieldId) {
-  if(ncLinkMappingTable.find(x => x.aTbl.typeOptions.symmetricColumnId === atblFieldId))
-    return true;
-  return false;
-}
-
-// start function
-(async () => {
-  // read schema file
-  const schema = getAtableSchema();
-  let aTblSchema = schema.tableSchemas;
-
-  // create empty project (XC-DB)
-  ncCreatedProjectSchema = await api.project.create({
-    title: 'sample-4'
-  });
-
-  // prepare table schema (basic)
-  let ncTblSchema = await nocoCreateSchema(schema);
-
-  // for each table schema, create nc table
-  for (let idx = 0; idx < ncTblSchema.length; idx++) {
-    let table = await api.dbTable.create(
-      ncCreatedProjectSchema.id,
-      ncTblSchema[idx]
-    );
-  }
-
+async function nocoCreateLinkToAnotherRecord(aTblSchema) {
   // Link to another RECORD
   for (let idx = 0; idx < aTblSchema.length; idx++) {
     let aTblLinkColumns = aTblSchema[idx].columns.filter(
@@ -352,10 +255,8 @@ function nc_isLinkExists(atblFieldId) {
     //
     if (aTblLinkColumns.length) {
       for (let i = 0; i < aTblLinkColumns.length; i++) {
-
         // check if link already established?
-        if(!nc_isLinkExists(aTblLinkColumns[i].id)) {
-
+        if (!nc_isLinkExists(aTblLinkColumns[i].id)) {
           // parent table ID
           let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
 
@@ -373,7 +274,8 @@ function nc_isLinkExists(atblFieldId) {
             title: aTblLinkColumns[i].name,
             parentId: srcTableId,
             childId: childTableId,
-            type: aTblLinkColumns[i].typeOptions.relationship === 'many'
+            type:
+              aTblLinkColumns[i].typeOptions.relationship === 'many'
                 ? 'mm'
                 : 'hm'
           });
@@ -395,7 +297,6 @@ function nc_isLinkExists(atblFieldId) {
 
           ncLinkMappingTable.push(link);
         } else {
-
           // if link already exists, we need to change name of linked column
           // to what is represented in airtable
 
@@ -406,8 +307,7 @@ function nc_isLinkExists(atblFieldId) {
           let x = ncLinkMappingTable.findIndex(
             x =>
               x.aTbl.tblId === aTblLinkColumns[i].typeOptions.foreignTableId &&
-              x.aTbl.id ===
-                aTblLinkColumns[i].typeOptions.symmetricColumnId
+              x.aTbl.id === aTblLinkColumns[i].typeOptions.symmetricColumnId
           );
 
           let childTblSchema = await api.dbTable.read(
@@ -459,7 +359,9 @@ function nc_isLinkExists(atblFieldId) {
       }
     }
   }
+}
 
+async function nocoCreateLookups(aTblSchema) {
   // LookUps
   for (let idx = 0; idx < aTblSchema.length; idx++) {
     let aTblColumns = aTblSchema[idx].columns.filter(x => x.type === 'lookup');
@@ -486,7 +388,9 @@ function nc_isLinkExists(atblFieldId) {
       }
     }
   }
+}
 
+async function nocoCreateRollups(aTblSchema) {
   // Rollups
   for (let idx = 0; idx < aTblSchema.length; idx++) {
     let aTblColumns = aTblSchema[idx].columns.filter(x => x.type === 'rollup');
@@ -514,16 +418,125 @@ function nc_isLinkExists(atblFieldId) {
       }
     }
   }
+}
+
+//////////  Data processing
+
+// https://www.airtable.com/app1ivUy7ba82jOPn/api/docs#javascript/metadata
+let Airtable = require('airtable');
+let base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
+  syncDB.airtable.baseId
+);
+
+async function nocoReadData(table) {
+  base(table.title)
+    .select({
+      pageSize: 25,
+      // maxRecords: 100,
+      view: 'Grid view'
+    })
+    .eachPage(
+      function page(records, fetchNextPage) {
+        console.log(JSON.stringify(records, null, 2));
+
+        // This function (`page`) will get called for each page of records.
+        records.forEach(function(record) {
+          (async () => {
+            let rec = record.fields;
+
+            // kludge -
+            // trim spaces on either side of column name
+            // leads to error in NocoDB
+            Object.keys(rec).forEach(key => {
+              let replacedKey = key.trim();
+              if (key !== replacedKey) {
+                rec[replacedKey] = rec[key];
+                delete rec[key];
+              }
+            });
+
+            // post-processing on the record
+            for (const [key, value] of Object.entries(rec)) {
+              // retrieve datatype
+              let dt = table.columns.find(x => x.title === key).uidt;
+
+              // https://www.npmjs.com/package/validator
+              // default value: digits_after_decimal: [2]
+              // if currency, set decimal place to 2
+              //
+              if (dt === 'Currency') rec[key] = value.toFixed(2);
+            }
+
+            // bulk Insert
+            let returnValue = await api.dbTableRow.bulkCreate(
+              'nc',
+              syncDB.projectName,
+              table.title,
+              [rec]
+            );
+          })().catch(e => {
+            console.log(e);
+          });
+        });
+
+        // To fetch the next page of records, call `fetchNextPage`.
+        // If there are more records, `page` will get called again.
+        // If there are no more records, `done` will get called.
+        fetchNextPage();
+      },
+      function done(err) {
+        if (err) {
+          console.error(err);
+        }
+      }
+    );
+}
+
+//////////
+let ncCreatedProjectSchema = [];
+let ncLinkMappingTable = [];
+
+function nc_isLinkExists(atblFieldId) {
+  if (
+    ncLinkMappingTable.find(
+      x => x.aTbl.typeOptions.symmetricColumnId === atblFieldId
+    )
+  )
+    return true;
+  return false;
+}
+
+// start function
+(async () => {
+  // read schema file
+  const schema = getAtableSchema();
+  let aTblSchema = schema.tableSchemas;
+
+  // create empty project (XC-DB)
+  ncCreatedProjectSchema = await api.project.create({
+    title: syncDB.projectName
+  });
+
+  // prepare table schema (base)
+  await nocoCreateBaseSchema(schema);
+
+  // add LTAR
+  await nocoCreateLinkToAnotherRecord(aTblSchema);
+
+  // add lookup's
+  await nocoCreateLookups(aTblSchema);
+
+  // add rollups
+  await nocoCreateRollups(aTblSchema);
 
   // await nc_DumpTableSchema();
 
-  let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id)
-  for(let i=0; i<ncTblList.list.length; i++) {
-    let ncTbl = await api.dbTable.read(ncTblList.list[i].id)
-    await nocoReadData(ncTbl)
-  }
-
-  })().catch(e => {
+  // let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+  // for (let i = 0; i < ncTblList.list.length; i++) {
+  //   let ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+  //   await nocoReadData(ncTbl);
+  // }
+})().catch(e => {
   console.log(e);
 });
 
@@ -538,14 +551,12 @@ function nc_isLinkExists(atblFieldId) {
 
 // Scratch pad
 
-
 // await api.dbTableRow.bulkInsert('nc', 'x', 'x', [{Title: 'abc'}, {Title: 'abc'}, {Title: 'abc'}])
 // await api.data.bulkInsert();
 // let column = await api.meta.columnCreate('md_vnesap07k24lku', {
 //   uidt: UITypes.SingleLineText,
 //   cn: 'col-1',
 // })
-
 
 // // t0 schema
 // let t0 = {

@@ -16,7 +16,7 @@ const getAst = async ({
   model: Model;
   view?: View;
 }) => {
-  await model.getColumns();
+  if (!model.columns?.length) await model.getColumns();
   if (extractOnlyPrimaries) {
     return {
       [model.primaryKey.title]: 1,
@@ -41,55 +41,51 @@ const getAst = async ({
       {}
     );
 
-  return model.getColumns().then(columns =>
-    Promise.resolve(
-      columns.reduce(async (obj, col) => {
-        let value: number | boolean | { [key: string]: any } = 1;
-        const nestedFields =
-          query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
-        if (nestedFields && nestedFields !== '*') {
-          if (col.uidt === UITypes.LinkToAnotherRecord) {
-            const model = await col
-              .getColOptions<LinkToAnotherRecordColumn>()
-              .then(colOpt => colOpt.getRelatedTable());
+  return model.columns.reduce(async (obj, col) => {
+    let value: number | boolean | { [key: string]: any } = 1;
+    const nestedFields =
+      query?.nested?.[col.title]?.fields || query?.nested?.[col.title]?.f;
+    if (nestedFields && nestedFields !== '*') {
+      if (col.uidt === UITypes.LinkToAnotherRecord) {
+        const model = await col
+          .getColOptions<LinkToAnotherRecordColumn>()
+          .then(colOpt => colOpt.getRelatedTable());
 
-            value = await getAst({
-              model,
-              query: query?.nested?.[col.title]
-            });
-          } else {
-            value = (Array.isArray(fields) ? fields : fields.split(',')).reduce(
-              (o, f) => ({ ...o, [f]: 1 }),
-              {}
-            );
-          }
-        } else if (col.uidt === UITypes.LinkToAnotherRecord) {
-          const model = await col
-            .getColOptions<LinkToAnotherRecordColumn>()
-            .then(colOpt => colOpt.getRelatedTable());
+        value = await getAst({
+          model,
+          query: query?.nested?.[col.title]
+        });
+      } else {
+        value = (Array.isArray(fields) ? fields : fields.split(',')).reduce(
+          (o, f) => ({ ...o, [f]: 1 }),
+          {}
+        );
+      }
+    } else if (col.uidt === UITypes.LinkToAnotherRecord) {
+      const model = await col
+        .getColOptions<LinkToAnotherRecordColumn>()
+        .then(colOpt => colOpt.getRelatedTable());
 
-          value = await getAst({
-            model,
-            query: query?.nested,
-            extractOnlyPrimaries: true
-          });
-        }
+      value = await getAst({
+        model,
+        query: query?.nested,
+        extractOnlyPrimaries: true
+      });
+    }
 
-        return {
-          ...(await obj),
-          [col.title]:
-            allowedCols && (!includePkByDefault || !col.pk)
-              ? allowedCols[col.id] &&
-                (!isSystemColumn(col) || view.show_system_fields) &&
-                (!fields?.length || fields.includes(col.title)) &&
-                value
-              : fields?.length
-              ? fields.includes(col.title)
-              : value
-        };
-      }, Promise.resolve({}))
-    )
-  );
+    return {
+      ...(await obj),
+      [col.title]:
+        allowedCols && (!includePkByDefault || !col.pk)
+          ? allowedCols[col.id] &&
+            (!isSystemColumn(col) || view.show_system_fields) &&
+            (!fields?.length || fields.includes(col.title)) &&
+            value
+          : fields?.length
+          ? fields.includes(col.title)
+          : value
+    };
+  }, Promise.resolve({}));
 };
 
 type RequestQuery = {

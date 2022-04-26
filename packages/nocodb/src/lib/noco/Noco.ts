@@ -568,14 +568,28 @@ export default class Noco {
       }
       this.config.auth.jwt.secret = secret;
     }
+    let serverId = (
+      await Noco._ncMeta.metaGet('', '', 'nc_store', {
+        key: 'nc_server_id'
+      })
+    )?.value;
+    if (!serverId) {
+      await Noco._ncMeta.metaInsert('', '', 'nc_store', {
+        key: 'nc_server_id',
+        value: serverId = Tele.id
+      });
+    }
+    process.env.NC_SERVER_UUID = serverId;
   }
 
   public static get ncMeta(): NcMetaIO {
     return this._ncMeta;
   }
+
   public get ncMeta(): NcMetaIO {
     return Noco._ncMeta;
   }
+
   public static getConfig(): NcConfig {
     return Noco.config;
   }

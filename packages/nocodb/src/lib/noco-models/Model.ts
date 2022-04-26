@@ -51,27 +51,17 @@ export default class Model implements TableType {
   columnsById?: { [id: string]: Column };
   views?: View[];
 
-  // private static baseModels: {
-  //   [baseId: string]: {
-  //     [dbAlias: string]: {
-  //       [tableIdOrName: string]: BaseModelSqlv2;
-  //     };
-  //   };
-  // } = {};
-
   constructor(data: Partial<TableType | Model>) {
     Object.assign(this, data);
   }
 
   public async getColumns(ncMeta = Noco.ncMeta): Promise<Column[]> {
-    if (!this.columns?.length) {
-      this.columns = await Column.list(
-        {
-          fk_model_id: this.id
-        },
-        ncMeta
-      );
-    }
+    this.columns = await Column.list(
+      {
+        fk_model_id: this.id
+      },
+      ncMeta
+    );
     return this.columns;
   }
 

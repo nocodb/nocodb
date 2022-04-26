@@ -95,7 +95,6 @@ export default function(router: Router, server) {
       credentials: true
     }
   });
-
   io.use(function(socket, next) {
     passport.authenticate(
       'jwt',

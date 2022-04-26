@@ -138,10 +138,10 @@ export class MssqlUi {
 
   static getNewColumn(suffix) {
     return {
-     column_name: 'title' + suffix,
-      dt: 'int',
+      column_name: 'title' + suffix,
+      dt: 'varchar',
       dtx: 'specificType',
-      ct: 'integer(11)',
+      ct: 'varchar(45)',
       nrqd: true,
       rqd: false,
       ck: false,
@@ -152,11 +152,10 @@ export class MssqlUi {
       clen: 45,
       np: null,
       ns: null,
-      // data_type_x_specific: ' ',
-      dtxp: '',
-      dtxs: ' ',
+      dtxp: '45',
+      dtxs: '',
       altered: 1,
-      uidt: 'Number',
+      uidt: 'SingleLineText',
       uip: '',
       uicn: ''
     };

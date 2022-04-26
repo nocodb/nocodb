@@ -202,10 +202,10 @@ export class PgUi {
 
   static getNewColumn(suffix) {
     return {
-     column_name: 'title' + suffix,
-      dt: 'int4',
+      column_name: 'title' + suffix,
+      dt: 'character varying',
       dtx: 'specificType',
-      ct: 'integer(11)',
+      ct: 'varchar(45)',
       nrqd: true,
       rqd: false,
       ck: false,
@@ -216,11 +216,10 @@ export class PgUi {
       clen: 45,
       np: null,
       ns: null,
-      // data_type_x_specific: ' ',
-      dtxp: '11',
-      dtxs: ' ',
+      dtxp: '45',
+      dtxs: '',
       altered: 1,
-      uidt: 'Number',
+      uidt: 'SingleLineText',
       uip: '',
       uicn: ''
     };

@@ -125,10 +125,10 @@ export class SqliteUi {
 
   static getNewColumn(suffix) {
     return {
-     column_name: 'title' + suffix,
-      dt: 'integer',
+      column_name: 'title' + suffix,
+      dt: 'varchar',
       dtx: 'specificType',
-      ct: 'integer(11)',
+      ct: 'varchar',
       nrqd: true,
       rqd: false,
       ck: false,
@@ -139,11 +139,10 @@ export class SqliteUi {
       clen: 45,
       np: null,
       ns: null,
-      // data_type_x_specific: ' ',
       dtxp: '',
-      dtxs: ' ',
+      dtxs: '',
       altered: 1,
-      uidt: 'Number',
+      uidt: 'SingleLineText',
       uip: '',
       uicn: ''
     };

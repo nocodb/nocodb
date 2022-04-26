@@ -46,8 +46,8 @@ export class MysqlUi {
   static getNewTableColumns(): readonly any[] {
     return [
       {
-       column_name: 'id',
-       title: 'Id',
+        column_name: 'id',
+        title: 'Id',
         dt: 'int',
         dtx: 'integer',
         ct: 'int(11)',
@@ -69,8 +69,8 @@ export class MysqlUi {
         uicn: ''
       },
       {
-       column_name: 'title',
-       title: 'Title',
+        column_name: 'title',
+        title: 'Title',
         dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -92,8 +92,8 @@ export class MysqlUi {
         uicn: ''
       },
       {
-       column_name: 'created_at',
-       title: 'CreatedAt',
+        column_name: 'created_at',
+        title: 'CreatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -115,8 +115,8 @@ export class MysqlUi {
         uicn: ''
       },
       {
-       column_name: 'updated_at',
-       title: 'UpdatedAt',
+        column_name: 'updated_at',
+        title: 'UpdatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -142,10 +142,10 @@ export class MysqlUi {
 
   static getNewColumn(suffix) {
     return {
-     column_name: 'title' + suffix,
-      dt: 'int',
+      column_name: 'title' + suffix,
+      dt: 'varchar',
       dtx: 'specificType',
-      ct: 'integer(11)',
+      ct: 'varchar(45)',
       nrqd: true,
       rqd: false,
       ck: false,
@@ -156,11 +156,10 @@ export class MysqlUi {
       clen: 45,
       np: null,
       ns: null,
-      // data_type_x_specific: ' ',
-      dtxp: '11',
-      dtxs: ' ',
+      dtxp: '45',
+      dtxs: '',
       altered: 1,
-      uidt: 'Number',
+      uidt: 'SingleLineText',
       uip: '',
       uicn: ''
     };
@@ -678,14 +677,14 @@ export class MysqlUi {
       // set headers before settings result
       for (let i = 0; i < keys.length; i++) {
         const text = keys[i];
-        headers.push({ text, value: text, sortable: false });
+        headers.push({text, value: text, sortable: false});
       }
     } else {
       const keys = Object.keys(result);
       for (let i = 0; i < keys.length; i++) {
         const text = keys[i];
         if (typeof text !== 'function') {
-          headers.push({ text, value: text, sortable: false });
+          headers.push({text, value: text, sortable: false});
         }
       }
       result = [result];
@@ -732,7 +731,7 @@ export class MysqlUi {
           const column = {
             dp: null,
             tn,
-           column_name: keys[i],
+            column_name: keys[i],
             cno: keys[i],
             np: 10,
             ns: 0,

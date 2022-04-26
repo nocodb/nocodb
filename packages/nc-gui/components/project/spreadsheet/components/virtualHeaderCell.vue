@@ -228,7 +228,7 @@ export default {
       } else if (this.type === 'mm') {
         return `'${this.childTable}' & '${this.parentTable}' have <br>many to many relation`
       } else if (this.type === 'bt') {
-        return `'${this.childColumn.column_name}' belongs to '${this.childTable}'`
+        return `'${this.column.title}' belongs to '${this.childTable}'`
       } else if (this.type === 'lk') {
         return `'${this.childColumn.column_name}' from '${this.childTable}' (${this.childColumn.uidt})`
       } else if (this.type === 'formula') {

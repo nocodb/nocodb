@@ -191,6 +191,7 @@
     "port": "Porta numurs",
     "username": "Lietotājvārds",
     "password": "Parole",
+    "schemaName": "Schema name",
     "action": "Darbība",
     "actions": "Darbības",
     "operation": "Operācija",

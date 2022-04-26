@@ -191,6 +191,7 @@
     "port": "Номер порта",
     "username": "Имя пользователя",
     "password": "Пароль",
+    "schemaName": "Schema name",
     "action": "Действие",
     "actions": "Действия",
     "operation": "Операция",

@@ -191,6 +191,7 @@
     "port": "شماره Port",
     "username": "نام کاربری",
     "password": "کلمه عبور",
+    "schemaName": "Schema name",
     "action": "اقدام",
     "actions": "اقدامات",
     "operation": "عملیات",

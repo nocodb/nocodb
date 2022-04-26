@@ -191,6 +191,7 @@
     "port": "פורט",
     "username": "שם משתמש",
     "password": "סיסמה",
+    "schemaName": "Schema name",
     "action": "פעולה",
     "actions": "פעולות",
     "operation": "מבצע",

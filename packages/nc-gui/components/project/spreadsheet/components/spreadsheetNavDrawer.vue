@@ -270,7 +270,10 @@
           </v-icon>
 
           <!--          <extras />-->
-          <sponsor-mini nav />
+                  <v-divider/>
+                  <extras class="pl-1"/>
+
+<!--          <sponsor-mini nav />-->
         </div>
         <!--<div class="text-center">
           <v-hover >

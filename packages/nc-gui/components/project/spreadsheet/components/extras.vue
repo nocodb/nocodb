@@ -31,20 +31,20 @@
           dense
         >
           <v-list-item>
-            <div class="d-flex justify-space-between d-100 pr-2">
-              <v-icon v-t="['e:community:discord']" class="mr-1" size="22" :color="textColors[0]" @click="open('https://discord.gg/5RgZmkW')">
+            <div class="justify-space-between d-100 pr-2">
+              <v-icon v-t="['e:community:discord']"  size="22" :color="textColors[0]" @click="open('https://discord.gg/5RgZmkW')">
                 mdi-discord
               </v-icon>
-              <v-icon v-t="['e:community:discourse']" class="mr-1 discourse" size="22" :color="textColors[0]" @click="open('https://community.nocodb.com/')">
+              <v-icon v-t="['e:community:discourse']" class=" discourse" size="22" :color="textColors[0]" @click="open('https://community.nocodb.com/')">
                 mdi-discourse
               </v-icon>
-              <v-icon v-t="['e:community:reddit']" class="mr-1" size="22" color="#ff4600" @click="open('https://www.reddit.com/r/NocoDB/')">
+              <v-icon v-t="['e:community:reddit']"  size="22" color="#ff4600" @click="open('https://www.reddit.com/r/NocoDB/')">
                 mdi-reddit
               </v-icon>
-              <v-icon v-t="['e:community:twitter']" class="mr-1" size="22" :color="textColors[1]" @click="open('https://twitter.com/NocoDB')">
+              <v-icon v-t="['e:community:twitter']"  size="22" :color="textColors[1]" @click="open('https://twitter.com/NocoDB')">
                 mdi-twitter
               </v-icon>
-              <v-icon v-t="['e:community:book-demo']" class="mr-1" size="22" :color="textColors[3]" @click="open('https://calendly.com/nocodb-meeting')">
+              <v-icon v-t="['e:community:book-demo']"  size="22" :color="textColors[3]" @click="open('https://calendly.com/nocodb-meeting')">
                 mdi-calendar-month
               </v-icon>
             </div>

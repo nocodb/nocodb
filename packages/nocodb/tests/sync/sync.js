@@ -428,56 +428,129 @@ let base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
   syncDB.airtable.baseId
 );
 
-async function nocoReadData(table) {
+let aTblDataLinks = [];
+let aTblNcRecordMappingTable = {};
+
+function nocoLinkProcessing(table, record) {
+  (async () => {
+    let rec = record.fields;
+    const value = Object.values(rec);
+    let srcRow = aTblNcRecordMappingTable[`${record.id}`];
+
+    if (value.length) {
+      for (let i = 0; i < value[0].length; i++) {
+        let dstRow = aTblNcRecordMappingTable[`${value[0][i]}`];
+
+        await api.dbTableRow.nestedAdd(
+          'noco',
+          syncDB.projectName,
+          table.title,
+          `${srcRow[1]}`,
+          'hm', // fix me
+          `${dstRow[0]}`,
+          `${dstRow[1]}`
+        );
+      }
+    }
+  })().catch(e => {
+    console.log(e);
+  });
+}
+
+// fix me:
+// instead of skipping data after retrieval, use select fields option in airtable API
+function nocoBaseDataProcessing(table, record) {
+  (async () => {
+    let rec = record.fields;
+
+    // kludge -
+    // trim spaces on either side of column name
+    // leads to error in NocoDB
+    Object.keys(rec).forEach(key => {
+      let replacedKey = key.trim();
+      if (key !== replacedKey) {
+        rec[replacedKey] = rec[key];
+        delete rec[key];
+      }
+    });
+
+    // post-processing on the record
+    for (const [key, value] of Object.entries(rec)) {
+      // retrieve datatype
+      let dt = table.columns.find(x => x.title === key).uidt;
+
+      // https://www.npmjs.com/package/validator
+      // default value: digits_after_decimal: [2]
+      // if currency, set decimal place to 2
+      //
+      if (dt === 'Currency') rec[key] = value.toFixed(2);
+
+      // we will pick up LTAR once all table data's are in place
+      if (dt === 'LinkToAnotherRecord') {
+        aTblDataLinks.push(JSON.parse(JSON.stringify(rec)));
+        delete rec[key];
+      }
+
+      // these will be automatically populated depending on schema configuration
+      if (dt === 'Lookup') delete rec[key];
+      if (dt === 'Rollup') delete rec[key];
+    }
+
+    // bulk Insert
+    let returnValue = await api.dbTableRow.bulkCreate(
+      'nc',
+      syncDB.projectName,
+      table.title,
+      [rec]
+    );
+
+    aTblNcRecordMappingTable[record.id] = [table.title, returnValue[0]];
+  })().catch(e => {
+    console.log(e);
+  });
+}
+
+async function nocoReadData(table, callback) {
   base(table.title)
     .select({
       pageSize: 25,
       // maxRecords: 100,
-      view: 'Grid view'
+      view: 'Grid view' // fix me
     })
     .eachPage(
       function page(records, fetchNextPage) {
-        console.log(JSON.stringify(records, null, 2));
+        // console.log(JSON.stringify(records, null, 2));
 
         // This function (`page`) will get called for each page of records.
-        records.forEach(function(record) {
-          (async () => {
-            let rec = record.fields;
+        records.forEach(record => callback(table, record));
 
-            // kludge -
-            // trim spaces on either side of column name
-            // leads to error in NocoDB
-            Object.keys(rec).forEach(key => {
-              let replacedKey = key.trim();
-              if (key !== replacedKey) {
-                rec[replacedKey] = rec[key];
-                delete rec[key];
-              }
-            });
+        // To fetch the next page of records, call `fetchNextPage`.
+        // If there are more records, `page` will get called again.
+        // If there are no more records, `done` will get called.
+        fetchNextPage();
+      },
+      function done(err) {
+        if (err) {
+          console.error(err);
+        }
+      }
+    );
+}
 
-            // post-processing on the record
-            for (const [key, value] of Object.entries(rec)) {
-              // retrieve datatype
-              let dt = table.columns.find(x => x.title === key).uidt;
+async function nocoReadDataSelected(table, callback, fields) {
+  base(table.title)
+    .select({
+      pageSize: 25,
+      // maxRecords: 100,
+      view: 'Grid view', // fix me
+      fields: [fields]
+    })
+    .eachPage(
+      function page(records, fetchNextPage) {
+        // console.log(JSON.stringify(records, null, 2));
 
-              // https://www.npmjs.com/package/validator
-              // default value: digits_after_decimal: [2]
-              // if currency, set decimal place to 2
-              //
-              if (dt === 'Currency') rec[key] = value.toFixed(2);
-            }
-
-            // bulk Insert
-            let returnValue = await api.dbTableRow.bulkCreate(
-              'nc',
-              syncDB.projectName,
-              table.title,
-              [rec]
-            );
-          })().catch(e => {
-            console.log(e);
-          });
-        });
+        // This function (`page`) will get called for each page of records.
+        records.forEach(record => callback(table, record));
 
         // To fetch the next page of records, call `fetchNextPage`.
         // If there are more records, `page` will get called again.
@@ -507,7 +580,7 @@ function nc_isLinkExists(atblFieldId) {
 }
 
 // start function
-(async () => {
+async function nc_migrateATbl() {
   // read schema file
   const schema = getAtableSchema();
   let aTblSchema = schema.tableSchemas;
@@ -523,20 +596,36 @@ function nc_isLinkExists(atblFieldId) {
   // add LTAR
   await nocoCreateLinkToAnotherRecord(aTblSchema);
 
-  // add lookup's
+  // add look-ups
   await nocoCreateLookups(aTblSchema);
 
-  // add rollups
+  // add roll-ups
   await nocoCreateRollups(aTblSchema);
 
   // await nc_DumpTableSchema();
+  let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+  for (let i = 0; i < ncTblList.list.length; i++) {
+    let ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+    await nocoReadData(ncTbl, nocoBaseDataProcessing);
+  }
 
-  // let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-  // for (let i = 0; i < ncTblList.list.length; i++) {
-  //   let ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-  //   await nocoReadData(ncTbl);
-  // }
-})().catch(e => {
+  // kludge
+  // wait till above operations are completed instead of static timeout
+  setTimeout(() => {
+    (async () => {
+      // console.log(ncLinkMappingTable)
+      for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
+        let x = ncLinkMappingTable[idx];
+        let ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
+        await nocoReadDataSelected(ncTbl, nocoLinkProcessing, x.aTbl.name);
+      }
+    })().catch(e => {
+      console.log(e);
+    });
+  }, 5000);
+}
+
+nc_migrateATbl().catch(e => {
   console.log(e);
 });
 

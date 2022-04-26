@@ -320,7 +320,7 @@ class BaseModelSqlv2 {
 
       const childQb = this.dbDriver.queryBuilder().from(
         this.dbDriver
-          .union(
+          .unionAll(
             ids.map(p => {
               const query = qb
                 .clone()
@@ -528,7 +528,7 @@ class BaseModelSqlv2 {
     const qb = this.dbDriver(rtn).join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
     await childModel.selectObject({ qb });
-    const finalQb = this.dbDriver.union(
+    const finalQb = this.dbDriver.unionAll(
       parentIds.map(id => {
         const query = qb
           .clone()
@@ -636,7 +636,7 @@ class BaseModelSqlv2 {
       .count(`${vtn}.${vcn}`, { as: 'count' });
 
     // await childModel.selectObject({ qb });
-    const children = await this.dbDriver.union(
+    const children = await this.dbDriver.unionAll(
       parentIds.map(id => {
         const query = qb
           .clone()

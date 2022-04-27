@@ -123,7 +123,7 @@ class NcPluginMgrv2 {
     }
 
     await plugin.init(pluginData?.input);
-    return plugin.adapter as IStorageAdapter;
+    return plugin.getAdapter();
   }
 
   public static async emailAdapter(

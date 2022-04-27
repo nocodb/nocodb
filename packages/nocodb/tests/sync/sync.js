@@ -11,8 +11,8 @@ function syncLog(log) {
 const syncDB = {
   airtable: {
     apiKey: 'key8y73nK7HR9Y1Vz',
-    baseId: 'appwUfuSTeH9f5mDA',
-    schemaJson: 'ApplicantTracking.json'
+    baseId: 'appBNdpU3IH4TpSPX',
+    schemaJson: 'eventMarketing.json'
   },
   projectName: 'sample',
   baseURL: 'http://localhost:8080',
@@ -232,7 +232,8 @@ function tablesPrepare(tblSchema) {
         title: col.name.trim(),
 
         // knex complains use of '?' in field name
-        column_name: col.name.replace(/\?/g, '\\?').trim(),
+        //column_name: col.name.replace(/\?/g, '\\?').trim(),
+        column_name: col.name.replace(/\?/g, 'QQ').trim(),
         uidt: getNocoType(col)
       };
 
@@ -262,12 +263,13 @@ async function nocoCreateBaseSchema(srcSchema) {
 
   // for each table schema, create nc table
   for (let idx = 0; idx < tables.length; idx++) {
+
+    syncLog(`NC API: dbTable.create ${tables[idx].title}`)
+    console.log(tables[idx])
     let table = await api.dbTable.create(
       ncCreatedProjectSchema.id,
       tables[idx]
     );
-
-    syncLog(`NC API: dbTable.create ${table.title}`)
   }
 
   // debug
@@ -527,7 +529,7 @@ function nocoBaseDataProcessing(table, record) {
     // trim spaces on either side of column name
     // leads to error in NocoDB
     Object.keys(rec).forEach(key => {
-      let replacedKey = key.trim();
+      let replacedKey = key.replace(/\?/g, 'QQ').trim()
       if (key !== replacedKey) {
         rec[replacedKey] = rec[key];
         delete rec[key];
@@ -568,6 +570,7 @@ function nocoBaseDataProcessing(table, record) {
     // console.log(rec)
 
     syncLog(`NC API: dbTableRow.bulkCreate ${table.title} [${rec}]`)
+    // console.log(JSON.stringify(rec, null, 2))
 
     // bulk Insert
     let returnValue = await api.dbTableRow.bulkCreate(
@@ -588,7 +591,7 @@ async function nocoReadData(table, callback) {
     base(table.title)
       .select({
         pageSize: 25,
-        // maxRecords: 100,
+        // maxRecords: 1,
       })
       .eachPage(
         function page(records, fetchNextPage) {
@@ -702,7 +705,7 @@ async function nc_migrateATbl() {
     await nocoReadData(ncTbl, nocoBaseDataProcessing);
   }
 
-  // Configure link @ Data row's
+  // // Configure link @ Data row's
   for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
     let x = ncLinkMappingTable[idx];
     let ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
@@ -711,7 +714,7 @@ async function nc_migrateATbl() {
 }
 
 nc_migrateATbl().catch(e => {
-  console.log(e?.data?.msg);
+  console.log(e?.config?.url);
 });
 
 

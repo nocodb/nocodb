@@ -7,8 +7,8 @@ const { UITypes } = require('nocodb-sdk');
 const syncDB = {
   airtable: {
     apiKey: 'keyeZla3k0desT8fU',
-    baseId: 'appNGAcKwq7eq0xuY',
-    schemaJson: './ltar.json'
+    baseId: 'appgnPOzfhmB1ZPL9',
+    schemaJson: './content-calendar.json'
   },
   projectName: 'sample',
   baseURL: 'http://localhost:8080',
@@ -49,7 +49,8 @@ let aTblNcTypeMap = {
   phone: UITypes.PhoneNumber,
   number: UITypes.Number,
   rating: UITypes.Rating,
-  formula: UITypes.Formula,
+  // kludge: formula: UITypes.Formula,
+  formula: UITypes.SingleLineText,
   rollup: UITypes.Rollup,
   count: UITypes.Count,
   lookup: UITypes.Lookup,
@@ -183,6 +184,7 @@ function tablesPrepare(tblSchema) {
 
     // table name
     table.table_name = tblSchema[i].name;
+    table.title = tblSchema[i].name;
 
     // insert record_id of type ID by default
     table.columns = [
@@ -199,11 +201,16 @@ function tablesPrepare(tblSchema) {
       // skip link, lookup, rollup fields in this iteration
       if (['foreignKey', 'lookup', 'rollup'].includes(col.type)) continue;
 
+      // not supported datatype
+      // if (['formula'].includes(col.type)) continue;
+
       // base column schema
       // kludge: error observed in Nc with space around column-name
       let ncCol = {
         title: col.name.trim(),
-        column_name: col.name.trim(),
+
+        // knex complains use of '?' in field name
+        column_name: col.name.replace(/\?/g, '\\?').trim(),
         uidt: getNocoType(col)
       };
 
@@ -515,7 +522,6 @@ async function nocoReadData(table, callback) {
     .select({
       pageSize: 25,
       // maxRecords: 100,
-      view: 'Grid view' // fix me
     })
     .eachPage(
       function page(records, fetchNextPage) {
@@ -542,7 +548,6 @@ async function nocoReadDataSelected(table, callback, fields) {
     .select({
       pageSize: 25,
       // maxRecords: 100,
-      view: 'Grid view', // fix me
       fields: [fields]
     })
     .eachPage(
@@ -613,7 +618,8 @@ async function nc_migrateATbl() {
   // wait till above operations are completed instead of static timeout
   setTimeout(() => {
     (async () => {
-      // console.log(ncLinkMappingTable)
+
+      // Configure link @ Data row's
       for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
         let x = ncLinkMappingTable[idx];
         let ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
@@ -629,126 +635,4 @@ nc_migrateATbl().catch(e => {
   console.log(e);
 });
 
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
-///////////////////////////////////////////////////////////////////////////////
 
-// Scratch pad
-
-// await api.dbTableRow.bulkInsert('nc', 'x', 'x', [{Title: 'abc'}, {Title: 'abc'}, {Title: 'abc'}])
-// await api.data.bulkInsert();
-// let column = await api.meta.columnCreate('md_vnesap07k24lku', {
-//   uidt: UITypes.SingleLineText,
-//   cn: 'col-1',
-// })
-
-// // t0 schema
-// let t0 = {
-//   table_name: 't0',
-//   columns: [
-//     {
-//       title: 'record_id',
-//       column_name: 'record_id',
-//       uidt: 'ID'
-//     },
-//     {
-//       title: 'Segment1',
-//       column_name: 'Segment',
-//       uidt: 'LongText'
-//     }
-//   ]
-// };
-// let t1 = {
-//   table_name: 't1',
-//   columns: [
-//     {
-//       title: 'record_id',
-//       column_name: 'record_id',
-//       uidt: 'ID'
-//     },
-//     {
-//       title: 'Segment2',
-//       column_name: 'Segment',
-//       uidt: 'LongText'
-//     }
-//   ]
-// };
-
-// (async () => {
-//   return;
-//
-//   // create empty project (XC-DB)
-//   let project = await api.project.create({
-//     title: 'sample-a'
-//   });
-//
-//   let table_1 = await api.dbTable.create(project.id, t0);
-//
-//   let table_2 = await api.dbTable.create(project.id, t1);
-//
-//   // console.log(project, table_1, table_2)
-//
-//   let LTAR = await api.dbTableColumn.create(table_1.id, {
-//     uidt: 'LinkToAnotherRecord',
-//     title: 'LinkField',
-//     parentId: table_1.id,
-//     childId: table_2.id,
-//     type: 'hm'
-//   });
-//
-//   // console.log(LTAR)
-//
-//   let lookupColumn = await api.dbTableColumn.create(table_1.id, {
-//     uidt: 'Lookup',
-//     title: 'LookUP Field',
-//     fk_relation_column_id: LTAR.columns.find(o => o.title === 'LinkField').id,
-//     fk_lookup_column_id: table_2.columns.find(o => o.title === 'Segment2').id
-//   });
-//
-//   let rollupColumn = await api.dbTableColumn.create(table_1.id, {
-//     uidt: 'Rollup',
-//     title: 'RollUP Field',
-//     fk_relation_column_id: LTAR.columns.find(o => o.title === 'LinkField').id,
-//     fk_rollup_column_id: table_2.columns.find(o => o.title === 'Segment2').id,
-//     rollup_function: 'count'
-//   });
-//
-//   await api.dbTableRow.create('noco', project.title, table_2.title, {
-//     Segment2: 'tbl-0 record 1'
-//   });
-//   await api.dbTableRow.create('noco', project.title, table_2.title, {
-//     Segment2: 'tbl-0 record 2'
-//   });
-//   await api.dbTableRow.create('noco', project.title, table_2.title, {
-//     Segment2: 'tbl-0 record 3'
-//   });
-//
-//   await api.dbTableRow.create('noco', project.title, table_1.title, {
-//     Segment1: 'tbl-1 record 1'
-//   });
-//   await api.dbTableRow.nestedAdd(
-//     'noco',
-//     project.title,
-//     table_1.title,
-//     '1',
-//     'mm',
-//     'LinkField',
-//     '1'
-//   );
-//   await api.dbTableRow.nestedAdd(
-//     'noco',
-//     project.title,
-//     table_1.title,
-//     '1',
-//     'mm',
-//     'LinkField',
-//     '2'
-//   );
-// })().catch(e => {
-//   console.log(e);
-// });

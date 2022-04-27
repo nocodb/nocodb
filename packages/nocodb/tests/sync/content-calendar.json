@@ -1,0 +1,1354 @@
+{
+  "appBlanket": {
+    "userInfoById": {
+      "usr4igCON6LbGyntr": {
+        "id": "usr4igCON6LbGyntr",
+        "firstName": "Raju",
+        "lastName": "Udava",
+        "email": "raju.us@gmail.com",
+        "profilePicUrl": "https://static.airtable.com/images/userIcons/user_icon_3.png",
+        "permissionLevel": "create",
+        "appBlanketUserState": "active"
+      },
+      "usrwtsmaHUDNWzIA2": {
+        "id": "usrwtsmaHUDNWzIA2",
+        "firstName": "dstala",
+        "lastName": "siva",
+        "email": "sivadstala@gmail.com",
+        "profilePicUrl": "https://static.airtable.com/images/userIcons/user_icon_9.png",
+        "permissionLevel": "owner",
+        "appBlanketUserState": "active"
+      },
+      "usrnMfPSwuaTU0ZAZ": {
+        "id": "usrnMfPSwuaTU0ZAZ",
+        "firstName": "Rin",
+        "lastName": "O'Shea",
+        "email": "katherineduh+collab31@demo.htable.com",
+        "profilePicUrl": "https://dl.airtable.com/profilePics/SYTf5GliQgm342ExN4EN_headshot-yellow-2.png",
+        "permissionLevel": "none",
+        "appBlanketUserState": "active"
+      },
+      "usrXRI8JxXct7Q9k8": {
+        "id": "usrXRI8JxXct7Q9k8",
+        "firstName": "Lee",
+        "lastName": "Szabo",
+        "email": "katherineduh+collab22@demo.htable.com",
+        "profilePicUrl": "https://dl.airtable.com/profilePics/TFB298F2Tg2QKF2PHR7f_Screen%20Shot%202019-01-17%20at%201.19.34%20PM.png",
+        "permissionLevel": "none",
+        "appBlanketUserState": "active"
+      },
+      "usrTv3tPZmP3GYJ9K": {
+        "id": "usrTv3tPZmP3GYJ9K",
+        "firstName": "Ash",
+        "lastName": "Quintana",
+        "email": "katherineduh+collab4@demo.htable.com",
+        "profilePicUrl": "https://dl.airtable.com/profilePics/7KX9bnbqQyGvWGArbTXB_headshot-yellow-1.png",
+        "permissionLevel": "none",
+        "appBlanketUserState": "active"
+      },
+      "usrArxKAc5yNZQfxl": {
+        "id": "usrArxKAc5yNZQfxl",
+        "firstName": "Bailey",
+        "lastName": "Mirza",
+        "email": "katherineduh+collab5@demo.htable.com",
+        "profilePicUrl": "https://dl.airtable.com/profilePics/7pprdNqqQuSWWN7zeavM_headshot-pink-1.png",
+        "permissionLevel": "none",
+        "appBlanketUserState": "active"
+      },
+      "usrLhic1dir79TN7a": {
+        "id": "usrLhic1dir79TN7a",
+        "firstName": "Dany",
+        "lastName": "Coronado",
+        "email": "katherineduh+collab9@demo.htable.com",
+        "profilePicUrl": "https://dl.airtable.com/profilePics/746cSsZQStGGmyb1gtNX_headshot-yellow-1.png",
+        "permissionLevel": "none",
+        "appBlanketUserState": "active"
+      },
+      "usrreb0OwhvFzI56S": {
+        "id": "usrreb0OwhvFzI56S",
+        "firstName": "Hikaru",
+        "lastName": "Kubo-Kingsley",
+        "email": "katherineduh+collab12@demo.htable.com",
+        "profilePicUrl": "https://dl.airtable.com/profilePics/VUEyBESSputPw6dJdcZl_headshot-orange-2.png",
+        "permissionLevel": "none",
+        "appBlanketUserState": "active"
+      }
+    },
+    "externalAccountInfoById": {},
+    "userGroupInfoById": {},
+    "workspaceSyncSources": [],
+    "activeUserIdByAcceptedInviteId": {
+      "invRcd1fKsdXQQO1C": "usr4igCON6LbGyntr"
+    },
+    "isWorkspaceOptedOutOfUserContentCdnAuth": false,
+    "isEnterpriseAccountOptedOutOfUserContentCdnAuth": false,
+    "enterpriseAttachmentRestrictions": {
+      "restrictionType": "unrestricted",
+      "attachmentTypeAllowlist": []
+    },
+    "isWorkspaceLinkedToEnterpriseAccount": false
+  },
+  "description": "# Manage your content calendar with ease\n\nContent calendars don’t just help everyone keep track of their deadlines; they streamline the entire content creation process. Now, you can do that (and much more).\n\n**This template is completely customizable. To get started, clear the records and add your data.**\n\n**📚 Content pipeline**\nWhere would you be without your content pipeline? We don't know either. Here, you can see all the details you need to make great content like writer, due date, and even sub-headlines. And, with the content calendar view, you can see all the same information in a calendar format. So you can plan for the next week or month, all in one place.\n\n**📈 Campaigns**\nJust as important as the content you produce is the distribution. This table lets you see which content is going into each campaign, who's in charge of running the campaign, and how much you're spending. You can also see how much content is in each campaign, so that you can spin up a few more variants to test when needed.\n\n**💲 Results**\nFinally, you can see all your campaigns (and content) by results. We've started off with a results at a glance view so you can easily see what's successful and what's not. Here, we've measured campaigns on a cost-per-click basis, but you can easily adjust to the success metric of your choice.\n\n**What to do next?**\n* Sort by due date in the content overview, so that you can see the next piece of content that's due.\n* Clear the data in the content table (no worries, we made it all up!) and start adding your own content and collaborators.\n* Poke around! The best way to learn how this template works is to see how data is linked and how your workflow can be improved in Airtable.",
+  "sortTiebreakerKey": "apph9WP0VkRqDTTC3",
+  "defaultViewMutability": null,
+  "maintenanceModeSettings": null,
+  "sharesById": {
+    "shrWrwvLQuyuHSrbr": {
+      "id": "shrWrwvLQuyuHSrbr",
+      "modelId": "apph9WP0VkRqDTTC3",
+      "createdByUserId": "usrwtsmaHUDNWzIA2",
+      "canBeCloned": true,
+      "canBeExported": true,
+      "includeHiddenColumns": false,
+      "includeBlocks": true,
+      "emailDomain": null,
+      "hasPassword": false,
+      "generationNumber": 0,
+      "metadata": null
+    }
+  },
+  "workflowSectionsById": {},
+  "applicationTransactionNumber": 1,
+  "tableSchemas": [
+    {
+      "id": "tbleAsM593y8jyiGx",
+      "name": "📚 Content pipeline",
+      "primaryColumnId": "fld0jVRbqE4rlw5Xq",
+      "columns": [
+        {
+          "id": "fld0jVRbqE4rlw5Xq",
+          "name": "Name",
+          "type": "text"
+        },
+        {
+          "id": "fldf0CibJBQp7BHi0",
+          "name": "Sub-headline",
+          "type": "multilineText"
+        },
+        {
+          "id": "fld7QBFPXgV1umFOW",
+          "name": "Image",
+          "type": "multipleAttachment",
+          "typeOptions": {
+            "unreversed": true
+          }
+        },
+        {
+          "id": "fldQifnRKoLPltIIs",
+          "name": "Due date",
+          "type": "date",
+          "typeOptions": {
+            "isDateTime": false,
+            "dateFormat": "Local"
+          }
+        },
+        {
+          "id": "fldHWztPT5yPAaBHs",
+          "name": "Headline",
+          "type": "text"
+        },
+        {
+          "id": "fld9ylPwDWTA45r9E",
+          "name": "Status",
+          "type": "select",
+          "typeOptions": {
+            "choiceOrder": [
+              "selxOmkoJe4j0sXOU",
+              "selVhw0N1YQOLlzPO",
+              "selogbVjjHetPIPLx",
+              "selHZWkeKziqIW7rB",
+              "selfoqE6oHhBl4naf"
+            ],
+            "choices": {
+              "selxOmkoJe4j0sXOU": {
+                "id": "selxOmkoJe4j0sXOU",
+                "name": "Live",
+                "color": "greenDark"
+              },
+              "selVhw0N1YQOLlzPO": {
+                "id": "selVhw0N1YQOLlzPO",
+                "name": "In progress",
+                "color": "blue"
+              },
+              "selogbVjjHetPIPLx": {
+                "id": "selogbVjjHetPIPLx",
+                "name": "On hold",
+                "color": "red"
+              },
+              "selHZWkeKziqIW7rB": {
+                "id": "selHZWkeKziqIW7rB",
+                "name": "Reviews",
+                "color": "teal"
+              },
+              "selfoqE6oHhBl4naf": {
+                "id": "selfoqE6oHhBl4naf",
+                "name": "Planning",
+                "color": "yellow"
+              }
+            },
+            "disableColors": false
+          }
+        },
+        {
+          "id": "fldBexkpGJBjsJ6sc",
+          "name": "Creator",
+          "type": "collaborator",
+          "typeOptions": {
+            "shouldNotify": true
+          }
+        },
+        {
+          "id": "fldbHsddYlK6IUinj",
+          "name": "Channels",
+          "type": "multiSelect",
+          "typeOptions": {
+            "choiceOrder": [
+              "selskvnbf4BMzlqcf",
+              "selDVSPwdDl0PHtKu",
+              "selwI4Jr1b3OirDnp",
+              "selH0n4IJ5HqNyz4q",
+              "sel0KGNUN9oUryhO1",
+              "selZ5vBIUumr0QRrW"
+            ],
+            "choices": {
+              "selskvnbf4BMzlqcf": {
+                "id": "selskvnbf4BMzlqcf",
+                "name": "Blog",
+                "color": "blue"
+              },
+              "selDVSPwdDl0PHtKu": {
+                "id": "selDVSPwdDl0PHtKu",
+                "name": "Email",
+                "color": "cyan"
+              },
+              "selwI4Jr1b3OirDnp": {
+                "id": "selwI4Jr1b3OirDnp",
+                "name": "Instagram",
+                "color": "teal"
+              },
+              "selH0n4IJ5HqNyz4q": {
+                "id": "selH0n4IJ5HqNyz4q",
+                "name": "Facebook",
+                "color": "green"
+              },
+              "sel0KGNUN9oUryhO1": {
+                "id": "sel0KGNUN9oUryhO1",
+                "name": "Twitter",
+                "color": "yellow"
+              },
+              "selZ5vBIUumr0QRrW": {
+                "id": "selZ5vBIUumr0QRrW",
+                "name": "AdWords",
+                "color": "orange"
+              }
+            },
+            "disableColors": false
+          }
+        },
+        {
+          "id": "fldFndQ4qP9GqoeXe",
+          "name": "Campaigns (from 📈 Campaigns table)",
+          "type": "foreignKey",
+          "typeOptions": {
+            "foreignTableId": "tblAQnUuGRV1aBt8a",
+            "symmetricColumnId": "fldadirBzx74R8rKB",
+            "relationship": "many",
+            "unreversed": true
+          }
+        }
+      ],
+      "meaningfulColumnOrder": [
+        {
+          "columnId": "fld0jVRbqE4rlw5Xq",
+          "visibility": true,
+          "width": 119
+        },
+        {
+          "columnId": "fld9ylPwDWTA45r9E",
+          "visibility": true,
+          "width": 104
+        },
+        {
+          "columnId": "fldHWztPT5yPAaBHs",
+          "visibility": true,
+          "width": 163
+        },
+        {
+          "columnId": "fldf0CibJBQp7BHi0",
+          "visibility": true,
+          "width": 182
+        },
+        {
+          "columnId": "fldBexkpGJBjsJ6sc",
+          "visibility": true,
+          "width": 128
+        },
+        {
+          "columnId": "fld7QBFPXgV1umFOW",
+          "visibility": true,
+          "width": 139
+        },
+        {
+          "columnId": "fldQifnRKoLPltIIs",
+          "visibility": true,
+          "width": 107
+        },
+        {
+          "columnId": "fldbHsddYlK6IUinj",
+          "visibility": true
+        },
+        {
+          "columnId": "fldFndQ4qP9GqoeXe",
+          "visibility": true
+        }
+      ],
+      "views": [
+        {
+          "id": "viwaaMPOVowAPHM0w",
+          "name": "Production pipeline",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        {
+          "id": "viw7eVrk2kmKcQUqK",
+          "name": "📆 Content calendar",
+          "type": "calendar",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        {
+          "id": "viwtAqD4GRMmig3NC",
+          "name": "Author workload",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      ],
+      "viewOrder": [
+        "viwaaMPOVowAPHM0w",
+        "viw7eVrk2kmKcQUqK",
+        "viwtAqD4GRMmig3NC"
+      ],
+      "viewsById": {
+        "viwaaMPOVowAPHM0w": {
+          "id": "viwaaMPOVowAPHM0w",
+          "name": "Production pipeline",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        "viw7eVrk2kmKcQUqK": {
+          "id": "viw7eVrk2kmKcQUqK",
+          "name": "📆 Content calendar",
+          "type": "calendar",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        "viwtAqD4GRMmig3NC": {
+          "id": "viwtAqD4GRMmig3NC",
+          "name": "Author workload",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      },
+      "viewSectionsById": {},
+      "schemaChecksum": "20e0e1e5b03ff5d1a25736e070c2966a4caae3bd38e02f8e2b49e0e1c8bad68f"
+    },
+    {
+      "id": "tblAQnUuGRV1aBt8a",
+      "name": "📈 Campaigns",
+      "primaryColumnId": "fldcfum0TscqCREUM",
+      "columns": [
+        {
+          "id": "fldcfum0TscqCREUM",
+          "name": "Name",
+          "type": "text"
+        },
+        {
+          "id": "fldRtwj4YLF0IRNMZ",
+          "name": "Budget",
+          "type": "number",
+          "typeOptions": {
+            "format": "currency",
+            "precision": 2,
+            "symbol": "$",
+            "negative": false,
+            "validatorName": "positive"
+          }
+        },
+        {
+          "id": "flddPLZMcONyLc8fS",
+          "name": "Status",
+          "type": "select",
+          "typeOptions": {
+            "choiceOrder": [
+              "selKgDCStQU7KzRzD",
+              "selUI6VZbI1jBIDOT",
+              "selst8Yrj2wvMoIkk"
+            ],
+            "choices": {
+              "selKgDCStQU7KzRzD": {
+                "id": "selKgDCStQU7KzRzD",
+                "name": "Planning",
+                "color": "yellowMedium"
+              },
+              "selUI6VZbI1jBIDOT": {
+                "id": "selUI6VZbI1jBIDOT",
+                "name": "Live",
+                "color": "greenMedium"
+              },
+              "selst8Yrj2wvMoIkk": {
+                "id": "selst8Yrj2wvMoIkk",
+                "name": "Completed",
+                "color": "grayDark"
+              }
+            },
+            "disableColors": false
+          }
+        },
+        {
+          "id": "fld1iDDlIWvil9teA",
+          "name": "Campaign lead",
+          "type": "collaborator",
+          "typeOptions": {
+            "shouldNotify": true
+          }
+        },
+        {
+          "id": "fldco5xwKakejzupb",
+          "name": "Start date",
+          "type": "date",
+          "typeOptions": {
+            "isDateTime": false,
+            "dateFormat": "Local"
+          }
+        },
+        {
+          "id": "fld9dcnH8qgbZZ8zE",
+          "name": "End date",
+          "type": "date",
+          "typeOptions": {
+            "isDateTime": false,
+            "dateFormat": "Local"
+          }
+        },
+        {
+          "id": "fldadirBzx74R8rKB",
+          "name": "Related content (from 📚 Content pipeline)",
+          "type": "foreignKey",
+          "typeOptions": {
+            "foreignTableId": "tbleAsM593y8jyiGx",
+            "relationship": "many",
+            "unreversed": true,
+            "symmetricColumnId": "fldFndQ4qP9GqoeXe"
+          }
+        },
+        {
+          "id": "fld0rgek0eocBzUKJ",
+          "name": "Campaign assets (from 📚 Content pipeline)",
+          "type": "lookup",
+          "typeOptions": {
+            "relationColumnId": "fldadirBzx74R8rKB",
+            "foreignTableRollupColumnId": "fld7QBFPXgV1umFOW",
+            "canUseSelectResultType": true,
+            "unreversed": true,
+            "dependencies": {
+              "referencedColumnIdsForValue": [
+                "fldadirBzx74R8rKB",
+                "fld7QBFPXgV1umFOW"
+              ]
+            },
+            "resultType": "multipleAttachment",
+            "resultIsArray": true
+          }
+        },
+        {
+          "id": "fldv9SrCGdAglowXF",
+          "name": "# of posts (from 📚 Content pipeline)",
+          "type": "count",
+          "typeOptions": {
+            "relationColumnId": "fldadirBzx74R8rKB",
+            "dependencies": {
+              "referencedColumnIdsForValue": [
+                "fldadirBzx74R8rKB"
+              ]
+            },
+            "resultType": "number",
+            "resultIsArray": false
+          }
+        },
+        {
+          "id": "fldwnJny9K2TtQUGv",
+          "name": "Content creators",
+          "type": "rollup",
+          "typeOptions": {
+            "relationColumnId": "fldadirBzx74R8rKB",
+            "foreignTableRollupColumnId": "fldBexkpGJBjsJ6sc",
+            "formulaTextParsed": "ARRAYUNIQUE(values)",
+            "dependencies": {
+              "referencedColumnIdsForValue": [
+                "fldadirBzx74R8rKB",
+                "fldBexkpGJBjsJ6sc"
+              ]
+            },
+            "resultType": "text",
+            "resultIsArray": true
+          }
+        }
+      ],
+      "meaningfulColumnOrder": [
+        {
+          "columnId": "fldcfum0TscqCREUM",
+          "visibility": true,
+          "width": 151
+        },
+        {
+          "columnId": "flddPLZMcONyLc8fS",
+          "visibility": true,
+          "width": 100
+        },
+        {
+          "columnId": "fld1iDDlIWvil9teA",
+          "visibility": true,
+          "width": 168
+        },
+        {
+          "columnId": "fldwnJny9K2TtQUGv",
+          "visibility": true,
+          "width": 156
+        },
+        {
+          "columnId": "fldRtwj4YLF0IRNMZ",
+          "visibility": true,
+          "width": 110
+        },
+        {
+          "columnId": "fldv9SrCGdAglowXF",
+          "visibility": true,
+          "width": 132
+        },
+        {
+          "columnId": "fldco5xwKakejzupb",
+          "visibility": true,
+          "width": 112
+        },
+        {
+          "columnId": "fld9dcnH8qgbZZ8zE",
+          "visibility": true,
+          "width": 109
+        },
+        {
+          "columnId": "fld0rgek0eocBzUKJ",
+          "visibility": true
+        },
+        {
+          "columnId": "fldadirBzx74R8rKB",
+          "visibility": true
+        }
+      ],
+      "views": [
+        {
+          "id": "viwIYgw9YGrpfjCQS",
+          "name": "All campaigns",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        {
+          "id": "viwT5W7iArH3ouPIE",
+          "name": "Campaign + creative gallery",
+          "type": "gallery",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        {
+          "id": "viw2gPpZf1287t3O8",
+          "name": "👀 Campaign timeline",
+          "type": "timeline",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      ],
+      "viewOrder": [
+        "viwIYgw9YGrpfjCQS",
+        "viwT5W7iArH3ouPIE",
+        "viw2gPpZf1287t3O8"
+      ],
+      "viewsById": {
+        "viwIYgw9YGrpfjCQS": {
+          "id": "viwIYgw9YGrpfjCQS",
+          "name": "All campaigns",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        "viwT5W7iArH3ouPIE": {
+          "id": "viwT5W7iArH3ouPIE",
+          "name": "Campaign + creative gallery",
+          "type": "gallery",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        "viw2gPpZf1287t3O8": {
+          "id": "viw2gPpZf1287t3O8",
+          "name": "👀 Campaign timeline",
+          "type": "timeline",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      },
+      "viewSectionsById": {},
+      "schemaChecksum": "ee5186c4995750cf70c9a4ca282033f6b204b6b8aa4179e97accb1e1e0009492"
+    },
+    {
+      "id": "tblKRRBFzKxzu30Dc",
+      "name": "💲 Results",
+      "primaryColumnId": "fldsPzfC5nx3mbJGn",
+      "columns": [
+        {
+          "id": "fldsPzfC5nx3mbJGn",
+          "name": "Campaign",
+          "type": "text"
+        },
+        {
+          "id": "fldJuI4ujM0u8WT8w",
+          "name": "CPC Goal",
+          "type": "number",
+          "typeOptions": {
+            "format": "currency",
+            "precision": 2,
+            "symbol": "$",
+            "negative": false,
+            "validatorName": "positive"
+          }
+        },
+        {
+          "id": "fldlwAAvBj93yCtID",
+          "name": "Spend",
+          "type": "number",
+          "typeOptions": {
+            "format": "currency",
+            "precision": 2,
+            "symbol": "$",
+            "negative": false,
+            "validatorName": "positive"
+          }
+        },
+        {
+          "id": "fldPl7fy9vyNWyVAw",
+          "name": "Channels",
+          "type": "multiSelect",
+          "typeOptions": {
+            "choiceOrder": [
+              "sela0XX2AjdGgOfRv",
+              "selokocdtOpgrHKDb",
+              "seliU5T1YikdxTvyJ",
+              "selEuGrkBBK0woaZ0",
+              "selFdOnKtrATgUA2r",
+              "selIJvMSIGzvP4GRM",
+              "sel8LEGkbKItYEdCR"
+            ],
+            "choices": {
+              "sela0XX2AjdGgOfRv": {
+                "id": "sela0XX2AjdGgOfRv",
+                "color": "blue",
+                "name": "Facebook"
+              },
+              "selokocdtOpgrHKDb": {
+                "id": "selokocdtOpgrHKDb",
+                "color": "cyan",
+                "name": "Twitter"
+              },
+              "seliU5T1YikdxTvyJ": {
+                "id": "seliU5T1YikdxTvyJ",
+                "color": "teal",
+                "name": "Instagram"
+              },
+              "selEuGrkBBK0woaZ0": {
+                "id": "selEuGrkBBK0woaZ0",
+                "color": "green",
+                "name": "AdWords"
+              },
+              "selFdOnKtrATgUA2r": {
+                "id": "selFdOnKtrATgUA2r",
+                "color": "yellow",
+                "name": "Display"
+              },
+              "selIJvMSIGzvP4GRM": {
+                "id": "selIJvMSIGzvP4GRM",
+                "color": "orange",
+                "name": "Email"
+              },
+              "sel8LEGkbKItYEdCR": {
+                "id": "sel8LEGkbKItYEdCR",
+                "color": "red",
+                "name": "Blog"
+              }
+            },
+            "disableColors": false
+          }
+        },
+        {
+          "id": "fld0Bs2tQRHVAYdfp",
+          "name": "Impressions",
+          "type": "number",
+          "typeOptions": {
+            "format": "integer",
+            "negative": false,
+            "validatorName": "positive"
+          }
+        },
+        {
+          "id": "fldFBIaPvPShXJkZ3",
+          "name": "CPM",
+          "type": "formula",
+          "typeOptions": {
+            "format": "currency",
+            "precision": 2,
+            "symbol": "$",
+            "formulaTextParsed": "1000*(column_value_fldlwAAvBj93yCtID/column_value_fld0Bs2tQRHVAYdfp)",
+            "dependencies": {
+              "referencedColumnIdsForValue": [
+                "fldlwAAvBj93yCtID",
+                "fld0Bs2tQRHVAYdfp"
+              ]
+            },
+            "resultType": "number",
+            "resultIsArray": false
+          }
+        },
+        {
+          "id": "fldsgGSqVQaGuaTah",
+          "name": "Clicks",
+          "type": "number",
+          "typeOptions": {
+            "format": "integer",
+            "negative": false,
+            "validatorName": "positive"
+          }
+        },
+        {
+          "id": "fldWenmhWtgS3eEnZ",
+          "name": "CPC",
+          "type": "formula",
+          "typeOptions": {
+            "format": "currency",
+            "precision": 2,
+            "symbol": "$",
+            "formulaTextParsed": "(column_value_fldlwAAvBj93yCtID/column_value_fldsgGSqVQaGuaTah)",
+            "dependencies": {
+              "referencedColumnIdsForValue": [
+                "fldlwAAvBj93yCtID",
+                "fldsgGSqVQaGuaTah"
+              ]
+            },
+            "resultType": "number",
+            "resultIsArray": false
+          }
+        },
+        {
+          "id": "fldFjTX7LD7SytpLh",
+          "name": "Success",
+          "type": "formula",
+          "typeOptions": {
+            "formulaTextParsed": "IF(column_value_fldWenmhWtgS3eEnZ <= {column_value_fldJuI4ujM0u8WT8w}, \"✅ Success\", \"💥 Please review\")",
+            "dependencies": {
+              "referencedColumnIdsForValue": [
+                "fldWenmhWtgS3eEnZ",
+                "fldJuI4ujM0u8WT8w"
+              ]
+            },
+            "resultType": "text",
+            "resultIsArray": false
+          }
+        }
+      ],
+      "meaningfulColumnOrder": [
+        {
+          "columnId": "fldsPzfC5nx3mbJGn",
+          "visibility": true,
+          "width": 163
+        },
+        {
+          "columnId": "fldJuI4ujM0u8WT8w",
+          "visibility": true,
+          "width": 110
+        },
+        {
+          "columnId": "fldlwAAvBj93yCtID",
+          "visibility": true,
+          "width": 92
+        },
+        {
+          "columnId": "fldPl7fy9vyNWyVAw",
+          "visibility": true,
+          "width": 149
+        },
+        {
+          "columnId": "fld0Bs2tQRHVAYdfp",
+          "visibility": true,
+          "width": 124
+        },
+        {
+          "columnId": "fldFBIaPvPShXJkZ3",
+          "visibility": true,
+          "width": 86
+        },
+        {
+          "columnId": "fldsgGSqVQaGuaTah",
+          "visibility": true,
+          "width": 90
+        },
+        {
+          "columnId": "fldWenmhWtgS3eEnZ",
+          "visibility": true,
+          "width": 98
+        },
+        {
+          "columnId": "fldFjTX7LD7SytpLh",
+          "visibility": true,
+          "width": 118
+        }
+      ],
+      "views": [
+        {
+          "id": "viwDTgUyLXSHEWrp7",
+          "name": "👀 Results at a glance",
+          "type": "gallery",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        {
+          "id": "viwcm3NYXRBwSzfET",
+          "name": "All campaign results",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        {
+          "id": "viwkcDQCFd4G0OqbG",
+          "name": "Campaigns to review",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      ],
+      "viewOrder": [
+        "viwDTgUyLXSHEWrp7",
+        "viwcm3NYXRBwSzfET",
+        "viwkcDQCFd4G0OqbG"
+      ],
+      "viewsById": {
+        "viwDTgUyLXSHEWrp7": {
+          "id": "viwDTgUyLXSHEWrp7",
+          "name": "👀 Results at a glance",
+          "type": "gallery",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        "viwcm3NYXRBwSzfET": {
+          "id": "viwcm3NYXRBwSzfET",
+          "name": "All campaign results",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        },
+        "viwkcDQCFd4G0OqbG": {
+          "id": "viwkcDQCFd4G0OqbG",
+          "name": "Campaigns to review",
+          "type": "grid",
+          "personalForUserId": null,
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2"
+        }
+      },
+      "viewSectionsById": {},
+      "schemaChecksum": "f4f759f4f1a698298e1401a26aa3b1f83f782fa16d1ee8811e2f9bf34658712f"
+    }
+  ],
+  "tableDatas": [
+    {
+      "id": "tbleAsM593y8jyiGx",
+      "rows": [
+        {
+          "id": "recljkyA1YW38qbji",
+          "createdTime": "2021-03-26T03:09:29.000Z",
+          "cellValuesByColumnId": {
+            "fld0jVRbqE4rlw5Xq": "UK villages",
+            "fld9ylPwDWTA45r9E": "selxOmkoJe4j0sXOU",
+            "fldBexkpGJBjsJ6sc": "usrnMfPSwuaTU0ZAZ",
+            "fldFndQ4qP9GqoeXe": [
+              {
+                "foreignRowId": "rec1r7wWZ9pkG1QJ0",
+                "foreignRowDisplayName": "Best vacation ever"
+              },
+              {
+                "foreignRowId": "recJxOZDVW8MvxTvj",
+                "foreignRowDisplayName": "Summer travel spotlight"
+              }
+            ],
+            "fldHWztPT5yPAaBHs": "7 off-the-beaten-path places to visit in Britain",
+            "fldQifnRKoLPltIIs": "2021-03-21T00:00:00.000Z",
+            "fldbHsddYlK6IUinj": [
+              "selskvnbf4BMzlqcf",
+              "selDVSPwdDl0PHtKu",
+              "selwI4Jr1b3OirDnp",
+              "selH0n4IJ5HqNyz4q",
+              "sel0KGNUN9oUryhO1"
+            ],
+            "fldf0CibJBQp7BHi0": "These 7 villages in the UK are underrated but they overdeliver"
+          }
+        },
+        {
+          "id": "recJhgXIo5VEblRvQ",
+          "createdTime": "2021-03-26T03:09:31.000Z",
+          "cellValuesByColumnId": {
+            "fld0jVRbqE4rlw5Xq": "Safaris",
+            "fld7QBFPXgV1umFOW": [
+              {
+                "id": "attG6Bkfw3B4ZEhgP",
+                "url": "https://dl.airtable.com/XvQ4Cr9JQdOyBmY1IFF1_pexels-photo-196410.jpeg%3Fw%3D940%26h%3D650%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "filename": "pexels-photo-196410.jpeg?w=940&h=650&auto=compress&cs=tinysrgb",
+                "type": "image/jpeg",
+                "size": 109984,
+                "width": 940,
+                "height": 627,
+                "smallThumbUrl": "https://dl.airtable.com/YYdmaXUNRZW765iUEZtw_small_pexels-photo-196410.jpeg%3Fw%3D940%26h%3D650%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "smallThumbWidth": 54,
+                "smallThumbHeight": 36,
+                "largeThumbUrl": "https://dl.airtable.com/FkmHpQSASSmeDC8mSz1d_large_pexels-photo-196410.jpeg%3Fw%3D940%26h%3D650%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "largeThumbWidth": 768,
+                "largeThumbHeight": 512,
+                "fullThumbUrl": "https://dl.airtable.com/LsAQ1mowSke5LXt827Qk_full_pexels-photo-196410.jpeg%3Fw%3D940%26h%3D650%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "fullThumbWidth": 940,
+                "fullThumbHeight": 627
+              }
+            ],
+            "fld9ylPwDWTA45r9E": "selfoqE6oHhBl4naf",
+            "fldBexkpGJBjsJ6sc": "usrXRI8JxXct7Q9k8",
+            "fldFndQ4qP9GqoeXe": [
+              {
+                "foreignRowId": "recJxOZDVW8MvxTvj",
+                "foreignRowDisplayName": "Summer travel spotlight"
+              }
+            ],
+            "fldHWztPT5yPAaBHs": "The best restaurants to visit while travelling",
+            "fldQifnRKoLPltIIs": "2021-04-14T00:00:00.000Z",
+            "fldbHsddYlK6IUinj": [
+              "sel0KGNUN9oUryhO1",
+              "selZ5vBIUumr0QRrW",
+              "selskvnbf4BMzlqcf"
+            ],
+            "fldf0CibJBQp7BHi0": "Getting hungry can make your trip a disaster, so don't skip a meal with our list"
+          }
+        },
+        {
+          "id": "rec4n2r8yPCLDN1TA",
+          "createdTime": "2021-03-26T03:09:31.000Z",
+          "cellValuesByColumnId": {
+            "fld0jVRbqE4rlw5Xq": "Poolside views",
+            "fld7QBFPXgV1umFOW": [
+              {
+                "id": "attF9PKAE5dD9iYZ5",
+                "url": "https://dl.airtable.com/pQXlwEtaSu8uo9dYZKvQ_pexels-photo-261102.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "filename": "pexels-photo-261102.jpeg?h=350&auto=compress&cs=tinysrgb",
+                "type": "image/jpeg",
+                "size": 41520,
+                "width": 524,
+                "height": 350,
+                "smallThumbUrl": "https://dl.airtable.com/CAjRUl7nR0i2EDE3K7rj_small_pexels-photo-261102.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "smallThumbWidth": 54,
+                "smallThumbHeight": 36,
+                "largeThumbUrl": "https://dl.airtable.com/siCyqNerRNe4zel8yEiY_large_pexels-photo-261102.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "largeThumbWidth": 524,
+                "largeThumbHeight": 350,
+                "fullThumbUrl": "https://dl.airtable.com/sam3rHoiTGmuEEf5hiCU_full_pexels-photo-261102.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "fullThumbWidth": 524,
+                "fullThumbHeight": 350
+              }
+            ],
+            "fld9ylPwDWTA45r9E": "selVhw0N1YQOLlzPO",
+            "fldBexkpGJBjsJ6sc": "usrnMfPSwuaTU0ZAZ",
+            "fldFndQ4qP9GqoeXe": [
+              {
+                "foreignRowId": "rec1r7wWZ9pkG1QJ0",
+                "foreignRowDisplayName": "Best vacation ever"
+              }
+            ],
+            "fldHWztPT5yPAaBHs": "Why you should pay more for a poolside view",
+            "fldQifnRKoLPltIIs": "2021-03-29T00:00:00.000Z",
+            "fldbHsddYlK6IUinj": [
+              "selskvnbf4BMzlqcf",
+              "selwI4Jr1b3OirDnp",
+              "sel0KGNUN9oUryhO1",
+              "selH0n4IJ5HqNyz4q"
+            ],
+            "fldf0CibJBQp7BHi0": "Maybe you should judge a hotel room by its view"
+          }
+        },
+        {
+          "id": "recN5VA9n8NXhn8u2",
+          "createdTime": "2021-03-26T03:09:31.000Z",
+          "cellValuesByColumnId": {
+            "fld0jVRbqE4rlw5Xq": "Beach essentials",
+            "fld7QBFPXgV1umFOW": [
+              {
+                "id": "attlUGUvdTMyzev5s",
+                "url": "https://dl.airtable.com/.attachments/92c8337804fe0c2fb9d61076844a0721/724ac19e/architecture-art-arts-1839919.jpg",
+                "filename": "architecture-art-arts-1839919.jpg",
+                "uploadsDmzS3Key": ".attachments/2019/06/24/m5gGIWuTa6WXcGV07XdU/ASsd60Vcvac1",
+                "servingS3Key": ".attachments/92c8337804fe0c2fb9d61076844a0721/724ac19e/architecture-art-arts-1839919.jpg",
+                "type": "image/jpeg",
+                "size": 2840944,
+                "width": 3543,
+                "height": 2362,
+                "smallThumbUrl": "https://dl.airtable.com/.attachmentThumbnails/6b477ef6a071ff8531045478cc81da91/9b2da93c",
+                "smallThumbWidth": 54,
+                "smallThumbHeight": 36,
+                "largeThumbUrl": "https://dl.airtable.com/.attachmentThumbnails/38d5d46cb841f0d864579f7eed022ae2/b22ffee5",
+                "largeThumbWidth": 768,
+                "largeThumbHeight": 512,
+                "fullThumbUrl": "https://dl.airtable.com/.attachmentThumbnails/106df5f6441b36ce387998d447c1be07/fef8c3ba",
+                "fullThumbWidth": 3000,
+                "fullThumbHeight": 3000
+              }
+            ],
+            "fld9ylPwDWTA45r9E": "selfoqE6oHhBl4naf",
+            "fldBexkpGJBjsJ6sc": "usrnMfPSwuaTU0ZAZ",
+            "fldFndQ4qP9GqoeXe": [
+              {
+                "foreignRowId": "rec1r7wWZ9pkG1QJ0",
+                "foreignRowDisplayName": "Best vacation ever"
+              }
+            ],
+            "fldHWztPT5yPAaBHs": "Don't miss these 10 museums",
+            "fldQifnRKoLPltIIs": "2021-04-21T00:00:00.000Z",
+            "fldbHsddYlK6IUinj": [
+              "selskvnbf4BMzlqcf",
+              "selDVSPwdDl0PHtKu",
+              "selwI4Jr1b3OirDnp",
+              "selH0n4IJ5HqNyz4q",
+              "sel0KGNUN9oUryhO1"
+            ],
+            "fldf0CibJBQp7BHi0": "You can't miss these 10 museums"
+          }
+        },
+        {
+          "id": "recrverqSl6NLnXHv",
+          "createdTime": "2021-03-26T03:09:31.000Z",
+          "cellValuesByColumnId": {
+            "fld0jVRbqE4rlw5Xq": "Carlos interview",
+            "fld7QBFPXgV1umFOW": [
+              {
+                "id": "attzOv4xf7yspnl0f",
+                "url": "https://dl.airtable.com/.attachments/6be902074d1b866444e3a3cbd08beda9/0fe5e344/kilimanjaro-1203937_1280.jpg",
+                "filename": "kilimanjaro-1203937_1280.jpg",
+                "uploadsDmzS3Key": ".attachments/2019/06/24/xhx1VQYmcVs528Xczi7D/zadzL_Rm8D4d",
+                "servingS3Key": ".attachments/6be902074d1b866444e3a3cbd08beda9/0fe5e344/kilimanjaro-1203937_1280.jpg",
+                "type": "image/jpeg",
+                "size": 189322,
+                "width": 1280,
+                "height": 805,
+                "smallThumbUrl": "https://dl.airtable.com/.attachmentThumbnails/4df50f0f84bb561f797446ed3de8fd72/7870a737",
+                "smallThumbWidth": 57,
+                "smallThumbHeight": 36,
+                "largeThumbUrl": "https://dl.airtable.com/.attachmentThumbnails/4146ca0256a4299bb97fa2c360637e96/01993c95",
+                "largeThumbWidth": 814,
+                "largeThumbHeight": 512,
+                "fullThumbUrl": "https://dl.airtable.com/.attachmentThumbnails/fd1a4b10ce97a7054b607f99ce4fa683/6acd21aa",
+                "fullThumbWidth": 3000,
+                "fullThumbHeight": 3000
+              }
+            ],
+            "fld9ylPwDWTA45r9E": "selHZWkeKziqIW7rB",
+            "fldBexkpGJBjsJ6sc": "usrXRI8JxXct7Q9k8",
+            "fldFndQ4qP9GqoeXe": [
+              {
+                "foreignRowId": "recD652k01fWeZVVj",
+                "foreignRowDisplayName": "Ask a connoisseur"
+              }
+            ],
+            "fldHWztPT5yPAaBHs": "Interview: Carlos Richardson's Mt. Kilimanjaro adventure",
+            "fldQifnRKoLPltIIs": "2021-04-12T00:00:00.000Z",
+            "fldbHsddYlK6IUinj": [
+              "sel0KGNUN9oUryhO1",
+              "selZ5vBIUumr0QRrW",
+              "selskvnbf4BMzlqcf"
+            ],
+            "fldf0CibJBQp7BHi0": "The fearless explorer tells all about his volcanic climb"
+          }
+        },
+        {
+          "id": "rec8clgBbzD6Xnb4X",
+          "createdTime": "2021-03-26T03:09:31.000Z",
+          "cellValuesByColumnId": {
+            "fld0jVRbqE4rlw5Xq": "Best restaurants",
+            "fld7QBFPXgV1umFOW": [
+              {
+                "id": "attHeKWG8ZAJB8eFh",
+                "url": "https://dl.airtable.com/WzF1oIqjTSu9QW837gjp_pexels-photo-390625.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "filename": "pexels-photo-390625.jpeg?h=350&auto=compress&cs=tinysrgb",
+                "type": "image/jpeg",
+                "size": 14111,
+                "width": 350,
+                "height": 350,
+                "smallThumbUrl": "https://dl.airtable.com/svV3LiDQAqajmXYn2rdX_small_pexels-photo-390625.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "smallThumbWidth": 36,
+                "smallThumbHeight": 36,
+                "largeThumbUrl": "https://dl.airtable.com/mCpqtRdlTnOav1Zs9ySQ_large_pexels-photo-390625.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "largeThumbWidth": 350,
+                "largeThumbHeight": 350,
+                "fullThumbUrl": "https://dl.airtable.com/CnalJ5DCSPmVPYZLTYtm_full_pexels-photo-390625.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "fullThumbWidth": 350,
+                "fullThumbHeight": 350
+              }
+            ],
+            "fld9ylPwDWTA45r9E": "selogbVjjHetPIPLx",
+            "fldBexkpGJBjsJ6sc": "usrTv3tPZmP3GYJ9K",
+            "fldFndQ4qP9GqoeXe": [
+              {
+                "foreignRowId": "recD652k01fWeZVVj",
+                "foreignRowDisplayName": "Ask a connoisseur"
+              }
+            ],
+            "fldHWztPT5yPAaBHs": "Don't forget these 11 beach essentials",
+            "fldQifnRKoLPltIIs": "2021-04-01T00:00:00.000Z",
+            "fldbHsddYlK6IUinj": [
+              "selskvnbf4BMzlqcf",
+              "selDVSPwdDl0PHtKu",
+              "selwI4Jr1b3OirDnp",
+              "selH0n4IJ5HqNyz4q"
+            ],
+            "fldf0CibJBQp7BHi0": "Step into summer while staying on budget"
+          }
+        },
+        {
+          "id": "recqU1SXkjeRXhVBF",
+          "createdTime": "2021-03-26T03:09:31.000Z",
+          "cellValuesByColumnId": {
+            "fld0jVRbqE4rlw5Xq": "Museums",
+            "fld7QBFPXgV1umFOW": [
+              {
+                "id": "attREBeupqw6YmCIq",
+                "url": "https://dl.airtable.com/BwEXXvR5QdKIldt4Vkmw_pexels-photo-247376.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "filename": "pexels-photo-247376.jpeg?h=350&auto=compress&cs=tinysrgb",
+                "type": "image/jpeg",
+                "size": 40548,
+                "width": 586,
+                "height": 350,
+                "smallThumbUrl": "https://dl.airtable.com/LdFgfpOXQeuxSjGlEOvQ_small_pexels-photo-247376.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "smallThumbWidth": 60,
+                "smallThumbHeight": 36,
+                "largeThumbUrl": "https://dl.airtable.com/JRs0zFITPCYO21X2C2ul_large_pexels-photo-247376.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "largeThumbWidth": 586,
+                "largeThumbHeight": 350,
+                "fullThumbUrl": "https://dl.airtable.com/8WVpMWouRFelyfDIZHoj_full_pexels-photo-247376.jpeg%3Fh%3D350%26auto%3Dcompress%26cs%3Dtinysrgb",
+                "fullThumbWidth": 586,
+                "fullThumbHeight": 350
+              }
+            ],
+            "fld9ylPwDWTA45r9E": "selxOmkoJe4j0sXOU",
+            "fldBexkpGJBjsJ6sc": "usrTv3tPZmP3GYJ9K",
+            "fldFndQ4qP9GqoeXe": [
+              {
+                "foreignRowId": "rec1r7wWZ9pkG1QJ0",
+                "foreignRowDisplayName": "Best vacation ever"
+              },
+              {
+                "foreignRowId": "recJxOZDVW8MvxTvj",
+                "foreignRowDisplayName": "Summer travel spotlight"
+              }
+            ],
+            "fldHWztPT5yPAaBHs": "The 5 most affordable safaris",
+            "fldQifnRKoLPltIIs": "2021-03-24T00:00:00.000Z",
+            "fldbHsddYlK6IUinj": [
+              "selskvnbf4BMzlqcf",
+              "selwI4Jr1b3OirDnp",
+              "sel0KGNUN9oUryhO1",
+              "selH0n4IJ5HqNyz4q"
+            ],
+            "fldf0CibJBQp7BHi0": "Get deep into the desert without deep pockets"
+          }
+        }
+      ],
+      "viewDatas": [
+        {
+          "id": "viwaaMPOVowAPHM0w",
+          "frozenColumnCount": 1,
+          "columnOrder": [
+            {
+              "columnId": "fld0jVRbqE4rlw5Xq",
+              "visibility": true,
+              "width": 119
+            },
+            {
+              "columnId": "fld9ylPwDWTA45r9E",
+              "visibility": true,
+              "width": 104
+            },
+            {
+              "columnId": "fldHWztPT5yPAaBHs",
+              "visibility": true,
+              "width": 163
+            },
+            {
+              "columnId": "fldf0CibJBQp7BHi0",
+              "visibility": true,
+              "width": 182
+            },
+            {
+              "columnId": "fldBexkpGJBjsJ6sc",
+              "visibility": true,
+              "width": 128
+            },
+            {
+              "columnId": "fld7QBFPXgV1umFOW",
+              "visibility": true,
+              "width": 139
+            },
+            {
+              "columnId": "fldQifnRKoLPltIIs",
+              "visibility": true,
+              "width": 107
+            },
+            {
+              "columnId": "fldbHsddYlK6IUinj",
+              "visibility": true
+            },
+            {
+              "columnId": "fldFndQ4qP9GqoeXe",
+              "visibility": true
+            }
+          ],
+          "filters": null,
+          "lastSortsApplied": {
+            "sortSet": [
+              {
+                "id": "srtliCjbKhAOfFYn3",
+                "columnId": "fldQifnRKoLPltIIs",
+                "ascending": true
+              }
+            ],
+            "shouldAutoSort": true,
+            "appliedTime": "2021-03-27T19:58:08.122Z"
+          },
+          "groupLevels": null,
+          "colorConfig": {
+            "type": "selectColumn",
+            "selectColumnId": "fld9ylPwDWTA45r9E",
+            "colorDefinitions": null,
+            "defaultColor": null
+          },
+          "sharesById": {},
+          "metadata": {
+            "grid": {
+              "rowHeight": "large"
+            }
+          },
+          "description": null,
+          "createdByUserId": "usrwtsmaHUDNWzIA2",
+          "applicationTransactionNumber": 1,
+          "rowOrder": [
+            {
+              "rowId": "recljkyA1YW38qbji",
+              "visibility": true
+            },
+            {
+              "rowId": "recqU1SXkjeRXhVBF",
+              "visibility": true
+            },
+            {
+              "rowId": "rec4n2r8yPCLDN1TA",
+              "visibility": true
+            },
+            {
+              "rowId": "rec8clgBbzD6Xnb4X",
+              "visibility": true
+            },
+            {
+              "rowId": "recrverqSl6NLnXHv",
+              "visibility": true
+            },
+            {
+              "rowId": "recJhgXIo5VEblRvQ",
+              "visibility": true
+            },
+            {
+              "rowId": "recN5VA9n8NXhn8u2",
+              "visibility": true
+            }
+          ]
+        }
+      ],
+      "hasOnlyIncludedRowAndCellDataForIncludedViews": false
+    }
+  ],
+  "hasBlockInstallations": true,
+  "applicationAdminFlags": {
+    "UPDATE_PRIMITIVE_CELL_THROTTLE_MS": null,
+    "MAX_WORKFLOWS_PER_APPLICATION": null,
+    "MAX_SYNC_SOURCES_PER_APPLICATION": null,
+    "MAX_SYNC_SOURCES_PER_TABLE": null,
+    "MAX_SYNCED_TABLES_PER_APPLICATION": null,
+    "CUSTOM_MAX_NUM_ROWS_PER_TABLE": null
+  },
+  "pageBundles": [],
+  "uploadedUserContentCdnSetting": {
+    "applicationScopedAuthMode": "public"
+  },
+  "applicationV2TargetedFeatureFlagClientConfiguration": {
+    "nonCollaboratorsInCollaboratorField": {
+      "trafficLevel": 0
+    },
+    "applicationInsights": {
+      "trafficLevel": 0
+    },
+    "autoOpenInsightsPaneOnUnseenSuggestion": {
+      "trafficLevel": 0
+    },
+    "disabledWorkflowOnSchemaChangeSuggestion": {
+      "trafficLevel": 0
+    },
+    "syncFailureSuggestion": {
+      "trafficLevel": 0
+    },
+    "unusedViewsSuggestion": {
+      "trafficLevel": 0
+    },
+    "filterUnusedViewsUsingDependencyGraph": {
+      "trafficLevel": 100
+    },
+    "unusedSelectChoicesSuggestion": {
+      "trafficLevel": 0
+    },
+    "unifiedEventLog": {
+      "trafficLevel": 0
+    },
+    "constantPoolingForCrudResponses": {
+      "trafficLevel": 0
+    }
+  },
+  "applicationV2EnabledFeatureNames": [
+    "filterUnusedViewsUsingDependencyGraph"
+  ],
+  "isConstantPooledData": false
+}

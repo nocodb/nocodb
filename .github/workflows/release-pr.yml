@@ -2,16 +2,15 @@ name: 'PR Release'
 
 on:
   pull_request:
-    types: [
-      opened, # pull request is created
-      reopened, # closed pull request is reopened
-      synchronize # commit(s) pushed to the pull request
-    ]
-  paths:
-    - "packages/nocodb-sdk/**"
-    - "packages/nc-gui/**"
-    - "packages/nc-plugin/**"
-    - "packages/nocodb/**"
+    # opened: pull request is created
+    # reopened: closed pull request is reopened
+    # synchronize: commit(s) pushed to the pull request
+    types: [opened, reopened, synchronize]
+    paths:
+      - "packages/nocodb-sdk/**"
+      - "packages/nc-gui/**"
+      - "packages/nc-plugin/**"
+      - "packages/nocodb/**"
 jobs:
   # Validate Branch
   validate-branch:
@@ -73,14 +72,16 @@ jobs:
       DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
   
   leave-comment:
+    runs-on: 'ubuntu-latest'
     needs: [release-docker, set-tag]
-    uses: peter-evans/commit-comment@v2
-    with:
-      body: |
-        The PR changes have been deployed. Pleae run the following command to verify:
-        ```
-        docker run -d -p 8888:8080 nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
-        ```
+    steps:
+      - uses: peter-evans/commit-comment@v2
+        with:
+          body: |
+            The PR changes have been deployed. Pleae run the following command to verify:
+            ```
+            docker run -d -p 8888:8080 nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+            ```
   
   # if-merged:
   #   if: github.event.pull_request.merged == true

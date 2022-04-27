@@ -14,7 +14,7 @@ on:
         options:
           - DEV
           - PROD
-  # Triggered by release-nocodb.yml / release-nightly-dev.yml
+  # Triggered by release-nocodb.yml / release-nightly-dev.yml / release-pr.yml
   workflow_call:
     inputs:
       tag:
@@ -48,12 +48,9 @@ jobs:
         id: get-docker-repository
         run: |
           DOCKER_REPOSITORY=nocodb
-          REF_BRANCH=master
           if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'PR' ]]; then
-            REF_BRANCH="refs/pull/${{ github.event.number }}/merge"
             DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
           elif [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
-            REF_BRANCH=develop
             if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
             else
@@ -61,15 +58,13 @@ jobs:
             fi
           fi
           echo "::set-output name=DOCKER_REPOSITORY::${DOCKER_REPOSITORY}"
-          echo "::set-output name=REF_BRANCH::${REF_BRANCH}"
           echo ${DOCKER_REPOSITORY}
-      #       - name: Verify
-      #         run : |
-      #           echo ${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}
+
       - name: Checkout
         uses: actions/checkout@v2
         with:
-          ref: ${{ steps.get-docker-repository.outputs.REF_BRANCH }}
+          fetch-depth: 0
+          ref: ${{ github.ref }}
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2

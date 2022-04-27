@@ -116,7 +116,8 @@ export default class Model implements TableType {
           })),
         type: model.type || ModelTypes.TABLE,
         created_at: model.created_at,
-        updated_at: model.updated_at
+        updated_at: model.updated_at,
+        id: model.id
       }
     );
 

@@ -2,18 +2,22 @@ const Api = require('nocodb-sdk').Api;
 const jsonfile = require('jsonfile');
 const { UITypes } = require('nocodb-sdk');
 
+function syncLog(log) {
+  console.log(log)
+}
+
 // apiKey & baseID configurations required to read data using Airtable APIs
 //
 const syncDB = {
   airtable: {
-    apiKey: 'keyeZla3k0desT8fU',
-    baseId: 'appgnPOzfhmB1ZPL9',
-    schemaJson: './content-calendar.json'
+    apiKey: 'key8y73nK7HR9Y1Vz',
+    baseId: 'appwUfuSTeH9f5mDA',
+    schemaJson: 'ApplicantTracking.json'
   },
   projectName: 'sample',
   baseURL: 'http://localhost:8080',
   authToken:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfNWVhZDc5NHBkbjRuZTkiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTA5ODA3MTZ9.qlTuirKjUiSCfCwjtW6wVYPdPGQuT-8gfcXVIllIVUc'
+    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfOGtwZ3lqd3lzcGEwN3giLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTEwNTIzNzl9.QjK4-w1u_ZYaRAjmCD_0YBZyHerMm08LcRp0oheGAIw'
 };
 
 const api = new Api({
@@ -46,7 +50,8 @@ let aTblNcTypeMap = {
   select: UITypes.SingleSelect,
   collaborator: UITypes.Collaborator,
   date: UITypes.Date,
-  phone: UITypes.PhoneNumber,
+  // kludge: phone: UITypes.PhoneNumber,
+  phone: UITypes.SingleLineText,
   number: UITypes.Number,
   rating: UITypes.Rating,
   // kludge: formula: UITypes.Formula,
@@ -118,6 +123,19 @@ async function nc_getTableSchema(tableName) {
   return ncTbl;
 }
 
+// delete project if already exists
+async function init() {
+  // delete 'sample' project if already exists
+  let x = await api.project.list()
+
+  let sampleProj = x.list.find(a => a.title === syncDB.projectName)
+  if(sampleProj) {
+    await api.project.delete(sampleProj.id)
+  }
+
+  syncLog('Init')
+}
+
 // map UIDT
 //
 function getNocoType(col) {
@@ -182,6 +200,8 @@ function tablesPrepare(tblSchema) {
   for (let i = 0; i < tblSchema.length; ++i) {
     let table = {};
 
+    syncLog(`Preparing base schema (sans relations): ${tblSchema[i].name}`)
+
     // table name
     table.table_name = tblSchema[i].name;
     table.title = tblSchema[i].name;
@@ -192,6 +212,8 @@ function tablesPrepare(tblSchema) {
         title: 'record_id',
         column_name: 'record_id',
         uidt: UITypes.ID
+        // uidt: UITypes.SingleLineText,
+        // pk: true
       }
     ];
 
@@ -244,6 +266,8 @@ async function nocoCreateBaseSchema(srcSchema) {
       ncCreatedProjectSchema.id,
       tables[idx]
     );
+
+    syncLog(`NC API: dbTable.create ${table.title}`)
   }
 
   // debug
@@ -262,6 +286,13 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
     //
     if (aTblLinkColumns.length) {
       for (let i = 0; i < aTblLinkColumns.length; i++) {
+
+        {
+          let src = aTbl_getColumnName(aTblLinkColumns[i].id)
+          let dst = aTbl_getColumnName(aTblLinkColumns[i].typeOptions.symmetricColumnId)
+          syncLog(`    LTAR ${src.tn}:${src.cn} <${aTblLinkColumns[i].typeOptions.relationship}> ${dst.tn}:${dst.cn}`)
+        }
+
         // check if link already established?
         if (!nc_isLinkExists(aTblLinkColumns[i].id)) {
           // parent table ID
@@ -281,11 +312,12 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
             title: aTblLinkColumns[i].name,
             parentId: srcTableId,
             childId: childTableId,
-            type:
-              aTblLinkColumns[i].typeOptions.relationship === 'many'
-                ? 'mm'
-                : 'hm'
+            type: 'mm'
+              // aTblLinkColumns[i].typeOptions.relationship === 'many'
+              //   ? 'mm'
+              //   : 'hm'
           });
+          syncLog(`NC API: dbTableColumn.create LinkToAnotherRecord`)
 
           // store link information in separate table
           // this information will be helpful in identifying relation pair
@@ -294,7 +326,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
               title: aTblLinkColumns[i].name,
               parentId: srcTableId,
               childId: childTableId,
-              type: 'hm'
+              type: 'mm'
             },
             aTbl: {
               tblId: aTblSchema[idx].id,
@@ -351,17 +383,21 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
                 col.colOptions.fk_child_column_id ===
                   parentLinkColumn.colOptions.fk_parent_column_id &&
                 col.colOptions.fk_parent_column_id ===
-                  parentLinkColumn.colOptions.fk_child_column_id
+                  parentLinkColumn.colOptions.fk_child_column_id &&
+                col.colOptions.fk_mm_model_id ===
+                  parentLinkColumn.colOptions.fk_mm_model_id
             );
           }
 
           // rename
           // note that: current rename API requires us to send all parameters,
           // not just title being renamed
-          await api.dbTableColumn.update(childLinkColumn.id, {
+          let res = await api.dbTableColumn.update(childLinkColumn.id, {
             ...childLinkColumn,
-            title: aTblLinkColumns[i].name
+            title: aTblLinkColumns[i].name,
           });
+          // console.log(res.columns.find(x => x.title === aTblLinkColumns[i].name))
+          syncLog(`NC API: dbTableColumn.update rename symmetric column`)
         }
       }
     }
@@ -392,6 +428,8 @@ async function nocoCreateLookups(aTblSchema) {
           fk_relation_column_id: ncRelationColumn.id,
           fk_lookup_column_id: ncLookupColumn.id
         });
+
+        syncLog(`NC API: dbTableColumn.create LOOKUP`)
       }
     }
   }
@@ -422,8 +460,21 @@ async function nocoCreateRollups(aTblSchema) {
           fk_rollup_column_id: ncRollupColumn.id,
           rollup_function: 'sum' // fix me: hardwired
         });
+
+        syncLog(`NC API: dbTableColumn.create ROLLUP`)
+
       }
     }
+  }
+}
+
+async function nocoSetPrimary(aTblSchema) {
+  for (let idx = 0; idx < aTblSchema.length; idx++) {
+    let pColId = aTblSchema[idx].primaryColumnId;
+    let ncCol = await nc_getColumnSchema(pColId);
+
+    syncLog(`NC API: dbTableColumn.primaryColumnSet`)
+    await api.dbTableColumn.primaryColumnSet(ncCol.id);
   }
 }
 
@@ -438,7 +489,7 @@ let base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
 let aTblDataLinks = [];
 let aTblNcRecordMappingTable = {};
 
-function nocoLinkProcessing(table, record) {
+function nocoLinkProcessing(table, record, field) {
   (async () => {
     let rec = record.fields;
     const value = Object.values(rec);
@@ -448,19 +499,21 @@ function nocoLinkProcessing(table, record) {
       for (let i = 0; i < value[0].length; i++) {
         let dstRow = aTblNcRecordMappingTable[`${value[0][i]}`];
 
+        syncLog(`NC API: dbTableRow.nestedAdd ${srcRow[1]}/hm/${dstRow[0]}/${dstRow[1]}`)
+
         await api.dbTableRow.nestedAdd(
           'noco',
           syncDB.projectName,
           table.title,
           `${srcRow[1]}`,
-          'hm', // fix me
-          `${dstRow[0]}`,
+          'mm', // fix me
+          `${field}`,
           `${dstRow[1]}`
         );
       }
     }
   })().catch(e => {
-    console.log(e);
+    console.log(`NC: Link error`)
   });
 }
 
@@ -484,7 +537,10 @@ function nocoBaseDataProcessing(table, record) {
     // post-processing on the record
     for (const [key, value] of Object.entries(rec)) {
       // retrieve datatype
-      let dt = table.columns.find(x => x.title === key).uidt;
+      let dt = table.columns.find(x => x.title === key)?.uidt;
+
+      // if(dt === undefined)
+      //   console.log('fix me')
 
       // https://www.npmjs.com/package/validator
       // default value: digits_after_decimal: [2]
@@ -501,7 +557,17 @@ function nocoBaseDataProcessing(table, record) {
       // these will be automatically populated depending on schema configuration
       if (dt === 'Lookup') delete rec[key];
       if (dt === 'Rollup') delete rec[key];
+
+      // attachment types not handled currently
+      if (dt === 'Attachment') delete rec[key];
     }
+
+    // insert airtable record ID explicitly into each records
+    // rec['record_id'] = record.id;
+
+    // console.log(rec)
+
+    syncLog(`NC API: dbTableRow.bulkCreate ${table.title} [${rec}]`)
 
     // bulk Insert
     let returnValue = await api.dbTableRow.bulkCreate(
@@ -513,61 +579,74 @@ function nocoBaseDataProcessing(table, record) {
 
     aTblNcRecordMappingTable[record.id] = [table.title, returnValue[0]];
   })().catch(e => {
-    console.log(e);
+    console.log(`Record insert error`)
   });
 }
 
 async function nocoReadData(table, callback) {
-  base(table.title)
-    .select({
-      pageSize: 25,
-      // maxRecords: 100,
-    })
-    .eachPage(
-      function page(records, fetchNextPage) {
-        // console.log(JSON.stringify(records, null, 2));
+  return new Promise((resolve, reject) => {
+    base(table.title)
+      .select({
+        pageSize: 25,
+        // maxRecords: 100,
+      })
+      .eachPage(
+        function page(records, fetchNextPage) {
+          // console.log(JSON.stringify(records, null, 2));
 
-        // This function (`page`) will get called for each page of records.
-        records.forEach(record => callback(table, record));
+          // This function (`page`) will get called for each page of records.
+          records.forEach(record => callback(table, record));
 
-        // To fetch the next page of records, call `fetchNextPage`.
-        // If there are more records, `page` will get called again.
-        // If there are no more records, `done` will get called.
-        fetchNextPage();
-      },
-      function done(err) {
-        if (err) {
-          console.error(err);
+          // To fetch the next page of records, call `fetchNextPage`.
+          // If there are more records, `page` will get called again.
+          // If there are no more records, `done` will get called.
+          fetchNextPage();
+        },
+        function done(err) {
+          if (err) {
+            console.error(err);
+            reject(err)
+          }
+          resolve()
         }
-      }
-    );
+      );
+  })
 }
 
+
 async function nocoReadDataSelected(table, callback, fields) {
-  base(table.title)
-    .select({
-      pageSize: 25,
-      // maxRecords: 100,
-      fields: [fields]
-    })
-    .eachPage(
-      function page(records, fetchNextPage) {
-        // console.log(JSON.stringify(records, null, 2));
+  return new Promise((resolve, reject) => {
 
-        // This function (`page`) will get called for each page of records.
-        records.forEach(record => callback(table, record));
+    base(table.title)
+      .select({
+        pageSize: 25,
+        // maxRecords: 100,
+        fields: [fields]
+      })
+      .eachPage(
+        function page(records, fetchNextPage) {
+          // console.log(JSON.stringify(records, null, 2));
 
-        // To fetch the next page of records, call `fetchNextPage`.
-        // If there are more records, `page` will get called again.
-        // If there are no more records, `done` will get called.
-        fetchNextPage();
-      },
-      function done(err) {
-        if (err) {
-          console.error(err);
+          // This function (`page`) will get called for each page of records.
+          // records.forEach(record => callback(table, record));
+          for(let i=0; i<records.length; i++) {
+            callback(table, records[i], fields)
+          }
+
+          // To fetch the next page of records, call `fetchNextPage`.
+          // If there are more records, `page` will get called again.
+          // If there are no more records, `done` will get called.
+          fetchNextPage();
+        },
+        function done(err) {
+          if (err) {
+            console.error(err);
+            reject(err)
+          }
+          resolve()
         }
-      }
-    );
+      );
+  });
 }
 
 //////////
@@ -586,6 +665,11 @@ function nc_isLinkExists(atblFieldId) {
 
 // start function
 async function nc_migrateATbl() {
+
+  // fix me: delete project if already exists
+  // remove later
+  await init()
+
   // read schema file
   const schema = getAtableSchema();
   let aTblSchema = schema.tableSchemas;
@@ -594,6 +678,7 @@ async function nc_migrateATbl() {
   ncCreatedProjectSchema = await api.project.create({
     title: syncDB.projectName
   });
+  syncLog(`Create Project: ${syncDB.projectName}`)
 
   // prepare table schema (base)
   await nocoCreateBaseSchema(schema);
@@ -607,6 +692,9 @@ async function nc_migrateATbl() {
   // add roll-ups
   await nocoCreateRollups(aTblSchema);
 
+  // configure primary values
+  await nocoSetPrimary(aTblSchema);
+
   // await nc_DumpTableSchema();
   let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
   for (let i = 0; i < ncTblList.list.length; i++) {
@@ -614,25 +702,16 @@ async function nc_migrateATbl() {
     await nocoReadData(ncTbl, nocoBaseDataProcessing);
   }
 
-  // kludge
-  // wait till above operations are completed instead of static timeout
-  setTimeout(() => {
-    (async () => {
-
-      // Configure link @ Data row's
-      for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
-        let x = ncLinkMappingTable[idx];
-        let ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
-        await nocoReadDataSelected(ncTbl, nocoLinkProcessing, x.aTbl.name);
-      }
-    })().catch(e => {
-      console.log(e);
-    });
-  }, 5000);
+  // Configure link @ Data row's
+  for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
+    let x = ncLinkMappingTable[idx];
+    let ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
+    await nocoReadDataSelected(ncTbl, nocoLinkProcessing, x.aTbl.name);
+  }
 }
 
 nc_migrateATbl().catch(e => {
-  console.log(e);
+  console.log(e?.data?.msg);
 });
 
 

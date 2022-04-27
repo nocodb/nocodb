@@ -1,6 +1,8 @@
 const Api = require('nocodb-sdk').Api;
 const jsonfile = require('jsonfile');
 const { UITypes } = require('nocodb-sdk');
+const axios = require('axios').default;
+const FormData = require('form-data');
 
 function syncLog(log) {
   console.log(log)
@@ -560,8 +562,50 @@ function nocoBaseDataProcessing(table, record) {
       if (dt === 'Lookup') delete rec[key];
       if (dt === 'Rollup') delete rec[key];
 
-      // attachment types not handled currently
-      if (dt === 'Attachment') delete rec[key];
+      if (dt === 'Attachment') {
+        let tempArr = [];
+        for (const v of value) {
+          const binaryImage = await axios
+            .get(v.url, {
+              responseType: 'stream',
+              headers: {
+                'Content-Type': v.type
+              }
+            })
+            .then(response => {
+              return response.data;
+            })
+            .catch(error => {
+              console.log(error);
+              return false;
+            });
+
+          var imageFile = new FormData();
+          imageFile.append('files', binaryImage, {
+            filename: v.filename
+          });
+
+          const rs = await axios
+            .post(syncDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
+              params: {
+                path: `noco/${syncDB.projectName}/${table.title}/${key}`
+              },
+              headers: {
+                'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
+                'xc-auth': syncDB.authToken
+              }
+            })
+            .then(response => {
+              return response.data;
+            })
+            .catch(e => {
+              console.log(e);
+            });
+
+          tempArr.push(...rs);
+        }
+        rec[key] = JSON.stringify(tempArr);
+      }
     }
 
     // insert airtable record ID explicitly into each records

@@ -42,7 +42,7 @@ Here is an example :
     "os_release" : "5.10.25-linuxkit",
     "node_version" : "14.18.2",
     "docker" : "true",
-    "xc_version" : "0.84.15",
+    "xc_version" : "a0885e8e6a38d9fbb5d39e7d04a44da7773d4f",
     "env" : "dev",
 }
 

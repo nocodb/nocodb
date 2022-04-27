@@ -4,6 +4,7 @@ import {
   extractCsvData,
   getViewAndModelFromRequestByAliasOrId
 } from './helpers';
+import apiMetrics from '../../helpers/apiMetrics';
 
 async function csvDataExport(req: Request, res: Response) {
   const { view } = await getViewAndModelFromRequestByAliasOrId(req);
@@ -23,10 +24,12 @@ const router = Router({ mergeParams: true });
 
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/export/csv',
+  apiMetrics,
   ncMetaAclMw(csvDataExport, 'exportCsv')
 );
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/export/csv',
+  apiMetrics,
   ncMetaAclMw(csvDataExport, 'exportCsv')
 );
 

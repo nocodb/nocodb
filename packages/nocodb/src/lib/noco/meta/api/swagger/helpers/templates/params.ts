@@ -184,6 +184,8 @@ export const getNestedParams = async (
           nestedFieldParam(column.title),
           nestedSortParam(column.title)
         ];
+      } else {
+        return [...(await paramsArr), nestedFieldParam(column.title)];
       }
     }
 

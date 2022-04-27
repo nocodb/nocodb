@@ -4,6 +4,7 @@ import Base from '../../../../noco-models/Base';
 import NcConnectionMgrv2 from '../../../common/NcConnectionMgrv2';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
+import apiMetrics from '../../helpers/apiMetrics';
 
 async function bulkDataInsert(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
@@ -72,22 +73,27 @@ const router = Router({ mergeParams: true });
 
 router.post(
   '/api/v1/db/data/bulk/:orgs/:projectName/:tableName',
+  apiMetrics,
   ncMetaAclMw(bulkDataInsert, 'bulkDataInsert')
 );
 router.patch(
   '/api/v1/db/data/bulk/:orgs/:projectName/:tableName',
+  apiMetrics,
   ncMetaAclMw(bulkDataUpdate, 'bulkDataUpdate')
 );
 router.patch(
   '/api/v1/db/data/bulk/:orgs/:projectName/:tableName/all',
+  apiMetrics,
   ncMetaAclMw(bulkDataUpdateAll, 'bulkDataUpdateAll')
 );
 router.delete(
   '/api/v1/db/data/bulk/:orgs/:projectName/:tableName',
+  apiMetrics,
   ncMetaAclMw(bulkDataDelete, 'bulkDataDelete')
 );
 router.delete(
   '/api/v1/db/data/bulk/:orgs/:projectName/:tableName/all',
+  apiMetrics,
   ncMetaAclMw(bulkDataDeleteAll, 'bulkDataDeleteAll')
 );
 

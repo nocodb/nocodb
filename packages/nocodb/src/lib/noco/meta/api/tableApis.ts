@@ -157,7 +157,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     ip: (req as any).clientIp
   }).then(() => {});
 
-  mapDefaultPrimaryValue(req.body.columns);
+  mapDefaultPrimaryValue(columns);
 
   Tele.emit('evt', { evt_type: 'table:created' });
 

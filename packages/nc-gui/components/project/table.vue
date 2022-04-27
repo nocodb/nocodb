@@ -109,12 +109,14 @@ export default {
           const relationColumns = meta.columns.filter(c => c.uidt === UITypes.LinkToAnotherRecord)
 
           if (relationColumns.length) {
-            const referredTables = await Promise.all(relationColumns.map(async(c) => {
+            const refColMsgs = await Promise.all(relationColumns.map(async(c, i) => {
               const refMeta = await this.$store.dispatch('meta/ActLoadMeta', { id: c.colOptions.fk_related_model_id })
-              return (refMeta && refMeta.title) || c.title
+              return `${i + 1}. ${c.title} is a LinkToAnotherRecord of a ${(refMeta && refMeta.title) || c.title}`
             }))
-            this.$toast.info('Table can\'t be  deleted  since Table is being referred in following tables : ' + referredTables.join(', ') +
-              '. Delete relation columns and try again.').goAway(10000)
+            this.$toast.info(`<div style="padding:10px 4px">Unable to delete tables because of the following.
+                <br><br>${refColMsgs.join('<br>')}<br><br>
+                Delete them & try again</div>
+            `).goAway(10000)
             this.dialogShow = false
             return
           }

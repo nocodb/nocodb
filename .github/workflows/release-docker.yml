@@ -49,7 +49,10 @@ jobs:
         run: |
           DOCKER_REPOSITORY=nocodb
           REF_BRANCH=master
-          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
+          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'PR' ]]; then
+            REF_BRANCH="refs/pull/${{ github.event.number }}/merge"
+            DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
+          elif [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
             REF_BRANCH=develop
             if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
@@ -73,8 +76,8 @@ jobs:
         with:
           node-version: ${{ matrix.node-version }}
 
-      - name: upgrade packages for nightly build
-        if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
+      - name: upgrade packages for nightly build or pr build
+        if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' || github.event.inputs.targetEnv == 'PR' || inputs.targetEnv == 'PR' }}
         run: |
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
           cd packages/nocodb-sdk

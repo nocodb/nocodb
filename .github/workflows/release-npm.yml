@@ -14,7 +14,7 @@ on:
         options:
           - DEV
           - PROD
-  # Triggered by release-nocodb.yml / release-nightly-dev.yml
+  # Triggered by release-nocodb.yml / release-nightly-dev.yml / release-pr.yml
   workflow_call:
     inputs:
       tag:
@@ -83,6 +83,7 @@ jobs:
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
       - name: automerge
+        if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
         uses: "pascalgn/automerge-action@v0.14.3"
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

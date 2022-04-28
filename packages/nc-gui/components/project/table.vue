@@ -111,7 +111,7 @@ export default {
           if (relationColumns.length) {
             const refColMsgs = await Promise.all(relationColumns.map(async(c, i) => {
               const refMeta = await this.$store.dispatch('meta/ActLoadMeta', { id: c.colOptions.fk_related_model_id })
-              return `${i + 1}. ${c.title} is a LinkToAnotherRecord of a ${(refMeta && refMeta.title) || c.title}`
+              return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
             }))
             this.$toast.info(`<div style="padding:10px 4px">Unable to delete tables because of the following.
                 <br><br>${refColMsgs.join('<br>')}<br><br>

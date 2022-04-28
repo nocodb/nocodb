@@ -29,6 +29,10 @@ on:
         description: "Is it triggered by daily schedule"
         required: false
         type: string
+      currentVersion:
+        description: "The current NocoDB version"
+        required: false
+        type: string
     secrets:
       DOCKERHUB_USERNAME:
         required: true
@@ -48,7 +52,11 @@ jobs:
         id: get-docker-repository
         run: |
           DOCKER_REPOSITORY=nocodb
+          DOCKER_BUILD_TAG=${{ github.event.inputs.tag || inputs.tag }}
           if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
+            if [[ ${{ github.event.inputs.currentVersion || inputs.currentVersion }} != '' ]]; then
+              DOCKER_BUILD_TAG=${{ github.event.inputs.currentVersion || inputs.currentVersion }}-${{ github.event.inputs.tag || inputs.tag }}
+            fi
             if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
             else
@@ -56,7 +64,9 @@ jobs:
             fi
           fi
           echo "::set-output name=DOCKER_REPOSITORY::${DOCKER_REPOSITORY}"
+          echo "::set-output name=DOCKER_BUILD_TAG::${DOCKER_BUILD_TAG}"
           echo ${DOCKER_REPOSITORY}
+          echo ${DOCKER_BUILD_TAG}
 
       - name: Checkout
         uses: actions/checkout@v2
@@ -118,13 +128,13 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ${{ env.working-directory }}
-          build-args: NC_VERSION=${{ github.event.inputs.tag || inputs.tag }}
+          build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true
           tags: |
-            nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ github.event.inputs.tag || inputs.tag }}
+            nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
             nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:latest
 
         # Temp fix

@@ -191,6 +191,7 @@
     "port": "Port Numarası",
     "username": "Kullanıcı Adı",
     "password": "Şifre",
+    "schemaName": "Schema name",
     "action": "Aksiyon",
     "actions": "Aksiyonlar",
     "operation": "Operasyon",

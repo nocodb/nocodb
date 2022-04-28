@@ -16,6 +16,7 @@ import { nanoid } from 'nanoid';
 import { mimeIcons } from '../../../../utils/mimeTypes';
 import slash from 'slash';
 import { sanitizeUrlPath } from '../attachmentApis';
+import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 
 export async function dataList(req: Request, res: Response) {
   try {
@@ -49,7 +50,11 @@ export async function dataList(req: Request, res: Response) {
     } catch (e) {}
 
     const data = await nocoExecute(
-      await baseModel.defaultResolverReq(req.query),
+      await getAst({
+        query: req.query,
+        model,
+        view
+      }),
       await baseModel.list(listArgs),
       {},
       listArgs
@@ -186,23 +191,18 @@ async function relDataList(req, res) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  const key = `${model.title}List`;
-  const requestObj = {
-    [key]: await baseModel.defaultResolverReq(req.query, true)
-  };
+  const requestObj = await getAst({
+    query: req.query,
+    model,
+    extractOnlyPrimaries: true
+  });
 
-  const data = (
-    await nocoExecute(
-      requestObj,
-      {
-        [key]: async args => {
-          return await baseModel.list(args);
-        }
-      },
-      {},
-      { nested: { [key]: req.query } }
-    )
-  )?.[key];
+  const data = await nocoExecute(
+    requestObj,
+    await baseModel.list(req.query),
+    {},
+    req.query
+  );
 
   const count = await baseModel.count(req.query);
 

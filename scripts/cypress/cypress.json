@@ -28,7 +28,7 @@
     "viewportHeight": 1000,
     "video": false,
     "retries": 0,
-    "screenshotOnRunFailure": true,
+    "screenshotOnRunFailure": false,
     "numTestsKeptInMemory": 0,
     "env": {
         "testMode": [
@@ -43,7 +43,7 @@
             "user": "root",
             "password": "password"
         },
-        "screenshot": true
+        "screenshot": false
     },
     "fixturesFolder": "scripts/cypress/fixtures",
     "integrationFolder": "scripts/cypress/integration",

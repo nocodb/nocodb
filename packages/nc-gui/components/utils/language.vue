@@ -24,7 +24,7 @@
         <v-divider />
         <v-list-item>
           <a
-            href="https://github.com/nocodb/nocodb/tree/master/packages/nc-gui/lang"
+            href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
             target="_blank"
             class="caption"
           >

@@ -51,14 +51,6 @@ export default class Model implements TableType {
   columnsById?: { [id: string]: Column };
   views?: View[];
 
-  // private static baseModels: {
-  //   [baseId: string]: {
-  //     [dbAlias: string]: {
-  //       [tableIdOrName: string]: BaseModelSqlv2;
-  //     };
-  //   };
-  // } = {};
-
   constructor(data: Partial<TableType | Model>) {
     Object.assign(this, data);
   }
@@ -124,7 +116,8 @@ export default class Model implements TableType {
           })),
         type: model.type || ModelTypes.TABLE,
         created_at: model.created_at,
-        updated_at: model.updated_at
+        updated_at: model.updated_at,
+        id: model.id
       }
     );
 

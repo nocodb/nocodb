@@ -14,6 +14,7 @@
   },
   "scripts": {
     "build:common": "cd ./packages/nocodb-sdk; npm install; npm run build",
+    "install:common": "cd ./packages/nocodb; npm install ../nocodb-sdk; cd ../nc-gui; npm install ../nocodb-sdk",
     "start:api": "cd ./packages/nocodb; npm install; NC_DISABLE_CACHE=true NC_DISABLE_TELE=true npm run watch:run:cypress",
     "start:xcdb-api": "cd ./packages/nocodb; npm install; NC_DISABLE_CACHE=true NC_DISABLE_TELE=true NC_INFLECTION=camelize DATABASE_URL=sqlite:../../../scripts/cypress/fixtures/sqlite-sakila/sakila.db npm run watch:run:cypress",
     "start:api:cache": "cd ./packages/nocodb; npm install; NC_DISABLE_TELE=true npm run watch:run:cypress",

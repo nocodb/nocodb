@@ -202,20 +202,20 @@ export default {
       return ''
     },
     childTable() {
-      if (this.relationMeta?.table_name) {
-        return this.relationMeta.table_name
+      if (this.relationMeta?.title) {
+        return this.relationMeta.title
       }
       return ''
     },
     parentTable() {
       if (this.rels.includes(this.type)) {
-        return this.meta.table_name
+        return this.meta.title
       }
       return ''
     },
     parentColumn() {
       if (this.rels.includes(this.type)) {
-        return this.column.column_name
+        return this.column.title
       }
       return ''
     },
@@ -228,13 +228,13 @@ export default {
       } else if (this.type === 'mm') {
         return `'${this.childTable}' & '${this.parentTable}' have <br>many to many relation`
       } else if (this.type === 'bt') {
-        return `'${this.childColumn.column_name}' belongs to '${this.childTable}'`
+        return `'${this.column.title}' belongs to '${this.childTable}'`
       } else if (this.type === 'lk') {
-        return `'${this.childColumn.column_name}' from '${this.childTable}' (${this.childColumn.uidt})`
+        return `'${this.childColumn.title}' from '${this.childTable}' (${this.childColumn.uidt})`
       } else if (this.type === 'formula') {
         return `Formula - ${this.column.colOptions.formula}`
       } else if (this.type === 'rl') {
-        return `'${this.childColumn.column_name}' of '${this.childTable}' (${this.childColumn.uidt})`
+        return `'${this.childColumn.title}' of '${this.childTable}' (${this.childColumn.uidt})`
       }
       return ''
     }

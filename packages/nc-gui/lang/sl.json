@@ -191,6 +191,7 @@
     "port": "Številka vrat",
     "username": "Uporabniško ime",
     "password": "Geslo",
+    "schemaName": "Schema name",
     "action": "Akcija",
     "actions": "Akcijah",
     "operation": "Operacija",

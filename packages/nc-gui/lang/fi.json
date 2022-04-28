@@ -191,6 +191,7 @@
     "port": "Porttinumero",
     "username": "Käyttäjätunnus",
     "password": "Salasana",
+    "schemaName": "Schema name",
     "action": "Toiminta",
     "actions": "Toiminnot",
     "operation": "Operaatio",

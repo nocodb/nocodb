@@ -179,13 +179,16 @@ export default class Project implements ProjectType {
     // get existing cache
     const key = `${CacheScope.PROJECT}:${projectId}`;
     const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
-    if (o?.uuid) {
-      await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
-    }
-    if (o) await NocoCache.del(`${CacheScope.PROJECT}:${projectId}`);
-
-    if (o?.title) {
+    if (o) {
+      // delete <scope>:<id>
+      await NocoCache.del(`${CacheScope.PROJECT}:${projectId}`);
+      // delete <scope>:<title>
       await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);
+      // delete <scope>:<uuid>
+      await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
+      // delete <scope>:ref:<titleOfId>
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.title}`);
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
     }
 
     // remove item in cache list
@@ -264,12 +267,17 @@ export default class Project implements ProjectType {
       await base.delete(ncMeta);
     }
     const project = await this.get(projectId);
-    if (project.uuid) {
+
+    if (project) {
+      // delete <scope>:<uuid>
       await NocoCache.del(`${CacheScope.PROJECT}:${project.uuid}`);
-    }
-    if (project.title) {
+      // delete <scope>:<title>
       await NocoCache.del(`${CacheScope.PROJECT}:${project.title}`);
+      // delete <scope>:ref:<titleOfId>
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${project.title}`);
+      await NocoCache.del(`${CacheScope.PROJECT}:ref:${project.id}`);
     }
+
     await NocoCache.deepDel(
       CacheScope.PROJECT,
       `${CacheScope.PROJECT}:${projectId}`,
@@ -322,5 +330,54 @@ export default class Project implements ProjectType {
       return this.get(projectId);
     }
     return projectData?.id && this.get(projectData?.id, ncMeta);
+  }
+
+  static async getByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
+    const projectId =
+      titleOrId &&
+      (await NocoCache.get(
+        `${CacheScope.PROJECT}:ref:${titleOrId}`,
+        CacheGetType.TYPE_OBJECT
+      ));
+    let projectData = null;
+    if (!projectId) {
+      projectData = await Noco.ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.PROJECT,
+        {
+          deleted: false
+        },
+        null,
+        {
+          _or: [
+            {
+              id: {
+                eq: titleOrId
+              }
+            },
+            {
+              title: {
+                eq: titleOrId
+              }
+            }
+          ]
+        }
+      );
+      await NocoCache.set(
+        `${CacheScope.PROJECT}:ref:${titleOrId}`,
+        projectData?.id
+      );
+    } else {
+      return this.get(projectId);
+    }
+    return projectData?.id && this.get(projectData?.id, ncMeta);
+  }
+
+  static async getWithInfoByTitleOrId(titleOrId: string, ncMeta = Noco.ncMeta) {
+    const project = await this.getByTitleOrId(titleOrId, ncMeta);
+    if (project) await project.getBases(ncMeta);
+
+    return project;
   }
 }

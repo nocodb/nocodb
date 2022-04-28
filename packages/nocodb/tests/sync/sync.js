@@ -484,6 +484,39 @@ async function nocoSetPrimary(aTblSchema) {
   }
 }
 
+async function nc_hideColumn(tblName, viewName, columnName) {
+
+  // retrieve table schema
+  let ncTbl = await nc_getTableSchema(tblName)
+  // retrieve view ID
+  let viewId = ncTbl.views.find(x => x.title === viewName).id;
+  // retrieve view Info
+  let viewDetails = await api.dbView.gridColumnsList(viewId);
+
+  for(i =0; i<columnName.length; i++) {
+    // retrieve column schema
+    let ncColumn = ncTbl.columns.find(x => x.title === columnName[i]);
+    // retrieve view column ID
+    let viewColumnId = viewDetails.find(x => x.fk_column_id === ncColumn.id).id
+    // hide
+    syncLog(`NC API: dbViewColumn.update ${viewId}, ${ncColumn.id}`)
+    let retVal = await api.dbViewColumn.update(viewId, viewColumnId, { show: false })
+  }
+}
+
+async function nocoReconfigureFields(aTblSchema) {
+  for (let idx = 0; idx < aTblSchema.length; idx++) {
+    let hiddenColumns = ["record_id"]
+
+    // extract other columns hidden in this view
+    let hiddenColumnID = aTblSchema[idx].meaningfulColumnOrder.filter(x => x.visibility===false)
+    for(let i=0; i<hiddenColumnID.length; i++) {
+      hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[i].columnId).cn)
+    }
+    await nc_hideColumn(aTblSchema[idx].name, aTblSchema[idx].views[0].name, hiddenColumns)
+  }
+}
+
 //////////  Data processing
 
 // https://www.airtable.com/app1ivUy7ba82jOPn/api/docs#javascript/metadata
@@ -750,7 +783,7 @@ async function nc_migrateATbl() {
   await nocoSetPrimary(aTblSchema);
 
   // hide-fields
-  // await nocoReconfigureFields(aTblSchema);
+  await nocoReconfigureFields(aTblSchema);
 
   // await nc_DumpTableSchema();
   let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);

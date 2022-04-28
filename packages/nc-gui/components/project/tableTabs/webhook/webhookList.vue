@@ -1,33 +1,47 @@
 <template>
   <div>
     <v-card-title>
-      Webhook
+      Webhooks
       <v-spacer />
       <v-btn
         outlined
         tooltip="Save"
         small
+        @click.prevent="$emit('add')"
       >
         Create webhook
       </v-btn>
     </v-card-title>
 
-    <div v-if="hooks" class="pa-4">
-      <v-card v-for="hook in hooks" v-ripple class="elevation-0 backgroundColor">
-        <div class="pa-4 ">
-          <h4 class="nc-text">
-            {{ hook.title }}
-          </h4>
-          <div class="d-flex">
-            <!--Title-->
-            <span class="caption textColor1--text">{{ $t("general.event") }} : {{ hook.event }} {{ hook.operation }}</span>
-            <v-spacer />
-            <!--Notify Via-->
-            <span class="caption textColor1--text">{{ $t("labels.notifyVia") }} : {{ hook.notification && hook.notification.type }}
-            </span>
+    <div v-if="hooks " class="pa-4">
+      <template v-if=" hooks.length">
+        <v-card v-for="(hook,i) in hooks" :key="hook.id" class="elevation-0 backgroundColor nc-hook" @click="$emit('edit', hook)">
+          <div class="pa-4 ">
+            <h4 class="nc-text">
+              {{ hook.title }}
+            </h4>
+            <div class="d-flex">
+              <!--Title-->
+              <span class="caption textColor1--text">{{ $t("general.event") }} : {{ hook.event }} {{
+                hook.operation
+              }}</span>
+              <v-spacer />
+              <!--Notify Via-->
+              <span class="caption textColor1--text">{{
+                $t("labels.notifyVia")
+              }} : {{ hook.notification && hook.notification.type }}
+              </span>
+            </div>
           </div>
-        </div>
-      </v-card>
+
+          <v-icon class="nc-hook-delete-icon" small @click.stop="deleteHook(hook,i)">
+            mdi-delete-outline
+          </v-icon>
+        </v-card>
+      </template>
+      <div v-else class="pa-4 backgroundColor caption textColor--text text--lighten-3">
+        Webhooks list is empty, create new webhook by clicking 'Create webhook' button.
+      </div>
     </div>
 
     <!--    <v-simple-table dense>
@@ -130,11 +144,43 @@ export default {
         return h
       })
       this.loading = false
+    },
+    async deleteHook(item, i) {
+      try {
+        if (item.id) {
+          await this.$api.dbTableWebhook.delete(item.id)
+          this.hooks.splice(i, 1)
+        } else {
+          this.hooks.splice(i, 1)
+        }
+        this.$toast.success('Hook deleted successfully').goAway(3000)
+        if (!this.hooks.length) {
+          this.hook = null
+        }
+      } catch (e) {
+        this.$toast.error(e.message).goAway(3000)
+      }
+
+      this.$e('a:webhook:delete')
     }
   }
 }
 </script>
 
-<style scoped>
+<style scoped lang="scss">
+.nc-hook {
+  position: relative;
 
+  .nc-hook-delete-icon {
+    position: absolute;
+    opacity: 0;
+    transition: .3s opacity;
+    right: 16px;
+    top: 16px
+  }
+
+  &:hover .nc-hook-delete-icon {
+    opacity: 1;
+  }
+}
 </style>

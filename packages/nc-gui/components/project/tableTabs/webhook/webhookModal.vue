@@ -6,8 +6,8 @@
       min-height="350px"
       class="pa-4"
     >
-      <webhook-editor v-if="editOrAdd" :meta="meta" />
-      <webhook-list v-else :meta="meta" @edit="editOrAdd=true" @add="editOrAdd=true" />
+      <webhook-editor v-if="editOrAdd" ref="editor" :meta="meta" @backToList="editOrAdd = false" />
+      <webhook-list v-else :meta="meta" @edit="editHook" @add="editOrAdd = true" />
     </v-card>
   </v-dialog>
 </template>
@@ -35,6 +35,15 @@ export default {
       set(v) {
         this.$emit('input', v)
       }
+    }
+  },
+  methods: {
+    editHook(hook) {
+      this.editOrAdd = true
+      this.$nextTick(() => {
+        this.$refs.editor.hook = { ...hook }
+        this.$refs.editor.onEventChange()
+      })
     }
   }
 }

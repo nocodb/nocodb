@@ -1,7 +1,17 @@
 <template>
-  <v-form v-if="hook" ref="form" v-model="valid" class="mx-auto" lazy-validation>
+  <v-form v-if="hook" ref="form" v-model="valid" class="mx-4" lazy-validation>
     <v-card-title>
-      Webhook / {{ hook.id ? hook.title : 'New' }}
+      <a class="pointer mr-1" @click="$emit('backToList')">
+        <v-icon>mdi-arrow-left-bold</v-icon>
+      </a>
+
+      <v-spacer />
+      {{ meta.title }} : {{ hook.title || 'Webhook' }}
+      <v-spacer />
+      <div style="width: 24px;height: 24px" />
+    </v-card-title>
+
+    <div class="mx-4 d-flex m-2">
       <v-spacer />
       <v-btn
         outlined
@@ -26,7 +36,8 @@
         <!-- Save -->
         {{ $t("general.save") }}
       </v-btn>
-    </v-card-title>
+    </div>
+
     <v-card-text>
       <v-text-field
         v-model="hook.title"
@@ -43,7 +54,7 @@
         :operation.sync="hook.operation"
       />
 
-      <v-card class="mb-8">
+      <v-card class="mb-8 nc-filter-wrapper">
         <v-card-text>
           <v-checkbox
             v-model="hook.condition"
@@ -51,7 +62,6 @@
             hide-details
             class="mt-1"
             label="On Condition"
-            @change="checkConditionAvail"
           />
 
           <column-filter
@@ -236,15 +246,17 @@
 import WebhooksTest from '~/components/project/tableTabs/webhook/webhooksTest'
 import WebhookEvent from '~/components/project/tableTabs/webhook/webhookEvent'
 import HttpWebhook from '~/components/project/tableTabs/webhook/httpWebhook'
+import ColumnFilter from '~/components/project/spreadsheet/components/columnFilter'
 export default {
   name: 'WebhookEditor',
-  components: { HttpWebhook, WebhookEvent, WebhooksTest },
+  components: { ColumnFilter, HttpWebhook, WebhookEvent, WebhooksTest },
   props: {
     meta: Object
   },
   data: () => ({
     hook: {
       notification: {
+        type: 'URL'
       }
     },
     valid: false,
@@ -416,15 +428,14 @@ export default {
             this.apps.Mattermost.parsedInput) ||
           []
       }
+      if (this.hook.notification.type === 'URL') {
+        this.notification = this.notification || {}
+        this.$set(this.notification, 'body', '{{ json data }}')
+      }
       this.$nextTick(() => this.$refs.form.validate())
     },
     async onEventChange() {
-      this.key++
-      if (!this.hooks || !this.hooks.length) {
-        return
-      }
-      const { notification: { payload, type } = {}, ...hook } =
-      this.hooks[this.selectedHook] || {}
+      const { notification: { payload, type } = {}, ...hook } = this.hook
 
       this.hook = {
         ...hook,
@@ -464,7 +475,8 @@ export default {
           )
       }
       if (this.hook.notification.type === 'URL') {
-        //
+        this.notification = this.notification || {}
+        this.$set(this.notification, 'body', this.notification.body || '{{ json data }}')
       }
     },
     async saveHooks() {
@@ -520,5 +532,7 @@ export default {
 </script>
 
 <style scoped>
-
+/deep/ .nc-filter-wrapper label {
+  font-size: 0.75rem !important;
+}
 </style>

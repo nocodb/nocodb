@@ -13,7 +13,7 @@ async function swaggerJson(req, res) {
   if (!project) NcError.notFound();
 
   const models = await Model.list({
-    project_id: req.params.project_id,
+    project_id: req.params.projectId,
     base_id: null
   });
 

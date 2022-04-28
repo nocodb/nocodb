@@ -26,9 +26,11 @@ export default async (
             const colOpt = await c.getColOptions<LinkToAnotherRecordColumn>(
               ncMeta
             );
-            const relTable = await colOpt.getRelatedTable(ncMeta);
-            field.type = undefined;
-            field.$ref = `#/components/schemas/${relTable.title}Request`;
+            if (colOpt) {
+              const relTable = await colOpt.getRelatedTable(ncMeta);
+              field.type = undefined;
+              field.$ref = `#/components/schemas/${relTable.title}Request`;
+            }
           }
           break;
         case UITypes.Formula:

@@ -402,8 +402,8 @@
 import HttpWebhook from './webhook/httpWebhook'
 import ColumnFilter from '~/components/project/spreadsheet/components/columnFilter'
 // import FormInput from '~/components/project/appStore/FormInput'
-import WebhookEvent from '~/components/project/tableTabs/webhookEvent'
-import WebhooksTest from '~/components/project/tableTabs/webhooksTest'
+import WebhookEvent from '~/components/project/tableTabs/webhook/webhookEvent'
+import WebhooksTest from '~/components/project/tableTabs/webhook/webhooksTest'
 
 export default {
   name: 'Webhooks',

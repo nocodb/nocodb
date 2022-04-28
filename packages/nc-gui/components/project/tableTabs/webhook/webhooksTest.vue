@@ -1,8 +1,14 @@
 <template>
   <div>
-    <h5>Sample payload</h5>
-    <monaco-json-object-editor v-model="sampleData" read-only style="min-height: 300px" class="caption mb-2" />
-    <v-btn small @click="testWebhook">
+    <h5 @click="isVisible=!isVisible">
+      Sample payload <v-icon x-small>
+        mdi-chevron-{{ isVisible? 'up' : 'down' }}
+      </v-icon>
+    </h5>
+    <div :class="{active:isVisible}" class="nc-sample-data">
+      <monaco-json-object-editor v-model="sampleData" read-only style="min-height: 300px" class="caption mb-2 " />
+    </div>
+    <v-btn v-if="!hideTestBtn" small @click="testWebhook">
       Test webhook
     </v-btn>
   </div>
@@ -16,10 +22,12 @@ export default {
   components: { MonacoJsonObjectEditor },
   props: {
     modelId: String,
-    hook: Object
+    hook: Object,
+    hideTestBtn: Boolean
   },
   data: () => ({
-    sampleData: null
+    sampleData: null,
+    isVisible: false
   }),
   watch: {
     async 'hook.operation'() {
@@ -60,6 +68,15 @@ export default {
 
 /deep/ label {
   font-size: 0.75rem !important
+}
+
+.nc-sample-data{
+  overflow-y: hidden;
+  height:0;
+  transition: .3s height;
+}
+.nc-sample-data.active{
+  height:300px
 }
 </style>
 <!--

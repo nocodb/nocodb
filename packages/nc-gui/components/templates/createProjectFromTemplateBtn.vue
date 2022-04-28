@@ -173,7 +173,7 @@ export default {
 
       await Promise.all(this.templateData.tables.map(v => (async(tableMeta) => {
         const table = tableMeta.table_name
-        const data = this.importData[tableMeta.refTn]
+        const data = this.importData[tableMeta.ref_table_name]
 
         await this.$store.dispatch('meta/ActLoadMeta', {
           tn: `${prefix}${table}`, project_id: projectId

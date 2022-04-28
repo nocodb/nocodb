@@ -108,6 +108,8 @@ async function nc_getColumnSchema(aTblFieldId) {
 }
 
 // retrieve nc table schema using table name
+// optimize: create a look-up table & re-use information
+//
 async function nc_getTableSchema(tableName) {
   let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
   let ncTblId = ncTblList.list.filter(x => x.title === tableName)[0].id;
@@ -197,7 +199,7 @@ function tablesPrepare(tblSchema) {
 
     syncLog(`Preparing base schema (sans relations): ${tblSchema[i].name}`)
 
-    // table name
+    // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
     table.table_name = tblSchema[i].name;
     table.title = tblSchema[i].name;
 
@@ -208,7 +210,7 @@ function tablesPrepare(tblSchema) {
         column_name: 'record_id',
         // uidt: UITypes.ID
         uidt: UITypes.SingleLineText,
-        pk: true
+        pk: true,
       }
     ];
 
@@ -224,6 +226,7 @@ function tablesPrepare(tblSchema) {
       // base column schema
       // kludge: error observed in Nc with space around column-name
       let ncCol = {
+        // Enable to use aTbl identifiers as is: id: col.id,
         title: col.name.trim(),
 
         // knex complains use of '?' in field name
@@ -252,19 +255,25 @@ function tablesPrepare(tblSchema) {
   return tables;
 }
 
-async function nocoCreateBaseSchema(srcSchema) {
+async function nocoCreateBaseSchema(aTblSchema) {
   // base schema preparation: exclude
-  let tables = tablesPrepare(srcSchema.tableSchemas);
+  let tables = tablesPrepare(aTblSchema);
 
   // for each table schema, create nc table
   for (let idx = 0; idx < tables.length; idx++) {
 
     syncLog(`NC API: dbTable.create ${tables[idx].title}`)
-    console.log(tables[idx])
     let table = await api.dbTable.create(
       ncCreatedProjectSchema.id,
       tables[idx]
     );
+
+    // update default view name- to match it to airtable view name
+    syncLog(`NC API: dbView.list ${table.id}`)
+    let view = await api.dbView.list(table.id);
+
+    syncLog(`NC API: dbView.update ${view.list[0].id} ${aTblSchema[idx].views[0].name}`)
+    let x = await api.dbView.update(view.list[0].id, {title: aTblSchema[idx].views[0].name})
   }
 
   // debug
@@ -472,11 +481,6 @@ async function nocoSetPrimary(aTblSchema) {
 
     syncLog(`NC API: dbTableColumn.primaryColumnSet`)
     await api.dbTableColumn.primaryColumnSet(ncCol.id);
-  }
-}
-
-async function nocoReconfigureFields(aTblSchema) {
-  for (let idx = 0; idx < aTblSchema.length; idx++) {
   }
 }
 
@@ -706,6 +710,16 @@ function nc_isLinkExists(atblFieldId) {
   return false;
 }
 
+async function nocoCreateProject() {
+  syncLog(`Create Project: ${syncDB.projectName}`)
+
+  // create empty project (XC-DB)
+  ncCreatedProjectSchema = await api.project.create({
+    // Enable to use aTbl identifiers as is: id: syncDB.airtable.baseId,
+    title: syncDB.projectName
+  });
+}
+
 // start function
 async function nc_migrateATbl() {
 
@@ -717,14 +731,11 @@ async function nc_migrateATbl() {
   const schema = getAtableSchema();
   let aTblSchema = schema.tableSchemas;
 
-  // create empty project (XC-DB)
-  ncCreatedProjectSchema = await api.project.create({
-    title: syncDB.projectName
-  });
-  syncLog(`Create Project: ${syncDB.projectName}`)
+  // create empty project
+  await nocoCreateProject()
 
   // prepare table schema (base)
-  await nocoCreateBaseSchema(schema);
+  await nocoCreateBaseSchema(aTblSchema);
 
   // add LTAR
   await nocoCreateLinkToAnotherRecord(aTblSchema);
@@ -739,7 +750,7 @@ async function nc_migrateATbl() {
   await nocoSetPrimary(aTblSchema);
 
   // hide-fields
-  await nocoReconfigureFields(aTblSchema);
+  // await nocoReconfigureFields(aTblSchema);
 
   // await nc_DumpTableSchema();
   let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);

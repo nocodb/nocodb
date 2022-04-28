@@ -37,6 +37,7 @@ jobs:
           fi
           echo "::set-output name=NIGHTLY_BUILD_TAG::${TAG_NAME}"
           echo "::set-output name=IS_DAILY::${IS_DAILY}"
+          echo "::set-output name=CURRENT_VERSION::${CURRENT_VERSION}"
           # Verify the tag
       - name: verify-tag
         run: |

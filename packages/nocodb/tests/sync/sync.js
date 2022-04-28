@@ -8,19 +8,9 @@ function syncLog(log) {
   console.log(log)
 }
 
-// apiKey & baseID configurations required to read data using Airtable APIs
+// read configurations
 //
-const syncDB = {
-  airtable: {
-    apiKey: 'key8y73nK7HR9Y1Vz',
-    baseId: 'appBNdpU3IH4TpSPX',
-    schemaJson: 'eventMarketing.json'
-  },
-  projectName: 'sample',
-  baseURL: 'http://localhost:8080',
-  authToken:
-    'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfOGtwZ3lqd3lzcGEwN3giLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTEwNTIzNzl9.QjK4-w1u_ZYaRAjmCD_0YBZyHerMm08LcRp0oheGAIw'
-};
+const syncDB = jsonfile.readFileSync('./config.json');
 
 const api = new Api({
   baseURL: syncDB.baseURL,
@@ -127,6 +117,9 @@ async function nc_getTableSchema(tableName) {
 
 // delete project if already exists
 async function init() {
+
+  console.log(syncDB)
+
   // delete 'sample' project if already exists
   let x = await api.project.list()
 
@@ -213,9 +206,9 @@ function tablesPrepare(tblSchema) {
       {
         title: 'record_id',
         column_name: 'record_id',
-        uidt: UITypes.ID
-        // uidt: UITypes.SingleLineText,
-        // pk: true
+        // uidt: UITypes.ID
+        uidt: UITypes.SingleLineText,
+        pk: true
       }
     ];
 
@@ -482,6 +475,11 @@ async function nocoSetPrimary(aTblSchema) {
   }
 }
 
+async function nocoReconfigureFields(aTblSchema) {
+  for (let idx = 0; idx < aTblSchema.length; idx++) {
+  }
+}
+
 //////////  Data processing
 
 // https://www.airtable.com/app1ivUy7ba82jOPn/api/docs#javascript/metadata
@@ -491,28 +489,27 @@ let base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
 );
 
 let aTblDataLinks = [];
-let aTblNcRecordMappingTable = {};
 
 function nocoLinkProcessing(table, record, field) {
   (async () => {
+
     let rec = record.fields;
-    const value = Object.values(rec);
-    let srcRow = aTblNcRecordMappingTable[`${record.id}`];
+    const refRowIdList = Object.values(rec);
+    const referenceColumnName = Object.keys(rec)[0];
 
-    if (value.length) {
-      for (let i = 0; i < value[0].length; i++) {
-        let dstRow = aTblNcRecordMappingTable[`${value[0][i]}`];
+    if (refRowIdList.length) {
+      for (let i = 0; i < refRowIdList[0].length; i++) {
 
-        syncLog(`NC API: dbTableRow.nestedAdd ${srcRow[1]}/hm/${dstRow[0]}/${dstRow[1]}`)
+        syncLog(`NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`)
 
         await api.dbTableRow.nestedAdd(
           'noco',
           syncDB.projectName,
           table.title,
-          `${srcRow[1]}`,
+          `${record.id}`,
           'mm', // fix me
-          `${field}`,
-          `${dstRow[1]}`
+          referenceColumnName,
+          `${refRowIdList[0][i]}`
         );
       }
     }
@@ -609,7 +606,7 @@ function nocoBaseDataProcessing(table, record) {
     }
 
     // insert airtable record ID explicitly into each records
-    // rec['record_id'] = record.id;
+    rec['record_id'] = record.id;
 
     // console.log(rec)
 
@@ -624,7 +621,6 @@ function nocoBaseDataProcessing(table, record) {
       [rec]
     );
 
-    aTblNcRecordMappingTable[record.id] = [table.title, returnValue[0]];
   })().catch(e => {
     console.log(`Record insert error`)
   });
@@ -741,6 +737,9 @@ async function nc_migrateATbl() {
 
   // configure primary values
   await nocoSetPrimary(aTblSchema);
+
+  // hide-fields
+  await nocoReconfigureFields(aTblSchema);
 
   // await nc_DumpTableSchema();
   let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);

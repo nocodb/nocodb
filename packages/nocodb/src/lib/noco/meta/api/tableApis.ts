@@ -5,10 +5,12 @@ import { Tele } from 'nc-help';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isVirtualCol,
   ModelTypes,
   TableListType,
   TableReqType,
-  TableType
+  TableType,
+  UITypes
 } from 'nocodb-sdk';
 import ProjectMgrv2 from '../../../sqlMgr/v2/ProjectMgrv2';
 import Project from '../../../noco-models/Project';
@@ -23,6 +25,7 @@ import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import Column from '../../../noco-models/Column';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import getColumnUiType from '../helpers/getColumnUiType';
+import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
 export async function tableGet(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
     id: req.params.tableId
@@ -199,44 +202,60 @@ export async function tableUpdate(req: Request<any, any>, res) {
   res.json({ msg: 'success' });
 }
 
-export async function tableDelete(req: Request, res: Response, next) {
-  try {
-    const table = await Model.getByIdOrName({ id: req.params.tableId });
-    await table.getColumns();
+export async function tableDelete(req: Request, res: Response) {
+  const table = await Model.getByIdOrName({ id: req.params.tableId });
+  await table.getColumns();
 
-    const project = await Project.getWithInfo(table.project_id);
-    const base = project.bases.find(b => b.id === table.base_id);
-    const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
-    (table as any).tn = table.table_name;
-    table.columns.forEach(c => {
-      (c as any).cn = c.column_name;
-    });
+  const relationColumns = table.columns.filter(
+    c => c.uidt === UITypes.LinkToAnotherRecord
+  );
 
-    if (table.type === ModelTypes.TABLE) {
-      await sqlMgr.sqlOpPlus(base, 'tableDelete', table);
-    } else if (table.type === ModelTypes.VIEW) {
-      await sqlMgr.sqlOpPlus(base, 'viewDelete', {
-        ...table,
-        view_name: table.table_name
-      });
-    }
-
-    Audit.insert({
-      project_id: project.id,
-      op_type: AuditOperationTypes.TABLE,
-      op_sub_type: AuditOperationSubTypes.DELETED,
-      user: (req as any)?.user?.email,
-      description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
-      ip: (req as any).clientIp
-    }).then(() => {});
-
-    Tele.emit('evt', { evt_type: 'table:deleted' });
-
-    res.json(await table.delete());
-  } catch (e) {
-    console.log(e);
-    next(e);
+  if (relationColumns?.length) {
+    const referredTables = await Promise.all(
+      relationColumns.map(async c =>
+        c
+          .getColOptions<LinkToAnotherRecordColumn>()
+          .then(opt => opt.getRelatedTable())
+          .then()
+      )
+    );
+    NcError.badRequest(
+      `Table can't be  deleted  since Table is being referred in following tables : ${referredTables.join(
+        ', '
+      )}. Delete LinkToAnotherRecord columns and try again.`
+    );
   }
+
+  const project = await Project.getWithInfo(table.project_id);
+  const base = project.bases.find(b => b.id === table.base_id);
+  const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
+  (table as any).tn = table.table_name;
+  table.columns = table.columns.filter(c => !isVirtualCol(c));
+  table.columns.forEach(c => {
+    (c as any).cn = c.column_name;
+  });
+
+  if (table.type === ModelTypes.TABLE) {
+    await sqlMgr.sqlOpPlus(base, 'tableDelete', table);
+  } else if (table.type === ModelTypes.VIEW) {
+    await sqlMgr.sqlOpPlus(base, 'viewDelete', {
+      ...table,
+      view_name: table.table_name
+    });
+  }
+
+  Audit.insert({
+    project_id: project.id,
+    op_type: AuditOperationTypes.TABLE,
+    op_sub_type: AuditOperationSubTypes.DELETED,
+    user: (req as any)?.user?.email,
+    description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
+    ip: (req as any).clientIp
+  }).then(() => {});
+
+  Tele.emit('evt', { evt_type: 'table:deleted' });
+
+  res.json(await table.delete());
 }
 
 const router = Router({ mergeParams: true });

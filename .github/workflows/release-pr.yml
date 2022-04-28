@@ -70,18 +70,26 @@ jobs:
     secrets:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
       DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
-  
+
   leave-comment:
     runs-on: 'ubuntu-latest'
     needs: [release-docker, set-tag]
     steps:
-      - uses: peter-evans/commit-comment@v2
-        with:
-          body: |
-            The PR changes have been deployed. Pleae run the following command to verify:
-            ```
-            docker run -d -p 8888:8080 nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
-            ```
+      - run: |
+          echo docker run -d -p 8888:8080 nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+  
+  # Uncomment it after testing
+  # leave-comment:
+  #   runs-on: 'ubuntu-latest'
+  #   needs: [release-docker, set-tag]
+  #   steps:
+  #     - uses: peter-evans/commit-comment@v2
+  #       with:
+  #         body: |
+  #           The PR changes have been deployed. Pleae run the following command to verify:
+  #           ```
+  #           docker run -d -p 8888:8080 nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+  #           ```
   
   # if-merged:
   #   if: github.event.pull_request.merged == true

@@ -65,7 +65,7 @@ jobs:
     uses: ./.github/workflows/release-docker.yml
     with:
       tag: ${{ needs.set-tag.outputs.target_tag }}
-      targetEnv: 'PR'
+      targetEnv: 'DEV'
       isDaily: 'N'
     secrets:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"

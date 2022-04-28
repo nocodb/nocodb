@@ -48,9 +48,7 @@ jobs:
         id: get-docker-repository
         run: |
           DOCKER_REPOSITORY=nocodb
-          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'PR' ]]; then
-            DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-timely
-          elif [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
+          if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
             if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
             else
@@ -72,7 +70,7 @@ jobs:
           node-version: ${{ matrix.node-version }}
 
       - name: upgrade packages for nightly build or pr build
-        if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' || github.event.inputs.targetEnv == 'PR' || inputs.targetEnv == 'PR' }}
+        if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
         run: |
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
           cd packages/nocodb-sdk

@@ -24,7 +24,9 @@
           small
         >
           <template #divider>
-            <v-icon small color="grey lighten-2"> forward </v-icon>
+            <v-icon small color="grey lighten-2">
+              forward
+            </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
@@ -32,7 +34,9 @@
 
       <!--tooltip="Close webhooks modal"-->
       <x-btn outlined small @click.prevent="$emit('close')">
-        <v-icon small left> mdi-close-circle-outline </v-icon>
+        <v-icon small left>
+          mdi-close-circle-outline
+        </v-icon>
         <!-- Close -->
         {{ $t("general.close") }}
       </x-btn>
@@ -45,7 +49,9 @@
         small
         @click.prevent="loadHooksList"
       >
-        <v-icon small left> mdi-reload </v-icon>
+        <v-icon small left>
+          mdi-reload
+        </v-icon>
         <!-- Reload -->
         {{ $t("general.reload") }}
       </x-btn>
@@ -58,7 +64,9 @@
         small
         @click.prevent="addNewHook"
       >
-        <v-icon small left> mdi-plus </v-icon>
+        <v-icon small left>
+          mdi-plus
+        </v-icon>
         <!--Add New-->
         {{ $t("activity.addWebhook") }}
       </x-btn>
@@ -149,7 +157,9 @@
                             small
                             @click.prevent="addNewHook"
                           >
-                            <v-icon small left> mdi-plus </v-icon>
+                            <v-icon small left>
+                              mdi-plus
+                            </v-icon>
                             <!--Add New Webhook-->
                             {{ $t("activity.addWebhook") }}
                           </x-btn>
@@ -175,7 +185,9 @@
                   :disabled="loading || !valid || !hook.event"
                   @click.prevent="saveHooks"
                 >
-                  <v-icon small left> save </v-icon>
+                  <v-icon small left>
+                    save
+                  </v-icon>
                   <!-- Save -->
                   {{ $t("general.save") }}
                 </x-btn>
@@ -341,22 +353,23 @@
 
               <v-card-text>
                 <span class="caption grey--text">
-                  <em
-                    >Available context variables are
-                    <strong>data and user</strong></em
-                  >
+                  <em>Available context variables are
+                    <strong>data and user</strong></em>
                   <v-tooltip top>
                     <template #activator="{ on }">
-                      <v-icon small color="grey" class="ml-2" v-on="on"
-                        >mdi-information</v-icon
-                      >
+                      <v-icon
+                        small
+                        color="grey"
+                        class="ml-2"
+                        v-on="on"
+                      >mdi-information</v-icon>
                     </template>
                     <span class="caption">
-                      <strong>data</strong> : Row data <br />
-                      <strong>user</strong> : User information<br />
+                      <strong>data</strong> : Row data <br>
+                      <strong>user</strong> : User information<br>
                     </span>
                   </v-tooltip>
-                  <br />
+                  <br>
                   <a
                     href="https://docs.nocodb.com/developer-resources/webhooks/"
                   >
@@ -386,22 +399,22 @@
 </template>
 
 <script>
-import HttpWebhook from "./webhook/httpWebhook";
-import ColumnFilter from "~/components/project/spreadsheet/components/columnFilter";
+import HttpWebhook from './webhook/httpWebhook'
+import ColumnFilter from '~/components/project/spreadsheet/components/columnFilter'
 // import FormInput from '~/components/project/appStore/FormInput'
-import WebhookEvent from "~/components/project/tableTabs/webhookEvent";
-import WebhooksTest from "~/components/project/tableTabs/webhooksTest";
+import WebhookEvent from '~/components/project/tableTabs/webhookEvent'
+import WebhooksTest from '~/components/project/tableTabs/webhooksTest'
 
 export default {
-  name: "Webhooks",
+  name: 'Webhooks',
   components: {
     WebhooksTest,
     HttpWebhook,
     WebhookEvent,
     // FormInput,
-    ColumnFilter,
+    ColumnFilter
   },
-  props: ["nodes"],
+  props: ['nodes'],
   data: () => ({
     key: 0,
     apps: {},
@@ -416,147 +429,147 @@ export default {
     meta: null,
     loading: false,
     notificationList: [
-      "Email",
-      "Slack",
-      "Microsoft Teams",
-      "Discord",
-      "Mattermost",
-      "Twilio",
-      "Whatsapp Twilio",
-      "URL",
+      'URL',
+      'Email',
+      'Slack',
+      'Microsoft Teams',
+      'Discord',
+      'Mattermost',
+      'Twilio',
+      'Whatsapp Twilio'
     ],
     filters: [],
     hook: null,
     notification: {},
     notificationIcon: {
-      URL: "mdi-link",
-      Email: "mdi-email",
-      Slack: "mdi-slack",
-      "Microsoft Teams": "mdi-microsoft-teams",
-      Discord: "mdi-discord",
-      Mattermost: "mdi-chat",
-      "Whatsapp Twilio": "mdi-whatsapp",
-      Twilio: "mdi-cellphone-message",
+      URL: 'mdi-link',
+      Email: 'mdi-email',
+      Slack: 'mdi-slack',
+      'Microsoft Teams': 'mdi-microsoft-teams',
+      Discord: 'mdi-discord',
+      Mattermost: 'mdi-chat',
+      'Whatsapp Twilio': 'mdi-whatsapp',
+      Twilio: 'mdi-cellphone-message'
     },
     urlRules: [
-      (v) =>
-        !v || !v.trim() || /^https?:\/\/.{1,}/.test(v) || "Not a valid URL",
+      v =>
+        !v || !v.trim() || /^https?:\/\/.{1,}/.test(v) || 'Not a valid URL'
     ],
     fieldList: [],
     inputs: {
       Email: [
         {
-          key: "to",
-          label: "To Address",
-          placeholder: "To Address",
-          type: "SingleLineText",
-          required: true,
+          key: 'to',
+          label: 'To Address',
+          placeholder: 'To Address',
+          type: 'SingleLineText',
+          required: true
         },
         {
-          key: "subject",
-          label: "Subject",
-          placeholder: "Subject",
-          type: "SingleLineText",
-          required: true,
+          key: 'subject',
+          label: 'Subject',
+          placeholder: 'Subject',
+          type: 'SingleLineText',
+          required: true
         },
         {
-          key: "body",
-          label: "Body",
-          placeholder: "Body",
-          type: "LongText",
-          required: true,
-        },
+          key: 'body',
+          label: 'Body',
+          placeholder: 'Body',
+          type: 'LongText',
+          required: true
+        }
       ],
       Slack: [
         {
-          key: "body",
-          label: "Body",
-          placeholder: "Body",
-          type: "LongText",
-          required: true,
-        },
+          key: 'body',
+          label: 'Body',
+          placeholder: 'Body',
+          type: 'LongText',
+          required: true
+        }
       ],
-      "Microsoft Teams": [
+      'Microsoft Teams': [
         {
-          key: "body",
-          label: "Body",
-          placeholder: "Body",
-          type: "LongText",
-          required: true,
-        },
+          key: 'body',
+          label: 'Body',
+          placeholder: 'Body',
+          type: 'LongText',
+          required: true
+        }
       ],
       Discord: [
         {
-          key: "body",
-          label: "Body",
-          placeholder: "Body",
-          type: "LongText",
-          required: true,
-        },
+          key: 'body',
+          label: 'Body',
+          placeholder: 'Body',
+          type: 'LongText',
+          required: true
+        }
       ],
       Mattermost: [
         {
-          key: "body",
-          label: "Body",
-          placeholder: "Body",
-          type: "LongText",
-          required: true,
-        },
+          key: 'body',
+          label: 'Body',
+          placeholder: 'Body',
+          type: 'LongText',
+          required: true
+        }
       ],
       Twilio: [
         {
-          key: "body",
-          label: "Body",
-          placeholder: "Body",
-          type: "LongText",
-          required: true,
+          key: 'body',
+          label: 'Body',
+          placeholder: 'Body',
+          type: 'LongText',
+          required: true
         },
         {
-          key: "to",
-          label: "Comma separated Mobile #",
-          placeholder: "Comma separated Mobile #",
-          type: "LongText",
-          required: true,
-        },
+          key: 'to',
+          label: 'Comma separated Mobile #',
+          placeholder: 'Comma separated Mobile #',
+          type: 'LongText',
+          required: true
+        }
       ],
-      "Whatsapp Twilio": [
+      'Whatsapp Twilio': [
         {
-          key: "body",
-          label: "Body",
-          placeholder: "Body",
-          type: "LongText",
-          required: true,
+          key: 'body',
+          label: 'Body',
+          placeholder: 'Body',
+          type: 'LongText',
+          required: true
         },
         {
-          key: "to",
-          label: "Comma separated Mobile #",
-          placeholder: "Comma separated Mobile #",
-          type: "LongText",
-          required: true,
-        },
-      ],
-    },
+          key: 'to',
+          label: 'Comma separated Mobile #',
+          placeholder: 'Comma separated Mobile #',
+          type: 'LongText',
+          required: true
+        }
+      ]
+    }
   }),
   async created() {
-    await this.loadMeta();
-    await this.loadHooksList();
+    await this.loadMeta()
+    await this.loadHooksList()
     // todo: load only necessary plugins
-    await this.loadPluginList();
-    this.selectedHook = 0;
-    this.onEventChange();
+    await this.loadPluginList()
+    this.selectedHook = 0
+    this.onEventChange()
   },
   methods: {
     async loadPluginList() {
       try {
         // const plugins = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginList'])
-        const plugins = (await this.$api.plugin.list()).list;
+        const plugins = (await this.$api.plugin.list()).list
         // plugins.push(...plugins.splice(0, 3))
         this.apps = plugins.reduce((o, p) => {
-          p.tags = p.tags ? p.tags.split(",") : [];
-          p.parsedInput = p.input && JSON.parse(p.input);
-          o[p.title] = p;
-          return o;
-        }, {});
+          p.tags = p.tags ? p.tags.split(',') : []
+          p.parsedInput = p.input && JSON.parse(p.input)
+          o[p.title] = p
+          return o
+        }, {})
       } catch (e) {}
     },
     checkConditionAvail() {
@@ -567,36 +580,36 @@ export default {
       // this.hook.condition = []
     },
     async onNotTypeChange() {
-      this.notification = {};
-      if (this.hook.notification.type === "Slack") {
+      this.notification = {}
+      if (this.hook.notification.type === 'Slack') {
         // const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
         //   title: 'Slack'
         // }])
         // this.slackChannels = JSON.parse(plugin.input) || []
 
         this.slackChannels =
-          (this.apps && this.apps.Slack && this.apps.Slack.parsedInput) || [];
+          (this.apps && this.apps.Slack && this.apps.Slack.parsedInput) || []
       }
-      if (this.hook.notification.type === "Microsoft Teams") {
+      if (this.hook.notification.type === 'Microsoft Teams') {
         // const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
         //   title: 'Microsoft Teams'
         // }])
         // this.teamsChannels = JSON.parse(plugin.input) || []
         this.teamsChannels =
           (this.apps &&
-            this.apps["Microsoft Teams"] &&
-            this.apps["Microsoft Teams"].parsedInput) ||
-          [];
+            this.apps['Microsoft Teams'] &&
+            this.apps['Microsoft Teams'].parsedInput) ||
+          []
       }
-      if (this.hook.notification.type === "Discord") {
+      if (this.hook.notification.type === 'Discord') {
         // const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
         //   title: 'Discord'
         // }])
         this.discordChannels =
           (this.apps && this.apps.Discord && this.apps.Discord.parsedInput) ||
-          [];
+          []
       }
-      if (this.hook.notification.type === "Mattermost") {
+      if (this.hook.notification.type === 'Mattermost') {
         // const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
         //   title: 'Mattermost'
         // }])
@@ -605,64 +618,64 @@ export default {
           (this.apps &&
             this.apps.Mattermost &&
             this.apps.Mattermost.parsedInput) ||
-          [];
+          []
       }
     },
     async onEventChange() {
-      this.key++;
+      this.key++
       if (!this.hooks || !this.hooks.length) {
-        return;
+        return
       }
       const { notification: { payload, type } = {}, ...hook } =
-        this.hooks[this.selectedHook] || {};
+        this.hooks[this.selectedHook] || {}
 
       this.hook = {
         ...hook,
         notification: {
-          type,
-        },
-      };
+          type
+        }
+      }
       // this.enableCondition = !!(this.hook && this.hook.condition && Object.keys(this.hook.condition).length)
-      await this.onNotTypeChange();
-      this.notification = payload;
-      if (this.hook.notification.type === "Slack") {
+      await this.onNotTypeChange()
+      this.notification = payload
+      if (this.hook.notification.type === 'Slack') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map((v) =>
-            this.slackChannels.find((s) => v.webhook_url === s.webhook_url)
-          );
+          this.notification.webhook_url.map(v =>
+            this.slackChannels.find(s => v.webhook_url === s.webhook_url)
+          )
       }
-      if (this.hook.notification.type === "Microsoft Teams") {
+      if (this.hook.notification.type === 'Microsoft Teams') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map((v) =>
-            this.teamsChannels.find((s) => v.webhook_url === s.webhook_url)
-          );
+          this.notification.webhook_url.map(v =>
+            this.teamsChannels.find(s => v.webhook_url === s.webhook_url)
+          )
       }
-      if (this.hook.notification.type === "Discord") {
+      if (this.hook.notification.type === 'Discord') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map((v) =>
-            this.discordChannels.find((s) => v.webhook_url === s.webhook_url)
-          );
+          this.notification.webhook_url.map(v =>
+            this.discordChannels.find(s => v.webhook_url === s.webhook_url)
+          )
       }
-      if (this.hook.notification.type === "Mattermost") {
+      if (this.hook.notification.type === 'Mattermost') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map((v) =>
-            this.mattermostChannels.find((s) => v.webhook_url === s.webhook_url)
-          );
+          this.notification.webhook_url.map(v =>
+            this.mattermostChannels.find(s => v.webhook_url === s.webhook_url)
+          )
       }
-      if (this.hook.notification.type === "URL") {
+      if (this.hook.notification.type === 'URL') {
         // eslint-disable-next-line no-self-assign
-        this.notification.api = this.notification.api;
+        this.notification.api = this.notification.api
       }
     },
     async saveHooks() {
       if (!this.$refs.form.validate() || !this.valid || !this.hook.event) {
-        return;
+        return
       }
-      this.loading = true;
+      this.loading = true
       try {
         // const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [
         //   {
@@ -679,66 +692,66 @@ export default {
         //     }
         //   }
         // ])
-        let res;
+        let res
         if (this.hook.id) {
           res = await this.$api.dbTableWebhook.update(this.hook.id, {
             ...this.hook,
             notification: {
               ...this.hook.notification,
-              payload: this.notification,
-            },
-          });
+              payload: this.notification
+            }
+          })
         } else {
           res = await this.$api.dbTableWebhook.create(this.meta.id, {
             ...this.hook,
             notification: {
               ...this.hook.notification,
-              payload: this.notification,
-            },
-          });
+              payload: this.notification
+            }
+          })
         }
 
         if (!this.hook.id && res) {
-          this.hook.id = res.id;
+          this.hook.id = res.id
         }
         if (this.$refs.filter) {
           await this.$refs.filter.applyChanges(false, {
-            hookId: this.hook.id,
-          });
+            hookId: this.hook.id
+          })
         }
 
         this.$toast
-          .success("Webhook details updated successfully")
-          .goAway(3000);
+          .success('Webhook details updated successfully')
+          .goAway(3000)
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
-      this.loading = false;
-      await this.loadHooksList();
+      this.loading = false
+      await this.loadHooksList()
 
-      this.$e("a:webhook:add", {
+      this.$e('a:webhook:add', {
         operation: this.hook.operation,
         condition: this.hook.condition,
-        notification: this.hook.notification.type,
-      });
+        notification: this.hook.notification.type
+      })
     },
     async loadMeta() {
-      this.loadingMeta = true;
+      this.loadingMeta = true
       // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // }, 'tableXcModelGet', {
       //   tn: this.nodes.table_name
       // }] )
-      this.meta = await this.$store.dispatch("meta/ActLoadMeta", {
-        table_name: this.nodes.table_name,
-      }); // JSON.parse(tableMeta.meta)
-      this.fieldList = this.meta.columns.map((c) => c.column_name);
-      this.loadingMeta = false;
+      this.meta = await this.$store.dispatch('meta/ActLoadMeta', {
+        table_name: this.nodes.table_name
+      }) // JSON.parse(tableMeta.meta)
+      this.fieldList = this.meta.columns.map(c => c.column_name)
+      this.loadingMeta = false
     },
     async loadHooksList() {
-      this.key++;
-      this.loading = true;
+      this.key++
+      this.loading = true
       // const hooks = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
@@ -746,49 +759,49 @@ export default {
       //   tn: this.nodes.table_name
       // }])
 
-      const hooks = await this.$api.dbTableWebhook.list(this.meta.id);
+      const hooks = await this.$api.dbTableWebhook.list(this.meta.id)
 
       this.hooks = hooks.list.map((h) => {
-        h.notification = h.notification && JSON.parse(h.notification);
+        h.notification = h.notification && JSON.parse(h.notification)
         // h.condition = h.condition && JSON.parse(h.condition)
 
-        return h;
-      });
-      this.loading = false;
+        return h
+      })
+      this.loading = false
     },
     addNewHook() {
-      this.key++;
-      this.selectedHook = this.hooks.length;
+      this.key++
+      this.selectedHook = this.hooks.length
       this.hooks.push({
         notification: {
           // type:'Email'
-        },
-      });
-      this.onEventChange();
-      this.$refs.form.resetValidation();
+        }
+      })
+      this.onEventChange()
+      this.$refs.form.resetValidation()
 
-      this.$e("c:webhook:add", { count: this.hooks.length });
+      this.$e('c:webhook:add', { count: this.hooks.length })
     },
     async deleteHook(item, i) {
       try {
         if (item.id) {
-          await this.$api.dbTableWebhook.delete(item.id);
-          this.hooks.splice(i, 1);
+          await this.$api.dbTableWebhook.delete(item.id)
+          this.hooks.splice(i, 1)
         } else {
-          this.hooks.splice(i, 1);
+          this.hooks.splice(i, 1)
         }
-        this.$toast.success("Hook deleted successfully").goAway(3000);
+        this.$toast.success('Hook deleted successfully').goAway(3000)
         if (!this.hooks.length) {
-          this.hook = null;
+          this.hook = null
         }
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
 
-      this.$e("a:webhook:delete");
-    },
-  },
-};
+      this.$e('a:webhook:delete')
+    }
+  }
+}
 </script>
 
 <style scoped>

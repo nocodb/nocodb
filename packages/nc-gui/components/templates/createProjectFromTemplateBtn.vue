@@ -198,7 +198,7 @@ export default {
     remapColNames(batchData, columns) {
       return batchData.map(data => (columns || []).reduce((aggObj, col) => ({
         ...aggObj,
-        [col.column_name]: data[col.refCn]
+        [col.column_name]: data[col.ref_column_name]
       }), {})
       )
     }

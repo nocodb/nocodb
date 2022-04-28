@@ -79,8 +79,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         columnNamePrefixRef[cn] = 0
 
         const column = {
-          cn,
-          refCn: cn
+          column_name: cn,
+          ref_column_name: cn
         }
 
         table.columns.push(column)

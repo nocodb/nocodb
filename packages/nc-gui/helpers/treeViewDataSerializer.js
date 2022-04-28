@@ -1,3 +1,5 @@
+import { isMetaTable } from '@/helpers/xutils'
+
 /* eslint-disable  */
 /**
  *
@@ -63,7 +65,7 @@ function dbparser(data, envKey, env) {
   for (let i = 0; i < data.length; i++) {
     const db = data[i];
     const dbKey = `${envKey}.${i}`;
-
+    db.tables = db.tables?.filter(t => !isMetaTable(t.table_name))
     let json = {};
     json = {
       type: "db",

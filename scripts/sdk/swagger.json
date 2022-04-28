@@ -1119,7 +1119,7 @@
                       "pinned": true,
                       "deleted": true,
                       "order": 0,
-                      "column": [
+                      "columns": [
                         {
                           "id": "string",
                           "base_id": "string",

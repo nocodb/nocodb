@@ -188,7 +188,8 @@ export async function invokeWebhook(
   _model: Model,
   data,
   user,
-  testFilters = null
+  testFilters = null,
+  throwErrorOnFailure = false
 ) {
   let hookLog: HookLogType;
   const startTime = process.hrtime();
@@ -289,16 +290,19 @@ export async function invokeWebhook(
     }
   } catch (e) {
     console.log(e);
-
     hookLog = {
       ...hook,
       error_code: e.error_code,
       error_message: e.message,
       error: JSON.stringify(e)
     };
+    if (throwErrorOnFailure) throw e;
+  } finally {
+    hookLog.execution_time = parseHrtimeToMilliSeconds(
+      process.hrtime(startTime)
+    );
+    if (hookLog) HookLog.insert({ ...hookLog, test_call: !!testFilters });
   }
-  hookLog.execution_time = parseHrtimeToMilliSeconds(process.hrtime(startTime));
-  if (hookLog) await HookLog.insert({ ...hookLog, test_call: !!testFilters });
 }
 
 export function _transformSubmittedFormDataForEmail(
@@ -342,6 +346,6 @@ export function _transformSubmittedFormDataForEmail(
 }
 
 function parseHrtimeToMilliSeconds(hrtime) {
-  const seconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);
-  return seconds;
+  const milliseconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);
+  return milliseconds;
 }

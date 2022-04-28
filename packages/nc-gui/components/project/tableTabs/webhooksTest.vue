@@ -38,15 +38,15 @@ export default {
     },
     async testWebhook() {
       try {
-        const res = await this.$api.dbTableWebhook.test(this.modelId, {
+        await this.$api.dbTableWebhook.test(this.modelId, {
           hook: this.hook,
           payload: this.sampleData
         })
 
         this.$toast.success('Webhook tested successfully').goAway(3000)
-      } catch (_e) {
-        const e = await this._extractSdkResponseError(_e)
-        this.$toast.error(e.message).goAway(3000)
+      } catch (e) {
+        const msg = await this._extractSdkResponseErrorMsg(e)
+        this.$toast.error(msg).goAway(3000)
       }
     }
   }

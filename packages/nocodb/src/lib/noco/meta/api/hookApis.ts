@@ -60,7 +60,8 @@ export async function hookTest(req: Request<any, any>, res: Response) {
     model,
     data,
     user,
-    (hook as any)?.filters
+    (hook as any)?.filters,
+    true
   );
 
   Tele.emit('evt', { evt_type: 'webhooks:tested' });

@@ -48,15 +48,15 @@ jobs:
           node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
       - run: |
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
-          cd packages/nocodb-sdk
-          npm install && npm run build && npm publish
-          cd ../..
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js
-          cd packages/nc-gui
-          npm install
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:jsdeliver
-          cd ../..
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
+          cd packages/nocodb-sdk &&
+          npm install && npm run build && npm publish &&
+          cd ../.. &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
+          cd packages/nc-gui &&
+          npm install &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:jsdeliver &&
+          cd ../.. &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && npm install && npm run obfuscate:build:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

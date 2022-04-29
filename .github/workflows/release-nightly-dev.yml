@@ -3,14 +3,6 @@ name: 'NocoDB Nightly Dev Release'
 on:
   # Triggered manually
   workflow_dispatch:
-    inputs:
-      targetEnv:
-        description: "Target Environment"
-        required: true
-        type: choice
-        options:
-          - DEV
-          # - PROD
   schedule:
     # every 6 hours
     - cron: '0 */6 * * *'
@@ -26,17 +18,18 @@ jobs:
           # Get current date
           CURRENT_DATE=$(date +"%Y%m%d")
           CURRENT_TIME=$(date +"%H%M")
-          TAG_NAME=${CURRENT_DATE}-${CURRENT_TIME}
+          TAG_NAME=${CURRENT_DATE}
           IS_DAILY='Y'
           # Get current version
           CURRENT_VERSION=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/nocodb/nocodb/releases/latest))
           # Set the tag
           if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
-            TAG_NAME=${TAG_NAME}
+            TAG_NAME=${CURRENT_DATE}-${CURRENT_TIME}
             IS_DAILY='N'
           fi
           echo "::set-output name=NIGHTLY_BUILD_TAG::${TAG_NAME}"
           echo "::set-output name=IS_DAILY::${IS_DAILY}"
+          echo "::set-output name=CURRENT_VERSION::${CURRENT_VERSION}"
           # Verify the tag
       - name: verify-tag
         run: |
@@ -53,7 +46,7 @@ jobs:
     uses: ./.github/workflows/release-npm.yml
     with:
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
-      targetEnv: ${{ github.event.inputs.targetEnv || 'DEV' }}
+      targetEnv: 'DEV'
     secrets:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
@@ -64,7 +57,7 @@ jobs:
     with:
       currentVersion: ${{ needs.set-tag.outputs.current_version }}
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
-      targetEnv: ${{ github.event.inputs.targetEnv || 'DEV' }}
+      targetEnv: 'DEV'
       isDaily: ${{ needs.set-tag.outputs.is_daily }}
     secrets:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"

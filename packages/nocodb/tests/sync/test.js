@@ -13,12 +13,12 @@ const syncDB = {
     'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfOGtwZ3lqd3lzcGEwN3giLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTEwNTIzNzl9.QjK4-w1u_ZYaRAjmCD_0YBZyHerMm08LcRp0oheGAIw'
 };
 
-const api = new Api({
-  baseURL: syncDB.baseURL,
-  headers: {
-    'xc-auth': syncDB.authToken
-  }
-});
+// const apiSignUp = new Api({
+//   baseURL: syncDB.baseURL,
+// });
+
+let api;
+
 
 async function init() {
   // delete 'sample' project if already exists
@@ -33,8 +33,17 @@ async function init() {
 }
 
 (async () => {
+  api = new Api({
+    baseURL: syncDB.baseURL,
+  });
+  let auth = await api.auth.signup({email: 'user@nocodb.com', password: 'Password123.'})
 
-  await init()
+  api = new Api({
+    baseURL: syncDB.baseURL,
+    headers: {
+      'xc-auth': auth.token
+    }
+  });
 
   let ncCreatedProjectSchema = await api.project.create({
     title: syncDB.projectName

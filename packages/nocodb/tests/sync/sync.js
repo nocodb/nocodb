@@ -194,6 +194,7 @@ function getNocoTypeOptions(col) {
 //
 function tablesPrepare(tblSchema) {
   let tables = [];
+
   for (let i = 0; i < tblSchema.length; ++i) {
     let table = {};
 
@@ -218,7 +219,9 @@ function tablesPrepare(tblSchema) {
       let col = tblSchema[i].columns[j];
 
       // skip link, lookup, rollup fields in this iteration
-      if (['foreignKey', 'lookup', 'rollup'].includes(col.type)) continue;
+      if (['foreignKey', 'lookup', 'rollup'].includes(col.type)) {
+        continue;
+      }
 
       // not supported datatype
       // if (['formula'].includes(col.type)) continue;
@@ -500,7 +503,7 @@ async function nocoCreateLookups(aTblSchema) {
 
     // if nothing has changed from previous iteration, skip rest
     if(nestedCnt === nestedLookupTbl.length) {
-      console.log(`Failed to configure ${nestedLookupTbl.length} lookups`)
+      console.log(`## Failed to configure ${nestedLookupTbl.length} lookups`)
       break;
     }
 
@@ -537,6 +540,7 @@ async function nocoCreateLookups(aTblSchema) {
   }
 }
 
+let nestedRollupTbl = []
 async function nocoCreateRollups(aTblSchema) {
   // Rollups
   for (let idx = 0; idx < aTblSchema.length; idx++) {
@@ -548,6 +552,14 @@ async function nocoCreateRollups(aTblSchema) {
     if (aTblColumns.length) {
       // rollup exist
       for (let i = 0; i < aTblColumns.length; i++) {
+        console.log(`Configuring Rollup: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}] :: ${i+1}/${aTblColumns.length}`)
+
+        // something is not right, skip
+        if(aTblColumns[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
+          console.log(`     ## Invalid column IDs mapped; skip`)
+          continue
+        }
+
         let ncRelationColumn = await nc_getColumnSchema(
           aTblColumns[i].typeOptions.relationColumnId
         );
@@ -555,23 +567,60 @@ async function nocoCreateRollups(aTblSchema) {
           aTblColumns[i].typeOptions.foreignTableRollupColumnId
         );
 
-        let lookupColumn = await api.dbTableColumn.create(srcTableId, {
+        if(ncRollupColumn === undefined) {
+          aTblColumns[i]['srcTableId'] = srcTableId;
+          nestedRollupTbl.push(aTblColumns[i])
+          continue;
+        }
+        let rollupColumn = await api.dbTableColumn.create(srcTableId, {
           uidt: 'Rollup',
           title: aTblColumns[i].name,
           fk_relation_column_id: ncRelationColumn.id,
           fk_rollup_column_id: ncRollupColumn.id,
           rollup_function: 'sum' // fix me: hardwired
         });
-
         syncLog(`NC API: dbTableColumn.create ROLLUP`)
-
       }
     }
+  }
+  console.log(`Nested rollup: ${nestedRollupTbl.length}`)
+}
+
+async function nocoLookupForRollups() {
+  let nestedCnt = nestedLookupTbl.length
+  for (let i = 0; i < nestedLookupTbl.length; i++) {
+    console.log(`Configuring Lookup for Rollup: ${i+1}/${nestedCnt}`)
+
+    let srcTableId = nestedLookupTbl[i].srcTableId;
+
+    let ncRelationColumn = await nc_getColumnSchema(
+      nestedLookupTbl[i].typeOptions.relationColumnId
+    );
+    let ncLookupColumn = await nc_getColumnSchema(
+      nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
+    );
+
+    if (ncLookupColumn === undefined) {
+      continue;
+    }
+
+    let lookupColumn = await api.dbTableColumn.create(srcTableId, {
+      uidt: 'Lookup',
+      title: nestedLookupTbl[i].name,
+      fk_relation_column_id: ncRelationColumn.id,
+      fk_lookup_column_id: ncLookupColumn.id
+    });
+
+    // remove entry
+    nestedLookupTbl.splice(i, 1)
+    syncLog(`NC API: dbTableColumn.create LOOKUP`)
   }
 }
 
 async function nocoSetPrimary(aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
+    console.log(`Configuring Primary value's: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}]`)
+
     let pColId = aTblSchema[idx].primaryColumnId;
     let ncCol = await nc_getColumnSchema(pColId);
 
@@ -589,11 +638,18 @@ async function nc_hideColumn(tblName, viewName, columnName) {
   // retrieve view Info
   let viewDetails = await api.dbView.gridColumnsList(viewId);
 
-  for(i =0; i<columnName.length; i++) {
+  for(let i =0; i<columnName.length; i++) {
     // retrieve column schema
     let ncColumn = ncTbl.columns.find(x => x.title === columnName[i]);
     // retrieve view column ID
-    let viewColumnId = viewDetails.find(x => x.fk_column_id === ncColumn.id).id
+    let viewColumnId = viewDetails.find(x => x.fk_column_id === ncColumn?.id)?.id
+
+    // fix me
+    if(viewColumnId === undefined) {
+      console.log(`## Column disable fail: ${tblName}, ${viewName}, ${columnName[i]}`)
+      continue;
+    }
+
     // hide
     syncLog(`NC API: dbViewColumn.update ${viewId}, ${ncColumn.id}`)
     let retVal = await api.dbViewColumn.update(viewId, viewColumnId, { show: false })
@@ -609,6 +665,8 @@ async function nocoReconfigureFields(aTblSchema) {
     for(let i=0; i<hiddenColumnID.length; i++) {
       hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[i].columnId).cn)
     }
+    console.log(`Configuring Hidden columns: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}] :: ${hiddenColumnID.length}`)
+
     await nc_hideColumn(aTblSchema[idx].name, aTblSchema[idx].views[0].name, hiddenColumns)
   }
 }
@@ -874,6 +932,9 @@ async function nc_migrateATbl() {
 
   // add roll-ups
   await nocoCreateRollups(aTblSchema);
+
+  // lookups for rollups
+  await nocoLookupForRollups()
 
   // configure primary values
   await nocoSetPrimary(aTblSchema);

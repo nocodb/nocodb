@@ -104,7 +104,12 @@ jobs:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
       DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
 
+  # Change nocodb-sdk back to local path
+  update-sdk-path:
+    needs: release-docker
+    uses: ./.github/workflows/update-sdk-path.yml
+
   # Sync changes to develop
   sync-to-develop:
-    needs: release-docker
+    needs: update-sdk-path
     uses: ./.github/workflows/sync-to-develop.yml

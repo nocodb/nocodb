@@ -7,6 +7,106 @@ const FormData = require('form-data');
 function syncLog(log) {
   // console.log(log)
 }
+const start = Date.now();
+
+let enableErrorLogs = false
+let process_aTblData = false
+let generate_migrationStats = true
+let migrationStats = []
+let migrationStatsObj = {
+  table_name: '',
+  aTbl: {
+    columns: 0,
+    links: 0,
+    lookup: 0,
+    rollup: 0
+  },
+  nc: {
+    columns: 0,
+    links: 0,
+    lookup: 0,
+    rollup: 0,
+    invalidColumn: 0
+  }
+}
+
+async function generateMigrationStats(aTblSchema) {
+
+  for (let idx = 0; idx < aTblSchema.length; idx++) {
+    migrationStatsObj.table_name = aTblSchema[idx].name
+
+    let aTblLinkColumns = aTblSchema[idx].columns.filter(
+      x => x.type === 'foreignKey'
+    );
+    let aTblLookups = aTblSchema[idx].columns.filter(
+      x => x.type === 'lookup'
+    );
+    let aTblRollups = aTblSchema[idx].columns.filter(
+      x => x.type === 'rollup'
+    );
+
+    let invalidColumnId = 0
+    for(let i=0; i<aTblLookups.length; i++ ) {
+      if(aTblLookups[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
+        invalidColumnId++
+      }
+    }
+    for(let i=0; i<aTblRollups.length; i++ ) {
+      if(aTblRollups[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
+        invalidColumnId++
+      }
+    }
+
+    migrationStatsObj.aTbl.columns = aTblSchema[idx].columns.length;
+    migrationStatsObj.aTbl.links = aTblLinkColumns.length;
+    migrationStatsObj.aTbl.lookup = aTblLookups.length;
+    migrationStatsObj.aTbl.rollup = aTblRollups.length;
+
+    let ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
+    let linkColumn = ncTbl.columns.filter(
+      x => x.uidt === 'LinkToAnotherRecord'
+    );
+    let lookup = ncTbl.columns.filter(
+      x => x.uidt === 'Lookup'
+    );
+    let rollup = ncTbl.columns.filter(
+      x => x.uidt === 'Rollup'
+    );
+
+    migrationStatsObj.nc.columns = ncTbl.columns.length - linkColumn.length/2;
+    migrationStatsObj.nc.links = linkColumn.length/2;
+    migrationStatsObj.nc.lookup = lookup.length;
+    migrationStatsObj.nc.rollup = rollup.length;
+    migrationStatsObj.nc.invalidColumn = invalidColumnId;
+
+    let temp = JSON.parse(JSON.stringify(migrationStatsObj))
+    migrationStats.push(temp)
+  }
+
+  const columnSum = migrationStats.reduce((accumulator, object) => {
+    return accumulator + object.nc.columns;
+  }, 0);
+  const linkSum = migrationStats.reduce((accumulator, object) => {
+    return accumulator + object.nc.links;
+  }, 0);
+  const lookupSum = migrationStats.reduce((accumulator, object) => {
+    return accumulator + object.nc.lookup;
+  }, 0);
+  const rollupSum = migrationStats.reduce((accumulator, object) => {
+    return accumulator + object.nc.rollup;
+  }, 0);
+
+  console.log(`Quick Status:`)
+  console.log(`     Total Tables:   ${aTblSchema.length}`)
+  console.log(`     Total Columns:  ${columnSum}`)
+  console.log(`       Links:        ${linkSum}`)
+  console.log(`       Lookup:       ${lookupSum}`)
+  console.log(`       Rollup:       ${rollupSum}`)
+
+  const duration = Date.now() - start;
+  console.log(`Migration time: ${duration}`)
+
+}
 
 // read configurations
 //
@@ -241,7 +341,7 @@ function tablesPrepare(tblSchema) {
       // check if already a column exists with same name?
       let duplicateColumn = table.columns.find(x => x.title === col.name.trim())
       if(duplicateColumn) {
-        console.log(`## Duplicate ${ncCol.title}`)
+        if(enableErrorLogs) console.log(`## Duplicate ${ncCol.title}`)
 
         ncCol.title = ncCol.title + '_2'
         ncCol.column_name = ncCol.column_name + '_2'
@@ -276,7 +376,7 @@ async function nocoCreateBaseSchema(aTblSchema) {
   // for each table schema, create nc table
   for (let idx = 0; idx < tables.length; idx++) {
 
-    console.log(`Creating base table schema: [${idx+1}/${tables.length}]  ${tables[idx].title}`)
+    console.log(`Phase-1 [${String(idx+1).padStart(2, '0')}/${tables.length}] Creating base table schema: ${tables[idx].title}`)
 
     syncLog(`NC API: dbTable.create ${tables[idx].title}`)
     let table = await api.dbTable.create(
@@ -309,7 +409,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
     //
     if (aTblLinkColumns.length) {
       for (let i = 0; i < aTblLinkColumns.length; i++) {
-        console.log(`Configuring Links: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}] :: ${i}/${aTblLinkColumns.length}`)
+        console.log(`Phase-2 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Links :: [${String(i+1).padStart(2, '0')}/${aTblLinkColumns.length}] ${aTblSchema[idx].name}`)
 
         {
           let src = aTbl_getColumnName(aTblLinkColumns[i].id)
@@ -335,7 +435,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           let duplicate = srcTbl.columns.find(x => x.title === aTblLinkColumns[i].name)
           let suffix = duplicate?'_2':'';
           if(duplicate)
-            console.log(`## Duplicate ${aTblLinkColumns[i].name}`)
+            if(enableErrorLogs) console.log(`## Duplicate ${aTblLinkColumns[i].name}`)
 
           // create link
           let column = await api.dbTableColumn.create(srcTableId, {
@@ -432,7 +532,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           let duplicate = childTblSchema.columns.find(x => x.title === aTblLinkColumns[i].name)
           let suffix = duplicate?'_2':'';
           if(duplicate)
-            console.log(`## Duplicate ${aTblLinkColumns[i].name}`)
+            if(enableErrorLogs) console.log(`## Duplicate ${aTblLinkColumns[i].name}`)
 
 
           // rename
@@ -464,11 +564,11 @@ async function nocoCreateLookups(aTblSchema) {
     if (aTblColumns.length) {
       // Lookup
       for (let i = 0; i < aTblColumns.length; i++) {
-        console.log(`Configuring Lookups: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}] :: ${i+1}/${aTblColumns.length}`)
+        console.log(`Phase-3 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Lookup :: [${String(i+1).padStart(2, '0')}/${aTblColumns.length}] ${aTblSchema[idx].name}`)
 
         // something is not right, skip
         if(aTblColumns[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
-          console.log(`     >> ## Invalid column IDs mapped; skip`)
+          if(enableErrorLogs) console.log(`## Invalid column IDs mapped; skip`)
           continue
         }
 
@@ -503,14 +603,15 @@ async function nocoCreateLookups(aTblSchema) {
 
     // if nothing has changed from previous iteration, skip rest
     if(nestedCnt === nestedLookupTbl.length) {
-      console.log(`## Failed to configure ${nestedLookupTbl.length} lookups`)
+      if(enableErrorLogs)
+        console.log(`## Failed to configure ${nestedLookupTbl.length} lookups`)
       break;
     }
 
     // Nested lookup
     nestedCnt = nestedLookupTbl.length
     for (let i = 0; i < nestedLookupTbl.length; i++) {
-      console.log(`Configuring Nested Lookup: Level-${level} ${i+1}/${nestedCnt}`)
+      console.log(`Phase-4 Configuring Nested Lookup: Level-${level} [${i+1}/${nestedCnt}]`)
 
       let srcTableId = nestedLookupTbl[i].srcTableId
 
@@ -552,11 +653,11 @@ async function nocoCreateRollups(aTblSchema) {
     if (aTblColumns.length) {
       // rollup exist
       for (let i = 0; i < aTblColumns.length; i++) {
-        console.log(`Configuring Rollup: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}] :: ${i+1}/${aTblColumns.length}`)
+        console.log(`Phase-5 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Rollup :: [${String(i+1).padStart(2, '0')}/${aTblColumns.length}] ${aTblSchema[idx].name}`)
 
         // something is not right, skip
         if(aTblColumns[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
-          console.log(`     ## Invalid column IDs mapped; skip`)
+          if(enableErrorLogs) console.log(`## Invalid column IDs mapped; skip`)
           continue
         }
 
@@ -589,7 +690,7 @@ async function nocoCreateRollups(aTblSchema) {
 async function nocoLookupForRollups() {
   let nestedCnt = nestedLookupTbl.length
   for (let i = 0; i < nestedLookupTbl.length; i++) {
-    console.log(`Configuring Lookup for Rollup: ${i+1}/${nestedCnt}`)
+    console.log(`Phase-6 Configuring Lookup over Rollup :: [${i+1}/${nestedCnt}]`)
 
     let srcTableId = nestedLookupTbl[i].srcTableId;
 
@@ -619,7 +720,7 @@ async function nocoLookupForRollups() {
 
 async function nocoSetPrimary(aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
-    console.log(`Configuring Primary value's: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}]`)
+    console.log(`Phase-7 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Primary value : ${aTblSchema[idx].name}`)
 
     let pColId = aTblSchema[idx].primaryColumnId;
     let ncCol = await nc_getColumnSchema(pColId);
@@ -646,7 +747,7 @@ async function nc_hideColumn(tblName, viewName, columnName) {
 
     // fix me
     if(viewColumnId === undefined) {
-      console.log(`## Column disable fail: ${tblName}, ${viewName}, ${columnName[i]}`)
+      if(enableErrorLogs) console.log(`## Column disable fail: ${tblName}, ${viewName}, ${columnName[i]}`)
       continue;
     }
 
@@ -665,7 +766,7 @@ async function nocoReconfigureFields(aTblSchema) {
     for(let i=0; i<hiddenColumnID.length; i++) {
       hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[i].columnId).cn)
     }
-    console.log(`Configuring Hidden columns: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}] :: ${hiddenColumnID.length}`)
+    console.log(`Phase-8 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Hide columns [${idx+1}/${aTblSchema.length}] ${aTblSchema[idx].name}`)
 
     await nc_hideColumn(aTblSchema[idx].name, aTblSchema[idx].views[0].name, hiddenColumns)
   }
@@ -942,18 +1043,24 @@ async function nc_migrateATbl() {
   // hide-fields
   await nocoReconfigureFields(aTblSchema);
 
-  // await nc_DumpTableSchema();
-  let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-  for (let i = 0; i < ncTblList.list.length; i++) {
-    let ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-    await nocoReadData(ncTbl, nocoBaseDataProcessing);
+  if(process_aTblData) {
+    // await nc_DumpTableSchema();
+    let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+    for (let i = 0; i < ncTblList.list.length; i++) {
+      let ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+      await nocoReadData(ncTbl, nocoBaseDataProcessing);
+    }
+
+    // // Configure link @ Data row's
+    for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
+      let x = ncLinkMappingTable[idx];
+      let ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
+      await nocoReadDataSelected(ncTbl, nocoLinkProcessing, x.aTbl.name);
+    }
   }
 
-  // // Configure link @ Data row's
-  for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
-    let x = ncLinkMappingTable[idx];
-    let ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
-    await nocoReadDataSelected(ncTbl, nocoLinkProcessing, x.aTbl.name);
+  if(generate_migrationStats) {
+    await generateMigrationStats(aTblSchema)
   }
 }
 

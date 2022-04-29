@@ -1205,39 +1205,6 @@ export class Api<
       }),
 
     /**
-     * @description Create Project by Importing Excel File
-     *
-     * @tags Project
-     * @name CreateByExcel
-     * @summary Project create
-     * @request POST:/api/v1/db/meta/projects/import/excel
-     * @response `200` `ProjectType` OK
-     */
-    createByExcel: (
-      data: {
-        title?: string;
-        projectType?: string;
-        template?: {
-          title?: string;
-          tables?: {
-            table_name?: string;
-            ref_table_name?: string;
-            columns?: object[];
-          }[];
-        };
-      },
-      params: RequestParams = {}
-    ) =>
-      this.request<ProjectType, any>({
-        path: `/api/v1/db/meta/projects/import/excel`,
-        method: 'POST',
-        body: data,
-        type: ContentType.Json,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
      * @description Read project details
      *
      * @tags Project

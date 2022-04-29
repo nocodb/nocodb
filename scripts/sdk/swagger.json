@@ -801,6 +801,74 @@
         ]
       }
     },
+    "/api/v1/db/meta/projects/import/excel": {
+      "parameters": [],
+      "post": {
+        "summary": "Project create",
+        "operationId": "project-create-by-excel",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Project"
+                }
+              }
+            }
+          }
+        },
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "title": {
+                    "type": "string"
+                  },
+                  "projectType": {
+                    "type": "string"
+                  },
+                  "template": {
+                    "type": "object",
+                    "properties": {
+                      "title": {
+                        "type": "string"
+                      },
+                      "tables": {
+                        "type": "array",
+                        "items": {
+                          "type": "object",
+                          "properties": {
+                            "table_name": {
+                              "type": "string"
+                            },
+                            "ref_table_name": {
+                              "type": "string"
+                            },
+                            "columns": {
+                              "type": "array",
+                              "items": {
+                                "type": "object"
+                              }
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Project"
+        ],
+        "description": "Create Project by Importing Excel File"
+      }
+    },
     "/api/v1/db/meta/projects/{projectId}": {
       "parameters": [
         {

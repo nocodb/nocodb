@@ -18,19 +18,17 @@ jobs:
           # Get current date
           CURRENT_DATE=$(date +"%Y%m%d")
           CURRENT_TIME=$(date +"%H%M")
-          TAG_NAME=${CURRENT_DATE}
+          TAG_NAME=${CURRENT_DATE}-${CURRENT_TIME}
           IS_DAILY='Y'
           # Get current version
           CURRENT_VERSION=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/nocodb/nocodb/releases/latest))
           # Set the tag
           if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
-            TAG_NAME=${CURRENT_DATE}-${CURRENT_TIME}
             IS_DAILY='N'
           fi
           echo "::set-output name=NIGHTLY_BUILD_TAG::${TAG_NAME}"
           echo "::set-output name=IS_DAILY::${IS_DAILY}"
           echo "::set-output name=CURRENT_VERSION::${CURRENT_VERSION}"
-          # Verify the tag
       - name: verify-tag
         run: |
           echo ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}

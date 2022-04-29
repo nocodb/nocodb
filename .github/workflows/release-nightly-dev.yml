@@ -3,14 +3,6 @@ name: 'NocoDB Nightly Dev Release'
 on:
   # Triggered manually
   workflow_dispatch:
-    inputs:
-      targetEnv:
-        description: "Target Environment"
-        required: true
-        type: choice
-        options:
-          - DEV
-          # - PROD
   schedule:
     # every 6 hours
     - cron: '0 */6 * * *'
@@ -54,7 +46,7 @@ jobs:
     uses: ./.github/workflows/release-npm.yml
     with:
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
-      targetEnv: ${{ github.event.inputs.targetEnv || 'DEV' }}
+      targetEnv: 'DEV'
     secrets:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
@@ -65,7 +57,7 @@ jobs:
     with:
       currentVersion: ${{ needs.set-tag.outputs.current_version }}
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
-      targetEnv: ${{ github.event.inputs.targetEnv || 'DEV' }}
+      targetEnv: 'DEV'
       isDaily: ${{ needs.set-tag.outputs.is_daily }}
     secrets:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"

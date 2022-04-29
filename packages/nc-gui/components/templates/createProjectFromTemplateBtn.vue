@@ -107,33 +107,57 @@ export default {
           projectId = this.$route.params.project_id
           prefix = this.$store.getters['project/GtrProjectPrefix']
         } else {
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
-            title: this.templateData.title,
-            projectType,
-            template: this.templateData,
-            excelImport: this.excelImport
-          }])
-          projectId = result.id
-          prefix = result.prefix
-          await this.$store.dispatch('project/ActLoadProjectInfo')
+          try {
+            // Create an empty project
+            const result = await this.$api.project.create({
+              title: this.templateData.title,
+              external: false
+            })
+
+            prefix = result.prefix
+
+            clearInterval(interv)
+
+            await this.$store.dispatch('project/ActLoadProjectInfo')
+
+            this.projectReloading = false
+
+            if (!this.edit && !this.allSchemas) {
+              this.$router.push({
+                path: `/nc/${result.id}`,
+                query: {
+                  new: 1
+                }
+              })
+            }
+
+            this.projectCreated = true
+
+            // Create tables
+            for (var t of this.templateData.tables) {
+              const table = await this.$api.dbTable.create(result.id, {
+                table_name: t.ref_table_name,
+                title: '',
+                columns: t.columns,
+              });
+              console.log(table)
+              t.table_title = table.title
+            }
+          } catch (e) {
+            this.$toast
+              .error(await this._extractSdkResponseErrorMsg(e))
+              .goAway(3000)
+          }
         }
         clearInterval(interv)
+
+        // Bulk import data
         if (this.importData) {
           this.$store.commit('loader/MutMessage', 'Importing excel data to project')
-          await this.importDataToProject({ projectId, projectType, prefix })
+          await this.importDataToProject(this.templateData.title, prefix)
         }
         this.$store.commit('loader/MutMessage', null)
-
         this.projectReloading = false
-        if (!this.importToProject) {
-          await this.$router.push({
-            path: `/nc/${projectId}`,
-            query: {
-              new: 1
-            }
-          })
-        }
-
         this.$emit('success')
       } catch (e) {
         console.log(e)
@@ -143,53 +167,23 @@ export default {
       }
       this.projectCreation = false
     },
-    async importDataToProject({ projectId, projectType, prefix = '' }) {
-      // this.$store.commit('project/MutProjectId', projectId)
-      this.$ncApis.setProjectId(projectId)
-
+    async importDataToProject(projectName, prefix) {
       let total = 0
       let progress = 0
-
-      /*      await Promise.all(Object.entries(this.importData).map(v => (async([table, data]) => {
-        await this.$store.dispatch('meta/ActLoadMeta', {
-          tn: `${prefix}${table}`, project_id: projectId
-        })
-
-        // todo: get table name properly
-        const api = this.$ncApis.get({
-          table: `${prefix}${table}`,
-          type: projectType
-        })
-        total += data.length
-        for (let i = 0; i < data.length; i += 500) {
-          this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${total}`)
-          this.$store.commit('loader/MutProgress', Math.round(progress && 100 * progress / total))
-          const batchData = data.slice(i, i + 500)
-          await api.insertBulk(batchData)
-          progress += batchData.length
-        }
-        this.$store.commit('loader/MutClear')
-      })(v))) */
-
       await Promise.all(this.templateData.tables.map(v => (async(tableMeta) => {
-        const table = tableMeta.table_name
+        const table = tableMeta.table_title
         const data = this.importData[tableMeta.ref_table_name]
-
-        await this.$store.dispatch('meta/ActLoadMeta', {
-          tn: `${prefix}${table}`, project_id: projectId
-        })
-
-        // todo: get table name properly
-        const api = this.$ncApis.get({
-          table: `${prefix}${table}`,
-          type: projectType
-        })
         total += data.length
         for (let i = 0; i < data.length; i += 500) {
           this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${total}`)
           this.$store.commit('loader/MutProgress', Math.round(progress && 100 * progress / total))
           const batchData = this.remapColNames(data.slice(i, i + 500), tableMeta.columns)
-          await api.insertBulk(batchData)
+          await this.$api.dbTableRow.bulkCreate(
+            'noco',
+            projectName,
+            table,
+            batchData
+          )
           progress += batchData.length
         }
         this.$store.commit('loader/MutClear')

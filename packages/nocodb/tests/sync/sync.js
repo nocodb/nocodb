@@ -5,7 +5,7 @@ const axios = require('axios').default;
 const FormData = require('form-data');
 
 function syncLog(log) {
-  console.log(log)
+  // console.log(log)
 }
 
 // read configurations
@@ -203,11 +203,11 @@ function tablesPrepare(tblSchema) {
     table.table_name = tblSchema[i].name;
     table.title = tblSchema[i].name;
 
-    // insert record_id of type ID by default
+    // insert _aTbl_nc_rec_id of type ID by default
     table.columns = [
       {
-        title: 'record_id',
-        column_name: 'record_id',
+        title: '_aTbl_nc_rec_id',
+        column_name: '_aTbl_nc_rec_id',
         // uidt: UITypes.ID
         uidt: UITypes.SingleLineText,
         pk: true,
@@ -230,10 +230,19 @@ function tablesPrepare(tblSchema) {
         title: col.name.trim(),
 
         // knex complains use of '?' in field name
-        //column_name: col.name.replace(/\?/g, '\\?').trim(),
-        column_name: col.name.replace(/\?/g, 'QQ').trim(),
+        // good to replace all special characters by _ in one go
+        column_name: col.name.replace(/\?/g, 'QQ').replace('.', '_').trim(),
         uidt: getNocoType(col)
       };
+
+      // check if already a column exists with same name?
+      let duplicateColumn = table.columns.find(x => x.title === col.name.trim())
+      if(duplicateColumn) {
+        console.log(`## Duplicate ${ncCol.title}`)
+
+        ncCol.title = ncCol.title + '_2'
+        ncCol.column_name = ncCol.column_name + '_2'
+      }
 
       // additional column parameters when applicable
       let colOptions = getNocoTypeOptions(col);
@@ -259,8 +268,12 @@ async function nocoCreateBaseSchema(aTblSchema) {
   // base schema preparation: exclude
   let tables = tablesPrepare(aTblSchema);
 
+  console.log(`Total tables: ${tables.length} `)
+
   // for each table schema, create nc table
   for (let idx = 0; idx < tables.length; idx++) {
+
+    console.log(`Creating base table schema: [${idx+1}/${tables.length}]  ${tables[idx].title}`)
 
     syncLog(`NC API: dbTable.create ${tables[idx].title}`)
     let table = await api.dbTable.create(
@@ -284,6 +297,7 @@ async function nocoCreateBaseSchema(aTblSchema) {
 async function nocoCreateLinkToAnotherRecord(aTblSchema) {
   // Link to another RECORD
   for (let idx = 0; idx < aTblSchema.length; idx++) {
+
     let aTblLinkColumns = aTblSchema[idx].columns.filter(
       x => x.type === 'foreignKey'
     );
@@ -292,6 +306,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
     //
     if (aTblLinkColumns.length) {
       for (let i = 0; i < aTblLinkColumns.length; i++) {
+        console.log(`Configuring Links: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}] :: ${i}/${aTblLinkColumns.length}`)
 
         {
           let src = aTbl_getColumnName(aTblLinkColumns[i].id)
@@ -312,10 +327,17 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           // retrieve child table ID (nc) from table name
           let childTableId = (await nc_getTableSchema(childTable.tn)).id;
 
+          // check if already a column exists with this name?
+          let srcTbl = await api.dbTable.read(srcTableId)
+          let duplicate = srcTbl.columns.find(x => x.title === aTblLinkColumns[i].name)
+          let suffix = duplicate?'_2':'';
+          if(duplicate)
+            console.log(`## Duplicate ${aTblLinkColumns[i].name}`)
+
           // create link
           let column = await api.dbTableColumn.create(srcTableId, {
             uidt: 'LinkToAnotherRecord',
-            title: aTblLinkColumns[i].name,
+            title: aTblLinkColumns[i].name + suffix,
             parentId: srcTableId,
             childId: childTableId,
             type: 'mm'
@@ -366,7 +388,15 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
             col => col.title === ncLinkMappingTable[x].nc.title
           );
 
+          // hack // fix me
+          if(parentLinkColumn.uidt !== 'LinkToAnotherRecord') {
+            parentLinkColumn = parentTblSchema.columns.find(
+              col => col.title === (ncLinkMappingTable[x].nc.title + '_2')
+            );
+          }
+
           let childLinkColumn = {};
+
           if (parentLinkColumn.colOptions.type == 'hm') {
             // for hm:
             // mapping between child & parent column id is direct
@@ -395,12 +425,19 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
             );
           }
 
+          // check if already a column exists with this name?
+          let duplicate = childTblSchema.columns.find(x => x.title === aTblLinkColumns[i].name)
+          let suffix = duplicate?'_2':'';
+          if(duplicate)
+            console.log(`## Duplicate ${aTblLinkColumns[i].name}`)
+
+
           // rename
           // note that: current rename API requires us to send all parameters,
           // not just title being renamed
           let res = await api.dbTableColumn.update(childLinkColumn.id, {
             ...childLinkColumn,
-            title: aTblLinkColumns[i].name,
+            title: aTblLinkColumns[i].name + suffix,
           });
           // console.log(res.columns.find(x => x.title === aTblLinkColumns[i].name))
           syncLog(`NC API: dbTableColumn.update rename symmetric column`)
@@ -410,9 +447,12 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
   }
 }
 
+let nestedLookupTbl = []
+
 async function nocoCreateLookups(aTblSchema) {
   // LookUps
   for (let idx = 0; idx < aTblSchema.length; idx++) {
+
     let aTblColumns = aTblSchema[idx].columns.filter(x => x.type === 'lookup');
 
     // parent table ID
@@ -421,12 +461,26 @@ async function nocoCreateLookups(aTblSchema) {
     if (aTblColumns.length) {
       // Lookup
       for (let i = 0; i < aTblColumns.length; i++) {
+        console.log(`Configuring Lookups: ${aTblSchema[idx].name} [${idx+1}/${aTblSchema.length}] :: ${i+1}/${aTblColumns.length}`)
+
+        // something is not right, skip
+        if(aTblColumns[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
+          console.log(`     >> ## Invalid column IDs mapped; skip`)
+          continue
+        }
+
         let ncRelationColumn = await nc_getColumnSchema(
           aTblColumns[i].typeOptions.relationColumnId
         );
         let ncLookupColumn = await nc_getColumnSchema(
           aTblColumns[i].typeOptions.foreignTableRollupColumnId
         );
+
+        if(ncLookupColumn === undefined) {
+          aTblColumns[i]['srcTableId'] = srcTableId;
+          nestedLookupTbl.push(aTblColumns[i])
+          continue;
+        }
 
         let lookupColumn = await api.dbTableColumn.create(srcTableId, {
           uidt: 'Lookup',
@@ -438,6 +492,48 @@ async function nocoCreateLookups(aTblSchema) {
         syncLog(`NC API: dbTableColumn.create LOOKUP`)
       }
     }
+  }
+
+  let level = 2
+  let nestedCnt = 0
+  while(nestedLookupTbl.length) {
+
+    // if nothing has changed from previous iteration, skip rest
+    if(nestedCnt === nestedLookupTbl.length) {
+      console.log(`Failed to configure ${nestedLookupTbl.length} lookups`)
+      break;
+    }
+
+    // Nested lookup
+    nestedCnt = nestedLookupTbl.length
+    for (let i = 0; i < nestedLookupTbl.length; i++) {
+      console.log(`Configuring Nested Lookup: Level-${level} ${i+1}/${nestedCnt}`)
+
+      let srcTableId = nestedLookupTbl[i].srcTableId
+
+      let ncRelationColumn = await nc_getColumnSchema(
+        nestedLookupTbl[i].typeOptions.relationColumnId
+      );
+      let ncLookupColumn = await nc_getColumnSchema(
+        nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
+      );
+
+      if (ncLookupColumn === undefined) {
+        continue;
+      }
+
+      let lookupColumn = await api.dbTableColumn.create(srcTableId, {
+        uidt: 'Lookup',
+        title: nestedLookupTbl[i].name,
+        fk_relation_column_id: ncRelationColumn.id,
+        fk_lookup_column_id: ncLookupColumn.id
+      });
+
+      // remove entry
+      nestedLookupTbl.splice(i, 1)
+      syncLog(`NC API: dbTableColumn.create LOOKUP`)
+    }
+    level++
   }
 }
 
@@ -506,7 +602,7 @@ async function nc_hideColumn(tblName, viewName, columnName) {
 
 async function nocoReconfigureFields(aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
-    let hiddenColumns = ["record_id"]
+    let hiddenColumns = ["_aTbl_nc_rec_id"]
 
     // extract other columns hidden in this view
     let hiddenColumnID = aTblSchema[idx].meaningfulColumnOrder.filter(x => x.visibility===false)
@@ -643,7 +739,7 @@ function nocoBaseDataProcessing(table, record) {
     }
 
     // insert airtable record ID explicitly into each records
-    rec['record_id'] = record.id;
+    rec['_aTbl_nc_rec_id'] = record.id;
 
     // console.log(rec)
 
@@ -801,7 +897,8 @@ async function nc_migrateATbl() {
 }
 
 nc_migrateATbl().catch(e => {
-  console.log(e?.config?.url);
+  // console.log(e?.config?.url);
+  console.log(e)
 });
 
 

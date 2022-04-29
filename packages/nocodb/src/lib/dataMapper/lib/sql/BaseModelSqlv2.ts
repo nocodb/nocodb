@@ -1476,7 +1476,7 @@ class BaseModelSqlv2 {
 
       const response = await this.dbDriver
         .batchInsert(this.model.table_name, insertDatas, 50)
-        .returning(this.model.primaryKey.column_name);
+        .returning(this.model.primaryKey?.column_name);
 
       // await this.afterInsertb(insertDatas, null);
 

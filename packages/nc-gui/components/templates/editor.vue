@@ -118,15 +118,24 @@
                       </span>
 
                       <v-spacer />
-                      <v-icon
-                        v-if="!viewMode"
-                        class="flex-grow-0 mr-2"
-                        small
-                        color="grey"
-                        @click.stop="deleteTable(i)"
+                      <v-tooltip
+                        bottom
                       >
-                        mdi-delete-outline
-                      </v-icon>
+                          <template #activator="{ on }">
+                          <v-icon
+                            v-if="!viewMode"
+                            class="flex-grow-0 mr-2"
+                            small
+                            color="grey"
+                            @click.stop="deleteTable(i)"
+                            v-on="on"
+                          >
+                            mdi-delete-outline
+                          </v-icon>  
+                          </template>
+                          <!-- TODO: i18n -->
+                        <span>Delete Table</span>
+                      </v-tooltip>
                     </v-expansion-panel-header>
                     <v-expansion-panel-content>
                       <!--                <v-toolbar>
@@ -486,25 +495,29 @@
                                   "
                                 />
                                 <td style="max-width: 50px; width: 50px">
-                                  <v-icon
-                                    v-if="!viewMode"
-                                    class="flex-grow-0"
-                                    small
-                                    color="grey"
-                                    @click.stop="
-                                      deleteTableColumn(i, j, col, table)
-                                    "
+                                  <v-tooltip
+                                    bottom
                                   >
-                                    mdi-delete-outline
-                                  </v-icon>
+                                   <template #activator="{ on }">
+                                      <v-icon
+                                          v-if="!viewMode"
+                                          class="flex-grow-0"
+                                          small
+                                          color="grey"
+                                          @click.stop="
+                                            deleteTableColumn(i, j, col, table)
+                                          "
+                                          v-on="on"
+                                        >
+                                          mdi-delete-outline
+                                        </v-icon>
+                                      </template>
+                                      <!-- TODO: i18n -->
+                                    <span>Delete Column</span>
+                                  </v-tooltip>
                                 </td>
                               </template>
                             </tr>
-
-                            <!--                  <tr>-->
-                            <!--                    <td colspan='4' class='text-center pa-2'>-->
-                            <!--                    </td>-->
-                            <!--                  </tr>-->
                           </tbody>
                         </v-simple-table>
 

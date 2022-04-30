@@ -13,7 +13,7 @@ function syncLog(log) {
 const start = Date.now();
 
 let enableErrorLogs = false
-let process_aTblData = false
+let process_aTblData = true
 let generate_migrationStats = true
 let migrationStats = []
 let migrationStatsObj = {
@@ -801,15 +801,16 @@ function nocoLinkProcessing(table, record, field) {
         await api.dbTableRow.nestedAdd(
           'noco',
           syncDB.projectName,
-          table.title,
+          table.id,
           `${record.id}`,
           'mm', // fix me
-          referenceColumnName,
+          encodeURIComponent(referenceColumnName),
           `${refRowIdList[0][i]}`
         );
       }
     }
   })().catch(e => {
+    console.log(e)
     console.log(`NC: Link error`)
   });
 }
@@ -854,6 +855,11 @@ function nocoBaseDataProcessing(table, record) {
       // these will be automatically populated depending on schema configuration
       if (dt === 'Lookup') delete rec[key];
       if (dt === 'Rollup') delete rec[key];
+      // if (dt === 'Attachment') delete rec[key];
+
+      if (dt === 'Collaborator') {
+        rec[key] = `${value?.name} <${value?.email}>`
+      }
 
       if (dt === 'Attachment') {
         let tempArr = [];
@@ -875,7 +881,7 @@ function nocoBaseDataProcessing(table, record) {
 
           var imageFile = new FormData();
           imageFile.append('files', binaryImage, {
-            filename: v.filename
+            filename: v.filename.includes('?')?v.filename.split('?')[0]:v.filename
           });
 
           const rs = await axios
@@ -913,7 +919,7 @@ function nocoBaseDataProcessing(table, record) {
     let returnValue = await api.dbTableRow.bulkCreate(
       'nc',
       syncDB.projectName,
-      table.title,
+      table.id, // encodeURIComponent(table.title),
       [rec]
     );
 
@@ -1055,7 +1061,7 @@ async function nc_migrateATbl() {
       await nocoReadData(ncTbl, nocoBaseDataProcessing);
     }
 
-    // // Configure link @ Data row's
+    // Configure link @ Data row's
     for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
       let x = ncLinkMappingTable[idx];
       let ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);

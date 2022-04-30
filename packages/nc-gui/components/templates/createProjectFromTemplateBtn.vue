@@ -13,8 +13,8 @@
 </template>
 
 <script>
+import { SqlUiFactory } from 'nocodb-sdk'
 import colors from '~/mixins/colors'
-import { SqlUiFactory } from 'nocodb-sdk';
 
 export default {
   name: 'CreateProjectFromTemplateBtn',
@@ -44,6 +44,7 @@ export default {
   },
   data() {
     return {
+      localTemplateData: null,
       projectCreation: false,
       tableCreation: false,
       loaderMessagesIndex: 0,
@@ -71,6 +72,18 @@ export default {
       ]
     }
   },
+  watch: {
+    templateData: {
+      deep: true,
+      handler(data) {
+        this.localTemplateData = JSON.parse(JSON.stringify(data))
+      }
+    }
+  },
+  created() {
+    this.localTemplateData = JSON.parse(JSON.stringify(this.templateData))
+  },
+
   methods: {
     async useTemplate(projectType) {
       if (!this.valid) {
@@ -78,7 +91,6 @@ export default {
       }
 
       // this.$emit('useTemplate', type)
-
       // this.projectCreation = true
       let interv
       try {
@@ -140,15 +152,15 @@ export default {
 
           // Create tables
           try {
-            for (var t of this.templateData.tables) {
+            for (const t of this.localTemplateData.tables) {
               // enrich system fields if not provided
               // e.g. id, created_at, updated_at
               const systemColumns = SqlUiFactory
-                  .create({client: 'sqlite3'})
-                  .getNewTableColumns()
-                  .filter(c => c.column_name != "title")
+                .create({ client: 'sqlite3' })
+                .getNewTableColumns()
+                .filter(c => c.column_name != 'title')
               // mark updated column_name
-              t.columns.map(c => {
+              t.columns.map((c) => {
                 if (c.cn) {
                   c.column_name = c.cn
                   c.ref_column_name = c.column_name
@@ -158,11 +170,9 @@ export default {
               const table = await this.$api.dbTable.create(project.id, {
                 table_name: t.ref_table_name,
                 title: '',
-                columns: [...t.columns, ...systemColumns],
-              });
-              console.log(table)
+                columns: [...t.columns, ...systemColumns]
+              })
               t.table_title = table.title
-              console.log(t)
             }
             this.tableCreation = true
           } catch (e) {
@@ -197,10 +207,7 @@ export default {
     async importDataToProject(projectName, prefix) {
       let total = 0
       let progress = 0
-      console.log("projectName = " + projectName)
-      console.log(this.templateData.tables)
-      await Promise.all(this.templateData.tables.map(v => (async(tableMeta) => {
-      console.log(tableMeta)
+      await Promise.all(this.localTemplateData.tables.map(v => (async(tableMeta) => {
         const tableName = tableMeta.table_title
         const data = this.importData[tableMeta.ref_table_name]
         total += data.length

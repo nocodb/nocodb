@@ -46,6 +46,7 @@ import passport from 'passport';
 
 import crypto from 'crypto';
 import swaggerApis from './swagger/swaggerApis';
+import importApis from './importApis';
 
 export default function(router: Router, server) {
   initStrategies(router);
@@ -121,6 +122,8 @@ export default function(router: Router, server) {
       Tele.event({ ...args, id });
     });
   });
+
+  importApis(router, server);
 }
 
 function getHash(str) {

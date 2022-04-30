@@ -137,8 +137,14 @@
                     </v-tooltip>
                   </template>
                 </v-list-item-group>
+
+                <v-list-item @click="improtFromAirtableModal = true">
+                  <v-list-item-title>Import from Airtable</v-list-item-title>
+                </v-list-item>
               </v-list>
             </div>
+
+            <import-from-airtable v-model="improtFromAirtableModal" />
           </v-navigation-drawer>
           <v-container class="flex-grow-1 py-9 px-15" style="max-height: 90vh; overflow-y: auto">
             <div v-if="activePage === 'audit'" style="height:100%">
@@ -177,13 +183,15 @@ import DisableOrEnableModels from '~/components/project/projectMetadata/disableO
 import AuthTab from '~/components/authTab'
 import XcMeta from '~/components/project/settings/xcMeta'
 import AuditTab from '~/components/project/auditTab'
+import ImportFromAirtable from '~/components/imprt/importFromAirtable'
 
 export default {
   name: 'SettingsModal',
-  components: { AuditTab, XcMeta, AuthTab, DisableOrEnableModels, AppStore },
+  components: { ImportFromAirtable, AuditTab, XcMeta, AuthTab, DisableOrEnableModels, AppStore },
   data: () => ({
     settingsModal: false,
-    activePage: 'role'
+    activePage: 'role',
+    improtFromAirtableModal: false
   })
 }
 </script>

@@ -101,6 +101,7 @@
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.19.0",
     "boxen": "^5.0.0",
+    "bullmq": "^1.81.1",
     "clear": "^0.1.0",
     "cli-table3": "^0.6.0",
     "cluster": "^0.7.7",

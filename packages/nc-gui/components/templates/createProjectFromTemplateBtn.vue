@@ -162,8 +162,9 @@ export default {
               // mark updated column_name
               t.columns.map((c) => {
                 if (c.cn) {
+                  // update column_name if users change it
+                  // the original one will be kept in ref_column_name
                   c.column_name = c.cn
-                  c.ref_column_name = c.column_name
                 }
                 return c
               })

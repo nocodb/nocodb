@@ -1,9 +1,9 @@
-import JobMgr from './JobMgr';
+import JobsMgr from './JobsMgr';
 import EmitteryJobsMgr from './EmitteryJobsMgr';
 import RedisJobsMgr from './RedisJobsMgr';
 
 export default class NocoJobs {
-  private static client: JobMgr;
+  private static client: JobsMgr;
 
   private static init() {
     if (process.env.NC_REDIS_URL) {
@@ -13,7 +13,7 @@ export default class NocoJobs {
     }
   }
 
-  public static get get(): JobMgr {
+  public static get jobsMgr(): JobsMgr {
     if (!this.client) this.init();
     return this.client;
   }

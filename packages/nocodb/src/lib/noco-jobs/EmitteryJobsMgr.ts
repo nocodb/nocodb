@@ -1,7 +1,7 @@
-import JobMgr from './JobMgr';
+import JobsMgr from './JobsMgr';
 import Emittery from 'emittery';
 
-export default class EmitteryJobsMgr extends JobMgr {
+export default class EmitteryJobsMgr extends JobsMgr {
   emitter: Emittery;
 
   constructor() {
@@ -13,7 +13,22 @@ export default class EmitteryJobsMgr extends JobMgr {
     return this.emitter.emit(jobName, payload);
   }
 
-  addJobWorker(jobName: string, workerFn: (payload: any) => void) {
-    this.emitter.on(jobName, payload => {});
+  addJobWorker(
+    jobName: string,
+    workerFn: (
+      payload: any,
+      progressCbk?: (payload: any, msg?: string) => void
+    ) => void
+  ) {
+    this.emitter.on(jobName, async payload => {
+      try {
+        await workerFn(payload, (...args) =>
+          this.invokeProgressCbks(jobName, ...args)
+        );
+        await this.invokeFailureCbks(jobName, payload);
+      } catch (e) {
+        await this.invokeFailureCbks(jobName, payload);
+      }
+    });
   }
 }

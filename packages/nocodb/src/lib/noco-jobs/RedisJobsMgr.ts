@@ -1,24 +1,46 @@
 import { Queue, Worker } from 'bullmq';
 import Redis from 'ioredis';
-import JobMgr from './JobMgr';
+import JobsMgr from './JobsMgr';
 
-export default class RedisJobsMgr extends JobMgr {
+export default class RedisJobsMgr extends JobsMgr {
   queue: { [jobName: string]: Queue };
   workers: { [jobName: string]: Worker };
+  connection: Redis;
 
   constructor(config: any) {
     super();
     this.queue = {};
     this.workers = {};
-    const connection = new Redis(config);
+    this.connection = new Redis(config);
   }
 
   async add(jobName: string, payload: any): Promise<any> {
-    this.queue[jobName] = this.queue[jobName] || new Queue(jobName);
+    this.queue[jobName] =
+      this.queue[jobName] ||
+      new Queue(jobName, { connection: this.connection });
     this.queue[jobName].add(jobName, payload);
   }
 
-  addJobWorker(jobName: string, workerFn: (payload: any) => void) {
-    this.worker[jobName] = new Worker(jobName);
+  addJobWorker(
+    jobName: string,
+    workerFn: (
+      payload: any,
+      progressCbk?: (payload: any, msg?: string) => void
+    ) => void
+  ) {
+    this.workers[jobName] = new Worker(
+      jobName,
+      async payload => {
+        try {
+          await workerFn(payload.data, (...args) =>
+            this.invokeProgressCbks(jobName, ...args)
+          );
+          await this.invokeFailureCbks(jobName, payload.data);
+        } catch (e) {
+          await this.invokeFailureCbks(jobName, payload.data);
+        }
+      },
+      { connection: this.connection }
+    );
   }
 }

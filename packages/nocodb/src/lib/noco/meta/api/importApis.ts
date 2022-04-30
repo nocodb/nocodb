@@ -3,14 +3,13 @@ import { Queue, Worker } from 'bullmq';
 import axios from 'axios';
 import catchError from '../helpers/catchError';
 import { Server, Socket } from 'socket.io';
+import NocoJobs from '../../../noco-jobs/NocoJobs';
 
 const worker = new Worker('test', async job => {
   if (job.name === 'name') {
     await executeJob(job.data);
   }
 });
-
-console.log(worker);
 
 const clients: { [id: string]: Socket } = {};
 const sleep = time => new Promise(resolve => setTimeout(resolve, time));
@@ -59,6 +58,8 @@ export default (router: Router, _server) => {
   io.on('connection', socket => {
     clients[socket.id] = socket;
   });
+
+  NocoJobs.jobsMgr.addJobWorker();
 
   router.post(
     '/api/v1/db/meta/import/airtable',

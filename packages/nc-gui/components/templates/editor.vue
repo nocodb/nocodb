@@ -118,10 +118,8 @@
                       </span>
 
                       <v-spacer />
-                      <v-tooltip
-                        bottom
-                      >
-                          <template #activator="{ on }">
+                      <v-tooltip bottom>
+                        <template #activator="{ on }">
                           <v-icon
                             v-if="!viewMode"
                             class="flex-grow-0 mr-2"
@@ -131,9 +129,9 @@
                             v-on="on"
                           >
                             mdi-delete-outline
-                          </v-icon>  
-                          </template>
-                          <!-- TODO: i18n -->
+                          </v-icon>
+                        </template>
+                        <!-- TODO: i18n -->
                         <span>Delete Table</span>
                       </v-tooltip>
                     </v-expansion-panel-header>
@@ -495,24 +493,22 @@
                                   "
                                 />
                                 <td style="max-width: 50px; width: 50px">
-                                  <v-tooltip
-                                    bottom
-                                  >
-                                   <template #activator="{ on }">
+                                  <v-tooltip bottom>
+                                    <template #activator="{ on }">
                                       <v-icon
-                                          v-if="!viewMode"
-                                          class="flex-grow-0"
-                                          small
-                                          color="grey"
-                                          @click.stop="
+                                        v-if="!viewMode"
+                                        class="flex-grow-0"
+                                        small
+                                        color="grey"
+                                        @click.stop="
                                             deleteTableColumn(i, j, col, table)
                                           "
-                                          v-on="on"
-                                        >
-                                          mdi-delete-outline
-                                        </v-icon>
-                                      </template>
-                                      <!-- TODO: i18n -->
+                                        v-on="on"
+                                      >
+                                        mdi-delete-outline
+                                      </v-icon>
+                                    </template>
+                                    <!-- TODO: i18n -->
                                     <span>Delete Column</span>
                                   </v-tooltip>
                                 </td>
@@ -522,57 +518,110 @@
                         </v-simple-table>
 
                         <div v-if="!viewMode" class="text-center">
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'Number')"
-                          >
-                            {{ getIcon("Number") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'SingleLineText')"
-                          >
-                            {{ getIcon("SingleLineText") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'LongText')"
-                          >
-                            {{ getIcon("LongText") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="
-                              addNewColumnRow(table, 'LinkToAnotherRecord')
-                            "
-                          >
-                            {{ getIcon("LinkToAnotherRecord") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'Lookup')"
-                          >
-                            {{ getIcon("Lookup") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'Rollup')"
-                          >
-                            {{ getIcon("Rollup") }}
-                          </v-icon>
-                          <v-btn
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table)"
-                          >
-                            + column
-                          </v-btn>
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'Number')"
+                                v-on="on"
+                              >
+                                {{ getIcon("Number") }}
+                              </v-icon>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add Number Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'SingleLineText')"
+                                v-on="on"
+                              >
+                                {{ getIcon("SingleLineText") }}
+                              </v-icon>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add SingleLineText Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'LongText')"
+                                v-on="on"
+                              >
+                                {{ getIcon("LongText") }}
+                              </v-icon>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add LongText Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'LinkToAnotherRecord')"
+                                v-on="on"
+                              >
+                                {{ getIcon("LinkToAnotherRecord") }}
+                              </v-icon>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add LinkToAnotherRecord Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'Lookup')"
+                                v-on="on"
+                              >
+                                {{ getIcon("Lookup") }}
+                              </v-icon>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add Lookup Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'Rollup')"
+                                v-on="on"
+                              >
+                                {{ getIcon("Rollup") }}
+                              </v-icon>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add Rollup Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-btn
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table)"
+                                v-on="on"
+                              >
+                                + column
+                              </v-btn>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add Other Column</span>
+                          </v-tooltip>
                         </div>
                       </template>
                     </v-expansion-panel-content>

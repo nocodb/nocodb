@@ -1,11 +1,10 @@
 {
   "airtable": {
-    "apiKey": "keyeZla3k0desT8fU",
-    "baseId": "appNGAcKwq7eq0xuY",
-    "schemaJson": "ltar.json"
+    "apiKey": "keyxxxxxxxxxxxxxx",
+    "shareId": "shrxxxxxxxxxxxxxxx"
   },
   "projectName": "sample",
   "baseURL": "http://localhost:8080",
   "authToken":
-  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfdGQ2emowdTB0Nmx0cDIiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTExMjYzMzl9.9CZsRHi8A8NhI6Unq3hIBMvB8NatlBHPfqRjgEbrogY"
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InRlc3RAdGVzdC50ZXN0IiwiZmlyc3RuYW1lIjpudWxsLCJsYXN0bmFtZSI6bnVsbCwiaWQiOiJ1c185cTVnYW93bDQxMGEzaSIsInJvbGVzIjoidXNlcixzdXBlciIsImlhdCI6MTY1MTI3MTI2NX0.-9xBRg4zj4yj7pKwXx0XvDqcaON3NPvZuMAeIfOVgu0"
 }

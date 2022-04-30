@@ -3,6 +3,9 @@ const jsonfile = require('jsonfile');
 const { UITypes } = require('nocodb-sdk');
 const axios = require('axios').default;
 const FormData = require('form-data');
+const FetchAT = require('./fetchAT');
+
+var base, baseId;
 
 function syncLog(log) {
   // console.log(log)
@@ -122,10 +125,14 @@ const api = new Api({
 // global schema store
 let aTblSchema = {};
 
-function getAtableSchema() {
+async function getAtableSchema() {
   // let file = jsonfile.readFileSync('./t0v0.json');
-  let file = jsonfile.readFileSync(syncDB.airtable.schemaJson);
-
+  let ft = await FetchAT(syncDB.airtable.shareId);
+  let file = ft.schema;
+  baseId = ft.baseId;
+  base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
+    baseId
+  );
   // store copy of atbl schema globally
   aTblSchema = file.tableSchemas;
   return file;
@@ -776,9 +783,6 @@ async function nocoReconfigureFields(aTblSchema) {
 
 // https://www.airtable.com/app1ivUy7ba82jOPn/api/docs#javascript/metadata
 let Airtable = require('airtable');
-let base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
-  syncDB.airtable.baseId
-);
 
 let aTblDataLinks = [];
 
@@ -1016,7 +1020,7 @@ async function nc_migrateATbl() {
   await init()
 
   // read schema file
-  const schema = getAtableSchema();
+  const schema = await getAtableSchema();
   let aTblSchema = schema.tableSchemas;
 
   // create empty project

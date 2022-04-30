@@ -147,6 +147,14 @@ export default {
                   .create({client: 'sqlite3'})
                   .getNewTableColumns()
                   .filter(c => c.column_name != "title")
+              // mark updated column_name
+              t.columns.map(c => {
+                if (c.cn) {
+                  c.column_name = c.cn
+                  c.ref_column_name = c.column_name
+                }
+                return c
+              })
               const table = await this.$api.dbTable.create(project.id, {
                 table_name: t.ref_table_name,
                 title: '',
@@ -154,6 +162,7 @@ export default {
               });
               console.log(table)
               t.table_title = table.title
+              console.log(t)
             }
             this.tableCreation = true
           } catch (e) {
@@ -188,8 +197,11 @@ export default {
     async importDataToProject(projectName, prefix) {
       let total = 0
       let progress = 0
+      console.log("projectName = " + projectName)
+      console.log(this.templateData.tables)
       await Promise.all(this.templateData.tables.map(v => (async(tableMeta) => {
-        const table = tableMeta.table_title
+      console.log(tableMeta)
+        const tableName = tableMeta.table_title
         const data = this.importData[tableMeta.ref_table_name]
         total += data.length
         for (let i = 0; i < data.length; i += 500) {
@@ -199,7 +211,7 @@ export default {
           await this.$api.dbTableRow.bulkCreate(
             'noco',
             projectName,
-            table,
+            tableName,
             batchData
           )
           progress += batchData.length

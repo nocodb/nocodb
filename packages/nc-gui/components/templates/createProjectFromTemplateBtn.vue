@@ -101,25 +101,26 @@ export default {
 
         let project
 
+        // Not available now
         if (this.importToProject) {
-          this.$store.commit('loader/MutMessage', 'Importing excel template')
+          // this.$store.commit('loader/MutMessage', 'Importing excel template')
 
-          const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-            // todo: extract based on active
-            dbAlias: 'db', // this.nodes.dbAlias,
-            env: '_noco'
-          }, 'xcModelsCreateFromTemplate', {
-            template: this.templateData
-          }])
+          // const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+          //   // todo: extract based on active
+          //   dbAlias: 'db', // this.nodes.dbAlias,
+          //   env: '_noco'
+          // }, 'xcModelsCreateFromTemplate', {
+          //   template: this.templateData
+          // }])
 
-          if (res && res.tables && res.tables.length) {
-            this.$toast.success(`Imported ${res.tables.length} tables successfully`).goAway(3000)
-          } else {
-            this.$toast.success('Template imported successfully').goAway(3000)
-          }
+          // if (res && res.tables && res.tables.length) {
+          //   this.$toast.success(`Imported ${res.tables.length} tables successfully`).goAway(3000)
+          // } else {
+          //   this.$toast.success('Template imported successfully').goAway(3000)
+          // }
 
-          projectId = this.$route.params.project_id
-          prefix = this.$store.getters['project/GtrProjectPrefix']
+          // projectId = this.$route.params.project_id
+          // prefix = this.$store.getters['project/GtrProjectPrefix']
         } else {
           // Create an empty project
           try {
@@ -159,17 +160,9 @@ export default {
                 .create({ client: 'sqlite3' })
                 .getNewTableColumns()
                 .filter(c => c.column_name != 'title')
-              // mark updated column_name
-              t.columns.map((c) => {
-                if (c.cn) {
-                  // update column_name if users change it
-                  // the original one will be kept in ref_column_name
-                  c.column_name = c.cn
-                }
-                return c
-              })
+
               const table = await this.$api.dbTable.create(project.id, {
-                table_name: t.ref_table_name,
+                table_name: t.table_name,
                 title: '',
                 columns: [...t.columns, ...systemColumns]
               })
@@ -186,26 +179,30 @@ export default {
           }
         }
 
-        if (this.tableCreation) {
-          // Bulk import data
-          if (this.importData) {
-            this.$store.commit('loader/MutMessage', 'Importing excel data to project')
-            await this.importDataToProject(this.templateData.title, project.prefix)
-          }
-          this.$store.commit('loader/MutMessage', null)
-          this.projectReloading = false
-          this.$emit('success')
+        if (!this.tableCreation) {
+          // failed to create table
+          return
         }
+
+        // Bulk import data
+        if (this.importData) {
+          this.$store.commit('loader/MutMessage', 'Importing excel data to project')
+          await this.importDataToProject(this.templateData.title)
+        }
+        this.projectReloading = false
+        this.$emit('success')
       } catch (e) {
         console.log(e)
         this.$toast.error(e.message).goAway(3000)
-        this.$store.commit('loader/MutMessage', null)
+      } finally {
         clearInterval(interv)
+        this.$store.commit('loader/MutMessage', null)
+        this.projectCreation = false
+        this.tableCreation = false
+        this.projectReloading = false
       }
-      this.projectCreation = false
-      this.tableCreation = false
     },
-    async importDataToProject(projectName, prefix) {
+    async importDataToProject(projectName) {
       let total = 0
       let progress = 0
       await Promise.all(this.localTemplateData.tables.map(v => (async(tableMeta) => {

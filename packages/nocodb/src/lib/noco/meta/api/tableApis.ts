@@ -167,15 +167,18 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   res.json(
     await Model.insert(project.id, base.id, {
       ...req.body,
-      columns: columns.map((c, i) => ({
-        uidt: c.uidt || getColumnUiType(base, c),
-        ...c,
-        title:
-          req.body?.columns?.find(c1 => c.cn === c1.column_name)?.title ||
-          getColumnNameAlias(c.cn, base),
-        column_name: c.cn,
-        order: i + 1
-      })),
+      columns: columns.map((c, i) => {
+        const colMetaFromReq = req.body?.columns?.find(
+          c1 => c.cn === c1.column_name
+        );
+        return {
+          uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(base, c),
+          ...c,
+          title: colMetaFromReq?.title || getColumnNameAlias(c.cn, base),
+          column_name: c.cn,
+          order: i + 1
+        };
+      }),
       order: +(tables?.pop()?.order ?? 0) + 1
     })
   );

@@ -1,8 +1,12 @@
 const axios = require('axios').default;
 
-module.exports = async function main(shareId) {
+module.exports = async function main(shareId, tableId, viewId) {
   var Cookie = "";
-  const hreq = await axios.get(`https://airtable.com/${shareId}`, {
+  let url = `https://airtable.com/${shareId}`
+  if(tableId && viewId)
+    url = `https://airtable.com/${shareId}/${tableId}/${viewId}`
+
+  const hreq = await axios.get(url, {
     "headers": {
       "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.9",
       "accept-language": "en-US,en;q=0.9",

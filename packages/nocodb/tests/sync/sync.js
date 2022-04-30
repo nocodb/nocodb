@@ -138,6 +138,11 @@ async function getAtableSchema() {
   return file;
 }
 
+async function getViewData(tblId, viewId) {
+  let ft = await FetchAT(syncDB.airtable.shareId, tblId, viewId);
+  return ft.schema?.tableDatas[0]?.viewDatas[0]
+}
+
 // base mapping table
 let aTblNcTypeMap = {
   foreignKey: UITypes.LinkToAnotherRecord,
@@ -1018,6 +1023,60 @@ async function nocoCreateProject() {
   });
 }
 
+async function nocoConfigureGridView(aTblSchema) {
+  for (let idx = 0; idx < aTblSchema.length; idx++) {
+    let tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+    let gridViews = aTblSchema[idx].views.filter(x => x.type === 'grid');
+
+    for(let i=0; i<gridViews.length; i++) {
+
+      // fetch viewData JSON
+      let vData = await getViewData(aTblSchema[idx].id, gridViews[i].id)
+
+      // retrieve view name & associated NC-ID
+      let viewName = aTblSchema[idx].views.find(x => x.id === gridViews[i].id)?.name
+      let viewList = await api.dbView.list(tblId)
+      let ncViewId = viewList?.list?.find(x => x.tn === viewName)?.id
+
+      // create view (default already created)
+      if(i>0)
+        await api.dbView.gridCreate(tblId, {title: viewName})
+
+      // hide fields
+      // let hiddenColumns = ["_aTbl_nc_rec_id"]
+      // // extract other columns hidden in this view
+      // let hiddenColumnID = vData.columnOrder.filter(x => x.visibility===false)
+      // for(let j=0; j<hiddenColumnID.length; j++) {
+      //   hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn)
+      // }
+      // // console.log(`Phase-8 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Hide columns [${idx+1}/${aTblSchema.length}] ${aTblSchema[idx].name}`)
+      // await nc_hideColumn(aTblSchema[idx].name, viewName, hiddenColumns)
+
+      ////////////////////////////////////
+
+      // configure sort
+      if(vData?.filters) {
+        console.log(vData?.filters)
+      }
+
+      // configure filter
+      if(vData?.lastSortsApplied?.sortSet.length) {
+        for(let i=0; i<vData.lastSortsApplied.sortSet.length; i++) {
+          let columnId = (await nc_getColumnSchema(vData.lastSortsApplied.sortSet[i].columnId)).id
+
+          await api.dbTableSort.create(ncViewId, {
+            fk_column_id: columnId,
+            direction: vData.lastSortsApplied.sortSet[i].ascending?'asc':'dsc'
+          })
+        }
+      }
+    }
+
+  }
+
+
+}
+
 // start function
 async function nc_migrateATbl() {
 
@@ -1052,6 +1111,9 @@ async function nc_migrateATbl() {
 
   // hide-fields
   await nocoReconfigureFields(aTblSchema);
+
+  // configure grid views
+  await nocoConfigureGridView(aTblSchema)
 
   if(process_aTblData) {
     // await nc_DumpTableSchema();

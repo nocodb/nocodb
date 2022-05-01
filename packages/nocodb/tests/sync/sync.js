@@ -15,6 +15,7 @@ const start = Date.now();
 let enableErrorLogs = false
 let process_aTblData = true
 let generate_migrationStats = true
+let aTblNcMappingTbl = {}
 let migrationStats = []
 let migrationStatsObj = {
   table_name: '',
@@ -33,6 +34,27 @@ let migrationStatsObj = {
   }
 }
 
+// static mapping records between aTblId && ncId
+async function addToMappingTbl(aTblId, ncId, ncName) {
+  aTblNcMappingTbl[`${aTblId}`] = {
+    ncId: ncId,
+
+    // name added to assist in quick debug
+    ncName: ncName
+  }
+}
+
+function getNcIdFromAtId(aId) {
+  return aTblNcMappingTbl[`aId`]?.ncId
+}
+
+function getNcNameFromAtId(aId) {
+  return aTblNcMappingTbl[`aId`]?.ncName
+}
+
+
+// statistics
+//
 async function generateMigrationStats(aTblSchema) {
 
   for (let idx = 0; idx < aTblSchema.length; idx++) {
@@ -76,6 +98,8 @@ async function generateMigrationStats(aTblSchema) {
       x => x.uidt === 'Rollup'
     );
 
+    // all links hardwired as m2m. m2m generates additional tables per link
+    // hence link/2
     migrationStatsObj.nc.columns = ncTbl.columns.length - linkColumn.length/2;
     migrationStatsObj.nc.links = linkColumn.length/2;
     migrationStatsObj.nc.lookup = lookup.length;
@@ -396,12 +420,23 @@ async function nocoCreateBaseSchema(aTblSchema) {
       tables[idx]
     );
 
+    // update mapping table
+    await addToMappingTbl(aTblSchema[idx].id, table.id, table.title)
+    for(let colIdx=0; colIdx<table.columns.length; colIdx++){
+      let aId = aTblSchema[idx].columns.find(x => x.name.trim() === table.columns[colIdx].title)?.id
+      if(aId)
+        await addToMappingTbl(aId, table.columns[colIdx].id, table.columns[colIdx].title)
+    }
+
     // update default view name- to match it to airtable view name
     syncLog(`NC API: dbView.list ${table.id}`)
     let view = await api.dbView.list(table.id);
 
     syncLog(`NC API: dbView.update ${view.list[0].id} ${aTblSchema[idx].views[0].name}`)
-    let x = await api.dbView.update(view.list[0].id, {title: aTblSchema[idx].views[0].name})
+    let aTbl_grid = aTblSchema[idx].views.find(x => x.type === 'grid')
+    let x = await api.dbView.update(view.list[0].id, {title: aTbl_grid.name})
+
+    await addToMappingTbl(aTbl_grid.id, table.views[0].id, aTbl_grid.name)
   }
 
   // debug
@@ -450,7 +485,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
             if(enableErrorLogs) console.log(`## Duplicate ${aTblLinkColumns[i].name}`)
 
           // create link
-          let column = await api.dbTableColumn.create(srcTableId, {
+          let ncTbl = await api.dbTableColumn.create(srcTableId, {
             uidt: 'LinkToAnotherRecord',
             title: aTblLinkColumns[i].name + suffix,
             parentId: srcTableId,
@@ -461,6 +496,9 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
               //   : 'hm'
           });
           syncLog(`NC API: dbTableColumn.create LinkToAnotherRecord`)
+
+          let ncId = ncTbl.columns.find(x => x.title === aTblLinkColumns[i].name + suffix)?.id
+          await addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix)
 
           // store link information in separate table
           // this information will be helpful in identifying relation pair
@@ -546,14 +584,17 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           if(duplicate)
             if(enableErrorLogs) console.log(`## Duplicate ${aTblLinkColumns[i].name}`)
 
-
           // rename
           // note that: current rename API requires us to send all parameters,
           // not just title being renamed
-          let res = await api.dbTableColumn.update(childLinkColumn.id, {
+          let ncTbl = await api.dbTableColumn.update(childLinkColumn.id, {
             ...childLinkColumn,
             title: aTblLinkColumns[i].name + suffix,
           });
+
+          let ncId = ncTbl.columns.find(x => x.title === aTblLinkColumns[i].name + suffix)?.id
+          await addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix)
+
           // console.log(res.columns.find(x => x.title === aTblLinkColumns[i].name))
           syncLog(`NC API: dbTableColumn.update rename symmetric column`)
         }
@@ -584,25 +625,38 @@ async function nocoCreateLookups(aTblSchema) {
           continue
         }
 
-        let ncRelationColumn = await nc_getColumnSchema(
-          aTblColumns[i].typeOptions.relationColumnId
-        );
-        let ncLookupColumn = await nc_getColumnSchema(
-          aTblColumns[i].typeOptions.foreignTableRollupColumnId
-        );
+        // let ncRelationColumn = await nc_getColumnSchema(
+        //   aTblColumns[i].typeOptions.relationColumnId
+        // );
+        // let ncLookupColumn = await nc_getColumnSchema(
+        //   aTblColumns[i].typeOptions.foreignTableRollupColumnId
+        // );
+        //
+        // if(ncLookupColumn === undefined) {
+        //   aTblColumns[i]['srcTableId'] = srcTableId;
+        //   nestedLookupTbl.push(aTblColumns[i])
+        //   continue;
+        // }
 
-        if(ncLookupColumn === undefined) {
+        let ncRelationColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.relationColumnId);
+        let ncLookupColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.foreignTableRollupColumnId);
+
+        if (ncLookupColumnId === undefined) {
           aTblColumns[i]['srcTableId'] = srcTableId;
           nestedLookupTbl.push(aTblColumns[i])
           continue;
         }
 
+
         let lookupColumn = await api.dbTableColumn.create(srcTableId, {
           uidt: 'Lookup',
           title: aTblColumns[i].name,
-          fk_relation_column_id: ncRelationColumn.id,
-          fk_lookup_column_id: ncLookupColumn.id
+          fk_relation_column_id: ncRelationColumnId,
+          fk_lookup_column_id: ncLookupColumnId
         });
+
+        let ncId = lookupColumn.columns.find(x => x.title === aTblColumns[i].name)?.id
+        await addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
 
         syncLog(`NC API: dbTableColumn.create LOOKUP`)
       }
@@ -625,25 +679,35 @@ async function nocoCreateLookups(aTblSchema) {
     for (let i = 0; i < nestedLookupTbl.length; i++) {
       console.log(`Phase-4 Configuring Nested Lookup: Level-${level} [${i+1}/${nestedCnt}]`)
 
-      let srcTableId = nestedLookupTbl[i].srcTableId
+      let srcTableId = nestedLookupTbl[i].srcTableId;
 
-      let ncRelationColumn = await nc_getColumnSchema(
-        nestedLookupTbl[i].typeOptions.relationColumnId
-      );
-      let ncLookupColumn = await nc_getColumnSchema(
-        nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
-      );
+      // let ncRelationColumn = await nc_getColumnSchema(
+      //   nestedLookupTbl[i].typeOptions.relationColumnId
+      // );
+      // let ncLookupColumn = await nc_getColumnSchema(
+      //   nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
+      // );
+      //
+      // if (ncLookupColumn === undefined) {
+      //   continue;
+      // }
 
-      if (ncLookupColumn === undefined) {
+      let ncRelationColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.relationColumnId);
+      let ncLookupColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId);
+
+      if (ncLookupColumnId === undefined) {
         continue;
       }
 
       let lookupColumn = await api.dbTableColumn.create(srcTableId, {
         uidt: 'Lookup',
         title: nestedLookupTbl[i].name,
-        fk_relation_column_id: ncRelationColumn.id,
-        fk_lookup_column_id: ncLookupColumn.id
+        fk_relation_column_id: ncRelationColumnId,
+        fk_lookup_column_id: ncLookupColumnId
       });
+
+      let ncId = lookupColumn.columns.find(x => x.title === aTblColumns[i].name)?.id
+      await addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
 
       // remove entry
       nestedLookupTbl.splice(i, 1)
@@ -673,26 +737,40 @@ async function nocoCreateRollups(aTblSchema) {
           continue
         }
 
-        let ncRelationColumn = await nc_getColumnSchema(
-          aTblColumns[i].typeOptions.relationColumnId
-        );
-        let ncRollupColumn = await nc_getColumnSchema(
-          aTblColumns[i].typeOptions.foreignTableRollupColumnId
-        );
+        // let ncRelationColumn = await nc_getColumnSchema(
+        //   aTblColumns[i].typeOptions.relationColumnId
+        // );
+        // let ncRollupColumn = await nc_getColumnSchema(
+        //   aTblColumns[i].typeOptions.foreignTableRollupColumnId
+        // );
+        //
+        // if(ncRollupColumn === undefined) {
+        //   aTblColumns[i]['srcTableId'] = srcTableId;
+        //   nestedRollupTbl.push(aTblColumns[i])
+        //   continue;
+        // }
 
-        if(ncRollupColumn === undefined) {
+        let ncRelationColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.relationColumnId)
+        let ncRollupColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.foreignTableRollupColumnId)
+
+        if (ncRollupColumnId === undefined) {
           aTblColumns[i]['srcTableId'] = srcTableId;
           nestedRollupTbl.push(aTblColumns[i])
           continue;
         }
+
         let rollupColumn = await api.dbTableColumn.create(srcTableId, {
           uidt: 'Rollup',
           title: aTblColumns[i].name,
-          fk_relation_column_id: ncRelationColumn.id,
-          fk_rollup_column_id: ncRollupColumn.id,
+          fk_relation_column_id: ncRelationColumnId,
+          fk_rollup_column_id: ncRollupColumnId,
           rollup_function: 'sum' // fix me: hardwired
         });
         syncLog(`NC API: dbTableColumn.create ROLLUP`)
+
+        let ncId = rollupColumn.columns.find(x => x.title === aTblColumns[i].name)?.id
+        await addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
+
       }
     }
   }
@@ -706,27 +784,33 @@ async function nocoLookupForRollups() {
 
     let srcTableId = nestedLookupTbl[i].srcTableId;
 
-    let ncRelationColumn = await nc_getColumnSchema(
-      nestedLookupTbl[i].typeOptions.relationColumnId
-    );
-    let ncLookupColumn = await nc_getColumnSchema(
-      nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
-    );
+    // let ncRelationColumn = await nc_getColumnSchema(
+    //   nestedLookupTbl[i].typeOptions.relationColumnId
+    // );
+    // let ncLookupColumn = await nc_getColumnSchema(
+    //   nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
+    // );
 
-    if (ncLookupColumn === undefined) {
+    let ncRelationColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.relationColumnId)
+    let ncLookupColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId)
+
+    if (ncLookupColumnId === undefined) {
       continue;
     }
 
     let lookupColumn = await api.dbTableColumn.create(srcTableId, {
       uidt: 'Lookup',
       title: nestedLookupTbl[i].name,
-      fk_relation_column_id: ncRelationColumn.id,
-      fk_lookup_column_id: ncLookupColumn.id
+      fk_relation_column_id: ncRelationColumnId,
+      fk_lookup_column_id: ncLookupColumnId
     });
 
     // remove entry
     nestedLookupTbl.splice(i, 1)
     syncLog(`NC API: dbTableColumn.create LOOKUP`)
+
+    let ncId = lookupColumn.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
+    await addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
   }
 }
 
@@ -780,7 +864,8 @@ async function nocoReconfigureFields(aTblSchema) {
     }
     console.log(`Phase-8 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Hide columns [${idx+1}/${aTblSchema.length}] ${aTblSchema[idx].name}`)
 
-    await nc_hideColumn(aTblSchema[idx].name, aTblSchema[idx].views[0].name, hiddenColumns)
+    let aTbl_viewname = aTblSchema[idx].views.find(x => x.type === 'grid').name
+    await nc_hideColumn(aTblSchema[idx].name, aTbl_viewname, hiddenColumns)
   }
 }
 
@@ -1039,24 +1124,31 @@ async function nocoConfigureGridView(aTblSchema) {
       let ncViewId = viewList?.list?.find(x => x.tn === viewName)?.id
 
       // create view (default already created)
-      if(i>0)
-        await api.dbView.gridCreate(tblId, {title: viewName})
+      if (i > 0) {
+        let viewCreated = await api.dbView.gridCreate(tblId, { title: viewName })
+        await addToMappingTbl(gridViews[i].id, viewCreated.id, viewName)
+      }
 
       // hide fields
-      // let hiddenColumns = ["_aTbl_nc_rec_id"]
-      // // extract other columns hidden in this view
-      // let hiddenColumnID = vData.columnOrder.filter(x => x.visibility===false)
-      // for(let j=0; j<hiddenColumnID.length; j++) {
-      //   hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn)
-      // }
-      // // console.log(`Phase-8 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Hide columns [${idx+1}/${aTblSchema.length}] ${aTblSchema[idx].name}`)
-      // await nc_hideColumn(aTblSchema[idx].name, viewName, hiddenColumns)
+      let hiddenColumns = ["_aTbl_nc_rec_id"]
+      // extract other columns hidden in this view
+      let hiddenColumnID = vData.columnOrder.filter(x => x.visibility===false)
+      for(let j=0; j<hiddenColumnID.length; j++) {
+        hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn)
+      }
+      // console.log(`Phase-8 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Hide columns [${idx+1}/${aTblSchema.length}] ${aTblSchema[idx].name}`)
+      await nc_hideColumn(aTblSchema[idx].name, viewName, hiddenColumns)
 
       ////////////////////////////////////
 
       // configure sort
       if(vData?.filters) {
-        console.log(vData?.filters)
+
+        // skip filters if nested
+        if(!vData.filters.filterSet.find(x => x?.type === 'nested')) {
+
+          console.log(vData?.filters)
+        }
       }
 
       // configure filter
@@ -1134,6 +1226,12 @@ async function nc_migrateATbl() {
   if(generate_migrationStats) {
     await generateMigrationStats(aTblSchema)
   }
+
+  // let ncId = (await nc_getTableSchema(aTblSchema[0].name)).id
+  // let ncTbl = await api.dbTable.read(ncId)
+  // console.log(ncTbl)
+  // console.log(aTblNcMappingTbl)
+  // console.log(Object.keys(aTblNcMappingTbl).length)
 }
 
 nc_migrateATbl().catch(e => {

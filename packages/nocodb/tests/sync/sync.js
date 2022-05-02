@@ -33,12 +33,12 @@ async function addToMappingTbl(aTblId, ncId, ncName) {
 
 // get NcID from airtable ID
 function getNcIdFromAtId(aId) {
-  return aTblNcMappingTbl[`aId`]?.ncId
+  return aTblNcMappingTbl[aId]?.ncId
 }
 
 // get nc-title from airtable ID
 function getNcNameFromAtId(aId) {
-  return aTblNcMappingTbl[`aId`]?.ncName
+  return aTblNcMappingTbl[aId]?.ncName
 }
 ///////////////////////////////////////////////////////////////////////////////
 
@@ -589,8 +589,8 @@ async function nocoCreateLookups(aTblSchema) {
         fk_lookup_column_id: ncLookupColumnId
       });
 
-      let ncId = lookupColumn.columns.find(x => x.title === aTblColumns[i].name)?.id
-      await addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
+      let ncId = lookupColumn.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
+      await addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
 
       // remove entry
       nestedLookupTbl.splice(i, 1)

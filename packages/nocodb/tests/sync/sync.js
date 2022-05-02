@@ -3,15 +3,15 @@ const { UITypes } = require('nocodb-sdk');
 const axios = require('axios').default;
 const FormData = require('form-data');
 const FetchAT = require('./fetchAT');
+const sMap = require('./syncMap')
 let Airtable = require('airtable');
 
 var base, baseId;
 const start = Date.now();
 let enableErrorLogs = false
-let process_aTblData = false
+let process_aTblData = true
 let generate_migrationStats = true
 let debugMode = true
-let aTblNcMappingTbl = {}
 let api;
 let g_aTblSchema = {};
 let ncCreatedProjectSchema = [];
@@ -26,27 +26,6 @@ function syncLog(log) {
 
 // mapping table
 //
-
-// static mapping records between aTblId && ncId
-async function addToMappingTbl(aTblId, ncId, ncName) {
-  aTblNcMappingTbl[aTblId] = {
-    ncId: ncId,
-
-    // name added to assist in quick debug
-    ncName: ncName
-  }
-}
-
-// get NcID from airtable ID
-function getNcIdFromAtId(aId) {
-  return aTblNcMappingTbl[aId]?.ncId
-}
-
-// get nc-title from airtable ID
-function getNcNameFromAtId(aId) {
-  return aTblNcMappingTbl[aId]?.ncName
-}
-///////////////////////////////////////////////////////////////////////////////
 
 async function getAtableSchema(sDB) {
   let ft = await FetchAT(sDB.airtable.shareId);
@@ -314,11 +293,11 @@ async function nocoCreateBaseSchema(aTblSchema) {
     );
 
     // update mapping table
-    await addToMappingTbl(aTblSchema[idx].id, table.id, table.title)
+    await sMap.addToMappingTbl(aTblSchema[idx].id, table.id, table.title)
     for(let colIdx=0; colIdx<table.columns.length; colIdx++){
       let aId = aTblSchema[idx].columns.find(x => x.name.trim() === table.columns[colIdx].title)?.id
       if(aId)
-        await addToMappingTbl(aId, table.columns[colIdx].id, table.columns[colIdx].title)
+        await sMap.addToMappingTbl(aId, table.columns[colIdx].id, table.columns[colIdx].title)
     }
 
     // update default view name- to match it to airtable view name
@@ -329,7 +308,7 @@ async function nocoCreateBaseSchema(aTblSchema) {
     let aTbl_grid = aTblSchema[idx].views.find(x => x.type === 'grid')
     let x = await api.dbView.update(view.list[0].id, {title: aTbl_grid.name})
 
-    await addToMappingTbl(aTbl_grid.id, table.views[0].id, aTbl_grid.name)
+    await sMap.addToMappingTbl(aTbl_grid.id, table.views[0].id, aTbl_grid.name)
   }
 
   // debug
@@ -396,7 +375,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           syncLog(`NC API: dbTableColumn.create LinkToAnotherRecord`)
 
           let ncId = ncTbl.columns.find(x => x.title === aTblLinkColumns[i].name + suffix)?.id
-          await addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix)
+          await sMap.addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix)
 
           // store link information in separate table
           // this information will be helpful in identifying relation pair
@@ -491,7 +470,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           });
 
           let ncId = ncTbl.columns.find(x => x.title === aTblLinkColumns[i].name + suffix)?.id
-          await addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix)
+          await sMap.addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix)
 
           // console.log(res.columns.find(x => x.title === aTblLinkColumns[i].name))
           syncLog(`NC API: dbTableColumn.update rename symmetric column`)
@@ -521,8 +500,8 @@ async function nocoCreateLookups(aTblSchema) {
           continue
         }
 
-        let ncRelationColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.relationColumnId);
-        let ncLookupColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.foreignTableRollupColumnId);
+        let ncRelationColumnId = sMap.getNcIdFromAtId(aTblColumns[i].typeOptions.relationColumnId);
+        let ncLookupColumnId = sMap.getNcIdFromAtId(aTblColumns[i].typeOptions.foreignTableRollupColumnId);
 
         if (ncLookupColumnId === undefined) {
           aTblColumns[i]['srcTableId'] = srcTableId;
@@ -538,7 +517,7 @@ async function nocoCreateLookups(aTblSchema) {
         });
 
         let ncId = lookupColumn.columns.find(x => x.title === aTblColumns[i].name)?.id
-        await addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
+        await sMap.addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
 
         syncLog(`NC API: dbTableColumn.create LOOKUP`)
       }
@@ -563,8 +542,8 @@ async function nocoCreateLookups(aTblSchema) {
 
       let srcTableId = nestedLookupTbl[i].srcTableId;
 
-      let ncRelationColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.relationColumnId);
-      let ncLookupColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId);
+      let ncRelationColumnId = sMap.getNcIdFromAtId(nestedLookupTbl[i].typeOptions.relationColumnId);
+      let ncLookupColumnId = sMap.getNcIdFromAtId(nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId);
 
       if (ncLookupColumnId === undefined) {
         continue;
@@ -578,7 +557,7 @@ async function nocoCreateLookups(aTblSchema) {
       });
 
       let ncId = lookupColumn.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
-      await addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
+      await sMap.addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
 
       // remove entry
       nestedLookupTbl.splice(i, 1)
@@ -607,8 +586,8 @@ async function nocoCreateRollups(aTblSchema) {
           continue
         }
 
-        let ncRelationColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.relationColumnId)
-        let ncRollupColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.foreignTableRollupColumnId)
+        let ncRelationColumnId = sMap.getNcIdFromAtId(aTblColumns[i].typeOptions.relationColumnId)
+        let ncRollupColumnId = sMap.getNcIdFromAtId(aTblColumns[i].typeOptions.foreignTableRollupColumnId)
 
         if (ncRollupColumnId === undefined) {
           aTblColumns[i]['srcTableId'] = srcTableId;
@@ -626,7 +605,7 @@ async function nocoCreateRollups(aTblSchema) {
         syncLog(`NC API: dbTableColumn.create ROLLUP`)
 
         let ncId = rollupColumn.columns.find(x => x.title === aTblColumns[i].name)?.id
-        await addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
+        await sMap.addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
 
       }
     }
@@ -641,8 +620,8 @@ async function nocoLookupForRollups() {
 
     let srcTableId = nestedLookupTbl[i].srcTableId;
 
-    let ncRelationColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.relationColumnId)
-    let ncLookupColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId)
+    let ncRelationColumnId = sMap.getNcIdFromAtId(nestedLookupTbl[i].typeOptions.relationColumnId)
+    let ncLookupColumnId = sMap.getNcIdFromAtId(nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId)
 
     if (ncLookupColumnId === undefined) {
       continue;
@@ -660,7 +639,7 @@ async function nocoLookupForRollups() {
     syncLog(`NC API: dbTableColumn.create LOOKUP`)
 
     let ncId = lookupColumn.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
-    await addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
+    await sMap.addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
   }
 }
 
@@ -966,7 +945,7 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
       // create view (default already created)
       if (i > 0) {
         let viewCreated = await api.dbView.gridCreate(tblId, { title: viewName })
-        await addToMappingTbl(gridViews[i].id, viewCreated.id, viewName)
+        await sMap.addToMappingTbl(gridViews[i].id, viewCreated.id, viewName)
         console.log(`Phase-9a [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
       }
 

@@ -1,5 +1,5 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="sync" type="NodeJSConfigurationType" path-to-js-file="sync.js" working-dir="$PROJECT_DIR$/packages/nocodb/tests/sync/">
+  <configuration default="false" name="sync" type="NodeJSConfigurationType" path-to-js-file="syncStart.js" working-dir="$PROJECT_DIR$/packages/nocodb/tests/sync/">
     <method v="2" />
   </configuration>
 </component>

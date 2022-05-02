@@ -5,6 +5,7 @@ const FormData = require('form-data');
 const FetchAT = require('./fetchAT');
 const sMap = require('./syncMap')
 let Airtable = require('airtable');
+const jsonfile = require("jsonfile");
 
 var base, baseId;
 const start = Date.now();
@@ -19,6 +20,16 @@ let ncLinkMappingTable = [];
 let aTblDataLinks = [];
 let nestedLookupTbl = []
 let nestedRollupTbl = []
+
+let runTimeCounters = {
+  sort: 0,
+  filter: 0,
+  view: {
+    grid: 0,
+    gallery: 0,
+    form: 0
+  }
+}
 
 function syncLog(log) {
   // console.log(log)
@@ -36,6 +47,10 @@ async function getAtableSchema(sDB) {
   );
   // store copy of atbl schema globally
   g_aTblSchema = file.tableSchemas;
+
+  if(debugMode)
+    jsonfile.writeFileSync('aTblSchema.json', ft, { spaces: 2 })
+
   return file;
 }
 
@@ -174,6 +189,16 @@ function getNocoType(col) {
       else if (col.typeOptions?.formulaTextParsed === 'LAST_MODIFIED_TIME()')
         ncType = UITypes.LastModifiedTime;
       break;
+
+    case 'computation':
+      if (col.typeOptions?.resultType === 'collaborator')
+        ncType = UITypes.Collaborator;
+      break;
+
+    // case 'barcode':
+    // case 'button':
+    //   ncType = UITypes.SingleLineText;
+    //   break;
   }
 
   return ncType;
@@ -191,6 +216,7 @@ function getNocoTypeOptions(col) {
       let opt = [];
       for (let [, value] of Object.entries(col.typeOptions.choices)) {
         opt.push(value.name);
+        sMap.addToMappingTbl(value.id, undefined, value.name)
       }
       let csvOpt = "'" + opt.join("','") + "'";
       return { type: 'select', data: csvOpt };
@@ -363,7 +389,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
 
           // create link
           let ncTbl = await api.dbTableColumn.create(srcTableId, {
-            uidt: 'LinkToAnotherRecord',
+            uidt: UITypes.LinkToAnotherRecord,
             title: aTblLinkColumns[i].name + suffix,
             parentId: srcTableId,
             childId: childTableId,
@@ -433,7 +459,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
             //
             childLinkColumn = childTblSchema.columns.find(
               col =>
-                col.uidt === 'LinkToAnotherRecord' &&
+                col.uidt === UITypes.LinkToAnotherRecord &&
                 col.colOptions.fk_child_column_id ===
                   parentLinkColumn.colOptions.fk_child_column_id &&
                 col.colOptions.fk_parent_column_id ===
@@ -445,7 +471,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
             //
             childLinkColumn = childTblSchema.columns.find(
               col =>
-                col.uidt === 'LinkToAnotherRecord' &&
+                col.uidt === UITypes.LinkToAnotherRecord &&
                 col.colOptions.fk_child_column_id ===
                   parentLinkColumn.colOptions.fk_parent_column_id &&
                 col.colOptions.fk_parent_column_id ===
@@ -510,7 +536,7 @@ async function nocoCreateLookups(aTblSchema) {
         }
 
         let lookupColumn = await api.dbTableColumn.create(srcTableId, {
-          uidt: 'Lookup',
+          uidt: UITypes.Lookup,
           title: aTblColumns[i].name,
           fk_relation_column_id: ncRelationColumnId,
           fk_lookup_column_id: ncLookupColumnId
@@ -550,7 +576,7 @@ async function nocoCreateLookups(aTblSchema) {
       }
 
       let lookupColumn = await api.dbTableColumn.create(srcTableId, {
-        uidt: 'Lookup',
+        uidt: UITypes.Lookup,
         title: nestedLookupTbl[i].name,
         fk_relation_column_id: ncRelationColumnId,
         fk_lookup_column_id: ncLookupColumnId
@@ -596,7 +622,7 @@ async function nocoCreateRollups(aTblSchema) {
         }
 
         let rollupColumn = await api.dbTableColumn.create(srcTableId, {
-          uidt: 'Rollup',
+          uidt: UITypes.Rollup,
           title: aTblColumns[i].name,
           fk_relation_column_id: ncRelationColumnId,
           fk_rollup_column_id: ncRollupColumnId,
@@ -628,7 +654,7 @@ async function nocoLookupForRollups() {
     }
 
     let lookupColumn = await api.dbTableColumn.create(srcTableId, {
-      uidt: 'Lookup',
+      uidt: UITypes.Lookup,
       title: nestedLookupTbl[i].name,
       fk_relation_column_id: ncRelationColumnId,
       fk_lookup_column_id: ncLookupColumnId
@@ -758,23 +784,26 @@ function nocoBaseDataProcessing(sDB, table, record) {
       // default value: digits_after_decimal: [2]
       // if currency, set decimal place to 2
       //
-      if (dt === 'Currency') rec[key] = value.toFixed(2);
+      if (dt === UITypes.Currency) rec[key] = value.toFixed(2);
 
       // we will pick up LTAR once all table data's are in place
-      if (dt === 'LinkToAnotherRecord') {
+      if (dt === UITypes.LinkToAnotherRecord) {
         aTblDataLinks.push(JSON.parse(JSON.stringify(rec)));
         delete rec[key];
       }
 
       // these will be automatically populated depending on schema configuration
-      if (dt === 'Lookup') delete rec[key];
-      if (dt === 'Rollup') delete rec[key];
+      if (dt === UITypes.Lookup) delete rec[key];
+      if (dt === UITypes.Rollup) delete rec[key];
 
-      if (dt === 'Collaborator') {
-        rec[key] = `${value?.name} <${value?.email}>`
+      if (dt === UITypes.Collaborator) {
+        rec[key] = `${value?.name} <${value?.email}>`;
       }
 
-      if (dt === 'Attachment') {
+      if (dt === UITypes.Barcode) rec[key] = value.text;
+      if (dt === UITypes.Button) rec[key] = `${value?.label} <${value?.url}>`;
+
+      if (dt === UITypes.Attachment) {
         let tempArr = [];
         for (const v of value) {
           const binaryImage = await axios
@@ -850,7 +879,7 @@ async function nocoReadData(sDB, table, callback) {
       })
       .eachPage(
         function page(records, fetchNextPage) {
-          // console.log(JSON.stringify(records, null, 2));
+          console.log(JSON.stringify(records, null, 2));
 
           // This function (`page`) will get called for each page of records.
           records.forEach(record => callback(sDB, table, record));
@@ -949,40 +978,22 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
         console.log(`Phase-9a [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
       }
 
-      // hide fields
-      let hiddenColumns = ["_aTbl_nc_rec_id"]
-      // extract other columns hidden in this view
-      let hiddenColumnID = vData.columnOrder.filter(x => x.visibility===false)
-      for(let j=0; j<hiddenColumnID.length; j++) {
-        hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn)
-      }
       console.log(`Phase-9b [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Hide columns ${viewName}`)
-      await nc_hideColumn(aTblSchema[idx].name, viewName, hiddenColumns)
-
-      ////////////////////////////////////
+      await nc_configureFields(ncViewId, vData.columnOrder, aTblSchema[idx].name, viewName);
 
       // configure filters
       if(vData?.filters) {
         console.log(`Phase-9c [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure filters ${viewName}`)
         // skip filters if nested
         if(!vData.filters.filterSet.find(x => x?.type === 'nested')) {
-
-          console.log(vData?.filters)
+          await nc_configureFilters(ncViewId, vData.filters)
         }
       }
 
       // configure sort
       if(vData?.lastSortsApplied?.sortSet.length) {
         console.log(`Phase-9d [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure sort ${viewName}`)
-
-        for(let i=0; i<vData.lastSortsApplied.sortSet.length; i++) {
-          let columnId = (await nc_getColumnSchema(vData.lastSortsApplied.sortSet[i].columnId)).id
-
-          await api.dbTableSort.create(ncViewId, {
-            fk_column_id: columnId,
-            direction: vData.lastSortsApplied.sortSet[i].ascending?'asc':'dsc'
-          })
-        }
+        await nc_configureSort(ncViewId, vData.lastSortsApplied);
       }
     }
   }
@@ -1027,7 +1038,7 @@ module.exports = async function nc_migrateATbl(syncDB) {
   await nocoSetPrimary(aTblSchema);
 
   // hide-fields
-  await nocoReconfigureFields(aTblSchema);
+  // await nocoReconfigureFields(aTblSchema);
 
   // configure grid views
   await nocoConfigureGridView(syncDB, aTblSchema)
@@ -1107,13 +1118,13 @@ async function generateMigrationStats(aTblSchema) {
 
     let ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
     let linkColumn = ncTbl.columns.filter(
-      x => x.uidt === 'LinkToAnotherRecord'
+      x => x.uidt === UITypes.LinkToAnotherRecord
     );
     let lookup = ncTbl.columns.filter(
-      x => x.uidt === 'Lookup'
+      x => x.uidt === UITypes.Lookup
     );
     let rollup = ncTbl.columns.filter(
-      x => x.uidt === 'Rollup'
+      x => x.uidt === UITypes.Rollup
     );
 
     // all links hardwired as m2m. m2m generates additional tables per link
@@ -1147,8 +1158,121 @@ async function generateMigrationStats(aTblSchema) {
   console.log(`       Links:        ${linkSum}`)
   console.log(`       Lookup:       ${lookupSum}`)
   console.log(`       Rollup:       ${rollupSum}`)
+  console.log(`     Total Filters:  ${runTimeCounters.filter}`)
+  console.log(`     Total Sort:     ${runTimeCounters.sort}`)
 
   const duration = Date.now() - start;
   console.log(`Migration time: ${duration}`)
 }
 
+//////////////////////////////
+// filters
+
+let filterMap = {
+  '=': 'eq',
+  '!=': 'neq',
+  '<': 'lt',
+  '<=': 'lte',
+  '>': 'gt',
+  '>=': 'gte',
+  'isEmpty': 'empty',
+  'isNotEmpty': 'notempty',
+  'contains': 'like',
+  'doesNotContain': 'nlike',
+  'isAnyOf': 'eq',
+  'isNoneOf': 'neq'
+}
+
+async function nc_configureFilters(viewId, f) {
+  for(let i=0; i<f.filterSet.length; i++) {
+    let filter = f.filterSet[i]
+    let colSchema = await nc_getColumnSchema(filter.columnId)
+    let columnId = colSchema.id;
+    let datatype = colSchema.uidt;
+
+    let ncFilters = []
+
+    // console.log(filter)
+
+    if(datatype === UITypes.Date) {
+      // skip filters over data datatype
+      continue;
+    }
+
+    // single-select & multi-select
+    else if(datatype === UITypes.SingleSelect || datatype === UITypes.MultiSelect) {
+      // if array, break it down to multiple filters
+      if(Array.isArray(filter.value)) {
+        for(let i=0; i<filter.value.length; i++) {
+          let fx = {
+            fk_column_id: columnId,
+            logical_op: f.conjunction,
+            comparison_op: filterMap[filter.operator],
+            value: sMap.getNcNameFromAtId(filter.value[i]),
+          }
+          ncFilters.push(fx)
+        }
+      }
+      // not array - add as is
+      else if(filter.value) {
+        let fx = {
+          fk_column_id: columnId,
+          logical_op: f.conjunction,
+          comparison_op: filterMap[filter.operator],
+          value: sMap.getNcNameFromAtId(filter.value),
+        }
+        ncFilters.push(fx)
+      }
+    }
+
+    // other data types (number/ text/ long text/ ..)
+    else if(filter.value) {
+      let fx = {
+        fk_column_id: columnId,
+        logical_op: f.conjunction,
+        comparison_op: filterMap[filter.operator],
+        value: filter.value,
+      }
+      ncFilters.push(fx)
+    }
+
+    // insert filters
+    for(let i=0; i<ncFilters.length; i++) {
+      await api.dbTableFilter.create(viewId, {
+        ...ncFilters[i]
+      })
+      runTimeCounters.filter++;
+    }
+  }
+}
+
+async function nc_configureSort(viewId, s) {
+  for(let i=0; i<s.sortSet.length; i++) {
+    let columnId = (await nc_getColumnSchema(s.sortSet[i].columnId)).id
+
+    await api.dbTableSort.create(viewId, {
+      fk_column_id: columnId,
+      direction: s.sortSet[i].ascending?'asc':'dsc'
+    })
+    runTimeCounters.sort++;
+  }
+}
+
+async function nc_configureFields(viewId, c, tblName, viewName) {
+  // force hide PK column
+  let hiddenColumns = ["_aTbl_nc_rec_id"]
+
+  // extract other columns hidden in this view
+  let hiddenColumnID = c.filter(x => x.visibility===false)
+  for(let j=0; j<hiddenColumnID.length; j++) {
+    hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn)
+  }
+
+  await nc_hideColumn(tblName, viewName, hiddenColumns)
+}
+
+///////////////////////////////////////////////////////////////////////////////
+let userInfo = []
+function userInfo(log) {
+  userInfo.push(log)
+}

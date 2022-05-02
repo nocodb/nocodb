@@ -1,4 +1,5 @@
 let aTblNcMappingTbl = {}
+exports.mapTbl = aTblNcMappingTbl
 
 // static mapping records between aTblId && ncId
 exports.addToMappingTbl = function addToMappingTbl(aTblId, ncId, ncName) {

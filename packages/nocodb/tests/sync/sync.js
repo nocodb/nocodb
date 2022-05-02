@@ -13,26 +13,12 @@ function syncLog(log) {
 const start = Date.now();
 
 let enableErrorLogs = false
-let process_aTblData = true
+let process_aTblData = false
 let generate_migrationStats = true
 let aTblNcMappingTbl = {}
-let migrationStats = []
-let migrationStatsObj = {
-  table_name: '',
-  aTbl: {
-    columns: 0,
-    links: 0,
-    lookup: 0,
-    rollup: 0
-  },
-  nc: {
-    columns: 0,
-    links: 0,
-    lookup: 0,
-    rollup: 0,
-    invalidColumn: 0
-  }
-}
+
+// mapping table
+//
 
 // static mapping records between aTblId && ncId
 async function addToMappingTbl(aTblId, ncId, ncName) {
@@ -44,96 +30,16 @@ async function addToMappingTbl(aTblId, ncId, ncName) {
   }
 }
 
+// get NcID from airtable ID
 function getNcIdFromAtId(aId) {
   return aTblNcMappingTbl[`aId`]?.ncId
 }
 
+// get nc-title from airtable ID
 function getNcNameFromAtId(aId) {
   return aTblNcMappingTbl[`aId`]?.ncName
 }
-
-
-// statistics
-//
-async function generateMigrationStats(aTblSchema) {
-
-  for (let idx = 0; idx < aTblSchema.length; idx++) {
-    migrationStatsObj.table_name = aTblSchema[idx].name
-
-    let aTblLinkColumns = aTblSchema[idx].columns.filter(
-      x => x.type === 'foreignKey'
-    );
-    let aTblLookups = aTblSchema[idx].columns.filter(
-      x => x.type === 'lookup'
-    );
-    let aTblRollups = aTblSchema[idx].columns.filter(
-      x => x.type === 'rollup'
-    );
-
-    let invalidColumnId = 0
-    for(let i=0; i<aTblLookups.length; i++ ) {
-      if(aTblLookups[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
-        invalidColumnId++
-      }
-    }
-    for(let i=0; i<aTblRollups.length; i++ ) {
-      if(aTblRollups[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
-        invalidColumnId++
-      }
-    }
-
-    migrationStatsObj.aTbl.columns = aTblSchema[idx].columns.length;
-    migrationStatsObj.aTbl.links = aTblLinkColumns.length;
-    migrationStatsObj.aTbl.lookup = aTblLookups.length;
-    migrationStatsObj.aTbl.rollup = aTblRollups.length;
-
-    let ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
-    let linkColumn = ncTbl.columns.filter(
-      x => x.uidt === 'LinkToAnotherRecord'
-    );
-    let lookup = ncTbl.columns.filter(
-      x => x.uidt === 'Lookup'
-    );
-    let rollup = ncTbl.columns.filter(
-      x => x.uidt === 'Rollup'
-    );
-
-    // all links hardwired as m2m. m2m generates additional tables per link
-    // hence link/2
-    migrationStatsObj.nc.columns = ncTbl.columns.length - linkColumn.length/2;
-    migrationStatsObj.nc.links = linkColumn.length/2;
-    migrationStatsObj.nc.lookup = lookup.length;
-    migrationStatsObj.nc.rollup = rollup.length;
-    migrationStatsObj.nc.invalidColumn = invalidColumnId;
-
-    let temp = JSON.parse(JSON.stringify(migrationStatsObj))
-    migrationStats.push(temp)
-  }
-
-  const columnSum = migrationStats.reduce((accumulator, object) => {
-    return accumulator + object.nc.columns;
-  }, 0);
-  const linkSum = migrationStats.reduce((accumulator, object) => {
-    return accumulator + object.nc.links;
-  }, 0);
-  const lookupSum = migrationStats.reduce((accumulator, object) => {
-    return accumulator + object.nc.lookup;
-  }, 0);
-  const rollupSum = migrationStats.reduce((accumulator, object) => {
-    return accumulator + object.nc.rollup;
-  }, 0);
-
-  console.log(`Quick Status:`)
-  console.log(`     Total Tables:   ${aTblSchema.length}`)
-  console.log(`     Total Columns:  ${columnSum}`)
-  console.log(`       Links:        ${linkSum}`)
-  console.log(`       Lookup:       ${lookupSum}`)
-  console.log(`       Rollup:       ${rollupSum}`)
-
-  const duration = Date.now() - start;
-  console.log(`Migration time: ${duration}`)
-
-}
+///////////////////////////////////////////////////////////////////////////////
 
 // read configurations
 //
@@ -458,10 +364,11 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
       for (let i = 0; i < aTblLinkColumns.length; i++) {
         console.log(`Phase-2 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Links :: [${String(i+1).padStart(2, '0')}/${aTblLinkColumns.length}] ${aTblSchema[idx].name}`)
 
+        // for self links, there is no symmetric column
         {
           let src = aTbl_getColumnName(aTblLinkColumns[i].id)
-          let dst = aTbl_getColumnName(aTblLinkColumns[i].typeOptions.symmetricColumnId)
-          syncLog(`    LTAR ${src.tn}:${src.cn} <${aTblLinkColumns[i].typeOptions.relationship}> ${dst.tn}:${dst.cn}`)
+          let dst = aTbl_getColumnName(aTblLinkColumns[i].typeOptions?.symmetricColumnId)
+          syncLog(`    LTAR ${src.tn}:${src.cn} <${aTblLinkColumns[i].typeOptions.relationship}> ${dst?.tn}:${dst?.cn}`)
         }
 
         // check if link already established?
@@ -470,12 +377,16 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
 
           // find child table name from symmetric column ID specified
+          // self link, symmetricColumnId field will be undefined
           let childTable = aTbl_getColumnName(
-            aTblLinkColumns[i].typeOptions.symmetricColumnId
+            aTblLinkColumns[i].typeOptions?.symmetricColumnId
           );
 
           // retrieve child table ID (nc) from table name
-          let childTableId = (await nc_getTableSchema(childTable.tn)).id;
+          let childTableId = srcTableId
+          if (childTable) {
+            childTableId = (await nc_getTableSchema(childTable.tn)).id;
+          }
 
           // check if already a column exists with this name?
           let srcTbl = await api.dbTable.read(srcTableId)
@@ -1127,6 +1038,7 @@ async function nocoConfigureGridView(aTblSchema) {
       if (i > 0) {
         let viewCreated = await api.dbView.gridCreate(tblId, { title: viewName })
         await addToMappingTbl(gridViews[i].id, viewCreated.id, viewName)
+        console.log(`Phase-9a [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
       }
 
       // hide fields
@@ -1136,14 +1048,14 @@ async function nocoConfigureGridView(aTblSchema) {
       for(let j=0; j<hiddenColumnID.length; j++) {
         hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn)
       }
-      // console.log(`Phase-8 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Hide columns [${idx+1}/${aTblSchema.length}] ${aTblSchema[idx].name}`)
+      console.log(`Phase-9b [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Hide columns ${viewName}`)
       await nc_hideColumn(aTblSchema[idx].name, viewName, hiddenColumns)
 
       ////////////////////////////////////
 
-      // configure sort
+      // configure filters
       if(vData?.filters) {
-
+        console.log(`Phase-9c [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure filters ${viewName}`)
         // skip filters if nested
         if(!vData.filters.filterSet.find(x => x?.type === 'nested')) {
 
@@ -1151,8 +1063,10 @@ async function nocoConfigureGridView(aTblSchema) {
         }
       }
 
-      // configure filter
+      // configure sort
       if(vData?.lastSortsApplied?.sortSet.length) {
+        console.log(`Phase-9d [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure sort ${viewName}`)
+
         for(let i=0; i<vData.lastSortsApplied.sortSet.length; i++) {
           let columnId = (await nc_getColumnSchema(vData.lastSortsApplied.sortSet[i].columnId)).id
 
@@ -1163,10 +1077,7 @@ async function nocoConfigureGridView(aTblSchema) {
         }
       }
     }
-
   }
-
-
 }
 
 // start function
@@ -1226,12 +1137,6 @@ async function nc_migrateATbl() {
   if(generate_migrationStats) {
     await generateMigrationStats(aTblSchema)
   }
-
-  // let ncId = (await nc_getTableSchema(aTblSchema[0].name)).id
-  // let ncTbl = await api.dbTable.read(ncId)
-  // console.log(ncTbl)
-  // console.log(aTblNcMappingTbl)
-  // console.log(Object.keys(aTblNcMappingTbl).length)
 }
 
 nc_migrateATbl().catch(e => {
@@ -1239,4 +1144,104 @@ nc_migrateATbl().catch(e => {
   console.log(e)
 });
 
+
+///////////////////////
+
+// statistics
+//
+let migrationStats = []
+async function generateMigrationStats(aTblSchema) {
+  let migrationStatsObj = {
+    table_name: '',
+    aTbl: {
+      columns: 0,
+      links: 0,
+      lookup: 0,
+      rollup: 0
+    },
+    nc: {
+      columns: 0,
+      links: 0,
+      lookup: 0,
+      rollup: 0,
+      invalidColumn: 0
+    }
+  }
+  for (let idx = 0; idx < aTblSchema.length; idx++) {
+    migrationStatsObj.table_name = aTblSchema[idx].name
+
+    let aTblLinkColumns = aTblSchema[idx].columns.filter(
+      x => x.type === 'foreignKey'
+    );
+    let aTblLookups = aTblSchema[idx].columns.filter(
+      x => x.type === 'lookup'
+    );
+    let aTblRollups = aTblSchema[idx].columns.filter(
+      x => x.type === 'rollup'
+    );
+
+    let invalidColumnId = 0
+    for(let i=0; i<aTblLookups.length; i++ ) {
+      if(aTblLookups[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
+        invalidColumnId++
+      }
+    }
+    for(let i=0; i<aTblRollups.length; i++ ) {
+      if(aTblRollups[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
+        invalidColumnId++
+      }
+    }
+
+    migrationStatsObj.aTbl.columns = aTblSchema[idx].columns.length;
+    migrationStatsObj.aTbl.links = aTblLinkColumns.length;
+    migrationStatsObj.aTbl.lookup = aTblLookups.length;
+    migrationStatsObj.aTbl.rollup = aTblRollups.length;
+
+    let ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
+    let linkColumn = ncTbl.columns.filter(
+      x => x.uidt === 'LinkToAnotherRecord'
+    );
+    let lookup = ncTbl.columns.filter(
+      x => x.uidt === 'Lookup'
+    );
+    let rollup = ncTbl.columns.filter(
+      x => x.uidt === 'Rollup'
+    );
+
+    // all links hardwired as m2m. m2m generates additional tables per link
+    // hence link/2
+    migrationStatsObj.nc.columns = ncTbl.columns.length - linkColumn.length/2;
+    migrationStatsObj.nc.links = linkColumn.length/2;
+    migrationStatsObj.nc.lookup = lookup.length;
+    migrationStatsObj.nc.rollup = rollup.length;
+    migrationStatsObj.nc.invalidColumn = invalidColumnId;
+
+    let temp = JSON.parse(JSON.stringify(migrationStatsObj))
+    migrationStats.push(temp)
+  }
+
+  const columnSum = migrationStats.reduce((accumulator, object) => {
+    return accumulator + object.nc.columns;
+  }, 0);
+  const linkSum = migrationStats.reduce((accumulator, object) => {
+    return accumulator + object.nc.links;
+  }, 0);
+  const lookupSum = migrationStats.reduce((accumulator, object) => {
+    return accumulator + object.nc.lookup;
+  }, 0);
+  const rollupSum = migrationStats.reduce((accumulator, object) => {
+    return accumulator + object.nc.rollup;
+  }, 0);
+
+  console.log(`Quick Status:`)
+  console.log(`     Total Tables:   ${aTblSchema.length}`)
+  console.log(`     Total Columns:  ${columnSum}`)
+  console.log(`       Links:        ${linkSum}`)
+  console.log(`       Lookup:       ${lookupSum}`)
+  console.log(`       Rollup:       ${rollupSum}`)
+
+  const duration = Date.now() - start;
+  console.log(`Migration time: ${duration}`)
+
+}
 

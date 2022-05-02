@@ -695,6 +695,8 @@ async function nc_hideColumn(tblName, viewName, columnName, viewType) {
 
   if(viewType === 'form')
     viewDetails = (await api.dbView.formRead(viewId)).columns
+  else if(viewType === 'gallery')
+    viewDetails = (await api.dbView.galleryRead(viewId)).columns
   else
     viewDetails = await api.dbView.gridColumnsList(viewId);
 
@@ -964,6 +966,21 @@ async function nocoCreateProject(projName) {
   });
 }
 
+async function nocoConfigureGalleryView(sDB, aTblSchema) {
+  for (let idx = 0; idx < aTblSchema.length; idx++) {
+    let tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+    let galleryViews = aTblSchema[idx].views.filter(x => x.type === 'gallery');
+
+    for(let i=0; i<galleryViews.length; i++) {
+      // create view
+      let vData = await getViewData(sDB.airtable.shareId, aTblSchema[idx].id, galleryViews[i].id)
+      let viewName = aTblSchema[idx].views.find(x => x.id === galleryViews[i].id)?.name
+      let g = await api.dbView.galleryCreate(tblId, {title: viewName})
+      // await nc_configureFields(g.id, vData.columnOrder, aTblSchema[idx].name, viewName, 'gallery');
+    }
+  }
+}
+
 async function nocoConfigureFormView(sDB, aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
     let tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
@@ -1077,6 +1094,7 @@ module.exports = async function nc_migrateATbl(syncDB) {
   // configure views
   await nocoConfigureGridView(syncDB, aTblSchema)
   await nocoConfigureFormView(syncDB, aTblSchema)
+  await nocoConfigureGalleryView(syncDB, aTblSchema)
 
   if(process_aTblData) {
     // await nc_DumpTableSchema();

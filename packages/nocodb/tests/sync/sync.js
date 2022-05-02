@@ -1,29 +1,35 @@
 const Api = require('nocodb-sdk').Api;
-const jsonfile = require('jsonfile');
 const { UITypes } = require('nocodb-sdk');
 const axios = require('axios').default;
 const FormData = require('form-data');
 const FetchAT = require('./fetchAT');
+let Airtable = require('airtable');
 
 var base, baseId;
-
-function syncLog(log) {
-  // console.log(log)
-}
 const start = Date.now();
-
 let enableErrorLogs = false
 let process_aTblData = false
 let generate_migrationStats = true
 let debugMode = true
 let aTblNcMappingTbl = {}
+let api;
+let g_aTblSchema = {};
+let ncCreatedProjectSchema = [];
+let ncLinkMappingTable = [];
+let aTblDataLinks = [];
+let nestedLookupTbl = []
+let nestedRollupTbl = []
+
+function syncLog(log) {
+  // console.log(log)
+}
 
 // mapping table
 //
 
 // static mapping records between aTblId && ncId
 async function addToMappingTbl(aTblId, ncId, ncName) {
-  aTblNcMappingTbl[`${aTblId}`] = {
+  aTblNcMappingTbl[aTblId] = {
     ncId: ncId,
 
     // name added to assist in quick debug
@@ -42,26 +48,11 @@ function getNcNameFromAtId(aId) {
 }
 ///////////////////////////////////////////////////////////////////////////////
 
-// read configurations
-//
-const syncDB = jsonfile.readFileSync('./config.json');
-
-const api = new Api({
-  baseURL: syncDB.baseURL,
-  headers: {
-    'xc-auth': syncDB.authToken
-  }
-});
-
-// global schema store
-let g_aTblSchema = {};
-
-async function getAtableSchema() {
-  // let file = jsonfile.readFileSync('./t0v0.json');
-  let ft = await FetchAT(syncDB.airtable.shareId);
+async function getAtableSchema(sDB) {
+  let ft = await FetchAT(sDB.airtable.shareId);
   let file = ft.schema;
   baseId = ft.baseId;
-  base = new Airtable({ apiKey: syncDB.airtable.apiKey }).base(
+  base = new Airtable({ apiKey: sDB.airtable.apiKey }).base(
     baseId
   );
   // store copy of atbl schema globally
@@ -69,8 +60,8 @@ async function getAtableSchema() {
   return file;
 }
 
-async function getViewData(tblId, viewId) {
-  let ft = await FetchAT(syncDB.airtable.shareId, tblId, viewId);
+async function getViewData(shareId, tblId, viewId) {
+  let ft = await FetchAT(shareId, tblId, viewId);
   return ft.schema?.tableDatas[0]?.viewDatas[0]
 }
 
@@ -161,13 +152,12 @@ async function nc_getTableSchema(tableName) {
 }
 
 // delete project if already exists
-async function init() {
-  console.log(syncDB)
+async function init(projName) {
 
   // delete 'sample' project if already exists
   let x = await api.project.list()
 
-  let sampleProj = x.list.find(a => a.title === syncDB.projectName)
+  let sampleProj = x.list.find(a => a.title === projName)
   if(sampleProj) {
     await api.project.delete(sampleProj.id)
   }
@@ -511,8 +501,6 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
   }
 }
 
-let nestedLookupTbl = []
-
 async function nocoCreateLookups(aTblSchema) {
   // LookUps
   for (let idx = 0; idx < aTblSchema.length; idx++) {
@@ -600,7 +588,6 @@ async function nocoCreateLookups(aTblSchema) {
   }
 }
 
-let nestedRollupTbl = []
 async function nocoCreateRollups(aTblSchema) {
   // Rollups
   for (let idx = 0; idx < aTblSchema.length; idx++) {
@@ -734,11 +721,7 @@ async function nocoReconfigureFields(aTblSchema) {
 
 //////////  Data processing
 
-// https://www.airtable.com/app1ivUy7ba82jOPn/api/docs#javascript/metadata
-let Airtable = require('airtable');
-let aTblDataLinks = [];
-
-function nocoLinkProcessing(table, record, field) {
+function nocoLinkProcessing(projName, table, record, field) {
   (async () => {
 
     let rec = record.fields;
@@ -752,7 +735,7 @@ function nocoLinkProcessing(table, record, field) {
 
         await api.dbTableRow.nestedAdd(
           'noco',
-          syncDB.projectName,
+          projName,
           table.id,
           `${record.id}`,
           'mm', // fix me
@@ -769,7 +752,7 @@ function nocoLinkProcessing(table, record, field) {
 
 // fix me:
 // instead of skipping data after retrieval, use select fields option in airtable API
-function nocoBaseDataProcessing(table, record) {
+function nocoBaseDataProcessing(sDB, table, record) {
   (async () => {
     let rec = record.fields;
 
@@ -807,7 +790,6 @@ function nocoBaseDataProcessing(table, record) {
       // these will be automatically populated depending on schema configuration
       if (dt === 'Lookup') delete rec[key];
       if (dt === 'Rollup') delete rec[key];
-      // if (dt === 'Attachment') delete rec[key];
 
       if (dt === 'Collaborator') {
         rec[key] = `${value?.name} <${value?.email}>`
@@ -837,13 +819,13 @@ function nocoBaseDataProcessing(table, record) {
           });
 
           const rs = await axios
-            .post(syncDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
+            .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
               params: {
-                path: `noco/${syncDB.projectName}/${table.title}/${key}`
+                path: `noco/${sDB.projectName}/${table.title}/${key}`
               },
               headers: {
                 'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
-                'xc-auth': syncDB.authToken
+                'xc-auth': sDB.authToken
               }
             })
             .then(response => {
@@ -870,7 +852,7 @@ function nocoBaseDataProcessing(table, record) {
     // bulk Insert
     let returnValue = await api.dbTableRow.bulkCreate(
       'nc',
-      syncDB.projectName,
+      sDB.projectName,
       table.id, // encodeURIComponent(table.title),
       [rec]
     );
@@ -880,7 +862,7 @@ function nocoBaseDataProcessing(table, record) {
   });
 }
 
-async function nocoReadData(table, callback) {
+async function nocoReadData(sDB, table, callback) {
   return new Promise((resolve, reject) => {
     base(table.title)
       .select({
@@ -892,7 +874,7 @@ async function nocoReadData(table, callback) {
           // console.log(JSON.stringify(records, null, 2));
 
           // This function (`page`) will get called for each page of records.
-          records.forEach(record => callback(table, record));
+          records.forEach(record => callback(sDB, table, record));
 
           // To fetch the next page of records, call `fetchNextPage`.
           // If there are more records, `page` will get called again.
@@ -910,7 +892,7 @@ async function nocoReadData(table, callback) {
   })
 }
 
-async function nocoReadDataSelected(table, callback, fields) {
+async function nocoReadDataSelected(projName, table, callback, fields) {
   return new Promise((resolve, reject) => {
 
     base(table.title)
@@ -926,7 +908,7 @@ async function nocoReadDataSelected(table, callback, fields) {
           // This function (`page`) will get called for each page of records.
           // records.forEach(record => callback(table, record));
           for(let i=0; i<records.length; i++) {
-            callback(table, records[i], fields)
+            callback(projName, table, records[i], fields)
           }
 
           // To fetch the next page of records, call `fetchNextPage`.
@@ -946,8 +928,6 @@ async function nocoReadDataSelected(table, callback, fields) {
 }
 
 //////////
-let ncCreatedProjectSchema = [];
-let ncLinkMappingTable = [];
 
 function nc_isLinkExists(atblFieldId) {
   if (
@@ -959,17 +939,16 @@ function nc_isLinkExists(atblFieldId) {
   return false;
 }
 
-async function nocoCreateProject() {
-  syncLog(`Create Project: ${syncDB.projectName}`)
+async function nocoCreateProject(projName) {
+  syncLog(`Create Project: ${projName}`)
 
   // create empty project (XC-DB)
   ncCreatedProjectSchema = await api.project.create({
-    // Enable to use aTbl identifiers as is: id: syncDB.airtable.baseId,
-    title: syncDB.projectName
+    title: projName
   });
 }
 
-async function nocoConfigureGridView(aTblSchema) {
+async function nocoConfigureGridView(sDB, aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
     let tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
     let gridViews = aTblSchema[idx].views.filter(x => x.type === 'grid');
@@ -977,7 +956,7 @@ async function nocoConfigureGridView(aTblSchema) {
     for(let i=0; i<gridViews.length; i++) {
 
       // fetch viewData JSON
-      let vData = await getViewData(aTblSchema[idx].id, gridViews[i].id)
+      let vData = await getViewData(sDB.airtable.shareId, aTblSchema[idx].id, gridViews[i].id)
 
       // retrieve view name & associated NC-ID
       let viewName = aTblSchema[idx].views.find(x => x.id === gridViews[i].id)?.name
@@ -1031,17 +1010,24 @@ async function nocoConfigureGridView(aTblSchema) {
 }
 
 // start function
-async function nc_migrateATbl() {
+module.exports = async function nc_migrateATbl(syncDB) {
+
+  api = new Api({
+    baseURL: syncDB.baseURL,
+    headers: {
+      'xc-auth': syncDB.authToken
+    }
+  });
 
   // delete project if already exists
-  if(debugMode) await init()
+  if(debugMode) await init(syncDB.projectName)
 
   // read schema file
-  const schema = await getAtableSchema();
+  const schema = await getAtableSchema(syncDB);
   let aTblSchema = schema.tableSchemas;
 
   // create empty project
-  await nocoCreateProject()
+  await nocoCreateProject(syncDB.projectName)
 
   // prepare table schema (base)
   await nocoCreateBaseSchema(aTblSchema);
@@ -1065,21 +1051,21 @@ async function nc_migrateATbl() {
   await nocoReconfigureFields(aTblSchema);
 
   // configure grid views
-  await nocoConfigureGridView(aTblSchema)
+  await nocoConfigureGridView(syncDB, aTblSchema)
 
   if(process_aTblData) {
     // await nc_DumpTableSchema();
     let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
     for (let i = 0; i < ncTblList.list.length; i++) {
       let ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-      await nocoReadData(ncTbl, nocoBaseDataProcessing);
+      await nocoReadData(syncDB, ncTbl, nocoBaseDataProcessing);
     }
 
     // Configure link @ Data row's
     for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
       let x = ncLinkMappingTable[idx];
       let ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
-      await nocoReadDataSelected(ncTbl, nocoLinkProcessing, x.aTbl.name);
+      await nocoReadDataSelected(syncDB.projectName, ncTbl, nocoLinkProcessing, x.aTbl.name);
     }
   }
 
@@ -1087,12 +1073,6 @@ async function nc_migrateATbl() {
     await generateMigrationStats(aTblSchema)
   }
 }
-
-nc_migrateATbl().catch(e => {
-  // console.log(e?.config?.url);
-  console.log(e)
-});
-
 
 ///////////////////////
 

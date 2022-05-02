@@ -1,0 +1,10 @@
+{
+  "airtable": {
+    "apiKey": "keyeZla3k0desT8fU",
+    "shareId": "shrmXIJn1oEp059Kb"
+  },
+  "projectName": "sample",
+  "baseURL": "http://localhost:8080",
+  "authToken":
+  "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfYWR0YnA4NjNwbGN4d2siLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTEzODAyMTZ9.xjsdk06xilkgVEViTM2HSFuCbwbZQs5LlZUl-510rZs"
+}

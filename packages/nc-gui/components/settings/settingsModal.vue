@@ -136,15 +136,32 @@
                       {{ $t('title.auditLogs') }}
                     </v-tooltip>
                   </template>
+
+                  <v-list-item
+                    v-t="['c:settings:team-auth']"
+                    value="sync"
+                    dense
+                    class="body-2 nc-settings-sync"
+                  >
+                    <v-list-item-icon>
+                      <v-icon small>
+                        mdi-database-sync
+                      </v-icon>
+                    </v-list-item-icon>
+                    <!-- Team & Auth -->
+                    <v-list-item-title>
+                      <span :class="{'font-weight-medium': activePage === 'sync', 'font-weight-regular':activePage !=='sync'}">
+                        Sync
+                      </span>
+                    </v-list-item-title>
+                  </v-list-item>
                 </v-list-item-group>
 
-                <v-list-item @click="improtFromAirtableModal = true">
+                <!--                <v-list-item @click="improtFromAirtableModal = true">
                   <v-list-item-title>Import from Airtable</v-list-item-title>
-                </v-list-item>
+                </v-list-item>-->
               </v-list>
             </div>
-
-            <import-from-airtable v-model="improtFromAirtableModal" />
           </v-navigation-drawer>
           <v-container class="flex-grow-1 py-9 px-15" style="max-height: 90vh; overflow-y: auto">
             <div v-if="activePage === 'audit'" style="height:100%">
@@ -168,6 +185,11 @@
               <disable-or-enable-models
                 v-if="_isUIAllowed('project-metadata')"
               />
+            </div>
+            <div
+              v-else-if="activePage === 'sync'"
+            >
+              <import-from-airtable v-model="improtFromAirtableModal" />
             </div>
             <app-store v-else />
           </v-container>

@@ -1,22 +1,22 @@
 import { Router } from 'express';
-import { Queue, Worker } from 'bullmq';
+// import { Queue } from 'bullmq';
 import axios from 'axios';
 import catchError from '../helpers/catchError';
 import { Server, Socket } from 'socket.io';
 import NocoJobs from '../../../noco-jobs/NocoJobs';
-
-const worker = new Worker('test', async job => {
-  if (job.name === 'name') {
-    await executeJob(job.data);
-  }
-});
+const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
+// const worker = new Worker('test', async job => {
+//   if (job.name === 'name') {
+//     await executeJob(job.data);
+//   }
+// });
 
 const clients: { [id: string]: Socket } = {};
 const sleep = time => new Promise(resolve => setTimeout(resolve, time));
 
 let count = 0;
 
-async function executeJob(data: any) {
+async function executeJob(data: any, _cbk) {
   console.log('=======start=========' + ++count);
 
   const urls = [
@@ -44,7 +44,7 @@ async function executeJob(data: any) {
   clients?.[data?.id]?.emit('progress', { msg: 'completed' });
 }
 
-const queue = new Queue('test');
+// const queue = new Queue('test');
 
 export default (router: Router, _server) => {
   const io = new Server(9000, {
@@ -59,12 +59,22 @@ export default (router: Router, _server) => {
     clients[socket.id] = socket;
   });
 
-  NocoJobs.jobsMgr.addJobWorker();
+  NocoJobs.jobsMgr.addJobWorker(AIRTABLE_IMPORT_JOB, executeJob);
+  NocoJobs.jobsMgr.addProgressCbk(AIRTABLE_IMPORT_JOB, (payload, progress) => {
+    clients?.[payload?.id]?.emit('progress', {
+      msg: progress
+    });
+  });
+  NocoJobs.jobsMgr.addSuccessCbk(AIRTABLE_IMPORT_JOB, payload => {
+    clients?.[payload?.id]?.emit('progress', {
+      msg: 'completed'
+    });
+  });
 
   router.post(
     '/api/v1/db/meta/import/airtable',
     catchError((req, res) => {
-      queue.add('name', { id: req.query.id });
+      NocoJobs.jobsMgr.add('name', { id: req.query.id });
       res.json({});
     })
   );

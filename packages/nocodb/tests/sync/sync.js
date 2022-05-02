@@ -262,7 +262,7 @@ function tablesPrepare(tblSchema) {
       }
 
       // not supported datatype
-      // if (['formula'].includes(col.type)) continue;
+      if (['formula'].includes(col.type)) continue;
 
       // base column schema
       // kludge: error observed in Nc with space around column-name

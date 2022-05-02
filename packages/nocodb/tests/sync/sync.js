@@ -56,6 +56,8 @@ async function getAtableSchema(sDB) {
 
 async function getViewData(shareId, tblId, viewId) {
   let ft = await FetchAT(shareId, tblId, viewId);
+  if(debugMode)
+    jsonfile.writeFileSync(`${viewId}.json`, ft, { spaces: 2 })
   return ft.schema?.tableDatas[0]?.viewDatas[0]
 }
 
@@ -681,14 +683,20 @@ async function nocoSetPrimary(aTblSchema) {
   }
 }
 
-async function nc_hideColumn(tblName, viewName, columnName) {
+async function nc_hideColumn(tblName, viewName, columnName, viewType) {
 
   // retrieve table schema
   let ncTbl = await nc_getTableSchema(tblName)
   // retrieve view ID
   let viewId = ncTbl.views.find(x => x.title === viewName).id;
+
   // retrieve view Info
-  let viewDetails = await api.dbView.gridColumnsList(viewId);
+  let viewDetails = {}
+
+  if(viewType === 'form')
+    viewDetails = (await api.dbView.formRead(viewId)).columns
+  else
+    viewDetails = await api.dbView.gridColumnsList(viewId);
 
   for(let i =0; i<columnName.length; i++) {
     // retrieve column schema
@@ -879,7 +887,7 @@ async function nocoReadData(sDB, table, callback) {
       })
       .eachPage(
         function page(records, fetchNextPage) {
-          console.log(JSON.stringify(records, null, 2));
+          // console.log(JSON.stringify(records, null, 2));
 
           // This function (`page`) will get called for each page of records.
           records.forEach(record => callback(sDB, table, record));
@@ -954,6 +962,32 @@ async function nocoCreateProject(projName) {
   ncCreatedProjectSchema = await api.project.create({
     title: projName
   });
+}
+
+async function nocoConfigureFormView(sDB, aTblSchema) {
+  for (let idx = 0; idx < aTblSchema.length; idx++) {
+    let tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+    let formViews = aTblSchema[idx].views.filter(x => x.type === 'form');
+
+    for(let i=0; i<formViews.length; i++) {
+      // create view
+      let vData = await getViewData(sDB.airtable.shareId, aTblSchema[idx].id, formViews[i].id)
+      let viewName = aTblSchema[idx].views.find(x => x.id === formViews[i].id)?.name
+      let refreshMode = vData.metadata.form.refreshAfterSubmit;
+      let msg = vData.metadata.form?.afterSubmitMessage?vData.metadata.form.afterSubmitMessage:"Thank you for submitting the form!";
+
+      let formData = {
+        title: viewName,
+        heading: viewName,
+        subheading: vData.metadata.form.description,
+        success_msg: msg,
+        submit_another_form: refreshMode.includes("REFRESH_BUTTON")?true:false,
+        show_blank_form: refreshMode.includes("AUTO_REFRESH")?true:false,
+      }
+      let f = await api.dbView.formCreate(tblId, formData)
+      await nc_configureFields(f.id, vData.columnOrder, aTblSchema[idx].name, viewName, 'form');
+    }
+  }
 }
 
 async function nocoConfigureGridView(sDB, aTblSchema) {
@@ -1040,8 +1074,9 @@ module.exports = async function nc_migrateATbl(syncDB) {
   // hide-fields
   // await nocoReconfigureFields(aTblSchema);
 
-  // configure grid views
+  // configure views
   await nocoConfigureGridView(syncDB, aTblSchema)
+  await nocoConfigureFormView(syncDB, aTblSchema)
 
   if(process_aTblData) {
     // await nc_DumpTableSchema();
@@ -1258,7 +1293,7 @@ async function nc_configureSort(viewId, s) {
   }
 }
 
-async function nc_configureFields(viewId, c, tblName, viewName) {
+async function nc_configureFields(viewId, c, tblName, viewName, viewType) {
   // force hide PK column
   let hiddenColumns = ["_aTbl_nc_rec_id"]
 
@@ -1268,11 +1303,11 @@ async function nc_configureFields(viewId, c, tblName, viewName) {
     hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn)
   }
 
-  await nc_hideColumn(tblName, viewName, hiddenColumns)
+  await nc_hideColumn(tblName, viewName, hiddenColumns, viewType)
 }
 
 ///////////////////////////////////////////////////////////////////////////////
 let userInfo = []
-function userInfo(log) {
+function addUserInfo(log) {
   userInfo.push(log)
 }

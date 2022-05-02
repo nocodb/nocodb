@@ -15,6 +15,7 @@ const start = Date.now();
 let enableErrorLogs = false
 let process_aTblData = false
 let generate_migrationStats = true
+let debugMode = true
 let aTblNcMappingTbl = {}
 
 // mapping table
@@ -53,7 +54,7 @@ const api = new Api({
 });
 
 // global schema store
-let aTblSchema = {};
+let g_aTblSchema = {};
 
 async function getAtableSchema() {
   // let file = jsonfile.readFileSync('./t0v0.json');
@@ -64,7 +65,7 @@ async function getAtableSchema() {
     baseId
   );
   // store copy of atbl schema globally
-  aTblSchema = file.tableSchemas;
+  g_aTblSchema = file.tableSchemas;
   return file;
 }
 
@@ -105,7 +106,7 @@ let aTblNcTypeMap = {
 // aTbl: retrieve table name from table ID
 //
 function aTbl_getTableName(tblId) {
-  const sheetObj = aTblSchema.find(tbl => tbl.id === tblId);
+  const sheetObj = g_aTblSchema.find(tbl => tbl.id === tblId);
   return {
     tn: sheetObj.name
   };
@@ -114,8 +115,8 @@ function aTbl_getTableName(tblId) {
 // aTbl: retrieve column name from column ID
 //
 function aTbl_getColumnName(colId) {
-  for (let i = 0; i < aTblSchema.length; i++) {
-    let sheetObj = aTblSchema[i];
+  for (let i = 0; i < g_aTblSchema.length; i++) {
+    let sheetObj = g_aTblSchema[i];
     const column = sheetObj.columns.find(col => col.id === colId);
     if (column !== undefined)
       return {
@@ -161,7 +162,6 @@ async function nc_getTableSchema(tableName) {
 
 // delete project if already exists
 async function init() {
-
   console.log(syncDB)
 
   // delete 'sample' project if already exists
@@ -171,7 +171,6 @@ async function init() {
   if(sampleProj) {
     await api.project.delete(sampleProj.id)
   }
-
   syncLog('Init')
 }
 
@@ -300,10 +299,8 @@ function tablesPrepare(tblSchema) {
         case undefined:
           break;
       }
-
       table.columns.push(ncCol);
     }
-
     tables.push(table);
   }
   return tables;
@@ -536,19 +533,6 @@ async function nocoCreateLookups(aTblSchema) {
           continue
         }
 
-        // let ncRelationColumn = await nc_getColumnSchema(
-        //   aTblColumns[i].typeOptions.relationColumnId
-        // );
-        // let ncLookupColumn = await nc_getColumnSchema(
-        //   aTblColumns[i].typeOptions.foreignTableRollupColumnId
-        // );
-        //
-        // if(ncLookupColumn === undefined) {
-        //   aTblColumns[i]['srcTableId'] = srcTableId;
-        //   nestedLookupTbl.push(aTblColumns[i])
-        //   continue;
-        // }
-
         let ncRelationColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.relationColumnId);
         let ncLookupColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.foreignTableRollupColumnId);
 
@@ -557,7 +541,6 @@ async function nocoCreateLookups(aTblSchema) {
           nestedLookupTbl.push(aTblColumns[i])
           continue;
         }
-
 
         let lookupColumn = await api.dbTableColumn.create(srcTableId, {
           uidt: 'Lookup',
@@ -591,17 +574,6 @@ async function nocoCreateLookups(aTblSchema) {
       console.log(`Phase-4 Configuring Nested Lookup: Level-${level} [${i+1}/${nestedCnt}]`)
 
       let srcTableId = nestedLookupTbl[i].srcTableId;
-
-      // let ncRelationColumn = await nc_getColumnSchema(
-      //   nestedLookupTbl[i].typeOptions.relationColumnId
-      // );
-      // let ncLookupColumn = await nc_getColumnSchema(
-      //   nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
-      // );
-      //
-      // if (ncLookupColumn === undefined) {
-      //   continue;
-      // }
 
       let ncRelationColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.relationColumnId);
       let ncLookupColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId);
@@ -648,19 +620,6 @@ async function nocoCreateRollups(aTblSchema) {
           continue
         }
 
-        // let ncRelationColumn = await nc_getColumnSchema(
-        //   aTblColumns[i].typeOptions.relationColumnId
-        // );
-        // let ncRollupColumn = await nc_getColumnSchema(
-        //   aTblColumns[i].typeOptions.foreignTableRollupColumnId
-        // );
-        //
-        // if(ncRollupColumn === undefined) {
-        //   aTblColumns[i]['srcTableId'] = srcTableId;
-        //   nestedRollupTbl.push(aTblColumns[i])
-        //   continue;
-        // }
-
         let ncRelationColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.relationColumnId)
         let ncRollupColumnId = getNcIdFromAtId(aTblColumns[i].typeOptions.foreignTableRollupColumnId)
 
@@ -694,13 +653,6 @@ async function nocoLookupForRollups() {
     console.log(`Phase-6 Configuring Lookup over Rollup :: [${i+1}/${nestedCnt}]`)
 
     let srcTableId = nestedLookupTbl[i].srcTableId;
-
-    // let ncRelationColumn = await nc_getColumnSchema(
-    //   nestedLookupTbl[i].typeOptions.relationColumnId
-    // );
-    // let ncLookupColumn = await nc_getColumnSchema(
-    //   nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
-    // );
 
     let ncRelationColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.relationColumnId)
     let ncLookupColumnId = getNcIdFromAtId(nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId)
@@ -784,7 +736,6 @@ async function nocoReconfigureFields(aTblSchema) {
 
 // https://www.airtable.com/app1ivUy7ba82jOPn/api/docs#javascript/metadata
 let Airtable = require('airtable');
-
 let aTblDataLinks = [];
 
 function nocoLinkProcessing(table, record, field) {
@@ -959,7 +910,6 @@ async function nocoReadData(table, callback) {
   })
 }
 
-
 async function nocoReadDataSelected(table, callback, fields) {
   return new Promise((resolve, reject) => {
 
@@ -1083,9 +1033,8 @@ async function nocoConfigureGridView(aTblSchema) {
 // start function
 async function nc_migrateATbl() {
 
-  // fix me: delete project if already exists
-  // remove later
-  await init()
+  // delete project if already exists
+  if(debugMode) await init()
 
   // read schema file
   const schema = await getAtableSchema();
@@ -1242,6 +1191,5 @@ async function generateMigrationStats(aTblSchema) {
 
   const duration = Date.now() - start;
   console.log(`Migration time: ${duration}`)
-
 }
 

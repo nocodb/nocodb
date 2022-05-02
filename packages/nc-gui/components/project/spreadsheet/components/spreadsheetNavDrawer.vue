@@ -274,7 +274,12 @@
         </div>
 
         <div>
-          <code-snippet :meta="meta" :view="selectedView" />
+          <v-btn color="primary" class="caption d-100" @click="codeSnippetModal=true">
+            <v-icon small class="mr-2">
+              mdi-xml
+            </v-icon> Get API Snippet
+          </v-btn>
+          <code-snippet v-model="codeSnippetModal" :query-params="queryParams" :meta="meta" :view="selectedView" />
         </div>
 
         <div
@@ -549,9 +554,11 @@ export default {
     // coverImageField: String,
     groupingField: String,
     // showSystemFields: Boolean,
-    views: Array
+    views: Array,
+    queryParams: Object
   },
   data: () => ({
+    codeSnippetModal: false,
     drag: false,
     dragOptions: {
       animation: 200,

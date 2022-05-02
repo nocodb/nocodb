@@ -26,6 +26,7 @@ import Column from '../../../noco-models/Column';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import getColumnUiType from '../helpers/getColumnUiType';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 export async function tableGet(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
     id: req.params.tableId
@@ -264,26 +265,32 @@ export async function tableDelete(req: Request, res: Response) {
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/projects/:projectId/tables',
+  metaApiMetrics,
   ncMetaAclMw(tableList, 'tableList')
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
+  metaApiMetrics,
   ncMetaAclMw(tableCreate, 'tableCreate')
 );
 router.get(
   '/api/v1/db/meta/tables/:tableId',
+  metaApiMetrics,
   ncMetaAclMw(tableGet, 'tableGet')
 );
 router.patch(
   '/api/v1/db/meta/tables/:tableId',
+  metaApiMetrics,
   ncMetaAclMw(tableUpdate, 'tableUpdate')
 );
 router.delete(
   '/api/v1/db/meta/tables/:tableId',
+  metaApiMetrics,
   ncMetaAclMw(tableDelete, 'tableDelete')
 );
 router.post(
   '/api/v1/db/meta/tables/:tableId/reorder',
+  metaApiMetrics,
   ncMetaAclMw(tableReorder, 'tableReorder')
 );
 export default router;

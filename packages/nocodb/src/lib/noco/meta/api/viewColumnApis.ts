@@ -2,6 +2,7 @@ import { Request, Response, Router } from 'express';
 import View from '../../../noco-models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export async function columnList(req: Request, res: Response) {
   res.json(await View.getColumns(req.params.viewId));
@@ -33,14 +34,17 @@ export async function columnUpdate(req: Request, res: Response) {
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/views/:viewId/columns/',
+  metaApiMetrics,
   ncMetaAclMw(columnList, 'columnList')
 );
 router.post(
   '/api/v1/db/meta/views/:viewId/columns/',
+  metaApiMetrics,
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
 router.patch(
   '/api/v1/db/meta/views/:viewId/columns/:columnId',
+  metaApiMetrics,
   ncMetaAclMw(columnUpdate, 'viewColumnUpdate')
 );
 export default router;

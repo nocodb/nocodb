@@ -121,7 +121,7 @@ export default {
       }
     },
     apiUrl() {
-      return new URL(`/api/v1/db/data/noco/${this.projectId}/${this.meta.title}/views/${this.view.title}`, this.$store.state.project.projectInfo.ncSiteUrl).href
+      return new URL(`/api/v1/db/data/noco/${this.projectId}/${this.meta.title}/views/${this.view.title}`, (this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.ncSiteUrl) || '/').href
     },
     snippet() {
       return new HTTPSnippet({

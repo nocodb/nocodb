@@ -693,6 +693,10 @@ export default {
         );
       } catch (e) {
         console.log(e);
+        this.$toast
+          .error("Failed to save column: " + e)
+          .goAway(3000);
+        throw e;
       }
 
       this.$emit("close");

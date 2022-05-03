@@ -1,52 +1,65 @@
 <template>
-  <v-dialog v-model="modal">
-    <v-card style="overflow: hidden">
-      <v-tabs v-model="tab" height="30" @change="client=null">
-        <v-tab
-          v-for="{lang} in langs"
-          :key="lang"
-          class="caption"
-        >
-          {{ lang }}
-        </v-tab>
-      </v-tabs>
-      <div class="nc-snippet-wrapper">
-        <div class="nc-snippet-actions d-flex">
-          <v-btn color="primary" class="rounded caption " @click="copyToClipboard">
-            <v-icon small>
-              mdi-clipboard-outline
-            </v-icon> Copy To Clipboard
-          </v-btn>
-          <div
-            v-if="langs[tab].clients"
-            class=" ml-2 d-flex align-center"
+  <div class="nc-container" :class="{active:modal}" @click="modal=false">
+    <div class="nc-snippet elevation-3 pa-4" @click.stop>
+      <h3 class="font-weight-medium mb-4">
+        Code Snippet
+      </h3>
+
+      <v-icon class="nc-snippet-close" @click="modal=false">
+        mdi-close
+      </v-icon>
+
+      <div style="overflow: hidden">
+        <v-tabs v-model="tab" height="30" @change="client=null">
+          <v-tab
+            v-for="{lang} in langs"
+            :key="lang"
+            class="caption"
           >
-            <v-menu bottom offset-y>
-              <template #activator="{on}">
-                <v-btn class="caption" color="primary" v-on="on">
-                  {{ client || langs[tab].clients[0] }} <v-icon small>
-                    mdi-chevron-down
-                  </v-icon>
-                </v-btn>
-              </template>
-              <v-list dense>
-                <v-list-item v-for="c in langs[tab].clients" :key="c" dense @click="client = c">
-                  <v-list-item-title>{{ c }}</v-list-item-title>
-                </v-list-item>
-              </v-list>
-            </v-menu>
+            {{ lang }}
+          </v-tab>
+        </v-tabs>
+        <div class="nc-snippet-wrapper mt-4">
+          <div class="nc-snippet-actions d-flex">
+            <v-btn color="primary" class="rounded caption " @click="copyToClipboard">
+              <v-icon small>
+                mdi-clipboard-outline
+              </v-icon>
+              Copy To Clipboard
+            </v-btn>
+            <div
+              v-if="langs[tab].clients"
+              class=" ml-2 d-flex align-center"
+            >
+              <v-menu bottom offset-y>
+                <template #activator="{on}">
+                  <v-btn class="caption" color="primary" v-on="on">
+                    {{ client || langs[tab].clients[0] }}
+                    <v-icon small>
+                      mdi-chevron-down
+                    </v-icon>
+                  </v-btn>
+                </template>
+                <v-list dense>
+                  <v-list-item v-for="c in langs[tab].clients" :key="c" dense @click="client = c">
+                    <v-list-item-title>{{ c }}</v-list-item-title>
+                  </v-list-item>
+                </v-list>
+              </v-menu>
+            </div>
           </div>
+          <custom-monaco-editor :theme="$store.state.windows.darkTheme ? 'vs-dark' : 'vs-light'" style="min-height:500px;max-width: 100%" :value="code" read-only />
         </div>
-        <custom-monaco-editor style="min-height:500px;max-width: 100%" :value="code" read-only />
       </div>
-    </v-card>
-  </v-dialog>
+    </div>
+  </div>
 </template>
 
 <script>
 import HTTPSnippet from 'httpsnippet'
 import CustomMonacoEditor from '~/components/monaco/CustomMonacoEditor'
 import { copyTextToClipboard } from '~/helpers/xutils'
+
 export default {
   name: 'CodeSnippet',
   components: { CustomMonacoEditor },
@@ -129,7 +142,7 @@ export default {
         return `${
           this.client === 'node'
             ? 'const { Api } require("nocodb-sdk");'
-          : 'import { Api } from "nocodb-sdk";'
+            : 'import { Api } from "nocodb-sdk";'
         }
 
 const api = new Api({
@@ -155,6 +168,13 @@ api.dbViewRow.list(
       return this.snippet.convert(this.langs[this.tab].lang, this.client || (this.langs[this.tab].clients && this.langs[this.tab].clients[0]), {})
     }
   },
+  mounted() {
+    (document.querySelector('[data-app]') || this.$root.$el).append(this.$el)
+  },
+
+  destroyed() {
+    this.$el.parentNode && this.$el.parentNode.removeChild(this.$el)
+  },
   methods: {
     copyToClipboard() {
       copyTextToClipboard(this.code)
@@ -164,14 +184,69 @@ api.dbViewRow.list(
 }
 </script>
 
-<style scoped>
-.nc-snippet-wrapper{
-  position:relative;
+<style scoped lang="scss">
+.nc-snippet-wrapper {
+  position: relative;
 }
-.nc-snippet-actions{
+
+.nc-snippet-actions {
   position: absolute;
   right: 10px;
-  bottom:10px;
+  bottom: 10px;
   z-index: 99999;
+}
+
+.nc-container {
+  position: fixed;
+  pointer-events: none;
+  width: 100vw;
+  height: 100vh;
+  z-index: 9999;
+  right: 0;
+  top: 0;
+
+  .nc-snippet {
+    background-color: var(--v-backgroundColorDefault-base);
+    height: 100%;
+    width: max(50%, 700px);
+    position: absolute;
+    bottom: 0;
+    top: 0;
+    right: min(-50%, -700px);
+    transition: .3s right;
+
+  }
+
+  &.active {
+    pointer-events: all;
+
+    & > .nc-snippet {
+      right: 0
+    }
+  }
+
+  .nc-snippet-close {
+    position: absolute;
+    right: 16px;
+    top: 16px;
+  }
+}
+
+::v-deep {
+  .v-tabs {
+    height: 100%;
+
+    .v-tabs-items {
+      height: calc(100% - 30px);
+
+      .v-window__container {
+        height: 100%;
+      }
+    }
+  }
+
+  .v-slide-group__prev--disabled {
+    display: none
+  }
 }
 </style>

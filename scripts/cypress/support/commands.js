@@ -338,6 +338,9 @@ Cypress.Commands.add("renameTable", (oldName, newName) => {
         .should('exist')
         .first()
         .click();
+
+    // kludge: tab appears to flush re-load. wait for it to stabalize
+    cy.wait(8000)
 });
 
 Cypress.Commands.add("createColumn", (table, columnName) => {

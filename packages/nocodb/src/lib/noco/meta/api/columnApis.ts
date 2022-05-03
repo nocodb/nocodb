@@ -728,7 +728,6 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
               const columnsInRelatedTable: Column[] = await relationColOpt
                 .getRelatedTable()
                 .then(m => m.getColumns());
-              let columnInRelatedTable: Column;
 
               for (const c of columnsInRelatedTable) {
                 if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -743,13 +742,12 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                   colOpt.fk_mm_parent_column_id === mmChildCol.id &&
                   colOpt.fk_mm_child_column_id === mmParentCol.id
                 ) {
-                  columnInRelatedTable = c;
+                  await Column.delete(c.id);
                   break;
                 }
               }
 
               await Column.delete(relationColOpt.fk_column_id);
-              await Column.delete(columnInRelatedTable.id);
 
               // delete bt columns in m2m table
               await mmTable.getColumns();
@@ -766,6 +764,18 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
               // delete hm columns in parent table
               await parentTable.getColumns();
               for (const c of parentTable.columns) {
+                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                const colOpt = await c.getColOptions<
+                  LinkToAnotherRecordColumn
+                >();
+                if (colOpt.fk_related_model_id === mmTable.id) {
+                  await Column.delete(c.id);
+                }
+              }
+
+              // delete hm columns in child table
+              await childTable.getColumns();
+              for (const c of childTable.columns) {
                 if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
                 const colOpt = await c.getColOptions<
                   LinkToAnotherRecordColumn
@@ -892,7 +902,6 @@ const deleteHmOrBtRelation = async (
   const columnsInRelatedTable: Column[] = await relationColOpt
     .getRelatedTable()
     .then(m => m.getColumns());
-  let columnInRelatedTable: Column;
   const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
   for (const c of columnsInRelatedTable) {
     if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -902,8 +911,7 @@ const deleteHmOrBtRelation = async (
       colOpt.fk_child_column_id === childColumn.id &&
       colOpt.type === relType
     ) {
-      columnInRelatedTable = c;
-      await Column.delete(columnInRelatedTable.id, ncMeta);
+      await Column.delete(c.id, ncMeta);
       break;
     }
   }

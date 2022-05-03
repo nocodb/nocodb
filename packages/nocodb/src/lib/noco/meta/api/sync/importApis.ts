@@ -1,9 +1,9 @@
 import { Router } from 'express';
 // import { Queue } from 'bullmq';
 import axios from 'axios';
-import catchError from '../helpers/catchError';
+import catchError from '../../helpers/catchError';
 import { Server, Socket } from 'socket.io';
-import NocoJobs from '../../../noco-jobs/NocoJobs';
+import NocoJobs from '../../../../noco-jobs/NocoJobs';
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
 // const worker = new Worker('test', async job => {
 //   if (job.name === 'name') {

@@ -990,13 +990,24 @@ async function nocoConfigureFormView(sDB, aTblSchema) {
       // create view
       let vData = await getViewData(sDB.airtable.shareId, aTblSchema[idx].id, formViews[i].id)
       let viewName = aTblSchema[idx].views.find(x => x.id === formViews[i].id)?.name
-      let refreshMode = vData.metadata.form.refreshAfterSubmit;
-      let msg = vData.metadata.form?.afterSubmitMessage?vData.metadata.form.afterSubmitMessage:"Thank you for submitting the form!";
+
+      // everything is default
+      let refreshMode = "NO_REFRESH";
+      let msg = "Thank you for submitting the form!";
+      let desc = "";
+
+      // response will not include form object if everything is default
+      //
+      if(vData.metadata?.form) {
+        refreshMode = vData.metadata.form.refreshAfterSubmit;
+        msg = vData.metadata.form?.afterSubmitMessage?vData.metadata.form.afterSubmitMessage:"Thank you for submitting the form!";
+        desc = vData.metadata.form.description;
+      }
 
       let formData = {
         title: viewName,
         heading: viewName,
-        subheading: vData.metadata.form.description,
+        subheading: desc,
         success_msg: msg,
         submit_another_form: refreshMode.includes("REFRESH_BUTTON")?true:false,
         show_blank_form: refreshMode.includes("AUTO_REFRESH")?true:false,

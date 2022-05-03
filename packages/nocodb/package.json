@@ -151,7 +151,7 @@
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
     "nc-help": "0.2.46",
-    "nc-lib-gui": "npm:finn-nc-lib-gui@0.90.7-finn.0",
+    "nc-lib-gui": "npm:finn-nc-lib-gui@0.90.7-finn.1",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",
     "nocodb-sdk": "0.90.7",

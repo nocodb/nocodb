@@ -8,6 +8,7 @@ import { defaultConnectionConfig } from '../../../utils/NcConfigFactory';
 import User from '../../../noco-models/User';
 import catchError from '../helpers/catchError';
 import axios from 'axios';
+import Plugin from '../../../noco-models/Plugin';
 
 export async function testConnection(req: Request, res: Response) {
   res.json(await SqlMgrv2.testConnection(req.body));
@@ -20,9 +21,7 @@ export async function appInfo(req: Request, res: Response) {
     firstUser: !projectHasAdmin,
     type: 'rest',
     env: process.env.NODE_ENV,
-    googleAuthEnabled: !!(
-      process.env.NC_GOOGLE_CLIENT_ID && process.env.NC_GOOGLE_CLIENT_SECRET
-    ),
+    googleAuthEnabled: await Plugin.isPluginActive('Google'),
     githubAuthEnabled: !!(
       process.env.NC_GITHUB_CLIENT_ID && process.env.NC_GITHUB_CLIENT_SECRET
     ),

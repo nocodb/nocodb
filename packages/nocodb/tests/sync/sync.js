@@ -1251,15 +1251,22 @@ async function nc_configureFilters(viewId, f) {
   for(let i=0; i<f.filterSet.length; i++) {
     let filter = f.filterSet[i]
     let colSchema = await nc_getColumnSchema(filter.columnId)
+
+    // column not available;
+    // one of not migrated column;
+    if (!colSchema) {
+      addUserInfo(`Filter configuration partial: ${sMap.getNcNameFromAtId(viewId)}`)
+      continue;
+    }
+
     let columnId = colSchema.id;
     let datatype = colSchema.uidt;
-
     let ncFilters = []
 
     // console.log(filter)
-
     if(datatype === UITypes.Date) {
       // skip filters over data datatype
+      addUserInfo(`Filter configuration partial: ${sMap.getNcNameFromAtId(viewId)}`)
       continue;
     }
 

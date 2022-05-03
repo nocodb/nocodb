@@ -19,8 +19,10 @@ const getAst = async ({
   if (!model.columns?.length) await model.getColumns();
   if (extractOnlyPrimaries) {
     return {
-      [model.primaryKey.title]: 1,
-      [model.primaryValue.title]: 1
+      ...(model.primaryKeys
+        ? model.primaryKeys.reduce((o, pk) => ({ ...o, [pk.title]: 1 }), {})
+        : {}),
+      ...(model.primaryValue ? { [model.primaryValue.title]: 1 } : {})
     };
   }
 

@@ -1,8 +1,8 @@
 const uiTypes = [
-  {
-    name: 'ID',
-    icon: 'mdi-identifier'
-  },
+  // {
+  //   name: 'ID',
+  //   icon: 'mdi-identifier'
+  // },
   {
     name: 'LinkToAnotherRecord',
     icon: 'mdi-link-variant',

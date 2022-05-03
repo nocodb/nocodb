@@ -18,9 +18,9 @@
             dense
           >
             <template #item="{item}">
-              <span class="caption"><span class="font-weight-bold"> {{
+              <span class="caption"><span class="font-weight-bold">{{ item.column.title }}</span> <small>({{ relationNames[item.col.type] }} {{
                 item.title || item.table_name
-              }}</span> <small>({{ relationNames[item.col.type] }})
+              }})
               </small></span>
             </template>
           </v-autocomplete>
@@ -74,6 +74,7 @@ export default {
         c.uidt === UITypes.LinkToAnotherRecord && !c.system
       ).map(c => ({
         col: c.colOptions,
+        column: c,
         ...this.tables.find(t => t.id === c.colOptions.fk_related_model_id)
       }))
 

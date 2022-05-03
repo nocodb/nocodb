@@ -160,6 +160,7 @@
                   </v-list-item-title>
                 </v-list-item>
                 <v-list-item
+                  v-if="isDashboard"
                   v-t="['a:navbar:user:swagger']"
                   dense
                   @click.stop="

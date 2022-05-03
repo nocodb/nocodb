@@ -1070,16 +1070,29 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
   }> = await ncMeta.metaList(null, null, 'nc_disabled_models_for_role');
 
   for (const acl of uiAclList) {
+    // if missing model name skip the view acl migration
+    if (!acl.title) continue;
+
     let fk_view_id;
     if (acl.type === 'vtable') {
+      // if missing parent model name skip the view acl migration
+      if (!acl.parent_model_title) continue;
       fk_view_id =
-        ctx.objViewRef[acl.project_id][acl.parent_model_title][acl.title].id;
+        ctx.objViewRef[acl.project_id]?.[
+          (
+            ctx.objModelRef?.[acl.project_id]?.[acl.parent_model_title] ||
+            ctx.objModelAliasRef?.[acl.project_id]?.[acl.parent_model_title]
+          )?.table_name
+        ]?.[acl.title]?.id;
     } else {
       fk_view_id =
-        ctx.objViewRef[acl.project_id][acl.title][
-          ctx.objModelRef[acl.project_id][acl.title].title
-        ].id || ctx.objViewRef[acl.project_id][acl.title][acl.title].id;
+        ctx.objViewRef?.[acl.project_id]?.[acl.title]?.[
+          ctx.objModelRef?.[acl.project_id]?.[acl.title]?.title
+        ].id || ctx.objViewRef[acl.project_id]?.[acl.title]?.[acl.title]?.id;
     }
+
+    // if view id missing skip ui acl view migration
+    if (!fk_view_id) continue;
 
     await ModelRoleVisibility.insert(
       {
@@ -1112,9 +1125,14 @@ async function migrateSharedViews(ctx: MigrateCtxV1, ncMeta: any) {
 
     if (sharedView.view_type !== 'table' && sharedView.view_type !== 'view') {
       fk_view_id =
-        ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[
-          sharedView.view_name
-        ]?.id;
+        ctx.objViewRef[sharedView.project_id]?.[
+          (
+            ctx.objModelRef?.[sharedView.project_id]?.[sharedView.model_name] ||
+            ctx.objModelAliasRef?.[sharedView.project_id]?.[
+              sharedView.model_name
+            ]
+          )?.title
+        ]?.[sharedView.view_name]?.id;
     } else {
       fk_view_id =
         ctx.objViewRef[sharedView.project_id]?.[sharedView.model_name]?.[

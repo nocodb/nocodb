@@ -191,6 +191,7 @@
     "port": "Cổng số",
     "username": "tên tài khoản",
     "password": "Mật khẩu",
+    "schemaName": "Schema name",
     "action": "Hoạt động",
     "actions": "Hành động",
     "operation": "Hoạt động",

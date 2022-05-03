@@ -191,6 +191,7 @@
     "port": "端口号",
     "username": "用户名",
     "password": "密码",
+    "schemaName": "Schema name",
     "action": "行动",
     "actions": "行动",
     "operation": "操作",

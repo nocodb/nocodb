@@ -13,16 +13,13 @@ import LookupColumn from '../../../../noco-models/LookupColumn';
 import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
 
 import papaparse from 'papaparse';
+import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
 export async function getViewAndModelFromRequestByAliasOrId(
   req:
     | Request<{ projectName: string; tableName: string; viewName?: string }>
     | Request
 ) {
-  let project = await Project.getWithInfoByTitle(req.params.projectName);
-
-  if (!project) {
-    project = await Project.getWithInfo(req.params.projectName);
-  }
+  const project = await Project.getWithInfoByTitleOrId(req.params.projectName);
 
   const model = await Model.getByAliasOrId({
     project_id: project.id,
@@ -75,7 +72,12 @@ export async function extractCsvData(view: View, req: Request) {
       elapsed = temp[0] * 1000 + temp[1] / 1000000
   ) {
     const rows = await nocoExecute(
-      await baseModel.defaultResolverReq(req.query, false, false),
+      await getAst({
+        query: req.query,
+        includePkByDefault: false,
+        model: view.model,
+        view
+      }),
       await baseModel.list({ ...req.query, offset, limit }),
       {},
       req.query

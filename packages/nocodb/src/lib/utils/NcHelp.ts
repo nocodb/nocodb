@@ -5,7 +5,7 @@ export default class NcHelp {
     fns: Array<() => Promise<any>>,
     dbType: string
   ): Promise<any> {
-    if (dbType === 'oracledb') {
+    if (dbType === 'oracledb' || dbType === 'mssql') {
       for (const fn of fns) {
         await fn();
       }

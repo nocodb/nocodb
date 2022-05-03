@@ -191,6 +191,7 @@
     "port": "Numéro de port",
     "username": "Utilisateur",
     "password": "Mot de passe",
+    "schemaName": "Schema name",
     "action": "Action",
     "actions": "Actions",
     "operation": "Opération",

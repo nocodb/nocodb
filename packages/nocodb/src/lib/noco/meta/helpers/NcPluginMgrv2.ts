@@ -1,6 +1,5 @@
 import {
   IEmailAdapter,
-  IStorageAdapter,
   IWebhookNotificationAdapter
   // XcEmailPlugin,
   // XcPlugin,
@@ -121,7 +120,7 @@ class NcPluginMgrv2 {
     }
 
     await plugin.init(pluginData?.input);
-    return plugin.getAdapter() as IStorageAdapter;
+    return plugin.getAdapter();
   }
 
   public static async emailAdapter(

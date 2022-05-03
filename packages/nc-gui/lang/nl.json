@@ -191,6 +191,7 @@
     "port": "Poortnummer",
     "username": "Gebruikersnaam",
     "password": "Wachtwoord",
+    "schemaName": "Schema name",
     "action": "Actie",
     "actions": "Acties",
     "operation": "Operatie",

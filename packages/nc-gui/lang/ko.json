@@ -191,6 +191,7 @@
     "port": "포트 번호",
     "username": "사용자 이름",
     "password": "비밀번호",
+    "schemaName": "Schema name",
     "action": "동작",
     "actions": "행위",
     "operation": "작업",

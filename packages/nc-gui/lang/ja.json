@@ -191,6 +191,7 @@
     "port": "ポート番号",
     "username": "ユーザー名",
     "password": "パスワード",
+    "schemaName": "Schema name",
     "action": "アクション",
     "actions": "アクション",
     "operation": "操作",

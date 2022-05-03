@@ -191,6 +191,7 @@
     "port": "Nomor port.",
     "username": "Nama pengguna",
     "password": "Kata sandi",
+    "schemaName": "Schema name",
     "action": "Tindakan",
     "actions": "Tindakan",
     "operation": "Operasi",

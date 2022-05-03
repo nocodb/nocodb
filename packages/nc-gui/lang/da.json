@@ -191,6 +191,7 @@
     "port": "Port nummer.",
     "username": "Brugernavn.",
     "password": "Adgangskode",
+    "schemaName": "Schema name",
     "action": "Handling",
     "actions": "Handlinger",
     "operation": "Operation",

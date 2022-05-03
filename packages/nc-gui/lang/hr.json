@@ -191,6 +191,7 @@
     "port": "Broj porta",
     "username": "Korisničko ime",
     "password": "Lozinka",
+    "schemaName": "Schema name",
     "action": "Akcijski",
     "actions": "Akcije",
     "operation": "Operacija",

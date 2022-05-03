@@ -191,6 +191,7 @@
     "port": "หมายเลขพอร์ต",
     "username": "ชื่อผู้ใช้",
     "password": "รหัสผ่าน",
+    "schemaName": "Schema name",
     "action": "หนังบู๊",
     "actions": "การกระทำ",
     "operation": "การดำเนินการ",

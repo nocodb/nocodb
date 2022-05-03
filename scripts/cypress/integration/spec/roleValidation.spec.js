@@ -214,7 +214,7 @@ export function _editComment(roleType, previewMode) {
 //      Rest: can create/edit
 export function _viewMenu(roleType, previewMode) {
     let columnName = "City";
-    let navDrawListCnt = 1;
+    let navDrawListCnt = 2;
     // Download CSV
     let actionsMenuItemsCnt = 1;
 
@@ -231,7 +231,7 @@ export function _viewMenu(roleType, previewMode) {
 
     // Owner, Creator will have two navigation drawer (on each side of center panel)
     if (roleType == "owner" || roleType == "creator") {
-        navDrawListCnt = 2;
+        navDrawListCnt = 3;
         // Download CSV / Upload CSV / Shared View List / Webhook
         actionsMenuItemsCnt = 4;
     } else if (roleType == "editor") {

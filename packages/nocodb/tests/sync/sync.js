@@ -71,6 +71,7 @@ let aTblNcTypeMap = {
   multiSelect: UITypes.MultiSelect,
   select: UITypes.SingleSelect,
   collaborator: UITypes.Collaborator,
+  multiCollaborator: UITypes.Collaborator,
   date: UITypes.Date,
   // kludge: phone: UITypes.PhoneNumber,
   phone: UITypes.SingleLineText,
@@ -807,7 +808,14 @@ function nocoBaseDataProcessing(sDB, table, record) {
       if (dt === UITypes.Rollup) delete rec[key];
 
       if (dt === UITypes.Collaborator) {
-        rec[key] = `${value?.name} <${value?.email}>`;
+        // in case of multi-collaborator, this will be an array
+        if(Array.isArray(value)) {
+          let collaborators = ""
+          for(let i=0; i<value.length; i++) {
+            collaborators += `${value[i]?.name} <${value[i]?.email}>, `
+          rec[key] = collaborators
+          }
+        } else rec[key] = `${value?.name} <${value?.email}>`;
       }
 
       if (dt === UITypes.Barcode) rec[key] = value.text;

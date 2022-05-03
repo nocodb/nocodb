@@ -223,7 +223,7 @@ export async function tableDelete(req: Request, res: Response) {
       )
     );
     NcError.badRequest(
-      `Table can't be  deleted  since Table is being referred in following tables : ${referredTables.join(
+      `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
         ', '
       )}. Delete LinkToAnotherRecord columns and try again.`
     );

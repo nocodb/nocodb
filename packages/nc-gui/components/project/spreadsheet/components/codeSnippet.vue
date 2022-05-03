@@ -9,11 +9,12 @@
         mdi-close
       </v-icon>
 
-      <div style="overflow: hidden">
-        <v-tabs v-model="tab" height="30" @change="client=null">
+      <div>
+        <v-tabs v-model="tab" height="30" show-arrows @change="client=null">
           <v-tab
             v-for="{lang} in langs"
             :key="lang"
+            v-t="['c:snippet:tab', {lang}]"
             class="caption"
           >
             {{ lang }}
@@ -21,7 +22,12 @@
         </v-tabs>
         <div class="nc-snippet-wrapper mt-4">
           <div class="nc-snippet-actions d-flex">
-            <v-btn color="primary" class="rounded caption " @click="copyToClipboard">
+            <v-btn
+              v-t="['c:snippet:copy', {client: langs[tab].clients && (client || langs[tab].clients[0]), lang: langs[tab ||0].lang}]"
+              color="primary"
+              class="rounded caption "
+              @click="copyToClipboard"
+            >
               <v-icon small>
                 mdi-clipboard-outline
               </v-icon>
@@ -33,7 +39,7 @@
             >
               <v-menu bottom offset-y>
                 <template #activator="{on}">
-                  <v-btn class="caption" color="primary" v-on="on">
+                  <v-btn class="caption text-uppercase" color="primary" v-on="on">
                     {{ client || langs[tab].clients[0] }}
                     <v-icon small>
                       mdi-chevron-down
@@ -41,14 +47,27 @@
                   </v-btn>
                 </template>
                 <v-list dense>
-                  <v-list-item v-for="c in langs[tab].clients" :key="c" dense @click="client = c">
-                    <v-list-item-title>{{ c }}</v-list-item-title>
+                  <v-list-item
+                    v-for="c in langs[tab].clients"
+                    :key="c"
+                    dense
+                    @click="client = c"
+                  >
+                    <v-list-item-title class="text-uppercase">
+                      {{ c }}
+                    </v-list-item-title>
                   </v-list-item>
                 </v-list>
               </v-menu>
             </div>
           </div>
-          <custom-monaco-editor :theme="$store.state.windows.darkTheme ? 'vs-dark' : 'vs-light'" style="min-height:500px;max-width: 100%" :value="code" read-only />
+          <custom-monaco-editor
+            hide-line-num
+            :theme="$store.state.windows.darkTheme ? 'vs-dark' : 'vs-light'"
+            style="min-height:500px;max-width: 100%"
+            :value="code"
+            read-only
+          />
         </div>
       </div>
     </div>
@@ -156,9 +175,7 @@ api.dbViewRow.list(
   "noco",
   ${JSON.stringify(this.projectName)},
   ${JSON.stringify(this.meta.title)},
-  ${JSON.stringify(this.view.title)},
-  ${JSON.stringify(this.queryParams, null, 2)}
-).then(function (data) {
+  ${JSON.stringify(this.view.title)}, ${JSON.stringify(this.queryParams, null, 4)}).then(function (data) {
   console.log(data);
 }).catch(function (error) {
   console.error(error);
@@ -187,6 +204,9 @@ api.dbViewRow.list(
 <style scoped lang="scss">
 .nc-snippet-wrapper {
   position: relative;
+  border: 1px solid #7773;
+  border-radius: 4px;
+  overflow: hidden;
 }
 
 .nc-snippet-actions {

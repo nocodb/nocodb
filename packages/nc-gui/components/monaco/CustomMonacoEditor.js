@@ -17,7 +17,8 @@ export default {
       default: "vs-dark"
     },
     lang: {type:String, default: 'typescript'},
-    readOnly:Boolean
+    readOnly:Boolean,
+    minimap:Boolean,
   },
 
   model: {
@@ -71,7 +72,9 @@ export default {
 
       this.editor = monaco.editor.create(this.$el, {
         model: model,
-        theme: this.theme,
+        theme: this.theme,   minimap: {
+          enabled: this.minimap
+        }
       });
 
       this.editor.onDidChangeModelContent(event => {

@@ -274,7 +274,12 @@
         </div>
 
         <div>
-          <v-btn color="primary" class="caption d-100" @click="codeSnippetModal=true">
+          <v-btn
+            v-t="['c:snippet:open']"
+            color="primary"
+            class="caption d-100"
+            @click="codeSnippetModal=true"
+          >
             <v-icon small class="mr-2">
               mdi-xml
             </v-icon> Get API Snippet

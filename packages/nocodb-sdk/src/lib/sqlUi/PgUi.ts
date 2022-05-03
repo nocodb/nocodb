@@ -870,7 +870,7 @@ export class PgUi {
         return 'eg: ';
 
       case 'character varying':
-        return 'eg: ';
+        return "eg: 'sample text'"
 
       case 'tinyint':
         return 'eg: ';

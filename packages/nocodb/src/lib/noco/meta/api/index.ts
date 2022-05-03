@@ -46,7 +46,7 @@ import passport from 'passport';
 
 import crypto from 'crypto';
 import swaggerApis from './swagger/swaggerApis';
-import importApis from './importApis';
+import importApis from './sync/importApis';
 
 export default function(router: Router, server) {
   initStrategies(router);

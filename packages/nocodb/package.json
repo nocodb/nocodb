@@ -94,6 +94,7 @@
     "@google-cloud/storage": "^5.7.2",
     "@graphql-tools/merge": "^6.0.12",
     "@sentry/node": "^6.3.5",
+    "airtable": "^0.11.3",
     "archiver": "^5.0.2",
     "auto-bind": "^4.0.0",
     "aws-sdk": "^2.829.0",

@@ -22,8 +22,8 @@ export default class EmitteryJobsMgr extends JobsMgr {
   ) {
     this.emitter.on(jobName, async payload => {
       try {
-        await workerFn(payload, (...args) =>
-          this.invokeProgressCbks(jobName, ...args)
+        await workerFn(payload, msg =>
+          this.invokeProgressCbks(jobName, payload, msg)
         );
         await this.invokeFailureCbks(jobName, payload);
       } catch (e) {

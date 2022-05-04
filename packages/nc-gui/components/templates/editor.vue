@@ -851,7 +851,6 @@ export default {
             }
 
             for (const column of t.columns || []) {
-              console.log(column)
               if (this.isRelation(column)) {
                 if (column.type === 'hm') {
                   table.hasMany.push({

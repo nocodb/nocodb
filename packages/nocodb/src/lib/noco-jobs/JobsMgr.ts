@@ -16,7 +16,12 @@ export default abstract class JobsMgr {
     workerFn: (
       payload: any,
       progressCbk?: (payload: any, msg?: string) => void
-    ) => void
+    ) => void,
+    options?: {
+      onSuccess?: (payload: any) => void;
+      onFailure?: (payload: any, msg: string) => void;
+      onProgress?: (payload: any, msgOrData: any) => void;
+    }
   );
 
   addSuccessCbk(jobName: string, cbk: (payload: any) => void) {
@@ -24,10 +29,7 @@ export default abstract class JobsMgr {
     this.successCbks[jobName].push(cbk);
   }
 
-  addFailureCbk(
-    jobName: string,
-    cbk: (payload: any, progress: string) => void
-  ) {
+  addFailureCbk(jobName: string, cbk: (payload: any, msg: string) => void) {
     this.failureCbks[jobName] = this.failureCbks[jobName] || [];
     this.failureCbks[jobName].push(cbk);
   }

@@ -36,7 +36,6 @@ const up = async (knex: Knex) => {
     table.integer('time_taken');
     table.string('status');
     table.text('status_details');
-    table.text('status_details');
 
     table.timestamps(true, true);
   });

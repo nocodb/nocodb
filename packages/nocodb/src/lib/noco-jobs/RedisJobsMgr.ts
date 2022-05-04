@@ -14,7 +14,15 @@ export default class RedisJobsMgr extends JobsMgr {
     this.connection = new Redis(config);
   }
 
-  async add(jobName: string, payload: any): Promise<any> {
+  async add(
+    jobName: string,
+    payload: any
+    // options?: {
+    //   onSuccess?: (payload: any) => void;
+    //   onFailure?: (payload: any, msg: string) => void;
+    //   onProgress?: (payload: any, msgOrData: any) => void;
+    // }
+  ): Promise<any> {
     this.queue[jobName] =
       this.queue[jobName] ||
       new Queue(jobName, { connection: this.connection });

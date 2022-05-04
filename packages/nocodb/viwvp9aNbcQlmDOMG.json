@@ -542,10 +542,12 @@
     "includeDataForTableIds": [
       "tbldp6jg19wxTcaFp"
     ],
-    "includeDataForViewIds": null,
+    "includeDataForViewIds": [
+      "viwvp9aNbcQlmDOMG"
+    ],
     "shouldIncludeSchemaChecksum": true,
     "mayExcludeCellDataForLargeViews": false,
-    "requestId": "reqxwwjBhIYxUJikB",
+    "requestId": "req1UL8DRtNJ0tYUs",
     "allowedActions": [
       {
         "modelClassName": "application",

@@ -47,6 +47,7 @@ import passport from 'passport';
 import crypto from 'crypto';
 import swaggerApis from './swagger/swaggerApis';
 import importApis from './sync/importApis';
+import syncSourceApis from './sync/syncSourceApis';
 
 export default function(router: Router, server) {
   initStrategies(router);
@@ -86,6 +87,7 @@ export default function(router: Router, server) {
   router.use(apiTokenApis);
   router.use(hookFilterApis);
   router.use(swaggerApis);
+  router.use(syncSourceApis);
 
   userApis(router);
 

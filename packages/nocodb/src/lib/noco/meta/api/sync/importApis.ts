@@ -6,6 +6,13 @@ import { Server, Socket } from 'socket.io';
 import NocoJobs from '../../../../noco-jobs/NocoJobs';
 import job from './helpers/job';
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
+
+enum SyncStatus {
+  PROGRESS = 'PROGRESS',
+  COMPLETED = 'COMPLETED',
+  FAILED = 'FAILED'
+}
+
 // const worker = new Worker('test', async job => {
 //   if (job.name === 'name') {
 //     await executeJob(job.data);
@@ -63,12 +70,20 @@ export default (router: Router, _server) => {
   NocoJobs.jobsMgr.addJobWorker(AIRTABLE_IMPORT_JOB, job);
   NocoJobs.jobsMgr.addProgressCbk(AIRTABLE_IMPORT_JOB, (payload, progress) => {
     clients?.[payload?.id]?.emit('progress', {
-      msg: progress
+      msg: progress,
+      status: SyncStatus.PROGRESS
     });
   });
   NocoJobs.jobsMgr.addSuccessCbk(AIRTABLE_IMPORT_JOB, payload => {
     clients?.[payload?.id]?.emit('progress', {
-      msg: 'completed'
+      msg: 'completed',
+      status: SyncStatus.COMPLETED
+    });
+  });
+  NocoJobs.jobsMgr.addFailureCbk(AIRTABLE_IMPORT_JOB, (payload, ..._rest) => {
+    clients?.[payload?.id]?.emit('progress', {
+      msg: 'failed',
+      status: SyncStatus.FAILED
     });
   });
 

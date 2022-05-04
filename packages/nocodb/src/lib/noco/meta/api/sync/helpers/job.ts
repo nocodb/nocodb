@@ -18,10 +18,10 @@ const debugMode = true;
 let api;
 let g_aTblSchema = [];
 let ncCreatedProjectSchema: any = {};
-const ncLinkMappingTable: any = {};
-const aTblDataLinks: any = {};
-const nestedLookupTbl: any = {};
-const nestedRollupTbl: any = {};
+const ncLinkMappingTable: any[] = [];
+const aTblDataLinks: any[] = [];
+const nestedLookupTbl: any[] = [];
+const nestedRollupTbl: any[] = [];
 
 const runTimeCounters = {
   sort: 0,
@@ -147,11 +147,19 @@ async function nc_getTableSchema(tableName) {
 }
 
 // delete project if already exists
-async function init(projName) {
+async function init({
+  projectName,
+  projectId
+}: {
+  projectName?: string;
+  projectId?: string;
+}) {
   // delete 'sample' project if already exists
   const x = await api.project.list();
 
-  const sampleProj = x.list.find(a => a.title === projName);
+  const sampleProj = x.list.find(
+    a => a.id === projectId || a.title === projectName
+  );
   if (sampleProj) {
     await api.project.delete(sampleProj.id);
   }
@@ -1105,7 +1113,7 @@ async function nocoConfigureGalleryView(sDB, aTblSchema) {
     for (let i = 0; i < galleryViews.length; i++) {
       // create view
       await getViewData(
-        sDB.airtable.shareId,
+        sDB.airtableShareId,
         aTblSchema[idx].id,
         galleryViews[i].id
       );
@@ -1126,7 +1134,7 @@ async function nocoConfigureFormView(sDB, aTblSchema) {
     for (let i = 0; i < formViews.length; i++) {
       // create view
       const vData = await getViewData(
-        sDB.airtable.shareId,
+        sDB.airtableShareId,
         aTblSchema[idx].id,
         formViews[i].id
       );
@@ -1178,7 +1186,7 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
     for (let i = 0; i < gridViews.length; i++) {
       // fetch viewData JSON
       const vData = await getViewData(
-        sDB.airtable.shareId,
+        sDB.airtableShareId,
         aTblSchema[idx].id,
         gridViews[i].id
       );
@@ -1485,7 +1493,7 @@ export default async function(
 
   progress('Project initialization started');
   // delete project if already exists
-  if (debugMode) await init(syncDB.projectName);
+  if (debugMode) await init(syncDB);
 
   progress('Project initialized');
 
@@ -1544,19 +1552,35 @@ export default async function(
     const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
     for (let i = 0; i < ncTblList.list.length; i++) {
       const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-      await nocoReadData(syncDB, ncTbl, nocoBaseDataProcessing);
+      progress(`Reading data from ${ncTbl.title}`);
+      let c = 0;
+      await nocoReadData(syncDB, ncTbl, (sDB, table, record) => {
+        progress(
+          `Processing records from ${ncTbl.title} : ${c} - ${(c += 25)}`
+        );
+        nocoBaseDataProcessing(sDB, table, record);
+      });
+      progress(`Data inserted from ${ncTbl.title}`);
     }
 
     // Configure link @ Data row's
     for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
       const x = ncLinkMappingTable[idx];
       const ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
+      progress(`Linking data to ${ncTbl.title}`);
+      let c = 0;
       await nocoReadDataSelected(
         syncDB.projectName,
         ncTbl,
-        nocoLinkProcessing,
+        (projName, table, record, _field) => {
+          progress(
+            `Mapping LTAR records from ${ncTbl.title} : ${c} - ${(c += 25)}`
+          );
+          nocoLinkProcessing(projName, table, record, _field);
+        },
         x.aTbl.name
       );
+      progress(`Linked data to ${ncTbl.title}`);
     }
   }
 

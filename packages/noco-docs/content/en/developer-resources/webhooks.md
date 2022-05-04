@@ -6,6 +6,23 @@ category: "Developer Resources"
 menuTitle: "Webhooks"
 ---
 
+## Overview
+
+Some types of notifications can be triggered by a webhook after a particular event.
+
+- Open a Project, Select a table and Click 'More' > 'Webhooks'.
+
+![Screenshot 2022-02-22 at 11 16 18 AM](https://user-images.githubusercontent.com/86527202/155085373-f9b438ed-98c3-4fb1-9209-1bb52736a35d.png)
+
+- Click 'Create webhook'
+
+![image](https://user-images.githubusercontent.com/35857179/166660074-0a896ec9-9cd8-403e-a713-61c2cefbae28.png)
+
+- Configure the webhook
+
+![image](https://user-images.githubusercontent.com/35857179/166660248-a3c81a34-4334-48c2-846a-65759d761559.png)
+
+
 ## Triggers
 
 Webhooks allows user to trigger on certain operations on following database operations
@@ -95,16 +112,10 @@ Detailed procedure for discord webhook described [here](https://support.discord.
 
 ### 3. Configure 
 
--   Open project, associated table.
+-   Open project and choose a table.
 -   Click 'More' > 'Webhooks'.
-
-![Screenshot 2022-02-22 at 11 16 18 AM](https://user-images.githubusercontent.com/86527202/155085373-f9b438ed-98c3-4fb1-9209-1bb52736a35d.png)
-
--   Click 'Add New Webhook'
-
-![Screenshot 2022-02-22 at 11 18 04 AM](https://user-images.githubusercontent.com/86527202/155085629-2c4260c6-6d0c-490d-bd6e-092cbb9faeb5.png)
-
--   Configure
+-   Click 'Create webhook'
+-   Configure webhook
     -   **Title**: Name of your choice to identify this Webhook.
     -   **Event**: Trigger event. Choose between.
         -   After Insert: Trigger event for new ROW insertion.
@@ -160,16 +171,10 @@ Detailed procedure for discord webhook described [here](https://support.discord.
 
 ### 3. Configure 
 
--   Open project, associated table.
--   Click 'More' > 'Webhooks'.
-
-![Screenshot 2022-02-22 at 11 16 18 AM](https://user-images.githubusercontent.com/86527202/155085373-f9b438ed-98c3-4fb1-9209-1bb52736a35d.png)
-
--   Click 'Add New Webhook'
-
-![Screenshot 2022-02-22 at 11 18 04 AM](https://user-images.githubusercontent.com/86527202/155085629-2c4260c6-6d0c-490d-bd6e-092cbb9faeb5.png)
-
--   Configure
+- Open project and choose a table.
+- Click 'More' > 'Webhooks'.
+- Click 'Create webhook'
+- Configure webhook
     -   **Title**: Name of your choice to identify this Webhook.
     -   **Event**: Trigger event. Choose between.
         -   After Insert: Trigger event for new ROW insertion.

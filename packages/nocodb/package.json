@@ -154,7 +154,7 @@
     "nc-lib-gui": "0.90.10",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",
-    "nocodb-sdk": "0.90.10",
+    "nocodb-sdk": "file:../nocodb-sdk",
     "nodemailer": "^6.4.10",
     "ora": "^4.0.4",
     "os-locale": "^5.0.0",

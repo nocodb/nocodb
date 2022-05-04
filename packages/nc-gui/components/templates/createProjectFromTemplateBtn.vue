@@ -128,14 +128,6 @@ export default {
               title: this.templateData.title,
               external: false
             })
-            if (!this.edit && !this.allSchemas) {
-              this.$router.push({
-                path: `/nc/${project.id}`,
-                query: {
-                  new: 1
-                }
-              })
-            }
             this.projectCreation = true
           } catch (e) {
             this.projectCreation = false
@@ -189,7 +181,14 @@ export default {
           this.$store.commit('loader/MutMessage', 'Importing excel data to project')
           await this.importDataToProject(this.templateData.title)
         }
-        this.projectReloading = false
+
+        this.$router.push({
+          path: `/nc/${project.id}`,
+          query: {
+            new: 1
+          }
+        })
+
         this.$emit('success')
       } catch (e) {
         console.log(e)
@@ -199,7 +198,6 @@ export default {
         this.$store.commit('loader/MutMessage', null)
         this.projectCreation = false
         this.tableCreation = false
-        this.projectReloading = false
       }
     },
     async importDataToProject(projectName) {
@@ -210,7 +208,7 @@ export default {
         const data = this.importData[tableMeta.ref_table_name]
         total += data.length
         for (let i = 0; i < data.length; i += 500) {
-          this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${total}`)
+          this.$store.commit('loader/MutMessage', `Importing data to ${projectName}: ${progress}/${total} records`)
           this.$store.commit('loader/MutProgress', Math.round(progress && 100 * progress / total))
           const batchData = this.remapColNames(data.slice(i, i + 500), tableMeta.columns)
           await this.$api.dbTableRow.bulkCreate(

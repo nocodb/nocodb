@@ -54,7 +54,7 @@ jobs:
           DOCKER_REPOSITORY=nocodb
           DOCKER_BUILD_TAG=${{ github.event.inputs.tag || inputs.tag }}
           if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
-            if [[ ${{ github.event.inputs.currentVersion || inputs.currentVersion || '' }} != '' ]]; then
+            if [[ ${{ github.event.inputs.currentVersion || inputs.currentVersion || 'N/A' }} != 'N/A' ]]; then
               DOCKER_BUILD_TAG=${{ github.event.inputs.currentVersion || inputs.currentVersion }}-${{ github.event.inputs.tag || inputs.tag }}
             fi
             if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 

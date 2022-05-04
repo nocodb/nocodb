@@ -98,6 +98,7 @@ jobs:
     needs: [release-draft-note, process-input]
     uses: ./.github/workflows/release-docker.yml
     with:
+      currentVersion: 'N/A'
       tag: ${{ needs.process-input.outputs.target_tag }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
     secrets:

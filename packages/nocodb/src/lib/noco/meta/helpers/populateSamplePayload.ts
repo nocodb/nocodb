@@ -34,13 +34,6 @@ export default async function populateSamplePayload(
     )
       continue;
 
-    if (
-      operation === 'update' &&
-      [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(column.uidt)
-    ) {
-      continue;
-    }
-
     if (operation === 'delete' && model.primaryKey?.title !== column.title)
       continue;
 

@@ -72,7 +72,7 @@ export async function tableSampleData(req: Request, res: Response) {
   const model = await Model.getByIdOrName({ id: req.params.tableId });
 
   res // todo: pagination
-    .json(await populateSamplePayload(model, true, req.params.operation));
+    .json(await populateSamplePayload(model, false, req.params.operation));
 }
 
 const router = Router({ mergeParams: true });

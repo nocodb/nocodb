@@ -725,11 +725,9 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                 },
                 true
               );
-
               const columnsInRelatedTable: Column[] = await relationColOpt
                 .getRelatedTable()
                 .then(m => m.getColumns());
-              let columnInRelatedTable: Column;
 
               for (const c of columnsInRelatedTable) {
                 if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -737,26 +735,63 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                   LinkToAnotherRecordColumn
                 >();
                 if (
+                  colOpt.type === 'mm' &&
                   colOpt.fk_parent_column_id === childColumn.id &&
                   colOpt.fk_child_column_id === parentColumn.id &&
-                  colOpt.type === 'mm' &&
                   colOpt.fk_mm_model_id === mmTable.id &&
                   colOpt.fk_mm_parent_column_id === mmChildCol.id &&
                   colOpt.fk_mm_child_column_id === mmParentCol.id
                 ) {
-                  columnInRelatedTable = c;
+                  await Column.delete(c.id);
                   break;
                 }
               }
 
               await Column.delete(relationColOpt.fk_column_id);
-              await Column.delete(columnInRelatedTable.id);
 
+              // delete bt columns in m2m table
+              await mmTable.getColumns();
+              for (const c of mmTable.columns) {
+                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                const colOpt = await c.getColOptions<
+                  LinkToAnotherRecordColumn
+                >();
+                if (colOpt.type === 'bt') {
+                  await Column.delete(c.id);
+                }
+              }
+
+              // delete hm columns in parent table
+              await parentTable.getColumns();
+              for (const c of parentTable.columns) {
+                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                const colOpt = await c.getColOptions<
+                  LinkToAnotherRecordColumn
+                >();
+                if (colOpt.fk_related_model_id === mmTable.id) {
+                  await Column.delete(c.id);
+                }
+              }
+
+              // delete hm columns in child table
+              await childTable.getColumns();
+              for (const c of childTable.columns) {
+                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                const colOpt = await c.getColOptions<
+                  LinkToAnotherRecordColumn
+                >();
+                if (colOpt.fk_related_model_id === mmTable.id) {
+                  await Column.delete(c.id);
+                }
+              }
+
+              // retrieve columns in m2m table again
               await mmTable.getColumns();
 
-              // ignore deleting table if it have more than 2 columns
+              // ignore deleting table if it has more than 2 columns
+              // the expected 2 columns would be table1_id & table2_id
               if (mmTable.columns.length === 2) {
-                await sqlMgr.sqlOpPlus(base, 'tableDelete', mmTable);
+                await mmTable.delete();
               }
             }
             break;
@@ -867,7 +902,6 @@ const deleteHmOrBtRelation = async (
   const columnsInRelatedTable: Column[] = await relationColOpt
     .getRelatedTable()
     .then(m => m.getColumns());
-  let columnInRelatedTable: Column;
   const relType = relationColOpt.type === 'bt' ? 'hm' : 'bt';
   for (const c of columnsInRelatedTable) {
     if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
@@ -877,14 +911,13 @@ const deleteHmOrBtRelation = async (
       colOpt.fk_child_column_id === childColumn.id &&
       colOpt.type === relType
     ) {
-      columnInRelatedTable = c;
+      await Column.delete(c.id, ncMeta);
       break;
     }
   }
 
   // delete virtual columns
   await Column.delete(relationColOpt.fk_column_id, ncMeta);
-  await Column.delete(columnInRelatedTable.id, ncMeta);
 
   if (!ignoreFkDelete) {
     const cTable = await Model.getWithInfo({

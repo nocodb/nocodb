@@ -4,6 +4,7 @@ import { Router } from 'express';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
 import Project from '../../../noco-models/Project';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 async function xcVisibilityMetaSetAll(req, res) {
   Tele.emit('evt', { evt_type: 'uiAcl:updated' });
   for (const d of req.body) {
@@ -108,6 +109,7 @@ export async function xcVisibilityMetaGet(
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/projects/:projectId/visibility-rules',
+  metaApiMetrics,
   ncMetaAclMw(async (req, res) => {
     res.json(
       await xcVisibilityMetaGet(
@@ -120,6 +122,7 @@ router.get(
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/visibility-rules',
+  metaApiMetrics,
   ncMetaAclMw(xcVisibilityMetaSetAll, 'modelVisibilitySet')
 );
 export default router;

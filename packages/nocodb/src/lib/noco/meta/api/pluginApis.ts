@@ -5,6 +5,7 @@ import { PluginType } from 'nocodb-sdk';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export async function pluginList(_req: Request, res: Response) {
   res.json(new PagedResponseImpl(await Plugin.list()));
@@ -34,21 +35,29 @@ export async function isPluginActive(req: Request, res: Response) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/api/v1/db/meta/plugins', ncMetaAclMw(pluginList, 'pluginList'));
+router.get(
+  '/api/v1/db/meta/plugins',
+  metaApiMetrics,
+  ncMetaAclMw(pluginList, 'pluginList')
+);
 router.post(
   '/api/v1/db/meta/plugins/test',
+  metaApiMetrics,
   ncMetaAclMw(pluginTest, 'pluginTest')
 );
 router.get(
   '/api/v1/db/meta/plugins/:pluginId',
+  metaApiMetrics,
   ncMetaAclMw(pluginRead, 'pluginRead')
 );
 router.patch(
   '/api/v1/db/meta/plugins/:pluginId',
+  metaApiMetrics,
   ncMetaAclMw(pluginUpdate, 'pluginUpdate')
 );
 router.get(
   '/api/v1/db/meta/plugins/:pluginTitle/status',
+  metaApiMetrics,
   ncMetaAclMw(isPluginActive, 'isPluginActive')
 );
 export default router;

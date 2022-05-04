@@ -14,6 +14,7 @@ import * as ejs from 'ejs';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Noco from '../../Noco';
 import { PluginCategory } from 'nocodb-sdk';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 async function userList(req, res) {
   res.json({
@@ -297,22 +298,27 @@ async function sendInviteEmail(
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/projects/:projectId/users',
+  metaApiMetrics,
   ncMetaAclMw(userList, 'userList')
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/users',
+  metaApiMetrics,
   ncMetaAclMw(userInvite, 'userInvite')
 );
 router.patch(
   '/api/v1/db/meta/projects/:projectId/users/:userId',
+  metaApiMetrics,
   ncMetaAclMw(projectUserUpdate, 'projectUserUpdate')
 );
 router.delete(
   '/api/v1/db/meta/projects/:projectId/users/:userId',
+  metaApiMetrics,
   ncMetaAclMw(projectUserDelete, 'projectUserDelete')
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/users/:userId/resend-invite',
+  metaApiMetrics,
   ncMetaAclMw(projectUserInviteResend, 'projectUserInviteResend')
 );
 export default router;

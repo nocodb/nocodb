@@ -31,6 +31,7 @@ import { NcError } from '../helpers/catchError';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 
@@ -955,18 +956,22 @@ const deleteHmOrBtRelation = async (
 const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/columns/',
+  metaApiMetrics,
   ncMetaAclMw(columnAdd, 'columnAdd')
 );
 router.patch(
   '/api/v1/db/meta/columns/:columnId',
+  metaApiMetrics,
   ncMetaAclMw(columnUpdate, 'columnUpdate')
 );
 router.delete(
   '/api/v1/db/meta/columns/:columnId',
+  metaApiMetrics,
   ncMetaAclMw(columnDelete, 'columnDelete')
 );
 router.post(
   '/api/v1/db/meta/columns/:columnId/primary',
+  metaApiMetrics,
   ncMetaAclMw(columnSetAsPrimary, 'columnSetAsPrimary')
 );
 export default router;

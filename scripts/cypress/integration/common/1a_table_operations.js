@@ -12,7 +12,7 @@ export const genTest = (apiType, dbType) => {
         });
 
         after(() => {
-            cy.get(".mdi-close").click({ multiple: true });
+            cy.get(".mdi-close").click({ multiple: true, force: true });
         });
 
         const name = "tablex";

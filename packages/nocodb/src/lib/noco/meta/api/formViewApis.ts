@@ -12,6 +12,7 @@ import View from '../../../noco-models/View';
 import FormView from '../../../noco-models/FormView';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 // @ts-ignore
 export async function formViewGet(req: Request, res: Response<FormType>) {
@@ -41,18 +42,22 @@ export async function formViewDelete(req: Request, res: Response, next) {}
 const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/forms',
+  metaApiMetrics,
   ncMetaAclMw(formViewCreate, 'formViewCreate')
 );
 router.get(
   '/api/v1/db/meta/forms/:formViewId',
+  metaApiMetrics,
   ncMetaAclMw(formViewGet, 'formViewGet')
 );
 router.patch(
   '/api/v1/db/meta/forms/:formViewId',
+  metaApiMetrics,
   ncMetaAclMw(formViewUpdate, 'formViewUpdate')
 );
 router.delete(
   '/api/v1/db/meta/forms/:formViewId',
+  metaApiMetrics,
   ncMetaAclMw(formViewDelete, 'formViewDelete')
 );
 export default router;

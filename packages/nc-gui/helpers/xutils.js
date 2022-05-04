@@ -3,36 +3,66 @@ export default function isDev() {
     (process.env.NODE_ENV.toLowerCase() === 'development' || process.env.NODE_ENV.toLowerCase() === 'dev')
 }
 
-export function isMetaTable(table_name) {
+export function isMetaTable(tableName) {
   return [
     '_evolutions',
-    'nc_models',
-    'nc_routes',
-    'nc_hooks',
-    'nc_store',
     'nc_evolutions',
-    'nc_migrations',
-    'nc_users',
-    'nc_rpc',
-    'nc_loaders',
-    'nc_resolvers',
-    'nc_roles',
-    'nc_cron',
     'nc_acl',
     'nc_api_tokens',
+    'nc_audit',
+    'nc_audit_v2',
+    'nc_bases_v2',
+    'nc_col_formula_v2',
+    'nc_col_lookup_v2',
+    'nc_col_relations_v2',
+    'nc_col_rollup_v2',
+    'nc_col_select_options_v2',
+    'nc_columns_v2',
+    'nc_cron',
+    'nc_disabled_models_for_role',
+    'nc_disabled_models_for_role_v2',
+    'nc_filter_exp_v2',
+    'nc_form_view_columns_v2',
+    'nc_form_view_v2',
+    'nc_gallery_view_columns_v2',
+    'nc_gallery_view_v2',
+    'nc_grid_view_columns_v2',
+    'nc_grid_view_v2',
+    'nc_hook_logs_v2',
+    'nc_hooks',
+    'nc_hooks_v2',
+    'nc_kanban_view_columns_v2',
+    'nc_kanban_view_v2',
+    'nc_loaders',
+    'nc_migrations',
+    'nc_models',
+    'nc_models_v2',
+    'nc_orgs_v2',
+    'nc_plugins',
+    'nc_plugins_v2',
+    'nc_project_users_v2',
     'nc_projects',
     'nc_projects_users',
+    'nc_projects_v2',
     'nc_relations',
+    'nc_resolvers',
+    'nc_roles',
+    'nc_routes',
+    'nc_rpc',
+    'nc_shared_bases',
     'nc_shared_views',
-    'nc_audit',
-    'nc_knex_migrations',
-    'nc_knex_migrations_lock',
+    'nc_shared_views_v2',
+    'nc_sort_v2',
+    'nc_store',
+    'nc_team_users_v2',
+    'nc_teams_v2',
+    'nc_users_v2',
+    'nc_views_v2',
     'xc_knex_migrations',
     'xc_knex_migrations_lock',
-    'xc_users',
-    'nc_plugins',
-    'nc_disabled_models_for_role'
-  ].includes(table_name)
+    'xc_knex_migrationsv2',
+    'xc_knex_migrationsv2_lock'
+  ].includes(tableName)
 }
 
 export function insertKey(key, value, obj, pos) {
@@ -111,6 +141,7 @@ export function copyTextToClipboard(text) {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

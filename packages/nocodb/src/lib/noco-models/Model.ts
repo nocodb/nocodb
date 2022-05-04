@@ -317,37 +317,13 @@ export default class Model implements TableType {
   public static async getBaseModelSQL(
     args: {
       id?: string;
-      table_name?: string;
       viewId?: string;
       dbDriver: XKnex;
       model?: Model;
     },
     ncMeta = Noco.ncMeta
   ): Promise<BaseModelSqlv2> {
-    const model =
-      args?.model ||
-      (await this.getByIdOrName(
-        {
-          id: args.id,
-          table_name: args.table_name
-        },
-        ncMeta
-      ));
-
-    // if (
-    //   this.baseModels?.[model.base_id]?.[model.db_alias]?.[args.table_name || args.id]
-    // ) {
-    //   return this.baseModels[model.base_id][model.db_alias][args.table_name || args.id];
-    // }
-    // this.baseModels[model.base_id] = this.baseModels[model.base_id] || {};
-    // this.baseModels[model.base_id][model.db_alias] =
-    //   this.baseModels[model.base_id][model.db_alias] || {};
-    // return (this.baseModels[model.base_id][model.db_alias][
-    //   args.table_name || args.id
-    // ] = new BaseModelSqlv2({
-    //   dbDriver: args.dbDriver,
-    //   model
-    // }));
+    const model = args?.model || (await this.get(args.id, ncMeta));
 
     return new BaseModelSqlv2({
       dbDriver: args.dbDriver,

@@ -8,6 +8,7 @@ import Model from '../../../noco-models/Model';
 import populateSamplePayload from '../helpers/populateSamplePayload';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export async function hookList(
   req: Request<any, any, any>,
@@ -60,7 +61,8 @@ export async function hookTest(req: Request<any, any>, res: Response) {
     model,
     data,
     user,
-    (hook as any)?.filters
+    (hook as any)?.filters,
+    true
   );
 
   Tele.emit('evt', { evt_type: 'webhooks:tested' });
@@ -71,32 +73,38 @@ export async function tableSampleData(req: Request, res: Response) {
   const model = await Model.getByIdOrName({ id: req.params.tableId });
 
   res // todo: pagination
-    .json(await populateSamplePayload(model, true, req.params.operation));
+    .json(await populateSamplePayload(model, false, req.params.operation));
 }
 
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/tables/:tableId/hooks',
+  metaApiMetrics,
   ncMetaAclMw(hookList, 'hookList')
 );
 router.post(
   '/api/v1/db/meta/tables/:tableId/hooks/test',
+  metaApiMetrics,
   ncMetaAclMw(hookTest, 'hookTest')
 );
 router.post(
   '/api/v1/db/meta/tables/:tableId/hooks',
+  metaApiMetrics,
   ncMetaAclMw(hookCreate, 'hookCreate')
 );
 router.delete(
   '/api/v1/db/meta/hooks/:hookId',
+  metaApiMetrics,
   ncMetaAclMw(hookDelete, 'hookDelete')
 );
 router.patch(
   '/api/v1/db/meta/hooks/:hookId',
+  metaApiMetrics,
   ncMetaAclMw(hookUpdate, 'hookUpdate')
 );
 router.get(
   '/api/v1/db/meta/tables/:tableId/hooks/samplePayload/:operation',
+  metaApiMetrics,
   catchError(tableSampleData)
 );
 export default router;

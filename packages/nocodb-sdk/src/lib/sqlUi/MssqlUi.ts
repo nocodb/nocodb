@@ -337,7 +337,7 @@ export class MssqlUi {
         return '';
 
       case 'nvarchar':
-        return '';
+        return 255;
 
       case 'real':
         return '';
@@ -391,6 +391,9 @@ export class MssqlUi {
 
   static getDefaultLengthIsDisabled(type) {
     switch (type) {
+      case 'nvarchar':
+        return false;
+
       case 'bigint':
       case 'binary':
       case 'bit':

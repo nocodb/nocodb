@@ -1541,6 +1541,8 @@ export default {
       const con = projectJson.envs._noco.db[0]
       if (con.client === 'pg' || con.client === 'mssql') {
         con.searchPath = [this.schema]
+      } else if ('searchPath' in con) {
+        delete con.searchPath
       }
 
       const inflection = (con.meta && con.meta.inflection) || {}

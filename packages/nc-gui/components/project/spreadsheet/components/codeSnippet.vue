@@ -9,7 +9,7 @@
         mdi-close
       </v-icon>
 
-      <div>
+      <div v-if="modal">
         <v-tabs v-model="tab" height="30" show-arrows @change="client=null">
           <v-tab
             v-for="{lang} in langs"

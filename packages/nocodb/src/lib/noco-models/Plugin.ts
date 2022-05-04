@@ -85,6 +85,13 @@ export default class Plugin implements PluginType {
   }
 
   public static async isPluginActive(title: string) {
+    return !!(await this.getPluginByTitle(title))?.active;
+  }
+
+  /**
+   * get plugin by title
+   */
+  public static async getPluginByTitle(title: string) {
     let plugin =
       title &&
       (await NocoCache.get(
@@ -97,6 +104,6 @@ export default class Plugin implements PluginType {
       });
       await NocoCache.set(`${CacheScope.PLUGIN}:${title}`, plugin);
     }
-    return !!plugin?.active;
+    return plugin;
   }
 }

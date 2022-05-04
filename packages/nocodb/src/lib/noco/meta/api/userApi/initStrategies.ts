@@ -7,6 +7,7 @@ import { Strategy } from 'passport-jwt';
 import passport from 'passport';
 import { ExtractJwt } from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
+import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
 
@@ -21,6 +22,7 @@ import NocoCache from '../../../../noco-cache/NocoCache';
 import { CacheGetType, CacheScope } from '../../../../utils/globals';
 import ApiToken from '../../../../noco-models/ApiToken';
 import Noco from '../../../Noco';
+import Plugin from '../../../../noco-models/Plugin';
 
 export function initStrategies(router): void {
   passport.use(
@@ -187,6 +189,91 @@ export function initStrategies(router): void {
       callback(null, user);
     })
   );
+
+  Plugin.getPluginByTitle('Google').then(googlePlugin => {
+    if (googlePlugin && googlePlugin.input) {
+      const settings = JSON.parse(googlePlugin.input);
+      process.env.NC_GOOGLE_CLIENT_ID = settings.client_id;
+      process.env.NC_GOOGLE_CLIENT_SECRET = settings.client_secret;
+    }
+
+    if (
+      process.env.NC_GOOGLE_CLIENT_ID &&
+      process.env.NC_GOOGLE_CLIENT_SECRET
+    ) {
+      const googleAuthParamsOrig = GoogleStrategy.prototype.authorizationParams;
+      GoogleStrategy.prototype.authorizationParams = (options: any) => {
+        const params = googleAuthParamsOrig.call(this, options);
+
+        if (options.state) {
+          params.state = options.state;
+        }
+
+        return params;
+      };
+
+      const clientConfig = {
+        clientID: process.env.NC_GOOGLE_CLIENT_ID,
+        clientSecret: process.env.NC_GOOGLE_CLIENT_SECRET,
+        // todo: update url
+        callbackURL: 'http://localhost:3000',
+        passReqToCallback: true
+      };
+
+      const googleStrategy = new GoogleStrategy(
+        clientConfig,
+        async (req, _accessToken, _refreshToken, profile, done) => {
+          const email = profile.emails[0].value;
+
+          User.getByEmail(email)
+            .then(async user => {
+              if (req.ncProjectId) {
+                ProjectUser.get(req.ncProjectId, user.id)
+                  .then(async projectUser => {
+                    user.roles = projectUser?.roles || 'user';
+                    user.roles =
+                      user.roles === 'owner' ? 'owner,creator' : user.roles;
+                    // + (user.roles ? `,${user.roles}` : '');
+
+                    // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
+                    done(null, user);
+                  })
+                  .catch(e => done(e));
+              } else {
+                // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
+                if (user) {
+                  // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
+                  return done(null, user);
+                } else {
+                  let roles = 'editor';
+
+                  if (!(await User.isFirst())) {
+                    roles = 'owner';
+                  }
+                  if (roles === 'editor') {
+                    return done(new Error('User not found'));
+                  }
+                  const salt = await promisify(bcrypt.genSalt)(10);
+                  user = await await User.insert({
+                    email: profile.emails[0].value,
+                    password: '',
+                    salt,
+                    roles,
+                    email_verified: true
+                  });
+                  return done(null, user);
+                }
+              }
+            })
+            .catch(err => {
+              return done(err);
+            });
+        }
+      );
+
+      passport.use(googleStrategy);
+    }
+  });
 
   router.use(passport.initialize());
 }

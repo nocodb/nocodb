@@ -229,12 +229,12 @@
         :model-id="meta.id"
         hide-test-btn
         :hook="{
-                    ...hook,
-                    filters,
-                    notification: {
-                      ...hook.notification,
-                      payload: notification,
-                    },
+                ...hook,
+                filters,
+                notification: {
+                  ...hook.notification,
+                  payload: notification,
+                },
         }"
       />
     </v-card-text>
@@ -254,6 +254,7 @@ export default {
     meta: Object
   },
   data: () => ({
+    notification: {},
     hook: {
       notification: {
         type: 'URL'

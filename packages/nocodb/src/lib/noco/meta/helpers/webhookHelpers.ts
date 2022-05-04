@@ -112,26 +112,26 @@ export async function validateCondition(filters: Filter[], data: any) {
   return isValid;
 }
 
-export async function handleHttpWebHook(apiMeta, apiReq, data) {
+export async function handleHttpWebHook(apiMeta, user, data) {
   // try {
-  const req = axiosRequestMake(apiMeta, apiReq, data);
+  const req = axiosRequestMake(apiMeta, user, data);
   await require('axios')(req);
   // } catch (e) {
   //   console.log(e);
   // }
 }
 
-export function axiosRequestMake(_apiMeta, apiReq, data) {
+export function axiosRequestMake(_apiMeta, user, data) {
   const apiMeta = { ..._apiMeta };
   if (apiMeta.body) {
     try {
       apiMeta.body = JSON.parse(apiMeta.body, (_key, value) => {
         return typeof value === 'string'
-          ? parseBody(value, apiReq, data, apiMeta)
+          ? parseBody(value, user, data, apiMeta)
           : value;
       });
     } catch (e) {
-      apiMeta.body = parseBody(apiMeta.body, apiReq, data, apiMeta);
+      apiMeta.body = parseBody(apiMeta.body, user, data, apiMeta);
       console.log(e);
     }
   }
@@ -139,11 +139,11 @@ export function axiosRequestMake(_apiMeta, apiReq, data) {
     try {
       apiMeta.auth = JSON.parse(apiMeta.auth, (_key, value) => {
         return typeof value === 'string'
-          ? parseBody(value, apiReq, data, apiMeta)
+          ? parseBody(value, user, data, apiMeta)
           : value;
       });
     } catch (e) {
-      apiMeta.auth = parseBody(apiMeta.auth, apiReq, data, apiMeta);
+      apiMeta.auth = parseBody(apiMeta.auth, user, data, apiMeta);
       console.log(e);
     }
   }
@@ -152,17 +152,12 @@ export function axiosRequestMake(_apiMeta, apiReq, data) {
     params: apiMeta.parameters
       ? apiMeta.parameters.reduce((paramsObj, param) => {
           if (param.name && param.enabled) {
-            paramsObj[param.name] = parseBody(
-              param.value,
-              apiReq,
-              data,
-              apiMeta
-            );
+            paramsObj[param.name] = parseBody(param.value, user, data, apiMeta);
           }
           return paramsObj;
         }, {})
       : {},
-    url: parseBody(apiMeta.path, apiReq, data, apiMeta),
+    url: parseBody(apiMeta.path, user, data, apiMeta),
     method: apiMeta.method,
     data: apiMeta.body,
     headers: apiMeta.headers
@@ -170,7 +165,7 @@ export function axiosRequestMake(_apiMeta, apiReq, data) {
           if (header.name && header.enabled) {
             headersObj[header.name] = parseBody(
               header.value,
-              apiReq,
+              user,
               data,
               apiMeta
             );

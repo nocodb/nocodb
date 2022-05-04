@@ -7,6 +7,8 @@ on:
       - "packages/noco-docs/**"
   release:
     types: [ published ]
+  # Triggered manually
+  workflow_dispatch:
 
 jobs:
   copy-file:

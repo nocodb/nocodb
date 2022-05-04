@@ -266,7 +266,7 @@ export default {
             templateGenerator = new ExcelTemplateAdapter(name, val, this.parserConfig)
             break
           case 'url':
-            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig)
+            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
             break
         }
         await templateGenerator.init()

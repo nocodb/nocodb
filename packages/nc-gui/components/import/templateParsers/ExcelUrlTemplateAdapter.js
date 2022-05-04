@@ -1,20 +1,22 @@
 import ExcelTemplateAdapter from '~/components/import/templateParsers/ExcelTemplateAdapter'
 
 export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
-  constructor(url, $store, parserConfig) {
+  constructor(url, $store, parserConfig, $api) {
     const name = url.split('/').pop()
     super(name, null, parserConfig)
     this.url = url
+    this.$api = $api
     this.$store = $store
   }
 
   async init() {
-    const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'handleAxiosCall',
-      [{
+    const data = await this.$api.utils.axiosRequestMake({
+      apiMeta: {
         url: this.url,
         responseType: 'arraybuffer'
-      }]])
-    this.excelData = res.data
-    await super.init()
+      }
+    })
+    this.excelData = data.data
+    await super.init()    
   }
 }

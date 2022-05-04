@@ -61,7 +61,8 @@ export async function hookTest(req: Request<any, any>, res: Response) {
     model,
     data,
     user,
-    (hook as any)?.filters
+    (hook as any)?.filters,
+    true
   );
 
   Tele.emit('evt', { evt_type: 'webhooks:tested' });
@@ -72,7 +73,7 @@ export async function tableSampleData(req: Request, res: Response) {
   const model = await Model.getByIdOrName({ id: req.params.tableId });
 
   res // todo: pagination
-    .json(await populateSamplePayload(model, true, req.params.operation));
+    .json(await populateSamplePayload(model, false, req.params.operation));
 }
 
 const router = Router({ mergeParams: true });

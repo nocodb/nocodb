@@ -569,7 +569,7 @@
                             <span>Add LongText Column</span>
                           </v-tooltip>
 
-                          <v-tooltip bottom>
+                          <!-- <v-tooltip bottom>
                             <template #activator="{ on }">
                               <v-icon
                                 class="mx-2"
@@ -580,7 +580,6 @@
                                 {{ getIcon("LinkToAnotherRecord") }}
                               </v-icon>
                             </template>
-                            <!-- TODO: i18n -->
                             <span>Add LinkToAnotherRecord Column</span>
                           </v-tooltip>
 
@@ -595,7 +594,6 @@
                                 {{ getIcon("Lookup") }}
                               </v-icon>
                             </template>
-                            <!-- TODO: i18n -->
                             <span>Add Lookup Column</span>
                           </v-tooltip>
 
@@ -610,9 +608,8 @@
                                 {{ getIcon("Rollup") }}
                               </v-icon>
                             </template>
-                            <!-- TODO: i18n -->
                             <span>Add Rollup Column</span>
-                          </v-tooltip>
+                          </v-tooltip> -->
 
                           <v-tooltip bottom>
                             <template #activator="{ on }">

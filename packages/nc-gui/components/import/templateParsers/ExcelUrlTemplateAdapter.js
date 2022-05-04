@@ -17,6 +17,6 @@ export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
       }
     })
     this.excelData = data.data
-    await super.init()    
+    await super.init()
   }
 }

@@ -236,7 +236,6 @@ class BaseModelSqlv2 {
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-    // todo: replace with view id
     if (!ignoreFilterSort && this.viewId) {
       await conditionV2(
         [
@@ -396,7 +395,6 @@ class BaseModelSqlv2 {
       );
 
       return children.map(({ count }) => count);
-      // return _.groupBy(children, cn);
     } catch (e) {
       console.log(e);
       throw e;

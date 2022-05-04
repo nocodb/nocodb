@@ -82,7 +82,7 @@
           v-if="_isUIAllowed('webhook') && !isView"
           v-t="['c:actions:webhook']"
           dense
-          @click="$emit('webhook')"
+          @click="webhookModal = true"
         >
           <v-list-item-title>
             <v-icon small class="mr-1" color="">
@@ -104,6 +104,7 @@
       :parsed-csv="parsedCsv"
       @import="importData"
     />
+    <webhook-modal v-model="webhookModal" :meta="meta" />
   </div>
 </template>
 
@@ -115,10 +116,12 @@ import DropOrSelectFileModal from '~/components/import/dropOrSelectFileModal'
 import ColumnMappingModal from '~/components/project/spreadsheet/components/importExport/columnMappingModal'
 import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
 import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
+import WebhookModal from '~/components/project/tableTabs/webhook/webhookModal'
 
 export default {
   name: 'ExportImport',
   components: {
+    WebhookModal,
     ColumnMappingModal,
     DropOrSelectFileModal
   },
@@ -135,7 +138,8 @@ export default {
     return {
       importModal: false,
       columnMappingModal: false,
-      parsedCsv: {}
+      parsedCsv: {},
+      webhookModal: false
     }
   },
 

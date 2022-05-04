@@ -13,6 +13,7 @@ import View from '../../../noco-models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
 import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 // @ts-ignore
 export async function viewGet(req: Request, res: Response<Table>) {}
 
@@ -103,27 +104,33 @@ async function shareViewList(req: Request<any, any>, res) {
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/tables/:tableId/views',
+  metaApiMetrics,
   ncMetaAclMw(viewList, 'viewList')
 );
 router.patch(
   '/api/v1/db/meta/views/:viewId',
+  metaApiMetrics,
   ncMetaAclMw(viewUpdate, 'viewUpdate')
 );
 router.delete(
   '/api/v1/db/meta/views/:viewId',
+  metaApiMetrics,
   ncMetaAclMw(viewDelete, 'viewDelete')
 );
 router.post(
   '/api/v1/db/meta/views/:viewId/show-all',
+  metaApiMetrics,
   ncMetaAclMw(showAllColumns, 'showAllColumns')
 );
 router.post(
   '/api/v1/db/meta/views/:viewId/hide-all',
+  metaApiMetrics,
   ncMetaAclMw(hideAllColumns, 'hideAllColumns')
 );
 
 router.get(
   '/api/v1/db/meta/tables/:tableId/share',
+  metaApiMetrics,
   ncMetaAclMw(shareViewList, 'shareViewList')
 );
 router.post(
@@ -132,10 +139,12 @@ router.post(
 );
 router.patch(
   '/api/v1/db/meta/views/:viewId/share',
+  metaApiMetrics,
   ncMetaAclMw(shareViewPasswordUpdate, 'shareViewPasswordUpdate')
 );
 router.delete(
   '/api/v1/db/meta/views/:viewId/share',
+  metaApiMetrics,
   ncMetaAclMw(shareViewDelete, 'shareViewDelete')
 );
 

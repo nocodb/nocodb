@@ -23,6 +23,9 @@
       class="req-tabs"
       height="24"
     >
+      <v-tab v-ge="['api-client','body']" class="caption">
+        <span class="text-capitalize">Body</span>
+      </v-tab>
       <v-tab v-ge="['api-client','params']" class="caption">
         <span class="text-capitalize"> Params&nbsp;<b
           v-if="paramsCount"
@@ -37,12 +40,19 @@
           headersCount
         }})</b></span>
       </v-tab>
-      <v-tab v-ge="['api-client','body']" class="caption">
-        <span class="text-capitalize">Body</span>
-      </v-tab>
       <v-tab v-ge="['api-client','auth']" class="caption">
         <span class="text-capitalize">Auth</span>
       </v-tab>
+      <v-tab-item>
+        <monaco-handlebar-editor
+          v-model="api.body"
+          style="height: 250px"
+          class="editor card text-left"
+          theme="vs-dark"
+          lang="json"
+          :options="{validate:true,documentFormattingEdits:true,foldingRanges:true}"
+        />
+      </v-tab-item>
       <v-tab-item>
         <params
           v-model="api.parameters"
@@ -55,23 +65,13 @@
           :env.sync="selectedEnv"
         />
       </v-tab-item>
+
       <v-tab-item>
-        <monaco-json-editor
-          v-model="api.body"
-          style="height: 250px"
-          class="editor card text-left"
-          theme="vs-dark"
-          lang="json"
-          :options="{validate:true,documentFormattingEdits:true,foldingRanges:true}"
-        />
-      </v-tab-item>
-      <v-tab-item>
-        <monaco-json-editor
+        <monaco-handlebar-editor
           v-model="api.auth"
           style="height: 250px"
           class="editor card text-left"
           theme="vs-dark"
-          lang="json"
           :options="{validate:true,documentFormattingEdits:true,foldingRanges:true}"
         />
         <span class="caption grey--text">For more about auth option refer <a href="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.</span>
@@ -84,7 +84,7 @@
 import params from '../../../apiClient/params'
 import headers from '../../../apiClient/headers'
 
-import { MonacoJsonEditor } from '../../../monaco/index'
+import { MonacoHandlebarEditor } from '../../../monaco/index'
 
 export default {
   tab: 0,
@@ -92,7 +92,7 @@ export default {
   components: {
     params,
     headers,
-    MonacoJsonEditor
+    MonacoHandlebarEditor
   },
   props: {
     value: Object

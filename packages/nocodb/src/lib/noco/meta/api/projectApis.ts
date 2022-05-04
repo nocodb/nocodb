@@ -22,6 +22,7 @@ import { NcError } from '../helpers/catchError';
 import getColumnUiType from '../helpers/getColumnUiType';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { extractAndGenerateManyToManyRelations } from './metaDiffApis';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 const nanoid = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 4);
 
@@ -392,22 +393,27 @@ export async function projectInfoGet(req, res) {
 export default router => {
   router.get(
     '/api/v1/db/meta/projects/:projectId/info',
+    metaApiMetrics,
     ncMetaAclMw(projectInfoGet, 'projectInfoGet')
   );
   router.get(
     '/api/v1/db/meta/projects/:projectId',
+    metaApiMetrics,
     ncMetaAclMw(projectGet, 'projectGet')
   );
   router.delete(
     '/api/v1/db/meta/projects/:projectId',
+    metaApiMetrics,
     ncMetaAclMw(projectDelete, 'projectDelete')
   );
   router.post(
     '/api/v1/db/meta/projects',
+    metaApiMetrics,
     ncMetaAclMw(projectCreate, 'projectCreate')
   );
   router.get(
     '/api/v1/db/meta/projects',
+    metaApiMetrics,
     ncMetaAclMw(projectList, 'projectList')
   );
 };

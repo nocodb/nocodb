@@ -14,7 +14,8 @@ export async function substituteColumnAliasWithIdInFormula(
     } else if (pt.type === 'Literal') {
       return;
     } else if (pt.type === 'Identifier') {
-      const colNameOrId = pt.name;
+      const sanitizedPtName = pt.name.substring(1, pt.name.length - 1);
+      const colNameOrId = sanitizedPtName;
       const column = columns.find(
         c =>
           c.id === colNameOrId ||

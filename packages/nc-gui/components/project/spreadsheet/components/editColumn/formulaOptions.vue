@@ -20,7 +20,7 @@
           hide-details="auto"
           label="Formula"
           persistent-hint
-          hint="Available formulas are ADD, AVG, CONCAT, +, -, /"
+          hint="Hint: If you reference columns, use '$' to wrap the column name, e.g: $column_name$."
           :rules="[v => !!v || 'Required', v => parseAndValidateFormula(v)]"
           autocomplete="off"
           @input="handleInputDeb"
@@ -165,7 +165,6 @@ export default {
         this.$toast.error(e.message).goAway(3000)
       }
     },
-    // todo: validate formula based on meta
     parseAndValidateFormula(formula) {
       try {
         const pt = jsep(formula)
@@ -195,8 +194,12 @@ export default {
         }
         pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))
       } else if (pt.type === 'Identifier') {
-        if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== pt.name)) {
-          arr.push(`Column with name '${pt.name}' is not available`)
+        // $column_name$ -> column_name
+        const sanitizedPtName = pt.name.substring(1, pt.name.length - 1)
+        if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).find(c => c.title === pt.name)) {
+          arr.push(`Column '${pt.name}' needs to be wrapped by $. Try $${pt.name}$ instead`)
+        } else if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== sanitizedPtName)) {
+          arr.push(`Column '${pt.name}' is not available`)
         }
       } else if (pt.type === 'BinaryExpression') {
         if (!this.availableBinOps.includes(pt.operator)) {

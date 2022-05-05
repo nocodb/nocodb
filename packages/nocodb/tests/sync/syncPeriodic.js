@@ -17,6 +17,7 @@ let stats = {
 const config = jsonfile.readFileSync('./testConfig.json');
 
 async function nc_syncPeriodic(syncDB) {
+  updatedRecords = []
   api = new Api({
     baseURL: syncDB.baseURL,
     headers: {
@@ -58,7 +59,56 @@ async function nc_syncPeriodic(syncDB) {
     // read airtable records for this table & sync
     await nocoReadData(syncDB, tblSchema, tblRecIdHashStore)
   }
+
+  for(let tblCnt = 0; tblCnt < projSchema.list.length; tblCnt++) {
+    let tblId = projSchema.list[tblCnt].id;
+    let tblSchema = await api.dbTable.read(tblId)
+
+    // ignore mm system tables
+    if(tblSchema.mm) continue;
+    await nocoUpdateLinkForInsertedRecords(syncDB, tblSchema)
+  }
   console.log('Airtable API invoked: ', stats.airtable.apiCnt)
+}
+
+let updatedRecords = []
+async function nocoUpdateLinkForInsertedRecords(sDB, table) {
+  // find link columns from the table schema
+  let linkColumns = table.columns.filter(x => x.uidt === UITypes.LinkToAnotherRecord)
+  // find newly updated (insert/ modify) records belonging to this table
+  let linkRecord = updatedRecords.filter(x => x.tblId === table.id)
+
+  // for every such record
+  for(let i=0; i<linkRecord.length; i++) {
+    // we need to update all link columns associated
+    for(let j=0; j < linkColumns.length; j++) {
+      let lRec = linkRecord[i]
+      let lCol = linkColumns[j]
+
+      if(lRec.fields[lCol.title]) {
+        // extract existing links (required for link update)
+        let existingData = (await api.dbTableRow.read('nc', sDB.projectName, lRec.tblId, lRec.id))[lCol.title]
+
+        for(let k=0; k<lRec.fields[lCol.title].length; k++) {
+          // check if link already exists.
+          let idx = existingData.findIndex(eRec => eRec._aTbl_nc_rec_id === lRec.fields[lCol.title][k])
+          if(-1 === idx) {
+            // does nt exist, add
+            await api.dbTableRow.nestedAdd('nc', sDB.projectName, lRec.tblId, lRec.id, 'mm', lCol.title, lRec.fields[lCol.title][k])
+          }
+          else {
+            // already exist, remove it from local array
+            existingData.splice(idx, 1);
+          }
+        }
+
+        // whatever left over, these links need to be removed
+        for(let k=0; k<existingData.length; k++) {
+          await api.dbTableRow.nestedRemove('nc', sDB.projectName, lRec.tblId, lRec.id, "mm", lCol.title, existingData[k]._aTbl_nc_rec_id)
+        }
+      }
+    }
+  }
 }
 
 async function nocoReadData(sDB, table, hashStore) {
@@ -70,22 +120,30 @@ async function nocoReadData(sDB, table, hashStore) {
           stats.airtable.apiCnt++;
 
           for(let recCnt = 0; recCnt < records.length; recCnt++) {
+            // regenerate hash
             let newHash = hash(records[recCnt])
+            // find corresponding nc record
             let ncRec = hashStore.find(x => x._aTbl_nc_rec_id === records[recCnt].id)
+            // find corresponding nc record index
             let ncRecIdx = hashStore.findIndex(x => x._aTbl_nc_rec_id === records[recCnt].id)
 
+            // record not found in nc
             if(undefined === ncRec) {
               // new record in airtable, insert
               console.log('record inserted')
+              // store record information for link post-processing
+              updatedRecords.push(JSON.parse(JSON.stringify({tblId: table.id, ...records[recCnt]})))
               nocoBaseDataProcessing(sDB, table, records[recCnt], { newRecord: true })
             }
+            // same hash, nothing changed from airtable
             else if(newHash === ncRec._aTbl_nc_rec_hash) {
-              // same hash, nothing changed from airtable
               hashStore.splice(ncRecIdx, 1)
             }
+            // record modified
             else {
-              // record modified
               console.log('record modified');
+              // store record information for link post-processing
+              updatedRecords.push(JSON.parse(JSON.stringify({tblId: table.id, ...records[recCnt]})))
               nocoBaseDataProcessing(sDB, table, records[recCnt], { newRecord: false })
               hashStore.splice(ncRecIdx, 1)
             }
@@ -98,6 +156,7 @@ async function nocoReadData(sDB, table, hashStore) {
             console.error(err);
             reject(err)
           }
+          // left over in hash store are nc stale records. need to be deleted
           for(let delRecCnt = 0; delRecCnt<hashStore.length; delRecCnt++) {
             console.log('record deleted');
             (async() => {
@@ -139,7 +198,6 @@ function nocoBaseDataProcessing(sDB, table, record, options) {
 
       // we will pick up LTAR once all table data's are in place
       if (dt === UITypes.LinkToAnotherRecord) {
-        aTblDataLinks.push(JSON.parse(JSON.stringify(rec)));
         delete rec[key];
       }
 
@@ -212,15 +270,13 @@ function nocoBaseDataProcessing(sDB, table, record, options) {
     rec['_aTbl_nc_rec_hash'] = recordHash;
 
     if(options.newRecord) {
-      await api.dbTableRow.bulkCreate('nc', sDB.projectName, table.id, [rec]);
+      await api.dbTableRow.create('nc', sDB.projectName, table.id, rec);
     }
     else {
       await api.dbTableRow.update('nc', sDB.projectName, table.id, record.id, rec)
     }
-
   })().catch(e => {
     console.log(e)
-    console.log(`Record insert error`)
   });
 }
 

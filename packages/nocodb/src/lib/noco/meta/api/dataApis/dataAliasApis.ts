@@ -149,10 +149,13 @@ async function dataRead(req: Request, res: Response) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  res.json(
+  const data = await baseModel.readByPk(req.params.rowId);
+  if (!data) return res.status(404).json({ error: 'Not found' });
+
+  return res.json(
     await nocoExecute(
       await getAst({ model, query: req.query, view }),
-      await baseModel.readByPk(req.params.rowId),
+      data,
       {},
       {}
     )

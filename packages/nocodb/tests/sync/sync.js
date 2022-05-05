@@ -6,6 +6,8 @@ const FetchAT = require('./fetchAT');
 const sMap = require('./syncMap')
 let Airtable = require('airtable');
 const jsonfile = require("jsonfile");
+let hash = require('object-hash');
+
 
 var base, baseId;
 const start = Date.now();
@@ -251,6 +253,11 @@ function tablesPrepare(tblSchema) {
         // uidt: UITypes.ID
         uidt: UITypes.SingleLineText,
         pk: true,
+      },
+      {
+        title: '_aTbl_nc_rec_hash',
+        column_name: '_aTbl_nc_rec_hash',
+        uidt: UITypes.SingleLineText,
       }
     ];
 
@@ -721,7 +728,7 @@ async function nc_hideColumn(tblName, viewName, columnName, viewType) {
 
 async function nocoReconfigureFields(aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
-    let hiddenColumns = ["_aTbl_nc_rec_id"]
+    let hiddenColumns = ["_aTbl_nc_rec_id", "_aTbl_nc_rec_hash"]
 
     // extract other columns hidden in this view
     let hiddenColumnID = aTblSchema[idx].meaningfulColumnOrder.filter(x => x.visibility===false)
@@ -770,6 +777,7 @@ function nocoLinkProcessing(projName, table, record, field) {
 // instead of skipping data after retrieval, use select fields option in airtable API
 function nocoBaseDataProcessing(sDB, table, record) {
   (async () => {
+    let recordHash = hash(record)
     let rec = record.fields;
 
     // kludge -
@@ -869,6 +877,7 @@ function nocoBaseDataProcessing(sDB, table, record) {
 
     // insert airtable record ID explicitly into each records
     rec['_aTbl_nc_rec_id'] = record.id;
+    rec['_aTbl_nc_rec_hash'] = recordHash;
 
     // console.log(rec)
 
@@ -892,7 +901,7 @@ async function nocoReadData(sDB, table, callback) {
   return new Promise((resolve, reject) => {
     base(table.title)
       .select({
-        pageSize: 25,
+        pageSize: 100,
         // maxRecords: 1,
       })
       .eachPage(
@@ -923,7 +932,7 @@ async function nocoReadDataSelected(projName, table, callback, fields) {
 
     base(table.title)
       .select({
-        pageSize: 25,
+        pageSize: 100,
         // maxRecords: 100,
         fields: [fields]
       })
@@ -1339,7 +1348,7 @@ async function nc_configureSort(viewId, s) {
 
 async function nc_configureFields(viewId, c, tblName, viewName, viewType) {
   // force hide PK column
-  let hiddenColumns = ["_aTbl_nc_rec_id"]
+  let hiddenColumns = ["_aTbl_nc_rec_id", "_aTbl_nc_rec_hash"]
 
   // extract other columns hidden in this view
   let hiddenColumnID = c.filter(x => x.visibility===false)

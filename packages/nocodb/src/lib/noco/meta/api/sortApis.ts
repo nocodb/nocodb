@@ -11,6 +11,7 @@ import Project from '../../../noco-models/Project';
 import Sort from '../../../noco-models/Sort';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 // @ts-ignore
 export async function sortGet(req: Request, res: Response<TableType>) {}
@@ -51,19 +52,27 @@ export async function sortDelete(req: Request, res: Response) {
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/views/:viewId/sorts/',
+  metaApiMetrics,
   ncMetaAclMw(sortList, 'sortList')
 );
 router.post(
   '/api/v1/db/meta/views/:viewId/sorts/',
+  metaApiMetrics,
   ncMetaAclMw(sortCreate, 'sortCreate')
 );
-router.get('/api/v1/db/meta/sorts/:sortId', ncMetaAclMw(sortGet, 'sortGet'));
+router.get(
+  '/api/v1/db/meta/sorts/:sortId',
+  metaApiMetrics,
+  ncMetaAclMw(sortGet, 'sortGet')
+);
 router.patch(
   '/api/v1/db/meta/sorts/:sortId',
+  metaApiMetrics,
   ncMetaAclMw(sortUpdate, 'sortUpdate')
 );
 router.delete(
   '/api/v1/db/meta/sorts/:sortId',
+  metaApiMetrics,
   ncMetaAclMw(sortDelete, 'sortDelete')
 );
 export default router;

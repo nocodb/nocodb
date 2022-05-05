@@ -33,6 +33,7 @@ export default async function populateSamplePayload(
       [UITypes.LinkToAnotherRecord, UITypes.Lookup].includes(column.uidt)
     )
       continue;
+
     if (operation === 'delete' && model.primaryKey?.title !== column.title)
       continue;
 
@@ -55,6 +56,9 @@ async function getSampleColumnValue(column: Column): Promise<any> {
         const sampleVal = await populateSamplePayload(
           await colOpt.getRelatedTable()
         );
+        if (colOpt.type !== RelationTypes.BELONGS_TO) {
+          return undefined;
+        }
         return colOpt.type === RelationTypes.BELONGS_TO
           ? sampleVal
           : [sampleVal];

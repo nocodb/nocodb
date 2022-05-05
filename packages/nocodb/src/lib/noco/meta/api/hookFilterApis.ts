@@ -12,6 +12,7 @@ import Project from '../../../noco-models/Project';
 import Filter from '../../../noco-models/Filter';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 // @ts-ignore
 export async function filterGet(req: Request, res: Response, next) {
@@ -108,25 +109,34 @@ export async function filterDelete(req: Request, res: Response, next) {
 }
 
 const router = Router({ mergeParams: true });
-router.get('/hooks/:hookId/filters/', ncMetaAclMw(filterList, 'filterList'));
+router.get(
+  '/hooks/:hookId/filters/',
+  metaApiMetrics,
+  ncMetaAclMw(filterList, 'filterList')
+);
 router.post(
   '/hooks/:hookId/filters/',
+  metaApiMetrics,
   ncMetaAclMw(filterCreate, 'filterCreate')
 );
 router.get(
   '/hooks/:hookId/filters/:filterId',
+  metaApiMetrics,
   ncMetaAclMw(filterGet, 'filterGet')
 );
 router.patch(
   '/hooks/:hookId/filters/:filterId',
+  metaApiMetrics,
   ncMetaAclMw(filterUpdate, 'filterUpdate')
 );
 router.delete(
   '/hooks/:hookId/filters/:filterId',
+  metaApiMetrics,
   ncMetaAclMw(filterDelete, 'filterDelete')
 );
 router.get(
   '/hooks/:hookId/filters/:filterParentId/children',
+  metaApiMetrics,
   ncMetaAclMw(filterChildrenRead, 'filterChildrenRead')
 );
 export default router;

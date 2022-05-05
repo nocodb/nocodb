@@ -16,6 +16,7 @@ import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { Tele } from 'nc-help';
 import getColumnUiType from '../helpers/getColumnUiType';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export enum MetaDiffType {
   TABLE_NEW = 'TABLE_NEW',
@@ -849,10 +850,12 @@ export async function extractAndGenerateManyToManyRelations(
 const router = Router();
 router.get(
   '/api/v1/db/meta/projects/:projectId/meta-diff',
+  metaApiMetrics,
   ncMetaAclMw(metaDiff, 'metaDiff')
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/meta-diff',
+  metaApiMetrics,
   ncMetaAclMw(metaDiffSync, 'metaDiffSync')
 );
 export default router;

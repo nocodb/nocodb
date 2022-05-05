@@ -108,13 +108,20 @@ export default class Base implements BaseType {
       return config;
     }
 
-    // todo: construct with props
-    return JSON.parse(
+    const config = JSON.parse(
       CryptoJS.AES.decrypt(
         this.config,
         Noco.getConfig()?.auth?.jwt?.secret
       ).toString(CryptoJS.enc.Utf8)
     );
+
+    // todo: update sql-client args
+    if (config?.client === 'sqlite3') {
+      config.connection.filename =
+        config.connection.filename || config.connection?.connection.filename;
+    }
+
+    return config;
   }
   getProject(ncMeta = Noco.ncMeta): Promise<Project> {
     return Project.get(this.project_id, ncMeta);

@@ -236,7 +236,6 @@ class BaseModelSqlv2 {
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-    // todo: replace with view id
     if (!ignoreFilterSort && this.viewId) {
       await conditionV2(
         [
@@ -320,7 +319,7 @@ class BaseModelSqlv2 {
 
       const childQb = this.dbDriver.queryBuilder().from(
         this.dbDriver
-          .union(
+          .unionAll(
             ids.map(p => {
               const query = qb
                 .clone()
@@ -396,7 +395,6 @@ class BaseModelSqlv2 {
       );
 
       return children.map(({ count }) => count);
-      // return _.groupBy(children, cn);
     } catch (e) {
       console.log(e);
       throw e;
@@ -523,11 +521,12 @@ class BaseModelSqlv2 {
       model: childTable
     });
     const rtn = childTable.table_name;
+    const rtnId = childTable.id;
 
     const qb = this.dbDriver(rtn).join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
     await childModel.selectObject({ qb });
-    const finalQb = this.dbDriver.union(
+    const finalQb = this.dbDriver.unionAll(
       parentIds.map(id => {
         const query = qb
           .clone()
@@ -551,7 +550,10 @@ class BaseModelSqlv2 {
 
     const children = await finalQb;
     const proto = await (
-      await Model.getBaseModelSQL({ table_name: rtn, dbDriver: this.dbDriver })
+      await Model.getBaseModelSQL({
+        id: rtnId,
+        dbDriver: this.dbDriver
+      })
     ).getProto();
     const gs = _.groupBy(
       children.map(c => {
@@ -582,6 +584,7 @@ class BaseModelSqlv2 {
       model: childTable
     });
     const rtn = childTable.table_name;
+    const rtnId = childTable.id;
 
     const qb = this.dbDriver(rtn)
       .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
@@ -600,7 +603,7 @@ class BaseModelSqlv2 {
 
     const children = await qb;
     const proto = await (
-      await Model.getBaseModelSQL({ table_name: rtn, dbDriver: this.dbDriver })
+      await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
 
     return children.map(c => {
@@ -631,7 +634,7 @@ class BaseModelSqlv2 {
       .count(`${vtn}.${vcn}`, { as: 'count' });
 
     // await childModel.selectObject({ qb });
-    const children = await this.dbDriver.union(
+    const children = await this.dbDriver.unionAll(
       parentIds.map(id => {
         const query = qb
           .clone()

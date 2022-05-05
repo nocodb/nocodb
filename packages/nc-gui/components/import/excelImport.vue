@@ -66,7 +66,7 @@
                       dense
                       :rules="[v => !!v || $t('general.required') ]"
                     />
-                    <v-btn class="ml-3" color="primary" @click="loadUrl">
+                    <v-btn v-t="['c:project:create:excel:load-url']" class="ml-3" color="primary" @click="loadUrl">
                       <!--Load-->
                       {{ $t('general.load') }}
                     </v-btn>

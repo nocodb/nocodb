@@ -124,6 +124,8 @@ export default {
         } else {
           // Create an empty project
           try {
+            this.$e("a:project:create:excel");
+
             project = await this.$api.project.create({
               title: this.templateData.title,
               external: false

@@ -22,7 +22,7 @@
           order: '',
           project_id: ''-->
               <div v-if="syncSource" class="px-10 mt-2">
-                <v-text-field v-model="syncSource.title" outlined dense label="Api Key" class="caption" />
+                <v-text-field v-model="syncSource.title" outlined dense label="Title" class="caption" />
                 <v-text-field v-model="syncSource.details.apiKey" outlined dense label="Api Key" class="caption" />
                 <v-text-field v-model="syncSource.details.shareId" outlined dense label="Shared Base ID" class="caption" />
                 <v-select
@@ -158,7 +158,7 @@ export default {
     sync() {
       this.step = 2
       this.$axios.post(`http://localhost:8080/api/v1/db/meta/syncs/${this.syncSource.id}/trigger`, this.payload, {
-        query: {
+        params: {
           id: this.socket.id
         }
       })

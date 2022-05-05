@@ -6,7 +6,7 @@ export default class SyncSource {
   id?: string;
   title?: string;
   type?: string;
-  details?: string;
+  details?: any;
   deleted?: boolean;
   order?: number;
   project_id?: number;

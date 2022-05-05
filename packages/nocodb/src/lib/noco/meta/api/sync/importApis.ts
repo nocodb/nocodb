@@ -1,10 +1,11 @@
-import { Router } from 'express';
+import { Request, Router } from 'express';
 // import { Queue } from 'bullmq';
 // import axios from 'axios';
 import catchError from '../../helpers/catchError';
 import { Server, Socket } from 'socket.io';
 import NocoJobs from '../../../../noco-jobs/NocoJobs';
 import job from './helpers/job';
+import SyncSource from '../../../../noco-models/SyncSource';
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
 
 enum SyncStatus {
@@ -93,6 +94,20 @@ export default (router: Router, _server) => {
       NocoJobs.jobsMgr.add(AIRTABLE_IMPORT_JOB, {
         id: req.query.id,
         ...req.body
+      });
+      res.json({});
+    })
+  );
+  router.post(
+    '/api/v1/db/meta/syncs/:syncId/trigger',
+    catchError(async (req: Request, res) => {
+      const syncSource = await SyncSource.get(req.params.syncId);
+
+      NocoJobs.jobsMgr.add(AIRTABLE_IMPORT_JOB, {
+        id: req.query.id,
+        ...(syncSource?.details || {}),
+        projectId: syncSource.project_id,
+        authToken: req.headers['xc-auth']
       });
       res.json({});
     })

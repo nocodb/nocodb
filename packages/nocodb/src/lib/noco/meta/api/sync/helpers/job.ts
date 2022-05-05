@@ -41,10 +41,10 @@ function syncLog(_log) {
 //
 
 async function getAtableSchema(sDB) {
-  const ft = await FetchAT(sDB.airtableShareId);
+  const ft = await FetchAT(sDB.shareId);
   const file = ft.schema;
   baseId = ft.baseId;
-  base = new Airtable({ apiKey: sDB.airtableApiKey }).base(baseId);
+  base = new Airtable({ apiKey: sDB.apiKey }).base(baseId);
   // store copy of atbl schema globally
   g_aTblSchema = file.tableSchemas;
 
@@ -1112,11 +1112,7 @@ async function nocoConfigureGalleryView(sDB, aTblSchema) {
 
     for (let i = 0; i < galleryViews.length; i++) {
       // create view
-      await getViewData(
-        sDB.airtableShareId,
-        aTblSchema[idx].id,
-        galleryViews[i].id
-      );
+      await getViewData(sDB.shareId, aTblSchema[idx].id, galleryViews[i].id);
       const viewName = aTblSchema[idx].views.find(
         x => x.id === galleryViews[i].id
       )?.name;
@@ -1134,7 +1130,7 @@ async function nocoConfigureFormView(sDB, aTblSchema) {
     for (let i = 0; i < formViews.length; i++) {
       // create view
       const vData = await getViewData(
-        sDB.airtableShareId,
+        sDB.shareId,
         aTblSchema[idx].id,
         formViews[i].id
       );
@@ -1186,7 +1182,7 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
     for (let i = 0; i < gridViews.length; i++) {
       // fetch viewData JSON
       const vData = await getViewData(
-        sDB.airtableShareId,
+        sDB.shareId,
         aTblSchema[idx].id,
         gridViews[i].id
       );
@@ -1478,8 +1474,8 @@ export default async function(
     authToken: string;
     projectName?: string;
     projectId?: string;
-    airtableApiKey: string;
-    airtableShareId: string;
+    apiKey: string;
+    shareId: string;
   },
   progress: (msg: string) => void
 ) {

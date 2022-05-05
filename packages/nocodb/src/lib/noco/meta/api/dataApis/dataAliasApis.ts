@@ -150,7 +150,7 @@ async function dataRead(req: Request, res: Response) {
   });
 
   const data = await baseModel.readByPk(req.params.rowId);
-  if (!data) return res.status(404).json({ msg: 'Not found' });
+  if (!data) return res.json({});
 
   return res.json(
     await nocoExecute(

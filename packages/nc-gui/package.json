@@ -2,12 +2,12 @@
   "name": "nc-gui",
   "version": "0.11.35",
   "scripts": {
-    "dev": "EE=true nuxt",
-    "build": "EE=true nuxt build",
+    "dev": "cross-env EE=true nuxt",
+    "build": "cross-env EE=true nuxt build",
     "lint": "eslint . --ext .js,.vue --fix --quiet",
-    "start": "EE=true nuxt start",
+    "start": "cross-env EE=true nuxt start",
     "generate": "nuxt generate",
-    "build:copy": "EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
+    "build:copy": "cross-env EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",
     "build:copy:jsdeliver": "npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/ ; npm publish ../nc-lib-gui"
   },
   "dependencies": {
@@ -31,7 +31,7 @@
     "monaco-themes": "^0.2.5",
     "nano-assign": "^1.0.1",
     "nocodb-sdk": "0.90.11",
-    "nuxt": "^2.14.0",
+    "nuxt": "^2.13.3",
     "odometer": "^0.4.8",
     "papaparse": "^5.3.1",
     "secure-ls": "^1.2.6",
@@ -68,6 +68,7 @@
     "@nuxtjs/vuetify": "^1.11.2",
     "@types/httpsnippet": "^1.23.1",
     "babel-eslint": "^10.1.0",
+    "cross-env": "^7.0.3",
     "eslint": "^7.31.0",
     "monaco-editor-webpack-plugin": "^1.9.1",
     "sass": "~1.32.12",

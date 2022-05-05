@@ -46,6 +46,18 @@ export async function tableGet(req: Request, res: Response<TableType>) {
   res.json(table);
 }
 
+export async function tableGetByName(req: Request, res: Response<TableType>) {
+  const project = await Project.getWithInfoByTitleOrId(req.params.projectId);
+  const model = await Model.getByAliasOrId({
+    project_id: project.id,
+    base_id: project.bases?.[0]?.id,
+    aliasOrId: req.params.tableName
+  });
+
+  req.params.tableId = model.id;
+  await tableGet(req, res);
+}
+
 export async function tableReorder(req: Request, res: Response) {
   res.json(Model.updateOrder(req.params.tableId, req.body.order));
 }
@@ -262,6 +274,10 @@ const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/projects/:projectId/tables',
   ncMetaAclMw(tableList, 'tableList')
+);
+router.get(
+  '/api/v1/db/meta/projects/:projectId/tables/:tableName',
+  ncMetaAclMw(tableGetByName, 'tableGet')
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',

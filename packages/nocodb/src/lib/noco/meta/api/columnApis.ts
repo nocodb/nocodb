@@ -19,6 +19,7 @@ import {
   isVirtualCol,
   LinkToAnotherRecordType,
   RelationTypes,
+  substituteColumnIdWithAliasInFormula,
   TableType,
   UITypes
 } from 'nocodb-sdk';
@@ -32,6 +33,8 @@ import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import FormulaColumn from '../../../noco-models/FormulaColumn';
+import { MetaTable } from '../../../utils/globals';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 
@@ -606,20 +609,47 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         cn: c.column_name,
         cno: c.column_name
       })),
-      columns: table.columns.map(c => {
-        if (c.id === req.params.columnId) {
-          return {
-            ...c,
-            ...colBody,
-            cn: colBody.column_name,
-            cno: c.column_name,
-            altered: Altered.UPDATE_COLUMN
-          };
-        } else {
-          (c as any).cn = c.column_name;
-        }
-        return c;
-      })
+      columns: await Promise.all(
+        table.columns.map(async c => {
+          if (c.id === req.params.columnId) {
+            const res = {
+              ...c,
+              ...colBody,
+              cn: colBody.column_name,
+              cno: c.column_name,
+              altered: Altered.UPDATE_COLUMN
+            };
+
+            // update formula with new column name
+            if (c.column_name != colBody.column_name) {
+              const formulas = await Noco.ncMeta
+                .knex(MetaTable.COL_FORMULA)
+                .where('formula', 'like', `%${c.id}%`);
+              if (formulas) {
+                const new_column = c;
+                new_column.column_name = colBody.column_name;
+                new_column.title = colBody.title;
+                for (const f of formulas) {
+                  // the formula with column IDs only
+                  const formula = f.formula;
+                  // replace column IDs with alias to get the new formula_raw
+                  const new_formula_raw = substituteColumnIdWithAliasInFormula(
+                    formula,
+                    [new_column]
+                  );
+                  await FormulaColumn.update(f.id, {
+                    formula_raw: new_formula_raw
+                  });
+                }
+              }
+            }
+            return Promise.resolve(res);
+          } else {
+            (c as any).cn = c.column_name;
+          }
+          return Promise.resolve(c);
+        })
+      )
     };
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });

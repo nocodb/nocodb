@@ -157,6 +157,7 @@
     "ncp": "^2.0.0",
     "nocodb-sdk": "0.90.8",
     "nodemailer": "^6.4.10",
+    "object-hash": "^3.0.0",
     "ora": "^4.0.4",
     "os-locale": "^5.0.0",
     "papaparse": "^5.3.1",

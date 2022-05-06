@@ -11,6 +11,7 @@ import Project from '../../../noco-models/Project';
 import View from '../../../noco-models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 
 // @ts-ignore
 export async function gridViewCreate(req: Request<any, any>, res) {
@@ -27,6 +28,7 @@ export async function gridViewCreate(req: Request<any, any>, res) {
 const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/grids/',
+  metaApiMetrics,
   ncMetaAclMw(gridViewCreate, 'gridViewCreate')
 );
 export default router;

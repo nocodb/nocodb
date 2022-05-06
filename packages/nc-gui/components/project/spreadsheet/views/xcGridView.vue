@@ -729,9 +729,12 @@ export default {
     },
     onClickOutside() {
       if (
-        this.meta.columns &&
+        (this.meta.columns &&
         this.meta.columns[this.selected.col] &&
-        this.meta.columns[this.selected.col].virtual
+        this.meta.columns[this.selected.col].virtual) ||
+        (this.availableColumns &&
+        this.availableColumns[this.editEnabled.col] &&
+        this.availableColumns[this.editEnabled.col].uidt === "JSON")
       ) {
         return;
       }

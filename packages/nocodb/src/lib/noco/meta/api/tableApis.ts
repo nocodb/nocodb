@@ -26,6 +26,7 @@ import Column from '../../../noco-models/Column';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import getColumnUiType from '../helpers/getColumnUiType';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 export async function tableGet(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
     id: req.params.tableId
@@ -179,15 +180,18 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   res.json(
     await Model.insert(project.id, base.id, {
       ...req.body,
-      columns: columns.map((c, i) => ({
-        uidt: c.uidt || getColumnUiType(base, c),
-        ...c,
-        title:
-          req.body?.columns?.find(c1 => c.cn === c1.column_name)?.title ||
-          getColumnNameAlias(c.cn, base),
-        column_name: c.cn,
-        order: i + 1
-      })),
+      columns: columns.map((c, i) => {
+        const colMetaFromReq = req.body?.columns?.find(
+          c1 => c.cn === c1.column_name
+        );
+        return {
+          uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(base, c),
+          ...c,
+          title: colMetaFromReq?.title || getColumnNameAlias(c.cn, base),
+          column_name: c.cn,
+          order: i + 1
+        };
+      }),
       order: +(tables?.pop()?.order ?? 0) + 1
     })
   );
@@ -232,7 +236,7 @@ export async function tableDelete(req: Request, res: Response) {
       )
     );
     NcError.badRequest(
-      `Table can't be  deleted  since Table is being referred in following tables : ${referredTables.join(
+      `Table can't be deleted since Table is being referred in following tables : ${referredTables.join(
         ', '
       )}. Delete LinkToAnotherRecord columns and try again.`
     );
@@ -273,6 +277,7 @@ export async function tableDelete(req: Request, res: Response) {
 const router = Router({ mergeParams: true });
 router.get(
   '/api/v1/db/meta/projects/:projectId/tables',
+  metaApiMetrics,
   ncMetaAclMw(tableList, 'tableList')
 );
 router.get(
@@ -281,22 +286,27 @@ router.get(
 );
 router.post(
   '/api/v1/db/meta/projects/:projectId/tables',
+  metaApiMetrics,
   ncMetaAclMw(tableCreate, 'tableCreate')
 );
 router.get(
   '/api/v1/db/meta/tables/:tableId',
+  metaApiMetrics,
   ncMetaAclMw(tableGet, 'tableGet')
 );
 router.patch(
   '/api/v1/db/meta/tables/:tableId',
+  metaApiMetrics,
   ncMetaAclMw(tableUpdate, 'tableUpdate')
 );
 router.delete(
   '/api/v1/db/meta/tables/:tableId',
+  metaApiMetrics,
   ncMetaAclMw(tableDelete, 'tableDelete')
 );
 router.post(
   '/api/v1/db/meta/tables/:tableId/reorder',
+  metaApiMetrics,
   ncMetaAclMw(tableReorder, 'tableReorder')
 );
 export default router;

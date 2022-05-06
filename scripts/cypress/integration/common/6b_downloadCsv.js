@@ -23,28 +23,39 @@ export const genTest = (apiType, dbType) => {
             mainPage.hideField("LastUpdate");
             const verifyCsv = (retrievedRecords) => {
                 // expected output, statically configured
+                // let storedRecords = [
+                //     `Country,CityList`,
+                //     `Afghanistan,Kabul`,
+                //     `Algeria,"Batna, Bchar, Skikda"`,
+                //     `American Samoa,Tafuna`,
+                //     `Angola,"Benguela, Namibe"`,
+                // ];
                 let storedRecords = [
-                    `Country,CityList`,
-                    `Afghanistan,Kabul`,
-                    `Algeria,"Batna, Bchar, Skikda"`,
-                    `American Samoa,Tafuna`,
-                    `Angola,"Benguela, Namibe"`,
+                    ['Country','CityList'],
+                    ['Afghanistan','Kabul'],
+                    ['Algeria','Skikda', 'Bchar', 'Batna'],
+                    ['American Samoa','Tafuna'],
+                    ['Angola','Benguela', 'Namibe'],
                 ];
 
-                if (isPostgres()) {
-                    // order of second entry is different
-                    storedRecords = [
-                        `Country,CityList`,
-                        `Afghanistan,Kabul`,
-                        `Algeria,"Skikda, Bchar, Batna"`,
-                        `American Samoa,Tafuna`,
-                        `Angola,"Benguela, Namibe"`,
-                    ];
-                }
+                // if (isPostgres()) {
+                //     // order of second entry is different
+                //     storedRecords = [
+                //         `Country,CityList`,
+                //         `Afghanistan,Kabul`,
+                //         `Algeria,"Skikda, Bchar, Batna"`,
+                //         `American Samoa,Tafuna`,
+                //         `Angola,"Benguela, Namibe"`,
+                //     ];
+                // }
 
                 for (let i = 0; i < storedRecords.length - 1; i++) {
-                    cy.log(retrievedRecords[i]);
-                    expect(retrievedRecords[i]).to.be.equal(storedRecords[i]);
+                    for(let j=0; j<storedRecords[i].length; j++)
+                        expect(retrievedRecords[i]).to.have.string(storedRecords[i][j])
+
+                // often, the order in which records "Skikda, Bchar, Batna" appear, used to toggle
+                // hence verifying record contents separately
+                // expect(retrievedRecords[i]).to.be.equal(storedRecords[i]);
                 }
             };
 

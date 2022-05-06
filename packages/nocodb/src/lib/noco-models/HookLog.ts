@@ -66,14 +66,14 @@ export default class HookLog implements HookLogType {
 
   public static async insert(
     hookLog: Partial<
-      (HookLog | HookLogType) & {
+      HookLog & {
         created_at?;
         updated_at?;
       }
     >,
     ncMeta = Noco.ncMeta
   ) {
-    const insertObj = extractProps(hookLog, [
+    const insertObj: any = extractProps(hookLog, [
       'base_id',
       'project_id',
       'fk_hook_id',
@@ -98,24 +98,12 @@ export default class HookLog implements HookLogType {
       insertObj.base_id = hook.base_id;
     }
 
+    if (typeof insertObj.notification === 'object') {
+      insertObj.notification = JSON.stringify(insertObj.notification);
+    }
+
+    insertObj.execution_time = parseInt(insertObj.execution_time) || 0;
+
     return await ncMeta.metaInsert2(null, null, MetaTable.HOOK_LOGS, insertObj);
-
-    // todo: redis cache ??
-    // await NocoCache.appendToList(
-    //   CacheScope.HOOK,
-    //   [insertObj.fk_mo_id],
-    //   `${CacheScope.HOOK}:${id}`
-    // );
-
-    // return this.get(id, ncMeta);
   }
-
-  // static async delete(hookId: any, ncMeta = Noco.ncMeta) {
-  //   await NocoCache.deepDel(
-  //     CacheScope.HOOK,
-  //     `${CacheScope.HOOK}:${hookId}`,
-  //     CacheDelDirection.CHILD_TO_PARENT
-  //   );
-  //   return await ncMeta.metaDelete(null, null, MetaTable.HOOKS, hookId);
-  // }
 }

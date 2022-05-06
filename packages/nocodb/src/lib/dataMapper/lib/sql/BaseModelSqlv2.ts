@@ -237,7 +237,6 @@ class BaseModelSqlv2 {
     const aliasColObjMap = await this.model.getAliasColObjMap();
     const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
-    // todo: replace with view id
     if (!ignoreFilterSort && this.viewId) {
       await conditionV2(
         [
@@ -397,7 +396,6 @@ class BaseModelSqlv2 {
       );
 
       return children.map(({ count }) => count);
-      // return _.groupBy(children, cn);
     } catch (e) {
       console.log(e);
       throw e;
@@ -524,6 +522,7 @@ class BaseModelSqlv2 {
       model: childTable
     });
     const rtn = childTable.table_name;
+    const rtnId = childTable.id;
 
     const qb = this.dbDriver(rtn).join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
@@ -552,7 +551,10 @@ class BaseModelSqlv2 {
 
     const children = await finalQb;
     const proto = await (
-      await Model.getBaseModelSQL({ table_name: rtn, dbDriver: this.dbDriver })
+      await Model.getBaseModelSQL({
+        id: rtnId,
+        dbDriver: this.dbDriver
+      })
     ).getProto();
     const gs = _.groupBy(
       children.map(c => {
@@ -583,6 +585,7 @@ class BaseModelSqlv2 {
       model: childTable
     });
     const rtn = childTable.table_name;
+    const rtnId = childTable.id;
 
     const qb = this.dbDriver(rtn)
       .join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`)
@@ -601,7 +604,7 @@ class BaseModelSqlv2 {
 
     const children = await this.run(qb);
     const proto = await (
-      await Model.getBaseModelSQL({ table_name: rtn, dbDriver: this.dbDriver })
+      await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
 
     return children.map(c => {

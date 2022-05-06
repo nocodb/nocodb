@@ -4,6 +4,7 @@ import View from '../../../noco-models/View';
 import GalleryView from '../../../noco-models/GalleryView';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
+import { metaApiMetrics } from '../helpers/apiMetrics';
 export async function galleryViewGet(req: Request, res: Response<GalleryType>) {
   res.json(await GalleryView.get(req.params.galleryViewId));
 }
@@ -27,14 +28,17 @@ export async function galleryViewUpdate(req, res) {
 const router = Router({ mergeParams: true });
 router.post(
   '/api/v1/db/meta/tables/:tableId/galleries',
+  metaApiMetrics,
   ncMetaAclMw(galleryViewCreate, 'galleryViewCreate')
 );
 router.patch(
   '/api/v1/db/meta/galleries/:galleryViewId',
+  metaApiMetrics,
   ncMetaAclMw(galleryViewUpdate, 'galleryViewUpdate')
 );
 router.get(
   '/api/v1/db/meta/galleries/:galleryViewId',
+  metaApiMetrics,
   ncMetaAclMw(galleryViewGet, 'galleryViewGet')
 );
 export default router;

@@ -6,6 +6,7 @@ import {
 } from '../utils/globals';
 import Noco from '../noco/Noco';
 import NocoCache from '../noco-cache/NocoCache';
+import User from './User';
 
 export default class ProjectUser {
   project_id: string;
@@ -132,6 +133,22 @@ export default class ProjectUser {
       o.roles = roles;
       // set cache
       await NocoCache.set(key, o);
+    }
+    // update user cache
+    const user = await User.get(userId);
+    if (user) {
+      const email = user.email;
+      for (const key of [
+        `${CacheScope.USER}:${email}`,
+        `${CacheScope.USER}:${email}___${projectId}`
+      ]) {
+        const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+        if (o) {
+          o.roles = roles;
+          // set cache
+          await NocoCache.set(key, o);
+        }
+      }
     }
     // set meta
     return await ncMeta.metaUpdate(

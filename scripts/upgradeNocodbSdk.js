@@ -1,7 +1,5 @@
 const fs = require('fs')
 const path = require('path');
-const { mainModule } = require('process');
-
 const execSync = require('child_process').execSync;
 
 // extract latest version from package.json
@@ -68,7 +66,7 @@ const searchAndReplace = (target) => {
 }
 
 if (process.env.targetEnv === 'DEV') {
-    // replace nocodb-sdk by nocodb-sdk-daily if it is nightly build
+    // replace nocodb-sdk by nocodb-sdk-daily if it is nightly build / pr build
     searchAndReplace('nocodb-sdk')
     .then(() => {
         bumbVersionAndSave()

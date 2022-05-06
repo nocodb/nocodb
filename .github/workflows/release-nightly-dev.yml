@@ -3,14 +3,6 @@ name: 'NocoDB Nightly Dev Release'
 on:
   # Triggered manually
   workflow_dispatch:
-    inputs:
-      targetEnv:
-        description: "Target Environment"
-        required: true
-        type: choice
-        options:
-          - DEV
-          # - PROD
   schedule:
     # every 6 hours
     - cron: '0 */6 * * *'
@@ -28,28 +20,31 @@ jobs:
           CURRENT_TIME=$(date +"%H%M")
           TAG_NAME=${CURRENT_DATE}-${CURRENT_TIME}
           IS_DAILY='Y'
+          # Get current version
+          CURRENT_VERSION=$(basename $(curl -fs -o/dev/null -w %{redirect_url} https://github.com/nocodb/nocodb/releases/latest))
           # Set the tag
           if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
-            TAG_NAME=${TAG_NAME}
             IS_DAILY='N'
           fi
           echo "::set-output name=NIGHTLY_BUILD_TAG::${TAG_NAME}"
           echo "::set-output name=IS_DAILY::${IS_DAILY}"
-          # Verify the tag
+          echo "::set-output name=CURRENT_VERSION::${CURRENT_VERSION}"
       - name: verify-tag
         run: |
           echo ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
           echo ${{ steps.tag-step.outputs.IS_DAILY }}
+          echo ${{ steps.tag-step.outputs.CURRENT_VERSION }}
     outputs:
       nightly_build_tag: ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
       is_daily: ${{ steps.tag-step.outputs.IS_DAILY }}
+      current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }} 
   # Build frontend and backend and publish to npm
   release-npm:
     needs: set-tag
     uses: ./.github/workflows/release-npm.yml
     with:
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
-      targetEnv: ${{ github.event.inputs.targetEnv || 'DEV' }}
+      targetEnv: 'DEV'
     secrets:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
 
@@ -58,8 +53,9 @@ jobs:
     needs: [set-tag, release-npm]
     uses: ./.github/workflows/release-docker.yml
     with:
+      currentVersion: ${{ needs.set-tag.outputs.current_version }}
       tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
-      targetEnv: ${{ github.event.inputs.targetEnv || 'DEV' }}
+      targetEnv: 'DEV'
       isDaily: ${{ needs.set-tag.outputs.is_daily }}
     secrets:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"

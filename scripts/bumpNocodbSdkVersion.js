@@ -10,6 +10,8 @@ const version = packageJson.version
 if (process.env.targetEnv === 'DEV') {
     // nightly build
     // e.g. 0.84.2-20220220-1250
+    // pr build
+    // e.g. 0.84.2-pr-1234-20220220-1250
     packageJson.version = `${packageJson.version}-${process.env.targetVersion}`
     packageJson.name += '-daily'
 } else {

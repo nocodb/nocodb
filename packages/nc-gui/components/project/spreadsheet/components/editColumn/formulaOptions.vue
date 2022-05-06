@@ -112,7 +112,12 @@ export default {
     suggestion: null,
     wordToComplete: '',
     selected: 0,
-    tooltip: true
+    tooltip: true,
+    sortOrder: {
+      column: 0,
+      function: 1,
+      op: 2
+    }
   }),
   computed: {
     suggestionsList() {
@@ -123,7 +128,7 @@ export default {
           type: 'function'
         })),
         ...this.meta.columns.filter(c => !this.column || this.column.id !== c.id).map(c => ({
-          text: '$' + c.title + '$',
+          text: c.title,
           type: 'column',
           c
         })),
@@ -251,6 +256,8 @@ export default {
       const len = this.wordToComplete.length
       if (it.type === 'function') {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text + '()', len, 1))
+      } else if (it.type === 'column') {
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), '$' + text + '$', len))
       } else {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }
@@ -267,7 +274,7 @@ export default {
       const query = getWordUntilCaret(this.$refs.input.$el.querySelector('input'))
       const parts = query.split(/\W+/)
       this.wordToComplete = parts.pop()
-      this.suggestion = this.acTree.complete(this.wordToComplete)
+      this.suggestion = this.acTree.complete(this.wordToComplete)?.sort((x, y) => this.sortOrder[x.type] - this.sortOrder[y.type])
       this.autocomplete = !!this.suggestion.length
     },
     selectText() {

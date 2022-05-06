@@ -91,10 +91,10 @@ async function getColumnFromFilePath(filePath: Array<string>) {
   const [_, projectName, tableName, columnName] = filePath;
   const project = await Project.getWithInfoByTitle(projectName);
   const base = project.bases[0];
-  const table = await Model.getByIdOrName({
+  const table = await Model.getByAliasOrId({
     project_id: project.id,
     base_id: base.id,
-    table_name: tableName
+    aliasOrId: tableName
   });
   const columns = await table.getColumns();
   return columns.filter(column => column.column_name === columnName)[0];

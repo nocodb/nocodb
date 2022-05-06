@@ -253,6 +253,8 @@ function tablesPrepare(tblSchema) {
         // uidt: UITypes.ID
         uidt: UITypes.SingleLineText,
         pk: true,
+        // mysql additionally requires NOT-NULL to be explicitly set
+        rqd: true
       },
       {
         title: '_aTbl_nc_rec_hash',
@@ -1078,6 +1080,23 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
   }
 }
 
+async function nocoAddUsers(aTblSchema) {
+  let userRoles = {
+    "owner": "owner",
+    "create": "creator",
+    "edit": "editor",
+    "comment": "commenter",
+    "read": "viewer",
+    "none": "viewer"
+  }
+  let userList = aTblSchema.appBlanket.userInfoById;
+  console.log('Configuring Users ..')
+
+  for (const [key, value] of Object.entries(userList)) {
+    await api.auth.projectUserAdd(ncCreatedProjectSchema.id, {email: value.email, roles: userRoles[value.permissionLevel]})
+  }
+}
+
 // start function
 module.exports = async function nc_migrateATbl(syncDB) {
 
@@ -1115,6 +1134,9 @@ module.exports = async function nc_migrateATbl(syncDB) {
 
   // configure primary values
   await nocoSetPrimary(aTblSchema);
+
+  // add users
+  await nocoAddUsers(schema)
 
   // hide-fields
   // await nocoReconfigureFields(aTblSchema);

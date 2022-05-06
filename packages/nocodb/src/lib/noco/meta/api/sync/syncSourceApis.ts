@@ -14,6 +14,7 @@ export async function syncCreate(req: Request, res: Response) {
   Tele.emit('evt', { evt_type: 'webhooks:created' });
   const sync = await SyncSource.insert({
     ...req.body,
+    fk_user_id: (req as any).user.id,
     project_id: req.params.projectId
   });
   res.json(sync);

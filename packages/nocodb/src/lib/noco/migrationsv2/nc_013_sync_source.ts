@@ -17,6 +17,8 @@ const up = async (knex: Knex) => {
 
     table.string('project_id', 128);
     table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
+    table.string('fk_user_id', 128);
+    table.foreign('fk_user_id').references(`${MetaTable.USERS}.id`);
 
     table.timestamps(true, true);
   });
@@ -29,9 +31,9 @@ const up = async (knex: Knex) => {
 
     table.string('project_id', 128);
     table.string('fk_sync_source_id', 20);
-    table
-      .foreign('fk_sync_source_id')
-      .references(`${MetaTable.SYNC_SOURCE}.id`);
+    // table
+    //   .foreign('fk_sync_source_id')
+    //   .references(`${MetaTable.SYNC_SOURCE}.id`);
 
     table.integer('time_taken');
     table.string('status');

@@ -28,7 +28,7 @@ export default class EmitteryJobsMgr extends JobsMgr {
         await this.invokeSuccessCbks(jobName, payload);
       } catch (e) {
         console.log(e);
-        await this.invokeFailureCbks(jobName, payload);
+        await this.invokeFailureCbks(jobName, payload, e);
       }
     });
   }

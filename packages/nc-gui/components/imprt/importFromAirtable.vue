@@ -10,7 +10,7 @@
         <v-tab-item class="h-100">
           <div>
             <!--    <v-dialog v-model="importModal" max-width="min(500px, 90%)">-->
-            <v-card v-if="step === 1">
+            <v-card>
               <v-card-title class="justify-center">
                 Airtable import
               </v-card-title>
@@ -53,6 +53,7 @@
               </div>
               <v-card-actions class="justify-center pb-6">
                 <v-btn
+                  :disabled="step !== 1"
                   small
                   outlined
                   @click="createOrUpdate"
@@ -60,6 +61,7 @@
                   Save
                 </v-btn>
                 <v-btn
+                  :disabled="step !== 1"
                   small
                   outlined
                   @click="saveAndSync"
@@ -69,7 +71,7 @@
               </v-card-actions>
             </v-card>
 
-            <v-card v-else-if="step === 2" class="" min-height="300">
+            <v-card v-if="step === 2" class="" min-height="300">
               <v-card-title class="justify-center">
                 Airtable import
               </v-card-title>
@@ -84,19 +86,17 @@
                   </v-icon>
                   <span class="caption nc-text">{{ msg }}</span>
                 </div>
-                <div v-if="!progress || !progress.length || progress[progress.length-1].msg !== 'completed' && progress[progress.length-1].status !== 'FAILED'">
+                <div
+                  v-if="!progress || !progress.length || progress[progress.length-1].msg !== 'completed' && progress[progress.length-1].status !== 'FAILED'"
+                  class="d-flex align-center"
+                >
                   <v-icon color="green">
                     mdi-loading mdi-spin
                   </v-icon>
-                  <span class="caption nc-text">Syncing<span class="nc-progress" />
+                  <span class="caption nc-text">Syncing
                   </span>
+                  <!--                  <div class="nc-progress" />-->
                 </div>
-
-                <v-icon color="green">
-                  mdi-loading mdi-spin
-                </v-icon>
-                <span class="caption nc-text">Syncing
-                </span><div class="nc-progress" />
               </div>
             </v-card>
           </div>
@@ -197,30 +197,55 @@ export default {
 
 <style scoped>
 
-@keyframes progress {
-  0% {
-    content: '';
-  }
-  25% {
-    content: '..';
-  }
-  50% {
-    content: '...';
-  }
-  75% {
-    content: '....';
-  }
-  100% {
-    content: '>>';
-  }
-}
 .nc-progress {
-  display: block;
-  width: 100px;
-  height: 30px;
-  content: '>>';
+  margin-left:12px;
+  position: relative;
+  width: 5px;
+  height: 5px;
+  border-radius: 5px;
+  background-color: #9880ff;
+  color: #9880ff;
+  animation: dotFlashing 1s infinite linear alternate;
+  animation-delay: .5s;
 }
-.nc-progress::after{
-  animation: progress 3s linear infinite alternate;
+
+.nc-progress::before, .nc-progress::after {
+  content: '';
+  display: inline-block;
+  position: absolute;
+  top: 0;
 }
+
+.nc-progress::before {
+  left: -7.5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 5px;
+  background-color: #9880ff;
+  color: #9880ff;
+  animation: dotFlashing 1s infinite alternate;
+  animation-delay: 0s;
+}
+
+.nc-progress::after {
+  left: 7.5px;
+  width: 5px;
+  height: 5px;
+  border-radius: 5px;
+  background-color: var(--v-primary-base);
+  color: var(--v-primary-base);
+  animation: dotFlashing 1s infinite alternate;
+  animation-delay: 1s;
+}
+
+@keyframes dotFlashing {
+  0% {
+    background-color: var(--v-primary-base);
+  }
+  50%,
+  100% {
+    background-color: var(--v-backgroundColor-base);
+  }
+}
+
 </style>

@@ -9,7 +9,7 @@ export default abstract class JobsMgr {
     [jobName: string]: (payload: any, msg?: string) => void;
   }> = [];
 
-  public abstract add(jobName: string, payload: any): Promise<any>;
+  public abstract add<T>(jobName: string, payload: T): Promise<any>;
 
   public abstract addJobWorker(
     jobName: string,

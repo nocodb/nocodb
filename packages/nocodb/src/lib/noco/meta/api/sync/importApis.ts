@@ -4,8 +4,10 @@ import { Request, Router } from 'express';
 import catchError from '../../helpers/catchError';
 import { Server, Socket } from 'socket.io';
 import NocoJobs from '../../../../noco-jobs/NocoJobs';
-import job from './helpers/job';
+import job, { AirtableSyncConfig } from './helpers/job';
 import SyncSource from '../../../../noco-models/SyncSource';
+import Noco from '../../../Noco';
+import * as jwt from 'jsonwebtoken';
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
 
 enum SyncStatus {
@@ -81,9 +83,9 @@ export default (router: Router, _server) => {
       status: SyncStatus.COMPLETED
     });
   });
-  NocoJobs.jobsMgr.addFailureCbk(AIRTABLE_IMPORT_JOB, (payload, ..._rest) => {
+  NocoJobs.jobsMgr.addFailureCbk(AIRTABLE_IMPORT_JOB, (payload, error: any) => {
     clients?.[payload?.id]?.emit('progress', {
-      msg: 'failed',
+      msg: error?.message || 'Failed due to some internal error',
       status: SyncStatus.FAILED
     });
   });
@@ -103,11 +105,26 @@ export default (router: Router, _server) => {
     catchError(async (req: Request, res) => {
       const syncSource = await SyncSource.get(req.params.syncId);
 
-      NocoJobs.jobsMgr.add(AIRTABLE_IMPORT_JOB, {
+      const user = await syncSource.getUser();
+      const token = jwt.sign(
+        {
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          id: user.id,
+          roles: user.roles
+        },
+
+        Noco.getConfig().auth.jwt.secret,
+        Noco.getConfig().auth.jwt.options
+      );
+
+      NocoJobs.jobsMgr.add<AirtableSyncConfig>(AIRTABLE_IMPORT_JOB, {
         id: req.query.id,
         ...(syncSource?.details || {}),
         projectId: syncSource.project_id,
-        authToken: req.headers['xc-auth']
+        authToken: token,
+        baseURL: (req as any).ncSiteUrl
       });
       res.json({});
     })

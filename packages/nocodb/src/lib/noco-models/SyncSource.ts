@@ -1,6 +1,7 @@
 import Noco from '../noco/Noco';
 import { MetaTable } from '../utils/globals';
 import extractProps from '../noco/meta/helpers/extractProps';
+import User from './User';
 
 export default class SyncSource {
   id?: string;
@@ -9,10 +10,15 @@ export default class SyncSource {
   details?: any;
   deleted?: boolean;
   order?: number;
-  project_id?: number;
+  project_id?: string;
+  fk_user_id?: string;
 
   constructor(syncSource: Partial<SyncSource>) {
     Object.assign(this, syncSource);
+  }
+
+  public getUser(ncMeta = Noco.ncMeta) {
+    return User.get(this.fk_user_id, ncMeta);
   }
 
   public static async get(syncSourceId: string, ncMeta = Noco.ncMeta) {
@@ -69,7 +75,8 @@ export default class SyncSource {
       title: syncSource?.title,
       type: syncSource?.type,
       details: syncSource?.details,
-      project_id: syncSource?.project_id
+      project_id: syncSource?.project_id,
+      fk_user_id: syncSource?.fk_user_id
     };
 
     if (insertObj.details && typeof insertObj.details === 'object') {

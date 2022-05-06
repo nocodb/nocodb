@@ -3,7 +3,7 @@ import { UITypes } from 'nocodb-sdk';
 import * as sMap from './syncMap';
 import FormData from 'form-data';
 
-const { Api } = require('nocodb-sdk');
+import { Api } from 'nocodb-sdk';
 
 import axios from 'axios';
 const Airtable = require('airtable');
@@ -15,7 +15,7 @@ const enableErrorLogs = false;
 const process_aTblData = true;
 const generate_migrationStats = true;
 const debugMode = true;
-let api;
+let api: Api<any>;
 let g_aTblSchema = [];
 let ncCreatedProjectSchema: any = {};
 const ncLinkMappingTable: any[] = [];
@@ -131,7 +131,7 @@ async function nc_getColumnSchema(aTblFieldId) {
   const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
   const aTblField = aTbl_getColumnName(aTblFieldId);
   const ncTblId = ncTblList.list.filter(x => x.title === aTblField.tn)[0].id;
-  const ncTbl = await api.dbTable.read(ncTblId);
+  const ncTbl: any = await api.dbTable.read(ncTblId);
   const ncCol = ncTbl.columns.find(x => x.title === aTblField.cn);
   return ncCol;
 }
@@ -148,8 +148,7 @@ async function nc_getTableSchema(tableName) {
 
 // delete project if already exists
 async function init({
-  projectName,
-  projectId
+  projectName
 }: {
   projectName?: string;
   projectId?: string;
@@ -157,9 +156,7 @@ async function init({
   // delete 'sample' project if already exists
   const x = await api.project.list();
 
-  const sampleProj = x.list.find(
-    a => a.id === projectId || a.title === projectName
-  );
+  const sampleProj = x.list.find(a => a.title === projectName);
   if (sampleProj) {
     await api.project.delete(sampleProj.id);
   }
@@ -316,7 +313,7 @@ function tablesPrepare(tblSchema: any[]) {
 
 async function nocoCreateBaseSchema(aTblSchema) {
   // base schema preparation: exclude
-  const tables = tablesPrepare(aTblSchema);
+  const tables: any[] = tablesPrepare(aTblSchema);
 
   console.log(`Total tables: ${tables.length} `);
 
@@ -329,7 +326,7 @@ async function nocoCreateBaseSchema(aTblSchema) {
     );
 
     syncLog(`NC API: dbTable.create ${tables[idx].title}`);
-    const table = await api.dbTable.create(
+    const table: any = await api.dbTable.create(
       ncCreatedProjectSchema.id,
       tables[idx]
     );
@@ -416,7 +413,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           }
 
           // check if already a column exists with this name?
-          const srcTbl = await api.dbTable.read(srcTableId);
+          const srcTbl: any = await api.dbTable.read(srcTableId);
           const duplicate = srcTbl.columns.find(
             x => x.title === aTblLinkColumns[i].name
           );
@@ -426,7 +423,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
               console.log(`## Duplicate ${aTblLinkColumns[i].name}`);
 
           // create link
-          const ncTbl = await api.dbTableColumn.create(srcTableId, {
+          const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
             uidt: UITypes.LinkToAnotherRecord,
             title: aTblLinkColumns[i].name + suffix,
             parentId: srcTableId,
@@ -477,10 +474,10 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
               x.aTbl.id === aTblLinkColumns[i].typeOptions.symmetricColumnId
           );
 
-          const childTblSchema = await api.dbTable.read(
+          const childTblSchema: any = await api.dbTable.read(
             ncLinkMappingTable[x].nc.childId
           );
-          const parentTblSchema = await api.dbTable.read(
+          const parentTblSchema: any = await api.dbTable.read(
             ncLinkMappingTable[x].nc.parentId
           );
 
@@ -537,10 +534,13 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           // rename
           // note that: current rename API requires us to send all parameters,
           // not just title being renamed
-          const ncTbl = await api.dbTableColumn.update(childLinkColumn.id, {
-            ...childLinkColumn,
-            title: aTblLinkColumns[i].name + suffix
-          });
+          const ncTbl: any = await api.dbTableColumn.update(
+            childLinkColumn.id,
+            {
+              ...childLinkColumn,
+              title: aTblLinkColumns[i].name + suffix
+            }
+          );
 
           const ncId = ncTbl.columns.find(
             x => x.title === aTblLinkColumns[i].name + suffix
@@ -602,7 +602,7 @@ async function nocoCreateLookups(aTblSchema) {
           continue;
         }
 
-        const lookupColumn = await api.dbTableColumn.create(srcTableId, {
+        const lookupColumn: any = await api.dbTableColumn.create(srcTableId, {
           uidt: UITypes.Lookup,
           title: aTblColumns[i].name,
           fk_relation_column_id: ncRelationColumnId,
@@ -654,7 +654,7 @@ async function nocoCreateLookups(aTblSchema) {
         continue;
       }
 
-      const lookupColumn = await api.dbTableColumn.create(srcTableId, {
+      const lookupColumn: any = await api.dbTableColumn.create(srcTableId, {
         uidt: UITypes.Lookup,
         title: nestedLookupTbl[i].name,
         fk_relation_column_id: ncRelationColumnId,
@@ -721,7 +721,7 @@ async function nocoCreateRollups(aTblSchema) {
           continue;
         }
 
-        const rollupColumn = await api.dbTableColumn.create(srcTableId, {
+        const rollupColumn: any = await api.dbTableColumn.create(srcTableId, {
           uidt: UITypes.Rollup,
           title: aTblColumns[i].name,
           fk_relation_column_id: ncRelationColumnId,
@@ -764,7 +764,7 @@ async function nocoLookupForRollups() {
       continue;
     }
 
-    const lookupColumn = await api.dbTableColumn.create(srcTableId, {
+    const lookupColumn: any = await api.dbTableColumn.create(srcTableId, {
       uidt: UITypes.Lookup,
       title: nestedLookupTbl[i].name,
       fk_relation_column_id: ncRelationColumnId,
@@ -804,7 +804,7 @@ async function nocoSetPrimary(aTblSchema) {
 
 async function nc_hideColumn(tblName, viewName, columnName, viewType?) {
   // retrieve table schema
-  const ncTbl = await nc_getTableSchema(tblName);
+  const ncTbl: any = await nc_getTableSchema(tblName);
   // retrieve view ID
   const viewId = ncTbl.views.find(x => x.title === viewName).id;
 
@@ -1103,6 +1103,13 @@ async function nocoCreateProject(projName) {
   });
 }
 
+async function nocoGetProject(projId) {
+  syncLog(`Getting project meta: ${projId}`);
+
+  // create empty project (XC-DB)
+  ncCreatedProjectSchema = await api.project.read(projId);
+}
+
 async function nocoConfigureGalleryView(sDB, aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
     const tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
@@ -1190,7 +1197,7 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
       // retrieve view name & associated NC-ID
       const viewName = aTblSchema[idx].views.find(x => x.id === gridViews[i].id)
         ?.name;
-      const viewList = await api.dbView.list(tblId);
+      const viewList: any = await api.dbView.list(tblId);
       const ncViewId = viewList?.list?.find(x => x.tn === viewName)?.id;
 
       // create view (default already created)
@@ -1296,7 +1303,7 @@ async function generateMigrationStats(aTblSchema) {
     migrationStatsObj.aTbl.lookup = aTblLookups.length;
     migrationStatsObj.aTbl.rollup = aTblRollups.length;
 
-    const ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
+    const ncTbl: any = await nc_getTableSchema(aTblSchema[idx].name);
     const linkColumn = ncTbl.columns.filter(
       x => x.uidt === UITypes.LinkToAnotherRecord
     );
@@ -1467,120 +1474,141 @@ function addUserInfo(log) {
   userInfo.push(log);
 }
 
+export interface AirtableSyncConfig {
+  id: string;
+  baseURL: string;
+  authToken: string;
+  projectName?: string;
+  projectId?: string;
+  apiKey: string;
+  shareId: string;
+}
+
 export default async function(
-  syncDB: {
-    id: string;
-    baseURL: string;
-    authToken: string;
-    projectName?: string;
-    projectId?: string;
-    apiKey: string;
-    shareId: string;
-  },
+  syncDB: AirtableSyncConfig,
   progress: (msg: string) => void
 ) {
-  progress('SDK initialized');
-  api = new Api({
-    baseURL: syncDB.baseURL,
-    headers: {
-      'xc-auth': syncDB.authToken
-    }
-  });
+  try {
+    progress('SDK initialized');
+    api = new Api({
+      baseURL: syncDB.baseURL,
+      headers: {
+        'xc-auth': syncDB.authToken
+      }
+    });
 
-  progress('Project initialization started');
-  // delete project if already exists
-  if (debugMode) await init(syncDB);
+    progress('Project initialization started');
+    // delete project if already exists
+    if (debugMode) await init(syncDB);
 
-  progress('Project initialized');
+    progress('Project initialized');
 
-  progress('Project schema extraction started');
-  // read schema file
-  const schema = await getAtableSchema(syncDB);
-  const aTblSchema = schema.tableSchemas;
-  progress('Project schema extraction completed');
+    progress('Project schema extraction started');
+    // read schema file
+    const schema = await getAtableSchema(syncDB);
+    const aTblSchema = schema.tableSchemas;
+    progress('Project schema extraction completed');
 
-  // create empty project
-  await nocoCreateProject(syncDB.projectName);
-  progress('Project created');
-
-  progress('Table creation started');
-  // prepare table schema (base)
-  await nocoCreateBaseSchema(aTblSchema);
-  progress('Table creation completed');
-
-  progress('Migrating LTAR columns');
-  // add LTAR
-  await nocoCreateLinkToAnotherRecord(aTblSchema);
-  progress('Migrating LTAR columns completed');
-
-  progress('Migrating Lookup columns');
-  // add look-ups
-  await nocoCreateLookups(aTblSchema);
-  progress('Migrating Lookup columns completed');
-
-  progress('Migrating Rollup columns');
-  // add roll-ups
-  await nocoCreateRollups(aTblSchema);
-  progress('Migrating Rollup columns completed');
-
-  progress('Migrating Lookup form Rollup columns');
-  // lookups for rollups
-  await nocoLookupForRollups();
-  progress('Migrating Lookup form Rollup columns completed');
-
-  progress('Configuring primary value column');
-  // configure primary values
-  await nocoSetPrimary(aTblSchema);
-  progress('Configuring primary value column completed');
-
-  // hide-fields
-  // await nocoReconfigureFields(aTblSchema);
-
-  progress('Syncing views');
-  // configure views
-  await nocoConfigureGridView(syncDB, aTblSchema);
-  await nocoConfigureFormView(syncDB, aTblSchema);
-  await nocoConfigureGalleryView(syncDB, aTblSchema);
-  progress('Syncing views completed');
-
-  if (process_aTblData) {
-    // await nc_DumpTableSchema();
-    const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-    for (let i = 0; i < ncTblList.list.length; i++) {
-      const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-      progress(`Reading data from ${ncTbl.title}`);
-      let c = 0;
-      await nocoReadData(syncDB, ncTbl, (sDB, table, record) => {
-        progress(
-          `Processing records from ${ncTbl.title} : ${c} - ${(c += 25)}`
-        );
-        nocoBaseDataProcessing(sDB, table, record);
-      });
-      progress(`Data inserted from ${ncTbl.title}`);
+    if (!syncDB.projectId) {
+      if (!syncDB.projectName)
+        throw new Error('Project name or id not provided');
+      // create empty project
+      await nocoCreateProject(syncDB.projectName);
+      progress('Project created');
+    } else {
+      await nocoGetProject(syncDB.projectId);
+      progress('Getting existing project meta');
     }
 
-    // Configure link @ Data row's
-    for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
-      const x = ncLinkMappingTable[idx];
-      const ncTbl = await nc_getTableSchema(aTbl_getTableName(x.aTbl.tblId).tn);
-      progress(`Linking data to ${ncTbl.title}`);
-      let c = 0;
-      await nocoReadDataSelected(
-        syncDB.projectName,
-        ncTbl,
-        (projName, table, record, _field) => {
+    progress('Table creation started');
+    // prepare table schema (base)
+    await nocoCreateBaseSchema(aTblSchema);
+    progress('Table creation completed');
+
+    progress('Migrating LTAR columns');
+    // add LTAR
+    await nocoCreateLinkToAnotherRecord(aTblSchema);
+    progress('Migrating LTAR columns completed');
+
+    progress('Migrating Lookup columns');
+    // add look-ups
+    await nocoCreateLookups(aTblSchema);
+    progress('Migrating Lookup columns completed');
+
+    progress('Migrating Rollup columns');
+    // add roll-ups
+    await nocoCreateRollups(aTblSchema);
+    progress('Migrating Rollup columns completed');
+
+    progress('Migrating Lookup form Rollup columns');
+    // lookups for rollups
+    await nocoLookupForRollups();
+    progress('Migrating Lookup form Rollup columns completed');
+
+    progress('Configuring primary value column');
+    // configure primary values
+    await nocoSetPrimary(aTblSchema);
+    progress('Configuring primary value column completed');
+
+    // hide-fields
+    // await nocoReconfigureFields(aTblSchema);
+
+    progress('Syncing views');
+    // configure views
+    await nocoConfigureGridView(syncDB, aTblSchema);
+    await nocoConfigureFormView(syncDB, aTblSchema);
+    await nocoConfigureGalleryView(syncDB, aTblSchema);
+    progress('Syncing views completed');
+
+    if (process_aTblData) {
+      // await nc_DumpTableSchema();
+      const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+      for (let i = 0; i < ncTblList.list.length; i++) {
+        const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+        progress(`Reading data from ${ncTbl.title}`);
+        let c = 0;
+        await nocoReadData(syncDB, ncTbl, (sDB, table, record) => {
           progress(
-            `Mapping LTAR records from ${ncTbl.title} : ${c} - ${(c += 25)}`
+            `Processing records from ${ncTbl.title} : ${c} - ${(c += 25)}`
           );
-          nocoLinkProcessing(projName, table, record, _field);
-        },
-        x.aTbl.name
-      );
-      progress(`Linked data to ${ncTbl.title}`);
-    }
-  }
+          nocoBaseDataProcessing(sDB, table, record);
+        });
+        progress(`Data inserted from ${ncTbl.title}`);
+      }
 
-  if (generate_migrationStats) {
-    await generateMigrationStats(aTblSchema);
+      // Configure link @ Data row's
+      for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
+        const x = ncLinkMappingTable[idx];
+        const ncTbl = await nc_getTableSchema(
+          aTbl_getTableName(x.aTbl.tblId).tn
+        );
+        progress(`Linking data to ${ncTbl.title}`);
+        let c = 0;
+        await nocoReadDataSelected(
+          syncDB.projectName,
+          ncTbl,
+          (projName, table, record, _field) => {
+            progress(
+              `Mapping LTAR records from ${ncTbl.title} : ${c} - ${(c += 25)}`
+            );
+            nocoLinkProcessing(projName, table, record, _field);
+          },
+          x.aTbl.name
+        );
+        progress(`Linked data to ${ncTbl.title}`);
+      }
+    }
+
+    if (generate_migrationStats) {
+      await generateMigrationStats(aTblSchema);
+    }
+  } catch (e) {
+    let msg = 'Some error occurred';
+    if (!e || !e.response) {
+      msg = e.message || msg;
+    } else {
+      msg = e.response?.data?.msg || msg;
+    }
+    throw new Error(msg);
   }
 }

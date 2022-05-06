@@ -262,6 +262,7 @@ export default {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }
       this.autocomplete = false
+      this.suggestion = null
     },
     _handleInputDeb: debounce(async function(self) {
       await self.handleInput()
@@ -281,8 +282,6 @@ export default {
     selectText() {
       if (this.suggestion && this.selected > -1 && this.selected < this.suggestion.length) {
         this.appendText(this.suggestion[this.selected])
-        this.autocomplete = false
-        this.suggestion = null
       }
     },
     suggestionListDown() {

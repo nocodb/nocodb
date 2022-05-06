@@ -1,35 +1,28 @@
 <template>
   <div class="formula-wrapper">
-    <v-menu
-      v-model="autocomplete"
-      bottom
-      offset-y
-      nudge-bottom="-25px"
-      allow-overflow
-    >
-      <template #activator="_args">
-        <!-- todo: autocomplete based on available functions and metadata -->
-        <!--        <v-tooltip color="info" right>-->
-        <!--          <template #activator="{on}">-->
-        <v-text-field
-          ref="input"
-          v-model="formula.value"
-          dense
-          outlined
-          class="caption"
-          hide-details="auto"
-          label="Formula"
-          persistent-hint
-          hint="Hint: If you reference columns, use '$' to wrap the column name, e.g: $column_name$."
-          :rules="[v => !!v || 'Required', v => parseAndValidateFormula(v)]"
-          autocomplete="off"
-          @input="handleInputDeb"
-          @keydown.down.prevent="suggestionListDown"
-          @keydown.up.prevent="suggestionListUp"
-          @keydown.enter.prevent="selectText"
-        />
-      </template>
-      <v-list v-if="suggestion" ref="sugList" dense max-height="50vh" style="overflow: auto">
+    <v-text-field
+      ref="input"
+      v-model="formula.value"
+      dense
+      outlined
+      class="caption"
+      hide-details="auto"
+      label="Formula"
+      :rules="[v => !!v || 'Required', v => parseAndValidateFormula(v)]"
+      autocomplete="off"
+      @input="handleInputDeb"
+      @keydown.down.prevent="suggestionListDown"
+      @keydown.up.prevent="suggestionListUp"
+      @keydown.enter.prevent="selectText"
+    />
+    <div class="hint">
+      Hint: Use $ to reference columns, e.g: $column_name$. For more, please check out
+      <a href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">Formulas</a>.
+    </div>
+    <v-card v-if="suggestion" class="formula-suggestion">
+      <v-card-text>Suggestions</v-card-text>
+      <v-divider />
+      <v-list ref="sugList" dense max-height="50vh" style="overflow: auto">
         <v-list-item-group
           v-model="selected"
           color="primary"
@@ -42,16 +35,59 @@
             selectable
             @mousedown.prevent="appendText(it)"
           >
-            <span
-              class="caption"
-              :class="{
-                'primary--text text--lighten-2 font-weight-bold': it.type ==='function'
-              }"
-            >{{ it.text }}<span v-if="it.type ==='function'">(...)</span></span>
+            <!-- Function -->
+            <template v-if="it.type ==='function'">
+              <v-list-item-content>
+                <span
+                  class="caption primary--text text--lighten-2 font-weight-bold"
+                >
+                  {{ it.text }}(...)
+                </span>
+              </v-list-item-content>
+              <v-list-item-action>
+                <span class="caption">
+                  Function
+                </span>
+              </v-list-item-action>
+            </template>
+
+            <!-- Column -->
+            <template v-if="it.type ==='column'">
+              <v-list-item-content>
+                <span
+                  class="caption text--darken-3 font-weight-bold"
+                >
+                  {{ it.text }}
+                </span>
+              </v-list-item-content>
+
+              <v-list-item-action>
+                <span class="caption">
+                  Column
+                </span>
+              </v-list-item-action>
+            </template>
+
+            <!-- Operator -->
+            <template v-if="it.type ==='op'">
+              <v-list-item-content>
+                <span
+                  class="caption indigo--text text--darken-3 font-weight-bold"
+                >
+                  {{ it.text }}
+                </span>
+              </v-list-item-content>
+
+              <v-list-item-action>
+                <span class="caption">
+                  Operator
+                </span>
+              </v-list-item-action>
+            </template>
           </v-list-item>
         </v-list-item-group>
       </v-list>
-    </v-menu>
+    </v-card>
   </div>
 </template>
 
@@ -87,7 +123,7 @@ export default {
           type: 'function'
         })),
         ...this.meta.columns.filter(c => !this.column || this.column.id !== c.id).map(c => ({
-          text: c.title,
+          text: '$' + c.title + '$',
           type: 'column',
           c
         })),
@@ -266,4 +302,17 @@ export default {
 </script>
 
 <style scoped lang="scss">
+  ::v-deep {
+    .formula-suggestion .v-card__text {
+        font-size: 0.75rem;
+        padding: 8px;
+        text-align: center;
+      }
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    line-height: normal;
+    padding: 10px 5px;
+  }
 </style>

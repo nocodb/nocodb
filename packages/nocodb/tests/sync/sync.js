@@ -329,6 +329,7 @@ async function nocoCreateBaseSchema(aTblSchema) {
       ncCreatedProjectSchema.id,
       tables[idx]
     );
+    updateNcTblSchema(table)
 
     // update mapping table
     await sMap.addToMappingTbl(aTblSchema[idx].id, table.id, table.title)
@@ -410,6 +411,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
               //   ? 'mm'
               //   : 'hm'
           });
+          updateNcTblSchema(ncTbl)
           syncLog(`NC API: dbTableColumn.create LinkToAnotherRecord`)
 
           let ncId = ncTbl.columns.find(x => x.title === aTblLinkColumns[i].name + suffix)?.id
@@ -506,7 +508,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
             ...childLinkColumn,
             title: aTblLinkColumns[i].name + suffix,
           });
-
+          updateNcTblSchema(ncTbl)
           let ncId = ncTbl.columns.find(x => x.title === aTblLinkColumns[i].name + suffix)?.id
           await sMap.addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix)
 
@@ -547,14 +549,15 @@ async function nocoCreateLookups(aTblSchema) {
           continue;
         }
 
-        let lookupColumn = await api.dbTableColumn.create(srcTableId, {
+        let ncTbl = await api.dbTableColumn.create(srcTableId, {
           uidt: UITypes.Lookup,
           title: aTblColumns[i].name,
           fk_relation_column_id: ncRelationColumnId,
           fk_lookup_column_id: ncLookupColumnId
         });
+        updateNcTblSchema(ncTbl)
 
-        let ncId = lookupColumn.columns.find(x => x.title === aTblColumns[i].name)?.id
+        let ncId = ncTbl.columns.find(x => x.title === aTblColumns[i].name)?.id
         await sMap.addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
 
         syncLog(`NC API: dbTableColumn.create LOOKUP`)
@@ -587,14 +590,15 @@ async function nocoCreateLookups(aTblSchema) {
         continue;
       }
 
-      let lookupColumn = await api.dbTableColumn.create(srcTableId, {
+      let ncTbl = await api.dbTableColumn.create(srcTableId, {
         uidt: UITypes.Lookup,
         title: nestedLookupTbl[i].name,
         fk_relation_column_id: ncRelationColumnId,
         fk_lookup_column_id: ncLookupColumnId
       });
+      updateNcTblSchema(ncTbl)
 
-      let ncId = lookupColumn.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
+      let ncId = ncTbl.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
       await sMap.addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
 
       // remove entry
@@ -633,16 +637,17 @@ async function nocoCreateRollups(aTblSchema) {
           continue;
         }
 
-        let rollupColumn = await api.dbTableColumn.create(srcTableId, {
+        let ncTbl = await api.dbTableColumn.create(srcTableId, {
           uidt: UITypes.Rollup,
           title: aTblColumns[i].name,
           fk_relation_column_id: ncRelationColumnId,
           fk_rollup_column_id: ncRollupColumnId,
           rollup_function: 'sum' // fix me: hardwired
         });
+        updateNcTblSchema(ncTbl)
         syncLog(`NC API: dbTableColumn.create ROLLUP`)
 
-        let ncId = rollupColumn.columns.find(x => x.title === aTblColumns[i].name)?.id
+        let ncId = ncTbl.columns.find(x => x.title === aTblColumns[i].name)?.id
         await sMap.addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
 
       }
@@ -665,18 +670,19 @@ async function nocoLookupForRollups() {
       continue;
     }
 
-    let lookupColumn = await api.dbTableColumn.create(srcTableId, {
+    let ncTbl = await api.dbTableColumn.create(srcTableId, {
       uidt: UITypes.Lookup,
       title: nestedLookupTbl[i].name,
       fk_relation_column_id: ncRelationColumnId,
       fk_lookup_column_id: ncLookupColumnId
     });
+    updateNcTblSchema(ncTbl)
 
     // remove entry
     nestedLookupTbl.splice(i, 1)
     syncLog(`NC API: dbTableColumn.create LOOKUP`)
 
-    let ncId = lookupColumn.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
+    let ncId = ncTbl.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
     await sMap.addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
   }
 }
@@ -690,8 +696,14 @@ async function nocoSetPrimary(aTblSchema) {
 
     // skip primary column configuration if we field not migrated
     syncLog(`NC API: dbTableColumn.primaryColumnSet`)
-    if(ncCol)
+    if(ncCol) {
       await api.dbTableColumn.primaryColumnSet(ncCol.id);
+
+      // update schema
+      let ncTblId = sMap.getNcIdFromAtId(aTblSchema[idx].id)
+      let ncTbl = await api.dbTable.read(ncTblId)
+      updateNcTblSchema(ncTbl)
+    }
   }
 }
 
@@ -1099,6 +1111,31 @@ async function nocoAddUsers(aTblSchema) {
   }
 }
 
+let ncSchema = {
+  tables: [],
+  tablesById: {}
+}
+
+function updateNcTblSchema(tblSchema) {
+  let tblId = tblSchema.id;
+
+  // replace entry from array if already exists
+  let idx = ncSchema.tables.findIndex(x => x.id === tblId)
+  if(idx !== -1) ncSchema.tables.splice(idx, 1)
+  ncSchema.tables.push(tblSchema)
+
+  // overwrite object if it exists
+  ncSchema.tablesById[tblId] = tblSchema
+}
+
+async function nocoReadNcSchema() {
+  let tableList = await api.dbTable.list(ncCreatedProjectSchema.id)
+  for(let tblCnt = 0; tblCnt < tableList.list.length; tblCnt++) {
+    let tblSchema = await api.dbTable.read(tableList.list[tblCnt].id)
+    updateNcTblSchema(tblSchema)
+  }
+}
+
 // start function
 module.exports = async function nc_migrateATbl(syncDB) {
 
@@ -1136,6 +1173,9 @@ module.exports = async function nc_migrateATbl(syncDB) {
 
   // configure primary values
   await nocoSetPrimary(aTblSchema);
+
+  // build configured nc schema for usage in rest of the migration
+  // await nocoReadNcSchema()
 
   // add users
   await nocoAddUsers(schema)

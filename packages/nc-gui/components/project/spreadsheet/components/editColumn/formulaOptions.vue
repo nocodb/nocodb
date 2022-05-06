@@ -19,7 +19,7 @@
       Hint: Use $ to reference columns, e.g: $column_name$. For more, please check out
       <a href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">Formulas</a>.
     </div>
-    <v-card v-if="suggestion" class="formula-suggestion">
+    <v-card v-if="suggestion && suggestion.length" class="formula-suggestion">
       <v-card-text>Suggestions</v-card-text>
       <v-divider />
       <v-list ref="sugList" dense max-height="50vh" style="overflow: auto">
@@ -41,7 +41,7 @@
                 <span
                   class="caption primary--text text--lighten-2 font-weight-bold"
                 >
-                  {{ it.text }}(...)
+                  {{ it.text }}
                 </span>
               </v-list-item-content>
               <v-list-item-action>
@@ -124,7 +124,7 @@ export default {
       const unsupportedFnList = this.sqlUi.getUnsupportedFnList()
       return [
         ...this.availableFunctions.filter(fn => !unsupportedFnList.includes(fn)).map(fn => ({
-          text: fn,
+          text: fn + '()',
           type: 'function'
         })),
         ...this.meta.columns.filter(c => !this.column || this.column.id !== c.id).map(c => ({
@@ -255,12 +255,13 @@ export default {
       const text = it.text
       const len = this.wordToComplete.length
       if (it.type === 'function') {
-        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text + '()', len, 1))
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len, 1))
       } else if (it.type === 'column') {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), '$' + text + '$', len))
       } else {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }
+      this.autocomplete = false
     },
     _handleInputDeb: debounce(async function(self) {
       await self.handleInput()
@@ -278,9 +279,10 @@ export default {
       this.autocomplete = !!this.suggestion.length
     },
     selectText() {
-      if (this.selected > -1 && this.selected < this.suggestion.length) {
+      if (this.suggestion && this.selected > -1 && this.selected < this.suggestion.length) {
         this.appendText(this.suggestion[this.selected])
         this.autocomplete = false
+        this.suggestion = null
       }
     },
     suggestionListDown() {

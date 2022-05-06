@@ -688,8 +688,10 @@ async function nocoSetPrimary(aTblSchema) {
     let pColId = aTblSchema[idx].primaryColumnId;
     let ncCol = await nc_getColumnSchema(pColId);
 
+    // skip primary column configuration if we field not migrated
     syncLog(`NC API: dbTableColumn.primaryColumnSet`)
-    await api.dbTableColumn.primaryColumnSet(ncCol.id);
+    if(ncCol)
+      await api.dbTableColumn.primaryColumnSet(ncCol.id);
   }
 }
 
@@ -1358,12 +1360,13 @@ async function nc_configureFilters(viewId, f) {
 
 async function nc_configureSort(viewId, s) {
   for(let i=0; i<s.sortSet.length; i++) {
-    let columnId = (await nc_getColumnSchema(s.sortSet[i].columnId)).id
+    let columnId = (await nc_getColumnSchema(s.sortSet[i].columnId))?.id
 
-    await api.dbTableSort.create(viewId, {
-      fk_column_id: columnId,
-      direction: s.sortSet[i].ascending?'asc':'dsc'
-    })
+    if(columnId)
+      await api.dbTableSort.create(viewId, {
+        fk_column_id: columnId,
+        direction: s.sortSet[i].ascending?'asc':'dsc'
+      })
     runTimeCounters.sort++;
   }
 }

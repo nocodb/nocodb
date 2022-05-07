@@ -6,14 +6,22 @@
           <span class="caption text-capitalize">
             Airtable
           </span>
+        </v-tab>        <v-tab>
+          <span class="caption text-capitalize">
+            Stripe
+          </span>
+        </v-tab>        <v-tab>
+          <span class="caption text-capitalize">
+            Salesforce
+          </span>
         </v-tab>
 
-        <v-tab-item class="h-100 pa-2">
+        <v-tab-item class="h-100 pa-10">
           <div>
             <!--    <v-dialog v-model="importModal" max-width="min(500px, 90%)">-->
-            <v-card class="">
+            <v-card v-if="step === 1" class="py-6">
               <v-card-title class="title text-center justify-center">
-                Settings
+                Credentials
               </v-card-title>
 
               <!--
@@ -23,11 +31,11 @@
           deleted: '',
           order: '',
           project_id: ''-->
-              <div v-if="syncSource" class="px-10 mt-1">
-                <v-text-field v-model="syncSource.title" outlined dense label="Title" class="caption" />
+              <div v-if="syncSource" class="px-10 mt-1 mx-auto" style="max-width: 400px">
+                <!--                <v-text-field v-model="syncSource.title" outlined dense label="Title" class="caption" />-->
                 <v-text-field v-model="syncSource.details.apiKey" outlined dense label="Api Key" class="caption" />
                 <v-text-field v-model="syncSource.details.shareId" outlined dense label="Shared Base ID" class="caption" />
-                <v-select
+                <!--                <v-select
                   v-model="syncSource.details.syncInterval"
                   :items="['15mins','30mins','1hr', '24hr']"
                   outlined
@@ -51,11 +59,10 @@
 
                   label="Shared retry count"
                   class="caption"
-                />
+                />-->
               </div>
               <v-card-actions class="justify-center pb-6">
                 <v-btn
-                  :disabled="step !== 1"
                   small
                   outlined
                   @click="createOrUpdate"
@@ -63,7 +70,6 @@
                   Save
                 </v-btn>
                 <v-btn
-                  :disabled="step !== 1"
                   small
                   outlined
                   @click="saveAndSync"
@@ -75,19 +81,24 @@
 
             <v-card
               v-if="step === 2"
-              ref="log"
               class="py-4 mt-4"
-              min-height="300"
-              max-height="600"
-              style="overflow-y: auto"
             >
-              <div class="mt-2 px-10">
+              <v-card-title class="title text-center justify-center">
+                Logs
+              </v-card-title>
+              <v-card
+                ref="log"
+                dark
+                class="mt-2 mx-4 px-2 elevation-0 green--text"
+                height="500"
+                style="overflow-y: auto"
+              >
                 <div v-for="({msg , status}, i) in progress" :key="i">
-                  <v-icon v-if="status==='FAILED'" color="red">
+                  <v-icon v-if="status==='FAILED'" color="red" size="15">
                     mdi-close-circle-outline
                   </v-icon>
-                  <v-icon v-else color="green">
-                    mdi-check-circle-outline
+                  <v-icon v-else color="green" size="15">
+                    mdi-currency-usd
                   </v-icon>
                   <span class="caption nc-text">{{ msg }}</span>
                 </div>
@@ -95,25 +106,25 @@
                   v-if="!progress || !progress.length || progress[progress.length-1].msg !== 'completed' && progress[progress.length-1].status !== 'FAILED'"
                   class="d-flex align-center"
                 >
-                  <v-icon color="green">
+                  <v-icon color="green" size="15">
                     mdi-loading mdi-spin
                   </v-icon>
                   <span class="caption nc-text">Syncing
                   </span>
                   <!--                  <div class="nc-progress" />-->
                 </div>
-              </div>
+              </v-card>
             </v-card>
           </div>
 
-          <v-card-actions
-            v-if="progress &&progress.length&& progress[progress.length-1].msg === 'completed'"
-            class="justify-center py-3"
-          >
-            <v-btn small outlined @click="progress=[], step=0,importModal=false">
-              Navigate to project
-            </v-btn>
-          </v-card-actions>
+          <!--          <v-card-actions-->
+          <!--            v-if="progress &&progress.length&& progress[progress.length-1].msg === 'completed'"-->
+          <!--            class="justify-center py-3"-->
+          <!--          >-->
+          <!--            <v-btn small outlined @click="progress=[], step=0,importModal=false">-->
+          <!--              Navigate to project-->
+          <!--            </v-btn>-->
+          <!--          </v-card-actions>-->
           <!--    </v-dialog>-->
         </v-tab-item>
       </v-tabs>

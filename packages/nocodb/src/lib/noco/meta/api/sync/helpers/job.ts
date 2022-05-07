@@ -33,9 +33,9 @@ const runTimeCounters = {
   }
 };
 
-function syncLog(_log) {
+let syncLog = _log => {
   // console.log(log)
-}
+};
 
 // mapping table
 //
@@ -1489,6 +1489,7 @@ export default async function(
   progress: (msg: string) => void
 ) {
   try {
+    syncLog = progress;
     progress('SDK initialized');
     api = new Api({
       baseURL: syncDB.baseURL,

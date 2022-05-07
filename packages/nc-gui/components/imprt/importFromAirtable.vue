@@ -7,13 +7,47 @@
             Airtable
           </span>
         </v-tab>
+
         <v-tab-item class="h-100">
+          <h4 class="title text-center mt-4">
+            Airtable import
+          </h4>
+
+          <v-stepper non-linear dense class=" elevation-0  my-3">
+            <v-stepper-header v-model="step">
+              <v-stepper-step
+                class="caption"
+                :complete="step > 0"
+                step="1"
+              >
+                Configure Airtable Base
+              </v-stepper-step>
+
+              <v-divider />
+
+              <v-stepper-step
+                class="caption"
+                :complete="step > 1"
+                step="2"
+              >
+                Sync
+              </v-stepper-step>
+
+              <v-divider />
+
+              <v-stepper-step
+                step="3"
+                :complete="step > 2"
+                class="caption"
+              >
+                Completed sync
+              </v-stepper-step>
+            </v-stepper-header>
+          </v-stepper>
+
           <div>
             <!--    <v-dialog v-model="importModal" max-width="min(500px, 90%)">-->
             <v-card>
-              <v-card-title class="justify-center">
-                Airtable import
-              </v-card-title>
               <!--
           title: '',
           type: '',
@@ -72,10 +106,6 @@
             </v-card>
 
             <v-card v-if="step === 2" class="" min-height="300">
-              <v-card-title class="justify-center">
-                Airtable import
-              </v-card-title>
-
               <div class="mt-2 px-10">
                 <div v-for="({msg , status}, i) in progress" :key="i">
                   <v-icon v-if="status==='FAILED'" color="red">

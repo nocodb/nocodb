@@ -138,16 +138,20 @@ async function nc_getColumnSchema(aTblFieldId) {
   let ncTbl = await api.dbTable.read(ncTblId);
   let ncCol = ncTbl.columns.find(x => x.title === aTblField.cn);
   return ncCol;
+
+  // let ncFieldId = sMap.getNcIdFromAtId(aTblFieldId)
 }
 
 // retrieve nc table schema using table name
 // optimize: create a look-up table & re-use information
 //
 async function nc_getTableSchema(tableName) {
-  let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-  let ncTblId = ncTblList.list.filter(x => x.title === tableName)[0].id;
-  let ncTbl = await api.dbTable.read(ncTblId);
-  return ncTbl;
+  // let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+  // let ncTblId = ncTblList.list.filter(x => x.title === tableName)[0].id;
+  // let ncTbl = await api.dbTable.read(ncTblId);
+  // return ncTbl;
+
+  return ncSchema.tables.find(x => x.title === tableName)
 }
 
 // delete project if already exists
@@ -336,7 +340,7 @@ async function nocoCreateBaseSchema(aTblSchema) {
     for(let colIdx=0; colIdx<table.columns.length; colIdx++){
       let aId = aTblSchema[idx].columns.find(x => x.name.trim() === table.columns[colIdx].title)?.id
       if(aId)
-        await sMap.addToMappingTbl(aId, table.columns[colIdx].id, table.columns[colIdx].title)
+        await sMap.addToMappingTbl(aId, table.columns[colIdx].id, table.columns[colIdx].title, table.id)
     }
 
     // update default view name- to match it to airtable view name
@@ -346,8 +350,9 @@ async function nocoCreateBaseSchema(aTblSchema) {
     syncLog(`NC API: dbView.update ${view.list[0].id} ${aTblSchema[idx].views[0].name}`)
     let aTbl_grid = aTblSchema[idx].views.find(x => x.type === 'grid')
     let x = await api.dbView.update(view.list[0].id, {title: aTbl_grid.name})
+    await updateNcTblSchemaById(table.id)
 
-    await sMap.addToMappingTbl(aTbl_grid.id, table.views[0].id, aTbl_grid.name)
+    await sMap.addToMappingTbl(aTbl_grid.id, table.views[0].id, aTbl_grid.name, table.id)
   }
 
   // debug
@@ -379,7 +384,8 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
         // check if link already established?
         if (!nc_isLinkExists(aTblLinkColumns[i].id)) {
           // parent table ID
-          let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+          // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+          let srcTableId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
 
           // find child table name from symmetric column ID specified
           // self link, symmetricColumnId field will be undefined
@@ -415,7 +421,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           syncLog(`NC API: dbTableColumn.create LinkToAnotherRecord`)
 
           let ncId = ncTbl.columns.find(x => x.title === aTblLinkColumns[i].name + suffix)?.id
-          await sMap.addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix)
+          await sMap.addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix, ncTbl.id)
 
           // store link information in separate table
           // this information will be helpful in identifying relation pair
@@ -453,6 +459,10 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
           let parentTblSchema = await api.dbTable.read(
             ncLinkMappingTable[x].nc.parentId
           );
+
+          // fix me
+          // let childTblSchema = ncSchema.tablesById[ncLinkMappingTable[x].nc.childId]
+          // let parentTblSchema = ncSchema.tablesById[ncLinkMappingTable[x].nc.parentId]
 
           let parentLinkColumn = parentTblSchema.columns.find(
             col => col.title === ncLinkMappingTable[x].nc.title
@@ -509,8 +519,9 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
             title: aTblLinkColumns[i].name + suffix,
           });
           updateNcTblSchema(ncTbl)
+
           let ncId = ncTbl.columns.find(x => x.title === aTblLinkColumns[i].name + suffix)?.id
-          await sMap.addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix)
+          await sMap.addToMappingTbl(aTblLinkColumns[i].id, ncId, aTblLinkColumns[i].name + suffix, ncTbl.id)
 
           // console.log(res.columns.find(x => x.title === aTblLinkColumns[i].name))
           syncLog(`NC API: dbTableColumn.update rename symmetric column`)
@@ -527,7 +538,8 @@ async function nocoCreateLookups(aTblSchema) {
     let aTblColumns = aTblSchema[idx].columns.filter(x => x.type === 'lookup');
 
     // parent table ID
-    let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+    // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+    let srcTableId = sMap.getNcIdFromAtId(aTblSchema[idx].id)
 
     if (aTblColumns.length) {
       // Lookup
@@ -558,7 +570,7 @@ async function nocoCreateLookups(aTblSchema) {
         updateNcTblSchema(ncTbl)
 
         let ncId = ncTbl.columns.find(x => x.title === aTblColumns[i].name)?.id
-        await sMap.addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
+        await sMap.addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name, ncTbl.id)
 
         syncLog(`NC API: dbTableColumn.create LOOKUP`)
       }
@@ -599,7 +611,7 @@ async function nocoCreateLookups(aTblSchema) {
       updateNcTblSchema(ncTbl)
 
       let ncId = ncTbl.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
-      await sMap.addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
+      await sMap.addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name, ncTbl.id)
 
       // remove entry
       nestedLookupTbl.splice(i, 1)
@@ -615,7 +627,9 @@ async function nocoCreateRollups(aTblSchema) {
     let aTblColumns = aTblSchema[idx].columns.filter(x => x.type === 'rollup');
 
     // parent table ID
-    let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+    // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+    let srcTableId = sMap.getNcIdFromAtId(aTblSchema[idx].id)
+
 
     if (aTblColumns.length) {
       // rollup exist
@@ -648,7 +662,7 @@ async function nocoCreateRollups(aTblSchema) {
         syncLog(`NC API: dbTableColumn.create ROLLUP`)
 
         let ncId = ncTbl.columns.find(x => x.title === aTblColumns[i].name)?.id
-        await sMap.addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name)
+        await sMap.addToMappingTbl(aTblColumns[i].id, ncId, aTblColumns[i].name, ncTbl.id)
 
       }
     }
@@ -683,7 +697,7 @@ async function nocoLookupForRollups() {
     syncLog(`NC API: dbTableColumn.create LOOKUP`)
 
     let ncId = ncTbl.columns.find(x => x.title === nestedLookupTbl[i].name)?.id
-    await sMap.addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name)
+    await sMap.addToMappingTbl(nestedLookupTbl[i].id, ncId, nestedLookupTbl[i].name, ncTbl.id)
   }
 }
 
@@ -692,17 +706,16 @@ async function nocoSetPrimary(aTblSchema) {
     console.log(`Phase-7 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Primary value : ${aTblSchema[idx].name}`)
 
     let pColId = aTblSchema[idx].primaryColumnId;
-    let ncCol = await nc_getColumnSchema(pColId);
+    let ncColId = sMap.getNcIdFromAtId(pColId);
 
     // skip primary column configuration if we field not migrated
     syncLog(`NC API: dbTableColumn.primaryColumnSet`)
-    if(ncCol) {
-      await api.dbTableColumn.primaryColumnSet(ncCol.id);
+    if(ncColId) {
+      await api.dbTableColumn.primaryColumnSet(ncColId);
 
       // update schema
       let ncTblId = sMap.getNcIdFromAtId(aTblSchema[idx].id)
-      let ncTbl = await api.dbTable.read(ncTblId)
-      updateNcTblSchema(ncTbl)
+      await updateNcTblSchemaById(ncTblId)
     }
   }
 }
@@ -725,6 +738,7 @@ async function nc_hideColumn(tblName, viewName, columnName, viewType) {
     viewDetails = await api.dbView.gridColumnsList(viewId);
 
   for(let i =0; i<columnName.length; i++) {
+    console.log(`hide columns ${i+1}/${columnName.length}`)
     // retrieve column schema
     let ncColumn = ncTbl.columns.find(x => x.title === columnName[i]);
     // retrieve view column ID
@@ -1009,6 +1023,9 @@ async function nocoConfigureGalleryView(sDB, aTblSchema) {
       let vData = await getViewData(sDB.airtable.shareId, aTblSchema[idx].id, galleryViews[i].id)
       let viewName = aTblSchema[idx].views.find(x => x.id === galleryViews[i].id)?.name
       let g = await api.dbView.galleryCreate(tblId, {title: viewName})
+      await updateNcTblSchemaById(tblId)
+      console.log(`Phase-10 [${idx+1}/${aTblSchema.length}][Gallery View][${i+1}/${galleryViews.length}] Create ${viewName}`)
+
       // await nc_configureFields(g.id, vData.columnOrder, aTblSchema[idx].name, viewName, 'gallery');
     }
   }
@@ -1016,7 +1033,7 @@ async function nocoConfigureGalleryView(sDB, aTblSchema) {
 
 async function nocoConfigureFormView(sDB, aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
-    let tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+    let tblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
     let formViews = aTblSchema[idx].views.filter(x => x.type === 'form');
 
     for(let i=0; i<formViews.length; i++) {
@@ -1046,6 +1063,9 @@ async function nocoConfigureFormView(sDB, aTblSchema) {
         show_blank_form: refreshMode.includes("AUTO_REFRESH")?true:false,
       }
       let f = await api.dbView.formCreate(tblId, formData)
+      console.log(`Phase-11 [${idx+1}/${aTblSchema.length}][Form View][${i+1}/${formViews.length}] Create ${viewName}`)
+
+      await updateNcTblSchemaById(tblId)
       await nc_configureFields(f.id, vData.columnOrder, aTblSchema[idx].name, viewName, 'form');
     }
   }
@@ -1053,7 +1073,7 @@ async function nocoConfigureFormView(sDB, aTblSchema) {
 
 async function nocoConfigureGridView(sDB, aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
-    let tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
+    let tblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
     let gridViews = aTblSchema[idx].views.filter(x => x.type === 'grid');
 
     for(let i=0; i<gridViews.length; i++) {
@@ -1069,7 +1089,8 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
       // create view (default already created)
       if (i > 0) {
         let viewCreated = await api.dbView.gridCreate(tblId, { title: viewName })
-        await sMap.addToMappingTbl(gridViews[i].id, viewCreated.id, viewName)
+        await updateNcTblSchemaById(tblId)
+        await sMap.addToMappingTbl(gridViews[i].id, viewCreated.id, viewName, tblId)
         console.log(`Phase-9a [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
       }
 
@@ -1128,6 +1149,11 @@ function updateNcTblSchema(tblSchema) {
   ncSchema.tablesById[tblId] = tblSchema
 }
 
+async function updateNcTblSchemaById(tblId) {
+  let ncTbl = await api.dbTable.read(tblId);
+  updateNcTblSchema(ncTbl)
+}
+
 async function nocoReadNcSchema() {
   let tableList = await api.dbTable.list(ncCreatedProjectSchema.id)
   for(let tblCnt = 0; tblCnt < tableList.list.length; tblCnt++) {
@@ -1174,9 +1200,6 @@ module.exports = async function nc_migrateATbl(syncDB) {
   // configure primary values
   await nocoSetPrimary(aTblSchema);
 
-  // build configured nc schema for usage in rest of the migration
-  // await nocoReadNcSchema()
-
   // add users
   await nocoAddUsers(schema)
 
@@ -1187,6 +1210,9 @@ module.exports = async function nc_migrateATbl(syncDB) {
   await nocoConfigureGridView(syncDB, aTblSchema)
   await nocoConfigureFormView(syncDB, aTblSchema)
   await nocoConfigureGalleryView(syncDB, aTblSchema)
+
+  // force update stored nc schema
+  // await nocoReadNcSchema()
 
   if(process_aTblData) {
     // await nc_DumpTableSchema();

@@ -2,10 +2,10 @@ let aTblNcMappingTbl = {}
 exports.mapTbl = aTblNcMappingTbl
 
 // static mapping records between aTblId && ncId
-exports.addToMappingTbl = function addToMappingTbl(aTblId, ncId, ncName) {
+exports.addToMappingTbl = function addToMappingTbl(aTblId, ncId, ncName, parent) {
   aTblNcMappingTbl[aTblId] = {
     ncId: ncId,
-
+    ncParent: parent,
     // name added to assist in quick debug
     ncName: ncName
   }

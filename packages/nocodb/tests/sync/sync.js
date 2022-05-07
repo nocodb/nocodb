@@ -88,6 +88,7 @@ let aTblNcTypeMap = {
   foreignKey: UITypes.LinkToAnotherRecord,
   text: UITypes.SingleLineText,
   multilineText: UITypes.LongText,
+  richText: UITypes.LongText,
   multipleAttachment: UITypes.Attachment,
   checkbox: UITypes.Checkbox,
   multiSelect: UITypes.MultiSelect,
@@ -1137,8 +1138,9 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
       if (i > 0) {
         progressLog(`   Create NC View :: ${viewName}`)
         let viewCreated = await api.dbView.gridCreate(tblId, { title: viewName })
+        ncViewId = viewCreated.id;
         await updateNcTblSchemaById(tblId)
-        await sMap.addToMappingTbl(gridViews[i].id, viewCreated.id, viewName, tblId)
+        await sMap.addToMappingTbl(gridViews[i].id, ncViewId, viewName, tblId)
         // progressLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
       }
 

@@ -162,6 +162,11 @@ async function nc_getColumnSchema(aTblFieldId) {
 
   let ncTblId = sMap.getNcParentFromAtId(aTblFieldId)
   let ncColId = sMap.getNcIdFromAtId(aTblFieldId)
+
+  // not migrated column, skip
+  if(ncColId === undefined || ncTblId === undefined)
+    return 0
+
   let ncCol = ncSchema.tablesById[ncTblId].columns.find(x => x.id === ncColId)
   return ncCol
 }

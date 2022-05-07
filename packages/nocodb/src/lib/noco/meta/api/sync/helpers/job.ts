@@ -191,6 +191,10 @@ export default async (
 
     const ncTblId = sMap.getNcParentFromAtId(aTblFieldId);
     const ncColId = sMap.getNcIdFromAtId(aTblFieldId);
+
+    // not migrated column, skip
+    if (ncColId === undefined || ncTblId === undefined) return 0;
+
     const ncCol = ncSchema.tablesById[ncTblId].columns.find(
       x => x.id === ncColId
     );

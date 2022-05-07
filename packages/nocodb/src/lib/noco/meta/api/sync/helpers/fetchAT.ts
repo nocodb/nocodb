@@ -1,6 +1,6 @@
 const axios = require('axios').default;
 
-export default async function main(shareId, tableId?, viewId?) {
+export default async function(shareId, tableId?, viewId?) {
   let Cookie = '';
   let url = `https://airtable.com/${shareId}`;
   if (tableId && viewId)

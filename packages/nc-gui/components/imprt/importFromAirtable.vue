@@ -8,46 +8,14 @@
           </span>
         </v-tab>
 
-        <v-tab-item class="h-100">
-          <h4 class="title text-center mt-4">
-            Airtable import
-          </h4>
-
-          <v-stepper non-linear dense class=" elevation-0  my-3">
-            <v-stepper-header v-model="step">
-              <v-stepper-step
-                class="caption"
-                :complete="step > 0"
-                step="1"
-              >
-                Configure Airtable Base
-              </v-stepper-step>
-
-              <v-divider />
-
-              <v-stepper-step
-                class="caption"
-                :complete="step > 1"
-                step="2"
-              >
-                Sync
-              </v-stepper-step>
-
-              <v-divider />
-
-              <v-stepper-step
-                step="3"
-                :complete="step > 2"
-                class="caption"
-              >
-                Completed sync
-              </v-stepper-step>
-            </v-stepper-header>
-          </v-stepper>
-
+        <v-tab-item class="h-100 pa-2">
           <div>
             <!--    <v-dialog v-model="importModal" max-width="min(500px, 90%)">-->
-            <v-card>
+            <v-card class="">
+              <v-card-title class="title text-center justify-center">
+                Settings
+              </v-card-title>
+
               <!--
           title: '',
           type: '',
@@ -55,7 +23,7 @@
           deleted: '',
           order: '',
           project_id: ''-->
-              <div v-if="syncSource" class="px-10 mt-2">
+              <div v-if="syncSource" class="px-10 mt-1">
                 <v-text-field v-model="syncSource.title" outlined dense label="Title" class="caption" />
                 <v-text-field v-model="syncSource.details.apiKey" outlined dense label="Api Key" class="caption" />
                 <v-text-field v-model="syncSource.details.shareId" outlined dense label="Shared Base ID" class="caption" />
@@ -105,7 +73,14 @@
               </v-card-actions>
             </v-card>
 
-            <v-card v-if="step === 2" class="" min-height="300">
+            <v-card
+              v-if="step === 2"
+              ref="log"
+              class="py-4 mt-4"
+              min-height="300"
+              max-height="600"
+              style="overflow-y: auto"
+            >
               <div class="mt-2 px-10">
                 <div v-for="({msg , status}, i) in progress" :key="i">
                   <v-icon v-if="status==='FAILED'" color="red">
@@ -172,6 +147,13 @@ export default {
 
     socket.on('progress', (d) => {
       this.progress.push(d)
+
+      this.$nextTick(() => {
+        if (this.$refs.log) {
+          const el = this.$refs.log.$el
+          el.scrollTop = el.scrollHeight
+        }
+      })
     })
     this.loadSyncSrc()
   },
@@ -204,7 +186,10 @@ export default {
           details: {
             syncInterval: '15mins',
             syncDirection: 'Airtable to NocoDB',
-            syncRetryCount: 1
+            syncRetryCount: 1,
+
+            apiKey: 'keyeZla3k0desT8fU',
+            shareId: 'shrO9PBPyPLTqalcr'
           }
         }
       }

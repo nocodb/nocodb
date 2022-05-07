@@ -10,7 +10,9 @@
               v-on="on"
               @click="$toast.info('Happy hacking!').goAway(3000)"
             >
-              <v-icon small class="mr-1"> mdi-file-excel-outline </v-icon>
+              <v-icon small class="mr-1">
+                mdi-file-excel-outline
+              </v-icon>
               Import
             </v-btn>
           </template>
@@ -24,11 +26,15 @@
         </v-icon>
 
         <v-btn small outlined class="mr-1" @click="project = { tables: [] }">
-          <v-icon small> mdi-close </v-icon>
+          <v-icon small>
+            mdi-close
+          </v-icon>
           Reset
         </v-btn>
         <v-btn small outlined class="mr-1" @click="createTableClick">
-          <v-icon small> mdi-plus </v-icon>
+          <v-icon small>
+            mdi-plus
+          </v-icon>
           New table
         </v-btn>
         <v-btn
@@ -118,15 +124,22 @@
                       </span>
 
                       <v-spacer />
-                      <v-icon
-                        v-if="!viewMode"
-                        class="flex-grow-0 mr-2"
-                        small
-                        color="grey"
-                        @click.stop="deleteTable(i)"
-                      >
-                        mdi-delete-outline
-                      </v-icon>
+                      <v-tooltip bottom>
+                        <template #activator="{ on }">
+                          <v-icon
+                            v-if="!viewMode"
+                            class="flex-grow-0 mr-2"
+                            small
+                            color="grey"
+                            @click.stop="deleteTable(i)"
+                            v-on="on"
+                          >
+                            mdi-delete-outline
+                          </v-icon>
+                        </template>
+                        <!-- TODO: i18n -->
+                        <span>Delete Table</span>
+                      </v-tooltip>
                     </v-expansion-panel-header>
                     <v-expansion-panel-content>
                       <!--                <v-toolbar>
@@ -227,22 +240,22 @@
                                   <span
                                     v-if="isRelation(col)"
                                     class="caption pointer primary--text"
-                                    @click="navigateToTable(col.rtn)"
+                                    @click="navigateToTable(col.ref_table_name)"
                                   >
-                                    {{ col.rtn }}
+                                    {{ col.ref_table_name }}
                                   </span>
                                   <template v-else-if="isLookup(col)">
                                     <span
                                       class="caption pointer primary--text"
                                       @click="
                                         navigateToTable(
-                                          col.rtn && col.rtn.table_name
+                                          col.ref_table_name && col.ref_table_name.table_name
                                         )
                                       "
                                     >
-                                      {{ col.rtn && col.rtn.table_name }}
+                                      {{ col.ref_table_name && col.ref_table_name.table_name }}
                                     </span>
-                                    <span class="caption">({{ col.rcn }})</span>
+                                    <span class="caption">({{ col.ref_column_name }})</span>
                                   </template>
 
                                   <template v-else-if="isRollup(col)">
@@ -250,11 +263,11 @@
                                       class="caption pointer primary--text"
                                       @click="
                                         navigateToTable(
-                                          col.rtn && col.rtn.table_name
+                                          col.ref_table_name && col.ref_table_name.table_name
                                         )
                                       "
                                     >
-                                      {{ col.rtn && col.rtn.table_name }}
+                                      {{ col.ref_table_name && col.ref_table_name.table_name }}
                                     </span>
                                     <span class="caption">({{ col.fn }})</span>
                                   </template>
@@ -281,13 +294,13 @@
                                     :items="
                                       col.uidt === 'ForeignKey'
                                         ? [
-                                            ...uiTypes,
-                                            {
-                                              name: 'ForeignKey',
-                                              icon: 'mdi-link-variant',
-                                              virtual: 1,
-                                            },
-                                          ]
+                                          ...uiTypes,
+                                          {
+                                            name: 'ForeignKey',
+                                            icon: 'mdi-link-variant',
+                                            virtual: 1,
+                                          },
+                                        ]
                                         : uiTypes
                                     "
                                     item-text="name"
@@ -332,7 +345,7 @@
                                 >
                                   <td class="pa-1 text-left">
                                     <v-autocomplete
-                                      :value="col.rtn"
+                                      :value="col.ref_table_name"
                                       placeholder="Related table"
                                       outlined
                                       class="caption"
@@ -346,9 +359,9 @@
                                       :items="
                                         isLookupOrRollup(col)
                                           ? getRelatedTables(
-                                              table.table_name,
-                                              isRollup(col)
-                                            )
+                                            table.table_name,
+                                            isRollup(col)
+                                          )
                                           : project.tables
                                       "
                                       :item-text="
@@ -366,7 +379,7 @@
                                       :value-comparator="compareRel"
                                       @input="
                                         (v) =>
-                                          onRtnChange(col.rtn, v, col, table)
+                                          onRtnChange(col.ref_table_name, v, col, table)
                                       "
                                     />
                                   </td>
@@ -406,12 +419,12 @@
                                   </td>
                                   <td v-if="isLookupOrRollup(col)" class="pa-1">
                                     <span v-if="viewMode" class="caption">
-                                      {{ col.rcn }}
+                                      {{ col.ref_column_name }}
                                     </span>
 
                                     <v-autocomplete
                                       v-else
-                                      v-model="col.rcn"
+                                      v-model="col.ref_column_name"
                                       placeholder="Related table column"
                                       outlined
                                       dense
@@ -426,9 +439,9 @@
                                           project.tables.find(
                                             (t) =>
                                               t.table_name ===
-                                              ((col.rtn &&
-                                                col.rtn.table_name) ||
-                                                col.rtn)
+                                              ((col.ref_table_name &&
+                                                col.ref_table_name.table_name) ||
+                                                col.ref_table_name)
                                           ) || { columns: [] }
                                         ).columns.filter((v) => !isVirtual(v))
                                       "
@@ -477,8 +490,8 @@
                                   v-if="!isRollup(col)"
                                   :colspan="
                                     isLookupOrRollup(col) ||
-                                    isRelation(col) ||
-                                    isSelect(col)
+                                      isRelation(col) ||
+                                      isSelect(col)
                                       ? isRollup(col)
                                         ? 0
                                         : 1
@@ -486,80 +499,132 @@
                                   "
                                 />
                                 <td style="max-width: 50px; width: 50px">
-                                  <v-icon
-                                    v-if="!viewMode"
-                                    class="flex-grow-0"
-                                    small
-                                    color="grey"
-                                    @click.stop="
-                                      deleteTableColumn(i, j, col, table)
-                                    "
-                                  >
-                                    mdi-delete-outline
-                                  </v-icon>
+                                  <v-tooltip bottom>
+                                    <template #activator="{ on }">
+                                      <v-icon
+                                        v-if="!viewMode"
+                                        class="flex-grow-0"
+                                        small
+                                        color="grey"
+                                        @click.stop="
+                                          deleteTableColumn(i, j, col, table)
+                                        "
+                                        v-on="on"
+                                      >
+                                        mdi-delete-outline
+                                      </v-icon>
+                                    </template>
+                                    <!-- TODO: i18n -->
+                                    <span>Delete Column</span>
+                                  </v-tooltip>
                                 </td>
                               </template>
                             </tr>
-
-                            <!--                  <tr>-->
-                            <!--                    <td colspan='4' class='text-center pa-2'>-->
-                            <!--                    </td>-->
-                            <!--                  </tr>-->
                           </tbody>
                         </v-simple-table>
 
                         <div v-if="!viewMode" class="text-center">
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'Number')"
-                          >
-                            {{ getIcon("Number") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'SingleLineText')"
-                          >
-                            {{ getIcon("SingleLineText") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'LongText')"
-                          >
-                            {{ getIcon("LongText") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="
-                              addNewColumnRow(table, 'LinkToAnotherRecord')
-                            "
-                          >
-                            {{ getIcon("LinkToAnotherRecord") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'Lookup')"
-                          >
-                            {{ getIcon("Lookup") }}
-                          </v-icon>
-                          <v-icon
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table, 'Rollup')"
-                          >
-                            {{ getIcon("Rollup") }}
-                          </v-icon>
-                          <v-btn
-                            class="mx-2"
-                            small
-                            @click="addNewColumnRow(table)"
-                          >
-                            + column
-                          </v-btn>
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'Number')"
+                                v-on="on"
+                              >
+                                {{ getIcon("Number") }}
+                              </v-icon>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add Number Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'SingleLineText')"
+                                v-on="on"
+                              >
+                                {{ getIcon("SingleLineText") }}
+                              </v-icon>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add SingleLineText Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'LongText')"
+                                v-on="on"
+                              >
+                                {{ getIcon("LongText") }}
+                              </v-icon>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add LongText Column</span>
+                          </v-tooltip>
+
+                          <!-- <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'LinkToAnotherRecord')"
+                                v-on="on"
+                              >
+                                {{ getIcon("LinkToAnotherRecord") }}
+                              </v-icon>
+                            </template>
+                            <span>Add LinkToAnotherRecord Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'Lookup')"
+                                v-on="on"
+                              >
+                                {{ getIcon("Lookup") }}
+                              </v-icon>
+                            </template>
+                            <span>Add Lookup Column</span>
+                          </v-tooltip>
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-icon
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table, 'Rollup')"
+                                v-on="on"
+                              >
+                                {{ getIcon("Rollup") }}
+                              </v-icon>
+                            </template>
+                            <span>Add Rollup Column</span>
+                          </v-tooltip> -->
+
+                          <v-tooltip bottom>
+                            <template #activator="{ on }">
+                              <v-btn
+                                class="mx-2"
+                                small
+                                @click="addNewColumnRow(table)"
+                                v-on="on"
+                              >
+                                + column
+                              </v-btn>
+                            </template>
+                            <!-- TODO: i18n -->
+                            <span>Add Other Column</span>
+                          </v-tooltip>
                         </div>
                       </template>
                     </v-expansion-panel-content>
@@ -699,75 +764,75 @@
 import {
   uiTypes,
   getUIDTIcon,
-  UITypes,
-} from "~/components/project/spreadsheet/helpers/uiTypes";
-import GradientGenerator from "~/components/templates/gradientGenerator";
-import Help from "~/components/templates/help";
+  UITypes
+} from '~/components/project/spreadsheet/helpers/uiTypes'
+import GradientGenerator from '~/components/templates/gradientGenerator'
+import Help from '~/components/templates/help'
 
-const LinkToAnotherRecord = "LinkToAnotherRecord";
-const Lookup = "Lookup";
-const Rollup = "Rollup";
-const defaultColProp = {};
+const LinkToAnotherRecord = 'LinkToAnotherRecord'
+const Lookup = 'Lookup'
+const Rollup = 'Rollup'
+const defaultColProp = {}
 
 export default {
-  name: "TemplateEditor",
+  name: 'TemplateEditor',
   components: { Help, GradientGenerator },
   props: {
     id: [Number, String],
     viewMode: Boolean,
     projectTemplate: Object,
-    excelImport: Boolean,
+    excelImport: Boolean
   },
   data: () => ({
     loading: false,
     localId: null,
     valid: false,
-    url: "",
+    url: '',
     githubConfigForm: false,
     helpModal: false,
     editableTn: {},
     expansionPanel: 0,
     project: {
-      name: "Project name",
-      tables: [],
+      name: 'Project name',
+      tables: []
     },
-    tableNamesInput: "",
-    columnNamesInput: "",
+    tableNamesInput: '',
+    columnNamesInput: '',
     createTablesDialog: false,
     createTableColumnsDialog: false,
     selectedTable: null,
     uiTypes: uiTypes.filter(
-      (t) => ![UITypes.Formula, UITypes.SpecificDBType].includes(t.name)
+      t => ![UITypes.Formula, UITypes.SpecificDBType].includes(t.name)
     ),
     rollupFnList: [
-      { text: "count", value: "count" },
-      { text: "min", value: "min" },
-      { text: "max", value: "max" },
-      { text: "avg", value: "avg" },
-      { text: "min", value: "min" },
-      { text: "sum", value: "sum" },
-      { text: "countDistinct", value: "countDistinct" },
-      { text: "sumDistinct", value: "sumDistinct" },
-      { text: "avgDistinct", value: "avgDistinct" },
+      { text: 'count', value: 'count' },
+      { text: 'min', value: 'min' },
+      { text: 'max', value: 'max' },
+      { text: 'avg', value: 'avg' },
+      { text: 'min', value: 'min' },
+      { text: 'sum', value: 'sum' },
+      { text: 'countDistinct', value: 'countDistinct' },
+      { text: 'sumDistinct', value: 'sumDistinct' },
+      { text: 'avgDistinct', value: 'avgDistinct' }
     ],
     colors: {
-      LinkToAnotherRecord: "blue lighten-5",
-      Rollup: "pink lighten-5",
-      Lookup: "green lighten-5",
-    },
+      LinkToAnotherRecord: 'blue lighten-5',
+      Rollup: 'pink lighten-5',
+      Lookup: 'green lighten-5'
+    }
   }),
   computed: {
     counter: {
       get() {
-        return this.$store.state.templateC;
+        return this.$store.state.templateC
       },
       set(c) {
-        this.$store.commit("mutTemplateC", c);
-      },
+        this.$store.commit('mutTemplateC', c)
+      }
     },
     updateFilename() {
-      return this.url && this.url.split("/").pop();
-    },
+      return this.url && this.url.split('/').pop()
+    }
   },
   watch: {
     project: {
@@ -782,429 +847,429 @@ export default {
               hasMany: [],
               manyToMany: [],
               belongsTo: [],
-              v: [],
-            };
+              v: []
+            }
 
             for (const column of t.columns || []) {
               if (this.isRelation(column)) {
-                if (column.type === "hm") {
+                if (column.type === 'hm') {
                   table.hasMany.push({
-                    tn: column.rtn,
-                    _cn: column.column_name,
-                  });
-                } else if (column.type === "mm") {
+                    table_name: column.ref_table_name,
+                    title: column.column_name
+                  })
+                } else if (column.type === 'mm') {
                   table.manyToMany.push({
-                    rtn: column.rtn,
-                    _cn: column.column_name,
-                  });
+                    ref_table_name: column.ref_table_name,
+                    title: column.column_name
+                  })
                 } else if (column.uidt === UITypes.ForeignKey) {
                   table.belongsTo.push({
-                    tn: column.rtn,
-                    _cn: column.column_name,
-                  });
+                    table_name: column.ref_table_name,
+                    title: column.column_name
+                  })
                 }
               } else if (this.isLookup(column)) {
-                if (column.rtn) {
+                if (column.ref_table_name) {
                   table.v.push({
-                    _cn: column.column_name,
+                    title: column.column_name,
                     lk: {
-                      ltn: column.rtn.table_name,
-                      type: column.rtn.type,
-                      lcn: column.rcn,
-                    },
-                  });
+                      ltn: column.ref_table_name.table_name,
+                      type: column.ref_table_name.type,
+                      lcn: column.ref_column_name
+                    }
+                  })
                 }
               } else if (this.isRollup(column)) {
-                if (column.rtn) {
+                if (column.ref_table_name) {
                   table.v.push({
-                    _cn: column.column_name,
+                    title: column.column_name,
                     rl: {
-                      rltn: column.rtn.table_name,
-                      rlcn: column.rcn,
-                      type: column.rtn.type,
-                      fn: column.fn,
-                    },
-                  });
+                      rltn: column.ref_table_name.table_name,
+                      rlcn: column.ref_column_name,
+                      type: column.ref_table_name.type,
+                      fn: column.fn
+                    }
+                  })
                 }
               } else {
-                table.columns.push(column);
+                table.columns.push(column)
               }
             }
-            return table;
-          }),
-        };
-        this.$emit("update:projectTemplate", template);
-      },
-    },
+            return table
+          })
+        }
+        this.$emit('update:projectTemplate', template)
+      }
+    }
   },
 
   created() {
-    document.addEventListener("keydown", this.handleKeyDown);
+    document.addEventListener('keydown', this.handleKeyDown)
   },
   destroyed() {
-    document.removeEventListener("keydown", this.handleKeyDown);
+    document.removeEventListener('keydown', this.handleKeyDown)
   },
   mounted() {
-    this.parseAndLoadTemplate();
+    this.parseAndLoadTemplate()
     const input =
-      this.$refs.projec && this.$refs.project.$el.querySelector("input");
+      this.$refs.projec && this.$refs.project.$el.querySelector('input')
     if (input) {
-      input.focus();
-      input.select();
+      input.focus()
+      input.select()
     }
   },
   methods: {
     createTableClick() {
-      this.createTablesDialog = true;
-      this.$e("c:table:create:navdraw");
+      this.createTablesDialog = true
+      this.$e('c:table:create:navdraw')
     },
     parseAndLoadTemplate() {
       if (this.projectTemplate) {
-        this.parseTemplate(this.projectTemplate);
+        this.parseTemplate(this.projectTemplate)
         this.expansionPanel = Array.from(
           { length: this.project.tables.length },
           (_, i) => i
-        );
+        )
       }
     },
     getIcon(type) {
-      return getUIDTIcon(type);
+      return getUIDTIcon(type)
     },
     getRelatedTables(tableName, rollup = false) {
-      const tables = [];
+      const tables = []
       for (const t of this.projectTemplate.tables) {
         if (tableName === t.table_name) {
           for (const hm of t.hasMany) {
             const rTable = this.project.tables.find(
-              (t1) => t1.table_name === hm.table_name
-            );
+              t1 => t1.table_name === hm.table_name
+            )
             tables.push({
               ...rTable,
-              type: "hm",
-            });
+              type: 'hm'
+            })
           }
           for (const mm of t.manyToMany) {
             const rTable = this.project.tables.find(
-              (t1) => t1.table_name === mm.rtn
-            );
+              t1 => t1.table_name === mm.ref_table_name
+            )
             tables.push({
               ...rTable,
-              type: "mm",
-            });
+              type: 'mm'
+            })
           }
         } else {
           for (const hm of t.hasMany) {
             if (hm.table_name === tableName && !rollup) {
               tables.push({
                 ...t,
-                type: "bt",
-              });
+                type: 'bt'
+              })
             }
           }
           for (const mm of t.manyToMany) {
-            if (mm.rtn === tableName) {
+            if (mm.ref_table_name === tableName) {
               tables.push({
                 ...t,
-                type: "mm",
-              });
+                type: 'mm'
+              })
             }
           }
         }
       }
 
-      return tables;
+      return tables
     },
     validateAndFocus() {
       if (!this.$refs.form.validate()) {
-        const input = this.$el.querySelector(".v-input.error--text");
+        const input = this.$el.querySelector('.v-input.error--text')
         this.expansionPanel =
           input &&
           input.parentElement &&
           input.parentElement.parentElement &&
-          +input.parentElement.parentElement.dataset.exp;
+          +input.parentElement.parentElement.dataset.exp
         setTimeout(() => {
-          input.querySelector("input,select").focus();
-        }, 500);
-        return false;
+          input.querySelector('input,select').focus()
+        }, 500)
+        return false
       }
-      return true;
+      return true
     },
     deleteTable(i) {
-      const deleteTable = this.project.tables[i];
+      const deleteTable = this.project.tables[i]
       for (const table of this.project.tables) {
         if (table === deleteTable) {
-          continue;
+          continue
         }
         table.columns = table.columns.filter(
-          (c) => c.rtn !== deleteTable.table_name
-        );
+          c => c.ref_table_name !== deleteTable.table_name
+        )
       }
-      this.project.tables.splice(i, 1);
+      this.project.tables.splice(i, 1)
     },
     deleteTableColumn(i, j, col, table) {
-      const deleteTable = this.project.tables[i];
-      const deleteColumn = deleteTable.columns[j];
+      const deleteTable = this.project.tables[i]
+      const deleteColumn = deleteTable.columns[j]
 
-      let rTable, index;
+      let rTable, index
       // if relation column, delete the corresponding relation from other table
       if (col.uidt === UITypes.LinkToAnotherRecord) {
-        if (col.type === "hm") {
-          rTable = this.project.tables.find((t) => t.table_name === col.rtn);
+        if (col.type === 'hm') {
+          rTable = this.project.tables.find(t => t.table_name === col.ref_table_name)
           index =
             rTable &&
             rTable.columns.findIndex(
-              (c) => c.uidt === UITypes.ForeignKey && c.rtn === table.table_name
-            );
-        } else if (col.type === "mm") {
-          rTable = this.project.tables.find((t) => t.table_name === col.rtn);
+              c => c.uidt === UITypes.ForeignKey && c.ref_table_name === table.table_name
+            )
+        } else if (col.type === 'mm') {
+          rTable = this.project.tables.find(t => t.table_name === col.ref_table_name)
           index =
             rTable &&
             rTable.columns.findIndex(
-              (c) =>
+              c =>
                 c.uidt === UITypes.LinkToAnotherRecord &&
-                c.rtn === table.table_name &&
-                c.type === "mm"
-            );
+                c.ref_table_name === table.table_name &&
+                c.type === 'mm'
+            )
         }
       } else if (col.uidt === UITypes.ForeignKey) {
-        rTable = this.project.tables.find((t) => t.table_name === col.rtn);
+        rTable = this.project.tables.find(t => t.table_name === col.ref_table_name)
         index =
           rTable &&
           rTable.columns.findIndex(
-            (c) =>
+            c =>
               c.uidt === UITypes.LinkToAnotherRecord &&
-              c.rtn === table.table_name &&
-              c.type === "hm"
-          );
+              c.ref_table_name === table.table_name &&
+              c.type === 'hm'
+          )
       }
 
       if (rTable && index > -1) {
-        rTable.columns.splice(index, 1);
+        rTable.columns.splice(index, 1)
       }
 
       for (const table of this.project.tables) {
         if (table === deleteTable) {
-          continue;
+          continue
         }
         table.columns = table.columns.filter(
-          (c) =>
-            c.rtn !== deleteTable.table_name ||
-            c.rcn !== deleteColumn.column_name
-        );
+          c =>
+            c.ref_table_name !== deleteTable.table_name ||
+            c.ref_column_name !== deleteColumn.column_name
+        )
       }
-      deleteTable.columns.splice(j, 1);
+      deleteTable.columns.splice(j, 1)
     },
     addTables() {
       if (!this.tableNamesInput) {
-        return;
+        return
       }
       // todo: fix
       const re =
-        /(?:^|,\s*)(\w+)(?:\(((\w+)(?:\s*,\s*\w+)?)?\)){0,1}(?=\s*,|\s*$)/g;
-      let m;
+        /(?:^|,\s*)(\w+)(?:\(((\w+)(?:\s*,\s*\w+)?)?\)){0,1}(?=\s*,|\s*$)/g
+      let m
       // eslint-disable-next-line no-cond-assign
       while ((m = re.exec(this.tableNamesInput))) {
-        if (this.project.tables.some((t) => t.table_name === m[1])) {
-          this.$toast.info(`Table '${m[1]}' is already exist`).goAway(1000);
-          continue;
+        if (this.project.tables.some(t => t.table_name === m[1])) {
+          this.$toast.info(`Table '${m[1]}' is already exist`).goAway(1000)
+          continue
         }
 
         this.project.tables.push({
-          tn: m[1],
+          table_name: m[1],
           columns: (m[2] ? m[2].split(/\s*,\s*/) : [])
-            .map((col) => ({
-              cn: col,
-              ...defaultColProp,
+            .map(col => ({
+              column_name: col,
+              ...defaultColProp
             }))
             .filter(
               (v, i, arr) =>
-                i === arr.findIndex((c) => c.column_name === v.column_name)
-            ),
-        });
+                i === arr.findIndex(c => c.column_name === v.column_name)
+            )
+        })
       }
-      this.createTablesDialog = false;
-      this.tableNamesInput = "";
+      this.createTablesDialog = false
+      this.tableNamesInput = ''
     },
     compareRel(a, b) {
       return (
         ((a && a.table_name) || a) === ((b && b.table_name) || b) &&
         (a && a.type) === (b && b.type)
-      );
+      )
     },
     addColumns() {
       if (!this.columnNamesInput) {
-        return;
+        return
       }
-      const table = this.project.tables[this.expansionPanel];
+      const table = this.project.tables[this.expansionPanel]
       for (const col of this.columnNamesInput.split(/\s*,\s*/)) {
-        if (table.columns.some((c) => c.column_name === col)) {
-          this.$toast.info(`Column '${col}' is already exist`).goAway(1000);
-          continue;
+        if (table.columns.some(c => c.column_name === col)) {
+          this.$toast.info(`Column '${col}' is already exist`).goAway(1000)
+          continue
         }
 
         table.columns.push({
-          cn: col,
-          ...defaultColProp,
-        });
+          column_name: col,
+          ...defaultColProp
+        })
       }
-      this.columnNamesInput = "";
-      this.createTableColumnsDialog = false;
+      this.columnNamesInput = ''
+      this.createTableColumnsDialog = false
 
       this.$nextTick(() => {
         const input =
           this.$refs[
             `uidt_${table.table_name}_${table.columns.length - 1}`
-          ][0].$el.querySelector("input");
-        input.focus();
+          ][0].$el.querySelector('input')
+        input.focus()
         this.$nextTick(() => {
-          input.select();
-        });
-      });
+          input.select()
+        })
+      })
     },
     showColCreateDialog(table) {
-      this.createTableColumnsDialog = true;
-      this.selectedTable = table;
+      this.createTableColumnsDialog = true
+      this.selectedTable = table
     },
 
     isRelation(col) {
-      return col.uidt === "LinkToAnotherRecord" || col.uidt === "ForeignKey";
+      return col.uidt === 'LinkToAnotherRecord' || col.uidt === 'ForeignKey'
     },
     isLookup(col) {
-      return col.uidt === "Lookup";
+      return col.uidt === 'Lookup'
     },
     isRollup(col) {
-      return col.uidt === "Rollup";
+      return col.uidt === 'Rollup'
     },
     isVirtual(col) {
-      return col && uiTypes.some((ut) => ut.name === col.uidt && ut.virtual);
+      return col && uiTypes.some(ut => ut.name === col.uidt && ut.virtual)
     },
     isLookupOrRollup(col) {
-      return this.isLookup(col) || this.isRollup(col);
+      return this.isLookup(col) || this.isRollup(col)
     },
     isSelect(col) {
-      return col.uidt === "MultiSelect" || col.uidt === "SingleSelect";
+      return col.uidt === 'MultiSelect' || col.uidt === 'SingleSelect'
     },
     addNewColumnRow(table, uidt) {
       table.columns.push({
-        cn: `title${table.columns.length + 1}`,
+        column_name: `title${table.columns.length + 1}`,
         ...defaultColProp,
         uidt,
         ...(uidt === LinkToAnotherRecord
           ? {
-              type: "mm",
+              type: 'mm'
             }
-          : {}),
-      });
+          : {})
+      })
       this.$nextTick(() => {
         const input =
           this.$refs[
             `cn_${table.table_name}_${table.columns.length - 1}`
-          ][0].$el.querySelector("input");
-        input.focus();
-        input.select();
-      });
+          ][0].$el.querySelector('input')
+        input.focus()
+        input.select()
+      })
     },
 
     async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       if (!(metaKey && ctrlKey) && !(altKey && shiftKey)) {
-        return;
+        return
       }
       switch (key && key.toLowerCase()) {
-        case "t":
-          this.createTablesDialog = true;
-          break;
-        case "c":
-          this.createTableColumnsDialog = true;
-          break;
-        case "a":
-          this.addNewColumnRow(this.project.tables[this.expansionPanel]);
-          break;
-        case "j":
-          this.copyJSON();
-          break;
-        case "s":
-          await this.saveTemplate();
-          break;
-        case "arrowup":
+        case 't':
+          this.createTablesDialog = true
+          break
+        case 'c':
+          this.createTableColumnsDialog = true
+          break
+        case 'a':
+          this.addNewColumnRow(this.project.tables[this.expansionPanel])
+          break
+        case 'j':
+          this.copyJSON()
+          break
+        case 's':
+          await this.saveTemplate()
+          break
+        case 'arrowup':
           this.expansionPanel = this.expansionPanel
             ? --this.expansionPanel
-            : this.project.tables.length - 1;
-          break;
-        case "arrowdown":
+            : this.project.tables.length - 1
+          break
+        case 'arrowdown':
           this.expansionPanel =
-            ++this.expansionPanel % this.project.tables.length;
-          break;
+            ++this.expansionPanel % this.project.tables.length
+          break
 
-        case "1":
+        case '1':
           this.addNewColumnRow(
             this.project.tables[this.expansionPanel],
-            "Number"
-          );
-          break;
-        case "2":
+            'Number'
+          )
+          break
+        case '2':
           this.addNewColumnRow(
             this.project.tables[this.expansionPanel],
-            "SingleLineText"
-          );
-          break;
-        case "3":
+            'SingleLineText'
+          )
+          break
+        case '3':
           this.addNewColumnRow(
             this.project.tables[this.expansionPanel],
-            "LongText"
-          );
-          break;
-        case "4":
+            'LongText'
+          )
+          break
+        case '4':
           this.addNewColumnRow(
             this.project.tables[this.expansionPanel],
-            "LinkToAnotherRecord"
-          );
-          break;
-        case "5":
+            'LinkToAnotherRecord'
+          )
+          break
+        case '5':
           this.addNewColumnRow(
             this.project.tables[this.expansionPanel],
-            "Lookup"
-          );
-          break;
-        case "6":
+            'Lookup'
+          )
+          break
+        case '6':
           this.addNewColumnRow(
             this.project.tables[this.expansionPanel],
-            "Rollup"
-          );
-          break;
+            'Rollup'
+          )
+          break
       }
     },
     copyJSON() {
       if (!this.validateAndFocus()) {
-        this.$toast.info("Please fill all the required column!").goAway(5000);
-        return;
+        this.$toast.info('Please fill all the required column!').goAway(5000)
+        return
       }
-      const el = document.createElement("textarea");
-      el.addEventListener("focusin", (e) => e.stopPropagation());
-      el.value = JSON.stringify(this.projectTemplate, null, 2);
-      el.style = { position: "absolute", left: "-9999px" };
-      document.body.appendChild(el);
-      el.select();
-      document.execCommand("copy");
-      document.body.removeChild(el);
+      const el = document.createElement('textarea')
+      el.addEventListener('focusin', e => e.stopPropagation())
+      el.value = JSON.stringify(this.projectTemplate, null, 2)
+      el.style = { position: 'absolute', left: '-9999px' }
+      document.body.appendChild(el)
+      el.select()
+      document.execCommand('copy')
+      document.body.removeChild(el)
       this.$toast
-        .success("Successfully copied JSON data to clipboard!")
-        .goAway(3000);
-      return true;
+        .success('Successfully copied JSON data to clipboard!')
+        .goAway(3000)
+      return true
     },
     openUrl() {
-      window.open(this.url, "_blank");
+      window.open(this.url, '_blank')
     },
     async loadUrl() {
       try {
-        let template = (await this.$axios.get(this.url)).data;
+        let template = (await this.$axios.get(this.url)).data
 
-        if (typeof template === "string") {
-          template = JSON.parse(template);
+        if (typeof template === 'string') {
+          template = JSON.parse(template)
         }
 
-        this.parseTemplate(template);
+        this.parseTemplate(template)
       } catch (e) {
-        this.$toast.error(e.message).goAway(5000);
+        this.$toast.error(e.message).goAway(5000)
       }
     },
 
@@ -1223,62 +1288,62 @@ export default {
             ...rest,
             columns: [
               ...columns,
-              ...manyToMany.map((mm) => ({
-                cn: mm.title || `${rest.table_name} <=> ${mm.rtn}`,
+              ...manyToMany.map(mm => ({
+                column_name: mm.title || `${rest.table_name} <=> ${mm.ref_table_name}`,
                 uidt: LinkToAnotherRecord,
-                type: "mm",
-                ...mm,
+                type: 'mm',
+                ...mm
               })),
-              ...hasMany.map((hm) => ({
-                cn: hm.title || `${rest.table_name} => ${hm.table_name}`,
+              ...hasMany.map(hm => ({
+                column_name: hm.title || `${rest.table_name} => ${hm.table_name}`,
                 uidt: LinkToAnotherRecord,
-                type: "hm",
-                rtn: hm.table_name,
-                ...hm,
+                type: 'hm',
+                ref_table_name: hm.table_name,
+                ...hm
               })),
-              ...belongsTo.map((bt) => ({
-                cn: bt.title || `${rest.table_name} => ${bt.rtn}`,
+              ...belongsTo.map(bt => ({
+                column_name: bt.title || `${rest.table_name} => ${bt.ref_table_name}`,
                 uidt: UITypes.ForeignKey,
-                rtn: bt.table_name,
-                ...bt,
+                ref_table_name: bt.table_name,
+                ...bt
               })),
               ...v.map((v) => {
                 const res = {
-                  cn: v.title,
-                  rtn: {
-                    ...v,
-                  },
-                };
-                if (v.lk) {
-                  res.uidt = Lookup;
-                  res.rtn.table_name = v.lk.ltn;
-                  res.rcn = v.lk.lcn;
-                  res.rtn.type = v.lk.type;
-                } else if (v.rl) {
-                  res.uidt = Rollup;
-                  res.rtn.table_name = v.rl.rltn;
-                  res.rcn = v.rl.rlcn;
-                  res.rtn.type = v.rl.type;
-                  res.fn = v.rl.fn;
+                  column_name: v.title,
+                  ref_table_name: {
+                    ...v
+                  }
                 }
-                return res;
-              }),
-            ],
+                if (v.lk) {
+                  res.uidt = Lookup
+                  res.ref_table_name.table_name = v.lk.ltn
+                  res.ref_column_name = v.lk.lcn
+                  res.ref_table_name.type = v.lk.type
+                } else if (v.rl) {
+                  res.uidt = Rollup
+                  res.ref_table_name.table_name = v.rl.rltn
+                  res.ref_column_name = v.rl.rlcn
+                  res.ref_table_name.type = v.rl.type
+                  res.fn = v.rl.fn
+                }
+                return res
+              })
+            ]
           })
-        ),
-      };
+        )
+      }
 
-      this.project = parsedTemplate;
+      this.project = parsedTemplate
     },
 
     async projectTemplateCreate() {
       if (!this.validateAndFocus()) {
-        this.$toast.info("Please fill all the required column!").goAway(5000);
-        return;
+        this.$toast.info('Please fill all the required column!').goAway(5000)
+        return
       }
 
       try {
-        const githubConfig = this.$store.state.github;
+        const githubConfig = this.$store.state.github
 
         // const token = await models.store.where({ key: 'GITHUB_TOKEN' }).first()
         // const branch = await models.store.where({ key: 'GITHUB_BRANCH' }).first()
@@ -1286,75 +1351,75 @@ export default {
         // const templateRepo = await models.store.where({ key: 'PROJECT_TEMPLATES_REPO' }).first()
 
         if (!githubConfig.token || !githubConfig.repo) {
-          throw new Error("Missing token or template path");
+          throw new Error('Missing token or template path')
         }
 
-        const data = JSON.stringify(this.projectTemplate, 0, 2);
+        const data = JSON.stringify(this.projectTemplate, 0, 2)
         const filename =
           this.updateFilename ||
-          `${this.projectTemplate.name}_${Date.now()}.json`;
+          `${this.projectTemplate.name}_${Date.now()}.json`
         const filePath = `${
-          githubConfig.filePath ? githubConfig.filePath + "/" : ""
-        }${filename}`;
-        const apiPath = `https://api.github.com/repos/${githubConfig.repo}/contents/${filePath}`;
+          githubConfig.filePath ? githubConfig.filePath + '/' : ''
+        }${filename}`
+        const apiPath = `https://api.github.com/repos/${githubConfig.repo}/contents/${filePath}`
 
-        let sha;
+        let sha
         if (this.updateFilename) {
           const {
-            data: { sha: _sha },
+            data: { sha: _sha }
           } = await this.$axios({
             url: `https://api.github.com/repos/${githubConfig.repo}/contents/${filePath}`,
-            method: "get",
+            method: 'get',
             headers: {
-              Authorization: "token " + githubConfig.token,
-            },
-          });
-          sha = _sha;
+              Authorization: 'token ' + githubConfig.token
+            }
+          })
+          sha = _sha
         }
 
         await this.$axios({
           url: apiPath,
-          method: "put",
+          method: 'put',
           headers: {
-            "Content-Type": "application/json",
-            Authorization: "token " + githubConfig.token,
+            'Content-Type': 'application/json',
+            Authorization: 'token ' + githubConfig.token
           },
           data: {
             message: `templates : init template ${filename}`,
             content: Base64.encode(data),
             sha,
-            branch: githubConfig.branch,
-          },
-        });
+            branch: githubConfig.branch
+          }
+        })
 
-        this.url = `https://raw.githubusercontent.com/${githubConfig.repo}/${githubConfig.branch}/${filePath}`;
+        this.url = `https://raw.githubusercontent.com/${githubConfig.repo}/${githubConfig.branch}/${filePath}`
 
         this.$toast
-          .success("Template generated and saved successfully!")
-          .goAway(4000);
+          .success('Template generated and saved successfully!')
+          .goAway(4000)
       } catch (e) {
-        this.$toast.error(e.message).goAway(5000);
+        this.$toast.error(e.message).goAway(5000)
       }
     },
     navigateToTable(tn) {
       const index = this.projectTemplate.tables.findIndex(
-        (t) => t.table_name === tn
-      );
+        t => t.table_name === tn
+      )
       if (Array.isArray(this.expansionPanel)) {
-        this.expansionPanel.push(index);
+        this.expansionPanel.push(index)
       } else {
-        this.expansionPanel = index;
+        this.expansionPanel = index
       }
 
       this.$nextTick(() => {
-        const accord = this.$el.querySelector(`#tn_${tn}`);
-        accord.focus();
-        accord.scrollIntoView();
-      });
+        const accord = this.$el.querySelector(`#tn_${tn}`)
+        accord.focus()
+        accord.scrollIntoView()
+      })
     },
 
     async saveTemplate() {
-      this.loading = true;
+      this.loading = true
       try {
         if (this.id || this.localId) {
           await this.$axios.put(
@@ -1364,281 +1429,281 @@ export default {
             this.projectTemplate,
             {
               params: {
-                token: this.$store.state.template,
-              },
+                token: this.$store.state.template
+              }
             }
-          );
-          this.$toast.success("Template updated successfully").goAway(3000);
+          )
+          this.$toast.success('Template updated successfully').goAway(3000)
         } else if (!this.$store.state.template) {
           if (!this.copyJSON()) {
-            return;
+            return
           }
 
-          this.$toast.info("Initiating Github for template").goAway(3000);
+          this.$toast.info('Initiating Github for template').goAway(3000)
           const res = await this.$axios.post(
             `${process.env.NC_API_URL}/api/v1/projectTemplateCreate`,
             this.projectTemplate
-          );
-          this.$toast.success("Initiated Github successfully").goAway(3000);
-          window.open(res.data.path, "_blank");
+          )
+          this.$toast.success('Initiated Github successfully').goAway(3000)
+          window.open(res.data.path, '_blank')
         } else {
           const res = await this.$axios.post(
             `${process.env.NC_API_URL}/api/v1/nc/templates`,
             this.projectTemplate,
             {
               params: {
-                token: this.$store.state.template,
-              },
+                token: this.$store.state.template
+              }
             }
-          );
-          this.localId = res.data.id;
-          this.$toast.success("Template updated successfully").goAway(3000);
+          )
+          this.localId = res.data.id
+          this.$toast.success('Template updated successfully').goAway(3000)
         }
 
-        this.$emit("saved");
+        this.$emit('saved')
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       } finally {
-        this.loading = false;
+        this.loading = false
       }
     },
     getRules(col, table) {
-      return (v) =>
+      return v =>
         col.uidt !== UITypes.LinkToAnotherRecord ||
         !table.columns.some(
-          (c) =>
+          c =>
             c !== col &&
             c.uidt === UITypes.LinkToAnotherRecord &&
             c.type === col.type &&
-            c.rtn === col.rtn
+            c.ref_table_name === col.ref_table_name
         ) ||
-        "Duplicate relation is not allowed";
+        'Duplicate relation is not allowed'
     },
     onTableNameUpdate(oldTable, newVal) {
-      const oldVal = oldTable.table_name;
-      this.$set(oldTable, "tn", newVal);
+      const oldVal = oldTable.table_name
+      this.$set(oldTable, 'table_name', newVal)
 
       for (const table of this.project.tables) {
         for (const col of table.columns) {
           if (col.uidt === UITypes.LinkToAnotherRecord) {
-            if (col.rtn === oldVal) {
-              this.$set(col, "rtn", newVal);
+            if (col.ref_table_name === oldVal) {
+              this.$set(col, 'ref_table_name', newVal)
             }
           } else if (
             col.uidt === UITypes.Rollup ||
             col.uidt === UITypes.Lookup
           ) {
-            if (col.rtn && col.rtn.table_name === oldVal) {
-              this.$set(col.rtn, "tn", newVal);
+            if (col.ref_table_name && col.ref_table_name.table_name === oldVal) {
+              this.$set(col.ref_table_name, 'table_name', newVal)
             }
           }
         }
       }
     },
     onColumnNameUpdate(oldCol, newVal, tn) {
-      const oldVal = oldCol.column_name;
-      this.$set(oldCol, "cn", newVal);
+      const oldVal = oldCol.column_name
+      this.$set(oldCol, 'column_name', newVal)
 
       for (const table of this.project.tables) {
         for (const col of table.columns) {
           if (col.uidt === UITypes.Rollup || col.uidt === UITypes.Lookup) {
-            if (col.rtn && col.rcn === oldVal && col.rtn.table_name === tn) {
-              this.$set(col, "rcn", newVal);
+            if (col.ref_table_name && col.ref_column_name === oldVal && col.ref_table_name.table_name === tn) {
+              this.$set(col, 'ref_column_name', newVal)
             }
           }
         }
       }
     },
     async onRtnChange(oldVal, newVal, col, table) {
-      this.$set(col, "rtn", newVal);
+      this.$set(col, 'ref_table_name', newVal)
 
-      await this.$nextTick();
+      await this.$nextTick()
 
       if (
         col.uidt !== UITypes.LinkToAnotherRecord &&
         col.uidt !== UITypes.ForeignKey
       ) {
-        return;
+        return
       }
 
       if (oldVal) {
-        const rTable = this.project.tables.find((t) => t.table_name === oldVal);
+        const rTable = this.project.tables.find(t => t.table_name === oldVal)
         // delete relation from other table if exist
 
-        let index = -1;
-        if (col.uidt === UITypes.LinkToAnotherRecord && col.type === "mm") {
+        let index = -1
+        if (col.uidt === UITypes.LinkToAnotherRecord && col.type === 'mm') {
           index = rTable.columns.findIndex(
-            (c) =>
+            c =>
               c.uidt === UITypes.LinkToAnotherRecord &&
-              c.rtn === table.table_name &&
-              c.type === "mm"
-          );
+              c.ref_table_name === table.table_name &&
+              c.type === 'mm'
+          )
         } else if (
           col.uidt === UITypes.LinkToAnotherRecord &&
-          col.type === "hm"
+          col.type === 'hm'
         ) {
           index = rTable.columns.findIndex(
-            (c) => c.uidt === UITypes.ForeignKey && c.rtn === table.table_name
-          );
+            c => c.uidt === UITypes.ForeignKey && c.ref_table_name === table.table_name
+          )
         } else if (col.uidt === UITypes.ForeignKey) {
           index = rTable.columns.findIndex(
-            (c) =>
+            c =>
               c.uidt === UITypes.LinkToAnotherRecord &&
-              c.rtn === table.table_name &&
-              c.type === "hm"
-          );
+              c.ref_table_name === table.table_name &&
+              c.type === 'hm'
+          )
         }
 
         if (index > -1) {
-          rTable.columns.splice(index, 1);
+          rTable.columns.splice(index, 1)
         }
       }
       if (newVal) {
-        const rTable = this.project.tables.find((t) => t.table_name === newVal);
+        const rTable = this.project.tables.find(t => t.table_name === newVal)
 
         // check relation relation exist in other table
         // if not create a relation
-        if (col.uidt === UITypes.LinkToAnotherRecord && col.type === "mm") {
+        if (col.uidt === UITypes.LinkToAnotherRecord && col.type === 'mm') {
           if (
             !rTable.columns.find(
-              (c) =>
+              c =>
                 c.uidt === UITypes.LinkToAnotherRecord &&
-                c.rtn === table.table_name &&
-                c.type === "mm"
+                c.ref_table_name === table.table_name &&
+                c.type === 'mm'
             )
           ) {
             rTable.columns.push({
-              cn: `title${rTable.columns.length + 1}`,
+              column_name: `title${rTable.columns.length + 1}`,
               uidt: UITypes.LinkToAnotherRecord,
-              type: "mm",
-              rtn: table.table_name,
-            });
+              type: 'mm',
+              ref_table_name: table.table_name
+            })
           }
         } else if (
           col.uidt === UITypes.LinkToAnotherRecord &&
-          col.type === "hm"
+          col.type === 'hm'
         ) {
           if (
             !rTable.columns.find(
-              (c) => c.uidt === UITypes.ForeignKey && c.rtn === table.table_name
+              c => c.uidt === UITypes.ForeignKey && c.ref_table_name === table.table_name
             )
           ) {
             rTable.columns.push({
-              cn: `title${rTable.columns.length + 1}`,
+              column_name: `title${rTable.columns.length + 1}`,
               uidt: UITypes.ForeignKey,
-              rtn: table.table_name,
-            });
+              ref_table_name: table.table_name
+            })
           }
         } else if (col.uidt === UITypes.ForeignKey) {
           if (
             !rTable.columns.find(
-              (c) =>
+              c =>
                 c.uidt === UITypes.LinkToAnotherRecord &&
-                c.rtn === table.table_name &&
-                c.type === "hm"
+                c.ref_table_name === table.table_name &&
+                c.type === 'hm'
             )
           ) {
             rTable.columns.push({
-              cn: `title${rTable.columns.length + 1}`,
+              column_name: `title${rTable.columns.length + 1}`,
               uidt: UITypes.LinkToAnotherRecord,
-              type: "hm",
-              rtn: table.table_name,
-            });
+              type: 'hm',
+              ref_table_name: table.table_name
+            })
           }
         }
       }
     },
     onRTypeChange(oldType, newType, col, table) {
-      this.$set(col, "type", newType);
+      this.$set(col, 'type', newType)
 
-      const rTable = this.project.tables.find((t) => t.table_name === col.rtn);
+      const rTable = this.project.tables.find(t => t.table_name === col.ref_table_name)
 
-      let index = -1;
+      let index = -1
 
       // find column and update relation
       // or create a new column
 
-      if (oldType === "hm") {
+      if (oldType === 'hm') {
         index = rTable.columns.findIndex(
-          (c) => c.uidt === UITypes.ForeignKey && c.rtn === table.table_name
-        );
-      } else if (oldType === "mm") {
+          c => c.uidt === UITypes.ForeignKey && c.ref_table_name === table.table_name
+        )
+      } else if (oldType === 'mm') {
         index = rTable.columns.findIndex(
-          (c) =>
+          c =>
             c.uidt === UITypes.LinkToAnotherRecord &&
-            c.rtn === table.table_name &&
-            c.type === "mm"
-        );
+            c.ref_table_name === table.table_name &&
+            c.type === 'mm'
+        )
       }
 
       const rCol =
         index === -1
-          ? { cn: `title${rTable.columns.length + 1}` }
-          : { ...rTable.columns[index] };
-      index = index === -1 ? rTable.columns.length : index;
+          ? { column_name: `title${rTable.columns.length + 1}` }
+          : { ...rTable.columns[index] }
+      index = index === -1 ? rTable.columns.length : index
 
-      if (newType === "mm") {
-        rCol.type = "mm";
-        rCol.uidt = UITypes.LinkToAnotherRecord;
-      } else if (newType === "hm") {
-        rCol.type = "bt";
-        rCol.uidt = UITypes.ForeignKey;
+      if (newType === 'mm') {
+        rCol.type = 'mm'
+        rCol.uidt = UITypes.LinkToAnotherRecord
+      } else if (newType === 'hm') {
+        rCol.type = 'bt'
+        rCol.uidt = UITypes.ForeignKey
       }
-      rCol.rtn = table.table_name;
+      rCol.ref_table_name = table.table_name
 
-      this.$set(rTable.columns, index, rCol);
+      this.$set(rTable.columns, index, rCol)
     },
     onUidtChange(oldVal, newVal, col, table) {
-      this.$set(col, "uidt", newVal);
-      this.$set(col, "dtxp", undefined);
+      this.$set(col, 'uidt', newVal)
+      this.$set(col, 'dtxp', undefined)
 
       // delete relation column from other table
       // if previous type is relation
 
-      let index = -1;
-      let rTable;
+      let index = -1
+      let rTable
 
       if (oldVal === UITypes.LinkToAnotherRecord) {
-        rTable = this.project.tables.find((t) => t.table_name === col.rtn);
+        rTable = this.project.tables.find(t => t.table_name === col.ref_table_name)
         if (rTable) {
-          if (col.type === "hm") {
+          if (col.type === 'hm') {
             index = rTable.columns.findIndex(
-              (c) => c.uidt === UITypes.ForeignKey && c.rtn === table.table_name
-            );
-          } else if (col.type === "mm") {
+              c => c.uidt === UITypes.ForeignKey && c.ref_table_name === table.table_name
+            )
+          } else if (col.type === 'mm') {
             index = rTable.columns.findIndex(
-              (c) =>
+              c =>
                 c.uidt === UITypes.LinkToAnotherRecord &&
-                c.rtn === table.table_name &&
-                c.type === "mm"
-            );
+                c.ref_table_name === table.table_name &&
+                c.type === 'mm'
+            )
           }
         }
       } else if (oldVal === UITypes.ForeignKey) {
-        rTable = this.project.tables.find((t) => t.table_name === col.rtn);
+        rTable = this.project.tables.find(t => t.table_name === col.ref_table_name)
         if (rTable) {
           index = rTable.columns.findIndex(
-            (c) =>
+            c =>
               c.uidt === UITypes.LinkToAnotherRecord &&
-              c.rtn === table.table_name &&
-              c.type === "hm"
-          );
+              c.ref_table_name === table.table_name &&
+              c.type === 'hm'
+          )
         }
       }
       if (rTable && index > -1) {
-        rTable.columns.splice(index, 1);
+        rTable.columns.splice(index, 1)
       }
 
-      col.rtn = undefined;
-      col.type = undefined;
-      col.rcn = undefined;
+      col.ref_table_name = undefined
+      col.type = undefined
+      col.ref_column_name = undefined
 
       if (col.uidt === LinkToAnotherRecord) {
-        col.type = col.type || "mm";
+        col.type = col.type || 'mm'
       }
-    },
-  },
-};
+    }
+  }
+}
 </script>
 
 <style scoped>

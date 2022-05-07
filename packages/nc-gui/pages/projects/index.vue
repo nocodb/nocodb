@@ -135,6 +135,26 @@
                         <span class="caption">{{ $t("tooltip.extDB") }}</span>
                       </v-tooltip>
                     </v-list-item>
+                    <v-divider />
+                    <v-list-item
+                      title
+                      class="pt-2 nc-create-project-from-excel"
+                      @click="onCreateProjectFromExcel()"
+                    >
+                      <v-list-item-icon class="mr-2">
+                        <v-icon small class="">
+                          mdi-file-excel-outline
+                        </v-icon>
+                      </v-list-item-icon>
+                      <v-list-item-title>
+                        <span
+                          class="caption font-weight-regular"
+                          v-html="
+                            $t('activity.createProjectExtended.excel')
+                          "
+                        />
+                      </v-list-item-title>
+                    </v-list-item>
                   </v-list>
                 </v-menu>
               </template>

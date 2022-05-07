@@ -185,7 +185,7 @@ export default {
         if (id) {
           await this.$axios.patch(`/api/v1/db/meta/syncs/${id}`, payload)
         } else {
-          await this.$axios.post(`/api/v1/db/meta/projects/${this.projectId}/syncs`, payload)
+          this.syncSource = (await this.$axios.post(`/api/v1/db/meta/projects/${this.projectId}/syncs`, payload)).data
         }
       } catch (e) {
         this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)

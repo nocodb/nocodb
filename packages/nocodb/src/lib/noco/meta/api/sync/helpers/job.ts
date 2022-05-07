@@ -1604,12 +1604,9 @@ export default async function(
       await generateMigrationStats(aTblSchema);
     }
   } catch (e) {
-    let msg = 'Some error occurred';
-    if (!e || !e.response) {
-      msg = e.message || msg;
-    } else {
-      msg = e.response?.data?.msg || msg;
+    if (e.response?.data?.msg) {
+      throw new Error(e.response.data.msg);
     }
-    throw new Error(msg);
+    throw e;
   }
 }

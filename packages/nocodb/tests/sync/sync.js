@@ -8,13 +8,13 @@ let Airtable = require('airtable');
 const jsonfile = require("jsonfile");
 let hash = require('object-hash');
 
-
 var base, baseId;
 const start = Date.now();
 let enableErrorLogs = false
+let enableProgressLogs = true
 let process_aTblData = true
 let generate_migrationStats = true
-let debugMode = true
+let debugMode = false
 let api;
 let g_aTblSchema = {};
 let ncCreatedProjectSchema = [];
@@ -27,10 +27,20 @@ let runTimeCounters = {
   sort: 0,
   filter: 0,
   view: {
+    total: 0,
     grid: 0,
     gallery: 0,
     form: 0
+  },
+  fetchAt: {
+    count: 0,
+    time: 0
   }
+}
+
+function progressLog(log) {
+  if(enableProgressLogs)
+  console.log(log)
 }
 
 function syncLog(log) {
@@ -41,7 +51,12 @@ function syncLog(log) {
 //
 
 async function getAtableSchema(sDB) {
+  let start = Date.now()
   let ft = await FetchAT(sDB.airtable.shareId);
+  let duration = Date.now() - start
+  runTimeCounters.fetchAt.count++;
+  runTimeCounters.fetchAt.time += duration;
+
   let file = ft.schema;
   baseId = ft.baseId;
   base = new Airtable({ apiKey: sDB.airtable.apiKey }).base(
@@ -57,7 +72,12 @@ async function getAtableSchema(sDB) {
 }
 
 async function getViewData(shareId, tblId, viewId) {
+  let start = Date.now()
   let ft = await FetchAT(shareId, tblId, viewId);
+  let duration = Date.now() - start
+  runTimeCounters.fetchAt.count++;
+  runTimeCounters.fetchAt.time += duration;
+
   if(debugMode)
     jsonfile.writeFileSync(`${viewId}.json`, ft, { spaces: 2 })
   return ft.schema?.tableDatas[0]?.viewDatas[0]
@@ -132,14 +152,17 @@ async function nc_DumpTableSchema() {
 // retrieve nc column schema from using aTbl field ID as reference
 //
 async function nc_getColumnSchema(aTblFieldId) {
-  let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-  let aTblField = aTbl_getColumnName(aTblFieldId);
-  let ncTblId = ncTblList.list.filter(x => x.title === aTblField.tn)[0].id;
-  let ncTbl = await api.dbTable.read(ncTblId);
-  let ncCol = ncTbl.columns.find(x => x.title === aTblField.cn);
-  return ncCol;
+  // let ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+  // let aTblField = aTbl_getColumnName(aTblFieldId);
+  // let ncTblId = ncTblList.list.filter(x => x.title === aTblField.tn)[0].id;
+  // let ncTbl = await api.dbTable.read(ncTblId);
+  // let ncCol = ncTbl.columns.find(x => x.title === aTblField.cn);
+  // return ncCol;
 
-  // let ncFieldId = sMap.getNcIdFromAtId(aTblFieldId)
+  let ncTblId = sMap.getNcParentFromAtId(aTblFieldId)
+  let ncColId = sMap.getNcIdFromAtId(aTblFieldId)
+  let ncCol = ncSchema.tablesById[ncTblId].columns.find(x => x.id === ncColId)
+  return ncCol
 }
 
 // retrieve nc table schema using table name
@@ -244,6 +267,7 @@ function tablesPrepare(tblSchema) {
     let table = {};
 
     syncLog(`Preparing base schema (sans relations): ${tblSchema[i].name}`)
+    runTimeCounters.view.total += tblSchema[i].views.length
 
     // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
     table.table_name = tblSchema[i].name;
@@ -321,12 +345,12 @@ async function nocoCreateBaseSchema(aTblSchema) {
   // base schema preparation: exclude
   let tables = tablesPrepare(aTblSchema);
 
-  console.log(`Total tables: ${tables.length} `)
+  progressLog(`Total tables: ${tables.length} `)
 
   // for each table schema, create nc table
   for (let idx = 0; idx < tables.length; idx++) {
 
-    console.log(`Phase-1 [${String(idx+1).padStart(2, '0')}/${tables.length}] Creating base table schema: ${tables[idx].title}`)
+    progressLog(`[${idx+1}/${tables.length}] Creating base table schema: ${tables[idx].title}`)
 
     syncLog(`NC API: dbTable.create ${tables[idx].title}`)
     let table = await api.dbTable.create(
@@ -372,7 +396,7 @@ async function nocoCreateLinkToAnotherRecord(aTblSchema) {
     //
     if (aTblLinkColumns.length) {
       for (let i = 0; i < aTblLinkColumns.length; i++) {
-        console.log(`Phase-2 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Links :: [${String(i+1).padStart(2, '0')}/${aTblLinkColumns.length}] ${aTblSchema[idx].name}`)
+        progressLog(`[${idx+1}/${aTblSchema.length}] Configuring Links :: [${i+1}/${aTblLinkColumns.length}] ${aTblSchema[idx].name}`)
 
         // for self links, there is no symmetric column
         {
@@ -544,7 +568,7 @@ async function nocoCreateLookups(aTblSchema) {
     if (aTblColumns.length) {
       // Lookup
       for (let i = 0; i < aTblColumns.length; i++) {
-        console.log(`Phase-3 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Lookup :: [${String(i+1).padStart(2, '0')}/${aTblColumns.length}] ${aTblSchema[idx].name}`)
+        progressLog(`[${idx+1}/${aTblSchema.length}] Configuring Lookup :: [${i+1}/${aTblColumns.length}] ${aTblSchema[idx].name}`)
 
         // something is not right, skip
         if(aTblColumns[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
@@ -591,7 +615,7 @@ async function nocoCreateLookups(aTblSchema) {
     // Nested lookup
     nestedCnt = nestedLookupTbl.length
     for (let i = 0; i < nestedLookupTbl.length; i++) {
-      console.log(`Phase-4 Configuring Nested Lookup: Level-${level} [${i+1}/${nestedCnt}]`)
+      progressLog(`Configuring Nested Lookup: Level-${level} [${i+1}/${nestedCnt}]`)
 
       let srcTableId = nestedLookupTbl[i].srcTableId;
 
@@ -634,7 +658,7 @@ async function nocoCreateRollups(aTblSchema) {
     if (aTblColumns.length) {
       // rollup exist
       for (let i = 0; i < aTblColumns.length; i++) {
-        console.log(`Phase-5 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Rollup :: [${String(i+1).padStart(2, '0')}/${aTblColumns.length}] ${aTblSchema[idx].name}`)
+        progressLog(`[${idx+1}/${aTblSchema.length}] Configuring Rollup :: [${i+1}/${aTblColumns.length}] ${aTblSchema[idx].name}`)
 
         // something is not right, skip
         if(aTblColumns[i]?.typeOptions?.dependencies?.invalidColumnIds?.length) {
@@ -667,13 +691,13 @@ async function nocoCreateRollups(aTblSchema) {
       }
     }
   }
-  console.log(`Nested rollup: ${nestedRollupTbl.length}`)
+  progressLog(`Nested rollup: ${nestedRollupTbl.length}`)
 }
 
 async function nocoLookupForRollups() {
   let nestedCnt = nestedLookupTbl.length
   for (let i = 0; i < nestedLookupTbl.length; i++) {
-    console.log(`Phase-6 Configuring Lookup over Rollup :: [${i+1}/${nestedCnt}]`)
+    progressLog(`Configuring Lookup over Rollup :: [${i+1}/${nestedCnt}]`)
 
     let srcTableId = nestedLookupTbl[i].srcTableId;
 
@@ -703,7 +727,7 @@ async function nocoLookupForRollups() {
 
 async function nocoSetPrimary(aTblSchema) {
   for (let idx = 0; idx < aTblSchema.length; idx++) {
-    console.log(`Phase-7 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Configuring Primary value : ${aTblSchema[idx].name}`)
+    progressLog(`[${idx+1}/${aTblSchema.length}] Configuring Primary value : ${aTblSchema[idx].name}`)
 
     let pColId = aTblSchema[idx].primaryColumnId;
     let ncColId = sMap.getNcIdFromAtId(pColId);
@@ -738,7 +762,6 @@ async function nc_hideColumn(tblName, viewName, columnName, viewType) {
     viewDetails = await api.dbView.gridColumnsList(viewId);
 
   for(let i =0; i<columnName.length; i++) {
-    console.log(`hide columns ${i+1}/${columnName.length}`)
     // retrieve column schema
     let ncColumn = ncTbl.columns.find(x => x.title === columnName[i]);
     // retrieve view column ID
@@ -765,7 +788,7 @@ async function nocoReconfigureFields(aTblSchema) {
     for(let i=0; i<hiddenColumnID.length; i++) {
       hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[i].columnId).cn)
     }
-    console.log(`Phase-8 [${String(idx+1).padStart(2, '0')}/${aTblSchema.length}] Hide columns [${idx+1}/${aTblSchema.length}] ${aTblSchema[idx].name}`)
+    progressLog(`[${idx+1}/${aTblSchema.length}] Hide columns [${idx+1}/${aTblSchema.length}] ${aTblSchema[idx].name}`)
 
     let aTbl_viewname = aTblSchema[idx].views.find(x => x.type === 'grid').name
     await nc_hideColumn(aTblSchema[idx].name, aTbl_viewname, hiddenColumns)
@@ -1018,13 +1041,22 @@ async function nocoConfigureGalleryView(sDB, aTblSchema) {
     let tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
     let galleryViews = aTblSchema[idx].views.filter(x => x.type === 'gallery');
 
+    let configuredViews = runTimeCounters.view.grid + runTimeCounters.view.gallery + runTimeCounters.view.form;
+    runTimeCounters.view.gallery += galleryViews.length
+
     for(let i=0; i<galleryViews.length; i++) {
+
+      progressLog(`[${configuredViews + i+1}/${runTimeCounters.view.total}] Configuring view :: Gallery`)
+      progressLog(`   Axios fetch view-data`)
+
       // create view
       let vData = await getViewData(sDB.airtable.shareId, aTblSchema[idx].id, galleryViews[i].id)
       let viewName = aTblSchema[idx].views.find(x => x.id === galleryViews[i].id)?.name
+
+      progressLog(`   Create NC View :: ${viewName}`)
       let g = await api.dbView.galleryCreate(tblId, {title: viewName})
       await updateNcTblSchemaById(tblId)
-      console.log(`Phase-10 [${idx+1}/${aTblSchema.length}][Gallery View][${i+1}/${galleryViews.length}] Create ${viewName}`)
+      // progressLog(`[${idx+1}/${aTblSchema.length}][Gallery View][${i+1}/${galleryViews.length}] Create ${viewName}`)
 
       // await nc_configureFields(g.id, vData.columnOrder, aTblSchema[idx].name, viewName, 'gallery');
     }
@@ -1036,7 +1068,13 @@ async function nocoConfigureFormView(sDB, aTblSchema) {
     let tblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
     let formViews = aTblSchema[idx].views.filter(x => x.type === 'form');
 
+    let configuredViews = runTimeCounters.view.grid + runTimeCounters.view.gallery + runTimeCounters.view.form;
+    runTimeCounters.view.form += formViews.length
     for(let i=0; i<formViews.length; i++) {
+
+      progressLog(`[${configuredViews + i+1}/${runTimeCounters.view.total}] Configuring view :: Form`)
+      progressLog(`   Axios fetch view-data`)
+
       // create view
       let vData = await getViewData(sDB.airtable.shareId, aTblSchema[idx].id, formViews[i].id)
       let viewName = aTblSchema[idx].views.find(x => x.id === formViews[i].id)?.name
@@ -1062,10 +1100,14 @@ async function nocoConfigureFormView(sDB, aTblSchema) {
         submit_another_form: refreshMode.includes("REFRESH_BUTTON")?true:false,
         show_blank_form: refreshMode.includes("AUTO_REFRESH")?true:false,
       }
+
+      progressLog(`   Create NC View :: ${viewName}`)
       let f = await api.dbView.formCreate(tblId, formData)
-      console.log(`Phase-11 [${idx+1}/${aTblSchema.length}][Form View][${i+1}/${formViews.length}] Create ${viewName}`)
+      progressLog(`[${idx+1}/${aTblSchema.length}][Form View][${i+1}/${formViews.length}] Create ${viewName}`)
 
       await updateNcTblSchemaById(tblId)
+
+      progressLog(`   Configure show/hide columns`)
       await nc_configureFields(f.id, vData.columnOrder, aTblSchema[idx].name, viewName, 'form');
     }
   }
@@ -1076,8 +1118,13 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
     let tblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
     let gridViews = aTblSchema[idx].views.filter(x => x.type === 'grid');
 
+    let configuredViews = runTimeCounters.view.grid + runTimeCounters.view.gallery + runTimeCounters.view.form;
+    runTimeCounters.view.grid += gridViews.length
+
     for(let i=0; i<gridViews.length; i++) {
 
+      progressLog(`[${configuredViews + i+1}/${runTimeCounters.view.total}] Configuring view :: Grid`)
+      progressLog(`   Axios fetch view-data`)
       // fetch viewData JSON
       let vData = await getViewData(sDB.airtable.shareId, aTblSchema[idx].id, gridViews[i].id)
 
@@ -1088,18 +1135,22 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
 
       // create view (default already created)
       if (i > 0) {
+        progressLog(`   Create NC View :: ${viewName}`)
         let viewCreated = await api.dbView.gridCreate(tblId, { title: viewName })
         await updateNcTblSchemaById(tblId)
         await sMap.addToMappingTbl(gridViews[i].id, viewCreated.id, viewName, tblId)
-        console.log(`Phase-9a [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
+        // progressLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
       }
 
-      console.log(`Phase-9b [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Hide columns ${viewName}`)
+      // progressLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Hide columns ${viewName}`)
+      progressLog(`   Configure show/hide columns`)
       await nc_configureFields(ncViewId, vData.columnOrder, aTblSchema[idx].name, viewName);
 
       // configure filters
       if(vData?.filters) {
-        console.log(`Phase-9c [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure filters ${viewName}`)
+        // progressLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure filters ${viewName}`)
+        progressLog(`   Configure filter set`)
+
         // skip filters if nested
         if(!vData.filters.filterSet.find(x => x?.type === 'nested')) {
           await nc_configureFilters(ncViewId, vData.filters)
@@ -1108,7 +1159,8 @@ async function nocoConfigureGridView(sDB, aTblSchema) {
 
       // configure sort
       if(vData?.lastSortsApplied?.sortSet.length) {
-        console.log(`Phase-9d [${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure sort ${viewName}`)
+        // progressLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Configure sort ${viewName}`)
+        progressLog(`   Configure sort set`)
         await nc_configureSort(ncViewId, vData.lastSortsApplied);
       }
     }
@@ -1125,9 +1177,11 @@ async function nocoAddUsers(aTblSchema) {
     "none": "viewer"
   }
   let userList = aTblSchema.appBlanket.userInfoById;
-  console.log('Configuring Users ..')
+  let totalUsers = Object.keys(userList).length
+  let cnt = 0
 
   for (const [key, value] of Object.entries(userList)) {
+    progressLog(`[${++cnt}/${totalUsers}] Configuring User :: ${value.email}`)
     await api.auth.projectUserAdd(ncCreatedProjectSchema.id, {email: value.email, roles: userRoles[value.permissionLevel]})
   }
 }
@@ -1323,17 +1377,23 @@ async function generateMigrationStats(aTblSchema) {
     return accumulator + object.nc.rollup;
   }, 0);
 
-  console.log(`Quick Status:`)
-  console.log(`     Total Tables:   ${aTblSchema.length}`)
-  console.log(`     Total Columns:  ${columnSum}`)
-  console.log(`       Links:        ${linkSum}`)
-  console.log(`       Lookup:       ${lookupSum}`)
-  console.log(`       Rollup:       ${rollupSum}`)
-  console.log(`     Total Filters:  ${runTimeCounters.filter}`)
-  console.log(`     Total Sort:     ${runTimeCounters.sort}`)
+  progressLog(`Quick Stats:`)
+  progressLog(`     Total Tables:   ${aTblSchema.length}`)
+  progressLog(`     Total Columns:  ${columnSum}`)
+  progressLog(`       Links:        ${linkSum}`)
+  progressLog(`       Lookup:       ${lookupSum}`)
+  progressLog(`       Rollup:       ${rollupSum}`)
+  progressLog(`     Total Filters:  ${runTimeCounters.filter}`)
+  progressLog(`     Total Sort:     ${runTimeCounters.sort}`)
+  progressLog(`     Total Views:    ${runTimeCounters.view.total}`)
+  progressLog(`       Grid:         ${runTimeCounters.view.grid}`)
+  progressLog(`       Gallery:      ${runTimeCounters.view.gallery}`)
+  progressLog(`       Form:         ${runTimeCounters.view.form}`)
 
   const duration = Date.now() - start;
-  console.log(`Migration time: ${duration}`)
+  progressLog(`Migration time:      ${duration}`)
+  progressLog(`Axios fetch count:   ${runTimeCounters.fetchAt.count}`)
+  progressLog(`Axios fetch time:    ${runTimeCounters.fetchAt.time}`)
 }
 
 //////////////////////////////

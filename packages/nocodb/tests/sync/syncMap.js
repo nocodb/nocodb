@@ -16,6 +16,11 @@ exports.getNcIdFromAtId = function getNcIdFromAtId(aId) {
   return aTblNcMappingTbl[aId]?.ncId
 }
 
+// get nc Parent from airtable ID
+exports.getNcParentFromAtId = function getNcParentFromAtId(aId) {
+  return aTblNcMappingTbl[aId]?.ncParent
+}
+
 // get nc-title from airtable ID
 exports.getNcNameFromAtId = function getNcNameFromAtId(aId) {
   return aTblNcMappingTbl[aId]?.ncName

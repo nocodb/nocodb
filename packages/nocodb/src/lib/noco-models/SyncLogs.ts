@@ -1,9 +1,8 @@
 import Noco from '../noco/Noco';
 import { MetaTable } from '../utils/globals';
-import extractProps from '../noco/meta/helpers/extractProps';
-import User from './User';
 
 export default class SyncLogs {
+  id?: string;
   project_id?: string;
   fk_sync_source_id?: string;
   time_taken?: string;
@@ -23,14 +22,6 @@ export default class SyncLogs {
         created_at: 'asc'
       }
     });
-
-    for (const syncLog of syncLogs) {
-      if (syncLog.details && typeof syncLog.details === 'string') {
-        try {
-          syncLog.details = JSON.parse(syncLog.details);
-        } catch {}
-      }
-    }
     return syncLogs?.map(h => new SyncLogs(h));
   }
 

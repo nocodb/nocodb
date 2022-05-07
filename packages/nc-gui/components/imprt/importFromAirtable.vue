@@ -2,15 +2,21 @@
   <div class="h-100 nc-auth-tab">
     <div class="h-100" style="width: 100%">
       <v-tabs height="40" color="x-active">
-        <v-tab>
+        <v-tab
+          v-t="['c:sync-tab:airtable']"
+        >
           <span class="caption text-capitalize">
             Airtable
           </span>
-        </v-tab>        <v-tab>
+        </v-tab>        <v-tab
+          v-t="['c:sync-tab:stripe']"
+        >
           <span class="caption text-capitalize">
             Stripe
           </span>
-        </v-tab>        <v-tab>
+        </v-tab>        <v-tab
+          v-t="['c:sync-tab:salesforce']"
+        >
           <span class="caption text-capitalize">
             Salesforce
           </span>
@@ -63,6 +69,7 @@
               </div>
               <v-card-actions class="justify-center pb-6">
                 <v-btn
+                  v-t="['c:sync-airtable:save']"
                   small
                   outlined
                   @click="createOrUpdate"
@@ -70,6 +77,7 @@
                   Save
                 </v-btn>
                 <v-btn
+                  v-t="['c:sync-airtable:save-and-sync']"
                   small
                   outlined
                   @click="saveAndSync"
@@ -104,7 +112,7 @@
                 </div>
                 <div
                   v-if="!progress || !progress.length || progress[progress.length-1].msg !== 'completed' && progress[progress.length-1].status !== 'FAILED'"
-                  class="d-flex align-center"
+                  class=""
                 >
                   <v-icon color="green" size="15">
                     mdi-loading mdi-spin
@@ -144,7 +152,9 @@ export default {
     syncSource: null
   }),
   created() {
-    this.socket = io('http://localhost:9000')
+    this.socket = io(new URL(this.$axios.defaults.baseURL, window.location.href.split(/[?#]/)[0]).href, {
+      extraHeaders: { 'xc-auth': this.$store.state.users.token }
+    })
     this.socket.on('connect_error', () => {
       this.socket.disconnect()
       this.socket = null
@@ -180,7 +190,7 @@ export default {
     },
     sync() {
       this.step = 2
-      this.$axios.post(`http://localhost:8080/api/v1/db/meta/syncs/${this.syncSource.id}/trigger`, this.payload, {
+      this.$axios.post(`/api/v1/db/meta/syncs/${this.syncSource.id}/trigger`, this.payload, {
         params: {
           id: this.socket.id
         }
@@ -199,8 +209,8 @@ export default {
             syncDirection: 'Airtable to NocoDB',
             syncRetryCount: 1,
 
-            apiKey: 'keyeZla3k0desT8fU',
-            shareId: 'shrO9PBPyPLTqalcr'
+            apiKey: '',
+            shareId: ''
           }
         }
       }

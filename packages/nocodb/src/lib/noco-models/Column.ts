@@ -56,6 +56,7 @@ export default class Column<T = any> implements ColumnType {
   public order: number;
 
   public validate: any;
+  public meta: any;
 
   constructor(data: Partial<ColumnType | Column>) {
     Object.assign(this, data);
@@ -106,7 +107,11 @@ export default class Column<T = any> implements ColumnType {
       order: column.order,
       project_id: column.project_id,
       base_id: column.base_id,
-      system: column.system
+      system: column.system,
+      meta:
+        column.meta && typeof column.meta === 'object'
+          ? JSON.stringify(column.meta)
+          : column.meta
     };
 
     if (column.validate) {
@@ -783,7 +788,11 @@ export default class Column<T = any> implements ColumnType {
       au: column.au,
       pv: column.pv,
       system: column.system,
-      validate: null
+      validate: null,
+      meta:
+        column.meta && typeof column.meta === 'object'
+          ? JSON.stringify(column.meta)
+          : column.meta
     };
 
     if (column.validate) {

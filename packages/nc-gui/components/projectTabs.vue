@@ -3,6 +3,12 @@
     fluid
     class="ph-no-capture project-container ma-0 pa-0"
     style="position: relative"
+    @dragover.prevent="dragOver = true"
+    @dragenter.prevent="dragOver = true"
+    @dragexit="dragOver = false"
+    @dragleave="dragOver = false"
+    @dragend="dragOver = false"
+    @drop.prevent.stop="onFileDrop"
   >
     <v-tabs
       ref="projectTabs"
@@ -390,6 +396,7 @@ export default {
   },
   data() {
     return {
+      dragOver: false,
       dialogCreateTableShow: false,
       test: "",
       treeViewIcons,

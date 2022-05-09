@@ -2,12 +2,6 @@
   <v-container
     fluid
     class="text-center px-10 pt-10 nc-container"
-    @dragover.prevent="dragOver = true"
-    @dragenter.prevent="dragOver = true"
-    @dragexit="dragOver = false"
-    @dragleave="dragOver = false"
-    @dragend="dragOver = false"
-    @drop.prevent.stop="onFileDrop"
   >
     <v-row>
       <v-col v-if="loaded" class="col-lg-6 offset-lg-3 col-12 col-md-12">
@@ -565,8 +559,6 @@ export default {
   },
   data() {
     return {
-      dragOver: false,
-      excelImportModal: false,
       templatesModal: false,
       overlayVisible: true,
       showCommunity: false,
@@ -675,16 +667,8 @@ export default {
     setTimeout(() => (this.showCommunity = true), 2000);
 
     await this.projectsLoad();
-
-    if (this.$route && this.$route.query && this.$route.query.excelUrl) {
-      this.excelImportModal = true;
-    }
   },
   methods: {
-    async onFileDrop(e) {
-      this.excelImportModal = true;
-      this.$refs.excelImport.dropHandler(e);
-    },
     async stopProject(project) {
       this.dialogShow = true;
       this.confirmMessage = "Do you want to stop the project?";

@@ -10,6 +10,10 @@ import Airtable from 'airtable';
 import jsonfile from 'jsonfile';
 import hash from 'object-hash';
 
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
+dayjs.extend(utc);
+
 export default async (
   syncDB: AirtableSyncConfig,
   progress: (msg: string) => void
@@ -293,6 +297,10 @@ export default async (
       case 'computation':
         if (col.typeOptions?.resultType === 'collaborator')
           ncType = UITypes.Collaborator;
+        break;
+
+      case 'date':
+        if (col.typeOptions?.isDateTime) ncType = UITypes.DateTime;
         break;
 
       // case 'barcode':
@@ -1080,6 +1088,11 @@ export default async (
 
       if (dt === UITypes.Barcode) rec[key] = value.text;
       if (dt === UITypes.Button) rec[key] = `${value?.label} <${value?.url}>`;
+
+      if (dt === UITypes.DateTime) {
+        const atDateField = dayjs(value);
+        rec[key] = atDateField.utc().format('YYYY-MM-DD HH:mm');
+      }
 
       if (dt === UITypes.Attachment) {
         const tempArr = [];

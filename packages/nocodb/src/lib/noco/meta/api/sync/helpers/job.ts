@@ -80,7 +80,8 @@ export default async (
 
   async function getAtableSchema(sDB) {
     const start = Date.now();
-    const ft = await FetchAT(sDB.shareId);
+    await FetchAT.initialize(sDB.shareId)
+    const ft = await FetchAT.read();
     const duration = Date.now() - start;
     runTimeCounters.fetchAt.count++;
     runTimeCounters.fetchAt.time += duration;
@@ -96,15 +97,15 @@ export default async (
     return file;
   }
 
-  async function getViewData(shareId, tblId, viewId) {
+  async function getViewData(viewId) {
     const start = Date.now();
-    const ft = await FetchAT(shareId, tblId, viewId);
+    const ft = await FetchAT.readView(viewId);
     const duration = Date.now() - start;
     runTimeCounters.fetchAt.count++;
     runTimeCounters.fetchAt.time += duration;
 
     if (debugMode) jsonfile.writeFileSync(`${viewId}.json`, ft, { spaces: 2 });
-    return ft.schema?.tableDatas[0]?.viewDatas[0];
+    return ft.view;
   }
 
   // base mapping table
@@ -902,10 +903,6 @@ export default async (
       });
       updateNcTblSchema(ncTbl);
 
-      // remove entry
-      nestedLookupTbl.splice(i, 1);
-      syncLog(`NC API: dbTableColumn.create LOOKUP`);
-
       const ncId = ncTbl.columns.find(x => x.title === nestedLookupTbl[i].name)
         ?.id;
       await sMap.addToMappingTbl(
@@ -1265,11 +1262,7 @@ export default async (
 
         // create view
         // @ts-ignore
-        const vData = await getViewData(
-          sDB.shareId,
-          aTblSchema[idx].id,
-          galleryViews[i].id
-        );
+        const vData = await getViewData(galleryViews[i].id);
         const viewName = aTblSchema[idx].views.find(
           x => x.id === galleryViews[i].id
         )?.name;
@@ -1305,11 +1298,7 @@ export default async (
         syncLog(`   Axios fetch view-data`);
 
         // create view
-        const vData = await getViewData(
-          sDB.shareId,
-          aTblSchema[idx].id,
-          formViews[i].id
-        );
+        const vData = await getViewData(formViews[i].id);
         const viewName = aTblSchema[idx].views.find(
           x => x.id === formViews[i].id
         )?.name;
@@ -1381,11 +1370,7 @@ export default async (
         );
         syncLog(`   Axios fetch view-data`);
         // fetch viewData JSON
-        const vData = await getViewData(
-          sDB.shareId,
-          aTblSchema[idx].id,
-          gridViews[i].id
-        );
+        const vData = await getViewData(gridViews[i].id);
 
         // retrieve view name & associated NC-ID
         const viewName = aTblSchema[idx].views.find(

@@ -49,7 +49,6 @@
         </v-icon>
       </v-tab>
 
-      <!--      <v-tabs-items v-model="activeTab">-->
       <v-tabs-items :value="activeTab">
         <v-tab-item
           v-for="(tab, index) in tabs"
@@ -65,7 +64,6 @@
           :reverse-transition="false"
         >
           <div v-if="tab._nodes.type === 'table'" style="height: 100%">
-            <!--          <sqlLogAndOutput :hide="hideLogWindows">-->
             <TableView
               :ref="'tabs' + index"
               :is-active="
@@ -80,11 +78,8 @@
               :hide-log-windows.sync="hideLogWindows"
               :nodes="tab._nodes"
             />
-            <!--          </sqlLogAndOutput>-->
           </div>
           <div v-else-if="tab._nodes.type === 'view'" style="height: 100%">
-            <!--            <sqlLogAndOutput>-->
-            <!--            <ViewTab :ref="'tabs'+index" :nodes="tab._nodes" />-->
             <TableView
               :ref="'tabs' + index"
               :is-active="
@@ -247,22 +242,74 @@
             <h1>{{ tab._nodes }}</h1>
           </div>
         </v-tab-item>
-        <!--      </v-tabs-items>-->
       </v-tabs-items>
 
-      <!-- tooltip: Add new table -->
-      <x-icon
-        v-if="_isUIAllowed('addTable')"
-        :tooltip="$t('tooltip.addTable')"
-        icon-class="add-btn"
-        :color="['white', 'grey lighten-2']"
-        @click="dialogCreateTableShowMethod"
-      >
-        mdi-plus-box
-      </x-icon>
-      <v-spacer />
+      <!-- Add / Import -->
+      <v-menu offset-y>
+        <template v-slot:activator="{ on }">
+          <v-btn
+            color="primary"
+            style="height: 100%; padding: 5px;"
+            v-on="on"
+          >
+            <x-icon
+              icon-class="add-btn"
+              :color="['white', 'grey lighten-2']"
+            >
+              mdi-plus-box
+            </x-icon>
+            <span class="flex-grow-1 caption font-weight-bold text-capitalize mx-2">
+              <!-- TODO: i18n -->
+              Add / Import
+            </span>
+            <v-spacer />
+          </v-btn>
+        </template>
+        <v-list>
+          <v-list-item
+            v-if="_isUIAllowed('addTable')"
+            @click="dialogCreateTableShowMethod"
+          >
+            <v-list-item-title>
+              <v-icon small>
+                mdi-table
+              </v-icon>
+              <span class="caption">
+                <!-- Add new table -->
+                {{$t('tooltip.addTable')}}
+              </span>
+            </v-list-item-title>
+          </v-list-item>
+          <v-divider/>
+          <v-list-item
+            v-if="_isUIAllowed('TODO: UPDATE_ME')"
+          >
+            <v-list-item-title>
+              <v-icon small>
+                mdi-file-delimited
+              </v-icon>
+              <span class="caption">
+                <!-- TODO: i18n -->
+                CSV file
+              </span>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+            v-if="_isUIAllowed('TODO: UPDATE_ME')"
+          >
+            <v-list-item-title>
+              <v-icon small>
+                mdi-file-excel
+              </v-icon>
+              <span class="caption">
+                <!-- TODO: i18n -->
+                Excel file
+              </span>
+            </v-list-item-title>
+          </v-list-item>
+        </v-list>
+    </v-menu>
     </v-tabs>
-
     <dlg-table-create
       v-if="dialogCreateTableShow"
       v-model="dialogCreateTableShow"
@@ -562,6 +609,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

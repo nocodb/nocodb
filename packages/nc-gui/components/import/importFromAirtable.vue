@@ -42,16 +42,25 @@
           deleted: '',
           order: '',
           project_id: ''-->
-              <div v-if="syncSource" class="px-10 mt-1 mx-auto" style="max-width: 400px">
-                <!--                <v-text-field v-model="syncSource.title" outlined dense label="Title" class="caption" />-->
-                <v-text-field v-model="syncSource.details.apiKey" outlined dense label="Api Key" class="caption" />
-                <v-text-field
-                  v-model="syncSourceUrlOrId"
-                  outlined
-                  dense
-                  label="Shared Base ID / URL"
-                  class="caption"
-                />
+              <v-form v-model="valid">
+                <div v-if="syncSource" class="px-10 mt-1 mx-auto" style="max-width: 400px">
+                  <!--                <v-text-field v-model="syncSource.title" outlined dense label="Title" class="caption" />-->
+                  <v-text-field
+                    v-model="syncSource.details.apiKey"
+                    outlined
+                    dense
+                    label="Api Key"
+                    class="caption"
+                    :rules="[v=> !!v || 'Api Key is required']"
+                  />
+                  <v-text-field
+                    v-model="syncSourceUrlOrId"
+                    outlined
+                    dense
+                    label="Shared Base ID / URL"
+                    class="caption"
+                    :rules="[v=> !!v || 'Shared Base ID / URL is required']"
+                  />
                 <!--                <v-select
                   v-model="syncSource.details.syncInterval"
                   :items="['15mins','30mins','1hr', '24hr']"
@@ -77,10 +86,11 @@
                   label="Shared retry count"
                   class="caption"
                 />-->
-              </div>
-              <v-card-actions class="justify-center pb-6">
+                </div>
+              </v-form>   <v-card-actions class="justify-center pb-6">
                 <v-btn
                   v-t="['c:sync-airtable:save']"
+                  :disabled="!valid"
                   small
                   outlined
                   @click="createOrUpdate"
@@ -89,6 +99,7 @@
                 </v-btn>
                 <v-btn
                   v-t="['c:sync-airtable:save-and-sync']"
+                  :disabled="!valid"
                   small
                   outlined
                   @click="saveAndSync"
@@ -166,6 +177,7 @@ import io from 'socket.io-client'
 export default {
   name: 'ImportFromAirtable',
   data: () => ({
+    valid: false,
     socket: null,
     step: 1,
     progress: [],

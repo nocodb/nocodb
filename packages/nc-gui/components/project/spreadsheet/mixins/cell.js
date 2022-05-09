@@ -59,6 +59,9 @@ export default {
     isAttachment() {
       return this.uiDatatype === 'Attachment'
     },
+    isRating() {
+      return this.uiDatatype === UITypes.Rating
+    },
     isCurrency() {
       return this.column.uidt == 'Currency'
     }

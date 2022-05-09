@@ -139,7 +139,7 @@
                 v-show="!rowMeta || !rowMeta.selected"
                 class="ml-2 grey--text"
                 :class="{ 'row-no': !isPublicView }"
-              >{{ row + 1 }}</span>
+                >{{ row + 1 }}</span>
 
               <template v-if="!isPublicView">
                 <v-checkbox
@@ -820,6 +820,7 @@ export default {
         (column && column.uidt === UITypes.DateTime) ||
         (column && column.uidt === UITypes.Date) ||
         (column && column.uidt === UITypes.Time) ||
+        (column && column.uidt === UITypes.Rating) ||
         (this.sqlUi &&
           column.dt &&
           this.sqlUi.getAbstractType(column) === 'boolean')

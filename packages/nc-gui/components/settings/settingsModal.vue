@@ -189,7 +189,7 @@
             <div
               v-else-if="activePage === 'sync'"
             >
-              <import-from-airtable v-model="improtFromAirtableModal" />
+              <import-from-airtable v-model="improtFromAirtableModal" @close="settingsModal=false" />
             </div>
             <app-store v-else />
           </v-container>

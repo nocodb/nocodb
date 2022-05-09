@@ -123,6 +123,12 @@
                 </div>
               </v-card>
             </v-card>
+
+            <div v-if="progress && progress.length && progress[progress.length-1].status === 'COMPLETED'" class="pa-4 text-center">
+              <v-btn small outlined @click="$emit('close')">
+                Go to dashboard
+              </v-btn>
+            </div>
           </div>
 
           <!--          <v-card-actions-->

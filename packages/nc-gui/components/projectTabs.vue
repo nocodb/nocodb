@@ -296,6 +296,7 @@
           </v-list-item>
           <v-list-item
             v-if="_isUIAllowed('TODO: UPDATE_ME')"
+            @click="onImportFromExcel()"
           >
             <v-list-item-title>
               <v-icon small>
@@ -320,6 +321,9 @@
     />
 
     <!--    <screensaver v-if="showScreensaver && !($store.state.project.projectInfo && $store.state.project.projectInfo.ncMin)" class="screensaver" />-->
+
+  
+  <excel-import ref="excelImport" v-model="excelImportModal" hide-label />
   </v-container>
 </template>
 
@@ -351,6 +355,7 @@ import ProjectSettings from "@/components/project/projectSettings";
 import GrpcClient from "@/components/project/grpcClient";
 import GlobalAcl from "@/components/globalAcl";
 import AuditTab from "~/components/project/auditTab";
+import ExcelImport from "@/components/import/excelImport";
 
 export default {
   components: {
@@ -381,6 +386,7 @@ export default {
     sqlLogAndOutput,
     xTerm,
     graphqlClient,
+    ExcelImport
   },
   data() {
     return {
@@ -389,6 +395,7 @@ export default {
       treeViewIcons,
       hideLogWindows: false,
       showScreensaver: false,
+      excelImportModal: false,
     };
   },
   methods: {
@@ -467,6 +474,15 @@ export default {
       updateActiveTabx: "tabs/activeTabCtx",
     }),
     tabActivated(tab) {},
+    async onFileDrop(e) {
+      this.excelImportModal = true;
+      this.$refs.excelImport.dropHandler(e);
+    },
+    onImportFromExcel() {
+      this.excelImportModal = true;
+      // TODO: update tele
+      // this.$e("c:project:create:excel");
+    },
   },
   computed: {
     ...mapGetters({ tabs: "tabs/list", activeTabCtx: "tabs/activeTabCtx" }),
@@ -508,7 +524,11 @@ export default {
      * Listening for tab change so that we can hide/show projectlogs based on tab
      */
   },
-  mounted() {},
+  mounted() {
+    if (this.$route && this.$route.query && this.$route.query.excelUrl) {
+      this.excelImportModal = true;
+    }
+  },
   beforeDestroy() {},
   destroyed() {
     document.removeEventListener("keydown", this.handleKeyDown);

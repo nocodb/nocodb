@@ -69,7 +69,7 @@
                   <template #activator="{ on }">
                     <div>
                       <x-btn
-                        v-if="_isUIAllowed('projectCreate', true)"
+                        v-if="_isUIAllowed('projectCreate')"
                         v-ge="['home', 'project-new']"
                         data-v-step="1"
                         outlined
@@ -134,26 +134,6 @@
                         <!-- Supports MySQL, PostgreSQL, SQL Server & SQLite -->
                         <span class="caption">{{ $t("tooltip.extDB") }}</span>
                       </v-tooltip>
-                    </v-list-item>
-                    <v-divider />
-                    <v-list-item
-                      title
-                      class="pt-2 nc-create-project-from-excel"
-                      @click="onCreateProjectFromExcel()"
-                    >
-                      <v-list-item-icon class="mr-2">
-                        <v-icon small class="">
-                          mdi-file-excel-outline
-                        </v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-title>
-                        <span
-                          class="caption font-weight-regular"
-                          v-html="
-                            $t('activity.createProjectExtended.excel')
-                          "
-                        />
-                      </v-list-item-title>
                     </v-list-item>
                   </v-list>
                 </v-menu>
@@ -560,7 +540,6 @@
       :dialog-show="dialogShow"
       :heading="confirmMessage"
     />
-    <excel-import ref="excelImport" v-model="excelImportModal" hide-label />
     <templates-modal v-model="templatesModal" hide-label create-project />
   </v-container>
 </template>
@@ -571,11 +550,9 @@ import ShareIcons from "../../components/share-icons";
 import SponsorMini from "@/components/sponsorMini";
 import colors from "~/mixins/colors";
 import TemplatesModal from "~/components/templates/templatesModal";
-import ExcelImport from "~/components/import/excelImport";
 
 export default {
   components: {
-    ExcelImport,
     TemplatesModal,
     ShareIcons,
     SponsorMini,
@@ -840,11 +817,6 @@ export default {
     onCreateProjectFromTemplate() {
       this.templatesModal = true;
       this.$e("c:project:create:template");
-    },
-    onCreateProjectFromExcel() {
-      // this.$refs.excelImport.selectFile()
-      this.excelImportModal = true;
-      this.$e("c:project:create:excel");
     },
     async importProjectFromJSON() {},
     onTourCompletion() {

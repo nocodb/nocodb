@@ -137,6 +137,27 @@ export default async (
   // aTbl helper routines
   //
 
+  function nc_getSanitizedColumnName(table, name) {
+    // knex complains use of '?' in field name
+    // good to replace all special characters by _ in one go
+    const col_name = name
+      .replace(/\?/g, 'QQ')
+      .replace('.', '_')
+      .trim();
+
+    // check if already a column exists with same name?
+    const duplicateColumn = table.columns.find(x => x.title === name.trim());
+    if (duplicateColumn) {
+      if (enableErrorLogs) console.log(`## Duplicate ${name.trim()}`);
+    }
+
+    return {
+      // kludge: error observed in Nc with space around column-name
+      title: name.trim() + (duplicateColumn ? '_2' : ''),
+      column_name: col_name + (duplicateColumn ? '_2' : '')
+    };
+  }
+
   // aTbl: retrieve table name from table ID
   //
   function aTbl_getTableName(tblId) {
@@ -347,30 +368,13 @@ export default async (
         if (['formula'].includes(col.type)) continue;
 
         // base column schema
-        // kludge: error observed in Nc with space around column-name
+        const ncName: any = nc_getSanitizedColumnName(table, col.name);
         const ncCol: any = {
           // Enable to use aTbl identifiers as is: id: col.id,
-          title: col.name.trim(),
-
-          // knex complains use of '?' in field name
-          // good to replace all special characters by _ in one go
-          column_name: col.name
-            .replace(/\?/g, 'QQ')
-            .replace('.', '_')
-            .trim(),
+          title: ncName.title,
+          column_name: ncName.column_name,
           uidt: getNocoType(col)
         };
-
-        // check if already a column exists with same name?
-        const duplicateColumn = table.columns.find(
-          x => x.title === col.name.trim()
-        );
-        if (duplicateColumn) {
-          if (enableErrorLogs) console.log(`## Duplicate ${ncCol.title}`);
-
-          ncCol.title = ncCol.title + '_2';
-          ncCol.column_name = ncCol.column_name + '_2';
-        }
 
         // additional column parameters when applicable
         const colOptions = getNocoTypeOptions(col);
@@ -501,18 +505,16 @@ export default async (
 
             // check if already a column exists with this name?
             const srcTbl: any = await api.dbTable.read(srcTableId);
-            const duplicate = srcTbl.columns.find(
-              x => x.title === aTblLinkColumns[i].name
-            );
-            const suffix = duplicate ? '_2' : '';
-            if (duplicate)
-              if (enableErrorLogs)
-                console.log(`## Duplicate ${aTblLinkColumns[i].name}`);
 
             // create link
+            const ncName = nc_getSanitizedColumnName(
+              srcTbl,
+              aTblLinkColumns[i].name
+            );
             const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
               uidt: UITypes.LinkToAnotherRecord,
-              title: aTblLinkColumns[i].name + suffix,
+              title: ncName.title,
+              column_name: ncName.column_name,
               parentId: srcTableId,
               childId: childTableId,
               type: 'mm'
@@ -523,13 +525,11 @@ export default async (
             updateNcTblSchema(ncTbl);
             syncLog(`NC API: dbTableColumn.create LinkToAnotherRecord`);
 
-            const ncId = ncTbl.columns.find(
-              x => x.title === aTblLinkColumns[i].name + suffix
-            )?.id;
+            const ncId = ncTbl.columns.find(x => x.title === ncName.title)?.id;
             await sMap.addToMappingTbl(
               aTblLinkColumns[i].id,
               ncId,
-              aTblLinkColumns[i].name + suffix,
+              ncName.title,
               ncTbl.id
             );
 
@@ -628,11 +628,16 @@ export default async (
             // rename
             // note that: current rename API requires us to send all parameters,
             // not just title being renamed
+            const ncName = nc_getSanitizedColumnName(
+              childTblSchema,
+              aTblLinkColumns[i].name
+            );
             const ncTbl: any = await api.dbTableColumn.update(
               childLinkColumn.id,
               {
                 ...childLinkColumn,
-                title: aTblLinkColumns[i].name + suffix
+                title: ncName.title,
+                column_name: ncName.column_name
               }
             );
             updateNcTblSchema(ncTbl);
@@ -665,6 +670,7 @@ export default async (
       // parent table ID
       // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
       const srcTableId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
+      const srcTableSchema = ncSchema.tablesById[srcTableId];
 
       if (aTblColumns.length) {
         // Lookup
@@ -696,9 +702,14 @@ export default async (
             continue;
           }
 
+          const ncName = nc_getSanitizedColumnName(
+            srcTableSchema,
+            aTblColumns[i].name
+          );
           const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
             uidt: UITypes.Lookup,
-            title: aTblColumns[i].name,
+            title: ncName.title,
+            column_name: ncName.column_name,
             fk_relation_column_id: ncRelationColumnId,
             fk_lookup_column_id: ncLookupColumnId
           });
@@ -738,6 +749,7 @@ export default async (
         );
 
         const srcTableId = nestedLookupTbl[i].srcTableId;
+        const srcTableSchema = ncSchema.tablesById[srcTableId];
 
         const ncRelationColumnId = sMap.getNcIdFromAtId(
           nestedLookupTbl[i].typeOptions.relationColumnId
@@ -750,9 +762,14 @@ export default async (
           continue;
         }
 
+        const ncName = nc_getSanitizedColumnName(
+          srcTableSchema,
+          nestedLookupTbl[i].name
+        );
         const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
           uidt: UITypes.Lookup,
-          title: nestedLookupTbl[i].name,
+          title: ncName.title,
+          column_name: ncName.column_name,
           fk_relation_column_id: ncRelationColumnId,
           fk_lookup_column_id: ncLookupColumnId
         });
@@ -786,6 +803,7 @@ export default async (
       // parent table ID
       // let srcTableId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
       const srcTableId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
+      const srcTableSchema = ncSchema.tablesById[srcTableId];
 
       if (aTblColumns.length) {
         // rollup exist
@@ -817,9 +835,14 @@ export default async (
             continue;
           }
 
+          const ncName = nc_getSanitizedColumnName(
+            srcTableSchema,
+            aTblColumns[i].name
+          );
           const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
             uidt: UITypes.Rollup,
-            title: aTblColumns[i].name,
+            title: ncName.title,
+            column_name: ncName.column_name,
             fk_relation_column_id: ncRelationColumnId,
             fk_rollup_column_id: ncRollupColumnId,
             rollup_function: 'sum' // fix me: hardwired
@@ -847,6 +870,7 @@ export default async (
       syncLog(`Configuring Lookup over Rollup :: [${i + 1}/${nestedCnt}]`);
 
       const srcTableId = nestedLookupTbl[i].srcTableId;
+      const srcTableSchema = ncSchema.tablesById[srcTableId];
 
       const ncRelationColumnId = sMap.getNcIdFromAtId(
         nestedLookupTbl[i].typeOptions.relationColumnId
@@ -859,9 +883,14 @@ export default async (
         continue;
       }
 
+      const ncName = nc_getSanitizedColumnName(
+        srcTableSchema,
+        nestedLookupTbl[i].name
+      );
       const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
         uidt: UITypes.Lookup,
-        title: nestedLookupTbl[i].name,
+        title: ncName.title,
+        column_name: ncName.column_name,
         fk_relation_column_id: ncRelationColumnId,
         fk_lookup_column_id: ncLookupColumnId
       });

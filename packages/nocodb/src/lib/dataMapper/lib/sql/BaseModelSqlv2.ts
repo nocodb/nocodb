@@ -449,7 +449,7 @@ class BaseModelSqlv2 {
           .where(_wherePk(parentTable.primaryKeys, id))
       );
       // todo: sanitize
-      qb.limit(args?.limit || 20);
+      qb.limit(args?.limit || 500);
       qb.offset(args?.offset || 0);
 
       await childModel.selectObject({ qb });

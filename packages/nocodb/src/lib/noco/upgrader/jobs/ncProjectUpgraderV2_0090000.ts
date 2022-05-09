@@ -383,6 +383,8 @@ async function migrateProjectModels(
       // parse meta
 
       const project = await Project.getWithInfo(modelData.project_id, ncMeta);
+      if (!project) continue;
+
       const baseId = project.bases[0].id;
 
       const meta = JSON.parse(modelData.meta);
@@ -792,7 +794,7 @@ async function migrateProjectModels(
         await View.update(
           defaultView.id,
           {
-            show_system_fields: queryParams.showSystemFields,
+            show_system_fields: queryParams?.showSystemFields,
             order: modelData.view_order
           },
           ncMeta
@@ -1020,7 +1022,7 @@ async function migrateViewsParams(
           view.lock_type = queryParams?.viewStatus?.type;
         }
         // migrate view sort list
-        for (const sort of queryParams.sortList || []) {
+        for (const sort of queryParams?.sortList || []) {
           await Sort.insert(
             {
               fk_column_id: sort.field
@@ -1037,7 +1039,7 @@ async function migrateViewsParams(
         }
 
         // migrate view filter list
-        for (const filter of queryParams.filters || []) {
+        for (const filter of queryParams?.filters || []) {
           await Filter.insert(
             {
               fk_column_id: filter.field

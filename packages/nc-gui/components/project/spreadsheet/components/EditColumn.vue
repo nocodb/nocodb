@@ -158,6 +158,14 @@
                   </div>
                 </v-col>
 
+                <v-col v-if="isRating" cols="12">
+                  <rating-options
+                    :column="newColumn"
+                    :meta="meta"
+                    v-on="$listeners"
+                  />
+                </v-col>
+
                 <v-col v-show="advanceOptions || !accordion" cols="12">
                   <v-row>
                     <template v-if="newColumn.uidt !== 'Formula'">
@@ -526,10 +534,12 @@ import RelationOptions from '~/components/project/spreadsheet/components/editCol
 import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel'
 import LinkedToAnotherOptions from '~/components/project/spreadsheet/components/editColumn/LinkedToAnotherOptions'
 import { validateColumnName } from '~/helpers'
+import RatingOptions from '~/components/project/spreadsheet/components/editColumn/ratingOptions'
 
 export default {
   name: 'EditColumn',
   components: {
+    RatingOptions,
     RollupOptions,
     FormulaOptions,
     LookupOptions,
@@ -593,6 +603,9 @@ export default {
     },
     isLookup() {
       return this.newColumn && this.newColumn.uidt === 'Lookup'
+    },
+    isRating() {
+      return this.newColumn && this.newColumn.uidt === UITypes.Rating
     },
     isRollup() {
       return this.newColumn && this.newColumn.uidt === 'Rollup'

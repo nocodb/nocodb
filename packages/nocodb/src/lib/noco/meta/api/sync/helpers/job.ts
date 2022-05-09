@@ -137,13 +137,19 @@ export default async (
   // aTbl helper routines
   //
 
-  function nc_getSanitizedColumnName(table, name) {
+  function nc_sanitizeName(name) {
     // knex complains use of '?' in field name
     // good to replace all special characters by _ in one go
     const col_name = name
       .replace(/\?/g, 'QQ')
       .replace('.', '_')
       .trim();
+
+    return col_name;
+  }
+
+  function nc_getSanitizedColumnName(table, name) {
+    const col_name = nc_sanitizeName(name);
 
     // check if already a column exists with same name?
     const duplicateColumn = table.columns.find(x => x.title === name.trim());
@@ -335,8 +341,8 @@ export default async (
       runTimeCounters.view.total += tblSchema[i].views.length;
 
       // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
-      table.table_name = tblSchema[i].name;
       table.title = tblSchema[i].name;
+      table.table_name = nc_sanitizeName(tblSchema[i].name);
 
       // insert _aTbl_nc_rec_id of type ID by default
       table.columns = [

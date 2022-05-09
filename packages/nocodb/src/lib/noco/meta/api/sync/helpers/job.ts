@@ -84,7 +84,7 @@ export default async (
 
   async function getAtableSchema(sDB) {
     const start = Date.now();
-    await FetchAT.initialize(sDB.shareId)
+    await FetchAT.initialize(sDB.shareId);
     const ft = await FetchAT.read();
     const duration = Date.now() - start;
     runTimeCounters.fetchAt.count++;
@@ -390,6 +390,11 @@ export default async (
           column_name: ncName.column_name,
           uidt: getNocoType(col)
         };
+
+        // populate cdf (column default value) if configured
+        if (col?.default) {
+          ncCol.cdf = col.default;
+        }
 
         // additional column parameters when applicable
         const colOptions = getNocoTypeOptions(col);

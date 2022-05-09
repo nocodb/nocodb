@@ -99,7 +99,7 @@ export default {
           this.$store.commit('loader/MutMessage', this.loaderMessages[this.loaderMessagesIndex])
         }, 1000)
 
-        let project
+        const projectId = this.$store.state.project.project.id
 
         // Not available now
         if (this.importToProject) {
@@ -128,11 +128,11 @@ export default {
               // enrich system fields if not provided
               // e.g. id, created_at, updated_at
               const systemColumns = SqlUiFactory
-                .create({ client: 'sqlite3' })
+                .create({ client: this.$store.state.project.project.bases[0].type })
                 .getNewTableColumns()
                 .filter(c => c.column_name != 'title')
 
-              const table = await this.$api.dbTable.create(project.id, {
+              const table = await this.$api.dbTable.create(projectId, {
                 table_name: t.table_name,
                 title: '',
                 columns: [...t.columns, ...systemColumns]
@@ -158,15 +158,20 @@ export default {
         // Bulk import data
         if (this.importData) {
           this.$store.commit('loader/MutMessage', 'Importing excel data to project')
-          await this.importDataToProject(this.templateData.title)
+          await this.importDataToProject()
         }
 
-        this.$router.push({
-          path: `/nc/${project.id}`,
-          query: {
-            new: 1
+        // reload table list
+        this.$store.dispatch('project/_loadTables', {
+          dbKey: '0.projectJson.envs._noco.db.0',
+          key: '0.projectJson.envs._noco.db.0.tables',
+          _nodes: {
+            dbAlias: 'db',
+            env: '_noco',
+            type: 'tableDir'
           }
         })
+        this.simpleAnim()
 
         this.$emit('success')
       } catch (e) {
@@ -179,9 +184,10 @@ export default {
         this.tableCreation = false
       }
     },
-    async importDataToProject(projectName) {
+    async importDataToProject() {
       let total = 0
       let progress = 0
+      const projectName = this.$store.state.project.project.title
       await Promise.all(this.localTemplateData.tables.map(v => (async(tableMeta) => {
         const tableName = tableMeta.table_title
         const data = this.importData[tableMeta.ref_table_name]
@@ -207,9 +213,43 @@ export default {
         [col.column_name]: data[col.ref_column_name]
       }), {})
       )
+    },
+    simpleAnim() {
+      const count = 200
+      const defaults = {
+        origin: { y: 0.7 }
+      }
+
+      function fire(particleRatio, opts) {
+        window.confetti(Object.assign({}, defaults, opts, {
+          particleCount: Math.floor(count * particleRatio)
+        }))
+      }
+
+      fire(0.25, {
+        spread: 26,
+        startVelocity: 55
+      })
+      fire(0.2, {
+        spread: 60
+      })
+      fire(0.35, {
+        spread: 100,
+        decay: 0.91,
+        scalar: 0.8
+      })
+      fire(0.1, {
+        spread: 120,
+        startVelocity: 25,
+        decay: 0.92,
+        scalar: 1.2
+      })
+      fire(0.1, {
+        spread: 120,
+        startVelocity: 45
+      })
     }
   }
-
 }
 </script>
 

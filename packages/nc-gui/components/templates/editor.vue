@@ -60,24 +60,6 @@
           <v-col cols="12">
             <v-card class="elevation-0">
               <v-card-text>
-                <div v-if="!viewMode" class="mx-auto" style="max-width: 400px">
-                  <div class="mt-1">
-                    <v-text-field
-                      ref="project"
-                      v-model="project.title"
-                      class="title"
-                      outlined
-                      hide-details
-                      denses
-                      :rules="[(v) => !!v || 'Project name required']"
-                    >
-                      <template #label>
-                        <span class="caption">Project Name</span>
-                      </template>
-                    </v-text-field>
-                  </div>
-                </div>
-
                 <p v-if="project.tables" class="caption grey--text mt-4">
                   {{ project.tables.length }} sheet{{
                     project.tables.length > 1 ? "s" : ""

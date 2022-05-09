@@ -205,7 +205,7 @@ export default {
             env: '_noco',
             type: 'tableDir'
           }
-        })
+        }).then(() => this.$store.dispatch('tabs/loadFirstTableTab'))
       }
     })
     this.loadSyncSrc()

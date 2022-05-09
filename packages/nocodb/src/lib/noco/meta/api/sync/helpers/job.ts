@@ -755,14 +755,14 @@ export default async (
           `Configuring Nested Lookup: Level-${level} [${i + 1}/${nestedCnt}]`
         );
 
-        const srcTableId = nestedLookupTbl[i].srcTableId;
+        const srcTableId = nestedLookupTbl[0].srcTableId;
         const srcTableSchema = ncSchema.tablesById[srcTableId];
 
         const ncRelationColumnId = sMap.getNcIdFromAtId(
-          nestedLookupTbl[i].typeOptions.relationColumnId
+          nestedLookupTbl[0].typeOptions.relationColumnId
         );
         const ncLookupColumnId = sMap.getNcIdFromAtId(
-          nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
+          nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId
         );
 
         if (ncLookupColumnId === undefined) {
@@ -771,7 +771,7 @@ export default async (
 
         const ncName = nc_getSanitizedColumnName(
           srcTableSchema,
-          nestedLookupTbl[i].name
+          nestedLookupTbl[0].name
         );
         const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
           uidt: UITypes.Lookup,
@@ -783,17 +783,17 @@ export default async (
         updateNcTblSchema(ncTbl);
 
         const ncId = ncTbl.columns.find(
-          x => x.title === nestedLookupTbl[i].name
+          x => x.title === nestedLookupTbl[0].name
         )?.id;
         await sMap.addToMappingTbl(
-          nestedLookupTbl[i].id,
+          nestedLookupTbl[0].id,
           ncId,
-          nestedLookupTbl[i].name,
+          nestedLookupTbl[0].name,
           ncTbl.id
         );
 
         // remove entry
-        nestedLookupTbl.splice(i, 1);
+        nestedLookupTbl.splice(0, 1);
         syncLog(`NC API: dbTableColumn.create LOOKUP`);
       }
       level++;
@@ -876,14 +876,14 @@ export default async (
     for (let i = 0; i < nestedLookupTbl.length; i++) {
       syncLog(`Configuring Lookup over Rollup :: [${i + 1}/${nestedCnt}]`);
 
-      const srcTableId = nestedLookupTbl[i].srcTableId;
+      const srcTableId = nestedLookupTbl[0].srcTableId;
       const srcTableSchema = ncSchema.tablesById[srcTableId];
 
       const ncRelationColumnId = sMap.getNcIdFromAtId(
-        nestedLookupTbl[i].typeOptions.relationColumnId
+        nestedLookupTbl[0].typeOptions.relationColumnId
       );
       const ncLookupColumnId = sMap.getNcIdFromAtId(
-        nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId
+        nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId
       );
 
       if (ncLookupColumnId === undefined) {
@@ -892,7 +892,7 @@ export default async (
 
       const ncName = nc_getSanitizedColumnName(
         srcTableSchema,
-        nestedLookupTbl[i].name
+        nestedLookupTbl[0].name
       );
       const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
         uidt: UITypes.Lookup,
@@ -903,14 +903,18 @@ export default async (
       });
       updateNcTblSchema(ncTbl);
 
-      const ncId = ncTbl.columns.find(x => x.title === nestedLookupTbl[i].name)
+      const ncId = ncTbl.columns.find(x => x.title === nestedLookupTbl[0].name)
         ?.id;
       await sMap.addToMappingTbl(
-        nestedLookupTbl[i].id,
+        nestedLookupTbl[0].id,
         ncId,
-        nestedLookupTbl[i].name,
+        nestedLookupTbl[0].name,
         ncTbl.id
       );
+
+      // remove entry
+      nestedLookupTbl.splice(0, 1);
+      syncLog(`NC API: dbTableColumn.create LOOKUP`);
     }
   }
 

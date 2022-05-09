@@ -905,7 +905,25 @@ export default async (
     }
   }
 
-  async function nc_hideColumn(tblName, viewName, columnName, viewType?) {
+  // retrieve nc-view column ID from corresponding nc-column ID
+  async function nc_getViewColumnId(viewId, viewType, ncColumnId) {
+    // retrieve view Info
+    let viewDetails = [];
+
+    if (viewType === 'form')
+      viewDetails = (await api.dbView.formRead(viewId)).columns;
+    else if (viewType === 'gallery')
+      viewDetails = (await api.dbView.galleryRead(viewId)).columns;
+    else viewDetails = await api.dbView.gridColumnsList(viewId);
+
+    const viewColumnId = viewDetails.find(x => x.fk_column_id === ncColumnId)
+      ?.id;
+
+    return viewColumnId;
+  }
+
+  // @ts-ignore
+  async function nc_hideColumn(tblName, viewName, hiddenColumns, viewType?) {
     // retrieve table schema
     const ncTbl = await nc_getTableSchema(tblName);
     // retrieve view ID
@@ -920,9 +938,9 @@ export default async (
       viewDetails = (await api.dbView.galleryRead(viewId)).columns;
     else viewDetails = await api.dbView.gridColumnsList(viewId);
 
-    for (let i = 0; i < columnName.length; i++) {
+    for (let i = 0; i < hiddenColumns.length; i++) {
       // retrieve column schema
-      const ncColumn = ncTbl.columns.find(x => x.title === columnName[i]);
+      const ncColumn = ncTbl.columns.find(x => x.title === hiddenColumns[i]);
       // retrieve view column ID
       const viewColumnId = viewDetails.find(
         x => x.fk_column_id === ncColumn?.id
@@ -932,7 +950,7 @@ export default async (
       if (viewColumnId === undefined) {
         if (enableErrorLogs)
           console.log(
-            `## Column disable fail: ${tblName}, ${viewName}, ${columnName[i]}`
+            `## Column disable fail: ${tblName}, ${viewName}, ${hiddenColumns[i]}`
           );
         continue;
       }
@@ -943,30 +961,6 @@ export default async (
       const retVal = await api.dbViewColumn.update(viewId, viewColumnId, {
         show: false
       });
-    }
-  }
-
-  // @ts-ignore
-  async function nocoReconfigureFields(aTblSchema) {
-    for (let idx = 0; idx < aTblSchema.length; idx++) {
-      const hiddenColumns = ['_aTbl_nc_rec_id', '_aTbl_nc_rec_hash'];
-
-      // extract other columns hidden in this view
-      const hiddenColumnID = aTblSchema[idx].meaningfulColumnOrder.filter(
-        x => x.visibility === false
-      );
-      for (let i = 0; i < hiddenColumnID.length; i++) {
-        hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[i].columnId).cn);
-      }
-      syncLog(
-        `[${idx + 1}/${aTblSchema.length}] Hide columns [${idx + 1}/${
-          aTblSchema.length
-        }] ${aTblSchema[idx].name}`
-      );
-
-      const aTbl_viewname = aTblSchema[idx].views.find(x => x.type === 'grid')
-        .name;
-      await nc_hideColumn(aTblSchema[idx].name, aTbl_viewname, hiddenColumns);
     }
   }
 
@@ -1385,7 +1379,8 @@ export default async (
           ncViewId,
           vData.columnOrder,
           aTblSchema[idx].name,
-          viewName
+          viewName,
+          'grid'
         );
 
         // configure filters
@@ -1680,13 +1675,54 @@ export default async (
     // force hide PK column
     const hiddenColumns = ['_aTbl_nc_rec_id', '_aTbl_nc_rec_hash'];
 
-    // extract other columns hidden in this view
-    const hiddenColumnID = c.filter(x => x.visibility === false);
-    for (let j = 0; j < hiddenColumnID.length; j++) {
-      hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn);
+    // // extract other columns hidden in this view
+    // const hiddenColumnID = c.filter(x => x.visibility === false);
+    // for (let j = 0; j < hiddenColumnID.length; j++) {
+    //   hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn);
+    // }
+
+    // await nc_hideColumn(tblName, viewName, hiddenColumns, viewType);
+
+    // column order corrections
+    // retrieve table schema
+    const ncTbl = await nc_getTableSchema(tblName);
+    // retrieve view ID
+    const viewId = ncTbl.views.find(x => x.title === viewName).id;
+
+    // nc-specific columns; default hide.
+    for (let j = 0; j < hiddenColumns.length; j++) {
+      const ncColumnId = ncTbl.columns.find(x => x.title === hiddenColumns[j])
+        .id;
+      const ncViewColumnId = await nc_getViewColumnId(
+        viewId,
+        viewType,
+        ncColumnId
+      );
+      if (ncViewColumnId === undefined) continue;
+
+      // first two positions held by record id & record hash
+      await api.dbViewColumn.update(viewId, ncViewColumnId, {
+        show: false,
+        order: j + 1
+      });
     }
 
-    await nc_hideColumn(tblName, viewName, hiddenColumns, viewType);
+    // rest of the columns from airtable- retain order & visibility property
+    for (let j = 0; j < c.length; j++) {
+      const ncColumnId = sMap.getNcIdFromAtId(c[j].columnId);
+      const ncViewColumnId = await nc_getViewColumnId(
+        viewId,
+        viewType,
+        ncColumnId
+      );
+      if (ncViewColumnId === undefined) continue;
+
+      // first two positions held by record id & record hash
+      await api.dbViewColumn.update(viewId, ncViewColumnId, {
+        show: c[j].visibility,
+        order: j + 1 + hiddenColumns.length
+      });
+    }
   }
 
   ///////////////////////////////////////////////////////////////////////////////

@@ -205,7 +205,7 @@ import DisableOrEnableModels from '~/components/project/projectMetadata/disableO
 import AuthTab from '~/components/authTab'
 import XcMeta from '~/components/project/settings/xcMeta'
 import AuditTab from '~/components/project/auditTab'
-import ImportFromAirtable from '~/components/imprt/importFromAirtable'
+import ImportFromAirtable from '~/components/import/importFromAirtable'
 
 export default {
   name: 'SettingsModal',

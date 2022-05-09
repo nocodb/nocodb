@@ -111,7 +111,7 @@
                   <span class="caption nc-text">{{ msg }}</span>
                 </div>
                 <div
-                  v-if="!progress || !progress.length || progress[progress.length-1].msg !== 'completed' && progress[progress.length-1].status !== 'FAILED'"
+                  v-if="!progress || !progress.length || progress[progress.length-1].status !== 'COMPLETED' && progress[progress.length-1].status !== 'FAILED'"
                   class=""
                 >
                   <v-icon color="green" size="15">
@@ -175,6 +175,18 @@ export default {
           el.scrollTop = el.scrollHeight
         }
       })
+
+      if (d.status === 'COMPLETED') {
+        this.$store.dispatch('project/_loadTables', {
+          dbKey: '0.projectJson.envs._noco.db.0',
+          key: '0.projectJson.envs._noco.db.0.tables',
+          _nodes: {
+            dbAlias: 'db',
+            env: '_noco',
+            type: 'tableDir'
+          }
+        })
+      }
     })
     this.loadSyncSrc()
   },

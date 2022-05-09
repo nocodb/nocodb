@@ -8,13 +8,15 @@
           <span class="caption text-capitalize">
             Airtable
           </span>
-        </v-tab>        <v-tab
+        </v-tab>
+        <v-tab
           v-t="['c:sync-tab:stripe']"
         >
           <span class="caption text-capitalize">
             Stripe
           </span>
-        </v-tab>        <v-tab
+        </v-tab>
+        <v-tab
           v-t="['c:sync-tab:salesforce']"
         >
           <span class="caption text-capitalize">
@@ -27,7 +29,10 @@
             <!--    <v-dialog v-model="importModal" max-width="min(500px, 90%)">-->
             <v-card v-if="step === 1" class="py-6">
               <v-card-title class="title text-center justify-center">
-                Credentials
+                <span @dblclick="$set(syncSource.details,'syncViews',true)">Credentials<span
+                  v-if="syncSource && syncSource.details && syncSource.details.syncViews"
+                >.</span>
+                </span>
               </v-card-title>
 
               <!--
@@ -40,7 +45,13 @@
               <div v-if="syncSource" class="px-10 mt-1 mx-auto" style="max-width: 400px">
                 <!--                <v-text-field v-model="syncSource.title" outlined dense label="Title" class="caption" />-->
                 <v-text-field v-model="syncSource.details.apiKey" outlined dense label="Api Key" class="caption" />
-                <v-text-field v-model="syncSource.details.shareId" outlined dense label="Shared Base ID" class="caption" />
+                <v-text-field
+                  v-model="syncSource.details.shareId"
+                  outlined
+                  dense
+                  label="Shared Base ID"
+                  class="caption"
+                />
                 <!--                <v-select
                   v-model="syncSource.details.syncInterval"
                   :items="['15mins','30mins','1hr', '24hr']"
@@ -122,13 +133,16 @@
                   <!--                  <div class="nc-progress" />-->
                 </div>
               </v-card>
-            </v-card>
 
-            <div v-if="progress && progress.length && progress[progress.length-1].status === 'COMPLETED'" class="pa-4 text-center">
-              <v-btn small outlined @click="$emit('close')">
-                Go to dashboard
-              </v-btn>
-            </div>
+              <div
+                v-if="progress && progress.length && progress[progress.length-1].status === 'COMPLETED'"
+                class="pa-4 pt-8 text-center"
+              >
+                <v-btn small color="primary" @click="$emit('close')">
+                  Go to dashboard
+                </v-btn>
+              </div>
+            </v-card>
           </div>
 
           <!--          <v-card-actions-->
@@ -227,6 +241,8 @@ export default {
             syncDirection: 'Airtable to NocoDB',
             syncRetryCount: 1,
 
+            syncViews: false,
+
             apiKey: '',
             shareId: ''
           }
@@ -252,7 +268,7 @@ export default {
 <style scoped>
 
 .nc-progress {
-  margin-left:12px;
+  margin-left: 12px;
   position: relative;
   width: 5px;
   height: 5px;

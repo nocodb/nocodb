@@ -1207,6 +1207,7 @@ export default async (
   }
 
   async function nocoConfigureGalleryView(sDB, aTblSchema) {
+    if (!sDB.syncViews) return;
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
       const galleryViews = aTblSchema[idx].views.filter(
@@ -1250,6 +1251,7 @@ export default async (
   }
 
   async function nocoConfigureFormView(sDB, aTblSchema) {
+    if (!sDB.syncViews) return;
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const tblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
       const formViews = aTblSchema[idx].views.filter(x => x.type === 'form');
@@ -1336,7 +1338,7 @@ export default async (
         runTimeCounters.view.form;
       runTimeCounters.view.grid += gridViews.length;
 
-      for (let i = 0; i < gridViews.length; i++) {
+      for (let i = 0; i < (sDB.syncViews ? gridViews.length : 1); i++) {
         syncLog(
           `[${configuredViews + i + 1}/${
             runTimeCounters.view.total
@@ -1860,6 +1862,7 @@ export default async (
     throw e;
   }
 };
+
 export interface AirtableSyncConfig {
   id: string;
   baseURL: string;
@@ -1868,4 +1871,5 @@ export interface AirtableSyncConfig {
   projectId?: string;
   apiKey: string;
   shareId: string;
+  syncViews: boolean;
 }

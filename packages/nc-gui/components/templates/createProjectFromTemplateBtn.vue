@@ -122,29 +122,6 @@ export default {
           // projectId = this.$route.params.project_id
           // prefix = this.$store.getters['project/GtrProjectPrefix']
         } else {
-          // Create an empty project
-          try {
-            this.$e("a:project:create:excel");
-
-            project = await this.$api.project.create({
-              title: this.templateData.title,
-              external: false
-            })
-            this.projectCreation = true
-          } catch (e) {
-            this.projectCreation = false
-            this.$toast
-              .error(await this._extractSdkResponseErrorMsg(e))
-              .goAway(3000)
-          } finally {
-            clearInterval(interv)
-          }
-
-          if (!this.projectCreation) {
-            // failed to create project
-            return
-          }
-
           // Create tables
           try {
             for (const t of this.localTemplateData.tables) {

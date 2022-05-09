@@ -46,10 +46,10 @@
                 <!--                <v-text-field v-model="syncSource.title" outlined dense label="Title" class="caption" />-->
                 <v-text-field v-model="syncSource.details.apiKey" outlined dense label="Api Key" class="caption" />
                 <v-text-field
-                  v-model="syncSource.details.shareId"
+                  v-model="syncSourceUrlOrId"
                   outlined
                   dense
-                  label="Shared Base ID"
+                  label="Shared Base ID / URL"
                   class="caption"
                 />
                 <!--                <v-select
@@ -169,8 +169,17 @@ export default {
     socket: null,
     step: 1,
     progress: [],
-    syncSource: null
+    syncSource: null,
+    syncSourceUrlOrId: ''
   }),
+  watch: {
+    syncSourceUrlOrId(v) {
+      if (this.syncSource && this.syncSource.details) {
+        const m = v.match(/airtable\.com\/([\w.-]+)/)
+        this.syncSource.details.shareId = m ? m[1] : v
+      }
+    }
+  },
   created() {
     this.socket = io(new URL(this.$axios.defaults.baseURL, window.location.href.split(/[?#]/)[0]).href, {
       extraHeaders: { 'xc-auth': this.$store.state.users.token }
@@ -233,6 +242,7 @@ export default {
       if (srcs && srcs[0]) {
         srcs[0].details = srcs[0].details || {}
         this.syncSource = srcs[0]
+        this.syncSourceUrlOrId = srcs[0].details.shareId
       } else {
         this.syncSource = {
           type: 'Airtable',

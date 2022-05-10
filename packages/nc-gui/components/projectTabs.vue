@@ -338,6 +338,7 @@
       v-model="columnMappingModal"
       :import-data-columns="parsedCsv.columns"
       :parsed-csv="parsedCsv"
+      :csv-file-name="csvFileName"
       @import="importData"
     />
     <!-- Import From Excel -->
@@ -423,6 +424,7 @@ export default {
       csvImportModal: false,
       columnMappingModal: false,
       parsedCsv: {},
+      csvFileName: ""
     };
   },
   methods: {
@@ -519,8 +521,9 @@ export default {
         templateGenerator.parseData()
         this.parsedCsv.columns = templateGenerator.getColumns()
         this.parsedCsv.data = templateGenerator.getData()
-        this.columnMappingModal = true
         this.csvImportModal = false
+        this.columnMappingModal = true
+        this.csvFileName = file.name
       }
       reader.readAsText(file)
     },

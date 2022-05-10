@@ -1,8 +1,80 @@
 <template>
   <v-dialog v-model="visible" max-width="800px">
     <!-- Import CSV to a new Table -->
-    <v-card>
-      <!-- TODO -->
+    <v-card v-if="!meta">
+      <v-card-actions>
+        <v-card-title>
+          <v-icon color="primary lighten-1" style="padding-right: 5px;">mdi-table</v-icon>
+          <v-text-field
+            v-if="editableTn"
+            :value="tableTn"
+            class="font-weight-bold"
+            outlinedk
+            autofocus
+            dense
+            hide-details
+            @input="(e) => onTableNameUpdate(e)"
+            @click="(e) => e.stopPropagation()"
+            @blur="editableTn = false"
+            @keydown.enter="editableTn = false"
+          />
+          <span
+            v-else
+            class="font-weight-bold"
+            @click="
+              (e) =>
+                (e.stopPropagation(), editableTn = true)
+            "
+          >
+            {{ tableTn }}
+          </span>
+        </v-card-title>
+        <v-spacer />
+        <v-btn
+          :disabled="
+            !valid ||
+              (typeof noSelectedColumnError === 'string' || noSelectedColumnError)
+          "
+          color="primary"
+          large
+          @click="$emit('import',mappings)"
+        >
+          <v-icon small class="mr-1">
+            mdi-database-import-outline
+          </v-icon>
+          Import
+        </v-btn>
+      </v-card-actions>
+      <div v-if="noSelectedColumnError" class="error--text caption pa-2 text-center">
+        {{ noSelectedColumnError }}
+      </div>
+      <v-divider />
+      <v-container fluid>
+        <v-form ref="form" v-model="valid">
+          <v-simple-table dense style="position:relative;">
+            <thead>
+              <tr>
+                <th/>
+                <th style="width:15%" class="grey--text">
+                  Source column
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(r,i) in mappings" :key="i">
+                <td>
+                  <v-checkbox v-model="r.enabled" class="mt-0" dense hide-details @change="$refs.form.validate()" />
+                </td>
+                <td class="caption" style="width:95%">
+                  <div :title="r.sourceCn" style="">
+                    {{ r.sourceCn }}
+                  </div>
+                </td>
+              </tr>
+            </tbody>
+          </v-simple-table>
+        </v-form>
+      </v-container>
     </v-card>
     <!-- Import CSV to existing Table -->
     <v-card v-if="meta">
@@ -104,12 +176,15 @@ export default {
     meta: Object,
     importDataColumns: Array,
     value: Boolean,
-    parsedCsv: Object
+    parsedCsv: Object,
+    csvFileName: String
   },
   data() {
     return {
       mappings: [],
-      valid: false
+      valid: false,
+      editableTn: false,
+      tableTn: this.csvFileName
     }
   },
   computed: {
@@ -138,9 +213,7 @@ export default {
     }
   },
   mounted() {
-    if (this.meta) {
-      this.mapDefaultColumns()
-    }
+    this.mapDefaultColumns()
   },
 
   methods: {
@@ -201,9 +274,11 @@ export default {
       this.mappings = []
       for (const col of this.importDataColumns) {
         const o = { sourceCn: col, enabled: true }
-        const tableColumn = this.meta.columns.find(c => c.title === col)
-        if (tableColumn) {
-          o.destCn = tableColumn.title
+        if (this.meta) {
+          const tableColumn = this.meta.columns.find(c => c.title === col)
+          if (tableColumn) {
+            o.destCn = tableColumn.title
+          }
         }
         this.mappings.push(o)
       }
@@ -211,7 +286,10 @@ export default {
     },
     getIcon(uidt) {
       return getUIDTIcon(uidt) || 'mdi-alpha-v-circle-outline'
-    }
+    },
+    onTableNameUpdate(newVal) {
+      this.tableTn = newVal
+    },
   }
 }
 </script>

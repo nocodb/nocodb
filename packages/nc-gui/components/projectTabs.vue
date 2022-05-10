@@ -333,6 +333,13 @@
     />
     <!-- Import From CSV -->
     <drop-or-select-file-modal v-model="csvImportModal" accept=".csv" text="CSV" @file="onCsvFileSelection" />
+    <column-mapping-modal
+      v-if="columnMappingModal"
+      v-model="columnMappingModal"
+      :import-data-columns="parsedCsv.columns"
+      :parsed-csv="parsedCsv"
+      @import="importData"
+    />
     <!-- Import From Excel -->
     <excel-import ref="excelImport" v-model="excelImportModal" hide-label />
   </v-container>
@@ -369,6 +376,7 @@ import AuditTab from "~/components/project/auditTab";
 import ExcelImport from "@/components/import/excelImport";
 import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
 import DropOrSelectFileModal from '~/components/import/dropOrSelectFileModal'
+import ColumnMappingModal from '~/components/project/spreadsheet/components/importExport/columnMappingModal'
 
 export default {
   components: {
@@ -400,7 +408,8 @@ export default {
     xTerm,
     graphqlClient,
     ExcelImport,
-    DropOrSelectFileModal
+    DropOrSelectFileModal,
+    ColumnMappingModal
   },
   data() {
     return {
@@ -412,6 +421,8 @@ export default {
       showScreensaver: false,
       excelImportModal: false,
       csvImportModal: false,
+      columnMappingModal: false,
+      parsedCsv: {},
     };
   },
   methods: {
@@ -509,10 +520,51 @@ export default {
         this.parsedCsv.columns = templateGenerator.getColumns()
         this.parsedCsv.data = templateGenerator.getData()
         this.columnMappingModal = true
-        this.importModal = false
+        this.csvImportModal = false
       }
       reader.readAsText(file)
     },
+    async importData(columnMappings) {
+      try {
+        const data = this.parsedCsv.data
+        for (let i = 0, progress = 0; i < data.length; i += 500) {
+          const batchData = data.slice(i, i + 500).map(row => columnMappings.reduce((res, col) => {
+            if (col.enabled && col.destCn) {
+              const v = this.meta && this.meta.columns.find(c => c.title === col.destCn)
+              let input = row[col.sourceCn]
+              // parse potential boolean values
+              if (v.uidt == UITypes.Checkbox) {
+                input = input.replace(/["']/g, '').toLowerCase().trim()
+                if (input == 'false' || input == 'no' || input == 'n') {
+                  input = '0'
+                } else if (input == 'true' || input == 'yes' || input == 'y') {
+                  input = '1'
+                }
+              } else if (v.uidt === UITypes.Number) {
+                if (input == '') { input = null }
+              }
+              res[col.destCn] = input
+            }
+            return res
+          }, {}))
+          await this.$api.dbTableRow.bulkCreate(
+            'noco',
+            this.projectName,
+            this.meta.title,
+            batchData
+          )
+          progress += batchData.length
+          this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${data.length}`)
+          this.$store.commit('loader/MutProgress', Math.round((100 * progress / data.length)))
+        }
+        this.columnMappingModal = false
+        this.$store.commit('loader/MutClear')
+        this.$emit('reload')
+        this.$toast.success('Successfully imported table data').goAway(3000)
+      } catch (e) {
+        this.$toast.error(e.message).goAway(3000)
+      }
+    }
   },
   computed: {
     ...mapGetters({ tabs: "tabs/list", activeTabCtx: "tabs/activeTabCtx" }),

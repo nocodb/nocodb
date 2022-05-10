@@ -1,6 +1,11 @@
 <template>
   <v-dialog v-model="visible" max-width="800px">
+    <!-- Import CSV to a new Table -->
     <v-card>
+      <!-- TODO -->
+    </v-card>
+    <!-- Import CSV to existing Table -->
+    <v-card v-if="meta">
       <v-card-actions>
         <v-card-title>
           Table : {{ meta.title }}
@@ -133,7 +138,9 @@ export default {
     }
   },
   mounted() {
-    this.mapDefaultColumns()
+    if (this.meta) {
+      this.mapDefaultColumns()
+    }
   },
 
   methods: {

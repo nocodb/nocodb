@@ -13,7 +13,7 @@
         </v-icon>
         <v-icon
           v-else
-          color="grey lighten-2"
+          color="grey lighten-1"
           :size="15"
           class="nc-cell-hover-show"
           @click="click"

@@ -274,6 +274,7 @@
         <v-list class="addOrImport">
           <v-list-item
             v-if="_isUIAllowed('addTable')"
+            v-t="['a:table:import-from-excel']"
             @click="dialogCreateTableShowMethod"
           >
             <v-list-item-title>
@@ -289,7 +290,9 @@
           <v-divider/>
           <v-subheader class="caption">QUICK IMPORT FROM</v-subheader>
           <v-list-item
-            v-if="_isUIAllowed('TODO: UPDATE_ME')"
+            v-if="_isUIAllowed('csvQuickImport')"
+            v-t="['a:table:import-from-csv']"
+            @click="onImportFromCSV()"
           >
             <v-list-item-title>
               <v-icon small>
@@ -302,7 +305,8 @@
             </v-list-item-title>
           </v-list-item>
           <v-list-item
-            v-if="_isUIAllowed('TODO: UPDATE_ME')"
+            v-if="_isUIAllowed('excelQuickImport')"
+            v-t="['a:actions:import-excel']"
             @click="onImportFromExcel()"
           >
             <v-list-item-title>
@@ -318,6 +322,7 @@
         </v-list>
     </v-menu>
     </v-tabs>
+    <!-- Create Empty Table -->
     <dlg-table-create
       v-if="dialogCreateTableShow"
       v-model="dialogCreateTableShow"
@@ -326,11 +331,10 @@
         dialogCreateTableShow = false;
       "
     />
-
-    <!--    <screensaver v-if="showScreensaver && !($store.state.project.projectInfo && $store.state.project.projectInfo.ncMin)" class="screensaver" />-->
-
-  
-  <excel-import ref="excelImport" v-model="excelImportModal" hide-label />
+    <!-- Import From CSV -->
+    <drop-or-select-file-modal v-model="csvImportModal" accept=".csv" text="CSV" @file="onCsvFileSelection" />
+    <!-- Import From Excel -->
+    <excel-import ref="excelImport" v-model="excelImportModal" hide-label />
   </v-container>
 </template>
 
@@ -363,6 +367,8 @@ import GrpcClient from "@/components/project/grpcClient";
 import GlobalAcl from "@/components/globalAcl";
 import AuditTab from "~/components/project/auditTab";
 import ExcelImport from "@/components/import/excelImport";
+import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
+import DropOrSelectFileModal from '~/components/import/dropOrSelectFileModal'
 
 export default {
   components: {
@@ -393,7 +399,8 @@ export default {
     sqlLogAndOutput,
     xTerm,
     graphqlClient,
-    ExcelImport
+    ExcelImport,
+    DropOrSelectFileModal
   },
   data() {
     return {
@@ -404,6 +411,7 @@ export default {
       hideLogWindows: false,
       showScreensaver: false,
       excelImportModal: false,
+      csvImportModal: false,
     };
   },
   methods: {
@@ -488,8 +496,22 @@ export default {
     },
     onImportFromExcel() {
       this.excelImportModal = true;
-      // TODO: update tele
-      // this.$e("c:project:create:excel");
+    },
+    onImportFromCSV() {
+      this.csvImportModal = true
+    },
+    async onCsvFileSelection(file) {
+      const reader = new FileReader()
+      reader.onload = async(e) => {
+        const templateGenerator = new CSVTemplateAdapter(file.name, e.target.result)
+        await templateGenerator.init()
+        templateGenerator.parseData()
+        this.parsedCsv.columns = templateGenerator.getColumns()
+        this.parsedCsv.data = templateGenerator.getData()
+        this.columnMappingModal = true
+        this.importModal = false
+      }
+      reader.readAsText(file)
     },
   },
   computed: {

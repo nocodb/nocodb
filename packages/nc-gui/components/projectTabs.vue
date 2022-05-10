@@ -290,21 +290,6 @@
           <v-divider/>
           <v-subheader class="caption">QUICK IMPORT FROM</v-subheader>
           <v-list-item
-            v-if="_isUIAllowed('csvQuickImport')"
-            v-t="['a:table:import-from-csv']"
-            @click="onImportFromExcel()"
-          >
-            <v-list-item-title>
-              <v-icon small>
-                mdi-file-delimited
-              </v-icon>
-              <span class="caption">
-                <!-- TODO: i18n -->
-                CSV file
-              </span>
-            </v-list-item-title>
-          </v-list-item>
-          <v-list-item
             v-if="_isUIAllowed('excelQuickImport')"
             v-t="['a:actions:import-excel']"
             @click="onImportFromExcel()"
@@ -315,7 +300,7 @@
               </v-icon>
               <span class="caption">
                 <!-- TODO: i18n -->
-                Microsoft Excel
+                Microsoft Excel / CSV
               </span>
             </v-list-item-title>
           </v-list-item>

@@ -72,29 +72,8 @@ export default {
       full: 'mdi-thumb-up',
       empty: 'mdi-thumb-up-outline'
     }, {
-      full: 'mdi-hexagon',
-      empty: 'mdi-hexagon-outline'
-    }, {
-      full: 'mdi-decagram',
-      empty: 'mdi-decagram-outline'
-    }, {
       full: 'mdi-flag',
       empty: 'mdi-flag-outline'
-    }, {
-      full: 'mdi-hexagram',
-      empty: 'mdi-hexagram-outline'
-    }, {
-      full: 'mdi-cards-diamond',
-      empty: 'mdi-cards-diamond-outline'
-    }, {
-      full: 'mdi-pentagon',
-      empty: 'mdi-pentagon-outline'
-    }, {
-      full: 'mdi-octagon',
-      empty: 'mdi-octagon-outline'
-    }, {
-      full: 'mdi-octagram',
-      empty: 'mdi-octagram-outline'
     }]
   }),
   watch: {

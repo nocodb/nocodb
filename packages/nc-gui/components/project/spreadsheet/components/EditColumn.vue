@@ -131,6 +131,10 @@
                   </v-alert>
                 </v-col>
 
+                <v-col v-if="newColumn.meta && columnToValidate.includes(newColumn.uidt)" cols="12" class="pt-0">
+                  <v-checkbox v-model="newColumn.meta.validate" dense hide-details :label="`Accept only valid ${newColumn.uidt}`" class="mt-0" />
+                </v-col>
+
                 <v-col v-if="isSelect" cols="12">
                   <custom-select-options
                     v-model="newColumn.dtxp"
@@ -535,6 +539,7 @@ import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel'
 import LinkedToAnotherOptions from '~/components/project/spreadsheet/components/editColumn/LinkedToAnotherOptions'
 import { validateColumnName } from '~/helpers'
 import RatingOptions from '~/components/project/spreadsheet/components/editColumn/ratingOptions'
+const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 export default {
   name: 'EditColumn',
@@ -558,6 +563,7 @@ export default {
     value: Boolean
   },
   data: () => ({
+    columnToValidate,
     valid: false,
     relationDeleteDlg: false,
     newColumn: {},
@@ -747,6 +753,7 @@ export default {
       const colProp = this.sqlUi.getDataTypeForUiType(this.newColumn)
       this.newColumn = {
         ...this.newColumn,
+        meta: null,
         rqd: false,
         pk: false,
         ai: false,
@@ -770,6 +777,12 @@ export default {
         selectTypes.includes(this.column.uidt)
       ) {
         this.newColumn.dtxp = this.column.dtxp
+      }
+
+      if (columnToValidate.includes(this.newColumn.uidt)) {
+        this.newColumn.meta = {
+          validate: this.newColumn.meta && this.newColumn.meta.validate
+        }
       }
 
       this.newColumn.altered = this.newColumn.altered || 2

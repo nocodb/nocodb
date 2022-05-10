@@ -176,7 +176,9 @@ export default {
         this.$emit('success')
       } catch (e) {
         console.log(e)
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast
+          .error(await this._extractSdkResponseErrorMsg(e))
+          .goAway(3000)
       } finally {
         clearInterval(interv)
         this.$store.commit('loader/MutMessage', null)
@@ -210,7 +212,7 @@ export default {
     remapColNames(batchData, columns) {
       return batchData.map(data => (columns || []).reduce((aggObj, col) => ({
         ...aggObj,
-        [col.column_name]: data[col.ref_column_name]
+        [col.column_name]: data[col.ref_column_name || col.column_name]
       }), {})
       )
     },

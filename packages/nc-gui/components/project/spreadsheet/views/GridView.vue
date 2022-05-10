@@ -1172,7 +1172,7 @@ td:first-child {
     }
 
     &:hover .nc-cell-hover-show {
-      opacity: 1;
+      opacity: .7;
     }
   }
 }

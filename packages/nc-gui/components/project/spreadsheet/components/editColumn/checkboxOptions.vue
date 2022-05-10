@@ -46,12 +46,15 @@ export default {
   data: () => ({
     colMeta: {
       icon: {
-        checked: 'mdi-check-circle-outline',
-        unchecked: 'mdi-checkbox-blank-circle-outline'
+        checked: 'mdi-check-bold',
+        unchecked: 'mdi-crop-square'
       },
-      color: 'grey'
+      color: ''
     },
     icons: [{
+      checked: 'mdi-check-bold',
+      unchecked: 'mdi-crop-square'
+    }, {
       checked: 'mdi-check-circle-outline',
       unchecked: 'mdi-checkbox-blank-circle-outline'
     }, {

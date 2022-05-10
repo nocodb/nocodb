@@ -128,8 +128,7 @@ export default async (
     phone: UITypes.SingleLineText,
     number: UITypes.Number,
     rating: UITypes.Rating,
-    // kludge: formula: UITypes.Formula,
-    formula: UITypes.SingleLineText,
+    formula: UITypes.Formula,
     rollup: UITypes.Rollup,
     count: UITypes.Count,
     lookup: UITypes.Lookup,
@@ -379,9 +378,6 @@ export default async (
           continue;
         }
 
-        // not supported datatype
-        if (['formula'].includes(col.type)) continue;
-
         // base column schema
         const ncName: any = nc_getSanitizedColumnName(table, col.name);
         const ncCol: any = {
@@ -390,6 +386,10 @@ export default async (
           column_name: ncName.column_name,
           uidt: getNocoType(col)
         };
+
+        // not supported datatype: pure formula field
+        // allow formula based computed fields (created time/ modified time to go through)
+        if (ncCol.uidt === UITypes.Formula) continue;
 
         // populate cdf (column default value) if configured
         if (col?.default) {

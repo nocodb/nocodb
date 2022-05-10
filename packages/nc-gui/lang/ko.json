@@ -395,7 +395,7 @@
       "footerInfo": "페이지 당 행",
       "upload": "업로드 할 파일을 선택하십시오",
       "upload_sub": "또는 끌어서 놓기 파일",
-      "excelSupport": "지원 : .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "지원 : .csv, .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel 파일 URL을 입력하십시오",
       "footMsg": "파싱 ​​할 행의 # DataType을 추론합니다",
       "excelImport": "시트는 수입 가능합니다",

@@ -394,7 +394,7 @@
       "footerInfo": "Строк на страницу",
       "upload": "Выберите файл для загрузки",
       "upload_sub": "или перетащите файл",
-      "excelSupport": "Поддерживаются: .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "Поддерживаются: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Введите URL-адрес файла Excel",
       "footMsg": "Количество рядов на анализ вывода данных",
       "excelImport": "Листы доступны для импорта",

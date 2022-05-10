@@ -271,7 +271,7 @@
             <v-spacer />
           </v-btn>
         </template>
-        <v-list>
+        <v-list class="addOrImport">
           <v-list-item
             v-if="_isUIAllowed('addTable')"
             @click="dialogCreateTableShowMethod"
@@ -287,6 +287,7 @@
             </v-list-item-title>
           </v-list-item>
           <v-divider/>
+          <v-subheader class="caption">QUICK IMPORT FROM</v-subheader>
           <v-list-item
             v-if="_isUIAllowed('TODO: UPDATE_ME')"
           >
@@ -310,7 +311,7 @@
               </v-icon>
               <span class="caption">
                 <!-- TODO: i18n -->
-                Excel file
+                Microsoft Excel
               </span>
             </v-list-item-title>
           </v-list-item>
@@ -616,6 +617,14 @@ export default {
 
 .powered-by:hover a {
   font-weight: bold;
+}
+
+.addOrImport {
+  min-width: 200px;
+}
+
+.addOrImport .v-list-item {
+  min-height: 35px;
 }
 
 /deep/ .add-btn {

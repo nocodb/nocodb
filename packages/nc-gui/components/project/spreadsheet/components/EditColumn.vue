@@ -131,10 +131,6 @@
                   </v-alert>
                 </v-col>
 
-                <v-col v-if="newColumn.meta && columnToValidate.includes(newColumn.uidt)" cols="12" class="pt-0">
-                  <v-checkbox v-model="newColumn.meta.validate" dense hide-details :label="`Accept only valid ${newColumn.uidt}`" class="mt-0" />
-                </v-col>
-
                 <v-col v-if="isSelect" cols="12">
                   <custom-select-options
                     v-model="newColumn.dtxp"
@@ -179,6 +175,10 @@
 
                 <v-col v-show="advanceOptions || !accordion" cols="12">
                   <v-row>
+                    <v-col v-if="newColumn.meta && columnToValidate.includes(newColumn.uidt)" cols="12" class="pt-0 pb-0">
+                      <v-checkbox v-model="newColumn.meta.validate" dense hide-details :label="`Accept only valid ${newColumn.uidt}`" class="mt-0" />
+                    </v-col>
+
                     <template v-if="newColumn.uidt !== 'Formula'">
                       <v-col v-if="isLookup" cols="12">
                         <lookup-options

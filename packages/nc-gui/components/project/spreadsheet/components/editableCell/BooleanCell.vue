@@ -1,6 +1,8 @@
 <template>
-  <div class="d-flex align-center " :class="{'justify-center':!isForm}">
-    <input v-model="localState" type="checkbox" v-on="parentListeners">
+  <div class="d-flex align-center " :class="{'justify-center':!isForm,'nc-cell-hover-show': !localState}">
+    <v-icon small :color="checkboxMeta.color" @click="localState = !localState">
+      {{ checkboxMeta.icon[value ? 'checked' : 'unchecked'] }}
+    </v-icon>
   </div>
 </template>
 
@@ -8,6 +10,7 @@
 export default {
   name: 'BooleanCell',
   props: {
+    column: Object,
     value: [String, Number, Boolean],
     isForm: Boolean
   },
@@ -20,14 +23,23 @@ export default {
         this.$emit('input', val)
       }
     },
-
     parentListeners() {
       const $listeners = {}
       return $listeners
+    },
+    checkboxMeta() {
+      return this.column && this.column.meta
+        ? this.column.meta
+        : {
+            icon: {
+              checked: 'mdi-check-circle-outline',
+              unchecked: 'mdi-checkbox-blank-circle-outline'
+            },
+            color: ''
+          }
     }
   },
   mounted() {
-    this.$el.focus()
   }
 }
 </script>

@@ -38,6 +38,7 @@
     <boolean-cell
       v-else-if="isBoolean"
       v-model="localState"
+      :column="column"
       :is-form="isForm"
       v-on="parentListeners"
     />

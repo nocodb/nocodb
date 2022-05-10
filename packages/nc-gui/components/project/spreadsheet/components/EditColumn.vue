@@ -141,8 +141,15 @@
                     @input="newColumn.altered = newColumn.altered || 2"
                   />
                 </v-col>
-                <v-col v-if="isRating" cols="12">
+                <v-col v-else-if="isRating" cols="12">
                   <rating-options
+                    v-model="newColumn.meta"
+                    :column="newColumn"
+                    :meta="meta"
+                  />
+                </v-col>
+                <v-col v-else-if="isCheckbox" cols="12">
+                  <checkbox-options
                     v-model="newColumn.meta"
                     :column="newColumn"
                     :meta="meta"
@@ -539,11 +546,13 @@ import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel'
 import LinkedToAnotherOptions from '~/components/project/spreadsheet/components/editColumn/LinkedToAnotherOptions'
 import { validateColumnName } from '~/helpers'
 import RatingOptions from '~/components/project/spreadsheet/components/editColumn/ratingOptions'
+import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/checkboxOptions'
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 export default {
   name: 'EditColumn',
   components: {
+    CheckboxOptions,
     RatingOptions,
     RollupOptions,
     FormulaOptions,
@@ -612,6 +621,9 @@ export default {
     },
     isRating() {
       return this.newColumn && this.newColumn.uidt === UITypes.Rating
+    },
+    isCheckbox() {
+      return this.newColumn && this.newColumn.uidt === UITypes.Checkbox
     },
     isRollup() {
       return this.newColumn && this.newColumn.uidt === 'Rollup'

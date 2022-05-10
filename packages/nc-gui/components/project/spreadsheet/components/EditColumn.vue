@@ -137,6 +137,14 @@
                     @input="newColumn.altered = newColumn.altered || 2"
                   />
                 </v-col>
+                <v-col v-if="isRating" cols="12">
+                  <rating-options
+                    v-model="newColumn.meta"
+                    :column="newColumn"
+                    :meta="meta"
+                  />
+                </v-col>
+
                 <v-col
                   v-if="accordion"
                   cols="12"
@@ -156,14 +164,6 @@
                       mdi-{{ advanceOptions ? "minus" : "plus" }}-circle-outline
                     </v-icon>
                   </div>
-                </v-col>
-
-                <v-col v-if="isRating" cols="12">
-                  <rating-options
-                    :column="newColumn"
-                    :meta="meta"
-                    v-on="$listeners"
-                  />
                 </v-col>
 
                 <v-col v-show="advanceOptions || !accordion" cols="12">

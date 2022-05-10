@@ -1,21 +1,44 @@
 <template>
   <div>
     <div class="nc-rating-wrapper ui-type">
-      <v-select label="Icon" :items="icons" dense outlined class="caption">
+      <v-select
+        v-model="colMeta.icon"
+        label="Icon"
+        :items="icons"
+        dense
+        outlined
+        class="caption"
+        :item-value="v=>v"
+        :value-comparator="(a,b) => a && b && a.full === b.full && a.empty === b.empty"
+      >
         <template #item="{ item }">
-          <v-icon small>
-            {{ item }}
+          <v-icon small :color="colMeta.color">
+            {{ item.full }}
+          </v-icon>
+          <v-icon class="ml-2" small :color="colMeta.color">
+            {{ item.empty }}
           </v-icon>
         </template>
         <template #selection="{ item }">
-          <v-icon small>
-            {{ item }}
+          <v-icon small :color="colMeta.color">
+            {{ item.full }}
+          </v-icon>
+          <v-icon class="ml-2" small :color="colMeta.color">
+            {{ item.empty }}
           </v-icon>
         </template>
       </v-select>
-      <v-select label="Number of options" :items="[3,4,5,6,7,8,9,10]" dense outlined class="caption" />
+      <v-select
+        v-model="colMeta.max"
+        label="Max"
+        :items="[3,4,5,6,7,8,9,10]"
+        dense
+        outlined
+        class="caption"
+      />
     </div>
     <v-color-picker
+      v-model="colMeta.color"
       class="mx-auto"
       hide-inputs
     />
@@ -28,8 +51,63 @@ export default {
   name: 'RatingOptions',
   props: ['column', 'meta', 'value'],
   data: () => ({
-    icons: ['mdi-star', 'mdi-heart']
-  })
+    colMeta: {
+      icon: {
+        full: 'mdi-star',
+        empty: 'mdi-star-outline'
+      },
+      color: '#fcb401',
+      max: 5
+    },
+    icons: [{
+      full: 'mdi-star',
+      empty: 'mdi-star-outline'
+    }, {
+      full: 'mdi-heart',
+      empty: 'mdi-heart-outline'
+    }, {
+      full: 'mdi-moon-full',
+      empty: 'mdi-moon-new'
+    }, {
+      full: 'mdi-thumb-up',
+      empty: 'mdi-thumb-up-outline'
+    }, {
+      full: 'mdi-hexagon',
+      empty: 'mdi-hexagon-outline'
+    }, {
+      full: 'mdi-decagram',
+      empty: 'mdi-decagram-outline'
+    }, {
+      full: 'mdi-flag',
+      empty: 'mdi-flag-outline'
+    }, {
+      full: 'mdi-hexagram',
+      empty: 'mdi-hexagram-outline'
+    }, {
+      full: 'mdi-cards-diamond',
+      empty: 'mdi-cards-diamond-outline'
+    }, {
+      full: 'mdi-pentagon',
+      empty: 'mdi-pentagon-outline'
+    }, {
+      full: 'mdi-octagon',
+      empty: 'mdi-octagon-outline'
+    }, {
+      full: 'mdi-octagram',
+      empty: 'mdi-octagram-outline'
+    }]
+  }),
+  watch: {
+    value() {
+      this.colMeta = this.value || {}
+    },
+    colMeta(v) {
+      this.$emit('input', v)
+    }
+  },
+  created() {
+    this.colMeta = this.value || { ...this.colMeta }
+  }
 }
 </script>
 

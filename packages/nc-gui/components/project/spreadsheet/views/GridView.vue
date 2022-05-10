@@ -632,31 +632,30 @@ export default {
 
           break
         // delete
-        case 46:
-          {
-            if (this.editEnabled.col != null && this.editEnabled.row != null) {
-              return
-            }
-
-            const rowObj = this.data[this.selected.row].row
-            const columnObj = this.availableColumns[this.selected.col]
-
-            if (
-              // this.isRequired(columnObj, rowObj, true) ||
-              columnObj.virtual
-            ) {
-              return
-            }
-
-            this.$set(rowObj, columnObj.title, null)
-            // update/save cell value
-            this.onCellValueChange(
-              this.selected.col,
-              this.selected.row,
-              columnObj,
-              true
-            )
+        case 46: {
+          if (this.editEnabled.col != null && this.editEnabled.row != null) {
+            return
           }
+
+          const rowObj = this.data[this.selected.row].row
+          const columnObj = this.availableColumns[this.selected.col]
+
+          if (
+            // this.isRequired(columnObj, rowObj, true) ||
+            columnObj.virtual
+          ) {
+            return
+          }
+
+          this.$set(rowObj, columnObj.title, null)
+          // update/save cell value
+          this.onCellValueChange(
+            this.selected.col,
+            this.selected.row,
+            columnObj,
+            true
+          )
+        }
           break
         // left
         case 37:
@@ -735,11 +734,11 @@ export default {
     onClickOutside() {
       if (
         (this.meta.columns &&
-        this.meta.columns[this.selected.col] &&
-        this.meta.columns[this.selected.col].virtual) ||
+          this.meta.columns[this.selected.col] &&
+          this.meta.columns[this.selected.col].virtual) ||
         (this.availableColumns &&
-        this.availableColumns[this.editEnabled.col] &&
-        this.availableColumns[this.editEnabled.col].uidt === 'JSON')
+          this.availableColumns[this.editEnabled.col] &&
+          this.availableColumns[this.editEnabled.col].uidt === 'JSON')
       ) {
         return
       }
@@ -931,7 +930,7 @@ export default {
   }
 
   .search-field.v-text-field.v-text-field--solo.v-input--dense
-    > .v-input__control {
+  > .v-input__control {
     min-height: auto;
   }
 
@@ -1164,4 +1163,18 @@ td:first-child {
 .has-many-icon {
   transform: rotate(90deg);
 }
+
+::v-deep {
+  tr {
+    .nc-cell-hover-show {
+      opacity: 0;
+      transition: .3s opacity;
+    }
+
+    &:hover .nc-cell-hover-show {
+      opacity: 1;
+    }
+  }
+}
+
 </style>

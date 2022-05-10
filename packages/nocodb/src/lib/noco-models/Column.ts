@@ -380,6 +380,17 @@ export default class Column<T = any> implements ColumnType {
           order: 'asc'
         }
       });
+
+      columnsList.forEach(column => {
+        if (column.meta && typeof column.meta === 'string') {
+          try {
+            column.meta = JSON.parse(column.meta);
+          } catch {
+            column.meta = {};
+          }
+        }
+      });
+
       await NocoCache.setList(CacheScope.COLUMN, [fk_model_id], columnsList);
     }
     columnsList.sort(

@@ -11,6 +11,7 @@
   <!--  <enum-list-editable-cell @click.stop="$emit('enableedit')" v-else-if="isEnum && selected" :value="value" :column="column"></enum-list-editable-cell>-->
   <enum-cell v-else-if="isEnum" :value="value" :column="column" @click.stop="$emit('enableedit')" />
   <url-cell v-else-if="isURL" :value="value" />
+  <email-cell v-else-if="isEmail" :value="value" />
   <json-cell v-else-if="isJSON" :value="value" />
   <date-cell v-else-if="isDate" :value="value" />
   <date-time-cell v-else-if="isDateTime" :value="value" />
@@ -30,10 +31,11 @@ import SetListCell from '~/components/project/spreadsheet/components/cell/SetLis
 import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
 import EditableAttachmentCell from '~/components/project/spreadsheet/components/editableCell/EditableAttachmentCell'
 import BooleanCell from '~/components/project/spreadsheet/components/cell/BooleanCell'
+import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCell'
 
 export default {
   name: 'TableCell',
-  components: { TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell },
+  components: { EmailCell, TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell },
   mixins: [cell],
   props: ['value', 'dbAlias', 'isLocked', 'selected'],
   computed: {

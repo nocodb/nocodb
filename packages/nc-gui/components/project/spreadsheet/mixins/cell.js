@@ -56,6 +56,9 @@ export default {
     isURL() {
       return this.uiDatatype === 'URL'
     },
+    isEmail() {
+      return this.uiDatatype === UITypes.Email
+    },
     isAttachment() {
       return this.uiDatatype === 'Attachment'
     },

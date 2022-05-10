@@ -31,7 +31,7 @@
       <v-select
         v-model="colMeta.max"
         label="Max"
-        :items="[3,4,5,6,7,8,9,10]"
+        :items="[1,2,3,4,5,6,7,8,9,10]"
         dense
         outlined
         class="caption"

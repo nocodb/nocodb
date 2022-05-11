@@ -121,6 +121,41 @@ async function readView(viewId) {
   }
 }
 
+async function readTemplate(templateId) {
+  if (!info.initialized) {
+    await initialize('shrO8aYf3ybwSdDKn');
+  }
+  const resreq = await axios(`https://www.airtable.com/v0.3/exploreApplications/${templateId}`, {
+    "headers": {
+      "accept": "*/*",
+      "accept-language": "en-US,en;q=0.9",
+      "sec-ch-ua": "\" Not A;Brand\";v=\"99\", \"Chromium\";v=\"100\", \"Google Chrome\";v=\"100\"",
+      "sec-ch-ua-mobile": "?0",
+      "sec-ch-ua-platform": "\"Linux\"",
+      "sec-fetch-dest": "empty",
+      "sec-fetch-mode": "cors",
+      "sec-fetch-site": "same-origin",
+      "User-Agent": "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/100.0.4896.88 Safari/537.36",
+      "x-time-zone": "Europe/Berlin",
+      "cookie": info.cookie,
+      ...info.headers
+    },
+    "referrer": "https://www.airtable.com/",
+    "referrerPolicy": "same-origin",
+    "body": null,
+    "method": "GET",
+    "mode": "cors",
+    "credentials": "include"
+  })
+  .then(response => {
+    return response.data
+  })
+  .catch(() => {
+    throw "Error while fetching"
+  })
+  return {template: resreq}
+}
+
 function unicodeToChar(text) {
   return text.replace(/\\u[\dA-F]{4}/gi, function(match) {
     return String.fromCharCode(parseInt(match.replace(/\\u/g, ''), 16));
@@ -130,5 +165,6 @@ function unicodeToChar(text) {
 export default {
   initialize,
   read,
-  readView
+  readView,
+  readTemplate
 }

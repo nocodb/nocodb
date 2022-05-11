@@ -59,7 +59,7 @@
                     dense
                     label="Shared Base ID / URL"
                     class="caption"
-                    :rules="[v=> !!v || 'Shared Base ID / URL is required']"
+                    :rules="[(v) => (syncSource.details.shareId) ? !!v : 'Shared Base ID / URL is required']"
                   />
                 <!--                <v-select
                   v-model="syncSource.details.syncInterval"
@@ -187,8 +187,8 @@ export default {
   watch: {
     syncSourceUrlOrId(v) {
       if (this.syncSource && this.syncSource.details) {
-        const m = v.match(/airtable\.com\/([\w.-]+)/)
-        this.syncSource.details.shareId = m ? m[1] : v
+        const m = v.match(/(exp|shr).{14,14}/g)
+        this.syncSource.details.shareId = m ? m[0] : null
       }
     }
   },

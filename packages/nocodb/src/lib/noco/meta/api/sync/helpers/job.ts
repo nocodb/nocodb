@@ -95,7 +95,12 @@ export default async (
 
   async function getAtableSchema(sDB) {
     const start = Date.now();
-    await FetchAT.initialize(sDB.shareId);
+    if(sDB.shareId.startsWith('exp')) {
+      const template = await FetchAT.readTemplate(sDB.shareId);
+      await FetchAT.initialize(template.template.exploreApplication.shareId);
+    } else {
+      await FetchAT.initialize(sDB.shareId);
+    }
     const ft = await FetchAT.read();
     const duration = Date.now() - start;
     runTimeCounters.fetchAt.count++;
@@ -1937,44 +1942,48 @@ export default async (
     progress('Syncing views completed');
 
     if (process_aTblData) {
-      // await nc_DumpTableSchema();
-      const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
-      for (let i = 0; i < ncTblList.list.length; i++) {
-        const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-        progress(`Reading data from ${ncTbl.title}`);
-        let c = 0;
-        await nocoReadData(syncDB, ncTbl, async (sDB, table, record) => {
-          progress(
-            `Processing records from ${ncTbl.title} : ${c} - ${(c += 25)}`
-          );
-          await nocoBaseDataProcessing(sDB, table, record);
-        });
-        progress(`Data inserted from ${ncTbl.title}`);
-      }
-
-      // Configure link @ Data row's
-      for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
-        const x = ncLinkMappingTable[idx];
-        const ncTbl = await nc_getTableSchema(
-          aTbl_getTableName(x.aTbl.tblId).tn
-        );
-        progress(`Linking data to ${ncTbl.title}`);
-        let c = 0;
-        await nocoReadDataSelected(
-          syncDB.projectName,
-          ncTbl,
-          async (projName, table, record, _field) => {
+      try {
+        // await nc_DumpTableSchema();
+        const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+        for (let i = 0; i < ncTblList.list.length; i++) {
+          const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+          progress(`Reading data from ${ncTbl.title}`);
+          let c = 0;
+          await nocoReadData(syncDB, ncTbl, async (sDB, table, record) => {
             progress(
-              `Mapping LTAR records from ${ncTbl.title} : ${c} - ${(c += 25)}`
+              `Processing records from ${ncTbl.title} : ${c} - ${(c += 25)}`
             );
-            await nocoLinkProcessing(projName, table, record, _field);
-          },
-          x.aTbl.name
-        );
-        progress(`Linked data to ${ncTbl.title}`);
+            await nocoBaseDataProcessing(sDB, table, record);
+          });
+          progress(`Data inserted from ${ncTbl.title}`);
+        }
+
+        // Configure link @ Data row's
+        for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
+          const x = ncLinkMappingTable[idx];
+          const ncTbl = await nc_getTableSchema(
+            aTbl_getTableName(x.aTbl.tblId).tn
+          );
+          progress(`Linking data to ${ncTbl.title}`);
+          let c = 0;
+          await nocoReadDataSelected(
+            syncDB.projectName,
+            ncTbl,
+            async (projName, table, record, _field) => {
+              progress(
+                `Mapping LTAR records from ${ncTbl.title} : ${c} - ${(c += 25)}`
+              );
+              await nocoLinkProcessing(projName, table, record, _field);
+            },
+            x.aTbl.name
+          );
+          progress(`Linked data to ${ncTbl.title}`);
+        }
+      } catch (error) {
+        progress(`There was an error while migrating data! Please make sure your API key (${syncDB.apiKey}) is correct.`);
+        progress(`Error: ${error}`);
       }
     }
-
     if (generate_migrationStats) {
       await generateMigrationStats(aTblSchema);
     }

@@ -813,6 +813,27 @@ export default async (
     }
   }
 
+  function getRollupNcFunction(aTblFunction) {
+    const fn = aTblFunction.split('(')[0];
+    const aTbl_ncRollUp = {
+      AND: '',
+      ARRAYCOMPACT: '',
+      ARRAYJOIN: '',
+      ARRAYUNIQUE: '',
+      AVERAGE: 'average',
+      CONCATENATE: '',
+      COUNT: 'count',
+      COUNTA: '',
+      COUNTALL: '',
+      MAX: 'max',
+      MIN: 'min',
+      OR: '',
+      SUM: 'sum',
+      XOR: ''
+    };
+    return aTbl_ncRollUp[fn];
+  }
+
   async function nocoCreateRollups(aTblSchema) {
     // Rollups
     for (let idx = 0; idx < aTblSchema.length; idx++) {
@@ -832,6 +853,13 @@ export default async (
             `[${idx + 1}/${aTblSchema.length}] Configuring Rollup :: [${i +
               1}/${aTblColumns.length}] ${aTblSchema[idx].name}`
           );
+
+          // fetch associated rollup function
+          // skip column creation if supported rollup function doesnot exist
+          const ncRollupFn = getRollupNcFunction(
+            aTblColumns[i].typeOptions.formulaTextParsed
+          );
+          if (ncRollupFn === '') continue;
 
           // something is not right, skip
           if (
@@ -865,7 +893,7 @@ export default async (
             column_name: ncName.column_name,
             fk_relation_column_id: ncRelationColumnId,
             fk_rollup_column_id: ncRollupColumnId,
-            rollup_function: 'sum' // fix me: hardwired
+            rollup_function: ncRollupFn
           });
           updateNcTblSchema(ncTbl);
           syncLog(`NC API: dbTableColumn.create ROLLUP`);

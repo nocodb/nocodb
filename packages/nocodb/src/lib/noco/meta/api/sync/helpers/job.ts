@@ -72,8 +72,19 @@ export default async (
     fetchAt: {
       count: 0,
       time: 0
+    },
+    columnNotMigrated: {
+      count: 0,
+      log: []
     }
   };
+
+  function addToSkipColumnLog(tbl, col, type, reason?) {
+    runTimeCounters.columnNotMigrated.count++;
+    runTimeCounters.columnNotMigrated.log.push(
+      `tn[${tbl}] cn[${col}] type[${type}] :: ${reason}`
+    );
+  }
 
   let syncLog = _log => {
     // console.log(log)
@@ -389,7 +400,15 @@ export default async (
 
         // not supported datatype: pure formula field
         // allow formula based computed fields (created time/ modified time to go through)
-        if (ncCol.uidt === UITypes.Formula) continue;
+        if (ncCol.uidt === UITypes.Formula) {
+          addToSkipColumnLog(
+            tblSchema[i].name,
+            ncName.title,
+            col.type,
+            'column type not supported'
+          );
+          continue;
+        }
 
         // populate cdf (column default value) if configured
         if (col?.default) {
@@ -706,6 +725,13 @@ export default async (
           ) {
             if (enableErrorLogs)
               console.log(`## Invalid column IDs mapped; skip`);
+
+            addToSkipColumnLog(
+              srcTableSchema.title,
+              aTblColumns[i].name,
+              aTblColumns[i].type,
+              'invalid column ID in dependency list'
+            );
             continue;
           }
 
@@ -754,6 +780,17 @@ export default async (
     while (nestedLookupTbl.length) {
       // if nothing has changed from previous iteration, skip rest
       if (nestedCnt === nestedLookupTbl.length) {
+        for (let i = 0; i < nestedLookupTbl.length; i++) {
+          const fTblField =
+            nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId;
+          const name = aTbl_getColumnName(fTblField);
+          addToSkipColumnLog(
+            ncSchema.tablesById[nestedLookupTbl[i].srcTableId]?.title,
+            nestedLookupTbl[i].name,
+            nestedLookupTbl[i].type,
+            `foreign table field not found [${name.tn}/${name.cn}]`
+          );
+        }
         if (enableErrorLogs)
           console.log(
             `## Failed to configure ${nestedLookupTbl.length} lookups`
@@ -859,7 +896,16 @@ export default async (
           const ncRollupFn = getRollupNcFunction(
             aTblColumns[i].typeOptions.formulaTextParsed
           );
-          if (ncRollupFn === '') continue;
+
+          if (ncRollupFn === '') {
+            addToSkipColumnLog(
+              srcTableSchema.title,
+              aTblColumns[i].name,
+              aTblColumns[i].type,
+              `rollup function ${aTblColumns[i].typeOptions.formulaTextParsed} not supported`
+            );
+            continue;
+          }
 
           // something is not right, skip
           if (
@@ -867,6 +913,13 @@ export default async (
           ) {
             if (enableErrorLogs)
               console.log(`## Invalid column IDs mapped; skip`);
+
+            addToSkipColumnLog(
+              srcTableSchema.title,
+              aTblColumns[i].name,
+              aTblColumns[i].type,
+              'invalid column ID in dependency list'
+            );
             continue;
           }
 

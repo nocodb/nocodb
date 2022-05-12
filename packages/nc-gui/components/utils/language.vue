@@ -90,6 +90,7 @@ export default {
   },
   methods: {
     applyDirection() {
+      document.body.classList.add(this.isRtlLang() ? "rtl" : "ltr");
       document.body.style.direction = this.isRtlLang() ? "rtl" : "ltr";
     },
     isRtlLang() {

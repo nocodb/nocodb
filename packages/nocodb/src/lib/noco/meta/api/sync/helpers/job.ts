@@ -1833,7 +1833,7 @@ export default async (
       // first two positions held by record id & record hash
       await api.dbViewColumn.update(viewId, ncViewColumnId, {
         show: false,
-        order: j + 1
+        order: j + 1 + c.length
       });
     }
 
@@ -1850,7 +1850,7 @@ export default async (
       // first two positions held by record id & record hash
       await api.dbViewColumn.update(viewId, ncViewColumnId, {
         show: c[j].visibility,
-        order: j + 1 + hiddenColumns.length
+        order: j + 1
       });
     }
   }

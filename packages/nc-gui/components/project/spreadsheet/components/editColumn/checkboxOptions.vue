@@ -28,7 +28,6 @@
           </v-icon>
         </template>
       </v-select>
-      <v-spacer />
     </div>
     <v-color-picker
       v-model="colMeta.color"
@@ -49,7 +48,7 @@ export default {
         checked: 'mdi-check-bold',
         unchecked: 'mdi-crop-square'
       },
-      color: ''
+      color: '#777'
     },
     icons: [{
       checked: 'mdi-check-bold',

@@ -1071,7 +1071,7 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
 
   for (const acl of uiAclList) {
     // if missing model name skip the view acl migration
-    if (!acl.title) continue;
+    if (!acl?.title) continue;
 
     let fk_view_id;
     if (acl.type === 'vtable') {
@@ -1231,7 +1231,10 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
   }> = await ncMeta.metaList(null, null, 'nc_hooks');
 
   for (const hookMeta of hooks) {
-    if (!hookMeta.project_id) {
+    if (
+      !hookMeta.project_id ||
+      !ctx.objModelRef[hookMeta?.project_id]?.[hookMeta?.tn]
+    ) {
       continue;
     }
     const hook = await Hook.insert(

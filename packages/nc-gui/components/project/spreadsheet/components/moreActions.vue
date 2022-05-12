@@ -104,7 +104,7 @@
       :parsed-csv="parsedCsv"
       @import="importData"
     />
-    <webhook-modal v-model="webhookModal" :meta="meta" />
+    <webhook-modal v-if="webhookModal" v-model="webhookModal" :meta="meta" />
   </div>
 </template>
 

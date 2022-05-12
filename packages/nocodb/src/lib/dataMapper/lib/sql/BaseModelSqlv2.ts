@@ -1260,12 +1260,13 @@ class BaseModelSqlv2 {
 
   async delByPk(id, trx?, cookie?) {
     try {
+      // retrieve data for handling paramas in hook
+      const data = await this.readByPk(id);
       await this.beforeDelete(id, trx, cookie);
-
       const response = await this.dbDriver(this.tnPath)
         .del()
         .where(await this._wherePk(id));
-      await this.afterDelete(response, trx, cookie);
+      await this.afterDelete(data, trx, cookie);
       return response;
     } catch (e) {
       console.log(e);

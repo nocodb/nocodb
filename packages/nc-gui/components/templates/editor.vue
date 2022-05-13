@@ -265,7 +265,7 @@
                                     :ref="`uidt_${table.table_name}_${j}`"
                                     style="max-width: 200px"
                                     :value="col.uidt"
-                                    placeholder="Column Datatype"
+                                    placeholder="Column Data Type"
                                     outlined
                                     dense
                                     class="caption"
@@ -766,6 +766,9 @@ import {
 } from '~/components/project/spreadsheet/helpers/uiTypes'
 import GradientGenerator from '~/components/templates/gradientGenerator'
 import Help from '~/components/templates/help'
+import {
+  isVirtualCol,
+} from "nocodb-sdk";
 
 const LinkToAnotherRecord = 'LinkToAnotherRecord'
 const Lookup = 'Lookup'
@@ -801,7 +804,7 @@ export default {
     createTableColumnsDialog: false,
     selectedTable: null,
     uiTypes: uiTypes.filter(
-      t => ![UITypes.Formula, UITypes.SpecificDBType].includes(t.name)
+      t => !isVirtualCol(t.name)
     ),
     rollupFnList: [
       { text: 'count', value: 'count' },

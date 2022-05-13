@@ -161,7 +161,7 @@
               :valid="valid"
               create-gql-text="Import as GQL Project"
               create-rest-text="Import as REST Project"
-              @success="$emit('success'),templateEditorModal = false"
+              @closeModal="$emit('closeModal'),templateEditorModal = false"
             >
               <!--Import Excel-->
               <span v-if="quickImportType === 'excel'">

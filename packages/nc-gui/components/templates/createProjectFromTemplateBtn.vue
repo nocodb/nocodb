@@ -178,8 +178,6 @@ export default {
           }
         })
         this.simpleAnim()
-
-        this.$emit('success')
       } catch (e) {
         console.log(e)
         this.$toast
@@ -190,6 +188,7 @@ export default {
         this.$store.commit('loader/MutMessage', null)
         this.projectCreation = false
         this.tableCreation = false
+        this.$emit('closeModal')
       }
     },
     async importDataToProject() {

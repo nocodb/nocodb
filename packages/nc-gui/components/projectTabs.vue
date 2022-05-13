@@ -336,6 +336,7 @@
       ref="quickImport" 
       v-model="quickImportModal" 
       :quick-import-type="quickImportType" 
+      @closeModal="quickImportModal = false"
       hide-label 
     />
   </v-container>

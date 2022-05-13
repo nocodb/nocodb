@@ -306,6 +306,7 @@
     "deleteRow": "מחק שורה",
     "deleteSelectedRow": "מחק את השורות שנבחרו",
     "importExcel": "ייבוא ​​Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "הורד כמו CSV.",
     "uploadCSV": "העלה CSV.",
     "import": "יְבוּא",

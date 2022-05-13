@@ -306,6 +306,7 @@
     "deleteRow": "ลบแถว",
     "deleteSelectedRow": "ลบแถวที่เลือก",
     "importExcel": "นำเข้า Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "ดาวน์โหลดเป็น CSV",
     "uploadCSV": "อัปโหลด CSV",
     "import": "นำเข้า",

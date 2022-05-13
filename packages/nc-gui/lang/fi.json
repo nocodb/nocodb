@@ -306,6 +306,7 @@
     "deleteRow": "Poista rivi",
     "deleteSelectedRow": "Poista valitut rivit",
     "importExcel": "Tuonti excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Lataa CSV",
     "uploadCSV": "Lataa CSV",
     "import": "Tuonti",

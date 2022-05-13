@@ -306,6 +306,7 @@
     "deleteRow": "Видалити рядок",
     "deleteSelectedRow": "Видалити вибрані рядки",
     "importExcel": "Імпорт Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Завантажити як CSV",
     "uploadCSV": "Завантажити CSV",
     "import": "Імпортувати",

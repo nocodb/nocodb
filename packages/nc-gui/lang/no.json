@@ -306,6 +306,7 @@
     "deleteRow": "Slett rad",
     "deleteSelectedRow": "Slett utvalgte rader",
     "importExcel": "Importer Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "Last ned som CSV.",
     "uploadCSV": "Last opp CSV.",
     "import": "Importer",

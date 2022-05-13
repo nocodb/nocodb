@@ -306,6 +306,7 @@
     "deleteRow": "행 삭제",
     "deleteSelectedRow": "선택한 행을 삭제합니다",
     "importExcel": "수입 Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "CSV로 다운로드하십시오",
     "uploadCSV": "CSV 업로드",
     "import": "가져오기",

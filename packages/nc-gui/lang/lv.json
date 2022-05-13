@@ -306,6 +306,7 @@
     "deleteRow": "Dzēst ierakstu",
     "deleteSelectedRow": "Dzēst izvēlētos ierakstus",
     "importExcel": "Importēt Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Lejupielādēt kā CSV",
     "uploadCSV": "Augšupielādēt CSV",
     "import": "Importēt",

@@ -306,6 +306,7 @@
     "deleteRow": "Supprimer la ligne",
     "deleteSelectedRow": "Supprimer les lignes sélectionnées",
     "importExcel": "Importer depuis Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Télécharger comme CSV",
     "uploadCSV": "Téléverser un CSV",
     "import": "Importer",

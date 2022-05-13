@@ -306,6 +306,7 @@
     "deleteRow": "حذف ردیف جدید",
     "deleteSelectedRow": "حذف ردیف‌های انتخاب شده",
     "importExcel": "وارد کردن فایل Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "دانلود به‌عنوان CSV",
     "uploadCSV": "بارگذاری CSV",
     "import": "وارد کردن",

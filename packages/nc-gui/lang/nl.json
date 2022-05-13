@@ -306,6 +306,7 @@
     "deleteRow": "Verwijder rij",
     "deleteSelectedRow": "Verwijder geselecteerde rijen",
     "importExcel": "Excel importeren",
+    "importCSV": "Import CSV",
     "downloadCSV": "Download als CSV",
     "uploadCSV": "Upload CSV",
     "import": "Importeren",

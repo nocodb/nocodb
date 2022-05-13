@@ -306,6 +306,7 @@
     "deleteRow": "Xóa hàng",
     "deleteSelectedRow": "Xóa các hàng đã chọn",
     "importExcel": "Nhập Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "Tải về dưới dạng CSV.",
     "uploadCSV": "Tải lên CSV.",
     "import": "Nhập khẩu",

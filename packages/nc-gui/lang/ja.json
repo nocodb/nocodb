@@ -306,6 +306,7 @@
     "deleteRow": "行を削除",
     "deleteSelectedRow": "選択行を削除",
     "importExcel": "エクセルファイルをインポート",
+    "importCSV": "Import CSV",
     "downloadCSV": "CSVをダウンロード",
     "uploadCSV": "CSVをアップロード",
     "import": "インポート",

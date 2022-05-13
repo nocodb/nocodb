@@ -306,6 +306,7 @@
     "deleteRow": "Hapus Baris",
     "deleteSelectedRow": "Hapus baris yang dipilih",
     "importExcel": "Impor Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "Unduh sebagai CSV.",
     "uploadCSV": "Unggah CSV.",
     "import": "Impor",

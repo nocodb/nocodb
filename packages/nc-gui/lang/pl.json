@@ -306,6 +306,7 @@
     "deleteRow": "Usuń rząd",
     "deleteSelectedRow": "Usuń wybrane wiersze",
     "importExcel": "Importuj Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "Pobierz jako CSV.",
     "uploadCSV": "Prześlij CSV.",
     "import": "Import",

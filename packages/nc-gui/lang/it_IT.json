@@ -306,6 +306,7 @@
     "deleteRow": "Elimina riga.",
     "deleteSelectedRow": "Elimina righe selezionate",
     "importExcel": "Importa Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "Scarica come csv.",
     "uploadCSV": "Carica csv.",
     "import": "Importa",

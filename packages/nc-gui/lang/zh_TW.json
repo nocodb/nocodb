@@ -306,6 +306,7 @@
     "deleteRow": "刪除行",
     "deleteSelectedRow": "刪除所選行",
     "importExcel": "導入Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "下載為CSV.",
     "uploadCSV": "上傳CSV.",
     "import": "匯入",

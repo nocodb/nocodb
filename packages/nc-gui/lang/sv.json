@@ -306,6 +306,7 @@
     "deleteRow": "Radera raden",
     "deleteSelectedRow": "Ta bort valda rader",
     "importExcel": "Import excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Hämta som CSV",
     "uploadCSV": "Ladda upp CSV",
     "import": "Importera",

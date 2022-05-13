@@ -306,6 +306,7 @@
     "deleteRow": "DELETE ROW.",
     "deleteSelectedRow": "Slet de valgte rækker",
     "importExcel": "Import Excel.",
+    "importCSV": "Import CSV.",
     "downloadCSV": "Download som CSV.",
     "uploadCSV": "Upload CSV.",
     "import": "Importere",

@@ -306,6 +306,7 @@
     "deleteRow": "Brisanje retka",
     "deleteSelectedRow": "Izbrišite odabrane retke",
     "importExcel": "Uvoz Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Preuzmite kao CSV",
     "uploadCSV": "Prenesite CSV",
     "import": "Uvoz",

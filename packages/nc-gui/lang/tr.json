@@ -306,6 +306,7 @@
     "deleteRow": "Satırı Sil",
     "deleteSelectedRow": "Seçilen Satırları Sil",
     "importExcel": "Excel'i içe aktar",
+    "importCSV": "Import CSV",
     "downloadCSV": "CSV olarak indir",
     "uploadCSV": "CSV yükle",
     "import": "İçe aktar",

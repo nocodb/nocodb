@@ -305,6 +305,7 @@
     "deleteRow": "Удалить строку",
     "deleteSelectedRow": "Удалить выбранные строки",
     "importExcel": "Импорт из Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Скачать как CSV.",
     "uploadCSV": "Загрузить CSV.",
     "import": "Импортировать",

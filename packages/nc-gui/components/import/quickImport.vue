@@ -298,7 +298,9 @@ export default {
         this.templateEditorModal = true
       } catch (e) {
         console.log(e)
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast
+          .error(await this._extractSdkResponseErrorMsg(e))
+          .goAway(3000)
       }
     },
 

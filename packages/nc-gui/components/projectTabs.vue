@@ -291,8 +291,23 @@
           <v-subheader class="caption">QUICK IMPORT FROM</v-subheader>
           <v-list-item
             v-if="_isUIAllowed('excelQuickImport')"
+            v-t="['a:actions:importcsv']"
+            @click="onImportFromExcelOrCSV()"
+          >
+            <v-list-item-title>
+              <v-icon small>
+                mdi-file-document-outline
+              </v-icon>
+              <span class="caption">
+                <!-- TODO: i18n -->
+                CSV file
+              </span>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
+            v-if="_isUIAllowed('excelQuickImport')"
             v-t="['a:actions:import-excel']"
-            @click="onImportFromExcel()"
+            @click="onImportFromExcelOrCSV()"
           >
             <v-list-item-title>
               <v-icon small>
@@ -300,7 +315,7 @@
               </v-icon>
               <span class="caption">
                 <!-- TODO: i18n -->
-                Microsoft Excel / CSV
+                Microsoft Excel
               </span>
             </v-list-item-title>
           </v-list-item>
@@ -317,7 +332,7 @@
       "
     />
     <!-- Import From Excel / CSV -->
-    <excel-import ref="excelImport" v-model="excelImportModal" hide-label />
+    <quick-import ref="quickImport" v-model="quickImportModal" hide-label />
   </v-container>
 </template>
 
@@ -349,7 +364,7 @@ import ProjectSettings from "@/components/project/projectSettings";
 import GrpcClient from "@/components/project/grpcClient";
 import GlobalAcl from "@/components/globalAcl";
 import AuditTab from "~/components/project/auditTab";
-import ExcelImport from "@/components/import/excelImport";
+import QuickImport from "@/components/import/quickImport";
 
 export default {
   components: {
@@ -380,7 +395,7 @@ export default {
     sqlLogAndOutput,
     xTerm,
     graphqlClient,
-    ExcelImport,
+    QuickImport,
   },
   data() {
     return {
@@ -390,7 +405,7 @@ export default {
       treeViewIcons,
       hideLogWindows: false,
       showScreensaver: false,
-      excelImportModal: false,
+      quickImportModal: false,
     };
   },
   methods: {
@@ -470,11 +485,11 @@ export default {
     }),
     tabActivated(tab) {},
     async onFileDrop(e) {
-      this.excelImportModal = true;
-      this.$refs.excelImport.dropHandler(e);
+      this.quickImportModal = true;
+      this.$refs.quickImport.dropHandler(e);
     },
-    onImportFromExcel() {
-      this.excelImportModal = true;
+    onImportFromExcelOrCSV() {
+      this.quickImportModal = true;
     },
   },
   computed: {
@@ -519,7 +534,7 @@ export default {
   },
   mounted() {
     if (this.$route && this.$route.query && this.$route.query.excelUrl) {
-      this.excelImportModal = true;
+      this.quickImportModal = true;
     }
   },
   beforeDestroy() {},

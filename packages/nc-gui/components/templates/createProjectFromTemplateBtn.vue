@@ -20,7 +20,7 @@ export default {
   name: 'CreateProjectFromTemplateBtn',
   mixins: [colors],
   props: {
-    excelImport: Boolean,
+    quickImport: Boolean,
     loading: Boolean,
     importToProject: Boolean,
     templateData: [Array, Object],

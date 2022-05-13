@@ -613,7 +613,7 @@
                   </v-expansion-panel>
                 </v-expansion-panels>
                 <div v-if="!viewMode" class="mx-auto" style="max-width: 600px">
-                  <template v-if="!excelImport">
+                  <template v-if="!quickImport">
                     <gradient-generator
                       v-model="project.image_url"
                       class="d-100 mt-4"
@@ -763,7 +763,7 @@ export default {
     id: [Number, String],
     viewMode: Boolean,
     projectTemplate: Object,
-    excelImport: Boolean
+    quickImport: Boolean
   },
   data: () => ({
     loading: false,

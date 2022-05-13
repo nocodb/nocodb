@@ -172,7 +172,7 @@ import ExcelUrlTemplateAdapter from '~/components/import/templateParsers/ExcelUr
 import ExcelTemplateAdapter from '~/components/import/templateParsers/ExcelTemplateAdapter'
 
 export default {
-  name: 'ExcelImport',
+  name: 'QuickImport',
   components: { CreateProjectFromTemplateBtn, TemplateEditor },
   props: {
     hideLabel: Boolean,

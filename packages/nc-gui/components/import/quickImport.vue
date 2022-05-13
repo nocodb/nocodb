@@ -106,11 +106,21 @@
     <v-tooltip bottom>
       <template #activator="{on}">
         <input
+          v-if="quickImportType == 'excel'"
           ref="file"
           class="nc-excel-import-input"
           type="file"
           style="display: none"
-          accept=".csv, .xlsx, .xls, .xlsm, .ods, .ots"
+          accept=".xlsx, .xls, .xlsm, .ods, .ots"
+          @change="_change($event)"
+        >
+        <input
+          v-if="quickImportType == 'csv'"
+          ref="file"
+          class="nc-excel-import-input"
+          type="file"
+          style="display: none"
+          accept=".csv"
           @change="_change($event)"
         >
         <v-btn
@@ -297,8 +307,14 @@ export default {
         return
       }
 
-      if (!/.*\.(csv|xls|xlsx|xlsm|ods|ots)/.test(file.name)) {
-        return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .csv, .xls, .xlsx, .xlsm, .ods, .ots!').goAway(3000)
+      if (this.quickImportType === 'excel') {
+        if (!/.*\.(xls|xlsx|xlsm|ods|ots)/.test(file.name)) {
+          return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots!').goAway(3000)
+        }
+      } else if (this.quickImportType === 'csv') {
+        if (!/.*\.(csv)/.test(file.name)) {
+          return this.$toast.error('Dropped file is not an accepted file type. The accepted file type is .csv!').goAway(3000)
+        }
       }
       this._file(file)
     },

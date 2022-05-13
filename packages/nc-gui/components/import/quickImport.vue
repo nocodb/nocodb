@@ -145,12 +145,17 @@
       <v-card class="pa-6" min-width="500">
         <template-editor :project-template.sync="templateData" excel-import>
           <template #toolbar="{valid}">
-            <!--Importing-->
             <h3 class="mt-2 grey--text">
-              {{ $t('activity.importExcel') }} : {{ filename }}
+              <!--Import Excel-->
+              <span v-if="quickImportType === 'excel'">
+                {{ $t('activity.importExcel') }}
+              </span>
+              <!--Import CSV-->
+              <span v-if="quickImportType === 'csv'">
+                {{ $t('activity.importCSV') }}
+              </span>
+              : {{ filename }}
             </h3>
-            <!--            <span class="grey&#45;&#45;text">Importing 2 sheets</span>-->
-
             <v-spacer />
             <v-spacer />
             <create-project-from-template-btn

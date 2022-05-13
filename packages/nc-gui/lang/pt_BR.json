@@ -398,6 +398,7 @@
       "upload_sub": "ou arrastar e soltar arquivo",
       "excelSupport": "Suportado: .xls, .xlsx, .xlsm, .ods,.",
       "excelURL": "Digite o URL do arquivo do Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# de linhas para analisar para inferir datatype",
       "excelImport": "Sheet (s) estão disponíveis para importação",
       "exportMetadata": "Você quer exportar metadados de meta tabelas?",

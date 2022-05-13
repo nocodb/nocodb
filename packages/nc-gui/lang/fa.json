@@ -398,6 +398,7 @@
       "upload_sub": "یا فایل را بکشید و رها کنید",
       "excelSupport": "فرمت‌های پشتیبانی شده: xls - xlsx - xlsm - ods - ots",
       "excelURL": "URL فایل Excel را انتخاب کنید",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "تعداد ردیف‌ها برای parse جهت یافتن نوع داده",
       "excelImport": "صفحه(های) آماده برای ورود",
       "exportMetadata": "آیا می‌خواهید فراداده را از فراجدول‌ها خارج کنید؟",

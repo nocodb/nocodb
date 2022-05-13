@@ -397,6 +397,7 @@
       "upload_sub": "или перетащите файл",
       "excelSupport": "Поддерживаются: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Введите URL-адрес файла Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "Количество рядов на анализ вывода данных",
       "excelImport": "Листы доступны для импорта",
       "exportMetadata": "Вы хотите экспортировать метаданные из металоги?",

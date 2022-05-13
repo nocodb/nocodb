@@ -398,6 +398,7 @@
       "upload_sub": "או גרור ושחרר קובץ",
       "excelSupport": "נתמך: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "הזן את כתובת האתר של קובץ Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# של שורות לנתח כדי להסיק datatype",
       "excelImport": "גיליון (ים) זמינים לייבוא",
       "exportMetadata": "האם אתה רוצה לייצא מטא נתונים מ מטא שולחנות?",

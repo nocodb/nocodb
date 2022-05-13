@@ -398,6 +398,7 @@
       "upload_sub": "vai vilkt un nomest datni",
       "excelSupport": "Atbalsta: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Ievadīt Excel datnes saiti",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# ierakstu analizēšanai lai secinātu datu tipus",
       "excelImport": "lapa(s) ir pieejamas importēšanai",
       "exportMetadata": "Vai tu vēlies eksportēt metadatus no tabulām?",

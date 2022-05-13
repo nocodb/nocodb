@@ -398,6 +398,7 @@
       "upload_sub": "або перетягніть файл",
       "excelSupport": "Підтримується: .xls, .xlsx, .xlsm, .ods, .ot",
       "excelURL": "Введіть URL-адресу Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# рядків, щоб розібрати для виведення даних",
       "excelImport": "Лист (и) доступні для імпорту",
       "exportMetadata": "Ви хочете експортувати метадані з мета-таблиць?",

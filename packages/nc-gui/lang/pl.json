@@ -398,6 +398,7 @@
       "upload_sub": "lub przeciągnij i upuść plik",
       "excelSupport": "Obsługiwane: .xls, .xlsx, .xlsm, .ods, .oty",
       "excelURL": "Wpisz adres URL pliku Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# wierszy do analizy do infera DataType",
       "excelImport": "Arkusze są dostępne dla importu",
       "exportMetadata": "Czy chcesz wyeksportować metadane z stołów meta?",

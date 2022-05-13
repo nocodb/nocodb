@@ -398,6 +398,7 @@
       "upload_sub": "hoặc kéo và thả tập tin",
       "excelSupport": "Được hỗ trợ: .xls, .xlsx, .xlsm, .ods,.",
       "excelURL": "Nhập URL tệp Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# các hàng để phân tích để suy ra kiểu dữ liệu",
       "excelImport": "(các) tấm có sẵn để nhập khẩu",
       "exportMetadata": "Bạn có muốn xuất siêu dữ liệu từ bảng meta?",

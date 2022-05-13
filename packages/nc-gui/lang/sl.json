@@ -398,6 +398,7 @@
       "upload_sub": "ali datoteko povlecite in spustite",
       "excelSupport": "Podprto: .xls, .xlsx, .xlsm, .ods, .h",
       "excelURL": "Vnesite URL EXCEL datoteke",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# vrstic za razčlenjevanje data podatkov",
       "excelImport": "List (-e) so na voljo za uvoz",
       "exportMetadata": "Želite izvoz metapodatkov iz meta tabele?",

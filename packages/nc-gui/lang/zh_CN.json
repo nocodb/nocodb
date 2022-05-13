@@ -398,6 +398,7 @@
       "upload_sub": "或拖放文件",
       "excelSupport": "支持：.xls，.xlsx，.xlsm，.ods，.ots",
       "excelURL": "输入Excel文件URL",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "要解析为推断数据类型的行数",
       "excelImport": "板材可用于进口",
       "exportMetadata": "您想从元表导出元数据吗？",

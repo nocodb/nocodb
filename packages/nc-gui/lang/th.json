@@ -398,6 +398,7 @@
       "upload_sub": "หรือลากและวางไฟล์",
       "excelSupport": "รองรับ:. xls, .xlsx,. xlsm, .ods, .ots",
       "excelURL": "ป้อน URL ไฟล์ Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# ของแถวที่จะแยกวิเคราะห์กับ DataType",
       "excelImport": "มีแผ่นงานสำหรับนำเข้า",
       "exportMetadata": "คุณต้องการส่งออกข้อมูลเมตาจากตาราง Meta หรือไม่?",

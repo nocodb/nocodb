@@ -398,6 +398,7 @@
       "upload_sub": "veya dosyayı sürükleyip bırakın",
       "excelSupport": "Desteklenen: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel dosyası linkini girin",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "Veri türünü bulmak için ayrıştırılacak satır sayısı #",
       "excelImport": "sayfa(lar) içe aktarılabilir",
       "exportMetadata": "Meta verileri meta tablolarından dışa aktarmak ister misiniz?",

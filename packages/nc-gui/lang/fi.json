@@ -398,6 +398,7 @@
       "upload_sub": "tai vedä ja pudota tiedosto",
       "excelSupport": "Tuetut: .xls, .xlsx, .xlsm, .odit,.",
       "excelURL": "Anna Excel-tiedoston URL-osoite",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# rivien jäsentää tietotekniikkaa",
       "excelImport": "arkki (t) on saatavilla tuonti",
       "exportMetadata": "Haluatko viedä metatietoja metapöydistä?",

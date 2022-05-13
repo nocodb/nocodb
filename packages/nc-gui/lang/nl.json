@@ -398,6 +398,7 @@
       "upload_sub": "of sleep het bestand naar hier",
       "excelSupport": "Ondersteunt: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Voer Excel-bestandslink in",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# rijen om te parseren om datatype af te leiden",
       "excelImport": "blad(en) zijn beschikbaar om te importeren",
       "exportMetadata": "Wilt u metadata uit metatabellen exporteren?",

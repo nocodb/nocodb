@@ -398,6 +398,7 @@
       "upload_sub": "またはファイルをドラッグ & ドロップ",
       "excelSupport": "サポートしているファイル形式：.xls、.xlsx、.xlsm、.ods、.ots",
       "excelURL": "ExcelファイルのURLを入力してください",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# データ型を推測するために解析する行数",
       "excelImport": "シートはインポート可能です",
       "exportMetadata": "メタテーブルからメタデータをエクスポートしますか？",

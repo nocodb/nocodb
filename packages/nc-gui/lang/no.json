@@ -398,6 +398,7 @@
       "upload_sub": "eller dra og slipp filen",
       "excelSupport": "Støttet: .xls, .xlsx, .xlsm ,.ods ,.ots",
       "excelURL": "Skriv inn Excel File URL",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# av rader for å analysere å utlede datatype",
       "excelImport": "Ark (er) er tilgjengelige for import",
       "exportMetadata": "Ønsker du å eksportere metadata fra Meta-bord?",

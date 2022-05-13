@@ -60,7 +60,7 @@
                       v-model="url"
                       hide-details="auto"
                       type="url"
-                      :label="$t('msg.info.excelURL')"
+                      :label="quickImportType == 'csv' ? $t('msg.info.excelURL') : $t('msg.info.csvURL') "
                       class="caption"
                       outlined
                       dense

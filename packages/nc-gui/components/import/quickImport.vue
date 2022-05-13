@@ -43,8 +43,12 @@
                   {{ $t('msg.info.upload_sub') }}
                 </p>
 
-                <p class="caption grey--text">
-                  <!-- Supported: .csv, .xls, .xlsx, .xlsm, .ods, .ots-->
+                <p v-if="quickImportType == 'excel'" class="caption grey--text">
+                  <!-- Supported: .csv -->
+                  {{ $t('msg.info.csvSupport') }}
+                </p>
+                <p v-if="quickImportType == 'csv'" class="caption grey--text">
+                  <!-- Supported: .xls, .xlsx, .xlsm, .ods, .ots -->
                   {{ $t('msg.info.excelSupport') }}
                 </p>
               </div>
@@ -177,7 +181,8 @@ export default {
   props: {
     hideLabel: Boolean,
     value: Boolean,
-    importToProject: Boolean
+    importToProject: Boolean,
+    quickImportType: String
   },
   data() {
     return {

@@ -291,8 +291,8 @@
           <v-subheader class="caption">QUICK IMPORT FROM</v-subheader>
           <v-list-item
             v-if="_isUIAllowed('excelQuickImport')"
-            v-t="['a:actions:importcsv']"
-            @click="onImportFromExcelOrCSV()"
+            v-t="['a:actions:import-csv']"
+            @click="onImportFromExcelOrCSV('csv')"
           >
             <v-list-item-title>
               <v-icon small>
@@ -307,7 +307,7 @@
           <v-list-item
             v-if="_isUIAllowed('excelQuickImport')"
             v-t="['a:actions:import-excel']"
-            @click="onImportFromExcelOrCSV()"
+            @click="onImportFromExcelOrCSV('excel')"
           >
             <v-list-item-title>
               <v-icon small>
@@ -332,7 +332,12 @@
       "
     />
     <!-- Import From Excel / CSV -->
-    <quick-import ref="quickImport" v-model="quickImportModal" hide-label />
+    <quick-import 
+      ref="quickImport" 
+      v-model="quickImportModal" 
+      :quick-import-type="quickImportType" 
+      hide-label 
+    />
   </v-container>
 </template>
 
@@ -406,6 +411,7 @@ export default {
       hideLogWindows: false,
       showScreensaver: false,
       quickImportModal: false,
+      quickImportType: "",
     };
   },
   methods: {
@@ -488,8 +494,9 @@ export default {
       this.quickImportModal = true;
       this.$refs.quickImport.dropHandler(e);
     },
-    onImportFromExcelOrCSV() {
+    onImportFromExcelOrCSV(quickImportType) {
       this.quickImportModal = true;
+      this.quickImportType = quickImportType;
     },
   },
   computed: {

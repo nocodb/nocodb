@@ -164,7 +164,13 @@
               @success="$emit('success'),templateEditorModal = false"
             >
               <!--Import Excel-->
-              {{ $t('activity.importExcel') }}
+              <span v-if="quickImportType === 'excel'">
+                {{ $t('activity.importExcel') }}
+              </span>
+              <!--Import CSV-->
+              <span v-if="quickImportType === 'csv'">
+                {{ $t('activity.importCSV') }}
+              </span>
             </create-project-from-template-btn>
           </template>
         </template-editor>

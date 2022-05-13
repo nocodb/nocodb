@@ -60,7 +60,7 @@
           <v-col cols="12">
             <v-card class="elevation-0">
               <v-card-text>
-                <p v-if="project.tables" class="caption grey--text mt-4">
+                <p v-if="project.tables && quickImportType === 'excel'" class="caption grey--text mt-4">
                   {{ project.tables.length }} sheet{{
                     project.tables.length > 1 ? "s" : ""
                   }}
@@ -109,7 +109,7 @@
                       <v-tooltip bottom>
                         <template #activator="{ on }">
                           <v-icon
-                            v-if="!viewMode"
+                            v-if="!viewMode && project.tables.length > 1"
                             class="flex-grow-0 mr-2"
                             small
                             color="grey"
@@ -480,11 +480,26 @@
                                       : 3
                                   "
                                 />
-                                <td style="max-width: 50px; width: 50px">
-                                  <v-tooltip bottom>
+                                <td
+                                  style="max-width: 50px; width: 50px"
+                                >
+                                  <v-tooltip v-if="!viewMode && j == 0" bottom>
+                                    <template #activator="{ on }">
+                                      <x-icon
+                                        small
+                                        class="mr-1"
+                                        color="primary"
+                                        v-on="on"
+                                      >
+                                        mdi-key-star
+                                      </x-icon>
+                                    </template>
+                                    <!-- TODO: i18n -->
+                                    <span>Primary Value</span>
+                                  </v-tooltip>
+                                  <v-tooltip v-else bottom>
                                     <template #activator="{ on }">
                                       <v-icon
-                                        v-if="!viewMode"
                                         class="flex-grow-0"
                                         small
                                         color="grey"
@@ -764,7 +779,8 @@ export default {
     id: [Number, String],
     viewMode: Boolean,
     projectTemplate: Object,
-    quickImport: Boolean
+    quickImport: Boolean,
+    quickImportType: String
   },
   data: () => ({
     loading: false,

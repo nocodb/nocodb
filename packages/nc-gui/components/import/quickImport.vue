@@ -60,7 +60,7 @@
                       v-model="url"
                       hide-details="auto"
                       type="url"
-                      :label="quickImportType == 'csv' ? $t('msg.info.excelURL') : $t('msg.info.csvURL') "
+                      :label="quickImportType == 'excel' ? $t('msg.info.excelURL') : $t('msg.info.csvURL') "
                       class="caption"
                       outlined
                       dense
@@ -143,7 +143,7 @@
 
     <v-dialog v-if="templateData" v-model="templateEditorModal" max-width="1000">
       <v-card class="pa-6" min-width="500">
-        <template-editor :project-template.sync="templateData" excel-import>
+        <template-editor :project-template.sync="templateData" excel-import :quick-import-type="quickImportType">
           <template #toolbar="{valid}">
             <h3 class="mt-2 grey--text">
               <!--Import Excel-->

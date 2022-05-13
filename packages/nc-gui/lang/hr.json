@@ -395,7 +395,7 @@
       "footerInfo": "Redaka po stranici",
       "upload": "Odaberite datoteku za prijenos",
       "upload_sub": "ili povucite i ispustite datoteku",
-      "excelSupport": "Podržani: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "Podržani: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Unesite URL Excel datoteka",
       "footMsg": "# redaka za analizu da biste zaključili datatype",
       "excelImport": "limovi (i) dostupni su za uvoz",

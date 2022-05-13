@@ -395,7 +395,7 @@
       "footerInfo": "Sayfa başına satır",
       "upload": "Yüklenecek Dosyayı Seçin",
       "upload_sub": "veya dosyayı sürükleyip bırakın",
-      "excelSupport": "Desteklenen: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "Desteklenen: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel dosyası linkini girin",
       "footMsg": "Veri türünü bulmak için ayrıştırılacak satır sayısı #",
       "excelImport": "sayfa(lar) içe aktarılabilir",

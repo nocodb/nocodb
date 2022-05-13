@@ -395,7 +395,7 @@
       "footerInfo": "Lignes par page",
       "upload": "Sélectionnez un fichier à téléverser",
       "upload_sub": "ou glisser-déposer un fichier",
-      "excelSupport": "Pris en charge: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "Pris en charge: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Entrez l'URL du fichier Excel",
       "footMsg": "Nombre de lignes à analyser pour déduire le type de données",
       "excelImport": "Les feuilles sont disponibles pour l'importation",

@@ -395,7 +395,7 @@
       "footerInfo": "Rader per sida",
       "upload": "Välj fil för att ladda upp",
       "upload_sub": "eller dra och släpp filen",
-      "excelSupport": "Stöds: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "Stöds: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Ange Excel-filadressen",
       "footMsg": "# av rader att analysera att avleda datatyp",
       "excelImport": "ark (er) är tillgängliga för import",

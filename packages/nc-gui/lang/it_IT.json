@@ -395,7 +395,7 @@
       "footerInfo": "Righe per pagina",
       "upload": "Seleziona il file da caricare",
       "upload_sub": "o trascinare e rilasciare il file",
-      "excelSupport": "Supportato: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "Supportato: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Inserisci l'URL del file Excel",
       "footMsg": "# di righe per analizzare per dedurre il tipo di dati",
       "excelImport": "foglio (i) sono disponibili per l'importazione",

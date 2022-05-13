@@ -395,7 +395,7 @@
       "footerInfo": "ieraksti lapā",
       "upload": "Izvēlēties datni augšupielādei",
       "upload_sub": "vai vilkt un nomest datni",
-      "excelSupport": "Atbalsta: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "Atbalsta: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Ievadīt Excel datnes saiti",
       "footMsg": "# ierakstu analizēšanai lai secinātu datu tipus",
       "excelImport": "lapa(s) ir pieejamas importēšanai",

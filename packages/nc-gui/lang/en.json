@@ -395,7 +395,7 @@
       "footerInfo": "Rows per page",
       "upload": "Select file to Upload",
       "upload_sub": "or drag and drop file",
-      "excelSupport": "Supported: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "Supported: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Enter excel file URL",
       "footMsg": "# of rows to parse to infer datatype",
       "excelImport": "sheet(s) are available for import",

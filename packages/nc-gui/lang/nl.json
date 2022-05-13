@@ -395,7 +395,7 @@
       "footerInfo": "Rijen per pagina",
       "upload": "Selecteer bestand om te uploaden",
       "upload_sub": "of sleep het bestand naar hier",
-      "excelSupport": "Ondersteunt: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "Ondersteunt: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Voer Excel-bestandslink in",
       "footMsg": "# rijen om te parseren om datatype af te leiden",
       "excelImport": "blad(en) zijn beschikbaar om te importeren",

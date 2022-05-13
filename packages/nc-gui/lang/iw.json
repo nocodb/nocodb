@@ -395,7 +395,7 @@
       "footerInfo": "שורות לדף",
       "upload": "בחר קובץ להעלאה",
       "upload_sub": "או גרור ושחרר קובץ",
-      "excelSupport": "נתמך: .csv, .xls, .xlsx, .xlsm, .ods, .ots",
+      "excelSupport": "נתמך: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "הזן את כתובת האתר של קובץ Excel",
       "footMsg": "# של שורות לנתח כדי להסיק datatype",
       "excelImport": "גיליון (ים) זמינים לייבוא",

@@ -131,19 +131,22 @@ export default {
                 .create({ client: this.$store.state.project.project.bases[0].type })
                 .getNewTableColumns()
                 .filter(c => c.column_name !== 'title')
-
               for (const systemColumn of systemColumns) {
                 if (!t.columns.some(c => c.column_name.toLowerCase() === systemColumn.column_name.toLowerCase())) {
                   t.columns.push(systemColumn)
                 }
               }
 
+              // create table
               const table = await this.$api.dbTable.create(projectId, {
                 table_name: t.table_name,
                 title: '',
                 columns: t.columns
               })
               t.table_title = table.title
+
+              // set primary value
+              await this.$api.dbTableColumn.primaryColumnSet(table.columns[0].id)
             }
             this.tableCreation = true
           } catch (e) {

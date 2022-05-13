@@ -612,7 +612,8 @@
                     </v-expansion-panel-content>
                   </v-expansion-panel>
                 </v-expansion-panels>
-                <div v-if="!viewMode" class="mx-auto" style="max-width: 600px">
+                <!-- Disable Gradient Generator at time being -->
+                <!-- <div v-if="!viewMode" class="mx-auto" style="max-width: 600px">
                   <template v-if="!quickImport">
                     <gradient-generator
                       v-model="project.image_url"
@@ -651,7 +652,7 @@
                       />
                     </div>
                   </template>
-                </div>
+                </div> -->
               </v-card-text>
             </v-card>
           </v-col>

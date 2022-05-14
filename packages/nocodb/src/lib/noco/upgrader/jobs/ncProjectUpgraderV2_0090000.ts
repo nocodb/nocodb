@@ -951,7 +951,7 @@ async function migrateProjectModelViews(
         await FormViewColumn.update(
           viewColumn.id,
           {
-            help: columnParams?.help,
+            help: columnParams?.help?.slice(0, 254),
             label: columnParams?.label,
             required: columnParams?.required,
             description: columnParams?.description,

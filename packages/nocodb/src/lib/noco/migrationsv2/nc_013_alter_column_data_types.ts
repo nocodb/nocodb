@@ -18,9 +18,6 @@ const up = async (knex: Knex) => {
     await knex.schema.alterTable(MetaTable.FORM_VIEW_COLUMNS, table => {
       table.text('description').alter();
     });
-    await knex.schema.alterTable(MetaTable.FORM_VIEW_COLUMNS, table => {
-      table.text('help').alter();
-    });
   }
 };
 
@@ -40,9 +37,6 @@ const down = async knex => {
     });
     await knex.schema.alterTable(MetaTable.FORM_VIEW_COLUMNS, table => {
       table.string('description').alter();
-    });
-    await knex.schema.alterTable(MetaTable.FORM_VIEW_COLUMNS, table => {
-      table.string('help').alter();
     });
   }
 };

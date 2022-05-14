@@ -244,13 +244,12 @@
       </v-tabs-items>
 
       <!-- Add / Import -->
-      <v-menu offset-y>
+      <v-menu offset-y v-if="_isUIAllowed('addOrImport')">
         <template #activator="{ on }">
           <v-btn
             color="primary"
             style="height: 100%; padding: 5px;"
             v-on="on"
-            v-if="_isUIAllowed('addOrImport')"
           >
             <x-icon
               icon-class="add-btn"

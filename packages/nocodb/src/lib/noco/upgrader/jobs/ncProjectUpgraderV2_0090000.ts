@@ -777,8 +777,12 @@ async function migrateProjectModels(
         });
         let orderCount = 1;
         for (const [_cn, column] of aliasColArr) {
+          const viewColumn = viewColumns.find(
+            c => column.id === c.fk_column_id
+          );
+          if (!viewColumn) continue;
           await GridViewColumn.update(
-            viewColumns.find(c => column.id === c.fk_column_id).id,
+            viewColumn.id,
             {
               order: orderCount++,
               show: queryParams?.showFields
@@ -957,8 +961,10 @@ async function migrateProjectModelViews(
           ncMeta
         );
       } else if (viewData.show_as === 'grid') {
+        const viewColumn = viewColumns.find(c => column.id === c.fk_column_id);
+        if (!viewColumn) continue;
         await GridViewColumn.update(
-          viewColumns.find(c => column.id === c.fk_column_id).id,
+          viewColumn.id,
           {
             order,
             show,

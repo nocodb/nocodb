@@ -3,12 +3,6 @@
     fluid
     class="ph-no-capture project-container ma-0 pa-0"
     style="position: relative"
-    @dragover.prevent="dragOver = true"
-    @dragenter.prevent="dragOver = true"
-    @dragexit="dragOver = false"
-    @dragleave="dragOver = false"
-    @dragend="dragOver = false"
-    @drop.prevent.stop="onFileDrop"
   >
     <v-tabs
       ref="projectTabs"
@@ -493,10 +487,6 @@ export default {
       updateActiveTabx: 'tabs/activeTabCtx'
     }),
     tabActivated(tab) {},
-    async onFileDrop(e) {
-      this.quickImportModal = true
-      this.$refs.quickImport.dropHandler(e)
-    },
     onImportFromExcelOrCSV(quickImportType) {
       this.quickImportModal = true
       this.quickImportType = quickImportType

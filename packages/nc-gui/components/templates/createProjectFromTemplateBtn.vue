@@ -131,9 +131,19 @@ export default {
                 .create({ client: this.$store.state.project.project.bases[0].type })
                 .getNewTableColumns()
                 .filter(c => c.column_name !== 'title')
+
               for (const systemColumn of systemColumns) {
                 if (!t.columns.some(c => c.column_name.toLowerCase() === systemColumn.column_name.toLowerCase())) {
                   t.columns.push(systemColumn)
+                }
+              }
+
+              // set pk & rqd if ID is provided
+              for (const column of t.columns) {
+                if (column.column_name.toLowerCase() === 'id' && !('pk' in column)) {
+                  column.pk = true
+                  column.rqd = true
+                  break
                 }
               }
 

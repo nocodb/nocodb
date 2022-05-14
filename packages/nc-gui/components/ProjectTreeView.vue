@@ -17,7 +17,7 @@
       >
         {{ $store.getters["project/GtrProjectName"] }}
       </h3>
-      <github-star-btn v-else/>
+      <github-star-btn v-else />
     </div>
     <v-navigation-drawer
       ref="drawer"
@@ -186,17 +186,17 @@
                             {{
                               $t("objects.tables")
                             }}<template
-                            v-if="item.children && item.children.length"
-                          >
+                              v-if="item.children && item.children.length"
+                            >
                               ({{
-                              item.children.filter(
-                                (child) =>
-                                  !search ||
-                                  child.name
-                                  .toLowerCase()
-                                  .includes(search.toLowerCase())
-                              ).length
-                            }})</template></span>
+                                item.children.filter(
+                                  (child) =>
+                                    !search ||
+                                    child.name
+                                      .toLowerCase()
+                                      .includes(search.toLowerCase())
+                                ).length
+                              }})</template></span>
                           <span
                             v-else
                             class="body-2 font-weight-medium"
@@ -214,23 +214,23 @@
                           {{
                             $t("objects.tables")
                           }}<template
-                          v-if="item.children && item.children.length"
-                        >
+                            v-if="item.children && item.children.length"
+                          >
                             ({{
-                            item.children.filter(
-                              (child) =>
-                                !search ||
-                                child.name
-                                .toLowerCase()
-                                .includes(search.toLowerCase())
-                            ).length
-                          }})</template></span>
+                              item.children.filter(
+                                (child) =>
+                                  !search ||
+                                  child.name
+                                    .toLowerCase()
+                                    .includes(search.toLowerCase())
+                              ).length
+                            }})</template></span>
                         <span v-else class="caption font-weight-regular">
                           {{ item.name }}</span>
                       </template>
                     </v-list-item-title>
 
-                    <v-spacer/>
+                    <v-spacer />
 
                     <v-tooltip bottom>
                       <template #activator="{ on }">
@@ -253,8 +253,8 @@
                         class="caption"
                       >Add new
                         <span class="text-capitalize">{{
-                            item.type.slice(0, -3)
-                          }}</span></span>
+                          item.type.slice(0, -3)
+                        }}</span></span>
                     </v-tooltip>
                   </template>
 
@@ -342,13 +342,13 @@
                                 </span>
                               </template>
                               <span class="caption">{{
-                                  child.creator_tooltip
-                                }}</span>
+                                child.creator_tooltip
+                              }}</span>
                             </v-tooltip>
                             <span v-else class="caption">{{ child.name }}</span>
                           </v-list-item-title>
                           <template v-if="child.type === 'table'">
-                            <v-spacer/>
+                            <v-spacer />
                             <div class="action d-flex" @click.stop>
                               <v-menu>
                                 <template #activator="{ on }">
@@ -483,7 +483,7 @@
           />
         </div>
         <div class="pr-3 advance-menu d-none" :class="{ 'pl-3': !mini }">
-          <v-divider v-if="_isUIAllowed('treeViewProjectSettings')"/>
+          <v-divider v-if="_isUIAllowed('treeViewProjectSettings')" />
 
           <v-list
             v-if="_isUIAllowed('treeViewProjectSettings')"
@@ -494,8 +494,8 @@
               <v-list-item-title>
                 <!-- Settings -->
                 <span class="body-2 font-weight-medium">{{
-                    $t("activity.settings")
-                  }}</span>
+                  $t("activity.settings")
+                }}</span>
                 <v-tooltip top>
                   <template #activator="{ on }">
                     <x-icon
@@ -534,8 +534,8 @@
                     <!-- App Store -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                          $t("title.appStore")
-                        }}</span>
+                        $t("title.appStore")
+                      }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
@@ -560,8 +560,8 @@
                     <!-- Team & Auth -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                          $t("title.teamAndAuth")
-                        }}</span>
+                        $t("title.teamAndAuth")
+                      }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
@@ -585,8 +585,8 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                          $t("title.projMeta")
-                        }}</span>
+                        $t("title.projMeta")
+                      }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
@@ -611,8 +611,8 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                          $t("title.audit")
-                        }}</span>
+                        $t("title.audit")
+                      }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
@@ -621,14 +621,14 @@
               </v-tooltip>
             </template>
           </v-list>
-          <v-divider/>
+          <v-divider />
 
           <v-list v-if="_isUIAllowed('previewAs') || previewAs" dense>
             <v-list-item>
               <!-- Preview as -->
               <span class="body-2 font-weight-medium">{{
-                  $t("activity.previewAs")
-                }}</span>
+                $t("activity.previewAs")
+              }}</span>
               <v-icon small class="ml-1">
                 mdi-drama-masks
               </v-icon>
@@ -670,17 +670,15 @@
                   </v-icon>
                   <!-- Reset Preview -->
                   <span class="caption nc-preview-reset">{{
-                      $t("activity.resetReview")
-                    }}</span>
+                    $t("activity.resetReview")
+                  }}</span>
                 </v-list-item>
               </template>
             </v-list>
           </v-list>
         </div>
 
-
-
-        <v-divider/>
+        <v-divider />
         <div
           v-t="['e:api-docs']"
           class="caption pointer nc-docs pb-2 pl-5 pr-3 pt-2 d-flex align-center"
@@ -691,7 +689,6 @@
           </v-icon>
           {{ $t('title.apiDocs') }}
         </div>
-
 
         <template v-if="_isUIAllowed('settings')">
           <div class="pl-5 pr-3 d-flex align-center pb-2">
@@ -712,9 +709,8 @@
           </div>
         </template>
 
-
         <!--        <v-divider/>-->
-<!--        <extras class="pl-1"/>-->
+        <!--        <extras class="pl-1"/>-->
       </div>
     </v-navigation-drawer>
 

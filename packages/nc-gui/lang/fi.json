@@ -171,7 +171,8 @@
     "headLogin": "Kirjaudu sisään | Nokodb",
     "resetPassword": "Nollaa salasana",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Ilmoittaa kautta",

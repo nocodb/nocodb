@@ -1,174 +1,99 @@
 <template>
-  <div class="h-100 nc-auth-tab">
-    <div class="h-100" style="width: 100%">
-      <v-tabs height="40" color="x-active">
-        <v-tab
-          v-t="['c:sync-tab:airtable']"
-        >
-          <span class="caption text-capitalize">
-            Airtable
-          </span>
-        </v-tab>
-        <v-tab
-          v-t="['c:sync-tab:stripe']"
-        >
-          <span class="caption text-capitalize">
-            Stripe
-          </span>
-        </v-tab>
-        <v-tab
-          v-t="['c:sync-tab:salesforce']"
-        >
-          <span class="caption text-capitalize">
-            Salesforce
-          </span>
-        </v-tab>
+  <v-dialog v-model="airtableModal" max-width="min(900px, 90%)">
+    <v-card class="nc-import-card">
+      <v-toolbar class="elevation-0" height="68">
+        <h3 class="mt-2 grey--text">
+          {{ $t('title.importFromAirtable') }} :
+          <span v-if="step === 1" @dblclick="$set(syncSource.details,'syncViews',true)">Credentials<span
+            v-if="syncSource && syncSource.details && syncSource.details.syncViews"
+          >.</span></span>
+          <span v-else-if="step === 2">Logs</span>
+        </h3>
 
-        <v-tab-item class="h-100 pa-10">
-          <div>
-            <!--    <v-dialog v-model="importModal" max-width="min(500px, 90%)">-->
-            <v-card v-if="step === 1" class="py-6">
-              <v-card-title class="title text-center justify-center">
-                <span @dblclick="$set(syncSource.details,'syncViews',true)">Credentials<span
-                  v-if="syncSource && syncSource.details && syncSource.details.syncViews"
-                >.</span>
-                </span>
-              </v-card-title>
+        <v-spacer />
+      </v-toolbar>
 
-              <!--
-          title: '',
-          type: '',
-          details: '',
-          deleted: '',
-          order: '',
-          project_id: ''-->
-              <v-form v-model="valid">
-                <div v-if="syncSource" class="px-10 mt-1 mx-auto" style="max-width: 400px">
-                  <!--                <v-text-field v-model="syncSource.title" outlined dense label="Title" class="caption" />-->
-                  <v-text-field
-                    v-model="syncSource.details.apiKey"
-                    outlined
-                    dense
-                    label="Api Key"
-                    class="caption"
-                    :rules="[v=> !!v || 'Api Key is required']"
-                  />
-                  <v-text-field
-                    v-model="syncSourceUrlOrId"
-                    outlined
-                    dense
-                    label="Shared Base ID / URL"
-                    class="caption"
-                    :rules="[(v) => (syncSource.details.shareId) ? !!v : 'Shared Base ID / URL is required']"
-                  />
-                <!--                <v-select
-                  v-model="syncSource.details.syncInterval"
-                  :items="['15mins','30mins','1hr', '24hr']"
+      <div class="h-100" style="width: 100%">
+        <div>
+          <v-card v-if="step === 1" class="py-6">
+            <v-form v-model="valid">
+              <div v-if="syncSource" class="px-10 mt-1 mx-auto" style="max-width: 400px">
+                <v-text-field
+                  v-model="syncSource.details.apiKey"
                   outlined
                   dense
-                  label="Sync interval"
+                  label="Api Key"
                   class="caption"
-                />
-                <v-select
-                  v-model="syncSource.details.syncDirection"
-                  :items="['Airtable to NocoDB','2 way']"
-                  outlined
-                  dense
-                  label="Shared direction"
-                  class="caption"
+                  :rules="[v=> !!v || 'Api Key is required']"
                 />
                 <v-text-field
-                  v-model="syncSource.details.syncRetryCount"
-                  type="number"
+                  v-model="syncSourceUrlOrId"
                   outlined
                   dense
-
-                  label="Shared retry count"
+                  label="Shared Base ID / URL"
                   class="caption"
-                />-->
-                </div>
-              </v-form>   <v-card-actions class="justify-center pb-6">
-                <v-btn
-                  v-t="['c:sync-airtable:save']"
-                  :disabled="!valid"
-                  small
-                  outlined
-                  @click="createOrUpdate"
-                >
-                  Save
-                </v-btn>
-                <v-btn
-                  v-t="['c:sync-airtable:save-and-sync']"
-                  :disabled="!valid"
-                  small
-                  outlined
-                  @click="saveAndSync"
-                >
-                  Save & Sync
-                </v-btn>
-              </v-card-actions>
-            </v-card>
+                  :rules="[(v) => !!v || 'Shared Base ID / URL is required']"
+                />
+              </div>
+            </v-form>   <v-card-actions class="justify-center pb-6">
+              <v-btn
+                v-t="['c:sync-airtable:save-and-sync']"
+                :disabled="!valid"
+                large
+                color="primary"
+                @click="saveAndSync"
+              >
+                Save & Sync
+              </v-btn>
+            </v-card-actions>
+          </v-card>
 
+          <v-card
+            v-if="step === 2"
+            class="py-4 mt-4"
+          >
             <v-card
-              v-if="step === 2"
-              class="py-4 mt-4"
+              ref="log"
+              dark
+              class="mt-2 mx-4 px-2 elevation-0 green--text"
+              height="500"
+              style="overflow-y: auto"
             >
-              <v-card-title class="title text-center justify-center">
-                Logs
-              </v-card-title>
-              <v-card
-                ref="log"
-                dark
-                class="mt-2 mx-4 px-2 elevation-0 green--text"
-                height="500"
-                style="overflow-y: auto"
-              >
-                <div v-for="({msg , status}, i) in progress" :key="i">
-                  <v-icon v-if="status==='FAILED'" color="red" size="15">
-                    mdi-close-circle-outline
-                  </v-icon>
-                  <v-icon v-else color="green" size="15">
-                    mdi-currency-usd
-                  </v-icon>
-                  <span class="caption nc-text">{{ msg }}</span>
-                </div>
-                <div
-                  v-if="!progress || !progress.length || progress[progress.length-1].status !== 'COMPLETED' && progress[progress.length-1].status !== 'FAILED'"
-                  class=""
-                >
-                  <v-icon color="green" size="15">
-                    mdi-loading mdi-spin
-                  </v-icon>
-                  <span class="caption nc-text">Syncing
-                  </span>
-                  <!--                  <div class="nc-progress" />-->
-                </div>
-              </v-card>
-
+              <div v-for="({msg , status}, i) in progress" :key="i">
+                <v-icon v-if="status==='FAILED'" color="red" size="15">
+                  mdi-close-circle-outline
+                </v-icon>
+                <v-icon v-else color="green" size="15">
+                  mdi-currency-usd
+                </v-icon>
+                <span class="caption nc-text">{{ msg }}</span>
+              </div>
               <div
-                v-if="progress && progress.length && progress[progress.length-1].status === 'COMPLETED'"
-                class="pa-4 pt-8 text-center"
+                v-if="!progress || !progress.length || progress[progress.length-1].status !== 'COMPLETED' && progress[progress.length-1].status !== 'FAILED'"
+                class=""
               >
-                <v-btn small color="primary" @click="$emit('close')">
-                  Go to dashboard
-                </v-btn>
+                <v-icon color="green" size="15">
+                  mdi-loading mdi-spin
+                </v-icon>
+                <span class="caption nc-text">Syncing
+                </span>
+                <!--                  <div class="nc-progress" />-->
               </div>
             </v-card>
-          </div>
 
-          <!--          <v-card-actions-->
-          <!--            v-if="progress &&progress.length&& progress[progress.length-1].msg === 'completed'"-->
-          <!--            class="justify-center py-3"-->
-          <!--          >-->
-          <!--            <v-btn small outlined @click="progress=[], step=0,importModal=false">-->
-          <!--              Navigate to project-->
-          <!--            </v-btn>-->
-          <!--          </v-card-actions>-->
-          <!--    </v-dialog>-->
-        </v-tab-item>
-      </v-tabs>
-    </div>
-  </div>
+            <div
+              v-if="progress && progress.length && progress[progress.length-1].status === 'COMPLETED'"
+              class="pa-4 pt-8 text-center"
+            >
+              <v-btn large color="primary" @click="airtableModal=false">
+                Go to dashboard
+              </v-btn>
+            </div>
+          </v-card>
+        </div>
+      </div>
+    </v-card>
+  </v-dialog>
 </template>
 
 <script>
@@ -176,6 +101,9 @@ import io from 'socket.io-client'
 
 export default {
   name: 'ImportFromAirtable',
+  props: {
+    value: Boolean
+  },
   data: () => ({
     valid: false,
     socket: null,
@@ -184,10 +112,20 @@ export default {
     syncSource: null,
     syncSourceUrlOrId: ''
   }),
+  computed: {
+    airtableModal: {
+      set(v) {
+        this.$emit('input', v)
+      },
+      get() {
+        return this.value
+      }
+    }
+  },
   watch: {
     syncSourceUrlOrId(v) {
       if (this.syncSource && this.syncSource.details) {
-        const m = v.match(/(exp|shr).{14,14}/g)
+        const m = v && v.match(/(exp|shr).{14}/g)
         this.syncSource.details.shareId = m ? m[0] : null
       }
     }

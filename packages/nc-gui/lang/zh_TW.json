@@ -171,7 +171,8 @@
     "headLogin": "登入｜NocoDB",
     "resetPassword": "重設密碼",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "通知Via",

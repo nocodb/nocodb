@@ -171,7 +171,8 @@
     "headLogin": "Prijavite se | Nocodb",
     "resetPassword": "Vraćanje izvorne lozinke",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Obavijestiti putem",

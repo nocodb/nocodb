@@ -171,7 +171,8 @@
     "headLogin": "Masuk | Nocodb.",
     "resetPassword": "Mereset password Anda",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Beri tahu VIA.",

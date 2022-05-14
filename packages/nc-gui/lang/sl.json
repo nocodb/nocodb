@@ -171,7 +171,8 @@
     "headLogin": "Prijava | Nocodb.",
     "resetPassword": "Ponastavi geslo",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Obvestite VIO.",

@@ -171,7 +171,8 @@
     "headLogin": "Autentique-se | Noco",
     "resetPassword": "Redefina a sua palavra-passe",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Notificar via.",

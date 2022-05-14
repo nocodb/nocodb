@@ -256,6 +256,7 @@
             color="primary"
             style="height: 100%; padding: 5px;"
             v-on="on"
+            v-show="_isUIAllowed('addOrImport')"
           >
             <x-icon
               icon-class="add-btn"
@@ -291,7 +292,7 @@
             QUICK IMPORT FROM
           </v-subheader>
           <v-list-item
-            v-show="_isUIAllowed('excelQuickImport')"
+            v-show="_isUIAllowed('csvQuickImport')"
             v-t="['a:actions:import-csv']"
             @click="onImportFromExcelOrCSV('csv')"
           >

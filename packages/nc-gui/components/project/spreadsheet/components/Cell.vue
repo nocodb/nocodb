@@ -16,7 +16,7 @@
   <date-cell v-else-if="isDate" :value="value" />
   <date-time-cell v-else-if="isDateTime" :value="value" />
   <time-cell v-else-if="isTime" :value="value" />
-  <boolean-cell v-else-if="isBoolean" :value="value" />
+  <boolean-cell v-else-if="isBoolean" :value="value" read-only />
   <rating-cell v-else-if="isRating" :value="value" read-only />
 
   <span v-else :class="{'long-text-cell' : isTextArea}" :title="title">{{ value }}</span>

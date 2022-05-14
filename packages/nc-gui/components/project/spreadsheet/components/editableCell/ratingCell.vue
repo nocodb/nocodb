@@ -10,7 +10,7 @@
     >
       <template #item="{isFilled, click}">
         <v-icon v-if="isFilled" :size="15" :color="ratingMeta.color" @click="click">
-          {{ ratingMeta.icon.full }}
+          {{ fullIcon }}
         </v-icon>
         <v-icon
           v-else
@@ -19,7 +19,7 @@
           class="nc-cell-hover-show"
           @click="click"
         >
-          {{ ratingMeta.icon.empty }}
+          {{ emptyIcon }}
         </v-icon>
       </template>
     </v-rating>
@@ -35,6 +35,12 @@ export default {
     readOnly: Boolean
   },
   computed: {
+    fullIcon() {
+      return (this.ratingMeta && this.ratingMeta.icon && this.ratingMeta.icon.full) || 'mdi-star'
+    },
+    emptyIcon() {
+      return (this.ratingMeta && this.ratingMeta.icon && this.ratingMeta.icon.empty) || 'mdi-star-outline'
+    },
     localState: {
       get() {
         return this.value
@@ -44,16 +50,17 @@ export default {
       }
     },
     ratingMeta() {
-      return this.column && this.column.meta
-        ? this.column.meta
-        : {
-            icon: {
-              full: 'mdi-star',
-              empty: 'mdi-star-outline'
-            },
-            color: '#fcb401',
-            max: 5
-          }
+      return {
+        icon: {
+          full: 'mdi-star',
+          empty: 'mdi-star-outline'
+        },
+        color: '#fcb401',
+        max: 5,
+        ...(this.column && this.column.meta
+          ? this.column.meta
+          : {})
+      }
     }
   }
 }

@@ -1,7 +1,7 @@
 <template>
   <div class="d-flex align-center " :class="{'justify-center':!isForm,'nc-cell-hover-show': !localState}">
-    <v-icon small :color="checkboxMeta.color" @click="localState = !localState">
-      {{ checkboxMeta.icon[value ? 'checked' : 'unchecked'] }}
+    <v-icon small :color="checkboxMeta.color" @click="toggle">
+      {{ localState ? checkedIcon :uncheckedIcon }}
     </v-icon>
   </div>
 </template>
@@ -12,9 +12,17 @@ export default {
   props: {
     column: Object,
     value: [String, Number, Boolean],
-    isForm: Boolean
+    isForm: Boolean,
+    readOnly: Boolean
   },
   computed: {
+
+    checkedIcon() {
+      return (this.checkboxMeta && this.checkboxMeta.icon && this.checkboxMeta.icon.checked) || 'mdi-check-bold'
+    },
+    uncheckedIcon() {
+      return (this.checkboxMeta && this.checkboxMeta.icon && this.checkboxMeta.icon.unchecked) || 'mdi-crop-square'
+    },
     localState: {
       get() {
         return this.value
@@ -28,18 +36,22 @@ export default {
       return $listeners
     },
     checkboxMeta() {
-      return this.column && this.column.meta
-        ? this.column.meta
-        : {
-            icon: {
-              checked: 'mdi-check-circle-outline',
-              unchecked: 'mdi-checkbox-blank-circle-outline'
-            },
-            color: ''
-          }
+      return {
+        icon: {
+          checked: 'mdi-check-circle-outline',
+          unchecked: 'mdi-checkbox-blank-circle-outline'
+        },
+        color: 'primary',
+        ...(this.column && this.column.meta
+          ? this.column.meta
+          : {})
+      }
     }
   },
-  mounted() {
+  methods: {
+    toggle() {
+      this.localState = !this.localState
+    }
   }
 }
 </script>

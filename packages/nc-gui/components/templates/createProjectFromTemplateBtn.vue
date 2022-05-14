@@ -100,6 +100,7 @@ export default {
         }, 1000)
 
         const projectId = this.$store.state.project.project.id
+        let firstTable = null
 
         // Not available now
         if (this.importToProject) {
@@ -155,6 +156,11 @@ export default {
               })
               t.table_title = table.title
 
+              // open the first table after import
+              if (firstTable === null) {
+                firstTable = table
+              }
+
               // set primary value
               await this.$api.dbTableColumn.primaryColumnSet(table.columns[0].id)
             }
@@ -189,7 +195,25 @@ export default {
             env: '_noco',
             type: 'tableDir'
           }
+        }).then(() => {
+          // add tab - choose the first one if multiple tables are created
+          this.$store.dispatch('tabs/loadFirstCreatedTableTab', {
+            title: firstTable.title
+          }).then((item) => {
+            // set active tab - choose the first one if multiple tables are created
+            this.$nextTick(() => {
+              this.$router.push({
+                query: {
+                  name: item.name || '',
+                  dbalias: (item._nodes && item._nodes.dbAlias) || '',
+                  type: (item._nodes && item._nodes.type) || 'table'
+                }
+              })
+            })
+          })
         })
+
+        // confetti effect
         this.simpleAnim()
       } catch (e) {
         console.log(e)

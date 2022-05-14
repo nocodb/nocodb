@@ -1031,9 +1031,9 @@ async function migrateViewsParams(
             {
               fk_column_id: sort.field
                 ? (
-                    objModelColumnAliasRef[projectId][tn][sort.field] ||
-                    objModelColumnRef[projectId][tn][sort.field]
-                  ).id
+                    objModelColumnAliasRef[projectId]?.[tn]?.[sort.field] ||
+                    objModelColumnRef[projectId]?.[tn]?.[sort.field]
+                  )?.id || null
                 : null,
               fk_view_id: view.id,
               direction: sort.order === '-' ? 'desc' : 'asc'
@@ -1047,7 +1047,10 @@ async function migrateViewsParams(
           await Filter.insert(
             {
               fk_column_id: filter.field
-                ? objModelColumnAliasRef[projectId][tn][filter.field].id
+                ? (
+                    objModelColumnAliasRef?.[projectId]?.[tn]?.[filter.field] ||
+                    objModelColumnRef?.[projectId]?.[tn]?.[filter.field]
+                  )?.id || null
                 : null,
               fk_view_id: view.id,
               comparison_op: filterV1toV2CompOpMap[filter.op],

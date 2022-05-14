@@ -17,6 +17,8 @@
   <date-time-cell v-else-if="isDateTime" :value="value" />
   <time-cell v-else-if="isTime" :value="value" />
   <boolean-cell v-else-if="isBoolean" :value="value" />
+  <rating-cell v-else-if="isRating" :value="value" read-only />
+
   <span v-else :class="{'long-text-cell' : isTextArea}" :title="title">{{ value }}</span>
 </template>
 
@@ -32,12 +34,13 @@ import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
 import EditableAttachmentCell from '~/components/project/spreadsheet/components/editableCell/EditableAttachmentCell'
 import BooleanCell from '~/components/project/spreadsheet/components/cell/BooleanCell'
 import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCell'
+import RatingCell from '~/components/project/spreadsheet/components/editableCell/ratingCell'
 
 export default {
   name: 'TableCell',
-  components: { EmailCell, TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell },
+  components: { RatingCell, EmailCell, TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell },
   mixins: [cell],
-  props: ['value', 'dbAlias', 'isLocked', 'selected'],
+  props: ['value', 'dbAlias', 'isLocked', 'selected', 'column'],
   computed: {
     title() {
       if (typeof this.value === 'string') { return this.value }

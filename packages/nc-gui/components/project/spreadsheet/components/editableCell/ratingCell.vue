@@ -5,6 +5,7 @@
       :length="ratingMeta.max"
       dense
       x-small
+      :disabled="readOnly"
       clearable
     >
       <template #item="{isFilled, click}">
@@ -30,7 +31,8 @@ export default {
   name: 'RatingCell',
   props: {
     column: Object,
-    value: [String, Number]
+    value: [String, Number],
+    readOnly: Boolean
   },
   computed: {
     localState: {

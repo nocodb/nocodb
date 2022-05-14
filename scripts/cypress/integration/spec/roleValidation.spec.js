@@ -78,7 +78,7 @@ export function _editSchema(roleType, previewMode) {
     cy.get(".add-btn").should(validationString);
     cy.get(".v-tabs-bar")
         .eq(0)
-        .find("button.mdi-plus-box")
+        .find(".add-btn.mdi-plus-box")
         .should(validationString);
 
     // delete table option

@@ -43,8 +43,8 @@
                   {{ $t('msg.info.upload_sub') }}
                 </p>
 
-                <p class="caption grey--text">
-                  <!-- Supported: .xls, .xlsx, .xlsm, .ods, .ots-->
+                <p v-if="quickImportType == 'excel'" class="caption grey--text">
+                  <!-- Supported: .xls, .xlsx, .xlsm, .ods, .ots -->
                   {{ $t('msg.info.excelSupport') }}
                 </p>
               </div>
@@ -60,7 +60,7 @@
                       v-model="url"
                       hide-details="auto"
                       type="url"
-                      :label="$t('msg.info.excelURL')"
+                      :label="quickImportType == 'excel' ? $t('msg.info.excelURL') : $t('msg.info.csvURL') "
                       class="caption"
                       outlined
                       dense
@@ -106,11 +106,21 @@
     <v-tooltip bottom>
       <template #activator="{on}">
         <input
+          v-if="quickImportType == 'excel'"
           ref="file"
           class="nc-excel-import-input"
           type="file"
           style="display: none"
           accept=".xlsx, .xls, .xlsm, .ods, .ots"
+          @change="_change($event)"
+        >
+        <input
+          v-if="quickImportType == 'csv'"
+          ref="file"
+          class="nc-excel-import-input"
+          type="file"
+          style="display: none"
+          accept=".csv"
           @change="_change($event)"
         >
         <v-btn
@@ -133,14 +143,19 @@
 
     <v-dialog v-if="templateData" v-model="templateEditorModal" max-width="1000">
       <v-card class="pa-6" min-width="500">
-        <template-editor :project-template.sync="templateData" excel-import>
+        <template-editor :project-template.sync="templateData" excel-import :quick-import-type="quickImportType">
           <template #toolbar="{valid}">
-            <!--Importing-->
             <h3 class="mt-2 grey--text">
-              {{ $t('activity.importExcel') }} : {{ filename }}
+              <!--Import Excel-->
+              <span v-if="quickImportType === 'excel'">
+                {{ $t('activity.importExcel') }}
+              </span>
+              <!--Import CSV-->
+              <span v-if="quickImportType === 'csv'">
+                {{ $t('activity.importCSV') }}
+              </span>
+              : {{ filename }}
             </h3>
-            <!--            <span class="grey&#45;&#45;text">Importing 2 sheets</span>-->
-
             <v-spacer />
             <v-spacer />
             <create-project-from-template-btn
@@ -151,10 +166,16 @@
               :valid="valid"
               create-gql-text="Import as GQL Project"
               create-rest-text="Import as REST Project"
-              @success="$emit('success'),templateEditorModal = false"
+              @closeModal="$emit('closeModal'),templateEditorModal = false"
             >
               <!--Import Excel-->
-              {{ $t('activity.importExcel') }}
+              <span v-if="quickImportType === 'excel'">
+                {{ $t('activity.importExcel') }}
+              </span>
+              <!--Import CSV-->
+              <span v-if="quickImportType === 'csv'">
+                {{ $t('activity.importCSV') }}
+              </span>
             </create-project-from-template-btn>
           </template>
         </template-editor>
@@ -172,12 +193,13 @@ import ExcelUrlTemplateAdapter from '~/components/import/templateParsers/ExcelUr
 import ExcelTemplateAdapter from '~/components/import/templateParsers/ExcelTemplateAdapter'
 
 export default {
-  name: 'ExcelImport',
+  name: 'QuickImport',
   components: { CreateProjectFromTemplateBtn, TemplateEditor },
   props: {
     hideLabel: Boolean,
     value: Boolean,
-    importToProject: Boolean
+    importToProject: Boolean,
+    quickImportType: String
   },
   data() {
     return {
@@ -276,7 +298,9 @@ export default {
         this.templateEditorModal = true
       } catch (e) {
         console.log(e)
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast
+          .error(await this._extractSdkResponseErrorMsg(e))
+          .goAway(3000)
       }
     },
 
@@ -296,8 +320,14 @@ export default {
         return
       }
 
-      if ((!/\.xls[xm]?$/.test(file.name)) && (!/\.o[dt]s?$/.test(file.name))) {
-        return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xlsx,.xls,.xlsm!').goAway(3000)
+      if (this.quickImportType === 'excel') {
+        if (!/.*\.(xls|xlsx|xlsm|ods|ots)/.test(file.name)) {
+          return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots!').goAway(3000)
+        }
+      } else if (this.quickImportType === 'csv') {
+        if (!/.*\.(csv)/.test(file.name)) {
+          return this.$toast.error('Dropped file is not an accepted file type. The accepted file type is .csv!').goAway(3000)
+        }
       }
       this._file(file)
     },

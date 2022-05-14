@@ -60,25 +60,7 @@
           <v-col cols="12">
             <v-card class="elevation-0">
               <v-card-text>
-                <div v-if="!viewMode" class="mx-auto" style="max-width: 400px">
-                  <div class="mt-1">
-                    <v-text-field
-                      ref="project"
-                      v-model="project.title"
-                      class="title"
-                      outlined
-                      hide-details
-                      denses
-                      :rules="[(v) => !!v || 'Project name required']"
-                    >
-                      <template #label>
-                        <span class="caption">Project Name</span>
-                      </template>
-                    </v-text-field>
-                  </div>
-                </div>
-
-                <p v-if="project.tables" class="caption grey--text mt-4">
+                <p v-if="project.tables && quickImportType === 'excel'" class="caption grey--text mt-4">
                   {{ project.tables.length }} sheet{{
                     project.tables.length > 1 ? "s" : ""
                   }}
@@ -127,7 +109,7 @@
                       <v-tooltip bottom>
                         <template #activator="{ on }">
                           <v-icon
-                            v-if="!viewMode"
+                            v-if="!viewMode && project.tables.length > 1"
                             class="flex-grow-0 mr-2"
                             small
                             color="grey"
@@ -283,7 +265,7 @@
                                     :ref="`uidt_${table.table_name}_${j}`"
                                     style="max-width: 200px"
                                     :value="col.uidt"
-                                    placeholder="Column Datatype"
+                                    placeholder="Column Data Type"
                                     outlined
                                     dense
                                     class="caption"
@@ -498,11 +480,26 @@
                                       : 3
                                   "
                                 />
-                                <td style="max-width: 50px; width: 50px">
-                                  <v-tooltip bottom>
+                                <td
+                                  style="max-width: 50px; width: 50px"
+                                >
+                                  <v-tooltip v-if="!viewMode && j == 0" bottom>
+                                    <template #activator="{ on }">
+                                      <x-icon
+                                        small
+                                        class="mr-1"
+                                        color="primary"
+                                        v-on="on"
+                                      >
+                                        mdi-key-star
+                                      </x-icon>
+                                    </template>
+                                    <!-- TODO: i18n -->
+                                    <span>Primary Value</span>
+                                  </v-tooltip>
+                                  <v-tooltip v-else bottom>
                                     <template #activator="{ on }">
                                       <v-icon
-                                        v-if="!viewMode"
                                         class="flex-grow-0"
                                         small
                                         color="grey"
@@ -630,8 +627,9 @@
                     </v-expansion-panel-content>
                   </v-expansion-panel>
                 </v-expansion-panels>
-                <div v-if="!viewMode" class="mx-auto" style="max-width: 600px">
-                  <template v-if="!excelImport">
+                <!-- Disable Gradient Generator at time being -->
+                <!-- <div v-if="!viewMode" class="mx-auto" style="max-width: 600px">
+                  <template v-if="!quickImport">
                     <gradient-generator
                       v-model="project.image_url"
                       class="d-100 mt-4"
@@ -669,7 +667,7 @@
                       />
                     </div>
                   </template>
-                </div>
+                </div> -->
               </v-card-text>
             </v-card>
           </v-col>
@@ -768,6 +766,9 @@ import {
 } from '~/components/project/spreadsheet/helpers/uiTypes'
 import GradientGenerator from '~/components/templates/gradientGenerator'
 import Help from '~/components/templates/help'
+import {
+  isVirtualCol,
+} from "nocodb-sdk";
 
 const LinkToAnotherRecord = 'LinkToAnotherRecord'
 const Lookup = 'Lookup'
@@ -781,7 +782,8 @@ export default {
     id: [Number, String],
     viewMode: Boolean,
     projectTemplate: Object,
-    excelImport: Boolean
+    quickImport: Boolean,
+    quickImportType: String
   },
   data: () => ({
     loading: false,
@@ -802,7 +804,7 @@ export default {
     createTableColumnsDialog: false,
     selectedTable: null,
     uiTypes: uiTypes.filter(
-      t => ![UITypes.Formula, UITypes.SpecificDBType].includes(t.name)
+      t => !isVirtualCol(t.name)
     ),
     rollupFnList: [
       { text: 'count', value: 'count' },

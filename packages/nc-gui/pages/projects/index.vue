@@ -2,12 +2,6 @@
   <v-container
     fluid
     class="text-center px-10 pt-10 nc-container"
-    @dragover.prevent="dragOver = true"
-    @dragenter.prevent="dragOver = true"
-    @dragexit="dragOver = false"
-    @dragleave="dragOver = false"
-    @dragend="dragOver = false"
-    @drop.prevent.stop="onFileDrop"
   >
     <v-row>
       <v-col v-if="loaded" class="col-lg-6 offset-lg-3 col-12 col-md-12">
@@ -69,7 +63,7 @@
                   <template #activator="{ on }">
                     <div>
                       <x-btn
-                        v-if="_isUIAllowed('projectCreate', true)"
+                        v-if="_isUIAllowed('projectCreate')"
                         v-ge="['home', 'project-new']"
                         data-v-step="1"
                         outlined
@@ -134,26 +128,6 @@
                         <!-- Supports MySQL, PostgreSQL, SQL Server & SQLite -->
                         <span class="caption">{{ $t("tooltip.extDB") }}</span>
                       </v-tooltip>
-                    </v-list-item>
-                    <v-divider />
-                    <v-list-item
-                      title
-                      class="pt-2 nc-create-project-from-excel"
-                      @click="onCreateProjectFromExcel()"
-                    >
-                      <v-list-item-icon class="mr-2">
-                        <v-icon small class="">
-                          mdi-file-excel-outline
-                        </v-icon>
-                      </v-list-item-icon>
-                      <v-list-item-title>
-                        <span
-                          class="caption font-weight-regular"
-                          v-html="
-                            $t('activity.createProjectExtended.excel')
-                          "
-                        />
-                      </v-list-item-title>
                     </v-list-item>
                   </v-list>
                 </v-menu>
@@ -560,7 +534,6 @@
       :dialog-show="dialogShow"
       :heading="confirmMessage"
     />
-    <excel-import ref="excelImport" v-model="excelImportModal" hide-label />
     <templates-modal v-model="templatesModal" hide-label create-project />
   </v-container>
 </template>
@@ -571,11 +544,9 @@ import ShareIcons from "../../components/share-icons";
 import SponsorMini from "@/components/sponsorMini";
 import colors from "~/mixins/colors";
 import TemplatesModal from "~/components/templates/templatesModal";
-import ExcelImport from "~/components/import/excelImport";
 
 export default {
   components: {
-    ExcelImport,
     TemplatesModal,
     ShareIcons,
     SponsorMini,
@@ -588,8 +559,6 @@ export default {
   },
   data() {
     return {
-      dragOver: false,
-      excelImportModal: false,
       templatesModal: false,
       overlayVisible: true,
       showCommunity: false,
@@ -698,16 +667,8 @@ export default {
     setTimeout(() => (this.showCommunity = true), 2000);
 
     await this.projectsLoad();
-
-    if (this.$route && this.$route.query && this.$route.query.excelUrl) {
-      this.excelImportModal = true;
-    }
   },
   methods: {
-    async onFileDrop(e) {
-      this.excelImportModal = true;
-      this.$refs.excelImport.dropHandler(e);
-    },
     async stopProject(project) {
       this.dialogShow = true;
       this.confirmMessage = "Do you want to stop the project?";
@@ -840,11 +801,6 @@ export default {
     onCreateProjectFromTemplate() {
       this.templatesModal = true;
       this.$e("c:project:create:template");
-    },
-    onCreateProjectFromExcel() {
-      // this.$refs.excelImport.selectFile()
-      this.excelImportModal = true;
-      this.$e("c:project:create:excel");
     },
     async importProjectFromJSON() {},
     onTourCompletion() {

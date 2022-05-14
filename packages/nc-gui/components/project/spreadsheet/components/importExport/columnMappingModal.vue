@@ -1,6 +1,7 @@
 <template>
   <v-dialog v-model="visible" max-width="800px">
-    <v-card>
+    <!-- Import CSV to existing Table -->
+    <v-card v-if="meta">
       <v-card-actions>
         <v-card-title>
           Table : {{ meta.title }}
@@ -99,12 +100,12 @@ export default {
     meta: Object,
     importDataColumns: Array,
     value: Boolean,
-    parsedCsv: Object
+    parsedCsv: Object,
   },
   data() {
     return {
       mappings: [],
-      valid: false
+      valid: false,
     }
   },
   computed: {
@@ -194,9 +195,11 @@ export default {
       this.mappings = []
       for (const col of this.importDataColumns) {
         const o = { sourceCn: col, enabled: true }
-        const tableColumn = this.meta.columns.find(c => c.title === col)
-        if (tableColumn) {
-          o.destCn = tableColumn.title
+        if (this.meta) {
+          const tableColumn = this.meta.columns.find(c => c.title === col)
+          if (tableColumn) {
+            o.destCn = tableColumn.title
+          }
         }
         this.mappings.push(o)
       }
@@ -204,7 +207,7 @@ export default {
     },
     getIcon(uidt) {
       return getUIDTIcon(uidt) || 'mdi-alpha-v-circle-outline'
-    }
+    },
   }
 }
 </script>

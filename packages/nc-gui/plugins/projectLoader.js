@@ -51,9 +51,9 @@ export default async({ store, redirect, $axios, $toast, $api, route }) => {
 
   try {
     await store.dispatch('project/ActLoadProjectInfo')
-    if (!store.state.project.projectInfo.projectHasDb) {
+    if (!store.state.project.appInfo.projectHasDb) {
       redirect('/')
-    } else if (store.state.project.projectInfo.projectHasAdmin === false) {
+    } else if (store.state.project.appInfo.projectHasAdmin === false) {
       redirect('/')
     }
   } catch (e) {

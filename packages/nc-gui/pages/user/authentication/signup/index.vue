@@ -269,13 +269,13 @@ export default {
       return this.$store.getters['users/GtrUser']
     },
     type() {
-      return 'jwt'// this.$store.state.project && this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.authType
+      return 'jwt'// this.$store.state.project && this.$store.state.project.appInfo && this.$store.state.project.appInfo.authType
     },
     firstUser() {
-      return this.$store.state.project && this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.firstUser
+      return this.$store.state.project && this.$store.state.project.appInfo && this.$store.state.project.appInfo.firstUser
     },
     googleAuthEnabled() {
-      return this.$store.state.project && this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.googleAuthEnabled
+      return this.$store.state.project && this.$store.state.project.appInfo && this.$store.state.project.appInfo.googleAuthEnabled
     }
   },
   watch: {},

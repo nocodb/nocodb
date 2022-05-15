@@ -45,16 +45,16 @@
         <tbody>
           <tr v-for="(audit,i) in audits" :key="i">
             <td class="caption">
-              {{ Audit.op_type }}
+              {{ audit.op_type }}
             </td>
             <td class="caption">
-              {{ Audit.op_sub_type }}
+              {{ audit.op_sub_type }}
             </td>
             <td class="caption">
-              {{ Audit.description }}
+              {{ audit.description }}
             </td>
             <td class="caption">
-              {{ Audit.user == null ? 'Shared base' : Audit.user }}
+              {{ audit.user == null ? 'Shared base' : audit.user }}
             </td>
             <!--          <td class="caption">-->
             <!--            {{ audit.ip }}-->
@@ -62,9 +62,9 @@
             <td class="caption">
               <v-tooltip bottom>
                 <template #activator="{on}">
-                  <span v-on="on">{{ calculateDiff(Audit.created_at) }}</span>
+                  <span v-on="on">{{ calculateDiff(audit.created_at) }}</span>
                 </template>
-                <span class="caption">{{ Audit.created_at }}</span>
+                <span class="caption">{{ audit.created_at }}</span>
               </v-tooltip>
             </td>
           </tr>

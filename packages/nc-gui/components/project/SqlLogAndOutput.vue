@@ -7,7 +7,7 @@
     <pane v-if="$store.state.settings.outputWindow && !hide" :size="50" min-size="10" style="overflow: auto">
       <ProjectOutput />
     </pane>
-    <!--    <pane v-if="$store.state.windows.logWindow && !$store.state.windows.outputWindow && !hide" :size="10" min-size="10"-->
+    <!--    <pane v-if="$store.state.settings.logWindow && !$store.state.settings.outputWindow && !hide" :size="10" min-size="10"-->
     <!--          style="overflow: auto">-->
     <!--      <ProjectLogs/>-->
     <!--    </pane>-->

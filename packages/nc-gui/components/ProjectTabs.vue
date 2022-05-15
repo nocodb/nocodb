@@ -280,10 +280,26 @@
               </span>
             </v-list-item-title>
           </v-list-item>
-          <v-divider />
-          <v-subheader class="caption">
+          <v-divider class="my-1" />
+          <v-subheader class="caption" style="height:35px">
             QUICK IMPORT FROM
           </v-subheader>
+
+          <v-list-item
+            v-if="_isUIAllowed('airtableImport')"
+            v-t="['a:actions:import-airtable']"
+            @click="airtableImportModal = true"
+          >
+            <v-list-item-title>
+              <v-icon small>
+                mdi-table-large
+              </v-icon>
+              <span class="caption">
+                <!-- TODO: i18n -->
+                Airtable
+              </span>
+            </v-list-item-title>
+          </v-list-item>
           <v-list-item
             v-if="_isUIAllowed('csvQuickImport')"
             v-t="['a:actions:import-csv']"
@@ -314,18 +330,22 @@
               </span>
             </v-list-item-title>
           </v-list-item>
+
+          <v-divider class="my-1" />
+
           <v-list-item
-            v-if="_isUIAllowed('airtableImport')"
-            v-t="['a:actions:import-airtable']"
-            @click="airtableImportModal = true"
+            v-if="_isUIAllowed('importRequest')"
+            v-t="['e:datasource:import-request']"
+            href="https://github.com/nocodb/nocodb/issues/2052"
+            target="_blank"
           >
             <v-list-item-title>
               <v-icon small>
-                mdi-table-large
+                mdi-open-in-new
               </v-icon>
               <span class="caption">
                 <!-- TODO: i18n -->
-                Airtable
+                Request a data source you need ?
               </span>
             </v-list-item-title>
           </v-list-item>

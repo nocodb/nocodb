@@ -1,21 +1,28 @@
 <template>
-  <v-dialog v-model="airtableModal" max-width="min(900px, 90%)">
-    <v-card class="nc-import-card">
-      <v-toolbar class="elevation-0" height="68">
-        <h3 class="mt-2 grey--text">
-          {{ $t('title.importFromAirtable') }} :
-          <span v-if="step === 1" @dblclick="$set(syncSource.details,'syncViews',true)">Credentials<span
-            v-if="syncSource && syncSource.details && syncSource.details.syncViews"
-          >.</span></span>
-          <span v-else-if="step === 2">Logs</span>
+  <v-dialog v-model="airtableModal" max-width="min(600px, 90%)">
+    <v-card class="nc-import-card h-100">
+      <v-toolbar class="elevation-0 align-center" height="68">
+        <h3 class="mt-2">
+          {{ $t('title.importFromAirtable') }}
         </h3>
-
+        <div class="ml-2 mt-3 title pointer" @click="enableTurbo">
+          🚀
+        </div>
         <v-spacer />
       </v-toolbar>
 
+      <v-divider />
       <div class="h-100" style="width: 100%">
         <div>
-          <v-card v-if="step === 1" class="py-6">
+          <v-card v-if="step === 1" class="py-6 elevation-0" height="500">
+            <div class="d-flex flex-column justify-center align-center pt-2 pb-6">
+              <span class="subtitle-1 font-weight-medium" @dblclick="$set(syncSource.details,'syncViews',true)">
+                Credentials
+              </span>
+
+              <a href="https://docs.nocodb.com" class="caption grey--text" target="_blank">Where to find this?</a>
+            </div>
+
             <v-form v-model="valid">
               <div v-if="syncSource" class="px-10 mt-1 mx-auto" style="max-width: 400px">
                 <v-text-field
@@ -24,8 +31,15 @@
                   dense
                   label="Api Key"
                   class="caption"
+                  :type="isPasswordVisible ? 'text':'password'"
                   :rules="[v=> !!v || 'Api Key is required']"
-                />
+                >
+                  <template #append="">
+                    <v-icon class="mt-1" small @click="isPasswordVisible = !isPasswordVisible">
+                      {{ isPasswordVisible ? 'visibility_off' : 'visibility' }}
+                    </v-icon>
+                  </template>
+                </v-text-field>
                 <v-text-field
                   v-model="syncSourceUrlOrId"
                   outlined
@@ -43,19 +57,23 @@
                 color="primary"
                 @click="saveAndSync"
               >
-                Save & Sync
+                Import
               </v-btn>
             </v-card-actions>
           </v-card>
 
           <v-card
             v-if="step === 2"
-            class="py-4 mt-4"
+            class="pb-4 mt-4 elevation-0"
           >
+            <v-card-title class=" justify-center">
+              <span class="subtitle-1 font-weight-medium">Logs</span>
+            </v-card-title>
+
             <v-card
               ref="log"
               dark
-              class="mt-2 mx-4 px-2 elevation-0 green--text"
+              class="mt-2 mx-4 pa-4 elevation-0 green--text"
               height="500"
               style="overflow-y: auto"
             >
@@ -105,6 +123,7 @@ export default {
     value: Boolean
   },
   data: () => ({
+    isPasswordVisible: false,
     valid: false,
     socket: null,
     step: 1,
@@ -220,6 +239,10 @@ export default {
       } catch (e) {
         this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
+    },
+    enableTurbo() {
+      this.$set(this.syncSource.details, 'syncViews', true)
+      this.$toast.success('Turbo mode activated! 🚀🚀🚀🚀').goAway(3000)
     }
   }
 }

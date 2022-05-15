@@ -171,7 +171,8 @@
     "headLogin": "ログイン | NocoDB",
     "resetPassword": "パスワードをリセットする",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "次で通知する",

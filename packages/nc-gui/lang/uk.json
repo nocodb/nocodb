@@ -171,7 +171,8 @@
     "headLogin": "Вхід | Нокодб",
     "resetPassword": "Скинути пароль",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Повідомити через",

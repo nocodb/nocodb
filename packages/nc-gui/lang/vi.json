@@ -171,7 +171,8 @@
     "headLogin": "Đăng nhập |. NOCODB.",
     "resetPassword": "Đặt lại mật khẩu của bạn",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Thông báo qua",

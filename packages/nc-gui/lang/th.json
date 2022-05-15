@@ -171,7 +171,8 @@
     "headLogin": "เข้าสู่ระบบ nocodb",
     "resetPassword": "รีเซ็ตรหัสผ่านของคุณ",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "แจ้งเตือนผ่าน",

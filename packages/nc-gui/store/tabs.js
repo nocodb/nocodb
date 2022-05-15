@@ -290,6 +290,20 @@ export const actions = {
     }
     commit('list', tabs)
   },
+  async loadFirstTableTab({ commit, state, rootGetters, dispatch, rootState }, load) {
+    const tabs = []
+
+    const nodes = rootState.project
+      .list[0] // project
+      .children[0] //  environment
+      .children[0] // db
+      .children.find(n => n.type === 'tableDir') // parent node
+      .children
+    if (nodes && nodes[0]) {
+      tabs.push(nodes[0])
+    }
+    if (tabs.length) { commit('list', tabs) }
+  },
 
   removeTableTab({ commit, state }, nodes) {
     const tabs = JSON.parse(JSON.stringify(state.list))

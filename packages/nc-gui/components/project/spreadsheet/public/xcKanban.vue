@@ -102,6 +102,7 @@ export default {
     selectedExpandRowIndex: null,
     selectedExpandRowMeta: null,
     meta: null,
+
     navDrawer: true,
     selected: {
       row: null,

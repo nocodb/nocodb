@@ -177,13 +177,15 @@ import DisableOrEnableModels from '~/components/project/projectMetadata/disableO
 import AuthTab from '~/components/authTab'
 import XcMeta from '~/components/project/settings/xcMeta'
 import AuditTab from '~/components/project/auditTab'
+import ImportFromAirtable from '~/components/import/importFromAirtable'
 
 export default {
   name: 'SettingsModal',
-  components: { AuditTab, XcMeta, AuthTab, DisableOrEnableModels, AppStore },
+  components: { ImportFromAirtable, AuditTab, XcMeta, AuthTab, DisableOrEnableModels, AppStore },
   data: () => ({
     settingsModal: false,
-    activePage: 'role'
+    activePage: 'role',
+    improtFromAirtableModal: false
   })
 }
 </script>

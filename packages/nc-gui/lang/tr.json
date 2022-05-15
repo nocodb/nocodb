@@ -171,7 +171,8 @@
     "headLogin": "Giriş | Nocodb",
     "resetPassword": "Şifrenizi sıfırlayın",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Aracılığıyla Bildir",

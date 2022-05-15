@@ -244,7 +244,7 @@
       </v-tabs-items>
 
       <!-- Add / Import -->
-      <v-menu offset-y v-if="_isUIAllowed('addOrImport')">
+      <v-menu v-if="_isUIAllowed('addOrImport')" offset-y>
         <template #activator="{ on }">
           <v-btn
             color="primary"
@@ -314,6 +314,21 @@
               </span>
             </v-list-item-title>
           </v-list-item>
+          <v-list-item
+            v-if="_isUIAllowed('airtableImport')"
+            v-t="['a:actions:import-airtable']"
+            @click="airtableImportModal = true"
+          >
+            <v-list-item-title>
+              <v-icon small>
+                mdi-table-large
+              </v-icon>
+              <span class="caption">
+                <!-- TODO: i18n -->
+                Airtable
+              </span>
+            </v-list-item-title>
+          </v-list-item>
         </v-list>
       </v-menu>
     </v-tabs>
@@ -334,6 +349,8 @@
       hide-label
       @closeModal="quickImportModal = false"
     />
+
+    <import-from-airtable v-if="airtableImportModal" v-model="airtableImportModal" />
   </v-container>
 </template>
 
@@ -366,9 +383,11 @@ import GrpcClient from '@/components/project/grpcClient'
 import GlobalAcl from '@/components/globalAcl'
 import AuditTab from '~/components/project/auditTab'
 import QuickImport from '@/components/import/quickImport'
+import ImportFromAirtable from '~/components/import/importFromAirtable'
 
 export default {
   components: {
+    ImportFromAirtable,
     SwaggerClient,
     // Screensaver,
     DlgTableCreate,
@@ -407,7 +426,8 @@ export default {
       hideLogWindows: false,
       showScreensaver: false,
       quickImportModal: false,
-      quickImportType: ''
+      quickImportType: '',
+      airtableImportModal: false
     }
   },
   methods: {
@@ -489,6 +509,9 @@ export default {
     onImportFromExcelOrCSV(quickImportType) {
       this.quickImportModal = true
       this.quickImportType = quickImportType
+    },
+    onAirtableImport() {
+      this.airtableImportModal = true
     }
   },
   computed: {

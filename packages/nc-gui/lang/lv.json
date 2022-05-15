@@ -171,7 +171,8 @@
     "headLogin": "Pieslēgties | NocoDB",
     "resetPassword": "Atjaunot paroli",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Paziņot izmantojot",

@@ -145,7 +145,7 @@ import EditableAttachmentCell from '~/components/project/spreadsheet/components/
 import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
 import SetListEditableCell from '~/components/project/spreadsheet/components/editableCell/SetListEditableCell'
 import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell'
-import RatingCell from '~/components/project/spreadsheet/components/editableCell/ratingCell'
+import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
 
 export default {
   name: 'EditableCell',

@@ -34,7 +34,7 @@ import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
 import EditableAttachmentCell from '~/components/project/spreadsheet/components/editableCell/EditableAttachmentCell'
 import BooleanCell from '~/components/project/spreadsheet/components/cell/BooleanCell'
 import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCell'
-import RatingCell from '~/components/project/spreadsheet/components/editableCell/ratingCell'
+import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
 
 export default {
   name: 'TableCell',

@@ -545,7 +545,7 @@ import RelationOptions from '~/components/project/spreadsheet/components/editCol
 import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel'
 import LinkedToAnotherOptions from '~/components/project/spreadsheet/components/editColumn/LinkedToAnotherOptions'
 import { validateColumnName } from '~/helpers'
-import RatingOptions from '~/components/project/spreadsheet/components/editColumn/ratingOptions'
+import RatingOptions from '~/components/project/spreadsheet/components/editColumn/RatingOptions'
 import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/checkboxOptions'
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 

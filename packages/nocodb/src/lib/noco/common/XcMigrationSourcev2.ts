@@ -2,7 +2,7 @@ import * as nc_011 from '../migrationsv2/nc_011';
 import * as nc_012_alter_column_data_types from '../migrationsv2/nc_012_alter_column_data_types';
 import * as nc_013_sync_source from '../migrationsv2/nc_013_sync_source';
 import * as nc_014_alter_column_data_types from '../migrationsv2/nc_014_alter_column_data_types';
-import * as nc_013_add_meta_col_in_column_table from '../migrationsv2/nc_013_add_meta_col_in_column_table';
+import * as nc_015_add_meta_col_in_column_table from '../migrationsv2/nc_015_add_meta_col_in_column_table';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -16,7 +16,7 @@ export default class XcMigrationSourcev2 {
       'nc_012_alter_column_data_types',
       'nc_013_sync_source',
       'nc_014_alter_column_data_types',
-      'nc_013_add_meta_col_in_column_table'
+      'nc_015_add_meta_col_in_column_table'
     ]);
   }
 
@@ -34,8 +34,8 @@ export default class XcMigrationSourcev2 {
         return nc_013_sync_source;
       case 'nc_014_alter_column_data_types':
         return nc_014_alter_column_data_types;
-      case 'nc_013_add_meta_col_in_column_table':
-        return nc_013_add_meta_col_in_column_table;
+      case 'nc_015_add_meta_col_in_column_table':
+        return nc_015_add_meta_col_in_column_table;
     }
   }
 }

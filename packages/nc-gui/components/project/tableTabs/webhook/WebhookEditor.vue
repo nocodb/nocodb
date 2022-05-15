@@ -1,42 +1,41 @@
 <template>
   <v-form v-if="hook" ref="form" v-model="valid" class="mx-4" lazy-validation>
-    <v-card-title>
-      <a class="pointer mr-1" @click="$emit('backToList')">
-        <v-icon>mdi-arrow-left-bold</v-icon>
+    <div>
+      <a class="pointer mx-4" @click="$emit('backToList')">
+        <v-icon class="ml-n1">mdi-arrow-left-bold</v-icon>
       </a>
-
-      <v-spacer />
+    </div>
+    <v-card-title>
       {{ meta.title }} : {{ hook.title || 'Webhook' }}
       <v-spacer />
-      <div style="width: 24px;height: 24px" />
+
+      <div class="d-flex ">
+        <v-spacer />
+        <v-btn
+          outlined
+          tooltip="Save"
+          small
+          :disabled="loading || !valid || !hook.event"
+          @click.prevent="$refs.webhookTest.testWebhook()"
+        >
+          Test webhook
+        </v-btn>
+        <v-btn
+          tooltip="Save"
+          color="primary"
+          small
+          :disabled="loading || !valid || !hook.event"
+          @click.prevent="saveHooks"
+        >
+          <v-icon small left>
+            save
+          </v-icon>
+          <!-- Save -->
+          {{ $t("general.save") }}
+        </v-btn>
+      </div>
     </v-card-title>
-
-    <div class="mx-4 d-flex m-2">
-      <v-spacer />
-      <v-btn
-        outlined
-        tooltip="Save"
-        small
-        :disabled="loading || !valid || !hook.event"
-        @click.prevent="$refs.webhookTest.testWebhook()"
-      >
-        Test webhook
-      </v-btn>
-      <v-btn
-        tooltip="Save"
-        color="primary"
-        small
-        :disabled="loading || !valid || !hook.event"
-        @click.prevent="saveHooks"
-      >
-        <v-icon small left>
-          save
-        </v-icon>
-        <!-- Save -->
-        {{ $t("general.save") }}
-      </v-btn>
-    </div>
-
+    <v-divider class="my-4" />
     <v-card-text>
       <v-text-field
         v-model="hook.title"
@@ -47,61 +46,38 @@
         required
         :rules="[(v) => !!v || `${$t('general.required')}`]"
       />
-
-      <webhook-event
-        :event.sync="hook.event"
-        :operation.sync="hook.operation"
-      />
-
-      <v-card class="mb-8 nc-filter-wrapper">
-        <v-card-text>
-          <v-checkbox
-            v-model="hook.condition"
-            dense
-            hide-details
-            class="mt-1"
-            label="On Condition"
+      <v-row>
+        <v-col>
+          <webhook-event
+            :event.sync="hook.event"
+            :operation.sync="hook.operation"
           />
-
-          <column-filter
-            v-if="hook.condition"
-            :key="key"
-            ref="filter"
-            v-model="filters"
-            :meta="meta"
-            :field-list="fieldList"
+        </v-col><v-col>
+          <v-select
+            v-model="hook.notification.type"
+            outlined
             dense
-            style="max-width: 100%"
-            :hook-id="hook.id"
-            web-hook
-          />
-        </v-card-text>
-      </v-card>
-
-      <v-select
-        v-model="hook.notification.type"
-        outlined
-        dense
-        :label="$t('general.notification')"
-        required
-        :items="notificationList"
-        :rules="[(v) => !!v || `${$t('general.required')}`]"
-        class="caption"
-        :prepend-inner-icon="notificationIcon[hook.notification.type]"
-        @change="onNotTypeChange"
-      >
-        <template #item="{ item }">
-          <v-list-item-icon>
-            <v-icon small>
-              {{ notificationIcon[item] }}
-            </v-icon>
-          </v-list-item-icon>
-          <v-list-item-title>
-            {{ item }}
-          </v-list-item-title>
-        </template>
-      </v-select>
-
+            :label="$t('general.notification')"
+            required
+            :items="notificationList"
+            :rules="[(v) => !!v || `${$t('general.required')}`]"
+            class="caption"
+            :prepend-inner-icon="notificationIcon[hook.notification.type]"
+            @change="onNotTypeChange"
+          >
+            <template #item="{ item }">
+              <v-list-item-icon>
+                <v-icon small>
+                  {{ notificationIcon[item] }}
+                </v-icon>
+              </v-list-item-icon>
+              <v-list-item-title>
+                {{ item }}
+              </v-list-item-title>
+            </template>
+          </v-select>
+        </v-col>
+      </v-row>
       <template v-if="hook.notification.type === 'URL'">
         <http-webhook v-model="notification" />
       </template>
@@ -195,6 +171,32 @@
       </template>
     </v-card-text>
 
+    <v-card-text>
+      <v-card class=" nc-filter-wrapper ">
+        <v-card-text>
+          <v-checkbox
+            v-model="hook.condition"
+            dense
+            hide-details
+            class="mt-1"
+            label="On Condition"
+          />
+
+          <column-filter
+            v-if="hook.condition"
+            :key="key"
+            ref="filter"
+            v-model="filters"
+            :meta="meta"
+            :field-list="fieldList"
+            dense
+            style="max-width: 100%"
+            :hook-id="hook.id"
+            web-hook
+          />
+        </v-card-text>
+      </v-card>
+    </v-card-text>
     <v-card-text>
       <span class="caption grey--text">
         <em>Available context variables are

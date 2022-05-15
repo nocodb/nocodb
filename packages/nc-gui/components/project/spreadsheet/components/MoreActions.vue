@@ -104,7 +104,8 @@
       :parsed-csv="parsedCsv"
       @import="importData"
     />
-    <webhook-modal v-if="webhookModal" v-model="webhookModal" :meta="meta" />
+    <!--    <webhook-modal v-if="webhookModal" v-model="webhookModal" :meta="meta" />-->
+    <webhook-slider v-model="webhookModal" :meta="meta" />
   </div>
 </template>
 
@@ -117,10 +118,12 @@ import ColumnMappingModal from '~/components/project/spreadsheet/components/impo
 import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
 import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 import WebhookModal from '~/components/project/tableTabs/webhook/WebhookModal'
+import WebhookSlider from '~/components/project/tableTabs/webhook/WebhookSlider'
 
 export default {
   name: 'ExportImport',
   components: {
+    WebhookSlider,
     WebhookModal,
     ColumnMappingModal,
     DropOrSelectFileModal

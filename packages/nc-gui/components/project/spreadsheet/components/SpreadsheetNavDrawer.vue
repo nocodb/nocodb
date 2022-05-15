@@ -286,6 +286,20 @@
           </v-btn>
           <code-snippet v-model="codeSnippetModal" :query-params="queryParams" :meta="meta" :view="selectedView" />
         </div>
+        <div>
+          <v-btn
+            v-t="['c:actions:webhook']"
+            color="primary"
+            outlined
+            class="caption d-100 mt-2"
+            @click="webhookSliderModal=true"
+          >
+            <v-icon small class="mr-2">
+              mdi-hook
+            </v-icon> Webhooks
+          </v-btn>
+          <webhook-slider v-model="webhookSliderModal" :meta="meta" />
+        </div>
 
         <div
           v-if="time - $store.state.settings.miniSponsorCard > 15 * 60 * 1000"
@@ -524,10 +538,11 @@ import viewIcons from '~/helpers/viewIcons'
 import { copyTextToClipboard } from '~/helpers/xutils'
 import SponsorMini from '~/components/SponsorMini'
 import CodeSnippet from '~/components/project/spreadsheet/components/CodeSnippet'
+import WebhookSlider from '~/components/project/tableTabs/webhook/WebhookSlider'
 
 export default {
   name: 'SpreadsheetNavDrawer',
-  components: { CodeSnippet, SponsorMini, Extras, CreateViewDialog, draggable },
+  components: { WebhookSlider, CodeSnippet, SponsorMini, Extras, CreateViewDialog, draggable },
   props: {
     extraViewParams: Object,
     showAdvanceOptions: Boolean,
@@ -563,6 +578,7 @@ export default {
     queryParams: Object
   },
   data: () => ({
+    webhookSliderModal: false,
     codeSnippetModal: false,
     drag: false,
     dragOptions: {

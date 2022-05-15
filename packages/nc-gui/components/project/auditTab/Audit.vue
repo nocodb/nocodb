@@ -81,12 +81,7 @@
 </template>
 
 <script>
-import dayjs from 'dayjs'
-
-const relativeTime = require('dayjs/plugin/relativeTime')
-const utc = require('dayjs/plugin/utc')
-dayjs.extend(utc)
-dayjs.extend(relativeTime)
+import { calculateDiff } from '~/helpers'
 
 export default {
   name: 'Audit',
@@ -116,9 +111,7 @@ export default {
       this.audits = list
       this.count = pageInfo.totalRows
     },
-    calculateDiff(date) {
-      return dayjs.utc(date).fromNow()
-    }
+    calculateDiff
   }
 }
 </script>

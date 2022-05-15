@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import XcForm from '../../../components/project/spreadsheet/public/xcForm'
+import XcForm from '../../../components/project/spreadsheet/public/XcForm'
 
 export default {
   components: { XcForm },

@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import CreateOrEditProject from '@/components/createOrEditProject'
+import CreateOrEditProject from '~/components/CreateOrEditProject'
 export default {
   name: 'Id',
   components: { CreateOrEditProject }

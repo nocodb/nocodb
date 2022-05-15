@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import XcTable from '../../../components/project/spreadsheet/public/xcTable'
+import XcTable from '../../../components/project/spreadsheet/public/XcTable'
 
 export default {
   components: { XcTable },

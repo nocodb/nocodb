@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import ApiClientSwagger from '../components/project/apiClientSwagger'
+import ApiClientSwagger from '../components/project/ApiClientSwagger'
 export default {
   name: 'ApiClient',
   components: { ApiClientSwagger }

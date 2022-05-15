@@ -596,10 +596,10 @@ import { mapGetters, mapActions } from 'vuex'
 import Vue from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import axios from 'axios'
-import textDlgSubmitCancel from '../../components/utils/dlgTextSubmitCancel'
+import textDlgSubmitCancel from '../../components/utils/DlgTextSubmitCancel'
 
-import dlgOk from '../../components/utils/dlgOk.vue'
-import XBtn from '../../components/global/xBtn'
+import dlgOk from '../../components/utils/DlgOk.vue'
+import XBtn from '../../components/global/XBtn'
 
 const { uniqueNamesGenerator, starWars, adjectives, animals } = require('unique-names-generator')
 

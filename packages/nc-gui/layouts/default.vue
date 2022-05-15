@@ -332,18 +332,18 @@
 <script>
 
 import { mapGetters, mapActions, mapMutations } from 'vuex'
-import ReleaseInfo from '@/components/releaseInfo'
+import ReleaseInfo from '~/components/ReleaseInfo'
 import 'splitpanes/dist/splitpanes.css'
-import XBtn from '../components/global/xBtn'
-import dlgUnexpectedError from '../components/utils/dlgUnexpectedError'
-import settings from '../components/settings'
+import XBtn from '../components/global/XBtn'
+import dlgUnexpectedError from '../components/utils/DlgUnexpectedError'
+import settings from '../components/Settings'
 import { copyTextToClipboard } from '@/helpers/xutils'
-import Snackbar from '~/components/snackbar'
-import Language from '~/components/utils/language'
-import Loader from '~/components/loader'
-import PreviewAs from '~/components/previewAs'
-import ShareOrInviteModal from '~/components/auth/shareOrInviteModal'
-import ImportantAnnouncement from '../components/importantAnnouncement.vue'
+import Snackbar from '~/components/Snackbar'
+import Language from '~/components/utils/Language'
+import Loader from '~/components/Loader'
+import PreviewAs from '~/components/PreviewAs'
+import ShareOrInviteModal from '~/components/auth/ShareOrInviteModal'
+import ImportantAnnouncement from '../components/ImportantAnnouncement.vue'
 
 export default {
   components: {

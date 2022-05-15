@@ -26,7 +26,7 @@
 </template>
 <script>
 import { Splitpanes, Pane } from 'splitpanes'
-import ProjectTabs from '@/components/projectTabs'
+import ProjectTabs from '~/components/ProjectTabs'
 import ProjectTreeView from '@/components/ProjectTreeView'
 // import ProjectLogs from "~/components/ProjectLogs";
 // import ProjectOutput from "~/components/ProjectOutput";

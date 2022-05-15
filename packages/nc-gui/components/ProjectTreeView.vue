@@ -784,20 +784,20 @@ import rightClickOptions from "../helpers/rightClickOptions";
 import rightClickOptionsSub from "../helpers/rightClickOptionsSub";
 import icons from "../helpers/treeViewIcons";
 
-import textDlgSubmitCancel from "./utils/dlgTextSubmitCancel";
-import dlgLabelSubmitCancel from "./utils/dlgLabelSubmitCancel";
+import textDlgSubmitCancel from "./utils/DlgTextSubmitCancel";
+import dlgLabelSubmitCancel from "./utils/DlgLabelSubmitCancel";
 import {copyTextToClipboard} from "../helpers/xutils";
-import DlgTableCreate from "@/components/utils/dlgTableCreate";
-import DlgViewCreate from "@/components/utils/dlgViewCreate";
-import SponsorMini from "@/components/sponsorMini";
+import DlgTableCreate from "~/components/utils/DlgTableCreate";
+import DlgViewCreate from "~/components/utils/DlgViewCreate";
+import SponsorMini from "~/components/SponsorMini";
 import {validateTableName} from "~/helpers";
-import QuickImport from "~/components/import/quickImport";
+import QuickImport from "~/components/import/QuickImport";
 
 import draggable from "vuedraggable";
-import GithubStarBtn from "~/components/githubStarBtn";
-import SettingsModal from "~/components/settings/settingsModal";
-import Language from "~/components/utils/language";
-import Extras from "~/components/project/spreadsheet/components/extras";
+import GithubStarBtn from "~/components/GithubStarBtn";
+import SettingsModal from "~/components/settings/SettingsModal";
+import Language from "~/components/utils/Language";
+import Extras from "~/components/project/spreadsheet/components/Extras";
 
 export default {
   components: {

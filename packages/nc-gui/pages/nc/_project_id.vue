@@ -30,7 +30,7 @@
 <script>
 
 import { Splitpanes, Pane } from 'splitpanes'
-import ProjectTabs from '@/components/projectTabs'
+import ProjectTabs from '~/components/ProjectTabs'
 import ProjectTreeView from '@/components/ProjectTreeView'
 
 export default {

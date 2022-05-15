@@ -136,7 +136,7 @@ export default {
         return this.$store.state.users.previewAs
       },
       set(previewAs) {
-        this.$store.commit('users/MutPreviewAs', PreviewAs)
+        this.$store.commit('users/MutPreviewAs', previewAs)
       }
     }
   },
@@ -154,11 +154,11 @@ export default {
   },
   methods: {
     setPreviewUser(previewAs) {
-      this.$e('a:navdraw:preview', { role: PreviewAs })
+      this.$e('a:navdraw:preview', { role: previewAs })
       if (!process.env.EE) {
         this.$toast.info('Available in Enterprise edition').goAway(3000)
       } else {
-        this.previewAs = PreviewAs
+        this.previewAs = previewAs
         window.location.reload()
       }
     },

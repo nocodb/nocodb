@@ -1063,7 +1063,7 @@ export default {
     },
     changeTheme() {
       this.$store.dispatch(
-        "settings.js/ActToggleDarkMode",
+        "settings/ActToggleDarkMode",
         !this.$store.state.settings.darkTheme
       );
     },
@@ -1253,7 +1253,7 @@ export default {
             if (item._nodes.type === "table") {
               let tableIndex = +item._nodes.key.split(".").pop();
               if (
-                !(await this.$store.dispatch("settings.js/ActCheckMaxTable", {
+                !(await this.$store.dispatch("settings/ActCheckMaxTable", {
                   tableIndex,
                 }))
               ) {

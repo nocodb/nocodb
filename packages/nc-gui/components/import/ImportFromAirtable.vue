@@ -5,7 +5,7 @@
         <h3 class="mt-2">
           {{ $t('title.importFromAirtable') }}
         </h3>
-        <div class="ml-2 mt-3 title pointer" @click="enableTurbo">
+        <div v-t="['c:airtable-import:turbo-mode']" class="ml-2 mt-3 title pointer" @click="enableTurbo">
           🚀
         </div>
         <v-spacer />
@@ -242,7 +242,7 @@ export default {
     },
     enableTurbo() {
       this.$set(this.syncSource.details, 'syncViews', true)
-      this.$toast.success('Turbo mode activated! 🚀🚀🚀🚀').goAway(3000)
+      this.$toast.success('🚀🚀 Ludicrous mode activated! Let\'s go! 🚀🚀').goAway(3000)
     }
   }
 }

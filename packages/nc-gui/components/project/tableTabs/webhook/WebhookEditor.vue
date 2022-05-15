@@ -23,7 +23,6 @@
         Test webhook
       </v-btn>
       <v-btn
-        outlined
         tooltip="Save"
         color="primary"
         small

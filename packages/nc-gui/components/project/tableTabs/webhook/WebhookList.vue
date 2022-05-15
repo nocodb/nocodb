@@ -4,12 +4,11 @@
       Webhooks
       <v-spacer />
       <v-btn
-        outlined
         tooltip="Save"
-        small
+        class="primary"
         @click.prevent="$emit('add')"
       >
-        Create webhook
+        Create Webhook
       </v-btn>
     </v-card-title>
 

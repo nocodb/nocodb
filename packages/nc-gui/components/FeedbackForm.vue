@@ -23,10 +23,10 @@ export default {
   computed: {
     feedbackFormHidden: {
       get() {
-        return this.$store.state.windows.feedbackFormHidden
+        return this.$store.state.settings.feedbackFormHidden
       },
       set(val) {
-        this.$store.commit('windows/MutFeedbackFormHidden', val)
+        this.$store.commit('settings/MutFeedbackFormHidden', val)
       }
     }
   }

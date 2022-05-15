@@ -37,7 +37,7 @@
                       <h4
                         class="text-center"
                         :class="{
-                          'grey--text text--darken-2' : !$store.state.windows.darkTheme
+                          'grey--text text--darken-2' : !$store.state.settings.darkTheme
                         }"
                       >
                         Cron Job List
@@ -139,7 +139,7 @@
                         <h4
                           class="text-center text-capitalize mt-2 d-100"
                           :class="{
-                            'grey--text text--darken-2' : !$store.state.windows.darkTheme
+                            'grey--text text--darken-2' : !$store.state.settings.darkTheme
                           }"
                         >
                           {{ selectedItem.title }}

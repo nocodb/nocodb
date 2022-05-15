@@ -9,12 +9,12 @@
         mdi-arrow-down-drop-circle
       </v-icon>
       <v-text-field
-        :autofocus="true"
         v-model="localState[i]"
-        @input="listenForComma(i, $event)"
+        :autofocus="true"
         class="caption"
         dense
         outlined
+        @input="listenForComma(i, $event)"
       />
       <v-icon class="ml-2" color="error lighten-2" size="13" @click="localState.splice(i,1)">
         mdi-close
@@ -47,7 +47,7 @@ export default {
   }),
   computed: {
     colors() {
-      return this.$store.state.windows.darkTheme ? colors.dark : colors.light
+      return this.$store.state.settings.darkTheme ? colors.dark : colors.light
     }
   },
   watch: {

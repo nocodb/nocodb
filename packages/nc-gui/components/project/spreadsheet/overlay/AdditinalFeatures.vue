@@ -8,9 +8,9 @@
     z-index="9"
     width="max(90%,600px)"
   >
-    <!--    :color="$store.state.windows.darkTheme ? 'white' : 'black'"-->
-    <!--    :dark="$store.state.windows.darkTheme"-->
-    <!--    :light="!$store.state.windows.darkTheme"-->
+    <!--    :color="$store.state.settings.darkTheme ? 'white' : 'black'"-->
+    <!--    :dark="$store.state.settings.darkTheme"-->
+    <!--    :light="!$store.state.settings.darkTheme"-->
 
     <div class="feat-container backgroundColorDefault" style="position: relative; min-height: 500px">
       <!--    <v-card max-height="100%" min-width="95%" max-width="100%" style="overflow: auto">-->

@@ -161,7 +161,7 @@
                         Version
                       </td>
                       <td>
-                        <span @contextmenu="rightClick">{{ $store.state.windows.version }}</span>
+                        <span @contextmenu="rightClick">{{ $store.state.settings.version }}</span>
                       </td>
                     </tr>
                     <tr @dblclick="enableAppRefresh = true">
@@ -275,42 +275,42 @@ export default {
   computed: {
     checkForUpdate: {
       get() {
-        return this.$store.state.windows.checkForUpdate
+        return this.$store.state.settings.checkForUpdate
       },
       set(value) {
-        this.$store.commit('windows/MutCheckForUpdate', value)
+        this.$store.commit('settings/MutCheckForUpdate', value)
       }
     },
     autoUpdate: {
       get() {
-        return this.$store.state.windows.downloadAndUpdateRelease
+        return this.$store.state.settings.downloadAndUpdateRelease
       },
       set(value) {
-        this.$store.commit('windows/MutDownloadAndUpdateRelease', value)
+        this.$store.commit('settings/MutDownloadAndUpdateRelease', value)
       }
     },
     isGaEnabled: {
       get() {
-        return this.$store.state.windows.isGaEnabled
+        return this.$store.state.settings.isGaEnabled
       },
       set(value) {
-        this.$store.commit('windows/MutToggleGaEnabled', value)
+        this.$store.commit('settings/MutToggleGaEnabled', value)
       }
     },
     isErrorReportingEnabled: {
       get() {
-        return this.$store.state.windows.isErrorReportingEnabled
+        return this.$store.state.settings.isErrorReportingEnabled
       },
       set(value) {
-        this.$store.commit('windows/MutToggleErrorReportingEnabled', value)
+        this.$store.commit('settings/MutToggleErrorReportingEnabled', value)
       }
     },
     isTelemetryEnabled: {
       get() {
-        return this.$store.state.windows.isErrorReportingEnabled
+        return this.$store.state.settings.isErrorReportingEnabled
       },
       set(value) {
-        this.$store.commit('windows/MutToggleTelemetryEnabled', value)
+        this.$store.commit('settings/MutToggleTelemetryEnabled', value)
       }
     },
     dialogShow: {
@@ -323,24 +323,24 @@ export default {
     },
     language: {
       get() {
-        return this.$store.state.windows.language
+        return this.$store.state.settings.language
       },
       set(val) {
-        this.$store.commit('windows/MutSetLanguage', val)
+        this.$store.commit('settings/MutSetLanguage', val)
       }
     }
   },
   watch: {},
   created() {
-    this.customTheme = { ...this.customTheme, ...this.$store.state.windows.customTheme }
-    this.item = this.$store.state.windows.themeName
+    this.customTheme = { ...this.customTheme, ...this.$store.state.settings.customTheme }
+    this.item = this.$store.state.settings.themeName
     this.$store.watch(
-      state => state.windows.customTheme,
+      state => state.settings.customTheme,
       (theme) => {
         this.customTheme = { ...this.customTheme, ...theme }
       })
 
-    this.$store.watch(state => state.windows.themeName,
+    this.$store.watch(state => state.settings.themeName,
       (theme) => {
         this.$nextTick(() => {
           if (this.item !== theme) { this.item = theme }
@@ -396,11 +396,11 @@ export default {
     },
     async changeTheme(t, theme = 'Custom') {
       this.item = theme
-      if (theme === 'Custom') { await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, custom: true }) }
-      await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, themeName: theme })
+      if (theme === 'Custom') { await this.$store.dispatch('settings/ActSetTheme', { theme: { ...t }, custom: true }) }
+      await this.$store.dispatch('settings/ActSetTheme', { theme: { ...t }, themeName: theme })
     },
     toggleDarkTheme() {
-      this.$store.commit('windows/MutToggleDarkMode')
+      this.$store.commit('settings/MutToggleDarkMode')
     }
   },
   beforeCreated() {

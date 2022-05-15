@@ -63,7 +63,7 @@
           </div>
           <custom-monaco-editor
             hide-line-num
-            :theme="$store.state.windows.darkTheme ? 'vs-dark' : 'vs-light'"
+            :theme="$store.state.settings.darkTheme ? 'vs-dark' : 'vs-light'"
             style="min-height:500px;max-width: 100%"
             :value="code"
             read-only
@@ -140,7 +140,7 @@ export default {
       }
     },
     apiUrl() {
-      return new URL(`/api/v1/db/data/noco/${this.projectId}/${this.meta.title}/views/${this.view.title}`, (this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.ncSiteUrl) || '/').href
+      return new URL(`/api/v1/db/data/noco/${this.projectId}/${this.meta.title}/views/${this.view.title}`, (this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl) || '/').href
     },
     snippet() {
       return new HTTPSnippet({

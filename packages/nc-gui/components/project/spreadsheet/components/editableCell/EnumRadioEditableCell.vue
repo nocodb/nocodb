@@ -26,7 +26,7 @@ export default {
   },
   computed: {
     colors() {
-      return this.$store.state.windows.darkTheme ? colors.dark : colors.light
+      return this.$store.state.settings.darkTheme ? colors.dark : colors.light
     },
     localState: {
       get() {

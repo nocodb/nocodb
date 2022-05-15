@@ -15,7 +15,7 @@
       next-icon="mdi-arrow-right-bold-box-outline"
       prev-icon="mdi-arrow-left-bold-box-outline"
       show-arrows
-      :class="{ 'dark-them': $store.state.windows.darkTheme }"
+      :class="{ 'dark-them': $store.state.settings.darkTheme }"
     >
       <v-tabs-slider color="" />
 
@@ -471,7 +471,7 @@ export default {
             }
           }
 
-          self.showScreensaver = self.$store.state.windows.screensaver
+          self.showScreensaver = self.$store.state.settings.screensaver
           scrolltitle()
           clearInterval(idleInterval)
         }

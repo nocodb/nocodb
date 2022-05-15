@@ -63,7 +63,7 @@
         </x-btn>
 
         <x-btn
-          v-if="$store.state.windows.scaffoldOnSave && projectIsGraphql && !isNoApis"
+          v-if="$store.state.settings.scaffoldOnSave && projectIsGraphql && !isNoApis"
           v-ge="['columns','save-and-scaffold']"
           tooltip="Save & Scaffold Changes"
           outlined
@@ -79,7 +79,7 @@
         </x-btn>
 
         <x-btn
-          v-else-if="$store.state.windows.scaffoldOnSave && !isNoApis"
+          v-else-if="$store.state.settings.scaffoldOnSave && !isNoApis"
           v-ge="['columns','save-and-scaffold']"
           tooltip="Save & Scaffold Changes"
           outlined

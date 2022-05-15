@@ -7,13 +7,13 @@ Vue.mixin(device)
 export default async({ store }) => {
   function getListener(binding) {
     return function(e) {
-      if (store.state.windows.isGaEnabled || store.state.windows.isComp) {
+      if (store.state.settings.isGaEnabled || store.state.settings.isComp) {
         const cat = window.location.hash.replace(/\d+\/(?=dashboard)/, '')
         const action = binding.value && binding.value[0]
         const label = binding.value && binding.value[1]
         try {
-          if (store.state.windows.isComp) {
-            ga('send', 'event', `${store.state.windows.isComp}\\${cat}`, action, label)
+          if (store.state.settings.isComp) {
+            ga('send', 'event', `${store.state.settings.isComp}\\${cat}`, action, label)
           }
           ga('send', 'event', cat, action, label)
         } catch {}

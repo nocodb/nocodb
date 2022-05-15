@@ -146,8 +146,6 @@
               </v-tooltip>
             </td>
           </tr>
-
-
         </tbody>
       </template>
     </v-simple-table>
@@ -208,47 +206,47 @@ export default {
   computed: {
     language: {
       get() {
-        return this.$store.state.windows.language
+        return this.$store.state.settings.language
       },
       set(val) {
-        this.$store.commit('windows/MutLanguage', val)
+        this.$store.commit('settings/MutLanguage', val)
       }
     },
     showMetatable: {
       get() {
-        return this.$store.state.windows.metatables
+        return this.$store.state.settings.metatables
       },
       set(show) {
-        this.$store.commit('windows/MutMetatables', show)
+        this.$store.commit('settings/MutMetatables', show)
       }
     },
     showScreensaver: {
       get() {
-        return this.$store.state.windows.screensaver
+        return this.$store.state.settings.screensaver
       },
       set(show) {
-        this.$store.commit('windows/MutScreensaver', show)
+        this.$store.commit('settings/MutScreensaver', show)
       }
     },
     includeM2M: {
       get() {
-        return this.$store.state.windows.includeM2M
+        return this.$store.state.settings.includeM2M
       },
       set(show) {
-        this.$store.commit('windows/MutIncludeM2M', show)
+        this.$store.commit('settings/MutIncludeM2M', show)
       }
     }
   },
   created() {
-    this.customTheme = { ...this.customTheme, ...this.$store.state.windows.customTheme }
-    this.item = this.$store.state.windows.themeName
+    this.customTheme = { ...this.customTheme, ...this.$store.state.settings.customTheme }
+    this.item = this.$store.state.settings.themeName
     this.$store.watch(
-      state => state.windows.customTheme,
+      state => state.settings.customTheme,
       (theme) => {
         this.customTheme = { ...this.customTheme, ...theme }
       })
 
-    this.$store.watch(state => state.windows.themeName,
+    this.$store.watch(state => state.settings.themeName,
       (theme) => {
         this.$nextTick(() => {
           if (this.item !== theme) { this.item = theme }
@@ -265,12 +263,12 @@ export default {
     },
     async changeTheme(t, theme = 'Custom') {
       this.item = theme
-      if (theme === 'Custom') { await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, custom: true }) }
-      await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, themeName: theme })
+      if (theme === 'Custom') { await this.$store.dispatch('settings/ActSetTheme', { theme: { ...t }, custom: true }) }
+      await this.$store.dispatch('settings/ActSetTheme', { theme: { ...t }, themeName: theme })
       this.$e('c:themes:change', { mode: theme })
     },
     toggleDarkTheme(mode) {
-      this.$store.commit('windows/MutToggleDarkMode')
+      this.$store.commit('settings/MutToggleDarkMode')
       this.$e('c:themes:dark-mode', { dark: mode })
     }
   },

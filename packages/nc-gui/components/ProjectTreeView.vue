@@ -909,7 +909,7 @@ export default {
   }),
   computed: {
     apiLink() {
-      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.ncSiteUrl)
+      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
     },
     previewAs: {
       get() {
@@ -1063,8 +1063,8 @@ export default {
     },
     changeTheme() {
       this.$store.dispatch(
-        "windows/ActToggleDarkMode",
-        !this.$store.state.windows.darkTheme
+        "settings.js/ActToggleDarkMode",
+        !this.$store.state.settings.darkTheme
       );
     },
     openLink(link) {
@@ -1253,7 +1253,7 @@ export default {
             if (item._nodes.type === "table") {
               let tableIndex = +item._nodes.key.split(".").pop();
               if (
-                !(await this.$store.dispatch("windows/ActCheckMaxTable", {
+                !(await this.$store.dispatch("settings.js/ActCheckMaxTable", {
                   tableIndex,
                 }))
               ) {

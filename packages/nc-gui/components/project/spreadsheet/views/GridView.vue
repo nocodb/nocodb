@@ -17,7 +17,7 @@
           <th
             class="grey-border caption"
             :class="
-              $store.state.windows.darkTheme
+              $store.state.settings.darkTheme
                 ? 'grey darken-3 grey--text text--lighten-1'
                 : 'grey lighten-4 grey--text text--darken-2'
             "
@@ -43,7 +43,7 @@
             v-xc-ver-resize
             class="grey-border caption font-wight-regular nc-grid-header-cell"
             :class="
-              $store.state.windows.darkTheme
+              $store.state.settings.darkTheme
                 ? 'grey darken-3 grey--text text--lighten-1'
                 : 'grey lighten-4  grey--text text--darken-2'
             "
@@ -93,7 +93,7 @@
             "
             v-t="['c:column:add']"
             :class="
-              $store.state.windows.darkTheme
+              $store.state.settings.darkTheme
                 ? 'grey darken-3 grey--text text--lighten-1'
                 : 'grey lighten-4  grey--text text--darken-2'
             "

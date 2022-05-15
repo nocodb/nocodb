@@ -19,7 +19,7 @@ export default {
   props: ['value', 'column'],
   computed: {
     colors() {
-      const col = this.$store.state.windows.darkTheme ? colors.dark : colors.light
+      const col = this.$store.state.settings.darkTheme ? colors.dark : colors.light
       if (this.column && this.column.dtxp) {
         return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, '')).reduce((obj, v, i) => ({
           ...obj,

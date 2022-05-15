@@ -13,8 +13,8 @@
       >
         <v-card
           v-if="installPlugin && pluginInstallOverlay"
-          :dark="$store.state.windows.darkTheme"
-          :light="!$store.state.windows.darkTheme"
+          :dark="$store.state.settings.darkTheme"
+          :light="!$store.state.settings.darkTheme"
         >
           <app-install
             :id="installPlugin.id"
@@ -38,8 +38,8 @@
       <v-dialog min-width="400px" max-width="700px" min-height="300">
         <v-card
           v-if="resetPluginRef"
-          :dark="$store.state.windows.darkTheme"
-          :light="!$store.state.windows.darkTheme"
+          :dark="$store.state.settings.darkTheme"
+          :light="!$store.state.settings.darkTheme"
         >
           <v-card-text>
             Please confirm to reset {{ resetPluginRef.title }}

@@ -12,7 +12,7 @@
               Version
             </td>
             <td>
-              <span @contextmenu="rightClick">{{ $store.state.windows.version }}</span>
+              <span @contextmenu="rightClick">{{ $store.state.settings.version }}</span>
             </td>
           </tr>
           <!--                <tr>-->
@@ -95,42 +95,42 @@ export default {
   computed: {
     checkForUpdate: {
       get() {
-        return this.$store.state.windows.checkForUpdate
+        return this.$store.state.settings.checkForUpdate
       },
       set(value) {
-        this.$store.commit('windows/MutCheckForUpdate', value)
+        this.$store.commit('settings/MutCheckForUpdate', value)
       }
     },
     autoUpdate: {
       get() {
-        return this.$store.state.windows.downloadAndUpdateRelease
+        return this.$store.state.settings.downloadAndUpdateRelease
       },
       set(value) {
-        this.$store.commit('windows/MutDownloadAndUpdateRelease', value)
+        this.$store.commit('settings/MutDownloadAndUpdateRelease', value)
       }
     },
     isGaEnabled: {
       get() {
-        return this.$store.state.windows.isGaEnabled
+        return this.$store.state.settings.isGaEnabled
       },
       set(value) {
-        this.$store.commit('windows/MutToggleGaEnabled', value)
+        this.$store.commit('settings/MutToggleGaEnabled', value)
       }
     },
     isErrorReportingEnabled: {
       get() {
-        return this.$store.state.windows.isErrorReportingEnabled
+        return this.$store.state.settings.isErrorReportingEnabled
       },
       set(value) {
-        this.$store.commit('windows/MutToggleErrorReportingEnabled', value)
+        this.$store.commit('settings/MutToggleErrorReportingEnabled', value)
       }
     },
     isTelemetryEnabled: {
       get() {
-        return this.$store.state.windows.isErrorReportingEnabled
+        return this.$store.state.settings.isErrorReportingEnabled
       },
       set(value) {
-        this.$store.commit('windows/MutToggleTelemetryEnabled', value)
+        this.$store.commit('settings/MutToggleTelemetryEnabled', value)
       }
     },
     dialogShow: {
@@ -143,10 +143,10 @@ export default {
     },
     language: {
       get() {
-        return this.$store.state.windows.language
+        return this.$store.state.settings.language
       },
       set(val) {
-        this.$store.commit('windows/MutSetLanguage', val)
+        this.$store.commit('settings/MutSetLanguage', val)
       }
     }
   },

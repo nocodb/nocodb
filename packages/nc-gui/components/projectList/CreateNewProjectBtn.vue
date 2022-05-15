@@ -15,11 +15,15 @@
             class="nc-new-project-menu elevation-3"
             v-on="on"
           >
-            <v-icon class="mr-2"> mdi-plus </v-icon>
+            <v-icon class="mr-2">
+              mdi-plus
+            </v-icon>
 
             <!-- New Project -->
             {{ $t("title.newProj") }}
-            <v-icon class="mr-1" small> mdi-menu-down </v-icon>
+            <v-icon class="mr-1" small>
+              mdi-menu-down
+            </v-icon>
           </v-btn>
         </div>
       </slot>
@@ -30,7 +34,9 @@
         @click="onCreateProject('xcdb')"
       >
         <v-list-item-icon class="mr-2">
-          <v-icon small color="blue"> mdi-plus </v-icon>
+          <v-icon small color="blue">
+            mdi-plus
+          </v-icon>
         </v-list-item-icon>
         <v-list-item-title>
           <!-- Create -->
@@ -53,7 +59,9 @@
         @click="onCreateProject()"
       >
         <v-list-item-icon class="mr-2">
-          <v-icon small color="green"> mdi-database-outline </v-icon>
+          <v-icon small color="green">
+            mdi-database-outline
+          </v-icon>
         </v-list-item-icon>
         <v-list-item-title>
           <!-- Create By Connecting <br>To An External Database -->
@@ -91,28 +99,28 @@
 
 <script>
 export default {
-  name: "CreateNewProjectBtn",
+  name: 'CreateNewProjectBtn',
   computed: {
     connectToExternalDB() {
       return (
         this.$store.state.project &&
-        this.$store.state.project.projectInfo &&
-        this.$store.state.project.projectInfo.connectToExternalDB
-      );
-    },
+        this.$store.state.project.appInfo &&
+        this.$store.state.project.appInfo.connectToExternalDB
+      )
+    }
   },
   methods: {
     onCreateProject(xcdb) {
-      if (xcdb === "xcdb") {
-        this.$router.push("/project/xcdb");
-        this.$e("c:project:create:xcdb");
+      if (xcdb === 'xcdb') {
+        this.$router.push('/project/xcdb')
+        this.$e('c:project:create:xcdb')
       } else {
-        this.$router.push("/project/0");
-        this.$e("c:project:create:extdb");
+        this.$router.push('/project/0')
+        this.$e('c:project:create:extdb')
       }
-    },
-  },
-};
+    }
+  }
+}
 </script>
 
 <style scoped></style>

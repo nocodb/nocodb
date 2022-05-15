@@ -73,7 +73,7 @@
         <v-overlay v-model="showCustomAcl" absolute>
           <template #default>
             <v-card
-              :light="!$store.state.windows.darkTheme"
+              :light="!$store.state.settings.darkTheme"
               class="ma-2"
               style="max-height: 100%; overflow: auto; min-height:70vh"
             >

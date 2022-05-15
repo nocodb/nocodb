@@ -29,8 +29,8 @@
             <span
               class="caption font-weight-light pointer"
             >(v{{
-              $store.state.project.projectInfo &&
-                $store.state.project.projectInfo.version
+              $store.state.project.appInfo &&
+                $store.state.project.appInfo.version
             }})</span>
           </v-tooltip>
 
@@ -85,7 +85,7 @@
               @shortkey="$router.push('/')"
             />
             <x-btn
-              v-if="!$store.state.windows.nc"
+              v-if="!$store.state.settings.nc"
               text
               btn.class="caption font-weight-bold px-2 text-capitalize"
               tooltip="Enable/Disable Models"
@@ -394,10 +394,10 @@ export default {
   computed: {
 
     swaggerLink() {
-      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.ncSiteUrl)
+      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
     },
     redocLink() {
-      return new URL(`/api/v1/db/meta/projects/${this.projectId}/redoc`, this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.ncSiteUrl)
+      return new URL(`/api/v1/db/meta/projects/${this.projectId}/redoc`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
     },
     ...mapGetters({
       logo: 'plugins/brandLogo',
@@ -454,9 +454,9 @@ export default {
   methods: {
     ...mapActions({ changeActiveTab: 'tabs/changeActiveTab' }),
     ...mapMutations({
-      toggleLogWindow: 'windows/MutToggleLogWindow',
-      toggleOutputWindow: 'windows/MutToggleOutputWindow',
-      toggleTreeviewWindow: 'windows/MutToggleTreeviewWindow'
+      toggleLogWindow: 'settings/MutToggleLogWindow',
+      toggleOutputWindow: 'settings/MutToggleOutputWindow',
+      toggleTreeviewWindow: 'settings/MutToggleTreeviewWindow'
     }),
     async loadProjectInfo() {
       // if (this.$route.params.project_id) {
@@ -482,7 +482,7 @@ export default {
     },
 
     isProjectInfoLoaded() {
-      return this.$store.state.project.projectInfo !== null
+      return this.$store.state.project.appInfo !== null
     },
     githubClickHandler(e) {
       //   e.preventDefault();
@@ -728,8 +728,8 @@ export default {
     },
     changeTheme() {
       this.$store.dispatch(
-        'windows/ActToggleDarkMode',
-        !this.$store.state.windows.darkTheme
+        'settings/ActToggleDarkMode',
+        !this.$store.state.settings.darkTheme
       )
       this.$e('c:navbar:theme')
     },

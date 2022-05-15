@@ -80,11 +80,11 @@ export default {
   computed: {
     autosave: {
       set(v) {
-        this.$store.commit('windows/MutAutoApplyFilter', v)
+        this.$store.commit('settings/MutAutoApplyFilter', v)
         this.$e('a:filter:auto-apply', { flag: v })
       },
       get() {
-        return this.$store.state.windows.autoApplyFilter
+        return this.$store.state.settings.autoApplyFilter
       }
     }
   },

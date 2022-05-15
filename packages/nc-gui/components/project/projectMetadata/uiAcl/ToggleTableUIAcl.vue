@@ -14,7 +14,9 @@
             outlined
           >
             <template #prepend-inner>
-              <v-icon small> search </v-icon>
+              <v-icon small>
+                search
+              </v-icon>
             </template>
           </v-text-field>
           <v-spacer />
@@ -83,8 +85,8 @@
                           table.ptype === "table"
                             ? table._ptn
                             : table.ptype === "view"
-                            ? table._ptn
-                            : table._ptn
+                              ? table._ptn
+                              : table._ptn
                         }}</span>
                       </template>
                       <span class="caption">{{ table.ptn || table._ptn }}</span>
@@ -127,16 +129,12 @@
                         </div>
                       </template>
 
-                      <span v-if="table.disabled[role]"
-                        >Click to make '{{ table.table_name }}' visible for
-                        Role:{{ role }} in UI dashboard</span
-                      >
-                      <span v-else
-                        >Click to hide '{{ table.table_name }}' for Role:{{
-                          role
-                        }}
-                        in UI dashboard</span
-                      >
+                      <span v-if="table.disabled[role]">Click to make '{{ table.table_name }}' visible for
+                        Role:{{ role }} in UI dashboard</span>
+                      <span v-else>Click to hide '{{ table.table_name }}' for Role:{{
+                        role
+                      }}
+                        in UI dashboard</span>
                     </v-tooltip>
                   </td>
                 </tr>
@@ -151,32 +149,32 @@
 </template>
 
 <script>
-import { mapGetters } from "vuex";
-import viewIcons from "~/helpers/viewIcons";
+import { mapGetters } from 'vuex'
+import viewIcons from '~/helpers/viewIcons'
 
 export default {
-  name: "ToggleTableUiAcl",
+  name: 'ToggleTableUiAcl',
   components: {},
-  props: ["nodes", "db"],
+  props: ['nodes', 'db'],
   data: () => ({
     viewIcons,
     models: null,
     updating: false,
     dbsTab: 0,
-    filter: "",
-    tables: null,
+    filter: '',
+    tables: null
   }),
   async mounted() {
-    await this.loadTableList();
+    await this.loadTableList()
   },
   methods: {
     async loadTableList() {
       this.tables = await this.$api.project.modelVisibilityList(
         this.db.project_id,
         {
-          includeM2M: this.$store.state.windows.includeM2M || "",
+          includeM2M: this.$store.state.settings.includeM2M || ''
         }
-      );
+      )
       // this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   dbAlias: this.db.meta.dbAlias,
       //   env: this.$store.getters['project/GtrEnv']
@@ -188,32 +186,32 @@ export default {
       try {
         await this.$api.project.modelVisibilitySet(
           this.db.project_id,
-          this.tables.filter((t) => t.edited)
-        );
+          this.tables.filter(t => t.edited)
+        )
         this.$toast
-          .success("Updated UI ACL for tables successfully")
-          .goAway(3000);
+          .success('Updated UI ACL for tables successfully')
+          .goAway(3000)
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
 
-      this.$e("a:proj-meta:ui-acl");
-    },
+      this.$e('a:proj-meta:ui-acl')
+    }
   },
   computed: {
     ...mapGetters({
-      dbAliasList: "project/GtrDbAliasList",
+      dbAliasList: 'project/GtrDbAliasList'
     }),
     edited() {
       return (
-        this.tables && this.tables.length && this.tables.some((t) => t.edited)
-      );
+        this.tables && this.tables.length && this.tables.some(t => t.edited)
+      )
     },
     roles() {
-      return ["editor", "commenter", "viewer"]; // this.tables && this.tables.length ? Object.keys(this.tables[0].disabled) : []
-    },
-  },
-};
+      return ['editor', 'commenter', 'viewer'] // this.tables && this.tables.length ? Object.keys(this.tables[0].disabled) : []
+    }
+  }
+}
 </script>
 
 <style scoped lang="scss">

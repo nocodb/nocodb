@@ -1428,8 +1428,8 @@ export default {
           break
       }
 
-      xcConfig.type = this.$store.state.project.projectInfo
-        ? this.$store.state.project.projectInfo.type
+      xcConfig.type = this.$store.state.project.appInfo
+        ? this.$store.state.project.appInfo.type
         : 'docker'
 
       if (

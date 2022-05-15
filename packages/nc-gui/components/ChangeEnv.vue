@@ -93,7 +93,7 @@ export default {
       await this.$store.dispatch('users/ActSignOut')
 
       await this.$store.dispatch('project/ActLoadProjectInfo')
-      if (this.$store.state.project.projectInfo.projectHasAdmin === false) {
+      if (this.$store.state.project.appInfo.projectHasAdmin === false) {
         return this.$router.push('/start')
       }
       location.reload()

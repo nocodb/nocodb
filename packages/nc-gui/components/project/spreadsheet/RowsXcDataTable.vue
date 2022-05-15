@@ -1735,8 +1735,8 @@ export default {
     },
     size() {
       return (
-        (this.$store.state.project.projectInfo &&
-          this.$store.state.project.projectInfo.defaultLimit) ||
+        (this.$store.state.project.appInfo &&
+          this.$store.state.project.appInfo.defaultLimit) ||
         25
       )
     },

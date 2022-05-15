@@ -4,14 +4,14 @@
       <slot />
     </pane>
 
-    <pane v-if="$store.state.windows.outputWindow && !hide" :size="50" min-size="10" style="overflow: auto">
+    <pane v-if="$store.state.settings.outputWindow && !hide" :size="50" min-size="10" style="overflow: auto">
       <ProjectOutput />
     </pane>
     <!--    <pane v-if="$store.state.windows.logWindow && !$store.state.windows.outputWindow && !hide" :size="10" min-size="10"-->
     <!--          style="overflow: auto">-->
     <!--      <ProjectLogs/>-->
     <!--    </pane>-->
-    <!--    <pane v-if="$store.state.windows.logWindow && $store.state.windows.outputWindow && !hide" :size="10" min-size="10"-->
+    <!--    <pane v-if="$store.state.settings.logWindow && $store.state.settings.outputWindow && !hide" :size="10" min-size="10"-->
     <!--          style="overflow: auto">-->
     <!--      <ProjectLogs/>-->
     <!--    </pane>-->
@@ -42,13 +42,13 @@ export default {
     }
   },
   created() {
-    if (!this.$store.state.windows.outputWindow && !this.$store.state.windows.logWindow) {
+    if (!this.$store.state.settings.outputWindow && !this.$store.state.settings.logWindow) {
       this.$nextTick(() => {
         this.mainPanelSize = 100
       })
     }
     this.$store.watch(
-      state => !state.windows.outputWindow && !state.windows.logWindow,
+      state => !state.settings.outputWindow && !state.settings.logWindow,
       (newState) => {
         if (newState) {
           this.$nextTick(() => {

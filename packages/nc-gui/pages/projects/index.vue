@@ -668,8 +668,8 @@ export default {
     connectToExternalDB() {
       return (
         this.$store.state.project &&
-        this.$store.state.project.projectInfo &&
-        this.$store.state.project.projectInfo.connectToExternalDB
+        this.$store.state.project.appInfo &&
+        this.$store.state.project.appInfo.connectToExternalDB
       )
     }
   },
@@ -681,8 +681,8 @@ export default {
     }
   },
   async created() {
-    this.$store.commit('windows/MutToggleGaEnabled', true)
-    this.$store.commit('windows/MutToggleTelemetryEnabled', true)
+    this.$store.commit('settings/MutToggleGaEnabled', true)
+    this.$store.commit('settings/MutToggleTelemetryEnabled', true)
     await this.$store.dispatch('users/ActGetUserDetails')
   },
   async mounted() {
@@ -826,7 +826,7 @@ export default {
     },
     async importProjectFromJSON() {},
     onTourCompletion() {
-      // this.$store.commit('windows/MutShowTour', {page: 'home'})
+      // this.$store.commit('settings/MutShowTour', {page: 'home'})
     },
     getDir(filePath) {
       // return path.dirname(filePath);
@@ -849,8 +849,8 @@ export default {
           user.roles.owner
         ) {
           if (
-            this.$store.state.project.projectInfo &&
-            this.$store.state.project.projectInfo.oneClick
+            this.$store.state.project.appInfo &&
+            this.$store.state.project.appInfo.oneClick
           ) {
             //
           }

@@ -16,71 +16,128 @@
 </div>
 
 <p align="center">
-    <a href="http://www.nocodb.com"><b>Website</b></a> •
+    <a href="http://www.nocodb.com"><b>官网</b></a> •
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
-    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
-</p>  
+    <a href="https://docs.nocodb.com/"><b>文档</b></a>
+</p>
 
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 <p align="center">
-    <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
+    <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - 开源的 Airtable 替代品 | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
 </p>
 
 # 快速尝试
-### 一键式部署
+
+### 一键部署
+
+在部署之前，请确保你有一个 Heroku 账户。默认情况下，将使用一个附加的 Heroku Postgres 作为数据库。你可以通过访问 Heroku 应用程序设置并选择 Config Vars 来查看 DATABASE_URL 中定义的连接方式。
 
 #### Heroku
+
 <a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
     width="300px"
-    alt="Deploy NocoDB to Heroku with 1-Click" 
+    alt="一键部署 NocoDB 到 Heroku" 
     />
 </a>
 <br>
 
-### 使用Docker
-```bash
-docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
-```
+## NPX
 
-- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- 要使用数据持久化，你可以挂载到 `/usr/app/data/`。
+如果你需要一个交互式的配置，你可以运行下面的命令。
 
-  示例:
-
-  ```
-  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
-  ```
-
-### 使用NPM
 ```
 npx create-nocodb-app
 ```
-### 使用git
-```
+
+<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
+
+## Node 应用程序
+
+我们提供了一个简单的 NodeJS 应用程序以供入门。
+
+```bash
 git clone https://github.com/nocodb/nocodb-seed
 cd nocodb-seed
 npm install
 npm start
 ```
 
-### GUI
+## Docker 部署
 
-使用仪表板使用 : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
+```bash
+# 如果使用 SQLite 的话
+docker run -d --name nocodb \
+-v "$(pwd)"/nocodb:/usr/app/data/ \
+-p 8080:8080 \
+nocodb/nocodb:latest
 
+# 如果使用 MySQL 的话
+docker run -d --name nocodb-mysql \
+-v "$(pwd)"/nocodb:/usr/app/data/ \
+-p 8080:8080 \
+-e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
+-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+nocodb/nocodb:latest
+
+# 如果使用 PostgreSQL 的话
+docker run -d --name nocodb-postgres \
+-v "$(pwd)"/nocodb:/usr/app/data/ \
+-p 8080:8080 \
+-e NC_DB="pg://host.docker.internal:5432?u=root&p=password&d=d1" \
+-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+nocodb/nocodb:latest
+
+# 如果使用 MSSQL 的话
+docker run -d --name nocodb-mssql \
+-v "$(pwd)"/nocodb:/usr/app/data/ \
+-p 8080:8080 \
+-e NC_DB="mssql://host.docker.internal:1433?u=root&p=password&d=d1" \
+-e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
+nocodb/nocodb:latest
+```
+
+> 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
+
+> 如果你打算输入一些特殊字符，你可能需要在创建数据库时改变字符集和排序。请查看[MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043)的例子。
+
+## Docker Compose
+
+我们在[这个目录](https://github.com/nocodb/nocodb/tree/master/docker-compose)下提供了不同的 docker-compose.yml 文件。下面是一些例子：
+
+```bash
+git clone https://github.com/nocodb/nocodb
+# 如果使用 MySQL 的话
+cd nocodb/docker-compose/mysql
+# 如果使用 PostgreSQL 的话
+cd nocodb/docker-compose/pg
+# 如果使用 MSSQL 的话
+cd nocodb/docker-compose/mssql
+docker-compose up -d
+```
+
+> 你可以通过在 0.10.6 以上的版本中挂载 `/usr/app/data/` 来持久化数据，否则你的数据会在重新创建容器后完全丢失。
+
+> 如果你打算输入一些特殊字符，你可能需要在创建数据库时改变字符集和排序。请查看[MySQL Docker Compose](https://github.com/nocodb/nocodb/issues/1313#issuecomment-1046625974)的例子。
+
+# GUI
+
+点击 [http://localhost:8080/dashboard](http://localhost:8080/dashboard) 打开仪表盘。
 
 # 加入我们的社区
-<a href="https://discord.gg/5RgZmkW">
+
+<a href="https://discord.gg/5RgZmkW" target="_blank">
 <img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
 </a>
-<br>
-<br>
+<a href="https://community.nocodb.com/" target="_blank">
+<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
+</a>
 
 # 截图
 
@@ -117,83 +174,112 @@ npm start
 ![11](https://user-images.githubusercontent.com/86527202/136066756-fc203c2c-570e-4514-b9f4-2a41ac24e5dd.png)
 <br>
 
-# 特征
+# 功能
+
 ### 丰富的电子表格功能
 
-- ⚡ 搜索，排序，过滤，隐藏列
-- ⚡ 创建视图：网格，画廊，看板，甘特图，表单
-- ⚡ 分享视图：公开 或 密码保护
-- ⚡ 个人和锁定视图
-- ⚡ 将图像上传到单元格（使用S3，Minio，GCP，Azure，DigitalOcean，Linode，OVH，Backblaze）
-- ⚡ 角色：所有者，创建者，编辑器，查看器，评论者，自定义角色。
-- ⚡ 访问控制：在 `数据库`、`表`、`列` 级别的访问控制。
+- ⚡ 基本操作：对表、列和行进行增删改查
+- ⚡ 字段操作：排序、过滤、隐藏/取消隐藏列
+- ⚡ 多种视图：网格（默认）、画廊和表单视图
+- ⚡ 视图权限：协作视图和锁定的视图
+- ⚡ 分享基础/视图：公开或私人（有密码保护）
+- ⚡ 多种单元格类型：ID、链接到另一记录、查找、滚动、单行文本、附件、货币、公式等
+- ⚡ 基于角色的访问控制：不同层次的精细化地控制访问
+- ⚡ 以及更多......
 
-### 工作流自动化应用商店：
-- ⚡ 聊天：微软Teams，Slack，Discord，Mattermost
-- ⚡ 电子邮件：SMTP，SES，MailChimp
-- ⚡ 短信：Twilio
-- ⚡ whatsapp
-- ⚡ 任何第三方API
+### 工作流程自动化的应用商店
 
-### Programmatic API访问通过：
-- ⚡ REST API (Swagger)
-- ⚡ GraphQL API
-- ⚡ JWT身份验证和社交验证
-- ⚡ 与Zapier，Integromat集成的API
+我们在三个主要类别中提供不同的集成。详见<a href="https://docs.nocodb.com/setup-and-usages/app-store" target="_blank">App Store</a>。
 
-# 生产安装
-NoCodb 要求一个数据库用来存储电子表格视图和外部元数据。可以在`NC_DB`环境变量中指定此数据库的连接参数。
+- ⚡ 聊天：Slack、Discord、Mattermost 等
+- ⚡ 电子邮件: AWS SES，SMTP，MailerSend 等
+- ⚡ 存储：AWS S3，Google Cloud Storage，Minio 等
 
-## Docker
+### 外部程序 API
 
-#### MySQL 示例
-```bash
-docker run -d -p 8080:8080 \
-    -e NC_DB="mysql2://host.docker.internal:3306?u=root&p=password&d=d1" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
+我们提供以下方式让用户以编程方式调用操作。 您可以使用 Token（JWT 或 Social Auth）来签署您对 NocoDB 授权的请求。
 
-#### Postgres 示例
-```bash
-docker run -d -p 8080:8080 \
-    -e NC_DB="pg://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
+- ⚡ &nbsp;REST APIs
+- ⚡ &nbsp;NocoDB SDK
 
-#### SQL Server 示例
-```bash
-docker run -d -p 8080:8080 \
-    -e NC_DB="mssql://host:port?u=user&p=password&d=database" \
-    -e NC_AUTH_JWT_SECRET="569a1821-0a93-45e8-87ab-eb857f20a010" \
-    nocodb/nocodb:latest
-```
+### 架构同步
 
-## Docker Compose
-```bash
-git clone https://github.com/nocodb/nocodb
-cd docker-compose
-cd mysql or pg or mssql
-docker-compose up -d
-```
+如果您在 NocoDB GUI 之外进行了更改，我们允许您同步架构更改。 但是，必须注意的是，您必须附有自己的迁移架构才能从一个环境迁移到其他环境。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/setup-and-usages/sync-schema/" target="_blank">同步架构</a>。
+
+### 审计
+
+我们将所有用户操作日志保存在一起。 有关详细信息，请参阅 <a href="https://docs.nocodb.com/setup-and-usages/audit" target="_blank">审计</a>。
+
+# 生产部署
+
+默认情况下使用 SQLite 存储元数据。你也可以指定你自己的数据库。这个数据库的连接参数可以在 `NC_DB` 环境变量中指定。此外，我们还提供以下环境变量进行配置：
 
 ## 环境变量
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+参见[环境变量](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
-# 开发安装
+# 开发
 
-Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
+## 拉取项目
+
+```shell
+git clone https://github.com/nocodb/nocodb
+cd nocodb
+```
+
+## 本地运行后端
+
+```shell
+cd packages/nocodb
+npm install
+npm run watch:run
+# 在浏览器中打开 localhost:8080/dashboard
+```
+
+## 本地运行前端
+
+```shell
+cd packages/nc-gui
+npm install
+npm run dev
+# 在浏览器中打开 localhost:3000/dashboard
+```
+
+修改代码后会自动重新启动。
+
+> nocodb/packages/nocodb 包括 nc-lib-gui，它是 npm 源中托管的 nc-gui 的预构建版本。如果您只想修改后端，则可以在本地启动后端后在浏览器中访问 localhost:8000/dashboard
+
+## 本地运行 Cypress 测试
+
+```shell
+# 安装依赖 (cypress)
+npm install
+
+# 使用 docker compose 运行带有所需数据库的 mysql 数据库
+docker-compose -f ./scripts/docker-compose-cypress.yml up
+
+# 使用以下命令运行后端 api
+npm run start:api
+
+# 使用以下命令运行前端 Web UI
+npm run start:web
+
+# 等待 3000 和 8080 端口都可用后
+# 使用以下命令运行 cypress 测试
+npm run cypress:run
+
+# 或运行以下命令以使用 GUI 运行它
+npm run cypress:open
+```
 
 # 贡献
 
-Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+参见[贡献指南](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
-# 为什么我们建立这个？
+# 我们为什么要做这个？
 
-大多数互联网业务都配备了电子表格或数据库以解决其业务需求，每天有上亿人使用电子表格。我们基于数据库运行更强大的工具能更高效地完成工作。用SaaS产品解决此问题的尝试已经意味着可怕的访问控制，供应商锁定，数据锁定，突然的价格变化，甚至是将来可能会阻碍发展。
+大多数互联网企业都为自己配备了电子表格或数据库来解决他们的业务需求。每天有十亿多人协作使用电子表格。然而，我们在数据库上以类似的效率工作还有很长的路要走，这些数据库在计算方面是更强大的工具。使用 SaaS 产品解决这个问题意味着可怕的访问控制、供应商锁定、数据锁定、突然的价格变化以及最重要的是未来可能出现的玻璃天花板。
 
 # 我们的任务
 
-我们的使命是为数据库提供最强大的无码界面，为世界上每一个互联网业务的开源使用。这不仅将民主化带给强大的计算工具，还将为数亿人增强他们的创造力。
+我们的使命是为数据库提供最强大的无代码接口，并向世界上每一个互联网企业开放源代码。这不仅能让这个强大的计算工具开放给每个人，而且10亿或更多的人将会在互联网上拥有激进的修补和建设能力。

@@ -195,7 +195,7 @@ docker-compose up -d
 - ⚡ 电子邮件: AWS SES，SMTP，MailerSend 等
 - ⚡ 存储：AWS S3，Google Cloud Storage，Minio 等
 
-### 外部程序 API
+### 使用 API 编程访问
 
 我们提供以下方式让用户以编程方式调用操作。 您可以使用 Token（JWT 或 Social Auth）来签署您对 NocoDB 授权的请求。
 

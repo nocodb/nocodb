@@ -1,7 +1,7 @@
 ---
 title: 'Usage Information'
 description: 'Non-sensitive and anonymous usage information'
-position: 900
+position: 1200
 category: 'Product'
 menuTitle: 'Usage Information'
 ---

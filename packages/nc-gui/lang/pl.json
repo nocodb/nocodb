@@ -171,7 +171,8 @@
     "headLogin": "Zaloguj się | NOCODB.",
     "resetPassword": "Zresetuj swoje hasło",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Powiadomić VIA.",
@@ -306,6 +307,7 @@
     "deleteRow": "Usuń rząd",
     "deleteSelectedRow": "Usuń wybrane wiersze",
     "importExcel": "Importuj Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "Pobierz jako CSV.",
     "uploadCSV": "Prześlij CSV.",
     "import": "Import",
@@ -397,6 +399,7 @@
       "upload_sub": "lub przeciągnij i upuść plik",
       "excelSupport": "Obsługiwane: .xls, .xlsx, .xlsm, .ods, .oty",
       "excelURL": "Wpisz adres URL pliku Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# wierszy do analizy do infera DataType",
       "excelImport": "Arkusze są dostępne dla importu",
       "exportMetadata": "Czy chcesz wyeksportować metadane z stołów meta?",

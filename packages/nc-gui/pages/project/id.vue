@@ -596,10 +596,10 @@ import { mapGetters, mapActions } from 'vuex'
 import Vue from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import axios from 'axios'
-import textDlgSubmitCancel from '../../components/utils/dlgTextSubmitCancel'
+import textDlgSubmitCancel from '../../components/utils/DlgTextSubmitCancel'
 
-import dlgOk from '../../components/utils/dlgOk.vue'
-import XBtn from '../../components/global/xBtn'
+import dlgOk from '../../components/utils/DlgOk.vue'
+import XBtn from '../../components/global/XBtn'
 
 const { uniqueNamesGenerator, starWars, adjectives, animals } = require('unique-names-generator')
 
@@ -1013,7 +1013,7 @@ export default {
           break
       }
 
-      xcConfig.type = this.$store.state.project.projectInfo ? this.$store.state.project.projectInfo.type : 'docker'
+      xcConfig.type = this.$store.state.project.appInfo ? this.$store.state.project.appInfo.type : 'docker'
 
       return xcConfig
     },
@@ -1072,9 +1072,9 @@ export default {
     },
 
     async createOrUpdateProject () {
-      // if (this.$store.state.windows.isComp) {
+      // if (this.$store.state.settings.isComp) {
       //   try {
-      //     ga('send', 'event', 'NewProject.', 'Action failed', this.$store.state.windows.isComp);
+      //     ga('send', 'event', 'NewProject.', 'Action failed', this.$store.state.settings.isComp);
       //   } catch (e) {
       //   }
       //   this.$toast.info(this.compErrorMessage).goAway(800);
@@ -1140,7 +1140,7 @@ export default {
 
       await this.$store.dispatch('project/ActLoadProjectInfo')
 
-      if (this.$store.state.project.projectInfo.firstUser || this.$store.state.project.projectInfo.authType === 'masterKey') {
+      if (this.$store.state.project.appInfo.firstUser || this.$store.state.project.appInfo.authType === 'masterKey') {
         return this.$router.push({
           path: '/user/authentication/signup'
         })

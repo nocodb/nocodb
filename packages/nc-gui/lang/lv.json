@@ -171,7 +171,8 @@
     "headLogin": "Pieslēgties | NocoDB",
     "resetPassword": "Atjaunot paroli",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Paziņot izmantojot",
@@ -306,6 +307,7 @@
     "deleteRow": "Dzēst ierakstu",
     "deleteSelectedRow": "Dzēst izvēlētos ierakstus",
     "importExcel": "Importēt Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Lejupielādēt kā CSV",
     "uploadCSV": "Augšupielādēt CSV",
     "import": "Importēt",
@@ -397,6 +399,7 @@
       "upload_sub": "vai vilkt un nomest datni",
       "excelSupport": "Atbalsta: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Ievadīt Excel datnes saiti",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# ierakstu analizēšanai lai secinātu datu tipus",
       "excelImport": "lapa(s) ir pieejamas importēšanai",
       "exportMetadata": "Vai tu vēlies eksportēt metadatus no tabulām?",

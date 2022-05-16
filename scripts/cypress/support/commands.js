@@ -258,6 +258,7 @@ Cypress.Commands.add("getActiveContentModal", () => {
 
 Cypress.Commands.add("createTable", (name) => {
     cy.get(".add-btn").click();
+    cy.getActiveMenu().contains("Add new table").should('exist').click()
     cy.get('.nc-create-table-card .nc-table-name input[type="text"]')
         .first()
         .click()

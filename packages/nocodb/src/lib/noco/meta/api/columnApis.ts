@@ -496,7 +496,11 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         }> = (await sqlClient.columnList({ tn: table.table_name }))?.data?.list;
 
         const insertedColumnMeta =
-          columns.find(c => c.cn === colBody.column_name) || {};
+          columns.find(c => c.cn === colBody.column_name) || {} as any;
+
+        if (colBody.uidt === UITypes.SingleSelect || colBody.uidt === UITypes.MultiSelect) {
+          insertedColumnMeta.dtxp = colBody.dtxp;
+        }
 
         await Column.insert({
           ...colBody,

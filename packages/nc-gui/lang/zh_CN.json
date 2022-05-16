@@ -5,7 +5,7 @@
     "open": "打开",
     "close": "关闭",
     "yes": "是的",
-    "no": "No",
+    "no": "否",
     "ok": "行",
     "and": "和",
     "or": "或者",
@@ -40,7 +40,7 @@
     "required": "必填项",
     "preferred": "Preferred",
     "mandatory": "强制的",
-    "loading": "loading ...",
+    "loading": "加载中...",
     "title": "标题",
     "upload": "上传",
     "download": "下载",
@@ -74,7 +74,7 @@
     "view": "视图",
     "views": "视图",
     "viewType": {
-      "grid": "表格",
+      "grid": "网格",
       "gallery": "画廊",
       "form": "表单",
       "kanban": "看板",
@@ -171,7 +171,8 @@
     "headLogin": "登录 | NocoDB",
     "resetPassword": "重置密码",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "通知Via",
@@ -306,6 +307,7 @@
     "deleteRow": "删除行",
     "deleteSelectedRow": "删除所选行",
     "importExcel": "导入Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "下载为CSV.",
     "uploadCSV": "上传CSV.",
     "import": "导入",
@@ -397,6 +399,7 @@
       "upload_sub": "或拖放文件",
       "excelSupport": "支持：.xls，.xlsx，.xlsm，.ods，.ots",
       "excelURL": "输入Excel文件URL",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "要解析为推断数据类型的行数",
       "excelImport": "板材可用于进口",
       "exportMetadata": "您想从元表导出元数据吗？",

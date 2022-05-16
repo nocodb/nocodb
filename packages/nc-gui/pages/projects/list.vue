@@ -101,7 +101,9 @@
               <v-list dense>
                 <v-list-item>
                   <v-list-item-title>
-                    <v-icon small color="red"> mdi-delete-outline </v-icon>
+                    <v-icon small color="red">
+                      mdi-delete-outline
+                    </v-icon>
                     Delete
                   </v-list-item-title>
                 </v-list-item>
@@ -147,13 +149,13 @@
 </template>
 
 <script>
-import colors from "~/mixins/colors";
-import CreateNewProjectBtn from "~/components/projectList/createNewProjectBtn";
-import Extras from "~/components/project/spreadsheet/components/extras";
-import SponsorMini from "~/components/sponsorMini";
+import colors from '~/mixins/colors'
+import CreateNewProjectBtn from '~/components/projectList/CreateNewProjectBtn'
+import Extras from '~/components/project/spreadsheet/components/Extras'
+import SponsorMini from '~/components/SponsorMini'
 
 export default {
-  name: "List",
+  name: 'List',
   components: { SponsorMini, Extras, CreateNewProjectBtn },
   mixins: [colors],
   data: () => ({
@@ -161,39 +163,39 @@ export default {
     activePage: null,
     navDrawerOptions: [
       {
-        title: "My NocoDB",
-        icon: "mdi-folder-outline",
+        title: 'My NocoDB',
+        icon: 'mdi-folder-outline'
       },
       {
-        title: "Shared With Me",
-        icon: "mdi-account-group",
+        title: 'Shared With Me',
+        icon: 'mdi-account-group'
       },
       {
-        title: "Recent",
-        icon: "mdi-clock-outline",
+        title: 'Recent',
+        icon: 'mdi-clock-outline'
       },
       {
-        title: "Starred",
-        icon: "mdi-star",
-      },
-    ],
+        title: 'Starred',
+        icon: 'mdi-star'
+      }
+    ]
   }),
   mounted() {
-    this.loadProjectList();
+    this.loadProjectList()
   },
   methods: {
     async loadProjectList() {
-      const { list, pageInfo } = await this.$api.project.list();
-      this.projectList = list;
+      const { list, pageInfo } = await this.$api.project.list()
+      this.projectList = list
     },
     async openProject(project) {
       await this.$router.push({
-        path: `/nc/${project.id}`,
-      });
-      this.$e("a:project:open", { count: this.projects.length });
-    },
-  },
-};
+        path: `/nc/${project.id}`
+      })
+      this.$e('a:project:open', { count: this.projects.length })
+    }
+  }
+}
 </script>
 
 <style scoped>

@@ -171,7 +171,8 @@
     "headLogin": "Kirjaudu sisään | Nokodb",
     "resetPassword": "Nollaa salasana",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Ilmoittaa kautta",
@@ -306,6 +307,7 @@
     "deleteRow": "Poista rivi",
     "deleteSelectedRow": "Poista valitut rivit",
     "importExcel": "Tuonti excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Lataa CSV",
     "uploadCSV": "Lataa CSV",
     "import": "Tuonti",
@@ -397,6 +399,7 @@
       "upload_sub": "tai vedä ja pudota tiedosto",
       "excelSupport": "Tuetut: .xls, .xlsx, .xlsm, .odit,.",
       "excelURL": "Anna Excel-tiedoston URL-osoite",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# rivien jäsentää tietotekniikkaa",
       "excelImport": "arkki (t) on saatavilla tuonti",
       "exportMetadata": "Haluatko viedä metatietoja metapöydistä?",

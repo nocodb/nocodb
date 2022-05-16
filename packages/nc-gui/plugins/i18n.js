@@ -11,7 +11,7 @@ export default ({ app, store }) => {
   // This way we can use it globally in our components through this.$i18n
   app.i18n = new VueI18n({
     // Set the initial locale
-    locale: store.state.windows.language,
+    locale: store.state.settings.language,
 
     // Set the fallback locale in case the current locale can't be found
     fallbackLocale: 'en',
@@ -49,7 +49,7 @@ export default ({ app, store }) => {
   })
 
   store.watch(
-    state => state.windows.language,
+    state => state.settings.language,
     (language) => {
       if (app.i18n.availableLocales.includes(language)) {
         app.i18n.locale = language

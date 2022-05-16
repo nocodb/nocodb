@@ -3074,6 +3074,24 @@ export class Api<
       }),
 
     /**
+     * @description Generic Axios Call
+     *
+     * @tags Utils
+     * @name AxiosRequestMake
+     * @request POST:/api/v1/db/meta/axiosRequestMake
+     * @response `200` `object` OK
+     */
+    axiosRequestMake: (data: object, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/axiosRequestMake`,
+        method: 'POST',
+        body: data,
+        type: ContentType.Json,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags Utils

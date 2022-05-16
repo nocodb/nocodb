@@ -171,7 +171,8 @@
     "headLogin": "ورود | NocoDB",
     "resetPassword": "بازنشانی کلمه عبور شما",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "اعلان از طریق",
@@ -306,6 +307,7 @@
     "deleteRow": "حذف ردیف جدید",
     "deleteSelectedRow": "حذف ردیف‌های انتخاب شده",
     "importExcel": "وارد کردن فایل Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "دانلود به‌عنوان CSV",
     "uploadCSV": "بارگذاری CSV",
     "import": "وارد کردن",
@@ -397,6 +399,7 @@
       "upload_sub": "یا فایل را بکشید و رها کنید",
       "excelSupport": "فرمت‌های پشتیبانی شده: xls - xlsx - xlsm - ods - ots",
       "excelURL": "URL فایل Excel را انتخاب کنید",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "تعداد ردیف‌ها برای parse جهت یافتن نوع داده",
       "excelImport": "صفحه(های) آماده برای ورود",
       "exportMetadata": "آیا می‌خواهید فراداده را از فراجدول‌ها خارج کنید؟",

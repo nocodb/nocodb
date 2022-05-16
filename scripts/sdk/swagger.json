@@ -4800,6 +4800,39 @@
         "description": ""
       }
     },
+    "/api/v1/db/meta/axiosRequestMake": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "utils-axios-request-make",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "description": "Generic Axios Call",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ]
+      }
+    },
     "/api/v1/db/meta/nocodb/version": {
       "parameters": [],
       "get": {
@@ -5725,7 +5758,7 @@
           "title": {
             "type": "string"
           },
-          "table_nameme": {
+          "table_name": {
             "type": "string"
           },
           "type": {
@@ -5773,7 +5806,7 @@
         },
         "required": [
           "title",
-          "table_nameme"
+          "table_name"
         ]
       },
       "TableReq": {

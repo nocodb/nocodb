@@ -23,11 +23,11 @@
 </template>
 
 <script>
-import TextField from '@/components/project/appStore/inputs/textField'
-import Attachment from '@/components/project/appStore/inputs/attachment'
-import PasswordField from '@/components/project/appStore/inputs/passwordField'
-import TextAreaCell from '@/components/project/spreadsheet/components/editableCell/textAreaCell'
-import CheckboxField from '@/components/project/appStore/inputs/checkboxField'
+import TextField from '~/components/project/appStore/inputs/TextField'
+import Attachment from '~/components/project/appStore/inputs/Attachment'
+import PasswordField from '~/components/project/appStore/inputs/PasswordField'
+import TextAreaCell from '~/components/project/spreadsheet/components/editableCell/TextAreaCell'
+import CheckboxField from '~/components/project/appStore/inputs/CheckboxField'
 
 export default {
   name: 'FormInput',

@@ -3,10 +3,10 @@ import { enumColor as colors } from '@/components/project/spreadsheet/helpers/co
 export default {
   computed: {
     colors() {
-      return this.$store.state.windows.darkTheme ? colors.dark : colors.light
+      return this.$store.state.settings.darkTheme ? colors.dark : colors.light
     },
     textColors() {
-      return this.$store.state.windows.darkTheme ? colors.light : colors.dark
+      return this.$store.state.settings.darkTheme ? colors.light : colors.dark
     }
   },
   methods: {

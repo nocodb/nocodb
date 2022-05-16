@@ -171,7 +171,8 @@
     "headLogin": "登入｜NocoDB",
     "resetPassword": "重設密碼",
     "teamAndSettings": "團隊 & 設定",
-    "apiDocs": "API 說明文件"
+    "apiDocs": "API 說明文件",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "透過...通知",
@@ -306,6 +307,7 @@
     "deleteRow": "刪除行",
     "deleteSelectedRow": "刪除所選行",
     "importExcel": "匯入 Excel",
+    "importCSV": "匯入 CSV",
     "downloadCSV": "下載為 CSV",
     "uploadCSV": "上傳 CSV",
     "import": "匯入",
@@ -397,6 +399,7 @@
       "upload_sub": "或拖放檔案",
       "excelSupport": "支持：.xls，.xlsx，.xlsm，.ods，.ots",
       "excelURL": "輸入 Excel 檔案 URL",
+      "csvURL": "輸入 CSV 檔案 URL",
       "footMsg": "要解析為推斷數據類型的行數",
       "excelImport": "板材可用於進口",
       "exportMetadata": "您想從中繼表格中匯出中繼資料嗎？",

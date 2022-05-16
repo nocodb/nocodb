@@ -171,7 +171,8 @@
     "headLogin": "Masuk | Nocodb.",
     "resetPassword": "Mereset password Anda",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Beri tahu VIA.",
@@ -306,6 +307,7 @@
     "deleteRow": "Hapus Baris",
     "deleteSelectedRow": "Hapus baris yang dipilih",
     "importExcel": "Impor Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "Unduh sebagai CSV.",
     "uploadCSV": "Unggah CSV.",
     "import": "Impor",
@@ -397,6 +399,7 @@
       "upload_sub": "atau seret dan jatuhkan file",
       "excelSupport": "Didukung: .xls, .xlsx, .xlsm, .ots, .ots",
       "excelURL": "Masukkan URL File Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# dari baris untuk menguraikan untuk menyimpulkan datatype",
       "excelImport": "Lembar tersedia untuk impor",
       "exportMetadata": "Apakah Anda ingin mengekspor metadata dari Meta Tables?",

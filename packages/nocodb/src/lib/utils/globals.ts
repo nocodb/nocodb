@@ -34,7 +34,9 @@ export enum MetaTable {
   PLUGIN = 'nc_plugins_v2',
   PROJECT_USERS = 'nc_project_users_v2',
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',
-  API_TOKENS = 'nc_api_tokens'
+  API_TOKENS = 'nc_api_tokens',
+  SYNC_SOURCE = 'nc_sync_source_v2',
+  SYNC_LOGS = 'nc_sync_logs_v2'
 }
 
 export enum CacheScope {

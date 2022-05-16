@@ -17,6 +17,8 @@ const getAst = async ({
   view?: View;
 }) => {
   if (!model.columns?.length) await model.getColumns();
+
+  // extract only pk and pv
   if (extractOnlyPrimaries) {
     return {
       ...(model.primaryKeys
@@ -71,7 +73,7 @@ const getAst = async ({
       value = await getAst({
         model,
         query: query?.nested,
-        extractOnlyPrimaries: true
+        extractOnlyPrimaries: nestedFields !== '*'
       });
     }
 

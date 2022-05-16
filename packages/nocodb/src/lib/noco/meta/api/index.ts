@@ -41,11 +41,15 @@ import {
   publicMetaApis
 } from './publicApis';
 import { Tele } from 'nc-help';
-import { Server } from 'socket.io';
+import { Server, Socket } from 'socket.io';
 import passport from 'passport';
 
 import crypto from 'crypto';
 import swaggerApis from './swagger/swaggerApis';
+import importApis from './sync/importApis';
+import syncSourceApis from './sync/syncSourceApis';
+
+const clients: { [id: string]: Socket } = {};
 
 export default function(router: Router, server) {
   initStrategies(router);
@@ -85,6 +89,7 @@ export default function(router: Router, server) {
   router.use(apiTokenApis);
   router.use(hookFilterApis);
   router.use(swaggerApis);
+  router.use(syncSourceApis);
 
   userApis(router);
 
@@ -109,6 +114,7 @@ export default function(router: Router, server) {
       }
     )(socket.handshake, {}, next);
   }).on('connection', socket => {
+    clients[socket.id] = socket;
     const id = getHash(
       (process.env.NC_SERVER_UUID || Tele.id) +
         (socket?.handshake as any)?.user?.id
@@ -121,6 +127,8 @@ export default function(router: Router, server) {
       Tele.event({ ...args, id });
     });
   });
+
+  importApis(router, clients);
 }
 
 function getHash(str) {

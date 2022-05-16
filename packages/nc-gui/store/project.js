@@ -18,7 +18,7 @@ export const state = () => ({
    */
   unserializedList: [],
   defaultProject,
-  projectInfo: null,
+  appInfo: null,
   activeEnv: null,
   authDbAlias: null,
   projectId: null,
@@ -100,8 +100,8 @@ export const mutations = {
     // setProp(state, ['unserializedList', 0, 'projectJson'], projJson)
     Vue.set(state, 'defaultProject', { ...projJson })
   },
-  MutProjectInfo(state, projectInfo) {
-    state.projectInfo = projectInfo
+  MutAppInfo(state, appInfo) {
+    state.appInfo = appInfo
   }
 }
 
@@ -121,7 +121,7 @@ function getSerializedEnvObj(data) {
 export const getters = {
 
   GtrEnv(state) {
-    return state.projectInfo && state.projectInfo.env
+    return state.appInfo && state.appInfo.env
   },
   GtrFirstDbAlias(state, getters) {
     return (state.unserializedList
@@ -276,14 +276,14 @@ export const getters = {
   },
 
   GtrIsFirstLoad(state) {
-    return !state.projectInfo || !state.projectInfo.projectHasDb || state.projectInfo.firstUser
+    return !state.appInfo || !state.appInfo.projectHasDb || state.appInfo.firstUser
   },
 
   GtrIsDocker(state) {
-    return state.projectInfo && state.projectInfo.type === 'docker'
+    return state.appInfo && state.appInfo.type === 'docker'
   },
   GtrIsMvc(state) {
-    return state.projectInfo && state.projectInfo.type === 'mvc'
+    return state.appInfo && state.appInfo.type === 'mvc'
   },
   GtrEnvList(state) {
     return state.unserializedList[0]
@@ -372,7 +372,7 @@ export const actions = {
       const tables = (await this.$api.dbTable.list(
         state.projectId,
         {
-          includeM2M: rootState.windows.includeM2M || ''
+          includeM2M: rootState.settings.includeM2M || ''
         })).list
 
       commit('tables', tables)
@@ -752,8 +752,8 @@ export const actions = {
   },
 
   async ActLoadProjectInfo({ commit }) {
-    const projectInfo = (await this.$api.utils.appInfo())
-    commit('MutProjectInfo', projectInfo)
+    const appInfo = (await this.$api.utils.appInfo())
+    commit('MutAppInfo', appInfo)
   }
 }
 

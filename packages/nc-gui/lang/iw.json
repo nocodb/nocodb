@@ -171,7 +171,8 @@
     "headLogin": "התחבר | נוקודב",
     "resetPassword": "לאפס את הסיסמה שלך",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "תודיע דרך",
@@ -306,6 +307,7 @@
     "deleteRow": "מחק שורה",
     "deleteSelectedRow": "מחק את השורות שנבחרו",
     "importExcel": "ייבוא ​​Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "הורד כמו CSV.",
     "uploadCSV": "העלה CSV.",
     "import": "יְבוּא",
@@ -397,6 +399,7 @@
       "upload_sub": "או גרור ושחרר קובץ",
       "excelSupport": "נתמך: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "הזן את כתובת האתר של קובץ Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# של שורות לנתח כדי להסיק datatype",
       "excelImport": "גיליון (ים) זמינים לייבוא",
       "exportMetadata": "האם אתה רוצה לייצא מטא נתונים מ מטא שולחנות?",

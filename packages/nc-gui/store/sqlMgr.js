@@ -307,9 +307,9 @@ export const actions = {
     commit('notification/MutListAdd', { status: 'pending', ...data }, { root: true })
 
     const headers = {}
-    if (rootState.project.projectInfo && rootState.project.projectInfo.authType === 'masterKey') {
+    if (rootState.project.appInfo && rootState.project.appInfo.authType === 'masterKey') {
       headers['xc-master-key'] = rootState.users.masterKey || ''
-    } else if (rootState.project.projectInfo && rootState.project.projectInfo.authType === 'jwt') {
+    } else if (rootState.project.appInfo && rootState.project.appInfo.authType === 'jwt') {
       headers['xc-auth'] = rootState.users.token || ''
     }
 
@@ -376,9 +376,9 @@ export const actions = {
 
     try {
       const headers = {}
-      if (rootState.project.projectInfo && rootState.project.projectInfo.authType === 'masterKey') {
+      if (rootState.project.appInfo && rootState.project.appInfo.authType === 'masterKey') {
         headers['xc-master-key'] = rootState.users.masterKey
-      } else if (rootState.project.projectInfo && rootState.project.projectInfo.authType === 'jwt') {
+      } else if (rootState.project.appInfo && rootState.project.appInfo.authType === 'jwt') {
         headers['xc-auth'] = rootState.users.token
       }
 
@@ -497,9 +497,9 @@ export const actions = {
         'Content-Type': 'multipart/form-data'
       }
 
-      if (rootState.project.projectInfo && rootState.project.projectInfo.authType === 'masterKey') {
+      if (rootState.project.appInfo && rootState.project.appInfo.authType === 'masterKey') {
         headers['xc-master-key'] = rootState.users.masterKey
-      } else if (rootState.project.projectInfo && rootState.project.projectInfo.authType === 'jwt') {
+      } else if (rootState.project.appInfo && rootState.project.appInfo.authType === 'jwt') {
         headers['xc-auth'] = rootState.users.token
       }
 

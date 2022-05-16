@@ -447,6 +447,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="http://blog.mukyu.tw/"><img src="https://avatars.githubusercontent.com/u/6008539?v=4?s=100" width="100px;" alt=""/><br /><sub><b>神楽坂帕琪</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=mudream4869" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/titouancreach"><img src="https://avatars.githubusercontent.com/u/3995719?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Titouan CREACH</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=titouancreach" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://www.youyi.io"><img src="https://avatars.githubusercontent.com/u/49471274?v=4?s=100" width="100px;" alt=""/><br /><sub><b>youyiio</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=youyiio" title="Code">💻</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->

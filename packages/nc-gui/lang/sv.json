@@ -171,7 +171,8 @@
     "headLogin": "Logga in | Nocodb",
     "resetPassword": "Återställ ditt lösenord",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Meddela via",
@@ -306,6 +307,7 @@
     "deleteRow": "Radera raden",
     "deleteSelectedRow": "Ta bort valda rader",
     "importExcel": "Import excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Hämta som CSV",
     "uploadCSV": "Ladda upp CSV",
     "import": "Importera",
@@ -397,6 +399,7 @@
       "upload_sub": "eller dra och släpp filen",
       "excelSupport": "Stöds: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Ange Excel-filadressen",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# av rader att analysera att avleda datatyp",
       "excelImport": "ark (er) är tillgängliga för import",
       "exportMetadata": "Vill du exportera metadata från meta bord?",

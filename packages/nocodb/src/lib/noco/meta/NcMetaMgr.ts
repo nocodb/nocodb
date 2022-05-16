@@ -1686,7 +1686,7 @@ export default class NcMetaMgr {
           postListenerCb = async () => {
             if (args?.args?.template) {
               Tele.emit('evt', {
-                evt_type: args.args?.excelImport
+                evt_type: args.args?.quickImport
                   ? 'project:created:fromExcel'
                   : 'project:created:fromTemplate',
                 xcdb: true

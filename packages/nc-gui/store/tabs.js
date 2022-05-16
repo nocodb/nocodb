@@ -290,6 +290,20 @@ export const actions = {
     }
     commit('list', tabs)
   },
+  async loadFirstTableTab({ commit, state, rootGetters, dispatch, rootState }, load) {
+    const tabs = []
+
+    const nodes = rootState.project
+      .list[0] // project
+      .children[0] //  environment
+      .children[0] // db
+      .children.find(n => n.type === 'tableDir') // parent node
+      .children
+    if (nodes && nodes[0]) {
+      tabs.push(nodes[0])
+    }
+    if (tabs.length) { commit('list', tabs) }
+  },
 
   removeTableTab({ commit, state }, nodes) {
     const tabs = JSON.parse(JSON.stringify(state.list))
@@ -385,6 +399,22 @@ export const actions = {
     //     }
     //   })
     // });
+  },
+  async loadFirstCreatedTableTab({ commit, state, rootGetters, dispatch, rootState }, data) {
+    const tabs = state.list || []
+    const item = rootState.project
+      .list[0] // project
+      .children[0] //  environment
+      .children[0] // db
+      .children.find(n => n.type === 'tableDir') // parent node
+      .children.find(n => n.title === data.title) // look for the target table
+    if (item) {
+      tabs.push(item)
+    }
+    if (tabs.length) {
+      commit('list', tabs)
+    }
+    return item
   }
 }
 /**
@@ -392,6 +422,7 @@ export const actions = {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

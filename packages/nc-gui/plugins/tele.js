@@ -89,7 +89,7 @@ export default function({
     }
   })
 
-  store.watch(state => state.project.projectInfo && state.project.projectInfo.teleEnabled && state.users.token, (token) => {
+  store.watch(state => state.project.appInfo && state.project.appInfo.teleEnabled && state.users.token, (token) => {
     if (token) {
       init(token).then(() => {
       })
@@ -98,7 +98,7 @@ export default function({
       socket = null
     }
   })
-  if (store.state.project.projectInfo && store.state.project.projectInfo.teleEnabled && store.state.users.token) {
+  if (store.state.project.appInfo && store.state.project.appInfo.teleEnabled && store.state.users.token) {
     init(store.state.users.token).then(() => {
     })
   }

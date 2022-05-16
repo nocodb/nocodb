@@ -16,7 +16,7 @@
       @keydown.enter.prevent="selectText"
     />
     <div class="hint">
-      Hint: Use $ to reference columns, e.g: $column_name$. For more, please check out
+      Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
       <a href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">Formulas</a>.
     </div>
     <v-card v-if="suggestion && suggestion.length" class="formula-suggestion">
@@ -97,6 +97,7 @@ import debounce from 'debounce'
 import jsep from 'jsep'
 import { UITypes } from 'nocodb-sdk'
 import formulaList, { validations } from '../../../../../helpers/formulaList'
+import curly from '../../../../../helpers/formulaCurlyHook'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
 
@@ -161,6 +162,7 @@ export default {
   },
   created() {
     this.formula = { value: this.value || '' }
+    jsep.plugins.register(curly)
   },
   methods: {
     async save() {
@@ -219,6 +221,7 @@ export default {
       }
     },
     validateAgainstMeta(pt, arr = []) {
+      console.log('pt.type= ' + pt.type)
       if (pt.type === 'CallExpression') {
         if (!this.availableFunctions.includes(pt.callee.name)) {
           arr.push(`'${pt.callee.name}' function is not available`)
@@ -235,11 +238,7 @@ export default {
         }
         pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))
       } else if (pt.type === 'Identifier') {
-        // $column_name$ -> column_name
-        const sanitizedPtName = pt.name.substring(1, pt.name.length - 1)
-        if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).find(c => c.title === pt.name)) {
-          arr.push(`Column '${pt.name}' needs to be wrapped by $. Try $${pt.name}$ instead`)
-        } else if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== sanitizedPtName)) {
+        if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== pt.name)) {
           arr.push(`Column '${pt.name}' is not available`)
         }
       } else if (pt.type === 'BinaryExpression') {
@@ -257,7 +256,7 @@ export default {
       if (it.type === 'function') {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len, 1))
       } else if (it.type === 'column') {
-        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), '$' + text + '$', len))
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), '{' + text + '}', len))
       } else {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }

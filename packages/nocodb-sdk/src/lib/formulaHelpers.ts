@@ -1,6 +1,7 @@
 import jsep from 'jsep';
 
 import { ColumnType } from './Api';
+
 export function substituteColumnIdWithAliasInFormula(
   formula,
   columns: ColumnType[],
@@ -23,15 +24,39 @@ export function substituteColumnIdWithAliasInFormula(
           c.title === colNameOrId
       );
       pt.name = column?.title || ptRaw?.name || pt?.name;
-      if (pt.name[0] != '$' && pt.name[pt.name.length - 1] != '$') {
-        pt.name = '$' + pt.name + '$';
-      }
     } else if (pt.type === 'BinaryExpression') {
       substituteId(pt.left, ptRaw?.left);
       substituteId(pt.right, ptRaw?.right);
     }
   };
 
+  // register curly hook
+  jsep.plugins.register({
+    name: 'curly',
+    init(jsep) {
+      jsep.hooks.add('gobble-token', function gobbleCurlyLiteral(env) {
+        const OCURLY_CODE = 123; // {
+        const CCURLY_CODE = 125; // }
+        const { context } = env;
+        if (
+          !jsep.isIdentifierStart(context.code) &&
+          context.code === OCURLY_CODE
+        ) {
+          context.index += 1;
+          const nodes = context.gobbleExpressions(CCURLY_CODE);
+          if (context.code === CCURLY_CODE) {
+            context.index += 1;
+            if (nodes.length > 0) {
+              env.node = nodes[0];
+            }
+            return env.node;
+          } else {
+            context.throwError('Unclosed }');
+          }
+        }
+      });
+    },
+  } as jsep.IPlugin);
   const parsedFormula = jsep(formula);
   const parsedRawFormula = rawFormula && jsep(rawFormula);
   substituteId(parsedFormula, parsedRawFormula);
@@ -65,7 +90,7 @@ export function jsepTreeToFormula(node) {
   }
 
   if (node.type === 'Identifier') {
-    return node.name;
+    return '{' + node.name + '}';
   }
 
   if (node.type === 'Literal') {

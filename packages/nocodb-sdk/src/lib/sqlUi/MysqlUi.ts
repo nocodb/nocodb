@@ -1,4 +1,4 @@
-import UITypes from "../UITypes";
+import UITypes from '../UITypes';
 
 const dbTypes = [
   'int',
@@ -39,7 +39,7 @@ const dbTypes = [
   'multipoint',
   'multilinestring',
   'multipolygon',
-  'json'
+  'json',
 ];
 
 export class MysqlUi {
@@ -66,7 +66,7 @@ export class MysqlUi {
         altered: 1,
         uidt: 'ID',
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
         column_name: 'title',
@@ -89,7 +89,7 @@ export class MysqlUi {
         altered: 1,
         uidt: 'SingleLineText',
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
         column_name: 'created_at',
@@ -112,7 +112,7 @@ export class MysqlUi {
         altered: 1,
         uidt: UITypes.DateTime,
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
         column_name: 'updated_at',
@@ -135,8 +135,8 @@ export class MysqlUi {
         altered: 1,
         uidt: UITypes.DateTime,
         uip: '',
-        uicn: ''
-      }
+        uicn: '',
+      },
     ];
   }
 
@@ -161,7 +161,7 @@ export class MysqlUi {
       altered: 1,
       uidt: 'SingleLineText',
       uip: '',
-      uicn: ''
+      uicn: '',
     };
   }
 
@@ -659,13 +659,15 @@ export class MysqlUi {
   }
 
   static extractFunctionName(query) {
-    const reg = /^\s*CREATE\s+.*?(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:`?[\w\d_]+`?\.)?`?([\w_\d]+)`?/i;
+    const reg =
+      /^\s*CREATE\s+.*?(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:`?[\w\d_]+`?\.)?`?([\w_\d]+)`?/i;
     const match = query.match(reg);
     return match && match[1];
   }
 
   static extractProcedureName(query) {
-    const reg = /^\s*CREATE.*?\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
+    const reg =
+      /^\s*CREATE.*?\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
     return match && match[1];
   }
@@ -677,14 +679,14 @@ export class MysqlUi {
       // set headers before settings result
       for (let i = 0; i < keys.length; i++) {
         const text = keys[i];
-        headers.push({text, value: text, sortable: false});
+        headers.push({ text, value: text, sortable: false });
       }
     } else {
       const keys = Object.keys(result);
       for (let i = 0; i < keys.length; i++) {
         const text = keys[i];
         if (typeof text !== 'function') {
-          headers.push({text, value: text, sortable: false});
+          headers.push({ text, value: text, sortable: false });
         }
       }
       result = [result];
@@ -750,7 +752,7 @@ export class MysqlUi {
             dtx: 'specificType',
             dtxp: null,
             dtxs: 0,
-            altered: 1
+            altered: 1,
           };
 
           switch (typeof json[keys[i]]) {
@@ -758,13 +760,13 @@ export class MysqlUi {
               if (Number.isInteger(json[keys[i]])) {
                 if (MysqlUi.isValidTimestamp(keys[i], json[keys[i]])) {
                   Object.assign(column, {
-                    dt: 'timestamp'
+                    dt: 'timestamp',
                   });
                 } else {
                   Object.assign(column, {
                     dt: 'int',
                     np: 10,
-                    ns: 0
+                    ns: 0,
                   });
                 }
               } else {
@@ -773,25 +775,25 @@ export class MysqlUi {
                   np: 10,
                   ns: 2,
                   dtxp: '11',
-                  dtxs: 2
+                  dtxs: 2,
                 });
               }
               break;
             case 'string':
               if (MysqlUi.isValidDate(json[keys[i]])) {
                 Object.assign(column, {
-                  dt: 'datetime'
+                  dt: 'datetime',
                 });
               } else if (json[keys[i]].length <= 255) {
                 Object.assign(column, {
                   dt: 'varchar',
                   np: 255,
                   ns: 0,
-                  dtxp: '255'
+                  dtxp: '255',
                 });
               } else {
                 Object.assign(column, {
-                  dt: 'text'
+                  dt: 'text',
                 });
               }
               break;
@@ -799,14 +801,14 @@ export class MysqlUi {
               Object.assign(column, {
                 dt: 'boolean',
                 np: 3,
-                ns: 0
+                ns: 0,
               });
               break;
             case 'object':
               Object.assign(column, {
                 dt: 'json',
                 np: 3,
-                ns: 0
+                ns: 0,
               });
               break;
             default:
@@ -991,7 +993,7 @@ export class MysqlUi {
         colProp.validate = {
           func: ['isMobilePhone'],
           args: [''],
-          msg: ['Validation failed : isMobilePhone ({cn})']
+          msg: ['Validation failed : isMobilePhone ({cn})'],
         };
         break;
       case 'Email':
@@ -999,7 +1001,7 @@ export class MysqlUi {
         colProp.validate = {
           func: ['isEmail'],
           args: [''],
-          msg: ['Validation failed : isEmail ({cn})']
+          msg: ['Validation failed : isEmail ({cn})'],
         };
         break;
       case 'URL':
@@ -1007,7 +1009,7 @@ export class MysqlUi {
         colProp.validate = {
           func: ['isURL'],
           args: [''],
-          msg: ['Validation failed : isURL ({cn})']
+          msg: ['Validation failed : isURL ({cn})'],
         };
         break;
       case 'Number':
@@ -1021,7 +1023,7 @@ export class MysqlUi {
         colProp.validate = {
           func: ['isCurrency'],
           args: [''],
-          msg: ['Validation failed : isCurrency']
+          msg: ['Validation failed : isCurrency'],
         };
         break;
       case 'Percent':
@@ -1031,7 +1033,7 @@ export class MysqlUi {
         colProp.dt = 'int';
         break;
       case 'Rating':
-        colProp.dt = 'float';
+        colProp.dt = 'int';
         break;
       case 'Formula':
         colProp.dt = 'varchar';
@@ -1089,7 +1091,7 @@ export class MysqlUi {
           'text',
           'tinytext',
           'mediumtext',
-          'longtext'
+          'longtext',
         ];
 
       case 'Attachment':
@@ -1101,7 +1103,7 @@ export class MysqlUi {
           'text',
           'tinytext',
           'mediumtext',
-          'longtext'
+          'longtext',
         ];
 
       case 'JSON':
@@ -1116,7 +1118,7 @@ export class MysqlUi {
           'bit',
           'boolean',
           'serial',
-          'tinyint'
+          'tinyint',
         ];
 
       case 'MultiSelect':
@@ -1148,7 +1150,7 @@ export class MysqlUi {
           'float',
           'decimal',
           'double',
-          'serial'
+          'serial',
         ];
 
       case 'Decimal':
@@ -1164,7 +1166,7 @@ export class MysqlUi {
           'smallint',
           'mediumint',
           'bigint',
-          'bit'
+          'bit',
         ];
 
       case 'Percent':
@@ -1177,7 +1179,7 @@ export class MysqlUi {
           'smallint',
           'mediumint',
           'bigint',
-          'bit'
+          'bit',
         ];
 
       case 'Duration':
@@ -1190,7 +1192,7 @@ export class MysqlUi {
           'smallint',
           'mediumint',
           'bigint',
-          'bit'
+          'bit',
         ];
 
       case 'Rating':
@@ -1203,7 +1205,7 @@ export class MysqlUi {
           'smallint',
           'mediumint',
           'bigint',
-          'bit'
+          'bit',
         ];
 
       case 'Formula':
@@ -1214,7 +1216,7 @@ export class MysqlUi {
           'text',
           'tinytext',
           'mediumtext',
-          'longtext'
+          'longtext',
         ];
 
       case 'Rollup':
@@ -1248,7 +1250,7 @@ export class MysqlUi {
           'polygon',
           'multipoint',
           'multilinestring',
-          'multipolygon'
+          'multipolygon',
         ];
 
       case 'Button':

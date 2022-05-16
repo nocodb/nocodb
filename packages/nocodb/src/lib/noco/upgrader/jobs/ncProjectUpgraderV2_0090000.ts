@@ -436,6 +436,10 @@ async function migrateProjectModels(
           columnMeta.uidt = UITypes.ForeignKey;
         }
 
+        if (columnMeta.uidt === UITypes.Rating) {
+          columnMeta.uidt = UITypes.Number;
+        }
+
         const column = await Column.insert(
           {
             ...columnMeta,

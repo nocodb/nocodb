@@ -22,7 +22,7 @@ export class OracleUi {
         altered: 1,
         uidt: 'ID',
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
         column_name: 'title',
@@ -45,8 +45,8 @@ export class OracleUi {
         altered: 1,
         uidt: 'SingleLineText',
         uip: '',
-        uicn: ''
-      }
+        uicn: '',
+      },
       // {
       //  column_name: "created_at",
       //   dt: "timestamp",
@@ -107,7 +107,7 @@ export class OracleUi {
       altered: 1,
       uidt: 'SingleLineText',
       uip: '',
-      uicn: ''
+      uicn: '',
     };
   }
 
@@ -435,13 +435,15 @@ export class OracleUi {
   }
 
   static extractFunctionName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
+    const reg =
+      /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
     return match && match[1];
   }
 
   static extractProcedureName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
+    const reg =
+      /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
     return match && match[1];
   }
@@ -522,7 +524,7 @@ export class OracleUi {
                   dtx: 'specificType',
                   dtxp: '11',
                   dtxs: 0,
-                  altered: 1
+                  altered: 1,
                 });
               } else {
                 columns.push({
@@ -548,7 +550,7 @@ export class OracleUi {
                   dtx: 'specificType',
                   dtxp: '11',
                   dtxs: 2,
-                  altered: 1
+                  altered: 1,
                 });
               }
 
@@ -579,7 +581,7 @@ export class OracleUi {
                   dtx: 'specificType',
                   dtxp: '45',
                   dtxs: 0,
-                  altered: 1
+                  altered: 1,
                 });
               } else {
                 columns.push({
@@ -605,7 +607,7 @@ export class OracleUi {
                   dtx: 'specificType',
                   dtxp: null,
                   dtxs: 0,
-                  altered: 1
+                  altered: 1,
                 });
               }
 
@@ -635,7 +637,7 @@ export class OracleUi {
                 dtx: 'specificType',
                 dtxp: '1',
                 dtxs: 0,
-                altered: 1
+                altered: 1,
               });
               break;
 
@@ -663,7 +665,7 @@ export class OracleUi {
                 dtx: 'specificType',
                 dtxp: null,
                 dtxs: 0,
-                altered: 1
+                altered: 1,
               });
               break;
 
@@ -839,7 +841,7 @@ export class OracleUi {
         colProp.validate = {
           func: ['isMobilePhone'],
           args: [''],
-          msg: ['Validation failed : isMobilePhone']
+          msg: ['Validation failed : isMobilePhone'],
         };
         break;
       case 'Email':
@@ -847,7 +849,7 @@ export class OracleUi {
         colProp.validate = {
           func: ['isEmail'],
           args: [''],
-          msg: ['Validation failed : isEmail']
+          msg: ['Validation failed : isEmail'],
         };
         break;
       case 'URL':
@@ -855,7 +857,7 @@ export class OracleUi {
         colProp.validate = {
           func: ['isURL'],
           args: [''],
-          msg: ['Validation failed : isURL']
+          msg: ['Validation failed : isURL'],
         };
         break;
       case 'Number':
@@ -869,7 +871,7 @@ export class OracleUi {
         colProp.validate = {
           func: ['isCurrency'],
           args: [''],
-          msg: ['Validation failed : isCurrency']
+          msg: ['Validation failed : isCurrency'],
         };
         break;
       case 'Percent':
@@ -879,7 +881,7 @@ export class OracleUi {
         colProp.dt = 'integer';
         break;
       case 'Rating':
-        colProp.dt = 'float';
+        colProp.dt = 'integer';
         break;
       case 'Formula':
         colProp.dt = 'varchar';

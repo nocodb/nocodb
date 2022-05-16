@@ -1,4 +1,4 @@
-import UITypes from "../UITypes";
+import UITypes from '../UITypes';
 
 const dbTypes = [
   'int',
@@ -98,15 +98,15 @@ const dbTypes = [
   'unknown',
   'void',
   'xid',
-  'xml'
+  'xml',
 ];
 
 export class PgUi {
   static getNewTableColumns() {
     return [
       {
-       column_name: 'id',
-       title: 'Id',
+        column_name: 'id',
+        title: 'Id',
         dt: 'int4',
         dtx: 'integer',
         ct: 'int(11)',
@@ -125,11 +125,11 @@ export class PgUi {
         altered: 1,
         uidt: 'ID',
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
-       column_name: 'title',
-       title: 'Title',
+        column_name: 'title',
+        title: 'Title',
         dt: 'character varying',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -148,11 +148,11 @@ export class PgUi {
         altered: 1,
         uidt: 'SingleLineText',
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
-       column_name: 'created_at',
-       title: 'CreatedAt',
+        column_name: 'created_at',
+        title: 'CreatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -171,11 +171,11 @@ export class PgUi {
         altered: 1,
         uidt: UITypes.DateTime,
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
-       column_name: 'updated_at',
-       title: 'UpdatedAt',
+        column_name: 'updated_at',
+        title: 'UpdatedAt',
         dt: 'timestamp',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -195,8 +195,8 @@ export class PgUi {
         altered: 1,
         uidt: UITypes.DateTime,
         uip: '',
-        uicn: ''
-      }
+        uicn: '',
+      },
     ];
   }
 
@@ -221,7 +221,7 @@ export class PgUi {
       altered: 1,
       uidt: 'SingleLineText',
       uip: '',
-      uicn: ''
+      uicn: '',
     };
   }
 
@@ -1160,13 +1160,15 @@ export class PgUi {
   }
 
   static extractFunctionName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
+    const reg =
+      /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
     return match && match[1];
   }
 
   static extractProcedureName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
+    const reg =
+      /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
     return match && match[1];
   }
@@ -1176,8 +1178,8 @@ export class PgUi {
       headers.push({ text: 'Row count', value: 'rowCount', sortable: false });
       result = [
         {
-          rowCount: result.rowCount
-        }
+          rowCount: result.rowCount,
+        },
       ];
     } else {
       result = result.rows;
@@ -1232,7 +1234,7 @@ export class PgUi {
           const column = {
             dp: null,
             tn,
-           column_name: keys[i],
+            column_name: keys[i],
             cno: keys[i],
             np: 10,
             ns: 0,
@@ -1251,7 +1253,7 @@ export class PgUi {
             dtx: 'specificType',
             dtxp: null,
             dtxs: 0,
-            altered: 1
+            altered: 1,
           };
 
           switch (typeof json[keys[i]]) {
@@ -1259,13 +1261,13 @@ export class PgUi {
               if (Number.isInteger(json[keys[i]])) {
                 if (PgUi.isValidTimestamp(keys[i], json[keys[i]])) {
                   Object.assign(column, {
-                    dt: 'timestamp'
+                    dt: 'timestamp',
                   });
                 } else {
                   Object.assign(column, {
                     dt: 'int',
                     np: 10,
-                    ns: 0
+                    ns: 0,
                   });
                 }
               } else {
@@ -1274,25 +1276,25 @@ export class PgUi {
                   np: null,
                   ns: null,
                   dtxp: null,
-                  dtxs: null
+                  dtxs: null,
                 });
               }
               break;
             case 'string':
               if (PgUi.isValidDate(json[keys[i]])) {
                 Object.assign(column, {
-                  dt: 'date'
+                  dt: 'date',
                 });
               } else if (json[keys[i]].length <= 255) {
                 Object.assign(column, {
                   dt: 'character varying',
                   np: null,
                   ns: 0,
-                  dtxp: null
+                  dtxp: null,
                 });
               } else {
                 Object.assign(column, {
-                  dt: 'text'
+                  dt: 'text',
                 });
               }
               break;
@@ -1300,14 +1302,14 @@ export class PgUi {
               Object.assign(column, {
                 dt: 'boolean',
                 np: 3,
-                ns: 0
+                ns: 0,
               });
               break;
             case 'object':
               Object.assign(column, {
                 dt: 'json',
                 np: 3,
-                ns: 0
+                ns: 0,
               });
               break;
             default:
@@ -1521,7 +1523,6 @@ export class PgUi {
       case 'longblob':
         return 'blob';
       case 'enum':
-
         return 'enum';
       case 'set':
         return 'set';
@@ -1616,7 +1617,7 @@ export class PgUi {
         colProp.validate = {
           func: ['isMobilePhone'],
           args: [''],
-          msg: ['Validation failed : isMobilePhone']
+          msg: ['Validation failed : isMobilePhone'],
         };
         break;
       case 'Email':
@@ -1624,7 +1625,7 @@ export class PgUi {
         colProp.validate = {
           func: ['isEmail'],
           args: [''],
-          msg: ['Validation failed : isEmail']
+          msg: ['Validation failed : isEmail'],
         };
         break;
       case 'URL':
@@ -1632,7 +1633,7 @@ export class PgUi {
         colProp.validate = {
           func: ['isURL'],
           args: [''],
-          msg: ['Validation failed : isURL']
+          msg: ['Validation failed : isURL'],
         };
         break;
       case 'Number':
@@ -1646,7 +1647,7 @@ export class PgUi {
         colProp.validate = {
           func: ['isCurrency'],
           args: [''],
-          msg: ['Validation failed : isCurrency']
+          msg: ['Validation failed : isCurrency'],
         };
         break;
       case 'Percent':
@@ -1656,7 +1657,7 @@ export class PgUi {
         colProp.dt = 'int8';
         break;
       case 'Rating':
-        colProp.dt = 'float8';
+        colProp.dt = 'smallint';
         break;
       case 'Formula':
         colProp.dt = 'character varying';
@@ -1732,7 +1733,7 @@ export class PgUi {
           'int8range',
           'serial',
           'serial2',
-          'serial8'
+          'serial8',
         ];
 
       case 'MultiSelect':
@@ -1753,7 +1754,7 @@ export class PgUi {
           'timestamptz',
           'timestamp with time zone',
           'timetz',
-          'time with time zone'
+          'time with time zone',
         ];
 
       case 'PhoneNumber':
@@ -1780,7 +1781,7 @@ export class PgUi {
           'float8',
           'smallint',
           'smallserial',
-          'numeric'
+          'numeric',
         ];
 
       case 'Decimal':
@@ -1802,7 +1803,7 @@ export class PgUi {
           'money',
           'float4',
           'float8',
-          'numeric'
+          'numeric',
         ];
 
       case 'Percent':
@@ -1822,7 +1823,7 @@ export class PgUi {
           'float8',
           'smallint',
           'smallserial',
-          'numeric'
+          'numeric',
         ];
 
       case 'Duration':
@@ -1842,7 +1843,7 @@ export class PgUi {
           'float8',
           'smallint',
           'smallserial',
-          'numeric'
+          'numeric',
         ];
 
       case 'Rating':
@@ -1862,7 +1863,7 @@ export class PgUi {
           'float8',
           'smallint',
           'smallserial',
-          'numeric'
+          'numeric',
         ];
 
       case 'Formula':
@@ -1884,7 +1885,7 @@ export class PgUi {
           'serial2',
           'serial8',
           'smallint',
-          'smallserial'
+          'smallserial',
         ];
 
       case 'Lookup':
@@ -1896,7 +1897,7 @@ export class PgUi {
           'timestamp',
           'timestamp without time zone',
           'timestamptz',
-          'timestamp with time zone'
+          'timestamp with time zone',
         ];
 
       case 'DateTime':
@@ -1906,7 +1907,7 @@ export class PgUi {
           'timestamp',
           'timestamp without time zone',
           'timestamptz',
-          'timestamp with time zone'
+          'timestamp with time zone',
         ];
 
       case 'AutoNumber':
@@ -1922,7 +1923,7 @@ export class PgUi {
           'serial2',
           'serial8',
           'smallint',
-          'smallserial'
+          'smallserial',
         ];
 
       case 'Barcode':
@@ -1937,7 +1938,7 @@ export class PgUi {
           'line',
           'lseg',
           'path',
-          'circle'
+          'circle',
         ];
 
       case 'Button':

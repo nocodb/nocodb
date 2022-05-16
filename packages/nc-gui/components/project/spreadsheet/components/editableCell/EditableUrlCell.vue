@@ -8,7 +8,8 @@ import { isValidURL } from '@/helpers'
 export default {
   name: 'EditableUrlCell',
   props: {
-    value: String
+    value: String,
+    column: Object
   },
   computed: {
     localState: {
@@ -16,7 +17,11 @@ export default {
         return this.value
       },
       set(val) {
-        if (isValidURL(val)) { this.$emit('input', val) }
+        if (!(
+          this.column &&
+          this.column.meta &&
+          this.column.meta.validate
+        ) || isValidURL(val)) { this.$emit('input', val) }
       }
     },
     parentListeners() {

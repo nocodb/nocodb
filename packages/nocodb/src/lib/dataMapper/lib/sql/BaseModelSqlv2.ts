@@ -39,8 +39,21 @@ import {
 } from '../../../noco/meta/helpers/webhookHelpers';
 import Validator from 'validator';
 import { NcError } from '../../../noco/meta/helpers/catchError';
+import { customAlphabet } from 'nanoid';
 
 const GROUP_COL = '__nc_group_id';
+
+const nanoidv2 = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz', 14);
+const { v4: uuidv4 } = require('uuid');
+
+async function populatePk(model: Model, insertObj: any) {
+  await model.getColumns();
+  for (const pkCol of model.primaryKeys) {
+    if (!pkCol.meta?.ag || insertObj[pkCol.title]) continue;
+    insertObj[pkCol.title] =
+      pkCol.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
+  }
+}
 
 /**
  * Base class for models
@@ -1198,6 +1211,8 @@ class BaseModelSqlv2 {
 
   async insert(data, trx?, cookie?) {
     try {
+      await populatePk(this.model, data);
+
       // todo: filter based on view
       const insertObj = await this.model.mapAliasToColumn(data);
 
@@ -1335,6 +1350,7 @@ class BaseModelSqlv2 {
   async nestedInsert(data, _trx = null, cookie?) {
     // const driver = trx ? trx : await this.dbDriver.transaction();
     try {
+      await populatePk(this.model, data);
       const insertObj = await this.model.mapAliasToColumn(data);
 
       let rowId = null;
@@ -1469,7 +1485,10 @@ class BaseModelSqlv2 {
   async bulkInsert(datas: any[]) {
     try {
       const insertDatas = await Promise.all(
-        datas.map(d => this.model.mapAliasToColumn(d))
+        datas.map(async d => {
+          await populatePk(this.model, d);
+          return this.model.mapAliasToColumn(d);
+        })
       );
 
       // await this.beforeInsertb(insertDatas, null);

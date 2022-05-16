@@ -383,12 +383,17 @@ export default async (
           uidt: UITypes.SingleLineText,
           pk: true,
           // mysql additionally requires NOT-NULL to be explicitly set
-          rqd: true
+          rqd: true,
+          system: true,
+          meta: {
+            ag: 'nc'
+          }
         },
         {
           title: '_aTbl_nc_rec_hash',
           column_name: '_aTbl_nc_rec_hash',
-          uidt: UITypes.SingleLineText
+          uidt: UITypes.SingleLineText,
+          system: true
         }
       ];
 

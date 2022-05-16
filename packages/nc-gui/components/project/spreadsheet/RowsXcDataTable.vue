@@ -1056,7 +1056,7 @@ export default {
               pks.length &&
               pks.every(
                 col =>
-                  !rowObj[col.title] && !(col.columnDefault || col.default)
+                  !rowObj[col.title] && !(col.columnDefault || col.default) && !(col.meta && col.meta.ag)
               )
             ) {
               return this.$toast
@@ -1068,6 +1068,7 @@ export default {
                 return (
                   !col.ai &&
                   col.rqd &&
+                  !(col.meta && col.meta.ag) &&
                   (rowObj[col.title] === undefined ||
                     rowObj[col.title] === null) &&
                   !col.cdf

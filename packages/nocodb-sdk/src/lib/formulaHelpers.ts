@@ -90,7 +90,44 @@ export function jsepTreeToFormula(node) {
   }
 
   if (node.type === 'Identifier') {
-    return '{' + node.name + '}';
+    const formulas = [
+      'AVG',
+      'ADD',
+      'DATEADD',
+      'AND',
+      'OR',
+      'CONCAT',
+      'TRIM',
+      'UPPER',
+      'LOWER',
+      'LEN',
+      'MIN',
+      'MAX',
+      'CEILING',
+      'FLOOR',
+      'ROUND',
+      'MOD',
+      'REPEAT',
+      'LOG',
+      'EXP',
+      'POWER',
+      'SQRT',
+      'SQRT',
+      'ABS',
+      'NOW',
+      'REPLACE',
+      'SEARCH',
+      'INT',
+      'RIGHT',
+      'LEFT',
+      'SUBSTR',
+      'MID',
+      'IF',
+      'SWITCH',
+      'URL',
+    ];
+    if (!formulas.includes(node.name)) return '{' + node.name + '}';
+    return node.name;
   }
 
   if (node.type === 'Literal') {

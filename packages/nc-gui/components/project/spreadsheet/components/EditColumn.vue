@@ -137,6 +137,21 @@
                     @input="newColumn.altered = newColumn.altered || 2"
                   />
                 </v-col>
+                <v-col v-else-if="isRating" cols="12">
+                  <rating-options
+                    v-model="newColumn.meta"
+                    :column="newColumn"
+                    :meta="meta"
+                  />
+                </v-col>
+                <v-col v-else-if="isCheckbox" cols="12">
+                  <checkbox-options
+                    v-model="newColumn.meta"
+                    :column="newColumn"
+                    :meta="meta"
+                  />
+                </v-col>
+
                 <v-col
                   v-if="accordion"
                   cols="12"
@@ -160,6 +175,10 @@
 
                 <v-col v-show="advanceOptions || !accordion" cols="12">
                   <v-row>
+                    <v-col v-if="newColumn.meta && columnToValidate.includes(newColumn.uidt)" cols="12" class="pt-0 pb-0">
+                      <v-checkbox v-model="newColumn.meta.validate" dense hide-details :label="`Accept only valid ${newColumn.uidt}`" class="mt-0" />
+                    </v-col>
+
                     <template v-if="newColumn.uidt !== 'Formula'">
                       <v-col v-if="isLookup" cols="12">
                         <lookup-options
@@ -526,10 +545,15 @@ import RelationOptions from '~/components/project/spreadsheet/components/editCol
 import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel'
 import LinkedToAnotherOptions from '~/components/project/spreadsheet/components/editColumn/LinkedToAnotherOptions'
 import { validateColumnName } from '~/helpers'
+import RatingOptions from '~/components/project/spreadsheet/components/editColumn/RatingOptions'
+import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/checkboxOptions'
+const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 export default {
   name: 'EditColumn',
   components: {
+    CheckboxOptions,
+    RatingOptions,
     RollupOptions,
     FormulaOptions,
     LookupOptions,
@@ -548,6 +572,7 @@ export default {
     value: Boolean
   },
   data: () => ({
+    columnToValidate,
     valid: false,
     relationDeleteDlg: false,
     newColumn: {},
@@ -593,6 +618,12 @@ export default {
     },
     isLookup() {
       return this.newColumn && this.newColumn.uidt === 'Lookup'
+    },
+    isRating() {
+      return this.newColumn && this.newColumn.uidt === UITypes.Rating
+    },
+    isCheckbox() {
+      return this.newColumn && this.newColumn.uidt === UITypes.Checkbox
     },
     isRollup() {
       return this.newColumn && this.newColumn.uidt === 'Rollup'
@@ -734,6 +765,7 @@ export default {
       const colProp = this.sqlUi.getDataTypeForUiType(this.newColumn)
       this.newColumn = {
         ...this.newColumn,
+        meta: null,
         rqd: false,
         pk: false,
         ai: false,
@@ -757,6 +789,12 @@ export default {
         selectTypes.includes(this.column.uidt)
       ) {
         this.newColumn.dtxp = this.column.dtxp
+      }
+
+      if (columnToValidate.includes(this.newColumn.uidt)) {
+        this.newColumn.meta = {
+          validate: this.newColumn.meta && this.newColumn.meta.validate
+        }
       }
 
       this.newColumn.altered = this.newColumn.altered || 2

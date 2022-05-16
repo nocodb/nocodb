@@ -87,22 +87,22 @@ npm start
 ![1](https://user-images.githubusercontent.com/86527202/136066713-5408634f-5469-40eb-94c9-7eafae5e179c.png)
 <br>
 
-![2](https://user-images.githubusercontent.com/86527202/136066729-9b6a261a-231d-4d7f-9fc2-061c301d6192.png)
+![2](https://user-images.githubusercontent.com/86527202/168545293-b48a4237-8646-4f9a-a56b-56d5c55adc79.jpg)
 <br>
 
 ![5](https://user-images.githubusercontent.com/86527202/136066734-3f25aecc-bb7e-4db7-81c4-00b368d799d3.png)
 <br>
 
-![6](https://user-images.githubusercontent.com/86527202/136066735-2d4cb656-02dc-4233-ac4a-1ba9bd8acdf0.png)
+![6](https://user-images.githubusercontent.com/86527202/168545527-3948125d-1640-4c07-ac80-15db9a85f66f.jpg)
 <br>
 
-![7](https://user-images.githubusercontent.com/86527202/136066737-eb6a56fb-5e2e-4423-912b-ced32e8b479c.png)
+![7](https://user-images.githubusercontent.com/86527202/168545772-dfbffe13-bcf6-4a49-8a10-1bc8a933d77e.jpg)
 <br>
 
-![8](https://user-images.githubusercontent.com/86527202/136066742-94c7eff7-d88e-4002-ad72-ffd23090847c.png)
+![8](https://user-images.githubusercontent.com/86527202/168545839-0ba950a4-400f-45b2-b2db-b22b1853af4a.jpg)
 <br>
 
-![9](https://user-images.githubusercontent.com/86527202/136066743-1b4030c5-042f-4338-99b0-06237878ce53.png)
+![9](https://user-images.githubusercontent.com/86527202/168545872-c2a4b63a-9dc9-4c12-add7-69d5f4d0a6e1.jpg)
 <br>
 
 ![9a](https://user-images.githubusercontent.com/86527202/136066745-9797775d-7db0-4681-ab10-d7ecbbd972ef.png)

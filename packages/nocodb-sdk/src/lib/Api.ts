@@ -134,7 +134,7 @@ export interface TableInfoType {
   fk_project_id?: string;
   fk_base_id?: string;
   title: string;
-  table_nameme: string;
+  table_name: string;
   type?: string;
   enabled?: string;
   parent_id?: string;

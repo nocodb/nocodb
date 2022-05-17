@@ -17,9 +17,10 @@ export const jsepCurlyHook = {
         const nodes = context.gobbleExpressions(CCURLY_CODE);
         if (context.code === CCURLY_CODE) {
           context.index += 1;
-          if (nodes.length > 0) {
-            env.node = nodes[0];
-          }
+          env.node = {
+            type: jsep.IDENTIFIER,
+            name: nodes.map((node) => node.name).join(' '),
+          };
           return env.node;
         } else {
           context.throwError('Unclosed }');

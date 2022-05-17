@@ -1208,6 +1208,8 @@ export default async (
         rec[key] = atDateField.utc().format('YYYY-MM-DD HH:mm');
       }
 
+      if (dt === UITypes.MultiSelect) rec[key] = value.join(',');
+
       if (dt === UITypes.Attachment) {
         const tempArr = [];
         for (const v of value) {

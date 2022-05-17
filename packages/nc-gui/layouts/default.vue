@@ -1,6 +1,5 @@
 <template>
   <v-app v-if="isProjectInfoLoaded">
-    <snackbar />
     <v-app-bar
       class="elevation-0"
       color="primary"
@@ -338,7 +337,6 @@ import XBtn from '../components/global/XBtn'
 import dlgUnexpectedError from '../components/utils/DlgUnexpectedError'
 import settings from '../components/Settings'
 import { copyTextToClipboard } from '@/helpers/xutils'
-import Snackbar from '~/components/Snackbar'
 import Language from '~/components/utils/Language'
 import Loader from '~/components/Loader'
 import PreviewAs from '~/components/PreviewAs'
@@ -353,7 +351,6 @@ export default {
     ReleaseInfo,
     Language,
     XBtn,
-    Snackbar,
     dlgUnexpectedError,
     settings,
     ImportantAnnouncement

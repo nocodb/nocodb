@@ -209,17 +209,17 @@ export const actions = {
     commit('MutToggleDarkMode', status)
   },
   ActCheckMaxTable({ state, commit, rootState }, { tableIndex }) {
-    const prepareToastMessage = () => {
-      return `You are allowed to access only ${rootState.users.ui_ability.rules.maxTables} tables.<br/>
-You can either upgrade or <a href="#/referral" style="color: white;font-weight: bold;">refer</a> us. `
-    }
-
-    if (process.env.ui_ability) {
-      if (tableIndex > rootState.users.ui_ability.rules.maxTables) {
-        this.commit('snackbar/setSnack', prepareToastMessage())
-        return false
-      }
-    }
+    //     const prepareToastMessage = () => {
+    //       return `You are allowed to access only ${rootState.users.ui_ability.rules.maxTables} tables.<br/>
+    // You can either upgrade or <a href="#/referral" style="color: white;font-weight: bold;">refer</a> us. `
+    //     }
+    //
+    //     if (process.env.ui_ability) {
+    //       if (tableIndex > rootState.users.ui_ability.rules.maxTables) {
+    //         this.commit('snackbar/setSnack', prepareToastMessage())
+    //         return false
+    //       }
+    //     }
     return true
   },
   ActSetTheme({ state, commit, rootState }, { theme, themeName, custom }) {

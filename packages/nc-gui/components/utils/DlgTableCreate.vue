@@ -27,7 +27,6 @@
             :hint="$t('msg.info.enterTableName')"
             class="mt-4 caption nc-table-name"
           />
-
           <!--hint="Table name as saved in database"-->
           <v-text-field
             v-if="!projectPrefix"

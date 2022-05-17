@@ -379,12 +379,13 @@ export default async (
         {
           title: '_aTbl_nc_rec_id',
           column_name: '_aTbl_nc_rec_id',
-          // uidt: UITypes.ID
-          uidt: UITypes.SingleLineText,
-          pk: true,
-          // mysql additionally requires NOT-NULL to be explicitly set
-          rqd: true,
-          system: true,
+          uidt: UITypes.ID,
+          // idType: 'AG'
+          // uidt: UITypes.SingleLineText,
+          // pk: true,
+          // // mysql additionally requires NOT-NULL to be explicitly set
+          // rqd: true,
+          // system: true,
           meta: {
             ag: 'nc'
           }

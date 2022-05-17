@@ -1,4 +1,5 @@
 import UITypes from '../UITypes';
+import { IDType } from './index';
 
 const dbTypes = [
   'int',
@@ -943,15 +944,20 @@ export class MysqlUi {
     }
   }
 
-  static getDataTypeForUiType(col) {
+  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
-        colProp.dt = 'int';
-        colProp.pk = true;
-        colProp.un = true;
-        colProp.ai = true;
-        colProp.rqd = true;
+        {
+          const isAutoIncId = idType === 'AI';
+          const isAutoGenId = idType === 'AG';
+          colProp.dt = isAutoGenId ? 'varchar' : 'int';
+          colProp.pk = true;
+          colProp.un = true;
+          colProp.ai = isAutoIncId;
+          colProp.rqd = true;
+          colProp.meta = isAutoGenId ? { ag: 'nc' } : undefined;
+        }
         break;
       case 'ForeignKey':
         colProp.dt = 'varchar';
@@ -1075,9 +1081,16 @@ export class MysqlUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col) {
+  static getDataTypeListForUiType(col, idType: IDType) {
     switch (col.uidt) {
       case 'ID':
+        if (idType === 'AG') {
+          return ['varchar', 'char', 'nchar'];
+        } else if (idType === 'AI') {
+          return ['int', 'smallint', 'mediumint', 'bigint', 'bit', 'serial'];
+        } else {
+          return dbTypes;
+        }
       case 'ForeignKey':
         return dbTypes;
 

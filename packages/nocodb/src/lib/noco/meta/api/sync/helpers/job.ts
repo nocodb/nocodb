@@ -946,6 +946,24 @@ export default async (
             continue;
           }
 
+          // skip, if rollup column was pointing to another virtual column
+          const ncColSchema = await nc_getColumnSchema(
+            aTblColumns[i].typeOptions.foreignTableRollupColumnId
+          );
+          if (
+            ncColSchema?.uidt === UITypes.Formula ||
+            ncColSchema?.uidt === UITypes.Lookup ||
+            ncColSchema?.uidt === UITypes.Rollup
+          ) {
+            addToSkipColumnLog(
+              srcTableSchema.title,
+              aTblColumns[i].name,
+              aTblColumns[i].type,
+              'rollup referring to a lookup column'
+            );
+            continue;
+          }
+
           const ncName = nc_getSanitizedColumnName(
             srcTableSchema,
             aTblColumns[i].name

@@ -61,7 +61,7 @@ export const genTest = (apiType, dbType) => {
                 .contains("Formula")
                 .parent()
                 .click()
-                .type(formula)
+                .type(formula, { parseSpecialCharSequences: false })
                 .click();
 
             // click on Save
@@ -115,7 +115,7 @@ export const genTest = (apiType, dbType) => {
                 .parent()
                 .find("input")
                 .clear()
-                .type(newFormula)
+                .type(newFormula, { parseSpecialCharSequences: false })
                 .click();
 
             cy.get(".nc-col-create-or-edit-card")

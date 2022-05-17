@@ -29,8 +29,8 @@
           />
 
           <div class="d-flex justify-end">
-            <div class="grey--text caption " @click="isAdvanceOptVisible = !isAdvanceOptVisible">
-              Show advanced options
+            <div class="grey--text caption pointer" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
+              {{ isAdvanceOptVisible? 'Hide' : 'Show' }} more
               <v-icon x-small color="grey">
                 {{ isAdvanceOptVisible ? 'mdi-minus-circle-outline':'mdi-plus-circle-outline' }}
               </v-icon>
@@ -190,6 +190,9 @@ export default {
     },
     projectPrefix() {
       return this.$store.getters['project/GtrProjectPrefix']
+    },
+    tables() {
+      return this.$store.state.project.tables || []
     }
   },
   watch: {
@@ -197,20 +200,31 @@ export default {
       this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`)
     }
   },
+  created() {
+    this.populateDefaultTitle()
+  },
   mounted() {
     setTimeout(() => {
-      this.$refs.input.$el.querySelector('input').focus()
+      const el = this.$refs.input.$el
+      el.querySelector('input').focus()
+      el.querySelector('input').select()
     }, 100)
   },
+
   methods: {
+    populateDefaultTitle() {
+      let c = 1
+      while (this.tables.some(t => t.title === `sheet${c}`)) { c++ }
+      this.$set(this.table, 'alias', `sheet${c}`)
+    },
     validateTableName(v) {
       return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
     },
     validateDuplicateAlias(v) {
-      return (this.$store.state.project.tables || []).every(t => t.title !== (v || '')) || 'Duplicate table alias'
+      return (this.tables || []).every(t => t.title !== (v || '')) || 'Duplicate table alias'
     },
     validateDuplicate(v) {
-      return (this.$store.state.project.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
+      return (this.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
     },
     onCreateBtnClick() {
       this.$emit('create', {

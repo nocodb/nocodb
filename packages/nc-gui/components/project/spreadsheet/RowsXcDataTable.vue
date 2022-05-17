@@ -1425,7 +1425,7 @@ export default {
         }))
         // }
       } catch (e) {
-        console.log(e)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
       this.loadingData = false
     },

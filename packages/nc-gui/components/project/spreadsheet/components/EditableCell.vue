@@ -24,7 +24,7 @@
     />
 
     <rating-cell
-      v-if="isRating"
+      v-else-if="isRating"
       v-model="localState"
       :active="active"
       :is-form="isForm"

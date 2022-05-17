@@ -171,7 +171,8 @@
     "headLogin": "Log ind | Nocodb.",
     "resetPassword": "Nulstil din adgangskode",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Bemærk Via.",
@@ -306,6 +307,7 @@
     "deleteRow": "DELETE ROW.",
     "deleteSelectedRow": "Slet de valgte rækker",
     "importExcel": "Import Excel.",
+    "importCSV": "Import CSV.",
     "downloadCSV": "Download som CSV.",
     "uploadCSV": "Upload CSV.",
     "import": "Importere",
@@ -397,6 +399,7 @@
       "upload_sub": "eller træk og slip filen",
       "excelSupport": "Støttet: .xls, .xlsx, .xlsm, .ods, .Oer",
       "excelURL": "Indtast Excel-fil-URL",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# af rækker til at analysere for at udlede datatype",
       "excelImport": "ark (r) er tilgængelige for import",
       "exportMetadata": "Ønsker du at eksportere metadata fra metaborde?",

@@ -99,30 +99,3 @@ Tip 3: You can click Edit Connection JSON and specify the schema you want to use
 Click `Test Database Connection` to see if the connection can be established or not. NocoDB creates a new **empty database** with specified parameters if the database doesn't exist.
 
 ![image](https://user-images.githubusercontent.com/35857179/163136039-ad521d74-6996-4173-84ba-cfc55392c3b7.png)
-
-### Creating Project from Excel
-
-Click `Create Project from Excel`, you can either upload / drag and drop Excel file (OR) specify Excel file URL. 
-
-<alert type="success">
-If your excel file contains multiple sheets, each sheet will be stored in a separate table. <br> Currently the data will be imported to NC_DB only. We'll support importing to existing projects with other database types in the future.
-</alert>
-    
-<img src="https://user-images.githubusercontent.com/86527202/144373863-7ced9315-a70b-4746-9295-325e463dc110.png" width="60%"/>  
-
-You can change Project Name, Table Name, Column Name or even Column Type as you want.
-
-![image](https://user-images.githubusercontent.com/35857179/167252703-3a9be428-8737-4683-bc29-d3f9dbbfb712.png)
-
-Click Import Excel to start importing process. The project and the table(s) will be created and the data will be imported to the corresponding table(s).
-
-![image](https://user-images.githubusercontent.com/35857179/167253045-2e9890ca-4451-4b59-8eba-cb90ea5abdf1.png)
-
-Supported file formats
-
-- Xls
-- Xlsx
-- Xlsm
-- Ods
-- Ots
-

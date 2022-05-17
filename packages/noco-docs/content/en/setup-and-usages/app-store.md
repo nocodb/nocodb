@@ -1,7 +1,7 @@
 ---
 title: 'App Store'
 description: 'App Store'
-position: 1200
+position: 1100
 category: 'Product'
 menuTitle: 'App Store'
 ---

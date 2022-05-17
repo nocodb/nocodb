@@ -171,7 +171,8 @@
     "headLogin": "Log In | NocoDB",
     "resetPassword": "Reset your password",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Notify Via",
@@ -306,6 +307,7 @@
     "deleteRow": "Delete Row",
     "deleteSelectedRow": "Delete Selected Rows",
     "importExcel": "Import Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Download as CSV",
     "uploadCSV": "Upload CSV",
     "import": "Import",
@@ -397,6 +399,7 @@
       "upload_sub": "or drag and drop file",
       "excelSupport": "Supported: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Enter excel file URL",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# of rows to parse to infer datatype",
       "excelImport": "sheet(s) are available for import",
       "exportMetadata": "Do you want to export metadata from meta tables?",

@@ -56,8 +56,14 @@ export default {
     isURL() {
       return this.uiDatatype === 'URL'
     },
+    isEmail() {
+      return this.uiDatatype === UITypes.Email
+    },
     isAttachment() {
       return this.uiDatatype === 'Attachment'
+    },
+    isRating() {
+      return this.uiDatatype === UITypes.Rating
     },
     isCurrency() {
       return this.column.uidt == 'Currency'

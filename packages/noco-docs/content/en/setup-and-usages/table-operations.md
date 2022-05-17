@@ -14,19 +14,22 @@ Once you have created a new NocoDB project you can open it, In the browser, the 
 
 Now you can start creating new tables by simply clicking one of the following options.
 
-![table_create](https://user-images.githubusercontent.com/61551451/126771744-063f22da-6def-43fe-b9ef-1744d104db9d.png)
+- Click the plus button next to Table menu
+- Click Add / Import, then click Add new table
 
-On click, in modal popup, enter the table name, enable/disable default columns and click `Submit` button.
+<img width="632" alt="image" src="https://user-images.githubusercontent.com/35857179/168772379-63d7e92c-39ce-4d91-ac1e-279591833e0e.png">
+
+A modal will be popped up. Input the corresponding info and enable or disable default columns and click `Submit` button.
 
 ![table_create_modal](https://user-images.githubusercontent.com/61551451/126772859-5a301c45-d830-4df2-a05a-43b15dd77728.png)
 
 <alert>
-You can't disable the `id` column since NocoDB needs a primary column for every table.
+Note: You can't disable the `id` column since NocoDB needs a primary column for every table. You can rename it after the creation.
 </alert>
 
 After the successful submission, the table will be created and open as a new tab.  
-  
-![TableCreated](https://user-images.githubusercontent.com/86527202/144402089-b5e35564-80d5-4105-9e00-7e3e1c4a5030.png)
+
+![table_created](https://user-images.githubusercontent.com/35857179/168411541-b0233cf1-4683-490b-bdec-f2546a2d9015.png)
 
 ### Table Rename
 
@@ -38,7 +41,8 @@ In modal popup, enter new table name and click `Submit` button
 ### Table Delete
 
 The table can be deleted using the `delete` icon present in the toolbar within the table tab.
-<img src="https://user-images.githubusercontent.com/86527202/144403591-5d3d36eb-64b7-4057-9244-56a95b47b97b.png" width="60%"/>
+
+![image](https://user-images.githubusercontent.com/35857179/168411589-540f50d2-78e3-4d97-b17c-1b9fad9f90b7.png)
 
 ## Column
 
@@ -106,6 +110,46 @@ You can start editing by any of the following methods
 Right-click on anywhere in the row and then from the context menu select `Delete Row` option.  
 Bulk delete is also possible by selecting multiple rows by using the checkbox in first column and then `Delete Selected Rows` options from the right click context menu.  
 <img src="https://user-images.githubusercontent.com/86527202/144406191-ccff1382-e808-44e8-babe-bd937faf1b3d.png" width="40%"/>
+
+## Quick Import
+
+You can use Quick Import when you have data from external sources such as Airtable, CSV file or Microsoft Excel to an existing project by clicking `Add / Import` and choosing the corresponding options.
+
+![image](https://user-images.githubusercontent.com/35857179/168772072-937b037b-32b3-4e5b-b982-5ee4b9a4959c.png)
+
+### Import Airtable into an existing project
+
+- Click `Add / Import` and click `Airtable`
+- Input API key & Shared Base ID / URL (See <a href="./import-airtable-to-sql-database-within-a-minute-for-free" target="_blank">here</a> for the guideline to retrieve the credentials)
+![image](https://user-images.githubusercontent.com/35857179/168773192-f3ef9d36-3329-4324-ae25-989b611f66bf.png)
+- Click `Import` and you will see the status
+![image](https://user-images.githubusercontent.com/35857179/168779663-5bb1dac8-01bd-43fb-8638-318a66a0f4bf.png)
+- Click `Go to dashboard` after the sync is finished
+![image](https://user-images.githubusercontent.com/35857179/168779906-6163b23e-4bcc-4991-8a77-b2fa94e5dcf3.png)
+
+### Import CSV data into an existing project
+
+- Click `Add / Import` and click `CSV file`
+- Drag & drop or select file to upload or specify Excel file URL
+  ![image](https://user-images.githubusercontent.com/35857179/168412051-ed988659-011d-455b-ba32-be0a2e1184b0.png)
+- You can revise the table name, column name and column type. By default, the first column will be chosen as <a href="./primary-value" target="_blank">Primary Value</a> and cannot be deleted.
+  ![image](https://user-images.githubusercontent.com/35857179/168412069-aea8a8fb-09ab-4412-95b7-963bdbe24cfc.png)
+- Click `Import CSV` to start importing process. The table will be created and the data will be imported.
+  ![image](https://user-images.githubusercontent.com/35857179/168412172-9bb24ab9-da15-45cf-9b12-3af362fc604a.png)
+
+### Import Excel data into an existing project
+
+- Click `Add / Import` and click `Microsoft Excel`
+- Drag & drop or select file to upload or specify Excel file URL
+  ![image](https://user-images.githubusercontent.com/35857179/168412483-a12f7d90-1b91-48bb-96a7-2a16dc8c7b81.png)
+- You can revise the table name, column name and column type. By default, the first column will be chosen as <a href="./primary-value" target="_blank">Primary Value</a> and cannot be deleted.
+  <alert>
+  Note: If your Excel file contains multiple sheets, each sheet will be stored in a separate table.
+  </alert>
+
+  ![image](https://user-images.githubusercontent.com/35857179/168412465-e46b4fcf-ec1c-4d32-bb56-eb62516829f5.png)
+- Click `Import Excel` to start importing process. The table(s) will be created and the data will be imported to the corresponding table(s).
+  ![image](https://user-images.githubusercontent.com/35857179/168413233-adfb85e2-8d52-46d8-a754-e2ec9f8d3234.png)
 
 ## Export Data
 

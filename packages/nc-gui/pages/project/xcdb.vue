@@ -143,7 +143,7 @@ export default {
 
           this.projectReloading = false
 
-          if (this.$store.state.project.projectInfo.firstUser || this.$store.state.project.projectInfo.authType === 'masterKey') {
+          if (this.$store.state.project.appInfo.firstUser || this.$store.state.project.appInfo.authType === 'masterKey') {
             return this.$router.push({
               path: '/user/authentication/signup'
             })

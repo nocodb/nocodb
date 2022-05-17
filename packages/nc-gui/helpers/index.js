@@ -1,3 +1,14 @@
+import dayjs from 'dayjs'
+
+const relativeTime = require('dayjs/plugin/relativeTime')
+const utc = require('dayjs/plugin/utc')
+dayjs.extend(utc)
+dayjs.extend(relativeTime)
+
+export function calculateDiff(date) {
+  return dayjs.utc(date).fromNow()
+}
+
 export const isEmail = v => /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
 
 // ref : https://stackoverflow.com/a/5717133

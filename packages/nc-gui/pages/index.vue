@@ -5,14 +5,13 @@
     align="center"
     justify="center"
   >
-    <template v-if="typed && moved || $store.state.project.projectInfo && $store.state.project.projectInfo.ncMin">
+    <template v-if="typed && moved || $store.state.project.appInfo && $store.state.project.appInfo.ncMin">
       <v-col
         cols="12"
         sm="12"
         md="12"
         class="text-center "
       >
-
         <h1 class="mt-8 mb-4 primary--text  mt-1  white--tex mb-0 text-h2 font-weight-black">
           NocoDB <br><span
             class="textColor--text text--lighten-1"
@@ -46,7 +45,6 @@
           <img src="db/sqlite.svg">
         </div>
       </v-col>
-
     </template>
     <div v-else>
       <p class="display-4 text-center font-weight-bold textColor--text text--lighten-1 welcome-msg">
@@ -350,19 +348,19 @@ export default {
   }),
   computed: {
     text() {
-      const text = this.lang.find(it => it.symbol === this.$store.state.windows.language)
+      const text = this.lang.find(it => it.symbol === this.$store.state.settings.language)
       return text ? text.text : 'default'
     },
-    projectInfo() {
-      return this.$store.state.project.projectInfo
+    appInfo() {
+      return this.$store.state.project.appInfo
     },
     message() {
       let message = this.defaultMessage
 
-      if (this.projectInfo) {
-        switch (this.projectInfo.authType) {
+      if (this.appInfo) {
+        switch (this.appInfo.authType) {
           case 'jwt':
-            /* if (this.projectInfo.projectHasDb) { */
+            /* if (this.appInfo.projectHasDb) { */
             message = // 'The Open Source Airtable alternative. <br/>' +
               'Turns any database into an Airtable like collaborative spreadsheet. <br/>'
             // +
@@ -372,14 +370,14 @@ export default {
                 } */
             break
           /*          case 'masterKey':
-                      if (this.projectInfo.projectHasDb) {
+                      if (this.appInfo.projectHasDb) {
                         message = 'Looks like you configured databases. <br> Now it\'s time to authenticate via Master Key.';
                       } else {
                         message = 'Instantly generate REST APIs / GraphQL APIs / gRPC<br/> by connecting to any SQL database.'
                       }
                       break;
                     case 'none':
-                      if (this.projectInfo.projectHasDb) {
+                      if (this.appInfo.projectHasDb) {
                         message = 'Looks like you configured databases. <br> No authentication configured access dashboard.';
                       } else {
                         message = 'Instantly generate REST APIs / GraphQL APIs / gRPC<br/> by connecting to any SQL database.'
@@ -390,16 +388,16 @@ export default {
         }
       }
 
-      return message// `${message} <br><span class="caption">(Current Environment : ${this.projectInfo ? this.projectInfo.env : ''})</span>`;
+      return message// `${message} <br><span class="caption">(Current Environment : ${this.appInfo ? this.appInfo.env : ''})</span>`;
     }
   },
   created() {
-    const projectInfo = this.$store.state.project.projectInfo
-    if (projectInfo) {
-      if (this.$store.state.users.token || (projectInfo && projectInfo.authType === 'none')) {
+    const appInfo = this.$store.state.project.appInfo
+    if (appInfo) {
+      if (this.$store.state.users.token || (appInfo && appInfo.authType === 'none')) {
         this.$router.replace('/projects')
         return
-      } else if (projectInfo && projectInfo.projectHasAdmin) {
+      } else if (appInfo && appInfo.projectHasAdmin) {
         this.$router.replace('/user/authentication/signin')
         return
       }
@@ -457,11 +455,11 @@ export default {
     },
 
     navigate() {
-      if (this.projectInfo) {
-        // if (!this.projectInfo.projectHasDb) {
+      if (this.appInfo) {
+        // if (!this.appInfo.projectHasDb) {
         //   this.$router.push('/project/0')
         // } else
-        if (this.projectInfo.projectHasAdmin === false) {
+        if (this.appInfo.projectHasAdmin === false) {
           return this.$router.push('/user/authentication/signup')
         }
       }

@@ -1776,6 +1776,9 @@ class BaseModelSqlv2 {
     // let cols = Object.keys(this.columns);
     for (let i = 0; i < this.model.columns.length; ++i) {
       const column = this.model.columns[i];
+      // skip validation if `validate` is undefined or false
+      if (!column?.meta?.validate) continue;
+
       const validate = column.getValidators();
       const cn = column.column_name;
       if (!validate) continue;

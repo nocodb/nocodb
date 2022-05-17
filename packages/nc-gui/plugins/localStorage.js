@@ -5,22 +5,22 @@ export default async({ store, $vuetify: { theme }, route }) => {
    *
    */
   store.watch(
-    state => state.windows.theme,
+    state => state.settings.theme,
     (c) => {
       theme.themes.dark = { ...theme.themes.dark, ...c }
       theme.themes.light = { ...theme.themes.light, ...c }
     }
   )
   store.watch(
-    state => state.windows.darkTheme,
+    state => state.settings.darkTheme,
     (isDark) => {
       theme.dark = isDark
       document.body.classList.add(isDark ? 'dark' : 'light')
       document.body.classList.remove(isDark ? 'light' : 'dark')
     }
   )
-  document.body.classList.add(store.state.windows.darkTheme ? 'dark' : 'light')
-  document.body.classList.remove(store.state.windows.darkTheme ? 'light' : 'dark')
+  document.body.classList.add(store.state.settings.darkTheme ? 'dark' : 'light')
+  document.body.classList.remove(store.state.settings.darkTheme ? 'light' : 'dark')
 
   // In case of HMR, mutation occurs before nuxReady, so previously saved state
   // gets replaced with original state received from server. So, we've to skip HMR.
@@ -44,7 +44,7 @@ export default async({ store, $vuetify: { theme }, route }) => {
       async rehydrated(store) {
         window.rehydrated = true
       },
-      paths: ['users', 'sqlClient', 'apiClient', 'panelSize', 'windows', 'graphqlClient', 'apiClientSwagger', 'app'],
+      paths: ['users', 'sqlClient', 'apiClient', 'panelSize', 'settings', 'graphqlClient', 'apiClientSwagger', 'app'],
       ...(
         isDev()
           ? {}

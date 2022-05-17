@@ -1,4 +1,4 @@
-import UITypes from "../UITypes";
+import UITypes from '../UITypes';
 
 const dbTypes = [
   'bigint',
@@ -35,15 +35,15 @@ const dbTypes = [
   'uniqueidentifier',
   'varbinary',
   'xml',
-  'varchar'
+  'varchar',
 ];
 
 export class MssqlUi {
   static getNewTableColumns() {
     return [
       {
-       column_name: 'id',
-       title: 'Id',
+        column_name: 'id',
+        title: 'Id',
         dt: 'int',
         dtx: 'integer',
         ct: 'int(11)',
@@ -62,11 +62,11 @@ export class MssqlUi {
         altered: 1,
         uidt: 'ID',
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
-       column_name: 'title',
-       title: 'Title',
+        column_name: 'title',
+        title: 'Title',
         dt: 'varchar',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -85,11 +85,11 @@ export class MssqlUi {
         altered: 1,
         uidt: 'SingleLineText',
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
-       column_name: 'created_at',
-       title: 'CreatedAt',
+        column_name: 'created_at',
+        title: 'CreatedAt',
         dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -108,11 +108,11 @@ export class MssqlUi {
         altered: 1,
         uidt: UITypes.DateTime,
         uip: '',
-        uicn: ''
+        uicn: '',
       },
       {
-       column_name: 'updated_at',
-       title: 'UpdatedAt',
+        column_name: 'updated_at',
+        title: 'UpdatedAt',
         dt: 'datetime',
         dtx: 'specificType',
         ct: 'varchar(45)',
@@ -131,8 +131,8 @@ export class MssqlUi {
         altered: 1,
         uidt: UITypes.DateTime,
         uip: '',
-        uicn: ''
-      }
+        uicn: '',
+      },
     ];
   }
 
@@ -157,7 +157,7 @@ export class MssqlUi {
       altered: 1,
       uidt: 'SingleLineText',
       uip: '',
-      uicn: ''
+      uicn: '',
     };
   }
 
@@ -741,13 +741,15 @@ export class MssqlUi {
   }
 
   static extractFunctionName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
+    const reg =
+      /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*FUNCTION\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
     return match && match[1];
   }
 
   static extractProcedureName(query) {
-    const reg = /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
+    const reg =
+      /^\s*CREATE\s+(?:OR\s+REPLACE\s*)?\s*PROCEDURE\s+(?:[\w\d_]+\.)?([\w_\d]+)/i;
     const match = query.match(reg);
     return match && match[1];
   }
@@ -808,7 +810,7 @@ export class MssqlUi {
           const column = {
             dp: null,
             tn,
-           column_name: keys[i],
+            column_name: keys[i],
             cno: keys[i],
             np: 10,
             ns: 0,
@@ -827,7 +829,7 @@ export class MssqlUi {
             dtx: 'specificType',
             dtxp: null,
             dtxs: 0,
-            altered: 1
+            altered: 1,
           };
 
           switch (typeof json[keys[i]]) {
@@ -835,13 +837,13 @@ export class MssqlUi {
               if (Number.isInteger(json[keys[i]])) {
                 if (MssqlUi.isValidTimestamp(keys[i], json[keys[i]])) {
                   Object.assign(column, {
-                    dt: 'timestamp'
+                    dt: 'timestamp',
                   });
                 } else {
                   Object.assign(column, {
                     dt: 'int',
                     np: 10,
-                    ns: 0
+                    ns: 0,
                   });
                 }
               } else {
@@ -850,25 +852,25 @@ export class MssqlUi {
                   np: 10,
                   ns: 2,
                   dtxp: '11',
-                  dtxs: 2
+                  dtxs: 2,
                 });
               }
               break;
             case 'string':
               if (MssqlUi.isValidDate(json[keys[i]])) {
                 Object.assign(column, {
-                  dt: 'datetime'
+                  dt: 'datetime',
                 });
               } else if (json[keys[i]].length <= 255) {
                 Object.assign(column, {
                   dt: 'varchar',
                   np: 255,
                   ns: 0,
-                  dtxp: '255'
+                  dtxp: '255',
                 });
               } else {
                 Object.assign(column, {
-                  dt: 'text'
+                  dt: 'text',
                 });
               }
               break;
@@ -876,7 +878,7 @@ export class MssqlUi {
               Object.assign(column, {
                 dt: 'bit',
                 np: null,
-                ns: 0
+                ns: 0,
               });
               break;
             case 'object':
@@ -884,7 +886,7 @@ export class MssqlUi {
                 dt: 'varchar',
                 np: 255,
                 ns: 0,
-                dtxp: '255'
+                dtxp: '255',
               });
               break;
             default:
@@ -1043,9 +1045,7 @@ export class MssqlUi {
     }
   }
 
-  static getDataTypeForUiType(
-    col
-  ): {
+  static getDataTypeForUiType(col): {
     readonly dt: string;
     readonly [key: string]: any;
   } {
@@ -1098,7 +1098,7 @@ export class MssqlUi {
         colProp.validate = {
           func: ['isMobilePhone'],
           args: [''],
-          msg: ['Validation failed : isMobilePhone']
+          msg: ['Validation failed : isMobilePhone'],
         };
         break;
       case 'Email':
@@ -1106,7 +1106,7 @@ export class MssqlUi {
         colProp.validate = {
           func: ['isEmail'],
           args: [''],
-          msg: ['Validation failed : isEmail']
+          msg: ['Validation failed : isEmail'],
         };
         break;
       case 'URL':
@@ -1114,7 +1114,7 @@ export class MssqlUi {
         colProp.validate = {
           func: ['isURL'],
           args: [''],
-          msg: ['Validation failed : isURL']
+          msg: ['Validation failed : isURL'],
         };
         break;
       case 'Number':
@@ -1128,7 +1128,7 @@ export class MssqlUi {
         colProp.validate = {
           func: ['isCurrency'],
           args: [''],
-          msg: ['Validation failed : isCurrency']
+          msg: ['Validation failed : isCurrency'],
         };
         break;
       case 'Percent':
@@ -1138,7 +1138,7 @@ export class MssqlUi {
         colProp.dt = 'int';
         break;
       case 'Rating':
-        colProp.dt = 'float';
+        colProp.dt = 'int';
         break;
       case 'Formula':
         colProp.dt = 'varchar';
@@ -1224,7 +1224,7 @@ export class MssqlUi {
           'numeric',
           'real',
           'smallint',
-          'tinyint'
+          'tinyint',
         ];
 
       case 'Decimal':
@@ -1240,7 +1240,7 @@ export class MssqlUi {
           'numeric',
           'real',
           'smallint',
-          'tinyint'
+          'tinyint',
         ];
 
       case 'Percent':
@@ -1253,7 +1253,7 @@ export class MssqlUi {
           'numeric',
           'real',
           'smallint',
-          'tinyint'
+          'tinyint',
         ];
 
       case 'Duration':
@@ -1266,7 +1266,7 @@ export class MssqlUi {
           'numeric',
           'real',
           'smallint',
-          'tinyint'
+          'tinyint',
         ];
 
       case 'Rating':
@@ -1279,7 +1279,7 @@ export class MssqlUi {
           'numeric',
           'real',
           'smallint',
-          'tinyint'
+          'tinyint',
         ];
 
       case 'Formula':
@@ -1302,7 +1302,7 @@ export class MssqlUi {
       case 'LastModifiedTime':
         return [
           'datetimeoffset',
-          'datetime2'
+          'datetime2',
           // 'datetime'
         ];
 

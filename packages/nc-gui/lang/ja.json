@@ -171,7 +171,8 @@
     "headLogin": "ログイン | NocoDB",
     "resetPassword": "パスワードをリセットする",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "次で通知する",
@@ -306,6 +307,7 @@
     "deleteRow": "行を削除",
     "deleteSelectedRow": "選択行を削除",
     "importExcel": "エクセルファイルをインポート",
+    "importCSV": "Import CSV",
     "downloadCSV": "CSVをダウンロード",
     "uploadCSV": "CSVをアップロード",
     "import": "インポート",
@@ -397,6 +399,7 @@
       "upload_sub": "またはファイルをドラッグ & ドロップ",
       "excelSupport": "サポートしているファイル形式：.xls、.xlsx、.xlsm、.ods、.ots",
       "excelURL": "ExcelファイルのURLを入力してください",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# データ型を推測するために解析する行数",
       "excelImport": "シートはインポート可能です",
       "exportMetadata": "メタテーブルからメタデータをエクスポートしますか？",

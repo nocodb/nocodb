@@ -95,9 +95,8 @@
 
 import debounce from 'debounce'
 import jsep from 'jsep'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
 import formulaList, { validations } from '../../../../../helpers/formulaList'
-import curly from '../../../../../helpers/formulaCurlyHook'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
 
@@ -162,7 +161,7 @@ export default {
   },
   created() {
     this.formula = { value: this.value || '' }
-    jsep.plugins.register(curly)
+    jsep.plugins.register(jsepCurlyHook)
   },
   methods: {
     async save() {

@@ -1183,7 +1183,10 @@ class BaseModelSqlv2 {
             );
             // todo:  verify syntax of as ? / ??
             qb.select(
-              this.dbDriver.raw(`?? as ??`, [selectQb.builder, column.title])
+              this.dbDriver.raw(`?? as ??`, [
+                selectQb.builder,
+                sanitize(column.title)
+              ])
             );
           }
           break;
@@ -1196,13 +1199,13 @@ class BaseModelSqlv2 {
                 // column,
                 columnOptions: (await column.getColOptions()) as RollupColumn
               })
-            ).builder.as(column.title)
+            ).builder.as(sanitize(column.title))
           );
           break;
         default:
-          res[
-            (column.title || column.column_name).replace(/\?/g, '\\?')
-          ] = `${this.model.table_name}.${column.column_name}`;
+          res[sanitize(column.title || column.column_name)] = sanitize(
+            `${this.model.table_name}.${column.column_name}`
+          );
           break;
       }
     }
@@ -2102,6 +2105,10 @@ function _wherePk(primaryKeys: Column[], id) {
 
 function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map(c => row[c.title]).join('___');
+}
+
+function sanitize(v) {
+  return v?.replace(/\?/g, '\\?');
 }
 
 export { BaseModelSqlv2 };

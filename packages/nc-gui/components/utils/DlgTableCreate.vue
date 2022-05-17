@@ -59,6 +59,7 @@
 
               <div class=" d-flex caption justify-space-between align-center">
                 <v-checkbox
+                  key="chk1"
                   v-model="table.columns"
                   dense
                   class="mt-0 "
@@ -73,21 +74,23 @@
                   }"
                 >
                   <template #label>
-                    <span v-if="!isIdToggleAllowed" class="caption" @dblclick="isIdToggleAllowed=true">id</span>
-                    <v-select
-                      v-else
-                      v-model="idType"
-                      style="max-width:100px"
-                      class="caption"
-                      outlined
-                      dense
-                      hide-details
-                      :items="idTypes"
-                      @change="onIdTypeChange"
-                    />
+                    <div>
+                      <span v-if="!isIdToggleAllowed" class="caption" @dblclick="isIdToggleAllowed=true">id</span>
+                      <v-select
+                        v-else
+                        v-model="idType"
+                        style="max-width:100px"
+                        class="caption"
+                        outlined
+                        dense
+                        hide-details
+                        :items="idTypes"
+                      />
+                    </div>
                   </template>
                 </v-checkbox>
                 <v-checkbox
+                  key="chk2"
                   v-model="table.columns"
                   dense
                   class="mt-0 "
@@ -100,6 +103,7 @@
                   </template>
                 </v-checkbox>
                 <v-checkbox
+                  key="chk3"
                   v-model="table.columns"
                   dense
                   class="mt-0 "
@@ -112,6 +116,7 @@
                   </template>
                 </v-checkbox>
                 <v-checkbox
+                  key="chk4"
                   v-model="table.columns"
                   dense
                   class="mt-0 "
@@ -138,7 +143,7 @@
             :disabled="!(table.name && table.name.length) || !(table.alias && table.alias.length) || !valid"
             color="primary"
             class="nc-create-table-submit"
-            @click="$emit('create',table)"
+            @click="onCreateBtnClick"
           >
             {{ $t('general.submit') }}
           </v-btn>
@@ -207,8 +212,11 @@ export default {
     validateDuplicate(v) {
       return (this.$store.state.project.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
     },
-    onIdTypeChange() {
-      this.table.columns[0] = this.idType === 'AG' ? 'id_ag' : 'id'
+    onCreateBtnClick() {
+      this.$emit('create', {
+        ...this.table,
+        columns: this.table.columns.map(c => c === 'id' && this.idType === 'AG' ? 'id_ag' : c)
+      })
     }
   }
 }

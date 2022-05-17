@@ -1006,6 +1006,14 @@ export default {
           .filter((col) => {
             if (col.column_name === 'id' && this.nodes.newTable.columns.includes('id_ag')) {
               Object.assign(col, this.sqlUi.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+
+              col.dtxp = this.sqlUi.getDefaultLengthForDatatype(
+                col.dt
+              )
+              col.dtxs = this.sqlUi.getDefaultScaleForDatatype(
+                col.dt
+              )
+
               return true
             }
             return this.nodes.newTable.columns.includes(col.column_name)

@@ -221,7 +221,6 @@ export default {
       }
     },
     validateAgainstMeta(pt, arr = []) {
-      console.log('pt.type= ' + pt.type)
       if (pt.type === 'CallExpression') {
         if (!this.availableFunctions.includes(pt.callee.name)) {
           arr.push(`'${pt.callee.name}' function is not available`)

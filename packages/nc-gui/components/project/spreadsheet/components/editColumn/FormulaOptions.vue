@@ -177,7 +177,7 @@ export default {
         this.$toast.success('Formula column saved successfully').goAway(3000)
         return this.$emit('saved', this.alias)
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
     },
     async update() {
@@ -282,12 +282,16 @@ export default {
       }
     },
     suggestionListDown() {
-      this.selected = ++this.selected % this.suggestion.length
-      this.scrollToSelectedOption()
+      if (this.suggestion) {
+        this.selected = ++this.selected % this.suggestion.length
+        this.scrollToSelectedOption()
+      }
     },
     suggestionListUp() {
-      this.selected = --this.selected > -1 ? this.selected : this.suggestion.length - 1
-      this.scrollToSelectedOption()
+      if (this.suggestion) {
+        this.selected = --this.selected > -1 ? this.selected : this.suggestion.length - 1
+        this.scrollToSelectedOption()
+      }
     },
     scrollToSelectedOption() {
       this.$nextTick(() => {

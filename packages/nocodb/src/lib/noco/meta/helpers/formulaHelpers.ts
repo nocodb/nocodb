@@ -58,35 +58,3 @@ export async function substituteColumnAliasWithIdInFormula(
   await substituteId(parsedFormula);
   return jsepTreeToFormula(parsedFormula);
 }
-
-// not in use
-// export function substituteColumnIdWithAliasInFormula(
-//   formula,
-//   columns: Column[]
-// ) {
-//   const substituteId = (pt: any) => {
-//     if (pt.type === 'CallExpression') {
-//       for (const arg of pt.arguments || []) {
-//         substituteId(arg);
-//       }
-//     } else if (pt.type === 'Literal') {
-//       return;
-//     } else if (pt.type === 'Identifier') {
-//       const colNameOrId = pt.name;
-//       const column = columns.find(
-//         c =>
-//           c.id === colNameOrId ||
-//           c.column_name === colNameOrId ||
-//           c.title === colNameOrId
-//       );
-//       pt.name = column.id;
-//     } else if (pt.type === 'BinaryExpression') {
-//       substituteId(pt.left);
-//       substituteId(pt.right);
-//     }
-//   };
-//
-//   const parsedFormula = jsep(formula);
-//   substituteId(parsedFormula);
-//   return jsepTreeToFormula(parsedFormula);
-// }

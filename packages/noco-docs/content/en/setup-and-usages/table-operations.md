@@ -120,7 +120,7 @@ You can use Quick Import when you have data from external sources such as Airtab
 ### Import Airtable into an existing project
 
 - Click `Add / Import` and click `Airtable`
-- Input API key & Shared Base ID / URL
+- Input API key & Shared Base ID / URL (See <a href="./import-airtable-to-sql-database-within-a-minute-for-free" target="_blank">here</a> for the guideline to retrieve the credentials)
 ![image](https://user-images.githubusercontent.com/35857179/168773192-f3ef9d36-3329-4324-ae25-989b611f66bf.png)
 - Click `Import` and you will see the status
 ![image](https://user-images.githubusercontent.com/35857179/168779663-5bb1dac8-01bd-43fb-8638-318a66a0f4bf.png)

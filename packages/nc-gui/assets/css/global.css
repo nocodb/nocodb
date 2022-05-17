@@ -9,7 +9,7 @@ html {
 	box-sizing: border-box;
 }
 body {
-	font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+	font-family: "Source Sans Pro", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, Vazirmatn, sans-serif;
 }
 *, *:before, *:after {
 	box-sizing: border-box;
@@ -31,4 +31,12 @@ body {
 .btn-secondary {
 	background-color: var(--secondary);
 	color: #000;
+}
+
+/* 
+Apply Vazirmatn for rtl
+*/
+
+.rtl .v-application .v-application--wrap * {
+	font-family: Vazirmatn !important;
 }

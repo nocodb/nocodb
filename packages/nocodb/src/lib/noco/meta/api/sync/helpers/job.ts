@@ -305,6 +305,7 @@ export default async (
           ncType = UITypes.Duration;
         else if (col.typeOptions?.format === 'currency')
           ncType = UITypes.Currency;
+        else if (col.typeOptions?.precision > 0) ncType = UITypes.Decimal;
         break;
 
       case 'formula':
@@ -1444,11 +1445,12 @@ export default async (
         // response will not include form object if everything is default
         //
         if (vData.metadata?.form) {
-          refreshMode = vData.metadata.form.refreshAfterSubmit;
-          msg = vData.metadata.form?.afterSubmitMessage
-            ? vData.metadata.form.afterSubmitMessage
-            : 'Thank you for submitting the form!';
-          desc = vData.metadata.form.description;
+          if (vData.metadata.form?.refreshAfterSubmit)
+            refreshMode = vData.metadata.form.refreshAfterSubmit;
+          if (vData.metadata.form?.afterSubmitMessage)
+            msg = vData.metadata.form.afterSubmitMessage;
+          if (vData.metadata.form?.description)
+            desc = vData.metadata.form.description;
         }
 
         const formData = {

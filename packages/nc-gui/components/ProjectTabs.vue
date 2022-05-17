@@ -57,7 +57,6 @@
           :value="`${(tab._nodes && tab._nodes.type) || ''}||${
             (tab._nodes && tab._nodes.dbAlias) || ''
           }||${tab.name}`"
-          eager
           :transition="false"
           style="height: 100%"
           :reverse-transition="false"
@@ -595,9 +594,6 @@ export default {
 </script>
 
 <style scoped>
-/*/deep/ .project-tabs > .v-tabs-items {*/
-/*  border-top: 1px solid #7F828B33;*/
-/*}*/
 
 /deep/ .project-tabs .v-tabs-bar {
   max-height: 30px;
@@ -606,10 +602,9 @@ export default {
 /deep/ .project-tabs > .v-tabs-bar {
   max-height: 30px;
 }
-
-/*/deep/ .project-tabs .v-tabs-slider-wrapper {*/
-/*  display: none;*/
-/*}*/
+/deep/ .v-window__container .v-window-item {
+  height: 100%;
+}
 
 /deep/ .project-tabs .v-tab.project-tab {
   text-transform: capitalize;
@@ -629,12 +624,6 @@ export default {
   background-color: #272727 !important;
   color: white !important;
 }
-
-/*
-/deep/ .project-tabs.dark-them > div > div > div > div > .v-tabs-slider {
-  color: #272727 !important;
-}
-*/
 
 /deep/ .project-tabs > div > div > div > div > .v-tabs-slider {
   color: transparent !important;
@@ -679,6 +668,10 @@ export default {
 
 /deep/ .project-tab:first-of-type {
   margin-left: 0 !important;
+}
+
+/deep/ .v-window-item:not(.v-window-item--active){
+  display:none;
 }
 </style>
 <!--

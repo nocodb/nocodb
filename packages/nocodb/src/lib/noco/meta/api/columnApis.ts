@@ -3,7 +3,6 @@ import Model from '../../../noco-models/Model';
 import ProjectMgrv2 from '../../../sqlMgr/v2/ProjectMgrv2';
 import Base from '../../../noco-models/Base';
 import Column from '../../../noco-models/Column';
-import { substituteColumnAliasWithIdInFormula } from '../helpers/formulaHelpers';
 import validateParams from '../helpers/validateParams';
 import { Tele } from 'nc-help';
 
@@ -19,6 +18,7 @@ import {
   isVirtualCol,
   LinkToAnotherRecordType,
   RelationTypes,
+  substituteColumnAliasWithIdInFormula,
   substituteColumnIdWithAliasInFormula,
   TableType,
   UITypes
@@ -496,9 +496,12 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         }> = (await sqlClient.columnList({ tn: table.table_name }))?.data?.list;
 
         const insertedColumnMeta =
-          columns.find(c => c.cn === colBody.column_name) || {} as any;
+          columns.find(c => c.cn === colBody.column_name) || ({} as any);
 
-        if (colBody.uidt === UITypes.SingleSelect || colBody.uidt === UITypes.MultiSelect) {
+        if (
+          colBody.uidt === UITypes.SingleSelect ||
+          colBody.uidt === UITypes.MultiSelect
+        ) {
           insertedColumnMeta.dtxp = colBody.dtxp;
         }
 

@@ -1510,7 +1510,7 @@ export default async (
           x => x.id === gridViews[i].id
         )?.name;
         const viewList: any = await api.dbView.list(tblId);
-        const ncViewId = viewList?.list?.find(x => x.tn === viewName)?.id;
+        let ncViewId = viewList?.list?.find(x => x.tn === viewName)?.id;
 
         // create view (default already created)
         if (i > 0) {
@@ -1526,6 +1526,7 @@ export default async (
             tblId
           );
           // syncLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
+          ncViewId = viewCreated.id;
         }
 
         // syncLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Hide columns ${viewName}`)

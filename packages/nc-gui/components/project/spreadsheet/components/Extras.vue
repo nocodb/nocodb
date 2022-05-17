@@ -31,7 +31,7 @@
           dense
         >
           <v-list-item>
-            <div class="justify-space-between d-100 pr-2">
+            <div class="d-flex justify-space-between d-100 pr-2">
               <v-icon v-t="['e:community:discord']" size="22" :color="textColors[0]" @click="open('https://discord.gg/5RgZmkW')">
                 mdi-discord
               </v-icon>

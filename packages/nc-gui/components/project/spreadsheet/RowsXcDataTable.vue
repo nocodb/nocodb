@@ -636,6 +636,7 @@
       width="1000px"
       max-width="100%"
       class="mx-auto"
+      transition="dialog-bottom-transition"
     >
       <expanded-form
         v-if="isKanban && kanban.selectedExpandRow"
@@ -726,7 +727,7 @@
 <script>
 import { mapActions } from 'vuex'
 import debounce from 'debounce'
-import { SqlUiFactory, ViewTypes } from 'nocodb-sdk'
+import { SqlUiFactory, ViewTypes, UITypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import FormView from './views/FormView'
 import XcGridView from './views/GridView'
@@ -1002,9 +1003,13 @@ export default {
       if (this.nodes.newTable && !this.nodes.tableCreated) {
         const columns = this.sqlUi
           .getNewTableColumns()
-          .filter(col =>
-            this.nodes.newTable.columns.includes(col.column_name)
-          )
+          .filter((col) => {
+            if (col.column_name === 'id' && this.nodes.newTable.columns.includes('id_ag')) {
+              Object.assign(col, this.sqlUi.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+              return true
+            }
+            return this.nodes.newTable.columns.includes(col.column_name)
+          })
         await this.$api.dbTable.create(this.projectId, {
           table_name: this.nodes.table_name,
           title: this.nodes.title,

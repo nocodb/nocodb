@@ -27,80 +27,103 @@
             :hint="$t('msg.info.enterTableName')"
             class="mt-4 caption nc-table-name"
           />
-          <!--hint="Table name as saved in database"-->
-          <v-text-field
-            v-if="!projectPrefix"
-            v-model="table.name"
-            solo
-            flat
-            dense
-            persistent-hint
-            :rules="[validateDuplicate]"
-            :hint="$t('msg.info.tableNameInDb')"
-            class="mt-4 caption nc-table-name-alias"
-          />
 
-          <div class=" mt-5">
-            <label class="add-default-title grey--text">
-              <!--Add Default Columns-->
-              {{ $t('msg.info.addDefaultColumns') }}
-            </label>
+          <div class="d-flex justify-end">
+            <div class="grey--text caption " @click="isAdvanceOptVisible = !isAdvanceOptVisible">
+              Show advanced options
+              <v-icon x-small color="grey">
+                {{ isAdvanceOptVisible ? 'mdi-minus-circle-outline':'mdi-plus-circle-outline' }}
+              </v-icon>
+            </div>
+          </div>
 
-            <div class=" d-flex caption justify-space-between">
-              <v-checkbox
-                v-model="table.columns"
-                dense
-                class="mt-0 "
-                color="info"
-                hide-details
-                value="id"
-                @click.capture.prevent.stop="()=>{
-                  $toast.info('ID column is required, you can rename this later if required.').goAway(3000);
-                  if(!table.columns.includes('id')){
-                    table.columns.push('id');
-                  }
-                }"
-              >
-                <template #label>
-                  <span class="caption">id</span>
-                </template>
-              </v-checkbox>
-              <v-checkbox
-                v-model="table.columns"
-                dense
-                class="mt-0 "
-                color="info"
-                hide-details
-                value="title"
-              >
-                <template #label>
-                  <span class="caption">title</span>
-                </template>
-              </v-checkbox>
-              <v-checkbox
-                v-model="table.columns"
-                dense
-                class="mt-0 "
-                color="info"
-                hide-details
-                value="created_at"
-              >
-                <template #label>
-                  <span class="caption">created_at</span>
-                </template>
-              </v-checkbox>
-              <v-checkbox
-                v-model="table.columns"
-                dense
-                class="mt-0 "
-                color="info"
-                hide-details
-                value="updated_at"
-              >
-                <template #label>
-                  <span class="caption">updated_at</span>
-                </template>
-              </v-checkbox>
+          <div class="nc-table-advanced-options" :class="{active: isAdvanceOptVisible}">
+            <!--hint="Table name as saved in database"-->
+            <v-text-field
+              v-if="!projectPrefix"
+              v-model="table.name"
+              solo
+              flat
+              dense
+              persistent-hint
+              :rules="[validateDuplicate]"
+              :hint="$t('msg.info.tableNameInDb')"
+              class="mt-4 caption nc-table-name-alias"
+            />
+
+            <div class=" mt-5">
+              <label class="add-default-title grey--text">
+                <!--Add Default Columns-->
+                {{ $t('msg.info.addDefaultColumns') }}
+              </label>
+
+              <div class=" d-flex caption justify-space-between align-center">
+                <v-checkbox
+                  v-model="table.columns"
+                  dense
+                  class="mt-0 "
+                  color="info"
+                  hide-details
+                  value="id"
+                  @click.capture.prevent.stop="()=>{
+                    $toast.info('ID column is required, you can rename this later if required.').goAway(3000);
+                    if(!table.columns.includes('id')){
+                      table.columns.push('id');
+                    }
+                  }"
+                >
+                  <template #label>
+                    <span v-if="!isIdToggleAllowed" class="caption" @dblclick="isIdToggleAllowed=true">id</span>
+                    <v-select
+                      v-else
+                      v-model="idType"
+                      style="max-width:100px"
+                      class="caption"
+                      outlined
+                      dense
+                      hide-details
+                      :items="idTypes"
+                      @change="onIdTypeChange"
+                    />
+                  </template>
+                </v-checkbox>
+                <v-checkbox
+                  v-model="table.columns"
+                  dense
+                  class="mt-0 "
+                  color="info"
+                  hide-details
+                  value="title"
+                >
+                  <template #label>
+                    <span class="caption">title</span>
+                  </template>
+                </v-checkbox>
+                <v-checkbox
+                  v-model="table.columns"
+                  dense
+                  class="mt-0 "
+                  color="info"
+                  hide-details
+                  value="created_at"
+                >
+                  <template #label>
+                    <span class="caption">created_at</span>
+                  </template>
+                </v-checkbox>
+                <v-checkbox
+                  v-model="table.columns"
+                  dense
+                  class="mt-0 "
+                  color="info"
+                  hide-details
+                  value="updated_at"
+                >
+                  <template #label>
+                    <span class="caption">updated_at</span>
+                  </template>
+                </v-checkbox>
+              </div>
             </div>
           </div>
         </v-card-text>
@@ -135,14 +158,20 @@ export default {
   props: ['value'],
   data() {
     return {
+      isAdvanceOptVisible: false,
       table: {
         name: '',
-        columns: ['id',
+        columns: [
+          'id',
           'title',
           'created_at',
-          'updated_at']
+          'updated_at'
+        ]
       },
-      valid: false
+      isIdToggleAllowed: false,
+      valid: false,
+      idType: 'AI',
+      idTypes: [{ value: 'AI', text: 'Auto increment number' }, { value: 'AG', text: 'Auto generated string' }]
     }
   },
   computed: {
@@ -177,6 +206,9 @@ export default {
     },
     validateDuplicate(v) {
       return (this.$store.state.project.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
+    },
+    onIdTypeChange() {
+      this.table.columns[0] = this.idType === 'AG' ? 'id_ag' : 'id'
     }
   }
 }
@@ -196,6 +228,15 @@ export default {
 }
 .add-default-title{
   font-size: .65rem;
+}
+
+.nc-table-advanced-options{
+  max-height:0;
+  transition:.3s max-height;
+  overflow: hidden;
+  &.active{
+    max-height:200px
+  }
 }
 </style>
 <!--

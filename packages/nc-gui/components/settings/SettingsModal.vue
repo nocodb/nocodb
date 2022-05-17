@@ -5,14 +5,21 @@
         mdi-cog-outline
       </v-icon>
     </slot>
-    <v-dialog v-model="settingsModal" width="90%" overlay-opacity=".9">
+    <v-dialog
+      v-model="settingsModal"
+      width="90%"
+      overlay-opacity=".9"
+      transition="dialog-bottom-transition"
+    >
       <v-card
-        v-if="settingsModal"
         width="100%"
         min-height="350px"
       >
-        <div class="d-flex">
+        <div
+          class="d-flex"
+        >
           <v-navigation-drawer
+            v-if="settingsModal"
             left
             permanent
             height="90vh"

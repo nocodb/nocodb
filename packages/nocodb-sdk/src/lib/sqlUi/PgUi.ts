@@ -1578,7 +1578,7 @@ export class PgUi {
           const isAutoGenId = idType === 'AG';
           colProp.dt = isAutoGenId ? 'character varying' : 'int4';
           colProp.pk = true;
-          colProp.un = true;
+          colProp.un = isAutoIncId;
           colProp.ai = isAutoIncId;
           colProp.rqd = true;
           colProp.meta = isAutoGenId ? { ag: 'nc' } : undefined;

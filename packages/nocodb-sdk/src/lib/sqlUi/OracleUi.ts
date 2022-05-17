@@ -803,7 +803,7 @@ export class OracleUi {
           const isAutoGenId = idType === 'AG';
           colProp.dt = isAutoGenId ? 'varchar' : 'integer';
           colProp.pk = true;
-          colProp.un = true;
+          colProp.un = isAutoIncId;
           colProp.ai = isAutoIncId;
           colProp.rqd = true;
           colProp.meta = isAutoGenId ? { ag: 'nc' } : undefined;

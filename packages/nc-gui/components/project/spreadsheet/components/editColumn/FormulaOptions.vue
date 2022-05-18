@@ -1,35 +1,28 @@
 <template>
   <div class="formula-wrapper">
-    <v-menu
-      v-model="autocomplete"
-      bottom
-      offset-y
-      nudge-bottom="-25px"
-      allow-overflow
-    >
-      <template #activator="_args">
-        <!-- todo: autocomplete based on available functions and metadata -->
-        <!--        <v-tooltip color="info" right>-->
-        <!--          <template #activator="{on}">-->
-        <v-text-field
-          ref="input"
-          v-model="formula.value"
-          dense
-          outlined
-          class="caption"
-          hide-details="auto"
-          label="Formula"
-          persistent-hint
-          hint="Available formulas are ADD, AVG, CONCAT, +, -, /"
-          :rules="[v => !!v || 'Required', v => parseAndValidateFormula(v)]"
-          autocomplete="off"
-          @input="handleInputDeb"
-          @keydown.down.prevent="suggestionListDown"
-          @keydown.up.prevent="suggestionListUp"
-          @keydown.enter.prevent="selectText"
-        />
-      </template>
-      <v-list v-if="suggestion" ref="sugList" dense max-height="50vh" style="overflow: auto">
+    <v-text-field
+      ref="input"
+      v-model="formula.value"
+      dense
+      outlined
+      class="caption"
+      hide-details="auto"
+      label="Formula"
+      :rules="[v => !!v || 'Required', v => parseAndValidateFormula(v)]"
+      autocomplete="off"
+      @input="handleInputDeb"
+      @keydown.down.prevent="suggestionListDown"
+      @keydown.up.prevent="suggestionListUp"
+      @keydown.enter.prevent="selectText"
+    />
+    <div class="hint">
+      Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
+      <a href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">Formulas</a>.
+    </div>
+    <v-card v-if="suggestion && suggestion.length" class="formula-suggestion">
+      <v-card-text>Suggestions</v-card-text>
+      <v-divider />
+      <v-list ref="sugList" dense max-height="50vh" style="overflow: auto">
         <v-list-item-group
           v-model="selected"
           color="primary"
@@ -42,16 +35,59 @@
             selectable
             @mousedown.prevent="appendText(it)"
           >
-            <span
-              class="caption"
-              :class="{
-                'primary--text text--lighten-2 font-weight-bold': it.type ==='function'
-              }"
-            >{{ it.text }}<span v-if="it.type ==='function'">(...)</span></span>
+            <!-- Function -->
+            <template v-if="it.type ==='function'">
+              <v-list-item-content>
+                <span
+                  class="caption primary--text text--lighten-2 font-weight-bold"
+                >
+                  {{ it.text }}
+                </span>
+              </v-list-item-content>
+              <v-list-item-action>
+                <span class="caption">
+                  Function
+                </span>
+              </v-list-item-action>
+            </template>
+
+            <!-- Column -->
+            <template v-if="it.type ==='column'">
+              <v-list-item-content>
+                <span
+                  class="caption text--darken-3 font-weight-bold"
+                >
+                  {{ it.text }}
+                </span>
+              </v-list-item-content>
+
+              <v-list-item-action>
+                <span class="caption">
+                  Column
+                </span>
+              </v-list-item-action>
+            </template>
+
+            <!-- Operator -->
+            <template v-if="it.type ==='op'">
+              <v-list-item-content>
+                <span
+                  class="caption indigo--text text--darken-3 font-weight-bold"
+                >
+                  {{ it.text }}
+                </span>
+              </v-list-item-content>
+
+              <v-list-item-action>
+                <span class="caption">
+                  Operator
+                </span>
+              </v-list-item-action>
+            </template>
           </v-list-item>
         </v-list-item-group>
       </v-list>
-    </v-menu>
+    </v-card>
   </div>
 </template>
 
@@ -59,7 +95,7 @@
 
 import debounce from 'debounce'
 import jsep from 'jsep'
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
 import formulaList, { validations } from '../../../../../helpers/formulaList'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
@@ -76,14 +112,19 @@ export default {
     suggestion: null,
     wordToComplete: '',
     selected: 0,
-    tooltip: true
+    tooltip: true,
+    sortOrder: {
+      column: 0,
+      function: 1,
+      op: 2
+    }
   }),
   computed: {
     suggestionsList() {
       const unsupportedFnList = this.sqlUi.getUnsupportedFnList()
       return [
         ...this.availableFunctions.filter(fn => !unsupportedFnList.includes(fn)).map(fn => ({
-          text: fn,
+          text: fn + '()',
           type: 'function'
         })),
         ...this.meta.columns.filter(c => !this.column || this.column.id !== c.id).map(c => ({
@@ -120,6 +161,7 @@ export default {
   },
   created() {
     this.formula = { value: this.value || '' }
+    jsep.plugins.register(jsepCurlyHook)
   },
   methods: {
     async save() {
@@ -135,7 +177,7 @@ export default {
         this.$toast.success('Formula column saved successfully').goAway(3000)
         return this.$emit('saved', this.alias)
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
     },
     async update() {
@@ -165,7 +207,6 @@ export default {
         this.$toast.error(e.message).goAway(3000)
       }
     },
-    // todo: validate formula based on meta
     parseAndValidateFormula(formula) {
       try {
         const pt = jsep(formula)
@@ -196,7 +237,7 @@ export default {
         pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))
       } else if (pt.type === 'Identifier') {
         if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== pt.name)) {
-          arr.push(`Column with name '${pt.name}' is not available`)
+          arr.push(`Column '${pt.name}' is not available`)
         }
       } else if (pt.type === 'BinaryExpression') {
         if (!this.availableBinOps.includes(pt.operator)) {
@@ -211,10 +252,14 @@ export default {
       const text = it.text
       const len = this.wordToComplete.length
       if (it.type === 'function') {
-        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text + '()', len, 1))
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len, 1))
+      } else if (it.type === 'column') {
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), '{' + text + '}', len))
       } else {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }
+      this.autocomplete = false
+      this.suggestion = null
     },
     _handleInputDeb: debounce(async function(self) {
       await self.handleInput()
@@ -228,22 +273,25 @@ export default {
       const query = getWordUntilCaret(this.$refs.input.$el.querySelector('input'))
       const parts = query.split(/\W+/)
       this.wordToComplete = parts.pop()
-      this.suggestion = this.acTree.complete(this.wordToComplete)
+      this.suggestion = this.acTree.complete(this.wordToComplete)?.sort((x, y) => this.sortOrder[x.type] - this.sortOrder[y.type])
       this.autocomplete = !!this.suggestion.length
     },
     selectText() {
-      if (this.selected > -1 && this.selected < this.suggestion.length) {
+      if (this.suggestion && this.selected > -1 && this.selected < this.suggestion.length) {
         this.appendText(this.suggestion[this.selected])
-        this.autocomplete = false
       }
     },
     suggestionListDown() {
-      this.selected = ++this.selected % this.suggestion.length
-      this.scrollToSelectedOption()
+      if (this.suggestion) {
+        this.selected = ++this.selected % this.suggestion.length
+        this.scrollToSelectedOption()
+      }
     },
     suggestionListUp() {
-      this.selected = --this.selected > -1 ? this.selected : this.suggestion.length - 1
-      this.scrollToSelectedOption()
+      if (this.suggestion) {
+        this.selected = --this.selected > -1 ? this.selected : this.suggestion.length - 1
+        this.scrollToSelectedOption()
+      }
     },
     scrollToSelectedOption() {
       this.$nextTick(() => {
@@ -263,4 +311,17 @@ export default {
 </script>
 
 <style scoped lang="scss">
+  ::v-deep {
+    .formula-suggestion .v-card__text {
+        font-size: 0.75rem;
+        padding: 8px;
+        text-align: center;
+      }
+  }
+
+  .hint {
+    font-size: 0.75rem;
+    line-height: normal;
+    padding: 10px 5px;
+  }
 </style>

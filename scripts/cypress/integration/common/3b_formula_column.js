@@ -61,7 +61,7 @@ export const genTest = (apiType, dbType) => {
                 .contains("Formula")
                 .parent()
                 .click()
-                .type(formula)
+                .type(formula, { parseSpecialCharSequences: false })
                 .click();
 
             // click on Save
@@ -115,7 +115,7 @@ export const genTest = (apiType, dbType) => {
                 .parent()
                 .find("input")
                 .clear()
-                .type(newFormula)
+                .type(newFormula, { parseSpecialCharSequences: false })
                 .click();
 
             cy.get(".nc-col-create-or-edit-card")
@@ -189,7 +189,7 @@ export const genTest = (apiType, dbType) => {
         it("Formula: ADD, AVG, LEN", () => {
             addFormulaBasedColumn(
                 "NC_MATH_0",
-                "ADD(CityId, CountryId) + AVG(CityId, CountryId) + LEN(City)"
+                "ADD({CityId}, {CountryId}) + AVG({CityId}, {CountryId}) + LEN({City})"
             );
             rowValidation("NC_MATH_0", RESULT_MATH_0);
         });
@@ -198,7 +198,7 @@ export const genTest = (apiType, dbType) => {
             editColumnByName(
                 "NC_MATH_0",
                 "NC_STR_1",
-                `CONCAT(UPPER(City), LOWER(City), TRIM('    trimmed    '))`
+                `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`
             );
             rowValidation("NC_STR_1", RESULT_STRING);
         });
@@ -207,7 +207,7 @@ export const genTest = (apiType, dbType) => {
             editColumnByName(
                 "NC_STR_1",
                 "NC_MATH_1",
-                `CEILING(1.4) + FLOOR(1.6) + ROUND(2.5) + MOD(CityId, 3) + MIN(CityId, CountryId) + MAX(CityId, CountryId)`
+                `CEILING(1.4) + FLOOR(1.6) + ROUND(2.5) + MOD({CityId}, 3) + MIN({CityId}, {CountryId}) + MAX({CityId}, {CountryId})`
             );
             rowValidation("NC_MATH_1", RESULT_MATH_1);
         });
@@ -218,7 +218,7 @@ export const genTest = (apiType, dbType) => {
                 editColumnByName(
                     "NC_MATH_1",
                     "NC_MATH_2",
-                    `LOG(CityId) + EXP(CityId) + POWER(CityId, 3) + SQRT(CountryId)`
+                    `LOG({CityId}) + EXP({CityId}) + POWER({CityId}, 3) + SQRT({CountryId})`
                 );
                 rowValidation("NC_MATH_2", RESULT_MATH_2);
             }
@@ -237,6 +237,7 @@ export const genTest = (apiType, dbType) => {
  *
  * @author Pranav C Balan <pranavxc@gmail.com>
  * @author Raju Udava <sivadstala@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

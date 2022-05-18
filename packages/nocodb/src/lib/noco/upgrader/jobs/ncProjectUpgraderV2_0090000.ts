@@ -4,11 +4,15 @@ import User from '../../../noco-models/User';
 import Project from '../../../noco-models/Project';
 import ProjectUser from '../../../noco-models/ProjectUser';
 import Model from '../../../noco-models/Model';
-import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  ModelTypes,
+  substituteColumnAliasWithIdInFormula,
+  UITypes,
+  ViewTypes
+} from 'nocodb-sdk';
 import Column from '../../../noco-models/Column';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
 import NcHelp from '../../../utils/NcHelp';
-import { substituteColumnAliasWithIdInFormula } from '../../meta/helpers/formulaHelpers';
 import RollupColumn from '../../../noco-models/RollupColumn';
 import View from '../../../noco-models/View';
 import GridView from '../../../noco-models/GridView';

@@ -7,7 +7,7 @@
     class=" card nc-col-create-or-edit-card"
   >
     <v-form v-model="valid" @submit.prevent="save">
-      <v-container fluid @click.stop.prevent>
+      <v-container fluid @click.stop>
         <v-row>
           <v-col cols="12">
             <v-text-field

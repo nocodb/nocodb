@@ -308,9 +308,9 @@ export default async (
 
       case 'formula':
         if (col.typeOptions?.formulaTextParsed === 'CREATED_TIME()')
-          ncType = UITypes.CreateTime;
+          ncType = UITypes.DateTime;
         else if (col.typeOptions?.formulaTextParsed === 'LAST_MODIFIED_TIME()')
-          ncType = UITypes.LastModifiedTime;
+          ncType = UITypes.DateTime;
         break;
 
       case 'computation':
@@ -1171,7 +1171,11 @@ export default async (
       if (dt === UITypes.Barcode) rec[key] = value.text;
       if (dt === UITypes.Button) rec[key] = `${value?.label} <${value?.url}>`;
 
-      if (dt === UITypes.DateTime) {
+      if (
+        dt === UITypes.DateTime ||
+        dt === UITypes.CreateTime ||
+        dt === UITypes.LastModifiedTime
+      ) {
         const atDateField = dayjs(value);
         rec[key] = atDateField.utc().format('YYYY-MM-DD HH:mm');
       }

@@ -173,6 +173,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
           c1 => c.cn === c1.column_name
         );
         return {
+          ...colMetaFromReq,
           uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(base, c),
           ...c,
           title: colMetaFromReq?.title || getColumnNameAlias(c.cn, base),

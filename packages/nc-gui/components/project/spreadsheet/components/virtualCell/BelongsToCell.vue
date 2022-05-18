@@ -109,7 +109,7 @@
 
 <script>
 // import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk'
 import ListItems from '~/components/project/spreadsheet/components/virtualCell/components/ListItems'
 import ListChildItems from '~/components/project/spreadsheet/components/virtualCell/components/ListChildItems'
 import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/ItemChip'
@@ -194,17 +194,13 @@ export default {
       }
     },
     parentAvailableColumns() {
-      const hideCols = ['created_at', 'updated_at']
       if (!this.parentMeta) {
         return []
       }
 
       const columns = []
       if (this.parentMeta.columns) {
-        columns.push(...this.parentMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.column_name) && !((this.parentMeta.v || []).some(v => v.bt && v.bt.column_name === c.column_name))))
-      }
-      if (this.parentMeta.v) {
-        columns.push(...this.parentMeta.v.map(v => ({ ...v, virtual: 1 })))
+        columns.push(...this.parentMeta.columns.filter(c => !isSystemColumn(c)))
       }
       return columns
     },

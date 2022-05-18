@@ -332,135 +332,138 @@
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
         <div
-          v-if="selectedViewId && selectedView"
           ref="table"
           :style="{ height: isForm ? '100%' : 'calc(100% - 36px)' }"
           style="overflow: auto; width: 100%"
         >
-          <!--          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />-->
-          <template v-if="selectedView.type === viewTypes.GRID">
-            <xc-grid-view
-              ref="ncgridview"
-              :loading="loadingData"
-              :is-view="isView"
-              droppable
-              :relation-type="relationType"
-              :columns-width.sync="columnsWidth"
-              :is-locked="isLocked"
-              :table="table"
-              :available-columns="availableColumns"
-              :show-fields="showFields"
-              :sql-ui="sqlUi"
-              :is-editable="isEditable"
-              :nodes="nodes"
-              :primary-value-column="primaryValueColumn"
-              :belongs-to="belongsTo"
-              :has-many="hasMany"
-              :data="data"
-              :visible-col-length="visibleColLength"
-              :meta="meta"
-              :is-virtual="selectedView && selectedView.type === 'vtable'"
-              :api="api"
-              :is-pk-avail="isPkAvail"
-              :view-id="selectedViewId"
-              @drop="onFileDrop"
-              @onNewColCreation="onNewColCreation"
-              @colDelete="onColDelete"
-              @onCellValueChange="onCellValueChange"
-              @insertNewRow="insertNewRow"
-              @showRowContextMenu="showRowContextMenu"
-              @expandRow="expandRow"
-              @onRelationDelete="loadMeta"
-              @loadTableData="loadTableData"
-              @loadMeta="loadMeta"
-            />
-          </template>
-          <template v-else-if="selectedView.type === viewTypes.GALLERY">
-            <gallery-view
-              :is-locked="isLocked"
-              :nodes="nodes"
-              :table="table"
-              :show-fields="showFields"
-              :available-columns="availableColumns"
-              :meta="meta"
-              :data="data"
-              :sql-ui="sqlUi"
-              :view-id="selectedViewId"
-              :primary-value-column="primaryValueColumn"
-              :cover-image-field.sync="coverImageField"
-              @expandForm="
-                ({ rowIndex, rowMeta }) => expandRow(rowIndex, rowMeta)
-              "
-            />
-          </template>
-          <template v-else-if="isKanban">
-            <v-container v-if="kanban.loadingData" fluid>
-              <v-row>
-                <v-col v-for="idx in 5" :key="idx">
-                  <v-skeleton-loader type="image@3" />
-                </v-col>
-              </v-row>
-            </v-container>
-            <kanban-view
-              v-if="!kanban.loadingData && kanban.data.length"
-              :nodes="nodes"
-              :table="table"
-              :show-fields="showFields"
-              :available-columns="availableColumns"
-              :meta="meta"
-              :kanban="kanban"
-              :sql-ui="sqlUi"
-              :primary-value-column="primaryValueColumn"
-              :grouping-field.sync="groupingField"
-              :api="api"
-              @expandKanbanForm="({ rowIdx }) => expandKanbanForm(rowIdx)"
-              @insertNewRow="insertNewRow"
-              @loadMoreKanbanData="
-                (groupingFieldVal) => loadMoreKanbanData(groupingFieldVal)
-              "
-            />
-          </template>
           <template
-            v-else-if="selectedView && selectedView.show_as === 'calendar'"
+            v-if="selectedViewId && selectedView"
           >
-            <calendar-view
-              :nodes="nodes"
-              :table="table"
-              :show-fields="showFields"
-              :available-columns="availableColumns"
-              :meta="meta"
-              :data="data"
-              :primary-value-column="primaryValueColumn"
-              @expandForm="
-                ({ rowIndex, rowMeta }) => expandRow(rowIndex, rowMeta)
-              "
-            />
-          </template>
-          <template v-else-if="selectedView.type === viewTypes.FORM">
-            <form-view
-              :id="selectedViewId"
-              ref="formView"
-              :key="selectedViewId + viewKey"
-              :view-id="selectedViewId"
-              :nodes="nodes"
-              :table="table"
-              :available-columns="availableColumns"
-              :meta="meta"
-              :data="data"
-              :show-fields.sync="showFields"
-              :all-columns="allColumns"
-              :field-list="fieldList"
-              :is-locked="isLocked"
-              :db-alias="nodes.dbAlias"
-              :api="api"
-              :sql-ui="sqlUi"
-              :fields-order.sync="fieldsOrder"
-              :primary-value-column="primaryValueColumn"
-              :form-params.sync="extraViewParams.formParams"
-              :view.sync="selectedView"
-              :view-title="selectedView.title"
-              @onNewColCreation="loadMeta(false)"
-            />
+            <!--          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />-->
+            <template v-if="selectedView.type === viewTypes.GRID">
+              <xc-grid-view
+                ref="ncgridview"
+                :loading="loadingData"
+                :is-view="isView"
+                droppable
+                :relation-type="relationType"
+                :columns-width.sync="columnsWidth"
+                :is-locked="isLocked"
+                :table="table"
+                :available-columns="availableColumns"
+                :show-fields="showFields"
+                :sql-ui="sqlUi"
+                :is-editable="isEditable"
+                :nodes="nodes"
+                :primary-value-column="primaryValueColumn"
+                :belongs-to="belongsTo"
+                :has-many="hasMany"
+                :data="data"
+                :visible-col-length="visibleColLength"
+                :meta="meta"
+                :is-virtual="selectedView && selectedView.type === 'vtable'"
+                :api="api"
+                :is-pk-avail="isPkAvail"
+                :view-id="selectedViewId"
+                @drop="onFileDrop"
+                @onNewColCreation="onNewColCreation"
+                @colDelete="onColDelete"
+                @onCellValueChange="onCellValueChange"
+                @insertNewRow="insertNewRow"
+                @showRowContextMenu="showRowContextMenu"
+                @expandRow="expandRow"
+                @onRelationDelete="loadMeta"
+                @loadTableData="loadTableData"
+                @loadMeta="loadMeta"
+              />
+            </template>
+            <template v-else-if="selectedView.type === viewTypes.GALLERY">
+              <gallery-view
+                :is-locked="isLocked"
+                :nodes="nodes"
+                :table="table"
+                :show-fields="showFields"
+                :available-columns="availableColumns"
+                :meta="meta"
+                :data="data"
+                :sql-ui="sqlUi"
+                :view-id="selectedViewId"
+                :primary-value-column="primaryValueColumn"
+                :cover-image-field.sync="coverImageField"
+                @expandForm="
+                  ({ rowIndex, rowMeta }) => expandRow(rowIndex, rowMeta)
+                "
+              />
+            </template>
+            <template v-else-if="isKanban">
+              <v-container v-if="kanban.loadingData" fluid>
+                <v-row>
+                  <v-col v-for="idx in 5" :key="idx">
+                    <v-skeleton-loader type="image@3" />
+                  </v-col>
+                </v-row>
+              </v-container>
+              <kanban-view
+                v-if="!kanban.loadingData && kanban.data.length"
+                :nodes="nodes"
+                :table="table"
+                :show-fields="showFields"
+                :available-columns="availableColumns"
+                :meta="meta"
+                :kanban="kanban"
+                :sql-ui="sqlUi"
+                :primary-value-column="primaryValueColumn"
+                :grouping-field.sync="groupingField"
+                :api="api"
+                @expandKanbanForm="({ rowIdx }) => expandKanbanForm(rowIdx)"
+                @insertNewRow="insertNewRow"
+                @loadMoreKanbanData="
+                  (groupingFieldVal) => loadMoreKanbanData(groupingFieldVal)
+                "
+              />
+            </template>
+            <template
+              v-else-if="selectedView && selectedView.show_as === 'calendar'"
+            >
+              <calendar-view
+                :nodes="nodes"
+                :table="table"
+                :show-fields="showFields"
+                :available-columns="availableColumns"
+                :meta="meta"
+                :data="data"
+                :primary-value-column="primaryValueColumn"
+                @expandForm="
+                  ({ rowIndex, rowMeta }) => expandRow(rowIndex, rowMeta)
+                "
+              />
+            </template>
+            <template v-else-if="selectedView.type === viewTypes.FORM">
+              <form-view
+                :id="selectedViewId"
+                ref="formView"
+                :key="selectedViewId + viewKey"
+                :view-id="selectedViewId"
+                :nodes="nodes"
+                :table="table"
+                :available-columns="availableColumns"
+                :meta="meta"
+                :data="data"
+                :show-fields.sync="showFields"
+                :all-columns="allColumns"
+                :field-list="fieldList"
+                :is-locked="isLocked"
+                :db-alias="nodes.dbAlias"
+                :api="api"
+                :sql-ui="sqlUi"
+                :fields-order.sync="fieldsOrder"
+                :primary-value-column="primaryValueColumn"
+                :form-params.sync="extraViewParams.formParams"
+                :view.sync="selectedView"
+                :view-title="selectedView.title"
+                @onNewColCreation="loadMeta(false)"
+              />
+            </template>
           </template>
         </div>
         <template v-if="data && (isGrid || isGallery)">
@@ -636,6 +639,7 @@
       width="1000px"
       max-width="100%"
       class="mx-auto"
+      transition="dialog-bottom-transition"
     >
       <expanded-form
         v-if="isKanban && kanban.selectedExpandRow"
@@ -726,7 +730,7 @@
 <script>
 import { mapActions } from 'vuex'
 import debounce from 'debounce'
-import { SqlUiFactory, ViewTypes } from 'nocodb-sdk'
+import { SqlUiFactory, ViewTypes, UITypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import FormView from './views/FormView'
 import XcGridView from './views/GridView'
@@ -1002,9 +1006,21 @@ export default {
       if (this.nodes.newTable && !this.nodes.tableCreated) {
         const columns = this.sqlUi
           .getNewTableColumns()
-          .filter(col =>
-            this.nodes.newTable.columns.includes(col.column_name)
-          )
+          .filter((col) => {
+            if (col.column_name === 'id' && this.nodes.newTable.columns.includes('id_ag')) {
+              Object.assign(col, this.sqlUi.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+
+              col.dtxp = this.sqlUi.getDefaultLengthForDatatype(
+                col.dt
+              )
+              col.dtxs = this.sqlUi.getDefaultScaleForDatatype(
+                col.dt
+              )
+
+              return true
+            }
+            return this.nodes.newTable.columns.includes(col.column_name)
+          })
         await this.$api.dbTable.create(this.projectId, {
           table_name: this.nodes.table_name,
           title: this.nodes.title,
@@ -1056,7 +1072,7 @@ export default {
               pks.length &&
               pks.every(
                 col =>
-                  !rowObj[col.title] && !(col.columnDefault || col.default)
+                  !rowObj[col.title] && !(col.columnDefault || col.default) && !(col.meta && col.meta.ag)
               )
             ) {
               return this.$toast
@@ -1068,6 +1084,7 @@ export default {
                 return (
                   !col.ai &&
                   col.rqd &&
+                  !(col.meta && col.meta.ag) &&
                   (rowObj[col.title] === undefined ||
                     rowObj[col.title] === null) &&
                   !col.cdf

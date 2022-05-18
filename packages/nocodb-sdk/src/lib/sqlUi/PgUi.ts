@@ -1,4 +1,5 @@
 import UITypes from '../UITypes';
+import { IDType } from './index';
 
 const dbTypes = [
   'int',
@@ -1568,15 +1569,20 @@ export class PgUi {
     }
   }
 
-  static getDataTypeForUiType(col) {
+  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
-        colProp.dt = 'int4';
-        colProp.pk = true;
-        colProp.un = true;
-        colProp.ai = true;
-        colProp.rqd = true;
+        {
+          const isAutoIncId = idType === 'AI';
+          const isAutoGenId = idType === 'AG';
+          colProp.dt = isAutoGenId ? 'character varying' : 'int4';
+          colProp.pk = true;
+          colProp.un = isAutoIncId;
+          colProp.ai = isAutoIncId;
+          colProp.rqd = true;
+          colProp.meta = isAutoGenId ? { ag: 'nc' } : undefined;
+        }
         break;
       case 'ForeignKey':
         colProp.dt = 'character varying';
@@ -1699,9 +1705,29 @@ export class PgUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col) {
+  static getDataTypeListForUiType(col: { uidt: UITypes }, idType: IDType) {
     switch (col.uidt) {
       case 'ID':
+        if (idType === 'AG') {
+          return ['char', 'character', 'character varying'];
+        } else if (idType === 'AI') {
+          return [
+            'int',
+            'integer',
+            'bigint',
+            'bigserial',
+            'int2',
+            'int4',
+            'int8',
+            'serial',
+            'serial2',
+            'serial8',
+            'smallint',
+            'smallserial',
+          ];
+        } else {
+          return dbTypes;
+        }
       case 'ForeignKey':
         return dbTypes;
 

@@ -61,7 +61,7 @@
         <v-list-item
           class="nc-column-edit"
           dense
-          @click="editColumnMenu = true"
+          @click="showColumnEdit"
         >
           <x-icon small class="mr-1" color="primary">
             mdi-pencil
@@ -164,6 +164,7 @@
 </template>
 
 <script>
+import { UITypes } from 'nocodb-sdk'
 import cell from '@/components/project/spreadsheet/mixins/cell'
 import EditColumn from '~/components/project/spreadsheet/components/EditColumn'
 
@@ -177,6 +178,12 @@ export default {
     columnDeleteDialog: false
   }),
   methods: {
+    showColumnEdit() {
+      if (this.column.uidt === UITypes.ID) {
+        return this.$toast.info('Primary key column edit is not allowed.').goAway(3000)
+      }
+      this.editColumnMenu = true
+    },
     async deleteColumn() {
       try {
         const column = { ...this.column, cno: this.column.column_name }

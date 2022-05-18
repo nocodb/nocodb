@@ -53,7 +53,7 @@ export default {
     top: 0;
     right: min(-50%, -700px);
     transition: .3s right;
-
+    overflow-y: auto;
   }
 
   &.active {

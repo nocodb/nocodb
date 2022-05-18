@@ -303,15 +303,26 @@
 
         <div
           v-if="time - $store.state.settings.miniSponsorCard > 15 * 60 * 1000"
-          class="pa-2 sponsor-wrapper"
+          class="py-2 sponsor-wrapper"
         >
           <v-icon small class="close-icon" @click="hideMiniSponsorCard">
             mdi-close-circle-outline
           </v-icon>
 
           <!--          <extras />-->
-          <v-divider />
+          <v-divider class="my-2" />
+
           <extras class="pl-1" />
+          <v-btn
+            v-t="['e:hiring']"
+            color="primary"
+            outlined
+            class="caption d-100 my-2 "
+            href="https://angel.co/company/nocodb"
+            target="_blank"
+          >
+            🚀 We are Hiring! 🚀
+          </v-btn>
 
           <!--          <sponsor-mini nav />-->
         </div>

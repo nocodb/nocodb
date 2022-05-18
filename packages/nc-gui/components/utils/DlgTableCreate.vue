@@ -28,80 +28,107 @@
             class="mt-4 caption nc-table-name"
           />
 
-          <!--hint="Table name as saved in database"-->
-          <v-text-field
-            v-if="!projectPrefix"
-            v-model="table.name"
-            solo
-            flat
-            dense
-            persistent-hint
-            :rules="[validateDuplicate]"
-            :hint="$t('msg.info.tableNameInDb')"
-            class="mt-4 caption nc-table-name-alias"
-          />
+          <div class="d-flex justify-end">
+            <div class="grey--text caption pointer" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
+              {{ isAdvanceOptVisible? 'Hide' : 'Show' }} more
+              <v-icon x-small color="grey">
+                {{ isAdvanceOptVisible ? 'mdi-minus-circle-outline':'mdi-plus-circle-outline' }}
+              </v-icon>
+            </div>
+          </div>
 
-          <div class=" mt-5">
-            <label class="add-default-title grey--text">
-              <!--Add Default Columns-->
-              {{ $t('msg.info.addDefaultColumns') }}
-            </label>
+          <div class="nc-table-advanced-options" :class="{active: isAdvanceOptVisible}">
+            <!--hint="Table name as saved in database"-->
+            <v-text-field
+              v-if="!projectPrefix"
+              v-model="table.name"
+              solo
+              flat
+              dense
+              persistent-hint
+              :rules="[validateDuplicate]"
+              :hint="$t('msg.info.tableNameInDb')"
+              class="mt-4 caption nc-table-name-alias"
+            />
 
-            <div class=" d-flex caption justify-space-between">
-              <v-checkbox
-                v-model="table.columns"
-                dense
-                class="mt-0 "
-                color="info"
-                hide-details
-                value="id"
-                @click.capture.prevent.stop="()=>{
-                  $toast.info('ID column is required, you can rename this later if required.').goAway(3000);
-                  if(!table.columns.includes('id')){
-                    table.columns.push('id');
-                  }
-                }"
-              >
-                <template #label>
-                  <span class="caption">id</span>
-                </template>
-              </v-checkbox>
-              <v-checkbox
-                v-model="table.columns"
-                dense
-                class="mt-0 "
-                color="info"
-                hide-details
-                value="title"
-              >
-                <template #label>
-                  <span class="caption">title</span>
-                </template>
-              </v-checkbox>
-              <v-checkbox
-                v-model="table.columns"
-                dense
-                class="mt-0 "
-                color="info"
-                hide-details
-                value="created_at"
-              >
-                <template #label>
-                  <span class="caption">created_at</span>
-                </template>
-              </v-checkbox>
-              <v-checkbox
-                v-model="table.columns"
-                dense
-                class="mt-0 "
-                color="info"
-                hide-details
-                value="updated_at"
-              >
-                <template #label>
-                  <span class="caption">updated_at</span>
-                </template>
-              </v-checkbox>
+            <div class=" mt-5">
+              <label class="add-default-title grey--text">
+                <!--Add Default Columns-->
+                {{ $t('msg.info.addDefaultColumns') }}
+              </label>
+
+              <div class=" d-flex caption justify-space-between align-center">
+                <v-checkbox
+                  key="chk1"
+                  v-model="table.columns"
+                  dense
+                  class="mt-0 "
+                  color="info"
+                  hide-details
+                  value="id"
+                  @click.capture.prevent.stop="()=>{
+                    $toast.info('ID column is required, you can rename this later if required.').goAway(3000);
+                    if(!table.columns.includes('id')){
+                      table.columns.push('id');
+                    }
+                  }"
+                >
+                  <template #label>
+                    <div>
+                      <span v-if="!isIdToggleAllowed" class="caption" @dblclick="isIdToggleAllowed=true">id</span>
+                      <v-select
+                        v-else
+                        v-model="idType"
+                        style="max-width:100px"
+                        class="caption"
+                        outlined
+                        dense
+                        hide-details
+                        :items="idTypes"
+                      />
+                    </div>
+                  </template>
+                </v-checkbox>
+                <v-checkbox
+                  key="chk2"
+                  v-model="table.columns"
+                  dense
+                  class="mt-0 "
+                  color="info"
+                  hide-details
+                  value="title"
+                >
+                  <template #label>
+                    <span class="caption">title</span>
+                  </template>
+                </v-checkbox>
+                <v-checkbox
+                  key="chk3"
+                  v-model="table.columns"
+                  dense
+                  class="mt-0 "
+                  color="info"
+                  hide-details
+                  value="created_at"
+                >
+                  <template #label>
+                    <span class="caption">created_at</span>
+                  </template>
+                </v-checkbox>
+                <v-checkbox
+                  key="chk4"
+                  v-model="table.columns"
+                  dense
+                  class="mt-0 "
+                  color="info"
+                  hide-details
+                  value="updated_at"
+                >
+                  <template #label>
+                    <span class="caption">updated_at</span>
+                  </template>
+                </v-checkbox>
+              </div>
             </div>
           </div>
         </v-card-text>
@@ -116,7 +143,7 @@
             :disabled="!(table.name && table.name.length) || !(table.alias && table.alias.length) || !valid"
             color="primary"
             class="nc-create-table-submit"
-            @click="$emit('create',table)"
+            @click="onCreateBtnClick"
           >
             {{ $t('general.submit') }}
           </v-btn>
@@ -136,14 +163,20 @@ export default {
   props: ['value'],
   data() {
     return {
+      isAdvanceOptVisible: false,
       table: {
         name: '',
-        columns: ['id',
+        columns: [
+          'id',
           'title',
           'created_at',
-          'updated_at']
+          'updated_at'
+        ]
       },
-      valid: false
+      isIdToggleAllowed: false,
+      valid: false,
+      idType: 'AI',
+      idTypes: [{ value: 'AI', text: 'Auto increment number' }, { value: 'AG', text: 'Auto generated string' }]
     }
   },
   computed: {
@@ -157,6 +190,9 @@ export default {
     },
     projectPrefix() {
       return this.$store.getters['project/GtrProjectPrefix']
+    },
+    tables() {
+      return this.$store.state.project.tables || []
     }
   },
   watch: {
@@ -164,20 +200,37 @@ export default {
       this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`)
     }
   },
+  created() {
+    this.populateDefaultTitle()
+  },
   mounted() {
     setTimeout(() => {
-      this.$refs.input.$el.querySelector('input').focus()
+      const el = this.$refs.input.$el
+      el.querySelector('input').focus()
+      el.querySelector('input').select()
     }, 100)
   },
+
   methods: {
+    populateDefaultTitle() {
+      let c = 1
+      while (this.tables.some(t => t.title === `sheet${c}`)) { c++ }
+      this.$set(this.table, 'alias', `sheet${c}`)
+    },
     validateTableName(v) {
       return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
     },
     validateDuplicateAlias(v) {
-      return (this.$store.state.project.tables || []).every(t => t.title !== (v || '')) || 'Duplicate table alias'
+      return (this.tables || []).every(t => t.title !== (v || '')) || 'Duplicate table alias'
     },
     validateDuplicate(v) {
-      return (this.$store.state.project.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
+      return (this.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
+    },
+    onCreateBtnClick() {
+      this.$emit('create', {
+        ...this.table,
+        columns: this.table.columns.map(c => c === 'id' && this.idType === 'AG' ? 'id_ag' : c)
+      })
     }
   }
 }
@@ -197,6 +250,15 @@ export default {
 }
 .add-default-title{
   font-size: .65rem;
+}
+
+.nc-table-advanced-options{
+  max-height:0;
+  transition:.3s max-height;
+  overflow: hidden;
+  &.active{
+    max-height:200px
+  }
 }
 </style>
 <!--

@@ -1,3 +1,6 @@
+import UITypes from '../UITypes';
+import { IDType } from './index';
+
 export class OracleUi {
   static getNewTableColumns(): any[] {
     return [
@@ -791,15 +794,20 @@ export class OracleUi {
     }
   }
 
-  static getDataTypeForUiType(col) {
+  static getDataTypeForUiType(col: { uidt: UITypes }, idType?: IDType) {
     const colProp: any = {};
     switch (col.uidt) {
       case 'ID':
-        colProp.dt = 'integer';
-        colProp.pk = true;
-        colProp.un = true;
-        colProp.ai = true;
-        colProp.rqd = true;
+        {
+          const isAutoIncId = idType === 'AI';
+          const isAutoGenId = idType === 'AG';
+          colProp.dt = isAutoGenId ? 'varchar' : 'integer';
+          colProp.pk = true;
+          colProp.un = isAutoIncId;
+          colProp.ai = isAutoIncId;
+          colProp.rqd = true;
+          colProp.meta = isAutoGenId ? { ag: 'nc' } : undefined;
+        }
         break;
       case 'ForeignKey':
         colProp.dt = 'varchar';

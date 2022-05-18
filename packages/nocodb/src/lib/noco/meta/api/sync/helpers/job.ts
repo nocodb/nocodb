@@ -52,7 +52,7 @@ export default async (
   const enableErrorLogs = false;
   const process_aTblData = true;
   const generate_migrationStats = true;
-  const debugMode = true;
+  const debugMode = false;
   let api: Api<any>;
   let g_aTblSchema = [];
   let ncCreatedProjectSchema: any = {};
@@ -351,7 +351,8 @@ export default async (
             (value as any).name
           );
         }
-        const csvOpt = "'" + opt.join("','") + "'";
+        // const csvOpt = "'" + opt.join("','") + "'";
+        const csvOpt = opt.map(v => `'${v.replace(/'/g, "\\'")}'`).join(',');
         return { type: 'select', data: csvOpt };
       }
       default:

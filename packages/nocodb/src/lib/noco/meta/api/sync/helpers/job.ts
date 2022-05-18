@@ -52,12 +52,11 @@ export default async (
   const enableErrorLogs = false;
   const process_aTblData = true;
   const generate_migrationStats = true;
-  const debugMode = true;
+  const debugMode = false;
   let api: Api<any>;
   let g_aTblSchema = [];
   let ncCreatedProjectSchema: any = {};
   const ncLinkMappingTable: any[] = [];
-  const aTblDataLinks: any[] = [];
   const nestedLookupTbl: any[] = [];
   const nestedRollupTbl: any[] = [];
   const runTimeCounters = {
@@ -93,7 +92,7 @@ export default async (
   // mapping table
   //
 
-  async function getAtableSchema(sDB) {
+  async function getAirtableSchema(sDB) {
     const start = Date.now();
     if (sDB.shareId.startsWith('exp')) {
       const template = await FetchAT.readTemplate(sDB.shareId);
@@ -109,7 +108,7 @@ export default async (
     const file = ft.schema;
     baseId = ft.baseId;
     base = new Airtable({ apiKey: sDB.apiKey }).base(baseId);
-    // store copy of atbl schema globally
+    // store copy of airtable schema globally
     g_aTblSchema = file.tableSchemas;
 
     if (debugMode) jsonfile.writeFileSync('aTblSchema.json', ft, { spaces: 2 });
@@ -164,13 +163,11 @@ export default async (
     // https://stackoverflow.com/questions/18862256/how-to-detect-emoji-using-javascript
     const regex = /(?:[\u2700-\u27bf]|(?:\ud83c[\udde6-\uddff]){2}|[\ud800-\udbff][\udc00-\udfff]|[\u0023-\u0039]\ufe0f?\u20e3|\u3299|\u3297|\u303d|\u3030|\u24c2|\ud83c[\udd70-\udd71]|\ud83c[\udd7e-\udd7f]|\ud83c\udd8e|\ud83c[\udd91-\udd9a]|\ud83c[\udde6-\uddff]|\ud83c[\ude01-\ude02]|\ud83c\ude1a|\ud83c\ude2f|\ud83c[\ude32-\ude3a]|\ud83c[\ude50-\ude51]|\u203c|\u2049|[\u25aa-\u25ab]|\u25b6|\u25c0|[\u25fb-\u25fe]|\u00a9|\u00ae|\u2122|\u2139|\ud83c\udc04|[\u2600-\u26FF]|\u2b05|\u2b06|\u2b07|\u2b1b|\u2b1c|\u2b50|\u2b55|\u231a|\u231b|\u2328|\u23cf|[\u23e9-\u23f3]|[\u23f8-\u23fa]|\ud83c\udccf|\u2934|\u2935|[\u2190-\u21ff])/g;
 
-    const col_name = name
+    return name
       .replace(/\?/g, '_')
       .replace('.', '_')
       .replace(regex, '_')
       .trim();
-
-    return col_name;
   }
 
   function nc_getSanitizedColumnName(table, name) {
@@ -247,10 +244,7 @@ export default async (
     // not migrated column, skip
     if (ncColId === undefined || ncTblId === undefined) return 0;
 
-    const ncCol = ncSchema.tablesById[ncTblId].columns.find(
-      x => x.id === ncColId
-    );
-    return ncCol;
+    return ncSchema.tablesById[ncTblId].columns.find(x => x.id === ncColId);
   }
 
   // retrieve nc table schema using table name
@@ -351,7 +345,8 @@ export default async (
             (value as any).name
           );
         }
-        const csvOpt = "'" + opt.join("','") + "'";
+        // const csvOpt = "'" + opt.join("','") + "'";
+        const csvOpt = opt.map(v => `'${v.replace(/'/g, "\\'")}'`).join(',');
         return { type: 'select', data: csvOpt };
       }
       default:
@@ -489,7 +484,7 @@ export default async (
       );
       const aTbl_grid = aTblSchema[idx].views.find(x => x.type === 'grid');
       // @ts-ignore
-      const x = await api.dbView.update(view.list[0].id, {
+      await api.dbView.update(view.list[0].id, {
         title: aTbl_grid.name
       });
       await updateNcTblSchemaById(table.id);
@@ -882,8 +877,8 @@ export default async (
     return aTbl_ncRollUp[fn];
   }
 
-  async function nocoCreateRollups(aTblSchema) {
-    // Rollups
+  async function nocoCreateRollup(aTblSchema) {
+    // Rollup
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const aTblColumns = aTblSchema[idx].columns.filter(
         x => x.type === 'rollup'
@@ -903,7 +898,7 @@ export default async (
           );
 
           // fetch associated rollup function
-          // skip column creation if supported rollup function doesnot exist
+          // skip column creation if supported rollup function does not exist
           const ncRollupFn = getRollupNcFunction(
             aTblColumns[i].typeOptions.formulaTextParsed
           );
@@ -994,7 +989,7 @@ export default async (
     syncLog(`Nested rollup: ${nestedRollupTbl.length}`);
   }
 
-  async function nocoLookupForRollups() {
+  async function nocoLookupForRollup() {
     const nestedCnt = nestedLookupTbl.length;
     for (let i = 0; i < nestedLookupTbl.length; i++) {
       syncLog(`Configuring Lookup over Rollup :: [${i + 1}/${nestedCnt}]`);
@@ -1067,7 +1062,7 @@ export default async (
   // retrieve nc-view column ID from corresponding nc-column ID
   async function nc_getViewColumnId(viewId, viewType, ncColumnId) {
     // retrieve view Info
-    let viewDetails = [];
+    let viewDetails;
 
     if (viewType === 'form')
       viewDetails = (await api.dbView.formRead(viewId)).columns;
@@ -1075,52 +1070,7 @@ export default async (
       viewDetails = (await api.dbView.galleryRead(viewId)).columns;
     else viewDetails = await api.dbView.gridColumnsList(viewId);
 
-    const viewColumnId = viewDetails.find(x => x.fk_column_id === ncColumnId)
-      ?.id;
-
-    return viewColumnId;
-  }
-
-  // @ts-ignore
-  async function nc_hideColumn(tblName, viewName, hiddenColumns, viewType?) {
-    // retrieve table schema
-    const ncTbl = await nc_getTableSchema(tblName);
-    // retrieve view ID
-    const viewId = ncTbl.views.find(x => x.title === viewName).id;
-
-    // retrieve view Info
-    let viewDetails = [];
-
-    if (viewType === 'form')
-      viewDetails = (await api.dbView.formRead(viewId)).columns;
-    else if (viewType === 'gallery')
-      viewDetails = (await api.dbView.galleryRead(viewId)).columns;
-    else viewDetails = await api.dbView.gridColumnsList(viewId);
-
-    for (let i = 0; i < hiddenColumns.length; i++) {
-      // retrieve column schema
-      const ncColumn = ncTbl.columns.find(x => x.title === hiddenColumns[i]);
-      // retrieve view column ID
-      const viewColumnId = viewDetails.find(
-        x => x.fk_column_id === ncColumn?.id
-      )?.id;
-
-      // fix me
-      if (viewColumnId === undefined) {
-        if (enableErrorLogs)
-          console.log(
-            `## Column disable fail: ${tblName}, ${viewName}, ${hiddenColumns[i]}`
-          );
-        continue;
-      }
-
-      // hide
-      syncLog(`NC API: dbViewColumn.update ${viewId}, ${ncColumn.id}`);
-      // @ts-ignore
-      const retVal = await api.dbViewColumn.update(viewId, viewColumnId, {
-        show: false
-      });
-    }
+    return viewDetails.find(x => x.fk_column_id === ncColumnId)?.id;
   }
 
   //////////  Data processing
@@ -1149,8 +1099,6 @@ export default async (
     }
   }
 
-  // fix me:
-  // instead of skipping data after retrieval, use select fields option in airtable API
   async function nocoBaseDataProcessing(sDB, table, record) {
     const recordHash = hash(record);
     const rec = record.fields;
@@ -1171,9 +1119,6 @@ export default async (
       // retrieve datatype
       const dt = table.columns.find(x => x.title === key)?.uidt;
 
-      // if(dt === undefined)
-      //   console.log('fix me')
-
       // https://www.npmjs.com/package/validator
       // default value: digits_after_decimal: [2]
       // if currency, set decimal place to 2
@@ -1182,7 +1127,6 @@ export default async (
 
       // we will pick up LTAR once all table data's are in place
       if (dt === UITypes.LinkToAnotherRecord) {
-        aTblDataLinks.push(JSON.parse(JSON.stringify(rec)));
         delete rec[key];
       }
 
@@ -1269,8 +1213,7 @@ export default async (
     // console.log(JSON.stringify(rec, null, 2))
 
     // bulk Insert
-    // @ts-ignore
-    const returnValue = await api.dbTableRow.bulkCreate(
+    await api.dbTableRow.bulkCreate(
       'nc',
       sDB.projectName,
       table.id, // encodeURIComponent(table.title),
@@ -1346,14 +1289,10 @@ export default async (
 
   //////////
 
-  function nc_isLinkExists(atblFieldId) {
-    if (
-      ncLinkMappingTable.find(
-        x => x.aTbl.typeOptions.symmetricColumnId === atblFieldId
-      )
-    )
-      return true;
-    return false;
+  function nc_isLinkExists(airtableFieldId) {
+    return !!ncLinkMappingTable.find(
+      x => x.aTbl.typeOptions.symmetricColumnId === airtableFieldId
+    );
   }
 
   async function nocoCreateProject(projName) {
@@ -1395,15 +1334,13 @@ export default async (
         syncLog(`   Axios fetch view-data`);
 
         // create view
-        // @ts-ignore
-        const vData = await getViewData(galleryViews[i].id);
+        await getViewData(galleryViews[i].id);
         const viewName = aTblSchema[idx].views.find(
           x => x.id === galleryViews[i].id
         )?.name;
 
         syncLog(`   Create NC View :: ${viewName}`);
-        // @ts-ignore
-        const g = await api.dbView.galleryCreate(tblId, { title: viewName });
+        await api.dbView.galleryCreate(tblId, { title: viewName });
         await updateNcTblSchemaById(tblId);
         // syncLog(`[${idx+1}/${aTblSchema.length}][Gallery View][${i+1}/${galleryViews.length}] Create ${viewName}`)
 
@@ -1458,10 +1395,8 @@ export default async (
           heading: viewName,
           subheading: desc,
           success_msg: msg,
-          submit_another_form: refreshMode.includes('REFRESH_BUTTON')
-            ? true
-            : false,
-          show_blank_form: refreshMode.includes('AUTO_REFRESH') ? true : false
+          submit_another_form: refreshMode.includes('REFRESH_BUTTON'),
+          show_blank_form: refreshMode.includes('AUTO_REFRESH')
         };
 
         syncLog(`   Create NC View :: ${viewName}`);
@@ -1575,7 +1510,7 @@ export default async (
     const totalUsers = Object.keys(userList).length;
     let cnt = 0;
 
-    for (const [_key, value] of Object.entries(
+    for (const [, value] of Object.entries(
       userList as { [key: string]: any }
     )) {
       syncLog(`[${++cnt}/${totalUsers}] Configuring User :: ${value.email}`);
@@ -1601,15 +1536,6 @@ export default async (
   async function updateNcTblSchemaById(tblId) {
     const ncTbl = await api.dbTable.read(tblId);
     updateNcTblSchema(ncTbl);
-  }
-
-  // @ts-ignore
-  async function nocoReadNcSchema() {
-    const tableList = await api.dbTable.list(ncCreatedProjectSchema.id);
-    for (let tblCnt = 0; tblCnt < tableList.list.length; tblCnt++) {
-      const tblSchema = await api.dbTable.read(tableList.list[tblCnt].id);
-      updateNcTblSchema(tblSchema);
-    }
   }
 
   ///////////////////////
@@ -1641,24 +1567,24 @@ export default async (
       const aTblLinkColumns = aTblSchema[idx].columns.filter(
         x => x.type === 'foreignKey'
       );
-      const aTblLookups = aTblSchema[idx].columns.filter(
+      const aTblLookup = aTblSchema[idx].columns.filter(
         x => x.type === 'lookup'
       );
-      const aTblRollups = aTblSchema[idx].columns.filter(
+      const aTblRollup = aTblSchema[idx].columns.filter(
         x => x.type === 'rollup'
       );
 
       let invalidColumnId = 0;
-      for (let i = 0; i < aTblLookups.length; i++) {
+      for (let i = 0; i < aTblLookup.length; i++) {
         if (
-          aTblLookups[i]?.typeOptions?.dependencies?.invalidColumnIds?.length
+          aTblLookup[i]?.typeOptions?.dependencies?.invalidColumnIds?.length
         ) {
           invalidColumnId++;
         }
       }
-      for (let i = 0; i < aTblRollups.length; i++) {
+      for (let i = 0; i < aTblRollup.length; i++) {
         if (
-          aTblRollups[i]?.typeOptions?.dependencies?.invalidColumnIds?.length
+          aTblRollup[i]?.typeOptions?.dependencies?.invalidColumnIds?.length
         ) {
           invalidColumnId++;
         }
@@ -1666,8 +1592,8 @@ export default async (
 
       migrationStatsObj.aTbl.columns = aTblSchema[idx].columns.length;
       migrationStatsObj.aTbl.links = aTblLinkColumns.length;
-      migrationStatsObj.aTbl.lookup = aTblLookups.length;
-      migrationStatsObj.aTbl.rollup = aTblRollups.length;
+      migrationStatsObj.aTbl.lookup = aTblLookup.length;
+      migrationStatsObj.aTbl.rollup = aTblRollup.length;
 
       const ncTbl = await nc_getTableSchema(aTblSchema[idx].name);
       const linkColumn = ncTbl.columns.filter(
@@ -1755,7 +1681,6 @@ export default async (
         );
         continue;
       }
-
       const columnId = colSchema.id;
       const datatype = colSchema.uidt;
       const ncFilters = [];
@@ -1839,14 +1764,6 @@ export default async (
     // force hide PK column
     const hiddenColumns = ['_aTbl_nc_rec_id', '_aTbl_nc_rec_hash'];
 
-    // // extract other columns hidden in this view
-    // const hiddenColumnID = c.filter(x => x.visibility === false);
-    // for (let j = 0; j < hiddenColumnID.length; j++) {
-    //   hiddenColumns.push(aTbl_getColumnName(hiddenColumnID[j].columnId).cn);
-    // }
-
-    // await nc_hideColumn(tblName, viewName, hiddenColumns, viewType);
-
     // column order corrections
     // retrieve table schema
     const ncTbl = await nc_getTableSchema(tblName);
@@ -1908,7 +1825,7 @@ export default async (
 
     progress('Project schema extraction started');
     // read schema file
-    const schema = await getAtableSchema(syncDB);
+    const schema = await getAirtableSchema(syncDB);
     const aTblSchema = schema.tableSchemas;
     progress('Project schema extraction completed');
 
@@ -1941,12 +1858,12 @@ export default async (
 
     progress('Migrating Rollup columns');
     // add roll-ups
-    await nocoCreateRollups(aTblSchema);
+    await nocoCreateRollup(aTblSchema);
     progress('Migrating Rollup columns completed');
 
     progress('Migrating Lookup form Rollup columns');
-    // lookups for rollups
-    await nocoLookupForRollups();
+    // lookups for rollup
+    await nocoLookupForRollup();
     progress('Migrating Lookup form Rollup columns completed');
 
     progress('Configuring primary value column');

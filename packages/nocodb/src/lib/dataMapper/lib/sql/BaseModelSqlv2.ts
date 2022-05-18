@@ -102,6 +102,16 @@ class BaseModelSqlv2 {
     return data;
   }
 
+  public async exist(id?: any): Promise<any> {
+    const qb = this.dbDriver(this.model.table_name);
+    await this.selectObject({ qb });
+    const pks = this.model.primaryKeys;
+    if ((id + '').split('___').length != pks.length) {
+      return false;
+    }
+    return !!(await qb.where(_wherePk(pks, id)).first());
+  }
+
   public async findOne(
     args: {
       where?: string;

@@ -2262,30 +2262,6 @@ export class Api<
      * No description
      *
      * @tags DB table row
-     * @name Count
-     * @summary table rows count
-     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/count
-     * @response `200` `any` OK
-     */
-    count: (
-      orgs: string,
-      projectName: string,
-      tableName: string,
-      query?: { where?: string; nested?: any },
-      params: RequestParams = {}
-    ) =>
-      this.request<any, any>({
-        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/count`,
-        method: 'GET',
-        query: query,
-        format: 'json',
-        ...params,
-      }),
-
-    /**
-     * No description
-     *
-     * @tags DB table row
      * @name Read
      * @summary Table row read
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
@@ -2350,6 +2326,29 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description check row with provided primary key exists or not
+     *
+     * @tags DB table row
+     * @name Exist
+     * @summary Table row exist
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist
+     * @response `201` `any` Created
+     */
+    exist: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      rowId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/${rowId}/exist`,
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -2782,6 +2781,30 @@ export class Api<
       this.request<void, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}`,
         method: 'DELETE',
+        ...params,
+      }),
+
+    /**
+     * @description check row with provided primary key exists or not
+     *
+     * @tags DB view row
+     * @name Exist
+     * @summary Table view row exist
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist
+     * @response `201` `any` Created
+     */
+    exist: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      rowId: string,
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/${rowId}/exist`,
+        method: 'GET',
+        format: 'json',
         ...params,
       }),
 

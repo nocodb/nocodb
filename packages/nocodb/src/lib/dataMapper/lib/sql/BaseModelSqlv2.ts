@@ -241,9 +241,11 @@ class BaseModelSqlv2 {
 
     console.log(qb.toQuery());
 
-    const data = await this.dbDriver.raw(qb.toQuery());
+    const data = await this.dbDriver.from(
+      this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
+    );
 
-    return (await data?.[0]).map(d => {
+    return data?.map(d => {
       d.__proto__ = proto;
       return d;
     });

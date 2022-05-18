@@ -54,6 +54,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Delete| dbTableRow | bulkDeleteAll | /api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}/all |
 | Data | Get | dbTableRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
 | Data | Get | dbTableRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one |
+| Data | Get | dbTableRow | exist | /api/v1/db/data/{orgs}/{projectName}/{tableName}/exist |
 | Data | Post | dbTableRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
 | Data | Get | dbTableRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Patch | dbTableRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
@@ -61,6 +62,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Get | dbTableRow | count | /api/v1/db/data/{orgs}/{projectName}/{tableName}/count |
 | Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
 | Data | Get | dbViewRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one |
+| Data | Get | dbViewRow | exist | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/exist |
 | Data | Post | dbViewRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
 | Data | Get | dbViewRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
 | Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |

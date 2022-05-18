@@ -239,8 +239,6 @@ class BaseModelSqlv2 {
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
 
-    console.log(qb.toQuery());
-
     const data = await this.dbDriver.from(
       this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
     );
@@ -357,7 +355,6 @@ class BaseModelSqlv2 {
   async multipleHmList({ colId, ids }, args?: { limit?; offset? }) {
     try {
       // todo: get only required fields
-      let fields = '*';
 
       // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
       const relColumn = (await this.model.getColumns()).find(
@@ -373,14 +370,6 @@ class BaseModelSqlv2 {
         dbDriver: this.dbDriver
       });
       await parentTable.getColumns();
-      // if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-      //   fields += ',' + cn;
-      // }
-
-      fields = fields
-        .split(',')
-        .map(c => `${chilCol.column_name}.${c}`)
-        .join(',');
 
       const qb = this.dbDriver(childTable.table_name);
       await childModel.selectObject({ qb });
@@ -410,8 +399,9 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
-      const children = await childQb;
-
+      const children = await this.dbDriver.from(
+        this.dbDriver.raw(childQb.toString()).wrap('(', ') __nc_alias')
+      );
       const proto = await (
         await Model.getBaseModelSQL({
           id: childTable.id,
@@ -471,19 +461,8 @@ class BaseModelSqlv2 {
 
   async hmList({ colId, id }, args?: { limit?; offset? }) {
     try {
-      // const {
-      //   where,
-      //   limit,
-      //   offset,
-      //   conditionGraph,
-      //   sort
-      //   // ...restArgs
-      // } = this.dbModels[child]._getChildListArgs(args);
-      // let { fields } = restArgs;
       // todo: get only required fields
-      let fields = '*';
 
-      // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
       const relColumn = (await this.model.getColumns()).find(
         c => c.id === colId
       );
@@ -497,14 +476,6 @@ class BaseModelSqlv2 {
         dbDriver: this.dbDriver
       });
       await parentTable.getColumns();
-      // if (fields !== '*' && fields.split(',').indexOf(cn) === -1) {
-      //   fields += ',' + cn;
-      // }
-
-      fields = fields
-        .split(',')
-        .map(c => `${chilCol.column_name}.${c}`)
-        .join(',');
 
       const qb = this.dbDriver(childTable.table_name);
 
@@ -521,7 +492,9 @@ class BaseModelSqlv2 {
 
       await childModel.selectObject({ qb });
 
-      const children = await qb;
+      const children = await this.dbDriver.from(
+        this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
+      );
 
       const proto = await (
         await Model.getBaseModelSQL({
@@ -669,7 +642,9 @@ class BaseModelSqlv2 {
     qb.limit(args?.limit || 20);
     qb.offset(args?.offset || 0);
 
-    const children = await qb;
+    const children = await this.dbDriver.from(
+      this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
+    );
     const proto = await (
       await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
@@ -2163,7 +2138,7 @@ function getCompositePk(primaryKeys: Column[], row) {
 }
 
 function sanitize(v) {
-  return v?.replace(/\?/g, '\\?');
+  return v?.replace(/[?:]/g, '\\$&');
 }
 
 export { BaseModelSqlv2 };

@@ -2259,6 +2259,30 @@ export class Api<
       }),
 
     /**
+     * @description check if table row with conditions exists or not
+     *
+     * @tags DB table row
+     * @name Exist
+     * @summary Table row Exist
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/exist
+     * @response `200` `any` OK
+     */
+    exist: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      query?: { fields?: any[]; sort?: any[]; where?: string },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/exist`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags DB table row
@@ -2680,6 +2704,31 @@ export class Api<
     ) =>
       this.request<any, any>({
         path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/find-one`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * @description check if table row with conditions exists or not
+     *
+     * @tags DB view row
+     * @name Exist
+     * @summary Table view row Exist
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/exist
+     * @response `200` `any` OK
+     */
+    exist: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      viewName: string,
+      query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/views/${viewName}/exist`,
         method: 'GET',
         query: query,
         format: 'json',

@@ -102,6 +102,13 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     }
   }
 
+  // validate table name
+  if (/^\s+|\s+$/.test(req.body.table_name)) {
+    NcError.badRequest(
+      'Leading or trailing whitespace not allowed in table names'
+    );
+  }
+
   if (
     !(await Model.checkTitleAvailable({
       table_name: req.body.table_name,

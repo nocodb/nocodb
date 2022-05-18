@@ -197,7 +197,7 @@ export default {
   },
   watch: {
     'table.alias'(v) {
-      this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`)
+      this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v.replace(/^\s+|\s+$/g, m => new Array(m.length).fill('_').join('')))}`)
     }
   },
   created() {
@@ -222,6 +222,9 @@ export default {
     },
     validateDuplicateAlias(v) {
       return (this.tables || []).every(t => t.title !== (v || '')) || 'Duplicate table alias'
+    },
+    validateLedingOrTrailingWhiteSpace(v) {
+      return !/^\s+|\s+$/.test(v) || 'Leading or trailing whitespace not allowed in table name'
     },
     validateDuplicate(v) {
       return (this.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'

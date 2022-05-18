@@ -1103,7 +1103,7 @@ export default {
               'noco',
               this.projectName,
               this.meta.title,
-              this.selectedView.title,
+              encodeURIComponent(this.selectedView.title),
               insertObj
             )
 

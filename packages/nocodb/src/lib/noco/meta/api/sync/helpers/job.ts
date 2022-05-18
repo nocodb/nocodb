@@ -16,7 +16,7 @@ dayjs.extend(utc);
 
 export default async (
   syncDB: AirtableSyncConfig,
-  progress: (msg: string) => void
+  progress: (data: { msg?: string; level?: any }) => void
 ) => {
   const sMap = {
     mapTbl: {},
@@ -1815,7 +1815,7 @@ export default async (
   ///////////////////////////////////////////////////////////////////////////////
   try {
     syncLog = progress;
-    progress('SDK initialized');
+    progress({ msg: 'SDK initialized' });
     api = new Api({
       baseURL: syncDB.baseURL,
       headers: {
@@ -1823,74 +1823,74 @@ export default async (
       }
     });
 
-    progress('Project initialization started');
+    progress({ msg: 'Project initialization started' });
     // delete project if already exists
     if (debugMode) await init(syncDB);
 
-    progress('Project initialized');
+    progress({ msg: 'Project initialized' });
 
-    progress('Project schema extraction started');
+    progress({ msg: 'Project schema extraction started' });
     // read schema file
     const schema = await getAirtableSchema(syncDB);
     const aTblSchema = schema.tableSchemas;
-    progress('Project schema extraction completed');
+    progress({ msg: 'Project schema extraction completed' });
 
     if (!syncDB.projectId) {
       if (!syncDB.projectName)
         throw new Error('Project name or id not provided');
       // create empty project
       await nocoCreateProject(syncDB.projectName);
-      progress('Project created');
+      progress({ msg: 'Project created' });
     } else {
       await nocoGetProject(syncDB.projectId);
       syncDB.projectName = ncCreatedProjectSchema?.title;
-      progress('Getting existing project meta');
+      progress({ msg: 'Getting existing project meta' });
     }
 
-    progress('Table creation started');
+    progress({ msg: 'Table creation started' });
     // prepare table schema (base)
     await nocoCreateBaseSchema(aTblSchema);
-    progress('Table creation completed');
+    progress({ msg: 'Table creation completed' });
 
-    progress('Migrating LTAR columns');
+    progress({ msg: 'Migrating LTAR columns' });
     // add LTAR
     await nocoCreateLinkToAnotherRecord(aTblSchema);
-    progress('Migrating LTAR columns completed');
+    progress({ msg: 'Migrating LTAR columns completed' });
 
-    progress('Migrating Lookup columns');
+    progress({ msg: 'Migrating Lookup columns' });
     // add look-ups
     await nocoCreateLookups(aTblSchema);
-    progress('Migrating Lookup columns completed');
+    progress({ msg: 'Migrating Lookup columns completed' });
 
-    progress('Migrating Rollup columns');
+    progress({ msg: 'Migrating Rollup columns' });
     // add roll-ups
     await nocoCreateRollup(aTblSchema);
-    progress('Migrating Rollup columns completed');
+    progress({ msg: 'Migrating Rollup columns completed' });
 
-    progress('Migrating Lookup form Rollup columns');
+    progress({ msg: 'Migrating Lookup form Rollup columns' });
     // lookups for rollup
     await nocoLookupForRollup();
-    progress('Migrating Lookup form Rollup columns completed');
+    progress({ msg: 'Migrating Lookup form Rollup columns completed' });
 
-    progress('Configuring primary value column');
+    progress({ msg: 'Configuring primary value column' });
     // configure primary values
     await nocoSetPrimary(aTblSchema);
-    progress('Configuring primary value column completed');
+    progress({ msg: 'Configuring primary value column completed' });
 
-    progress('Adding users');
+    progress({ msg: 'Adding users' });
     // add users
     await nocoAddUsers(schema);
-    progress('Adding users completed');
+    progress({ msg: 'Adding users completed' });
 
     // hide-fields
     // await nocoReconfigureFields(aTblSchema);
 
-    progress('Syncing views');
+    progress({ msg: 'Syncing views' });
     // configure views
     await nocoConfigureGridView(syncDB, aTblSchema);
     await nocoConfigureFormView(syncDB, aTblSchema);
     await nocoConfigureGalleryView(syncDB, aTblSchema);
-    progress('Syncing views completed');
+    progress({ msg: 'Syncing views completed' });
 
     if (process_aTblData) {
       try {
@@ -1898,15 +1898,17 @@ export default async (
         const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
         for (let i = 0; i < ncTblList.list.length; i++) {
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-          progress(`Reading data from ${ncTbl.title}`);
+          progress({ msg: `Reading data from ${ncTbl.title}` });
           let c = 0;
           await nocoReadData(syncDB, ncTbl, async (sDB, table, record) => {
-            progress(
-              `Processing records from ${ncTbl.title} : ${c} - ${(c += 25)}`
-            );
+            progress({
+              msg: `Processing records from ${
+                ncTbl.title
+              } : ${c} - ${(c += 25)}`
+            });
             await nocoBaseDataProcessing(sDB, table, record);
           });
-          progress(`Data inserted from ${ncTbl.title}`);
+          progress({ msg: `Data inserted from ${ncTbl.title}` });
         }
 
         // Configure link @ Data row's
@@ -1915,26 +1917,28 @@ export default async (
           const ncTbl = await nc_getTableSchema(
             aTbl_getTableName(x.aTbl.tblId).tn
           );
-          progress(`Linking data to ${ncTbl.title}`);
+          progress({ msg: `Linking data to ${ncTbl.title}` });
           let c = 0;
           await nocoReadDataSelected(
             syncDB.projectName,
             ncTbl,
             async (projName, table, record, _field) => {
-              progress(
-                `Mapping LTAR records from ${ncTbl.title} : ${c} - ${(c += 25)}`
-              );
+              progress({
+                msg: `Mapping LTAR records from ${
+                  ncTbl.title
+                } : ${c} - ${(c += 25)}`
+              });
               await nocoLinkProcessing(projName, table, record, _field);
             },
             x.aTbl.name
           );
-          progress(`Linked data to ${ncTbl.title}`);
+          progress({ msg: `Linked data to ${ncTbl.title}` });
         }
       } catch (error) {
-        progress(
-          `There was an error while migrating data! Please make sure your API key (${syncDB.apiKey}) is correct.`
-        );
-        progress(`Error: ${error}`);
+        progress({
+          msg: `There was an error while migrating data! Please make sure your API key (${syncDB.apiKey}) is correct.`
+        });
+        progress({ msg: `Error: ${error}` });
       }
     }
     if (generate_migrationStats) {

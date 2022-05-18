@@ -20,7 +20,8 @@ export default (router: Router, clients: { [id: string]: Socket }) => {
   NocoJobs.jobsMgr.addJobWorker(AIRTABLE_IMPORT_JOB, job);
   NocoJobs.jobsMgr.addProgressCbk(AIRTABLE_IMPORT_JOB, (payload, progress) => {
     clients?.[payload?.id]?.emit('progress', {
-      msg: progress,
+      msg: progress?.message,
+      level: progress?.level,
       status: SyncStatus.PROGRESS
     });
   });

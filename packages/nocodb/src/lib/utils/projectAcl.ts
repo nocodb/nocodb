@@ -23,6 +23,7 @@ export default {
     dataRead: true,
     dataExist: true,
     dataFindOne: true,
+    dataGroupBy: true,
     commentsCount: true,
     exportCsv: true,
 
@@ -157,6 +158,7 @@ export default {
     dataRead: true,
     dataExist: true,
     dataFindOne: true,
+    dataGroupBy: true,
     commentsCount: true,
 
     xcTableAndViewList: true,
@@ -194,6 +196,7 @@ export default {
     dataRead: true,
     dataExist: true,
     dataFindOne: true,
+    dataGroupBy: true,
     commentsCount: true,
     exportCsv: true,
 

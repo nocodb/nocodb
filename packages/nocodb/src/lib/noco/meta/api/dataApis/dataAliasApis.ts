@@ -20,6 +20,11 @@ async function dataFindOne(req: Request, res: Response) {
   res.json(await getFindOne(model, view, req));
 }
 
+async function dataGroupBy(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+  res.json(await getDataGroupBy(model, view, req));
+}
+
 async function dataCount(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -138,6 +143,25 @@ async function getFindOne(model, view: View, req) {
   );
 }
 
+async function getDataGroupBy(model, view: View, req) {
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base)
+  });
+
+  const listArgs: any = { ...req.query };
+  const data = await baseModel.groupBy({ ...req.query });
+  const count = await baseModel.count(listArgs);
+
+  return new PagedResponseImpl(data, {
+    ...req.query,
+    count
+  });
+}
+
 async function dataRead(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -185,6 +209,12 @@ router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/find-one',
   apiMetrics,
   ncMetaAclMw(dataFindOne, 'dataFindOne')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/groupby',
+  apiMetrics,
+  ncMetaAclMw(dataGroupBy, 'dataGroupBy')
 );
 
 router.get(
@@ -240,6 +270,12 @@ router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/find-one',
   apiMetrics,
   ncMetaAclMw(dataFindOne, 'dataFindOne')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/groupby',
+  apiMetrics,
+  ncMetaAclMw(dataGroupBy, 'dataGroupBy')
 );
 
 router.get(

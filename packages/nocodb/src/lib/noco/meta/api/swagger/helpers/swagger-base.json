@@ -33,6 +33,20 @@
             "type": "number"
           }
         }
+      },
+      "Groupby": {
+        "title": "Groupby",
+        "type": "object",
+        "properties": {
+          "count": {
+            "type": "number",
+            "description": "count"
+          },
+          "column_name": {
+            "type": "string",
+            "description": "the value of the given column"
+          }
+        }
       }
     },
     "securitySchemes": {

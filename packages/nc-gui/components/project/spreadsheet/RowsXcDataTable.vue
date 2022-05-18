@@ -80,17 +80,6 @@
             :view-id="selectedViewId"
             @updated="loadTableData"
           />
-
-          <sort-list
-            v-if="!isForm"
-            v-model="sortList"
-            :is-locked="isLocked"
-            :meta="meta"
-            :view-id="selectedViewId"
-            @updated="loadTableData"
-          />
-          <!--        v-model="sortList"-->
-          <!--        :field-list="[...realFieldList, ...formulaFieldList]"-->
           <column-filter
             v-if="!isForm"
             v-model="filters"
@@ -98,6 +87,14 @@
             :is-locked="isLocked"
             :field-list="[...realFieldList, ...formulaFieldList]"
             dense
+            :view-id="selectedViewId"
+            @updated="loadTableData"
+          />
+          <sort-list
+            v-if="!isForm"
+            v-model="sortList"
+            :is-locked="isLocked"
+            :meta="meta"
             :view-id="selectedViewId"
             @updated="loadTableData"
           />

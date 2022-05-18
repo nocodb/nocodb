@@ -2,6 +2,7 @@
   <v-dialog
     v-model="userEditDialog"
     :width="invite_token ? 700 : 700"
+    transition="dialog-top-transition"
     @close="invite_token = null"
   >
     <v-card v-if="selectedUser" style="min-height: 100%" class="elevation-0">

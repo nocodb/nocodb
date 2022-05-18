@@ -319,7 +319,7 @@
 import dayjs from 'dayjs'
 import {
   AuditOperationSubTypes,
-  AuditOperationTypes,
+  AuditOperationTypes, isSystemColumn,
   isVirtualCol,
   UITypes
 } from 'nocodb-sdk'
@@ -403,20 +403,14 @@ export default {
       if (this.availableColumns) {
         return this.availableColumns
       }
-
-      const hideCols = ['created_at', 'updated_at']
-
+      //
+      // const hideCols = ['created_at', 'updated_at']
       if (this.showSystemFields) {
         return this.meta.columns || []
       } else {
         return (
           this.meta.columns.filter(
-            c =>
-              !(c.pk && c.ai) &&
-              !hideCols.includes(c.column_name) &&
-              !(this.meta.v || []).some(
-                v => v.bt && v.bt.column_name === c.column_name
-              )
+            c => !isSystemColumn(c)
           ) || []
         )
       }

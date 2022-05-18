@@ -249,15 +249,11 @@ export default {
       return this.selectedChild && !this.isPublic ? () => import('~/components/project/spreadsheet/components/ExpandedForm') : 'span'
     },
     childAvailableColumns() {
-      // const hideCols = ['created_at', 'updated_at']
       if (!this.childMeta) { return [] }
 
       const columns = []
       if (this.childMeta.columns) {
         columns.push(...this.childMeta.columns.filter(c => !isSystemColumn(c)))
-      }
-      if (this.childMeta.v) {
-        columns.push(...this.childMeta.v.map(v => ({ ...v, virtual: 1 })))
       }
       return columns
     },

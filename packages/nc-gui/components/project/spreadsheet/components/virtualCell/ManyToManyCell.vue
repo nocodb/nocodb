@@ -126,7 +126,7 @@
 </template>
 
 <script>
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { isSystemColumn, RelationTypes, UITypes } from 'nocodb-sdk'
 import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel'
 import ListItems from '~/components/project/spreadsheet/components/virtualCell/components/ListItems'
 import ListChildItems from '~/components/project/spreadsheet/components/virtualCell/components/ListChildItems'
@@ -258,15 +258,11 @@ export default {
       // }
     },
     childAvailableColumns() {
-      const hideCols = ['created_at', 'updated_at']
       if (!this.childMeta) { return [] }
 
       const columns = []
       if (this.childMeta.columns) {
-        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.column_name) && !((this.childMeta.v || []).some(v => v.bt && v.bt.column_name === c.column_name))))
-      }
-      if (this.childMeta.v) {
-        columns.push(...this.childMeta.v.map(v => ({ ...v, virtual: 1 })))
+        columns.push(...this.childMeta.columns.filter(c => !isSystemColumn(c)))
       }
       return columns
     },

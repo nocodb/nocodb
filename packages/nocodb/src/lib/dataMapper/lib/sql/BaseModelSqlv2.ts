@@ -239,7 +239,11 @@ class BaseModelSqlv2 {
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
 
-    return (await qb).map(d => {
+    console.log(qb.toQuery());
+
+    const data = await this.dbDriver.raw(qb.toQuery());
+
+    return (await data?.[0]).map(d => {
       d.__proto__ = proto;
       return d;
     });

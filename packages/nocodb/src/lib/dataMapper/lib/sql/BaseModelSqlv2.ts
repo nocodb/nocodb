@@ -1188,7 +1188,7 @@ class BaseModelSqlv2 {
           break;
         default:
           res[
-            column.title || column.column_name
+            (column.title || column.column_name).replace(/\?/g, '\\?')
           ] = `${this.model.table_name}.${column.column_name}`;
           break;
       }

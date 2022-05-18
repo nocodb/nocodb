@@ -73,15 +73,15 @@ export default async (
       count: 0,
       time: 0
     },
-    columnNotMigrated: {
+    migrationSkipLog: {
       count: 0,
       log: []
     }
   };
 
-  function addToSkipColumnLog(tbl, col, type, reason?) {
-    runTimeCounters.columnNotMigrated.count++;
-    runTimeCounters.columnNotMigrated.log.push(
+  function updateMigrationSkipLog(tbl, col, type, reason?) {
+    runTimeCounters.migrationSkipLog.count++;
+    runTimeCounters.migrationSkipLog.log.push(
       `tn[${tbl}] cn[${col}] type[${type}] :: ${reason}`
     );
   }
@@ -305,6 +305,7 @@ export default async (
           ncType = UITypes.Duration;
         else if (col.typeOptions?.format === 'currency')
           ncType = UITypes.Currency;
+        else if (col.typeOptions?.precision > 0) ncType = UITypes.Decimal;
         break;
 
       case 'formula':
@@ -411,7 +412,7 @@ export default async (
         // not supported datatype: pure formula field
         // allow formula based computed fields (created time/ modified time to go through)
         if (ncCol.uidt === UITypes.Formula) {
-          addToSkipColumnLog(
+          updateMigrationSkipLog(
             tblSchema[i].name,
             ncName.title,
             col.type,
@@ -736,7 +737,7 @@ export default async (
             if (enableErrorLogs)
               console.log(`## Invalid column IDs mapped; skip`);
 
-            addToSkipColumnLog(
+            updateMigrationSkipLog(
               srcTableSchema.title,
               aTblColumns[i].name,
               aTblColumns[i].type,
@@ -794,7 +795,7 @@ export default async (
           const fTblField =
             nestedLookupTbl[i].typeOptions.foreignTableRollupColumnId;
           const name = aTbl_getColumnName(fTblField);
-          addToSkipColumnLog(
+          updateMigrationSkipLog(
             ncSchema.tablesById[nestedLookupTbl[i].srcTableId]?.title,
             nestedLookupTbl[i].name,
             nestedLookupTbl[i].type,
@@ -908,7 +909,7 @@ export default async (
           );
 
           if (ncRollupFn === '') {
-            addToSkipColumnLog(
+            updateMigrationSkipLog(
               srcTableSchema.title,
               aTblColumns[i].name,
               aTblColumns[i].type,
@@ -924,7 +925,7 @@ export default async (
             if (enableErrorLogs)
               console.log(`## Invalid column IDs mapped; skip`);
 
-            addToSkipColumnLog(
+            updateMigrationSkipLog(
               srcTableSchema.title,
               aTblColumns[i].name,
               aTblColumns[i].type,
@@ -943,6 +944,24 @@ export default async (
           if (ncRollupColumnId === undefined) {
             aTblColumns[i]['srcTableId'] = srcTableId;
             nestedRollupTbl.push(aTblColumns[i]);
+            continue;
+          }
+
+          // skip, if rollup column was pointing to another virtual column
+          const ncColSchema = await nc_getColumnSchema(
+            aTblColumns[i].typeOptions.foreignTableRollupColumnId
+          );
+          if (
+            ncColSchema?.uidt === UITypes.Formula ||
+            ncColSchema?.uidt === UITypes.Lookup ||
+            ncColSchema?.uidt === UITypes.Rollup
+          ) {
+            updateMigrationSkipLog(
+              srcTableSchema.title,
+              aTblColumns[i].name,
+              aTblColumns[i].type,
+              'rollup referring to a lookup column'
+            );
             continue;
           }
 
@@ -1190,6 +1209,8 @@ export default async (
         rec[key] = atDateField.utc().format('YYYY-MM-DD HH:mm');
       }
 
+      if (dt === UITypes.MultiSelect) rec[key] = value.join(',');
+
       if (dt === UITypes.Attachment) {
         const tempArr = [];
         for (const v of value) {
@@ -1424,11 +1445,12 @@ export default async (
         // response will not include form object if everything is default
         //
         if (vData.metadata?.form) {
-          refreshMode = vData.metadata.form.refreshAfterSubmit;
-          msg = vData.metadata.form?.afterSubmitMessage
-            ? vData.metadata.form.afterSubmitMessage
-            : 'Thank you for submitting the form!';
-          desc = vData.metadata.form.description;
+          if (vData.metadata.form?.refreshAfterSubmit)
+            refreshMode = vData.metadata.form.refreshAfterSubmit;
+          if (vData.metadata.form?.afterSubmitMessage)
+            msg = vData.metadata.form.afterSubmitMessage;
+          if (vData.metadata.form?.description)
+            desc = vData.metadata.form.description;
         }
 
         const formData = {
@@ -1490,7 +1512,7 @@ export default async (
           x => x.id === gridViews[i].id
         )?.name;
         const viewList: any = await api.dbView.list(tblId);
-        const ncViewId = viewList?.list?.find(x => x.tn === viewName)?.id;
+        let ncViewId = viewList?.list?.find(x => x.tn === viewName)?.id;
 
         // create view (default already created)
         if (i > 0) {
@@ -1506,6 +1528,7 @@ export default async (
             tblId
           );
           // syncLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Create ${viewName}`)
+          ncViewId = viewCreated.id;
         }
 
         // syncLog(`[${idx+1}/${aTblSchema.length}][Grid View][${i+1}/${gridViews.length}] Hide columns ${viewName}`)
@@ -1724,8 +1747,11 @@ export default async (
       // column not available;
       // one of not migrated column;
       if (!colSchema) {
-        addUserInfo(
-          `Filter configuration partial: ${sMap.getNcNameFromAtId(viewId)}`
+        updateMigrationSkipLog(
+          sMap.getNcNameFromAtId(viewId),
+          colSchema.title,
+          colSchema.uidt,
+          `filter config skipped; column not migrated`
         );
         continue;
       }
@@ -1737,8 +1763,11 @@ export default async (
       // console.log(filter)
       if (datatype === UITypes.Date) {
         // skip filters over data datatype
-        addUserInfo(
-          `Filter configuration partial: ${sMap.getNcNameFromAtId(viewId)}`
+        updateMigrationSkipLog(
+          sMap.getNcNameFromAtId(viewId),
+          colSchema.title,
+          colSchema.uidt,
+          `filter config skipped; filter over date datatype not supported`
         );
         continue;
       }
@@ -1861,12 +1890,6 @@ export default async (
   }
 
   ///////////////////////////////////////////////////////////////////////////////
-  const userInfo = [];
-
-  function addUserInfo(log) {
-    userInfo.push(log);
-  }
-
   try {
     syncLog = progress;
     progress('SDK initialized');

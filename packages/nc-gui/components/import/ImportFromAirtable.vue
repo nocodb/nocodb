@@ -5,7 +5,7 @@
         <h3 class="mt-2">
           {{ $t('title.importFromAirtable') }}
         </h3>
-        <div v-t="['c:airtable-import:turbo-mode']" class="ml-2 mt-3 title pointer" @click="enableTurbo">
+        <div v-t="['c:airtable-import:turbo-mode']" class="ml-2 mt-3 title pointer nc-btn-enable-turbo" @click="enableTurbo">
           🚀
         </div>
         <v-spacer />
@@ -30,7 +30,7 @@
                   outlined
                   dense
                   label="Api Key"
-                  class="caption"
+                  class="caption nc-input-api-key"
                   :type="isPasswordVisible ? 'text':'password'"
                   :rules="[v=> !!v || 'Api Key is required']"
                 >
@@ -45,13 +45,14 @@
                   outlined
                   dense
                   label="Shared Base ID / URL"
-                  class="caption"
+                  class="caption nc-input-shared-base"
                   :rules="[(v) => !!v || 'Shared Base ID / URL is required']"
                 />
               </div>
             </v-form>   <v-card-actions class="justify-center pb-6">
               <v-btn
                 v-t="['c:sync-airtable:save-and-sync']"
+                class="nc-btn-airtable-import"
                 :disabled="!valid"
                 large
                 color="primary"
@@ -103,7 +104,7 @@
               v-if="progress && progress.length && progress[progress.length-1].status === 'COMPLETED'"
               class="pa-4 pt-8 text-center"
             >
-              <v-btn large color="primary" @click="airtableModal=false">
+              <v-btn large color="primary" class="nc-btn-go-dashboard" @click="airtableModal=false">
                 Go to dashboard
               </v-btn>
             </div>

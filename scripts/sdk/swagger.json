@@ -2600,136 +2600,6 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/exist": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Table row Exist",
-        "operationId": "db-table-row-exist",
-        "description": "check if table row with conditions exists or not",
-        "tags": [
-          "DB table row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/count": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "table rows count",
-        "operationId": "db-table-row-count",
-        "description": "",
-        "tags": [
-          "DB table row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {},
-            "in": "query",
-            "name": "nested",
-            "description": "Query params for nested data"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}": {
       "parameters": [
         {
@@ -2876,89 +2746,6 @@
         "summary": "Table view row FindOne",
         "operationId": "db-view-row-find-one",
         "description": "",
-        "tags": [
-          "DB view row"
-        ],
-        "parameters": [
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "fields"
-          },
-          {
-            "schema": {
-              "type": "array"
-            },
-            "in": "query",
-            "name": "sort"
-          },
-          {
-            "schema": {
-              "type": "string"
-            },
-            "in": "query",
-            "name": "where"
-          },
-          {
-            "schema": {},
-            "in": "query",
-            "name": "nested",
-            "description": "Query params for nested data"
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {}
-              }
-            }
-          }
-        }
-      }
-    },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/exist": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "orgs",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "projectName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "tableName",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "viewName",
-          "in": "path",
-          "required": true
-        }
-      ],
-      "get": {
-        "summary": "Table view row Exist",
-        "operationId": "db-view-row-exist",
-        "description": "check if table row with conditions exists or not",
         "tags": [
           "DB view row"
         ],
@@ -3171,6 +2958,68 @@
         "description": ""
       }
     },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table view row exist",
+        "operationId": "db-view-row-exist",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "description": "check row with provided primary key exists or not",
+        "tags": [
+          "DB view row"
+        ]
+      }
+    },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}": {
       "parameters": [
         {
@@ -3260,6 +3109,60 @@
           "DB table row"
         ],
         "description": ""
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table row exist",
+        "operationId": "db-table-row-exist",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "description": "check row with provided primary key exists or not",
+        "tags": [
+          "DB table row"
+        ]
       }
     },
     "/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}": {

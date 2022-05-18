@@ -161,10 +161,7 @@ async function dataRead(req: Request, res: Response) {
 
 async function dataExist(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
-  res.json(await getExist(model, view, req));
-}
 
-async function getExist(model, view: View, req) {
   const base = await Base.get(model.base_id);
 
   const baseModel = await Model.getBaseModelSQL({
@@ -173,17 +170,8 @@ async function getExist(model, view: View, req) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  const args: any = { ...req.query };
-  try {
-    args.filterArr = JSON.parse(args.filterArrJson);
-  } catch (e) {}
-  try {
-    args.sortArr = JSON.parse(args.sortArrJson);
-  } catch (e) {}
-
-  return await baseModel.exist(args);
+  res.json(await baseModel.exist(req.params.rowId));
 }
-
 const router = Router({ mergeParams: true });
 
 // table data crud apis
@@ -200,7 +188,7 @@ router.get(
 );
 
 router.get(
-  '/api/v1/db/data/:orgs/:projectName/:tableName/exist',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/exist',
   apiMetrics,
   ncMetaAclMw(dataExist, 'dataExist')
 );
@@ -255,7 +243,7 @@ router.get(
 );
 
 router.get(
-  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/exist',
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId/exist',
   apiMetrics,
   ncMetaAclMw(dataExist, 'dataExist')
 );

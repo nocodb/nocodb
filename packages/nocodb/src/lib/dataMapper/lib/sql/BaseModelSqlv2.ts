@@ -89,6 +89,38 @@ class BaseModelSqlv2 {
     return data;
   }
 
+  public async exist(
+    args: {
+      where?: string;
+      filterArr?: Filter[];
+    } = {}
+  ): Promise<any> {
+    const qb = this.dbDriver(this.model.table_name);
+    await this.selectObject({ qb });
+
+    const aliasColObjMap = await this.model.getAliasColObjMap();
+    const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
+
+    await conditionV2(
+      [
+        new Filter({
+          children: args.filterArr || [],
+          is_group: true,
+          logical_op: 'and'
+        }),
+        new Filter({
+          children: filterObj,
+          is_group: true,
+          logical_op: 'and'
+        }),
+        ...(args.filterArr || [])
+      ],
+      qb,
+      this.dbDriver
+    );
+    return !!(await qb.first());
+  }
+
   public async findOne(
     args: {
       where?: string;

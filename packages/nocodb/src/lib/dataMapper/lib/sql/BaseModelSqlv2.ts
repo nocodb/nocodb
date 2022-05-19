@@ -2138,7 +2138,7 @@ function getCompositePk(primaryKeys: Column[], row) {
 }
 
 function sanitize(v) {
-  return v?.replace(/[?:]/g, '\\$&');
+  return v?.replace(/[?]/g, '\\$&');
 }
 
 export { BaseModelSqlv2 };

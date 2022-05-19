@@ -65,7 +65,7 @@
             type="list-item,list-item-three-line@3,list-item@2,list-item-three-line@3"
           />
 
-          <v-treeview
+          <!--          <v-treeview
             v-else-if="isTreeView"
             v-model="tree"
             class="mt-5 project-tree nc-project-tree"
@@ -96,9 +96,9 @@
                       <v-icon size="16">
                         mdi-database
                       </v-icon>
-                      <!--                  <img-->
-                      <!--                    class="grey lighten-3"-->
-                      <!--                    :width="16" :src="`/db-icons/${dbIcons[item._nodes.dbConnection.client]}`"/>-->
+                      &lt;!&ndash;                  <img&ndash;&gt;
+                      &lt;!&ndash;                    class="grey lighten-3"&ndash;&gt;
+                      &lt;!&ndash;                    :width="16" :src="`/db-icons/${dbIcons[item._nodes.dbConnection.client]}`"/>&ndash;&gt;
                     </template>
                     <template v-else>
                       <v-icon
@@ -130,7 +130,7 @@
                 <span>{{ item.tooltip || item.name }}</span>
               </v-tooltip>
             </template>
-          </v-treeview>
+          </v-treeview>-->
           <v-container v-else fluid class="px-1 pt-0">
             <v-list
               height="30"
@@ -159,7 +159,7 @@
                   <template #activator>
                     <v-list-item-icon>
                       <v-icon
-                        v-if="open && icons[item._nodes.type].openIcon"
+                        v-if="icons[item._nodes.type].openIcon"
                         small
                         style="cursor: auto"
                         :color="icons[item._nodes.type].openColor"
@@ -436,7 +436,7 @@
                 >
                   <v-list-item-icon>
                     <v-icon
-                      v-if="open && icons[item._nodes.type].openIcon"
+                      v-if="icons[item._nodes.type].openIcon"
                       small
                       style="cursor: auto"
                       :color="icons[item._nodes.type].openColor"
@@ -613,7 +613,9 @@
                       <span class="font-weight-regular caption">{{
                         $t("title.audit")
                       }}</span>
-                    </v-list-item-title>
+                    </v-list-item-title
+                    </v-list-item
+                    >
                   </v-list-item>
                 </template>
                 <!-- Meta Management -->
@@ -857,7 +859,6 @@ export default {
     },
     loadingProjects: true,
     caseInsensitive: true,
-    open: [],
     search: null,
     menuVisible: false,
     quickImportDialog: false,
@@ -1197,31 +1198,31 @@ export default {
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "viewDir" && !open) {
           await this.loadViews(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "functionDir" && !open) {
           await this.loadFunctions(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "procedureDir" && !open) {
           await this.loadProcedures(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "sequenceDir" && !open) {
           await this.loadSequences(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "env") {
           return;
         } else {

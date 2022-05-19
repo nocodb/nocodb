@@ -93,13 +93,9 @@ class BaseModelSqlv2 {
 
     await this.selectObject({ qb });
 
-    qb.where(this.model.primaryKey.column_name, id).first();
+    qb.where(this.model.primaryKey.column_name, id);
 
-    const data = (
-      await this.dbDriver.from(
-        this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
-      )
-    )?.[0];
+    const data = (await this.extractRawQueryAndExec(qb))?.[0];
 
     if (data) {
       const proto = await this.getProto();
@@ -245,9 +241,7 @@ class BaseModelSqlv2 {
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
 
-    const data = await this.dbDriver.from(
-      this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
-    );
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data?.map(d => {
       d.__proto__ = proto;
@@ -405,9 +399,7 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
-      const children = await this.dbDriver.from(
-        this.dbDriver.raw(childQb.toString()).wrap('(', ') __nc_alias')
-      );
+      const children = await this.extractRawQueryAndExec(childQb);
       const proto = await (
         await Model.getBaseModelSQL({
           id: childTable.id,
@@ -498,9 +490,7 @@ class BaseModelSqlv2 {
 
       await childModel.selectObject({ qb });
 
-      const children = await this.dbDriver.from(
-        this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
-      );
+      const children = await this.extractRawQueryAndExec(qb);
 
       const proto = await (
         await Model.getBaseModelSQL({
@@ -648,9 +638,7 @@ class BaseModelSqlv2 {
     qb.limit(args?.limit || 20);
     qb.offset(args?.offset || 0);
 
-    const children = await this.dbDriver.from(
-      this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
-    );
+    const children = await this.extractRawQueryAndExec(qb);
     const proto = await (
       await Model.getBaseModelSQL({ id: rtnId, dbDriver: this.dbDriver })
     ).getProto();
@@ -1381,6 +1369,9 @@ class BaseModelSqlv2 {
   get isPg() {
     return this.clientType === 'pg';
   }
+  get isMySQL() {
+    return this.clientType === 'mysql2' || this.clientType === 'mysql';
+  }
 
   get clientType() {
     return this.dbDriver.clientType();
@@ -2009,6 +2000,14 @@ class BaseModelSqlv2 {
         }
         break;
     }
+  }
+
+  private async extractRawQueryAndExec(qb: QueryBuilder) {
+    return this.isPg
+      ? qb
+      : await this.dbDriver.from(
+          this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
+        );
   }
 }
 

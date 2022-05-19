@@ -354,11 +354,11 @@ export default async (
 
   const tableNamesRef = {};
 
-  function getUniqueTableName(ncSanitizeName: any) {
-    let tableName = ncSanitizeName;
+  function getUniqueTableName(initialTablename = 'sheet') {
+    let tableName = initialTablename === '_' ? 'sheet' : initialTablename;
     let c = 0;
     while (tableName in tableNamesRef) {
-      tableName = `${ncSanitizeName}_${c++}`;
+      tableName = `${initialTablename}_${c++}`;
     }
     tableNamesRef[tableName] = true;
     return tableName;
@@ -385,6 +385,18 @@ export default async (
       table.title = tblSchema[i].name;
       table.table_name = getUniqueTableName(nc_sanitizeName(tblSchema[i].name));
 
+      const columnNamesRef = {};
+
+      const getUniqueColumnName = (initialColumnName = 'field') => {
+        let columnName =
+          initialColumnName === '_' ? 'field' : initialColumnName;
+        let c = 0;
+        while (columnName in columnNamesRef) {
+          columnName = `${initialColumnName}_${c++}`;
+        }
+        columnNamesRef[columnName] = true;
+        return columnName;
+      };
       // insert _aTbl_nc_rec_id of type ID by default
       table.columns = [
         {
@@ -422,7 +434,7 @@ export default async (
         const ncCol: any = {
           // Enable to use aTbl identifiers as is: id: col.id,
           title: ncName.title,
-          column_name: ncName.column_name,
+          column_name: getUniqueColumnName(ncName.column_name),
           uidt: getNocoType(col)
         };
 

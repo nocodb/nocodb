@@ -1,6 +1,7 @@
 import { ModelTypes, UITypes } from 'nocodb-sdk';
 import {
   columnNameParam,
+  columnNameQueryParam,
   csvExportOffsetParam,
   exportTypeParam,
   fieldsParam,
@@ -179,6 +180,44 @@ export const getModelPaths = async (ctx: {
             'application/json': {
               schema: {
                 $ref: `#/components/schemas/${ctx.tableName}Response`
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/groupby`]: {
+    get: {
+      summary: `${ctx.tableName} groupby`,
+      operationId: `${ctx.tableName.toLowerCase()}-groupby`,
+      description: 'Group by a column.',
+      tags: [ctx.tableName],
+      parameters: [
+        columnNameQueryParam,
+        sortParam,
+        whereParam,
+        limitParam,
+        offsetParam
+      ],
+      responses: {
+        '200': {
+          description: 'OK',
+          content: {
+            'application/json': {
+              schema: {
+                type: 'object',
+                properties: {
+                  list: {
+                    type: 'array',
+                    items: {
+                      $ref: `#/components/schemas/Groupby`
+                    }
+                  },
+                  PageInfo: {
+                    $ref: `#/components/schemas/Paginated`
+                  }
+                }
               }
             }
           }

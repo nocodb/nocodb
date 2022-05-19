@@ -287,6 +287,46 @@ class BaseModelSqlv2 {
     return ((await this.run(qb)) as any).count;
   }
 
+  async groupBy(
+    args: {
+      where?: string;
+      column_name: string;
+      limit?;
+      offset?;
+      sort?: string | string[];
+    } = {
+      column_name: ''
+    }
+  ) {
+    const { where, ...rest } = this._getListArgs(args as any);
+
+    const qb = this.dbDriver(this.model.table_name);
+    qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
+    qb.select(args.column_name);
+
+    const aliasColObjMap = await this.model.getAliasColObjMap();
+
+    const sorts = extractSortsObject(args?.sort, aliasColObjMap);
+
+    const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
+    await conditionV2(
+      [
+        new Filter({
+          children: filterObj,
+          is_group: true,
+          logical_op: 'and'
+        })
+      ],
+      qb,
+      this.dbDriver
+    );
+    qb.groupBy(args.column_name);
+    if (sorts) await sortV2(sorts, qb, this.dbDriver);
+    applyPaginate(qb, rest);
+
+    return await this.run(qb);
+  }
+
   async multipleHmList({ colId, ids }, args?: { limit?; offset? }) {
     try {
       // todo: get only required fields

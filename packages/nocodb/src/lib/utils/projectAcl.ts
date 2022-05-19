@@ -17,6 +17,8 @@ export default {
 
     // data
     dataList: true,
+    dataFindOne: true,
+    dataGroupBy: true,
     dataUpdate: true,
     dataDelete: true,
     dataInsert: true,
@@ -153,6 +155,8 @@ export default {
     // data
     dataList: true,
     dataRead: true,
+    dataFindOne: true,
+    dataGroupBy: true,
     commentsCount: true,
 
     xcTableAndViewList: true,

@@ -74,6 +74,15 @@ export const offsetParam = {
   example: 0
 };
 
+export const columnNameQueryParam = {
+  schema: {
+    type: 'string'
+  },
+  in: 'query',
+  name: 'column_name',
+  description: 'Column name of the column you want to group by, eg. `column_name=column1`'
+};
+
 export const columnNameParam = (columns: SwaggerColumn[]) => {
   const columnNames = [];
   for (const { column } of columns) {

@@ -350,6 +350,17 @@ export default async (
     }
   }
 
+  const tableNamesRef = {};
+
+  function getUniqueTableName(ncSanitizeName: any) {
+    let tableName = ncSanitizeName;
+    let c = 0;
+    while (tableName in tableNamesRef) {
+      tableName = `${ncSanitizeName}_${c++}`;
+    }
+    tableNamesRef[tableName] = true;
+    return tableName;
+  }
   // convert to Nc schema (basic, excluding relations)
   //
   function tablesPrepare(tblSchema: any[]) {
@@ -370,7 +381,7 @@ export default async (
 
       // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
       table.title = tblSchema[i].name;
-      table.table_name = nc_sanitizeName(tblSchema[i].name);
+      table.table_name = getUniqueTableName(nc_sanitizeName(tblSchema[i].name));
 
       // insert _aTbl_nc_rec_id of type ID by default
       table.columns = [

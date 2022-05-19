@@ -259,11 +259,15 @@ export default {
         // check circular reference
         // e.g. formula1 -> formula2 -> formula1
         const regex = /cl_\w{14}/g
-        const formulaPaths = this.meta.columns.filter(c => c.uidt === UITypes.Formula).map(c => ({
-          // e.g. formula1 -> [formula2, formula3]
-          // FIXME
-          [c.id]: (c.colOptions.formula.match(regex) || []).filter(col => (this.meta.columns.filter(c => (c.id === col && c.uidt === UITypes.Formula))))
-        }))
+        const formulaPaths = this.meta.columns.filter(c => c.uidt === UITypes.Formula).reduce((res, c) => {
+          const neigbhours = (c.colOptions.formula.match(regex) || []).filter(colId => (this.meta.columns.filter(col => (col.id === colId && col.uidt === UITypes.Formula)).length))
+          if (neigbhours.length > 0) {
+            // e.g. formula1 -> [formula2, formula3]
+            res.push({ [c.id]: neigbhours })
+          }
+          return res
+        }, [])
+
         if (formulaPaths.length > 0) {
           const adj = new Map(); const inDegrees = new Map()
           for (const [_, v] of Object.entries(formulaPaths)) {

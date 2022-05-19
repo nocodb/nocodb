@@ -165,6 +165,27 @@ export const getModelPaths = async (ctx: {
       }
     }
   },
+  [`/api/v1/db/data/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}/find-one`]: {
+    get: {
+      summary: `${ctx.tableName} find-one`,
+      operationId: 'db-table-row-find-one',
+      description: `Find first record matching the conditions.`,
+      tags: [ctx.tableName],
+      parameters: [fieldsParam, whereParam],
+      responses: {
+        '200': {
+          description: 'OK',
+          content: {
+            'application/json': {
+              schema: {
+                $ref: `#/components/schemas/${ctx.tableName}Response`
+              }
+            }
+          }
+        }
+      }
+    }
+  },
   ...(ctx.type === ModelTypes.TABLE
     ? {
         [`/api/v1/db/data/bulk/${ctx.orgs}/${ctx.projectName}/${ctx.tableName}`]: {

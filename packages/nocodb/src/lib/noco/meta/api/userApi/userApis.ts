@@ -156,57 +156,93 @@ export async function signup(req: Request, res: Response<TableType>) {
   } as any);
 }
 
+async function successfulSignIn({
+  user,
+  err,
+  info,
+  req,
+  res,
+  auditDescription
+}) {
+  try {
+    if (!user || !user.email) {
+      if (err) {
+        return res.status(400).send(err);
+      }
+      if (info) {
+        return res.status(400).send(info);
+      }
+      return res.status(400).send({ msg: 'Your signin has failed' });
+    }
+
+    await promisify((req as any).login.bind(req))(user);
+    const refreshToken = randomTokenString();
+
+    await User.update(user.id, {
+      refresh_token: refreshToken
+    });
+    setTokenCookie(res, refreshToken);
+
+    Audit.insert({
+      op_type: 'AUTHENTICATION',
+      op_sub_type: 'SIGNIN',
+      user: user.email,
+      ip: req.clientIp,
+      description: auditDescription
+    });
+
+    res.json({
+      token: jwt.sign(
+        {
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          id: user.id,
+          roles: user.roles
+        },
+
+        Noco.getConfig().auth.jwt.secret,
+        Noco.getConfig().auth.jwt.options
+      )
+    } as any);
+  } catch (e) {
+    console.log(e);
+    throw e;
+  }
+}
+
 async function signin(req, res, next) {
   passport.authenticate(
     'local',
     { session: false },
-    async (err, user, info): Promise<any> => {
-      try {
-        if (!user || !user.email) {
-          if (err) {
-            return res.status(400).send(err);
-          }
-          if (info) {
-            return res.status(400).send(info);
-          }
-          return res.status(400).send({ msg: 'Your signin has failed' });
-        }
+    async (err, user, info): Promise<any> =>
+      await successfulSignIn({
+        user,
+        err,
+        info,
+        req,
+        res,
+        auditDescription: 'signed in'
+      })
+  )(req, res, next);
+}
 
-        await promisify((req as any).login.bind(req))(user);
-        const refreshToken = randomTokenString();
-
-        await User.update(user.id, {
-          refresh_token: refreshToken
-        });
-        setTokenCookie(res, refreshToken);
-
-        Audit.insert({
-          op_type: 'AUTHENTICATION',
-          op_sub_type: 'SIGNIN',
-          user: user.email,
-          ip: req.clientIp,
-          description: `signed in`
-        });
-
-        res.json({
-          token: jwt.sign(
-            {
-              email: user.email,
-              firstname: user.firstname,
-              lastname: user.lastname,
-              id: user.id,
-              roles: user.roles
-            },
-
-            Noco.getConfig().auth.jwt.secret,
-            Noco.getConfig().auth.jwt.options
-          )
-        } as any);
-      } catch (e) {
-        console.log(e);
-        throw e;
-      }
-    }
+async function googleSignin(req, res, next) {
+  passport.authenticate(
+    'google',
+    {
+      session: false,
+      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath
+    },
+    async (err, user, info): Promise<any> =>
+      await successfulSignIn({
+        user,
+        err,
+        info,
+        req,
+        res,
+        auditDescription: 'signed in using Google Auth'
+      })
   )(req, res, next);
 }
 
@@ -460,6 +496,18 @@ const mapRoutes = router => {
     ncMetaAclMw(passwordChange, 'passwordChange')
   );
   router.post('/auth/token/refresh', ncMetaAclMw(refreshToken, 'refreshToken'));
+
+  /* Google auth apis */
+
+  router.post(`/auth/google/genTokenByCode`, catchError(googleSignin));
+
+  router.get('/auth/google', (req: any, res, next) =>
+    passport.authenticate('google', {
+      scope: ['profile', 'email'],
+      state: req.query.state,
+      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath
+    })(req, res, next)
+  );
 
   // new API
   router.post('/api/v1/db/auth/user/signup', catchError(signup));

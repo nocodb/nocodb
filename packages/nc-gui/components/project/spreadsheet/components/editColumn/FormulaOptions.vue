@@ -255,6 +255,47 @@ export default {
         if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== pt.name)) {
           arr.push(`Column '${pt.name}' is not available`)
         }
+
+        // check circular reference
+        // e.g. formula1 -> formula2 -> formula1
+        const regex = /cl_\w{14}/g
+        const formulaPaths = this.meta.columns.filter(c => c.uidt === UITypes.Formula).map(c => ({
+          // e.g. formula1 -> [formula2, formula3]
+          // FIXME
+          [c.id]: (c.colOptions.formula.match(regex) || []).filter(col => (this.meta.columns.filter(c => (c.id === col && c.uidt === UITypes.Formula))))
+        }))
+        if (formulaPaths.length > 0) {
+          const adj = new Map(); const inDegrees = new Map()
+          for (const [_, v] of Object.entries(formulaPaths)) {
+            const src = Object.keys(v)[0]; const neigbhours = v[src]
+            for (const neigbhour of neigbhours) {
+              adj.set(src, (adj.get(src) || new Set()).add(neigbhour))
+              inDegrees.set(neigbhour, (inDegrees.get(src) || 0) + 1)
+            }
+          }
+          const queue = []; const order = []
+          inDegrees.forEach((inDegree, col) => {
+            if (inDegree === 0) {
+              queue.push(col)
+            }
+          })
+          while (queue.length !== 0) {
+            const src = queue.shift(); const neigbhours = adj.get(src)
+            if (neigbhours.length > 0) {
+              order.push(src)
+            }
+            neigbhours.forEach((neigbhour) => {
+              inDegrees.set(neigbhour, inDegrees.get(neigbhour) - 1)
+              if (inDegrees.get(neigbhour) === 0) {
+                queue.push(neigbhour)
+              }
+            })
+          }
+          // FIXME
+          if (formulaPaths.length !== order.length) {
+            arr.push('Can’t save field because it causes a circular reference')
+          }
+        }
       } else if (pt.type === 'BinaryExpression') {
         if (!this.availableBinOps.includes(pt.operator)) {
           arr.push(`'${pt.operator}' operation is not available`)

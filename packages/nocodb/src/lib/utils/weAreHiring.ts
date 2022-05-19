@@ -2,7 +2,7 @@ import boxen from 'boxen';
 
 export default function() {
   console.log(`
- ${boxen(`Join the forces https://angel.co/company/nocodb`, {
+ ${boxen(`Join the forces http://careers.nocodb.com`, {
    title: '🚀 We are Hiring!!! 🚀',
    padding: 1,
    margin: 1,

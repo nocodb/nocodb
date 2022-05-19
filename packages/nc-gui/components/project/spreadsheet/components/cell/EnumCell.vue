@@ -1,7 +1,7 @@
 <template>
   <div>
     <span
-      v-for="v in (value||'').split(',')"
+      v-for="v in [(value||'')]"
       :key="v"
       :style="{
         background:colors[v]
@@ -21,7 +21,7 @@ export default {
     colors() {
       const col = this.$store.state.settings.darkTheme ? colors.dark : colors.light
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, '')).reduce((obj, v, i) => ({
+        return this.column.dtxp.match(/(?:[^']|\\')+(?='?(?:,|$))/g).map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, '')).reduce((obj, v, i) => ({
           ...obj,
           [v]: col[i]
         }), {})

@@ -59,7 +59,7 @@ export default {
     },
     enumValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
+        return this.column.dtxp.match(/(?:[^']|\\')+(?='?(?:,|$))/g).map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
       }
       return []
     },

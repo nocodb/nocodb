@@ -439,6 +439,10 @@ export default async (
           ncCol.cdf = col.default;
         }
 
+        // change from default 'tinytext' as airtable allows more than 255 characters
+        // for single line text column type
+        if (col.type === 'text') ncCol.dt = 'text';
+
         // additional column parameters when applicable
         const colOptions = getNocoTypeOptions(col);
 

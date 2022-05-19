@@ -170,7 +170,7 @@ export default async (
 
     return name
       .replace(/\?/g, '_')
-      .replace('.', '_')
+      .replace(/\./g, '_')
       .replace(regex, '_')
       .trim();
   }

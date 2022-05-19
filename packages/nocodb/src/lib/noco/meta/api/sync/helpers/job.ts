@@ -1139,7 +1139,7 @@ export default async (
     // trim spaces on either side of column name
     // leads to error in NocoDB
     Object.keys(rec).forEach(key => {
-      const replacedKey = nc_sanitizeName(key);
+      const replacedKey = key.trim();
       if (key !== replacedKey) {
         rec[replacedKey] = rec[key];
         delete rec[key];

@@ -379,7 +379,7 @@ export default async (
       table.title = tblSchema[i].name;
       table.table_name = uniqueTableNameGen(nc_sanitizeName(tblSchema[i].name));
 
-      const uniqueColNameGen = getUniqueNameGenerator('sheet');
+      const uniqueColNameGen = getUniqueNameGenerator('field');
       // insert _aTbl_nc_rec_id of type ID by default
       table.columns = [
         {

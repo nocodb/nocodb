@@ -342,7 +342,9 @@ export default async (
           );
         }
         // const csvOpt = "'" + opt.join("','") + "'";
-        const csvOpt = opt.map(v => `'${v.replace(/'/g, "\\'")}'`).join(',');
+        const csvOpt = opt
+          .map(v => `'${v.replace(/'/g, "\\'").replace(/,/g, '.')}'`)
+          .join(',');
         return { type: 'select', data: csvOpt };
       }
       default:
@@ -1187,8 +1189,13 @@ export default async (
         rec[key] = atDateField.utc().format('YYYY-MM-DD HH:mm');
       }
 
+      if (dt === UITypes.SingleSelect)
+        rec[key] = value.replace(/'/g, '\\').replace(/,/g, '.');
+
       if (dt === UITypes.MultiSelect)
-        rec[key] = value.map(v => `'${v.replace(/'/g, '\\')}'`).join(',');
+        rec[key] = value
+          .map(v => `'${v.replace(/'/g, '\\').replace(/,/g, '.')}'`)
+          .join(',');
 
       if (dt === UITypes.Attachment) {
         const tempArr = [];

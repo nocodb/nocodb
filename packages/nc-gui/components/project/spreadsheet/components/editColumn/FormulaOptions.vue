@@ -260,43 +260,53 @@ export default {
         // e.g. formula1 -> formula2 -> formula1
         const regex = /cl_\w{14}/g
         const formulaPaths = this.meta.columns.filter(c => c.uidt === UITypes.Formula).reduce((res, c) => {
-          const neigbhours = (c.colOptions.formula.match(regex) || []).filter(colId => (this.meta.columns.filter(col => (col.id === colId && col.uidt === UITypes.Formula)).length))
-          if (neigbhours.length > 0) {
+          const neighbours = (c.colOptions.formula.match(regex) || []).filter(colId => (this.meta.columns.filter(col => (col.id === colId && col.uidt === UITypes.Formula)).length))
+          if (neighbours.length > 0) {
             // e.g. formula1 -> [formula2, formula3]
-            res.push({ [c.id]: neigbhours })
+            res.push({ [c.id]: neighbours })
           }
           return res
         }, [])
-
-        if (formulaPaths.length > 0) {
-          const adj = new Map(); const inDegrees = new Map()
+        const targetFormula = this.meta.columns.filter(c => c.title === pt.name && c.uidt === UITypes.Formula)[0]
+        if (targetFormula) {
+          formulaPaths.push({
+            [this.column.id]: [targetFormula.id]
+          })
+        }
+        const vertices = formulaPaths.length
+        if (vertices > 0) {
+          const adj = new Map()
+          const inDegrees = new Map()
           for (const [_, v] of Object.entries(formulaPaths)) {
-            const src = Object.keys(v)[0]; const neigbhours = v[src]
-            for (const neigbhour of neigbhours) {
-              adj.set(src, (adj.get(src) || new Set()).add(neigbhour))
-              inDegrees.set(neigbhour, (inDegrees.get(src) || 0) + 1)
+            const src = Object.keys(v)[0]
+            const neighbours = v[src]
+            inDegrees.set(src, inDegrees.get(src) || 0)
+            for (const neighbour of neighbours) {
+              adj.set(src, (adj.get(src) || new Set()).add(neighbour))
+              inDegrees.set(neighbour, (inDegrees.get(neighbour) || 0) + 1)
             }
           }
-          const queue = []; const order = []
+          const queue = []
           inDegrees.forEach((inDegree, col) => {
             if (inDegree === 0) {
               queue.push(col)
             }
           })
+          let visited = 0
           while (queue.length !== 0) {
-            const src = queue.shift(); const neigbhours = adj.get(src)
-            if (neigbhours.length > 0) {
-              order.push(src)
+            const src = queue.shift()
+            const neighbours = adj.get(src) || new Set()
+            if (neighbours.size > 0) {
+              visited += 1
             }
-            neigbhours.forEach((neigbhour) => {
-              inDegrees.set(neigbhour, inDegrees.get(neigbhour) - 1)
-              if (inDegrees.get(neigbhour) === 0) {
-                queue.push(neigbhour)
+            neighbours.forEach((neighbour) => {
+              inDegrees.set(neighbour, inDegrees.get(neighbour) - 1)
+              if (inDegrees.get(neighbour) === 0) {
+                queue.push(neighbour)
               }
             })
           }
-          // FIXME
-          if (formulaPaths.length !== order.length) {
+          if (vertices !== visited) {
             arr.push('Can’t save field because it causes a circular reference')
           }
         }

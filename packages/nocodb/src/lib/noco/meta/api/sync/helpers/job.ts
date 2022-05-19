@@ -1714,7 +1714,7 @@ export default async (
       const ncFilters = [];
 
       // console.log(filter)
-      if (datatype === UITypes.Date) {
+      if (datatype === UITypes.Date || datatype === UITypes.DateTime) {
         // skip filters over data datatype
         updateMigrationSkipLog(
           sMap.getNcNameFromAtId(viewId),

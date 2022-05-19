@@ -399,12 +399,13 @@ export default class Model implements TableType {
     return true;
   }
 
-  async mapAliasToColumn(data) {
+  async mapAliasToColumn(data, sanitize = v => v) {
     const insertObj = {};
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
-      const val = data?.[col.column_name] ?? data?.[col.title];
-      if (val !== undefined) insertObj[col.column_name] = val;
+      const val =
+        data?.[sanitize(col.column_name)] ?? data?.[sanitize(col.title)];
+      if (val !== undefined) insertObj[sanitize(col.column_name)] = val;
     }
     return insertObj;
   }

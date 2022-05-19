@@ -93,7 +93,13 @@ class BaseModelSqlv2 {
 
     await this.selectObject({ qb });
 
-    const data = await qb.where(this.model.primaryKey.column_name, id).first();
+    qb.where(this.model.primaryKey.column_name, id).first();
+
+    const data = (
+      await this.dbDriver.from(
+        this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
+      )
+    )?.[0];
 
     if (data) {
       const proto = await this.getProto();
@@ -1247,7 +1253,7 @@ class BaseModelSqlv2 {
       await populatePk(this.model, data);
 
       // todo: filter based on view
-      const insertObj = await this.model.mapAliasToColumn(data);
+      const insertObj = await this.model.mapAliasToColumn(data, sanitize);
 
       await this.validate(insertObj);
 
@@ -2137,8 +2143,8 @@ function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map(c => row[c.title]).join('___');
 }
 
-function sanitize(v) {
-  return v?.replace(/[?]/g, '\\$&');
+export function sanitize(v) {
+  return v?.replace(/([^\\]|^)([?])/g, '$1\\$2');
 }
 
 export { BaseModelSqlv2 };

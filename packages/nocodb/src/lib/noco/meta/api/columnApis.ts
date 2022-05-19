@@ -508,6 +508,11 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         await Column.insert({
           ...colBody,
           ...insertedColumnMeta,
+          dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
+            colBody.uidt as any
+          )
+            ? colBody.dtxp
+            : insertedColumnMeta.dtxp,
           fk_model_id: table.id
         });
       }

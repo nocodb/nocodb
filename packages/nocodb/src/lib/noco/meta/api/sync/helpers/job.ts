@@ -1189,13 +1189,10 @@ export default async (
         rec[key] = atDateField.utc().format('YYYY-MM-DD HH:mm');
       }
 
-      if (dt === UITypes.SingleSelect)
-        rec[key] = value.replace(/'/g, '\\').replace(/,/g, '.');
+      if (dt === UITypes.SingleSelect) rec[key] = value.replace(/,/g, '.');
 
       if (dt === UITypes.MultiSelect)
-        rec[key] = value
-          .map(v => `'${v.replace(/'/g, '\\').replace(/,/g, '.')}'`)
-          .join(',');
+        rec[key] = value.map(v => `${v.replace(/,/g, '.')}`).join(',');
 
       if (dt === UITypes.Attachment) {
         const tempArr = [];

@@ -136,6 +136,7 @@ export default async (
     foreignKey: UITypes.LinkToAnotherRecord,
     text: UITypes.SingleLineText,
     multilineText: UITypes.LongText,
+    richText: UITypes.LongText,
     multipleAttachment: UITypes.Attachment,
     checkbox: UITypes.Checkbox,
     multiSelect: UITypes.MultiSelect,

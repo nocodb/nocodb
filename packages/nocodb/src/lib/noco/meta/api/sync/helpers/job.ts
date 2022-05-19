@@ -12,6 +12,7 @@ import hash from 'object-hash';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+
 dayjs.extend(utc);
 
 export default async (
@@ -50,6 +51,7 @@ export default async (
   function logBasic(log) {
     progress({ level: 0, msg: log });
   }
+
   function logDetailed(log) {
     if (debugMode) progress({ level: 1, msg: log });
   }
@@ -66,6 +68,9 @@ export default async (
   const ncLinkMappingTable: any[] = [];
   const nestedLookupTbl: any[] = [];
   const nestedRollupTbl: any[] = [];
+
+  const uniqueTableNameGen = getUniqueNameGenerator('sheet');
+
   // run time counter (statistics)
   const rtc = {
     sort: 0,
@@ -352,17 +357,6 @@ export default async (
     }
   }
 
-  const tableNamesRef = {};
-
-  function getUniqueTableName(initialTablename = 'sheet') {
-    let tableName = initialTablename === '_' ? 'sheet' : initialTablename;
-    let c = 0;
-    while (tableName in tableNamesRef) {
-      tableName = `${initialTablename}_${c++}`;
-    }
-    tableNamesRef[tableName] = true;
-    return tableName;
-  }
   // convert to Nc schema (basic, excluding relations)
   //
   function tablesPrepare(tblSchema: any[]) {
@@ -383,20 +377,9 @@ export default async (
 
       // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
       table.title = tblSchema[i].name;
-      table.table_name = getUniqueTableName(nc_sanitizeName(tblSchema[i].name));
+      table.table_name = uniqueTableNameGen(nc_sanitizeName(tblSchema[i].name));
 
-      const columnNamesRef = {};
-
-      const getUniqueColumnName = (initialColumnName = 'field') => {
-        let columnName =
-          initialColumnName === '_' ? 'field' : initialColumnName;
-        let c = 0;
-        while (columnName in columnNamesRef) {
-          columnName = `${initialColumnName}_${c++}`;
-        }
-        columnNamesRef[columnName] = true;
-        return columnName;
-      };
+      const uniqueColNameGen = getUniqueNameGenerator('sheet');
       // insert _aTbl_nc_rec_id of type ID by default
       table.columns = [
         {
@@ -434,7 +417,7 @@ export default async (
         const ncCol: any = {
           // Enable to use aTbl identifiers as is: id: col.id,
           title: ncName.title,
-          column_name: getUniqueColumnName(ncName.column_name),
+          column_name: uniqueColNameGen(ncName.column_name),
           uidt: getNocoType(col)
         };
 
@@ -1988,6 +1971,20 @@ export default async (
     throw e;
   }
 };
+
+export function getUniqueNameGenerator(defaultName = 'name') {
+  const namesRef = {};
+
+  return (initName: string = defaultName): string => {
+    let name = initName === '_' ? defaultName : initName;
+    let c = 0;
+    while (name in namesRef) {
+      name = `${initName}_${c++}`;
+    }
+    namesRef[name] = true;
+    return name;
+  };
+}
 
 export interface AirtableSyncConfig {
   id: string;

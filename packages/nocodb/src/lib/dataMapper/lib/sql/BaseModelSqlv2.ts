@@ -585,7 +585,7 @@ class BaseModelSqlv2 {
       !this.isSqlite
     );
 
-    const children = await finalQb;
+    const children = await this.extractRawQueryAndExec(finalQb);
     const proto = await (
       await Model.getBaseModelSQL({
         id: rtnId,

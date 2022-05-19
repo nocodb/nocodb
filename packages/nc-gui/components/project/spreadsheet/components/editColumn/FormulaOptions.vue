@@ -37,18 +37,31 @@
           >
             <!-- Function -->
             <template v-if="it.type ==='function'">
-              <v-list-item-content>
-                <span
-                  class="caption primary--text text--lighten-2 font-weight-bold"
-                >
-                  {{ it.text }}
-                </span>
-              </v-list-item-content>
-              <v-list-item-action>
-                <span class="caption">
-                  Function
-                </span>
-              </v-list-item-action>
+              <v-tooltip right offset-x nudge-right="100">
+                <template #activator="{ on }">
+                  <v-list-item-content v-on="on">
+                    <span
+                      class="caption primary--text text--lighten-2 font-weight-bold"
+                    >
+                      {{ it.text }}
+                    </span>
+                  </v-list-item-content>
+                  <v-list-item-action>
+                    <span class="caption">
+                      Function
+                    </span>
+                  </v-list-item-action>
+                </template>
+                <div>
+                  {{ it.description }} <br><br>
+                  Syntax: <br>
+                  {{ it.syntax }} <br><br>
+                  Examples: <br>
+                  <div v-for="(example, idx) in it.examples" :key="idx">
+                    <pre>({{ idx + 1 }}): {{ example }}</pre>
+                  </div>
+                </div>
+              </v-tooltip>
             </template>
 
             <!-- Column -->
@@ -96,7 +109,7 @@
 import debounce from 'debounce'
 import jsep from 'jsep'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
-import formulaList, { validations } from '../../../../../helpers/formulaList'
+import formulaList, { formulas } from '../../../../../helpers/formulaList'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
 
@@ -125,7 +138,10 @@ export default {
       return [
         ...this.availableFunctions.filter(fn => !unsupportedFnList.includes(fn)).map(fn => ({
           text: fn + '()',
-          type: 'function'
+          type: 'function',
+          description: formulas[fn].description,
+          syntax: formulas[fn].syntax,
+          examples: formulas[fn].examples
         })),
         ...this.meta.columns.filter(c => !this.column || this.column.id !== c.id).map(c => ({
           text: c.title,
@@ -224,7 +240,7 @@ export default {
         if (!this.availableFunctions.includes(pt.callee.name)) {
           arr.push(`'${pt.callee.name}' function is not available`)
         }
-        const validation = validations[pt.callee.name] && validations[pt.callee.name].validation
+        const validation = formulas[pt.callee.name] && formulas[pt.callee.name].validation
         if (validation && validation.args) {
           if (validation.args.rqd !== undefined && validation.args.rqd !== pt.arguments.length) {
             arr.push(`'${pt.callee.name}' required ${validation.args.rqd} arguments`)

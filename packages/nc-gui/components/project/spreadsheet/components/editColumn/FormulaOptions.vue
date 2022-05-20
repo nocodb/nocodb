@@ -294,12 +294,9 @@ export default {
 
         // check circular reference
         // e.g. formula1 -> formula2 -> formula1 should return circular reference error
-        const formulaPaths = [
-          // all formula fields excluding itself
-          ...this.meta.columns.filter(c => c.id !== this.column.id && c.uidt === UITypes.Formula),
-          // include target formula field before saving
-          ...this.meta.columns.filter(c => c.title === pt.name && c.uidt === UITypes.Formula)
-        ].reduce((res, c) => {
+
+        // get all formula columns excluding itself
+        const formulaPaths = this.meta.columns.filter(c => c.id !== this.column.id && c.uidt === UITypes.Formula).reduce((res, c) => {
           // in `formula`, get all the target neighbours
           // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
           const neighbours = (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(colId => (this.meta.columns.filter(col => (col.id === colId && col.uidt === UITypes.Formula)).length))
@@ -309,6 +306,13 @@ export default {
           }
           return res
         }, [])
+        // include target formula column (i.e. the one to be saved if applicable)
+        const targetFormulaCol = this.meta.columns.find(c => c.title === pt.name && c.uidt === UITypes.Formula)
+        if (targetFormulaCol) {
+          formulaPaths.push({
+            [this.column.id]: [targetFormulaCol.id]
+          })
+        }
         const vertices = formulaPaths.length
         if (vertices > 0) {
           // perform kahn's algo for cycle detection

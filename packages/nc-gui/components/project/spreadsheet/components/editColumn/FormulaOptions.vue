@@ -363,7 +363,7 @@ export default {
         }
         this.validateAgainstMeta(pt.left, errors)
         this.validateAgainstMeta(pt.right, errors)
-      } else if (pt.type === jsep.LITERAL) {
+      } else if (pt.type === jsep.LITERAL || pt.type === jsep.UNARY_EXP) {
         // do nothing
       } else if (pt.type === jsep.COMPOUND) {
         if (pt.body.length) {
@@ -389,7 +389,7 @@ export default {
           }
         }
       } else if (pt.type == jsep.IDENTIFIER) {
-        // TODO:
+        // TODO: check the type of column (pt.name)
       } else if (pt.type === jsep.UNARY_EXP || pt.type === jsep.BINARY_EXP) {
         if (type !== formulaTypes.NUMERIC) {
           typeErrors.add('Numeric type is expected')

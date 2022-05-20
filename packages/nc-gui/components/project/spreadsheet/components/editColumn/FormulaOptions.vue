@@ -329,6 +329,8 @@ export default {
         }
         this.validateAgainstMeta(pt.left, arr)
         this.validateAgainstMeta(pt.right, arr)
+      } else if (pt.type === jsep.COMPOUND) {
+        pt.body.map(v => this.validateAgainstMeta(v, arr))
       }
       return arr
     },

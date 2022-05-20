@@ -174,16 +174,18 @@ export default async (
 
   function nc_getSanitizedColumnName(table, name) {
     const col_name = nc_sanitizeName(name);
+    // for knex, replace . with _
+    const col_alias = name.trim().replace(/\./g, '_');
 
     // check if already a column exists with same name?
-    const duplicateColumn = table.columns.find(x => x.title === name.trim());
+    const duplicateColumn = table.columns.find(x => x.title === col_alias);
     if (duplicateColumn) {
-      if (enableErrorLogs) console.log(`## Duplicate ${name.trim()}`);
+      if (enableErrorLogs) console.log(`## Duplicate ${col_alias}`);
     }
 
     return {
       // kludge: error observed in Nc with space around column-name
-      title: name.trim() + (duplicateColumn ? '_2' : ''),
+      title: col_alias + (duplicateColumn ? '_2' : ''),
       column_name: col_name + (duplicateColumn ? '_2' : '')
     };
   }
@@ -477,7 +479,7 @@ export default async (
       await sMap.addToMappingTbl(aTblSchema[idx].id, table.id, table.title);
       for (let colIdx = 0; colIdx < table.columns.length; colIdx++) {
         const aId = aTblSchema[idx].columns.find(
-          x => x.name.trim() === table.columns[colIdx].title
+          x => x.name.trim().replace(/\./g, '_') === table.columns[colIdx].title
         )?.id;
         if (aId)
           await sMap.addToMappingTbl(
@@ -1132,7 +1134,7 @@ export default async (
     // trim spaces on either side of column name
     // leads to error in NocoDB
     Object.keys(rec).forEach(key => {
-      const replacedKey = key.trim();
+      const replacedKey = key.trim().replace(/\./g, '_');
       if (key !== replacedKey) {
         rec[replacedKey] = rec[key];
         delete rec[key];

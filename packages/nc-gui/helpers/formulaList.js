@@ -1,5 +1,5 @@
 const formulaTypes = {
-  NUMERIC: "numberic",
+  NUMERIC: "numeric",
   STRING: "string",
   DATE: "date",
   LOGICAL: "logical",

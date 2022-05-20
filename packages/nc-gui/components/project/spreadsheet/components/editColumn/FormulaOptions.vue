@@ -227,33 +227,33 @@ export default {
       try {
         const pt = jsep(formula)
         const err = this.validateAgainstMeta(pt)
-        if (err.length) {
-          return err.join(', ')
+        if (err.size) {
+          return [...err].join(', ')
         }
         return true
       } catch (e) {
         return e.message
       }
     },
-    validateAgainstMeta(pt, arr = []) {
+    validateAgainstMeta(pt, arr = new Set()) {
       if (pt.type === jsep.CALL_EXP) {
         if (!this.availableFunctions.includes(pt.callee.name)) {
-          arr.push(`'${pt.callee.name}' function is not available`)
+          arr.add(`'${pt.callee.name}' function is not available`)
         }
         const validation = formulas[pt.callee.name] && formulas[pt.callee.name].validation
         if (validation && validation.args) {
           if (validation.args.rqd !== undefined && validation.args.rqd !== pt.arguments.length) {
-            arr.push(`'${pt.callee.name}' required ${validation.args.rqd} arguments`)
+            arr.add(`'${pt.callee.name}' required ${validation.args.rqd} arguments`)
           } else if (validation.args.min !== undefined && validation.args.min > pt.arguments.length) {
-            arr.push(`'${pt.callee.name}' required minimum ${validation.args.min} arguments`)
+            arr.add(`'${pt.callee.name}' required minimum ${validation.args.min} arguments`)
           } else if (validation.args.max !== undefined && validation.args.max < pt.arguments.length) {
-            arr.push(`'${pt.callee.name}' required maximum ${validation.args.max} arguments`)
+            arr.add(`'${pt.callee.name}' required maximum ${validation.args.max} arguments`)
           }
         }
         pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))
       } else if (pt.type === jsep.IDENTIFIER) {
         if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== pt.name)) {
-          arr.push(`Column '${pt.name}' is not available`)
+          arr.add(`Column '${pt.name}' is not available`)
         }
 
         // check circular reference
@@ -320,17 +320,23 @@ export default {
           }
           // vertices not same as visited = cycle found
           if (vertices !== visited) {
-            arr.push('Can’t save field because it causes a circular reference')
+            arr.add('Can’t save field because it causes a circular reference')
           }
         }
       } else if (pt.type === jsep.BINARY_EXP) {
         if (!this.availableBinOps.includes(pt.operator)) {
-          arr.push(`'${pt.operator}' operation is not available`)
+          arr.add(`'${pt.operator}' operation is not available`)
         }
         this.validateAgainstMeta(pt.left, arr)
         this.validateAgainstMeta(pt.right, arr)
+      } else if (pt.type === jsep.LITERAL) {
+        // do nothing
       } else if (pt.type === jsep.COMPOUND) {
-        pt.body.map(v => this.validateAgainstMeta(v, arr))
+        if (pt.body.length) {
+          arr.add('Can’t save field because the formula is invalid')
+        }
+      } else {
+        arr.add('Can’t save field because the formula is invalid')
       }
       return arr
     },

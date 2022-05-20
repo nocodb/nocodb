@@ -1979,7 +1979,7 @@ export function getUniqueNameGenerator(defaultName = 'name') {
     let name = initName === '_' ? defaultName : initName;
     let c = 0;
     while (name in namesRef) {
-      name = `${initName}_${c++}`;
+      name = `${initName}_${++c}`;
     }
     namesRef[name] = true;
     return name;

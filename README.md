@@ -47,9 +47,23 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 </div>
 
+
 <p align="center"><a href="scripts/markdown/readme/languages/README.md"><b>See other languages »</b></a></p>
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
+
+# Join Our Community
+
+<a href="https://discord.gg/5RgZmkW" target="_blank">
+<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
+</a>
+
+<!-- <a href="https://community.nocodb.com/" target="_blank">
+<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
+</a>
+ -->
+[![Stargazers repo roster for @nocodb/nocodb](https://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
+
 
 # Quick try
 
@@ -150,14 +164,6 @@ docker-compose up -d
 
 Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-# Join Our Community
-
-<a href="https://discord.gg/5RgZmkW" target="_blank">
-<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
-</a>
-<a href="https://community.nocodb.com/" target="_blank">
-<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
-</a>
 
 # Screenshots
 

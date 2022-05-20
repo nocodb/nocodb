@@ -1378,7 +1378,7 @@ export default async (
         await updateNcTblSchemaById(tblId);
         // syncLog(`[${idx+1}/${aTblSchema.length}][Gallery View][${i+1}/${galleryViews.length}] Create ${viewName}`)
 
-        // await nc_configureFields(g.id, vData.columnOrder, aTblSchema[idx].name, viewName, 'gallery');
+        // await nc_configureFields(g.id, vData, aTblSchema[idx].name, viewName, 'gallery');
       }
     }
   }
@@ -1444,7 +1444,7 @@ export default async (
         logDetailed(`   Configure show/hide columns`);
         await nc_configureFields(
           f.id,
-          vData.columnOrder,
+          vData,
           aTblSchema[idx].name,
           viewName,
           'form'
@@ -1502,7 +1502,7 @@ export default async (
         logDetailed(`   Configure show/hide columns`);
         await nc_configureFields(
           ncViewId,
-          vData.columnOrder,
+          vData,
           aTblSchema[idx].name,
           viewName,
           'grid'
@@ -1794,9 +1794,10 @@ export default async (
     }
   }
 
-  async function nc_configureFields(_viewId, c, tblName, viewName, viewType?) {
+  async function nc_configureFields(_viewId, _c, tblName, viewName, viewType?) {
     // force hide PK column
     const hiddenColumns = ['_aTbl_nc_rec_id', '_aTbl_nc_rec_hash'];
+    const c = _c.columnOrder;
 
     // column order corrections
     // retrieve table schema
@@ -1833,10 +1834,18 @@ export default async (
       if (ncViewColumnId === undefined) continue;
 
       // first two positions held by record id & record hash
-      await api.dbViewColumn.update(viewId, ncViewColumnId, {
-        show: c[j].visibility,
-        order: j + 1
-      });
+      const configData = { show: c[j].visibility, order: j + 1 };
+      if (viewType === 'form') {
+        if (_c?.metadata?.form?.fieldsByColumnId?.[c[j].columnId]) {
+          const x = _c.metadata.form.fieldsByColumnId[c[j].columnId];
+          const formData = { ...configData };
+          if (x?.title) formData[`label`] = x.title;
+          if (x?.required) formData[`required`] = x.required;
+          if (x?.description) formData[`description`] = x.description;
+          await api.dbView.formColumnUpdate(ncViewColumnId, formData);
+        }
+      }
+      await api.dbViewColumn.update(viewId, ncViewColumnId, configData);
     }
   }
 

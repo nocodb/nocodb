@@ -1,5 +1,14 @@
+const formulaTypes = {
+  NUMERIC: "numberic",
+  STRING: "string",
+  DATE: "date",
+  LOGICAL: "logical",
+  COND_EXP: "conditional_expression"
+}
+
 const formulas = {
   AVG: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         min: 1
@@ -14,6 +23,7 @@ const formulas = {
     ]
   },
   ADD: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         min: 1
@@ -28,6 +38,7 @@ const formulas = {
     ]
   },
   DATEADD: {
+    type: formulaTypes.DATE,
     validation: {
       args: {
         rqd: 3
@@ -47,6 +58,7 @@ const formulas = {
     ]
   },
   AND: {
+    type: formulaTypes.COND_EXP,
     validation: {
       args: {
         min: 1
@@ -60,6 +72,7 @@ const formulas = {
     ]
   },
   OR: {
+    type: formulaTypes.COND_EXP,
     validation: {
       args: {
         min: 1
@@ -73,6 +86,7 @@ const formulas = {
     ]
   },
   CONCAT: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         min: 1
@@ -86,6 +100,7 @@ const formulas = {
     ]
   },
   TRIM: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 1
@@ -99,6 +114,7 @@ const formulas = {
     ]
   },
   UPPER: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 1
@@ -112,6 +128,7 @@ const formulas = {
     ]
   },
   LOWER: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 1
@@ -125,6 +142,7 @@ const formulas = {
     ]
   },
   LEN: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 1
@@ -138,6 +156,7 @@ const formulas = {
     ]
   },
   MIN: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         min: 1
@@ -151,6 +170,7 @@ const formulas = {
     ]
   },
   MAX: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         min: 1
@@ -164,6 +184,7 @@ const formulas = {
     ]
   },
   CEILING: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1
@@ -177,6 +198,7 @@ const formulas = {
     ]
   },
   FLOOR: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1
@@ -190,6 +212,7 @@ const formulas = {
     ]
   },
   ROUND: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1
@@ -203,6 +226,7 @@ const formulas = {
     ]
   },
   MOD: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         rqd: 2
@@ -216,6 +240,7 @@ const formulas = {
     ]
   },
   REPEAT: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 2
@@ -229,6 +254,7 @@ const formulas = {
     ]
   },
   LOG: {
+    type: formulaTypes.NUMERIC,
     validation: {},
     description: 'Logarithm of input parameter to the base (default = e) specified',
     syntax: 'LOG([base], value)',
@@ -238,6 +264,7 @@ const formulas = {
     ]
   },
   EXP: {
+    type: formulaTypes.NUMERIC,
     validation: {},
     description: 'Exponential value of input parameter (e ^ power)',
     syntax: 'EXP(power)',
@@ -247,6 +274,7 @@ const formulas = {
     ]
   },
   POWER: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         rqd: 2
@@ -260,6 +288,7 @@ const formulas = {
     ]
   },
   SQRT: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1
@@ -273,6 +302,7 @@ const formulas = {
     ]
   },
   ABS: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1
@@ -285,6 +315,7 @@ const formulas = {
     ]
   },
   NOW: {
+    type: formulaTypes.DATE,
     validation: {
       args: {
         rqd: 0
@@ -297,6 +328,7 @@ const formulas = {
     ]
   },
   REPLACE: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 3
@@ -310,6 +342,7 @@ const formulas = {
     ]
   },
   SEARCH: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 2
@@ -323,6 +356,7 @@ const formulas = {
     ]
   },
   INT: {
+    type: formulaTypes.NUMERIC,
     validation: {
       args: {
         rqd: 1
@@ -336,6 +370,7 @@ const formulas = {
     ]
   },
   RIGHT: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 2
@@ -349,6 +384,7 @@ const formulas = {
     ]
   },
   LEFT: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 2
@@ -362,6 +398,7 @@ const formulas = {
     ]
   },
   SUBSTR: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         min: 2,
@@ -377,6 +414,7 @@ const formulas = {
     ]
   },
   MID: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 3
@@ -390,6 +428,7 @@ const formulas = {
     ]
   },
   IF: {
+    type: formulaTypes.COND_EXP,
     validation: {
       args: {
         min: 2,
@@ -404,6 +443,7 @@ const formulas = {
     ]
   },
   SWITCH: {
+    type: formulaTypes.COND_EXP,
     validation: {
       args: {
         min: 3
@@ -419,6 +459,7 @@ const formulas = {
     ]
   },
   URL: {
+    type: formulaTypes.STRING,
     validation: {
       args: {
         rqd: 1
@@ -434,4 +475,4 @@ const formulas = {
 }
 
 export default Object.keys(formulas)
-export { formulas }
+export { formulas, formulaTypes }

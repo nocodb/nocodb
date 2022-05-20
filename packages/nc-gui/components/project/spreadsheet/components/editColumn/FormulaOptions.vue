@@ -394,11 +394,16 @@ export default {
             typeErrors.add('string type is expected')
           }
         }
-      } else if (pt.type == jsep.IDENTIFIER) {
-        const col = this.meta.columns.filter(c => c.title === pt.name)[0]
+      } else if (pt.type === jsep.IDENTIFIER) {
+        const col = this.meta.columns.find(c => c.title === pt.name)
         if (col === undefined) { return }
         if (col.uidt === UITypes.Formula) {
-          // TODO: check meta
+          const foundType = this.getRootDataType(jsep(col.colOptions.formula_raw))
+          if (foundType === 'N/A') {
+            typeErrors.add(`Not supported to reference column ${c.title}`)
+          } else if (expectedType !== foundType) {
+            typeErrors.add(`Type ${expectedType} is expected but found Type ${foundType}`)
+          }
         } else {
           switch (col.uidt) {
             // string
@@ -409,8 +414,8 @@ export default {
             case UITypes.PhoneNumber:
             case UITypes.Email:
             case UITypes.URL:
-              if (typeof pt.value !== formulaTypes.STRING) {
-                typeErrors.add('string type is expected')
+              if (expectedType !== formulaTypes.STRING) {
+                typeErrors.add(`Column '${pt.name}' with ${formulaTypes.STRING} type is found but ${expectedType} type is expected`)
               }
               break
 
@@ -457,7 +462,8 @@ export default {
         }
       } else if (pt.type === jsep.UNARY_EXP || pt.type === jsep.BINARY_EXP) {
         if (expectedType !== formulaTypes.NUMERIC) {
-          typeErrors.add('Numeric type is expected')
+          // pt.name won't be available here
+          typeErrors.add(`${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`)
         }
       } else if (pt.type === jsep.CALL_EXP) {
         if (formulas[pt.callee.name]?.type && expectedType !== formulas[pt.callee.name].type) {
@@ -465,6 +471,67 @@ export default {
         }
       }
       return typeErrors
+    },
+    getRootDataType(pt) {
+      if (pt.type === jsep.CALL_EXP) {
+        return formulas[pt.callee.name].type
+      } else if (pt.type === jsep.IDENTIFIER) {
+        const col = this.meta.columns.find(c => c.title === pt.name)
+        if (col.uidt === UITypes.Formula) {
+          return this.getRootDataType(jsep(col.colOptions.formula_raw))
+        } else {
+          switch (col.uidt) {
+            // string
+            case UITypes.SingleLineText:
+            case UITypes.LongText:
+            case UITypes.MultiSelect:
+            case UITypes.SingleSelect:
+            case UITypes.PhoneNumber:
+            case UITypes.Email:
+            case UITypes.URL:
+              return 'string'
+
+            // numeric
+            case UITypes.Year:
+            case UITypes.Number:
+            case UITypes.Decimal:
+            case UITypes.Rating:
+            case UITypes.Count:
+            case UITypes.AutoNumber:
+              return 'number'
+
+            // date
+            case UITypes.Date:
+            case UITypes.DateTime:
+            case UITypes.CreateTime:
+            case UITypes.LastModifiedTime:
+              return 'date'
+
+            // not supported
+            case UITypes.ForeignKey:
+            case UITypes.Attachment:
+            case UITypes.ID:
+            case UITypes.Time:
+            case UITypes.Currency:
+            case UITypes.Percent:
+            case UITypes.Duration:
+            case UITypes.Rollup:
+            case UITypes.Lookup:
+            case UITypes.Barcode:
+            case UITypes.Button:
+            case UITypes.Checkbox:
+            case UITypes.Collaborator:
+            default:
+              return 'N/A'
+          }
+        }
+      } else if (pt.type === jsep.BINARY_EXP || pt.type === jsep.UNARY_EXP) {
+        return 'number'
+      } else if (pt.type === jsep.LITERAL) {
+        return typeof pt.value
+      } else {
+        return 'N/A'
+      }
     },
     appendText(it) {
       const text = it.text

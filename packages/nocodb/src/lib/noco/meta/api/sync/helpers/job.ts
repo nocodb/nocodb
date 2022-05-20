@@ -970,13 +970,14 @@ export default async (
           if (
             ncColSchema?.uidt === UITypes.Formula ||
             ncColSchema?.uidt === UITypes.Lookup ||
-            ncColSchema?.uidt === UITypes.Rollup
+            ncColSchema?.uidt === UITypes.Rollup ||
+            ncColSchema?.uidt === UITypes.Checkbox
           ) {
             updateMigrationSkipLog(
               srcTableSchema.title,
               aTblColumns[i].name,
               aTblColumns[i].type,
-              'rollup referring to a lookup column'
+              'rollup referring to a column type not supported currently'
             );
             continue;
           }

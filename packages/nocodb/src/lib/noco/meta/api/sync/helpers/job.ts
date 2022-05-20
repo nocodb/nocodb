@@ -68,6 +68,7 @@ export default async (
   const ncLinkMappingTable: any[] = [];
   const nestedLookupTbl: any[] = [];
   const nestedRollupTbl: any[] = [];
+  const ncSysFields = { id: 'ncRecordId', hash: 'ncRecordHash' };
 
   const uniqueTableNameGen = getUniqueNameGenerator('sheet');
 
@@ -380,25 +381,19 @@ export default async (
       table.table_name = uniqueTableNameGen(nc_sanitizeName(tblSchema[i].name));
 
       const uniqueColNameGen = getUniqueNameGenerator('field');
-      // insert _aTbl_nc_rec_id of type ID by default
-      table.columns = [
+      table.columns = [];
+      const sysColumns = [
         {
-          title: '_aTbl_nc_rec_id',
-          column_name: '_aTbl_nc_rec_id',
+          title: ncSysFields.id,
+          column_name: ncSysFields.id,
           uidt: UITypes.ID,
-          // idType: 'AG'
-          // uidt: UITypes.SingleLineText,
-          // pk: true,
-          // // mysql additionally requires NOT-NULL to be explicitly set
-          // rqd: true,
-          // system: true,
           meta: {
             ag: 'nc'
           }
         },
         {
-          title: '_aTbl_nc_rec_hash',
-          column_name: '_aTbl_nc_rec_hash',
+          title: ncSysFields.hash,
+          column_name: ncSysFields.hash,
           uidt: UITypes.SingleLineText,
           system: true
         }
@@ -455,6 +450,9 @@ export default async (
         }
         table.columns.push(ncCol);
       }
+      table.columns.push(sysColumns[0]);
+      table.columns.push(sysColumns[1]);
+
       tables.push(table);
     }
     return tables;
@@ -1238,8 +1236,8 @@ export default async (
     }
 
     // insert airtable record ID explicitly into each records
-    rec['_aTbl_nc_rec_id'] = record.id;
-    rec['_aTbl_nc_rec_hash'] = recordHash;
+    rec[ncSysFields.id] = record.id;
+    rec[ncSysFields.hash] = recordHash;
 
     // bulk Insert
     logDetailed(`NC API: dbTableRow.bulkCreate ${table.title} [${rec}]`);
@@ -1796,7 +1794,7 @@ export default async (
 
   async function nc_configureFields(_viewId, _c, tblName, viewName, viewType?) {
     // force hide PK column
-    const hiddenColumns = ['_aTbl_nc_rec_id', '_aTbl_nc_rec_hash'];
+    const hiddenColumns = [ncSysFields.id, ncSysFields.hash];
     const c = _c.columnOrder;
 
     // column order corrections

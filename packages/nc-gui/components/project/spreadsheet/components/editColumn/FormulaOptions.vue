@@ -109,7 +109,7 @@
 import debounce from 'debounce'
 import jsep from 'jsep'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
-import formulaList, { formulas } from '../../../../../helpers/formulaList'
+import formulaList, { formulas, formulaTypes } from '../../../../../helpers/formulaList'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
 
@@ -241,6 +241,7 @@ export default {
           arr.add(`'${pt.callee.name}' function is not available`)
         }
         const validation = formulas[pt.callee.name] && formulas[pt.callee.name].validation
+        // validate arguments
         if (validation && validation.args) {
           if (validation.args.rqd !== undefined && validation.args.rqd !== pt.arguments.length) {
             arr.add(`'${pt.callee.name}' required ${validation.args.rqd} arguments`)
@@ -248,6 +249,36 @@ export default {
             arr.add(`'${pt.callee.name}' required minimum ${validation.args.min} arguments`)
           } else if (validation.args.max !== undefined && validation.args.max < pt.arguments.length) {
             arr.add(`'${pt.callee.name}' required maximum ${validation.args.max} arguments`)
+          }
+        }
+        // validate data type
+        const type = formulas[pt.callee.name].type
+        if (type === formulaTypes.NUMERIC) {
+          for (const arg of pt.arguments) {
+            if (arg.value && typeof arg.value !== 'number') {
+              arr.add(`Value '${arg.value}' should have a numeric type`)
+            }
+            if (arg.name) {
+              // TODO: handle jsep.IDENTIFIER case
+              // arr.add(`Column '${arg.name}' should have a numeric type`)
+            }
+          }
+        } else if (type === formulaTypes.STRING) {
+          for (const arg of pt.arguments) {
+            if (arg.value && typeof arg.value !== 'string') {
+              arr.add(`Value '${arg.value}' should have a string type`)
+            }
+            if (arg.name) {
+              // TODO: handle jsep.IDENTIFIER case
+              // arr.add(`Column '${arg.name}' should have a string type`)
+            }
+          }
+        } else if (type === formulaTypes.DATE) {
+          if (pt.callee.name === 'DATEADD') {
+            // pt.arguments[0] = date type
+            // pt.arguments[1] = numeric
+            // pt.arguments[2] = ["day" | "week" | "month" | "year"]
+            // TODO: write a dry-run function to validate each segment
           }
         }
         pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))

@@ -538,6 +538,16 @@
             </v-list-item-title>
           </v-list-item>
         </template>
+
+        <v-divider />
+        <v-list-item dense target="_blank" href="http://careers.nocodb.com">
+          <v-list-item-icon>
+            <span class="ml-2" style="font-size:20px">🚀</span>
+          </v-list-item-icon>
+          <v-list-item-title>
+            We are Hiring!!!
+          </v-list-item-title>
+        </v-list-item>
       </v-list>
     </div>
 

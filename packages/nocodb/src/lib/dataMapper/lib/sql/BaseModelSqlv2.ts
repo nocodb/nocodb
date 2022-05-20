@@ -2143,7 +2143,7 @@ function getCompositePk(primaryKeys: Column[], row) {
 }
 
 export function sanitize(v) {
-  return v?.replace(/([^\\]|^)([?])/g, '$1\\$2');
+  return v?.replace(/([^\\]|^)([?.])/g, '$1\\$2');
 }
 
 export { BaseModelSqlv2 };

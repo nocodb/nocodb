@@ -236,7 +236,7 @@ export default {
       }
     },
     validateAgainstMeta(pt, arr = []) {
-      if (pt.type === 'CallExpression') {
+      if (pt.type === jsep.CALL_EXP) {
         if (!this.availableFunctions.includes(pt.callee.name)) {
           arr.push(`'${pt.callee.name}' function is not available`)
         }
@@ -251,7 +251,7 @@ export default {
           }
         }
         pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))
-      } else if (pt.type === 'Identifier') {
+      } else if (pt.type === jsep.IDENTIFIER) {
         if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== pt.name)) {
           arr.push(`Column '${pt.name}' is not available`)
         }
@@ -323,7 +323,7 @@ export default {
             arr.push('Can’t save field because it causes a circular reference')
           }
         }
-      } else if (pt.type === 'BinaryExpression') {
+      } else if (pt.type === jsep.BINARY_EXP) {
         if (!this.availableBinOps.includes(pt.operator)) {
           arr.push(`'${pt.operator}' operation is not available`)
         }

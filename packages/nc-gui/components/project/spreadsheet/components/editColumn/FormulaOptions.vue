@@ -255,35 +255,37 @@ export default {
         pt.arguments.map(arg => this.validateAgainstMeta(arg, errors))
 
         // validate data type
-        const type = formulas[pt.callee.name].type
-        if (
-          type === formulaTypes.NUMERIC ||
-          type === formulaTypes.STRING
-        ) {
-          pt.arguments.map(arg => this.validateAgainstType(arg, type, func, typeErrors))
-        } else if (type === formulaTypes.DATE) {
-          if (pt.callee.name === 'DATEADD') {
-            // pt.arguments[0] = date type
-            this.validateAgainstType(pt.arguments[0], formulaTypes.DATE, (v) => {
-              if (!(v instanceof Date)) {
-                typeErrors.add('The first parameter of DATEADD() should have date value')
-              }
-            })
-            // pt.arguments[1] = numeric
-            this.validateAgainstType(pt.arguments[1], formulaTypes.NUMERIC, (v) => {
-              if (typeof v !== 'number') {
-                typeErrors.add('The second parameter of DATEADD() should have numeric value')
-              }
-            })
-            // pt.arguments[2] = ["day" | "week" | "month" | "year"]
-            this.validateAgainstType(pt.arguments[2], formulaTypes.STRING, (v) => {
-              if (!['day', 'week', 'month', 'year'].includes(v)) {
-                typeErrors.add('The third parameter of DATEADD() should have the value either "day", "week", "month" or "year"')
-              }
-            })
+        if (pt.callee.type === jsep.IDENTIFIER) {
+          const expectedType = formulas[pt.callee.name].type
+          if (
+            expectedType === formulaTypes.NUMERIC ||
+            expectedType === formulaTypes.STRING
+          ) {
+            pt.arguments.map(arg => this.validateAgainstType(arg, expectedType, func, typeErrors))
+          } else if (expectedType === formulaTypes.DATE) {
+            if (pt.callee.name === 'DATEADD') {
+              // pt.arguments[0] = date
+              this.validateAgainstType(pt.arguments[0], formulaTypes.DATE, (v) => {
+                if (!(v instanceof Date)) {
+                  typeErrors.add('The first parameter of DATEADD() should have date value')
+                }
+              }, typeErrors)
+              // pt.arguments[1] = numeric
+              this.validateAgainstType(pt.arguments[1], formulaTypes.NUMERIC, (v) => {
+                if (typeof v !== 'number') {
+                  typeErrors.add('The second parameter of DATEADD() should have numeric value')
+                }
+              }, typeErrors)
+              // pt.arguments[2] = ["day" | "week" | "month" | "year"]
+              this.validateAgainstType(pt.arguments[2], formulaTypes.STRING, (v) => {
+                if (!['day', 'week', 'month', 'year'].includes(v)) {
+                  typeErrors.add('The third parameter of DATEADD() should have the value either "day", "week", "month" or "year"')
+                }
+              }, typeErrors)
+            }
           }
-          // NOW()?
         }
+
         errors = new Set([...errors, ...typeErrors])
       } else if (pt.type === jsep.IDENTIFIER) {
         if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== pt.name)) {
@@ -374,29 +376,88 @@ export default {
       }
       return errors
     },
-    validateAgainstType(pt, type, func, typeErrors = new Set()) {
+    validateAgainstType(pt, expectedType, func, typeErrors = new Set()) {
       if (pt === false || typeof pt === 'undefined') { return typeErrors }
       if (pt.type === jsep.LITERAL) {
         if (typeof func === 'function') {
           func(pt.value)
-        } else if (type === formulaTypes.NUMERIC) {
+        } else if (expectedType === formulaTypes.NUMERIC) {
           if (typeof pt.value !== 'number') {
             typeErrors.add('Numeric type is expected')
           }
-        } else if (type === formulaTypes.STRING) {
+        } else if (expectedType === formulaTypes.STRING) {
           if (typeof pt.value !== 'string') {
             typeErrors.add('string type is expected')
           }
         }
       } else if (pt.type == jsep.IDENTIFIER) {
-        // TODO: check the type of column (pt.name)
+        const col = this.meta.columns.filter(c => c.title === pt.name)[0]
+        if (col === undefined) { return }
+        if (col.uidt === UITypes.Formula) {
+          // TODO: check meta
+        } else {
+          switch (col.uidt) {
+            // string
+            case UITypes.SingleLineText:
+            case UITypes.LongText:
+            case UITypes.MultiSelect:
+            case UITypes.SingleSelect:
+            case UITypes.PhoneNumber:
+            case UITypes.Email:
+            case UITypes.URL:
+              if (typeof pt.value !== formulaTypes.STRING) {
+                typeErrors.add('string type is expected')
+              }
+              break
+
+            // numeric
+            case UITypes.Year:
+            case UITypes.Number:
+            case UITypes.Decimal:
+            case UITypes.Rating:
+            case UITypes.Count:
+            case UITypes.AutoNumber:
+              if (expectedType !== formulaTypes.NUMERIC) {
+                typeErrors.add(`Column '${pt.name}' with ${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`)
+              }
+              break
+
+            // date
+            case UITypes.Date:
+            case UITypes.DateTime:
+            case UITypes.CreateTime:
+            case UITypes.LastModifiedTime:
+              if (expectedType !== formulaTypes.DATE) {
+                typeErrors.add(`Column '${pt.name}' with ${formulaTypes.DATE} type is found but ${expectedType} type is expected`)
+              }
+              break
+
+            // not supported
+            case UITypes.ForeignKey:
+            case UITypes.Attachment:
+            case UITypes.ID:
+            case UITypes.Time:
+            case UITypes.Currency:
+            case UITypes.Percent:
+            case UITypes.Duration:
+            case UITypes.Rollup:
+            case UITypes.Lookup:
+            case UITypes.Barcode:
+            case UITypes.Button:
+            case UITypes.Checkbox:
+            case UITypes.Collaborator:
+            default:
+              typeErrors.add(`Not supported to reference column '${pt.name}'`)
+              break
+          }
+        }
       } else if (pt.type === jsep.UNARY_EXP || pt.type === jsep.BINARY_EXP) {
-        if (type !== formulaTypes.NUMERIC) {
+        if (expectedType !== formulaTypes.NUMERIC) {
           typeErrors.add('Numeric type is expected')
         }
       } else if (pt.type === jsep.CALL_EXP) {
-        if (type !== formulas[pt.callee.name].type) {
-          typeErrors.add(`${type} not matched with ${formulas[pt.callee.name].type}`)
+        if (formulas[pt.callee.name]?.type && expectedType !== formulas[pt.callee.name].type) {
+          typeErrors.add(`${expectedType} not matched with ${formulas[pt.callee.name].type}`)
         }
       }
       return typeErrors

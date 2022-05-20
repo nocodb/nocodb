@@ -2262,6 +2262,36 @@ export class Api<
      * No description
      *
      * @tags DB table row
+     * @name GroupBy
+     * @summary Table row Group by
+     * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/groupby
+     * @response `200` `any` OK
+     */
+    groupBy: (
+      orgs: string,
+      projectName: string,
+      tableName: string,
+      query?: {
+        column_name?: string;
+        sort?: any[];
+        where?: string;
+        limit?: number;
+        offset?: number;
+      },
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/data/${orgs}/${projectName}/${tableName}/groupby`,
+        method: 'GET',
+        query: query,
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags DB table row
      * @name Read
      * @summary Table row read
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}
@@ -2664,17 +2694,23 @@ export class Api<
      * No description
      *
      * @tags DB view row
-     * @name FindOne
-     * @summary Table view row FindOne
+     * @name GroupBy
+     * @summary Table view row Group by
      * @request GET:/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one
      * @response `200` `any` OK
      */
-    findOne: (
+    groupBy: (
       orgs: string,
       projectName: string,
       tableName: string,
       viewName: string,
-      query?: { fields?: any[]; sort?: any[]; where?: string; nested?: any },
+      query?: {
+        column_name?: string;
+        sort?: any[];
+        where?: string;
+        limit?: number;
+        offset?: number;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

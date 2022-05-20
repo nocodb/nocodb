@@ -2600,6 +2600,90 @@
         }
       }
     },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/groupby": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },{
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "column_name",
+          "description":
+          "Column name of the column you want to group by, eg. `column_name=column1`"
+        }
+      ],
+      "get": {
+        "summary": "Table row Group by",
+        "operationId": "db-table-row-group-by",
+        "description": "",
+        "tags": [
+          "DB table row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}": {
       "parameters": [
         {
@@ -2776,6 +2860,98 @@
             "in": "query",
             "name": "nested",
             "description": "Query params for nested data"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },{
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "column_name",
+          "description":
+          "Column name of the column you want to group by, eg. `column_name=column1`"
+        }
+      ],
+      "get": {
+        "summary": "Table view row Group by",
+        "operationId": "db-view-row-group-by",
+        "description": "",
+        "tags": [
+          "DB view row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
           }
         ],
         "responses": {

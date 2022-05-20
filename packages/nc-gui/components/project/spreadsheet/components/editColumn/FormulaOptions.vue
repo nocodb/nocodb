@@ -226,65 +226,68 @@ export default {
     parseAndValidateFormula(formula) {
       try {
         const pt = jsep(formula)
-        const err = this.validateAgainstMeta(pt)
-        if (err.size) {
-          return [...err].join(', ')
+        const metaErrors = this.validateAgainstMeta(pt)
+        if (metaErrors.size) {
+          return [...metaErrors].join(', ')
         }
         return true
       } catch (e) {
         return e.message
       }
     },
-    validateAgainstMeta(pt, arr = new Set()) {
+    validateAgainstMeta(pt, errors = new Set(), typeErrors = new Set()) {
       if (pt.type === jsep.CALL_EXP) {
+        // validate function name
         if (!this.availableFunctions.includes(pt.callee.name)) {
-          arr.add(`'${pt.callee.name}' function is not available`)
+          errors.add(`'${pt.callee.name}' function is not available`)
         }
-        const validation = formulas[pt.callee.name] && formulas[pt.callee.name].validation
         // validate arguments
+        const validation = formulas[pt.callee.name] && formulas[pt.callee.name].validation
         if (validation && validation.args) {
           if (validation.args.rqd !== undefined && validation.args.rqd !== pt.arguments.length) {
-            arr.add(`'${pt.callee.name}' required ${validation.args.rqd} arguments`)
+            errors.add(`'${pt.callee.name}' required ${validation.args.rqd} arguments`)
           } else if (validation.args.min !== undefined && validation.args.min > pt.arguments.length) {
-            arr.add(`'${pt.callee.name}' required minimum ${validation.args.min} arguments`)
+            errors.add(`'${pt.callee.name}' required minimum ${validation.args.min} arguments`)
           } else if (validation.args.max !== undefined && validation.args.max < pt.arguments.length) {
-            arr.add(`'${pt.callee.name}' required maximum ${validation.args.max} arguments`)
+            errors.add(`'${pt.callee.name}' required maximum ${validation.args.max} arguments`)
           }
         }
+        pt.arguments.map(arg => this.validateAgainstMeta(arg, errors))
+
         // validate data type
         const type = formulas[pt.callee.name].type
-        if (type === formulaTypes.NUMERIC) {
-          for (const arg of pt.arguments) {
-            if (arg.value && typeof arg.value !== 'number') {
-              arr.add(`Value '${arg.value}' should have a numeric type`)
-            }
-            if (arg.name) {
-              // TODO: handle jsep.IDENTIFIER case
-              // arr.add(`Column '${arg.name}' should have a numeric type`)
-            }
-          }
-        } else if (type === formulaTypes.STRING) {
-          for (const arg of pt.arguments) {
-            if (arg.value && typeof arg.value !== 'string') {
-              arr.add(`Value '${arg.value}' should have a string type`)
-            }
-            if (arg.name) {
-              // TODO: handle jsep.IDENTIFIER case
-              // arr.add(`Column '${arg.name}' should have a string type`)
-            }
-          }
+        if (
+          type === formulaTypes.NUMERIC ||
+          type === formulaTypes.STRING
+        ) {
+          pt.arguments.map(arg => this.validateAgainstType(arg, type, func, typeErrors))
         } else if (type === formulaTypes.DATE) {
           if (pt.callee.name === 'DATEADD') {
             // pt.arguments[0] = date type
+            this.validateAgainstType(pt.arguments[0], formulaTypes.DATE, (v) => {
+              if (!(v instanceof Date)) {
+                typeErrors.add('The first parameter of DATEADD() should have date value')
+              }
+            })
             // pt.arguments[1] = numeric
+            this.validateAgainstType(pt.arguments[1], formulaTypes.NUMERIC, (v) => {
+              if (typeof v !== 'number') {
+                typeErrors.add('The second parameter of DATEADD() should have numeric value')
+              }
+            })
             // pt.arguments[2] = ["day" | "week" | "month" | "year"]
-            // TODO: write a dry-run function to validate each segment
+            this.validateAgainstType(pt.arguments[2], formulaTypes.STRING, (v) => {
+              if (!['day', 'week', 'month', 'year'].includes(v)) {
+                typeErrors.add('The third parameter of DATEADD() should have the value either "day", "week", "month" or "year"')
+              }
+            })
           }
+          // NOW()?
         }
-        pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))
+        errors = new Set([...errors, ...typeErrors])
       } else if (pt.type === jsep.IDENTIFIER) {
         if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== pt.name)) {
-          arr.add(`Column '${pt.name}' is not available`)
+          errors.add(`Column '${pt.name}' is not available`)
         }
 
         // check circular reference
@@ -351,25 +354,52 @@ export default {
           }
           // vertices not same as visited = cycle found
           if (vertices !== visited) {
-            arr.add('Can’t save field because it causes a circular reference')
+            errors.add('Can’t save field because it causes a circular reference')
           }
         }
       } else if (pt.type === jsep.BINARY_EXP) {
         if (!this.availableBinOps.includes(pt.operator)) {
-          arr.add(`'${pt.operator}' operation is not available`)
+          errors.add(`'${pt.operator}' operation is not available`)
         }
-        this.validateAgainstMeta(pt.left, arr)
-        this.validateAgainstMeta(pt.right, arr)
+        this.validateAgainstMeta(pt.left, errors)
+        this.validateAgainstMeta(pt.right, errors)
       } else if (pt.type === jsep.LITERAL) {
         // do nothing
       } else if (pt.type === jsep.COMPOUND) {
         if (pt.body.length) {
-          arr.add('Can’t save field because the formula is invalid')
+          errors.add('Can’t save field because the formula is invalid')
         }
       } else {
-        arr.add('Can’t save field because the formula is invalid')
+        errors.add('Can’t save field because the formula is invalid')
       }
-      return arr
+      return errors
+    },
+    validateAgainstType(pt, type, func, typeErrors = new Set()) {
+      if (pt === false || typeof pt === 'undefined') { return typeErrors }
+      if (pt.type === jsep.LITERAL) {
+        if (typeof func === 'function') {
+          func(pt.value)
+        } else if (type === formulaTypes.NUMERIC) {
+          if (typeof pt.value !== 'number') {
+            typeErrors.add('Numeric type is expected')
+          }
+        } else if (type === formulaTypes.STRING) {
+          if (typeof pt.value !== 'string') {
+            typeErrors.add('string type is expected')
+          }
+        }
+      } else if (pt.type == jsep.IDENTIFIER) {
+        // TODO:
+      } else if (pt.type === jsep.UNARY_EXP || pt.type === jsep.BINARY_EXP) {
+        if (type !== formulaTypes.NUMERIC) {
+          typeErrors.add('Numeric type is expected')
+        }
+      } else if (pt.type === jsep.CALL_EXP) {
+        if (type !== formulas[pt.callee.name].type) {
+          typeErrors.add(`${type} not matched with ${formulas[pt.callee.name].type}`)
+        }
+      }
+      return typeErrors
     },
     appendText(it) {
       const text = it.text

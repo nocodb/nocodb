@@ -257,26 +257,28 @@ export default {
         }
 
         // check circular reference
-        // e.g. formula1 -> formula2 -> formula1
-        const regex = /cl_\w{14}/g
-        const formulaPaths = this.meta.columns.filter(c => c.uidt === UITypes.Formula).reduce((res, c) => {
-          const neighbours = (c.colOptions.formula.match(regex) || []).filter(colId => (this.meta.columns.filter(col => (col.id === colId && col.uidt === UITypes.Formula)).length))
+        // e.g. formula1 -> formula2 -> formula1 should return circular reference error
+        const formulaPaths = [
+          // all formula fields excluding itself
+          ...this.meta.columns.filter(c => c.id !== this.column.id && c.uidt === UITypes.Formula),
+          // include target formula field before saving
+          ...this.meta.columns.filter(c => c.title === pt.name && c.uidt === UITypes.Formula)
+        ].reduce((res, c) => {
+          // in `formula`, get all the target neighbours
+          // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
+          const neighbours = (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(colId => (this.meta.columns.filter(col => (col.id === colId && col.uidt === UITypes.Formula)).length))
           if (neighbours.length > 0) {
-            // e.g. formula1 -> [formula2, formula3]
+            // e.g. formula column 1 -> [formula column 2, formula column3]
             res.push({ [c.id]: neighbours })
           }
           return res
         }, [])
-        const targetFormula = this.meta.columns.filter(c => c.title === pt.name && c.uidt === UITypes.Formula)[0]
-        if (targetFormula) {
-          formulaPaths.push({
-            [this.column.id]: [targetFormula.id]
-          })
-        }
         const vertices = formulaPaths.length
         if (vertices > 0) {
+          // perform kahn's algo for cycle detection
           const adj = new Map()
           const inDegrees = new Map()
+          // init adjacency list & indegree
           for (const [_, v] of Object.entries(formulaPaths)) {
             const src = Object.keys(v)[0]
             const neighbours = v[src]
@@ -287,25 +289,36 @@ export default {
             }
           }
           const queue = []
+          // put all vertices with in-degree = 0 (i.e. no incoming edges) to queue
           inDegrees.forEach((inDegree, col) => {
             if (inDegree === 0) {
+              // in-degree = 0 means we start traversing from this node
               queue.push(col)
             }
           })
+          // init count of visited vertices
           let visited = 0
+          // BFS
           while (queue.length !== 0) {
+            // remove a vertex from the queue
             const src = queue.shift()
+            // if this node has neighbours, increase visited by 1
             const neighbours = adj.get(src) || new Set()
             if (neighbours.size > 0) {
               visited += 1
             }
+            // iterate each neighbouring nodes
             neighbours.forEach((neighbour) => {
+              // decrease in-degree of its neighbours by 1
               inDegrees.set(neighbour, inDegrees.get(neighbour) - 1)
+              // if in-degree becomes 0
               if (inDegrees.get(neighbour) === 0) {
+                // then put the neighboring node to the queue
                 queue.push(neighbour)
               }
             })
           }
+          // vertices not same as visited = cycle found
           if (vertices !== visited) {
             arr.push('Can’t save field because it causes a circular reference')
           }

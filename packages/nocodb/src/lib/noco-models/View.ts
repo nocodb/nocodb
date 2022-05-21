@@ -108,7 +108,7 @@ export default class View implements ViewType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.VIEWS, viewId);
-      await NocoCache.set(`${CacheScope.VIEW}:${viewId}`, view);
+      await NocoCache.set(`${CacheScope.VIEW}:${view.id}`, view);
     }
 
     return view && new View(view);

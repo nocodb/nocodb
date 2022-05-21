@@ -255,6 +255,7 @@ export default {
     meta: Object
   },
   data: () => ({
+    loading: false,
     notification: {
       method: 'POST',
       body: '{{ json data }}'

@@ -1938,6 +1938,11 @@ export default async (
 
         for (let i = 0; i < ncTblList.list.length; i++) {
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+
+          // not a migrated table, skip
+          if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
+            continue;
+
           recordCnt = 0;
           await nocoReadData(syncDB, ncTbl, async (sDB, table, record) => {
             await nocoBaseDataProcessing(sDB, table, record);
@@ -1952,6 +1957,10 @@ export default async (
           const ncTbl = await nc_getTableSchema(
             aTbl_getTableName(x.aTbl.tblId).tn
           );
+
+          // not a migrated table, skip
+          if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
+            continue;
 
           recordCnt = 0;
           await nocoReadDataSelected(

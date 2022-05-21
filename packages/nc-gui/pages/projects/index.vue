@@ -540,7 +540,12 @@
         </template>
 
         <v-divider />
-        <v-list-item dense target="_blank" href="http://careers.nocodb.com">
+        <v-list-item
+          v-t="['e:hiring']"
+          dense
+          target="_blank"
+          href="http://careers.nocodb.com"
+        >
           <v-list-item-icon>
             <span class="ml-2" style="font-size:20px">🚀</span>
           </v-list-item-icon>

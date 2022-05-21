@@ -61,6 +61,10 @@
                 Import
               </v-btn>
             </v-card-actions>
+
+            <div class="text-center pa-4 pb-0">
+              <a class="caption grey--text" href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">Questions / Help - reach out here</a>
+            </div>
           </v-card>
 
           <v-card
@@ -107,6 +111,9 @@
               <v-btn large color="primary" class="nc-btn-go-dashboard" @click="airtableModal=false">
                 Go to dashboard
               </v-btn>
+            </div>
+            <div class="text-center pa-4 pb-0">
+              <a class="caption grey--text" href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">Questions / Help - reach out here</a>
             </div>
           </v-card>
         </div>

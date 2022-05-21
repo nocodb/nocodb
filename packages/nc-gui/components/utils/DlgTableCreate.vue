@@ -214,8 +214,8 @@ export default {
   methods: {
     populateDefaultTitle() {
       let c = 1
-      while (this.tables.some(t => t.title === `sheet${c}`)) { c++ }
-      this.$set(this.table, 'alias', `sheet${c}`)
+      while (this.tables.some(t => t.title === `Sheet${c}`)) { c++ }
+      this.$set(this.table, 'alias', `Sheet${c}`)
     },
     validateTableName(v) {
       return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])

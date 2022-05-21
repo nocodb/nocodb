@@ -273,7 +273,7 @@
           </template>
         </div>
 
-        <div>
+        <div v-if="!isSharedBase">
           <v-btn
             v-t="['c:snippet:open']"
             color="primary"
@@ -286,7 +286,7 @@
           </v-btn>
           <code-snippet v-model="codeSnippetModal" :query-params="queryParams" :meta="meta" :view="selectedView" />
         </div>
-        <div>
+        <div v-if="_isUIAllowed('webhook')" class="mb-2">
           <v-btn
             v-t="['c:actions:webhook']"
             color="primary"
@@ -302,7 +302,7 @@
         </div>
 
         <div
-          v-if="time - $store.state.settings.miniSponsorCard > 15 * 60 * 1000"
+          v-if="!isSharedBase && time - $store.state.settings.miniSponsorCard > 15 * 60 * 1000"
           class="py-2 sponsor-wrapper"
         >
           <v-icon small class="close-icon" @click="hideMiniSponsorCard">
@@ -310,7 +310,7 @@
           </v-icon>
 
           <!--          <extras />-->
-          <v-divider class="my-2" />
+          <v-divider class="mb-2" />
 
           <extras class="pl-1" />
           <v-btn
@@ -326,113 +326,6 @@
 
           <!--          <sponsor-mini nav />-->
         </div>
-        <!--<div class="text-center">
-          <v-hover >
-            <template v-slot:default="{hover}">
-            <v-btn
-              :color="hover ?'primary' :  'grey'" class="mb-2" small outlined href="https://github.com/sponsors/nocodb"
-              target="_blank">
-              <v-icon small color="red" class="mr-2">mdi-heart-outline</v-icon>
-              Sponsor Us
-            </v-btn>
-            </template>
-          </v-hover>
-        </div>
--->
-        <!--        <div v-if="_isUIAllowed('table-advanced')">
-          <v-divider />
-          <v-list
-            dense
-            :class="{
-              'advanced-border': overAdvShieldIcon,
-            }"
-          >
-            <v-list-item dense>
-              <span
-                class="body-2 font-weight-medium"
-                @dblclick="$emit('update:showAdvanceOptions', !showAdvanceOptions)"
-              >Advanced</span>
-              <v-tooltip top>
-                <template #activator="{ on }">
-                  <x-icon
-                    color="pink textColor"
-                    icon-class="ml-2"
-                    small
-                    v-on="on"
-                    @mouseenter="overAdvShieldIcon = true"
-                    @mouseleave="overAdvShieldIcon = false"
-                  >
-                    mdi-shield-lock-outline
-                  </x-icon>
-                </template>
-                <span class="caption">
-                  &lt;!&ndash; Only visible to Creator &ndash;&gt;
-                  {{ $t('msg.info.onlyCreator') }}
-                </span>
-              </v-tooltip>
-            </v-list-item>
-            &lt;!&ndash;            <v-tooltip bottom>&ndash;&gt;
-            &lt;!&ndash;              <template v-slot:activator="{on}">&ndash;&gt;
-            &lt;!&ndash;            <v-menu offset-x left>&ndash;&gt;
-            &lt;!&ndash;              <template v-slot:activator="{on}">&ndash;&gt;
-
-            &lt;!&ndash;
-              TODO:
-              - Add selectedView.show_as === 'kanban' when it is ready
-             &ndash;&gt;
-            &lt;!&ndash;            <v-list-item
-              v-show="
-                selectedView && (selectedView.type === 'view' || selectedView.type === 'table' || selectedView.show_as === 'form' || selectedView.show_as === 'grid' )
-              "
-              v-if="_isUIAllowed('shareview')"
-              @click="genShareLink"
-            >
-              <v-icon x-small class="mr-2 nc-share-view">
-                mdi-open-in-new
-              </v-icon>
-              <span class="caption">
-                &lt;!&ndash; Share View &ndash;&gt;
-                {{ $t('activity.shareView') }}
-              </span>
-              <v-spacer />
-              <v-menu offset-y>
-                <template #activator="{ on }">
-                  <v-icon small @click.stop v-on="on">
-                    mdi-dots-vertical
-                  </v-icon>
-                </template>
-                <v-list dense>
-                  <v-list-item dense @click="$emit('showAdditionalFeatOverlay', 'shared-views')">
-                    <v-list-item-title>
-                      <span class="font-weight-regular">
-                        &lt;!&ndash; Views List &ndash;&gt;
-                        {{ $t('activity.ListView') }}
-                      </span>
-                    </v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
-            </v-list-item>&ndash;&gt;
-
-            &lt;!&ndash;            <v-tooltip bottom>&ndash;&gt;
-            &lt;!&ndash;              <template #activator="{ on }">&ndash;&gt;
-            &lt;!&ndash;                <v-list-item v-on="on" @click="copyapiUrlToClipboard">&ndash;&gt;
-            &lt;!&ndash;                  <v-icon x-small class="mr-2">&ndash;&gt;
-            &lt;!&ndash;                    mdi-content-copy&ndash;&gt;
-            &lt;!&ndash;                  </v-icon>&ndash;&gt;
-            &lt;!&ndash;                  &lt;!&ndash; Copy API URL &ndash;&gt;&ndash;&gt;
-            &lt;!&ndash;                  <span class="caption">{{ $t('activity.ListView') }}</span>&ndash;&gt;
-            &lt;!&ndash;                </v-list-item>&ndash;&gt;
-            &lt;!&ndash;              </template>&ndash;&gt;
-            &lt;!&ndash;              &lt;!&ndash; Copy API URL &ndash;&gt;&ndash;&gt;
-            &lt;!&ndash;              {{ $t('activity.ListView') }}&ndash;&gt;
-            &lt;!&ndash;            </v-tooltip>&ndash;&gt;
-            <template v-if="_isUIAllowed('model')">
-              &lt;!&ndash;              <v-divider class="advance-menu-divider" />&ndash;&gt;
-              <slot />
-            </template>
-          </v-list>
-        </div>-->
       </div>
     </v-container>
 
@@ -620,6 +513,9 @@ export default {
     }
   }),
   computed: {
+    isSharedBase() {
+      return this.$route.params && this.$route.params.shared_base_id
+    },
     viewsList: {
       set(v) {
         this.$emit('update:views', v)

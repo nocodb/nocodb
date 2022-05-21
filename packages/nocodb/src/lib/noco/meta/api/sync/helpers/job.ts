@@ -431,9 +431,11 @@ export default async (
         }
 
         // populate cdf (column default value) if configured
-        if (col?.default) {
-          ncCol.cdf = col.default;
-        }
+        // if (col?.default) {
+        //   if (typeof col.default === 'string')
+        //     ncCol.cdf = `'${col.default.replace?.(/'/g, "\\'")}'`;
+        //   else ncCol.cdf = col.default;
+        // }
 
         // change from default 'tinytext' as airtable allows more than 255 characters
         // for single line text column type

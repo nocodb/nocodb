@@ -25,7 +25,7 @@
                   Credentials
                 </span>
 
-                <a href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free" class="caption grey--text" target="_blank">Where to find this?</a>
+                <a href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials-for-importing-to-nocodb" class="caption grey--text" target="_blank">Where to find this?</a>
               </div>
 
               <v-form v-model="valid">

@@ -36,7 +36,7 @@ import EditableAttachmentCell from '~/components/project/spreadsheet/components/
 import BooleanCell from '~/components/project/spreadsheet/components/cell/BooleanCell'
 import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCell'
 import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
-import CurrencyCell from '@/components/project/spreadsheet/components/cell/currencyCell'
+import CurrencyCell from '@/components/project/spreadsheet/components/cell/CurrencyCell'
 
 export default {
   name: 'TableCell',

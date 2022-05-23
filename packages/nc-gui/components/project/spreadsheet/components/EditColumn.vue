@@ -429,14 +429,10 @@
                                 />
                               </v-col>
                               <currency-options
-                                v-if="newColumn.uidt == 'Currency'"
-                                ref="currency"
+                                v-if="isCurrency"
+                                v-model="newColumn.meta"
                                 :column="newColumn"
-                                :nodes="nodes"
                                 :meta="meta"
-                                :is-s-q-lite="isSQLite"
-                                :alias="newColumn.column_name"
-                                v-on="$listeners"
                               />
                               <v-col :cols="sqlUi.showScale(newColumn) && !isSelect ? 6 : 12">
                                 <!--label="Length / Values"-->
@@ -575,7 +571,7 @@ import LinkedToAnotherOptions from '~/components/project/spreadsheet/components/
 import { validateColumnName } from '~/helpers'
 import RatingOptions from '~/components/project/spreadsheet/components/editColumn/RatingOptions'
 import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/CheckboxOptions'
-import CurrencyOptions from "@/components/project/spreadsheet/components/editColumn/currencyOptions";
+import CurrencyOptions from '@/components/project/spreadsheet/components/editColumn/CurrencyOptions'
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -735,18 +731,6 @@ export default {
           await this.$refs.formula.save()
           return this.$emit('saved')
           // return this.$toast.info('Coming Soon...').goAway(3000)
-        }
-
-        if (this.isCurrency && this.column) {
-          await this.$refs.currency.update()
-          this.$emit('saved')
-          return this.$emit('close')
-        }
-
-        if (this.isCurrency && !this.column) {
-          await this.$refs.currency.save()
-          this.$emit('saved')
-          return this.$emit('close')
         }
 
         if (this.isLinkToAnotherRecord && this.$refs.relation) {

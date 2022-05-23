@@ -3,7 +3,6 @@ import * as nc_012_alter_column_data_types from '../migrationsv2/nc_012_alter_co
 import * as nc_013_sync_source from '../migrationsv2/nc_013_sync_source';
 import * as nc_014_alter_column_data_types from '../migrationsv2/nc_014_alter_column_data_types';
 import * as nc_015_add_meta_col_in_column_table from '../migrationsv2/nc_015_add_meta_col_in_column_table';
-import * as nc_016_add_currency_column from '../migrationsv2/nc_016_add_currency_column';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -17,8 +16,7 @@ export default class XcMigrationSourcev2 {
       'nc_012_alter_column_data_types',
       'nc_013_sync_source',
       'nc_014_alter_column_data_types',
-      'nc_015_add_meta_col_in_column_table',
-      'nc_016_add_currency_column'
+      'nc_015_add_meta_col_in_column_table'
     ]);
   }
 
@@ -38,8 +36,6 @@ export default class XcMigrationSourcev2 {
         return nc_014_alter_column_data_types;
       case 'nc_015_add_meta_col_in_column_table':
         return nc_015_add_meta_col_in_column_table;
-      case 'nc_016_add_currency_column':
-        return nc_016_add_currency_column;
     }
   }
 }

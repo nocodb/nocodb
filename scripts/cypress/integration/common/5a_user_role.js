@@ -189,7 +189,7 @@ export const genTest = (apiType, dbType) => {
                 // right navigation menu bar
                 //      Editor/Viewer/Commenter : can only view 'existing' views
                 //      Rest: can create/edit
-                _viewMenu(roleType, false);
+                _viewMenu(roleType, false, 2);
             });
 
             it(`[${roles[roleType].name}] Top Right Menu bar`, () => {

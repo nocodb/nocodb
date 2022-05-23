@@ -48,7 +48,7 @@ export const genTest = (apiType, dbType) => {
         });
 
         it(`${roleType}: Validate access permissions: view's menu`, () => {
-            _viewMenu(roleType, false);
+            _viewMenu(roleType, false, 1);
         });
     };
 

@@ -4,12 +4,6 @@
       <v-toolbar class="elevation-0 align-center" height="68">
         <h3 class="mt-2">
           {{ $t('title.importFromAirtable') }}
-          <v-tooltip bottom>
-            <template #activator="{on}">
-              <span class="caption" v-on="on"> (beta <v-icon x-small>mdi-information-outline</v-icon>)</span>
-            </template>
-            <span class="caption">Airtable import works with few limitations</span>
-          </v-tooltip>
         </h3>
         <div v-t="['c:airtable-import:turbo-mode']" class="ml-2 mt-3 title pointer nc-btn-enable-turbo" @click="enableTurbo">
           🚀
@@ -20,106 +14,108 @@
       <v-divider />
       <div class="h-100" style="width: 100%">
         <div>
-          <v-card v-if="step === 1" class="py-6 elevation-0" height="500">
-            <div class="d-flex flex-column justify-center align-center pt-2 pb-6">
-              <span class="subtitle-1 font-weight-medium" @dblclick="$set(syncSource.details,'syncViews',true)">
-                Credentials
-              </span>
-
-              <a href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free" class="caption grey--text" target="_blank">Where to find this?</a>
-            </div>
-
-            <v-form v-model="valid">
-              <div v-if="syncSource" class="px-10 mt-1 mx-auto" style="max-width: 400px">
-                <v-text-field
-                  v-model="syncSource.details.apiKey"
-                  outlined
-                  dense
-                  label="Api Key"
-                  class="caption nc-input-api-key"
-                  :type="isPasswordVisible ? 'text':'password'"
-                  :rules="[v=> !!v || 'Api Key is required']"
-                >
-                  <template #append="">
-                    <v-icon class="mt-1" small @click="isPasswordVisible = !isPasswordVisible">
-                      {{ isPasswordVisible ? 'visibility_off' : 'visibility' }}
-                    </v-icon>
-                  </template>
-                </v-text-field>
-                <v-text-field
-                  v-model="syncSourceUrlOrId"
-                  outlined
-                  dense
-                  label="Shared Base ID / URL"
-                  class="caption nc-input-shared-base"
-                  :rules="[(v) => !!v || 'Shared Base ID / URL is required']"
-                />
-              </div>
-            </v-form>   <v-card-actions class="justify-center pb-6">
-              <v-btn
-                v-t="['c:sync-airtable:save-and-sync']"
-                class="nc-btn-airtable-import"
-                :disabled="!valid"
-                large
-                color="primary"
-                @click="saveAndSync"
-              >
-                Import
-              </v-btn>
-            </v-card-actions>
-
-            <div class="text-center pa-4 pb-0">
-              <a class="caption grey--text" href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">Questions / Help - reach out here</a>
-            </div>
-          </v-card>
-
           <v-card
-            v-if="step === 2"
-            class="pb-4 mt-4 elevation-0"
+            :class="{'pb-4 mt-4' : step === 2, 'py-6': step === 1}"
+            class=" elevation-0"
+            min-height="500"
           >
-            <v-card-title class=" justify-center">
-              <span class="subtitle-1 font-weight-medium">Logs</span>
-            </v-card-title>
-
-            <v-card
-              ref="log"
-              dark
-              class="mt-2 mx-4 pa-4 elevation-0 green--text"
-              height="500"
-              style="overflow-y: auto"
-            >
-              <div v-for="({msg , status}, i) in progress" :key="i">
-                <v-icon v-if="status==='FAILED'" color="red" size="15">
-                  mdi-close-circle-outline
-                </v-icon>
-                <v-icon v-else color="green" size="15">
-                  mdi-currency-usd
-                </v-icon>
-                <span class="caption nc-text">{{ msg }}</span>
-              </div>
-              <div
-                v-if="!progress || !progress.length || progress[progress.length-1].status !== 'COMPLETED' && progress[progress.length-1].status !== 'FAILED'"
-                class=""
-              >
-                <v-icon color="green" size="15">
-                  mdi-loading mdi-spin
-                </v-icon>
-                <span class="caption nc-text">Syncing
+            <template v-if="step === 1">
+              <div class="d-flex flex-column justify-center align-center pt-2 pb-6">
+                <span class="subtitle-1 font-weight-medium" @dblclick="$set(syncSource.details,'syncViews',true)">
+                  Credentials
                 </span>
-                <!--                  <div class="nc-progress" />-->
-              </div>
-            </v-card>
 
-            <div
-              v-if="progress && progress.length && progress[progress.length-1].status === 'COMPLETED'"
-              class="pa-4 pt-8 text-center"
+                <a href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free" class="caption grey--text" target="_blank">Where to find this?</a>
+              </div>
+
+              <v-form v-model="valid">
+                <div v-if="syncSource" class="px-10 mt-1 mx-auto" style="max-width: 400px">
+                  <v-text-field
+                    v-model="syncSource.details.apiKey"
+                    outlined
+                    dense
+                    label="Api Key"
+                    class="caption nc-input-api-key"
+                    :type="isPasswordVisible ? 'text':'password'"
+                    :rules="[v=> !!v || 'Api Key is required']"
+                  >
+                    <template #append="">
+                      <v-icon class="mt-1" small @click="isPasswordVisible = !isPasswordVisible">
+                        {{ isPasswordVisible ? 'visibility_off' : 'visibility' }}
+                      </v-icon>
+                    </template>
+                  </v-text-field>
+                  <v-text-field
+                    v-model="syncSourceUrlOrId"
+                    outlined
+                    dense
+                    label="Shared Base ID / URL"
+                    class="caption nc-input-shared-base"
+                    :rules="[(v) => !!v || 'Shared Base ID / URL is required']"
+                  />
+                </div>
+              </v-form>   <v-card-actions class="justify-center pb-6">
+                <v-btn
+                  v-t="['c:sync-airtable:save-and-sync']"
+                  class="nc-btn-airtable-import"
+                  :disabled="!valid"
+                  large
+                  color="primary"
+                  @click="saveAndSync"
+                >
+                  Import
+                </v-btn>
+              </v-card-actions>
+            </template>
+            <template
+              v-else-if="step === 2"
             >
-              <v-btn large color="primary" class="nc-btn-go-dashboard" @click="airtableModal=false">
-                Go to dashboard
-              </v-btn>
-            </div>
+              <v-card-title class=" justify-center">
+                <span class="subtitle-1 font-weight-medium">Logs</span>
+              </v-card-title>
+
+              <v-card
+                ref="log"
+                dark
+                class="mt-2 mx-4 pa-4 elevation-0 green--text"
+                height="500"
+                style="overflow-y: auto"
+              >
+                <div v-for="({msg , status}, i) in progress" :key="i">
+                  <v-icon v-if="status==='FAILED'" color="red" size="15">
+                    mdi-close-circle-outline
+                  </v-icon>
+                  <v-icon v-else color="green" size="15">
+                    mdi-currency-usd
+                  </v-icon>
+                  <span class="caption nc-text">{{ msg }}</span>
+                </div>
+                <div
+                  v-if="!progress || !progress.length || progress[progress.length-1].status !== 'COMPLETED' && progress[progress.length-1].status !== 'FAILED'"
+                  class=""
+                >
+                  <v-icon color="green" size="15">
+                    mdi-loading mdi-spin
+                  </v-icon>
+                  <span class="caption nc-text">Syncing
+                  </span>
+                  <!--                  <div class="nc-progress" />-->
+                </div>
+              </v-card>
+
+              <div
+                v-if="progress && progress.length && progress[progress.length-1].status === 'COMPLETED'"
+                class="pa-4 pt-8 text-center"
+              >
+                <v-btn large color="primary" class="nc-btn-go-dashboard" @click="airtableModal=false">
+                  Go to dashboard
+                </v-btn>
+              </div>
+            </template>
             <div class="text-center pa-4 pb-0">
               <a class="caption grey--text" href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">Questions / Help - reach out here</a>
+              <br>
+              <span class="caption grey--text"> This feature is currently in beta and more information can be found <a href="https://github.com/nocodb/nocodb/discussions/2122" class="caption grey--text" target="_blank">here</a>.</span>
             </div>
           </v-card>
         </div>

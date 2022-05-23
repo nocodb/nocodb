@@ -37,18 +37,31 @@
           >
             <!-- Function -->
             <template v-if="it.type ==='function'">
-              <v-list-item-content>
-                <span
-                  class="caption primary--text text--lighten-2 font-weight-bold"
-                >
-                  {{ it.text }}
-                </span>
-              </v-list-item-content>
-              <v-list-item-action>
-                <span class="caption">
-                  Function
-                </span>
-              </v-list-item-action>
+              <v-tooltip right offset-x nudge-right="100">
+                <template #activator="{ on }">
+                  <v-list-item-content v-on="on">
+                    <span
+                      class="caption primary--text text--lighten-2 font-weight-bold"
+                    >
+                      {{ it.text }}
+                    </span>
+                  </v-list-item-content>
+                  <v-list-item-action>
+                    <span class="caption">
+                      Function
+                    </span>
+                  </v-list-item-action>
+                </template>
+                <div>
+                  {{ it.description }} <br><br>
+                  Syntax: <br>
+                  {{ it.syntax }} <br><br>
+                  Examples: <br>
+                  <div v-for="(example, idx) in it.examples" :key="idx">
+                    <pre>({{ idx + 1 }}): {{ example }}</pre>
+                  </div>
+                </div>
+              </v-tooltip>
             </template>
 
             <!-- Column -->
@@ -96,7 +109,7 @@
 import debounce from 'debounce'
 import jsep from 'jsep'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
-import formulaList, { validations } from '../../../../../helpers/formulaList'
+import formulaList, { formulas, formulaTypes } from '../../../../../helpers/formulaList'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
 
@@ -125,7 +138,10 @@ export default {
       return [
         ...this.availableFunctions.filter(fn => !unsupportedFnList.includes(fn)).map(fn => ({
           text: fn + '()',
-          type: 'function'
+          type: 'function',
+          description: formulas[fn].description,
+          syntax: formulas[fn].syntax,
+          examples: formulas[fn].examples
         })),
         ...this.meta.columns.filter(c => !this.column || this.column.id !== c.id).map(c => ({
           text: c.title,
@@ -209,44 +225,314 @@ export default {
     },
     parseAndValidateFormula(formula) {
       try {
-        const pt = jsep(formula)
-        const err = this.validateAgainstMeta(pt)
-        if (err.length) {
-          return err.join(', ')
+        const parsedTree = jsep(formula)
+        const metaErrors = this.validateAgainstMeta(parsedTree)
+        if (metaErrors.size) {
+          return [...metaErrors].join(', ')
         }
         return true
       } catch (e) {
         return e.message
       }
     },
-    validateAgainstMeta(pt, arr = []) {
-      if (pt.type === 'CallExpression') {
-        if (!this.availableFunctions.includes(pt.callee.name)) {
-          arr.push(`'${pt.callee.name}' function is not available`)
+    validateAgainstMeta(parsedTree, errors = new Set(), typeErrors = new Set()) {
+      if (parsedTree.type === jsep.CALL_EXP) {
+        // validate function name
+        if (!this.availableFunctions.includes(parsedTree.callee.name)) {
+          errors.add(`'${parsedTree.callee.name}' function is not available`)
         }
-        const validation = validations[pt.callee.name] && validations[pt.callee.name].validation
+        // validate arguments
+        const validation = formulas[parsedTree.callee.name] && formulas[parsedTree.callee.name].validation
         if (validation && validation.args) {
-          if (validation.args.rqd !== undefined && validation.args.rqd !== pt.arguments.length) {
-            arr.push(`'${pt.callee.name}' required ${validation.args.rqd} arguments`)
-          } else if (validation.args.min !== undefined && validation.args.min > pt.arguments.length) {
-            arr.push(`'${pt.callee.name}' required minimum ${validation.args.min} arguments`)
-          } else if (validation.args.max !== undefined && validation.args.max < pt.arguments.length) {
-            arr.push(`'${pt.callee.name}' required maximum ${validation.args.max} arguments`)
+          if (validation.args.rqd !== undefined && validation.args.rqd !== parsedTree.arguments.length) {
+            errors.add(`'${parsedTree.callee.name}' required ${validation.args.rqd} arguments`)
+          } else if (validation.args.min !== undefined && validation.args.min > parsedTree.arguments.length) {
+            errors.add(`'${parsedTree.callee.name}' required minimum ${validation.args.min} arguments`)
+          } else if (validation.args.max !== undefined && validation.args.max < parsedTree.arguments.length) {
+            errors.add(`'${parsedTree.callee.name}' required maximum ${validation.args.max} arguments`)
           }
         }
-        pt.arguments.map(arg => this.validateAgainstMeta(arg, arr))
-      } else if (pt.type === 'Identifier') {
-        if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== pt.name)) {
-          arr.push(`Column '${pt.name}' is not available`)
+        parsedTree.arguments.map(arg => this.validateAgainstMeta(arg, errors))
+
+        // validate data type
+        if (parsedTree.callee.type === jsep.IDENTIFIER) {
+          const expectedType = formulas[parsedTree.callee.name].type
+          if (
+            expectedType === formulaTypes.NUMERIC ||
+            expectedType === formulaTypes.STRING
+          ) {
+            parsedTree.arguments.map(arg => this.validateAgainstType(arg, expectedType, null, typeErrors))
+          } else if (expectedType === formulaTypes.DATE) {
+            if (parsedTree.callee.name === 'DATEADD') {
+              // parsedTree.arguments[0] = date
+              this.validateAgainstType(parsedTree.arguments[0], formulaTypes.DATE, (v) => {
+                if (!(v instanceof Date)) {
+                  typeErrors.add('The first parameter of DATEADD() should have date value')
+                }
+              }, typeErrors)
+              // parsedTree.arguments[1] = numeric
+              this.validateAgainstType(parsedTree.arguments[1], formulaTypes.NUMERIC, (v) => {
+                if (typeof v !== 'number') {
+                  typeErrors.add('The second parameter of DATEADD() should have numeric value')
+                }
+              }, typeErrors)
+              // parsedTree.arguments[2] = ["day" | "week" | "month" | "year"]
+              this.validateAgainstType(parsedTree.arguments[2], formulaTypes.STRING, (v) => {
+                if (!['day', 'week', 'month', 'year'].includes(v)) {
+                  typeErrors.add('The third parameter of DATEADD() should have the value either "day", "week", "month" or "year"')
+                }
+              }, typeErrors)
+            }
+          }
         }
-      } else if (pt.type === 'BinaryExpression') {
-        if (!this.availableBinOps.includes(pt.operator)) {
-          arr.push(`'${pt.operator}' operation is not available`)
+
+        errors = new Set([...errors, ...typeErrors])
+      } else if (parsedTree.type === jsep.IDENTIFIER) {
+        if (this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== parsedTree.name)) {
+          errors.add(`Column '${parsedTree.name}' is not available`)
         }
-        this.validateAgainstMeta(pt.left, arr)
-        this.validateAgainstMeta(pt.right, arr)
+
+        // check circular reference
+        // e.g. formula1 -> formula2 -> formula1 should return circular reference error
+
+        // get all formula columns excluding itself
+        const formulaPaths = this.meta.columns.filter(c => c.id !== this.column.id && c.uidt === UITypes.Formula).reduce((res, c) => {
+          // in `formula`, get all the target neighbours
+          // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
+          const neighbours = (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(colId => (this.meta.columns.filter(col => (col.id === colId && col.uidt === UITypes.Formula)).length))
+          if (neighbours.length > 0) {
+            // e.g. formula column 1 -> [formula column 2, formula column3]
+            res.push({ [c.id]: neighbours })
+          }
+          return res
+        }, [])
+        // include target formula column (i.e. the one to be saved if applicable)
+        const targetFormulaCol = this.meta.columns.find(c => c.title === parsedTree.name && c.uidt === UITypes.Formula)
+        if (targetFormulaCol) {
+          formulaPaths.push({
+            [this.column.id]: [targetFormulaCol.id]
+          })
+        }
+        const vertices = formulaPaths.length
+        if (vertices > 0) {
+          // perform kahn's algo for cycle detection
+          const adj = new Map()
+          const inDegrees = new Map()
+          // init adjacency list & indegree
+          for (const [_, v] of Object.entries(formulaPaths)) {
+            const src = Object.keys(v)[0]
+            const neighbours = v[src]
+            inDegrees.set(src, inDegrees.get(src) || 0)
+            for (const neighbour of neighbours) {
+              adj.set(src, (adj.get(src) || new Set()).add(neighbour))
+              inDegrees.set(neighbour, (inDegrees.get(neighbour) || 0) + 1)
+            }
+          }
+          const queue = []
+          // put all vertices with in-degree = 0 (i.e. no incoming edges) to queue
+          inDegrees.forEach((inDegree, col) => {
+            if (inDegree === 0) {
+              // in-degree = 0 means we start traversing from this node
+              queue.push(col)
+            }
+          })
+          // init count of visited vertices
+          let visited = 0
+          // BFS
+          while (queue.length !== 0) {
+            // remove a vertex from the queue
+            const src = queue.shift()
+            // if this node has neighbours, increase visited by 1
+            const neighbours = adj.get(src) || new Set()
+            if (neighbours.size > 0) {
+              visited += 1
+            }
+            // iterate each neighbouring nodes
+            neighbours.forEach((neighbour) => {
+              // decrease in-degree of its neighbours by 1
+              inDegrees.set(neighbour, inDegrees.get(neighbour) - 1)
+              // if in-degree becomes 0
+              if (inDegrees.get(neighbour) === 0) {
+                // then put the neighboring node to the queue
+                queue.push(neighbour)
+              }
+            })
+          }
+          // vertices not same as visited = cycle found
+          if (vertices !== visited) {
+            errors.add('Can’t save field because it causes a circular reference')
+          }
+        }
+      } else if (parsedTree.type === jsep.BINARY_EXP) {
+        if (!this.availableBinOps.includes(parsedTree.operator)) {
+          errors.add(`'${parsedTree.operator}' operation is not available`)
+        }
+        this.validateAgainstMeta(parsedTree.left, errors)
+        this.validateAgainstMeta(parsedTree.right, errors)
+      } else if (parsedTree.type === jsep.LITERAL || parsedTree.type === jsep.UNARY_EXP) {
+        // do nothing
+      } else if (parsedTree.type === jsep.COMPOUND) {
+        if (parsedTree.body.length) {
+          errors.add('Can’t save field because the formula is invalid')
+        }
+      } else {
+        errors.add('Can’t save field because the formula is invalid')
       }
-      return arr
+      return errors
+    },
+    validateAgainstType(parsedTree, expectedType, func, typeErrors = new Set()) {
+      if (parsedTree === false || typeof parsedTree === 'undefined') { return typeErrors }
+      if (parsedTree.type === jsep.LITERAL) {
+        if (typeof func === 'function') {
+          func(parsedTree.value)
+        } else if (expectedType === formulaTypes.NUMERIC) {
+          if (typeof parsedTree.value !== 'number') {
+            typeErrors.add('Numeric type is expected')
+          }
+        } else if (expectedType === formulaTypes.STRING) {
+          if (typeof parsedTree.value !== 'string') {
+            typeErrors.add('string type is expected')
+          }
+        }
+      } else if (parsedTree.type === jsep.IDENTIFIER) {
+        const col = this.meta.columns.find(c => c.title === parsedTree.name)
+        if (col === undefined) { return }
+        if (col.uidt === UITypes.Formula) {
+          const foundType = this.getRootDataType(jsep(col.colOptions.formula_raw))
+          if (foundType === 'N/A') {
+            typeErrors.add(`Not supported to reference column ${c.title}`)
+          } else if (expectedType !== foundType) {
+            typeErrors.add(`Type ${expectedType} is expected but found Type ${foundType}`)
+          }
+        } else {
+          switch (col.uidt) {
+            // string
+            case UITypes.SingleLineText:
+            case UITypes.LongText:
+            case UITypes.MultiSelect:
+            case UITypes.SingleSelect:
+            case UITypes.PhoneNumber:
+            case UITypes.Email:
+            case UITypes.URL:
+              if (expectedType !== formulaTypes.STRING) {
+                typeErrors.add(`Column '${parsedTree.name}' with ${formulaTypes.STRING} type is found but ${expectedType} type is expected`)
+              }
+              break
+
+            // numeric
+            case UITypes.Year:
+            case UITypes.Number:
+            case UITypes.Decimal:
+            case UITypes.Rating:
+            case UITypes.Count:
+            case UITypes.AutoNumber:
+              if (expectedType !== formulaTypes.NUMERIC) {
+                typeErrors.add(`Column '${parsedTree.name}' with ${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`)
+              }
+              break
+
+            // date
+            case UITypes.Date:
+            case UITypes.DateTime:
+            case UITypes.CreateTime:
+            case UITypes.LastModifiedTime:
+              if (expectedType !== formulaTypes.DATE) {
+                typeErrors.add(`Column '${parsedTree.name}' with ${formulaTypes.DATE} type is found but ${expectedType} type is expected`)
+              }
+              break
+
+            // not supported
+            case UITypes.ForeignKey:
+            case UITypes.Attachment:
+            case UITypes.ID:
+            case UITypes.Time:
+            case UITypes.Currency:
+            case UITypes.Percent:
+            case UITypes.Duration:
+            case UITypes.Rollup:
+            case UITypes.Lookup:
+            case UITypes.Barcode:
+            case UITypes.Button:
+            case UITypes.Checkbox:
+            case UITypes.Collaborator:
+            default:
+              typeErrors.add(`Not supported to reference column '${parsedTree.name}'`)
+              break
+          }
+        }
+      } else if (parsedTree.type === jsep.UNARY_EXP || parsedTree.type === jsep.BINARY_EXP) {
+        if (expectedType !== formulaTypes.NUMERIC) {
+          // parsedTree.name won't be available here
+          typeErrors.add(`${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`)
+        }
+      } else if (parsedTree.type === jsep.CALL_EXP) {
+        if (formulas[parsedTree.callee.name]?.type && expectedType !== formulas[parsedTree.callee.name].type) {
+          typeErrors.add(`${expectedType} not matched with ${formulas[parsedTree.callee.name].type}`)
+        }
+      }
+      return typeErrors
+    },
+    getRootDataType(parsedTree) {
+      // given a parse tree, return the data type of it
+      if (parsedTree.type === jsep.CALL_EXP) {
+        return formulas[parsedTree.callee.name].type
+      } else if (parsedTree.type === jsep.IDENTIFIER) {
+        const col = this.meta.columns.find(c => c.title === parsedTree.name)
+        if (col.uidt === UITypes.Formula) {
+          return this.getRootDataType(jsep(col.colOptions.formula_raw))
+        } else {
+          switch (col.uidt) {
+            // string
+            case UITypes.SingleLineText:
+            case UITypes.LongText:
+            case UITypes.MultiSelect:
+            case UITypes.SingleSelect:
+            case UITypes.PhoneNumber:
+            case UITypes.Email:
+            case UITypes.URL:
+              return 'string'
+
+            // numeric
+            case UITypes.Year:
+            case UITypes.Number:
+            case UITypes.Decimal:
+            case UITypes.Rating:
+            case UITypes.Count:
+            case UITypes.AutoNumber:
+              return 'number'
+
+            // date
+            case UITypes.Date:
+            case UITypes.DateTime:
+            case UITypes.CreateTime:
+            case UITypes.LastModifiedTime:
+              return 'date'
+
+            // not supported
+            case UITypes.ForeignKey:
+            case UITypes.Attachment:
+            case UITypes.ID:
+            case UITypes.Time:
+            case UITypes.Currency:
+            case UITypes.Percent:
+            case UITypes.Duration:
+            case UITypes.Rollup:
+            case UITypes.Lookup:
+            case UITypes.Barcode:
+            case UITypes.Button:
+            case UITypes.Checkbox:
+            case UITypes.Collaborator:
+            default:
+              return 'N/A'
+          }
+        }
+      } else if (parsedTree.type === jsep.BINARY_EXP || parsedTree.type === jsep.UNARY_EXP) {
+        return 'number'
+      } else if (parsedTree.type === jsep.LITERAL) {
+        return typeof parsedTree.value
+      } else {
+        return 'N/A'
+      }
     },
     appendText(it) {
       const text = it.text

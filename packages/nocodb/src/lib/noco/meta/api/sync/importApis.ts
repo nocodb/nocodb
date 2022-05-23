@@ -67,12 +67,23 @@ export default (router: Router, clients: { [id: string]: Socket }) => {
         Noco.getConfig().auth.jwt.options
       );
 
+      // Treat default baseUrl as siteUrl from req object
+      let baseURL = (req as any).ncSiteUrl;
+
+      // if environment value avail use it
+      // or if it's docker construct using `PORT`
+      if (process.env.NC_BASEURL_INTERNAL) {
+        baseURL = process.env.NC_BASEURL_INTERNAL;
+      } else if (process.env.NC_DOCKER) {
+        baseURL = `http://localhost:${process.env.PORT || 8080}`;
+      }
+
       NocoJobs.jobsMgr.add<AirtableSyncConfig>(AIRTABLE_IMPORT_JOB, {
         id: req.query.id,
         ...(syncSource?.details || {}),
         projectId: syncSource.project_id,
         authToken: token,
-        baseURL: (req as any).ncSiteUrl
+        baseURL
       });
       res.json({});
     })

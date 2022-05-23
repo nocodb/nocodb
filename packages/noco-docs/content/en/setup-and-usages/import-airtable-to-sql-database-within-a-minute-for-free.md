@@ -5,7 +5,6 @@ position: 1150
 category: 'Product'
 menuTitle: 'Import: Airtable to NocoDB'
 ---
-[![Stargazers repo roster for @braks/vue-flow](https://reporoster.com/stars/bcakmakoglu/vue-flow)](https://github.com/bcakmakoglu/vue-flow/stargazers)
 
 ## Import Airtable to NocoDB
 NocoDB allows a complete import of your Airtable to any MySQL, Postgres, SQLite and SQL server databases within minutes.
@@ -18,7 +17,7 @@ Below are the steps
 - Click `Import` and you will see the status
   ![image](https://user-images.githubusercontent.com/35857179/168779906-6163b23e-4bcc-4991-8a77-b2fa94e5dcf3.png)
 
-## How to get your Airtable credentials for importing to NocoDB ?
+### Get Airtable credentials for importing to NocoDB
 - Copy your Airtable API Key from [Airtable Accounts](https://airtable.com/account) page
   
 ![Screenshot 2022-05-16 at 1 50 07 PM](https://user-images.githubusercontent.com/86527202/168569905-48c16d6d-c44a-4337-be49-0ac3dc1f7b75.png)

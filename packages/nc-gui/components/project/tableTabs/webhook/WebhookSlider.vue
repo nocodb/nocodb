@@ -1,14 +1,27 @@
 <template>
   <nc-slider v-model="webhookSlider">
-    <v-card
-      v-if="webhookSlider"
-      width="100%"
-      min-height="350px"
-      class="pa-4 elevation-0"
-    >
-      <webhook-editor v-if="editOrAdd" ref="editor" :meta="meta" @backToList="editOrAdd = false" />
-      <webhook-list v-else :meta="meta" @edit="editHook" @add="editOrAdd = true" />
-    </v-card>
+    <div style="min-height:calc(100vh - 32px)" class="d-flex flex-column">
+      <v-card
+        v-if="webhookSlider"
+        width="100%"
+        min-height="350px"
+        class="pa-4 elevation-0"
+      >
+        <webhook-editor v-if="editOrAdd" ref="editor" :meta="meta" @backToList="editOrAdd = false" />
+        <webhook-list v-else :meta="meta" @edit="editHook" @add="editOrAdd = true" />
+      </v-card>
+      <v-spacer />
+      <v-btn
+        v-t="['e:hiring']"
+        color="primary"
+        outlined
+        class="caption my-2 mx-auto"
+        href="https://angel.co/company/nocodb"
+        target="_blank"
+      >
+        🚀 We are Hiring! 🚀
+      </v-btn>
+    </div>
   </nc-slider>
 </template>
 

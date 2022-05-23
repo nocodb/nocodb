@@ -50,7 +50,7 @@ export default {
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value && this.value.replace(/\\'/g, '\'').replace(/^'|'$/g, '')
       },
       set(val) {
         this.$emit('input', val)
@@ -59,7 +59,9 @@ export default {
     },
     enumValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
+        return this.column.dtxp
+          .split(',')
+          .map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
       }
       return []
     },

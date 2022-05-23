@@ -1,7 +1,7 @@
 <template>
   <div>
     <v-chip
-      v-for="v in (value || '').split(',')"
+      v-for="v in selectedValues"
       v-show="v || setValues.includes(v)"
       :key="v"
       small
@@ -26,6 +26,9 @@ export default {
         return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
       }
       return []
+    },
+    selectedValues() {
+      return this.value ? this.value.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, '')) : []
     }
   }
 }

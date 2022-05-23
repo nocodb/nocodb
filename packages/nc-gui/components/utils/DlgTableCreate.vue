@@ -197,7 +197,7 @@ export default {
   },
   watch: {
     'table.alias'(v) {
-      this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v)}`)
+      this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v.replace(/^\s+|\s+$/g, m => new Array(m.length).fill('_').join('')))}`)
     }
   },
   created() {
@@ -214,14 +214,17 @@ export default {
   methods: {
     populateDefaultTitle() {
       let c = 1
-      while (this.tables.some(t => t.title === `sheet${c}`)) { c++ }
-      this.$set(this.table, 'alias', `sheet${c}`)
+      while (this.tables.some(t => t.title === `Sheet${c}`)) { c++ }
+      this.$set(this.table, 'alias', `Sheet${c}`)
     },
     validateTableName(v) {
       return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
     },
     validateDuplicateAlias(v) {
       return (this.tables || []).every(t => t.title !== (v || '')) || 'Duplicate table alias'
+    },
+    validateLedingOrTrailingWhiteSpace(v) {
+      return !/^\s+|\s+$/.test(v) || 'Leading or trailing whitespace not allowed in table name'
     },
     validateDuplicate(v) {
       return (this.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'

@@ -1102,8 +1102,8 @@ export default {
             const insertedData = await this.$api.dbViewRow.create(
               'noco',
               this.projectName,
-              this.meta.title,
-              this.selectedView.title,
+              this.meta.id,
+              this.selectedView.id,
               insertObj
             )
 
@@ -1192,8 +1192,8 @@ export default {
           const newData = await this.$api.dbViewRow.update(
             'noco',
             this.projectName,
-            this.meta.title,
-            this.selectedView.title,
+            this.meta.id,
+            this.selectedView.id,
             id,
             {
               [column.title]: rowObj[column.title]
@@ -1255,8 +1255,8 @@ export default {
           await this.$api.dbViewRow.delete(
             'noco',
             this.projectName,
-            this.meta.title,
-            this.selectedView.title,
+            this.meta.id,
+            this.selectedView.id,
             id
           )
         }
@@ -1292,8 +1292,8 @@ export default {
             await this.$api.dbViewRow.delete(
               'noco',
               this.projectName,
-              this.meta.title,
-              this.selectedView.title,
+              this.meta.id,
+              this.selectedView.id,
               id
             )
           }
@@ -1426,8 +1426,8 @@ export default {
         const { list, pageInfo } = await this.$api.dbViewRow.list(
           'noco',
           this.projectName,
-          this.meta.title,
-          this.selectedView.title,
+          this.meta.id,
+          this.selectedView.id,
           this.listQueryParams
         )
 
@@ -1685,8 +1685,8 @@ export default {
       const { count } = await this.$api.dbViewRow.count(
         'noco',
         this.$store.getters['project/GtrProjectName'],
-        this.meta.title,
-        this.selectedView.title
+        this.meta.id,
+        this.selectedView.id
       )
       this.count = count
     }

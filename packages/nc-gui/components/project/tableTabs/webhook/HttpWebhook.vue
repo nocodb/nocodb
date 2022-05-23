@@ -131,7 +131,8 @@ export default {
       response: {},
       perf: {},
       meta: {}
-    }
+    },
+    tab: 0
   }),
   computed: {
 

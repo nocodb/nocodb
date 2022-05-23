@@ -1,7 +1,7 @@
 <template>
   <div>
     <span
-      v-for="v in (value||'').split(',')"
+      v-for="v in [(value||'').replace(/\\'/g, '\'').replace(/^'|'$/g, '')]"
       :key="v"
       :style="{
         background:colors[v]

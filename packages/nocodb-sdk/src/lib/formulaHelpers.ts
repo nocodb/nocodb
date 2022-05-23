@@ -84,6 +84,9 @@ export function substituteColumnIdWithAliasInFormula(
           c.title === colNameOrId
       );
       pt.name = column?.title || ptRaw?.name || pt?.name;
+      if (pt.name[0] != '$' && pt.name[pt.name.length - 1] != '$') {
+        pt.name = '$' + pt.name + '$';
+      }
     } else if (pt.type === 'BinaryExpression') {
       substituteId(pt.left, ptRaw?.left);
       substituteId(pt.right, ptRaw?.right);

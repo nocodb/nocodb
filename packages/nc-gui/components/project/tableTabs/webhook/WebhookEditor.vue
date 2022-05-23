@@ -255,8 +255,13 @@ export default {
     meta: Object
   },
   data: () => ({
-    notification: {},
+    loading: false,
+    notification: {
+      method: 'POST',
+      body: '{{ json data }}'
+    },
     hook: {
+      title: 'Webhook',
       notification: {
         type: 'URL'
       }

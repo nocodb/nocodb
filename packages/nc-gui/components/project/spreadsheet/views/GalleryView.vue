@@ -139,8 +139,8 @@ export default {
       if (this.showSystemFields) {
         return this.meta.columns || []
       } else {
-        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.column_name) &&
-          !((this.meta.v || []).some(v => v.bt && v.bt.column_name === c.column_name))
+        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.title) &&
+          !((this.meta.v || []).some(v => v.bt && v.bt.title === c.title))
         ) || []
       }
     }
@@ -166,10 +166,10 @@ export default {
     },
     getCovers(row) {
       if (this.attachmentColumn &&
-        row[this.attachmentColumn.column_name] && row[this.attachmentColumn.column_name][0] &&
-        row[this.attachmentColumn.column_name]) {
+        row[this.attachmentColumn.title] && row[this.attachmentColumn.title][0] &&
+        row[this.attachmentColumn.title]) {
         try {
-          return JSON.parse(row[this.attachmentColumn.column_name])
+          return JSON.parse(row[this.attachmentColumn.title])
         } catch (e) {
 
         }

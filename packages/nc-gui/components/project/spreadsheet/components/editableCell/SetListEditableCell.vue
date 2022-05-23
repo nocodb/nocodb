@@ -1,6 +1,5 @@
 <template>
   <div>
-
     <v-combobox
       v-model="localState"
       :items="setValues"
@@ -52,7 +51,9 @@ export default {
   computed: {
     localState: {
       get() {
-        return this.value && this.value.split(',')
+        return this.value && this.value
+          .match(/(?:[^',]|\\')+(?='?(?:,|$))/g)
+          .map(v => v.replace(/\\'/g, '\''))
       },
       set(val) {
         this.$emit('input', val.filter(v => this.setValues.includes(v)).join(','))
@@ -61,7 +62,9 @@ export default {
     },
     setValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
+        return this.column.dtxp
+          .match(/(?:[^']|\\')+(?='?(?:,|$))/g)
+          .map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
       }
       return []
     },

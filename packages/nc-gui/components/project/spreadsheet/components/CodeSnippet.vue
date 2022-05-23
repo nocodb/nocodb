@@ -1,75 +1,88 @@
 <template>
   <div class="nc-container" :class="{active:modal}" @click="modal=false">
-    <div class="nc-snippet elevation-3 pa-4" @click.stop>
-      <h3 class="font-weight-medium mb-4">
-        Code Snippet
-      </h3>
+    <div class="nc-snippet elevation-3 pa-4 d-flex flex-column" @click.stop>
+      <div>
+        <h3 class="font-weight-medium mb-4">
+          Code Snippet
+        </h3>
 
-      <v-icon class="nc-snippet-close" @click="modal=false">
-        mdi-close
-      </v-icon>
+        <v-icon class="nc-snippet-close" @click="modal=false">
+          mdi-close
+        </v-icon>
 
-      <div v-if="modal">
-        <v-tabs v-model="tab" height="30" show-arrows @change="client=null">
-          <v-tab
-            v-for="{lang} in langs"
-            :key="lang"
-            v-t="['c:snippet:tab', {lang}]"
-            class="caption"
-          >
-            {{ lang }}
-          </v-tab>
-        </v-tabs>
-        <div class="nc-snippet-wrapper mt-4">
-          <div class="nc-snippet-actions d-flex">
-            <v-btn
-              v-t="['c:snippet:copy', {client: langs[tab].clients && (client || langs[tab].clients[0]), lang: langs[tab ||0].lang}]"
-              color="primary"
-              class="rounded caption "
-              @click="copyToClipboard"
+        <div v-if="modal">
+          <v-tabs v-model="tab" height="30" show-arrows @change="client=null">
+            <v-tab
+              v-for="{lang} in langs"
+              :key="lang"
+              v-t="['c:snippet:tab', {lang}]"
+              class="caption"
             >
-              <v-icon small>
-                mdi-clipboard-outline
-              </v-icon>
-              Copy To Clipboard
-            </v-btn>
-            <div
-              v-if="langs[tab].clients"
-              class=" ml-2 d-flex align-center"
-            >
-              <v-menu bottom offset-y>
-                <template #activator="{on}">
-                  <v-btn class="caption text-uppercase" color="primary" v-on="on">
-                    {{ client || langs[tab].clients[0] }}
-                    <v-icon small>
-                      mdi-chevron-down
-                    </v-icon>
-                  </v-btn>
-                </template>
-                <v-list dense>
-                  <v-list-item
-                    v-for="c in langs[tab].clients"
-                    :key="c"
-                    dense
-                    @click="client = c"
-                  >
-                    <v-list-item-title class="text-uppercase">
-                      {{ c }}
-                    </v-list-item-title>
-                  </v-list-item>
-                </v-list>
-              </v-menu>
+              {{ lang }}
+            </v-tab>
+          </v-tabs>
+          <div class="nc-snippet-wrapper mt-4">
+            <div class="nc-snippet-actions d-flex">
+              <v-btn
+                v-t="['c:snippet:copy', {client: langs[tab].clients && (client || langs[tab].clients[0]), lang: langs[tab ||0].lang}]"
+                color="primary"
+                class="rounded caption "
+                @click="copyToClipboard"
+              >
+                <v-icon small>
+                  mdi-clipboard-outline
+                </v-icon>
+                Copy To Clipboard
+              </v-btn>
+              <div
+                v-if="langs[tab].clients"
+                class=" ml-2 d-flex align-center"
+              >
+                <v-menu bottom offset-y>
+                  <template #activator="{on}">
+                    <v-btn class="caption text-uppercase" color="primary" v-on="on">
+                      {{ client || langs[tab].clients[0] }}
+                      <v-icon small>
+                        mdi-chevron-down
+                      </v-icon>
+                    </v-btn>
+                  </template>
+                  <v-list dense>
+                    <v-list-item
+                      v-for="c in langs[tab].clients"
+                      :key="c"
+                      dense
+                      @click="client = c"
+                    >
+                      <v-list-item-title class="text-uppercase">
+                        {{ c }}
+                      </v-list-item-title>
+                    </v-list-item>
+                  </v-list>
+                </v-menu>
+              </div>
             </div>
+            <custom-monaco-editor
+              hide-line-num
+              :theme="$store.state.settings.darkTheme ? 'vs-dark' : 'vs-light'"
+              style="min-height:500px;max-width: 100%"
+              :value="code"
+              read-only
+            />
           </div>
-          <custom-monaco-editor
-            hide-line-num
-            :theme="$store.state.settings.darkTheme ? 'vs-dark' : 'vs-light'"
-            style="min-height:500px;max-width: 100%"
-            :value="code"
-            read-only
-          />
         </div>
       </div>
+      <v-spacer />
+      <v-btn
+        v-t="['e:hiring']"
+        color="primary"
+        outlined
+        class="caption my-2 mx-auto"
+        href="https://angel.co/company/nocodb"
+        target="_blank"
+      >
+        🚀 We are Hiring! 🚀
+      </v-btn>
     </div>
   </div>
 </template>

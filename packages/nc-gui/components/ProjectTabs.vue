@@ -54,6 +54,7 @@
           :key="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${
             (tab._nodes && tab._nodes.dbAlias) || ''
           }||${tab.name}`"
+          class="nc-main-tab-item"
           :value="`${(tab._nodes && tab._nodes.type) || ''}||${
             (tab._nodes && tab._nodes.dbAlias) || ''
           }||${tab.name}`"
@@ -670,7 +671,7 @@ export default {
   margin-left: 0 !important;
 }
 
-/deep/ .v-window-item:not(.v-window-item--active){
+/deep/ .nc-main-tab-item:not(.v-window-item--active){
   display:none;
 }
 </style>

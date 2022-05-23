@@ -36,10 +36,9 @@
             {{ rollupIcon }}
           </v-icon>
         </template>
-        <span v-on="on">
-          <span class="name  flex-grow-1" style="white-space: nowrap" :title="column.title" v-html="alias" />
-          <span v-if="column.rqd || required" class="error--text text--lighten-1">&nbsp;*</span>
-        </span>
+
+        <span class="name" style="white-space: nowrap" :title="column.title" v-on="on" v-html="alias" />
+        <span v-if="column.rqd || required" class="error--text text--lighten-1" v-on="on">&nbsp;*</span>
       </template>
       <span class="caption" v-html="tooltipMsg" />
     </v-tooltip>
@@ -258,9 +257,9 @@ export default {
 
 <style scoped>
 .name {
+  max-width: calc(100% - 40px);
   overflow: hidden;
   text-overflow: ellipsis;
-  white-space: nowrap;
 }
 </style>
 <!--

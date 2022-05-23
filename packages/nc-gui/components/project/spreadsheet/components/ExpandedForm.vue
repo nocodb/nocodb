@@ -400,20 +400,19 @@ export default {
       return !!Object.keys(this.changedColumns).length
     },
     fields() {
+      let fields
       if (this.availableColumns) {
-        return this.availableColumns
-      }
-      //
-      // const hideCols = ['created_at', 'updated_at']
-      if (this.showSystemFields) {
-        return this.meta.columns || []
+        fields = this.availableColumns
+      } else if (this.showSystemFields) {
+        fields = this.meta.columns || []
       } else {
-        return (
+        fields = (
           this.meta.columns.filter(
             c => !isSystemColumn(c)
           ) || []
         )
       }
+      return this.isNew ? fields.filter(f => ![UITypes.Formula, UITypes.Rollup, UITypes.Lookup].includes(f.uidt)) : fields
     },
     isChanged() {
       return Object.values(this.changedColumns).some(Boolean)
@@ -559,7 +558,8 @@ export default {
                 value: updatedObj[key],
                 prev_value: this.oldRow[key]
               })
-              .then(() => {})
+              .then(() => {
+              })
           }
         } else {
           return this.$toast.info('No columns to update').goAway(3000)

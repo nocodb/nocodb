@@ -132,7 +132,6 @@ export function axiosRequestMake(_apiMeta, user, data) {
       });
     } catch (e) {
       apiMeta.body = parseBody(apiMeta.body, user, data, apiMeta);
-      console.log(e);
     }
   }
   if (apiMeta.auth) {
@@ -144,7 +143,6 @@ export function axiosRequestMake(_apiMeta, user, data) {
       });
     } catch (e) {
       apiMeta.auth = parseBody(apiMeta.auth, user, data, apiMeta);
-      console.log(e);
     }
   }
   apiMeta.response = {};

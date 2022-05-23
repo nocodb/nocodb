@@ -30,7 +30,7 @@
                 v-if="isImage(item.title)"
                 lazy-src="https://via.placeholder.com/60.png?text=Loading..."
                 alt="#"
-                max-height="33px"
+                max-height="99px"
                 contain
                 :src="item.url || item.data"
                 v-on="on"
@@ -418,15 +418,15 @@ export default {
 }
 
 .thumbnail {
-  height: 33px;
-  width: 33px;
+  height: 99px;
+  width: 99px;
   margin: 2px;
   border-radius: 4px;
 }
 
 .thumbnail img {
   /*max-height: 33px;*/
-  max-width: 33px;
+  max-width: 99px;
 }
 
 .main {

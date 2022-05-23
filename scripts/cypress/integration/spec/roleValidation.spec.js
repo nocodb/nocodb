@@ -212,9 +212,10 @@ export function _editComment(roleType, previewMode) {
 // right navigation menu bar
 //      Editor/Viewer/Commenter : can only view 'existing' views
 //      Rest: can create/edit
-export function _viewMenu(roleType, previewMode) {
+export function _viewMenu(roleType, previewMode, navDrawListCnt) {
     let columnName = "City";
-    let navDrawListCnt = 2;
+    // let navDrawListCnt = 2;
+
     // Download CSV
     let actionsMenuItemsCnt = 1;
 

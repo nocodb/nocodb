@@ -19,8 +19,8 @@ export default abstract class JobsMgr {
     ) => void,
     options?: {
       onSuccess?: (payload: any) => void;
-      onFailure?: (payload: any, msg: string) => void;
-      onProgress?: (payload: any, msgOrData: any) => void;
+      onFailure?: (payload: any, errorData: any) => void;
+      onProgress?: (payload: any, progressData: any) => void;
     }
   );
 
@@ -29,13 +29,13 @@ export default abstract class JobsMgr {
     this.successCbks[jobName].push(cbk);
   }
 
-  addFailureCbk(jobName: string, cbk: (payload: any, msg: string) => void) {
+  addFailureCbk(jobName: string, cbk: (payload: any, errorData: any) => void) {
     this.failureCbks[jobName] = this.failureCbks[jobName] || [];
     this.failureCbks[jobName].push(cbk);
   }
   addProgressCbk(
     jobName: string,
-    cbk: (payload: any, progress: string) => void
+    cbk: (payload: any, progressData: any) => void
   ) {
     this.progressCbks[jobName] = this.progressCbks[jobName] || [];
     this.progressCbks[jobName].push(cbk);
@@ -56,10 +56,10 @@ export default abstract class JobsMgr {
   protected async invokeProgressCbks(
     jobName: string,
     payload: any,
-    msg?: string
+    data?: any
   ) {
     await Promise.all(
-      this.progressCbks?.[jobName]?.map(cb => cb(payload, msg))
+      this.progressCbks?.[jobName]?.map(cb => cb(payload, data))
     );
   }
 }

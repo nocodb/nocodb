@@ -8,10 +8,10 @@ let api = {}
 let viewStore = {}
 
 const ncConfig = {
-  projectName: "x",
+  projectName: "sample",
   baseURL: "http://localhost:8080",
   headers: {
-    'xc-auth': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfaGJ1aDFmMTNmemc4dTEiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTMwNTU5MzR9.nADVbCbSE0WEbPrpKuq_dlMHrrxieQurYPiOIU2Gf4k"
+    'xc-auth': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfazk0cTg3NGF6bTh5MngiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTMzMTQ1MTZ9.h0YjZ9lLlIYYWQkgKWCoT5OuYNMfStuAjT_EwSasM6Q"
   }
 }
 
@@ -106,8 +106,13 @@ function addViewDetails(v) {
 
   // gallery view doesn't share column information in api yet
   if(v.type !== 2) {
+    if(v.type === 3)
     view.columns = viewStore[v.id].map(a => (({ id, width, order, show }) => (
       { id, width, order, show }))(a))
+    if(v.type === 1)
+      view.columns = viewStore[v.id].map(a => (({ id, order, show, label, help, description, required }) => (
+        { id, order, show, label, help, description, required }))(a))
+
     for (let i = 0; i < view.columns?.length; i++)
       view.columns[i].title = ncMap[viewStore[v.id][i].id]
 

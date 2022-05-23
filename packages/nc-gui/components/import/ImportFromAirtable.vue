@@ -4,6 +4,12 @@
       <v-toolbar class="elevation-0 align-center" height="68">
         <h3 class="mt-2">
           {{ $t('title.importFromAirtable') }}
+          <v-tooltip bottom>
+            <template #activator="{on}">
+              <span class="caption" v-on="on"> (beta <v-icon x-small>mdi-information-outline</v-icon>)</span>
+            </template>
+            <span class="caption">Airtable import works with few limitations</span>
+          </v-tooltip>
         </h3>
         <div v-t="['c:airtable-import:turbo-mode']" class="ml-2 mt-3 title pointer nc-btn-enable-turbo" @click="enableTurbo">
           🚀

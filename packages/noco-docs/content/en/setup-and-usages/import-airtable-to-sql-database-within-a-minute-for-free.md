@@ -9,13 +9,13 @@ menuTitle: 'Import: Airtable to NocoDB'
 ## Import Airtable to NocoDB
 NocoDB allows a complete import of your Airtable to any MySQL, Postgres, SQLite and SQL server databases within minutes.
 
-Below are the steps   
-- Click `Add / Import` and click `Airtable`
+Below are 3 simple steps   
+1. Click `Add / Import` and click `Airtable`
   ![image](https://user-images.githubusercontent.com/35857179/168772072-937b037b-32b3-4e5b-b982-5ee4b9a4959c.png)
   ![image](https://user-images.githubusercontent.com/35857179/168773192-f3ef9d36-3329-4324-ae25-989b611f66bf.png)
-- Input API key & Shared Base ID / URL (See <a href="./import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials-for-importing-to-nocodb">here</a> for the guideline to retrieve the credentials)
+2. Input API key & Shared Base ID / URL (See <a href="./import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials-for-importing-to-nocodb">here</a> for the guideline to retrieve the credentials)
   ![image](https://user-images.githubusercontent.com/35857179/168779663-5bb1dac8-01bd-43fb-8638-318a66a0f4bf.png)
-- Click `Import` and you will see the status
+3. Click `Import` and you will see the status
   ![image](https://user-images.githubusercontent.com/35857179/168779906-6163b23e-4bcc-4991-8a77-b2fa94e5dcf3.png)
 
 ### Get Airtable credentials for importing to NocoDB

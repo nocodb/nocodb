@@ -63,8 +63,11 @@ export default {
 }
 </script>
 
-<style scoped lang="scss">
+<style scoped>
 .currency-wrapper {
   margin: 0;
+}
+/deep/ .v-input__append-inner {
+  margin-top: 4px !important;
 }
 </style>

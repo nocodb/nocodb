@@ -166,6 +166,12 @@
                     :meta="meta"
                   />
                 </v-col>
+                <currency-options
+                  v-else-if="isCurrency"
+                  v-model="newColumn.meta"
+                  :column="newColumn"
+                  :meta="meta"
+                />
 
                 <v-col
                   v-if="accordion"
@@ -428,12 +434,6 @@
                                   @change="onDataTypeChange"
                                 />
                               </v-col>
-                              <currency-options
-                                v-if="isCurrency"
-                                v-model="newColumn.meta"
-                                :column="newColumn"
-                                :meta="meta"
-                              />
                               <v-col :cols="sqlUi.showScale(newColumn) && !isSelect ? 6 : 12">
                                 <!--label="Length / Values"-->
                                 <v-text-field

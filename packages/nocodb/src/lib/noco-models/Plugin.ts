@@ -85,18 +85,25 @@ export default class Plugin implements PluginType {
   }
 
   public static async isPluginActive(title: string) {
-    const plugin =
+    return !!(await this.getPluginByTitle(title))?.active;
+  }
+
+  /**
+   * get plugin by title
+   */
+  public static async getPluginByTitle(title: string) {
+    let plugin =
       title &&
       (await NocoCache.get(
         `${CacheScope.PLUGIN}:${title}`,
         CacheGetType.TYPE_OBJECT
       ));
     if (!plugin) {
-      await Noco.ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
+      plugin = await Noco.ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
         title
       });
-      await NocoCache.set(`${CacheScope.PLUGIN}:${title}`, !!plugin?.active);
+      await NocoCache.set(`${CacheScope.PLUGIN}:${title}`, plugin);
     }
-    return !!plugin?.active;
+    return plugin;
   }
 }

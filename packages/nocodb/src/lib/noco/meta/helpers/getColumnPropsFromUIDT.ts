@@ -1,13 +1,16 @@
-import { SqlUIColumn, SqlUiFactory, UITypes } from 'nocodb-sdk';
+import { ColumnReqType, SqlUIColumn, SqlUiFactory, UITypes } from 'nocodb-sdk';
 import Base from '../../../noco-models/Base';
 
 export default function getColumnPropsFromUIDT(
-  column: SqlUIColumn & { uidt: UITypes },
+  column: SqlUIColumn & { uidt: UITypes } & ColumnReqType,
   base: Base
 ) {
   const sqlUi = SqlUiFactory.create(base.getConnectionConfig());
 
-  const colProp = sqlUi.getDataTypeForUiType(column);
+  const colProp = sqlUi.getDataTypeForUiType(
+    column,
+    column?.['meta']?.['ag'] ? 'AG' : 'AI'
+  );
   const newColumn = {
     rqd: false,
     pk: false,

@@ -1,6 +1,6 @@
 <template>
   <v-container fluid class="pa-0 ma-0" style="overflow: auto">
-    <!--    <trialExpired v-if="$store.getters['windows/GtrHasTrialPeriodExpired']"></trialExpired>-->
+    <!--    <trialExpired v-if="$store.getters['settings/GtrHasTrialPeriodExpired']"></trialExpired>-->
     <splitpanes style="height:calc(100vh - 48px)" class="xc-theme">
       <pane min-size="10" :size="paneSize" max-size="50" style="overflow: auto">
         <ProjectTreeView />
@@ -13,10 +13,10 @@
         <!--            <ProjectTabs/>-->
         <!--          </pane>-->
 
-        <!--          <pane v-if="$store.state.windows.outputWindow" :size="10" style="overflow: auto"  >-->
+        <!--          <pane v-if="$store.state.settings.outputWindow" :size="10" style="overflow: auto"  >-->
         <!--            <ProjectOutput   />-->
         <!--          </pane>-->
-        <!--          <pane v-if="$store.state.windows.logWindow"  :size="10" style="overflow: auto" >-->
+        <!--          <pane v-if="$store.state.settings.logWindow"  :size="10" style="overflow: auto" >-->
         <!--            <ProjectLogs />-->
         <!--          </pane>-->
         <!--        </splitpanes>-->
@@ -26,7 +26,7 @@
 </template>
 <script>
 import { Splitpanes, Pane } from 'splitpanes'
-import ProjectTabs from '@/components/projectTabs'
+import ProjectTabs from '~/components/ProjectTabs'
 import ProjectTreeView from '@/components/ProjectTreeView'
 // import ProjectLogs from "~/components/ProjectLogs";
 // import ProjectOutput from "~/components/ProjectOutput";
@@ -67,7 +67,7 @@ export default {
     )
     //
     // this.$store.watch(
-    //   (state) => !state.windows.outputWindow && !state.windows.logWindow,
+    //   (state) => !state.settings.outputWindow && !state.settings.logWindow,
     //   (newState) => {
     //     if (newState) this.$nextTick(() => this.mainPanelSize = 100)
     //   }

@@ -7,7 +7,7 @@ import FormulaColumn from '../../../../noco-models/FormulaColumn';
 import { XKnex } from '../../..';
 import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
 import LookupColumn from '../../../../noco-models/LookupColumn';
-import { UITypes } from 'nocodb-sdk';
+import { jsepCurlyHook, UITypes } from 'nocodb-sdk';
 
 // todo: switch function based on database
 
@@ -51,6 +51,8 @@ export default async function formulaQueryBuilderv2(
   model: Model,
   aliasToColumn = {}
 ) {
+  // register jsep curly hook
+  jsep.plugins.register(jsepCurlyHook);
   const tree = jsep(_tree);
 
   // todo: improve - implement a common solution for filter, sort, formula, etc
@@ -647,7 +649,11 @@ export default async function formulaQueryBuilderv2(
       return query;
     } else if (pt.type === 'UnaryExpression') {
       const query = knex.raw(
-        `${pt.operator}${fn(pt.argument, null, pt.operator).toQuery()}${colAlias}`
+        `${pt.operator}${fn(
+          pt.argument,
+          null,
+          pt.operator
+        ).toQuery()}${colAlias}`
       );
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');

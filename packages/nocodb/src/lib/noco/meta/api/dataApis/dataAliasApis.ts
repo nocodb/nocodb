@@ -20,6 +20,11 @@ async function dataFindOne(req: Request, res: Response) {
   res.json(await getFindOne(model, view, req));
 }
 
+async function dataGroupBy(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+  res.json(await getDataGroupBy(model, view, req));
+}
+
 async function dataCount(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -138,6 +143,25 @@ async function getFindOne(model, view: View, req) {
   );
 }
 
+async function getDataGroupBy(model, view: View, req) {
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base)
+  });
+
+  const listArgs: any = { ...req.query };
+  const data = await baseModel.groupBy({ ...req.query });
+  const count = await baseModel.count(listArgs);
+
+  return new PagedResponseImpl(data, {
+    ...req.query,
+    count
+  });
+}
+
 async function dataRead(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -159,6 +183,19 @@ async function dataRead(req: Request, res: Response) {
   );
 }
 
+async function dataExist(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base)
+  });
+
+  res.json(await baseModel.exist(req.params.rowId));
+}
 const router = Router({ mergeParams: true });
 
 // table data crud apis
@@ -175,10 +212,23 @@ router.get(
 );
 
 router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/groupby',
+  apiMetrics,
+  ncMetaAclMw(dataGroupBy, 'dataGroupBy')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/exist',
+  apiMetrics,
+  ncMetaAclMw(dataExist, 'dataExist')
+);
+
+router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/count',
   apiMetrics,
   ncMetaAclMw(dataCount, 'dataCount')
 );
+
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/count',
   apiMetrics,
@@ -190,11 +240,13 @@ router.get(
   apiMetrics,
   ncMetaAclMw(dataRead, 'dataRead')
 );
+
 router.patch(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
   apiMetrics,
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
+
 router.delete(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
   apiMetrics,
@@ -220,26 +272,42 @@ router.get(
   ncMetaAclMw(dataFindOne, 'dataFindOne')
 );
 
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/groupby',
+  apiMetrics,
+  ncMetaAclMw(dataGroupBy, 'dataGroupBy')
+);
+
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId/exist',
+  apiMetrics,
+  ncMetaAclMw(dataExist, 'dataExist')
+);
+
 router.post(
   '/api/v1/db/data/:orgs/:projectName/:tableName',
   apiMetrics,
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
+
 router.post(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
   apiMetrics,
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
+
 router.patch(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   apiMetrics,
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
+
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   apiMetrics,
   ncMetaAclMw(dataRead, 'dataRead')
 );
+
 router.delete(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   apiMetrics,

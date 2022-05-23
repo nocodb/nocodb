@@ -171,7 +171,8 @@
     "headLogin": "Đăng nhập |. NOCODB.",
     "resetPassword": "Đặt lại mật khẩu của bạn",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Thông báo qua",
@@ -306,6 +307,7 @@
     "deleteRow": "Xóa hàng",
     "deleteSelectedRow": "Xóa các hàng đã chọn",
     "importExcel": "Nhập Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "Tải về dưới dạng CSV.",
     "uploadCSV": "Tải lên CSV.",
     "import": "Nhập khẩu",
@@ -397,6 +399,7 @@
       "upload_sub": "hoặc kéo và thả tập tin",
       "excelSupport": "Được hỗ trợ: .xls, .xlsx, .xlsm, .ods,.",
       "excelURL": "Nhập URL tệp Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# các hàng để phân tích để suy ra kiểu dữ liệu",
       "excelImport": "(các) tấm có sẵn để nhập khẩu",
       "exportMetadata": "Bạn có muốn xuất siêu dữ liệu từ bảng meta?",

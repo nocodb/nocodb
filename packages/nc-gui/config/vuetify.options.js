@@ -10,7 +10,7 @@ export default function({ app }) {
       options: {
         customProperties: true
       },
-      dark: app.store.state.windows.darkTheme,
+      dark: app.store.state.settings.darkTheme,
       themes: {
 
         dark: {

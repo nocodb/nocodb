@@ -27,6 +27,7 @@ import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import getColumnUiType from '../helpers/getColumnUiType';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+
 export async function tableGet(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
     id: req.params.tableId
@@ -102,6 +103,13 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     }
   }
 
+  // validate table name
+  if (/^\s+|\s+$/.test(req.body.table_name)) {
+    NcError.badRequest(
+      'Leading or trailing whitespace not allowed in table names'
+    );
+  }
+
   if (
     !(await Model.checkTitleAvailable({
       table_name: req.body.table_name,
@@ -173,8 +181,14 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
           c1 => c.cn === c1.column_name
         );
         return {
+          ...colMetaFromReq,
           uidt: colMetaFromReq?.uidt || c.uidt || getColumnUiType(base, c),
           ...c,
+          dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
+            colMetaFromReq.uidt as any
+          )
+            ? colMetaFromReq.dtxp
+            : c.dtxp,
           title: colMetaFromReq?.title || getColumnNameAlias(c.cn, base),
           column_name: c.cn,
           order: i + 1

@@ -1,6 +1,67 @@
 import jsep from 'jsep';
 
 import { ColumnType } from './Api';
+
+export const jsepCurlyHook = {
+  name: 'curly',
+  init(jsep) {
+    jsep.hooks.add('gobble-token', function gobbleCurlyLiteral(env) {
+      const OCURLY_CODE = 123; // {
+      const CCURLY_CODE = 125; // }
+      const { context } = env;
+      if (
+        !jsep.isIdentifierStart(context.code) &&
+        context.code === OCURLY_CODE
+      ) {
+        context.index += 1;
+        const nodes = context.gobbleExpressions(CCURLY_CODE);
+        if (context.code === CCURLY_CODE) {
+          context.index += 1;
+          env.node = {
+            type: jsep.IDENTIFIER,
+            name: nodes.map((node) => node.name).join(' '),
+          };
+          return env.node;
+        } else {
+          context.throwError('Unclosed }');
+        }
+      }
+    });
+  },
+} as jsep.IPlugin;
+
+export async function substituteColumnAliasWithIdInFormula(
+  formula,
+  columns: ColumnType[]
+) {
+  const substituteId = async (pt: any) => {
+    if (pt.type === 'CallExpression') {
+      for (const arg of pt.arguments || []) {
+        await substituteId(arg);
+      }
+    } else if (pt.type === 'Literal') {
+      return;
+    } else if (pt.type === 'Identifier') {
+      const colNameOrId = pt.name;
+      const column = columns.find(
+        (c) =>
+          c.id === colNameOrId ||
+          c.column_name === colNameOrId ||
+          c.title === colNameOrId
+      );
+      pt.name = '{' + column.id + '}';
+    } else if (pt.type === 'BinaryExpression') {
+      await substituteId(pt.left);
+      await substituteId(pt.right);
+    }
+  };
+  // register jsep curly hook
+  jsep.plugins.register(jsepCurlyHook);
+  const parsedFormula = jsep(formula);
+  await substituteId(parsedFormula);
+  return jsepTreeToFormula(parsedFormula);
+}
+
 export function substituteColumnIdWithAliasInFormula(
   formula,
   columns: ColumnType[],
@@ -15,7 +76,7 @@ export function substituteColumnIdWithAliasInFormula(
     } else if (pt.type === 'Literal') {
       return;
     } else if (pt.type === 'Identifier') {
-      const colNameOrId = pt.name;
+      const colNameOrId = pt?.name;
       const column = columns.find(
         (c) =>
           c.id === colNameOrId ||
@@ -23,12 +84,17 @@ export function substituteColumnIdWithAliasInFormula(
           c.title === colNameOrId
       );
       pt.name = column?.title || ptRaw?.name || pt?.name;
+      if (pt.name[0] != '$' && pt.name[pt.name.length - 1] != '$') {
+        pt.name = '$' + pt.name + '$';
+      }
     } else if (pt.type === 'BinaryExpression') {
       substituteId(pt.left, ptRaw?.left);
       substituteId(pt.right, ptRaw?.right);
     }
   };
 
+  // register jsep curly hook
+  jsep.plugins.register(jsepCurlyHook);
   const parsedFormula = jsep(formula);
   const parsedRawFormula = rawFormula && jsep(rawFormula);
   substituteId(parsedFormula, parsedRawFormula);
@@ -62,6 +128,43 @@ export function jsepTreeToFormula(node) {
   }
 
   if (node.type === 'Identifier') {
+    const formulas = [
+      'AVG',
+      'ADD',
+      'DATEADD',
+      'AND',
+      'OR',
+      'CONCAT',
+      'TRIM',
+      'UPPER',
+      'LOWER',
+      'LEN',
+      'MIN',
+      'MAX',
+      'CEILING',
+      'FLOOR',
+      'ROUND',
+      'MOD',
+      'REPEAT',
+      'LOG',
+      'EXP',
+      'POWER',
+      'SQRT',
+      'SQRT',
+      'ABS',
+      'NOW',
+      'REPLACE',
+      'SEARCH',
+      'INT',
+      'RIGHT',
+      'LEFT',
+      'SUBSTR',
+      'MID',
+      'IF',
+      'SWITCH',
+      'URL',
+    ];
+    if (!formulas.includes(node.name)) return '{' + node.name + '}';
     return node.name;
   }
 

@@ -171,7 +171,8 @@
     "headLogin": "Вхід | Нокодб",
     "resetPassword": "Скинути пароль",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Повідомити через",
@@ -306,6 +307,7 @@
     "deleteRow": "Видалити рядок",
     "deleteSelectedRow": "Видалити вибрані рядки",
     "importExcel": "Імпорт Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "Завантажити як CSV",
     "uploadCSV": "Завантажити CSV",
     "import": "Імпортувати",
@@ -397,6 +399,7 @@
       "upload_sub": "або перетягніть файл",
       "excelSupport": "Підтримується: .xls, .xlsx, .xlsm, .ods, .ot",
       "excelURL": "Введіть URL-адресу Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# рядків, щоб розібрати для виведення даних",
       "excelImport": "Лист (и) доступні для імпорту",
       "exportMetadata": "Ви хочете експортувати метадані з мета-таблиць?",

@@ -171,7 +171,8 @@
     "headLogin": "Log in | Nocodb",
     "resetPassword": "Stel je wachtwoord opnieuw in",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Melding via",
@@ -306,6 +307,7 @@
     "deleteRow": "Verwijder rij",
     "deleteSelectedRow": "Verwijder geselecteerde rijen",
     "importExcel": "Excel importeren",
+    "importCSV": "Import CSV",
     "downloadCSV": "Download als CSV",
     "uploadCSV": "Upload CSV",
     "import": "Importeren",
@@ -397,6 +399,7 @@
       "upload_sub": "of sleep het bestand naar hier",
       "excelSupport": "Ondersteunt: .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Voer Excel-bestandslink in",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# rijen om te parseren om datatype af te leiden",
       "excelImport": "blad(en) zijn beschikbaar om te importeren",
       "exportMetadata": "Wilt u metadata uit metatabellen exporteren?",

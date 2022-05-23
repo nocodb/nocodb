@@ -1,7 +1,7 @@
 ---
 title: 'Languages'
 description: 'Languages'
-position: 1200
+position: 900
 category: 'Product'
 menuTitle: 'Languages'
 ---

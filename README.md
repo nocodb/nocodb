@@ -29,9 +29,14 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 <p align="center"><img src="https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png" alt="The Open Source Airtable Alternative - works on MySQL, Postgres SQL Server & MariaDB" width="1000px" /></p>
 
-<p align="center">
-  <a href="https://www.producthunt.com/posts/nocodb?utm_source=badge-featured&utm_medium=badge&utm_souce=badge-nocodb" target="_blank"><img src="https://api.producthunt.com/widgets/embed-image/v1/featured.svg?post_id=297536&theme=dark" alt="NocoDB - The Open Source Airtable alternative | Product Hunt" style="width: 250px; height: 54px;" width="250" height="54" /></a>
-</p>
+<p align="center"><a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
+    <img 
+    src="https://www.herokucdn.com/deploy/button.svg" 
+    width="300px"
+    alt="Deploy NocoDB to Heroku with 1-Click" 
+    />
+</a></p>
+
 
 <div align="center">
 
@@ -47,9 +52,26 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 
 </div>
 
+
 <p align="center"><a href="scripts/markdown/readme/languages/README.md"><b>See other languages »</b></a></p>
 
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
+
+# Join Our Team
+<p align=""><a href="http://careers.nocodb.com" target="_blank"><img src="https://user-images.githubusercontent.com/61551451/169663818-45643495-e95b-48e2-be13-01d6a77dc2fd.png" width="250"/></a></p>
+
+# Join Our Community
+
+<a href="https://discord.gg/5RgZmkW" target="_blank">
+<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
+</a>
+
+<!-- <a href="https://community.nocodb.com/" target="_blank">
+<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
+</a>
+ -->
+[![Stargazers repo roster for @nocodb/nocodb](https://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
+
 
 # Quick try
 
@@ -150,14 +172,6 @@ docker-compose up -d
 
 Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080/dashboard)
 
-# Join Our Community
-
-<a href="https://discord.gg/5RgZmkW" target="_blank">
-<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
-</a>
-<a href="https://community.nocodb.com/" target="_blank">
-<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
-</a>
 
 # Screenshots
 
@@ -446,6 +460,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/GeoffMaciolek"><img src="https://avatars.githubusercontent.com/u/10995633?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Geo Maciolek</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=GeoffMaciolek" title="Code">💻</a></td>
     <td align="center"><a href="http://blog.mukyu.tw/"><img src="https://avatars.githubusercontent.com/u/6008539?v=4?s=100" width="100px;" alt=""/><br /><sub><b>神楽坂帕琪</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=mudream4869" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/titouancreach"><img src="https://avatars.githubusercontent.com/u/3995719?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Titouan CREACH</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=titouancreach" title="Code">💻</a></td>
+  </tr>
+  <tr>
+    <td align="center"><a href="https://www.youyi.io"><img src="https://avatars.githubusercontent.com/u/49471274?v=4?s=100" width="100px;" alt=""/><br /><sub><b>youyiio</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=youyiio" title="Code">💻</a></td>
   </tr>
 </table>
 

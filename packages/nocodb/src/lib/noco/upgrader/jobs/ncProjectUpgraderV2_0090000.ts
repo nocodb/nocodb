@@ -4,11 +4,15 @@ import User from '../../../noco-models/User';
 import Project from '../../../noco-models/Project';
 import ProjectUser from '../../../noco-models/ProjectUser';
 import Model from '../../../noco-models/Model';
-import { ModelTypes, UITypes, ViewTypes } from 'nocodb-sdk';
+import {
+  ModelTypes,
+  substituteColumnAliasWithIdInFormula,
+  UITypes,
+  ViewTypes
+} from 'nocodb-sdk';
 import Column from '../../../noco-models/Column';
 import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
 import NcHelp from '../../../utils/NcHelp';
-import { substituteColumnAliasWithIdInFormula } from '../../meta/helpers/formulaHelpers';
 import RollupColumn from '../../../noco-models/RollupColumn';
 import View from '../../../noco-models/View';
 import GridView from '../../../noco-models/GridView';
@@ -436,6 +440,10 @@ async function migrateProjectModels(
           columnMeta.uidt = UITypes.ForeignKey;
         }
 
+        if (columnMeta.uidt === UITypes.Rating) {
+          columnMeta.uidt = UITypes.Number;
+        }
+
         const column = await Column.insert(
           {
             ...columnMeta,
@@ -777,8 +785,12 @@ async function migrateProjectModels(
         });
         let orderCount = 1;
         for (const [_cn, column] of aliasColArr) {
+          const viewColumn = viewColumns.find(
+            c => column.id === c.fk_column_id
+          );
+          if (!viewColumn) continue;
           await GridViewColumn.update(
-            viewColumns.find(c => column.id === c.fk_column_id).id,
+            viewColumn.id,
             {
               order: orderCount++,
               show: queryParams?.showFields
@@ -947,7 +959,7 @@ async function migrateProjectModelViews(
         await FormViewColumn.update(
           viewColumn.id,
           {
-            help: columnParams?.help,
+            help: columnParams?.help?.slice(0, 254),
             label: columnParams?.label,
             required: columnParams?.required,
             description: columnParams?.description,
@@ -957,8 +969,10 @@ async function migrateProjectModelViews(
           ncMeta
         );
       } else if (viewData.show_as === 'grid') {
+        const viewColumn = viewColumns.find(c => column.id === c.fk_column_id);
+        if (!viewColumn) continue;
         await GridViewColumn.update(
-          viewColumns.find(c => column.id === c.fk_column_id).id,
+          viewColumn.id,
           {
             order,
             show,
@@ -1025,9 +1039,9 @@ async function migrateViewsParams(
             {
               fk_column_id: sort.field
                 ? (
-                    objModelColumnAliasRef[projectId][tn][sort.field] ||
-                    objModelColumnRef[projectId][tn][sort.field]
-                  ).id
+                    objModelColumnAliasRef[projectId]?.[tn]?.[sort.field] ||
+                    objModelColumnRef[projectId]?.[tn]?.[sort.field]
+                  )?.id || null
                 : null,
               fk_view_id: view.id,
               direction: sort.order === '-' ? 'desc' : 'asc'
@@ -1041,7 +1055,10 @@ async function migrateViewsParams(
           await Filter.insert(
             {
               fk_column_id: filter.field
-                ? objModelColumnAliasRef[projectId][tn][filter.field].id
+                ? (
+                    objModelColumnAliasRef?.[projectId]?.[tn]?.[filter.field] ||
+                    objModelColumnRef?.[projectId]?.[tn]?.[filter.field]
+                  )?.id || null
                 : null,
               fk_view_id: view.id,
               comparison_op: filterV1toV2CompOpMap[filter.op],
@@ -1071,7 +1088,7 @@ async function migrateUIAcl(ctx: MigrateCtxV1, ncMeta: any) {
 
   for (const acl of uiAclList) {
     // if missing model name skip the view acl migration
-    if (!acl.title) continue;
+    if (!acl?.title) continue;
 
     let fk_view_id;
     if (acl.type === 'vtable') {
@@ -1231,7 +1248,10 @@ async function migrateWebhooks(ctx: MigrateCtxV1, ncMeta: any) {
   }> = await ncMeta.metaList(null, null, 'nc_hooks');
 
   for (const hookMeta of hooks) {
-    if (!hookMeta.project_id) {
+    if (
+      !hookMeta.project_id ||
+      !ctx.objModelRef[hookMeta?.project_id]?.[hookMeta?.tn]
+    ) {
       continue;
     }
     const hook = await Hook.insert(

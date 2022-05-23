@@ -2600,7 +2600,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/count": {
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/groupby": {
       "parameters": [
         {
           "schema": {
@@ -2625,16 +2625,31 @@
           "name": "tableName",
           "in": "path",
           "required": true
+        },{
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "column_name",
+          "description":
+          "Column name of the column you want to group by, eg. `column_name=column1`"
         }
       ],
       "get": {
-        "summary": "table rows count",
-        "operationId": "db-table-row-count",
+        "summary": "Table row Group by",
+        "operationId": "db-table-row-group-by",
         "description": "",
         "tags": [
           "DB table row"
         ],
         "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
           {
             "schema": {
               "type": "string"
@@ -2643,10 +2658,18 @@
             "name": "where"
           },
           {
-            "schema": {},
+            "schema": {
+              "type": "number"
+            },
             "in": "query",
-            "name": "nested",
-            "description": "Query params for nested data"
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
           }
         ],
         "responses": {
@@ -2851,6 +2874,98 @@
         }
       }
     },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },{
+          "schema": {
+            "type": "string"
+          },
+          "in": "query",
+          "name": "column_name",
+          "description":
+          "Column name of the column you want to group by, eg. `column_name=column1`"
+        }
+      ],
+      "get": {
+        "summary": "Table view row Group by",
+        "operationId": "db-view-row-group-by",
+        "description": "",
+        "tags": [
+          "DB view row"
+        ],
+        "parameters": [
+          {
+            "schema": {
+              "type": "array"
+            },
+            "in": "query",
+            "name": "sort"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "limit"
+          },
+          {
+            "schema": {
+              "type": "number"
+            },
+            "in": "query",
+            "name": "offset"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/count": {
       "parameters": [
         {
@@ -3019,6 +3134,68 @@
         "description": ""
       }
     },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "viewName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table view row exist",
+        "operationId": "db-view-row-exist",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "description": "check row with provided primary key exists or not",
+        "tags": [
+          "DB view row"
+        ]
+      }
+    },
     "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}": {
       "parameters": [
         {
@@ -3108,6 +3285,60 @@
           "DB table row"
         ],
         "description": ""
+      }
+    },
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "orgs",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "projectName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "tableName",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "rowId",
+          "in": "path",
+          "required": true
+        }
+      ],
+      "get": {
+        "summary": "Table row exist",
+        "operationId": "db-table-row-exist",
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "description": "check row with provided primary key exists or not",
+        "tags": [
+          "DB table row"
+        ]
       }
     },
     "/api/v1/db/data/bulk/{orgs}/{projectName}/{tableName}": {
@@ -4800,6 +5031,39 @@
         "description": ""
       }
     },
+    "/api/v1/db/meta/axiosRequestMake": {
+      "parameters": [],
+      "post": {
+        "summary": "",
+        "operationId": "utils-axios-request-make",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {}
+                }
+              }
+            }
+          }
+        },
+        "description": "Generic Axios Call",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object"
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ]
+      }
+    },
     "/api/v1/db/meta/nocodb/version": {
       "parameters": [],
       "get": {
@@ -5725,7 +5989,7 @@
           "title": {
             "type": "string"
           },
-          "table_nameme": {
+          "table_name": {
             "type": "string"
           },
           "type": {
@@ -5773,7 +6037,7 @@
         },
         "required": [
           "title",
-          "table_nameme"
+          "table_name"
         ]
       },
       "TableReq": {

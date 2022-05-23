@@ -4,6 +4,7 @@
       <v-select
         v-model="colMeta.icon"
         label="Icon"
+        :menu-props="{ bottom: true, offsetY: true }"
         :items="icons"
         dense
         outlined
@@ -31,6 +32,7 @@
       <v-select
         v-model="colMeta.max"
         label="Max"
+        :menu-props="{ bottom: true, offsetY: true }"
         :items="[1,2,3,4,5,6,7,8,9,10]"
         dense
         outlined

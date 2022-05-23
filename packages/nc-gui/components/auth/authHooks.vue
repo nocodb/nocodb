@@ -73,6 +73,7 @@ export default {
         }, 'xcAuthHookSet', this.data])
         this.$toast.success('Auth hook details updated successfully').goAway(3000)
       } catch (e) {
+        console.log(e)
         this.$toast.error('Some error occurred').goAway(3000)
       }
     }

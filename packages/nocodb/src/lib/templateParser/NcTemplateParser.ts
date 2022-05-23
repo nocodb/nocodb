@@ -4,9 +4,9 @@ import {
   OracleUi,
   PgUi,
   SqliteUi,
-  SqlUiFactory
-} from '../sqlUi';
-import UITypes from '../sqlUi/UITypes';
+  SqlUiFactory,
+  UITypes
+} from 'nocodb-sdk';
 
 export default class NcTemplateParser {
   sqlUi:
@@ -150,7 +150,7 @@ export default class NcTemplateParser {
       const childColumnName = `${tableTemplate.tn}_id`;
 
       childTable.columns.push({
-        cn: childColumnName,
+        column_name: childColumnName,
         _cn: childColumnName,
         rqd: false,
         pk: false,

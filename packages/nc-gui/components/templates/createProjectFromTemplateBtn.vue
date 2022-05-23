@@ -1,7 +1,5 @@
 <template>
   <div>
-    <!--    <v-menu bottom offset-y>-->
-    <!--      <template #activator="{on}">-->
     <v-btn
       :loading="projectCreation"
       :disabled="projectCreation"
@@ -10,28 +8,7 @@
       @click="useTemplate('rest')"
     >
       <slot>Use template</slot>
-      <!--          <v-icon>mdi-menu-down</v-icon>-->
     </v-btn>
-    <!--      </template>-->
-    <!--      <v-list>-->
-    <!--        <v-list-item dense class="py-2" @click="useTemplate('rest')">-->
-    <!--          <v-list-item-title>-->
-    <!--            <v-icon class="mr-1" :color="textColors[7]">-->
-    <!--              mdi-code-json-->
-    <!--            </v-icon>-->
-    <!--            {{ createRestText }}-->
-    <!--          </v-list-item-title>-->
-    <!--        </v-list-item>-->
-    <!--        <v-list-item dense class="py-2" @click="useTemplate('graphql')">-->
-    <!--          <v-list-item-title>-->
-    <!--            <v-icon class="mr-1" :color="textColors[3]">-->
-    <!--              mdi-graphql-->
-    <!--            </v-icon>-->
-    <!--            {{ createGqlText }}-->
-    <!--          </v-list-item-title>-->
-    <!--        </v-list-item>-->
-    <!--      </v-list>-->
-    <!--    </v-menu>-->
   </div>
 </template>
 
@@ -195,7 +172,7 @@ export default {
       })(v))) */
 
       await Promise.all(this.templateData.tables.map(v => (async(tableMeta) => {
-        const table = tableMeta.tn
+        const table = tableMeta.table_name
         const data = this.importData[tableMeta.refTn]
 
         await this.$store.dispatch('meta/ActLoadMeta', {
@@ -221,7 +198,7 @@ export default {
     remapColNames(batchData, columns) {
       return batchData.map(data => (columns || []).reduce((aggObj, col) => ({
         ...aggObj,
-        [col.cn]: data[col.refCn]
+        [col.column_name]: data[col.refCn]
       }), {})
       )
     }

@@ -14,9 +14,11 @@ export default class Minio implements IStorageAdapter {
     this.input = input;
   }
 
-
-  async fileCreate(key: string, file: XcFile): Promise<any> {
-
+  async fileCreate(
+    key: string,
+    file: XcFile,
+    _isPublic?: boolean
+  ): Promise<any> {
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
       const fileStream = fs.createReadStream(file.path);

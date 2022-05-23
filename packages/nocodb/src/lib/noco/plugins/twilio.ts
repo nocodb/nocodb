@@ -1,4 +1,4 @@
-import { XcActionType, XcForm, XcType } from 'nc-common';
+import { XcActionType, XcForm, XcType } from 'nocodb-sdk';
 
 const input: XcForm = {
   title: 'Configure Twilio',

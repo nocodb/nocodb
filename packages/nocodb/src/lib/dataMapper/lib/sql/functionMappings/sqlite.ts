@@ -56,28 +56,25 @@ const sqlite3 = {
       .raw(`CAST(${args.fn(args.pt.arguments[0])} as FLOAT)${args.colAlias}`)
       .wrap('(', ')');
   },
-  DATE_ADD: (args: MapFnArgs) => {
-    return args.knex.raw(
+  DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    const dateIN = fn(pt.arguments[1]);
+    return knex.raw(
       `CASE
-      WHEN ${args.fn(args.pt.arguments[0])} LIKE '%:%' THEN 
-        STRFTIME('%Y-%m-%d %H:%M', DATETIME(DATETIME(${args.fn(args.pt.arguments[0])}, 'localtime'), 
-        '+${args.fn(args.pt.arguments[1])} ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}'))
+      WHEN ${fn(pt.arguments[0])} LIKE '%:%' THEN 
+        STRFTIME('%Y-%m-%d %H:%M', DATETIME(DATETIME(${fn(
+          pt.arguments[0]
+        )}, 'localtime'), 
+        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} || ' ${String(fn(pt.arguments[2])).replace(
+        /["']/g,
+        ''
+      )}'))
       ELSE 
-        DATE(DATETIME(${args.fn(args.pt.arguments[0])}, 'localtime'), 
-        '+${args.fn(args.pt.arguments[1])} ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}')
-      END${args.colAlias}`
-    );
-  },
-  DATE_SUB: (args: MapFnArgs) => {
-    return args.knex.raw(
-      `CASE
-      WHEN ${args.fn(args.pt.arguments[0])} LIKE '%:%' THEN 
-        STRFTIME('%Y-%m-%d %H:%M', DATETIME(DATETIME(${args.fn(args.pt.arguments[0])}, 'localtime'),
-        '-${args.fn(args.pt.arguments[1]).argument.value} ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}'))
-      ELSE 
-        DATE(DATETIME(${args.fn(args.pt.arguments[0])}, 'localtime'), 
-        '-${args.fn(args.pt.arguments[1]).argument.value} ${String(args.fn(args.pt.arguments[2])).replace(/["']/g, "")}')
-      END${args.colAlias}`
+        DATE(DATETIME(${fn(pt.arguments[0])}, 'localtime'), 
+        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} || ' ${String(fn(pt.arguments[2])).replace(
+        /["']/g,
+        ''
+      )}')
+      END${colAlias}`
     );
   }
 };

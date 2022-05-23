@@ -6,46 +6,55 @@
     style="overflow: auto"
     class=" card nc-col-create-or-edit-card"
   >
-    <v-form v-model="valid">
+    <v-form v-model="valid" @submit.prevent="save">
       <v-container fluid @click.stop.prevent>
         <v-row>
           <v-col cols="12">
             <v-text-field
               ref="column"
-              v-model="newColumn._cn"
+              v-model="newColumn.title"
               hide-details="auto"
               color="primary"
               class="caption nc-column-name-input"
               :label="$t('labels.columnName')"
               :rules="[
                 v => !!v || 'Required',
-                v => !meta || !meta.columns || !column ||meta.columns.every(c => v !== c.cn ) && meta.v.every(c => column && c._cn === column._cn || v !== c._cn ) || 'Duplicate column name',
+                v => !meta || !meta.columns || !column ||meta.columns.every(c => column === c || (v !== c.title)) || 'Duplicate column name',
                 validateColumnName
               ]"
               dense
               outlined
             />
           </v-col>
-
-          <v-col v-if="column.formula" cols="12">
+          <v-col v-if="newColumn && newColumn.uidt === UITypes.Formula" cols="12">
             <formula-options
               ref="formula"
-              :value="column.formula"
+              v-model="newColumn.formula_raw"
               :column="column"
               :new-column="newColumn"
               :nodes="nodes"
               :meta="meta"
-              :alias="newColumn._cn"
+              :alias="newColumn.title"
               :sql-ui="sqlUi"
             />
           </v-col>
           <v-col cols="12" class="d-flex pt-0">
             <v-spacer />
-            <v-btn x-small outlined @click="close">
+            <v-btn
+              x-small
+              outlined
+              @click="close"
+            >
               <!-- Cancel -->
               {{ $t('general.cancel') }}
             </v-btn>
-            <v-btn x-small color="primary" :disabled="!valid" @click="save">
+            <v-btn
+              v-t="['c:column:edit']"
+              x-small
+              color="primary"
+              :disabled="!valid"
+              @click="save"
+            >
               <!-- Save -->
               {{ $t('general.save') }}
             </v-btn>
@@ -57,6 +66,7 @@
 </template>
 
 <script>
+import { UITypes, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import FormulaOptions from '@/components/project/spreadsheet/components/editColumn/formulaOptions'
 import { validateColumnName } from '~/helpers'
 
@@ -72,17 +82,28 @@ export default {
   },
   data: () => ({
     valid: false,
-    newColumn: {}
+    newColumn: {},
+    UITypes
   }),
   watch: {
     column(c) {
-      this.newColumn = { ...c }
+      const { colOptions, ...rest } = c
+      this.newColumn = rest
+
+      if (rest.uidt === UITypes.Formula) {
+        this.newColumn.formula_raw = substituteColumnIdWithAliasInFormula(colOptions.formula, this.meta.columns, colOptions.formula_raw)
+      }
     }
   },
   async created() {
   },
   mounted() {
-    this.newColumn = { ...this.column }
+    const { colOptions, ...rest } = this.column
+    this.newColumn = rest
+
+    if (rest.uidt === UITypes.Formula) {
+      this.newColumn.formula_raw = substituteColumnIdWithAliasInFormula(colOptions.formula, this.meta.columns, colOptions.formula_raw)
+    }
   },
   methods: {
     close() {
@@ -92,25 +113,12 @@ export default {
     async save() {
       // todo: rollup update
       try {
-        if (this.column.formula) {
-          await this.$refs.formula.update()
-        } else {
-          await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-            env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
-          }, 'xcUpdateVirtualKeyAlias', {
-            tn: this.nodes.tn,
-            oldAlias: this.column._cn,
-            newAlias: this.newColumn._cn
-          }])
-
-          this.$toast.success('Successfully updated alias').goAway(3000)
-        }
+        await this.$api.dbTableColumn.update(this.column.id, this.newColumn)
       } catch (e) {
-        console.log(e)
+        console.log(this._extractSdkResponseErrorMsg(e))
         this.$toast.error('Failed to update column alias').goAway(3000)
       }
-      this.$emit('saved', this.newColumn._cn, this.column._cn)
+      this.$emit('saved', this.newColumn.title, this.column.title)
       this.$emit('input', false)
     },
 

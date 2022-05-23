@@ -14,7 +14,7 @@ on:
         options:
           - DEV
           - PROD
-  # Triggered by release-nocodb.yml / release-nightly-dev.yml
+  # Triggered by release-nocodb.yml / release-nightly-dev.yml / release-pr.yml
   workflow_call:
     inputs:
       tag:
@@ -37,21 +37,30 @@ jobs:
       working-directory: ./packages/nocodb
     strategy:
       matrix:
-        node-version: [12]
+        node-version: [14]
     steps:
-      - uses: actions/checkout@v2
-      # Setup .npmrc file to publish to npm
-      - uses: actions/setup-node@v2
+      - name: Checkout
+        uses: actions/checkout@v2
         with:
-          node-version: '16.x'
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+      - name: NPM Setup and Publish with ${{ matrix.node-version }}
+        # Setup .npmrc file to publish to npm
+        uses: actions/setup-node@v2
+        with:
+          node-version: ${{ matrix.node-version }}
           registry-url: 'https://registry.npmjs.org'
       - run: |
-          cd packages/nc-gui
-          npm install
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:jsdeliver
-          cd ../..
-          npm install
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/upgradeNcGui.js && cd packages/nocodb && npm install && npm run obfuscate:build:publish
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&
+          cd packages/nocodb-sdk &&
+          npm install && npm run build && npm publish &&
+          cd ../.. &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
+          cd packages/nc-gui &&
+          npm install &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:jsdeliver &&
+          cd ../.. &&
+          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && npm install && npm run obfuscate:build:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
       - name: Create Pull Request
@@ -77,6 +86,7 @@ jobs:
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"
           echo "Pull Request URL - ${{ steps.cpr.outputs.pull-request-url }}"
       - name: automerge
+        if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
         uses: "pascalgn/automerge-action@v0.14.3"
         env:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"

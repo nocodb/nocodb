@@ -2,42 +2,42 @@
   <div class="d-flex align-center">
     <v-tooltip bottom>
       <template #activator="{on}">
-        <v-icon v-if="column.hm" color="warning" x-small class="mr-1" v-on="on">
+        <v-icon v-if="type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
           mdi-table-arrow-right
         </v-icon>
-        <v-icon v-else-if="column.bt" color="info" x-small class="mr-1" v-on="on">
+        <v-icon v-else-if="type === 'bt'" color="info" x-small class="mr-1" v-on="on">
           mdi-table-arrow-left
         </v-icon>
-        <v-icon v-else-if="column.mm" color="pink" x-small class="mr-1" v-on="on">
+        <v-icon v-else-if="type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
           mdi-table-network
         </v-icon>
-        <v-icon v-else-if="column.formula" x-small class="mr-1" v-on="on">
+        <v-icon v-else-if="type === 'formula'" x-small class="mr-1" v-on="on">
           mdi-math-integral
         </v-icon>
-        <template v-else-if="column.lk">
-          <v-icon v-if="column.lk.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
+        <template v-else-if="type === 'lk'">
+          <v-icon v-if="relationType === 'hm'" color="warning" x-small class="mr-1" v-on="on">
             mdi-table-column-plus-before
           </v-icon>
-          <v-icon v-else-if="column.lk.type === 'bt'" color="info" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="relationType === 'bt'" color="info" x-small class="mr-1" v-on="on">
             mdi-table-column-plus-before
           </v-icon>
-          <v-icon v-else-if="column.lk.type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="relationType === 'mm'" color="pink" x-small class="mr-1" v-on="on">
             mdi-table-column-plus-before
           </v-icon>
         </template>
-        <template v-else-if="column.rl">
-          <v-icon v-if="column.rl.type === 'hm'" color="warning" x-small class="mr-1" v-on="on">
+        <template v-else-if="type === 'rl'">
+          <v-icon v-if="relationType === 'hm'" color="warning" x-small class="mr-1" v-on="on">
             {{ rollupIcon }}
           </v-icon>
-          <v-icon v-else-if="column.rl.type === 'bt'" color="info" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="relationType === 'bt'" color="info" x-small class="mr-1" v-on="on">
             {{ rollupIcon }}
           </v-icon>
-          <v-icon v-else-if="column.rl.type === 'mm'" color="pink" x-small class="mr-1" v-on="on">
+          <v-icon v-else-if="relationType === 'mm'" color="pink" x-small class="mr-1" v-on="on">
             {{ rollupIcon }}
           </v-icon>
         </template>
         <span v-on="on">
-          <span class="name  flex-grow-1" style="white-space: nowrap" :title="column._cn" v-html="alias" />
+          <span class="name  flex-grow-1" style="white-space: nowrap" :title="column.title" v-html="alias" />
           <span v-if="column.rqd || required" class="error--text text--lighten-1">&nbsp;*</span>
         </span>
       </template>
@@ -57,7 +57,10 @@
         </v-icon>
       </template>
       <v-list dense>
-        <v-list-item dense @click="editColumnMenu = true">
+        <v-list-item
+          dense
+          @click="editColumnMenu = true"
+        >
           <x-icon small class="mr-1 nc-column-edit" color="primary">
             mdi-pencil
           </x-icon>
@@ -66,16 +69,9 @@
             {{ $t('general.edit') }}
           </span>
         </v-list-item>
-        <!--  <v-list-item dense @click="setAsPrimaryValue">
-            <x-icon small class="mr-1" color="primary">mdi-key-star</x-icon>
-            <v-tooltip bottom>
-              <template v-slot:activator="{on}">
-                <span class="caption" v-on="on">Set as Primary value</span>
-              </template>
-              <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span>
-            </v-tooltip>
-          </v-list-item> -->
-        <v-list-item @click="columnDeleteDialog = true">
+        <v-list-item
+          @click="columnDeleteDialog = true"
+        >
           <x-icon small class="mr-1 nc-column-delete" color="error">
             mdi-delete-outline
           </x-icon>
@@ -99,7 +95,7 @@
         <v-divider />
         <v-card-text class="mt-4 title">
           Do you want to delete <span class="font-weight-bold">'{{
-            column._cn
+            column.title
           }}'</span> column ?
         </v-card-text>
         <v-divider />
@@ -109,7 +105,12 @@
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </v-btn>
-          <v-btn small color="error" @click="deleteColumn">
+          <v-btn
+            v-t="['a:column:delete']"
+            small
+            color="error"
+            @click="deleteColumn"
+          >
             Confirm
           </v-btn>
         </v-card-actions>
@@ -134,6 +135,7 @@
   </div>
 </template>
 <script>
+import { UITypes } from 'nocodb-sdk'
 import { getUIDTIcon } from '../helpers/uiTypes'
 import EditVirtualColumn from '@/components/project/spreadsheet/components/editVirtualColumn'
 
@@ -144,93 +146,76 @@ export default {
   data: () => ({
     columnDeleteDialog: false,
     editColumnMenu: false,
-    rollupIcon: getUIDTIcon('Rollup')
+    rollupIcon: getUIDTIcon('Rollup'),
+    rels: ['bt', 'hm', 'mm']
   }),
   computed: {
     alias() {
-      // return this.column.lk ? `${this.column.lk._lcn} <small class="grey--text text--darken-1">(from ${this.column.lk._ltn})</small>` : this.column._cn
-      return `${this.column._cn}<sup>${
-        this.column.hm 
-          ? this.childPrimaryCol || "" 
-          : this.column.bt ? 
-            this.parentPrimaryCol || "" : ''
-      }</sup>`
-    },
-    childPrimaryCol() {
-      return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
-    },
-    parentPrimaryCol() {
-      return this.parentMeta && (this.parentMeta.columns.find(c => c.pv) || {})._cn
-    },
-    childMeta() {
-      return this.$store.state.meta.metas[this.column.hm.tn]
-    },
-    parentMeta() {
-      return this.$store.state.meta.metas[this.column.bt.rtn]
-    },
-    hmParentPrimaryValCol() {
-      console.log(this.hm, this.parentMeta)
-      return this.hm &&
-        this.parentMeta &&
-        this.parentMeta.columns.find(v => v.pv)._cn
+      // return this.column.lk ? `${this.column.lk._lcn} <small class="grey--text text--darken-1">(from ${this.column.lk._ltn})</small>` : this.column.title
+      return this.column.title
     },
     type() {
-      if (this.column.bt) {
-        return 'bt'
+      if (this.column?.colOptions?.type) {
+        return this.column.colOptions.type
       }
-      if (this.column.hm) {
-        return 'hm'
+      if (this.column?.colOptions?.formula) {
+        return 'formula'
       }
-      if (this.column.mm) {
-        return 'mm'
+      if (this.column.uidt === UITypes.Lookup) {
+        return 'lk'
+      }
+      if (this.column.uidt === UITypes.Rollup) {
+        return 'rl'
       }
       return ''
     },
+    relation() {
+      if (this.rels.includes(this.type)) {
+        return this.column
+      } else if (this.column.colOptions?.fk_relation_column_id) {
+        return this.meta.columns.find(c => c.id === this.column.colOptions?.fk_relation_column_id)
+      }
+      return undefined
+    },
+    relationType() {
+      return this.relation?.colOptions?.type
+    },
+    relationMeta() {
+      if (this.rels.includes(this.type)) {
+        return this.getMeta(this.column.colOptions.fk_related_model_id)
+      } else if (this.relation) {
+        return this.getMeta(this.relation.colOptions.fk_related_model_id)
+      }
+      return undefined
+    },
     childColumn() {
-      if (this.column.bt) {
-        return this.column.bt.cn
-      }
-      if (this.column.hm) {
-        return this.column.hm.cn
-      }
-      if (this.column.mm) {
-        return this.column.mm.rcn
+      if (this.relationMeta?.columns) {
+        if (this.type === 'rl') {
+          const ch = this.relationMeta.columns.find(c => c.id === this.column.colOptions.fk_rollup_column_id)
+          return ch
+        }
+        if (this.type === 'lk') {
+          const ch = this.relationMeta.columns.find(c => c.id === this.column.colOptions.fk_lookup_column_id)
+          return ch
+        }
       }
       return ''
     },
     childTable() {
-      if (this.column.bt) {
-        return this.column.bt.tn
-      }
-      if (this.column.hm) {
-        return this.column.hm.tn
-      }
-      if (this.column.mm) {
-        return this.column.mm.rtn
+      if (this.relationMeta?.title) {
+        return this.relationMeta.title
       }
       return ''
     },
     parentTable() {
-      if (this.column.bt) {
-        return this.column.bt.rtn
-      }
-      if (this.column.hm) {
-        return this.column.hm.rtn
-      }
-      if (this.column.mm) {
-        return this.column.mm.tn
+      if (this.rels.includes(this.type)) {
+        return this.meta.title
       }
       return ''
     },
     parentColumn() {
-      if (this.column.bt) {
-        return this.column.bt.rcn
-      }
-      if (this.column.hm) {
-        return this.column.hm.rcn
-      }
-      if (this.column.mm) {
-        return this.column.mm.cn
+      if (this.rels.includes(this.type)) {
+        return this.column.title
       }
       return ''
     },
@@ -238,131 +223,33 @@ export default {
       if (!this.column) {
         return ''
       }
-      if (this.column.hm) {
-        return `'${this.column.hm._rtn}' has many '${this.column.hm._tn}'`
-      } else if (this.column.mm) {
-        return `'${this.column.mm._tn}' & '${this.column.mm._rtn}' have <br>many to many relation`
-      } else if (this.column.bt) {
-        return `'${this.column.bt._tn}' belongs to '${this.column.bt._rtn}'`
-      } else if (this.column.lk) {
-        return `'${this.column.lk._lcn}' from '${this.column.lk._ltn}' (${this.column.lk.type})`
-      } else if (this.column.formula) {
-        return `Formula - ${this.column.formula.value}`
-      } else if (this.column.rl) {
-        return `${this.column.rl.fn} of ${this.column.rl._rlcn} (${this.column.rl._rltn})`
+      if (this.type === 'hm') {
+        return `'${this.parentTable}' has many '${this.childTable}'`
+      } else if (this.type === 'mm') {
+        return `'${this.childTable}' & '${this.parentTable}' have <br>many to many relation`
+      } else if (this.type === 'bt') {
+        return `'${this.column.title}' belongs to '${this.childTable}'`
+      } else if (this.type === 'lk') {
+        return `'${this.childColumn.title}' from '${this.childTable}' (${this.childColumn.uidt})`
+      } else if (this.type === 'formula') {
+        return `Formula - ${this.column.colOptions.formula}`
+      } else if (this.type === 'rl') {
+        return `'${this.childColumn.title}' of '${this.childTable}' (${this.childColumn.uidt})`
       }
       return ''
     }
   },
   methods: {
-    async deleteRelation() {
-      try {
-        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'xcRelationColumnDelete', {
-          type: this.type,
-          childColumn: this.childColumn,
-          childTable: this.childTable,
-          parentTable: this.parentTable,
-          parentColumn: this.parentColumn,
-          assocTable: this.column.mm && this.column.mm.vtn
-        }])
-        this.$emit('saved')
-        this.columnDeleteDialog = false
-      } catch (e) {
-        console.log(e)
-      }
-    },
-    async deleteLookupColumn() {
-      try {
-        await this.$store.dispatch('meta/ActLoadMeta', {
-          dbAlias: this.nodes.dbAlias,
-          env: this.nodes.env,
-          tn: this.meta.tn,
-          force: true
-        })
-        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
-
-        // remove lookup from virtual columns
-        meta.v = meta.v.filter(cl => cl.cn !== this.column.cn ||
-          cl.type !== this.column.type ||
-          cl._cn !== this.column._cn ||
-          cl.tn !== this.column.tn)
-
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'xcModelSet', {
-          tn: this.nodes.tn,
-          meta
-        }])
-        this.$emit('saved')
-        this.columnDeleteDialog = false
-      } catch (e) {
-        console.log(e)
-      }
-    },
-    async deleteFormulaColumn() {
-      try {
-        await this.$store.dispatch('meta/ActLoadMeta', {
-          dbAlias: this.nodes.dbAlias,
-          env: this.nodes.env,
-          tn: this.meta.tn,
-          force: true
-        })
-        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
-        // remove formula from virtual columns
-        meta.v = meta.v.filter(cl => !cl.formula || cl._cn !== this.column._cn)
-
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'xcModelSet', {
-          tn: this.nodes.tn,
-          meta
-        }])
-        this.$emit('saved')
-        this.columnDeleteDialog = false
-      } catch (e) {
-        console.log(e)
-      }
-    },
-    async deleteRollupColumn() {
-      try {
-        await this.$store.dispatch('meta/ActLoadMeta', {
-          dbAlias: this.nodes.dbAlias,
-          env: this.nodes.env,
-          tn: this.meta.tn,
-          force: true
-        })
-        const meta = JSON.parse(JSON.stringify(this.$store.state.meta.metas[this.meta.tn]))
-
-        // remove rollup from virtual columns
-        meta.v = meta.v.filter(cl => !cl.rl || cl._cn !== this.column._cn)
-
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'xcModelSet', {
-          tn: this.nodes.tn,
-          meta
-        }])
-        this.$emit('saved')
-        this.columnDeleteDialog = false
-      } catch (e) {
-        console.log(e)
-      }
+    getMeta(id) {
+      return this.$store.state.meta.metas[id] || {}
     },
     async deleteColumn() {
-      if (this.column.lk) {
-        await this.deleteLookupColumn()
-      } else if (this.column.formula) {
-        await this.deleteFormulaColumn()
-      } else if (this.column.rl) {
-        await this.deleteRollupColumn()
-      } else {
-        await this.deleteRelation()
+      try {
+        await this.$api.dbTableColumn.delete(this.column.id)
+        this.$emit('saved')
+        this.columnDeleteDialog = false
+      } catch (e) {
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
     }
   }
@@ -382,6 +269,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Mert Ersoy <mertmit99@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

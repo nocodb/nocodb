@@ -25,7 +25,10 @@
         "ignoreI18nBlock": false
       }
     ],
-    "@intlify/vue-i18n/no-missing-keys": "error"
+    "@intlify/vue-i18n/no-missing-keys": "error",
+    "max-len": ["warn", {
+      "code": 120
+    }]
   },
   "parserOptions": {
     "parser": "babel-eslint",

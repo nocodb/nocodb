@@ -151,7 +151,7 @@
     "lockedView": "Tampilan yang terkunci",
     "personalView": "Tampilan pribadi",
     "appStore": "Toko aplikasi",
-    "team&auth": "Tim & AUTH.",
+    "teamAndAuth": "Tim & AUTH.",
     "rolesUserMgmt": "Manajemen Peran & Pengguna",
     "userMgmt": "Manajemen Pengguna",
     "apiTokenMgmt": "API Token Management.",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Parameter Lanjutan",
     "headCreateProject": "Buat Proyek | Nocodb.",
     "headLogin": "Masuk | Nocodb.",
-    "resetPassword": "Mereset password Anda"
+    "resetPassword": "Mereset password Anda",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Beri tahu VIA.",
@@ -189,6 +191,7 @@
     "port": "Nomor port.",
     "username": "Nama pengguna",
     "password": "Kata sandi",
+    "schemaName": "Schema name",
     "action": "Tindakan",
     "actions": "Tindakan",
     "operation": "Operasi",
@@ -225,6 +228,7 @@
       "bookDemo": "Pesan demo gratis",
       "getAnswered": "Dapatkan pertanyaan Anda dijawab",
       "joinDiscord": "Bergabunglah dengan Perselisihan",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Bergabunglah /r/NocoDB",
       "followNocodb": "Ikuti NocoDB"
     },
@@ -405,7 +409,7 @@
       "deleteProject": "Apakah Anda ingin menghapus proyek?",
       "shareBasePrivate": "Menghasilkan basis readonly yang dapat dibagikan secara publik",
       "shareBasePublic": "Siapa pun di Internet dengan tautan ini dapat dilihat",
-      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer! \\ n Harap salin tautan undangan di atas dan kirimkan ke",
+      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer!\nHarap salin tautan undangan di atas dan kirimkan ke",
       "dragDropHide": "Seret dan jatuhkan bidang di sini untuk bersembunyi",
       "formInput": "Masukkan label input formulir",
       "formHelpText": "Tambahkan beberapa teks bantuan",

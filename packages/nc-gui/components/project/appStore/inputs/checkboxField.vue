@@ -28,10 +28,7 @@ export default {
       const $listeners = {}
       return $listeners
     }
-  },
-  created() {
-    this.localState = false 
-  },
+  }
 }
 </script>
 

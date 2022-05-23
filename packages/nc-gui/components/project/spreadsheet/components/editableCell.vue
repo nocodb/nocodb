@@ -18,6 +18,8 @@
       :column="column"
       :is-public-grid="isPublic && !isForm"
       :is-public-form="isPublic && isForm"
+      :view-id="viewId"
+      :is-locked="isLocked"
       v-on="$listeners"
     />
 
@@ -161,7 +163,8 @@ export default {
     dummy: Boolean,
     hint: String,
     isLocked: Boolean,
-    isPublic: Boolean
+    isPublic: Boolean,
+    viewId: String
   },
   data: () => ({
     changed: false,
@@ -181,10 +184,8 @@ export default {
           this.$emit('input', val === '' ? null : val)
           if (this.isAttachment || this.isEnum || this.isBoolean || this.isSet || this.isTime || this.isDateTime || this.isDate) {
             this.syncData()
-          } else {
-            if (!this.isCurrency) {
-              this.syncDataDebounce(this)
-            }
+          } else if (!this.isCurrency) {
+            this.syncDataDebounce(this)
           }
         }
       }
@@ -201,10 +202,6 @@ export default {
 
       if (this.$listeners.cancel) {
         $listeners.cancel = this.$listeners.cancel
-      }
-
-      if (this.$listeners.update) {
-        $listeners.update = this.$listeners.update
       }
 
       return $listeners

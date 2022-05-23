@@ -160,8 +160,6 @@ export default `<!doctype html>
                                             </tbody>
                                         </table>
                                         <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
-                                            Ignore the mail if you didn't created an account in NocoDB.com.</p>
-                                        <p style="font-family: sans-serif; font-size: 14px; font-weight: normal; margin: 0; margin-bottom: 15px;">
                                             Thanks regards NocoDB.</p>
                                     </td>
                                 </tr>

@@ -33,12 +33,6 @@
             >
               <v-simple-table dense style="border: 1px solid grey">
                 <template #default>
-                  <!--                  <thead>-->
-                  <!--                  <tr>-->
-                  <!--                    <th class="text-left " width="25%">Name</th>-->
-                  <!--                    <th class="text-left ">Value</th>-->
-                  <!--                  </tr>-->
-                  <!--                  </thead>-->
                   <tbody>
                     <tr>
                       <td>Dark Mode</td>
@@ -146,117 +140,6 @@
             </v-card>
           </v-tab-item>
 
-          <!--          <v-tab-->
-          <!--            href="#tab-telemetry"-->
-          <!--          >-->
-          <!--            Telemetry-->
-          <!--          </v-tab>-->
-
-          <!--          <v-tab-item-->
-          <!--            value="tab-telemetry"-->
-          <!--          >-->
-          <!--            <v-card-->
-          <!--              flat-->
-          <!--              tile-->
-          <!--            >-->
-          <!--              <v-simple-table dense style="border: 1px solid grey">-->
-          <!--                <template v-slot:default>-->
-          <!--                  &lt;!&ndash;                  <thead>&ndash;&gt;-->
-          <!--                  &lt;!&ndash;                  <tr>&ndash;&gt;-->
-          <!--                  &lt;!&ndash;                    <th class="text-left" width="25%">Name</th>&ndash;&gt;-->
-          <!--                  &lt;!&ndash;                    <th class="text-left">Value</th>&ndash;&gt;-->
-          <!--                  &lt;!&ndash;                  </tr>&ndash;&gt;-->
-          <!--                  &lt;!&ndash;                  </thead>&ndash;&gt;-->
-          <!--                  <tbody>-->
-          <!--                  <tr>-->
-          <!--                    <td class="py-2">Error Reporting-->
-          <!--                      <x-icon small tooltip="For crash reports we use sentry.io">mdi-information-outline</x-icon>-->
-          <!--                    </td>-->
-
-          <!--                    <td class="py-2">-->
-          <!--                      <v-switch-->
-          <!--                        flat-->
-          <!--                        v-model="isErrorReportingEnabled"-->
-          <!--                        color="grey "-->
-          <!--                        @click.prevent.stop="toggleLogReport"-->
-          <!--                      ></v-switch>-->
-          <!--                    </td>-->
-          <!--                  </tr>-->
-          <!--                  <tr>-->
-          <!--                    <td class="py-2">Google Analytics</td>-->
-          <!--                    <td class="py-2" style="position: relative">-->
-
-          <!--                      <v-switch-->
-          <!--                        v-if="$store.state.users.ui_ability.rules.disableGA"-->
-          <!--                        v-model="isGaEnabled"-->
-          <!--                        color="grey "-->
-          <!--                        flat-->
-          <!--                        @click.prevent.stop="toggleGa"-->
-          <!--                      ></v-switch>-->
-
-          <!--                      <v-tooltip-->
-          <!--                        right-->
-          <!--                        bottom-->
-          <!--                        v-else>-->
-          <!--                        <template v-slot:activator="{on}">-->
-          <!--                          <div-->
-          <!--                            v-on="on">-->
-          <!--                            <v-switch-->
-          <!--                              v-model="isGaEnabled"-->
-          <!--                              disabled-->
-          <!--                              color="grey "-->
-          <!--                              flat-->
-          <!--                            ></v-switch>-->
-          <!--                          </div>-->
-          <!--                        </template>-->
-          <!--                        Only Enterprise user can disable Google Analytics-->
-          <!--                      </v-tooltip>-->
-
-          <!--                    </td>-->
-          <!--                  </tr>-->
-          <!--                  <tr>-->
-          <!--                    <td class="py-2"> Telemetry-->
-          <!--                      <x-icon small-->
-          <!--                              tooltip="Only count of {Tables, APIs, Relations}, Time taken for api creation and tool-uuid"-->
-          <!--                      >-->
-          <!--                        mdi-information-outline-->
-          <!--                      </x-icon>-->
-          <!--                    </td>-->
-          <!--                    <td class="py-2">-->
-
-          <!--                      <v-switch-->
-          <!--                        v-if="$store.state.users.ui_ability.rules.disableTelemetry"-->
-          <!--                        flat-->
-          <!--                        disabled-->
-          <!--                        v-model="isTelemetryEnabled"-->
-          <!--                        color="grey "-->
-          <!--                      ></v-switch>-->
-          <!--                      <v-tooltip-->
-          <!--                        v-else-->
-          <!--                        right-->
-          <!--                        bottom>-->
-          <!--                        <template v-slot:activator="{on}">-->
-          <!--                          <div-->
-          <!--                            v-on="on">-->
-          <!--                            <v-switch-->
-          <!--                              flat-->
-          <!--                              disabled-->
-          <!--                              v-model="isTelemetryEnabled"-->
-          <!--                              color="grey "-->
-          <!--                            ></v-switch>-->
-          <!--                          </div>-->
-          <!--                        </template>-->
-          <!--                        Only Enterprise user can disable Telemetry-->
-          <!--                      </v-tooltip>-->
-          <!--                    </td>-->
-          <!--                  </tr>-->
-          <!--                  </tbody>-->
-          <!--                </template>-->
-          <!--              </v-simple-table>-->
-
-          <!--            </v-card>-->
-          <!--          </v-tab-item>-->
-
           <v-tab
             href="#tab-other"
           >
@@ -272,12 +155,6 @@
             >
               <v-simple-table dense style="border: 1px solid grey">
                 <template #default>
-                  <!--                <thead>-->
-                  <!--                <tr>-->
-                  <!--                  <th class="text-left " width="25%">Name</th>-->
-                  <!--                  <th class="text-left ">Value</th>-->
-                  <!--                </tr>-->
-                  <!--                </thead>-->
                   <tbody>
                     <tr>
                       <td>
@@ -287,18 +164,6 @@
                         <span @contextmenu="rightClick">{{ $store.state.windows.version }}</span>
                       </td>
                     </tr>
-                    <!--                <tr>-->
-                    <!--                  <td>-->
-                    <!--                    Check for updates-->
-                    <!--                  </td>-->
-                    <!--                  <td>-->
-                    <!--                    <v-switch-->
-                    <!--                      flat-->
-                    <!--                      v-model="checkForUpdate"-->
-                    <!--                      color="grey "-->
-                    <!--                    ></v-switch>-->
-                    <!--                  </td>-->
-                    <!--                </tr>-->
                     <tr @dblclick="enableAppRefresh = true">
                       <td>
                         Auto update

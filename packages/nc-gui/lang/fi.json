@@ -151,7 +151,7 @@
     "lockedView": "Lukittu näkymä",
     "personalView": "Henkilökohtainen näkymä",
     "appStore": "Sovelluskauppa",
-    "team&auth": "Team & Auth",
+    "teamAndAuth": "Team & Auth",
     "rolesUserMgmt": "Roolit ja käyttäjien hallinta",
     "userMgmt": "Käyttäjien hallinta",
     "apiTokenMgmt": "API Tokensin hallinta",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Advanced Parameters",
     "headCreateProject": "Luo projekti Nokodb",
     "headLogin": "Kirjaudu sisään | Nokodb",
-    "resetPassword": "Nollaa salasana"
+    "resetPassword": "Nollaa salasana",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Ilmoittaa kautta",
@@ -189,6 +191,7 @@
     "port": "Porttinumero",
     "username": "Käyttäjätunnus",
     "password": "Salasana",
+    "schemaName": "Schema name",
     "action": "Toiminta",
     "actions": "Toiminnot",
     "operation": "Operaatio",
@@ -225,6 +228,7 @@
       "bookDemo": "Varaa ilmainen demo",
       "getAnswered": "Hanki kysymyksesi vastasi",
       "joinDiscord": "Liity discordiin",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Liity /r/NocoDB",
       "followNocodb": "Seuraa NocoDB"
     },
@@ -405,7 +409,7 @@
       "deleteProject": "Haluatko poistaa projektin?",
       "shareBasePrivate": "Luo julkisesti jakattava Readonly Base",
       "shareBasePublic": "Jokainen Internetissä tällä linkillä voi tarkastella",
-      "userInviteNoSMTP": "Näyttää siltä, ​​ettet ole määrittänyt sähköpostia! \\ n Kopioi yllä kutsun linkki ja lähetä se",
+      "userInviteNoSMTP": "Näyttää siltä, ​​ettet ole määrittänyt sähköpostia!\nKopioi yllä kutsun linkki ja lähetä se",
       "dragDropHide": "Vedä ja pudota kentät täällä piiloutumaan",
       "formInput": "Anna lomakkeen syöttömerkki",
       "formHelpText": "Lisää joitain ohjeita",

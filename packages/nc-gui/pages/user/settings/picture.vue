@@ -6,7 +6,6 @@
         <form class="signin form-horizontal">
           <fieldset>
             <div class="form-group text-center">
-              <!--<img ng-src="{{imageURL}}" alt="{{user.displayName}}" class="img-thumbnail user-profile-picture">-->
             </div>
             <div class="text-center form-group">
               <span class="btn btn-primary btn-raised btn-file">
@@ -22,12 +21,6 @@
                 {{ $t('general.cancel') }}
               </button>
             </div>
-            <!--<div ng-show="success" class="text-center text-success">-->
-            <!--<strong>Profile Picture Changed Successfully</strong>-->
-            <!--</div>-->
-            <!--<div ng-show="error" class="text-center text-danger">-->
-            <!--<strong ng-bind="error"></strong>-->
-            <!--</div>-->
           </fieldset>
         </form>
       </div>

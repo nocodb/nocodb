@@ -49,23 +49,23 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       const originalRows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true, defval: null })
 
       // fix precision bug & timezone offset issues introduced by xlsx
-      const basedate = new Date(1899, 11, 30, 0, 0, 0);
+      const basedate = new Date(1899, 11, 30, 0, 0, 0)
       // number of milliseconds since base date
-      const dnthresh = basedate.getTime() + (new Date().getTimezoneOffset() - basedate.getTimezoneOffset()) * 60000;
+      const dnthresh = basedate.getTime() + (new Date().getTimezoneOffset() - basedate.getTimezoneOffset()) * 60000
       // number of milliseconds in a day
-      const day_ms = 24 * 60 * 60 * 1000;
+      const day_ms = 24 * 60 * 60 * 1000
       // handle date1904 property
       const fixImportedDate = (date) => {
-        const parsed = XLSX.SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, { 
-          date1904: this.wb.Workbook.WBProps.date1904 
+        const parsed = XLSX.SSF.parse_date_code((date.getTime() - dnthresh) / day_ms, {
+          date1904: this.wb.Workbook.WBProps.date1904
         })
         return new Date(parsed.y, parsed.m, parsed.d, parsed.H, parsed.M, parsed.S)
       }
       // fix imported date
-      const rows = originalRows.map((r) => r.map((v) => {
-        return v instanceof Date ? fixImportedDate(v): v
+      const rows = originalRows.map(r => r.map((v) => {
+        return v instanceof Date ? fixImportedDate(v) : v
       }))
-      
+
       const columnNameRowExist = +rows[0].every(v => v === null || typeof v === 'string')
 
       // const colLen = Math.max()
@@ -166,7 +166,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         const rowData = {}
         for (let i = 0; i < table.columns.length; i++) {
           if (table.columns[i].uidt === UITypes.Checkbox) {
-            rowData[table.columns[i].cn] = getCheckboxValue(row[i])
+            rowData[table.columns[i].column_name] = getCheckboxValue(row[i])
           } else if (table.columns[i].uidt === UITypes.Currency) {
             const cellId = XLSX.utils.encode_cell({
               c: range.s.c + i,
@@ -174,12 +174,12 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
             })
 
             const cellObj = ws[cellId]
-            rowData[table.columns[i].cn] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
+            rowData[table.columns[i].column_name] = (cellObj && cellObj.w && cellObj.w.replace(/[^\d.]+/g, '')) || row[i]
           } else if (table.columns[i].uidt === UITypes.SingleSelect || table.columns[i].uidt === UITypes.MultiSelect) {
-            rowData[table.columns[i].cn] = (row[i] || '').toString().trim() || null
+            rowData[table.columns[i].column_name] = (row[i] || '').toString().trim() || null
           } else {
             // toto: do parsing if necessary based on type
-            rowData[table.columns[i].cn] = row[i]
+            rowData[table.columns[i].column_name] = row[i]
           }
         }
         this.data[tn].push(rowData)

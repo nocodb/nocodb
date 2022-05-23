@@ -32,7 +32,7 @@ import ncModelsOrderUpgrader from './jobs/ncModelsOrderUpgrader';
 import ncParentModelTitleUpgrader from './jobs/ncParentModelTitleUpgrader';
 import ncRemoveDuplicatedRelationRows from './jobs/ncRemoveDuplicatedRelationRows';
 import xcMetaDiffSync from './handlers/xcMetaDiffSync';
-import UITypes from '../../sqlUi/UITypes';
+import { UITypes } from 'nocodb-sdk';
 
 const log = debug('nc:api:base');
 

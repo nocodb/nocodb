@@ -151,7 +151,7 @@
     "lockedView": "Zaključan",
     "personalView": "Osobni pogled",
     "appStore": "Trgovina aplikacijama",
-    "team&auth": "Tima",
+    "teamAndAuth": "Tima",
     "rolesUserMgmt": "Upravce i korisnici",
     "userMgmt": "Upravljanje korisnicima",
     "apiTokenMgmt": "Upravljanje API tokena",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL i napredni parametri",
     "headCreateProject": "Stvoriti projekt | Nocodb",
     "headLogin": "Prijavite se | Nocodb",
-    "resetPassword": "Vraćanje izvorne lozinke"
+    "resetPassword": "Vraćanje izvorne lozinke",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Obavijestiti putem",
@@ -189,6 +191,7 @@
     "port": "Broj porta",
     "username": "Korisničko ime",
     "password": "Lozinka",
+    "schemaName": "Schema name",
     "action": "Akcijski",
     "actions": "Akcije",
     "operation": "Operacija",
@@ -225,6 +228,7 @@
       "bookDemo": "Rezervirajte besplatni demo",
       "getAnswered": "Odgovorite na vaša pitanja",
       "joinDiscord": "Pridružite se nesloga",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Pridružite se /r/NocoDB",
       "followNocodb": "Slijedite NocoDB"
     },

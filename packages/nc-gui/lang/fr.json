@@ -151,7 +151,7 @@
     "lockedView": "Vue verrouillée",
     "personalView": "Vue personnelle",
     "appStore": "Magasin d'applications",
-    "team&auth": "Équipe & Authentification",
+    "teamAndAuth": "Équipe & Authentification",
     "rolesUserMgmt": "Rôles & Gestion utilisateurs",
     "userMgmt": "Gestion des utilisateurs",
     "apiTokenMgmt": "Gestion des jetons API",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL et paramètres avancés",
     "headCreateProject": "Créer un projet | Nocodb",
     "headLogin": "Connexion | Nocodb",
-    "resetPassword": "Réinitialiser le mot de passe"
+    "resetPassword": "Réinitialiser le mot de passe",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Notifier via",
@@ -189,6 +191,7 @@
     "port": "Numéro de port",
     "username": "Utilisateur",
     "password": "Mot de passe",
+    "schemaName": "Schema name",
     "action": "Action",
     "actions": "Actions",
     "operation": "Opération",
@@ -225,6 +228,7 @@
       "bookDemo": "Planifier une démonstration gratuite",
       "getAnswered": "Obtenir des réponses à vos questions",
       "joinDiscord": "Rejoindre le serveur Discord",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Rejoindre /r/NocoDB",
       "followNocodb": "Suivre NocoDB"
     },
@@ -405,7 +409,7 @@
       "deleteProject": "Voulez-vous supprimer le projet ?",
       "shareBasePrivate": "Générer une base partagée en lecture seule",
       "shareBasePublic": "Toute personne avec ce lien peut consulter",
-      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer! \\ n Merci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
+      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer!\nMerci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
       "dragDropHide": "Glisser et déposer des champs ici pour masquer",
       "formInput": "Entrer le libelé du formulaire",
       "formHelpText": "Ajouter du texte d'assitance",

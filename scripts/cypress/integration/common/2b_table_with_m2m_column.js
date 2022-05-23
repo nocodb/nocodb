@@ -1,3 +1,4 @@
+import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
 export const genTest = (apiType, dbType) => {
@@ -5,6 +6,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - M2M Column validation`, () => {
         before(() => {
+            mainPage.tabReset();
             cy.openTableTab("Actor", 25);
         });
 
@@ -21,10 +23,10 @@ export const genTest = (apiType, dbType) => {
 
         it("Expand m2m column", () => {
             // expand first row
-            cy.get('td[data-col="Actor <=> Film"] div', { timeout: 12000 })
+            cy.get('td[data-col="FilmMMList"] div', { timeout: 12000 })
                 .first()
                 .click({ force: true });
-            cy.get('td[data-col="Actor <=> Film"] div .mdi-arrow-expand')
+            cy.get('td[data-col="FilmMMList"] div .mdi-arrow-expand')
                 .first()
                 .click({ force: true });
 

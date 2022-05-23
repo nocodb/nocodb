@@ -13,7 +13,7 @@
                      href: '#'
                    },
                    {
-                     text: (nodes.tn || nodes.view_name) + ' (APIs)',
+                     text: (nodes.table_name || nodes.view_name) + ' (APIs)',
                      disabled: true,
                      href: '#'
                    }]"
@@ -62,7 +62,7 @@
 
             <x-btn
               outlined
-              :tooltip="`Compare GQL schema history of ${nodes.tn}`"
+              :tooltip="`Compare GQL schema history of ${nodes.table_name}`"
               color="primary"
               x-small
               :disabled="loading || !schemaHistory.length"
@@ -123,7 +123,7 @@
                     dense
                     hide-details
                     class="ma-2"
-                    :placeholder="`Search '${nodes.tn}' resolvers`"
+                    :placeholder="`Search '${nodes.table_name}' resolvers`"
                     prepend-inner-icon="search"
                     outlined
                   />
@@ -284,7 +284,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'xcModelSchemaSet', {
-          tn: this.nodes.tn || this.nodes.view_name,
+          tn: this.nodes.table_name || this.nodes.view_name,
           schema: this.schema
         }])
         this.$toast.success('Successfully updated validations').goAway(3000)
@@ -297,7 +297,7 @@ export default {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'tableXcModelGet', {
-        tn: this.nodes.tn || this.nodes.view_name
+        tn: this.nodes.table_name || this.nodes.view_name
       }])
       this.schema = tableMeta.schema
       if (tableMeta.schema_previous) {
@@ -312,7 +312,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'xcResolverPolicyGet', {
-          tn: this.nodes.tn || this.nodes.view_name
+          tn: this.nodes.table_name || this.nodes.view_name
         }])).data.list
     }
   }

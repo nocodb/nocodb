@@ -11,7 +11,7 @@ Verwandelt jeden MySQL, PostgreSQL, SQL Server, SQLite & MariaDB in eine Smart-T
 <div align="center">
  
 [![Build Status](https://travis-ci.org/dwyl/esta.svg?branch=master)](https://travis-ci.com/github/NocoDB/NocoDB) 
-[![Node version](https://badgen.net/npm/node/next)](http://nodejs.org/download/)
+[![Node version](https://img.shields.io/badge/node-%3E%3D%2014.18.0-brightgreen)](http://nodejs.org/download/)
 [![Twitter](https://img.shields.io/twitter/url/https/twitter.com/NocoDB.svg?style=social&label=Follow%20%40NocoDB)](https://twitter.com/NocoDB)
 
 </div>
@@ -59,13 +59,19 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
   Beispiel:
 
   ```
-  docker run -d -p 8080:8080 --name nocodb -v /local/path:/usr/app/data/ nocodb/nocodb:latest
+  docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
   ```
 
-### Verwenden von NPM
+### Verwenden von NPM 
 
 ```
-npm create-nocodb-app
+npm install create-nocodb-app
+```
+
+### Verwenden von NPX 
+
+```
+npx create-nocodb-app
 ```
 
 ### Verwenden von Git
@@ -157,7 +163,7 @@ NocoDB erfordert eine Datenbank, um Metadaten von Tabellenansichten und externen
 
 ## Docker
 
-#### Beispiel MySQL
+#### Beispiel MySQL / MariaDB
 
 ```
 docker run -d -p 8080:8080 \
@@ -166,7 +172,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Beispiel Postgres
+#### Beispiel PostgreSQL
 
 ```
 docker run -d -p 8080:8080 \
@@ -175,7 +181,7 @@ docker run -d -p 8080:8080 \
     nocodb/nocodb:latest
 ```
 
-#### Beispiel SQL Server
+#### Beispiel MS SQL Server
 
 ```
 docker run -d -p 8080:8080 \

@@ -3,7 +3,7 @@
     <template #activator="{on}">
       <transition name="release">
         <v-btn
-          v-if="releaseAlert"
+          v-show="releaseAlert"
           text
           small
           class="mb-0 mr-2 py-0 "
@@ -54,10 +54,13 @@ export default {
   computed: {
     releaseAlert: {
       get() {
-        return !this.loading && this.$store.state.app.releaseVersion && this.$store.state.app.releaseVersion !== this.$store.state.app.hiddenRelease
+        return !this.loading && this.$store.state.app.releaseVersion &&
+          this.$store.state.app.latestRelease &&
+          this.$store.state.app.releaseVersion !== this.$store.state.app.latestRelease &&
+          this.$store.state.app.latestRelease !== this.$store.state.app.hiddenRelease
       },
       set(val) {
-        return this.$store.commit('app/MutHiddenRelease', val ? null : this.$store.state.app.releaseVersion)
+        return this.$store.commit('app/MutHiddenRelease', val ? null : this.$store.state.app.latestRelease)
       }
     },
     releaseVersion() {

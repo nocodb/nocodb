@@ -73,10 +73,9 @@
 <script>
 import { mapGetters, mapActions } from 'vuex'
 
+import { SqlUiFactory } from 'nocodb-sdk'
 import MonacoEditor from '../../monaco/Monaco'
 import dlgLabelSubmitCancel from '../../utils/dlgLabelSubmitCancel'
-
-import { SqlUI } from '../../../helpers/sqlUi/SqlUiFactory'
 
 export default {
   components: { MonacoEditor, dlgLabelSubmitCancel },
@@ -100,7 +99,6 @@ export default {
     }),
 
     async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
-      console.log(metaKey, key, altKey, shiftKey, ctrlKey)
       // cmd + s -> save
       // cmd + l -> reload
       // cmd + n -> new
@@ -172,7 +170,6 @@ export default {
               ...this.nodes
             }
           })
-          console.log('create function result', result)
           this.newFunction = false
           this.oldCreateFunction = `${this.functionData.create_function}` + ''
           this.$toast.success('Function created successfully').goAway(3000)
@@ -197,7 +194,6 @@ export default {
             }])
 
           this.oldCreateFunction = `${this.functionData.create_function}` + ''
-          console.log('update function result', result)
           this.$toast.success('Function updated successfully').goAway(3000)
         }
       } catch (e) {
@@ -247,7 +243,7 @@ export default {
   },
   watch: {},
   created() {
-    this.sqlUi = SqlUI.create(this.nodes.dbConnection)
+    this.sqlUi = SqlUiFactory.create(this.nodes.dbConnection)
   },
   mounted() {
     this.loadFunction()

@@ -82,7 +82,7 @@
             <tr :disabled="nodes.view_name==='_evolutions' || nodes.view_name==='nc_evolutions'">
               <td
                 ref="column"
-                :title="props.item.cn"
+                :title="props.item.column_name"
                 style="width:200px"
               >
                 <div class="d-flex">
@@ -95,7 +95,7 @@
                   >
                     {{ getColumnIcon(props.item) }}
                   </v-icon>&nbsp;
-                  {{ props.item.cn }}
+                  {{ props.item.column_name }}
                 </div>
               </td>
               <td class="pa-0 text-center">
@@ -158,7 +158,7 @@ export default {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias
         }, 'columnList', {
-          tn: this.nodes.view_name
+          table_name: this.nodes.view_name
         }])
         console.log('table ', result.data.list)
         const columns = result.data.list

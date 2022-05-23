@@ -51,41 +51,6 @@
     </v-row>
   </v-container>
 
-  <!--<section class="section container">-->
-
-  <!--<div class="box">-->
-
-  <!--<div class="field">-->
-  <!--<div class="control">-->
-  <!--<label class="label">currentPassword</label>-->
-  <!--<input class="input" type="password" placeholder="currentPassword" id="currentPassword" v-model="passwordDetails.currentPassword">-->
-  <!--</div>-->
-  <!--</div>-->
-
-  <!--<div class="field">-->
-  <!--<div class="control">-->
-  <!--<label class="label">newPassword</label>-->
-  <!--<input class="input" type="password" placeholder="newPassword" id="newPassword" v-model="passwordDetails.newPassword">-->
-  <!--</div>-->
-  <!--</div>-->
-
-  <!--<div class="field">-->
-  <!--<div class="control">-->
-  <!--<label class="label">verifyPassword</label>-->
-  <!--<input class="input" type="password" placeholder="verifyPassword" id="verifyPassword" v-model="passwordDetails.verifyPassword">-->
-  <!--</div>-->
-  <!--</div>-->
-
-  <!--<div class="field is-grouped">-->
-  <!--<div class="control">-->
-  <!--<button class="button is-link" @click="resetUserPassword">Reset Password</button>-->
-  <!--</div>-->
-  <!--</div>-->
-  <!--</div>-->
-
-  <!---->
-
-  <!--</section>-->
 </template>
 
 <script>

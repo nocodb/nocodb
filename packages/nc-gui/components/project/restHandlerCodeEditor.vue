@@ -82,25 +82,25 @@ export default {
           functions = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias,
-            tn: this.nodes.tn || this.nodes.view_name
+            table_name: this.nodes.table_name || this.nodes.view_name
           }, 'defaultRestMiddlewareCodeGet', {
             title: this.route.title,
             relation_type: this.route.relation_type,
-            tn: this.nodes.tn || this.nodes.view_name
+            table_name: this.nodes.table_name || this.nodes.view_name
           }])
         } else {
           functions = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias,
-            tn: this.nodes.tn || this.nodes.view_name
+            table_name: this.nodes.table_name || this.nodes.view_name
           }, 'defaultRestHandlerCodeGet', {
             type: this.method,
             path: this.route[this.method].path,
             title: this.route[this.method].title,
             relation_type: this.route[this.method].relation_type,
-            tnp: this.route[this.method].tnp,
-            tnc: this.route[this.method].tnc,
-            tn: this.nodes.tn || this.nodes.view_name
+            tnp: this.route[this.method].table_namep,
+            tnc: this.route[this.method].table_namec,
+            table_name: this.nodes.table_name || this.nodes.view_name
           }])
         }
         if (functions && functions.length) {
@@ -118,7 +118,7 @@ export default {
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias
           }, 'xcRoutesMiddlewareUpdate', {
-            tn: this.nodes.tn || this.nodes.view_name,
+            table_name: this.nodes.table_name || this.nodes.view_name,
             type: this.method,
             functions: [this.code],
             title: this.route.title
@@ -133,7 +133,7 @@ export default {
             functions: [this.code],
             path: this.route[this.method].path,
             relation_type: this.route[this.method].relation_type,
-            tn: this.nodes.tn || this.nodes.view_name
+            table_name: this.nodes.table_name || this.nodes.view_name
           }])
         }
         this.$toast.success('API Handler updated successfully').goAway(3000)

@@ -102,70 +102,6 @@
                 </v-col>
               </v-row>
             </v-card>
-            <!--            <v-card
-              v-if="t.type==='subscription'"
-              class="py-10 px-4"
-              flat
-              tile
-            >
-              <br>
-              <p class="display-1">
-                Your subscriptions
-              </p>
-
-              <v-simple-table class="mt-10 mb-4">
-                <template #default>
-                  <thead>
-                    <tr>
-                      <th class="text-center">
-                        Plan
-                      </th>
-                      <th class="text-center">
-                        Created On
-                      </th>
-                      <th class="text-center">
-                        Expires On
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    <template v-if="subscriptions && subscriptions.length">
-                      <tr v-for="(s,i) in subscriptions" :key="i">
-                        <td>{{ s.plan_id }}</td>
-                        <td>{{ new Date(s.created_at).toLocaleDateString() }}</td>
-                        <td>
-                          {{ new Date(JSON.parse(s.api_response).subscription.current_term_end *
-                            1000).toLocaleDateString() }}
-                        </td>
-                      </tr>
-                    </template>
-                    <tr v-else class="grey&#45;&#45;text">
-                      <td colspan="3">
-                        No subscription found.
-                      </td>
-                    </tr>
-                  </tbody>
-                </template>
-              </v-simple-table>
-
-              <v-row class="text-center">
-                <v-btn class="mx-auto orange-gradient white&#45;&#45;text" @click="getSubscriptions">
-                  <v-icon>mdi-refresh</v-icon>&nbsp; Refresh
-                </v-btn>
-              </v-row>
-
-              &lt;!&ndash;            <v-btn @click.prevent="getSubscriptions">Show Subscriptions</v-btn>&ndash;&gt;
-              &lt;!&ndash;            <pre v-if="subscriptions.length">&ndash;&gt;
-              &lt;!&ndash;              <div v-for="(s,i) in subscriptions" :key="i">&ndash;&gt;
-              &lt;!&ndash;              plan : {{s.plan_id}}&ndash;&gt;
-              &lt;!&ndash;              subscription : {{s.subscription_id}}&ndash;&gt;
-              &lt;!&ndash;                users_id : {{s.fk_users_id}}&ndash;&gt;
-              &lt;!&ndash;                created : {{s.created_at}}&ndash;&gt;
-              &lt;!&ndash;                s : {{JSON.parse(s.api_response).subscription}}&ndash;&gt;
-              &lt;!&ndash;                s : {{new Date(JSON.parse(s.api_response).subscription.current_term_end * 1000).toLocaleDateString()}}&ndash;&gt;
-              &lt;!&ndash;              </div>&ndash;&gt;
-              &lt;!&ndash;            </pre>&ndash;&gt;
-            </v-card>-->
           </v-tab-item>
         </v-tabs>
       </v-col>
@@ -195,10 +131,6 @@ export default {
           type: 'password',
           title: 'Change Password'
         }
-        // , {
-        //   type: 'subscription',
-        //   title: 'Subscriptions'
-        // }
         ]
       },
 
@@ -219,16 +151,36 @@ export default {
       valid: true,
       formRules: {
         email: [
-          v => !!v || 'E-mail is required',
-          v => isEmail(v) || 'E-mail must be valid'
+          // E-mail is required
+          v => !!v || this.$t('msg.error.signUpRules.emailReqd'),
+          // E-mail must be valid
+          v => isEmail(v) ||
+            this.$t('msg.error.signUpRules.emailInvalid')
         ],
         password: [
-          [v => !!v || 'Password is required'],
-          [v => !!v || 'New Password is required'],
-          [v => v === this.passwordDetails.newPassword || 'Confirm password should match']
+          // Current Password
+          [
+            // Password is required
+            v => !!v || this.$t('msg.error.signUpRules.passwdRequired')
+          ],
+          // New Password
+          [
+            // Password is required
+            v => !!v || this.$t('msg.error.signUpRules.passwdRequired'),
+            // You password must be atleast 8 characters
+            v => (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength')
+          ],
+          // Confirm Password
+          [
+            // Password is required
+            v => !!v || this.$t('msg.error.signUpRules.passwdRequired'),
+            // TODO: i18n
+            v => v === this.passwordDetails.newPassword || 'Confirm password should match',
+            // You password must be atleast 8 characters
+            v => (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength')
+          ]
         ]
       }
-
     }
   },
   head() {
@@ -268,22 +220,25 @@ export default {
     async resetUserPassword(e) {
       e.preventDefault()
       if (this.$refs.formType[0].validate()) {
-        // console.log('passworDetails',this.passwordDetails);
-        const err = await this.$store.dispatch('users/ActPostPasswordChange', this.passwordDetails)
-        if (err) {
-          this.formUtil.formErr = true
-          this.formUtil.formErrMsg = err.data.msg
-        } else {
+        try {
+          await this.$api.auth.passwordChange(
+            {
+              currentPassword: this.passwordDetails.currentPassword,
+              newPassword: this.passwordDetails.newPassword
+            }
+          )
           this.$toast.success('Password changed successfully.').goAway(3000)
           this.$refs.formType[0].reset()
+        } catch (e) {
+          this.$toast
+            .error(await this._extractSdkResponseErrorMsg(e))
+            .goAway(3000);
+          return;
         }
       }
     },
 
     async getSubscriptions(e) {
-      // console.log('get subs')
-      // const data = await this.$store.dispatch('users/ActGetSubscriptionsList')
-      // this.subscriptions = data
     }
   },
   beforeCreated() {
@@ -302,6 +257,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

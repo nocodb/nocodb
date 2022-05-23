@@ -151,7 +151,7 @@
     "lockedView": "Vista travada",
     "personalView": "Vista pessoal",
     "appStore": "Loja de Aplicações",
-    "team&auth": "Equipa & Autenticação",
+    "teamAndAuth": "Equipa & Autenticação",
     "rolesUserMgmt": "Papéis & Gestão de Utilizadores",
     "userMgmt": "Gestão de Utilizadores",
     "apiTokenMgmt": "Gestão de Tokens API Tokens",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & parâmetros avançados",
     "headCreateProject": "Criar Projecto | Noco",
     "headLogin": "Autentique-se | Noco",
-    "resetPassword": "Redefina a sua palavra-passe"
+    "resetPassword": "Redefina a sua palavra-passe",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Notificar via.",
@@ -189,6 +191,7 @@
     "port": "Número da Porta",
     "username": "Utilizador",
     "password": "Palavra-passe",
+    "schemaName": "Schema name",
     "action": "Açao",
     "actions": "Ações",
     "operation": "Operação",
@@ -225,6 +228,7 @@
       "bookDemo": "Marque uma DEMONSTRAÇÃO gratuita",
       "getAnswered": "Obtenha resposta às suas questões",
       "joinDiscord": "Junte-se ao Discord",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Junte-se /r/NocoDB",
       "followNocodb": "Siga NocoDB"
     },
@@ -405,7 +409,7 @@
       "deleteProject": "Você quer excluir o projeto?",
       "shareBasePrivate": "Gerar base readonly compartilhável publicamente",
       "shareBasePublic": "Qualquer pessoa na internet com este link pode ver",
-      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer! \\ n por favor copie o link acima do convite e envie-o para",
+      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer!\npor favor copie o link acima do convite e envie-o para",
       "dragDropHide": "Arraste e solte os campos aqui para se esconder",
       "formInput": "Digite a etiqueta de entrada do formulário",
       "formHelpText": "Adicione um texto de ajuda",

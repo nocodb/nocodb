@@ -3,20 +3,26 @@ export default {
   owner: '*',
   guest: {},
   editor: {
-    airTable: true,
+    smartSheet: true,
     xcDatatableEditable: true,
     column: true,
     tableAttachment: true,
     tableRowUpdate: true,
-    rowComments: true
+    rowComments: true,
+    gridViewOptions: true,
+    sortSync: true,
+    fieldsSync: true,
+    gridColUpdate: true,
+    filterSync: true,
+    csvImport: true
   },
   commenter: {
-    airTable: true,
+    smartSheet: true,
     column: true,
     rowComments: true
   },
   viewer: {
-    airTable: true,
+    smartSheet: true,
     column: true
   },
   user: {
@@ -29,6 +35,7 @@ export default {
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

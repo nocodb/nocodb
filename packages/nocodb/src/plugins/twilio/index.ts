@@ -1,4 +1,4 @@
-import { XcActionType, XcType } from 'nc-common';
+import { XcActionType, XcType } from 'nocodb-sdk';
 import { XcPluginConfig } from 'nc-plugin';
 
 import TwilioPlugin from './TwilioPlugin';

@@ -15,7 +15,7 @@
                        href: '#'
                      },
                      {
-                       text: nodes.tn + ' (ACL)',
+                       text: nodes.table_name + ' (ACL)',
                        disabled: true,
                        href: '#'
                      }]"
@@ -78,7 +78,7 @@
         dense
         hide-details
         class="ma-2"
-        :placeholder="`Search ${nodes.tn} resolvers`"
+        :placeholder="`Search ${nodes.table_name} resolvers`"
         prepend-inner-icon="search"
         outlined
       />
@@ -99,9 +99,9 @@
                       v-on="on"
                     />
                   </template>
-                  <span>{{ allToggle ? 'Disable' : 'Enable' }} all {{ nodes.tn }} resolvers for all roles</span>
+                  <span>{{ allToggle ? 'Disable' : 'Enable' }} all {{ nodes.table_name }} resolvers for all roles</span>
                 </v-tooltip>
-                <span class="title">{{ nodes.tn }} Resolvers</span>
+                <span class="title">{{ nodes.table_name }} Resolvers</span>
               </div>
             </th>
             <th
@@ -269,10 +269,9 @@ export default {
       this.policyPath = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectGetGqlPolicyPath', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        tn: this.nodes.tn
+        table_name: this.nodes.table_name
       }])
       try {
-        console.log(this.policyPath, this.data1)
         this.data1 = JSON.parse(
           JSON.stringify(
             (
@@ -288,10 +287,6 @@ export default {
     },
     async save() {
       try {
-        // await this.sqlMgr.writeFile({
-        //   path: this.policyPath,
-        //   data: `module.exports.permissions = ${JSON.stringify(this.data1, 0, 2)}`
-        // });
         await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'writeFile', {
           path: this.policyPath,
           data: `module.exports.permissions = ${JSON.stringify(this.data1, 0, 2)}`

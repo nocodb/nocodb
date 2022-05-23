@@ -151,7 +151,7 @@
     "lockedView": "Zamknięty widok",
     "personalView": "Widok osobisty",
     "appStore": "Sklep z aplikacjami",
-    "team&auth": "Team & Auth.",
+    "teamAndAuth": "Team & Auth.",
     "rolesUserMgmt": "Role i zarządzanie użytkownikami",
     "userMgmt": "Zarządzanie użytkownikami",
     "apiTokenMgmt": "Zarządzanie Tokeny API.",
@@ -169,7 +169,9 @@
     "advancedParameters": "Parametry SSL i zaawansowane",
     "headCreateProject": "Utwórz projekt |. NOCODB.",
     "headLogin": "Zaloguj się | NOCODB.",
-    "resetPassword": "Zresetuj swoje hasło"
+    "resetPassword": "Zresetuj swoje hasło",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Powiadomić VIA.",
@@ -189,6 +191,7 @@
     "port": "Numer portu",
     "username": "Nazwa użytkownika",
     "password": "Hasło",
+    "schemaName": "Schema name",
     "action": "Akcja",
     "actions": "działania",
     "operation": "Operacja",
@@ -225,6 +228,7 @@
       "bookDemo": "Zarezerwuj darmowe demo",
       "getAnswered": "Odpowiedzi na pytania",
       "joinDiscord": "Dołącz do Discord.",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Dołącz /r/NocoDB",
       "followNocodb": "Śledź NocoDB"
     },

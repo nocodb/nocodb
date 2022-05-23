@@ -151,7 +151,7 @@
     "lockedView": "Låst udsigt",
     "personalView": "Personlig visning",
     "appStore": "App butik",
-    "team&auth": "Team & Auth.",
+    "teamAndAuth": "Team & Auth.",
     "rolesUserMgmt": "Roller & Brugere Management",
     "userMgmt": "Bruger Management",
     "apiTokenMgmt": "API TOKENS MANAGEMENT",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL & Avancerede parametre",
     "headCreateProject": "Opret projekt | Nocodb.",
     "headLogin": "Log ind | Nocodb.",
-    "resetPassword": "Nulstil din adgangskode"
+    "resetPassword": "Nulstil din adgangskode",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "Bemærk Via.",
@@ -189,6 +191,7 @@
     "port": "Port nummer.",
     "username": "Brugernavn.",
     "password": "Adgangskode",
+    "schemaName": "Schema name",
     "action": "Handling",
     "actions": "Handlinger",
     "operation": "Operation",
@@ -225,6 +228,7 @@
       "bookDemo": "Book en gratis demo",
       "getAnswered": "Få dine spørgsmål besvaret",
       "joinDiscord": "Deltag Diskord",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Deltag /r/NocoDB",
       "followNocodb": "Følg NocoDB"
     },
@@ -405,7 +409,7 @@
       "deleteProject": "Ønsker du at slette projektet?",
       "shareBasePrivate": "Generer offentligt delbart readonly base",
       "shareBasePublic": "Enhver på internettet med dette link kan se",
-      "userInviteNoSMTP": "Ser ud som om du ikke har konfigureret mailer endnu! \\ n Kopier venligst ovenstående invitation link og send det til",
+      "userInviteNoSMTP": "Ser ud som om du ikke har konfigureret mailer endnu!\nKopier venligst ovenstående invitation link og send det til",
       "dragDropHide": "Træk og slip felter her for at skjule",
       "formInput": "Indtast formularindgangsmærke",
       "formHelpText": "Tilføj nogle hjælpetekst",

@@ -62,9 +62,6 @@ export default {
     this.editors.left.on('change', () => {
       this.$emit('input', this.editors.left.getValue())
     })
-    //
-    // this.editors.left.session.setOptions({tabSize: 2, useSoftTabs: true});
-    // this.editors.right.session.setOptions({tabSize: 2, useSoftTabs: true});
   },
   methods: {
     prev() {

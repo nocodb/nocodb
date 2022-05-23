@@ -23,7 +23,7 @@
             persistent-hint
             dense
             hide-details1
-            :rules="[validateTableName]"
+            :rules="[validateTableName, validateDuplicateAlias]"
             :hint="$t('msg.info.enterTableName')"
             class="mt-4 caption nc-table-name"
           />
@@ -36,6 +36,7 @@
             flat
             dense
             persistent-hint
+            :rules="[validateDuplicate]"
             :hint="$t('msg.info.tableNameInDb')"
             class="mt-4 caption nc-table-name-alias"
           />
@@ -145,11 +146,6 @@ export default {
       valid: false
     }
   },
-  methods: {
-    validateTableName(v) {
-      return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
-    }
-  },
   computed: {
     dialogShow: {
       get() {
@@ -172,6 +168,17 @@ export default {
     setTimeout(() => {
       this.$refs.input.$el.querySelector('input').focus()
     }, 100)
+  },
+  methods: {
+    validateTableName(v) {
+      return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
+    },
+    validateDuplicateAlias(v) {
+      return (this.$store.state.project.tables || []).every(t => t.title !== (v || '')) || 'Duplicate table alias'
+    },
+    validateDuplicate(v) {
+      return (this.$store.state.project.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
+    }
   }
 }
 </script>

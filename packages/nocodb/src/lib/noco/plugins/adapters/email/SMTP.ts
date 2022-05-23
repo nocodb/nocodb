@@ -15,17 +15,17 @@ class SMTP implements IEmailAdapter {
 
   public async init(): Promise<any> {
     const config = {
-      // from: this.input.from,
-      // options: {
       host: this.input?.host,
       port: parseInt(this.input?.port, 10),
       secure: this.input?.secure === 'true',
-      ignoreTLS: this.input?.ignoreTLS === 'true',
+      ignoreTLS:
+        typeof this.input?.ignoreTLS === 'boolean'
+          ? this.input?.ignoreTLS
+          : this.input?.ignoreTLS === 'true',
       auth: {
         user: this.input?.username,
         pass: this.input?.password
       }
-      // }
     };
     this.transporter = nodemailer.createTransport(config);
   }

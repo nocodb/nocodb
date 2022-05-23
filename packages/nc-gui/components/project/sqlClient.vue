@@ -325,11 +325,11 @@ import { VueTreeList, Tree, TreeNode } from 'vue-tree-list'
 import { Splitpanes, Pane } from 'splitpanes'
 import sqlRightClickOptions from '../../helpers/sqlRightClickOptions'
 import dlgLabelSubmitCancel from '../utils/dlgLabelSubmitCancel.vue'
-import { SqlUI } from '../../helpers/sqlUi/SqlUiFactory'
 
 import Utils from '../../helpers/Utils'
 
 import MonacoSqlEditor from '../monaco/MonacoSqlEditor'
+import {SqlUiFactory} from "nocodb-sdk";
 
 export default {
   components: {
@@ -447,7 +447,7 @@ export default {
       console.log('Failed to load previously opened query collections', e)
     }
 
-    this.sqlUi = SqlUI.create(this.nodes.dbConnection)
+    this.sqlUi = SqlUiFactory.create(this.nodes.dbConnection)
     console.log('------------', this.nodes)
     this.editors = this.$store.state.sqlClient.editors.map(editor => ({ ...editor }))
     this.checkClipboardForQuery(this.$store.state.sqlClient.clipboardQuery)
@@ -463,7 +463,7 @@ export default {
     // });
     // const result = await client.tableList();
     // console.log(result)
-    this.tableList = [] // result.data.list.map(table => table.tn)
+    this.tableList = [] // result.data.list.map(table => table.table_name)
 
     this.expandedPanel = 0
   },
@@ -509,7 +509,7 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // });
       // const result = await client.columnList({tn});
-      // const columns = result.data.list.map(table => table.cn)
+      // const columns = result.data.list.map(table => table.column_name)
       // this.$set(this.tableColumnList, tn, columns);
       // return columns;
       return []

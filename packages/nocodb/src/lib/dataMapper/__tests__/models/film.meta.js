@@ -1,7 +1,7 @@
 module.exports = {
   tn: 'film',
   columns: [{
-      cn: 'film_id',
+     column_name:'film_id',
       type: 'integer',
       dt: 'smallint',
       rqd: true,
@@ -15,7 +15,7 @@ module.exports = {
       },
     },
     {
-      cn: 'title',
+     column_name:'title',
       type: 'string',
       dt: 'varchar',
       rqd: true,
@@ -26,7 +26,7 @@ module.exports = {
       },
     },
     {
-      cn: 'description',
+     column_name:'description',
       type: 'text',
       dt: 'text',
       validate: {
@@ -36,7 +36,7 @@ module.exports = {
       },
     },
     {
-      cn: 'release_year',
+     column_name:'release_year',
       type: 'year',
       dt: 'year',
       validate: {
@@ -46,7 +46,7 @@ module.exports = {
       },
     },
     {
-      cn: 'language_id',
+     column_name:'language_id',
       type: 'integer',
       dt: 'tinyint',
       rqd: true,
@@ -58,7 +58,7 @@ module.exports = {
       },
     },
     {
-      cn: 'original_language_id',
+     column_name:'original_language_id',
       type: 'integer',
       dt: 'tinyint',
       un: true,
@@ -69,7 +69,7 @@ module.exports = {
       },
     },
     {
-      cn: 'rental_duration',
+     column_name:'rental_duration',
       type: 'integer',
       dt: 'tinyint',
       rqd: true,
@@ -82,7 +82,7 @@ module.exports = {
       },
     },
     {
-      cn: 'rental_rate',
+     column_name:'rental_rate',
       type: 'decimal',
       dt: 'decimal',
       rqd: true,
@@ -94,7 +94,7 @@ module.exports = {
       },
     },
     {
-      cn: 'length',
+     column_name:'length',
       type: 'integer',
       dt: 'smallint',
       un: true,
@@ -105,7 +105,7 @@ module.exports = {
       },
     },
     {
-      cn: 'replacement_cost',
+     column_name:'replacement_cost',
       type: 'decimal',
       dt: 'decimal',
       rqd: true,
@@ -117,7 +117,7 @@ module.exports = {
       },
     },
     {
-      cn: 'rating',
+     column_name:'rating',
       type: 'enum',
       dt: 'enum',
       default: "G",
@@ -128,7 +128,7 @@ module.exports = {
       },
     },
     {
-      cn: 'special_features',
+     column_name:'special_features',
       type: 'set',
       dt: 'set',
       validate: {
@@ -138,7 +138,7 @@ module.exports = {
       },
     },
     {
-      cn: 'last_update',
+     column_name:'last_update',
       type: 'timestamp',
       dt: 'timestamp',
       rqd: true,

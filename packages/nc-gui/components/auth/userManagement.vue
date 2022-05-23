@@ -1,46 +1,43 @@
 <template>
   <div class="h-100">
-    <v-toolbar flat height="38" class="toolbar-border-bottom">
+    <v-toolbar flat height="38" class="mt-5">
       <v-text-field
         v-model="query"
         style="max-width: 300px"
         dense
-        solo
         flat
+        solo
         class="search-field caption"
         hide-details
         placeholder="Filter by email"
         @keypress.enter="loadUsers"
       >
         <template #prepend-inner>
-          <v-icon class="mt-1" small>
-            search
-          </v-icon>
+          <v-icon small class="mt-1"> search </v-icon>
         </template>
       </v-text-field>
       <v-spacer />
 
       <!-- tooltip="Reload roles" -->
       <x-btn
-        v-ge="['roles','reload']"
+        v-ge="['roles', 'reload']"
         outlined
         :tooltip="$t('activity.reloadRoles')"
         color="primary"
         small
         :disabled="loading"
-        @click="loadUsers"
+        @click="clickReload"
         @click.prevent
       >
-        <v-icon small left>
-          refresh
-        </v-icon>
+        <v-icon small left> refresh </v-icon>
         <!-- Reload -->
-        {{ $t('general.reload') }}
+        {{ $t("general.reload") }}
       </x-btn>
       <!-- tooltip="Add new role" -->
       <x-btn
         v-if="_isUIAllowed('newUser')"
-        v-ge="['roles','add new']"
+        v-ge="['roles', 'add new']"
+        class="nc-new-user"
         outlined
         :tooltip="$t('tooltip.addRole')"
         color="primary"
@@ -48,38 +45,28 @@
         :disabled="loading"
         @click="addUser"
       >
-        <v-icon small left>
-          mdi-plus
-        </v-icon>
+        <v-icon small left> mdi-plus </v-icon>
         <!-- New User -->
-        {{ $t('activity.newUser') }}
+        {{ $t("activity.newUser") }}
       </x-btn>
     </v-toolbar>
 
-    <v-card style="height:calc(100% - 38px)">
+    <v-card style="height: calc(100% - 38px)" class="elevation-0">
       <v-container style="height: 100%" fluid>
-        <!--          <div class="d-flex d-100 justify-center">-->
-
-        <v-row style="height:100%">
+        <v-row style="height: 100%">
           <v-col cols="12" class="h-100">
             <v-card class="h-100 elevation-0">
-              <v-row style="height:100%">
-                <v-col offset="2" :cols="8" class="h-100" style="overflow-y: auto">
-                  <!--                  <v-card class="h-100 px-4 py-2">-->
-
-                  <!--                <v-row>
-                                    <v-col>
-
-                                    </v-col>
-                                    <v-col class="flex-shrink-1 flex-grow-0"><h4 class="text-center text-capitalize mt-2 d-100"
-                                                                                 style="min-width:100px">User List</h4></v-col>
-                                    <v-col></v-col>
-
-                                  </v-row>-->
+              <v-row style="height: 100%">
+                <v-col
+                  offset="2"
+                  :cols="8"
+                  class="h-100"
+                  style="overflow-y: auto"
+                >
                   <v-data-table
                     v-if="users"
                     dense
-                    :headers="[{},{},{},{}]"
+                    :headers="[{}, {}, {}, {}]"
                     hide-default-header
                     :hide-default-footer="count < limit"
                     :options.sync="options"
@@ -92,36 +79,26 @@
                         <tr class="text-left">
                           <!--                        <th>#</th>-->
                           <th class="font-weight-regular caption">
-                            <v-icon small>
-                              mdi-email-outline
-                            </v-icon>
+                            <v-icon small> mdi-email-outline </v-icon>
                             <!-- Email -->
-                            {{ $t('labels.email') }}
+                            {{ $t("labels.email") }}
                           </th>
                           <th class="font-weight-regular caption">
-                            <v-icon small>
-                              mdi-drama-masks
-                            </v-icon>
+                            <v-icon small> mdi-drama-masks </v-icon>
                             <!-- Roles -->
-                            {{ $t('objects.roles') }}
+                            {{ $t("objects.roles") }}
                           </th>
                           <th class="font-weight-regular caption">
                             <!--                          <v-icon small class="mt-n1">mdi-cursor-default-outline</v-icon>-->
                             <!-- Actions -->
-                            {{ $t('labels.actions') }}
+                            {{ $t("labels.actions") }}
                           </th>
                         </tr>
                       </thead>
                     </template>
 
-                    <template #item="{item}">
+                    <template #item="{ item }">
                       <tr @click="selectedUser = item">
-                        <!--          <td>
-                                    <v-radio-group dense hide-details v-model="selectedUserIndex" class="mt-n2">
-                                      <v-radio :value="index"
-                                      ></v-radio>
-                                    </v-radio-group>
-                                  </td>-->
                         <td>{{ item.email }}</td>
                         <td>
                           <!--                          {{ item.roles }}-->
@@ -133,23 +110,6 @@
                           >
                             {{ getRole(item.roles) }}
                           </v-chip>
-
-                          <!--                    <v-edit-dialog-->
-                          <!--                    >-->
-                          <!--                      <div-->
-                          <!--                        :title="item.roles"-->
-                          <!--                        style="width:180px;overflow:hidden;white-space: nowrap;text-overflow:ellipsis"> {{-->
-                          <!--                          item.roles-->
-                          <!--                        }}-->
-                          <!--                      </div>-->
-                          <!--                      <template v-slot:input>-->
-                          <!--                        <v-text-field-->
-                          <!--                          v-model="item.roles"-->
-                          <!--                          label="Edit"-->
-                          <!--                          single-line-->
-                          <!--                        ></v-text-field>-->
-                          <!--                      </template>-->
-                          <!--                    </v-edit-dialog>-->
                         </td>
                         <td>
                           <!-- tooltip="Edit User" -->
@@ -159,7 +119,11 @@
                             icon-class=""
                             color="primary"
                             small
-                            @click.prevent.stop="invite_token = null; selectedUser = item; userEditDialog = true"
+                            @click.prevent.stop="
+                              invite_token = null;
+                              selectedUser = item;
+                              userEditDialog = true;
+                            "
                           >
                             mdi-pencil-outline
                           </x-icon>
@@ -168,28 +132,18 @@
                               tooltip="Add user to project"
                               color="primary"
                               small
-                              @click="inviteUser(item.email)"
+                              @click="inviteUser(item)"
                             >
                               mdi-plus
                             </x-icon>
-                            <!-- <x-icon
-                              tooltip="Remove user from NocoDB"
-                              class="ml-2"
-                              color="error"
-                              small
-                              @click.prevent.stop="deleteId = item.id; deleteItem = item.id;showConfirmDlg = true;deleteUserType='DELETE_FROM_NOCODB'"
-                            >
-                              mdi-delete-forever-outline
-                            </x-icon> -->
                           </span>
-                          <!-- tooltip="Remove user from project" -->
                           <x-icon
                             v-else
                             :tooltip="$t('activity.deleteUser')"
                             class="ml-2"
                             color="error"
                             small
-                            @click.prevent.stop="deleteId = item.id; deleteItem = item.id;showConfirmDlg = true;deleteUserType='DELETE_FROM_PROJECT'"
+                            @click.prevent.stop="clickDeleteUser(item.id)"
                           >
                             mdi-delete-outline
                           </x-icon>
@@ -201,7 +155,7 @@
                             icon-class="mt-n1"
                             color="primary"
                             small
-                            @click.prevent.stop="rensendInvite(item.id)"
+                            @click.prevent.stop="resendInvite(item.id)"
                           >
                             mdi-email-send-outline
                           </x-icon>
@@ -213,7 +167,12 @@
                             icon-class=""
                             color="primary"
                             small
-                            @click.prevent.stop="clipboard(getInviteUrl(item.invite_token)); $toast.success('Invite url copied to clipboard').goAway(3000)"
+                            @click.prevent.stop="
+                              clipboard(getInviteUrl(item.invite_token));
+                              $toast
+                                .success('Invite url copied to clipboard')
+                                .goAway(3000);
+                            "
                           >
                             mdi-content-copy
                           </x-icon>
@@ -222,7 +181,7 @@
                     </template>
                   </v-data-table>
                   <!-- tooltip="Add new user" -->
-                  <div class="mt-10 text-center">
+                  <!--                  <div class="mt-10 text-center">
                     <x-btn
                       v-if="_isUIAllowed('newUser')"
                       v-ge="['roles','add new']"
@@ -236,10 +195,10 @@
                       <v-icon small left>
                         mdi-plus
                       </v-icon>
-                      <!-- New User -->
+                      &lt;!&ndash; New User &ndash;&gt;
                       {{ $t('activity.newUser') }}
                     </x-btn>
-                  </div>
+                  </div>-->
 
                   <feedback-form class="mx-auto mt-6" />
                 </v-col>
@@ -248,7 +207,11 @@
           </v-col>
         </v-row>
 
-        <table v-if="false" class="mx-auto users-table" style="min-width:700px">
+        <table
+          v-if="false"
+          class="mx-auto users-table"
+          style="min-width: 700px"
+        >
           <thead>
             <tr>
               <th />
@@ -260,9 +223,7 @@
           <tbody>
             <tr v-for="user in users" :key="user.email">
               <td>
-                <v-icon x-large>
-                  mdi-account-outline
-                </v-icon>
+                <v-icon x-large> mdi-account-outline </v-icon>
               </td>
               <td class="px-1 py-1" align="top">
                 <v-text-field
@@ -278,36 +239,22 @@
                 <set-list-checkbox-cell v-model="user.roles" :values="roles" />
               </td>
               <td align="middle">
-                <v-icon large>
-                  mdi-close
-                </v-icon>
-                <v-icon large>
-                  mdi-save
-                </v-icon>
+                <v-icon large> mdi-close </v-icon>
+                <v-icon large> mdi-save </v-icon>
               </td>
             </tr>
             <tr>
               <td>
-                <v-icon x-large>
-                  mdi-account-outline
-                </v-icon>
+                <v-icon x-large> mdi-account-outline </v-icon>
               </td>
               <td class="px-1 py-1" align="top">
-                <v-text-field
-                  solo
-                  class="elevation-0"
-
-                  hide-details
-                  dense
-                />
+                <v-text-field solo class="elevation-0" hide-details dense />
               </td>
               <td class="px-1 py-1">
                 <set-list-checkbox-cell :values="roles" />
               </td>
               <td align="middle">
-                <v-icon large>
-                  mdi-account-plus
-                </v-icon>
+                <v-icon large> mdi-account-plus </v-icon>
               </td>
             </tr>
           </tbody>
@@ -323,56 +270,43 @@
     />
 
     <!-- todo: move to a separate component-->
-    <v-dialog v-model="userEditDialog" :width="invite_token ? 700 :700" @close="invite_token = null">
-      <v-card v-if="selectedUser" style="min-height: 100%">
+    <v-dialog
+      v-model="userEditDialog"
+      :width="invite_token ? 700 : 700"
+      @close="invite_token = null"
+    >
+      <v-card v-if="selectedUser" style="min-height: 100%" class="elevation-0">
         <v-card-title>
-          {{ $t('activity.share') }} : {{ $store.getters['project/GtrProjectName'] }}
-          <!--
-          <h4 class="text-center text-capitalize mt-2 d-100 display-1">
-            <template v-if="invite_token">
-              Copy Invite Token
-            </template>
-            <template v-else-if="selectedUser.id">
-              Edit User
-            </template>
-            <template v-else>
-              Invite
-            </template>
-          </h4>-->
+          {{ $t("activity.share") }} :
+          {{ $store.getters["project/GtrProjectName"] }}
 
           <div class="nc-header-border" />
         </v-card-title>
 
         <v-card-text>
           <div>
-            <v-icon small>
-              mdi-account-outline
-            </v-icon>
-            <template v-if="invite_token">
-              Copy Invite Token
-            </template>
-            <template v-else-if="selectedUser.id">
-              Edit User
-            </template>
+            <v-icon small> mdi-account-outline </v-icon>
+            <template v-if="invite_token"> Copy Invite Token </template>
+            <template v-else-if="selectedUser.id"> Edit User </template>
             <template v-else>
               <!-- Invite Team -->
-              {{ $t('activity.inviteTeam') }}
+              {{ $t("activity.inviteTeam") }}
             </template>
           </div>
           <div class="pa-4 nc-invite-container">
-            <div v-if="invite_token" class="mt-6  align-center">
+            <div v-if="invite_token" class="mt-6 align-center">
               <v-alert
                 v-ripple
                 type="success"
                 outlined
-
                 class="pointer"
-                @click="clipboard(inviteUrl); $toast.success('Copied invite url to clipboard').goAway(3000)"
+                @click="
+                  clipboard(inviteUrl);
+                  $toast.success('Copied invite url to clipboard').goAway(3000);
+                "
               >
                 <template #append>
-                  <v-icon color="green" class="ml-2">
-                    mdi-content-copy
-                  </v-icon>
+                  <v-icon color="green" class="ml-2"> mdi-content-copy </v-icon>
                 </template>
                 <div class="ellipsis d-100">
                   {{ inviteUrl }}
@@ -380,11 +314,10 @@
               </v-alert>
 
               <p class="caption grey--text mt-3">
-                {{ $t('msg.info.userInviteNoSMTP') }}
-                <!-- Looks like you have not configured mailer yet! <br>Please copy above -->
-                <!-- invite -->
-                <!-- link and send it to -->
-                {{ invite_token && (invite_token.email || invite_token.emails && invite_token.emails.join(', ')) }}.
+
+                <!-- Looks like you have not configured mailer yet! <br> Please copy above invite link and send it to -->
+                <pre>{{ $t('msg.info.userInviteNoSMTP') }} {{ invite_token && (invite_token.email || invite_token.emails && invite_token.emails.join(', ')) }}.</pre>
+
               </p>
 
               <div class="text-right">
@@ -394,13 +327,13 @@
                   small
                   outlined
                   btn.class="grey--text"
-                  @click="invite_token = null, selectedUser = {}"
+                  @click="clickInviteMore"
                 >
                   <v-icon small color="grey" class="mr-1">
                     mdi-account-multiple-plus-outline
                   </v-icon>
                   <!--Invite more-->
-                  {{ $t('activity.inviteMore') }}
+                  {{ $t("activity.inviteMore") }}
                 </x-btn>
               </div>
 
@@ -418,16 +351,16 @@
                       dense
                       validate-on-blur
                       outlined
-                      :rules="validate && emailRules"
+                      :rules="emailRules"
                       class="caption"
                       :hint="$t('msg.info.addMultipleUsers')"
                       label="Email"
-                      @input="edited=true"
+                      @input="edited = true"
                     >
                       <template #label>
                         <span class="caption">
                           <!-- Email -->
-                          {{ $t('labels.email') }}
+                          {{ $t("labels.email") }}
                         </span>
                       </template>
                     </v-text-field>
@@ -437,6 +370,7 @@
                     <v-combobox
                       v-model="selectedRoles"
                       outlined
+                      :rules="roleRules"
                       class="role-select caption"
                       hide-details="auto"
                       :items="roles"
@@ -445,12 +379,12 @@
                       deletable-chips
                       @change="edited = true"
                     >
-                      <template #selection="{item}">
+                      <template #selection="{ item }">
                         <v-chip small :color="rolesColors[item]">
                           {{ item }}
                         </v-chip>
                       </template>
-                      <template #item="{item}">
+                      <template #item="{ item }">
                         <div>
                           <div>{{ item }}</div>
                           <div class="mb-2 caption grey--text">
@@ -462,23 +396,20 @@
                   </v-col>
                 </v-row>
               </v-form>
-              <!--        </v-card-text>
-        <v-card-actions class="justify-center">-->
-
-              <!-- tooltip="Save Changes" -->
               <div class="text-center mt-0">
                 <x-btn
-                  v-ge="['rows','save']"
+                  v-ge="['rows', 'save']"
                   :tooltip="$t('tooltip.saveChanges')"
                   color="primary"
-
                   btn.class="nc-invite-or-save-btn"
                   @click="saveUser"
                 >
                   <v-icon small left>
-                    {{ selectedUser.id ? 'save' : 'mdi-send' }}
+                    {{ selectedUser.id ? "save" : "mdi-send" }}
                   </v-icon>
-                  {{ selectedUser.id ? $t('general.save') : $t('activity.invite') }}
+                  {{
+                    selectedUser.id ? $t("general.save") : $t("activity.invite")
+                  }}
                 </x-btn>
               </div>
             </template>
@@ -494,17 +425,23 @@
 </template>
 
 <script>
-import FeedbackForm from '@/components/feedbackForm'
-import SetListCheckboxCell from '@/components/project/spreadsheet/components/editableCell/setListCheckboxCell'
-import { enumColor } from '@/components/project/spreadsheet/helpers/colors'
-import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
-import { isEmail } from '@/helpers'
-import ShareBase from '~/components/base/shareBase'
-import XBtn from '~/components/global/xBtn'
+import FeedbackForm from "@/components/feedbackForm";
+import SetListCheckboxCell from "@/components/project/spreadsheet/components/editableCell/setListCheckboxCell";
+import { enumColor } from "@/components/project/spreadsheet/helpers/colors";
+import DlgLabelSubmitCancel from "@/components/utils/dlgLabelSubmitCancel";
+import { isEmail } from "@/helpers";
+import ShareBase from "~/components/base/shareBase";
+import XBtn from "~/components/global/xBtn";
 
 export default {
-  name: 'UserManagement',
-  components: { XBtn, ShareBase, FeedbackForm, DlgLabelSubmitCancel, SetListCheckboxCell },
+  name: "UserManagement",
+  components: {
+    XBtn,
+    ShareBase,
+    FeedbackForm,
+    DlgLabelSubmitCancel,
+    SetListCheckboxCell,
+  },
   data: () => ({
     validate: false,
     deleteItem: null,
@@ -518,298 +455,361 @@ export default {
     loading: false,
     selectedUser: null,
     roles: [],
-    query: '',
+    query: "",
     deleteId: null,
     edited: false,
     valid: null,
     emailRules: [
-      v => !!v || 'E-mail is required',
+      (v) => !!v || "E-mail is required",
       (v) => {
-        const invalidEmails = (v || '').split(/\s*,\s*/).filter(e => !isEmail(e))
-        return !invalidEmails.length || `"${invalidEmails.join(', ')}" - invalid email`
-      }
+        const invalidEmails = (v || "")
+          .split(/\s*,\s*/)
+          .filter((e) => !isEmail(e));
+        return (
+          !invalidEmails.length ||
+          `"${invalidEmails.join(", ")}" - invalid email`
+        );
+      },
+    ],
+    roleRules: [
+      (v) => !!v || "User Role is required",
+      (v) =>
+        ["creator", "editor", "commenter", "viewer"].includes(v) ||
+        "invalid user role",
     ],
     userList: [],
     roleDescriptions: {},
-    deleteUserType: '' // [DELETE_FROM_PROJECT, DELETE_FROM_NOCODB]
+    deleteUserType: "", // [DELETE_FROM_PROJECT, DELETE_FROM_NOCODB]
   }),
   computed: {
     roleNames() {
-      return this.roles.map(r => r.title)
+      return this.roles.map((r) => r.title);
     },
     inviteUrl() {
-      return this.invite_token ? `${location.origin}${location.pathname}#/user/authentication/signup/${this.invite_token.invite_token}` : null
+      return this.invite_token
+        ? `${location.origin}${location.pathname}#/user/authentication/signup/${this.invite_token.invite_token}`
+        : null;
     },
     rolesColors() {
-      const colors = this.$store.state.windows.darkTheme ? enumColor.dark : enumColor.light
-      return this.roles.reduce((o, r, i) => {
-        o[r] = colors[i % colors.length]
-        return o
-      }, {})
+      const colors = this.$store.state.windows.darkTheme
+        ? enumColor.dark
+        : enumColor.light;
+      return ['owner'].concat(this.roles).reduce((o, r, i) => {
+        o[r] = colors[i % colors.length];
+        return o;
+      }, {});
     },
     selectedRoles: {
       get() {
-        return (this.selectedUser && this.selectedUser.roles ? this.selectedUser.roles.split(',') : []).sort((a, b) => this.roleNames.indexOf(a) - this.roleNames.indexOf(a))[0]
+        return (
+          this.selectedUser && this.selectedUser.roles
+            ? this.selectedUser.roles.split(",")
+            : []
+        ).sort(
+          (a, b) => this.roleNames.indexOf(a) - this.roleNames.indexOf(a)
+        )[0];
       },
       set(roles) {
         if (this.selectedUser) {
-          this.selectedUser.roles = roles // .filter(Boolean).join(',')
+          this.selectedUser.roles = roles; // .filter(Boolean).join(',')
         }
-      }
+      },
     },
     selectedUserIndex: {
       get() {
-        return this.users ? this.users.findIndex(u => u.email === this.selectedUser.email) : -1
+        return this.users
+          ? this.users.findIndex((u) => u.email === this.selectedUser.email)
+          : -1;
       },
       set(i) {
-        this.selectedUser = this.users[i]
-      }
+        this.selectedUser = this.users[i];
+      },
     },
     dialogMessage() {
-      let msg = 'Do you want to remove the user'
-      if (this.deleteUserType === 'DELETE_FROM_PROJECT') { msg += ' from Project' } else if (this.deleteUserType === 'DELETE_FROM_NOCODB') { msg += ' from NocoDB' }
-      msg += '?'
-      return msg
-    }
+      let msg = "Do you want to remove the user";
+      if (this.deleteUserType === "DELETE_FROM_PROJECT") {
+        msg += " from Project";
+      } else if (this.deleteUserType === "DELETE_FROM_NOCODB") {
+        msg += " from NocoDB";
+      }
+      msg += "?";
+      return msg;
+    },
   },
   watch: {
     options: {
       async handler() {
-        await this.loadUsers()
+        await this.loadUsers();
       },
-      deep: true
+      deep: true,
     },
     userEditDialog(v) {
       // if (!v) { this.validate = false }
-      if (v && (this.selectedUser && !this.selectedUser.id)) {
+      if (v && this.selectedUser && !this.selectedUser.id) {
         this.$nextTick(() => {
           setTimeout(() => {
-            this.$refs.email.$el.querySelector('input').focus()
-          }, 100)
-        })
+            this.$refs.email.$el.querySelector("input").focus();
+          }, 100);
+        });
       }
-    }
+    },
   },
   async created() {
-    this.$eventBus.$on('show-add-user', this.addUser)
-    await this.loadUsers()
-    await this.loadRoles()
+    this.$eventBus.$on("show-add-user", this.addUser);
+    await this.loadUsers();
+    await this.loadRoles();
   },
   beforeDestroy() {
-    this.$eventBus.$off('show-add-user', this.addUser)
+    this.$eventBus.$off("show-add-user", this.addUser);
   },
   methods: {
+    clickReload() {
+      this.loadUsers();
+      this.$e("a:user:reload");
+    },
+    clickDeleteUser(id) {
+      this.$e("c:user:delete");
+      this.deleteId = id;
+      this.deleteItem = id;
+      this.showConfirmDlg = true;
+      this.deleteUserType = "DELETE_FROM_PROJECT";
+    },
+    clickInviteMore() {
+      this.$e("c:user:invite-more");
+      this.invite_token = null;
+      this.selectedUser = { roles: "editor" };
+    },
     getRole(roles) {
-      return (roles ? roles.split(',') : []).sort((a, b) => this.roleNames.indexOf(a) - this.roleNames.indexOf(a))[0]
+      return (roles ? roles.split(",") : []).sort(
+        (a, b) => this.roleNames.indexOf(a) - this.roleNames.indexOf(a)
+      )[0];
     },
     simpleAnim() {
-      const count = 30
+      const count = 30;
       const defaults = {
         origin: { y: 0.7 },
-        zIndex: 9999999
-      }
+        zIndex: 9999999,
+      };
 
       function fire(particleRatio, opts) {
-        window.confetti(Object.assign({}, defaults, opts, {
-          particleCount: Math.floor(count * particleRatio)
-        }))
+        window.confetti(
+          Object.assign({}, defaults, opts, {
+            particleCount: Math.floor(count * particleRatio),
+          })
+        );
       }
 
       fire(0.25, {
         spread: 26,
-        startVelocity: 55
-      })
+        startVelocity: 55,
+      });
       fire(0.2, {
-        spread: 60
-      })
+        spread: 60,
+      });
       fire(0.35, {
         spread: 100,
         decay: 0.91,
-        scalar: 0.8
-      })
+        scalar: 0.8,
+      });
       fire(0.1, {
         spread: 120,
         startVelocity: 25,
         decay: 0.92,
-        scalar: 1.2
-      })
+        scalar: 1.2,
+      });
       fire(0.1, {
         spread: 120,
-        startVelocity: 45
-      })
+        startVelocity: 45,
+      });
     },
     getInviteUrl(token) {
-      return token ? `${location.origin}${location.pathname}#/user/authentication/signup/${token}` : null
+      return token
+        ? `${location.origin}${location.pathname}#/user/authentication/signup/${token}`
+        : null;
     },
 
     clipboard(str) {
-      const el = document.createElement('textarea')
-      el.addEventListener('focusin', e => e.stopPropagation())
-      el.value = str
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+      const el = document.createElement("textarea");
+      el.addEventListener("focusin", (e) => e.stopPropagation());
+      el.value = str;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand("copy");
+      document.body.removeChild(el);
+
+      this.$e("c:user:copy-url");
     },
-    async rensendInvite(id) {
+    async resendInvite(id) {
       try {
-        await this.$axios.post('/admin/resendInvite/' + id, {
-          projectName: this.$store.getters['project/GtrProjectName']
-        }, {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          },
-          params: {
-            project_id: this.$route.params.project_id
-          }
-        })
+
+        await this.$api.auth.projectUserResendInvite(this.$route.params.project_id, id)
         this.$toast.success('Invite email sent successfully').goAway(3000)
         await this.loadUsers()
+
       } catch (e) {
-        this.$toast.error(e.response.data.msg).goAway(3000)
+        this.$toast.error(e.response.data.msg).goAway(3000);
       }
+
+      this.$e("a:user:resend-invite");
     },
     async loadUsers() {
       try {
-        const { page = 1, itemsPerPage = 20 } = this.options
-        const data = (await this.$axios.get('/admin', {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          },
-          params: {
-            limit: itemsPerPage,
-            offset: (page - 1) * itemsPerPage,
-            query: this.query,
-            project_id: this.$route.params.project_id
+        const { page = 1, itemsPerPage = 20 } = this.options;
+        // const data = (await this.$axios.get('/admin', {
+        //   headers: {
+        //     'xc-auth': this.$store.state.users.token
+        //   },
+        //   params: {
+        //     limit: itemsPerPage,
+        //     offset: (page - 1) * itemsPerPage,
+        //     query: this.query,
+        //     project_id: this.$route.params.project_id
+        //   }
+        // })).data
+
+        const userData = await this.$api.auth.projectUserList(
+          this.$store.state.project.projectId,
+          {
+            query: {
+              limit: itemsPerPage,
+              offset: (page - 1) * itemsPerPage,
+              query: this.query,
+            },
           }
-        })).data
-        this.count = data.count
-        this.users = data.list
+        );
+
+        this.count = userData.users.pageInfo.totalRows;
+        this.users = userData.users.list;
         if (!this.selectedUser && this.users && this.users[0]) {
-          this.selectedUserIndex = 0
+          this.selectedUserIndex = 0;
         }
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     },
     async loadRoles() {
       try {
-        this.roles = (await this.$axios.get('/admin/roles', {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          },
-          params: {
-            project_id: this.$route.params.project_id
-          }
-        })).data.map((role) => {
-          this.roleDescriptions[role.title] = role.description
-          return role.title
-        }).filter(role => role !== 'guest')
+        this.roles = ["creator", "editor", "commenter", "viewer"];
+
+        // todo:
+        //   (await this.$axios.get('/admin/roles', {
+        //   headers: {
+        //     'xc-auth': this.$store.state.users.token
+        //   },
+        //   params: {
+        //     project_id: this.$route.params.project_id
+        //   }
+        // })).data.map((role) => {
+        //   this.roleDescriptions[role.title] = role.description
+        //   return role.title
+        // }).filter(role => role !== 'guest')
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     },
     async deleteUser(id, type) {
       try {
-        await this.$axios.delete('/admin/' + id, {
-          params: {
-            project_id: this.$route.params.project_id,
-            email: this.deleteItem.email,
-            type
-          },
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          }
-        })
-        this.$toast.success(`Successfully removed the user from ${type === 'DELETE_FROM_PROJECT' ? 'project' : 'NocoDB'}`).goAway(3000)
-        await this.loadUsers()
+        await this.$api.auth.projectUserRemove(
+          this.$route.params.project_id,
+          id
+        );
+        this.$toast
+          .success(
+            `Successfully removed the user from ${
+              type === "DELETE_FROM_PROJECT" ? "project" : "NocoDB"
+            }`
+          )
+          .goAway(3000);
+        await this.loadUsers();
       } catch (e) {
-        this.$toast.error(e.response.data.msg).goAway(3000)
+        this.$toast.error(e.response.data.msg).goAway(3000);
       }
     },
     async confirmDelete(hideDialog) {
       if (hideDialog) {
-        this.showConfirmDlg = false
-        return
+        this.showConfirmDlg = false;
+        return;
       }
-      await this.deleteUser(this.deleteId, this.deleteUserType)
-      this.showConfirmDlg = false
+      await this.deleteUser(this.deleteId, this.deleteUserType);
+      this.showConfirmDlg = false;
+
+      this.$e("a:user:delete");
     },
     addUser() {
-      this.invite_token = null
+      this.invite_token = null;
       this.selectedUser = {
-        roles: 'editor'
-      }
-      this.userEditDialog = true
+        roles: "editor",
+      };
+      this.userEditDialog = true;
+
+      this.$e("c:user:add");
     },
-    async inviteUser(email) {
+    async inviteUser(item) {
       try {
-        await this.$axios.post('/admin', {
-          email,
-          project_id: this.$route.params.project_id,
-          projectName: this.$store.getters['project/GtrProjectName']
-        }, {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          }
-        })
-        this.$toast.success('Successfully added user to project').goAway(3000)
-        await this.loadUsers()
+        await this.$api.auth.projectUserAdd(
+          this.$route.params.project_id,
+          item
+        );
+        this.$toast.success("Successfully added user to project").goAway(3000);
+        await this.loadUsers();
       } catch (e) {
-        this.$toast.error(e.response.data.msg).goAway(3000)
+        this.$toast.error(e.response.data.msg).goAway(3000);
       }
+
+      this.$e("a:user:add");
     },
     async saveUser() {
-      this.validate = true
-      await this.$nextTick()
+      this.validate = true;
+      await this.$nextTick();
       if (this.loading || !this.$refs.form.validate() || !this.selectedUser) {
-        return
+        return;
       }
+      this.$e("a:user:invite", { role: this.selectedUser.roles });
 
       if (!this.edited) {
-        this.userEditDialog = false
+        this.userEditDialog = false;
       }
 
       try {
-        let data
+        let data;
         if (this.selectedUser.id) {
-          await this.$axios.put('/admin/' + this.selectedUser.id, {
-            roles: this.selectedUser.roles,
-            email: this.selectedUser.email,
-            project_id: this.$route.params.project_id,
-            projectName: this.$store.getters['project/GtrProjectName']
-          }, {
-            headers: {
-              'xc-auth': this.$store.state.users.token
+          await this.$api.auth.projectUserUpdate(
+            this.$route.params.project_id,
+            this.selectedUser.id,
+            {
+              roles: this.selectedUser.roles,
+              email: this.selectedUser.email,
+              project_id: this.$route.params.project_id,
+              projectName: this.$store.getters["project/GtrProjectName"],
             }
-          })
+          );
         } else {
-          data = await this.$axios.post('/admin', {
-            ...this.selectedUser,
-            project_id: this.$route.params.project_id,
-            projectName: this.$store.getters['project/GtrProjectName']
-          }, {
-            headers: {
-              'xc-auth': this.$store.state.users.token
+          data = await this.$api.auth.projectUserAdd(
+            this.$route.params.project_id,
+            {
+              ...this.selectedUser,
+              project_id: this.$route.params.project_id,
+              projectName: this.$store.getters["project/GtrProjectName"],
             }
-          })
+          );
         }
-        this.$toast.success('Successfully updated the user details').goAway(3000)
-        await this.loadUsers()
-        if (data && data.data && data.data.invite_token) {
-          this.invite_token = data.data
-          this.simpleAnim()
-          return
+        this.$toast
+          .success("Successfully updated the user details")
+          .goAway(3000);
+        await this.loadUsers();
+        if (data && data.invite_token) {
+          this.invite_token = data;
+          this.simpleAnim();
+          return;
         }
       } catch (e) {
-        this.$toast.error(e.response.data.msg).goAway(3000)
+        this.$toast.error(e.response.data.msg).goAway(3000);
       }
 
-      this.userEditDialog = false
-      await this.loadUsers()
-    }
-  }
-}
+      await this.loadUsers();
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -822,7 +822,8 @@ export default {
     background-color: transparent;
   }
 
-  .search-field.v-text-field > .v-input__control, .search-field.v-text-field > .v-input__control > .v-input__slot {
+  .search-field.v-text-field > .v-input__control,
+  .search-field.v-text-field > .v-input__control > .v-input__slot {
     min-height: auto;
   }
 
@@ -841,11 +842,11 @@ export default {
 
 .users-table {
   td:first-child {
-    width: 50px
+    width: 50px;
   }
 
   td:last-child {
-    width: 50px
+    width: 50px;
   }
 }
 
@@ -855,7 +856,6 @@ export default {
   background: var(--v-backgroundColor-base);
 
   .v-input .v-input__slot {
-
     background: var(--v-backgroundColorDefault-base);
   }
 }

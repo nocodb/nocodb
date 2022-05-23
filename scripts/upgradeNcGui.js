@@ -33,7 +33,7 @@ const bumbVersionAndSave = () => {
 }
 
 if (process.env.targetEnv === 'DEV') {
-    // replace nc-lib-gui by nc-lib-gui-daily if it is nightly build
+    // replace nc-lib-gui by nc-lib-gui-daily if it is nightly build / pr release
     const filePaths = [
         path.join(__dirname, '..', 'packages', 'nocodb', 'Dockerfile'),
         path.join(__dirname, '..', 'packages', 'nocodb', 'litestream', 'Dockerfile'),

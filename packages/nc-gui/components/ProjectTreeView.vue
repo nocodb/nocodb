@@ -1,49 +1,60 @@
 <template>
-  <div style="height: 100%" class="nc-tree-view" @mouseenter="onMiniHoverEnter" @mouseleave="onMiniHoverLeave">
+  <div
+    style="height: 100%"
+    class="nc-tree-view"
+    @mouseenter="onMiniHoverEnter"
+    @mouseleave="onMiniHoverLeave"
+  >
     <!--    :expand-on-hover="mini"-->
     <div
       class="primary nc-project-title theme--dark"
+      :class="{ shared: sharedBase }"
     >
-      <div>{{ $store.getters["project/GtrProjectName"] }}</div>
+      <img v-if="sharedBase" src="favicon-32.png" height="18" class="ml-2">
+      <h3
+        v-if="sharedBase"
+        class="nc-project-title white--text text-capitalize"
+      >
+        {{ $store.getters["project/GtrProjectName"] }}
+      </h3>
+      <github-star-btn v-else/>
     </div>
     <v-navigation-drawer
       ref="drawer"
       v-model="navigation.shown"
       permanent
       mini-variant-width="50"
-      class="pl-2 nc-nav-drawer"
+      class="nc-nav-drawer"
       style="min-width: 100%; height: calc(100% - 30px)"
     >
       <div class="h-100 d-flex flex-column">
         <div class="flex-grow-1" style="overflow-y: auto; min-height: 200px">
-          <v-skeleton-loader v-if="!projects || !projects.length" class="mt-2 ml-2" type="button" />
-          <!--      <v-btn
-                  v-else
-                  icon
-                  text
-                  @click.stop="toggleMini"
-                >
-                  &lt;!&ndash;        <v-icon v-if="mini">mdi-chevron-right-circle</v-icon>&ndash;&gt;
-                  &lt;!&ndash;        <v-icon v-else>mdi-pin-outline</v-icon>&ndash;&gt;
-                  <v-icon class="grey&#45;&#45;text">mdi-arrow-expand-horizontal</v-icon>
-                  &lt;!&ndash;        <v-icon v-else>mdi-arrow-expand-horizontal</v-icon>&ndash;&gt;
-
-                </v-btn>-->
+          <v-skeleton-loader
+            v-if="!projects || !projects.length"
+            class="mt-2 ml-2"
+            type="button"
+          />
           <v-text-field
             v-else
             v-model="search"
             :placeholder="$t('placeholder.searchProjectTree')"
             dense
             hide-details
-            class="elevation-0 mr-2  pl-3 pr-1 caption nc-table-list-filter"
+            class="elevation-0 mr-2 pl-3 pr-1 caption nc-table-list-filter"
           >
             <template #prepend-inner>
-              <v-icon small class="mt-2 ml-2 mr-1 ">
+              <v-icon small class="mt-2 ml-2 mr-1">
                 mdi-magnify
               </v-icon>
             </template>
             <template #append>
-              <v-icon v-if="search" class="mt-3 mr-3" color="grey" x-small @click="search=''">
+              <v-icon
+                v-if="search"
+                class="mt-3 mr-3"
+                color="grey"
+                x-small
+                @click="search = ''"
+              >
                 mdi-close
               </v-icon>
             </template>
@@ -121,7 +132,12 @@
             </template>
           </v-treeview>
           <v-container v-else fluid class="px-1 pt-0">
-            <v-list height="30" dense expand class="nc-project-tree nc-single-env-project-tree pt-1">
+            <v-list
+              height="30"
+              dense
+              expand
+              class="nc-project-tree nc-single-env-project-tree pt-1"
+            >
               <template v-for="item in listViewArr">
                 <!--                   v-if="item.children && item.children.length"-->
                 <v-list-group
@@ -130,7 +146,8 @@
                   color="textColor"
                   :value="isActiveList(item) || search"
                   @click="
-                    !(item.children && item.children.length) && addTab({ ...item }, false, false)
+                    !(item.children && item.children.length) &&
+                      addTab({ ...item }, false, false)
                   "
                   @contextmenu.prevent="showCTXMenu($event, item, true, false)"
                 >
@@ -161,37 +178,73 @@
                     <v-list-item-title>
                       <v-tooltip v-if="!isNonAdminAccessAllowed(item)" top>
                         <template #activator="{ on }">
-                          <span v-if="item.type === 'tableDir'" class="body-2 font-weight-medium" v-on="on">
-                            {{ $t('objects.tables') }}<template v-if="item.children && item.children.length"> ({{
-                              item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
+                          <span
+                            v-if="item.type === 'tableDir'"
+                            class="body-2 font-weight-medium"
+                            v-on="on"
+                          >
+                            {{
+                              $t("objects.tables")
+                            }}<template
+                            v-if="item.children && item.children.length"
+                          >
+                              ({{
+                              item.children.filter(
+                                (child) =>
+                                  !search ||
+                                  child.name
+                                  .toLowerCase()
+                                  .includes(search.toLowerCase())
+                              ).length
                             }})</template></span>
-                          <span v-else class="body-2 font-weight-medium" v-on="on">
+                          <span
+                            v-else
+                            class="body-2 font-weight-medium"
+                            v-on="on"
+                          >
                             {{ item.name }}</span>
                         </template>
                         <span class="caption">Only visible to Creator</span>
                       </v-tooltip>
-                      <template
-                        v-else
-                      >
-                        <span v-if="item.type === 'tableDir'" class="body-2 font-weight-medium">
-                          {{ $t('objects.tables') }}<template v-if="item.children && item.children.length"> ({{
-                            item.children.filter(child => !search || child.name.toLowerCase().includes(search.toLowerCase())).length
+                      <template v-else>
+                        <span
+                          v-if="item.type === 'tableDir'"
+                          class="body-2 font-weight-medium"
+                        >
+                          {{
+                            $t("objects.tables")
+                          }}<template
+                          v-if="item.children && item.children.length"
+                        >
+                            ({{
+                            item.children.filter(
+                              (child) =>
+                                !search ||
+                                child.name
+                                .toLowerCase()
+                                .includes(search.toLowerCase())
+                            ).length
                           }})</template></span>
                         <span v-else class="caption font-weight-regular">
                           {{ item.name }}</span>
                       </template>
                     </v-list-item-title>
 
-                    <v-spacer />
+                    <v-spacer/>
 
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <x-icon
-                          v-if="_isUIAllowed('treeview-add-button') && item.type !== 'viewDir'"
+                          v-if="
+                            _isUIAllowed('treeview-add-button') &&
+                              item.type !== 'viewDir'
+                          "
                           :color="['x-active', 'grey']"
                           small
                           v-on="on"
-                          @click.prevent.stop="handleCreateBtnClick(item.type, item)"
+                          @click.prevent.stop="
+                            handleCreateBtnClick(item.type, item)
+                          "
                         >
                           mdi-plus-circle-outline
                         </x-icon>
@@ -199,34 +252,51 @@
                       <span
                         class="caption"
                       >Add new
-                        <span class="text-capitalize">{{ item.type.slice(0, -3) }}</span></span>
+                        <span class="text-capitalize">{{
+                            item.type.slice(0, -3)
+                          }}</span></span>
                     </v-tooltip>
                   </template>
 
                   <v-list-item-group :value="selectedItem">
                     <component
-                      :is="_isUIAllowed('treeview-drag-n-drop') ? 'draggable' : 'div'"
+                      :is="
+                        _isUIAllowed('treeview-drag-n-drop')
+                          ? 'draggable'
+                          : 'div'
+                      "
                       v-model="item.children"
                       draggable="div"
                       v-bind="dragOptions"
                       @change="onMove($event, item.children)"
                     >
-                      <transition-group type="transition" :name="!drag ? 'flip-list' : null">
+                      <transition-group
+                        type="transition"
+                        :name="!drag ? 'flip-list' : null"
+                      >
                         <v-list-item
                           v-for="child in item.children || []"
-                          v-show="!search || child.name.toLowerCase().includes(search.toLowerCase())"
+                          v-show="
+                            !search ||
+                              child.name
+                                .toLowerCase()
+                                .includes(search.toLowerCase())
+                          "
                           :key="child.key"
+                          v-t="['a:table:open']"
                           color="x-active"
                           active-class="font-weight-bold"
                           :selectable="true"
                           dense
-                          :value="`${(child._nodes && child._nodes).type || ''}||${
-                            (child._nodes && child._nodes.dbAlias) || ''
-                          }||${child.name}`"
+                          :value="`${
+                            (child._nodes && child._nodes).type || ''
+                          }||${(child._nodes && child._nodes.dbAlias) || ''}||${
+                            child.name
+                          }`"
                           class="nested ml-3 nc-draggable-child"
                           style="position: relative"
                           @click.stop="addTab({ ...child }, false, true)"
-                          @contextmenu.prevent.stop="showCTXMenu($event, child, false, true)"
+                          @contextmenu="showCTXMenu($event, child, false, true)"
                         >
                           <v-icon
                             v-if="_isUIAllowed('treeview-drag-n-drop')"
@@ -256,26 +326,36 @@
                           </v-list-item-icon>
                           <v-list-item-title>
                             <v-tooltip
-                              v-if="_isUIAllowed('creator_tooltip') && child.creator_tooltip"
+                              v-if="
+                                _isUIAllowed('creator_tooltip') &&
+                                  child.creator_tooltip
+                              "
                               bottom
                             >
                               <template #activator="{ on }">
-                                <span class="caption" v-on="on" @dblclick="showSqlClient = true">
+                                <span
+                                  class="caption"
+                                  v-on="on"
+                                  @dblclick="showSqlClient = true"
+                                >
                                   {{ child.name }}
                                 </span>
                               </template>
-                              <span class="caption">{{ child.creator_tooltip }}</span>
+                              <span class="caption">{{
+                                  child.creator_tooltip
+                                }}</span>
                             </v-tooltip>
                             <span v-else class="caption">{{ child.name }}</span>
                           </v-list-item-title>
                           <template v-if="child.type === 'table'">
-                            <v-spacer />
+                            <v-spacer/>
                             <div class="action d-flex" @click.stop>
                               <v-menu>
                                 <template #activator="{ on }">
                                   <v-icon
                                     v-if="
-                                      _isUIAllowed('treeview-rename-button')||_isUIAllowed('ui-acl')
+                                      _isUIAllowed('treeview-rename-button') ||
+                                        _isUIAllowed('ui-acl')
                                     "
                                     small
                                     v-on="on"
@@ -286,13 +366,17 @@
 
                                 <v-list dense>
                                   <v-list-item
-                                    v-if="_isUIAllowed('treeview-rename-button')"
+                                    v-if="
+                                      _isUIAllowed('treeview-rename-button')
+                                    "
+                                    v-t="['c:table:rename:navdraw:options']"
                                     dense
                                     @click="
                                       menuItem = child;
                                       dialogRenameTable.cookie = child;
                                       dialogRenameTable.dialogShow = true;
-                                      dialogRenameTable.defaultValue = child.name;
+                                      dialogRenameTable.defaultValue =
+                                        child.name;
                                     "
                                   >
                                     <v-list-item-icon>
@@ -303,11 +387,16 @@
                                     <v-list-item-title>
                                       <span classs="caption">
                                         <!--Rename-->
-                                        {{ $t('general.rename') }}
+                                        {{ $t("general.rename") }}
                                       </span>
                                     </v-list-item-title>
                                   </v-list-item>
-                                  <v-list-item v-if="_isUIAllowed('ui-acl')" dense @click="openUIACL">
+                                  <v-list-item
+                                    v-if="_isUIAllowed('ui-acl')"
+                                    v-t="['c:table:ui-acl']"
+                                    dense
+                                    @click="openUIACL(child)"
+                                  >
                                     <v-list-item-icon>
                                       <v-icon x-small>
                                         mdi-shield-outline
@@ -316,18 +405,18 @@
                                     <v-list-item-title>
                                       <span classs="caption">
                                         <!--UI ACL-->
-                                        {{ $t('labels.uiAcl') }}
+                                        {{ $t("labels.uiAcl") }}
                                       </span>
                                     </v-list-item-title>
                                   </v-list-item>
                                   <v-list-item v-if="_isUIAllowed('table-delete')" dense @click="checkAndDeleteTable(child)">
                                     <v-list-item-icon>
-                                      <v-icon x-small>
+                                      <v-icon x-small color="red">
                                         mdi-delete-outline
                                       </v-icon>
                                     </v-list-item-icon>
                                     <v-list-item-title>
-                                      <span classs="caption">Delete</span>
+                                      <span classs="caption" style="color: red">Delete</span>
                                     </v-list-item-title>
                                   </v-list-item>
                                 </v-list>
@@ -342,8 +431,9 @@
                   </v-list-item-group>
                 </v-list-group>
                 <v-list-item
-                  v-else-if="(item.type !== 'sqlClientDir' || showSqlClient) &&
-                    (item.type !=='migrationsDir' || _isUIAllowed('audit'))
+                  v-else-if="
+                    (item.type !== 'sqlClientDir' || showSqlClient) &&
+                      (item.type !== 'migrationsDir' || _isUIAllowed('audit'))
                   "
                   :key="item.key"
                   :selectable="false"
@@ -402,8 +492,8 @@
             @click="handleCTXMenuClick($event.value)"
           />
         </div>
-        <div class="pr-3 advance-menu" :class="{ 'pl-3': !mini }">
-          <v-divider v-if="_isUIAllowed('treeViewProjectSettings')" />
+        <div class="pr-3 advance-menu d-none" :class="{ 'pl-3': !mini }">
+          <v-divider v-if="_isUIAllowed('treeViewProjectSettings')"/>
 
           <v-list
             v-if="_isUIAllowed('treeViewProjectSettings')"
@@ -413,7 +503,9 @@
             <v-list-item>
               <v-list-item-title>
                 <!-- Settings -->
-                <span class="body-2 font-weight-medium">{{ $t('activity.settings') }}</span>
+                <span class="body-2 font-weight-medium">{{
+                    $t("activity.settings")
+                  }}</span>
                 <v-tooltip top>
                   <template #activator="{ on }">
                     <x-icon
@@ -429,7 +521,7 @@
                     </x-icon>
                   </template>
                   <!-- Only visible to Creator -->
-                  <span class="caption">{{ $t('msg.info.onlyCreator') }}</span>
+                  <span class="caption">{{ $t("msg.info.onlyCreator") }}</span>
                 </v-tooltip>
               </v-list-item-title>
             </v-list-item>
@@ -437,7 +529,13 @@
             <template v-if="_isUIAllowed('treeViewProjectSettings')">
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2 nc-settings-appstore" @click="appsTabAdd" v-on="on">
+                  <v-list-item
+                    v-t="['c:settings:appstore']"
+                    dense
+                    class="body-2 nc-settings-appstore"
+                    @click="appsTabAdd"
+                    v-on="on"
+                  >
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-storefront-outline
@@ -446,18 +544,24 @@
                     <!-- App Store -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('title.appStore')
-                      }}</span>
+                          $t("title.appStore")
+                        }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- App Store -->
-                {{ $t('title.appStore') }}
+                {{ $t("title.appStore") }}
               </v-tooltip>
 
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2 nc-settings-teamauth" @click="rolesTabAdd" v-on="on">
+                  <v-list-item
+                    v-t="['c:settings:team-auth']"
+                    dense
+                    class="body-2 nc-settings-teamauth"
+                    @click="rolesTabAdd"
+                    v-on="on"
+                  >
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-account-group
@@ -466,17 +570,23 @@
                     <!-- Team & Auth -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('title.team&auth')
-                      }}</span>
+                          $t("title.teamAndAuth")
+                        }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- Roles & Users Management -->
-                {{ $t('title.rolesUserMgmt') }}
+                {{ $t("title.rolesUserMgmt") }}
               </v-tooltip>
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2 nc-settings-projmeta" @click="disableOrEnableModelTabAdd" v-on="on">
+                  <v-list-item
+                    v-t="['c:settings:proj-metadata']"
+                    dense
+                    class="body-2 nc-settings-projmeta"
+                    @click="disableOrEnableModelTabAdd"
+                    v-on="on"
+                  >
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-table-multiple
@@ -485,18 +595,24 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('title.projMeta')
-                      }}</span>
+                          $t("title.projMeta")
+                        }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- Meta Management -->
-                {{ $t('title.metaMgmt') }}
+                {{ $t("title.metaMgmt") }}
               </v-tooltip>
 
               <v-tooltip bottom>
                 <template #activator="{ on }">
-                  <v-list-item dense class="body-2 nc-settings-audit" @click="openAuditTab" v-on="on">
+                  <v-list-item
+                    v-t="['c:settings:audit']"
+                    dense
+                    class="body-2 nc-settings-audit"
+                    @click="openAuditTab"
+                    v-on="on"
+                  >
                     <v-list-item-icon>
                       <v-icon x-small>
                         mdi-notebook-outline
@@ -505,88 +621,38 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                        $t('title.audit')
-                      }}</span>
+                          $t("title.audit")
+                        }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- Meta Management -->
-                {{ $t('title.auditLogs') }}
+                {{ $t("title.auditLogs") }}
               </v-tooltip>
             </template>
           </v-list>
-          <v-divider />
-
-          <!--          <v-list dense>-->
-          <!--    <v-list-item dense class="body-2 pt-2">
-                <div class="d-100 d-flex ">
-                  <v-icon color="" @click="toggleMini" class="mr-1" small>mdi-arrow-expand-horizontal</v-icon>
-
-                  <span v-shortkey="[ 'ctrl','shift', 'm']"
-                        @shortkey="$store.commit('windows/MutToggleTheme')"></span>
-
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                      <v-icon v-on="on" class="mt-1 ml-3" size="22" @click="$store.commit('windows/MutToggleTheme')">
-                        mdi-format-color-fill
-                      </v-icon>
-                    </template>
-                    Change theme (^⇧M)
-                  </v-tooltip>
-
-                  <span v-shortkey="[ 'ctrl','shift', 'b']"
-                        @shortkey="changeTheme"></span>
-                  <v-tooltip bottom>
-                    <template v-slot:activator="{ on }">
-                      <v-icon @dblclick="showAppStore=true" @click="changeTheme" v-on="on" size="23"
-                              :style="$vuetify.theme.dark ? {}:{color:'lightgrey'}"
-                              class="ml-3">mdi-bat
-                      </v-icon>
-                    </template>
-                    <h3 class="pa-3">
-                      {{ $vuetify.theme.dark ? 'It does come in Black (^⇧B)' : 'Does it come in Black ? (^⇧B)' }}
-                      <i></i>
-                    </h3>
-                  </v-tooltip>
-
-                </div>
-              </v-list-item>-->
-
-          <!--            <v-tooltip bottom>-->
-          <!--              <template v-slot:activator="{on}">-->
-          <!--                <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/nocodb')" class="body-2">-->
-          <!--                  <v-list-item-icon>-->
-          <!--                    <v-icon color="red" class=" heart-anim" small> mdi-heart</v-icon>-->
-          <!--                  </v-list-item-icon>-->
-          <!--                  <v-list-item-title><span class="font-weight-regular caption">Sponsor Us</span></v-list-item-title>-->
-
-          <!--                </v-list-item>-->
-          <!--              </template>-->
-          <!--              Sponsor Us-->
-          <!--            </v-tooltip>-->
-          <!--          </v-list>-->
-          <!--          <v-divider></v-divider>-->
+          <v-divider/>
 
           <v-list v-if="_isUIAllowed('previewAs') || previewAs" dense>
             <v-list-item>
               <!-- Preview as -->
-              <span class="body-2 font-weight-medium">{{ $t('activity.previewAs') }}</span>
+              <span class="body-2 font-weight-medium">{{
+                  $t("activity.previewAs")
+                }}</span>
               <v-icon small class="ml-1">
                 mdi-drama-masks
               </v-icon>
-              <!--                <v-icon small>mdi-menu-down</v-icon>-->
             </v-list-item>
 
             <v-list dense>
-              <!--              <v-list-item v-for="role in rolesList" @click="setPreviewUSer(role.title)" :key="role.title">-->
-              <!--                <v-icon small class="mr-1" :color="role.title === previewAs ? 'x-active' : ''">{{ roleIcon[role.title] }}</v-icon>-->
-              <!--                <span class="caption text-capitalize"-->
-              <!--                      :class="{ 'x-active&#45;&#45;text' : role.title === previewAs }">{{ role.title }}</span>-->
-              <!--              </v-list-item>-->
               <div class="mx-4 d-flex align-center mb-2">
                 <template v-for="(role, i) in rolesList">
-                  <!--                  <span v-if="i" vertical :key="i" class="mx-2 caption grey&#45;&#45;text">or</span>-->
-                  <v-divider v-if="i" :key="i" vertical class="mx-2 caption grey--text" />
+                  <v-divider
+                    v-if="i"
+                    :key="i"
+                    vertical
+                    class="mx-2 caption grey--text"
+                  />
                   <div
                     :key="role.title"
                     :class="`pointer text-center nc-preview-${role.title}`"
@@ -613,43 +679,52 @@
                     mdi-close
                   </v-icon>
                   <!-- Reset Preview -->
-                  <span class="caption nc-preview-reset">{{ $t('activity.resetReview') }}</span>
+                  <span class="caption nc-preview-reset">{{
+                      $t("activity.resetReview")
+                    }}</span>
                 </v-list-item>
               </template>
             </v-list>
           </v-list>
-
-          <!--  <v-list dense>
-
-              <v-list-item>
-                <v-list-item-title>
-                  <span class="body-2 grey&#45;&#45;text">Community</span>
-                  <v-icon color="red" class=" heart-anim" small> mdi-heart</v-icon>
-                </v-list-item-title>
-              </v-list-item>
-              <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/nocodb')" class="body-2">
-                <v-list-item-icon>
-
-                </v-list-item-icon>
-                <v-list-item-title><span class="font-weight-regular caption">Sponsor Us</span></v-list-item-title>
-
-              </v-list-item>
-              <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/nocodb')" class="body-2">
-                <v-list-item-icon>
-                  <v-icon color="red" class=" heart-anim" small> mdi-heart</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title><span class="font-weight-regular caption">Sponsor Us</span></v-list-item-title>
-
-              </v-list-item>
-              <v-list-item dense v-on="on" @click="openLink('https://github.com/sponsors/nocodb')" class="body-2">
-                <v-list-item-icon>
-                  <v-icon color="red" class=" heart-anim" small> mdi-heart</v-icon>
-                </v-list-item-icon>
-                <v-list-item-title><span class="font-weight-regular caption">Sponsor Us</span></v-list-item-title>
-
-              </v-list-item>
-            </v-list>-->
         </div>
+
+
+
+        <v-divider/>
+        <div
+          v-t="['e:api-docs']"
+          class="caption pointer nc-docs pb-2 pl-5 pr-3 pt-2 d-flex align-center"
+          @click="openLink(apiLink)"
+        >
+          <v-icon color="brown" small class="mr-2">
+            mdi-open-in-new
+          </v-icon>
+          {{ $t('title.apiDocs') }}
+        </div>
+
+
+        <template v-if="_isUIAllowed('settings')">
+          <div class="pl-5 pr-3 d-flex align-center pb-2">
+            <settings-modal>
+              <template #default="{ click }">
+                <div
+                  v-t="['c:navdraw:project-settings']"
+                  class="caption pointer nc-team-settings"
+                  @click="click"
+                >
+                  <v-icon color="brown" small class="mr-1">
+                    mdi-cog
+                  </v-icon>
+                  {{ $t('title.teamAndSettings') }}
+                </div>
+              </template>
+            </settings-modal>
+          </div>
+        </template>
+
+
+        <!--        <v-divider/>-->
+<!--        <extras class="pl-1"/>-->
       </div>
     </v-navigation-drawer>
 
@@ -665,17 +740,9 @@
       @create="mtdViewCreate($event)"
     />
 
-    <!--    <textDlgSubmitCancel
-          v-if="dialogGetTableName.dialogShow"
-          :dialogShow="dialogGetTableName.dialogShow"
-          :heading="dialogGetTableName.heading"
-          :mtdDialogSubmit="mtdDialogGetTableNameSubmit"
-          :mtdDialogCancel="mtdDialogGetTableNameCancel"
-        />-->
-
     <textDlgSubmitCancel
       v-if="dialogRenameTable.dialogShow"
-      :rules="[validateTableName]"
+      :rules="[validateTableName, validateUniqueAlias]"
       :dialog-show="dialogRenameTable.dialogShow"
       :heading="dialogRenameTable.heading"
       :cookie="dialogRenameTable.cookie"
@@ -683,13 +750,7 @@
       :mtd-dialog-submit="mtdDialogRenameTableSubmit"
       :mtd-dialog-cancel="mtdDialogRenameTableCancel"
     />
-    <!--    <textDlgSubmitCancel
-          v-if="dialogGetViewName.dialogShow"
-          :dialogShow="dialogGetViewName.dialogShow"
-          :heading="dialogGetViewName.heading"
-          :mtdDialogSubmit="mtdDialogGetViewNameSubmit"
-          :mtdDialogCancel="mtdDialogGetViewNameCancel"
-        />-->
+
     <textDlgSubmitCancel
       v-if="dialogGetFunctionName.dialogShow"
       :dialog-show="dialogGetFunctionName.dialogShow"
@@ -723,7 +784,7 @@
       type="error"
       :actions-mtd="deleteTable"
       :dialog-show="dialogDeleteTable.dialogShow"
-      :heading="dialogDeleteTable.heading + ' ' + dialogDeleteTable.nodes.tn"
+      :heading="dialogDeleteTable.heading + ' ' + dialogDeleteTable.nodes.table_name"
     />
     <excel-import
       ref="excelImport"
@@ -738,25 +799,33 @@
 <script>
 /* eslint-disable */
 
-import {mapMutations, mapGetters, mapActions} from 'vuex';
+import {mapMutations, mapGetters, mapActions} from "vuex";
 
-import rightClickOptions from '../helpers/rightClickOptions';
-import rightClickOptionsSub from '../helpers/rightClickOptionsSub';
-import icons from '../helpers/treeViewIcons';
+import rightClickOptions from "../helpers/rightClickOptions";
+import rightClickOptionsSub from "../helpers/rightClickOptionsSub";
+import icons from "../helpers/treeViewIcons";
 
-import textDlgSubmitCancel from './utils/dlgTextSubmitCancel';
-import dlgLabelSubmitCancel from './utils/dlgLabelSubmitCancel';
-import {copyTextToClipboard} from '../helpers/xutils';
-import DlgTableCreate from '@/components/utils/dlgTableCreate';
-import DlgViewCreate from '@/components/utils/dlgViewCreate';
-import SponsorMini from '@/components/sponsorMini';
+import textDlgSubmitCancel from "./utils/dlgTextSubmitCancel";
+import dlgLabelSubmitCancel from "./utils/dlgLabelSubmitCancel";
+import {copyTextToClipboard} from "../helpers/xutils";
+import DlgTableCreate from "@/components/utils/dlgTableCreate";
+import DlgViewCreate from "@/components/utils/dlgViewCreate";
+import SponsorMini from "@/components/sponsorMini";
 import {validateTableName} from "~/helpers";
 import ExcelImport from "~/components/import/excelImport";
 
-import draggable from 'vuedraggable'
+import draggable from "vuedraggable";
+import GithubStarBtn from "~/components/githubStarBtn";
+import SettingsModal from "~/components/settings/settingsModal";
+import Language from "~/components/utils/language";
+import Extras from "~/components/project/spreadsheet/components/extras";
 
 export default {
   components: {
+    Extras,
+    Language,
+    SettingsModal,
+    GithubStarBtn,
     draggable,
     ExcelImport,
     SponsorMini,
@@ -765,6 +834,9 @@ export default {
     textDlgSubmitCancel,
     dlgLabelSubmitCancel,
   },
+  props: {
+    sharedBase: Boolean,
+  },
   data: () => ({
     treeViewStatus: {},
     drag: false,
@@ -772,25 +844,30 @@ export default {
       animation: 200,
       group: "description",
       disabled: false,
-      ghostClass: "ghost"
+      ghostClass: "ghost",
     },
     roleIcon: {
-      owner: 'mdi-account-star',
-      creator: 'mdi-account-hard-hat',
-      editor: 'mdi-account-edit',
-      viewer: 'mdi-eye-outline',
-      commenter: 'mdi-comment-account-outline',
+      owner: "mdi-account-star",
+      creator: "mdi-account-hard-hat",
+      editor: "mdi-account-edit",
+      viewer: "mdi-eye-outline",
+      commenter: "mdi-comment-account-outline",
     },
+    rolesList: [
+      {title: "editor"},
+      {title: "commenter"},
+      {title: "viewer"},
+    ],
     showSqlClient: false,
     nestedMenu: {},
     overShieldIcon: false,
     activeListItem: null,
     dbIcons: {
-      oracledb: 'oracle_icon@2x.png',
-      pg: 'postgresql_icon@2x.png',
-      mysql: 'mysql_icon@2x.png',
-      mssql: 'mssql_icon@2x.png',
-      sqlite3: 'sqlite.png',
+      oracledb: "oracle_icon@2x.png",
+      pg: "postgresql_icon@2x.png",
+      mysql: "mysql_icon@2x.png",
+      mssql: "mssql_icon@2x.png",
+      sqlite3: "sqlite.png",
     },
     mini: false,
     miniExpanded: false,
@@ -801,88 +878,97 @@ export default {
     },
     loadingProjects: true,
     caseInsensitive: true,
-    open: [],
+    // open: [],
     search: null,
     menuVisible: false,
     excelImportDialog: false,
     x: 0,
     y: 0,
     menuItem: null,
-    menu: [{title: 'Execute'}],
+    menu: [{title: "Execute"}],
     icons,
     tree: [],
     active: [],
     viewMenu: false,
     dialogGetTableName: {
       dialogShow: false,
-      heading: 'Enter New Table Name',
-      field: 'Table Name',
+      heading: "Enter New Table Name",
+      field: "Table Name",
     },
     dialogGetViewName: {
       dialogShow: false,
-      heading: 'Enter New View Name',
-      field: 'View Name',
+      heading: "Enter New View Name",
+      field: "View Name",
     },
     dialogGetFunctionName: {
       dialogShow: false,
-      heading: 'Enter New Function Name',
-      field: 'Function Name',
+      heading: "Enter New Function Name",
+      field: "Function Name",
     },
     dialogGetProcedureName: {
       dialogShow: false,
-      heading: 'Enter New Procedure Name',
-      field: 'Procedure Name',
+      heading: "Enter New Procedure Name",
+      field: "Procedure Name",
     },
     dialogGetSequenceName: {
       dialogShow: false,
-      heading: 'Enter New Sequence Name',
-      field: 'Sequence Name',
+      heading: "Enter New Sequence Name",
+      field: "Sequence Name",
     },
     dialogRenameTable: {
       dialogShow: false,
-      heading: 'Rename Table',
-      field: 'Table Name',
+      heading: "Rename Table",
+      field: "Table Name",
       cookie: null,
       defaultValue: null,
     },
+    selectedNodeForDelete: {
+      dialog: false,
+      item: null,
+      heading: null,
+    },
     dialogDeleteTable: {
       dialogShow: false,
-      heading: 'Click Submit to Delete the Table:',
-      nodes: {}
+      heading: 'Delete Table'
     },
-    rolesList: null,
-    selectedNodeForDelete: {dialog: false, item: null, heading: null},
   }),
   computed: {
+    apiLink() {
+      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.ncSiteUrl)
+    },
     previewAs: {
       get() {
         return this.$store.state.users.previewAs;
       },
       set(previewAs) {
-        this.$store.commit('users/MutPreviewAs', previewAs);
+        this.$store.commit("users/MutPreviewAs", previewAs);
       },
     },
     selectedItem() {
-      return [this.$route.query.type, this.$route.query.dbalias, this.$route.query.name].join('||');
+      return [
+        this.$route.query.type,
+        this.$route.query.dbalias,
+        this.$route.query.name,
+      ].join("||");
     },
     direction() {
-      return this.navigation.shown === false ? 'Open' : 'Closed';
+      return this.navigation.shown === false ? "Open" : "Closed";
     },
     ...mapGetters({
-      projects: 'project/list',
-      tabs: 'tabs/list',
-      sqlMgr: 'sqlMgr/sqlMgr',
-      currentProjectFolder: 'project/currentProjectFolder',
+      projects: "project/list",
+      tabs: "tabs/list",
+      sqlMgr: "sqlMgr/sqlMgr",
+      currentProjectFolder: "project/currentProjectFolder",
     }),
     filter() {
       return (item, search, textKey) => item[textKey].indexOf(search) > -1;
     },
     hideNode() {
       return {
-        sqlClientDir: !this._isUIAllowed('sqlClientDir'),
-        migrationsDir: !this._isUIAllowed('migrationsDir'),
-        functionDir: !this._isUIAllowed('functionDir'),
-        procedureDir: !this._isUIAllowed('procedureDir'),
+        sqlClientDir: !this._isUIAllowed("sqlClientDir"),
+        migrationsDir: !this._isUIAllowed("migrationsDir"),
+        functionDir: !this._isUIAllowed("functionDir"),
+        procedureDir: !this._isUIAllowed("procedureDir"),
       };
     },
     isTreeView() {
@@ -912,32 +998,51 @@ export default {
   },
   methods: {
     async onMove(event, children) {
-
-
       if (children.length - 1 === event.moved.newIndex) {
-        this.$set(children[event.moved.newIndex], 'order', children[event.moved.newIndex - 1].order + 1)
+        this.$set(
+          children[event.moved.newIndex],
+          "order",
+          children[event.moved.newIndex - 1].order + 1
+        );
       } else if (event.moved.newIndex === 0) {
-        this.$set(children[event.moved.newIndex], 'order', children[1].order / 2)
+        this.$set(
+          children[event.moved.newIndex],
+          "order",
+          children[1].order / 2
+        );
       } else {
-        this.$set(children[event.moved.newIndex], 'order', (children[event.moved.newIndex - 1].order + children[event.moved.newIndex + 1].order) / 2)
+        this.$set(
+          children[event.moved.newIndex],
+          "order",
+          (children[event.moved.newIndex - 1].order +
+            children[event.moved.newIndex + 1].order) /
+          2
+        );
       }
 
-      await this.$store.dispatch('sqlMgr/ActSqlOp', [{dbAlias: 'db'}, 'xcModelOrderSet', {
-        tn: children[event.moved.newIndex].tn,
+      // await this.$store.dispatch('sqlMgr/ActSqlOp', [{dbAlias: 'db'}, 'xcModelOrderSet', {
+      //   tn: children[event.moved.newIndex].table_name,
+      //   order: children[event.moved.newIndex].order,
+      // }])
+      await this.$api.dbTable.reorder(children[event.moved.newIndex].id, {
         order: children[event.moved.newIndex].order,
-      }])
-
-    }, openUIACL() {
+      });
+    },
+    openUIACL(child) {
       this.disableOrEnableModelTabAdd();
       setTimeout(() => {
         this.$router.push({
           query: {
             ...this.$route.query,
-            nested_1: 'dbacl',
+            nested_1:
+              (child &&
+                child._nodes &&
+                child._nodes.dbConnection &&
+                child._nodes.dbConnection.id) + "acl",
           },
         });
       }, 100);
-    },
+    } /*
     setPreviewUSer(previewAs) {
       if (!process.env.EE) {
         this.$toast.info('Available in Enterprise edition').goAway(3000);
@@ -945,142 +1050,186 @@ export default {
         this.previewAs = previewAs;
         window.location.reload();
       }
-    },
+    },*/,
     async loadRoles() {
-      if (this.$store.getters['users/GtrIsAdmin']) {
-        const roles = (
-          await this.$axios.get('/admin/roles', {
-            headers: {
-              'xc-auth': this.$store.state.users.token,
-            },
-            params: {
-              project_id: this.$route.params.project_id,
-            },
-          })
-        ).data;
-        this.rolesList = roles.filter(role => !['owner', 'creator', 'guest'].includes(role.title));
-      } else {
-        this.rolesList = null;
-        this.previewAs = null;
-      }
+      // if (this.$store.getters['users/GtrIsAdmin']) {
+      //   const roles = (
+      //     await this.$axios.get('/admin/roles', {
+      //       headers: {
+      //         'xc-auth': this.$store.state.users.token,
+      //       },
+      //       params: {
+      //         project_id: this.$route.params.project_id,
+      //       },
+      //     })
+      //   ).data
+      //   this.rolesList = roles.filter(role => !['owner', 'creator', 'guest'].includes(role.title))
+      // } else {
+      //   this.rolesList = null
+      //   this.previewAs = null
+      // }
     },
     appsTabAdd() {
-      const tabIndex = this.tabs.findIndex(el => el.key === `appStore`);
+      const tabIndex = this.tabs.findIndex((el) => el.key === `appStore`);
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex);
       } else {
-        console.log('add app store tab');
-        let item = {name: `${this.$t('title.appStore')} `, key: `appStore`};
-        item._nodes = {env: '_noco'};
-        item._nodes.type = 'appStore';
-        this.$store.dispatch('tabs/ActAddTab', item);
+        let item = {
+          name: "App Store",
+          key: `appStore`,
+        };
+        item._nodes = {env: "_noco"};
+        item._nodes.type = "appStore";
+        this.$store.dispatch("tabs/ActAddTab", item);
       }
     },
     isNonAdminAccessAllowed(item) {
-      return ['tableDir', 'viewDir'].includes(item.type);
+      return ["tableDir", "viewDir"].includes(item.type);
     },
     changeTheme() {
-      this.$store.dispatch('windows/ActToggleDarkMode', !this.$store.state.windows.darkTheme);
+      this.$store.dispatch(
+        "windows/ActToggleDarkMode",
+        !this.$store.state.windows.darkTheme
+      );
     },
     openLink(link) {
-      window.open(link, '_blank');
+      window.open(link, "_blank");
     },
     async checkAndDeleteTable(table) {
-      const meta = this.$store.state.meta.metas[table.tn] || await this.loadTableSchema(table);
-      if (
-        !meta || (
-          (meta.hasMany && meta.hasMany.length) ||
-          (meta.manyToMany && meta.manyToMany.length) ||
-          (meta.belongsTo && meta.belongsTo.length))
-      ) {
-        return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
+      const tableMeta = this.$store.state.meta.metas[table.table_name] || await this.loadTableSchema(table);
+      if(tableMeta.columns.some((col) => col.uidt === "LinkToAnotherRecord")) {
+        this.$toast.error(`drop table ${table.table_name} - cannot drop table ${table.table_name} because other objects depend on it`).goAway(3000);
+        return;
       }
-      await this.deleteTable('showDialog', table._nodes)
+      this.dialogDeleteTable.nodes = table._nodes
+      this.deleteTable("showDialog", table.id);
+      this.$e("c:table:delete");
     },
     async loadTableSchema(table) {
       return await this.$store.dispatch('meta/ActLoadMeta', {
         env: table._nodes.env,
         dbAlias: table._nodes.dbAlias,
-        tn: table.tn
+        table_name: table.table_name
       })
     },
-    async deleteTable(action = '', nodes=null) {
-      if(nodes) this.dialogDeleteTable.nodes = nodes;
-
-      if (action === 'showDialog') {
-        this.dialogDeleteTable.dialogShow = true
-      } else if (action === 'hideDialog') {
-        this.dialogDeleteTable.dialogShow = false
+    async deleteTable(action = "", id) {
+      if (id) {
+        this.dialogDeleteTable.deleteId = id;
+      }
+      if (action === "showDialog") {
+        this.dialogDeleteTable.dialogShow = true;
+      } else if (action === "hideDialog") {
+        this.dialogDeleteTable.dialogShow = false;
       } else {
-        nodes = this.dialogDeleteTable.nodes;
-        let relationListAll = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: nodes.env,
-          dbAlias: nodes.dbAlias
-        }, 'relationListAll'])
+        // todo : check relations and triggers
+        try {
+          await this.$api.dbTable.delete(this.dialogDeleteTable.deleteId);
 
-        relationListAll = relationListAll.data.list.filter(rel => rel.rtn === nodes.tn).map(({ tn }) => tn)
+          this.removeTableTab({
+            env: this.dialogDeleteTable.nodes.env,
+            dbAlias: this.dialogDeleteTable.nodes.dbAlias,
+            table_name: this.dialogDeleteTable.nodes.table_name,
+          });
 
-        if (relationListAll.length) {
-          this.$toast.info('Table can\'t be  deleted  since Table is being referred in following tables : ' + relationListAll.join(', ')).goAway(10000)
-          this.dialogDeleteTable.dialogShow = false
-          return
-        }
-
-        const triggerList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: nodes.env,
-          dbAlias: nodes.dbAlias
-        }, 'triggerList', {
-          tn: nodes.tn
-        }])
-
-        for (const trigger of triggerList.data.list) {
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
-            {
-              env: nodes.env,
-              dbAlias: nodes.dbAlias
+          await this.loadTablesFromParentTreeNode({
+            _nodes: {
+              ...this.dialogDeleteTable.nodes,
             },
-            'triggerDelete',
-            {
-              ...trigger,
-              tn: nodes.tn,
-              oldStatement: trigger.statement
-            }])
+          });
 
-          console.log('triggerDelete result ', result)
-
-          this.$toast.success('Trigger deleted successfully').goAway(1000)
+          this.$store.commit("meta/MutMeta", {
+            key: this.dialogDeleteTable.nodes.table_name,
+            value: null,
+          });
+          this.$store.commit("meta/MutMeta", {
+            key: this.dialogDeleteTable.deleteId,
+            value: null,
+          });
+        } catch (e) {
+          const msg = await this._extractSdkResponseErrorMsg(e);
+          this.$toast.error(msg).goAway(3000);
         }
-
-        let columns = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: nodes.env,
-          dbAlias: nodes.dbAlias
-        }, 'columnList', {
-          tn: nodes.tn
-        }])
-
-        columns = columns.data.list
-
-        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
-          env: nodes.env,
-          dbAlias: nodes.dbAlias
-        },
-        'tableDelete',
-        { tn: nodes.tn, columns }])
-
-        this.removeTableTab({
-          env: nodes.env,
-          dbAlias: nodes.dbAlias,
-          tn: nodes.tn
-        })
-
-        await this.loadTablesFromParentTreeNode({
-          _nodes: {
-            ...nodes
-          }
-        })
-        this.dialogDeleteTable.dialogShow = false
+        this.dialogDeleteTable.dialogShow = false;
+        this.$e("a:table:delete");
       }
     },
+    // async deleteTable(action = '', nodes=null) {
+    //   if(nodes) this.dialogDeleteTable.nodes = nodes;
+
+    //   if (action === 'showDialog') {
+    //     this.dialogDeleteTable.dialogShow = true
+    //   } else if (action === 'hideDialog') {
+    //     this.dialogDeleteTable.dialogShow = false
+    //   } else {
+    //     nodes = this.dialogDeleteTable.nodes;
+    //     let relationListAll = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+    //       env: nodes.env,
+    //       dbAlias: nodes.dbAlias
+    //     }, 'relationListAll'])
+
+    //     relationListAll = relationListAll.data.list.filter(rel => rel.rtn === nodes.tn).map(({ tn }) => tn)
+
+    //     if (relationListAll.length) {
+    //       this.$toast.info('Table can\'t be  deleted  since Table is being referred in following tables : ' + relationListAll.join(', ')).goAway(10000)
+    //       this.dialogDeleteTable.dialogShow = false
+    //       return
+    //     }
+
+    //     const triggerList = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+    //       env: nodes.env,
+    //       dbAlias: nodes.dbAlias
+    //     }, 'triggerList', {
+    //       tn: nodes.tn
+    //     }])
+
+    //     for (const trigger of triggerList.data.list) {
+    //       const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+    //         {
+    //           env: nodes.env,
+    //           dbAlias: nodes.dbAlias
+    //         },
+    //         'triggerDelete',
+    //         {
+    //           ...trigger,
+    //           tn: nodes.tn,
+    //           oldStatement: trigger.statement
+    //         }])
+
+    //       console.log('triggerDelete result ', result)
+
+    //       this.$toast.success('Trigger deleted successfully').goAway(1000)
+    //     }
+
+    //     let columns = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
+    //       env: nodes.env,
+    //       dbAlias: nodes.dbAlias
+    //     }, 'columnList', {
+    //       tn: nodes.tn
+    //     }])
+
+    //     columns = columns.data.list
+
+    //     await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
+    //       env: nodes.env,
+    //       dbAlias: nodes.dbAlias
+    //     },
+    //     'tableDelete',
+    //     { tn: nodes.tn, columns }])
+
+    //     this.removeTableTab({
+    //       env: nodes.env,
+    //       dbAlias: nodes.dbAlias,
+    //       tn: nodes.tn
+    //     })
+
+    //     await this.loadTablesFromParentTreeNode({
+    //       _nodes: {
+    //         ...nodes
+    //       }
+    //     })
+    //     this.dialogDeleteTable.dialogShow = false
+    //   }
+    // },
     /*    settingsTabAdd() {
           const tabIndex = this.tabs.findIndex(el => el.key === `projectSettings`);
           if (tabIndex !== -1) {
@@ -1096,47 +1245,56 @@ export default {
         },*/
 
     rolesTabAdd() {
-      const tabIndex = this.tabs.findIndex(el => el.key === `roles`);
+      const tabIndex = this.tabs.findIndex((el) => el.key === `roles`);
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex);
       } else {
-        console.log('add roles tab');
-        let item = {name: `${this.$t('title.team&auth')} `, key: `roles`};
-        item._nodes = {env: '_noco'};
-        item._nodes.type = 'roles';
-        this.$store.dispatch('tabs/ActAddTab', item);
+        let item = {
+          name: `${this.$t("title.teamAndAuth")} `,
+          key: `roles`,
+        };
+        item._nodes = {env: "_noco"};
+        item._nodes.type = "roles";
+        this.$store.dispatch("tabs/ActAddTab", item);
       }
     },
     disableOrEnableModelTabAdd() {
-      const tabIndex = this.tabs.findIndex(el => el.key === `disableOrEnableModel`);
+      const tabIndex = this.tabs.findIndex(
+        (el) => el.key === `disableOrEnableModel`
+      );
       if (tabIndex !== -1) {
         this.changeActiveTab(tabIndex);
       } else {
-        console.log('add acl tab');
-        let item = {name: `${this.$t('title.metaMgmt')}`, key: `disableOrEnableModel`};
-        item._nodes = {env: '_noco'};
-        item._nodes.type = 'disableOrEnableModel';
-        this.$store.dispatch('tabs/ActAddTab', item);
-      }
-    }, openAuditTab() {
-      const tabIndex = this.tabs.findIndex(el => el.key === `migrationsDir`);
-      if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex);
-      } else {
-        console.log('add audit tab');
-        let item = {name: `${this.$t('title.audit')}`, key: `migrationsDir`};
-        item._nodes = {
-          env: '_noco',
-          dbAlias: 'db'
+        let item = {
+          name: `${this.$t("title.metaMgmt")}`,
+          key: `disableOrEnableModel`,
         };
-        item._nodes.type = 'migrationsDir';
-        item._nodes.dbKey = '';
-        this.$store.dispatch('tabs/ActAddTab', item);
+        item._nodes = {env: "_noco"};
+        item._nodes.type = "disableOrEnableModel";
+        this.$store.dispatch("tabs/ActAddTab", item);
+      }
+    },
+    openAuditTab() {
+      const tabIndex = this.tabs.findIndex((el) => el.key === `migrationsDir`);
+      if (tabIndex !== -1) {
+        this.changeActiveTab(tabIndex);
+      } else {
+        let item = {
+          name: `${this.$t("title.audit")}`,
+          key: `migrationsDir`,
+        };
+        item._nodes = {
+          env: "_noco",
+          dbAlias: "db",
+        };
+        item._nodes.type = "migrationsDir";
+        item._nodes.dbKey = "";
+        this.$store.dispatch("tabs/ActAddTab", item);
       }
     },
     toggleMini() {
-      this.$store.commit('panelSize/MutSize', {
-        type: 'treeView',
+      this.$store.commit("panelSize/MutSize", {
+        type: "treeView",
         size: this.$store.state.panelSize.treeView.size === 18 ? 5 : 18,
       });
       // this.onMiniHoverEnter();
@@ -1145,85 +1303,90 @@ export default {
     onMiniHoverEnter() {
       if (this.mini && this.$refs.drawer) {
         const el = this.$refs.drawer.$el;
-        this.$refs.drawer.width = el.style.width = '320px';
+        this.$refs.drawer.width = el.style.width = "320px";
         this.miniExpanded = true;
       }
     },
     onMiniHoverLeave() {
       if (this.mini && this.$refs.drawer) {
         const el = this.$refs.drawer.$el;
-        this.navigation.width = this.$refs.drawer.width = el.style.width = '50px';
+        this.navigation.width =
+          this.$refs.drawer.width =
+            el.style.width =
+              "50px";
         this.miniExpanded = false;
       }
     },
     onExcelImport() {
-      if (!this.menuItem || this.menuItem.type !== 'tableDir') {
-        this.menuItem = this.listViewArr.find(n => n.type === 'tableDir');
+      if (!this.menuItem || this.menuItem.type !== "tableDir") {
+        this.menuItem = this.listViewArr.find((n) => n.type === "tableDir");
       }
-      this.loadTables(this.menuItem)
+      this.loadTables(this.menuItem);
     },
     ...mapMutations({
-      setProject: 'project/list',
-      updateProject: 'project/update',
+      setProject: "project/list",
+      updateProject: "project/update",
     }),
     ...mapActions({
-      loadTables: 'project/loadTables',
-      loadProjects: 'project/loadProjects',
-      loadViews: 'project/loadViews',
-      loadProcedures: 'project/loadProcedures',
-      loadSequences: 'project/loadSequences',
-      loadFunctions: 'project/loadFunctions',
-      changeActiveTab: 'tabs/changeActiveTab',
+      loadTables: "project/loadTables",
+      loadProjects: "project/loadProjects",
+      loadViews: "project/loadViews",
+      loadProcedures: "project/loadProcedures",
+      loadSequences: "project/loadSequences",
+      loadFunctions: "project/loadFunctions",
+      changeActiveTab: "tabs/changeActiveTab",
       // instantiateSqlMgr: "sqlMgr/instantiateSqlMgr",
-      loadDefaultTabs: 'tabs/loadDefaultTabs',
       removeTableTab: 'tabs/removeTableTab',
-      loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode',
-      loadViewsFromParentTreeNode: 'project/loadViewsFromParentTreeNode',
-      loadFunctionsFromParentTreeNode: 'project/loadFunctionsFromParentTreeNode',
-      loadProceduresFromParentTreeNode: 'project/loadProceduresFromParentTreeNode',
-      removeTabsByName: 'tabs/removeTabsByName',
-      clearProjects: 'project/clearProjects',
+      loadDefaultTabs: "tabs/loadDefaultTabs",
+      loadTablesFromParentTreeNode: "project/loadTablesFromParentTreeNode",
+      loadViewsFromParentTreeNode: "project/loadViewsFromParentTreeNode",
+      loadFunctionsFromParentTreeNode:
+        "project/loadFunctionsFromParentTreeNode",
+      loadProceduresFromParentTreeNode:
+        "project/loadProceduresFromParentTreeNode",
+      removeTabsByName: "tabs/removeTabsByName",
+      clearProjects: "project/clearProjects",
     }),
     async addTab(item, open, leaf) {
       // console.log("addtab item", item, open, leaf);
       //this.$store.commit('notification/MutToggleProgressBar', true);
       try {
-        if (item._nodes.type === 'tableDir' && !open) {
+        if (item._nodes.type === "tableDir" && !open) {
           //load tables
           await this.loadTables(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
           this.open = currentlyOpened;
-        } else if (item._nodes.type === 'viewDir' && !open) {
+        } else if (item._nodes.type === "viewDir" && !open) {
           await this.loadViews(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
           this.open = currentlyOpened;
-        } else if (item._nodes.type === 'functionDir' && !open) {
+        } else if (item._nodes.type === "functionDir" && !open) {
           await this.loadFunctions(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
           this.open = currentlyOpened;
-        } else if (item._nodes.type === 'procedureDir' && !open) {
+        } else if (item._nodes.type === "procedureDir" && !open) {
           await this.loadProcedures(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
           this.open = currentlyOpened;
-        } else if (item._nodes.type === 'sequenceDir' && !open) {
+        } else if (item._nodes.type === "sequenceDir" && !open) {
           await this.loadSequences(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
           this.open = currentlyOpened;
-        } else if (item._nodes.type === 'env') {
+        } else if (item._nodes.type === "env") {
           return;
         } else {
           // const tabIndex = this.tabs.findIndex(el => el.key === item.key);
-          const tabIndex = this.tabs.findIndex(el => {
+          const tabIndex = this.tabs.findIndex((el) => {
             return (
               ((!el._nodes && !item._nodes) ||
                 (el._nodes &&
@@ -1237,21 +1400,27 @@ export default {
             this.changeActiveTab(tabIndex);
           } else {
             if (
-              item._nodes.type === 'tableDir' ||
-              item._nodes.type === 'project' ||
-              item._nodes.type === 'viewDir' ||
-              item._nodes.type === 'procedureDir' ||
-              item._nodes.type === 'sequenceDir' ||
-              item._nodes.type === 'db' ||
-              item._nodes.type === 'functionDir'
+              item._nodes.type === "tableDir" ||
+              item._nodes.type === "project" ||
+              item._nodes.type === "viewDir" ||
+              item._nodes.type === "procedureDir" ||
+              item._nodes.type === "sequenceDir" ||
+              item._nodes.type === "db" ||
+              item._nodes.type === "functionDir"
             ) {
               return;
             }
-            if (item._nodes.type === 'table') {
-              let tableIndex = +item._nodes.key.split('.').pop();
-              if (!(await this.$store.dispatch('windows/ActCheckMaxTable', {tableIndex}))) return;
+            if (item._nodes.type === "table") {
+              let tableIndex = +item._nodes.key.split(".").pop();
+              if (
+                !(await this.$store.dispatch("windows/ActCheckMaxTable", {
+                  tableIndex,
+                }))
+              ) {
+                return;
+              }
             }
-            this.$store.dispatch('tabs/ActAddTab', item);
+            this.$store.dispatch("tabs/ActAddTab", item);
           }
         }
       } catch (e) {
@@ -1261,20 +1430,27 @@ export default {
       }
     },
     isActiveList(item) {
-      return true//this.treeViewStatus[item.type] = this.treeViewStatus[item.type]  || item.type === this.$route.query.type || item.type === `${this.$route.query.type}Dir`;
+      return true; //this.treeViewStatus[item.type] = this.treeViewStatus[item.type]  || item.type === this.$route.query.type || item.type === `${this.$route.query.type}Dir`;
     },
     showNode(item) {
       return (
         !(
-          this.$store.getters['project/GtrProjectPrefix'] &&
-          ['functionDir', 'procedureDir'].includes(item.type)
+          this.$store.getters["project/GtrProjectPrefix"] &&
+          ["functionDir", "procedureDir"].includes(item.type)
         ) &&
-        (['tableDir', 'viewDir'].includes(item.type) || this._isUIAllowed('advanced'))
+        (["tableDir", "viewDir"].includes(item.type) ||
+          this._isUIAllowed("advanced"))
       );
     },
     showCTXMenu(e, item, open, leaf) {
-      if (!item) return;
+      if (!this._isUIAllowed("treeViewContextMenu")) {
+        return;
+      }
+      if (!item) {
+        return;
+      }
       e.preventDefault();
+      e.stopPropagation();
       this.x = e.clientX;
       this.y = e.clientY;
       this.menuItem = item;
@@ -1285,21 +1461,21 @@ export default {
     },
     async loadProjectsData(id = null) {
       try {
-        this.$store.commit('tabs/clear');
+        this.$store.commit("tabs/clear");
         this.loadingProjects = true;
         await this.loadProjects(id);
 
-        if ('toast' in this.$route.query) {
+        if ("toast" in this.$route.query) {
           this.$toast
-            .success(
-              `Successfully generated ${(
-                this.$store.getters['project/GtrProjectType'] || ''
-              ).toUpperCase()} APIs`,
-              {
-                position: 'top-center',
-              }
-            )
-            .goAway(5000);
+          .success(
+            `Successfully generated ${(
+              this.$store.getters["project/GtrProjectType"] || ""
+            ).toUpperCase()} APIs`,
+            {
+              position: "top-center",
+            }
+          )
+          .goAway(5000);
         }
 
         try {
@@ -1309,25 +1485,33 @@ export default {
             this.projects[0].children[0].children[0].key,
           ];
         } catch (error) {
-          console.log('this.open set array error', error);
+          console.log("this.open set array error", error);
         }
         this.loadingProjects = false;
         if (!this.isTreeView) {
           if (this.$route.query.type) {
-            const node = this.listViewArr.find(n => n.type === `${this.$route.query.type}Dir`);
-            await this.addTab({...(node || this.listViewArr[0])}, false, true);
+            const node = this.listViewArr.find(
+              (n) => n.type === `${this.$route.query.type}Dir`
+            );
+            await this.addTab(
+              {...(node || this.listViewArr[0])},
+              false,
+              true
+            );
           } else {
             await this.addTab({...this.listViewArr[0]}, false, true);
           }
         }
       } catch (error) {
-        console.error('loadProjectsData', error);
+        console.error("loadProjectsData", error);
       }
     },
     ctxMenuOptions() {
-      if (!this.menuItem || !this.menuItem._nodes.type) return;
+      if (!this.menuItem || !this.menuItem._nodes.type) {
+        return;
+      }
       let options = rightClickOptions[this.menuItem._nodes.type];
-      if (!this.$store.getters['users/GtrIsAdmin']) {
+      if (!this.$store.getters["users/GtrIsAdmin"]) {
         options = rightClickOptionsSub[this.menuItem._nodes.type];
       }
       return options;
@@ -1339,28 +1523,43 @@ export default {
     isNested(item) {
       return (
         (item.children && item.children.length) ||
-        ['tableDir', 'viewDir', 'functionDir', 'procedureDir', 'sequenceDir'].includes(item.type)
+        [
+          "tableDir",
+          "viewDir",
+          "functionDir",
+          "procedureDir",
+          "sequenceDir",
+        ].includes(item.type)
+      );
+    },
+    validateUniqueAlias(v) {
+      return (
+        (this.$store.state.project.tables || []).every(
+          (t) =>
+            this.dialogRenameTable.cookie.id === t.id || t.title !== (v || "")
+        ) || "Duplicate table alias"
       );
     },
     async handleCreateBtnClick(type, item) {
       this.menuItem = item;
       switch (type) {
-        case 'tableDir':
+        case "tableDir":
           this.dialogGetTableName.dialogShow = true;
           break;
-        case 'viewDir':
+        case "viewDir":
           this.dialogGetViewName.dialogShow = true;
           break;
-        case 'functionDir':
+        case "functionDir":
           this.dialogGetFunctionName.dialogShow = true;
           break;
-        case 'procedureDir':
+        case "procedureDir":
           this.dialogGetProcedureName.dialogShow = true;
           break;
-        case 'sequenceDir':
+        case "sequenceDir":
           this.dialogGetSequenceName.dialogShow = true;
           break;
       }
+      this.$e("c:table:create:navdraw");
     },
 
     async handleCTXMenuClick(actionStr) {
@@ -1370,43 +1569,46 @@ export default {
         const item = this.menuItem;
         // const options = rightClickOptions[this.menuItem._nodes.type];
         const action = actionStr; //options[actionStr];
+        // this.$e(action)
+
         if (action) {
-          console.log('action and context', item, action);
-          if (action === 'ENV_DB_TABLES_CREATE') {
+          if (action === "ENV_DB_TABLES_CREATE") {
             this.dialogGetTableName.dialogShow = true;
-          } else if (action === 'ENV_DB_VIEWS_CREATE') {
+            this.$e("c:table:create:navdraw:right-click");
+          } else if (action === "ENV_DB_VIEWS_CREATE") {
             this.dialogGetViewName.dialogShow = true;
-          } else if (action === 'ENV_DB_PROCEDURES_CREATE') {
+          } else if (action === "ENV_DB_PROCEDURES_CREATE") {
             this.dialogGetProcedureName.dialogShow = true;
-          } else if (action === 'ENV_DB_SEQUENCES_CREATE') {
+          } else if (action === "ENV_DB_SEQUENCES_CREATE") {
             this.dialogGetSequenceName.dialogShow = true;
-          } else if (action === 'ENV_DB_FUNCTIONS_CREATE') {
+          } else if (action === "ENV_DB_FUNCTIONS_CREATE") {
             this.dialogGetFunctionName.dialogShow = true;
-          } else if (action === 'ENV_DB_FUNCTIONS_CREATE') {
+          } else if (action === "ENV_DB_FUNCTIONS_CREATE") {
             this.dialogGetFunctionName.dialogShow = true;
           } else if (action === "ENV_DB_TABLES_REFRESH") {
             await this.loadTables(this.menuItem);
-            this.$toast.success('Tables refreshed').goAway(1000);
-          } else if (action === 'ENV_DB_VIEWS_REFRESH') {
+            this.$toast.success("Tables refreshed").goAway(1000);
+            this.$e("a:table:refresh:navdraw");
+          } else if (action === "ENV_DB_VIEWS_REFRESH") {
             await this.loadViews(this.menuItem);
-            this.$toast.success('Views refreshed').goAway(1000);
-          } else if (action === 'IMPORT_EXCEL') {
-            this.excelImportDialog = true
-          } else if (action === 'ENV_DB_FUNCTIONS_REFRESH') {
+            this.$toast.success("Views refreshed").goAway(1000);
+          } else if (action === "IMPORT_EXCEL") {
+            this.excelImportDialog = true;
+          } else if (action === "ENV_DB_FUNCTIONS_REFRESH") {
             await this.loadFunctions(this.menuItem);
-            this.$toast.success('Functions refreshed').goAway(1000);
-          } else if (action === 'ENV_DB_PROCEDURES_REFRESH') {
+            this.$toast.success("Functions refreshed").goAway(1000);
+          } else if (action === "ENV_DB_PROCEDURES_REFRESH") {
             await this.loadProcedures(this.menuItem);
-            this.$toast.success('Procedures refreshed').goAway(1000);
-          } else if (action === 'ENV_DB_SEQUENCES_REFRESH') {
+            this.$toast.success("Procedures refreshed").goAway(1000);
+          } else if (action === "ENV_DB_SEQUENCES_REFRESH") {
             await this.loadSequences(this.menuItem);
-            this.$toast.success('Table refreshed').goAway(1000);
-          } else if (action === 'ENV_DB_TABLES_RENAME') {
-            console.log(`${item._nodes.type} Rename`);
+            this.$toast.success("Table refreshed").goAway(1000);
+          } else if (action === "ENV_DB_TABLES_RENAME") {
             this.dialogRenameTable.cookie = item;
             this.dialogRenameTable.dialogShow = true;
             this.dialogRenameTable.defaultValue = item.name;
-          } else if (action === 'ENV_DB_MIGRATION_DOWN') {
+            this.$e("c:table:rename:navdraw:right-click");
+          } else if (action === "ENV_DB_MIGRATION_DOWN") {
             await this.sqlMgr.migrator().migrationsDown({
               env: item._nodes.env,
               dbAlias: item._nodes.dbAlias,
@@ -1414,48 +1616,46 @@ export default {
               folder: this.currentProjectFolder,
               sqlContentMigrate: 1,
             });
-            console.log('migrations down done');
-          } else if (action === 'SHOW_NODES') {
-            console.log('\n_nodes.type = ', item._nodes.type, '\n');
-            console.log('_nodes.key = ', item._nodes.key, '\n');
-            console.log('_nodes = ', item._nodes, '\n');
+          } else if (action === "SHOW_NODES") {
+            console.log("\n_nodes.type = ", item._nodes.type, "\n");
+            console.log("_nodes.key = ", item._nodes.key, "\n");
+            console.log("_nodes = ", item._nodes, "\n");
           } else if (
-            action === 'ENV_DB_TABLES_DELETE' ||
-            action === 'ENV_DB_VIEWS_DELETE' ||
-            action === 'ENV_DB_FUNCTIONS_DELETE' ||
-            action === 'ENV_DB_PROCEDURES_DELETE' ||
-            action === 'ENV_DB_SEQUENCES_DELETE'
+            action === "ENV_DB_TABLES_DELETE" ||
+            action === "ENV_DB_VIEWS_DELETE" ||
+            action === "ENV_DB_FUNCTIONS_DELETE" ||
+            action === "ENV_DB_PROCEDURES_DELETE" ||
+            action === "ENV_DB_SEQUENCES_DELETE"
           ) {
-            console.log(`${item._nodes.type} delete`);
-            this.deleteSelectedNode('showDialog', item);
-          } else if (action === 'ENV_DB_TABLES_CREATE_STATEMENT') {
+            this.deleteSelectedNode("showDialog", item);
+          } else if (action === "ENV_DB_TABLES_CREATE_STATEMENT") {
             await this.handleSqlStatementGeneration(
               item,
-              'tableCreateStatement',
+              "tableCreateStatement",
               `${item.name} Create Statement copied`
             );
-          } else if (action === 'ENV_DB_TABLES_INSERT_STATEMENT') {
+          } else if (action === "ENV_DB_TABLES_INSERT_STATEMENT") {
             await this.handleSqlStatementGeneration(
               item,
-              'tableInsertStatement',
+              "tableInsertStatement",
               `${item.name} Insert Statement copied`
             );
-          } else if (action === 'ENV_DB_TABLES_UPDATE_STATEMENT') {
+          } else if (action === "ENV_DB_TABLES_UPDATE_STATEMENT") {
             await this.handleSqlStatementGeneration(
               item,
-              'tableUpdateStatement',
+              "tableUpdateStatement",
               `${item.name} Update Statement copied`
             );
-          } else if (action === 'ENV_DB_TABLES_DELETE_STATEMENT') {
+          } else if (action === "ENV_DB_TABLES_DELETE_STATEMENT") {
             await this.handleSqlStatementGeneration(
               item,
-              'tableSelectStatement',
+              "tableSelectStatement",
               `${item.name} Delete Statement copied`
             );
-          } else if (action === 'ENV_DB_TABLES_SELECT_STATEMENT') {
+          } else if (action === "ENV_DB_TABLES_SELECT_STATEMENT") {
             await this.handleSqlStatementGeneration(
               item,
-              'tableDeleteStatement',
+              "tableDeleteStatement",
               `${item.name} Select Statement copied`
             );
           } else {
@@ -1471,7 +1671,7 @@ export default {
 
     async handleSqlStatementGeneration(item, func, msg) {
       try {
-        let result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        let result = await this.$store.dispatch("sqlMgr/ActSqlOp", [
           {
             env: item._nodes.env,
             dbAlias: item._nodes.dbAlias,
@@ -1480,9 +1680,9 @@ export default {
           {tn: item.name},
         ]);
         if (result && result.data) {
-          copyTextToClipboard(result.data, 'selection');
+          copyTextToClipboard(result.data, "selection");
         } else {
-          copyTextToClipboard('Example String', 'selection');
+          copyTextToClipboard("Example String", "selection");
         }
 
         let sqlClientNode = {...item._nodes};
@@ -1490,94 +1690,87 @@ export default {
           _nodes: sqlClientNode,
         };
 
-        sqlClientNode.type = 'sqlClientDir';
-        sqlClientNode.key = sqlClientNode.tableDirKey.split('.');
+        sqlClientNode.type = "sqlClientDir";
+        sqlClientNode.key = sqlClientNode.tableDirKey.split(".");
         sqlClientNode.key.pop();
-        sqlClientNode.dbKey = sqlClientNode.key.join('.');
-        sqlClientNode.key.push('sqlClient');
-        sqlClientNode.key = sqlClientNode.key.join('.');
+        sqlClientNode.dbKey = sqlClientNode.key.join(".");
+        sqlClientNode.key.push("sqlClient");
+        sqlClientNode.key = sqlClientNode.key.join(".");
 
-        newItem.key = sqlClientNode.dbKey + '.sqlClient';
-        newItem.name = 'SQL Client';
-        newItem.tooltip = 'SQL Client';
-        newItem.type = 'sqlClientDir';
-
-        console.log('Generated sql client node', sqlClientNode);
+        newItem.key = sqlClientNode.dbKey + ".sqlClient";
+        newItem.name = "SQL Client";
+        newItem.tooltip = "SQL Client";
+        newItem.type = "sqlClientDir";
 
         this.$toast.success(msg).goAway(2000);
 
         this.addTab(newItem, false, false);
 
-        this.$store.commit('queries/MutSetClipboardQuery', result.data);
+        this.$store.commit("queries/MutSetClipboardQuery", result.data);
       } catch (e) {
         console.log(e);
-        this.$toast.error('Something went wrong').goAway(2000);
+        this.$toast.error("Something went wrong").goAway(2000);
       }
     },
 
-    async mtdDialogRenameTableSubmit(_tn, cookie) {
+    async mtdDialogRenameTableSubmit(title, cookie) {
       let item = cookie;
-      await this.$store.dispatch(
-        // 'sqlMgr/ActSqlOpPlus',[
-        'sqlMgr/ActSqlOp', [
-          {
-            env: item._nodes.env,
-            dbAlias: item._nodes.dbAlias,
-          },
-          // 'tableRename',
-          'ncTableAliasRename',
-          {
-            tn: _tn,
-            tn_old: item.name,
-          },
-        ]);
+      try {
+        await this.$api.dbTable.update(item.id, {
+          title,
+        });
+      } catch (e) {
+        this.$toast
+        .error(await this._extractSdkResponseErrorMsg(e))
+        .goAway(3000);
+        return;
+      }
       await this.removeTabsByName(item);
       await this.loadTablesFromParentTreeNode({
         _nodes: {
           ...item._nodes,
         },
       });
-      this.$store.dispatch('tabs/ActAddTab', {
+      this.$store.dispatch("tabs/ActAddTab", {
         _nodes: {
           env: this.menuItem._nodes.env,
           dbAlias: this.menuItem._nodes.dbAlias,
-          tn: this.menuItem._nodes.tn,
-          _tn: _tn,
+          table_name: this.menuItem._nodes.table_name,
+          title: title,
           dbConnection: this.menuItem._nodes.dbConnection,
-
-          type: 'table',
+          type: "table",
           dbKey: this.menuItem._nodes.dbKey,
           key: this.menuItem._nodes.key,
+          tableDirKey: this.menuItem._nodes.tableDirKey,
         },
-        name: _tn,
+        name: title,
       });
       this.dialogRenameTable.dialogShow = false;
       this.dialogRenameTable.defaultValue = null;
-      this.$toast.success('Table renamed successfully').goAway(3000);
-      console.log(_tn, cookie);
+      this.$toast.success("Table renamed successfully").goAway(3000);
+      this.$e("a:table:rename");
     },
     mtdDialogRenameTableCancel() {
-      console.log('mtdDialogGetTableNameCancel cancelled');
       this.dialogRenameTable.dialogShow = false;
       this.dialogRenameTable.defaultValue = null;
     },
     mtdTableCreate(table) {
-      if (!this.menuItem || this.menuItem.type !== 'tableDir') {
-        this.menuItem = this.listViewArr.find(n => n.type === 'tableDir');
+      if (!this.menuItem || this.menuItem.type !== "tableDir") {
+        this.menuItem = this.listViewArr.find((n) => n.type === "tableDir");
       }
       // const tables = table.name.split(',');
-      this.$store.commit('notification/MutToggleProgressBar', true);
+      this.$store.commit("notification/MutToggleProgressBar", true);
       this.dialogGetTableName.dialogShow = false;
       setTimeout(() => {
         // for (let i = 0; i < tables.length; ++i) {
         if (table.name) {
-          this.$store.dispatch('tabs/ActAddTab', {
+          this.$store.dispatch("tabs/ActAddTab", {
             _nodes: {
               env: this.menuItem._nodes.env,
               dbAlias: this.menuItem._nodes.dbAlias,
-              tn: table.name,
-              _tn: table.alias,
-              type: 'table',
+              table_name: table.name,
+              title: table.alias,
+              type: "table",
               dbKey: this.menuItem._nodes.dbKey,
               key: this.menuItem._nodes.key,
               dbConnection: this.menuItem._nodes.dbConnection,
@@ -1587,24 +1780,28 @@ export default {
           });
         }
       });
-      setTimeout(() => this.$store.commit('notification/MutToggleProgressBar', false), 200);
+      setTimeout(
+        () => this.$store.commit("notification/MutToggleProgressBar", false),
+        200
+      );
 
-      this.$set(this.dialogGetTableName, 'dialogShow', false);
+      this.$set(this.dialogGetTableName, "dialogShow", false);
+      this.$e("a:table:create");
     },
     mtdViewCreate(view) {
       // const tables = table.name.split(',');
-      this.$store.commit('notification/MutToggleProgressBar', true);
+      this.$store.commit("notification/MutToggleProgressBar", true);
       this.dialogGetViewName.dialogShow = false;
       setTimeout(() => {
         // for (let i = 0; i < tables.length; ++i) {
         if (view.name) {
-          this.$store.dispatch('tabs/ActAddTab', {
+          this.$store.dispatch("tabs/ActAddTab", {
             _nodes: {
               env: this.menuItem._nodes.env,
               dbAlias: this.menuItem._nodes.dbAlias,
               view_name: view.name,
-              _tn: view.alias,
-              type: 'view',
+              title: view.alias,
+              type: "view",
               dbKey: this.menuItem._nodes.key,
               key: this.menuItem._nodes.key,
               dbConnection: this.menuItem._nodes.dbConnection,
@@ -1614,26 +1811,27 @@ export default {
           });
         }
       });
-      setTimeout(() => this.$store.commit('notification/MutToggleProgressBar', false), 200);
+      setTimeout(
+        () => this.$store.commit("notification/MutToggleProgressBar", false),
+        200
+      );
 
-      this.$set(this.dialogGetTableName, 'dialogShow', false);
+      this.$set(this.dialogGetTableName, "dialogShow", false);
     },
     mtdDialogGetTableNameSubmit(tn, cookie) {
-      console.log(tn);
-
-      let tables = tn.split(',');
-      this.$store.commit('notification/MutToggleProgressBar', true);
+      let tables = tn.split(",");
+      this.$store.commit("notification/MutToggleProgressBar", true);
       this.dialogGetTableName.dialogShow = false;
       setTimeout(() => {
         for (let i = 0; i < tables.length; ++i) {
           if (tables[i]) {
-            this.$store.dispatch('tabs/ActAddTab', {
+            this.$store.dispatch("tabs/ActAddTab", {
               _nodes: {
                 env: this.menuItem._nodes.env,
                 dbAlias: this.menuItem._nodes.dbAlias,
                 tn: tables[i],
 
-                type: 'table',
+                type: "table",
                 dbKey: this.menuItem._nodes.dbKey,
                 key: this.menuItem._nodes.key,
                 dbConnection: this.menuItem._nodes.dbConnection,
@@ -1645,21 +1843,22 @@ export default {
           }
         }
       });
-      setTimeout(() => this.$store.commit('notification/MutToggleProgressBar', false), 200);
+      setTimeout(
+        () => this.$store.commit("notification/MutToggleProgressBar", false),
+        200
+      );
     },
     mtdDialogGetTableNameCancel() {
-      console.log('mtdDialogGetTableNameCancel cancelled');
       this.dialogGetTableName.dialogShow = false;
     },
     mtdDialogGetViewNameSubmit(view_name) {
-      console.log(view_name);
-      this.$store.dispatch('tabs/ActAddTab', {
+      this.$store.dispatch("tabs/ActAddTab", {
         _nodes: {
           env: this.menuItem._nodes.env,
           dbAlias: this.menuItem._nodes.dbAlias,
           view_name: view_name,
 
-          type: 'view',
+          type: "view",
           dbKey: this.menuItem._nodes.key,
           key: this.menuItem._nodes.key,
           dbConnection: this.menuItem._nodes.dbConnection,
@@ -1671,19 +1870,17 @@ export default {
       this.dialogGetViewName.dialogShow = false;
     },
     mtdDialogGetViewNameCancel() {
-      console.log('mtdDialogGetTableNameCancel cancelled');
       this.dialogGetViewName.dialogShow = false;
     },
     mtdDialogGetFunctionNameSubmit(function_name) {
-      console.log(function_name);
-      this.$store.dispatch('tabs/ActAddTab', {
+      this.$store.dispatch("tabs/ActAddTab", {
         _nodes: {
           dbKey: this.menuItem._nodes.dbKey,
           env: this.menuItem._nodes.env,
           dbAlias: this.menuItem._nodes.dbAlias,
           function_name: function_name,
           newFunction: true,
-          type: 'function',
+          type: "function",
           key: this.menuItem._nodes.key,
           dbConnection: this.menuItem._nodes.dbConnection,
         },
@@ -1692,19 +1889,17 @@ export default {
       this.dialogGetFunctionName.dialogShow = false;
     },
     mtdDialogGetFunctionNameCancel() {
-      console.log('mtdDialogGetFunctionNameCancel cancelled');
       this.dialogGetFunctionName.dialogShow = false;
     },
     mtdDialogGetProcedureNameSubmit(procedure_name) {
-      console.log(procedure_name);
-      this.$store.dispatch('tabs/ActAddTab', {
+      this.$store.dispatch("tabs/ActAddTab", {
         _nodes: {
           dbKey: this.menuItem._nodes.dbKey,
           env: this.menuItem._nodes.env,
           dbAlias: this.menuItem._nodes.dbAlias,
           procedure_name: procedure_name,
           newProcedure: true,
-          type: 'procedure',
+          type: "procedure",
           key: this.menuItem._nodes.key,
         },
         name: procedure_name,
@@ -1712,15 +1907,14 @@ export default {
       this.dialogGetProcedureName.dialogShow = false;
     },
     mtdDialogGetSequenceNameSubmit(sequence_name) {
-      console.log(sequence_name);
-      this.$store.dispatch('tabs/ActAddTab', {
+      this.$store.dispatch("tabs/ActAddTab", {
         _nodes: {
           dbKey: this.menuItem._nodes.dbKey,
           env: this.menuItem._nodes.env,
           dbAlias: this.menuItem._nodes.dbAlias,
           sequence_name: sequence_name,
           newSequence: true,
-          type: 'sequence',
+          type: "sequence",
           key: this.menuItem._nodes.key,
           dbConnection: this.menuItem._nodes.dbConnection,
         },
@@ -1729,21 +1923,19 @@ export default {
       this.dialogGetSequenceName.dialogShow = false;
     },
     mtdDialogGetProcedureNameCancel() {
-      console.log('mtdDialogGetProcedureNameCancel cancelled');
       this.dialogGetProcedureName.dialogShow = false;
     },
     mtdDialogGetSequenceNameCancel() {
-      console.log('mtdDialogGetSequenceNameCancel cancelled');
       this.dialogGetSequenceName.dialogShow = false;
     },
-    async renameSelectedNode(action = '', item) {
-      if (action === 'showDialog') {
+    async renameSelectedNode(action = "", item) {
+      if (action === "showDialog") {
         this.selectedNodeForRename = {
           dialog: true,
           item: item,
           heading: `Rename ${item._nodes.type}`,
         };
-      } else if (action === 'hideDialog') {
+      } else if (action === "hideDialog") {
         this.selectedNodeForDelete = {
           dialog: false,
           item: null,
@@ -1752,14 +1944,14 @@ export default {
       } else {
       }
     },
-    async deleteSelectedNode(action = '', item) {
-      if (action === 'showDialog') {
+    async deleteSelectedNode(action = "", item) {
+      if (action === "showDialog") {
         this.selectedNodeForDelete = {
           dialog: true,
           item: item,
           heading: `Click Submit to Delete The ${item._nodes.type}`,
         };
-      } else if (action === 'hideDialog') {
+      } else if (action === "hideDialog") {
         this.selectedNodeForDelete = {
           dialog: false,
           item: null,
@@ -1767,15 +1959,15 @@ export default {
         };
       } else {
         item = this.selectedNodeForDelete.item;
-        if (item._nodes.type === 'table') {
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        if (item._nodes.type === "table") {
+          const result = await this.$store.dispatch("sqlMgr/ActSqlOp", [
             {
               env: item._nodes.env,
               dbAlias: item._nodes.dbAlias,
             },
-            'columnList',
+            "columnList",
             {
-              tn: item._nodes.tn,
+              table_name: item._nodes.table_name,
             },
           ]);
 
@@ -1784,31 +1976,34 @@ export default {
               env: item._nodes.env,
               dbAlias: item._nodes.dbAlias,
             },
-            'tableDelete',
-            {tn: item._nodes.tn, columns: columns.data.list}
+            "tableDelete",
+            {
+              table_name: item._nodes.table_name,
+              columns: columns.data.list,
+            }
           );
           await this.loadTablesFromParentTreeNode({
             _nodes: {
               ...item._nodes,
             },
           });
-          this.$toast.success('Table deleted successfully').goAway(3000);
-        } else if (item._nodes.type === 'view') {
-          const view = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          this.$toast.success("Table deleted successfully").goAway(3000);
+        } else if (item._nodes.type === "view") {
+          const view = await this.$store.dispatch("sqlMgr/ActSqlOp", [
             {
               env: item._nodes.env,
               dbAlias: item._nodes.dbAlias,
             },
-            'viewRead',
+            "viewRead",
             {view_name: item._nodes.view_name},
           ]);
 
-          await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          await this.$store.dispatch("sqlMgr/ActSqlOpPlus", [
             {
               env: item._nodes.env,
               dbAlias: item._nodes.dbAlias,
             },
-            'viewDelete',
+            "viewDelete",
             {
               view_name: item._nodes.view_name,
               oldViewDefination: view.view_definition,
@@ -1819,25 +2014,25 @@ export default {
               ...item._nodes,
             },
           });
-          this.$toast.success('View deleted successfully').goAway(3000);
-        } else if (item._nodes.type === 'function') {
-          const _function = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          this.$toast.success("View deleted successfully").goAway(3000);
+        } else if (item._nodes.type === "function") {
+          const _function = await this.$store.dispatch("sqlMgr/ActSqlOp", [
             {
               env: item._nodes.env,
               dbAlias: item._nodes.dbAlias,
             },
-            'functionRead',
+            "functionRead",
             {
               function_name: item._nodes.function_name,
             },
           ]);
 
-          await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          await this.$store.dispatch("sqlMgr/ActSqlOpPlus", [
             {
               env: item._nodes.env,
               dbAlias: item._nodes.dbAlias,
             },
-            'functionDelete',
+            "functionDelete",
             {
               function_name: item._nodes.function_name,
               oldCreateFunction: _function.create_function,
@@ -1849,25 +2044,25 @@ export default {
               ...item._nodes,
             },
           });
-          this.$toast.success('Function deleted successfully').goAway(3000);
-        } else if (item._nodes.type === 'procedure') {
-          const procedure = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          this.$toast.success("Function deleted successfully").goAway(3000);
+        } else if (item._nodes.type === "procedure") {
+          const procedure = await this.$store.dispatch("sqlMgr/ActSqlOp", [
             {
               env: item._nodes.env,
               dbAlias: item._nodes.dbAlias,
             },
-            'procedureRead',
+            "procedureRead",
             {
               procedure_name: item._nodes.procedure_name,
             },
           ]);
 
-          await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          await this.$store.dispatch("sqlMgr/ActSqlOpPlus", [
             {
               env: item._nodes.env,
               dbAlias: item._nodes.dbAlias,
             },
-            'procedureDelete',
+            "procedureDelete",
             {
               procedure_name: item._nodes.procedure_name,
               create_procedure: procedure.create_procedure,
@@ -1879,7 +2074,7 @@ export default {
               ...item._nodes,
             },
           });
-          this.$toast.success('Procedure deleted successfully').goAway(3000);
+          this.$toast.success("Procedure deleted successfully").goAway(3000);
         }
 
         await this.removeTabsByName(item);
@@ -1892,7 +2087,10 @@ export default {
       }
     },
     validateTableName(v) {
-      return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
+      return validateTableName(
+        v,
+        this.$store.getters["project/GtrProjectIsGraphql"]
+      );
     },
   },
   async created() {
@@ -1900,11 +2098,11 @@ export default {
     // this.instantiateSqlMgr();
     const _id = this.$route.params.project;
 
-    if (_id === 'external') {
+    if (_id === "external") {
     }
     await this.loadProjectsData(_id);
     this.loadDefaultTabs(true);
-    this.loadRoles();
+    // this.loadRoles();
   },
   beforeCreate() {
   },
@@ -1985,7 +2183,10 @@ export default {
   font-weight: 700 !important;
 }
 
-/deep/ .v-list-group .v-list-group__header .v-list-item__icon.v-list-group__header__append-icon {
+/deep/
+.v-list-group
+.v-list-group__header
+.v-list-item__icon.v-list-group__header__append-icon {
   min-width: auto;
 }
 
@@ -2006,19 +2207,23 @@ export default {
   top: 6px;
 }
 
-
-/deep/ .nc-table-list-filter.theme--light.v-text-field > .v-input__control > .v-input__slot:before {
+/deep/
+.nc-table-list-filter.theme--light.v-text-field
+> .v-input__control
+> .v-input__slot:before {
   border-top-color: rgba(0, 0, 0, 0.12) !important;
 }
 
-/deep/ .nc-table-list-filter.theme--dark.v-text-field > .v-input__control > .v-input__slot:before {
+/deep/
+.nc-table-list-filter.theme--dark.v-text-field
+> .v-input__control
+> .v-input__slot:before {
   border-top-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-
 .nc-draggable-child .nc-child-draggable-icon {
   opacity: 0;
-  transition: .3s opacity;
+  transition: 0.3s opacity;
   position: absolute;
   left: 0;
 }
@@ -2026,7 +2231,6 @@ export default {
 .nc-draggable-child:hover .nc-child-draggable-icon {
   opacity: 1;
 }
-
 
 .flip-list-move {
   transition: transform 0.5s;
@@ -2043,24 +2247,38 @@ export default {
 
 .nc-project-title {
   height: 30px;
-  width: 100%;
+  /*width: 100%;*/
   display: flex;
-  justify-content: center;
+  justify-content: flex-start;
+}
+
+.nc-project-title.shared {
+  align-items: center;
+}
+
+.nc-project-title:not(.shared) {
+  padding-left: 30px;
+}
+
+.nc-project-title.shared > h3 {
+  padding: 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  align-items: center;
 }
 
 .nc-project-title > div {
-  display: block;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  overflow: hidden;
-  color: white;
-  font-weight: bold;
-  padding:0  10px 10px 10px;
-  text-transform: capitalize;
-  line-height: 20px;
-  min-width: calc(100% - 30px);
+  /*  display: block;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    overflow: hidden;
+    color: white;
+    font-weight: bold;
+    padding: 0 10px 10px 10px;
+    text-transform: capitalize;
+    line-height: 20px;
+    min-width: calc(100% - 30px);*/
 }
-
 </style>
 
 <!--

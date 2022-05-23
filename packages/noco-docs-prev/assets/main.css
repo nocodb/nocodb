@@ -1,0 +1,7 @@
+main.container{
+    max-width:100% !important;
+}
+
+footer a[href="https://nuxtjs.org"]{
+    display: none;
+}

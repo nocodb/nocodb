@@ -19,7 +19,7 @@
                      href: '#'
                    },
                    {
-                     text: nodes._tn + ' (table)',
+                     text: nodes.title + ' (table)',
                      disabled: true,
                      href: '#'
                    }]"
@@ -207,7 +207,7 @@
                       @change="mtdToggleColumnInIndex(props.item, props.index)"
                     />
                   </td>
-                  <td>{{ props.item.cn }}</td>
+                  <td>{{ props.item.column_name }}</td>
                   <td>{{ props.item.seq_in_index }}</td>
                 </tr>
               </template>
@@ -342,7 +342,7 @@ export default {
       const cols = []
 
       for (let i = 0; i < tempIndexes.length; i++) {
-        cols.push(tempIndexes[i].cn)
+        cols.push(tempIndexes[i].column_name)
       }
 
       return cols
@@ -369,7 +369,7 @@ export default {
           },
           'indexCreate',
           {
-            tn: this.nodes.tn,
+            table_name: this.nodes.table_name,
             columns: cols,
             indexName: aggregatedIndex.key_name,
             non_unique: aggregatedIndex.non_unique
@@ -393,7 +393,7 @@ export default {
         //   },
         //   "indexDelete",
         //   {
-        //     tn: this.nodes.tn,
+        //     table_name: this.nodes.table_name,
         //     columns: colsToRemove,
         //     indexName: aggregatedIndex.key_name,
         //     non_unique: aggregatedIndex.non_unique
@@ -407,7 +407,7 @@ export default {
           },
           'indexDelete',
           {
-            tn: this.nodes.tn,
+            table_name: this.nodes.table_name,
             columns: colsToRemove,
             indexName: aggregatedIndex.key_name,
             non_unique: aggregatedIndex.non_unique,
@@ -429,7 +429,7 @@ export default {
         //   },
         //   "indexCreate",
         //   {
-        //     tn: this.nodes.tn,
+        //     tn: this.nodes.table_name,
         //     columns: colsToCreate,
         //     indexName: aggregatedIndex.key_name,
         //     non_unique: aggregatedIndex.non_unique
@@ -443,7 +443,7 @@ export default {
           },
           'indexCreate',
           {
-            tn: this.nodes.tn,
+            tn: this.nodes.table_name,
             columns: colsToCreate,
             indexName: aggregatedIndex.key_name,
             non_unique: aggregatedIndex.non_unique
@@ -490,12 +490,12 @@ export default {
           const cols = []
 
           for (let i = 0; i < tempIndexes.length; i++) {
-            cols.push(tempIndexes[i].cn)
+            cols.push(tempIndexes[i].column_name)
           }
           /** ************* END : get columns in this index ***************/
 
           // const result = await client.indexDelete({
-          //   tn: this.nodes.tn,
+          //   tn: this.nodes.table_name,
           //   columns: cols,
           //   indexName: this.selectedIndexForDelete.aggregatedIndex.key_name
           // });
@@ -507,7 +507,7 @@ export default {
           //   },
           //   "indexDelete",
           //   {
-          //     tn: this.nodes.tn,
+          //     tn: this.nodes.table_name,
           //     columns: cols,
           //     indexName: this.selectedIndexForDelete.aggregatedIndex.key_name,
           //     non_unique: this.selectedIndexForDelete.aggregatedIndex.non_unique
@@ -521,7 +521,7 @@ export default {
             },
             'indexDelete',
             {
-              tn: this.nodes.tn,
+              tn: this.nodes.table_name,
               columns: cols,
               indexName: this.selectedIndexForDelete.aggregatedIndex.key_name,
               non_unique: this.selectedIndexForDelete.aggregatedIndex.non_unique,
@@ -634,7 +634,7 @@ export default {
       //   if (indexObj.key_name === this.indexes[i].key_name) {
       //     console.log(indexObj.key_name, this.indexes[i].key_name);
       //     for (let j = 0; j < this.columns.length; j++) {
-      //       if (this.indexes[i].cn === this.columns[j].cn) {
+      //       if (this.indexes[i].column_name === this.columns[j].column_name) {
       //         indexObj.columns[j].seq_in_index = this.indexes[i].seq_in_index;
       //         indexObj.columns[j].is_index = true;
       //         console.log("Column is in index: ", this.columns[j]);
@@ -651,7 +651,7 @@ export default {
           if (indexObj.key_name === this.indexes[i].key_name) {
             console.log(indexObj.key_name, this.indexes[i].key_name)
             for (let j = 0; j < this.columns.length; j++) {
-              if (this.indexes[i].cn === this.columns[j].cn) {
+              if (this.indexes[i].column_name === this.columns[j].column_name) {
                 indexObj.columns[j].seq_in_index = this.indexes[i].seq_in_index
                 indexObj.columns[j].is_index = true
                 console.log('Column is in index: ', this.columns[j])
@@ -697,20 +697,20 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // });
       // const result = await client.indexList({
-      //   tn: this.nodes.tn
+      //   tn: this.nodes.table_name
       // });
       // const result = await this.sqlMgr.sqlOp({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // }, 'indexList', {
-      //   tn: this.nodes.tn
+      //   tn: this.nodes.table_name
       // })
 
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'indexList', {
-        tn: this.nodes.tn
+        tn: this.nodes.table_name
       }])
 
       this.createAggregatedIndexesList(result.data.list)
@@ -731,21 +731,21 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // });
       // const result = await client.columnList({
-      //   tn: this.nodes.tn
+      //   tn: this.nodes.table_name
       // });
 
       // const result = await this.sqlMgr.sqlOp({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
       // }, 'columnList', {
-      //   tn: this.nodes.tn
+      //   tn: this.nodes.table_name
       // })
 
       const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias
       }, 'columnList', {
-        tn: this.nodes.tn
+        tn: this.nodes.table_name
       }])
 
       this.columns = JSON.parse(JSON.stringify(result.data.list))

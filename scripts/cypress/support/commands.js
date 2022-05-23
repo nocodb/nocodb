@@ -47,6 +47,8 @@ Cypress.Commands.add("signinOrSignup", (_args) => {
         _args
     );
 
+    cy.wait(1000);
+
     // signin/signup
     cy.get("body").then(($body) => {
         // cy.wait(1000)
@@ -74,6 +76,13 @@ Cypress.Commands.add("signinOrSignup", (_args) => {
                     cy.snip("SignIn");
                     cy.get('button:contains("SIGN IN")').click();
                 }
+            } else if (url.includes("/signin")) {
+                cy.get('input[type="text"]', { timeout: 12000 }).type(
+                    args.username
+                );
+                cy.get('input[type="password"]').type(args.password);
+                cy.snip("SignIn");
+                cy.get('button:contains("SIGN IN")').click();
             }
         });
     });
@@ -153,14 +162,16 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
         .click({ force: true });
 
     cy.get(".nc-project-tree")
-        .contains(tn, { timeout: 6000 })
+        .contains(tn)
+        .should('exist')
         .first()
         .click({ force: true });
 
-    cy.get(`.project-tab`).contains(tn, { timeout: 10000 }).should("exist");
+    cy.get(`.project-tab`).contains(tn).should("exist");
 
     cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+        .find(".v-list-item__title:contains(Tables)")
+        .should('exist')
         .first()
         .click({ force: true });
 
@@ -174,8 +185,8 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
 
 Cypress.Commands.add("closeTableTab", (tn) => {
     cy.task("log", `[closeTableTab] ${tn}`);
-    cy.get(`.project-tab`).contains(tn, { timeout: 10000 }).should("exist");
-    cy.get(`[href="#table||db||${tn}"]`).find("button.mdi-close").click();
+    cy.get(`.project-tab`).contains(tn).should("exist");
+    cy.get(`[href="#table||||${tn}"]`).find("button.mdi-close").click();
 });
 
 Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
@@ -212,7 +223,7 @@ Cypress.Commands.add("openOrCreateGqlProject", (_args) => {
                 cy.contains("GRAPHQL APIs").closest("label").click();
                 cy.get(".database-field input").click().clear().type("sakila");
                 cy.contains("Test Database Connection").click();
-                cy.contains("Ok & Save Project", { timeout: 3000 }).click();
+                cy.contains("Ok & Save Project").should('exist').click();
             }
         }
     });
@@ -271,11 +282,13 @@ Cypress.Commands.add("createTable", (name) => {
 
 Cypress.Commands.add("deleteTable", (name, dbType) => {
     cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+        .find(".v-list-item__title:contains(Tables)")
+        .should('exist')
         .first()
         .click();
     cy.get(".nc-project-tree")
-        .contains(name, { timeout: 6000 })
+        .contains(name)
+        .should('exist')
         .first()
         .click({ force: true });
     cy.get(`.project-tab:contains(${name}):visible`).should("exist");
@@ -292,13 +305,15 @@ Cypress.Commands.add("deleteTable", (name, dbType) => {
 Cypress.Commands.add("renameTable", (oldName, newName) => {
     // expand project tree
     cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+        .find(".v-list-item__title:contains(Tables)")
+        .should('exist')
         .first()
         .click();
 
     // right click on project table name
     cy.get(".nc-project-tree")
-        .contains(oldName, { timeout: 6000 })
+        .contains(oldName)
+        .should('exist')
         .first()
         .rightclick();
 
@@ -319,18 +334,23 @@ Cypress.Commands.add("renameTable", (oldName, newName) => {
 
     // close expanded project tree
     cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+        .find(".v-list-item__title:contains(Tables)")
+        .should('exist')
         .first()
         .click();
+
+    cy.wait(8000)
 });
 
 Cypress.Commands.add("createColumn", (table, columnName) => {
     cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+        .find(".v-list-item__title:contains(Tables)")
+        .should('exist')
         .first()
         .click();
     cy.get(".nc-project-tree")
-        .contains(table, { timeout: 6000 })
+        .contains(table)
+        .should('exist')
         .first()
         .click({ force: true });
     cy.get(`.project-tab:contains(${table}):visible`).should("exist");
@@ -344,10 +364,11 @@ Cypress.Commands.add("createColumn", (table, columnName) => {
 });
 
 Cypress.Commands.add("toastWait", (msg) => {
-    cy.get(".toasted:visible", { timout: 12000 }).contains(msg).should("exist");
-    cy.get(".toasted:visible", { timout: 12000 })
-        .contains(msg)
-        .should("not.exist");
+    // cy.get(".toasted:visible", { timout: 12000 }).contains(msg).should("exist");
+    // cy.get(".toasted:visible", { timout: 12000 })
+    //     .contains(msg)
+    //     .should("not.exist");
+    cy.wait(3000);
 });
 
 // vn: view name
@@ -356,7 +377,7 @@ Cypress.Commands.add("openViewsTab", (vn, rc) => {
     cy.task("log", `[openViewsTab] ${vn} ${rc}`);
 
     cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+        .find(".v-list-item__title:contains(Tables)")
         .should("exist")
         .first()
         .click({ force: true });
@@ -366,10 +387,11 @@ Cypress.Commands.add("openViewsTab", (vn, rc) => {
         .first()
         .click({ force: true });
 
-    cy.get(`.project-tab`).contains(vn, { timeout: 10000 }).should("exist");
+    cy.get(`.project-tab`).contains(vn).should("exist");
 
     cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
+        .find(".v-list-item__title:contains(Tables)")
+        .should('exist')
         .first()
         .click({ force: true });
 
@@ -381,8 +403,8 @@ Cypress.Commands.add("openViewsTab", (vn, rc) => {
 
 Cypress.Commands.add("closeViewsTab", (vn) => {
     cy.task("log", `[closeViewsTab] ${vn}`);
-    cy.get(`.project-tab`).contains(vn, { timeout: 10000 }).should("exist");
-    cy.get(`[href="#view||db||${vn}"]`)
+    cy.get(`.project-tab`).contains(vn).should("exist");
+    cy.get(`[href="#view||||${vn}"]`)
         .find("button.mdi-close")
         .click({ force: true });
 });
@@ -438,6 +460,7 @@ Cypress.Commands.add("snipActiveMenu", (filename) => {
         cy.screenshot(storeName, { overwrite: true });
     }
 });
+
 
 // Drag n Drop
 // refer: https://stackoverflow.com/a/55409853

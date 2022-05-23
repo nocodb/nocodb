@@ -21,8 +21,6 @@
 export default {
   name: 'Loader',
   props: {
-    // message: String,
-    // progress: Number
   },
   computed: {
     message() {

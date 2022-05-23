@@ -73,63 +73,6 @@
       </div>
     </div>
   </section>
-
-  <!--<div align="center">-->
-
-  <!--&lt;!&ndash;<h1>user.accounts</h1>&ndash;&gt;-->
-  <!--&lt;!&ndash;<section class="row">&ndash;&gt;-->
-  <!--&lt;!&ndash;<h3 class="col-md-12 text-center" ng-show="hasConnectedAdditionalSocialAccounts()">Connected social accounts:</h3>&ndash;&gt;-->
-  <!--&lt;!&ndash;<div class="col-md-12 text-center">&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;<div ng-repeat="(providerName, providerData) in user.additionalProvidersData" class="social-account-container">&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;&lt;!&ndash;<img ng-src="/modules/users/client/img/buttons/{{providerName}}.png">&ndash;&gt;&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;<a class="btn btn-danger btn-raised btn-remove-account" ng-click="removeUserSocialAccount(providerName)">&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;<i class="glyphicon glyphicon-trash"></i>&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;</a>&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;</div>&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;</div>&ndash;&gt;-->
-  <!--&lt;!&ndash;<h3 class="col-md-12 text-center" ng-show="hasConnectedAdditionalSocialAccounts()">&ndash;&gt;-->
-  <!--&lt;!&ndash;Unconnected social accounts:</h3>&ndash;&gt;-->
-  <!--&lt;!&ndash;<div class="col-md-12 text-center">&ndash;&gt;-->
-  <!--&lt;!&ndash;<div class="social-account-container" ng-hide="isConnectedSocialAccount('facebook')">&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;<img ng-src="/modules/users/client/img/buttons/facebook.png">&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;<a class="btn btn-success btn-raised btn-remove-account" href="/api/auth/facebook" target="_self">&ndash;&gt;-->
-  <!--&lt;!&ndash;<i class="glyphicon glyphicon-plus">Facebook</i>&ndash;&gt;-->
-  <!--&lt;!&ndash;</a>&ndash;&gt;-->
-  <!--&lt;!&ndash;</div>&ndash;&gt;-->
-  <!--&lt;!&ndash;<div class="social-account-container" ng-hide="isConnectedSocialAccount('twitter')">&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;<img ng-src="/modules/users/client/img/buttons/twitter.png">&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;<a class="btn btn-success btn-raised btn-remove-account" href="/api/auth/twitter" target="_self">&ndash;&gt;-->
-  <!--&lt;!&ndash;<i class="glyphicon glyphicon-plus">twitter</i>&ndash;&gt;-->
-  <!--&lt;!&ndash;</a>&ndash;&gt;-->
-  <!--&lt;!&ndash;</div>&ndash;&gt;-->
-  <!--&lt;!&ndash;<div class="social-account-container" ng-hide="isConnectedSocialAccount('google')">&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;<img ng-src="/modules/users/client/img/buttons/google.png">&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;<a class="btn btn-success btn-raised btn-remove-account" href="/api/auth/google" target="_self">&ndash;&gt;-->
-  <!--&lt;!&ndash;<i class="glyphicon glyphicon-plus">google</i>&ndash;&gt;-->
-  <!--&lt;!&ndash;</a>&ndash;&gt;-->
-  <!--&lt;!&ndash;</div>&ndash;&gt;-->
-  <!--&lt;!&ndash;<div class="social-account-container" ng-hide="isConnectedSocialAccount('linkedin')">&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;<img ng-src="/modules/users/client/img/buttons/linkedin.png">&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;<a class="btn btn-success btn-raised btn-remove-account" href="/api/auth/linkedin" target="_self">&ndash;&gt;-->
-  <!--&lt;!&ndash;<i class="glyphicon glyphicon-plus">linkedin</i>&ndash;&gt;-->
-  <!--&lt;!&ndash;</a>&ndash;&gt;-->
-  <!--&lt;!&ndash;</div>&ndash;&gt;-->
-  <!--&lt;!&ndash;<div class="social-account-container" ng-hide="isConnectedSocialAccount('github')">&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;<img ng-src="/modules/users/client/img/buttons/github.png">&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;<a class="btn btn-success btn-raised btn-remove-account" href="/api/auth/github" target="_self">&ndash;&gt;-->
-  <!--&lt;!&ndash;<i class="glyphicon glyphicon-plus">github</i>&ndash;&gt;-->
-  <!--&lt;!&ndash;</a>&ndash;&gt;-->
-  <!--&lt;!&ndash;</div>&ndash;&gt;-->
-  <!--&lt;!&ndash;<div class="social-account-container" ng-hide="isConnectedSocialAccount('paypal')">&ndash;&gt;-->
-  <!--&lt;!&ndash;&lt;!&ndash;<img ng-src="/modules/users/client/img/buttons/paypal.png">&ndash;&gt;&ndash;&gt;-->
-  <!--&lt;!&ndash;<a class="btn btn-success btn-raised btn-remove-account" href="/api/auth/paypal" target="_self">&ndash;&gt;-->
-  <!--&lt;!&ndash;<i class="glyphicon glyphicon-plus">paypal</i>&ndash;&gt;-->
-  <!--&lt;!&ndash;</a>&ndash;&gt;-->
-  <!--&lt;!&ndash;</div>&ndash;&gt;-->
-  <!--&lt;!&ndash;</div>&ndash;&gt;-->
-  <!--&lt;!&ndash;</section>&ndash;&gt;-->
-
-  <!--</div>-->
 </template>
 
 <script>

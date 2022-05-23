@@ -1,4 +1,4 @@
-import { XcActionType, XcForm, XcType } from 'nc-common';
+import { XcActionType, XcForm, XcType } from 'nocodb-sdk';
 
 const input: XcForm = {
   title: 'Configure Email SMTP',
@@ -33,9 +33,9 @@ const input: XcForm = {
     },
     {
       key: 'ignoreTLS',
-      label: 'IgnoreTLS',
-      placeholder: 'IgnoreTLS',
-      type: XcType.SingleLineText,
+      label: 'Ignore TLS',
+      placeholder: 'Ignore TLS',
+      type: XcType.Checkbox,
       required: true
     },
     {

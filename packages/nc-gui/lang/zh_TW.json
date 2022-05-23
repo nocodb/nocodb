@@ -1,6 +1,6 @@
 {
   "general": {
-    "home": "家",
+    "home": "首頁",
     "load": "加載",
     "open": "打開",
     "close": "關閉",
@@ -59,11 +59,11 @@
   "objects": {
     "project": "項目",
     "projects": "項目",
-    "table": "桌子",
-    "tables": "桌子",
-    "field": "場地",
-    "fields": "領域",
-    "column": "柱子",
+    "table": "表格",
+    "tables": "表格",
+    "field": "欄位",
+    "fields": "欄位",
+    "column": "列",
     "columns": "列",
     "page": "頁",
     "pages": "頁面",
@@ -97,7 +97,7 @@
     "ForeignKey": "外鑰匙",
     "SingleLineText": "單行文本",
     "LongText": "長篇文章",
-    "Attachment": "依戀",
+    "Attachment": "附件",
     "Checkbox": "複選框",
     "MultiSelect": "多選",
     "SingleSelect": "單個選擇",
@@ -118,7 +118,7 @@
     "Rollup": "捲起",
     "Count": "數數",
     "Lookup": "抬頭",
-    "DateTime": "約會時間",
+    "DateTime": "日期時間",
     "CreateTime": "創建時間",
     "LastModifiedTime": "最後修改時間",
     "AutoNumber": "自動編號",
@@ -134,10 +134,10 @@
     }
   },
   "filterOperation": {
-    "isEqual": "是平等的",
-    "isNotEqual": "不平等",
-    "isLike": "就好像",
-    "isNot like": "不喜歡",
+    "isEqual": "完全一致",
+    "isNotEqual": "完全不一致",
+    "isLike": "部分一致",
+    "isNot like": "部分不一致",
     "isEmpty": "是空的",
     "isNotEmpty": "不是空的",
     "isNull": "一片空白",
@@ -151,7 +151,7 @@
     "lockedView": "鎖定視圖",
     "personalView": "個人觀",
     "appStore": "應用程式商店",
-    "team&auth": "團隊和認證",
+    "teamAndAuth": "團隊和認證",
     "rolesUserMgmt": "角色和使用者管理",
     "userMgmt": "使用者管理",
     "apiTokenMgmt": "API 權杖管理",
@@ -169,7 +169,9 @@
     "advancedParameters": "SSL 及進階參數",
     "headCreateProject": "建立新專案｜NocoDB",
     "headLogin": "登入｜NocoDB",
-    "resetPassword": "重設密碼"
+    "resetPassword": "重設密碼",
+    "teamAndSettings": "Team & Settings",
+    "apiDocs": "API Docs"
   },
   "labels": {
     "notifyVia": "通知Via",
@@ -189,9 +191,10 @@
     "port": "連線埠號碼",
     "username": "使用者名稱",
     "password": "密碼",
+    "schemaName": "Schema name",
     "action": "行動",
     "actions": "行動",
-    "operation": "手術",
+    "operation": "操作",
     "operationType": "操作類型",
     "operationSubType": "操作子類型",
     "description": "描述",
@@ -225,6 +228,7 @@
       "bookDemo": "預訂免費 Demo",
       "getAnswered": "解惑您的問題",
       "joinDiscord": "加入 Discord",
+      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "加入 /r/NocoDB",
       "followNocodb": "追蹤 NocoDB"
     },
@@ -337,7 +341,7 @@
     "testDbConn": "測試資料庫連線",
     "removeDbFromEnv": "從環境移除資料庫",
     "editConnJson": "編輯連線 JSON",
-    "sponsorUs": "贊助美國",
+    "sponsorUs": "贊助我們",
     "sendEmail": "傳送電子郵件"
   },
   "tooltip": {

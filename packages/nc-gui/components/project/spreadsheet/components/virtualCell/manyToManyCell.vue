@@ -40,9 +40,11 @@
       v-model="newRecordModal"
       :hm="true"
       :size="10"
+      :column="column"
       :meta="childMeta"
       :primary-col="childPrimaryCol"
       :primary-key="childPrimaryKey"
+      :parent-meta="meta"
       :api="api"
       :mm="mm"
       :tn="mm && mm.rtn"
@@ -50,6 +52,7 @@
       :is-public="isPublic"
       :query-params="childQueryParams"
       :password="password"
+      :row-id="row && row[parentPrimaryKey]"
       @add-new-record="insertAndAddNewChildRecord"
       @add="addChildToParent"
     />
@@ -105,19 +108,17 @@
         :db-alias="nodes.dbAlias"
         :has-many="childMeta.hasMany"
         :belongs-to="childMeta.belongsTo"
-        :table="childMeta.tn"
+        :table="childMeta.table_name"
         :old-row="{...selectedChild}"
         :meta="childMeta"
-        :sql-ui="sqlUi"
         :primary-value-column="childPrimaryCol"
-        :api="childApi"
         :available-columns="childAvailableColumns"
         icon-color="warning"
         :nodes="nodes"
         :query-params="childQueryParams"
         :is-new.sync="isNewChild"
         :breadcrumbs="breadcrumbs"
-        @cancel="selectedChild = null"
+        @cancel="selectedChild = null; expandFormModal =false"
         @input="onChildSave"
       />
     </v-dialog>
@@ -125,12 +126,12 @@
 </template>
 
 <script>
-// import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import DlgLabelSubmitCancel from '@/components/utils/dlgLabelSubmitCancel'
 import ListItems from '@/components/project/spreadsheet/components/virtualCell/components/listItems'
 import ListChildItems from '@/components/project/spreadsheet/components/virtualCell/components/listChildItems'
 import listChildItemsModal
-  from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
+from '@/components/project/spreadsheet/components/virtualCell/components/listChildItemsModal'
 import { parseIfInteger } from '@/helpers'
 import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/itemChip'
 
@@ -187,23 +188,23 @@ export default {
       }
     },
     childMeta() {
-      return this.metas ? this.metas[this.mm.rtn] : this.$store.state.meta.metas[this.mm.rtn]
+      return this.metas ? this.metas[this.column.colOptions.fk_related_model_id] : this.$store.state.meta.metas[this.column.colOptions.fk_related_model_id]
     },
     assocMeta() {
-      return this.metas ? this.metas[this.mm.vtn] : this.$store.state.meta.metas[this.mm.vtn]
+      return this.metas ? this.metas[this.column.colOptions.fk_mm_model_id] : this.$store.state.meta.metas[this.column.colOptions.fk_mm_model_id]
     },
     // todo : optimize
     childApi() {
-      return this.childMeta && this.$ncApis.get({
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias,
-        table: this.childMeta.tn
-      })
+      // return this.childMeta && this.$ncApis.get({
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias,
+      //   id: this.column.colOptions.fk_related_model_id
+      // })
       //
-      // return this.childMeta && this.childMeta._tn
+      // return this.childMeta && this.childMeta.title
       //   ? ApiFactory.create(
       //     this.$store.getters['project/GtrProjectType'],
-      //     this.childMeta._tn,
+      //     this.childMeta.title,
       //     this.childMeta.columns,
       //     this,
       //     this.childMeta
@@ -212,15 +213,15 @@ export default {
     },
     // todo : optimize
     assocApi() {
-      return this.childMeta && this.$ncApis.get({
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias,
-        table: this.assocMeta.tn
-      })
-      // return this.assocMeta && this.assocMeta._tn
+      // return this.childMeta && this.$ncApis.get({
+      //   env: this.nodes.env,
+      //   dbAlias: this.nodes.dbAlias,
+      //   id: this.column.colOptions.fk_mm_model_id
+      // })
+      // return this.assocMeta && this.assocMeta.title
       //   ? ApiFactory.create(
       //     this.$store.getters['project/GtrProjectType'],
-      //     this.assocMeta._tn,
+      //     this.assocMeta.title,
       //     this.assocMeta.columns,
       //     this,
       //     this.assocMeta
@@ -228,33 +229,33 @@ export default {
       //   : null
     },
     childPrimaryCol() {
-      return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {})._cn
+      return this.childMeta && (this.childMeta.columns.find(c => c.pv) || {}).title
     },
     childPrimaryKey() {
-      return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {})._cn
+      return this.childMeta && (this.childMeta.columns.find(c => c.pk) || {}).title
     },
     parentPrimaryKey() {
-      return this.meta && (this.meta.columns.find(c => c.pk) || {})._cn
+      return this.meta && (this.meta.columns.find(c => c.pk) || {}).title
     },
     childQueryParams() {
       if (!this.childMeta) { return {} }
       // todo: use reduce
       return {
-        hm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({ hm }) => hm.tn).join()) || '',
+        hm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.hm).map(({ hm }) => hm.table_name).join()) || '',
         bt: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.bt).map(({ bt }) => bt.rtn).join()) || '',
         mm: (this.childMeta && this.childMeta.v && this.childMeta.v.filter(v => v.mm).map(({ mm }) => mm.rtn).join()) || ''
       }
     },
     conditionGraph() {
-      if (!this.childMeta || !this.assocMeta) { return null }
-      return {
-        [this.assocMeta.tn]: {
-          relationType: 'hm',
-          [this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn]: {
-            eq: this.row[this.parentPrimaryKey]
-          }
-        }
-      }
+      // if (!this.childMeta || !this.assocMeta) { return null }
+      // return {
+      //   [this.assocMeta.table_name]: {
+      //     relationType: 'hm',
+      //     [this.assocMeta.columns.find(c => c.column_name === this.mm.vcn).column_name]: {
+      //       eq: this.row[this.parentPrimaryKey]
+      //     }
+      //   }
+      // }
     },
     childAvailableColumns() {
       const hideCols = ['created_at', 'updated_at']
@@ -262,7 +263,7 @@ export default {
 
       const columns = []
       if (this.childMeta.columns) {
-        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.cn) && !((this.childMeta.v || []).some(v => v.bt && v.bt.cn === c.cn))))
+        columns.push(...this.childMeta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.column_name) && !((this.childMeta.v || []).some(v => v.bt && v.bt.column_name === c.column_name))))
       }
       if (this.childMeta.v) {
         columns.push(...this.childMeta.v.map(v => ({ ...v, virtual: 1 })))
@@ -284,6 +285,10 @@ export default {
   async mounted() {
     if (this.isForm) {
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
+    }
+
+    if (this.isNew && this.value) {
+      this.localState = [...this.value]
     }
   },
   created() {
@@ -310,15 +315,19 @@ export default {
         return
       }
       await Promise.all([this.loadChildMeta(), this.loadAssociateTableMeta()])
+      const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
+      const pid = this.meta.columns.filter(c => c.pk).map(c => this.row[c.title]).join('___')
 
-      const _pcn = this.meta.columns.find(c => c.cn === this.mm.cn)._cn
-      const _ccn = this.childMeta.columns.find(c => c.cn === this.mm.rcn)._cn
+      await this.$api.dbTableRow.nestedRemove(
+        'noco',
+        this.projectName,
+        this.meta.title,
+        pid,
+        'mm',
+        this.column.title,
+        cid
+      )
 
-      const apcn = this.assocMeta.columns.find(c => c.cn === this.mm.vcn).cn
-      const accn = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn).cn
-
-      const id = this.assocMeta.columns.filter(c => c.cn === apcn || c.cn === accn).map(c => c.cn === apcn ? this.row[_pcn] : child[_ccn]).join('___')
-      await this.assocApi.delete(id)
       this.$emit('loadTableData')
       if ((this.childListModal || this.isForm) && this.$refs.childList) {
         this.$refs.childList.loadData()
@@ -332,7 +341,7 @@ export default {
         if (act === 'hideDialog') {
           this.dialogShow = false
         } else {
-          const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
+          const id = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
           await this.childApi.delete(id)
           this.dialogShow = false
           this.$emit('loadTableData')
@@ -348,7 +357,8 @@ export default {
         await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
-          tn: this.mm.rtn
+          // tn: this.mm.rtn,
+          id: this.column.colOptions.fk_related_model_id
         })
         // const parentTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         //   env: this.nodes.env,
@@ -365,7 +375,7 @@ export default {
         await this.$store.dispatch('meta/ActLoadMeta', {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
-          tn: this.mm.vtn
+          id: this.column.colOptions.fk_mm_model_id
         })
         // const assocTableData = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
         //   env: this.nodes.env,
@@ -389,17 +399,23 @@ export default {
         this.newRecordModal = false
         return
       }
-      const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
-      const pid = this.meta.columns.filter(c => c.pk).map(c => this.row[c._cn]).join('___')
+      const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
+      const pid = this.meta.columns.filter(c => c.pk).map(c => this.row[c.title]).join('___')
 
-      const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn
-      const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn
+      // const vcidCol = this.assocMeta.columns.find(c => c.id === this.column.colOptions.fk_mm_parent_column_id).title
+      // const vpidCol = this.assocMeta.columns.find(c => c.id === this.column.colOptions.fk_mm_child_column_id).title
+
+      await this.$api.dbTableRow.nestedAdd(
+        'noco',
+        this.projectName,
+        this.meta.title,
+        pid,
+        'mm',
+        this.column.title,
+        cid
+      )
+
       try {
-        await this.assocApi.insert({
-          [vcidCol]: parseIfInteger(cid),
-          [vpidCol]: parseIfInteger(pid)
-        })
-
         this.$emit('loadTableData')
       } catch (e) {
         // todo: handle
@@ -416,7 +432,15 @@ export default {
       await this.loadChildMeta()
       this.isNewChild = true
       this.selectedChild = {
-        [this.childForeignKey]: this.parentId
+        [this.childForeignKey]: this.parentId,
+        [(this.childMeta.columns.find(c => c.uidt === UITypes.LinkToAnotherRecord &&
+            c.colOptions &&
+            this.column.colOptions &&
+            c.colOptions.fk_child_column_id === this.column.colOptions.fk_parent_column_id &&
+            c.colOptions.fk_parent_column_id === this.column.colOptions.fk_child_column_id &&
+            c.colOptions.fk_mm_model_id === this.column.colOptions.fk_mm_model_id &&
+            c.colOptions.type === RelationTypes.MANY_TO_MANY
+        ) || {}).title]: [this.row]
       }
       this.expandFormModal = true
       setTimeout(() => {
@@ -437,16 +461,18 @@ export default {
       // eslint-disable-next-line no-cond-assign
       while (child = this.localState.pop()) {
         if (row) {
-          // todo: use common method
-          const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c._cn]).join('___')
-          const pid = this.meta.columns.filter(c => c.pk).map(c => row[c._cn]).join('___')
+          const cid = this.childMeta.columns.filter(c => c.pk).map(c => child[c.title]).join('___')
+          const pid = this.meta.columns.filter(c => c.pk).map(c => row[c.title]).join('___')
 
-          const vcidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vrcn)._cn
-          const vpidCol = this.assocMeta.columns.find(c => c.cn === this.mm.vcn)._cn
-          await this.assocApi.insert({
-            [vcidCol]: parseIfInteger(cid),
-            [vpidCol]: parseIfInteger(pid)
-          })
+          await this.$api.dbTableRow.nestedAdd(
+            'noco',
+            this.projectName,
+            this.meta.title,
+            pid,
+            'mm',
+            this.column.title,
+            cid
+          )
         } else {
           await this.addChildToParent(child)
         }

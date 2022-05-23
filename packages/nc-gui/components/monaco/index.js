@@ -1,10 +1,11 @@
 import MonacoEditor from './MonacoEditor'
 import MonacoJsonEditor from './MonacoJsonEditor'
 import MonacoSingleLineEditor from './MonacoSingleLineEditor'
+import MonacoHandlebarEditor from './MonacoHandlebarEditor'
 
 export default MonacoEditor
 
-export { MonacoJsonEditor, MonacoSingleLineEditor }
+export { MonacoJsonEditor, MonacoSingleLineEditor, MonacoHandlebarEditor }
 
 if (typeof window !== 'undefined' && window.Vue) {
   window.Vue.component(MonacoEditor.name, MonacoEditor)

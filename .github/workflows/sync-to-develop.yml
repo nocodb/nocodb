@@ -13,7 +13,7 @@ jobs:
         uses: actions/checkout@v1
 
       - name: Merge from master to develop
-        uses: robotology/gh-action-nightly-merge@v1.3.1
+        uses: wingkwong/gh-action-nightly-merge@master
         with:
           stable_branch: 'master'
           development_branch: 'develop'

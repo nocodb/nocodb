@@ -15,7 +15,7 @@
                   <v-icon
                     x-large
                     :color="$vuetify.theme.dark ? 'primary':'primary'"
-                    @click="toggleDarkTheme"
+                    @click="toggleDarkTheme($vuetify.theme.dark)"
                     v-on="on"
                   >
                     mdi-bat
@@ -60,37 +60,6 @@
               </v-tooltip>
             </td>
           </tr>-->
-          <tr>
-            <td>Show M2M Tables</td>
-            <td>
-              <v-tooltip bottom>
-                <template #activator="{ on }">
-                  <v-checkbox
-                    v-model="includeM2M"
-                    x-large
-                    color="primary"
-                    v-on="on"
-                  >
-                    mdi-table-network
-                  </v-checkbox>
-                </template>
-                Include/Exclude M2M tables
-              </v-tooltip>
-            </td>
-          </tr>
-          <tr>
-            <td>Language</td>
-            <td>
-              <v-radio-group v-model="language" row>
-                <v-radio
-                  v-for="{label,value} in languages"
-                  :key="value"
-                  :label="label"
-                  :value="value"
-                />
-              </v-radio-group>
-            </td>
-          </tr>
           <tr>
             <td>Themes</td>
             <td class="pa-1">
@@ -157,6 +126,28 @@
               </v-list>
             </td>
           </tr>
+
+          <tr>
+            <td>Show M2M Tables</td>
+            <td>
+              <v-tooltip bottom>
+                <template #activator="{ on }">
+                  <v-checkbox
+                    v-model="includeM2M"
+                    v-t="[`c:themes:show-m2m-tables`]"
+                    x-large
+                    color="primary"
+                    v-on="on"
+                  >
+                    mdi-table-network
+                  </v-checkbox>
+                </template>
+                Include/Exclude M2M tables
+              </v-tooltip>
+            </td>
+          </tr>
+
+
         </tbody>
       </template>
     </v-simple-table>
@@ -276,9 +267,11 @@ export default {
       this.item = theme
       if (theme === 'Custom') { await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, custom: true }) }
       await this.$store.dispatch('windows/ActSetTheme', { theme: { ...t }, themeName: theme })
+      this.$e('c:themes:change', { mode: theme })
     },
-    toggleDarkTheme() {
+    toggleDarkTheme(mode) {
       this.$store.commit('windows/MutToggleDarkMode')
+      this.$e('c:themes:dark-mode', { dark: mode })
     }
   },
   beforeCreated() {

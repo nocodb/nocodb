@@ -10,7 +10,7 @@
           <!-- Cancel -->
           {{ $t('general.cancel') }}
         </v-btn>
-        <v-btn x-small color="primary" @click="save">
+        <v-btn x-small color="primary" :disabled="!isValid" @click="save">
           <!-- Save -->
           {{ $t('general.save') }}
         </v-btn>
@@ -25,13 +25,18 @@
       v-model="localState"
       class="text-left caption"
       style="width: 300px;min-height:min(600px,80vh);min-width:100%; "
+      @validate="validate"
     />
     <monaco-json-object-editor
       v-else
       v-model="localState"
       class="text-left caption"
       style="width: 300px;min-height:200px;min-width:100%;"
+      @validate="validate"
     />
+    <div v-show="error" class="px-2 py-1 text-left caption error--text">
+      {{ error }}
+    </div>
   </v-dialog>
 </template>
 
@@ -42,12 +47,14 @@ export default {
   name: 'JsonEditableCell',
   components: { MonacoJsonObjectEditor },
   props: {
-    value: String,
+    value: [String, Object],
     isForm: Boolean
   },
   data: () => ({
     localState: '',
-    expand: false
+    expand: false,
+    isValid: true,
+    error: undefined
   }),
   computed: {
 
@@ -91,6 +98,10 @@ export default {
     save() {
       this.expand = false
       this.$emit('input', JSON.stringify(this.localState))
+    },
+    validate(n, e) {
+      this.isValid = n
+      this.error = e
     }
   }
 }
@@ -98,8 +109,6 @@ export default {
 
 <style scoped>
 .cell-container {
-  /*margin: 0 -5px;*/
-  /*position: relative;*/
   width: 100%
 }
 </style>

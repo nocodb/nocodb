@@ -11,7 +11,11 @@ import NcConfigFactory from '../../../../utils/NcConfigFactory';
 export default class Local implements IStorageAdapter {
   constructor() {}
 
-  public async fileCreate(key: string, file: XcFile): Promise<any> {
+  public async fileCreate(
+    key: string,
+    file: XcFile,
+    _isPublic?: boolean
+  ): Promise<any> {
     const destPath = path.join(NcConfigFactory.getToolDir(), ...key.split('/'));
     try {
       mkdirp.sync(path.dirname(destPath));

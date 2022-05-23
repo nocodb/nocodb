@@ -146,6 +146,7 @@ export default class View implements ViewType {
           ]
         }
       );
+      // todo: cache - titleOrId can be viewId so we need a different scope here
       await NocoCache.set(
         `${CacheScope.VIEW}:${fk_model_id}:${titleOrId}`,
         view.id
@@ -153,7 +154,7 @@ export default class View implements ViewType {
       await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:${view.id}`, view);
       return view && new View(view);
     }
-    return viewId && this.get(viewId);
+    return viewId && this.get(viewId?.id || viewId);
   }
 
   public static async list(modelId: string, ncMeta = Noco.ncMeta) {

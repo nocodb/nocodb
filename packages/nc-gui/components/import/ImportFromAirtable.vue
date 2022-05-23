@@ -37,6 +37,7 @@
                     label="Api Key"
                     class="caption nc-input-api-key"
                     :type="isPasswordVisible ? 'text':'password'"
+                    autocomplete="off"
                     :rules="[v=> !!v || 'Api Key is required']"
                   >
                     <template #append="">

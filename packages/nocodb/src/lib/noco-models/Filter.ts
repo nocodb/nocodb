@@ -37,7 +37,9 @@ export default class Filter {
     | 'le'
     | 'in'
     | 'isnot'
-    | 'is';
+    | 'is'
+    | 'btw'
+    | 'nbtw';
   value?: string;
 
   logical_op?: string;

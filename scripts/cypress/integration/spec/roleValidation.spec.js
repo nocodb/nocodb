@@ -215,6 +215,10 @@ export function _editComment(roleType, previewMode) {
 export function _viewMenu(roleType, previewMode) {
     let columnName = "City";
     let navDrawListCnt = 2;
+
+    if(false === previewMode)
+        navDrawListCnt = 1;
+
     // Download CSV
     let actionsMenuItemsCnt = 1;
 

@@ -54,6 +54,7 @@ export default {
     formViewGet: true,
     projectInfoGet: true,
     gridColumnUpdate: true,
+    galleryViewGet: true,
 
     // old
     xcTableAndViewList: true,
@@ -161,6 +162,8 @@ export default {
     dataGroupBy: true,
     commentsCount: true,
 
+    galleryViewGet: true,
+
     xcTableAndViewList: true,
     xcVirtualTableList: true,
     projectList: true,
@@ -203,6 +206,8 @@ export default {
     // sort & filter
     sortList: true,
     projectInfoGet: true,
+
+    galleryViewGet: true,
 
     mmList: true,
     hmList: true,

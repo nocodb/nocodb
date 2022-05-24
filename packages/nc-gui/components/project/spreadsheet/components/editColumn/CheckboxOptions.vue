@@ -4,6 +4,7 @@
       <v-select
         v-model="colMeta.icon"
         label="Icon"
+        :menu-props="{ bottom: true, offsetY: true }"
         :items="icons"
         dense
         outlined

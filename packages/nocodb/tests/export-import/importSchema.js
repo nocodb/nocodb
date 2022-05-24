@@ -1,9 +1,6 @@
 const Api = require('nocodb-sdk').Api;
 const { UITypes } = require('nocodb-sdk');
 const jsonfile = require("jsonfile");
-const dayjs = require("dayjs");
-const axios = require("axios");
-const FormData = require("form-data");
 
 let api = {}
 let ncIn = jsonfile.readFileSync('sample.json')
@@ -13,6 +10,8 @@ let lookup = []
 let rollup = []
 let formula = []
 let ncTables = {}
+let rootLinks = []
+
 
 const ncConfig = {
   srcProject: "sample",
@@ -79,7 +78,6 @@ async function createFormula() {
   }
 }
 
-let rootLinks = []
 async function createLinks() {
   console.log(`createLinks`)
   for (let i = 0; i < link.length; i++) {
@@ -280,24 +278,30 @@ async function restoreBaseData() {
     let tblId = ncTables[tblSchema.id].id;
     let pk = tblSchema.columns.find(a => a.pk).title
 
-    // fixme: iterate page information
-    let recList = await api.dbTableRow.list("nc", ncConfig.srcProject, tblSchema.title, {}, {
-      query: { limit: 500 }
-    })
+    let moreRecords = true;
+    let offset = 0, limit = 25;
 
-    for (let recCnt = 0; recCnt < recList.list.length; recCnt++) {
-      let record = await api.dbTableRow.read("nc", ncConfig.srcProject, tblSchema.title, recList.list[recCnt][pk])
+    while(moreRecords) {
+      let recList = await api.dbTableRow.list("nc", ncConfig.srcProject, tblSchema.title, {}, {
+        query: { limit: limit, offset: offset }
+      })
+      moreRecords = !recList.pageInfo.isLastPage
+      offset += limit
 
-      // post-processing on the record
-      for (const [key, value] of Object.entries(record)) {
-        let table = ncTables[tblId]
-        // retrieve datatype
-        const dt = table.columns.find(x => x.title === key)?.uidt;
-        if (dt === UITypes.LinkToAnotherRecord) delete record[key];
-        if (dt === UITypes.Lookup) delete record[key];
-        if (dt === UITypes.Rollup) delete record[key];
+      for (let recCnt = 0; recCnt < recList.list.length; recCnt++) {
+        let record = await api.dbTableRow.read("nc", ncConfig.srcProject, tblSchema.title, recList.list[recCnt][pk])
+
+        // post-processing on the record
+        for (const [key, value] of Object.entries(record)) {
+          let table = ncTables[tblId]
+          // retrieve datatype
+          const dt = table.columns.find(x => x.title === key)?.uidt;
+          if (dt === UITypes.LinkToAnotherRecord) delete record[key];
+          if (dt === UITypes.Lookup) delete record[key];
+          if (dt === UITypes.Rollup) delete record[key];
+        }
+        await api.dbTableRow.create("nc", ncConfig.projectName, tblSchema.title, record)
       }
-      await api.dbTableRow.create("nc", ncConfig.projectName, tblSchema.title, record)
     }
   }
 }
@@ -307,22 +311,27 @@ async function restoreLinks() {
 
   for(let i=0; i<rootLinks.length; i++) {
     let pk = rootLinks[i].linkSrcTbl.columns.find(a => a.pk).title
+    let moreRecords = true;
+    let offset = 0, limit = 25;
 
-    // fixme: iterate page information
-    let recList = await api.dbTableRow.list("nc", ncConfig.srcProject, rootLinks[i].linkSrcTbl.title, {}, {
-      query: { limit: 500 }
-    })
+    while(moreRecords) {
+      let recList = await api.dbTableRow.list("nc", ncConfig.srcProject, rootLinks[i].linkSrcTbl.title, {}, {
+        query: { limit: limit, offset: offset }
+      })
+      moreRecords = !recList.pageInfo.isLastPage
+      offset += limit
 
-    for (let recCnt = 0; recCnt < recList.list.length; recCnt++) {
-      let record = await api.dbTableRow.read("nc", ncConfig.srcProject, rootLinks[i].linkSrcTbl.title, recList.list[recCnt][pk])
-      let linkField = record[rootLinks[i].linkColumn.title];
-      if(linkField.length) {
-        await api.dbTableRow.nestedAdd("nc", ncConfig.projectName, rootLinks[i].linkSrcTbl.title,
-          record[pk],
-          rootLinks[i].linkColumn.colOptions.type,
-          encodeURIComponent(rootLinks[i].linkColumn.title),
-          linkField[0][pk]
-        )
+      for (let recCnt = 0; recCnt < recList.list.length; recCnt++) {
+        let record = await api.dbTableRow.read("nc", ncConfig.srcProject, rootLinks[i].linkSrcTbl.title, recList.list[recCnt][pk])
+        let linkField = record[rootLinks[i].linkColumn.title];
+        if (linkField.length) {
+          await api.dbTableRow.nestedAdd("nc", ncConfig.projectName, rootLinks[i].linkSrcTbl.title,
+            record[pk],
+            rootLinks[i].linkColumn.colOptions.type,
+            encodeURIComponent(rootLinks[i].linkColumn.title),
+            linkField[0][pk]
+          )
+        }
       }
     }
   }

@@ -1,6 +1,9 @@
 const Api = require('nocodb-sdk').Api;
 const { UITypes } = require('nocodb-sdk');
 const jsonfile = require("jsonfile");
+const dayjs = require("dayjs");
+const axios = require("axios");
+const FormData = require("form-data");
 
 let api = {}
 let ncIn = jsonfile.readFileSync('sample.json')
@@ -12,6 +15,7 @@ let formula = []
 let ncTables = {}
 
 const ncConfig = {
+  srcProject: "sample",
   projectName: "x2",
   baseURL: "http://localhost:8080",
   headers: {
@@ -20,6 +24,7 @@ const ncConfig = {
 }
 
 async function createBaseTables() {
+  console.log(`createBaseTables`)
   for(let i=0; i<ncIn.length; i++) {
     let tblSchema = ncIn[i]
     let reducedColumnSet = tblSchema.columns.filter(a => a.uidt !== UITypes.LinkToAnotherRecord && a.uidt !== UITypes.Lookup && a.uidt !== UITypes.Rollup && a.uidt !== UITypes.Formula);
@@ -74,7 +79,9 @@ async function createFormula() {
   }
 }
 
+let rootLinks = []
 async function createLinks() {
+  console.log(`createLinks`)
   for (let i = 0; i < link.length; i++) {
     if (((link[i].colOptions.type === 'mm') &&
         (false === isLinkCreated(link[i].colOptions.fk_parent_column_id, link[i].colOptions.fk_child_column_id)))
@@ -92,14 +99,18 @@ async function createLinks() {
       ncTables[tbl.title] = tbl;
       ncTables[tbl.id] = tbl;
       ncTables[link[i].colOptions.fk_model_id] = tbl;
+      // for data-link procedure later
+      rootLinks.push({linkColumn: link[i], linkSrcTbl: srcTbl})
 
       let v2ColSchema = tbl.columns.find(x => x.title === link[i].title)
 
       // read related table again after link is created
       dstTbl = await api.dbTable.read(dstTbl.id);
-      let v2SymmetricColumn = (link[i].colOptions.type === 'mm') ? dstTbl.columns.find(x => x.uidt === UITypes.LinkToAnotherRecord && x?.colOptions.fk_parent_column_id === v2ColSchema.colOptions.fk_child_column_id && x?.colOptions.fk_child_column_id === v2ColSchema.colOptions.fk_parent_column_id) :
+      let v2SymmetricColumn = (link[i].colOptions.type === 'mm') ?
+        dstTbl.columns.find(x => x.uidt === UITypes.LinkToAnotherRecord && x?.colOptions.fk_parent_column_id === v2ColSchema.colOptions.fk_child_column_id && x?.colOptions.fk_child_column_id === v2ColSchema.colOptions.fk_parent_column_id) :
         dstTbl.columns.find(x => x.uidt === UITypes.LinkToAnotherRecord && x?.colOptions.fk_parent_column_id === v2ColSchema.colOptions.fk_parent_column_id && x?.colOptions.fk_child_column_id === v2ColSchema.colOptions.fk_child_column_id)
-      let v1SymmetricColumn = (link[i].colOptions.type === 'mm') ? link.find(x => x.colOptions.fk_parent_column_id === link[i].colOptions.fk_child_column_id && x.colOptions.fk_child_column_id === link[i].colOptions.fk_parent_column_id) :
+      let v1SymmetricColumn = (link[i].colOptions.type === 'mm') ?
+        link.find(x => x.colOptions.fk_parent_column_id === link[i].colOptions.fk_child_column_id && x.colOptions.fk_child_column_id === link[i].colOptions.fk_parent_column_id) :
         link.find(x => x.colOptions.fk_parent_column_id === link[i].colOptions.fk_parent_column_id && x.colOptions.fk_child_column_id === link[i].colOptions.fk_child_column_id);
 
       tbl = await api.dbTableColumn.update(v2SymmetricColumn.id, {
@@ -127,6 +138,8 @@ function get_v2Id(v1ColId) {
 }
 
 async function createLookup() {
+  console.log(`createLookup`)
+
   for(let i=0; i<lookup.length; i++) {
     let srcTbl = ncTables[lookup[i].colOptions.fk_model_id];
     let v2_fk_relation_column_id = get_v2Id(lookup[i].colOptions.fk_relation_column_id)
@@ -147,6 +160,8 @@ async function createLookup() {
 }
 
 async function createRollup() {
+  console.log(`createRollup`)
+
   for(let i=0; i<rollup.length; i++) {
     let srcTbl = ncTables[rollup[i].colOptions.fk_model_id];
     let v2_fk_relation_column_id = get_v2Id(rollup[i].colOptions.fk_relation_column_id)
@@ -169,6 +184,8 @@ async function createRollup() {
 }
 
 async function configureGrid() {
+  console.log(`configureGrid`)
+
   for(let i=0; i<ncIn.length; i++) {
     let tblSchema = ncIn[i];
     let tblId = ncTables[tblSchema.id].id;
@@ -189,10 +206,15 @@ async function configureGrid() {
         viewCreated = await api.dbView.gridCreate(tblId, {title: gridList[gridCnt].title});
       }
 
+      // retrieve view Info
+      let viewId = viewCreated.id
+      let viewDetails = await api.dbView.gridColumnsList(viewId);
+
       // column visibility
       for(let colCnt = 0; colCnt < gridList[gridCnt].columns.length; colCnt++) {
         let ncColumnId = srcTbl.columns.find(a => a.title === gridList[gridCnt].columns[colCnt].title)?.id
-        let ncViewColumnId = await nc_getViewColumnId( viewCreated.id, "grid", ncColumnId )
+        // let ncViewColumnId = await nc_getViewColumnId( viewCreated.id, "grid", ncColumnId )
+        let ncViewColumnId =  viewDetails.find(x => x.fk_column_id === ncColumnId)?.id;
         // column order & visibility
         await api.dbViewColumn.update(viewCreated.id, ncViewColumnId, {
           show: gridList[gridCnt].columns[colCnt].show,
@@ -205,6 +227,8 @@ async function configureGrid() {
 }
 
 async function configureGallery() {
+  console.log(`configureGallery`)
+
   for(let i=0; i<ncIn.length; i++) {
     let tblSchema = ncIn[i];
     let tblId = ncTables[tblSchema.id].id;
@@ -216,6 +240,8 @@ async function configureGallery() {
 }
 
 async function configureForm() {
+  console.log(`configureForm`)
+
   for(let i=0; i<ncIn.length; i++) {
     let tblSchema = ncIn[i];
     let tblId = ncTables[tblSchema.id].id;
@@ -242,11 +268,66 @@ async function configureForm() {
           required: formList[formCnt].columns[colCnt].required,
         });
       }
-
-
     }
   }
 }
+
+async function restoreBaseData() {
+  console.log(`restoreBaseData`)
+
+  for(let i=0; i<ncIn.length; i++) {
+    let tblSchema = ncIn[i];
+    let tblId = ncTables[tblSchema.id].id;
+    let pk = tblSchema.columns.find(a => a.pk).title
+
+    // fixme: iterate page information
+    let recList = await api.dbTableRow.list("nc", ncConfig.srcProject, tblSchema.title, {}, {
+      query: { limit: 500 }
+    })
+
+    for (let recCnt = 0; recCnt < recList.list.length; recCnt++) {
+      let record = await api.dbTableRow.read("nc", ncConfig.srcProject, tblSchema.title, recList.list[recCnt][pk])
+
+      // post-processing on the record
+      for (const [key, value] of Object.entries(record)) {
+        let table = ncTables[tblId]
+        // retrieve datatype
+        const dt = table.columns.find(x => x.title === key)?.uidt;
+        if (dt === UITypes.LinkToAnotherRecord) delete record[key];
+        if (dt === UITypes.Lookup) delete record[key];
+        if (dt === UITypes.Rollup) delete record[key];
+      }
+      await api.dbTableRow.create("nc", ncConfig.projectName, tblSchema.title, record)
+    }
+  }
+}
+
+async function restoreLinks() {
+  console.log(`restoreLinks`)
+
+  for(let i=0; i<rootLinks.length; i++) {
+    let pk = rootLinks[i].linkSrcTbl.columns.find(a => a.pk).title
+
+    // fixme: iterate page information
+    let recList = await api.dbTableRow.list("nc", ncConfig.srcProject, rootLinks[i].linkSrcTbl.title, {}, {
+      query: { limit: 500 }
+    })
+
+    for (let recCnt = 0; recCnt < recList.list.length; recCnt++) {
+      let record = await api.dbTableRow.read("nc", ncConfig.srcProject, rootLinks[i].linkSrcTbl.title, recList.list[recCnt][pk])
+      let linkField = record[rootLinks[i].linkColumn.title];
+      if(linkField.length) {
+        await api.dbTableRow.nestedAdd("nc", ncConfig.projectName, rootLinks[i].linkSrcTbl.title,
+          record[pk],
+          rootLinks[i].linkColumn.colOptions.type,
+          encodeURIComponent(rootLinks[i].linkColumn.title),
+          linkField[0][pk]
+        )
+      }
+    }
+  }
+}
+
 
 async function importSchema() {
   api = new Api(ncConfig);
@@ -255,21 +336,21 @@ async function importSchema() {
   const p = x.list.find(a => a.title === ncConfig.projectName);
   if (p) await api.project.delete(p.id);
   ncProject = await api.project.create({ title: ncConfig.projectName })
+
   await createBaseTables()
   await createLinks()
   await createLookup()
   await createRollup()
   await createFormula()
 
-  // configure grid
+  // configure views
   await configureGrid()
-
-  // configure gallery
   await configureGallery()
-
-  // configure form
   await configureForm()
 
+  // restore data
+  await restoreBaseData()
+  await restoreLinks()
 }
 (async() => {
   await importSchema()

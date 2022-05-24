@@ -5,7 +5,7 @@ const jsonfile = require("jsonfile");
 let ncMap = {}
 let tblSchema = []
 let api = {}
-let viewStore = {}
+let viewStore = {columns: {}, sort: {}, filter: {}}
 
 const ncConfig = {
   projectName: "sample",
@@ -107,16 +107,22 @@ function addViewDetails(v) {
   // gallery view doesn't share column information in api yet
   if(v.type !== 2) {
     if(v.type === 3)
-    view.columns = viewStore[v.id].map(a => (({ id, width, order, show }) => (
+    view.columns = viewStore.columns[v.id].map(a => (({ id, width, order, show }) => (
       { id, width, order, show }))(a))
     if(v.type === 1)
-      view.columns = viewStore[v.id].map(a => (({ id, order, show, label, help, description, required }) => (
+      view.columns = viewStore.columns[v.id].map(a => (({ id, order, show, label, help, description, required }) => (
         { id, order, show, label, help, description, required }))(a))
 
     for (let i = 0; i < view.columns?.length; i++)
-      view.columns[i].title = ncMap[viewStore[v.id][i].id]
+      view.columns[i].title = ncMap[viewStore.columns[v.id][i].id]
 
     view.columns = view.columns.filter(a => a.title.includes('_nc_m2m_') === false)
+  }
+
+  // filter & sort configurations
+  if(v.type !== 1) {
+    // view.sort = viewStore.sort[v.id].map(a => (({ id, order, show, label, help, description, required }) => (
+    //   { id, order, show, label, help, description, required }))(a))
   }
   return view;
 }
@@ -129,11 +135,18 @@ async function storeViewDetails(tableId) {
     let v = viewList.list[j]
     let viewDetails = []
 
-    // invoke view specific read
+    // invoke view specific read to populate columns information
     if (v.type === 1) viewDetails = (await api.dbView.formRead(v.id)).columns;
     else if (v.type === 2) viewDetails = await api.dbView.galleryRead(v.id);
     else if (v.type === 3) viewDetails = await api.dbView.gridColumnsList(v.id);
-    viewStore[v.id] = viewDetails;
+    viewStore.columns[v.id] = viewDetails;
+
+    // populate sort information
+    let vSort = await api.dbTableSort.list(v.id);
+    viewStore.sort[v.id] = vSort.sorts.list
+
+    let vFilter = await api.dbTableFilter.read(v.id)
+    viewStore.filter[v.id] = vFilter
   }
 }
 

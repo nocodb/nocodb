@@ -291,6 +291,14 @@ git clone https://github.com/nocodb/nocodb
 cd nocodb
 ```
 
+## Build SDK
+
+```shell
+cd packages/nocodb-sdk
+npm install
+npm run build
+```
+
 ## Running Backend locally
 
 ```shell

@@ -4,7 +4,7 @@
 
 - Clone `nocodb/nocodb` GitHub repo and checkout to `feat/v2` branch
   ```sh
-  git clone https://github.com/nocodb/nc
+  git clone https://github.com/nocodb/nocodb
   cd nocodb
   ```
   

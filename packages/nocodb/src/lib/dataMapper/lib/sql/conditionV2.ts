@@ -284,6 +284,12 @@ const parseConditionV2 = async (
           case 'notnull':
             qb = qb.whereNotNull(customWhereClause || field);
             break;
+          case 'btw':
+            qb = qb.whereBetween(field, val.split(','));
+            break;
+          case 'nbtw':
+            qb = qb.whereNotBetween(field, val.split(','));
+            break;
         }
       };
     }

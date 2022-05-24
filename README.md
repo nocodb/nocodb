@@ -472,6 +472,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
   </tr>
   <tr>
     <td align="center"><a href="https://www.youyi.io"><img src="https://avatars.githubusercontent.com/u/49471274?v=4?s=100" width="100px;" alt=""/><br /><sub><b>youyiio</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=youyiio" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/RK311y"><img src="https://avatars.githubusercontent.com/u/65210753?v=4?s=100" width="100px;" alt=""/><br /><sub><b>River Kelly</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=RK311y" title="Code">💻</a></td>
   </tr>
 </table>
 

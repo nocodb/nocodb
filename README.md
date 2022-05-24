@@ -230,6 +230,7 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
   * [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
   * [Cloning the Project](#cloning-the-project)
+  * [Build SDK](#build-sdk)
   * [Running Backend locally](#running-backend-locally)
   * [Running Frontend locally](#running-frontend-locally)
   * [Running Cypress tests locally](#running-cypress-tests-locally)
@@ -289,6 +290,14 @@ Please refer to [Environment variables](https://docs.nocodb.com/getting-started/
 ```shell
 git clone https://github.com/nocodb/nocodb
 cd nocodb
+```
+
+## Build SDK
+
+```shell
+cd packages/nocodb-sdk
+npm install
+npm run build
 ```
 
 ## Running Backend locally

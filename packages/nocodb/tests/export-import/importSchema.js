@@ -1,3 +1,8 @@
+
+// tbd
+// - formula dependency list
+// - nested lookup/ rollup
+
 const Api = require('nocodb-sdk').Api;
 const { UITypes } = require('nocodb-sdk');
 const jsonfile = require("jsonfile");

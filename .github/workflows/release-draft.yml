@@ -26,22 +26,35 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+          ref: ${{ github.ref }}
+      - name: Get SHA
+        id: get-sha
+        # If it's triggered by release-nocodb.yml, 
+        # the SHA from the third commit (i.e. Auto PR from master to develop) will be taken
+        # else HEAD will be taken
+        run: |
+          TARGET_SHA=$(git rev-parse HEAD~2)
+          if [[ ${{ github.event_name }} == 'workflow_dispatch' ]]; then
+            TARGET_SHA=$(git rev-parse HEAD)
+          fi
+          echo "::set-output name=TARGET_SHA::${TARGET_SHA}"
+          echo "Setting TARGET_SHA: ${{steps.get-sha.outputs.TARGET_SHA}}"
       - name: Create tag
         uses: actions/github-script@v3
         with:
-          github-token: ${{ secrets.GITHUB_TOKEN }}
+          # need workflows permission but it's not in GITHUB_TOKEN scope
+          # need a custom PAT with workflows permission here
+          github-token: ${{ secrets.NC_GITHUB_TOKEN }}
           script: |
             github.git.createRef({
               owner: context.repo.owner,
               repo: context.repo.repo,
               ref: "refs/tags/${{ github.event.inputs.tag || inputs.tag }}",
-              sha: context.sha
+              sha: "${{steps.get-sha.outputs.TARGET_SHA}}"
             })
-
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
       - uses: actions/setup-node@v2
         with:
           node-version: 16

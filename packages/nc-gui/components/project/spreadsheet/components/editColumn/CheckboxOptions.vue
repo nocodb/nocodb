@@ -82,7 +82,7 @@ export default {
     }
   },
   created() {
-    this.colMeta = { ...this.value } || { ...this.colMeta }
+    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta }
   }
 }
 </script>

@@ -11,7 +11,7 @@ const ncConfig = {
   projectName: "sample",
   baseURL: "http://localhost:8080",
   headers: {
-    'xc-auth': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfazk0cTg3NGF6bTh5MngiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTMzMTQ1MTZ9.h0YjZ9lLlIYYWQkgKWCoT5OuYNMfStuAjT_EwSasM6Q"
+    'xc-auth': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfdDNkb2ppNXdtbDJ3bHIiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTMzODY4NTN9.EvMwhhWJTM4QdEpgpmK1wSxsy7QiP7-sHWVDuTyOXSI"
   }
 }
 
@@ -121,8 +121,10 @@ function addViewDetails(v) {
 
   // filter & sort configurations
   if(v.type !== 1) {
-    // view.sort = viewStore.sort[v.id].map(a => (({ id, order, show, label, help, description, required }) => (
-    //   { id, order, show, label, help, description, required }))(a))
+    view.sort = viewStore.sort[v.id].map(a => (({ fk_column_id, direction, order }) => (
+      { fk_column_id, direction, order }))(a))
+    view.filter = viewStore.filter[v.id].map(a => (({ fk_column_id, logical_op, comparison_op, value, order }) => (
+      { fk_column_id, logical_op, comparison_op, value, order }))(a))
   }
   return view;
 }

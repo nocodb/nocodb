@@ -18,7 +18,7 @@ const ncConfig = {
   projectName: "x2",
   baseURL: "http://localhost:8080",
   headers: {
-    'xc-auth': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfazk0cTg3NGF6bTh5MngiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTMzMTQ1MTZ9.h0YjZ9lLlIYYWQkgKWCoT5OuYNMfStuAjT_EwSasM6Q"
+    'xc-auth': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfdDNkb2ppNXdtbDJ3bHIiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTMzODY4NTN9.EvMwhhWJTM4QdEpgpmK1wSxsy7QiP7-sHWVDuTyOXSI"
   }
 }
 
@@ -219,6 +219,23 @@ async function configureGrid() {
           order: gridList[gridCnt].columns[colCnt].order,
         });
         await api.dbView.gridColumnUpdate(ncViewColumnId, {width: gridList[gridCnt].columns[colCnt].width})
+      }
+
+      // sort
+      for(let sCnt = 0; sCnt < gridList[gridCnt].sort.length; sCnt++) {
+        let sColName = tblSchema.columns.find(a => gridList[gridCnt].sort[sCnt].fk_column_id === a.id).title;
+        await api.dbTableSort.create(viewId, {
+          fk_column_id: srcTbl.columns.find(a => a.title === sColName)?.id,
+          direction: gridList[gridCnt].sort[sCnt].direction
+        });
+      }
+
+      // filter
+      for(let fCnt = 0; fCnt < gridList[gridCnt].filter.length; fCnt++) {
+        let fColName = tblSchema.columns.find(a => gridList[gridCnt].sort[fCnt].fk_column_id === a.id).title;
+        await api.dbTableFilter.create(viewId, {
+          ...gridList[gridCnt].filter[fCnt], fk_column_id: srcTbl.columns.find(a => a.title === fColName)?.id
+        });
       }
     }
   }

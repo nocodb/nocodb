@@ -69,6 +69,7 @@ export default async function formulaQueryBuilderv2(
             model,
             { ...aliasToColumn, [col.id]: null }
           );
+          builder.sql = '(' + builder.sql + ')';
           aliasToColumn[col.id] = builder;
         }
         break;

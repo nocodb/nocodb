@@ -490,7 +490,7 @@ export default {
             case UITypes.PhoneNumber:
             case UITypes.Email:
             case UITypes.URL:
-              return 'string'
+              return formulaTypes.STRING
 
             // numeric
             case UITypes.Year:
@@ -499,14 +499,14 @@ export default {
             case UITypes.Rating:
             case UITypes.Count:
             case UITypes.AutoNumber:
-              return 'number'
+              return formulaTypes.NUMERIC
 
             // date
             case UITypes.Date:
             case UITypes.DateTime:
             case UITypes.CreateTime:
             case UITypes.LastModifiedTime:
-              return 'date'
+              return formulaTypes.DATE
 
             // not supported
             case UITypes.ForeignKey:
@@ -527,7 +527,7 @@ export default {
           }
         }
       } else if (parsedTree.type === jsep.BINARY_EXP || parsedTree.type === jsep.UNARY_EXP) {
-        return 'number'
+        return formulaTypes.NUMERIC
       } else if (parsedTree.type === jsep.LITERAL) {
         return typeof parsedTree.value
       } else {

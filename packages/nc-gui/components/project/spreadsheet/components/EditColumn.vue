@@ -166,6 +166,12 @@
                     :meta="meta"
                   />
                 </v-col>
+                <currency-options
+                  v-else-if="isCurrency"
+                  v-model="newColumn.meta"
+                  :column="newColumn"
+                  :meta="meta"
+                />
 
                 <v-col
                   v-if="accordion"
@@ -428,14 +434,7 @@
                                   @change="onDataTypeChange"
                                 />
                               </v-col>
-
-                              <v-col
-                                :cols="
-                                  sqlUi.showScale(newColumn) && !isSelect
-                                    ? 6
-                                    : 12
-                                "
-                              >
+                              <v-col :cols="sqlUi.showScale(newColumn) && !isSelect ? 6 : 12">
                                 <!--label="Length / Values"-->
                                 <v-text-field
                                   v-if="!isSelect"
@@ -572,6 +571,7 @@ import LinkedToAnotherOptions from '~/components/project/spreadsheet/components/
 import { validateColumnName } from '~/helpers'
 import RatingOptions from '~/components/project/spreadsheet/components/editColumn/RatingOptions'
 import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/CheckboxOptions'
+import CurrencyOptions from '@/components/project/spreadsheet/components/editColumn/CurrencyOptions'
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -586,7 +586,8 @@ export default {
     LinkedToAnotherOptions,
     DlgLabelSubmitCancel,
     RelationOptions,
-    CustomSelectOptions
+    CustomSelectOptions,
+    CurrencyOptions
   },
   props: {
     nodes: Object,
@@ -678,6 +679,9 @@ export default {
     },
     isVirtual() {
       return this.isLinkToAnotherRecord || this.isLookup || this.isRollup
+    },
+    isCurrency() {
+      return this.newColumn && this.newColumn.uidt === UITypes.Currency
     }
   },
   watch: {
@@ -803,6 +807,16 @@ export default {
         this.newColumn.dtxp = this.column.dtxp
       }
 
+      if (this.isCurrency) {
+        if (this.column?.uidt === UITypes.Currency) {
+          this.newColumn.dtxp = this.column.dtxp
+          this.newColumn.dtxs = this.column.dtxs
+        } else {
+          this.newColumn.dtxp = 19
+          this.newColumn.dtxs = 2
+        }
+      }
+
       // this.$set(this.newColumn, 'uidt', this.sqlUi.getUIType(this.newColumn));
 
       this.newColumn.altered = this.newColumn.altered || 2
@@ -840,6 +854,16 @@ export default {
       if (columnToValidate.includes(this.newColumn.uidt)) {
         this.newColumn.meta = {
           validate: this.newColumn.meta && this.newColumn.meta.validate
+        }
+      }
+
+      if (this.isCurrency) {
+        if (this.column?.uidt === UITypes.Currency) {
+          this.newColumn.dtxp = this.column.dtxp
+          this.newColumn.dtxs = this.column.dtxs
+        } else {
+          this.newColumn.dtxp = 19
+          this.newColumn.dtxs = 2
         }
       }
 

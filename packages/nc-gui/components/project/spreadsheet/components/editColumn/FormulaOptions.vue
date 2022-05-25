@@ -43,6 +43,9 @@
                     <span
                       class="caption primary--text text--lighten-2 font-weight-bold"
                     >
+                      <v-icon color="primary lighten-2" small class="mr-1">
+                        mdi-function
+                      </v-icon>
                       {{ it.text }}
                     </span>
                   </v-list-item-content>
@@ -70,10 +73,12 @@
                 <span
                   class="caption text--darken-3 font-weight-bold"
                 >
+                  <v-icon color="grey darken-4" small class="mr-1">
+                    {{ it.icon }}
+                  </v-icon>
                   {{ it.text }}
                 </span>
               </v-list-item-content>
-
               <v-list-item-action>
                 <span class="caption">
                   Column
@@ -87,6 +92,9 @@
                 <span
                   class="caption indigo--text text--darken-3 font-weight-bold"
                 >
+                  <v-icon color="indigo darken-3" small class="mr-1">
+                    mdi-calculator-variant
+                  </v-icon>
                   {{ it.text }}
                 </span>
               </v-list-item-content>
@@ -109,6 +117,7 @@
 import debounce from 'debounce'
 import jsep from 'jsep'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
+import { getUIDTIcon } from '../../helpers/uiTypes'
 import formulaList, { formulas, formulaTypes } from '../../../../../helpers/formulaList'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
@@ -145,7 +154,9 @@ export default {
         })),
         ...this.meta.columns.filter(c => !this.column || this.column.id !== c.id).map(c => ({
           text: c.title,
+          uidt: c.uidt,
           type: 'column',
+          icon: getUIDTIcon(c.uidt),
           c
         })),
         ...this.availableBinOps.map(op => ({

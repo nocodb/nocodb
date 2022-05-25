@@ -151,10 +151,20 @@ const uiTypes = [
 ]
 
 const getUIDTIcon = (uidt) => {
-  return ([...uiTypes, {
-    name: 'CreateTime',
-    icon: 'mdi-calendar-clock'
-  }].find(t => t.name === uidt) || {}).icon
+  return ([...uiTypes,
+    {
+      name: 'CreateTime',
+      icon: 'mdi-calendar-clock'
+    },
+    {
+      name: 'ID',
+      icon: 'mdi-identifier'
+    },
+    {
+      name: 'ForeignKey',
+      icon: 'mdi-link-variant'
+    }
+  ].find(t => t.name === uidt) || {}).icon
 }
 
 export {

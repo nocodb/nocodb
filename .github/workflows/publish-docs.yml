@@ -1,14 +1,10 @@
 name: "Publish : Docs"
 
 on:
-  push:
-    branches: [ master ]
-    paths:
-      - "packages/noco-docs/**"
-  release:
-    types: [ published ]
   # Triggered manually
   workflow_dispatch:
+  # Triggered by release-nocodb.yml
+  workflow_call:
 
 jobs:
   copy-file:
@@ -20,14 +16,12 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v2
         with:
-          node-version: 14
+          node-version: 16
       - name: Build docs
         run: |
           cd packages/noco-docs
           npm install
           npm run generate
-
-
       - name: Pushes generated output
         uses: dmnemec/copy_file_to_another_repo_action@1b29cbd9a323185f20b175dc6d5f8f31be5c0658
         env:

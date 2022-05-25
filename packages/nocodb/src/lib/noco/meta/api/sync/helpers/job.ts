@@ -71,6 +71,8 @@ export default async (
   const nestedLookupTbl: any[] = [];
   const nestedRollupTbl: any[] = [];
   const ncSysFields = { id: 'ncRecordId', hash: 'ncRecordHash' };
+  const storeLinks = true;
+  const ncLinkDataStore: any = {};
 
   const uniqueTableNameGen = getUniqueNameGenerator('sheet');
 
@@ -1165,6 +1167,13 @@ export default async (
 
       // we will pick up LTAR once all table data's are in place
       if (dt === UITypes.LinkToAnotherRecord) {
+        if (ncLinkDataStore[table.title][record.id] === undefined)
+          ncLinkDataStore[table.title][record.id] = {
+            id: record.id,
+            fields: {}
+          };
+        ncLinkDataStore[table.title][record.id]['fields'][key] = value;
+
         delete rec[key];
       }
 
@@ -1263,6 +1272,8 @@ export default async (
   }
 
   async function nocoReadData(sDB, table, callback) {
+    ncLinkDataStore[table.title] = {};
+
     return new Promise((resolve, reject) => {
       base(table.title)
         .select({
@@ -1960,32 +1971,42 @@ export default async (
           logDetailed(`Data inserted from ${ncTbl.title}`);
         }
 
-        // create link groups (table: link fields)
-        const tblLinkGroup = {};
-        for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
-          const x = ncLinkMappingTable[idx];
-          if (tblLinkGroup[x.aTbl.tblId] === undefined)
-            tblLinkGroup[x.aTbl.tblId] = [x.aTbl.name];
-          else tblLinkGroup[x.aTbl.tblId].push(x.aTbl.name);
-        }
+        if (storeLinks) {
+          for (const [pTitle, v] of Object.entries(ncLinkDataStore)) {
+            for (const [_, record] of Object.entries(v)) {
+              const tbl = ncTblList.list.find(a => a.title === pTitle);
+              await nocoLinkProcessing(syncDB.projectName, tbl, record, 0);
+            }
+          }
+          // await nocoLinkProcessing(syncDB.projectName, 0, 0, 0);
+        } else {
+          // create link groups (table: link fields)
+          const tblLinkGroup = {};
+          for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
+            const x = ncLinkMappingTable[idx];
+            if (tblLinkGroup[x.aTbl.tblId] === undefined)
+              tblLinkGroup[x.aTbl.tblId] = [x.aTbl.name];
+            else tblLinkGroup[x.aTbl.tblId].push(x.aTbl.name);
+          }
 
-        logBasic('Configuring Record Links...');
-        for (const [k, v] of Object.entries(tblLinkGroup)) {
-          const ncTbl = await nc_getTableSchema(aTbl_getTableName(k).tn);
+          logBasic('Configuring Record Links...');
+          for (const [k, v] of Object.entries(tblLinkGroup)) {
+            const ncTbl = await nc_getTableSchema(aTbl_getTableName(k).tn);
 
-          // not a migrated table, skip
-          if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
-            continue;
+            // not a migrated table, skip
+            if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
+              continue;
 
-          recordCnt = 0;
-          await nocoReadDataSelected(
-            syncDB.projectName,
-            ncTbl,
-            async (projName, table, record, _field) => {
-              await nocoLinkProcessing(projName, table, record, _field);
-            },
-            v
-          );
+            recordCnt = 0;
+            await nocoReadDataSelected(
+              syncDB.projectName,
+              ncTbl,
+              async (projName, table, record, _field) => {
+                await nocoLinkProcessing(projName, table, record, _field);
+              },
+              v
+            );
+          }
         }
 
         // Configure link @ Data row's

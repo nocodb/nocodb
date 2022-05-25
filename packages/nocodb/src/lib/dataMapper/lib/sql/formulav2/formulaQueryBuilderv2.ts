@@ -612,7 +612,21 @@ export default async function formulaQueryBuilderv2(
 
       return knex.raw(
         `${pt.callee.name}(${pt.arguments
-          .map(arg => fn(arg).toQuery())
+          .map(arg => {
+            const query = fn(arg).toQuery();
+            if (pt.callee.name === 'CONCAT') {
+              if (knex.clientType() === 'mysql2') {
+                // mysql2: CONCAT() returns NULL if any argument is NULL.
+                // adding IFNULL to convert NULL values to empty strings
+                return `IFNULL(${query}, '')`;
+              } else {
+                // do nothing
+                // pg / mssql: Concatenate all arguments. NULL arguments are ignored.
+                // sqlite3: special handling - See BinaryExpression
+              }
+            }
+            return query;
+          })
           .join()})${colAlias}`
       );
     } else if (pt.type === 'Literal') {
@@ -637,13 +651,16 @@ export default async function formulaQueryBuilderv2(
       pt.left.fnName = pt.left.fnName || 'ARITH';
       pt.right.fnName = pt.right.fnName || 'ARITH';
 
-      const query = knex.raw(
-        `${fn(pt.left, null, pt.operator).toQuery()} ${pt.operator} ${fn(
-          pt.right,
-          null,
-          pt.operator
-        ).toQuery()}${colAlias}`
-      );
+      const left = fn(pt.left, null, pt.operator).toQuery();
+      const right = fn(pt.right, null, pt.operator).toQuery();
+      let sql = `${left} ${pt.operator} ${right}${colAlias}`;
+
+      // handle NULL values when calling CONCAT for sqlite3
+      if (pt.left.fnName === 'CONCAT' && knex.clientType() === 'sqlite3') {
+        sql = `COALESCE(${left}, '') ${pt.operator} COALESCE(${right},'')${colAlias}`;
+      }
+
+      const query = knex.raw(sql);
       if (prevBinaryOp && pt.operator !== prevBinaryOp) {
         query.wrap('(', ')');
       }

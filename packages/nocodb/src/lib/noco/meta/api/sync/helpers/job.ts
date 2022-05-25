@@ -62,6 +62,8 @@ export default async (
   const process_aTblData = true;
   const generate_migrationStats = true;
   const debugMode = false;
+  // ["Rollup", "Lookup", "Formula"]
+  const vColumns = ['Lookup'];
   let api: Api<any>;
   let g_aTblSchema = [];
   let ncCreatedProjectSchema: any = {};
@@ -900,6 +902,7 @@ export default async (
     return aTbl_ncRollUp[fn];
   }
 
+  //@ts-ignore
   async function nocoCreateRollup(aTblSchema) {
     // Rollup
     for (let idx = 0; idx < aTblSchema.length; idx++) {
@@ -925,8 +928,9 @@ export default async (
           const ncRollupFn = getRollupNcFunction(
             aTblColumns[i].typeOptions.formulaTextParsed
           );
+          // const ncRollupFn = '';
 
-          if (ncRollupFn === '') {
+          if (ncRollupFn === '' || ncRollupFn === undefined) {
             updateMigrationSkipLog(
               srcTableSchema.title,
               aTblColumns[i].name,
@@ -1014,6 +1018,7 @@ export default async (
     logDetailed(`Nested rollup: ${nestedRollupTbl.length}`);
   }
 
+  //@ts-ignore
   async function nocoLookupForRollup() {
     const nestedCnt = nestedLookupTbl.length;
     for (let i = 0; i < nestedLookupTbl.length; i++) {
@@ -1107,24 +1112,27 @@ export default async (
 
   async function nocoLinkProcessing(projName, table, record, _field) {
     const rec = record.fields;
-    const refRowIdList: any = Object.values(rec);
-    const referenceColumnName = Object.keys(rec)[0];
 
-    if (refRowIdList.length) {
-      for (let i = 0; i < refRowIdList[0].length; i++) {
-        logDetailed(
-          `NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`
-        );
+    for (const [key, value] of Object.entries(rec)) {
+      const refRowIdList: any = value;
+      const referenceColumnName = key;
 
-        await api.dbTableRow.nestedAdd(
-          'noco',
-          projName,
-          table.id,
-          `${record.id}`,
-          'mm', // fix me
-          encodeURIComponent(referenceColumnName),
-          `${refRowIdList[0][i]}`
-        );
+      if (refRowIdList.length) {
+        for (let i = 0; i < refRowIdList.length; i++) {
+          logDetailed(
+            `NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`
+          );
+
+          await api.dbTableRow.nestedAdd(
+            'noco',
+            projName,
+            table.id,
+            `${record.id}`,
+            'mm',
+            encodeURIComponent(referenceColumnName),
+            `${refRowIdList[i]}`
+          );
+        }
       }
     }
   }
@@ -1296,7 +1304,7 @@ export default async (
         .select({
           pageSize: 100,
           // maxRecords: 100,
-          fields: [fields]
+          fields: fields
         })
         .eachPage(
           async function page(records, fetchNextPage) {
@@ -1665,23 +1673,23 @@ export default async (
       return accumulator + object.nc.rollup;
     }, 0);
 
-    logDetailed(`Quick Summary:`);
-    logDetailed(`:: Total Tables:   ${aTblSchema.length}`);
-    logDetailed(`:: Total Columns:  ${columnSum}`);
-    logDetailed(`::   Links:        ${linkSum}`);
-    logDetailed(`::   Lookup:       ${lookupSum}`);
-    logDetailed(`::   Rollup:       ${rollupSum}`);
-    logDetailed(`:: Total Filters:  ${rtc.filter}`);
-    logDetailed(`:: Total Sort:     ${rtc.sort}`);
-    logDetailed(`:: Total Views:    ${rtc.view.total}`);
-    logDetailed(`::   Grid:         ${rtc.view.grid}`);
-    logDetailed(`::   Gallery:      ${rtc.view.gallery}`);
-    logDetailed(`::   Form:         ${rtc.view.form}`);
+    logBasic(`Quick Summary:`);
+    logBasic(`:: Total Tables:   ${aTblSchema.length}`);
+    logBasic(`:: Total Columns:  ${columnSum}`);
+    logBasic(`::   Links:        ${linkSum}`);
+    logBasic(`::   Lookup:       ${lookupSum}`);
+    logBasic(`::   Rollup:       ${rollupSum}`);
+    logBasic(`:: Total Filters:  ${rtc.filter}`);
+    logBasic(`:: Total Sort:     ${rtc.sort}`);
+    logBasic(`:: Total Views:    ${rtc.view.total}`);
+    logBasic(`::   Grid:         ${rtc.view.grid}`);
+    logBasic(`::   Gallery:      ${rtc.view.gallery}`);
+    logBasic(`::   Form:         ${rtc.view.form}`);
 
     const duration = Date.now() - start;
-    logDetailed(`:: Migration time:      ${duration}`);
-    logDetailed(`:: Axios fetch count:   ${rtc.fetchAt.count}`);
-    logDetailed(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
+    logBasic(`:: Migration time:      ${duration}`);
+    logBasic(`:: Axios fetch count:   ${rtc.fetchAt.count}`);
+    logBasic(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
   }
 
   //////////////////////////////
@@ -1899,17 +1907,17 @@ export default async (
 
     logDetailed(`Configuring Lookup`);
     // add look-ups
-    await nocoCreateLookups(aTblSchema);
+    if (vColumns.includes('Lookup')) await nocoCreateLookups(aTblSchema);
     logDetailed('Migrating Lookup columns completed');
 
     logDetailed('Configuring Rollup');
     // add roll-ups
-    await nocoCreateRollup(aTblSchema);
+    if (vColumns.includes('Rollup')) await nocoCreateRollup(aTblSchema);
     logDetailed('Migrating Rollup columns completed');
 
     logDetailed('Migrating Lookup form Rollup columns');
     // lookups for rollup
-    await nocoLookupForRollup();
+    if (vColumns.includes('Rollup')) await nocoLookupForRollup();
     logDetailed('Migrating Lookup form Rollup columns completed');
 
     logDetailed('Configuring Primary value column');
@@ -1952,13 +1960,18 @@ export default async (
           logDetailed(`Data inserted from ${ncTbl.title}`);
         }
 
-        logBasic('Configuring Record Links...');
-        // Configure link @ Data row's
+        // create link groups (table: link fields)
+        const tblLinkGroup = {};
         for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
           const x = ncLinkMappingTable[idx];
-          const ncTbl = await nc_getTableSchema(
-            aTbl_getTableName(x.aTbl.tblId).tn
-          );
+          if (tblLinkGroup[x.aTbl.tblId] === undefined)
+            tblLinkGroup[x.aTbl.tblId] = [x.aTbl.name];
+          else tblLinkGroup[x.aTbl.tblId].push(x.aTbl.name);
+        }
+
+        logBasic('Configuring Record Links...');
+        for (const [k, v] of Object.entries(tblLinkGroup)) {
+          const ncTbl = await nc_getTableSchema(aTbl_getTableName(k).tn);
 
           // not a migrated table, skip
           if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
@@ -1971,10 +1984,32 @@ export default async (
             async (projName, table, record, _field) => {
               await nocoLinkProcessing(projName, table, record, _field);
             },
-            x.aTbl.name
+            v
           );
-          logDetailed(`Linked data to ${ncTbl.title}`);
         }
+
+        // Configure link @ Data row's
+        // for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
+        //   const x = ncLinkMappingTable[idx];
+        //   const ncTbl = await nc_getTableSchema(
+        //     aTbl_getTableName(x.aTbl.tblId).tn
+        //   );
+        //
+        //   // not a migrated table, skip
+        //   if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
+        //     continue;
+        //
+        //   recordCnt = 0;
+        //   await nocoReadDataSelected(
+        //     syncDB.projectName,
+        //     ncTbl,
+        //     async (projName, table, record, _field) => {
+        //       await nocoLinkProcessing(projName, table, record, _field);
+        //     },
+        //     x.aTbl.name
+        //   );
+        //   logDetailed(`Linked data to ${ncTbl.title}`);
+        // }
       } catch (error) {
         logDetailed(
           `There was an error while migrating data! Please make sure your API key (${syncDB.apiKey}) is correct.`

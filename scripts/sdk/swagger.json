@@ -2874,7 +2874,7 @@
         }
       }
     },
-    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one": {
+    "/api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupby": {
       "parameters": [
         {
           "schema": {

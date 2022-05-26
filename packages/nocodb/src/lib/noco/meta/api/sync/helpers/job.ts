@@ -57,7 +57,12 @@ export default async (
   }
 
   const perfStats = [];
+  function recordPerfStart() {
+    if (!debugMode) return 0;
+    return Date.now();
+  }
   function recordPerfStats(start, event) {
+    if (!debugMode) return;
     const duration = Date.now() - start;
     perfStats.push({ d: duration, e: event });
   }
@@ -482,7 +487,7 @@ export default async (
 
       logDetailed(`NC API: dbTable.create ${tables[idx].title}`);
 
-      let _perfStart = Date.now();
+      let _perfStart = recordPerfStart();
       const table: any = await api.dbTable.create(
         ncCreatedProjectSchema.id,
         tables[idx]
@@ -508,13 +513,13 @@ export default async (
 
       // update default view name- to match it to airtable view name
       logDetailed(`NC API: dbView.list ${table.id}`);
-      _perfStart = Date.now();
+      _perfStart = recordPerfStart();
       const view = await api.dbView.list(table.id);
       recordPerfStats(_perfStart, 'dbView.list');
 
       const aTbl_grid = aTblSchema[idx].views.find(x => x.type === 'grid');
       logDetailed(`NC API: dbView.update ${view.list[0].id} ${aTbl_grid.name}`);
-      _perfStart = Date.now();
+      _perfStart = recordPerfStart();
       await api.dbView.update(view.list[0].id, {
         title: aTbl_grid.name
       });
@@ -582,7 +587,7 @@ export default async (
             }
 
             // check if already a column exists with this name?
-            let _perfStart = Date.now();
+            let _perfStart = recordPerfStart();
             const srcTbl: any = await api.dbTable.read(srcTableId);
             recordPerfStats(_perfStart, 'dbTable.read');
 
@@ -595,7 +600,7 @@ export default async (
             logDetailed(
               `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`
             );
-            _perfStart = Date.now();
+            _perfStart = recordPerfStart();
             const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
               uidt: UITypes.LinkToAnotherRecord,
               title: ncName.title,
@@ -623,7 +628,7 @@ export default async (
             // this information will be helpful in identifying relation pair
             const link = {
               nc: {
-                title: aTblLinkColumns[i].name,
+                title: ncName.title,
                 parentId: srcTableId,
                 childId: childTableId,
                 type: 'mm'
@@ -650,13 +655,13 @@ export default async (
                 x.aTbl.id === aTblLinkColumns[i].typeOptions.symmetricColumnId
             );
 
-            let _perfStart = Date.now();
+            let _perfStart = recordPerfStart();
             const childTblSchema: any = await api.dbTable.read(
               ncLinkMappingTable[x].nc.childId
             );
             recordPerfStats(_perfStart, 'dbTable.read');
 
-            _perfStart = Date.now();
+            _perfStart = recordPerfStart();
             const parentTblSchema: any = await api.dbTable.read(
               ncLinkMappingTable[x].nc.parentId
             );
@@ -669,6 +674,16 @@ export default async (
             let parentLinkColumn = parentTblSchema.columns.find(
               col => col.title === ncLinkMappingTable[x].nc.title
             );
+
+            if (parentLinkColumn === undefined) {
+              updateMigrationSkipLog(
+                parentTblSchema?.title,
+                ncLinkMappingTable[x].nc.title,
+                UITypes.LinkToAnotherRecord,
+                'Link error'
+              );
+              continue;
+            }
 
             // hack // fix me
             if (parentLinkColumn.uidt !== 'LinkToAnotherRecord') {
@@ -727,7 +742,7 @@ export default async (
             logDetailed(
               `NC API: dbTableColumn.update rename symmetric column ${ncName.title}`
             );
-            _perfStart = Date.now();
+            _perfStart = recordPerfStart();
             const ncTbl: any = await api.dbTableColumn.update(
               childLinkColumn.id,
               {
@@ -800,7 +815,10 @@ export default async (
             aTblColumns[i].typeOptions.foreignTableRollupColumnId
           );
 
-          if (ncLookupColumnId === undefined) {
+          if (
+            ncLookupColumnId === undefined ||
+            ncRelationColumnId === undefined
+          ) {
             aTblColumns[i]['srcTableId'] = srcTableId;
             nestedLookupTbl.push(aTblColumns[i]);
             continue;
@@ -812,7 +830,7 @@ export default async (
           );
 
           logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
-          const _perfStart = Date.now();
+          const _perfStart = recordPerfStart();
           const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
             uidt: UITypes.Lookup,
             title: ncName.title,
@@ -888,7 +906,7 @@ export default async (
         );
 
         logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
-        const _perfStart = Date.now();
+        const _perfStart = recordPerfStart();
         const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
           uidt: UITypes.Lookup,
           title: ncName.title,
@@ -1030,7 +1048,7 @@ export default async (
           );
 
           logDetailed(`NC API: dbTableColumn.create ROLLUP ${ncName.title}`);
-          const _perfStart = Date.now();
+          const _perfStart = recordPerfStart();
           const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
             uidt: UITypes.Rollup,
             title: ncName.title,
@@ -1087,7 +1105,7 @@ export default async (
       );
 
       logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
-      const _perfStart = Date.now();
+      const _perfStart = recordPerfStart();
       const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
         uidt: UITypes.Lookup,
         title: ncName.title,
@@ -1127,7 +1145,7 @@ export default async (
       // skip primary column configuration if we field not migrated
       if (ncColId) {
         logDetailed(`NC API: dbTableColumn.primaryColumnSet`);
-        const _perfStart = Date.now();
+        const _perfStart = recordPerfStart();
         await api.dbTableColumn.primaryColumnSet(ncColId);
         recordPerfStats(_perfStart, 'dbTableColumn.primaryColumnSet');
 
@@ -1143,7 +1161,7 @@ export default async (
     // retrieve view Info
     let viewDetails;
 
-    const _perfStart = Date.now();
+    const _perfStart = recordPerfStart();
     if (viewType === 'form') {
       viewDetails = (await api.dbView.formRead(viewId)).columns;
       recordPerfStats(_perfStart, 'dbView.formRead');
@@ -1173,7 +1191,7 @@ export default async (
             `NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`
           );
 
-          const _perfStart = Date.now();
+          const _perfStart = recordPerfStart();
           await api.dbTableRow.nestedAdd(
             'noco',
             projName,
@@ -1314,7 +1332,7 @@ export default async (
 
     // bulk Insert
     logDetailed(`NC API: dbTableRow.bulkCreate ${table.title} [${rec}]`);
-    const _perfStart = Date.now();
+    const _perfStart = recordPerfStart();
     await api.dbTableRow.bulkCreate(
       'nc',
       sDB.projectName,
@@ -1445,6 +1463,7 @@ export default async (
 
   async function nocoReadData(sDB, table, _callback) {
     ncLinkDataStore[table.title] = {};
+    const insertJobs: Promise<any>[] = [];
 
     return new Promise((resolve, reject) => {
       base(table.title)
@@ -1458,7 +1477,8 @@ export default async (
 
             // This function (`page`) will get called for each page of records.
             logBasic(
-              `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += 100)}`
+              `:: ${Date.now()} ${table.title} : ${recordCnt +
+                1} ~ ${(recordCnt += 100)}`
             );
 
             // await Promise.all(
@@ -1470,25 +1490,37 @@ export default async (
               ncRecords.push(r);
             }
 
-            const _perfStart = Date.now();
-            await api.dbTableRow.bulkCreate(
-              'nc',
-              sDB.projectName,
-              table.id, // encodeURIComponent(table.title),
-              ncRecords
+            // wait for previous job's to finish
+            await Promise.all(insertJobs);
+
+            const _perfStart = recordPerfStart();
+            insertJobs.push(
+              api.dbTableRow.bulkCreate(
+                'nc',
+                sDB.projectName,
+                table.id, // encodeURIComponent(table.title),
+                ncRecords
+              )
             );
             recordPerfStats(_perfStart, 'dbTableRow.bulkCreate');
 
             // To fetch the next page of records, call `fetchNextPage`.
             // If there are more records, `page` will get called again.
             // If there are no more records, `done` will get called.
+            logBasic(
+              `:: ${Date.now()} Awaiting response from Airtable Data API ...`
+            );
             fetchNextPage();
           },
-          function done(err) {
+          async function done(err) {
             if (err) {
               console.error(err);
               reject(err);
             }
+
+            // wait for all jobs to be completed
+            await Promise.all(insertJobs);
+
             resolve(null);
           }
         );
@@ -1544,7 +1576,7 @@ export default async (
   async function nocoCreateProject(projName) {
     // create empty project (XC-DB)
     logDetailed(`Create Project: ${projName}`);
-    const _perfStart = Date.now();
+    const _perfStart = recordPerfStart();
     ncCreatedProjectSchema = await api.project.create({
       title: projName
     });
@@ -1554,7 +1586,7 @@ export default async (
   async function nocoGetProject(projId) {
     // create empty project (XC-DB)
     logDetailed(`Getting project meta: ${projId}`);
-    const _perfStart = Date.now();
+    const _perfStart = recordPerfStart();
     ncCreatedProjectSchema = await api.project.read(projId);
     recordPerfStats(_perfStart, 'project.read');
   }
@@ -1586,7 +1618,7 @@ export default async (
         );
 
         logDetailed(`NC API dbView.galleryCreate :: ${viewName}`);
-        const _perfStart = Date.now();
+        const _perfStart = recordPerfStart();
         await api.dbView.galleryCreate(tblId, { title: viewName });
         recordPerfStats(_perfStart, 'dbView.galleryCreate');
 
@@ -1647,7 +1679,7 @@ export default async (
         };
 
         logDetailed(`NC API dbView.formCreate :: ${viewName}`);
-        const _perfStart = Date.now();
+        const _perfStart = recordPerfStart();
         const f = await api.dbView.formCreate(tblId, formData);
         recordPerfStats(_perfStart, 'dbView.formCreate');
 
@@ -1690,7 +1722,7 @@ export default async (
         const viewName = aTblSchema[idx].views.find(
           x => x.id === gridViews[i].id
         )?.name;
-        const _perfStart = Date.now();
+        const _perfStart = recordPerfStart();
         const viewList: any = await api.dbView.list(tblId);
         recordPerfStats(_perfStart, 'dbView.list');
 
@@ -1705,7 +1737,7 @@ export default async (
         // create view (default already created)
         if (i > 0) {
           logDetailed(`NC API dbView.gridCreate :: ${viewName}`);
-          const _perfStart = Date.now();
+          const _perfStart = recordPerfStart();
           const viewCreated = await api.dbView.gridCreate(tblId, {
             title: viewName
           });
@@ -1765,6 +1797,7 @@ export default async (
     const userList = aTblSchema.appBlanket.userInfoById;
     const totalUsers = Object.keys(userList).length;
     let cnt = 0;
+    const insertJobs: Promise<any>[] = [];
 
     for (const [, value] of Object.entries(
       userList as { [key: string]: any }
@@ -1772,13 +1805,16 @@ export default async (
       logDetailed(
         `[${++cnt}/${totalUsers}] NC API auth.projectUserAdd :: ${value.email}`
       );
-      const _perfStart = Date.now();
-      await api.auth.projectUserAdd(ncCreatedProjectSchema.id, {
-        email: value.email,
-        roles: userRoles[value.permissionLevel]
-      });
+      const _perfStart = recordPerfStart();
+      insertJobs.push(
+        api.auth.projectUserAdd(ncCreatedProjectSchema.id, {
+          email: value.email,
+          roles: userRoles[value.permissionLevel]
+        })
+      );
       recordPerfStats(_perfStart, 'auth.projectUserAdd');
     }
+    await Promise.all(insertJobs);
   }
 
   function updateNcTblSchema(tblSchema) {
@@ -1794,7 +1830,7 @@ export default async (
   }
 
   async function updateNcTblSchemaById(tblId) {
-    const _perfStart = Date.now();
+    const _perfStart = recordPerfStart();
     const ncTbl = await api.dbTable.read(tblId);
     recordPerfStats(_perfStart, 'dbTable.read');
 
@@ -1909,12 +1945,17 @@ export default async (
     logBasic(`:: Axios fetch count:   ${rtc.fetchAt.count}`);
     logBasic(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
 
-    jsonfile.writeFileSync('stats.json', perfStats, { spaces: 2 });
-    const perflog = [];
-    for (let i = 0; i < perfStats.length; i++) {
-      perflog.push(`${perfStats[i].e}, ${perfStats[i].d}`);
+    if (debugMode) {
+      jsonfile.writeFileSync('stats.json', perfStats, { spaces: 2 });
+      const perflog = [];
+      for (let i = 0; i < perfStats.length; i++) {
+        perflog.push(`${perfStats[i].e}, ${perfStats[i].d}`);
+      }
+      jsonfile.writeFileSync('stats.csv', perflog, { spaces: 2 });
+      jsonfile.writeFileSync('skip.txt', rtc.migrationSkipLog.log, {
+        spaces: 2
+      });
     }
-    jsonfile.writeFileSync('stats.csv', perflog, { spaces: 2 });
   }
 
   //////////////////////////////
@@ -2009,7 +2050,7 @@ export default async (
 
       // insert filters
       for (let i = 0; i < ncFilters.length; i++) {
-        const _perfStart = Date.now();
+        const _perfStart = recordPerfStart();
         await api.dbTableFilter.create(viewId, {
           ...ncFilters[i]
         });
@@ -2025,7 +2066,7 @@ export default async (
       const columnId = (await nc_getColumnSchema(s.sortSet[i].columnId))?.id;
 
       if (columnId) {
-        const _perfStart = Date.now();
+        const _perfStart = recordPerfStart();
         await api.dbTableSort.create(viewId, {
           fk_column_id: columnId,
           direction: s.sortSet[i].ascending ? 'asc' : 'dsc'
@@ -2048,7 +2089,7 @@ export default async (
     const viewId = ncTbl.views.find(x => x.title === viewName).id;
     let viewDetails;
 
-    const _perfStart = Date.now();
+    const _perfStart = recordPerfStart();
     if (viewType === 'form') {
       viewDetails = (await api.dbView.formRead(viewId)).columns;
       recordPerfStats(_perfStart, 'dbView.formRead');
@@ -2075,7 +2116,7 @@ export default async (
       if (ncViewColumnId === undefined) continue;
 
       // first two positions held by record id & record hash
-      const _perfStart = Date.now();
+      const _perfStart = recordPerfStart();
       await api.dbViewColumn.update(viewId, ncViewColumnId, {
         show: false,
         order: j + 1 + c.length
@@ -2102,12 +2143,12 @@ export default async (
           if (x?.title) formData[`label`] = x.title;
           if (x?.required) formData[`required`] = x.required;
           if (x?.description) formData[`description`] = x.description;
-          const _perfStart = Date.now();
+          const _perfStart = recordPerfStart();
           await api.dbView.formColumnUpdate(ncViewColumnId, formData);
           recordPerfStats(_perfStart, 'dbView.formColumnUpdate');
         }
       }
-      const _perfStart = Date.now();
+      const _perfStart = recordPerfStart();
       await api.dbViewColumn.update(viewId, ncViewColumnId, configData);
       recordPerfStats(_perfStart, 'dbViewColumn.update');
     }
@@ -2196,14 +2237,14 @@ export default async (
     if (process_aTblData) {
       try {
         // await nc_DumpTableSchema();
-        const _perfStart = Date.now();
+        const _perfStart = recordPerfStart();
         const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
         recordPerfStats(_perfStart, 'dbTable.list');
 
         logBasic('Reading Records...');
 
         for (let i = 0; i < ncTblList.list.length; i++) {
-          const _perfStart = Date.now();
+          const _perfStart = recordPerfStart();
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
           recordPerfStats(_perfStart, 'dbTable.read');
 
@@ -2220,13 +2261,17 @@ export default async (
 
         logBasic('Configuring Record Links...');
         if (storeLinks) {
+          const insertJobs: Promise<any>[] = [];
           for (const [pTitle, v] of Object.entries(ncLinkDataStore)) {
             logBasic(`:: ${pTitle}`);
             for (const [_, record] of Object.entries(v)) {
               const tbl = ncTblList.list.find(a => a.title === pTitle);
-              await nocoLinkProcessing(syncDB.projectName, tbl, record, 0);
+              insertJobs.push(
+                nocoLinkProcessing(syncDB.projectName, tbl, record, 0)
+              );
             }
           }
+          await Promise.all(insertJobs);
           // await nocoLinkProcessing(syncDB.projectName, 0, 0, 0);
         } else {
           // create link groups (table: link fields)

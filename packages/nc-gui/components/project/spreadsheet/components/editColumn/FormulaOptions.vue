@@ -576,7 +576,7 @@ export default {
       const parts = query.split(/\W+/)
       this.wordToComplete = parts.pop()
       this.suggestion = this.acTree.complete(this.wordToComplete)?.sort((x, y) => this.sortOrder[x.type] - this.sortOrder[y.type])
-      if (this.isCurlyBracketBalanced()) {
+      if (!this.isCurlyBracketBalanced()) {
         this.suggestion = this.suggestion.filter(v => v.type === 'column')
       }
       this.autocomplete = !!this.suggestion.length

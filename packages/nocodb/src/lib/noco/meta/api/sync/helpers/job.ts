@@ -1167,13 +1167,14 @@ export default async (
 
       // we will pick up LTAR once all table data's are in place
       if (dt === UITypes.LinkToAnotherRecord) {
-        if (ncLinkDataStore[table.title][record.id] === undefined)
-          ncLinkDataStore[table.title][record.id] = {
-            id: record.id,
-            fields: {}
-          };
-        ncLinkDataStore[table.title][record.id]['fields'][key] = value;
-
+        if (storeLinks) {
+          if (ncLinkDataStore[table.title][record.id] === undefined)
+            ncLinkDataStore[table.title][record.id] = {
+              id: record.id,
+              fields: {}
+            };
+          ncLinkDataStore[table.title][record.id]['fields'][key] = value;
+        }
         delete rec[key];
       }
 
@@ -1826,16 +1827,26 @@ export default async (
     const ncTbl = await nc_getTableSchema(tblName);
     // retrieve view ID
     const viewId = ncTbl.views.find(x => x.title === viewName).id;
+    let viewDetails;
+
+    if (viewType === 'form')
+      viewDetails = (await api.dbView.formRead(viewId)).columns;
+    else if (viewType === 'gallery')
+      viewDetails = (await api.dbView.galleryRead(viewId)).columns;
+    else viewDetails = await api.dbView.gridColumnsList(viewId);
 
     // nc-specific columns; default hide.
     for (let j = 0; j < hiddenColumns.length; j++) {
       const ncColumnId = ncTbl.columns.find(x => x.title === hiddenColumns[j])
         .id;
-      const ncViewColumnId = await nc_getViewColumnId(
-        viewId,
-        viewType,
-        ncColumnId
-      );
+      const ncViewColumnId = viewDetails.find(
+        x => x.fk_column_id === ncColumnId
+      )?.id;
+      // const ncViewColumnId = await nc_getViewColumnId(
+      //   viewId,
+      //   viewType,
+      //   ncColumnId
+      // );
       if (ncViewColumnId === undefined) continue;
 
       // first two positions held by record id & record hash

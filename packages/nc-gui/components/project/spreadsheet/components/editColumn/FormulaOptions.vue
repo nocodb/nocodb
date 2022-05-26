@@ -545,13 +545,18 @@ export default {
         return 'N/A'
       }
     },
+    isCurlyBracketBalanced() {
+      // count number of opening curly brackets and closing curly brackets
+      const cntCurlyBrackets = (this.$refs.input.$el.querySelector('input').value.match(/\{|}/g) || []).reduce((acc, cur) => (acc[cur] = (acc[cur] || 0) + 1, acc), {})
+      return (cntCurlyBrackets['{'] || 0) === (cntCurlyBrackets['}'] || 0)
+    },
     appendText(it) {
       const text = it.text
       const len = this.wordToComplete.length
       if (it.type === 'function') {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len, 1))
       } else if (it.type === 'column') {
-        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), '{' + text + '}', len))
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), '{' + text + '}', len + (!this.isCurlyBracketBalanced())))
       } else {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }
@@ -571,9 +576,7 @@ export default {
       const parts = query.split(/\W+/)
       this.wordToComplete = parts.pop()
       this.suggestion = this.acTree.complete(this.wordToComplete)?.sort((x, y) => this.sortOrder[x.type] - this.sortOrder[y.type])
-      // count number of opening curly brackets and closing curly brackets
-      const cntCurlyBrackets = (this.$refs.input.$el.querySelector('input').value.match(/\{|}/g) || []).reduce((acc, cur) => (acc[cur] = (acc[cur] || 0) + 1, acc), {})
-      if (Math.abs((cntCurlyBrackets['{'] || 0) - (cntCurlyBrackets['}'] || 0))) {
+      if (this.isCurlyBracketBalanced()) {
         this.suggestion = this.suggestion.filter(v => v.type === 'column')
       }
       this.autocomplete = !!this.suggestion.length

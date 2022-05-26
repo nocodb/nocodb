@@ -70,7 +70,6 @@ export default async (
   let base, baseId;
   const start = Date.now();
   const enableErrorLogs = false;
-  const process_aTblData = true;
   const generate_migrationStats = true;
   const debugMode = false;
   let api: Api<any>;
@@ -387,7 +386,7 @@ export default async (
     for (let i = 0; i < tblSchema.length; ++i) {
       const table: any = {};
 
-      if (syncDB.syncViews) {
+      if (syncDB.options.syncViews) {
         rtc.view.total += tblSchema[i].views.reduce(
           (acc, cur) =>
             ['grid', 'form', 'gallery'].includes(cur.type) ? ++acc : acc,
@@ -1506,7 +1505,7 @@ export default async (
   }
 
   async function nocoConfigureGalleryView(sDB, aTblSchema) {
-    if (!sDB.syncViews) return;
+    if (!sDB.options.syncViews) return;
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
       const galleryViews = aTblSchema[idx].views.filter(
@@ -1545,7 +1544,7 @@ export default async (
   }
 
   async function nocoConfigureFormView(sDB, aTblSchema) {
-    if (!sDB.syncViews) return;
+    if (!sDB.options.syncViews) return;
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const tblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
       const formViews = aTblSchema[idx].views.filter(x => x.type === 'form');
@@ -1623,11 +1622,11 @@ export default async (
       const gridViews = aTblSchema[idx].views.filter(x => x.type === 'grid');
 
       let viewCnt = idx;
-      if (syncDB.syncViews)
+      if (syncDB.options.syncViews)
         viewCnt = rtc.view.grid + rtc.view.gallery + rtc.view.form;
       rtc.view.grid += gridViews.length;
 
-      for (let i = 0; i < (sDB.syncViews ? gridViews.length : 1); i++) {
+      for (let i = 0; i < (sDB.options.syncViews ? gridViews.length : 1); i++) {
         logDetailed(`   Axios fetch view-data`);
         // fetch viewData JSON
         const vData = await getViewData(gridViews[i].id);
@@ -2113,21 +2112,26 @@ export default async (
     await nocoCreateLinkToAnotherRecord(aTblSchema);
     logDetailed('Migrating LTAR columns completed');
 
-    logDetailed(`Configuring Lookup`);
-    // add look-ups
-    await nocoCreateLookups(aTblSchema);
-    logDetailed('Migrating Lookup columns completed');
+    if (syncDB.options.syncLookup) {
+      logDetailed(`Configuring Lookup`);
+      // add look-ups
+      await nocoCreateLookups(aTblSchema);
+      logDetailed('Migrating Lookup columns completed');
+    }
 
-    logDetailed('Configuring Rollup');
-    // add roll-ups
-    await nocoCreateRollup(aTblSchema);
-    logDetailed('Migrating Rollup columns completed');
+    if (syncDB.options.syncRollup) {
+      logDetailed('Configuring Rollup');
+      // add roll-ups
+      await nocoCreateRollup(aTblSchema);
+      logDetailed('Migrating Rollup columns completed');
 
-    logDetailed('Migrating Lookup form Rollup columns');
-    // lookups for rollup
-    await nocoLookupForRollup();
-    logDetailed('Migrating Lookup form Rollup columns completed');
-
+      if (syncDB.options.syncLookup) {
+        logDetailed('Migrating Lookup form Rollup columns');
+        // lookups for rollup
+        await nocoLookupForRollup();
+        logDetailed('Migrating Lookup form Rollup columns completed');
+      }
+    }
     logDetailed('Configuring Primary value column');
     // configure primary values
     await nocoSetPrimary(aTblSchema);
@@ -2148,7 +2152,7 @@ export default async (
     await nocoConfigureGalleryView(syncDB, aTblSchema);
     logDetailed('Syncing views completed');
 
-    if (process_aTblData) {
+    if (syncDB.options.syncData) {
       try {
         // await nc_DumpTableSchema();
         const _perfStart = recordPerfStart();
@@ -2254,5 +2258,11 @@ export interface AirtableSyncConfig {
   projectId?: string;
   apiKey: string;
   shareId: string;
-  syncViews: boolean;
+  options: {
+    syncViews: boolean;
+    syncData: boolean;
+    syncRollup: boolean;
+    syncLookup: boolean;
+    syncFormula: boolean;
+  }
 }

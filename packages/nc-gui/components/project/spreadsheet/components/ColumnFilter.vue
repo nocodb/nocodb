@@ -109,9 +109,10 @@
               @change="saveOrUpdate(filter, i)"
             >
               <template #item="{ item }">
-                <span
-                  :class="`caption font-weight-regular nc-filter-fld-${item.title}`"
-                >
+                <span :class="`caption font-weight-regular nc-filter-fld-${item.title}`">
+                  <v-icon color="grey darken-4" small class="mr-1">
+                    {{ item.icon }}
+                  </v-icon>
                   {{ item.title }}
                 </span>
               </template>
@@ -182,6 +183,7 @@
 </template>
 
 <script>
+import { getUIDTIcon } from '../helpers/uiTypes'
 import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
@@ -276,7 +278,10 @@ export default {
     columns() {
       return (
         this.meta &&
-        this.meta.columns.filter(c => c && (!c.colOptions || !c.system))
+        this.meta.columns.filter(c => c && (!c.colOptions || !c.system)).map(c => ({
+          ...c,
+          icon: getUIDTIcon(c.uidt)
+        }))
       )
     },
     types() {

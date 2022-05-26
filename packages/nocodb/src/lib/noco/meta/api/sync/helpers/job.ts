@@ -396,7 +396,15 @@ export default async (
 
       // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
       table.title = tblSchema[i].name;
-      table.table_name = uniqueTableNameGen(nc_sanitizeName(tblSchema[i].name));
+      let sanitizedName = nc_sanitizeName(tblSchema[i].name);
+
+      // truncate to 50 chars if character if exceeds above 50
+      // upto 64 should be fine but we are keeping it to 50 since
+      // meta project adds prefix as well
+      sanitizedName = sanitizedName?.slice(0, 50);
+
+      // check for duplicate and populate a unique name if already exist
+      table.table_name = uniqueTableNameGen(sanitizedName);
 
       const uniqueColNameGen = getUniqueNameGenerator('field');
       table.columns = [];

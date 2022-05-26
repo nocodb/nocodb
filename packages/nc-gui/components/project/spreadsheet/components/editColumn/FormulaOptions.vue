@@ -568,14 +568,13 @@ export default {
       this.selected = 0
       this.suggestion = null
       const query = getWordUntilCaret(this.$refs.input.$el.querySelector('input'))
+      const parts = query.split(/\W+/)
+      this.wordToComplete = parts.pop()
+      this.suggestion = this.acTree.complete(this.wordToComplete)?.sort((x, y) => this.sortOrder[x.type] - this.sortOrder[y.type])
       // count number of opening curly brackets and closing curly brackets
       const cntCurlyBrackets = (this.$refs.input.$el.querySelector('input').value.match(/\{|}/g) || []).reduce((acc, cur) => (acc[cur] = (acc[cur] || 0) + 1, acc), {})
       if (Math.abs((cntCurlyBrackets['{'] || 0) - (cntCurlyBrackets['}'] || 0))) {
-        this.suggestion = this.suggestionsList.filter(v => v.type === 'column')
-      } else {
-        const parts = query.split(/\W+/)
-        this.wordToComplete = parts.pop()
-        this.suggestion = this.acTree.complete(this.wordToComplete)?.sort((x, y) => this.sortOrder[x.type] - this.sortOrder[y.type])
+        this.suggestion = this.suggestion.filter(v => v.type === 'column')
       }
       this.autocomplete = !!this.suggestion.length
     },

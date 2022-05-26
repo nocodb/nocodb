@@ -365,7 +365,8 @@ export default async (
           );
         }
         // const csvOpt = "'" + opt.join("','") + "'";
-        const csvOpt = opt
+        const optSansDuplicate = [...new Set(opt)];
+        const csvOpt = optSansDuplicate
           .map(v => `'${v.replace(/'/g, "\\'").replace(/,/g, '.')}'`)
           .join(',');
         return { type: 'select', data: csvOpt };

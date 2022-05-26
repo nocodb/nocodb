@@ -436,7 +436,16 @@
               mdi-github
             </v-icon>
           </v-list-item-icon>
-          <v-list-item-title>
+          <v-list-item-title v-if="_isRtl">
+            <!-- us on Github -->
+            {{ $t("labels.community.starUs2") }}
+            <!-- Star -->
+            {{ $t("labels.community.starUs1") }}
+            <v-icon small>
+              mdi-star-outline
+            </v-icon>
+          </v-list-item-title>
+          <v-list-item-title v-else>
             <!-- Star -->
             {{ $t("labels.community.starUs1") }}
             <v-icon small>

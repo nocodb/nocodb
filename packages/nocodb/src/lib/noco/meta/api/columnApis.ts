@@ -649,7 +649,7 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
                     formula,
                     [new_column]
                   );
-                  await FormulaColumn.update(f.id, {
+                  await FormulaColumn.update(c.id, {
                     formula_raw: new_formula_raw
                   });
                 }

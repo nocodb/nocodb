@@ -53,6 +53,9 @@
               <span
                 :class="`caption font-weight-regular nc-sort-fld-${item.title}`"
               >
+                <v-icon color="grey darken-4" small class="mr-1">
+                  {{ item.icon }}
+                </v-icon>
                 {{ item.title }}
               </span>
             </template>
@@ -90,6 +93,7 @@
 
 <script>
 import { RelationTypes, UITypes } from "nocodb-sdk";
+import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   name: "SortListMenu",
@@ -115,7 +119,10 @@ export default {
             c.uidt === UITypes.LinkToAnotherRecord &&
             c.colOptions.type !== RelationTypes.BELONGS_TO
           )
-      );
+      ).map(c => ({
+        ...c,
+        icon: getUIDTIcon(c.uidt)
+      }));
     },
   },
   watch: {

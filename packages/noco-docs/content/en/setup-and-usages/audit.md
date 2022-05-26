@@ -8,8 +8,8 @@ menuTitle: 'Audit'
 
 We are keeping all the user operation logs under Audit. Audits logs can be accessed by clicking `Team & Settings` from the left navigation drawer.
 
-![image](https://user-images.githubusercontent.com/35857179/161902474-fd06678c-a171-4237-b171-dc028b3753de.png)
+<img width="367" alt="image" src="https://user-images.githubusercontent.com/35857179/170426881-ba645392-24a2-4446-b501-0595a0887724.png">
 
 Then, under SETTINGS, click `Audit`.
 
-![image](https://user-images.githubusercontent.com/35857179/161956444-d1a28568-2adb-4e4e-9aca-4032b4a2f7c2.png)
+<img width="1335" alt="image" src="https://user-images.githubusercontent.com/35857179/170428570-627a3763-26ae-4b8f-b5a8-0b8b42638464.png">

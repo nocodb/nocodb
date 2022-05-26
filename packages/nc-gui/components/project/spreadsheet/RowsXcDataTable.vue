@@ -29,6 +29,9 @@
               :key="col.column_name"
               @click="searchField = col.title"
             >
+              <v-icon color="grey darken-4" small class="mr-1">
+                {{ col.icon }}
+              </v-icon>
               <span class="caption">{{ col.title }}</span>
             </v-list-item>
           </v-list>

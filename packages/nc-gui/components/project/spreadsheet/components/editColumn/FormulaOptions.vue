@@ -117,8 +117,8 @@
 import debounce from 'debounce'
 import jsep from 'jsep'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
-import { getUIDTIcon } from '../../helpers/uiTypes'
-import formulaList, { formulas, formulaTypes } from '../../../../../helpers/formulaList'
+import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
+import formulaList, { formulas, formulaTypes } from '@/helpers/formulaList'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
 

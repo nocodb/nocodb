@@ -1,5 +1,8 @@
 <template>
-  <v-menu offset-y>
+  <v-menu
+    offset-y
+    transition="slide-y-transition"
+  >
     <template #activator="{ on }">
       <v-badge :value="isAnyFieldHidden" color="primary" dot overlap>
         <v-btn

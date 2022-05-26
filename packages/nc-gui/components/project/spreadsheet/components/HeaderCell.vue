@@ -51,6 +51,7 @@
       open-on-hover
       left
       z-index="999"
+      transition="slide-y-transition"
     >
       <template #activator="{on}">
         <v-icon v-if="!isLocked && !isVirtual" small v-on="on">
@@ -104,7 +105,14 @@
       </v-list>
     </v-menu>
 
-    <v-menu v-model="editColumnMenu" z-index="999" offset-y content-class="" left>
+    <v-menu
+      v-model="editColumnMenu"
+      z-index="999"
+      offset-y
+      content-class=""
+      left
+      transition="slide-y-transition"
+    >
       <template #activator="{on}">
         <span v-on="on" />
       </template>

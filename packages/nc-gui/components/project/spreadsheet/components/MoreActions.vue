@@ -4,6 +4,7 @@
       open-on-hover
       bottom
       offset-y
+      transition="slide-y-transition"
     >
       <template #activator="{on}">
         <v-btn

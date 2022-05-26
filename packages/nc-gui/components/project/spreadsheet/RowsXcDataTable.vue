@@ -512,7 +512,7 @@
         @rerender="viewKey++"
         @generateNewViewKey="generateNewViewKey"
         @mapFieldsAndShowFields="mapFieldsAndShowFields"
-        @loadTableData="loadTableData"
+        @loadTableData="loadTableData(false)"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
       >
         <!--        <v-tooltip bottom>
@@ -795,8 +795,8 @@ export default {
     syncDataDebounce: debounce(async function(self) {
       await self.syncData()
     }, 500),
-    loadTableDataDeb: debounce(async function(self) {
-      await self.loadTableDataFn()
+    loadTableDataDeb: debounce(async function(self, ignoreLoader) {
+      await self.loadTableDataFn(ignoreLoader)
     }, 200),
     viewKey: 0,
     extraViewParams: {},
@@ -993,7 +993,7 @@ export default {
       if (this.selectedView && this.selectedView.show_as === 'kanban') {
         await this.loadKanbanData()
       } else {
-        await this.loadTableData()
+        await this.loadTableData(false)
       }
       this.key = Math.random()
     },
@@ -1404,17 +1404,17 @@ export default {
       })
     },
     clickPagination() {
-      this.loadTableData()
+      this.loadTableData(false)
       this.$e('a:grid:pagination')
     },
-    loadTableData() {
-      this.loadTableDataDeb(this)
+    loadTableData(ignoreLoader = true) {
+      this.loadTableDataDeb(this, ignoreLoader)
     },
-    async loadTableDataFn() {
+    async loadTableDataFn(ignoreLoader = true) {
       if (this.isForm || !this.selectedView || !this.selectedView.title) {
         return
       }
-      this.loadingData = true
+      this.loadingData = !ignoreLoader
       try {
         // if (this.api) {
         // const { list, count } = await this.api.paginatedList(this.queryParams)

@@ -188,7 +188,11 @@ export default async (
   }
 
   function nc_getSanitizedColumnName(table, name) {
-    const col_name = nc_sanitizeName(name);
+    let col_name = nc_sanitizeName(name);
+
+    // truncate to 60 chars if character if exceeds above 60
+    col_name = col_name?.slice(0, 60);
+
     // for knex, replace . with _
     const col_alias = name.trim().replace(/\./g, '_');
 

@@ -336,8 +336,13 @@
           :style="{ height: isForm ? '100%' : 'calc(100% - 36px)' }"
           style="overflow: auto; width: 100%"
         >
+          <div v-if="loadingData && (isGallery || isGrid)" class="d-100 h-100 align-center justify-center d-flex flex-column">
+            <v-progress-circular size="40" color="grey" width="2" indeterminate class="mb-4" />
+            <span v-if="selectedView" class="caption grey--text">Loading view data... </span>
+          </div>
+
           <template
-            v-if="selectedViewId && selectedView"
+            v-else-if="selectedViewId && selectedView"
           >
             <!--          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />-->
             <template v-if="selectedView.type === viewTypes.GRID">

@@ -183,8 +183,7 @@
 </template>
 
 <script>
-import { getUIDTIcon } from '../helpers/uiTypes'
-import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
+import { getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   name: 'ColumnFilter',

@@ -82,7 +82,7 @@ export default async (
   const nestedLookupTbl: any[] = [];
   const nestedRollupTbl: any[] = [];
   const ncSysFields = { id: 'ncRecordId', hash: 'ncRecordHash' };
-  const storeLinks = true;
+  const storeLinks = false;
   const ncLinkDataStore: any = {};
 
   const uniqueTableNameGen = getUniqueNameGenerator('sheet');
@@ -2274,17 +2274,18 @@ export default async (
 
         logBasic('Configuring Record Links...');
         if (storeLinks) {
-          const insertJobs: Promise<any>[] = [];
+          // const insertJobs: Promise<any>[] = [];
           for (const [pTitle, v] of Object.entries(ncLinkDataStore)) {
             logBasic(`:: ${pTitle}`);
             for (const [_, record] of Object.entries(v)) {
               const tbl = ncTblList.list.find(a => a.title === pTitle);
-              insertJobs.push(
-                nocoLinkProcessing(syncDB.projectName, tbl, record, 0)
-              );
+              await nocoLinkProcessing(syncDB.projectName, tbl, record, 0);
+              // insertJobs.push(
+              //   nocoLinkProcessing(syncDB.projectName, tbl, record, 0)
+              // );
             }
           }
-          await Promise.all(insertJobs);
+          // await Promise.all(insertJobs);
           // await nocoLinkProcessing(syncDB.projectName, 0, 0, 0);
         } else {
           // create link groups (table: link fields)

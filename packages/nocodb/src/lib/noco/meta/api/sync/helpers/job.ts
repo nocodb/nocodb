@@ -1,5 +1,6 @@
 import FetchAT from './fetchAT';
 import { UITypes } from 'nocodb-sdk';
+import { Tele } from 'nc-help';
 // import * as sMap from './syncMap';
 import FormData from 'form-data';
 
@@ -1869,6 +1870,32 @@ export default async (
         spaces: 2
       });
     }
+
+    Tele.event({
+      event: 'a:airtable-import:success',
+      data: {
+        stats: {
+          migrationTime: duration,
+          totalTables: aTblSchema.length,
+          totalColumns: columnSum,
+          links: linkSum,
+          lookup: lookupSum,
+          rollup: rollupSum,
+          totalFilters: rtc.filter,
+          totalSort: rtc.sort,
+          view: {
+            total: rtc.view.total,
+            grid: rtc.view.grid,
+            gallery: rtc.view.gallery,
+            form: rtc.view.form
+          },
+          axios: {
+            count: rtc.fetchAt.count,
+            time: rtc.fetchAt.time
+          }
+        }
+      }
+    });
   }
 
   //////////////////////////////
@@ -2230,6 +2257,10 @@ export default async (
     }
   } catch (e) {
     if (e.response?.data?.msg) {
+      Tele.event({
+        event: 'a:airtable-import:error',
+        data: { error: e.response.data.msg }
+      });
       throw new Error(e.response.data.msg);
     }
     throw e;
@@ -2264,5 +2295,5 @@ export interface AirtableSyncConfig {
     syncRollup: boolean;
     syncLookup: boolean;
     syncFormula: boolean;
-  }
+  };
 }

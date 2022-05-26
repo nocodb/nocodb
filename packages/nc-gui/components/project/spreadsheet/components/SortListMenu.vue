@@ -15,10 +15,14 @@
           }"
           v-on="on"
         >
-          <v-icon small class="mr-1" color="#777"> mdi-sort </v-icon>
+          <v-icon small class="mr-1" color="#777">
+            mdi-sort
+          </v-icon>
           <!-- Sort -->
           {{ $t("activity.sort") }}
-          <v-icon small color="#777"> mdi-menu-down </v-icon>
+          <v-icon small color="#777">
+            mdi-menu-down
+          </v-icon>
         </v-btn>
       </v-badge>
     </template>
@@ -49,6 +53,11 @@
             @click.stop
             @change="saveOrUpdate(sort, i)"
           >
+            <template #selection="{item}">
+              <v-icon small class="mr-1">
+                {{ item.icon }}
+              </v-icon> {{ item.title }}
+            </template>
             <template #item="{ item }">
               <span
                 :class="`caption font-weight-regular nc-sort-fld-${item.title}`"
@@ -83,7 +92,9 @@
         </template>
       </div>
       <v-btn small class="elevation-0 grey--text my-3" @click.stop="addSort">
-        <v-icon small color="grey"> mdi-plus </v-icon>
+        <v-icon small color="grey">
+          mdi-plus
+        </v-icon>
         <!-- Add Sort Option -->
         {{ $t("activity.addSort") }}
       </v-btn>
@@ -92,29 +103,29 @@
 </template>
 
 <script>
-import { RelationTypes, UITypes } from "nocodb-sdk";
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
-  name: "SortListMenu",
+  name: 'SortListMenu',
   props: {
     fieldList: Array,
     value: [Array, Object],
     isLocked: Boolean,
     meta: [Object],
     viewId: String,
-    shared: Boolean,
+    shared: Boolean
   },
   data: () => ({
-    sortList: [],
+    sortList: []
   }),
   computed: {
     columns() {
       if (!this.meta || !this.meta.columns) {
-        return [];
+        return []
       }
       return this.meta.columns.filter(
-        (c) =>
+        c =>
           !(
             c.uidt === UITypes.LinkToAnotherRecord &&
             c.colOptions.type !== RelationTypes.BELONGS_TO
@@ -122,76 +133,76 @@ export default {
       ).map(c => ({
         ...c,
         icon: getUIDTIcon(c.uidt)
-      }));
-    },
+      }))
+    }
   },
   watch: {
     value(v) {
-      this.sortList = v || [];
+      this.sortList = v || []
     },
     async viewId(v) {
       if (v) {
-        await this.loadSortList();
+        await this.loadSortList()
       }
-    },
+    }
   },
   async created() {
-    this.sortList = this.value || [];
-    this.loadSortList();
+    this.sortList = this.value || []
+    this.loadSortList()
   },
   methods: {
     addSort() {
       this.sortList.push({
         fk_column_id: null,
-        direction: "asc",
-      });
-      this.sortList = this.sortList.slice();
-      this.$e("a:sort:add", { length: this.sortList.length });
+        direction: 'asc'
+      })
+      this.sortList = this.sortList.slice()
+      this.$e('a:sort:add', { length: this.sortList.length })
     },
     async loadSortList() {
       if (!this.shared) {
         // && !this._isUIAllowed('sortSync')) {
-        let sortList = [];
+        let sortList = []
 
         if (this.viewId) {
-          const data = await this.$api.dbTableSort.list(this.viewId);
-          sortList = data.sorts.list;
+          const data = await this.$api.dbTableSort.list(this.viewId)
+          sortList = data.sorts.list
         }
 
-        this.sortList = sortList;
+        this.sortList = sortList
       }
     },
     async saveOrUpdate(sort, i) {
-      if (!this.shared && this._isUIAllowed("sortSync")) {
+      if (!this.shared && this._isUIAllowed('sortSync')) {
         if (sort.id) {
-          await this.$api.dbTableSort.update(sort.id, sort);
+          await this.$api.dbTableSort.update(sort.id, sort)
         } else {
           this.$set(
             this.sortList,
             i,
             await this.$api.dbTableSort.create(this.viewId, sort)
-          );
+          )
         }
       } else {
-        this.$emit("input", this.sortList);
+        this.$emit('input', this.sortList)
       }
-      this.$emit("updated");
+      this.$emit('updated')
 
-      this.$e("a:sort:dir", { direction: sort.direction });
+      this.$e('a:sort:dir', { direction: sort.direction })
     },
     async deleteSort(sort, i) {
-      if (!this.shared && sort.id && this._isUIAllowed("sortSync")) {
-        await this.$api.dbTableSort.delete(sort.id);
-        await this.loadSortList();
+      if (!this.shared && sort.id && this._isUIAllowed('sortSync')) {
+        await this.$api.dbTableSort.delete(sort.id)
+        await this.loadSortList()
       } else {
-        this.sortList.splice(i, 1);
-        this.$emit("input", this.sortList);
+        this.sortList.splice(i, 1)
+        this.$emit('input', this.sortList)
       }
-      this.$emit("updated");
-      this.$e("a:sort:delete");
-    },
-  },
-};
+      this.$emit('updated')
+      this.$e('a:sort:delete')
+    }
+  }
+}
 </script>
 
 <style scoped>

@@ -90,8 +90,11 @@ export default {
   },
   methods: {
     applyDirection() {
-      document.body.classList.add(this.isRtlLang() ? "rtl" : "ltr");
-      document.body.style.direction = this.isRtlLang() ? "rtl" : "ltr";
+      const targetDirection = this.isRtlLang() ? 'rtl' : 'ltr'
+      const oppositeDirection = targetDirection == 'ltr' ? 'rtl' : 'ltr'
+      document.body.classList.remove(oppositeDirection)
+      document.body.classList.add(targetDirection)
+      document.body.style.direction = targetDirection
     },
     isRtlLang() {
       return ['fa'].includes(this.language)

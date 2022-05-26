@@ -37,6 +37,10 @@ body {
 Apply Vazirmatn for rtl
 */
 
-.rtl .v-application .v-application--wrap * {
+.rtl .v-application *:not(.material-icons) {
 	font-family: Vazirmatn !important;
+}
+
+.rtl .v-application .ml-n1 {
+	margin-left: 0px !important;
 }

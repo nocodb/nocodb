@@ -154,7 +154,6 @@ export default {
         })),
         ...this.meta.columns.filter(c => !this.column || this.column.id !== c.id).map(c => ({
           text: c.title,
-          uidt: c.uidt,
           type: 'column',
           icon: getUIDTIcon(c.uidt),
           c

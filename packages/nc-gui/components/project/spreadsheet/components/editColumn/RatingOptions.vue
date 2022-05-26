@@ -39,18 +39,22 @@
         class="caption"
       />
     </div>
-    <v-color-picker
+    <color-picker
       v-model="colMeta.color"
-      class="mx-auto"
-      hide-inputs
+      row-size="8"
+      :colors="['#fcb401', '#faa307', '#f48c06', '#e85d04', '#dc2f02', '#d00000', '#9d0208', '#777']"
     />
   </div>
 </template>
 
 <script>
+import ColorPicker from '@/components/project/spreadsheet/components/ColorPicker.vue'
 
 export default {
   name: 'RatingOptions',
+  components: {
+    ColorPicker
+  },
   props: ['column', 'meta', 'value'],
   data: () => ({
     colMeta: {

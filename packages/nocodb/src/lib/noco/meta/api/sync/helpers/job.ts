@@ -73,8 +73,6 @@ export default async (
   const process_aTblData = true;
   const generate_migrationStats = true;
   const debugMode = false;
-  // ["Rollup", "Lookup", "Formula"]
-  const vColumns = ['Lookup'];
   let api: Api<any>;
   let g_aTblSchema = [];
   let ncCreatedProjectSchema: any = {};
@@ -83,6 +81,7 @@ export default async (
   const nestedRollupTbl: any[] = [];
   const ncSysFields = { id: 'ncRecordId', hash: 'ncRecordHash' };
   const storeLinks = false;
+  const skipAttachments = false;
   const ncLinkDataStore: any = {};
 
   const uniqueTableNameGen = getUniqueNameGenerator('sheet');
@@ -1220,141 +1219,6 @@ export default async (
     }
   }
 
-  async function nocoBaseDataProcessing(sDB, table, record) {
-    const recordHash = hash(record);
-    const rec = record.fields;
-
-    // kludge -
-    // trim spaces on either side of column name
-    // leads to error in NocoDB
-    Object.keys(rec).forEach(key => {
-      const replacedKey = key.trim().replace(/\./g, '_');
-      if (key !== replacedKey) {
-        rec[replacedKey] = rec[key];
-        delete rec[key];
-      }
-    });
-
-    // post-processing on the record
-    for (const [key, value] of Object.entries(rec as { [key: string]: any })) {
-      // retrieve datatype
-      const dt = table.columns.find(x => x.title === key)?.uidt;
-
-      // https://www.npmjs.com/package/validator
-      // default value: digits_after_decimal: [2]
-      // if currency, set decimal place to 2
-      //
-      if (dt === UITypes.Currency) rec[key] = (+value).toFixed(2);
-
-      // we will pick up LTAR once all table data's are in place
-      if (dt === UITypes.LinkToAnotherRecord) {
-        if (storeLinks) {
-          if (ncLinkDataStore[table.title][record.id] === undefined)
-            ncLinkDataStore[table.title][record.id] = {
-              id: record.id,
-              fields: {}
-            };
-          ncLinkDataStore[table.title][record.id]['fields'][key] = value;
-        }
-        delete rec[key];
-      }
-
-      // these will be automatically populated depending on schema configuration
-      if (dt === UITypes.Lookup) delete rec[key];
-      if (dt === UITypes.Rollup) delete rec[key];
-
-      if (dt === UITypes.Collaborator) {
-        // in case of multi-collaborator, this will be an array
-        if (Array.isArray(value)) {
-          let collaborators = '';
-          for (let i = 0; i < value.length; i++) {
-            collaborators += `${value[i]?.name} <${value[i]?.email}>, `;
-            rec[key] = collaborators;
-          }
-        } else rec[key] = `${value?.name} <${value?.email}>`;
-      }
-
-      if (dt === UITypes.Barcode) rec[key] = value.text;
-      if (dt === UITypes.Button) rec[key] = `${value?.label} <${value?.url}>`;
-
-      if (
-        dt === UITypes.DateTime ||
-        dt === UITypes.CreateTime ||
-        dt === UITypes.LastModifiedTime
-      ) {
-        const atDateField = dayjs(value);
-        rec[key] = atDateField.utc().format('YYYY-MM-DD HH:mm');
-      }
-
-      if (dt === UITypes.SingleSelect) rec[key] = value.replace(/,/g, '.');
-
-      if (dt === UITypes.MultiSelect)
-        rec[key] = value.map(v => `${v.replace(/,/g, '.')}`).join(',');
-
-      if (dt === UITypes.Attachment) {
-        const tempArr = [];
-        for (const v of value) {
-          const binaryImage = await axios
-            .get(v.url, {
-              responseType: 'stream',
-              headers: {
-                'Content-Type': v.type
-              }
-            })
-            .then(response => {
-              return response.data;
-            })
-            .catch(error => {
-              console.log(error);
-              return false;
-            });
-
-          const imageFile: any = new FormData();
-          imageFile.append('files', binaryImage, {
-            filename: v.filename.includes('?')
-              ? v.filename.split('?')[0]
-              : v.filename
-          });
-
-          const rs = await axios
-            .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
-              params: {
-                path: `noco/${sDB.projectName}/${table.title}/${key}`
-              },
-              headers: {
-                'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
-                'xc-auth': sDB.authToken
-              }
-            })
-            .then(response => {
-              return response.data;
-            })
-            .catch(e => {
-              console.log(e);
-            });
-
-          tempArr.push(...rs);
-        }
-        rec[key] = JSON.stringify(tempArr);
-      }
-    }
-
-    // insert airtable record ID explicitly into each records
-    rec[ncSysFields.id] = record.id;
-    rec[ncSysFields.hash] = recordHash;
-
-    // bulk Insert
-    logDetailed(`NC API: dbTableRow.bulkCreate ${table.title} [${rec}]`);
-    const _perfStart = recordPerfStart();
-    await api.dbTableRow.bulkCreate(
-      'nc',
-      sDB.projectName,
-      table.id, // encodeURIComponent(table.title),
-      [rec]
-    );
-    recordPerfStats(_perfStart, 'dbTableRow.bulkCreate');
-  }
-
   async function nocoBaseDataProcessing_v2(sDB, table, record) {
     const recordHash = hash(record);
     const rec = record.fields;
@@ -1375,95 +1239,133 @@ export default async (
       // retrieve datatype
       const dt = table.columns.find(x => x.title === key)?.uidt;
 
-      // https://www.npmjs.com/package/validator
-      // default value: digits_after_decimal: [2]
-      // if currency, set decimal place to 2
-      //
-      if (dt === UITypes.Currency) rec[key] = (+value).toFixed(2);
-      // we will pick up LTAR once all table data's are in place
-      else if (dt === UITypes.LinkToAnotherRecord) {
-        if (storeLinks) {
-          if (ncLinkDataStore[table.title][record.id] === undefined)
-            ncLinkDataStore[table.title][record.id] = {
-              id: record.id,
-              fields: {}
-            };
-          ncLinkDataStore[table.title][record.id]['fields'][key] = value;
-        }
-        delete rec[key];
-      }
+      switch (dt) {
+        // https://www.npmjs.com/package/validator
+        // default value: digits_after_decimal: [2]
+        // if currency, set decimal place to 2
+        //
+        case UITypes.Currency:
+          rec[key] = (+value).toFixed(2);
+          break;
 
-      // these will be automatically populated depending on schema configuration
-      else if (dt === UITypes.Lookup) delete rec[key];
-      else if (dt === UITypes.Rollup) delete rec[key];
-      else if (dt === UITypes.Collaborator) {
-        // in case of multi-collaborator, this will be an array
-        if (Array.isArray(value)) {
-          let collaborators = '';
-          for (let i = 0; i < value.length; i++) {
-            collaborators += `${value[i]?.name} <${value[i]?.email}>, `;
-            rec[key] = collaborators;
+        // we will pick up LTAR once all table data's are in place
+        case UITypes.LinkToAnotherRecord:
+          if (storeLinks) {
+            if (ncLinkDataStore[table.title][record.id] === undefined)
+              ncLinkDataStore[table.title][record.id] = {
+                id: record.id,
+                fields: {}
+              };
+            ncLinkDataStore[table.title][record.id]['fields'][key] = value;
           }
-        } else rec[key] = `${value?.name} <${value?.email}>`;
-      } else if (dt === UITypes.Barcode) rec[key] = value.text;
-      else if (dt === UITypes.Button)
-        rec[key] = `${value?.label} <${value?.url}>`;
-      else if (
-        dt === UITypes.DateTime ||
-        dt === UITypes.CreateTime ||
-        dt === UITypes.LastModifiedTime
-      ) {
-        const atDateField = dayjs(value);
-        rec[key] = atDateField.utc().format('YYYY-MM-DD HH:mm');
-      } else if (dt === UITypes.SingleSelect)
-        rec[key] = value.replace(/,/g, '.');
-      else if (dt === UITypes.MultiSelect)
-        rec[key] = value.map(v => `${v.replace(/,/g, '.')}`).join(',');
-      else if (dt === UITypes.Attachment) {
-        const tempArr = [];
-        for (const v of value) {
-          const binaryImage = await axios
-            .get(v.url, {
-              responseType: 'stream',
-              headers: {
-                'Content-Type': v.type
-              }
-            })
-            .then(response => {
-              return response.data;
-            })
-            .catch(error => {
-              console.log(error);
-              return false;
-            });
+          delete rec[key];
+          break;
 
-          const imageFile: any = new FormData();
-          imageFile.append('files', binaryImage, {
-            filename: v.filename.includes('?')
-              ? v.filename.split('?')[0]
-              : v.filename
-          });
+        // these will be automatically populated depending on schema configuration
+        case UITypes.Lookup:
+        case UITypes.Rollup:
+          delete rec[key];
+          break;
 
-          const rs = await axios
-            .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
-              params: {
-                path: `noco/${sDB.projectName}/${table.title}/${key}`
-              },
-              headers: {
-                'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
-                'xc-auth': sDB.authToken
-              }
-            })
-            .then(response => {
-              return response.data;
-            })
-            .catch(e => {
-              console.log(e);
-            });
+        case UITypes.Collaborator:
+          // in case of multi-collaborator, this will be an array
+          if (Array.isArray(value)) {
+            let collaborators = '';
+            for (let i = 0; i < value.length; i++) {
+              collaborators += `${value[i]?.name} <${value[i]?.email}>, `;
+              rec[key] = collaborators;
+            }
+          } else rec[key] = `${value?.name} <${value?.email}>`;
+          break;
 
-          tempArr.push(...rs);
-        }
-        rec[key] = JSON.stringify(tempArr);
+        case UITypes.Barcode:
+          rec[key] = value.text;
+          break;
+
+        case UITypes.Button:
+          rec[key] = `${value?.label} <${value?.url}>`;
+          break;
+
+        case UITypes.DateTime:
+        case UITypes.CreateTime:
+        case UITypes.LastModifiedTime:
+          rec[key] = dayjs(value)
+            .utc()
+            .format('YYYY-MM-DD HH:mm');
+          break;
+
+        case UITypes.Date:
+          if (/\d{5,}/.test(value)) {
+            // skip
+            rec[key] = null;
+            logBasic(`:: Invalid date ${value}`);
+          } else {
+            rec[key] = dayjs(value)
+              .utc()
+              .format('YYYY-MM-DD');
+          }
+          break;
+
+        case UITypes.SingleSelect:
+          rec[key] = value.replace(/,/g, '.');
+          break;
+
+        case UITypes.MultiSelect:
+          rec[key] = value.map(v => `${v.replace(/,/g, '.')}`).join(',');
+          break;
+
+        case UITypes.Attachment:
+          if (skipAttachments) rec[key] = null;
+          else {
+            const tempArr = [];
+            for (const v of value) {
+              const binaryImage = await axios
+                .get(v.url, {
+                  responseType: 'stream',
+                  headers: {
+                    'Content-Type': v.type
+                  }
+                })
+                .then(response => {
+                  return response.data;
+                })
+                .catch(error => {
+                  console.log(error);
+                  return false;
+                });
+
+              const imageFile: any = new FormData();
+              imageFile.append('files', binaryImage, {
+                filename: v.filename.includes('?')
+                  ? v.filename.split('?')[0]
+                  : v.filename
+              });
+
+              const rs = await axios
+                .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
+                  params: {
+                    path: `noco/${sDB.projectName}/${table.title}/${key}`
+                  },
+                  headers: {
+                    'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
+                    'xc-auth': sDB.authToken
+                  }
+                })
+                .then(response => {
+                  return response.data;
+                })
+                .catch(e => {
+                  console.log(e);
+                });
+
+              tempArr.push(...rs);
+            }
+            rec[key] = JSON.stringify(tempArr);
+          }
+          break;
+
+        default:
+          break;
       }
     }
 
@@ -1474,7 +1376,7 @@ export default async (
     return rec;
   }
 
-  async function nocoReadData(sDB, table, _callback) {
+  async function nocoReadData(sDB, table) {
     ncLinkDataStore[table.title] = {};
     const insertJobs: Promise<any>[] = [];
 
@@ -1490,8 +1392,7 @@ export default async (
 
             // This function (`page`) will get called for each page of records.
             logBasic(
-              `:: ${Date.now()} ${table.title} : ${recordCnt +
-                1} ~ ${(recordCnt += 100)}`
+              `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += 100)}`
             );
 
             // await Promise.all(
@@ -1520,9 +1421,9 @@ export default async (
             // To fetch the next page of records, call `fetchNextPage`.
             // If there are more records, `page` will get called again.
             // If there are no more records, `done` will get called.
-            logBasic(
-              `:: ${Date.now()} Awaiting response from Airtable Data API ...`
-            );
+            // logBasic(
+            //   `:: ${Date.now()} Awaiting response from Airtable Data API ...`
+            // );
             fetchNextPage();
           },
           async function done(err) {
@@ -2214,17 +2115,17 @@ export default async (
 
     logDetailed(`Configuring Lookup`);
     // add look-ups
-    if (vColumns.includes('Lookup')) await nocoCreateLookups(aTblSchema);
+    await nocoCreateLookups(aTblSchema);
     logDetailed('Migrating Lookup columns completed');
 
     logDetailed('Configuring Rollup');
     // add roll-ups
-    if (vColumns.includes('Rollup')) await nocoCreateRollup(aTblSchema);
+    await nocoCreateRollup(aTblSchema);
     logDetailed('Migrating Rollup columns completed');
 
     logDetailed('Migrating Lookup form Rollup columns');
     // lookups for rollup
-    if (vColumns.includes('Rollup')) await nocoLookupForRollup();
+    await nocoLookupForRollup();
     logDetailed('Migrating Lookup form Rollup columns completed');
 
     logDetailed('Configuring Primary value column');
@@ -2266,9 +2167,7 @@ export default async (
             continue;
 
           recordCnt = 0;
-          await nocoReadData(syncDB, ncTbl, async (sDB, table, record) => {
-            await nocoBaseDataProcessing(sDB, table, record);
-          });
+          await nocoReadData(syncDB, ncTbl);
           logDetailed(`Data inserted from ${ncTbl.title}`);
         }
 
@@ -2277,7 +2176,7 @@ export default async (
           // const insertJobs: Promise<any>[] = [];
           for (const [pTitle, v] of Object.entries(ncLinkDataStore)) {
             logBasic(`:: ${pTitle}`);
-            for (const [_, record] of Object.entries(v)) {
+            for (const [, record] of Object.entries(v)) {
               const tbl = ncTblList.list.find(a => a.title === pTitle);
               await nocoLinkProcessing(syncDB.projectName, tbl, record, 0);
               // insertJobs.push(
@@ -2315,29 +2214,6 @@ export default async (
             );
           }
         }
-
-        // Configure link @ Data row's
-        // for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
-        //   const x = ncLinkMappingTable[idx];
-        //   const ncTbl = await nc_getTableSchema(
-        //     aTbl_getTableName(x.aTbl.tblId).tn
-        //   );
-        //
-        //   // not a migrated table, skip
-        //   if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
-        //     continue;
-        //
-        //   recordCnt = 0;
-        //   await nocoReadDataSelected(
-        //     syncDB.projectName,
-        //     ncTbl,
-        //     async (projName, table, record, _field) => {
-        //       await nocoLinkProcessing(projName, table, record, _field);
-        //     },
-        //     x.aTbl.name
-        //   );
-        //   logDetailed(`Linked data to ${ncTbl.title}`);
-        // }
       } catch (error) {
         logDetailed(
           `There was an error while migrating data! Please make sure your API key (${syncDB.apiKey}) is correct.`

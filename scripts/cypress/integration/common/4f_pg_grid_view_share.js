@@ -390,6 +390,9 @@ export const genTest = (apiType, dbType) => {
 
             // delete row
             mainPage.getPagination(5).click();
+            // kludge: flicker on load
+            cy.wait(3000)
+
             // wait for page rendering to complete
             cy.get(".nc-grid-row").should("have.length", 10);
             mainPage

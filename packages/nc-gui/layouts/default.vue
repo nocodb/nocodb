@@ -58,7 +58,6 @@
 
       <div style="flex: 1" class="d-flex justify-end">
         <v-toolbar-items class="hidden-sm-and-down nc-topright-menu">
-          <important-announcement />
           <release-info />
 
           <language class="mr-3" />
@@ -341,7 +340,6 @@ import Language from '~/components/utils/Language'
 import Loader from '~/components/Loader'
 import PreviewAs from '~/components/PreviewAs'
 import ShareOrInviteModal from '~/components/auth/ShareOrInviteModal'
-import ImportantAnnouncement from '../components/ImportantAnnouncement.vue'
 import weAreHiring from '~/helpers/weAreHiring'
 
 export default {
@@ -353,8 +351,7 @@ export default {
     Language,
     XBtn,
     dlgUnexpectedError,
-    settings,
-    ImportantAnnouncement
+    settings
   },
   data: () => ({
     clickCount: true,

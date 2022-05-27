@@ -110,11 +110,16 @@
             >
               <template #item="{ item }">
                 <span :class="`caption font-weight-regular nc-filter-fld-${item.title}`">
-                  <v-icon color="grey darken-4" small class="mr-1">
+                  <v-icon small class="mr-1">
                     {{ item.icon }}
                   </v-icon>
                   {{ item.title }}
                 </span>
+              </template>
+              <template #selection="{item}">
+                <v-icon small class="mr-1">
+                  {{ item.icon }}
+                </v-icon> {{ item.title }}
               </template>
             </v-select>
             <v-select
@@ -268,6 +273,11 @@ export default {
     ]
   }),
   computed: {
+    columnIcon() {
+      return this.meta.columns.reduce((iconsObj, c) => {
+        return { ...iconsObj, [c.title]: getUIDTIcon(c.uidt) }
+      }, {})
+    },
     columnsById() {
       return (this.columns || []).reduce((o, c) => ({ ...o, [c.id]: c }), {})
     },

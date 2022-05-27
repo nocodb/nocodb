@@ -180,6 +180,8 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
         cy.get(".nc-grid-row").should("have.length", rc);
     }
 
+    // kludge: add delay to skip flicker
+    cy.wait(3000)
     cy.snip(`GridView_${tn}`);
 });
 

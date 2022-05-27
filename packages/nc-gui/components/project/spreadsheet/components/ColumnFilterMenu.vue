@@ -1,5 +1,9 @@
 <template>
-  <v-menu offset-y eager>
+  <v-menu
+    offset-y
+    eager
+    transition="slide-y-transition"
+  >
     <template #activator="{ on }">
       <v-badge :value="filters.length" color="primary" dot overlap>
         <v-btn

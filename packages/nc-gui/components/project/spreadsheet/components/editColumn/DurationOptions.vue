@@ -32,17 +32,17 @@
 </template>
 
 <script>
+import { durationOptions } from '~/helpers/durationHelper'
+
 export default {
   name: 'DuractionOptions',
   props: ['column', 'meta', 'value'],
   data: () => ({
-    durationOptionList: [
-      {id: 0, title: 'h:mm (e.g. 1:23)'},
-      {id: 1, title: 'h:mm:ss (e.g. 3:45, 1:23:40)'},
-      {id: 2, title: 'h:mm:ss.s (e.g. 3:34.6, 1:23:40,0)'},
-      {id: 3, title: 'h:mm:ss.ss (e.g. 3.45.67, 1:23:40,00)'},
-      {id: 4, title: 'h:mm:ss.sss (e.g. 3.45.678, 1:23:40.000)'},
-    ],
+    durationOptionList: durationOptions.map(o => ({
+        ...o,
+        // h:mm:ss (e.g. 3:45, 1:23:40)
+        title: `${o.title} ${o.example}`
+    })),
     colMeta: {
         duration: 0
     }

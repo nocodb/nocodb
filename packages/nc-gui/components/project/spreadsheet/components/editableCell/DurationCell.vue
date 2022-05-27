@@ -1,6 +1,10 @@
 <template>
     <div class="duration-cell-wrapper">
-    <input v-model="localState" v-on="parentListeners" @keypress="checkDurationFormat($event)">
+    <input 
+        :placeholder="selectedDurationTitle"
+        v-model="localState" 
+        v-on="parentListeners" 
+        @keypress="checkDurationFormat($event)">
         <div v-if="showWarningMessage == true" class="duration-warning">
             <!-- TODO: i18n -->
             Please enter a number
@@ -9,6 +13,8 @@
 </template>
 
 <script>
+import { durationOptions } from '~/helpers/durationHelper'
+
 export default {
   name: 'DurationCell',
   props: {
@@ -28,7 +34,9 @@ export default {
       },
       set(val) {
         // TODO: only save if val is valid
-        this.$emit('input', val)
+        if (val) {
+            this.$emit('input', val)
+        }
       }
     },
     parentListeners() {
@@ -46,6 +54,9 @@ export default {
       }
 
       return $listeners
+    },
+    selectedDurationTitle() {
+        return durationOptions[this.column?.meta?.duration || 0].title
     }
   },
   methods: {

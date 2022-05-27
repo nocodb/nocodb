@@ -35,6 +35,16 @@
       v-on="$listeners"
     />
 
+    <duration-cell
+      v-else-if="isDuration"
+      v-model="localState"
+      :active="active"
+      :is-form="isForm"
+      :column="column"
+      :is-locked="isLocked"
+      v-on="parentListeners"
+    />
+
     <boolean-cell
       v-else-if="isBoolean"
       v-model="localState"
@@ -146,6 +156,7 @@ import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
 import SetListEditableCell from '~/components/project/spreadsheet/components/editableCell/SetListEditableCell'
 import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell'
 import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
+import DurationCell from '~/components/project/spreadsheet/components/editableCell/DurationCell'
 
 export default {
   name: 'EditableCell',
@@ -165,7 +176,8 @@ export default {
     TextAreaCell,
     DateTimePickerCell,
     TextCell,
-    DatePickerCell
+    DatePickerCell,
+    DurationCell
   },
   mixins: [cell],
   props: {

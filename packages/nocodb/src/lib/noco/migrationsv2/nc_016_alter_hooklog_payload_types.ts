@@ -22,7 +22,7 @@ export { up, down };
 /**
  * @copyright Copyright (c) 2022, Xgene Cloud Ltd
  *
- * @author Wing-Kam Wong <wingkwong.code@gmail.com>
+ * @author willnewii <willnewii@163.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

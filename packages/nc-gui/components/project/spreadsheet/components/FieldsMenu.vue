@@ -1,5 +1,8 @@
 <template>
-  <v-menu offset-y>
+  <v-menu
+    offset-y
+    transition="slide-y-transition"
+  >
     <template #activator="{ on }">
       <v-badge :value="isAnyFieldHidden" color="primary" dot overlap>
         <v-btn
@@ -123,7 +126,7 @@
               @change="saveOrUpdate(field, i)"
             >
               <template #label>
-                <v-icon color="grey darken-4" small class="mr-1">
+                <v-icon small class="mr-1">
                   {{ field.icon }}
                 </v-icon>
                 <span class="caption">{{ field.title }}</span>

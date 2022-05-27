@@ -517,6 +517,9 @@ export const genTest = (apiType, dbType) => {
                 // clean up newly added rows into Country table operations
                 // this auto verifies successfull addition of rows to table as well
                 mainPage.getPagination(5).click();
+                // kludge: flicker on load
+                cy.wait(3000)
+
                 cy.get(".nc-grid-row").should("have.length", 13);
                 mainPage
                     .getRow(10)

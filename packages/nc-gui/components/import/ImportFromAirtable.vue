@@ -21,7 +21,7 @@
           >
             <template v-if="step === 1">
               <div class="d-flex flex-column justify-center align-center pt-2 pb-6">
-                <span class="subtitle-1 font-weight-medium" @dblclick="$set(syncSource.details,'syncViews',true)">
+                <span class="subtitle-1 font-weight-medium" @dblclick="$set(syncSource.details.options,'syncViews',true)">
                   Credentials
                 </span>
 
@@ -55,7 +55,53 @@
                     :rules="[(v) => !!v || 'Shared Base ID / URL is required']"
                   />
                 </div>
-              </v-form>   <v-card-actions class="justify-center pb-6">
+                <v-expansion-panels class="mx-auto" style="width: 50%;" flat>
+                  <v-expansion-panel>
+                    <v-expansion-panel-header>Advanced Options</v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncData"
+                        label="Import Data"
+                        hide-details
+                        dense
+                      />
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncRollup"
+                        label="Import Rollup Columns"
+                        hide-details
+                        dense
+                      />
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncLookup"
+                        label="Import Lookup Columns"
+                        hide-details
+                        dense
+                      />
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncAttachment"
+                        label="Import Attachment Columns"
+                        hide-details
+                        dense
+                      />
+                      <v-tooltip bottom>
+                        <template #activator="{ on }">
+                          <div v-on="on">
+                            <v-checkbox
+                              v-model="syncSource.details.options.syncFormula"
+                              label="Import Formula Columns"
+                              hide-details
+                              dense
+                              disabled
+                            />
+                          </div>
+                        </template>
+                        <span>Coming Soon!</span>
+                      </v-tooltip>
+                    </v-expansion-panel-content>
+                  </v-expansion-panel>
+                </v-expansion-panels>
+              </v-form>
+              <v-card-actions class="justify-center pb-6">
                 <v-btn
                   v-t="['c:sync-airtable:save-and-sync']"
                   class="nc-btn-airtable-import"
@@ -139,7 +185,24 @@ export default {
     socket: null,
     step: 1,
     progress: [],
-    syncSource: null,
+    syncSource: {
+      type: 'Airtable',
+      details: {
+        syncInterval: '15mins',
+        syncDirection: 'Airtable to NocoDB',
+        syncRetryCount: 1,
+        apiKey: '',
+        shareId: '',
+        options: {
+          syncViews: false,
+          syncData: true,
+          syncRollup: false,
+          syncLookup: true,
+          syncFormula: false,
+          syncAttachment: true
+        }
+      }
+    },
     syncSourceUrlOrId: ''
   }),
   computed: {
@@ -221,7 +284,7 @@ export default {
       const { data: { list: srcs } } = await this.$axios.get(`/api/v1/db/meta/projects/${this.projectId}/syncs`)
       if (srcs && srcs[0]) {
         srcs[0].details = srcs[0].details || {}
-        this.syncSource = srcs[0]
+        this.syncSource = this.migrateSync(srcs[0])
         this.syncSourceUrlOrId = srcs[0].details.shareId
       } else {
         this.syncSource = {
@@ -230,11 +293,16 @@ export default {
             syncInterval: '15mins',
             syncDirection: 'Airtable to NocoDB',
             syncRetryCount: 1,
-
-            syncViews: false,
-
             apiKey: '',
-            shareId: ''
+            shareId: '',
+            options: {
+              syncViews: false,
+              syncData: true,
+              syncRollup: false,
+              syncLookup: true,
+              syncFormula: false,
+              syncAttachment: true
+            }
           }
         }
       }
@@ -252,8 +320,23 @@ export default {
       }
     },
     enableTurbo() {
-      this.$set(this.syncSource.details, 'syncViews', true)
+      this.$set(this.syncSource.details.options, 'syncViews', true)
       this.$toast.success('🚀🚀 Ludicrous mode activated! Let\'s go! 🚀🚀').goAway(3000)
+    },
+    migrateSync(src) {
+      if (!src.details?.options) {
+        src.details.options = {
+          syncViews: false,
+          syncData: true,
+          syncRollup: false,
+          syncLookup: true,
+          syncFormula: false,
+          syncAttachment: true
+        }
+        src.details.options.syncViews = src.syncViews
+        delete src.syncViews
+      }
+      return src
     }
   }
 }

@@ -77,6 +77,12 @@
                         hide-details
                         dense
                       />
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncAttachment"
+                        label="Import Attachment Columns"
+                        hide-details
+                        dense
+                      />
                       <v-tooltip bottom>
                         <template #activator="{ on }">
                           <div v-on="on">
@@ -192,7 +198,8 @@ export default {
           syncData: true,
           syncRollup: false,
           syncLookup: true,
-          syncFormula: false
+          syncFormula: false,
+          syncAttachment: true
         }
       }
     },

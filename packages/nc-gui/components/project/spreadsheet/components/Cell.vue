@@ -17,7 +17,7 @@
   <date-time-cell v-else-if="isDateTime" :value="value" />
   <time-cell v-else-if="isTime" :value="value" />
   <boolean-cell v-else-if="isBoolean" :value="value" read-only />
-  <duration-cell v-else-if="isDuration" :value="value" />
+  <duration-cell v-else-if="isDuration" :column="column" :value="value" />
   <rating-cell v-else-if="isRating" :value="value" read-only />
   <currency-cell v-else-if="isCurrency" :value="value" :column="column" />
 

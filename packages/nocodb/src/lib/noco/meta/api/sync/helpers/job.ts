@@ -1,5 +1,6 @@
 import FetchAT from './fetchAT';
 import { UITypes } from 'nocodb-sdk';
+import { Tele } from 'nc-help';
 // import * as sMap from './syncMap';
 import FormData from 'form-data';
 
@@ -56,10 +57,20 @@ export default async (
     if (debugMode) progress({ level: 1, msg: log });
   }
 
+  const perfStats = [];
+  function recordPerfStart() {
+    if (!debugMode) return 0;
+    return Date.now();
+  }
+  function recordPerfStats(start, event) {
+    if (!debugMode) return;
+    const duration = Date.now() - start;
+    perfStats.push({ d: duration, e: event });
+  }
+
   let base, baseId;
   const start = Date.now();
   const enableErrorLogs = false;
-  const process_aTblData = true;
   const generate_migrationStats = true;
   const debugMode = false;
   let api: Api<any>;
@@ -69,6 +80,9 @@ export default async (
   const nestedLookupTbl: any[] = [];
   const nestedRollupTbl: any[] = [];
   const ncSysFields = { id: 'ncRecordId', hash: 'ncRecordHash' };
+  const storeLinks = false;
+  const skipAttachments = false;
+  const ncLinkDataStore: any = {};
 
   const uniqueTableNameGen = getUniqueNameGenerator('sheet');
 
@@ -173,7 +187,11 @@ export default async (
   }
 
   function nc_getSanitizedColumnName(table, name) {
-    const col_name = nc_sanitizeName(name);
+    let col_name = nc_sanitizeName(name);
+
+    // truncate to 60 chars if character if exceeds above 60
+    col_name = col_name?.slice(0, 60);
+
     // for knex, replace . with _
     const col_alias = name.trim().replace(/\./g, '_');
 
@@ -350,7 +368,8 @@ export default async (
           );
         }
         // const csvOpt = "'" + opt.join("','") + "'";
-        const csvOpt = opt
+        const optSansDuplicate = [...new Set(opt)];
+        const csvOpt = optSansDuplicate
           .map(v => `'${v.replace(/'/g, "\\'").replace(/,/g, '.')}'`)
           .join(',');
         return { type: 'select', data: csvOpt };
@@ -368,7 +387,7 @@ export default async (
     for (let i = 0; i < tblSchema.length; ++i) {
       const table: any = {};
 
-      if (syncDB.syncViews) {
+      if (syncDB.options.syncViews) {
         rtc.view.total += tblSchema[i].views.reduce(
           (acc, cur) =>
             ['grid', 'form', 'gallery'].includes(cur.type) ? ++acc : acc,
@@ -380,7 +399,15 @@ export default async (
 
       // Enable to use aTbl identifiers as is: table.id = tblSchema[i].id;
       table.title = tblSchema[i].name;
-      table.table_name = uniqueTableNameGen(nc_sanitizeName(tblSchema[i].name));
+      let sanitizedName = nc_sanitizeName(tblSchema[i].name);
+
+      // truncate to 50 chars if character if exceeds above 50
+      // upto 64 should be fine but we are keeping it to 50 since
+      // meta project adds prefix as well
+      sanitizedName = sanitizedName?.slice(0, 50);
+
+      // check for duplicate and populate a unique name if already exist
+      table.table_name = uniqueTableNameGen(sanitizedName);
 
       const uniqueColNameGen = getUniqueNameGenerator('field');
       table.columns = [];
@@ -471,10 +498,14 @@ export default async (
       logBasic(`:: [${idx + 1}/${tables.length}] ${tables[idx].title}`);
 
       logDetailed(`NC API: dbTable.create ${tables[idx].title}`);
+
+      let _perfStart = recordPerfStart();
       const table: any = await api.dbTable.create(
         ncCreatedProjectSchema.id,
         tables[idx]
       );
+      recordPerfStats(_perfStart, 'dbTable.create');
+
       updateNcTblSchema(table);
 
       // update mapping table
@@ -494,13 +525,18 @@ export default async (
 
       // update default view name- to match it to airtable view name
       logDetailed(`NC API: dbView.list ${table.id}`);
+      _perfStart = recordPerfStart();
       const view = await api.dbView.list(table.id);
+      recordPerfStats(_perfStart, 'dbView.list');
 
       const aTbl_grid = aTblSchema[idx].views.find(x => x.type === 'grid');
       logDetailed(`NC API: dbView.update ${view.list[0].id} ${aTbl_grid.name}`);
+      _perfStart = recordPerfStart();
       await api.dbView.update(view.list[0].id, {
         title: aTbl_grid.name
       });
+      recordPerfStats(_perfStart, 'dbView.update');
+
       await updateNcTblSchemaById(table.id);
 
       await sMap.addToMappingTbl(
@@ -563,7 +599,9 @@ export default async (
             }
 
             // check if already a column exists with this name?
+            let _perfStart = recordPerfStart();
             const srcTbl: any = await api.dbTable.read(srcTableId);
+            recordPerfStats(_perfStart, 'dbTable.read');
 
             // create link
             const ncName = nc_getSanitizedColumnName(
@@ -574,6 +612,7 @@ export default async (
             logDetailed(
               `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`
             );
+            _perfStart = recordPerfStart();
             const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
               uidt: UITypes.LinkToAnotherRecord,
               title: ncName.title,
@@ -585,6 +624,8 @@ export default async (
               //   ? 'mm'
               //   : 'hm'
             });
+            recordPerfStats(_perfStart, 'dbTableColumn.create');
+
             updateNcTblSchema(ncTbl);
 
             const ncId = ncTbl.columns.find(x => x.title === ncName.title)?.id;
@@ -599,7 +640,7 @@ export default async (
             // this information will be helpful in identifying relation pair
             const link = {
               nc: {
-                title: aTblLinkColumns[i].name,
+                title: ncName.title,
                 parentId: srcTableId,
                 childId: childTableId,
                 type: 'mm'
@@ -626,12 +667,17 @@ export default async (
                 x.aTbl.id === aTblLinkColumns[i].typeOptions.symmetricColumnId
             );
 
+            let _perfStart = recordPerfStart();
             const childTblSchema: any = await api.dbTable.read(
               ncLinkMappingTable[x].nc.childId
             );
+            recordPerfStats(_perfStart, 'dbTable.read');
+
+            _perfStart = recordPerfStart();
             const parentTblSchema: any = await api.dbTable.read(
               ncLinkMappingTable[x].nc.parentId
             );
+            recordPerfStats(_perfStart, 'dbTable.read');
 
             // fix me
             // let childTblSchema = ncSchema.tablesById[ncLinkMappingTable[x].nc.childId]
@@ -640,6 +686,16 @@ export default async (
             let parentLinkColumn = parentTblSchema.columns.find(
               col => col.title === ncLinkMappingTable[x].nc.title
             );
+
+            if (parentLinkColumn === undefined) {
+              updateMigrationSkipLog(
+                parentTblSchema?.title,
+                ncLinkMappingTable[x].nc.title,
+                UITypes.LinkToAnotherRecord,
+                'Link error'
+              );
+              continue;
+            }
 
             // hack // fix me
             if (parentLinkColumn.uidt !== 'LinkToAnotherRecord') {
@@ -698,6 +754,7 @@ export default async (
             logDetailed(
               `NC API: dbTableColumn.update rename symmetric column ${ncName.title}`
             );
+            _perfStart = recordPerfStart();
             const ncTbl: any = await api.dbTableColumn.update(
               childLinkColumn.id,
               {
@@ -706,6 +763,8 @@ export default async (
                 column_name: ncName.column_name
               }
             );
+            recordPerfStats(_perfStart, 'dbTableColumn.update');
+
             updateNcTblSchema(ncTbl);
 
             const ncId = ncTbl.columns.find(
@@ -768,7 +827,10 @@ export default async (
             aTblColumns[i].typeOptions.foreignTableRollupColumnId
           );
 
-          if (ncLookupColumnId === undefined) {
+          if (
+            ncLookupColumnId === undefined ||
+            ncRelationColumnId === undefined
+          ) {
             aTblColumns[i]['srcTableId'] = srcTableId;
             nestedLookupTbl.push(aTblColumns[i]);
             continue;
@@ -780,6 +842,7 @@ export default async (
           );
 
           logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
+          const _perfStart = recordPerfStart();
           const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
             uidt: UITypes.Lookup,
             title: ncName.title,
@@ -787,6 +850,8 @@ export default async (
             fk_relation_column_id: ncRelationColumnId,
             fk_lookup_column_id: ncLookupColumnId
           });
+          recordPerfStats(_perfStart, 'dbTableColumn.create');
+
           updateNcTblSchema(ncTbl);
 
           const ncId = ncTbl.columns.find(x => x.title === aTblColumns[i].name)
@@ -853,6 +918,7 @@ export default async (
         );
 
         logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
+        const _perfStart = recordPerfStart();
         const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
           uidt: UITypes.Lookup,
           title: ncName.title,
@@ -860,6 +926,8 @@ export default async (
           fk_relation_column_id: ncRelationColumnId,
           fk_lookup_column_id: ncLookupColumnId
         });
+        recordPerfStats(_perfStart, 'dbTableColumn.create');
+
         updateNcTblSchema(ncTbl);
 
         const ncId = ncTbl.columns.find(
@@ -900,6 +968,7 @@ export default async (
     return aTbl_ncRollUp[fn];
   }
 
+  //@ts-ignore
   async function nocoCreateRollup(aTblSchema) {
     // Rollup
     for (let idx = 0; idx < aTblSchema.length; idx++) {
@@ -925,8 +994,9 @@ export default async (
           const ncRollupFn = getRollupNcFunction(
             aTblColumns[i].typeOptions.formulaTextParsed
           );
+          // const ncRollupFn = '';
 
-          if (ncRollupFn === '') {
+          if (ncRollupFn === '' || ncRollupFn === undefined) {
             updateMigrationSkipLog(
               srcTableSchema.title,
               aTblColumns[i].name,
@@ -990,6 +1060,7 @@ export default async (
           );
 
           logDetailed(`NC API: dbTableColumn.create ROLLUP ${ncName.title}`);
+          const _perfStart = recordPerfStart();
           const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
             uidt: UITypes.Rollup,
             title: ncName.title,
@@ -998,6 +1069,8 @@ export default async (
             fk_rollup_column_id: ncRollupColumnId,
             rollup_function: ncRollupFn
           });
+          recordPerfStats(_perfStart, 'dbTableColumn.create');
+
           updateNcTblSchema(ncTbl);
 
           const ncId = ncTbl.columns.find(x => x.title === aTblColumns[i].name)
@@ -1014,6 +1087,7 @@ export default async (
     logDetailed(`Nested rollup: ${nestedRollupTbl.length}`);
   }
 
+  //@ts-ignore
   async function nocoLookupForRollup() {
     const nestedCnt = nestedLookupTbl.length;
     for (let i = 0; i < nestedLookupTbl.length; i++) {
@@ -1043,6 +1117,7 @@ export default async (
       );
 
       logDetailed(`NC API: dbTableColumn.create LOOKUP ${ncName.title}`);
+      const _perfStart = recordPerfStart();
       const ncTbl: any = await api.dbTableColumn.create(srcTableId, {
         uidt: UITypes.Lookup,
         title: ncName.title,
@@ -1050,6 +1125,8 @@ export default async (
         fk_relation_column_id: ncRelationColumnId,
         fk_lookup_column_id: ncLookupColumnId
       });
+      recordPerfStats(_perfStart, 'dbTableColumn.create');
+
       updateNcTblSchema(ncTbl);
 
       const ncId = ncTbl.columns.find(x => x.title === nestedLookupTbl[0].name)
@@ -1080,7 +1157,9 @@ export default async (
       // skip primary column configuration if we field not migrated
       if (ncColId) {
         logDetailed(`NC API: dbTableColumn.primaryColumnSet`);
+        const _perfStart = recordPerfStart();
         await api.dbTableColumn.primaryColumnSet(ncColId);
+        recordPerfStats(_perfStart, 'dbTableColumn.primaryColumnSet');
 
         // update schema
         const ncTblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
@@ -1094,11 +1173,17 @@ export default async (
     // retrieve view Info
     let viewDetails;
 
-    if (viewType === 'form')
+    const _perfStart = recordPerfStart();
+    if (viewType === 'form') {
       viewDetails = (await api.dbView.formRead(viewId)).columns;
-    else if (viewType === 'gallery')
+      recordPerfStats(_perfStart, 'dbView.formRead');
+    } else if (viewType === 'gallery') {
       viewDetails = (await api.dbView.galleryRead(viewId)).columns;
-    else viewDetails = await api.dbView.gridColumnsList(viewId);
+      recordPerfStats(_perfStart, 'dbView.galleryRead');
+    } else {
+      viewDetails = await api.dbView.gridColumnsList(viewId);
+      recordPerfStats(_perfStart, 'dbView.gridColumnsList');
+    }
 
     return viewDetails.find(x => x.fk_column_id === ncColumnId)?.id;
   }
@@ -1107,29 +1192,34 @@ export default async (
 
   async function nocoLinkProcessing(projName, table, record, _field) {
     const rec = record.fields;
-    const refRowIdList: any = Object.values(rec);
-    const referenceColumnName = Object.keys(rec)[0];
 
-    if (refRowIdList.length) {
-      for (let i = 0; i < refRowIdList[0].length; i++) {
-        logDetailed(
-          `NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`
-        );
+    for (const [key, value] of Object.entries(rec)) {
+      const refRowIdList: any = value;
+      const referenceColumnName = key;
 
-        await api.dbTableRow.nestedAdd(
-          'noco',
-          projName,
-          table.id,
-          `${record.id}`,
-          'mm', // fix me
-          encodeURIComponent(referenceColumnName),
-          `${refRowIdList[0][i]}`
-        );
+      if (refRowIdList.length) {
+        for (let i = 0; i < refRowIdList.length; i++) {
+          logDetailed(
+            `NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`
+          );
+
+          const _perfStart = recordPerfStart();
+          await api.dbTableRow.nestedAdd(
+            'noco',
+            projName,
+            table.id,
+            `${record.id}`,
+            'mm',
+            encodeURIComponent(referenceColumnName),
+            `${refRowIdList[i]}`
+          );
+          recordPerfStats(_perfStart, 'dbTableRow.nestedAdd');
+        }
       }
     }
   }
 
-  async function nocoBaseDataProcessing(sDB, table, record) {
+  async function nocoBaseDataProcessing_v2(sDB, table, record) {
     const recordHash = hash(record);
     const rec = record.fields;
 
@@ -1149,94 +1239,133 @@ export default async (
       // retrieve datatype
       const dt = table.columns.find(x => x.title === key)?.uidt;
 
-      // https://www.npmjs.com/package/validator
-      // default value: digits_after_decimal: [2]
-      // if currency, set decimal place to 2
-      //
-      if (dt === UITypes.Currency) rec[key] = (+value).toFixed(2);
+      switch (dt) {
+        // https://www.npmjs.com/package/validator
+        // default value: digits_after_decimal: [2]
+        // if currency, set decimal place to 2
+        //
+        case UITypes.Currency:
+          rec[key] = (+value).toFixed(2);
+          break;
 
-      // we will pick up LTAR once all table data's are in place
-      if (dt === UITypes.LinkToAnotherRecord) {
-        delete rec[key];
-      }
-
-      // these will be automatically populated depending on schema configuration
-      if (dt === UITypes.Lookup) delete rec[key];
-      if (dt === UITypes.Rollup) delete rec[key];
-
-      if (dt === UITypes.Collaborator) {
-        // in case of multi-collaborator, this will be an array
-        if (Array.isArray(value)) {
-          let collaborators = '';
-          for (let i = 0; i < value.length; i++) {
-            collaborators += `${value[i]?.name} <${value[i]?.email}>, `;
-            rec[key] = collaborators;
+        // we will pick up LTAR once all table data's are in place
+        case UITypes.LinkToAnotherRecord:
+          if (storeLinks) {
+            if (ncLinkDataStore[table.title][record.id] === undefined)
+              ncLinkDataStore[table.title][record.id] = {
+                id: record.id,
+                fields: {}
+              };
+            ncLinkDataStore[table.title][record.id]['fields'][key] = value;
           }
-        } else rec[key] = `${value?.name} <${value?.email}>`;
-      }
+          delete rec[key];
+          break;
 
-      if (dt === UITypes.Barcode) rec[key] = value.text;
-      if (dt === UITypes.Button) rec[key] = `${value?.label} <${value?.url}>`;
+        // these will be automatically populated depending on schema configuration
+        case UITypes.Lookup:
+        case UITypes.Rollup:
+          delete rec[key];
+          break;
 
-      if (
-        dt === UITypes.DateTime ||
-        dt === UITypes.CreateTime ||
-        dt === UITypes.LastModifiedTime
-      ) {
-        const atDateField = dayjs(value);
-        rec[key] = atDateField.utc().format('YYYY-MM-DD HH:mm');
-      }
+        case UITypes.Collaborator:
+          // in case of multi-collaborator, this will be an array
+          if (Array.isArray(value)) {
+            let collaborators = '';
+            for (let i = 0; i < value.length; i++) {
+              collaborators += `${value[i]?.name} <${value[i]?.email}>, `;
+              rec[key] = collaborators;
+            }
+          } else rec[key] = `${value?.name} <${value?.email}>`;
+          break;
 
-      if (dt === UITypes.SingleSelect) rec[key] = value.replace(/,/g, '.');
+        case UITypes.Barcode:
+          rec[key] = value.text;
+          break;
 
-      if (dt === UITypes.MultiSelect)
-        rec[key] = value.map(v => `${v.replace(/,/g, '.')}`).join(',');
+        case UITypes.Button:
+          rec[key] = `${value?.label} <${value?.url}>`;
+          break;
 
-      if (dt === UITypes.Attachment) {
-        const tempArr = [];
-        for (const v of value) {
-          const binaryImage = await axios
-            .get(v.url, {
-              responseType: 'stream',
-              headers: {
-                'Content-Type': v.type
-              }
-            })
-            .then(response => {
-              return response.data;
-            })
-            .catch(error => {
-              console.log(error);
-              return false;
-            });
+        case UITypes.DateTime:
+        case UITypes.CreateTime:
+        case UITypes.LastModifiedTime:
+          rec[key] = dayjs(value)
+            .utc()
+            .format('YYYY-MM-DD HH:mm');
+          break;
 
-          const imageFile: any = new FormData();
-          imageFile.append('files', binaryImage, {
-            filename: v.filename.includes('?')
-              ? v.filename.split('?')[0]
-              : v.filename
-          });
+        case UITypes.Date:
+          if (/\d{5,}/.test(value)) {
+            // skip
+            rec[key] = null;
+            logBasic(`:: Invalid date ${value}`);
+          } else {
+            rec[key] = dayjs(value)
+              .utc()
+              .format('YYYY-MM-DD');
+          }
+          break;
 
-          const rs = await axios
-            .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
-              params: {
-                path: `noco/${sDB.projectName}/${table.title}/${key}`
-              },
-              headers: {
-                'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
-                'xc-auth': sDB.authToken
-              }
-            })
-            .then(response => {
-              return response.data;
-            })
-            .catch(e => {
-              console.log(e);
-            });
+        case UITypes.SingleSelect:
+          rec[key] = value.replace(/,/g, '.');
+          break;
 
-          tempArr.push(...rs);
-        }
-        rec[key] = JSON.stringify(tempArr);
+        case UITypes.MultiSelect:
+          rec[key] = value.map(v => `${v.replace(/,/g, '.')}`).join(',');
+          break;
+
+        case UITypes.Attachment:
+          if (skipAttachments) rec[key] = null;
+          else {
+            const tempArr = [];
+            for (const v of value) {
+              const binaryImage = await axios
+                .get(v.url, {
+                  responseType: 'stream',
+                  headers: {
+                    'Content-Type': v.type
+                  }
+                })
+                .then(response => {
+                  return response.data;
+                })
+                .catch(error => {
+                  console.log(error);
+                  return false;
+                });
+
+              const imageFile: any = new FormData();
+              imageFile.append('files', binaryImage, {
+                filename: v.filename.includes('?')
+                  ? v.filename.split('?')[0]
+                  : v.filename
+              });
+
+              const rs = await axios
+                .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
+                  params: {
+                    path: `noco/${sDB.projectName}/${table.title}/${key}`
+                  },
+                  headers: {
+                    'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
+                    'xc-auth': sDB.authToken
+                  }
+                })
+                .then(response => {
+                  return response.data;
+                })
+                .catch(e => {
+                  console.log(e);
+                });
+
+              tempArr.push(...rs);
+            }
+            rec[key] = JSON.stringify(tempArr);
+          }
+          break;
+
+        default:
+          break;
       }
     }
 
@@ -1244,17 +1373,13 @@ export default async (
     rec[ncSysFields.id] = record.id;
     rec[ncSysFields.hash] = recordHash;
 
-    // bulk Insert
-    logDetailed(`NC API: dbTableRow.bulkCreate ${table.title} [${rec}]`);
-    await api.dbTableRow.bulkCreate(
-      'nc',
-      sDB.projectName,
-      table.id, // encodeURIComponent(table.title),
-      [rec]
-    );
+    return rec;
   }
 
-  async function nocoReadData(sDB, table, callback) {
+  async function nocoReadData(sDB, table) {
+    ncLinkDataStore[table.title] = {};
+    const insertJobs: Promise<any>[] = [];
+
     return new Promise((resolve, reject) => {
       base(table.title)
         .select({
@@ -1270,20 +1395,46 @@ export default async (
               `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += 100)}`
             );
 
-            await Promise.all(
-              records.map(record => callback(sDB, table, record))
+            // await Promise.all(
+            //   records.map(record => _callback(sDB, table, record))
+            // );
+            const ncRecords = [];
+            for (let i = 0; i < records.length; i++) {
+              const r = await nocoBaseDataProcessing_v2(sDB, table, records[i]);
+              ncRecords.push(r);
+            }
+
+            // wait for previous job's to finish
+            await Promise.all(insertJobs);
+
+            const _perfStart = recordPerfStart();
+            insertJobs.push(
+              api.dbTableRow.bulkCreate(
+                'nc',
+                sDB.projectName,
+                table.id, // encodeURIComponent(table.title),
+                ncRecords
+              )
             );
+            recordPerfStats(_perfStart, 'dbTableRow.bulkCreate');
 
             // To fetch the next page of records, call `fetchNextPage`.
             // If there are more records, `page` will get called again.
             // If there are no more records, `done` will get called.
+            // logBasic(
+            //   `:: ${Date.now()} Awaiting response from Airtable Data API ...`
+            // );
             fetchNextPage();
           },
-          function done(err) {
+          async function done(err) {
             if (err) {
               console.error(err);
               reject(err);
             }
+
+            // wait for all jobs to be completed
+            await Promise.all(insertJobs);
+
             resolve(null);
           }
         );
@@ -1296,7 +1447,7 @@ export default async (
         .select({
           pageSize: 100,
           // maxRecords: 100,
-          fields: [fields]
+          fields: fields
         })
         .eachPage(
           async function page(records, fetchNextPage) {
@@ -1339,19 +1490,23 @@ export default async (
   async function nocoCreateProject(projName) {
     // create empty project (XC-DB)
     logDetailed(`Create Project: ${projName}`);
+    const _perfStart = recordPerfStart();
     ncCreatedProjectSchema = await api.project.create({
       title: projName
     });
+    recordPerfStats(_perfStart, 'project.create');
   }
 
   async function nocoGetProject(projId) {
     // create empty project (XC-DB)
     logDetailed(`Getting project meta: ${projId}`);
+    const _perfStart = recordPerfStart();
     ncCreatedProjectSchema = await api.project.read(projId);
+    recordPerfStats(_perfStart, 'project.read');
   }
 
   async function nocoConfigureGalleryView(sDB, aTblSchema) {
-    if (!sDB.syncViews) return;
+    if (!sDB.options.syncViews) return;
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const tblId = (await nc_getTableSchema(aTblSchema[idx].name)).id;
       const galleryViews = aTblSchema[idx].views.filter(
@@ -1377,7 +1532,10 @@ export default async (
         );
 
         logDetailed(`NC API dbView.galleryCreate :: ${viewName}`);
+        const _perfStart = recordPerfStart();
         await api.dbView.galleryCreate(tblId, { title: viewName });
+        recordPerfStats(_perfStart, 'dbView.galleryCreate');
+
         await updateNcTblSchemaById(tblId);
         // syncLog(`[${idx+1}/${aTblSchema.length}][Gallery View][${i+1}/${galleryViews.length}] Create ${viewName}`)
 
@@ -1387,7 +1545,7 @@ export default async (
   }
 
   async function nocoConfigureFormView(sDB, aTblSchema) {
-    if (!sDB.syncViews) return;
+    if (!sDB.options.syncViews) return;
     for (let idx = 0; idx < aTblSchema.length; idx++) {
       const tblId = sMap.getNcIdFromAtId(aTblSchema[idx].id);
       const formViews = aTblSchema[idx].views.filter(x => x.type === 'form');
@@ -1435,7 +1593,10 @@ export default async (
         };
 
         logDetailed(`NC API dbView.formCreate :: ${viewName}`);
+        const _perfStart = recordPerfStart();
         const f = await api.dbView.formCreate(tblId, formData);
+        recordPerfStats(_perfStart, 'dbView.formCreate');
+
         logDetailed(
           `[${idx + 1}/${aTblSchema.length}][Form View][${i + 1}/${
             formViews.length
@@ -1462,11 +1623,11 @@ export default async (
       const gridViews = aTblSchema[idx].views.filter(x => x.type === 'grid');
 
       let viewCnt = idx;
-      if (syncDB.syncViews)
+      if (syncDB.options.syncViews)
         viewCnt = rtc.view.grid + rtc.view.gallery + rtc.view.form;
       rtc.view.grid += gridViews.length;
 
-      for (let i = 0; i < (sDB.syncViews ? gridViews.length : 1); i++) {
+      for (let i = 0; i < (sDB.options.syncViews ? gridViews.length : 1); i++) {
         logDetailed(`   Axios fetch view-data`);
         // fetch viewData JSON
         const vData = await getViewData(gridViews[i].id);
@@ -1475,7 +1636,10 @@ export default async (
         const viewName = aTblSchema[idx].views.find(
           x => x.id === gridViews[i].id
         )?.name;
+        const _perfStart = recordPerfStart();
         const viewList: any = await api.dbView.list(tblId);
+        recordPerfStats(_perfStart, 'dbView.list');
+
         let ncViewId = viewList?.list?.find(x => x.tn === viewName)?.id;
 
         logBasic(
@@ -1487,9 +1651,12 @@ export default async (
         // create view (default already created)
         if (i > 0) {
           logDetailed(`NC API dbView.gridCreate :: ${viewName}`);
+          const _perfStart = recordPerfStart();
           const viewCreated = await api.dbView.gridCreate(tblId, {
             title: viewName
           });
+          recordPerfStats(_perfStart, 'dbView.gridCreate');
+
           await updateNcTblSchemaById(tblId);
           await sMap.addToMappingTbl(
             gridViews[i].id,
@@ -1544,6 +1711,7 @@ export default async (
     const userList = aTblSchema.appBlanket.userInfoById;
     const totalUsers = Object.keys(userList).length;
     let cnt = 0;
+    const insertJobs: Promise<any>[] = [];
 
     for (const [, value] of Object.entries(
       userList as { [key: string]: any }
@@ -1551,11 +1719,16 @@ export default async (
       logDetailed(
         `[${++cnt}/${totalUsers}] NC API auth.projectUserAdd :: ${value.email}`
       );
-      await api.auth.projectUserAdd(ncCreatedProjectSchema.id, {
-        email: value.email,
-        roles: userRoles[value.permissionLevel]
-      });
+      const _perfStart = recordPerfStart();
+      insertJobs.push(
+        api.auth.projectUserAdd(ncCreatedProjectSchema.id, {
+          email: value.email,
+          roles: userRoles[value.permissionLevel]
+        })
+      );
+      recordPerfStats(_perfStart, 'auth.projectUserAdd');
     }
+    await Promise.all(insertJobs);
   }
 
   function updateNcTblSchema(tblSchema) {
@@ -1571,7 +1744,10 @@ export default async (
   }
 
   async function updateNcTblSchemaById(tblId) {
+    const _perfStart = recordPerfStart();
     const ncTbl = await api.dbTable.read(tblId);
+    recordPerfStats(_perfStart, 'dbTable.read');
+
     updateNcTblSchema(ncTbl);
   }
 
@@ -1665,23 +1841,61 @@ export default async (
       return accumulator + object.nc.rollup;
     }, 0);
 
-    logDetailed(`Quick Summary:`);
-    logDetailed(`:: Total Tables:   ${aTblSchema.length}`);
-    logDetailed(`:: Total Columns:  ${columnSum}`);
-    logDetailed(`::   Links:        ${linkSum}`);
-    logDetailed(`::   Lookup:       ${lookupSum}`);
-    logDetailed(`::   Rollup:       ${rollupSum}`);
-    logDetailed(`:: Total Filters:  ${rtc.filter}`);
-    logDetailed(`:: Total Sort:     ${rtc.sort}`);
-    logDetailed(`:: Total Views:    ${rtc.view.total}`);
-    logDetailed(`::   Grid:         ${rtc.view.grid}`);
-    logDetailed(`::   Gallery:      ${rtc.view.gallery}`);
-    logDetailed(`::   Form:         ${rtc.view.form}`);
+    logBasic(`Quick Summary:`);
+    logBasic(`:: Total Tables:   ${aTblSchema.length}`);
+    logBasic(`:: Total Columns:  ${columnSum}`);
+    logBasic(`::   Links:        ${linkSum}`);
+    logBasic(`::   Lookup:       ${lookupSum}`);
+    logBasic(`::   Rollup:       ${rollupSum}`);
+    logBasic(`:: Total Filters:  ${rtc.filter}`);
+    logBasic(`:: Total Sort:     ${rtc.sort}`);
+    logBasic(`:: Total Views:    ${rtc.view.total}`);
+    logBasic(`::   Grid:         ${rtc.view.grid}`);
+    logBasic(`::   Gallery:      ${rtc.view.gallery}`);
+    logBasic(`::   Form:         ${rtc.view.form}`);
 
     const duration = Date.now() - start;
-    logDetailed(`:: Migration time:      ${duration}`);
-    logDetailed(`:: Axios fetch count:   ${rtc.fetchAt.count}`);
-    logDetailed(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
+    logBasic(`:: Migration time:      ${duration}`);
+    logBasic(`:: Axios fetch count:   ${rtc.fetchAt.count}`);
+    logBasic(`:: Axios fetch time:    ${rtc.fetchAt.time}`);
+
+    if (debugMode) {
+      jsonfile.writeFileSync('stats.json', perfStats, { spaces: 2 });
+      const perflog = [];
+      for (let i = 0; i < perfStats.length; i++) {
+        perflog.push(`${perfStats[i].e}, ${perfStats[i].d}`);
+      }
+      jsonfile.writeFileSync('stats.csv', perflog, { spaces: 2 });
+      jsonfile.writeFileSync('skip.txt', rtc.migrationSkipLog.log, {
+        spaces: 2
+      });
+    }
+
+    Tele.event({
+      event: 'a:airtable-import:success',
+      data: {
+        stats: {
+          migrationTime: duration,
+          totalTables: aTblSchema.length,
+          totalColumns: columnSum,
+          links: linkSum,
+          lookup: lookupSum,
+          rollup: rollupSum,
+          totalFilters: rtc.filter,
+          totalSort: rtc.sort,
+          view: {
+            total: rtc.view.total,
+            grid: rtc.view.grid,
+            gallery: rtc.view.gallery,
+            form: rtc.view.form
+          },
+          axios: {
+            count: rtc.fetchAt.count,
+            time: rtc.fetchAt.time
+          }
+        }
+      }
+    });
   }
 
   //////////////////////////////
@@ -1776,9 +1990,12 @@ export default async (
 
       // insert filters
       for (let i = 0; i < ncFilters.length; i++) {
+        const _perfStart = recordPerfStart();
         await api.dbTableFilter.create(viewId, {
           ...ncFilters[i]
         });
+        recordPerfStats(_perfStart, 'dbTableFilter.create');
+
         rtc.filter++;
       }
     }
@@ -1788,11 +2005,14 @@ export default async (
     for (let i = 0; i < s.sortSet.length; i++) {
       const columnId = (await nc_getColumnSchema(s.sortSet[i].columnId))?.id;
 
-      if (columnId)
+      if (columnId) {
+        const _perfStart = recordPerfStart();
         await api.dbTableSort.create(viewId, {
           fk_column_id: columnId,
           direction: s.sortSet[i].ascending ? 'asc' : 'dsc'
         });
+        recordPerfStats(_perfStart, 'dbTableSort.create');
+      }
       rtc.sort++;
     }
   }
@@ -1807,23 +2027,41 @@ export default async (
     const ncTbl = await nc_getTableSchema(tblName);
     // retrieve view ID
     const viewId = ncTbl.views.find(x => x.title === viewName).id;
+    let viewDetails;
+
+    const _perfStart = recordPerfStart();
+    if (viewType === 'form') {
+      viewDetails = (await api.dbView.formRead(viewId)).columns;
+      recordPerfStats(_perfStart, 'dbView.formRead');
+    } else if (viewType === 'gallery') {
+      viewDetails = (await api.dbView.galleryRead(viewId)).columns;
+      recordPerfStats(_perfStart, 'dbView.galleryRead');
+    } else {
+      viewDetails = await api.dbView.gridColumnsList(viewId);
+      recordPerfStats(_perfStart, 'dbView.gridColumnsList');
+    }
 
     // nc-specific columns; default hide.
     for (let j = 0; j < hiddenColumns.length; j++) {
       const ncColumnId = ncTbl.columns.find(x => x.title === hiddenColumns[j])
         .id;
-      const ncViewColumnId = await nc_getViewColumnId(
-        viewId,
-        viewType,
-        ncColumnId
-      );
+      const ncViewColumnId = viewDetails.find(
+        x => x.fk_column_id === ncColumnId
+      )?.id;
+      // const ncViewColumnId = await nc_getViewColumnId(
+      //   viewId,
+      //   viewType,
+      //   ncColumnId
+      // );
       if (ncViewColumnId === undefined) continue;
 
       // first two positions held by record id & record hash
+      const _perfStart = recordPerfStart();
       await api.dbViewColumn.update(viewId, ncViewColumnId, {
         show: false,
         order: j + 1 + c.length
       });
+      recordPerfStats(_perfStart, 'dbViewColumn.update');
     }
 
     // rest of the columns from airtable- retain order & visibility property
@@ -1845,10 +2083,14 @@ export default async (
           if (x?.title) formData[`label`] = x.title;
           if (x?.required) formData[`required`] = x.required;
           if (x?.description) formData[`description`] = x.description;
+          const _perfStart = recordPerfStart();
           await api.dbView.formColumnUpdate(ncViewColumnId, formData);
+          recordPerfStats(_perfStart, 'dbView.formColumnUpdate');
         }
       }
+      const _perfStart = recordPerfStart();
       await api.dbViewColumn.update(viewId, ncViewColumnId, configData);
+      recordPerfStats(_perfStart, 'dbViewColumn.update');
     }
   }
 
@@ -1897,21 +2139,26 @@ export default async (
     await nocoCreateLinkToAnotherRecord(aTblSchema);
     logDetailed('Migrating LTAR columns completed');
 
-    logDetailed(`Configuring Lookup`);
-    // add look-ups
-    await nocoCreateLookups(aTblSchema);
-    logDetailed('Migrating Lookup columns completed');
+    if (syncDB.options.syncLookup) {
+      logDetailed(`Configuring Lookup`);
+      // add look-ups
+      await nocoCreateLookups(aTblSchema);
+      logDetailed('Migrating Lookup columns completed');
+    }
 
-    logDetailed('Configuring Rollup');
-    // add roll-ups
-    await nocoCreateRollup(aTblSchema);
-    logDetailed('Migrating Rollup columns completed');
+    if (syncDB.options.syncRollup) {
+      logDetailed('Configuring Rollup');
+      // add roll-ups
+      await nocoCreateRollup(aTblSchema);
+      logDetailed('Migrating Rollup columns completed');
 
-    logDetailed('Migrating Lookup form Rollup columns');
-    // lookups for rollup
-    await nocoLookupForRollup();
-    logDetailed('Migrating Lookup form Rollup columns completed');
-
+      if (syncDB.options.syncLookup) {
+        logDetailed('Migrating Lookup form Rollup columns');
+        // lookups for rollup
+        await nocoLookupForRollup();
+        logDetailed('Migrating Lookup form Rollup columns completed');
+      }
+    }
     logDetailed('Configuring Primary value column');
     // configure primary values
     await nocoSetPrimary(aTblSchema);
@@ -1932,48 +2179,71 @@ export default async (
     await nocoConfigureGalleryView(syncDB, aTblSchema);
     logDetailed('Syncing views completed');
 
-    if (process_aTblData) {
+    if (syncDB.options.syncData) {
       try {
         // await nc_DumpTableSchema();
+        const _perfStart = recordPerfStart();
         const ncTblList = await api.dbTable.list(ncCreatedProjectSchema.id);
+        recordPerfStats(_perfStart, 'dbTable.list');
+
         logBasic('Reading Records...');
 
         for (let i = 0; i < ncTblList.list.length; i++) {
+          const _perfStart = recordPerfStart();
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+          recordPerfStats(_perfStart, 'dbTable.read');
 
           // not a migrated table, skip
           if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
             continue;
 
           recordCnt = 0;
-          await nocoReadData(syncDB, ncTbl, async (sDB, table, record) => {
-            await nocoBaseDataProcessing(sDB, table, record);
-          });
+          await nocoReadData(syncDB, ncTbl);
           logDetailed(`Data inserted from ${ncTbl.title}`);
         }
 
         logBasic('Configuring Record Links...');
-        // Configure link @ Data row's
-        for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
-          const x = ncLinkMappingTable[idx];
-          const ncTbl = await nc_getTableSchema(
-            aTbl_getTableName(x.aTbl.tblId).tn
-          );
+        if (storeLinks) {
+          // const insertJobs: Promise<any>[] = [];
+          for (const [pTitle, v] of Object.entries(ncLinkDataStore)) {
+            logBasic(`:: ${pTitle}`);
+            for (const [, record] of Object.entries(v)) {
+              const tbl = ncTblList.list.find(a => a.title === pTitle);
+              await nocoLinkProcessing(syncDB.projectName, tbl, record, 0);
+              // insertJobs.push(
+              //   nocoLinkProcessing(syncDB.projectName, tbl, record, 0)
+              // );
+            }
+          }
+          // await Promise.all(insertJobs);
+          // await nocoLinkProcessing(syncDB.projectName, 0, 0, 0);
+        } else {
+          // create link groups (table: link fields)
+          const tblLinkGroup = {};
+          for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
+            const x = ncLinkMappingTable[idx];
+            if (tblLinkGroup[x.aTbl.tblId] === undefined)
+              tblLinkGroup[x.aTbl.tblId] = [x.aTbl.name];
+            else tblLinkGroup[x.aTbl.tblId].push(x.aTbl.name);
+          }
 
-          // not a migrated table, skip
-          if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
-            continue;
+          for (const [k, v] of Object.entries(tblLinkGroup)) {
+            const ncTbl = await nc_getTableSchema(aTbl_getTableName(k).tn);
 
-          recordCnt = 0;
-          await nocoReadDataSelected(
-            syncDB.projectName,
-            ncTbl,
-            async (projName, table, record, _field) => {
-              await nocoLinkProcessing(projName, table, record, _field);
-            },
-            x.aTbl.name
-          );
-          logDetailed(`Linked data to ${ncTbl.title}`);
+            // not a migrated table, skip
+            if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
+              continue;
+
+            recordCnt = 0;
+            await nocoReadDataSelected(
+              syncDB.projectName,
+              ncTbl,
+              async (projName, table, record, _field) => {
+                await nocoLinkProcessing(projName, table, record, _field);
+              },
+              v
+            );
+          }
         }
       } catch (error) {
         logDetailed(
@@ -1987,6 +2257,10 @@ export default async (
     }
   } catch (e) {
     if (e.response?.data?.msg) {
+      Tele.event({
+        event: 'a:airtable-import:error',
+        data: { error: e.response.data.msg }
+      });
       throw new Error(e.response.data.msg);
     }
     throw e;
@@ -2015,5 +2289,12 @@ export interface AirtableSyncConfig {
   projectId?: string;
   apiKey: string;
   shareId: string;
-  syncViews: boolean;
+  options: {
+    syncViews: boolean;
+    syncData: boolean;
+    syncRollup: boolean;
+    syncLookup: boolean;
+    syncFormula: boolean;
+    syncAttachment: boolean;
+  };
 }

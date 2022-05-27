@@ -29,6 +29,9 @@
               :key="col.column_name"
               @click="searchField = col.title"
             >
+              <v-icon color="grey darken-4" small class="mr-1">
+                {{ col.icon }}
+              </v-icon>
               <span class="caption">{{ col.title }}</span>
             </v-list-item>
           </v-list>
@@ -333,8 +336,13 @@
           :style="{ height: isForm ? '100%' : 'calc(100% - 36px)' }"
           style="overflow: auto; width: 100%"
         >
+          <div v-if="loadingData && (isGallery || isGrid)" class="d-100 h-100 align-center justify-center d-flex flex-column">
+            <v-progress-circular size="40" color="grey" width="2" indeterminate class="mb-4" />
+            <span v-if="selectedView" class="caption grey--text">Loading view data... </span>
+          </div>
+
           <template
-            v-if="selectedViewId && selectedView"
+            v-else-if="selectedViewId && selectedView"
           >
             <!--          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />-->
             <template v-if="selectedView.type === viewTypes.GRID">
@@ -504,7 +512,7 @@
         @rerender="viewKey++"
         @generateNewViewKey="generateNewViewKey"
         @mapFieldsAndShowFields="mapFieldsAndShowFields"
-        @loadTableData="loadTableData"
+        @loadTableData="loadTableData(false)"
         @showAdditionalFeatOverlay="showAdditionalFeatOverlay($event)"
       >
         <!--        <v-tooltip bottom>
@@ -610,7 +618,7 @@
           </v-list-item>
         </template>
 
-        <template v-if="isEditable && !isLocked && rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual">
+        <template v-if="isEditable && !isLocked && rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual && rowContextMenu.col.uidt !== 'Formula'">
           <v-tooltip bottom>
             <template #activator="{ on }">
               <v-list-item
@@ -787,8 +795,8 @@ export default {
     syncDataDebounce: debounce(async function(self) {
       await self.syncData()
     }, 500),
-    loadTableDataDeb: debounce(async function(self) {
-      await self.loadTableDataFn()
+    loadTableDataDeb: debounce(async function(self, ignoreLoader) {
+      await self.loadTableDataFn(ignoreLoader)
     }, 200),
     viewKey: 0,
     extraViewParams: {},
@@ -886,7 +894,7 @@ export default {
   watch: {
     isActive(n, o) {
       if (!o && n) {
-        this.reload()
+        this.reload(true)
       }
     },
     page(p) {
@@ -975,7 +983,7 @@ export default {
       await this.reload()
       this.$e('a:table:reload:navbar')
     },
-    async reload() {
+    async reload(ignoreLoader = false) {
       this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
@@ -985,7 +993,7 @@ export default {
       if (this.selectedView && this.selectedView.show_as === 'kanban') {
         await this.loadKanbanData()
       } else {
-        await this.loadTableData()
+        await this.loadTableData(ignoreLoader)
       }
       this.key = Math.random()
     },
@@ -1396,17 +1404,17 @@ export default {
       })
     },
     clickPagination() {
-      this.loadTableData()
+      this.loadTableData(false)
       this.$e('a:grid:pagination')
     },
-    loadTableData() {
-      this.loadTableDataDeb(this)
+    loadTableData(ignoreLoader = true) {
+      this.loadTableDataDeb(this, ignoreLoader)
     },
-    async loadTableDataFn() {
+    async loadTableDataFn(ignoreLoader = true) {
       if (this.isForm || !this.selectedView || !this.selectedView.title) {
         return
       }
-      this.loadingData = true
+      this.loadingData = !ignoreLoader
       try {
         // if (this.api) {
         // const { list, count } = await this.api.paginatedList(this.queryParams)

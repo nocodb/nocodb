@@ -9,6 +9,7 @@ import SyncSource from '../../../../noco-models/SyncSource';
 import Noco from '../../../Noco';
 import * as jwt from 'jsonwebtoken';
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
+const AIRTABLE_PROGRESS_JOB = 'AIRTABLE_PROGRESS_JOB';
 
 enum SyncStatus {
   PROGRESS = 'PROGRESS',
@@ -17,24 +18,45 @@ enum SyncStatus {
 }
 
 export default (router: Router, clients: { [id: string]: Socket }) => {
+  // add importer job handler and progress notification job handler
   NocoJobs.jobsMgr.addJobWorker(AIRTABLE_IMPORT_JOB, job);
+  NocoJobs.jobsMgr.addJobWorker(
+    AIRTABLE_PROGRESS_JOB,
+    ({ payload, progress }) => {
+      clients?.[payload?.id]?.emit('progress', {
+        msg: progress?.msg,
+        level: progress?.level,
+        status: progress?.status
+      });
+    }
+  );
+
   NocoJobs.jobsMgr.addProgressCbk(AIRTABLE_IMPORT_JOB, (payload, progress) => {
-    clients?.[payload?.id]?.emit('progress', {
-      msg: progress?.msg,
-      level: progress?.level,
-      status: SyncStatus.PROGRESS
+    NocoJobs.jobsMgr.add(AIRTABLE_PROGRESS_JOB, {
+      payload,
+      progress: {
+        msg: progress?.msg,
+        level: progress?.level,
+        status: progress?.status
+      }
     });
   });
   NocoJobs.jobsMgr.addSuccessCbk(AIRTABLE_IMPORT_JOB, payload => {
-    clients?.[payload?.id]?.emit('progress', {
-      msg: 'Complete!',
-      status: SyncStatus.COMPLETED
+    NocoJobs.jobsMgr.add(AIRTABLE_PROGRESS_JOB, {
+      payload,
+      progress: {
+        msg: 'Complete!',
+        status: SyncStatus.COMPLETED
+      }
     });
   });
   NocoJobs.jobsMgr.addFailureCbk(AIRTABLE_IMPORT_JOB, (payload, error: any) => {
-    clients?.[payload?.id]?.emit('progress', {
-      msg: error?.message || 'Failed due to some internal error',
-      status: SyncStatus.FAILED
+    NocoJobs.jobsMgr.add(AIRTABLE_PROGRESS_JOB, {
+      payload,
+      progress: {
+        msg: error?.message || 'Failed due to some internal error',
+        status: SyncStatus.FAILED
+      }
     });
   });
 
@@ -67,12 +89,23 @@ export default (router: Router, clients: { [id: string]: Socket }) => {
         Noco.getConfig().auth.jwt.options
       );
 
+      // Treat default baseUrl as siteUrl from req object
+      let baseURL = (req as any).ncSiteUrl;
+
+      // if environment value avail use it
+      // or if it's docker construct using `PORT`
+      if (process.env.NC_BASEURL_INTERNAL) {
+        baseURL = process.env.NC_BASEURL_INTERNAL;
+      } else if (process.env.NC_DOCKER) {
+        baseURL = `http://localhost:${process.env.PORT || 8080}`;
+      }
+
       NocoJobs.jobsMgr.add<AirtableSyncConfig>(AIRTABLE_IMPORT_JOB, {
         id: req.query.id,
         ...(syncSource?.details || {}),
         projectId: syncSource.project_id,
         authToken: token,
-        baseURL: (req as any).ncSiteUrl
+        baseURL
       });
       res.json({});
     })

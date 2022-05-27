@@ -1,6 +1,9 @@
 <template>
   <div>
-    <v-menu offset-y>
+    <v-menu
+      offset-y
+      transition="slide-y-transition"
+    >
       <template #activator="{ on }">
         <v-btn
           v-show="isDashboard && _isUIAllowed('previewAs')"

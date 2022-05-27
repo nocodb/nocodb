@@ -1,14 +1,22 @@
 <template>
-  <v-dialog v-model="airtableModal" max-width="min(600px, 90%)">
+  <v-dialog v-model="airtableModal" max-width="min(600px, 90%)" persistent>
     <v-card class="nc-import-card h-100">
       <v-toolbar class="elevation-0 align-center" height="68">
         <h3 class="mt-2">
           {{ $t('title.importFromAirtable') }}
         </h3>
-        <div v-t="['c:airtable-import:turbo-mode']" class="ml-2 mt-3 title pointer nc-btn-enable-turbo" @click="enableTurbo">
+        <div
+          v-t="['c:airtable-import:turbo-mode']"
+          class="ml-2 mt-3 title pointer nc-btn-enable-turbo"
+          @click="enableTurbo"
+        >
           🚀
         </div>
         <v-spacer />
+
+        <v-icon color="warning" class="" @click="airtableModal = false">
+          mdi-close
+        </v-icon>
       </v-toolbar>
 
       <v-divider />
@@ -21,11 +29,18 @@
           >
             <template v-if="step === 1">
               <div class="d-flex flex-column justify-center align-center pt-2 pb-6">
-                <span class="subtitle-1 font-weight-medium" @dblclick="$set(syncSource.details,'syncViews',true)">
+                <span
+                  class="subtitle-1 font-weight-medium"
+                  @dblclick="$set(syncSource.details.options,'syncViews',true)"
+                >
                   Credentials
                 </span>
 
-                <a href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials" class="caption grey--text" target="_blank">Where to find this?</a>
+                <a
+                  href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials"
+                  class="caption grey--text"
+                  target="_blank"
+                >Where to find this?</a>
               </div>
 
               <v-form v-model="valid">
@@ -55,7 +70,63 @@
                     :rules="[(v) => !!v || 'Shared Base ID / URL is required']"
                   />
                 </div>
-              </v-form>   <v-card-actions class="justify-center pb-6">
+                <v-expansion-panels v-model="advanceOptionsPanel" class="mx-auto" style="width: 50%;" flat>
+                  <v-expansion-panel>
+                    <v-expansion-panel-header hide-actions>
+                      <v-spacer />
+                      <span class="grey--text caption">More Options <v-icon color="grey" small>
+                        mdi-chevron-{{ advanceOptionsPanel === 0 ? 'up' : 'down' }}
+                      </v-icon></span>
+                    </v-expansion-panel-header>
+                    <v-expansion-panel-content>
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncData"
+                        class="caption mt-n4"
+                        label="Import Data"
+                        hide-details
+                        dense
+                      />
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncRollup"
+                        class="caption"
+                        label="Import Rollup Columns"
+                        hide-details
+                        dense
+                      />
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncLookup"
+                        class="caption"
+                        label="Import Lookup Columns"
+                        hide-details
+                        dense
+                      />
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncAttachment"
+                        class="caption"
+                        label="Import Attachment Columns"
+                        hide-details
+                        dense
+                      />
+                      <v-tooltip bottom>
+                        <template #activator="{ on }">
+                          <div v-on="on">
+                            <v-checkbox
+                              v-model="syncSource.details.options.syncFormula"
+                              class="caption"
+                              label="Import Formula Columns"
+                              hide-details
+                              dense
+                              disabled
+                            />
+                          </div>
+                        </template>
+                        <span>Coming Soon!</span>
+                      </v-tooltip>
+                    </v-expansion-panel-content>
+                  </v-expansion-panel>
+                </v-expansion-panels>
+              </v-form>
+              <v-card-actions class="justify-center pb-6 pt-6">
                 <v-btn
                   v-t="['c:sync-airtable:save-and-sync']"
                   class="nc-btn-airtable-import"
@@ -114,9 +185,14 @@
               </div>
             </template>
             <div class="text-center pa-4 pb-0">
-              <a class="caption grey--text" href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">Questions / Help - reach out here</a>
+              <a class="caption grey--text" href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">Questions
+                / Help - reach out here</a>
               <br>
-              <span class="caption grey--text"> This feature is currently in beta and more information can be found <a href="https://github.com/nocodb/nocodb/discussions/2122" class="caption grey--text" target="_blank">here</a>.</span>
+              <span class="caption grey--text"> This feature is currently in beta and more information can be found <a
+                href="https://github.com/nocodb/nocodb/discussions/2122"
+                class="caption grey--text"
+                target="_blank"
+              >here</a>.</span>
             </div>
           </v-card>
         </div>
@@ -134,12 +210,30 @@ export default {
     value: Boolean
   },
   data: () => ({
+    advanceOptionsPanel: false,
     isPasswordVisible: false,
     valid: false,
     socket: null,
     step: 1,
     progress: [],
-    syncSource: null,
+    syncSource: {
+      type: 'Airtable',
+      details: {
+        syncInterval: '15mins',
+        syncDirection: 'Airtable to NocoDB',
+        syncRetryCount: 1,
+        apiKey: '',
+        shareId: '',
+        options: {
+          syncViews: false,
+          syncData: true,
+          syncRollup: false,
+          syncLookup: true,
+          syncFormula: false,
+          syncAttachment: true
+        }
+      }
+    },
     syncSourceUrlOrId: ''
   }),
   computed: {
@@ -221,7 +315,7 @@ export default {
       const { data: { list: srcs } } = await this.$axios.get(`/api/v1/db/meta/projects/${this.projectId}/syncs`)
       if (srcs && srcs[0]) {
         srcs[0].details = srcs[0].details || {}
-        this.syncSource = srcs[0]
+        this.syncSource = this.migrateSync(srcs[0])
         this.syncSourceUrlOrId = srcs[0].details.shareId
       } else {
         this.syncSource = {
@@ -230,11 +324,16 @@ export default {
             syncInterval: '15mins',
             syncDirection: 'Airtable to NocoDB',
             syncRetryCount: 1,
-
-            syncViews: false,
-
             apiKey: '',
-            shareId: ''
+            shareId: '',
+            options: {
+              syncViews: false,
+              syncData: true,
+              syncRollup: false,
+              syncLookup: true,
+              syncFormula: false,
+              syncAttachment: true
+            }
           }
         }
       }
@@ -252,8 +351,23 @@ export default {
       }
     },
     enableTurbo() {
-      this.$set(this.syncSource.details, 'syncViews', true)
+      this.$set(this.syncSource.details.options, 'syncViews', true)
       this.$toast.success('🚀🚀 Ludicrous mode activated! Let\'s go! 🚀🚀').goAway(3000)
+    },
+    migrateSync(src) {
+      if (!src.details?.options) {
+        src.details.options = {
+          syncViews: false,
+          syncData: true,
+          syncRollup: false,
+          syncLookup: true,
+          syncFormula: false,
+          syncAttachment: true
+        }
+        src.details.options.syncViews = src.syncViews
+        delete src.syncViews
+      }
+      return src
     }
   }
 }

@@ -43,6 +43,9 @@
                     <span
                       class="caption primary--text text--lighten-2 font-weight-bold"
                     >
+                      <v-icon color="primary lighten-2" small class="mr-1">
+                        mdi-function
+                      </v-icon>
                       {{ it.text }}
                     </span>
                   </v-list-item-content>
@@ -70,10 +73,12 @@
                 <span
                   class="caption text--darken-3 font-weight-bold"
                 >
+                  <v-icon color="grey darken-4" small class="mr-1">
+                    {{ it.icon }}
+                  </v-icon>
                   {{ it.text }}
                 </span>
               </v-list-item-content>
-
               <v-list-item-action>
                 <span class="caption">
                   Column
@@ -87,6 +92,9 @@
                 <span
                   class="caption indigo--text text--darken-3 font-weight-bold"
                 >
+                  <v-icon color="indigo darken-3" small class="mr-1">
+                    mdi-calculator-variant
+                  </v-icon>
                   {{ it.text }}
                 </span>
               </v-list-item-content>
@@ -109,7 +117,8 @@
 import debounce from 'debounce'
 import jsep from 'jsep'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
-import formulaList, { formulas, formulaTypes } from '../../../../../helpers/formulaList'
+import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
+import formulaList, { formulas, formulaTypes } from '@/helpers/formulaList'
 import { getWordUntilCaret, insertAtCursor } from '@/helpers'
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree'
 
@@ -146,6 +155,7 @@ export default {
         ...this.meta.columns.filter(c => !this.column || this.column.id !== c.id).map(c => ({
           text: c.title,
           type: 'column',
+          icon: getUIDTIcon(c.uidt),
           c
         })),
         ...this.availableBinOps.map(op => ({
@@ -490,7 +500,7 @@ export default {
             case UITypes.PhoneNumber:
             case UITypes.Email:
             case UITypes.URL:
-              return 'string'
+              return formulaTypes.STRING
 
             // numeric
             case UITypes.Year:
@@ -499,14 +509,14 @@ export default {
             case UITypes.Rating:
             case UITypes.Count:
             case UITypes.AutoNumber:
-              return 'number'
+              return formulaTypes.NUMERIC
 
             // date
             case UITypes.Date:
             case UITypes.DateTime:
             case UITypes.CreateTime:
             case UITypes.LastModifiedTime:
-              return 'date'
+              return formulaTypes.DATE
 
             // not supported
             case UITypes.ForeignKey:
@@ -527,12 +537,17 @@ export default {
           }
         }
       } else if (parsedTree.type === jsep.BINARY_EXP || parsedTree.type === jsep.UNARY_EXP) {
-        return 'number'
+        return formulaTypes.NUMERIC
       } else if (parsedTree.type === jsep.LITERAL) {
         return typeof parsedTree.value
       } else {
         return 'N/A'
       }
+    },
+    isCurlyBracketBalanced() {
+      // count number of opening curly brackets and closing curly brackets
+      const cntCurlyBrackets = (this.$refs.input.$el.querySelector('input').value.match(/\{|}/g) || []).reduce((acc, cur) => (acc[cur] = (acc[cur] || 0) + 1, acc), {})
+      return (cntCurlyBrackets['{'] || 0) === (cntCurlyBrackets['}'] || 0)
     },
     appendText(it) {
       const text = it.text
@@ -540,7 +555,7 @@ export default {
       if (it.type === 'function') {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len, 1))
       } else if (it.type === 'column') {
-        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), '{' + text + '}', len))
+        this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), '{' + text + '}', len + (!this.isCurlyBracketBalanced())))
       } else {
         this.$set(this.formula, 'value', insertAtCursor(this.$refs.input.$el.querySelector('input'), text, len))
       }
@@ -560,6 +575,9 @@ export default {
       const parts = query.split(/\W+/)
       this.wordToComplete = parts.pop()
       this.suggestion = this.acTree.complete(this.wordToComplete)?.sort((x, y) => this.sortOrder[x.type] - this.sortOrder[y.type])
+      if (!this.isCurlyBracketBalanced()) {
+        this.suggestion = this.suggestion.filter(v => v.type === 'column')
+      }
       this.autocomplete = !!this.suggestion.length
     },
     selectText() {

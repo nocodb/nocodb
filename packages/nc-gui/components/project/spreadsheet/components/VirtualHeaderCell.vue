@@ -49,6 +49,7 @@
       offset-y
       open-on-hover
       left
+      transition="slide-y-transition"
     >
       <template #activator="{on}">
         <v-icon v-if="!isLocked && !isForm" small v-on="on">
@@ -116,7 +117,13 @@
       </v-card>
     </v-dialog>
 
-    <v-menu v-model="editColumnMenu" offset-y content-class="" left>
+    <v-menu
+      v-model="editColumnMenu"
+      offset-y
+      content-class=""
+      left
+      transition="slide-y-transition"
+    >
       <template #activator="{on}">
         <span v-on="on" />
       </template>

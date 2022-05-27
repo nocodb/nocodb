@@ -46,7 +46,7 @@ jobs:
       working-directory: ./packages/nocodb
     strategy:
       matrix:
-        node-version: [14]
+        node-version: [16]
     steps:
       - name: Get Docker Repository
         id: get-docker-repository

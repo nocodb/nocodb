@@ -42,7 +42,9 @@ export default abstract class JobsMgr {
   }
 
   protected async invokeSuccessCbks(jobName: string, payload: any) {
-    await Promise.all(this.successCbks?.[jobName]?.map(cb => cb(payload)));
+    await Promise.all(
+      this.successCbks?.[jobName]?.map(cb => cb(payload)) || []
+    );
   }
   protected async invokeFailureCbks(
     jobName: string,
@@ -50,7 +52,7 @@ export default abstract class JobsMgr {
     error?: Error
   ) {
     await Promise.all(
-      this.failureCbks?.[jobName]?.map(cb => cb(payload, error))
+      this.failureCbks?.[jobName]?.map(cb => cb(payload, error)) || []
     );
   }
   protected async invokeProgressCbks(
@@ -59,7 +61,7 @@ export default abstract class JobsMgr {
     data?: any
   ) {
     await Promise.all(
-      this.progressCbks?.[jobName]?.map(cb => cb(payload, data))
+      this.progressCbks?.[jobName]?.map(cb => cb(payload, data)) || []
     );
   }
 }

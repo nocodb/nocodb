@@ -109,11 +109,17 @@
               @change="saveOrUpdate(filter, i)"
             >
               <template #item="{ item }">
-                <span
-                  :class="`caption font-weight-regular nc-filter-fld-${item.title}`"
-                >
+                <span :class="`caption font-weight-regular nc-filter-fld-${item.title}`">
+                  <v-icon small class="mr-1">
+                    {{ item.icon }}
+                  </v-icon>
                   {{ item.title }}
                 </span>
+              </template>
+              <template #selection="{item}">
+                <v-icon small class="mr-1">
+                  {{ item.icon }}
+                </v-icon> {{ item.title }}
               </template>
             </v-select>
             <v-select
@@ -182,7 +188,7 @@
 </template>
 
 <script>
-import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
+import { getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   name: 'ColumnFilter',
@@ -267,6 +273,11 @@ export default {
     ]
   }),
   computed: {
+    columnIcon() {
+      return this.meta.columns.reduce((iconsObj, c) => {
+        return { ...iconsObj, [c.title]: getUIDTIcon(c.uidt) }
+      }, {})
+    },
     columnsById() {
       return (this.columns || []).reduce((o, c) => ({ ...o, [c.id]: c }), {})
     },
@@ -276,7 +287,10 @@ export default {
     columns() {
       return (
         this.meta &&
-        this.meta.columns.filter(c => c && (!c.colOptions || !c.system))
+        this.meta.columns.filter(c => c && (!c.colOptions || !c.system)).map(c => ({
+          ...c,
+          icon: getUIDTIcon(c.uidt)
+        }))
       )
     },
     types() {

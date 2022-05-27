@@ -1,5 +1,8 @@
 <template>
-  <v-menu offset-y>
+  <v-menu
+    offset-y
+    transition="slide-y-transition"
+  >
     <template #activator="{ on }">
       <v-badge :value="isAnyFieldHidden" color="primary" dot overlap>
         <v-btn
@@ -123,6 +126,9 @@
               @change="saveOrUpdate(field, i)"
             >
               <template #label>
+                <v-icon small class="mr-1">
+                  {{ field.icon }}
+                </v-icon>
                 <span class="caption">{{ field.title }}</span>
               </template>
             </v-checkbox>
@@ -172,6 +178,7 @@
 <script>
 import draggable from 'vuedraggable'
 import { getSystemColumnsIds } from 'nocodb-sdk'
+import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   name: 'FieldsMenu',
@@ -346,7 +353,8 @@ export default {
             title: c.title,
             fk_column_id: c.id,
             ...(fieldById[c.id] ? fieldById[c.id] : {}),
-            order: (fieldById[c.id] && fieldById[c.id].order) || order++
+            order: (fieldById[c.id] && fieldById[c.id].order) || order++,
+            icon: getUIDTIcon(c.uidt)
           }))
           .sort((a, b) => a.order - b.order)
       } else if (this.isPublic) {

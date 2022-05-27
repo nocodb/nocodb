@@ -1,4 +1,5 @@
 import { isVirtualCol, filterOutSystemColumns } from 'nocodb-sdk'
+import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
 
 export default {
   data: () => ({
@@ -91,7 +92,10 @@ export default {
       }, [])
     },
     availableRealColumns() {
-      return this.availableColumns && this.availableColumns.filter(c => !isVirtualCol(c))
+      return this.availableColumns && this.availableColumns.filter(c => !isVirtualCol(c)).map(c => ({
+        ...c,
+        icon: getUIDTIcon(c.uidt)
+      }))
     },
 
     allColumns() {

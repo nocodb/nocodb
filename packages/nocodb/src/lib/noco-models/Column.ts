@@ -541,7 +541,7 @@ export default class Column<T = any> implements ColumnType {
             title: col?.title
           })
         )
-          await FormulaColumn.update(formula.id, formula, ncMeta);
+          await FormulaColumn.update(formulaCol.id, formula, ncMeta);
       }
     }
 

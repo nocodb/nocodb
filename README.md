@@ -230,6 +230,7 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
   * [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
   * [Cloning the Project](#cloning-the-project)
+  * [Build SDK](#build-sdk)
   * [Running Backend locally](#running-backend-locally)
   * [Running Frontend locally](#running-frontend-locally)
   * [Running Cypress tests locally](#running-cypress-tests-locally)
@@ -289,6 +290,14 @@ Please refer to [Environment variables](https://docs.nocodb.com/getting-started/
 ```shell
 git clone https://github.com/nocodb/nocodb
 cd nocodb
+```
+
+## Build SDK
+
+```shell
+cd packages/nocodb-sdk
+npm install
+npm run build
 ```
 
 ## Running Backend locally
@@ -463,6 +472,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
   </tr>
   <tr>
     <td align="center"><a href="https://www.youyi.io"><img src="https://avatars.githubusercontent.com/u/49471274?v=4?s=100" width="100px;" alt=""/><br /><sub><b>youyiio</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=youyiio" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/RK311y"><img src="https://avatars.githubusercontent.com/u/65210753?v=4?s=100" width="100px;" alt=""/><br /><sub><b>River Kelly</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=RK311y" title="Code">💻</a></td>
   </tr>
 </table>
 

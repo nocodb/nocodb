@@ -4,6 +4,7 @@
       <v-select
         v-model="colMeta.icon"
         label="Icon"
+        :menu-props="{ bottom: true, offsetY: true }"
         :items="icons"
         dense
         outlined
@@ -31,24 +32,29 @@
       <v-select
         v-model="colMeta.max"
         label="Max"
+        :menu-props="{ bottom: true, offsetY: true }"
         :items="[1,2,3,4,5,6,7,8,9,10]"
         dense
         outlined
         class="caption"
       />
     </div>
-    <v-color-picker
+    <color-picker
       v-model="colMeta.color"
-      class="mx-auto"
-      hide-inputs
+      row-size="8"
+      :colors="['#fcb401', '#faa307', '#f48c06', '#e85d04', '#dc2f02', '#d00000', '#9d0208', '#777']"
     />
   </div>
 </template>
 
 <script>
+import ColorPicker from '@/components/project/spreadsheet/components/ColorPicker.vue'
 
 export default {
   name: 'RatingOptions',
+  components: {
+    ColorPicker
+  },
   props: ['column', 'meta', 'value'],
   data: () => ({
     colMeta: {
@@ -85,7 +91,7 @@ export default {
     }
   },
   created() {
-    this.colMeta = this.value || { ...this.colMeta }
+    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta }
   }
 }
 </script>

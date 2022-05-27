@@ -37,7 +37,7 @@ jobs:
       working-directory: ./packages/nocodb
     strategy:
       matrix:
-        node-version: [14]
+        node-version: [16]
     steps:
       - name: Checkout
         uses: actions/checkout@v2

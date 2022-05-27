@@ -102,53 +102,57 @@
                     </template>-->
         </v-text-field>
       </v-list-item>
-      <draggable
-        v-model="fields"
-        @start="drag = true"
-        @end="drag = false"
-        @change="onMove($event)"
+      <div
+        class="nc-fields-list py-1"
       >
-        <template v-for="(field, i) in fields">
-          <v-list-item
-            v-show="
-              (!fieldFilter ||
-                (field.title || '')
-                  .toLowerCase()
-                  .includes(fieldFilter.toLowerCase())) &&
-                !(
-                  !showSystemFieldsLoc &&
-                  systemColumnsIds.includes(field.fk_column_id)
-                )
-            "
-            :key="field.id"
-            dense
-          >
-            <v-checkbox
-              v-model="field.show"
-              class="mt-0 pt-0"
+        <draggable
+          v-model="fields"
+          @start="drag = true"
+          @end="drag = false"
+          @change="onMove($event)"
+        >
+          <template v-for="(field, i) in fields">
+            <v-list-item
+              v-show="
+                (!fieldFilter ||
+                  (field.title || '')
+                    .toLowerCase()
+                    .includes(fieldFilter.toLowerCase())) &&
+                  !(
+                    !showSystemFieldsLoc &&
+                    systemColumnsIds.includes(field.fk_column_id)
+                  )
+              "
+              :key="field.id"
               dense
-              hide-details
-              @click.stop
-              @change="saveOrUpdate(field, i)"
             >
-              <template #label>
-                <v-icon small class="mr-1">
-                  {{ field.icon }}
-                </v-icon>
-                <span class="caption">{{ field.title }}</span>
-              </template>
-            </v-checkbox>
-            <v-spacer />
-            <v-icon
-              small
-              color="grey"
-              :class="`align-self-center drag-icon nc-child-draggable-icon-${field}`"
-            >
-              mdi-drag
-            </v-icon>
-          </v-list-item>
-        </template>
-      </draggable>
+              <v-checkbox
+                v-model="field.show"
+                class="mt-0 pt-0"
+                dense
+                hide-details
+                @click.stop
+                @change="saveOrUpdate(field, i)"
+              >
+                <template #label>
+                  <v-icon small class="mr-1">
+                    {{ field.icon }}
+                  </v-icon>
+                  <span class="caption">{{ field.title }}</span>
+                </template>
+              </v-checkbox>
+              <v-spacer />
+              <v-icon
+                small
+                color="grey"
+                :class="`align-self-center drag-icon nc-child-draggable-icon-${field}`"
+              >
+                mdi-drag
+              </v-icon>
+            </v-list-item>
+          </template>
+        </draggable>
+      </div>
       <v-divider class="my-2" />
 
       <v-list-item v-if="!isPublic" dense>
@@ -465,7 +469,7 @@ export default {
           'order',
           (this.fields[event.moved.newIndex - 1].order +
             this.fields[event.moved.newIndex + 1].order) /
-            2
+          2
         )
       }
       this.saveOrUpdate(
@@ -509,5 +513,11 @@ export default {
 
 .drag-icon {
   cursor: all-scroll; /*cursor: grab;*/
+}
+
+.nc-fields-list {
+  height: auto;
+  max-height: 500px;
+  overflow-y: auto;
 }
 </style>

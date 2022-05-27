@@ -77,7 +77,7 @@
               :data="data"
               :available-columns="availableColumns"
               :show-fields="showFields"
-              :nodes="{dbAlias:''}"
+              :nodes="{...nodes, dbConnection:{client}}"
               :sql-ui="sqlUi"
               :columns-width="columnsWidth"
               :password="password"

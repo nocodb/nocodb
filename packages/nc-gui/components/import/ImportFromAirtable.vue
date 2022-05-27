@@ -300,7 +300,8 @@ export default {
               syncData: true,
               syncRollup: false,
               syncLookup: true,
-              syncFormula: false
+              syncFormula: false,
+              syncAttachment: true
             }
           }
         }
@@ -329,7 +330,8 @@ export default {
           syncData: true,
           syncRollup: false,
           syncLookup: true,
-          syncFormula: false
+          syncFormula: false,
+          syncAttachment: true
         }
         src.details.options.syncViews = src.syncViews
         delete src.syncViews

@@ -92,7 +92,7 @@
               </template>
             </v-select>
 
-            <v-select
+            <v-autocomplete
               :key="i + '_6'"
               v-model="filter.fk_column_id"
               class="caption nc-filter-field-select"
@@ -121,7 +121,7 @@
                   {{ item.icon }}
                 </v-icon> {{ item.title }}
               </template>
-            </v-select>
+            </v-autocomplete>
             <v-select
               :key="'k' + i"
               v-model="filter.comparison_op"

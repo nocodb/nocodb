@@ -41,7 +41,7 @@
             mdi-close-box
           </v-icon>
 
-          <v-select
+          <v-autocomplete
             :key="i + 'sel1'"
             v-model="sort.fk_column_id"
             class="caption nc-sort-field-select"
@@ -71,7 +71,7 @@
                 {{ item.title }}
               </span>
             </template>
-          </v-select>
+          </v-autocomplete>
           <v-select
             :key="i + 'sel2'"
             v-model="sort.direction"

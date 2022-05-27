@@ -618,7 +618,7 @@
           </v-list-item>
         </template>
 
-        <template v-if="isEditable && !isLocked && rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual">
+        <template v-if="isEditable && !isLocked && rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual && rowContextMenu.col.uidt !== 'Formula'">
           <v-tooltip bottom>
             <template #activator="{ on }">
               <v-list-item

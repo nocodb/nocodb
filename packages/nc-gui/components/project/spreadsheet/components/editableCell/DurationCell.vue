@@ -1,5 +1,11 @@
 <template>
-  <input v-model="localState" v-on="parentListeners">
+    <div class="duration-cell-wrapper">
+    <input v-model="localState" v-on="parentListeners" @keypress="checkDurationFormat($event)">
+        <div v-if="showWarningMessage == true" class="duration-warning">
+            <!-- TODO: i18n -->
+            Please enter a number
+        </div>
+    </div>
 </template>
 
 <script>
@@ -10,12 +16,18 @@ export default {
     value: [String, Number],
     readOnly: Boolean
   },
+  data: () => ({
+      showWarningMessage: false
+  }),
   computed: {
     localState: {
       get() {
+        const durationType = this.column?.meta?.duration || 0
+        // TODO: render value based on duration type
         return this.value
       },
       set(val) {
+        // TODO: only save if val is valid
         this.$emit('input', val)
       }
     },
@@ -35,12 +47,40 @@ export default {
 
       return $listeners
     }
+  },
+  methods: {
+      checkDurationFormat(evt) {
+        evt = evt || window.event
+        const charCode = (evt.which) ? evt.which : evt.keyCode;
+        // ref: http://www.columbia.edu/kermit/ascii.html
+        const PRINTABLE_CTL_RANGE = charCode > 31
+        const NON_DIGIT = charCode < 48 || charCode > 57
+        const NON_COLON = charCode !== 58
+        const NON_PERIOD = charCode !== 46
+        if (PRINTABLE_CTL_RANGE && NON_DIGIT && NON_COLON && NON_PERIOD) {
+            this.showWarningMessage = true
+            evt.preventDefault();
+        } else {
+            this.showWarningMessage = false
+            // only allow digits, '.' and ':' (without quotes)
+            return true;
+        }
+      }
   }
 }
 </script>
 
 <style scoped>
 
+.duration-cell-wrapper {
+    padding: 10px;
+}
+
+.duration-warning {
+    text-align: left;
+    margin-top: 10px;
+    color: #E65100;
+}
 </style>
 
 <!--

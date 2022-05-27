@@ -2295,5 +2295,6 @@ export interface AirtableSyncConfig {
     syncRollup: boolean;
     syncLookup: boolean;
     syncFormula: boolean;
+    syncAttachment: boolean;
   };
 }

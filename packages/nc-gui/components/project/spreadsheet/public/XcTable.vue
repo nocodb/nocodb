@@ -401,6 +401,7 @@ export default {
 
         this.sorts = this.viewMeta.sorts
         this.viewName = this.viewMeta.title
+        this.client = this.viewMeta.client
       } catch (e) {
         if (e.response && e.response.status === 404) {
           this.notFound = true

@@ -296,6 +296,19 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
                 parentColumn: parent.primaryKey.column_name
               });
             }
+
+            // todo: create index for virtual relations as well
+            // create index for foreign key in pg
+            if (base.type === 'pg') {
+              await createColumnIndex({
+                column: new Column({
+                  ...newColumn,
+                  fk_model_id: child.id
+                }),
+                base,
+                sqlMgr
+              });
+            }
           }
           await createHmAndBtColumn(
             child,
@@ -450,6 +463,27 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             fk_mm_parent_column_id: childCol.id,
             fk_related_model_id: child.id
           });
+
+          // todo: create index for virtual relations as well
+          // create index for foreign key in pg
+          if (base.type === 'pg') {
+            await createColumnIndex({
+              column: new Column({
+                ...associateTableCols[0],
+                fk_model_id: assocModel.id
+              }),
+              base,
+              sqlMgr
+            });
+            await createColumnIndex({
+              column: new Column({
+                ...associateTableCols[1],
+                fk_model_id: assocModel.id
+              }),
+              base,
+              sqlMgr
+            });
+          }
         }
       }
       Tele.emit('evt', { evt_type: 'relation:created' });
@@ -994,6 +1028,29 @@ const deleteHmOrBtRelation = async (
   // delete foreign key column
   await Column.delete(childColumn.id, ncMeta);
 };
+
+async function createColumnIndex({
+  column,
+  sqlMgr,
+  base,
+  indexName = null,
+  nonUnique = true
+}: {
+  column: Column;
+  sqlMgr: SqlMgrv2;
+  base: Base;
+  indexName?: string;
+  nonUnique?: boolean;
+}) {
+  const model = await column.getModel();
+  const indexArgs = {
+    columns: [column.column_name],
+    tn: model.table_name,
+    non_unique: nonUnique,
+    indexName
+  };
+  sqlMgr.sqlOpPlus(base, 'indexCreate', indexArgs);
+}
 
 const router = Router({ mergeParams: true });
 router.post(

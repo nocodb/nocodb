@@ -894,7 +894,7 @@ export default {
   watch: {
     isActive(n, o) {
       if (!o && n) {
-        this.reload()
+        this.reload(true)
       }
     },
     page(p) {
@@ -983,7 +983,7 @@ export default {
       await this.reload()
       this.$e('a:table:reload:navbar')
     },
-    async reload() {
+    async reload(ignoreLoader = false) {
       this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
@@ -993,7 +993,7 @@ export default {
       if (this.selectedView && this.selectedView.show_as === 'kanban') {
         await this.loadKanbanData()
       } else {
-        await this.loadTableData(false)
+        await this.loadTableData(ignoreLoader)
       }
       this.key = Math.random()
     },

@@ -15,6 +15,7 @@
 
 <script>
 import dayjs from 'dayjs'
+import { MysqlUi } from 'nocodb-sdk'
 
 export default {
   name: 'TimePickerCell',
@@ -22,6 +23,9 @@ export default {
     value: [String, Date]
   },
   computed: {
+    isMysql() {
+      return ['mysql', 'mysql2'].indexOf(this.$store.getters['project/GtrClientType'])
+    },
     localState: {
       get() {
         if (!this.value) {
@@ -40,8 +44,15 @@ export default {
         return dateTime.format('HH:mm:ss')
       },
       set(val) {
+        console.log('=========', this.$parent)
         const dateTime = dayjs(`1999-01-01 ${val}:00`)
-        if (dateTime.isValid()) { this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ssZ')) }
+        if (dateTime.isValid()) {
+          if (this.isMysql) {
+            this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ss'))
+          } else {
+            this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ssZ'))
+          }
+        }
       }
 
     },

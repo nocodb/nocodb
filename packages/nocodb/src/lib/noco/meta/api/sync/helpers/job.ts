@@ -83,6 +83,7 @@ export default async (
   const storeLinks = false;
   const ncLinkDataStore: any = {};
   const pageSize = 100;
+  const enableLocalCache = true;
 
   const uniqueTableNameGen = getUniqueNameGenerator('sheet');
 
@@ -124,7 +125,18 @@ export default async (
     } else {
       await FetchAT.initialize(sDB.shareId);
     }
-    const ft = await FetchAT.read();
+
+    const filePath = `./migrationCache/meta/${sDB.shareId}.json`;
+    let ft;
+    if (enableLocalCache && fs2.existsSync(filePath)) {
+      ft = jsonfile.readFileSync(filePath);
+    } else {
+      ft = await FetchAT.read();
+      if (enableLocalCache)
+        jsonfile.writeFileSync(filePath, ft, {
+          spaces: 2
+        });
+    }
     const duration = Date.now() - start;
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
@@ -135,19 +147,28 @@ export default async (
     // store copy of airtable schema globally
     g_aTblSchema = file.tableSchemas;
 
-    if (debugMode) jsonfile.writeFileSync('aTblSchema.json', ft, { spaces: 2 });
-
     return file;
   }
 
   async function getViewData(viewId) {
     const start = Date.now();
-    const ft = await FetchAT.readView(viewId);
+
+    const filePath = `./migrationCache/meta/${viewId}.json`;
+    let ft;
+    if (enableLocalCache && fs2.existsSync(filePath)) {
+      ft = jsonfile.readFileSync(filePath);
+    } else {
+      ft = await FetchAT.readView(viewId);
+
+      if (enableLocalCache)
+        jsonfile.writeFileSync(filePath, ft, {
+          spaces: 2
+        });
+    }
     const duration = Date.now() - start;
     rtc.fetchAt.count++;
     rtc.fetchAt.time += duration;
 
-    if (debugMode) jsonfile.writeFileSync(`${viewId}.json`, ft, { spaces: 2 });
     return ft.view;
   }
 
@@ -1316,6 +1337,7 @@ export default async (
         case UITypes.Attachment:
           if (syncDB.options.syncLookup) rec[key] = null;
           else {
+            console.log(`:: Attach : ${record.id}, ${key}, ${value}`);
             const tempArr = [];
             for (const v of value) {
               const binaryImage = await axios
@@ -1379,10 +1401,60 @@ export default async (
     ncLinkDataStore[table.title] = {};
     const insertJobs: Promise<any>[] = [];
 
+    async function processRecords(records) {
+      // This function (`page`) will get called for each page of records.
+      logBasic(
+        `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += pageSize)}`
+      );
+
+      // await Promise.all(
+      //   records.map(record => _callback(sDB, table, record))
+      // );
+      const ncRecords = [];
+      for (let i = 0; i < records.length; i++) {
+        const r = await nocoBaseDataProcessing_v2(sDB, table, records[i]);
+        ncRecords.push(r);
+      }
+
+      // wait for previous job's to finish
+      await Promise.all(insertJobs);
+
+      const _perfStart = recordPerfStart();
+      insertJobs.push(
+        api.dbTableRow.bulkCreate(
+          'nc',
+          sDB.projectName,
+          table.id, // encodeURIComponent(table.title),
+          ncRecords
+        )
+      );
+      recordPerfStats(_perfStart, 'dbTableRow.bulkCreate');
+    }
+
     // skip virtual columns
     const fieldsArray = aTbl.columns
       .filter(a => !['formula', 'lookup', 'rollup'].includes(a.type))
       .map(a => a.name);
+
+    if (enableLocalCache) {
+      // check if cached file exists for this table
+      const f = `./migrationCache/data/${table.title}_${recordCnt /
+        pageSize}.json`;
+
+      while (fs2.existsSync(f)) {
+        const records = jsonfile.readFileSync(f);
+        logBasic(
+          `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += pageSize)}`
+        );
+        await processRecords(records);
+      }
+
+      // scenarios to handle
+      // - cache file doesn't exist
+      // - previous cache read was partial
+
+      return;
+    }
 
     return new Promise((resolve, reject) => {
       base(table.title)
@@ -1393,36 +1465,18 @@ export default async (
         })
         .eachPage(
           async function page(records, fetchNextPage) {
+            if (enableLocalCache)
+              jsonfile.writeFileSync(
+                `./migrationCache/data/${table.title}_${recordCnt /
+                  pageSize}.json`,
+                records,
+                {
+                  spaces: 2
+                }
+              );
             // console.log(JSON.stringify(records, null, 2));
 
-            // This function (`page`) will get called for each page of records.
-            logBasic(
-              `:: ${table.title} : ${recordCnt +
-                1} ~ ${(recordCnt += pageSize)}`
-            );
-
-            // await Promise.all(
-            //   records.map(record => _callback(sDB, table, record))
-            // );
-            const ncRecords = [];
-            for (let i = 0; i < records.length; i++) {
-              const r = await nocoBaseDataProcessing_v2(sDB, table, records[i]);
-              ncRecords.push(r);
-            }
-
-            // wait for previous job's to finish
-            await Promise.all(insertJobs);
-
-            const _perfStart = recordPerfStart();
-            insertJobs.push(
-              api.dbTableRow.bulkCreate(
-                'nc',
-                sDB.projectName,
-                table.id, // encodeURIComponent(table.title),
-                ncRecords
-              )
-            );
-            recordPerfStats(_perfStart, 'dbTableRow.bulkCreate');
+            await processRecords(records);
 
             // To fetch the next page of records, call `fetchNextPage`.
             // If there are more records, `page` will get called again.
@@ -2102,6 +2156,9 @@ export default async (
 
   ///////////////////////////////////////////////////////////////////////////////
   let recordCnt = 0;
+  const fs2 = require('fs');
+  const dir = ['./migrationCache/meta', './migrationCache/data'];
+
   try {
     logBasic('SDK initialized');
     api = new Api({
@@ -2110,6 +2167,11 @@ export default async (
         'xc-auth': syncDB.authToken
       }
     });
+
+    if (!fs2.existsSync(dir)) {
+      fs2.mkdirSync(dir[0], { recursive: true });
+      fs2.mkdirSync(dir[1], { recursive: true });
+    }
 
     logDetailed('Project initialization started');
     // delete project if already exists

@@ -1,26 +1,20 @@
-import { IStorageAdapterV2, XcStoragePlugin } from 'nc-plugin';
+import IStorageAdapter from "./IStorageAdapter";
 
-import ScalewayObjectStorage from './ScalewayObjectStorage';
-
-class ScalewayObjectStoragePlugin extends XcStoragePlugin {
-  private static storageAdapter: ScalewayObjectStorage;
-  public async init(config: any): Promise<any> {
-    ScalewayObjectStoragePlugin.storageAdapter = new ScalewayObjectStorage(
-      config
-    );
-    await ScalewayObjectStoragePlugin.storageAdapter.init();
-  }
-  public getAdapter(): IStorageAdapterV2 {
-    return ScalewayObjectStoragePlugin.storageAdapter;
-  }
+export default interface IStorageAdapterV2 extends IStorageAdapter {
+  fileCreateByUrl(destPath: string, url: string, fileMeta?: FileMeta): Promise<any>
 }
 
-export default ScalewayObjectStoragePlugin;
+
+interface FileMeta {
+  fileName?: string;
+  mimetype?: string;
+  size?: number | string;
+}
 
 /**
- * @copyright Copyright (c) 2021, Bhanu P Chaudhary <bhanu423@gmail.com>
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
- * @author Bhanu P Chaudhary <bhanu423@gmail.com>
+ * @author Pranav C Balan <pranavxc@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

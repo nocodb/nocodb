@@ -132,7 +132,8 @@ export default {
     relationDataRemove: true,
     relationDataAdd: true,
     dataCount: true,
-    upload: true
+    upload: true,
+    uploadViaURL: true
   },
   commenter: {
     formViewGet: true,
@@ -242,6 +243,7 @@ export default {
   super: '*',
   user: {
     upload: true,
+    uploadViaURL: true,
     passwordChange: true,
     pluginList: true,
     pluginRead: true,

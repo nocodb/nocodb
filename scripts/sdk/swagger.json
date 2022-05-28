@@ -2625,14 +2625,14 @@
           "name": "tableName",
           "in": "path",
           "required": true
-        },{
+        },
+        {
           "schema": {
             "type": "string"
           },
           "in": "query",
           "name": "column_name",
-          "description":
-          "Column name of the column you want to group by, eg. `column_name=column1`"
+          "description": "Column name of the column you want to group by, eg. `column_name=column1`"
         }
       ],
       "get": {
@@ -2907,14 +2907,14 @@
           "name": "viewName",
           "in": "path",
           "required": true
-        },{
+        },
+        {
           "schema": {
             "type": "string"
           },
           "in": "query",
           "name": "column_name",
-          "description":
-          "Column name of the column you want to group by, eg. `column_name=column1`"
+          "description": "Column name of the column you want to group by, eg. `column_name=column1`"
         }
       ],
       "get": {
@@ -5235,6 +5235,52 @@
             }
           },
           "description": ""
+        },
+        "parameters": [
+          {
+            "schema": {
+              "type": "string"
+            },
+            "name": "path",
+            "in": "query",
+            "required": true
+          }
+        ]
+      }
+    },
+    "/api/v1/db/storage/upload-by-url": {
+      "post": {
+        "summary": "Attachment",
+        "operationId": "storage-upload-by-url",
+        "responses": {},
+        "tags": [
+          "Storage"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "url": {
+                      "type": "string"
+                    },
+                    "fileName": {
+                      "type": "string"
+                    },
+                    "mimetype": {
+                      "type": "string"
+                    },
+                    "size": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
+          }
         },
         "parameters": [
           {

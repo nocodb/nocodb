@@ -3501,5 +3501,27 @@ export class Api<
         type: ContentType.FormData,
         ...params,
       }),
+
+    /**
+     * No description
+     *
+     * @tags Storage
+     * @name UploadByUrl
+     * @summary Attachment
+     * @request POST:/api/v1/db/storage/upload-by-url
+     */
+    uploadByUrl: (
+      query: { path: string },
+      data: { url?: string }[],
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/storage/upload-by-url`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
   };
 }

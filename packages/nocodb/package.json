@@ -154,7 +154,7 @@
     "nc-common": "0.0.6",
     "nc-help": "0.2.59",
     "nc-lib-gui": "0.91.1",
-    "nc-plugin": "^0.1.1",
+    "nc-plugin": "0.1.2",
     "ncp": "^2.0.0",
     "nocodb-sdk": "file:../nocodb-sdk",
     "nodemailer": "^6.4.10",

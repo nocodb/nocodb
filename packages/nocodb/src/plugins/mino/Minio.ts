@@ -1,12 +1,11 @@
-import fs from "fs";
-import path from "path";
+import fs from 'fs';
+import path from 'path';
 
-import {Client as MinioClient} from "minio";
-import {IStorageAdapter, XcFile} from "nc-plugin";
+import { Client as MinioClient } from 'minio';
+import { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import request from 'request';
 
-export default class Minio implements IStorageAdapter {
-
-
+export default class Minio implements IStorageAdapterV2 {
   private minioClient: MinioClient;
   private input: any;
 
@@ -14,15 +13,11 @@ export default class Minio implements IStorageAdapter {
     this.input = input;
   }
 
-  async fileCreate(
-    key: string,
-    file: XcFile,
-    _isPublic?: boolean
-  ): Promise<any> {
+  async fileCreate(key: string, file: XcFile): Promise<any> {
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
       const fileStream = fs.createReadStream(file.path);
-      fileStream.on('error', (err) => {
+      fileStream.on('error', err => {
         console.log('File Error', err);
         reject(err);
       });
@@ -30,14 +25,21 @@ export default class Minio implements IStorageAdapter {
       // uploadParams.Body = fileStream;
       // uploadParams.Key = key;
       const metaData = {
-        'Content-Type': file.mimetype,
+        'Content-Type': file.mimetype
         // 'X-Amz-Meta-Testing': 1234,
         // 'example': 5678
-      }
+      };
       // call S3 to retrieve upload file to specified bucket
-      this.minioClient.putObject(this.input?.bucket, key, fileStream,metaData).then(()=>{
-        resolve(`http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${this.input.port}/${this.input.bucket}/${key}`)
-      }).catch(reject)
+      this.minioClient
+        .putObject(this.input?.bucket, key, fileStream, metaData)
+        .then(() => {
+          resolve(
+            `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
+              this.input.port
+            }/${this.input.bucket}/${key}`
+          );
+        })
+        .catch(reject);
     });
   }
 
@@ -87,8 +89,46 @@ export default class Minio implements IStorageAdapter {
     }
   }
 
-}
+  async fileCreateByUrl(key: string, url: string): Promise<any> {
+    const uploadParams: any = {
+      ACL: 'public-read'
+    };
+    return new Promise((resolve, reject) => {
+      // Configure the file stream and obtain the upload parameters
+      request(
+        {
+          url: url,
+          encoding: null
+        },
+        (err, _, body) => {
+          if (err) return reject(err);
 
+          uploadParams.Body = body;
+          uploadParams.Key = key;
+
+          // uploadParams.Body = fileStream;
+          // uploadParams.Key = key;
+          const metaData = {
+            // 'Content-Type': file.mimetype
+            // 'X-Amz-Meta-Testing': 1234,
+            // 'example': 5678
+          };
+          // call S3 to retrieve upload file to specified bucket
+          this.minioClient
+            .putObject(this.input?.bucket, key, body, metaData)
+            .then(() => {
+              resolve(
+                `http${this.input.useSSL ? 's' : ''}://${this.input.endPoint}:${
+                  this.input.port
+                }/${this.input.bucket}/${key}`
+              );
+            })
+            .catch(reject);
+        }
+      );
+    });
+  }
+}
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

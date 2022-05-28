@@ -1,11 +1,11 @@
-import { IStorageAdapter, XcStoragePlugin } from 'nc-plugin';
+import { IStorageAdapterV2, XcStoragePlugin } from 'nc-plugin';
 
 import Minio from './Minio';
 
 class MinioPlugin extends XcStoragePlugin {
   private static storageAdapter: Minio;
 
-  public getAdapter(): IStorageAdapter {
+  public getAdapter(): IStorageAdapterV2 {
     return MinioPlugin.storageAdapter;
   }
 

@@ -1537,6 +1537,11 @@ class BaseModelSqlv2 {
       for (const data of datas) {
         await this.validate(data);
       }
+      // let chunkSize = 50;
+      //
+      // if (this.isSqlite && datas[0]) {
+      //   chunkSize = Math.max(1, Math.floor(999 / Object.keys(datas[0]).length));
+      // }
 
       // fallbacks to `10` if database client is sqlite
       // to avoid `too many SQL variables` error

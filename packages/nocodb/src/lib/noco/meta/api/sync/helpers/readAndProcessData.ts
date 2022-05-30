@@ -1,16 +1,21 @@
 import { AirtableBase } from 'airtable/lib/airtable_base';
 import { Api, RelationTypes, TableType, UITypes } from 'nocodb-sdk';
 
-async function readAllATData({
+const BULK_DATA_BATCH_SIZE = 500;
+const ASSOC_BULK_DATA_BATCH_SIZE = 2000;
+
+async function readAndProcessData({
   table,
   fields,
   base
-}: // logBasic = _str => ()
+}: // logDetailed
+// logBasic = _str => ()
 {
   table: { title?: string };
   fields?;
   base: AirtableBase;
   logBasic?: (string) => void;
+  logDetailed?: (string) => void;
 }): Promise<Array<any>> {
   return new Promise((resolve, reject) => {
     const data = [];
@@ -55,14 +60,15 @@ export async function importData({
   base,
   api,
   nocoBaseDataProcessing_v2,
-  sDB
-}: // logBasic = _str => ()
-{
+  sDB,
+  logDetailed = _str => {}
+}: {
   projectName: string;
   table: { title?: string; id?: string };
   fields?;
   base: AirtableBase;
   logBasic: (string) => void;
+  logDetailed: (string) => void;
   api: Api<any>;
   nocoBaseDataProcessing_v2;
   sDB;
@@ -70,7 +76,7 @@ export async function importData({
   try {
     // get all data from a table
     const allData = [];
-    const records = await readAllATData({
+    const records = await readAndProcessData({
       table,
       base
     });
@@ -80,12 +86,22 @@ export async function importData({
       allData.push(r);
     }
 
-    for (let i = 0; i < allData.length / 2000; i += 2000) {
+    for (
+      let i = 0;
+      i < allData.length / BULK_DATA_BATCH_SIZE;
+      i += BULK_DATA_BATCH_SIZE
+    ) {
+      logDetailed(
+        `Importing '${table.title}' data :: ${i + 1} - ${Math.min(
+          i + BULK_DATA_BATCH_SIZE,
+          records.length
+        )}`
+      );
       await api.dbTableRow.bulkCreate(
         'nc',
         projectName,
         table.id, // encodeURIComponent(table.title),
-        allData.slice(i, 2000)
+        allData.slice(i, BULK_DATA_BATCH_SIZE)
       );
     }
   } catch (e) {
@@ -99,13 +115,15 @@ export async function importLTARData({
   base,
   api,
   projectName,
-  insertedAssocRef = {}
+  insertedAssocRef = {},
+  logDetailed = _str => {}
 }: // logBasic = _str => ()
 {
   projectName: string;
   table: { title?: string; id?: string };
   fields;
   base: AirtableBase;
+  logDetailed: (string) => void;
   logBasic: (string) => void;
   api: Api<any>;
   insertedAssocRef: { [assocId: string]: boolean };
@@ -116,7 +134,7 @@ export async function importLTARData({
     curCol: { title?: string };
     refCol: { title?: string };
   }> = [];
-  const allData = await readAllATData({ table, fields, base });
+  const allData = await readAndProcessData({ table, fields, base });
 
   const modelMeta: any = await api.dbTable.read(table.id);
 
@@ -162,40 +180,23 @@ export async function importLTARData({
       );
     }
 
-    for (let i = 0; i < insertData.length / 2000; i += 2000) {
+    for (
+      let i = 0;
+      i < insertData.length / ASSOC_BULK_DATA_BATCH_SIZE;
+      i += ASSOC_BULK_DATA_BATCH_SIZE
+    ) {
+      logDetailed(
+        `Importing '${table.title}' LTAR data :: ${i + 1} - ${Math.min(
+          i + ASSOC_BULK_DATA_BATCH_SIZE,
+          allData.length
+        )}`
+      );
       await api.dbTableRow.bulkCreate(
         'nc',
         projectName,
         assocMeta.modelMeta.id,
-        insertData.slice(i, 2000)
+        insertData.slice(i, ASSOC_BULK_DATA_BATCH_SIZE)
       );
     }
   }
 }
-
-// for (const [key, value] of Object.entries(rec)) {
-//   const refRowIdList: any = value;
-//   const referenceColumnName = key;
-//
-//   if (refRowIdList.length) {
-//     for (let i = 0; i < refRowIdList.length; i++) {
-//       logDetailed(
-//         `NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`
-//       );
-//
-//       const _perfStart = recordPerfStart();
-//       await api.dbTableRow.nestedAdd(
-//         'noco',
-//         projName,
-//         table.id,
-//         `${record.id}`,
-//         'mm',
-//         encodeURIComponent(referenceColumnName),
-//         `${refRowIdList[i]}`
-//       );
-//       recordPerfStats(_perfStart, 'dbTableRow.nestedAdd');
-//     }
-//   }
-// }
-//   }
-// }

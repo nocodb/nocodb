@@ -32,17 +32,19 @@ export default {
     value: [String, Date, Number], ignoreFocus: Boolean
   },
   computed: {
+    isMysql() {
+      return ['mysql', 'mysql2'].indexOf(this.$store.getters['project/GtrClientType'])
+    },
     localState: {
       get() {
         if (!this.value) {
           return this.value
         }
-
         return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
           .format('YYYY-MM-DD HH:mm')
       },
       set(value) {
-        if (this.$parent.sqlUi.name === 'MysqlUi') {
+        if (this.isMysql) {
           this.$emit('input', value && dayjs(value).format('YYYY-MM-DD HH:mm:ss'))
         } else {
           this.$emit('input', value && dayjs(value).format('YYYY-MM-DD HH:mm:ssZ'))

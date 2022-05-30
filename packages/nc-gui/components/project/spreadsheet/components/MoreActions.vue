@@ -311,6 +311,8 @@ export default {
                 }
               } else if (v.uidt === UITypes.Number) {
                 if (input == '') { input = null }
+              } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
+                if (input == '') { input = null }
               }
               res[col.destCn] = input
             }

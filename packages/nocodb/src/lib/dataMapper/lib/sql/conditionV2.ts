@@ -203,12 +203,17 @@ const parseConditionV2 = async (
         filter.comparison_op === 'notempty'
       )
         filter.value = '';
-      const field = customWhereClause
+      let field = customWhereClause
         ? filter.value
         : alias
         ? `${alias}.${column.column_name}`
         : column.column_name;
-      const val = customWhereClause ? customWhereClause : filter.value;
+      let val = customWhereClause ? customWhereClause : filter.value;
+
+      if (column.uidt === UITypes.Formula) {
+        [field, val] = [val, field];
+      }
+
       return qb => {
         switch (filter.comparison_op) {
           case 'eq':
@@ -219,17 +224,27 @@ const parseConditionV2 = async (
             qb = qb.whereNot(field, val);
             break;
           case 'like':
+            if (column.uidt === UITypes.Formula) {
+              val = `%${val}%`.replace("%'", '%').replace("'%", '%');
+            } else {
+              val = `%${val}%`;
+            }
             qb = qb.where(
               field,
               qb?.client?.config?.client === 'pg' ? 'ilike' : 'like',
-              `%${val}%`
+              val
             );
             break;
           case 'nlike':
+            if (column.uidt === UITypes.Formula) {
+              val = `%${val}%`.replace("%'", '%').replace("'%", '%');
+            } else {
+              val = `%${val}%`;
+            }
             qb = qb.whereNot(
               field,
               qb?.client?.config?.client === 'pg' ? 'ilike' : 'like',
-              `%${val}%`
+              val
             );
             break;
           case 'gt':

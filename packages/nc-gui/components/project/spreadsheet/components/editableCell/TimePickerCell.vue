@@ -44,7 +44,6 @@ export default {
         return dateTime.format('HH:mm:ss')
       },
       set(val) {
-        console.log('=========', this.$parent)
         const dateTime = dayjs(`1999-01-01 ${val}:00`)
         if (dateTime.isValid()) {
           if (this.isMysql) {

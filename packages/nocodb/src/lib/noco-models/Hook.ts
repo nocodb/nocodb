@@ -79,6 +79,7 @@ export default class Hook implements HookType {
       fk_model_id: string;
       event?: 'after' | 'before';
       operation?: 'insert' | 'delete' | 'update';
+      active?: 0 | 1;
     },
     ncMeta = Noco.ncMeta
   ) {
@@ -98,7 +99,7 @@ export default class Hook implements HookType {
       });
       await NocoCache.setList(CacheScope.HOOK, [param.fk_model_id], hooks);
     }
-    // filter event & operation
+    // filter event & operation & active
     if (param.event) {
       hooks = hooks.filter(
         h => h.event?.toLowerCase() === param.event?.toLowerCase()
@@ -107,6 +108,11 @@ export default class Hook implements HookType {
     if (param.operation) {
       hooks = hooks.filter(
         h => h.operation?.toLowerCase() === param.operation?.toLowerCase()
+      );
+    }
+    if ('active' in param) {
+      hooks = hooks.filter(
+        h => h.active === param.active
       );
     }
     return hooks?.map(h => new Hook(h));

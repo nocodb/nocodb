@@ -26,6 +26,7 @@
                 <h4 class="nc-text mb-2">
                   {{ hook.title }}
                 </h4>
+                <v-badge dot inline :color="hook.active ? 'primary' : 'grey'" />
 
                 <v-spacer />
                 <!--Notify Via-->

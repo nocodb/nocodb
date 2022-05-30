@@ -1796,7 +1796,8 @@ class BaseModelSqlv2 {
       const hooks = await Hook.list({
         fk_model_id: this.model.id,
         event,
-        operation
+        operation,
+        active: 1,
       });
       for (const hook of hooks) {
         invokeWebhook(hook, this.model, data, req?.user);

@@ -37,6 +37,15 @@
     </v-card-title>
     <v-divider class="my-4" />
     <v-card-text>
+      <v-checkbox
+        v-model="hook.active"
+        dense
+        hide-details
+        class="mt-1"
+        label="active"
+      />
+    </v-card-text>
+    <v-card-text>
       <v-text-field
         v-model="hook.title"
         class="caption"
@@ -261,6 +270,7 @@ export default {
       body: '{{ json data }}'
     },
     hook: {
+      active: true,
       title: 'Webhook',
       notification: {
         type: 'URL'

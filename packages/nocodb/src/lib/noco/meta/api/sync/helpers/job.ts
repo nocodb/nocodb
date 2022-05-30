@@ -13,7 +13,7 @@ import hash from 'object-hash';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
-import { importData, importLTARData } from './readAllATData';
+import { importData, importLTARData } from './readAndProcessData';
 
 dayjs.extend(utc);
 
@@ -2249,7 +2249,8 @@ export default async (
             api,
             logBasic,
             nocoBaseDataProcessing_v2,
-            sDB: syncDB
+            sDB: syncDB,
+            logDetailed
           });
 
           logDetailed(`Data inserted from ${ncTbl.title}`);
@@ -2265,7 +2266,8 @@ export default async (
             base,
             fields: null, //Object.values(tblLinkGroup).flat(),
             logBasic,
-            insertedAssocRef
+            insertedAssocRef,
+            logDetailed
           });
         }
 

@@ -1397,56 +1397,57 @@ export default async (
     return rec;
   }
 
+  async function processRecords(records, sDB, table, insertJobs) {
+    // This function (`page`) will get called for each page of records.
+    logBasic(
+      `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += pageSize)}`
+    );
+
+    // await Promise.all(
+    //   records.map(record => _callback(sDB, table, record))
+    // );
+    const ncRecords = [];
+    for (let i = 0; i < records.length; i++) {
+      const r = await nocoBaseDataProcessing_v2(sDB, table, records[i]);
+      ncRecords.push(r);
+    }
+
+    // wait for previous job's to finish
+    await Promise.all(insertJobs);
+
+    const _perfStart = recordPerfStart();
+    insertJobs.push(
+      api.dbTableRow.bulkCreate(
+        'nc',
+        sDB.projectName,
+        table.id, // encodeURIComponent(table.title),
+        ncRecords
+      )
+    );
+    recordPerfStats(_perfStart, 'dbTableRow.bulkCreate');
+  }
+
   async function nocoReadData(sDB, table, aTbl) {
     ncLinkDataStore[table.title] = {};
     const insertJobs: Promise<any>[] = [];
-
-    async function processRecords(records) {
-      // This function (`page`) will get called for each page of records.
-      logBasic(
-        `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += pageSize)}`
-      );
-
-      // await Promise.all(
-      //   records.map(record => _callback(sDB, table, record))
-      // );
-      const ncRecords = [];
-      for (let i = 0; i < records.length; i++) {
-        const r = await nocoBaseDataProcessing_v2(sDB, table, records[i]);
-        ncRecords.push(r);
-      }
-
-      // wait for previous job's to finish
-      await Promise.all(insertJobs);
-
-      const _perfStart = recordPerfStart();
-      insertJobs.push(
-        api.dbTableRow.bulkCreate(
-          'nc',
-          sDB.projectName,
-          table.id, // encodeURIComponent(table.title),
-          ncRecords
-        )
-      );
-      recordPerfStats(_perfStart, 'dbTableRow.bulkCreate');
-    }
 
     // skip virtual columns
     const fieldsArray = aTbl.columns
       .filter(a => !['formula', 'lookup', 'rollup'].includes(a.type))
       .map(a => a.name);
 
-    if (enableLocalCache) {
+    if (
+      enableLocalCache &&
+      fs2.existsSync(`./migrationCache/data/${table.title}_0.json`)
+    ) {
       // check if cached file exists for this table
-      const f = `./migrationCache/data/${table.title}_${recordCnt /
+      let f = `./migrationCache/data/${table.title}_${recordCnt /
         pageSize}.json`;
 
       while (fs2.existsSync(f)) {
         const records = jsonfile.readFileSync(f);
-        logBasic(
-          `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += pageSize)}`
-        );
-        await processRecords(records);
+        await processRecords(records, sDB, table, insertJobs);
+        f = `./migrationCache/data/${table.title}_${recordCnt / pageSize}.json`;
       }
 
       // scenarios to handle
@@ -1476,7 +1477,7 @@ export default async (
               );
             // console.log(JSON.stringify(records, null, 2));
 
-            await processRecords(records);
+            await processRecords(records, sDB, table, insertJobs);
 
             // To fetch the next page of records, call `fetchNextPage`.
             // If there are more records, `page` will get called again.

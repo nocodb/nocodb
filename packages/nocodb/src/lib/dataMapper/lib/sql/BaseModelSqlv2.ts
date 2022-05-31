@@ -1523,7 +1523,14 @@ class BaseModelSqlv2 {
     }
   }
 
-  async bulkInsert(datas: any[]) {
+  async bulkInsert(
+    datas: any[],
+    {
+      chunkSize: _chunkSize = 100
+    }: {
+      chunkSize?: number;
+    } = {}
+  ) {
     try {
       const insertDatas = await Promise.all(
         datas.map(async d => {
@@ -1546,7 +1553,7 @@ class BaseModelSqlv2 {
       // fallbacks to `10` if database client is sqlite
       // to avoid `too many SQL variables` error
       // refer : https://www.sqlite.org/limits.html
-      const chunkSize = this.isSqlite ? 10 : 50;
+      const chunkSize = this.isSqlite ? 10 : _chunkSize;
 
       const response = await this.dbDriver
         .batchInsert(this.model.table_name, insertDatas, chunkSize)

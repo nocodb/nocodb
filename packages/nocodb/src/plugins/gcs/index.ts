@@ -36,6 +36,13 @@ const config: XcPluginConfig = {
         placeholder: 'Private Key',
         type: XcType.Password,
         required: true
+      },
+      {
+        key: 'project_id',
+        label: 'Project ID',
+        placeholder: 'Project ID',
+        type: XcType.SingleLineText,
+        required: false
       }
     ],
     actions: [

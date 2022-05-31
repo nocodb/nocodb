@@ -41,37 +41,14 @@
             mdi-close-box
           </v-icon>
 
-          <v-autocomplete
+          <field-list-auto-complete-dropdown
             :key="i + 'sel1'"
             v-model="sort.fk_column_id"
             class="caption nc-sort-field-select"
-            :items="columns"
-            item-value="id"
-            item-text="title"
-            :label="$t('objects.field')"
-            solo
-            flat
-            dense
-            hide-details
+            :columns="columns"
             @click.stop
             @change="saveOrUpdate(sort, i)"
-          >
-            <template #selection="{item}">
-              <v-icon small class="mr-1">
-                {{ item.icon }}
-              </v-icon> {{ item.title }}
-            </template>
-            <template #item="{ item }">
-              <span
-                :class="`caption font-weight-regular nc-sort-fld-${item.title}`"
-              >
-                <v-icon color="grey darken-4" small class="mr-1">
-                  {{ item.icon }}
-                </v-icon>
-                {{ item.title }}
-              </span>
-            </template>
-          </v-autocomplete>
+          />
           <v-select
             :key="i + 'sel2'"
             v-model="sort.direction"
@@ -108,9 +85,11 @@
 <script>
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
+import FieldListAutoCompleteDropdown from '~/components/project/spreadsheet/components/FieldListAutoCompleteDropdown'
 
 export default {
   name: 'SortListMenu',
+  components: { FieldListAutoCompleteDropdown },
   props: {
     fieldList: Array,
     value: [Array, Object],

@@ -118,6 +118,7 @@ export async function importData({
     return records;
   } catch (e) {
     console.log(e);
+    return 0;
   }
 }
 
@@ -192,6 +193,7 @@ export async function importLTARData({
     });
   }
 
+  let nestedLinkCnt = 0;
   // Iterate over all related M2M associative  table
   for (const assocMeta of assocTableMetas) {
     const insertData = [];
@@ -209,6 +211,7 @@ export async function importLTARData({
       );
     }
 
+    nestedLinkCnt += insertData.length;
     // Insert datas as chunks of size `ASSOC_BULK_DATA_BATCH_SIZE`
     for (
       let i = 0;
@@ -229,4 +232,5 @@ export async function importLTARData({
       );
     }
   }
+  return nestedLinkCnt;
 }

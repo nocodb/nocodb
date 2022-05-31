@@ -104,6 +104,10 @@ export default async (
     migrationSkipLog: {
       count: 0,
       log: []
+    },
+    data: {
+      records: 0,
+      nestedLinks: 0
     }
   };
 
@@ -119,6 +123,13 @@ export default async (
 
   async function getAirtableSchema(sDB) {
     const start = Date.now();
+
+    if (!sDB.shareId)
+      throw {
+        message:
+          'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details'
+      };
+
     if (sDB.shareId.startsWith('exp')) {
       const template = await FetchAT.readTemplate(sDB.shareId);
       await FetchAT.initialize(template.template.exploreApplication.shareId);
@@ -1895,6 +1906,8 @@ export default async (
     logBasic(`::   Grid:         ${rtc.view.grid}`);
     logBasic(`::   Gallery:      ${rtc.view.gallery}`);
     logBasic(`::   Form:         ${rtc.view.form}`);
+    logBasic(`:: Total Records:  ${rtc.data.records}`);
+    logBasic(`:: Total Nested Links: ${rtc.data.nestedLinks}`);
 
     const duration = Date.now() - start;
     logBasic(`:: Migration time:      ${duration}`);
@@ -1934,7 +1947,9 @@ export default async (
           axios: {
             count: rtc.fetchAt.count,
             time: rtc.fetchAt.time
-          }
+          },
+          totalRecords: rtc.data.records,
+          nestedLinks: rtc.data.nestedLinks
         }
       }
     });
@@ -2254,6 +2269,7 @@ export default async (
             sDB: syncDB,
             logDetailed
           });
+          rtc.data.records += recordsMap[ncTbl.id].length;
 
           logDetailed(`Data inserted from ${ncTbl.title}`);
         }
@@ -2261,7 +2277,7 @@ export default async (
         logBasic('Configuring Record Links...');
         for (let i = 0; i < ncTblList.list.length; i++) {
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
-          await importLTARData({
+          rtc.data.nestedLinks += await importLTARData({
             table: ncTbl,
             projectName: syncDB.projectName,
             api,

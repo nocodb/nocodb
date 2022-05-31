@@ -126,7 +126,7 @@ export async function importLTARData({
   logDetailed: (string) => void;
   logBasic: (string) => void;
   api: Api<any>;
-  insertedAssocRef: { [assocId: string]: boolean };
+  insertedAssocRef: { [assocTableId: string]: boolean };
 }) {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
@@ -139,6 +139,7 @@ export async function importLTARData({
   const modelMeta: any = await api.dbTable.read(table.id);
 
   for (const colMeta of modelMeta.columns) {
+    // skip columns which are not LTAR and Many to many
     if (
       colMeta.uidt !== UITypes.LinkToAnotherRecord ||
       colMeta.colOptions.type !== RelationTypes.MANY_TO_MANY
@@ -146,14 +147,17 @@ export async function importLTARData({
       continue;
     }
 
+    // skip if already inserted
     if (colMeta.colOptions.fk_mm_model_id in insertedAssocRef) continue;
 
+    // mark as inserted
     insertedAssocRef[colMeta.colOptions.fk_mm_model_id] = true;
 
     const assocModelMeta: TableType = (await api.dbTable.read(
       colMeta.colOptions.fk_mm_model_id
     )) as any;
 
+    // extract associative table and columns meta
     assocTableMetas.push({
       modelMeta: assocModelMeta,
       colMeta,
@@ -166,8 +170,11 @@ export async function importLTARData({
     });
   }
 
+  // Iterate over all related M2M associative  table
   for (const assocMeta of assocTableMetas) {
     const insertData = [];
+
+    //  extract insert data from records
     for (const record of allData) {
       const rec = record.fields;
 
@@ -180,6 +187,7 @@ export async function importLTARData({
       );
     }
 
+    // Insert datas as chunks of size `ASSOC_BULK_DATA_BATCH_SIZE`
     for (
       let i = 0;
       i < insertData.length / ASSOC_BULK_DATA_BATCH_SIZE;

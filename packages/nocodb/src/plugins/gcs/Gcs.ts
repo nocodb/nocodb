@@ -73,6 +73,11 @@ export default class Gcs implements IStorageAdapterV2 {
       private_key: this.input.private_key.replace(/\\n/gm, '\n')
     };
 
+    // default project ID would be used if it is not provided
+    if (this.input.project_id) {
+      options.projectId = this.input.project_id
+    }
+
     this.bucketName = this.input.bucket;
 
     this.storageClient = new Storage(options);

@@ -12,6 +12,8 @@ server.set('view engine', 'ejs');
   const httpServer = server.listen(process.env.PORT || 8080, () => {
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
   })
+  server.keepAliveTimeout = 125000; // Ensure all inactive connections are terminated by the ALB, by setting this a few seconds higher than the ALB idle timeout
+  server.headersTimeout = 126000; 
   server.use(await Noco.init({}, httpServer, server));
 })().catch(e => console.log(e))
 

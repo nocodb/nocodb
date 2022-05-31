@@ -303,7 +303,7 @@ export class _mainPage {
         //     .first()
         //     .click();
         // cy.wait(3000)
-        cy.getActiveMenu().find(`.nc-sort-fld-${field}`).should('exist').click();
+        cy.getActiveMenu().find(`.nc-fld-${field}`).should('exist').click();
         cy.get(".nc-sort-dir-select div").first().click();
         cy.snipActiveMenu("Menu_SortField_criteriaSelection");
         cy.get(
@@ -328,7 +328,7 @@ export class _mainPage {
         cy.get(".nc-filter-field-select").should("exist").last().click().type(field);;
         cy.snipActiveMenu("Menu_FilterField-fieldSelect");
 
-        cy.getActiveMenu().find(`.nc-filter-fld-${field}`).should('exist').click();
+        cy.getActiveMenu().find(`.nc-fld-${field}`).should('exist').click();
         cy.get(".nc-filter-operation-select").should("exist").last().click();
         cy.snipActiveMenu("Menu_FilterField-operationSelect");
 

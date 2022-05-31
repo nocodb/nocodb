@@ -211,7 +211,7 @@ export default class Noco {
     this.router.use(cookieParser());
     this.router.use(
       bodyParser.json({
-        limit: process.env.NC_REQUEST_BODY_SIZE || 1024 * 1024
+        limit: process.env.NC_REQUEST_BODY_SIZE || '50mb'
       })
     );
     this.router.use(morgan('tiny'));

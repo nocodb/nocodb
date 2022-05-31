@@ -32,6 +32,7 @@ async function readAllData({
     };
 
     if (fields) selectParams.fields = fields;
+    const insertJobs: Promise<any>[] = [];
 
     base(table.title)
       .select(selectParams)
@@ -48,7 +49,8 @@ async function readAllData({
           );
 
           if (thresholdCbkData.length >= triggerThreshold) {
-            await onThreshold(thresholdCbkData, data);
+            await Promise.all(insertJobs);
+            insertJobs.push(onThreshold(thresholdCbkData, data));
             thresholdCbkData = [];
           }
 
@@ -63,6 +65,7 @@ async function readAllData({
             return reject(err);
           }
           if (thresholdCbkData.length) {
+            await Promise.all(insertJobs);
             await onThreshold(thresholdCbkData, data);
             thresholdCbkData = [];
           }

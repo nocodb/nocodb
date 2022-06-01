@@ -76,10 +76,6 @@ export default class NcUpgrader {
             }
           }
           config.version = process.env.NC_VERSION;
-          await ctx.ncMeta.metaInsert('', '', 'nc_store', {
-            key: NcUpgrader.STORE_KEY,
-            value: JSON.stringify(config)
-          });
         }
       } else {
         this.log(`upgrade : Inserting config to meta database`);

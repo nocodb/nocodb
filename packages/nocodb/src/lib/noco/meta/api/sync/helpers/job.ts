@@ -1416,7 +1416,7 @@ export default async (
                   path: `noco/${sDB.projectName}/${table.title}/${key}`
                 },
                 value?.map(attachment => ({
-                  fileName: attachment.filename,
+                  fileName: attachment.filename?.split('?')?.[0],
                   url: attachment.url,
                   size: attachment.size,
                   mimetype: attachment.type

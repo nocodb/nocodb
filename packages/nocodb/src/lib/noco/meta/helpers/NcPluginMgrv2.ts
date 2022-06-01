@@ -84,7 +84,15 @@ class NcPluginMgrv2 {
           null,
           null,
           MetaTable.PLUGIN,
-          plugin,
+          {
+            title: plugin.title,
+            version: plugin.version,
+            logo: plugin.logo,
+            description: plugin.description,
+            tags: plugin.tags,
+            category: plugin.category,
+            input_schema: JSON.stringify(plugin.inputs)
+          },
           pluginConfig.id
         );
       }

@@ -83,6 +83,12 @@ export default async (
   const ncLinkDataStore: any = {};
   const insertedAssocRef: any = {};
 
+  const atNcAliasRef: {
+    [ncTableId: string]: {
+      [ncTitle: string]: string;
+    };
+  } = {};
+
   const uniqueTableNameGen = getUniqueNameGenerator('sheet');
 
   // run time counter (statistics)
@@ -618,6 +624,10 @@ export default async (
               srcTbl,
               aTblLinkColumns[i].name
             );
+
+            // LTAR alias ref to AT
+            atNcAliasRef[srcTbl.id] = atNcAliasRef[srcTbl.id] || {};
+            atNcAliasRef[srcTbl.id][ncName.title] = aTblLinkColumns[i].name;
 
             logDetailed(
               `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`
@@ -1200,74 +1210,6 @@ export default async (
 
   //////////  Data processing
 
-  // @ts-ignore
-  async function nocoLinkProcessing(projName, table, record, _field) {
-    const rec = record.fields;
-
-    for (const [key, value] of Object.entries(rec)) {
-      const refRowIdList: any = value;
-      const referenceColumnName = key;
-
-      if (refRowIdList.length) {
-        for (let i = 0; i < refRowIdList.length; i++) {
-          logDetailed(
-            `NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`
-          );
-
-          const _perfStart = recordPerfStart();
-          await api.dbTableRow.nestedAdd(
-            'noco',
-            projName,
-            table.id,
-            `${record.id}`,
-            'mm',
-            encodeURIComponent(referenceColumnName),
-            `${refRowIdList[i]}`
-          );
-          recordPerfStats(_perfStart, 'dbTableRow.nestedAdd');
-        }
-      }
-    }
-  }
-  //
-  // //////////  Data processing
-  // async function nocoLinkProcessingv2(
-  //   projName,
-  //   table,
-  //   record,
-  //   _field,
-  //   rowsRef = {}
-  // ) {
-  //   const modelMeta = await api.dbTable.read(table.id);
-  //
-  //   const rec = record.fields;
-  //
-  //   for (const [key, value] of Object.entries(rec)) {
-  //     const refRowIdList: any = value;
-  //     const referenceColumnName = key;
-  //
-  //     if (refRowIdList.length) {
-  //       for (let i = 0; i < refRowIdList.length; i++) {
-  //         logDetailed(
-  //           `NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`
-  //         );
-  //
-  //         const _perfStart = recordPerfStart();
-  //         await api.dbTableRow.nestedAdd(
-  //           'noco',
-  //           projName,
-  //           table.id,
-  //           `${record.id}`,
-  //           'mm',0
-  //           encodeURIComponent(referenceColumnName),
-  //           `${refRowIdList[i]}`
-  //         );
-  //         recordPerfStats(_perfStart, 'dbTableRow.nestedAdd');
-  //       }
-  //     }
-  //   }
-  // }
-
   async function nocoBaseDataProcessing_v2(sDB, table, record) {
     const recordHash = hash(record);
     const rec = { ...record.fields };
@@ -1367,48 +1309,6 @@ export default async (
           if (!syncDB.options.syncAttachment) rec[key] = null;
           else {
             let tempArr = [];
-            // for (const v of value) {
-            //   const binaryImage = await axios
-            //     .get(v.url, {
-            //       responseType: 'stream',
-            //       headers: {
-            //         'Content-Type': v.type
-            //       }
-            //     })
-            //     .then(response => {
-            //       return response.data;
-            //     })
-            //     .catch(error => {
-            //       console.log(error);
-            //       return false;
-            //     });
-            //
-            //   const imageFile: any = new FormData();
-            //   imageFile.append('files', binaryImage, {
-            //     filename: v.filename.includes('?')
-            //       ? v.filename.split('?')[0]
-            //       : v.filename
-            //   });
-            //
-            //   const rs = await axios
-            //     .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
-            //       params: {
-            //         path: `noco/${sDB.projectName}/${table.title}/${key}`
-            //       },
-            //       headers: {
-            //         'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
-            //         'xc-auth': sDB.authToken
-            //       }
-            //     })
-            //     .then(response => {
-            //       return response.data;
-            //     })
-            //     .catch(e => {
-            //       console.log(e);
-            //     });
-            //
-            //   tempArr.push(...(rs || []));
-            // }
 
             try {
               tempArr = await api.storage.uploadByUrl(
@@ -1440,72 +1340,6 @@ export default async (
     rec[ncSysFields.hash] = recordHash;
 
     return rec;
-  }
-
-  // @ts-ignore
-  async function nocoReadData(sDB, table) {
-    ncLinkDataStore[table.title] = {};
-    const insertJobs: Promise<any>[] = [];
-
-    return new Promise((resolve, reject) => {
-      base(table.title)
-        .select({
-          pageSize: 100
-          // maxRecords: 1,
-        })
-        .eachPage(
-          async function page(records, fetchNextPage) {
-            // console.log(JSON.stringify(records, null, 2));
-
-            // This function (`page`) will get called for each page of records.
-            logBasic(
-              `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += 100)}`
-            );
-
-            // await Promise.all(
-            //   records.map(record => _callback(sDB, table, record))
-            // );
-            const ncRecords = [];
-            for (let i = 0; i < records.length; i++) {
-              const r = await nocoBaseDataProcessing_v2(sDB, table, records[i]);
-              ncRecords.push(r);
-            }
-
-            // wait for previous job's to finish
-            await Promise.all(insertJobs);
-
-            const _perfStart = recordPerfStart();
-            insertJobs.push(
-              api.dbTableRow.bulkCreate(
-                'nc',
-                sDB.projectName,
-                table.id, // encodeURIComponent(table.title),
-                ncRecords
-              )
-            );
-            recordPerfStats(_perfStart, 'dbTableRow.bulkCreate');
-
-            // To fetch the next page of records, call `fetchNextPage`.
-            // If there are more records, `page` will get called again.
-            // If there are no more records, `done` will get called.
-            // logBasic(
-            //   `:: ${Date.now()} Awaiting response from Airtable Data API ...`
-            // );
-            fetchNextPage();
-          },
-          async function done(err) {
-            if (err) {
-              console.error(err);
-              reject(err);
-            }
-
-            // wait for all jobs to be completed
-            await Promise.all(insertJobs);
-
-            resolve(null);
-          }
-        );
-    });
   }
 
   // @ts-ignore
@@ -2301,7 +2135,8 @@ export default async (
             logBasic,
             insertedAssocRef,
             logDetailed,
-            records: recordsMap[ncTbl.id]
+            records: recordsMap[ncTbl.id],
+            atNcAliasRef
           });
         }
 

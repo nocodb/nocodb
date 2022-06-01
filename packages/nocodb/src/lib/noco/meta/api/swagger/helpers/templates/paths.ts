@@ -172,7 +172,7 @@ export const getModelPaths = async (ctx: {
       operationId: 'db-table-row-find-one',
       description: `Find first record matching the conditions.`,
       tags: [ctx.tableName],
-      parameters: [fieldsParam, whereParam],
+      parameters: [fieldsParam, whereParam, sortParam],
       responses: {
         '200': {
           description: 'OK',

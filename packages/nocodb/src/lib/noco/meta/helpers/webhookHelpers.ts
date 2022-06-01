@@ -291,10 +291,12 @@ export async function invokeWebhook(
     };
     if (throwErrorOnFailure) throw e;
   } finally {
-    hookLog.execution_time = parseHrtimeToMilliSeconds(
-      process.hrtime(startTime)
-    );
-    if (hookLog) HookLog.insert({ ...hookLog, test_call: !!testFilters });
+    if (hookLog) {
+      hookLog.execution_time = parseHrtimeToMilliSeconds(
+        process.hrtime(startTime)
+      );
+      HookLog.insert({ ...hookLog, test_call: !!testFilters });
+    }
   }
 }
 

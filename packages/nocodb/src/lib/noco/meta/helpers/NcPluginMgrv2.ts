@@ -1,6 +1,6 @@
 import {
   IEmailAdapter,
-  IStorageAdapter,
+  IStorageAdapterV2,
   IWebhookNotificationAdapter
   // XcEmailPlugin,
   // XcPlugin,
@@ -80,6 +80,14 @@ class NcPluginMgrv2 {
           category: plugin.category,
           input_schema: JSON.stringify(plugin.inputs)
         });
+      } else if (pluginConfig.version !== plugin.version) {
+        await ncMeta.metaUpdate(
+          null,
+          null,
+          MetaTable.PLUGIN,
+          plugin,
+          pluginConfig.id
+        );
       }
 
       /* init only the active plugins */
@@ -105,7 +113,7 @@ class NcPluginMgrv2 {
 
   public static async storageAdapter(
     ncMeta = Noco.ncMeta
-  ): Promise<IStorageAdapter> {
+  ): Promise<IStorageAdapterV2> {
     const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
       category: PluginCategory.STORAGE,
       active: true

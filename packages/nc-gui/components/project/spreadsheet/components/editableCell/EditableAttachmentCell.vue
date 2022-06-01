@@ -62,7 +62,11 @@
           </v-tooltip>
         </div>
       </div>
-      <div v-if="isForm || active && !isPublicGrid && !isLocked" class="add d-flex align-center justify-center px-1 nc-attachment-add" @click="addFile">
+      <div
+        v-if="isForm || active && !isPublicGrid && !isLocked"
+        class="add d-flex align-center justify-center px-1 nc-attachment-add"
+        @click="addFile"
+      >
         <v-icon v-if="uploading" small color="primary" class="nc-attachment-add-spinner">
           mdi-loading mdi-spin
         </v-icon>
@@ -76,9 +80,15 @@
         >
           <v-icon x-small color="">
             mdi-plus
-          </v-icon> Attachment
+          </v-icon>
+          Attachment
         </v-btn>
-        <v-icon v-else-if="_isUIAllowed('tableAttachment')" v-show="active" small color="primary nc-attachment-add-icon">
+        <v-icon
+          v-else-if="_isUIAllowed('tableAttachment')"
+          v-show="active"
+          small
+          color="primary nc-attachment-add-icon"
+        >
           mdi-plus
         </v-icon>
       </div>
@@ -110,6 +120,8 @@
               </v-icon>
               <span class="caption">Attach File</span>
             </v-btn>
+
+            <!--            <v-text-field v-model="urlString" @keypress.enter="uploadByUrl" />-->
           </div>
 
           <div class="d-flex flex-wrap h-100">
@@ -261,7 +273,8 @@ export default {
     showImage: false,
     selectedImage: null,
     dragOver: false,
-    localFilesState: []
+    localFilesState: [],
+    urlString: ''
   }),
   watch: {
     value(val, prev) {
@@ -286,6 +299,18 @@ export default {
   mounted() {
   },
   methods: {
+    async uploadByUrl() {
+      const data = await this.$api.storage.uploadByUrl(
+        {
+          path: ['noco', this.projectName, this.meta.title, this.column.title].join('/')
+        },
+        [{
+          url: this.urlString
+        }]
+      )
+
+      this.localState.push(...data)
+    },
     openUrl(url, target) {
       window.open(url, target)
     },

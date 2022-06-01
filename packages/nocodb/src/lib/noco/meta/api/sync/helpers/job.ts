@@ -81,7 +81,6 @@ export default async (
   const nestedRollupTbl: any[] = [];
   const ncSysFields = { id: 'ncRecordId', hash: 'ncRecordHash' };
   const storeLinks = false;
-  const skipAttachments = false;
   const ncLinkDataStore: any = {};
 
   const uniqueTableNameGen = getUniqueNameGenerator('sheet');
@@ -164,8 +163,7 @@ export default async (
     collaborator: UITypes.Collaborator,
     multiCollaborator: UITypes.Collaborator,
     date: UITypes.Date,
-    // kludge: phone: UITypes.PhoneNumber,
-    phone: UITypes.SingleLineText,
+    phone: UITypes.PhoneNumber,
     number: UITypes.Number,
     rating: UITypes.Rating,
     formula: UITypes.Formula,
@@ -1315,7 +1313,7 @@ export default async (
           break;
 
         case UITypes.Attachment:
-          if (skipAttachments) rec[key] = null;
+          if (syncDB.options.syncLookup) rec[key] = null;
           else {
             const tempArr = [];
             for (const v of value) {

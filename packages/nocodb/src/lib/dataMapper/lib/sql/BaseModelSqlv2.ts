@@ -1527,9 +1527,19 @@ class BaseModelSqlv2 {
       for (const data of datas) {
         await this.validate(data);
       }
+      // let chunkSize = 50;
+      //
+      // if (this.isSqlite && datas[0]) {
+      //   chunkSize = Math.max(1, Math.floor(999 / Object.keys(datas[0]).length));
+      // }
+
+      // fallbacks to `10` if database client is sqlite
+      // to avoid `too many SQL variables` error
+      // refer : https://www.sqlite.org/limits.html
+      const chunkSize = this.isSqlite ? 10 : 50;
 
       const response = await this.dbDriver
-        .batchInsert(this.model.table_name, insertDatas, 50)
+        .batchInsert(this.model.table_name, insertDatas, chunkSize)
         .returning(this.model.primaryKey?.column_name);
 
       // await this.afterInsertb(insertDatas, null);
@@ -1834,7 +1844,12 @@ class BaseModelSqlv2 {
       if (!validate) continue;
       const { func, msg } = validate;
       for (let j = 0; j < func.length; ++j) {
-        const fn = typeof func[j] === 'string' ? (customValidators[func[j]] ? customValidators[func[j]] : Validator[func[j]]) : func[j];
+        const fn =
+          typeof func[j] === 'string'
+            ? customValidators[func[j]]
+              ? customValidators[func[j]]
+              : Validator[func[j]]
+            : func[j];
         const arg =
           typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
         if (

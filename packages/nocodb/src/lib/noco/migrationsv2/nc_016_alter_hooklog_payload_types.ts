@@ -1,26 +1,28 @@
-import { IStorageAdapterV2, XcStoragePlugin } from 'nc-plugin';
+import Knex from 'knex';
+import { MetaTable } from '../../utils/globals';
 
-import ScalewayObjectStorage from './ScalewayObjectStorage';
-
-class ScalewayObjectStoragePlugin extends XcStoragePlugin {
-  private static storageAdapter: ScalewayObjectStorage;
-  public async init(config: any): Promise<any> {
-    ScalewayObjectStoragePlugin.storageAdapter = new ScalewayObjectStorage(
-      config
-    );
-    await ScalewayObjectStoragePlugin.storageAdapter.init();
+const up = async (knex: Knex) => {
+  if (knex.client.config.client !== 'sqlite3') {
+    await knex.schema.alterTable(MetaTable.HOOK_LOGS, table => {
+      table.text('payload').alter();
+    });
   }
-  public getAdapter(): IStorageAdapterV2 {
-    return ScalewayObjectStoragePlugin.storageAdapter;
-  }
-}
+};
 
-export default ScalewayObjectStoragePlugin;
+const down = async knex => {
+  if (knex.client.config.client !== 'sqlite3') {
+    await knex.schema.alterTable(MetaTable.HOOK_LOGS, table => {
+      table.boolean('payload').alter();
+    });
+  }
+};
+
+export { up, down };
 
 /**
- * @copyright Copyright (c) 2021, Bhanu P Chaudhary <bhanu423@gmail.com>
+ * @copyright Copyright (c) 2022, Xgene Cloud Ltd
  *
- * @author Bhanu P Chaudhary <bhanu423@gmail.com>
+ * @author willnewii <willnewii@163.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

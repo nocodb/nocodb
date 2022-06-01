@@ -61,23 +61,9 @@ jobs:
       tag: ${{ needs.process-input.outputs.target_tag }}
       targetEnv: ${{ github.event.inputs.targetEnv || 'PROD' }}
 
-  # Close all issues with target tags 'Fixed' & 'Resolved'
-  close-fixed-issues:
-    needs: [pr-to-master, process-input]
-    uses: ./.github/workflows/release-close-issue.yml
-    with:
-      issue_label: 'Status: Fixed'
-      version: ${{ needs.process-input.outputs.target_tag }}
-  close-resolved-issues:
-    needs: [close-fixed-issues, process-input]
-    uses: ./.github/workflows/release-close-issue.yml
-    with:
-      issue_label: 'Status: Resolved'
-      version: ${{ needs.process-input.outputs.target_tag }}
-
   # Build, install, publish frontend and backend to npm
   release-npm:
-    needs: [close-resolved-issues, process-input]
+    needs: [pr-to-master, process-input]
     uses: ./.github/workflows/release-npm.yml
     with:
       tag: ${{ needs.process-input.outputs.target_tag }}
@@ -104,6 +90,21 @@ jobs:
     secrets:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
       DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
+
+  # Close all issues with target tags 'Fixed' & 'Resolved'
+  close-fixed-issues:
+    needs: [release-docker, process-input]
+    uses: ./.github/workflows/release-close-issue.yml
+    with:
+      issue_label: 'Status: Fixed'
+      version: ${{ needs.process-input.outputs.target_tag }}
+  
+  close-resolved-issues:
+    needs: [close-fixed-issues, process-input]
+    uses: ./.github/workflows/release-close-issue.yml
+    with:
+      issue_label: 'Status: Resolved'
+      version: ${{ needs.process-input.outputs.target_tag }}
 
   # Publish Docs
   publish-docs:

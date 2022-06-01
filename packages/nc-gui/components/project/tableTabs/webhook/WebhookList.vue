@@ -5,7 +5,7 @@
       <v-spacer />
       <v-btn
         tooltip="Save"
-        class="primary"
+        class="primary nc-btn-create-webhook"
         @click.prevent="$emit('add')"
       >
         Create Webhook

@@ -15,6 +15,7 @@
           outlined
           tooltip="Save"
           small
+          class="nc-btn-webhook-test"
           :disabled="loading || !valid || !hook.event"
           @click.prevent="$refs.webhookTest.testWebhook()"
         >
@@ -24,6 +25,7 @@
           tooltip="Save"
           color="primary"
           small
+          class="nc-btn-webhook-save"
           :disabled="loading || !valid || !hook.event"
           @click.prevent="saveHooks"
         >
@@ -39,7 +41,7 @@
     <v-card-text>
       <v-text-field
         v-model="hook.title"
-        class="caption"
+        class="caption nc-text-field-hook-title"
         outlined
         dense
         :label="$t('general.title')"
@@ -49,6 +51,7 @@
       <v-row>
         <v-col>
           <webhook-event
+            class="nc-text-field-hook-event"
             :event.sync="hook.event"
             :operation.sync="hook.operation"
           />
@@ -61,7 +64,7 @@
             required
             :items="notificationList"
             :rules="[(v) => !!v || `${$t('general.required')}`]"
-            class="caption"
+            class="caption nc-text-field-hook-notification-type"
             :prepend-inner-icon="notificationIcon[hook.notification.type]"
             @change="onNotTypeChange"
           >

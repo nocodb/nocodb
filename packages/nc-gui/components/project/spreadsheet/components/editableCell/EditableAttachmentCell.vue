@@ -27,7 +27,7 @@
           <v-tooltip bottom>
             <template #activator="{on}">
               <v-img
-                v-if="isImage(item.title)"
+                v-if="isImage(item.title, item.mimetype)"
                 lazy-src="https://via.placeholder.com/60.png?text=Loading..."
                 alt="#"
                 max-height="99px"
@@ -150,7 +150,7 @@
                     </v-icon>
                     <div class="pa-2 d-flex align-center" style="height:200px">
                       <img
-                        v-if="isImage(item.title)"
+                        v-if="isImage(item.title, item.mimetype)"
                         style="max-height: 100%;max-width: 100%"
                         alt="#"
                         :src="item.url || item.data"
@@ -195,7 +195,7 @@
                 </p>
                 <div style="width:90vh;height:calc(100vh - 150px)" class="d-flex align-center justify-center">
                   <img
-                    v-if="isImage(item.title)"
+                    v-if="isImage(item.title, item.mimetype)"
                     style="max-width:90vh;max-height:calc(100vh - 100px)"
                     :src="item.url || item.data"
                   >
@@ -234,7 +234,7 @@
                 @click="carousel = i"
               >
                 <img
-                  v-if="isImage(item.title)"
+                  v-if="isImage(item.title, item.mimetype)"
                   style="max-width:100%;max-height:100%"
                   :src="item.url || item.data"
                 >
@@ -341,7 +341,7 @@ export default {
       if (this.isPublicForm) {
         this.localFilesState.push(...Array.from(this.$refs.file.files).map((file) => {
           const res = { file, title: file.name }
-          if (isImage(file.name)) {
+          if (isImage(file.name, file.mimetype)) {
             const reader = new FileReader()
             reader.onload = (e) => {
               this.$set(res, 'data', e.target.result)

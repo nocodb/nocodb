@@ -221,7 +221,7 @@ const parseConditionV2 = async (
           case 'like':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
-              val = `%${val}%`.replace("%'", '%').replace("'%", '%');
+              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%')
             } else {
               val = `%${val}%`;
             }
@@ -234,7 +234,7 @@ const parseConditionV2 = async (
           case 'nlike':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
-              val = `%${val}%`.replace("%'", '%').replace("'%", '%');
+              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%')
             } else {
               val = `%${val}%`;
             }

@@ -21,6 +21,9 @@ on:
         description: "Previous Tag"
         required: true
         type: string
+    secrets:
+      NC_GITHUB_TOKEN:
+        required: true
 
 jobs:
   build:

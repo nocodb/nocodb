@@ -3,6 +3,7 @@ import path from 'path';
 
 import AWS from 'aws-sdk';
 import { IStorageAdapter, XcFile } from 'nc-plugin';
+import slash from 'slash';
 
 export default class S3 implements IStorageAdapter {
   private s3Client: AWS.S3;
@@ -12,9 +13,9 @@ export default class S3 implements IStorageAdapter {
     this.input = input;
   }
 
-  async fileCreate(key: string, file: XcFile): Promise<any> {
+  async fileCreate(key: string, file: XcFile, isPublic = false): Promise<any> {
     const uploadParams: any = {
-      ACL: 'public-read'
+      ACL: isPublic ? 'public-read' : 'private'
     };
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
@@ -40,6 +41,31 @@ export default class S3 implements IStorageAdapter {
     });
   }
 
+  private async upload(uploadParams): Promise<any> {
+    return new Promise((resolve, reject) => {
+      this.s3Client.upload(uploadParams, (err, data) => {
+        if (err) {
+          reject(err);
+        } else {
+          resolve(data.Location);
+        }
+      });
+    });
+  }
+
+  /**
+   * Generates a signed S3 URL for the given file.
+   * @param {string} file - the file to generate a signed URL for.
+   * @returns {string} The signed S3 URL.
+   */
+  public getSignedUrl(key, expires = 900) {
+    const signedUrl = this.s3Client.getSignedUrl('getObject', {
+      Key: key,
+      Expires: expires
+    });
+    return signedUrl;
+  }
+
   public async fileDelete(_path: string): Promise<any> {
     return Promise.resolve(undefined);
   }
@@ -55,6 +81,28 @@ export default class S3 implements IStorageAdapter {
         }
         return resolve(data.Body);
       });
+    });
+  }
+
+  /**
+   * Writes the given data to the given file.
+   * @param {string} location - the file location
+   * @param {string} fileName - file name
+   * @param {string} data - Data to write
+   * @returns None
+   */
+  public async fileWrite({
+    location,
+    fileName,
+    content,
+    contentType
+  }): Promise<any> {
+    const buf = Buffer.from(content);
+    return await this.upload({
+      Key: slash(path.join(location, fileName)),
+      Body: buf,
+      ContentEncoding: 'base64',
+      ContentType: contentType
     });
   }
 

@@ -9,6 +9,9 @@ import mimetypes, { mimeIcons } from '../../../utils/mimeTypes';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import catchError from '../helpers/catchError';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
+import Model from '../../../noco-models/Model';
+import Project from '../../../noco-models/Project';
+import S3 from '../../../../plugins/s3/S3';
 
 // const storageAdapter = new Local();
 export async function upload(req: Request, res: Response) {
@@ -18,13 +21,15 @@ export async function upload(req: Request, res: Response) {
   const destPath = path.join('nc', 'uploads', ...filePath);
 
   const storageAdapter = await NcPluginMgrv2.storageAdapter();
+  const column = await getColumnFromFilePath(filePath);
   const attachments = await Promise.all(
     (req as any).files?.map(async file => {
       const fileName = `${nanoid(6)}${path.extname(file.originalname)}`;
-
+      const relativePath = slash(path.join(destPath, fileName));
       let url = await storageAdapter.fileCreate(
-        slash(path.join(destPath, fileName)),
-        file
+        relativePath,
+        file,
+        column.public
       );
 
       if (!url) {
@@ -38,7 +43,8 @@ export async function upload(req: Request, res: Response) {
         title: file.originalname,
         mimetype: file.mimetype,
         size: file.size,
-        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
+        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
+        ...(!column.public ? s3KeyObject(storageAdapter, relativePath) : {})
       };
     })
   );
@@ -47,6 +53,7 @@ export async function upload(req: Request, res: Response) {
 
   res.json(attachments);
 }
+
 export async function fileRead(req, res) {
   try {
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
@@ -79,6 +86,28 @@ export async function fileRead(req, res) {
     res.status(404).send('Not found');
   }
 }
+
+async function getColumnFromFilePath(filePath: Array<string>) {
+  const [_, projectName, tableName, columnName] = filePath;
+  const project = await Project.getWithInfoByTitle(projectName);
+  const base = project.bases[0];
+  const table = await Model.getByAliasOrId({
+    project_id: project.id,
+    base_id: base.id,
+    aliasOrId: tableName
+  });
+  const columns = await table.getColumns();
+  return columns.filter(column => column.column_name === columnName)[0];
+}
+
+function s3KeyObject(storageAdapter, key: string) {
+  if (!(storageAdapter instanceof S3)) return {};
+
+  return {
+    S3Key: key
+  };
+}
+
 const router = Router({ mergeParams: true });
 
 router.get(/^\/dl\/([^/]+)\/([^/]+)\/(.+)$/, async (req, res) => {

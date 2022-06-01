@@ -173,12 +173,28 @@
                   :meta="meta"
                 />
 
-                <v-col
-                  v-if="accordion"
-                  cols="12"
-                  class="pt-0"
-                  :class="{ 'pb-0': advanceOptions }"
-                >
+                <v-col v-if="isAttachment" cols="12">
+                  <v-tooltip bottom z-index="99999">
+                    <template #activator="{on}">
+                      <div v-on="on">
+                        <v-checkbox
+                          v-model="newColumn.public"
+                          :disabled="!!editColumn"
+                          class="mr-2 mt-0"
+                          dense
+                          hide-details
+                          label="AT"
+                        >
+                          <template #label>
+                            <span class="caption font-weight-bold">Public</span>
+                          </template>
+                        </v-checkbox>
+                      </div>
+                    </template>
+                    <span>Only works if S3 plugin is enabled.</span>
+                  </v-tooltip>
+                </v-col>
+                <v-col v-if="accordion" cols="12" class="pt-0" :class="{'pb-0': advanceOptions}">
                   <div
                     class="pointer grey--text text-right caption nc-more-options"
                     @click="advanceOptions = !advanceOptions"
@@ -682,6 +698,9 @@ export default {
     },
     isCurrency() {
       return this.newColumn && this.newColumn.uidt === UITypes.Currency
+    },
+    isAttachment() {
+      return this.newColumn && this.newColumn.uidt === 'Attachment'
     }
   },
   watch: {
@@ -885,7 +904,7 @@ export default {
         } else if (action === 'hideDialog') {
           this.relationDeleteDlg = false
         } else {
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
               dbAlias: this.nodes.dbAlias

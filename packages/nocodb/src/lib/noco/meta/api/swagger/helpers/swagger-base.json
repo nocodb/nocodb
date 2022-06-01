@@ -40,7 +40,7 @@
         "properties": {
           "count": {
             "type": "number",
-            "description": "count"
+            "description": "Count of the value for the groupby column"
           },
           "column_name": {
             "type": "string",

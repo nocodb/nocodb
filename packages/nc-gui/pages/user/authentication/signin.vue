@@ -93,7 +93,7 @@
                 <br>
                 <br>
                 <!-- Don't have an account ? -->
-                <p class="caption font-weight-light">
+                <p v-if="signUpEnabled" class="caption font-weight-light">
                   {{ $t('msg.info.signUp.dontHaveAccount') }}
                   <!-- Sign Up -->
                   <router-link
@@ -302,6 +302,10 @@ export default {
         this.$store.state.project.appInfo &&
         this.$store.state.project.appInfo.githubAuthEnabled
       )
+    },
+    signUpEnabled() {
+      console.log('noSignUp', this.$store.state.project && this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.noSignUp)
+      return !(this.$store.state.project && this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.noSignUp)
     }
   },
   watch: {},

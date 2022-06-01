@@ -116,8 +116,12 @@ class NcPluginMgr {
     return (
       (this.activePlugins?.find(
         plugin => plugin instanceof XcStoragePlugin
-      ) as XcStoragePlugin)?.getAdapter() || new Local()
+      ) as XcStoragePlugin)?.getAdapter() || this.localStorage
     );
+  }
+
+  public get localStorage(): IStorageAdapter {
+    return new Local();
   }
 
   public get emailAdapter(): IEmailAdapter {

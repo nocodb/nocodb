@@ -83,5 +83,8 @@ mongod
 # Cypress
 #=========
 shared.json
+
+# IDE
+*.vscode/*
 /scripts/Cypress/screenshots
 /scripts/exp/

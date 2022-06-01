@@ -1,4 +1,4 @@
-name: "Release : Docker"
+name: "Release : Docker old"
 
 on:
   # Triggered manually
@@ -14,7 +14,7 @@ on:
         options:
           - DEV
           - PROD
-  # Triggered by release-nocodb.yml / release-nightly-dev.yml / release-pr.yml
+  # Triggered by release-nocodb.yml / release-nightly-dev.yml
   workflow_call:
     inputs:
       tag:
@@ -27,10 +27,6 @@ on:
         type: string
       isDaily:
         description: "Is it triggered by daily schedule"
-        required: false
-        type: string
-      currentVersion:
-        description: "The current NocoDB version"
         required: false
         type: string
     secrets:
@@ -46,17 +42,13 @@ jobs:
       working-directory: ./packages/nocodb
     strategy:
       matrix:
-        node-version: [16]
+        node-version: [12]
     steps:
       - name: Get Docker Repository
         id: get-docker-repository
         run: |
           DOCKER_REPOSITORY=nocodb
-          DOCKER_BUILD_TAG=${{ github.event.inputs.tag || inputs.tag }}
           if [[ ${{ github.event.inputs.targetEnv || inputs.targetEnv }} == 'DEV' ]]; then
-            if [[ ${{ github.event.inputs.currentVersion || inputs.currentVersion || 'N/A' }} != 'N/A' ]]; then
-              DOCKER_BUILD_TAG=${{ github.event.inputs.currentVersion || inputs.currentVersion }}-${{ github.event.inputs.tag || inputs.tag }}
-            fi
             if [[ ${{ inputs.isDaily || 'N' }} == 'Y' ]]; then 
               DOCKER_REPOSITORY=${DOCKER_REPOSITORY}-daily
             else
@@ -64,34 +56,17 @@ jobs:
             fi
           fi
           echo "::set-output name=DOCKER_REPOSITORY::${DOCKER_REPOSITORY}"
-          echo "::set-output name=DOCKER_BUILD_TAG::${DOCKER_BUILD_TAG}"
           echo ${DOCKER_REPOSITORY}
-          echo ${DOCKER_BUILD_TAG}
-
+      #       - name: Verify
+      #         run : |
+      #           echo ${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}
       - name: Checkout
         uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-          ref: ${{ github.ref }}
 
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
           node-version: ${{ matrix.node-version }}
-
-      - name: upgrade packages for nightly build or pr build
-        if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}
-        run: |
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js
-          cd packages/nocodb-sdk
-          npm install && npm run build
-          cd ../..
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js
-          cd packages/nc-gui
-          npm install
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy
-          cd ../..
-          targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js
 
       - uses: bahmutov/npm-install@v1
         with:
@@ -128,14 +103,14 @@ jobs:
         uses: docker/build-push-action@v2
         with:
           context: ${{ env.working-directory }}
-          build-args: NC_VERSION=${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
+          build-args: NC_VERSION=${{ github.event.inputs.tag || inputs.tag }}
           platforms: linux/amd64,linux/arm64,linux/arm/v7
           cache-from: type=local,src=/tmp/.buildx-cache
           cache-to: type=local,dest=/tmp/.buildx-cache-new
           push: true
           tags: |
-            nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:${{ steps.get-docker-repository.outputs.DOCKER_BUILD_TAG }}
-            nocodb/${{ steps.get-docker-repository.outputs.DOCKER_REPOSITORY }}:latest
+            finnauto/nocodb:${{ github.event.inputs.tag }}
+            finnauto/nocodb:latest
 
         # Temp fix
         # https://github.com/docker/build-push-action/issues/252

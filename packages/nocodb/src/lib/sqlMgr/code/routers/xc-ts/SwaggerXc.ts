@@ -101,10 +101,10 @@ class SwaggerXc extends BaseRender {
           $ref: `#/definitions/${column.hm?._tn}`
         };
         field.$ref = `#/definitions/${column.hm?._tn}`;
-        _cn = `${column.hm?._tn}List`;
+        _cn = `${column._cn}List`;
       } else if (column.bt) {
         field.$ref = `#/definitions/${column.bt?._rtn}`;
-        _cn = `${column.bt?._rtn}Read`;
+        _cn = `${column._cn}Read`;
       }
 
       properties[_cn] = field;

@@ -57,6 +57,7 @@ export default class Column<T = any> implements ColumnType {
 
   public validate: any;
   public meta: any;
+  public public: boolean;
 
   constructor(data: Partial<ColumnType | Column>) {
     Object.assign(this, data);
@@ -111,7 +112,8 @@ export default class Column<T = any> implements ColumnType {
       meta:
         column.meta && typeof column.meta === 'object'
           ? JSON.stringify(column.meta)
-          : column.meta
+          : column.meta,
+      public: column.public === true
     };
 
     if (column.validate) {

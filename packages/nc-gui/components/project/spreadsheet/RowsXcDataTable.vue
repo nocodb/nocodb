@@ -253,25 +253,6 @@
               v-on="on"
               @click="checkAndDeleteTable"
             >-->
-        <v-icon
-          v-if="_isUIAllowed('table-delete')"
-          small
-          class="mx-n1"
-          color="grey lighten-1"
-        >
-          mdi-circle-small
-        </v-icon>
-        <x-icon
-          v-if="_isUIAllowed('table-delete')"
-          icon.class="nc-table-delete-btn mx-1 mr-1"
-          :disabled="isLocked"
-          small
-          :color="['red', '']"
-          :tooltip="$t('activity.deleteTable')"
-          @click="checkAndDeleteTable"
-        >
-          mdi-delete-outline
-        </x-icon>
 
         <v-icon small class="ml-n2" color="grey lighten-1">
           mdi-circle-small
@@ -723,7 +704,6 @@
     <additional-features
       v-model="showAddFeatOverlay"
       :selected-view="selectedView"
-      :delete-table="deleteTable"
       :nodes="nodes"
       :type="featureType"
       :table="table"
@@ -963,22 +943,6 @@ export default {
           ? this.data.length - 1
           : this.selectedExpandRowIndex
     },
-    async checkAndDeleteTable() {
-      // if (
-      //   !this.meta || (
-      //     (this.meta.hasMany && this.meta.hasMany.length) ||
-      //     (this.meta.manyToMany && this.meta.manyToMany.length) ||
-      //     (this.meta.belongsTo && this.meta.belongsTo.length))
-      // ) {
-      //   return this.$toast.info('Please delete relations before deleting table.').goAway(3000)
-      // }
-      this.deleteTable('showDialog', this.meta.id)
-
-      // if (confirm('Do you want to delete the table?')) {
-      //   await this.$api.meta.tableDelete(this.meta.id)
-      // }
-      this.$e('c:table:delete')
-    },
     async reloadClick() {
       await this.reload()
       this.$e('a:table:reload:navbar')
@@ -987,11 +951,11 @@ export default {
       this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
-        tn: this.table,
-        force: true
-      })
-      if (this.selectedView && this.selectedView.show_as === 'kanban') {
-        await this.loadKanbanData()
+        table_name: this.table,
+        force: true,
+      });
+      if (this.selectedView && this.selectedView.show_as === "kanban") {
+        await this.loadKanbanData();
       } else {
         await this.loadTableData(ignoreLoader)
       }
@@ -1025,6 +989,11 @@ export default {
               return true
             }
             return this.nodes.newTable.columns.includes(col.column_name)
+          }).map((col) => {
+            if (this.nodes.dbConnection.inflection_column === 'none') {
+              col.title = col.column_name
+            }
+            return col
           })
         await this.$api.dbTable.create(this.projectId, {
           table_name: this.nodes.table_name,
@@ -1210,17 +1179,6 @@ export default {
               query: { ignoreWebhook: !saved }
             }
           )
-
-          // audit
-          this.$api.utils
-            .auditRowUpdate(id, {
-              fk_model_id: this.meta.id,
-              column_name: column.title,
-              row_id: id,
-              value: rowObj[column.title],
-              prev_value: oldRow[column.title]
-            })
-            .then(() => {})
 
           this.$set(this.data[row], 'row', { ...rowObj, ...newData })
 

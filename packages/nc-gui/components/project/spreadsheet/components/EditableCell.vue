@@ -196,7 +196,7 @@ export default {
       set(val) {
         if (val !== this.value) {
           this.changed = true
-          this.$emit('input', val)
+          this.$emit('input', val === '' ? null : val)
           if (this.isAttachment || this.isEnum || this.isBoolean || this.isRating || this.isSet || this.isTime || this.isDateTime || this.isDate) {
             this.syncData()
           } else if (!this.isCurrency) {
@@ -259,6 +259,8 @@ div {
 
 .nc-cell {
   position: relative;
+  max-height: 100px;
+  overflow: auto;
 }
 
 .nc-locked-overlay {

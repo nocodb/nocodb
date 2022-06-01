@@ -84,6 +84,7 @@ async function dataDelete(req: Request, res: Response) {
 
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
 }
+
 async function getDataList(model, view: View, req) {
   const base = await Base.get(model.base_id);
 
@@ -118,6 +119,25 @@ async function getDataList(model, view: View, req) {
   });
 }
 
+async function getDataGroupBy(model, view: View, req) {
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base)
+  });
+
+  const listArgs: any = { ...req.query };
+  const data = await baseModel.groupBy({ ...req.query });
+  const count = await baseModel.count(listArgs);
+
+  return new PagedResponseImpl(data, {
+    ...req.query,
+    count
+  });
+}
+
 async function getFindOne(model, view: View, req) {
   const base = await Base.get(model.base_id);
 
@@ -143,25 +163,6 @@ async function getFindOne(model, view: View, req) {
   );
 }
 
-async function getDataGroupBy(model, view: View, req) {
-  const base = await Base.get(model.base_id);
-
-  const baseModel = await Model.getBaseModelSQL({
-    id: model.id,
-    viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
-  });
-
-  const listArgs: any = { ...req.query };
-  const data = await baseModel.groupBy({ ...req.query });
-  const count = await baseModel.count(listArgs);
-
-  return new PagedResponseImpl(data, {
-    ...req.query,
-    count
-  });
-}
-
 async function dataRead(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
 
@@ -173,10 +174,13 @@ async function dataRead(req: Request, res: Response) {
     dbDriver: NcConnectionMgrv2.get(base)
   });
 
-  res.json(
+  const data = await baseModel.readByPk(req.params.rowId);
+  if (!data) return res.json({});
+
+  return res.json(
     await nocoExecute(
       await getAst({ model, query: req.query, view }),
-      await baseModel.readByPk(req.params.rowId),
+      data,
       {},
       {}
     )

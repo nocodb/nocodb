@@ -151,12 +151,14 @@ export default class Project implements ProjectType {
         id: projectId,
         deleted: false
       });
-      await NocoCache.set(`${CacheScope.PROJECT}:${projectId}`, projectData);
-      if (projectData?.uuid) {
-        await NocoCache.set(
-          `${CacheScope.PROJECT}:${projectData.uuid}`,
-          projectId
-        );
+      if (projectData) {
+        await NocoCache.set(`${CacheScope.PROJECT}:${projectId}`, projectData);
+        if (projectData.uuid) {
+          await NocoCache.set(
+            `${CacheScope.PROJECT}:${projectData.uuid}`,
+            projectId
+          );
+        }
       }
     } else {
       if (projectData?.deleted) {

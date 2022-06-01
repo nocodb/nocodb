@@ -39,6 +39,7 @@ import { promisify } from 'util';
 import NcTemplateParser from '../../templateParser/NcTemplateParser';
 import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
 import xcMetaDiff from './handlers/xcMetaDiff';
+import S3 from '../../../plugins/s3/S3';
 import { UITypes } from 'nocodb-sdk';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 const XC_PLUGIN_DET = 'XC_PLUGIN_DET';
@@ -106,7 +107,8 @@ export default class NcMetaMgr {
               .slice(1)
           ] || 'text/plain';
         // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
-        const img = await this.storageAdapter.fileRead(
+        // Read local files always from the local storage (s3 urls are directly read from the s3 bucket)
+        const img = await this.pluginMgr?.localStorage.fileRead(
           slash(
             path.join(
               'nc',
@@ -305,7 +307,8 @@ export default class NcMetaMgr {
                   +process.env.DB_QUERY_LIMIT_MIN || 1
                 ),
                 timezone: defaultConnectionConfig.timezone,
-                ncMin: !!process.env.NC_MIN
+                ncMin: !!process.env.NC_MIN,
+                noSignUp: process.env.NC_NO_SIGN_UP === '1'
               };
               return res.json(result);
             }
@@ -441,7 +444,9 @@ export default class NcMetaMgr {
       for (const tn of META_TABLES[this.config.projectType.toLowerCase()]) {
         if (fs.existsSync(path.join(metaFolder, `${tn}.json`))) {
           const data = JSON.parse(
-            fs.readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8')
+            fs
+              .readFileSync(path.join(metaFolder, `${tn}.json`), 'utf8')
+              .replace(new RegExp(args.sourceProjectId, 'g'), args.project_id)
           );
           for (const row of data) {
             delete row.id;
@@ -584,6 +589,7 @@ export default class NcMetaMgr {
       // }
 
       args.project_id = projectId;
+      args.sourceProjectId = projectDetails.id;
 
       await this.xcMetaTablesImportLocalFsToDb(args, req);
       this.xcMeta.audit(projectId, null, 'nc_audit', {
@@ -1259,7 +1265,8 @@ export default class NcMetaMgr {
         appendPath,
         req,
         dbAlias: this.getDbAlias(args),
-        projectId: this.getProjectId(args)
+        projectId: this.getProjectId(args),
+        isPublic: await this.isPublicAttachment(args)
       });
     } catch (e) {
       throw e;
@@ -1275,7 +1282,8 @@ export default class NcMetaMgr {
     appendPath = [],
     req,
     projectId,
-    dbAlias
+    dbAlias,
+    isPublic = false
   }: {
     prependName?: string;
     file: any;
@@ -1284,6 +1292,7 @@ export default class NcMetaMgr {
     req: express.Request & any;
     projectId?: string;
     dbAlias?: string;
+    isPublic?: boolean;
   }) {
     const fileName = `${prependName}${nanoid(6)}_${file.originalname}`;
     let destPath;
@@ -1292,9 +1301,11 @@ export default class NcMetaMgr {
     } else {
       destPath = path.join('nc', projectId, dbAlias, 'uploads', ...appendPath);
     }
+    const relativePath = slash(path.join(destPath, fileName));
     let url = await this.storageAdapter.fileCreate(
-      slash(path.join(destPath, fileName)),
-      file
+      relativePath,
+      file,
+      isPublic
     );
     if (!url) {
       if (storeInPublicFolder) {
@@ -1308,11 +1319,50 @@ export default class NcMetaMgr {
       }
     }
     return {
-      url,
-      title: file.originalname,
-      mimetype: file.mimetype,
-      size: file.size,
-      icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
+      ...{
+        url,
+        title: file.originalname,
+        mimetype: file.mimetype,
+        size: file.size,
+        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
+      },
+      ...(!isPublic ? this.s3KeyObject(relativePath) : {})
+    };
+  }
+
+  private async isPublicAttachment(args) {
+    const [tableName] = args.args?.appendPath || [];
+    const [columnName] = args.args?.prependName || [];
+    if (!tableName || !columnName) false;
+
+    const columnMeta = await this.getColumnMeta({
+      tableName,
+      columnName,
+      projectId: this.getProjectId(args),
+      dbAlias: this.getDbAlias(args)
+    });
+
+    return columnMeta?.public;
+  }
+
+  private async getColumnMeta({ tableName, columnName, projectId, dbAlias }) {
+    const model = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
+      title: tableName,
+      type: 'table'
+    });
+    return JSON.parse(model.meta).columns.find(c => c.cn === columnName);
+  }
+
+  /**
+   * A class that represents an S3 key object.
+   * @param {string} key - the key of the object in S3.
+   * @return {object} - an object that has S3Key.
+   */
+  private s3KeyObject(key: string) {
+    if (!(this.storageAdapter instanceof S3)) return {};
+
+    return {
+      S3Key: key
     };
   }
 
@@ -2409,6 +2459,9 @@ export default class NcMetaMgr {
       return;
     }
     vColumn._cn = args.args.newAlias;
+    meta.v.forEach(v => {
+      if (v?.lk?._ltn === args.args.oldAlias) v.lk._ltn = args.args.newAlias;
+    });
 
     const queryParams = JSON.parse(model.query_params);
     if (
@@ -3217,7 +3270,9 @@ export default class NcMetaMgr {
           );
           const childMeta = JSON.parse(child.meta);
           const relation = childMeta.belongsTo.find(
-            bt => bt.rtn === args.args.parentTable
+            bt =>
+              bt.rtn === args.args.parentTable &&
+              bt.cn === args.args.childColumn
           );
           // todo: virtual relation delete
           if (relation) {
@@ -5045,7 +5100,7 @@ export default class NcMetaMgr {
       // await this.initStorage(true)
       // await this.initEmail(true)
       // await this.initTwilio(true)
-      this.pluginMgr?.reInit();
+      await this.pluginMgr?.reInit();
       await this.initCache(true);
       this.eeVerify();
       try {

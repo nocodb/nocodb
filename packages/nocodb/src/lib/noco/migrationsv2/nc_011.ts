@@ -1,6 +1,7 @@
 import { MetaTable } from '../../utils/globals';
 // import googleAuth from '../plugins/googleAuth';
 // import ses from '../plugins/ses';
+
 // import cache from '../plugins/cache';
 
 const up = async knex => {

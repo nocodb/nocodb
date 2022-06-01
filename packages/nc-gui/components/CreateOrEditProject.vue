@@ -1013,8 +1013,8 @@ export default {
                     graphqlDepthLimit: 10
                   },
                   inflection: {
-                    table_name: 'camelize',
-                    column_name: 'camelize'
+                    table_name: 'none',
+                    column_name: 'none'
                   }
                 },
                 ui: {
@@ -1607,8 +1607,8 @@ export default {
                 tn: 'nc_evolutions',
                 dbAlias: 'db',
                 inflection: {
-                  table_name: 'camelize',
-                  column_name: 'camelize'
+                  table_name: 'none',
+                  column_name: 'none'
                 },
                 api: {
                   type: ''
@@ -1657,8 +1657,8 @@ export default {
           tn: 'nc_evolutions',
           dbAlias,
           inflection: {
-            table_name: 'camelize',
-            column_name: 'camelize'
+            table_name: 'none',
+            column_name: 'none'
           },
           api: {
             type: ''

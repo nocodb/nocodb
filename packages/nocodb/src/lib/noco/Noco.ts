@@ -40,7 +40,7 @@ import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
 import User from '../noco-models/User';
 import { Tele } from 'nc-help';
 import * as http from 'http';
-import weAreHiring from '../utils/weAreHiring';
+// import weAreHiring from '../utils/weAreHiring';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -264,7 +264,7 @@ export default class Noco {
       next();
     });
     Tele.emit('evt_app_started', await User.count());
-    weAreHiring();
+    // weAreHiring();
     return this.router;
   }
 

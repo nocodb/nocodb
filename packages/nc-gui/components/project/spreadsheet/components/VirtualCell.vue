@@ -50,7 +50,7 @@
         :disabled-columns="disabledColumns"
         :active="active"
         :row="row"
-        :value="row[column.title]"
+        :value="senitizeValue(row[column.title])"
         :meta="meta"
         :nodes="nodes"
         :api="api"
@@ -177,6 +177,13 @@ export default {
         } catch (e) {
         }
       }
+    },
+    senitizeValue(value) {
+      if (value && Object.keys(value).length > 0) {
+        return value
+      }
+
+      return null
     }
   }
 }
@@ -190,6 +197,8 @@ export default {
 
 .nc-virtual-cell {
   position: relative;
+  max-height: 100px !important;
+  overflow: auto;
 }
 
 .nc-locked-overlay {

@@ -20,12 +20,12 @@ export default `<!DOCTYPE html>
 <redoc spec-url='./swagger.json'></redoc>
 <script src="https://cdn.jsdelivr.net/npm/redoc@latest/bundles/redoc.standalone.js"> </script>
 <script>
- console.log('%c🚀 We are Hiring!!! 🚀%c\\n%cJoin the forces http://careers.nocodb.com', 'color:#1348ba;font-size:3rem;padding:20px;', 'display:none', 'font-size:1.5rem;padding:20px')
+//  console.log('%c🚀 We are Hiring!!! 🚀%c\\n%cJoin the forces http://careers.nocodb.com', 'color:#1348ba;font-size:3rem;padding:20px;', 'display:none', 'font-size:1.5rem;padding:20px')
    const linkEl = document.createElement('a')
   linkEl.setAttribute('href', "http://careers.nocodb.com")
   linkEl.setAttribute('target', '_blank')
   linkEl.setAttribute('class', 'we-are-hiring')
-  linkEl.innerHTML = '🚀 We are Hiring!!! 🚀'
+  // linkEl.innerHTML = '🚀 We are Hiring!!! 🚀'
   const styleEl = document.createElement('style');
   styleEl.innerHTML = \`
 .we-are-hiring {

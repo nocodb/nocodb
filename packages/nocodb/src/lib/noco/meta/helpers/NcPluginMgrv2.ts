@@ -1,6 +1,5 @@
 import {
   IEmailAdapter,
-  IStorageAdapter,
   IWebhookNotificationAdapter
   // XcEmailPlugin,
   // XcPlugin,
@@ -103,9 +102,7 @@ class NcPluginMgrv2 {
     }
   }
 
-  public static async storageAdapter(
-    ncMeta = Noco.ncMeta
-  ): Promise<IStorageAdapter> {
+  public static async storageAdapter(ncMeta = Noco.ncMeta) {
     const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
       category: PluginCategory.STORAGE,
       active: true

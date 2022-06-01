@@ -41,6 +41,7 @@ import Validator from 'validator';
 import { customValidators } from './customValidators';
 import { NcError } from '../../../noco/meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
+import { generateS3SignedUrls } from './decorators/GenerateS3SignedUrls';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -310,7 +311,7 @@ class BaseModelSqlv2 {
       as: 'count'
     }).first();
 
-    return ((await qb) as any).count;
+    return ((await this.extractRawQueryAndExec(qb)) as any).count;
   }
 
   async groupBy(
@@ -350,7 +351,7 @@ class BaseModelSqlv2 {
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
 
-    return await qb;
+    return await this.extractRawQueryAndExec(qb);
   }
 
   async multipleHmList({ colId, ids }, args?: { limit?; offset? }) {
@@ -486,7 +487,7 @@ class BaseModelSqlv2 {
           .where(_wherePk(parentTable.primaryKeys, id))
       );
       // todo: sanitize
-      qb.limit(args?.limit || 20);
+      qb.limit(args?.limit || 500);
       qb.offset(args?.offset || 0);
 
       await childModel.selectObject({ qb });
@@ -723,7 +724,7 @@ class BaseModelSqlv2 {
       )
       .first();
 
-    const { count } = await qb;
+    const { count } = await this.extractRawQueryAndExec(qb);
 
     return count;
   }
@@ -767,7 +768,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
-    return (await qb.first())?.count;
+    qb.first();
+    return (await this.extractRawQueryAndExec(qb))?.count;
   }
 
   // todo: naming & optimizing
@@ -820,7 +822,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
 
-    return (await qb).map(c => {
+    return (await this.extractRawQueryAndExec(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -860,8 +862,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
-
-    return (await qb.first())?.count;
+    qb.first();
+    return (await this.extractRawQueryAndExec(qb))?.count;
   }
 
   // todo: naming & optimizing
@@ -907,7 +909,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
 
-    return (await qb).map(c => {
+    return (await this.extractRawQueryAndExec(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -948,7 +950,8 @@ class BaseModelSqlv2 {
     const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
-    return (await qb.first())?.count;
+    qb.first();
+    return (await this.extractRawQueryAndExec(qb))?.count;
   }
 
   // todo: naming & optimizing
@@ -994,7 +997,7 @@ class BaseModelSqlv2 {
 
     const proto = await parentModel.getProto();
 
-    return (await qb).map(c => {
+    return (await this.extractRawQueryAndExec(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -1614,7 +1617,7 @@ class BaseModelSqlv2 {
           this.dbDriver
         );
         qb.update(updateData);
-        res = ((await qb) as any).count;
+        res = ((await this.extractRawQueryAndExec(qb)) as any).count;
       }
       return res;
     } catch (e) {
@@ -1676,7 +1679,7 @@ class BaseModelSqlv2 {
         this.dbDriver
       );
       qb.del();
-      return ((await qb) as any).count;
+      return ((await this.extractRawQueryAndExec(qb)) as any).count;
     } catch (e) {
       throw e;
     }
@@ -1708,6 +1711,7 @@ class BaseModelSqlv2 {
   }
 
   public async beforeUpdate(data: any, _trx: any, req): Promise<void> {
+    req.oldData = await this.readByPk(req.params.rowId);
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
@@ -1720,6 +1724,7 @@ class BaseModelSqlv2 {
   }
 
   public async afterUpdate(data: any, _trx: any, req): Promise<void> {
+    await this.auditRowUpdate(req);
     const ignoreWebhook = req.query?.ignoreWebhook;
     if (ignoreWebhook) {
       if (ignoreWebhook != 'true' && ignoreWebhook != 'false') {
@@ -1731,13 +1736,59 @@ class BaseModelSqlv2 {
     }
   }
 
+  private async auditRowUpdate(req): Promise<void> {
+    await Audit.insert({
+      fk_model_id: this.model.id,
+      row_id: req.params.rowId,
+      op_type: AuditOperationTypes.DATA,
+      op_sub_type: AuditOperationSubTypes.UPDATE,
+      description: this._updateAuditDescription(req),
+      details: this._updateAuditDetails(req),
+      ip: (req as any).clientIp,
+      user: (req as any).user?.email
+    });
+  }
+
+  private _updateAuditDescription(req) {
+    const data = req.body;
+    const oldData = req.oldData;
+    return `Table ${this.model.table_name} : ${req.params.rowId} ${(() => {
+      const keys = Object.keys(data);
+      const result = [];
+      keys.forEach(key => {
+        if (req.oldData[key] !== data[key]) {
+          result.push(
+            `field ${key} got changed from ${oldData[key]} to ${data[key]}`
+          );
+        }
+      });
+      return result.join(',\n');
+    })()}`;
+  }
+
+  private _updateAuditDetails(req) {
+    const data = req.body;
+    const oldData = req.oldData;
+    return (() => {
+      const keys = Object.keys(data);
+      const result = [];
+      keys.forEach(key => {
+        if (oldData[key] !== data[key]) {
+          result.push(`<span class="">${key}</span>
+          : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${oldData[key]}</span>
+          <span class="black--text green lighten-4 px-2">${data[key]}</span>`);
+        }
+      });
+      return result.join(',<br/>');
+    })();
+  }
+
   public async beforeDelete(data: any, _trx: any, req): Promise<void> {
     await this.handleHooks('Before.delete', data, req);
   }
 
-  public async afterDelete(data: any, _trx: any, req): Promise<void> {
+  public async afterDelete(id: any, _trx: any, req): Promise<void> {
     // if (req?.headers?.['xc-gui']) {
-    const id = req?.params?.id;
     Audit.insert({
       fk_model_id: this.model.id,
       row_id: id,
@@ -1749,7 +1800,7 @@ class BaseModelSqlv2 {
       user: req?.user?.email
     });
     // }
-    await this.handleHooks('After.delete', data, req);
+    await this.handleHooks('After.delete', id, req);
   }
 
   private async handleHooks(hookName, data, req): Promise<void> {
@@ -1834,7 +1885,12 @@ class BaseModelSqlv2 {
       if (!validate) continue;
       const { func, msg } = validate;
       for (let j = 0; j < func.length; ++j) {
-        const fn = typeof func[j] === 'string' ? (customValidators[func[j]] ? customValidators[func[j]] : Validator[func[j]]) : func[j];
+        const fn =
+          typeof func[j] === 'string'
+            ? customValidators[func[j]]
+              ? customValidators[func[j]]
+              : Validator[func[j]]
+            : func[j];
         const arg =
           typeof func[j] === 'string' ? columns[cn] + '' : columns[cn];
         if (
@@ -2003,9 +2059,10 @@ class BaseModelSqlv2 {
     }
   }
 
+  @generateS3SignedUrls()
   private async extractRawQueryAndExec(qb: QueryBuilder) {
     return this.isPg
-      ? qb
+      ? await qb
       : await this.dbDriver.from(
           this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
         );

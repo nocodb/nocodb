@@ -102,7 +102,7 @@ export default {
       return (this.lookup.table && (this.meta.v || []).every(c => !(
         c.lk &&
         c.lk.type === this.lookup.table.type &&
-        c.lk.ltn === this.lookup.table.ltn &&
+        c.lk._ltn === this.lookup.table._ltn &&
         c.lk.lcn === v.lcn
       ))) || 'Lookup already exist'
     },

@@ -1,9 +1,9 @@
 {
   "name": "nocodb",
-  "version": "0.91.0",
+  "version": "0.91.0-finn.0",
   "description": "NocoDB",
   "main": "dist/bundle.js",
-  "repository": "https://github.com/nocodb/nocodb",
+  "repository": "https://github.com/finn-auto/nocodb",
   "license": "AGPL-3.0-or-later",
   "keywords": [],
   "scripts": {
@@ -153,7 +153,7 @@
     "nanoid": "^3.1.20",
     "nc-common": "0.0.6",
     "nc-help": "0.2.59",
-    "nc-lib-gui": "0.91.0",
+    "nc-lib-gui": "npm:finn-nc-lib-gui@0.91.0-finn.0",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",
     "nocodb-sdk": "file:../nocodb-sdk",

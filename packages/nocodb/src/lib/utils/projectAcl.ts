@@ -17,13 +17,13 @@ export default {
 
     // data
     dataList: true,
+    dataFindOne: true,
+    dataGroupBy: true,
     dataUpdate: true,
     dataDelete: true,
     dataInsert: true,
     dataRead: true,
     dataExist: true,
-    dataFindOne: true,
-    dataGroupBy: true,
     commentsCount: true,
     exportCsv: true,
 

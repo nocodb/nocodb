@@ -1123,6 +1123,10 @@ export default class SqlMgr {
   }
 
   public async getColumnNameAlias({ inflectionFn, cn }) {
+    // Hotfix: Ignore inflection on id_
+    if (cn === 'id_') {
+      return cn;
+    }
     if (inflectionFn) {
       return inflection[inflectionFn](cn);
     }

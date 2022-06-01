@@ -32,20 +32,12 @@
               :nodes="nodes"
               :new-table="newTableCopy"
               :mtd-new-table-update="mtdNewTableUpdate"
-              :delete-table="deleteTable"
               :is-meta-table="isMetaTable"
             />
           </v-tab-item>
         </template>
       </v-tabs>
     </template>
-    <dlgLabelSubmitCancel
-      v-if="dialogShow"
-      type="error"
-      :actions-mtd="deleteTable"
-      :dialog-show="dialogShow"
-      heading="Click Submit to Delete the Table"
-    />
   </v-container>
 </template>
 
@@ -93,63 +85,6 @@ export default {
     }),
     mtdNewTableUpdate(value) {
       this.newTableCopy = value
-    },
-    async deleteTable(action = '', id) {
-      if (id) {
-        this.deleteId = id
-      }
-      if (action === 'showDialog') {
-        this.dialogShow = true
-      } else if (action === 'hideDialog') {
-        this.dialogShow = false
-      } else {
-        try {
-          const meta = await this.$store.dispatch('meta/ActLoadMeta', { id: this.deleteId })
-
-          const relationColumns = meta.columns.filter(c => c.uidt === UITypes.LinkToAnotherRecord)
-
-          if (relationColumns.length) {
-            const refColMsgs = await Promise.all(relationColumns.map(async(c, i) => {
-              const refMeta = await this.$store.dispatch('meta/ActLoadMeta', { id: c.colOptions.fk_related_model_id })
-              return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
-            }))
-            this.$toast.info(`<div style="padding:10px 4px">Unable to delete tables because of the following.
-                <br><br>${refColMsgs.join('<br>')}<br><br>
-                Delete them & try again</div>
-            `).goAway(10000)
-            this.dialogShow = false
-            return
-          }
-
-          await this.$api.dbTable.delete(this.deleteId)
-
-          this.removeTableTab({
-            env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias,
-            table_name: this.nodes.table_name
-          })
-
-          await this.loadTablesFromParentTreeNode({
-            _nodes: {
-              ...this.nodes
-            }
-          })
-
-          this.$store.commit('meta/MutMeta', {
-            key: this.nodes.table_name,
-            value: null
-          })
-          this.$store.commit('meta/MutMeta', {
-            key: this.deleteId,
-            value: null
-          })
-        } catch (e) {
-          const msg = await this._extractSdkResponseErrorMsg(e)
-          this.$toast.error(msg).goAway(3000)
-        }
-        this.dialogShow = false
-        this.$e('a:table:delete')
-      }
     },
     onTabChange() {
       this.$emit('update:hideLogWindows', this.active === 2)

@@ -10,6 +10,7 @@ export default {
     filters: [],
     sortList: [],
     showFields: {},
+    fieldsOrder: [],
     // fieldList: [],
     // meta: {},
     data: [],
@@ -74,6 +75,9 @@ export default {
       return this.viewStatus && this.viewStatus.type === 'locked'
     },
     fieldList() {
+      if (!this.availableColumns) {
+        return []
+      }
       return this.availableColumns.map((c) => {
         return c.alias
       })
@@ -121,7 +125,7 @@ export default {
     availableColumns() {
       let columns = []
 
-      if (!this.meta) {
+      if (!this.meta || !this.meta.columns) {
         return []
       }
       // todo: generate hideCols based on default values

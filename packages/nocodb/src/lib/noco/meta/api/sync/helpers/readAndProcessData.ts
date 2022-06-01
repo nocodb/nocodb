@@ -216,15 +216,11 @@ export async function importLTARData({
 
     nestedLinkCnt += insertData.length;
     // Insert datas as chunks of size `ASSOC_BULK_DATA_BATCH_SIZE`
-    for (
-      let i = 0;
-      i < insertData.length / ASSOC_BULK_DATA_BATCH_SIZE;
-      i += ASSOC_BULK_DATA_BATCH_SIZE
-    ) {
+    for (let i = 0; i < insertData.length; i += ASSOC_BULK_DATA_BATCH_SIZE) {
       logBasic(
         `:: Importing '${table.title}' LTAR data :: ${i + 1} - ${Math.min(
           i + ASSOC_BULK_DATA_BATCH_SIZE,
-          allData.length
+          insertData.length
         )}`
       );
       await api.dbTableRow.bulkCreate(

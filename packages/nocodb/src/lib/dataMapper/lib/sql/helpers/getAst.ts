@@ -72,7 +72,7 @@ const getAst = async ({
 
       value = await getAst({
         model,
-        query: query?.nested,
+        query: query?.nested?.[col.title],
         extractOnlyPrimaries: nestedFields !== '*'
       });
     }

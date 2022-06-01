@@ -68,8 +68,15 @@ export default class Gcs implements IStorageAdapterV2 {
     // this.bucketName = process.env.NC_GCS_BUCKET;
     options.credentials = {
       client_email: this.input.client_email,
-      private_key: this.input.private_key
+      // replace \n with real line breaks to avoid
+      // error:0909006C:PEM routines:get_name:no start line
+      private_key: this.input.private_key.replace(/\\n/gm, '\n')
     };
+
+    // default project ID would be used if it is not provided
+    if (this.input.project_id) {
+      options.projectId = this.input.project_id
+    }
 
     this.bucketName = this.input.bucket;
 

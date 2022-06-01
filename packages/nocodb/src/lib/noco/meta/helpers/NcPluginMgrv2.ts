@@ -80,6 +80,14 @@ class NcPluginMgrv2 {
           category: plugin.category,
           input_schema: JSON.stringify(plugin.inputs)
         });
+      } else if (pluginConfig.version !== plugin.version) {
+        await ncMeta.metaUpdate(
+          null,
+          null,
+          MetaTable.PLUGIN,
+          plugin,
+          pluginConfig.id
+        );
       }
 
       /* init only the active plugins */

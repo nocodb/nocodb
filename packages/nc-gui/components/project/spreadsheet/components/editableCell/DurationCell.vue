@@ -1,18 +1,20 @@
 <template>
-    <div class="duration-cell-wrapper">
-    <input 
-        :placeholder="selectedDurationTitle"
-        v-model="localState" 
-        v-on="parentListeners" 
-        @keypress="checkDurationFormat($event)">
-        <div v-if="showWarningMessage == true" class="duration-warning">
-            <!-- TODO: i18n -->
-            Please enter a number
-        </div>
+  <div class="duration-cell-wrapper">
+    <input
+      v-model="localState"
+      :placeholder="selectedDurationTitle"
+      v-on="parentListeners"
+      @keypress="checkDurationFormat($event)"
+    >
+    <div v-if="showWarningMessage == true" class="duration-warning">
+      <!-- TODO: i18n -->
+      Please enter a number
     </div>
+  </div>
 </template>
 
 <script>
+import moment from 'moment'
 import { durationOptions } from '~/helpers/durationHelper'
 
 export default {
@@ -23,19 +25,38 @@ export default {
     readOnly: Boolean
   },
   data: () => ({
-      showWarningMessage: false
+    showWarningMessage: false
   }),
   computed: {
     localState: {
       get() {
+        // 600000ms --> 10:00 (10 mins)
+        const d = moment.duration(this.value, 'milliseconds')._data
         const durationType = this.column?.meta?.duration || 0
-        // TODO: render value based on duration type
+        if (durationType === 0) {
+          // h:mm
+          return `${d.hours}:${d.minutes}`
+        } else if (durationType === 1) {
+          // h:mm:ss
+          return `${d.hours}:${d.minutes}:${d.seconds}`
+        } else if (durationType === 2) {
+          // h:mm:ss.s
+          return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 100)}`
+        } else if (durationType === 3) {
+          // h:mm:ss.ss
+          return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 10)}`
+        } else if (durationType === 4) {
+          // h:mm:ss.sss
+          return `${d.hours}:${d.minutes}:${d.seconds}.${d.milliseconds}`
+        }
         return this.value
       },
       set(val) {
+        // 10:00 -> 600
         // TODO: only save if val is valid
+        // use moment.isValid()
         if (val) {
-            this.$emit('input', val)
+          this.$emit('input', val)
         }
       }
     },
@@ -56,27 +77,27 @@ export default {
       return $listeners
     },
     selectedDurationTitle() {
-        return durationOptions[this.column?.meta?.duration || 0].title
+      return durationOptions[this.column?.meta?.duration || 0].title
     }
   },
   methods: {
-      checkDurationFormat(evt) {
-        evt = evt || window.event
-        const charCode = (evt.which) ? evt.which : evt.keyCode;
-        // ref: http://www.columbia.edu/kermit/ascii.html
-        const PRINTABLE_CTL_RANGE = charCode > 31
-        const NON_DIGIT = charCode < 48 || charCode > 57
-        const NON_COLON = charCode !== 58
-        const NON_PERIOD = charCode !== 46
-        if (PRINTABLE_CTL_RANGE && NON_DIGIT && NON_COLON && NON_PERIOD) {
-            this.showWarningMessage = true
-            evt.preventDefault();
-        } else {
-            this.showWarningMessage = false
-            // only allow digits, '.' and ':' (without quotes)
-            return true;
-        }
+    checkDurationFormat(evt) {
+      evt = evt || window.event
+      const charCode = (evt.which) ? evt.which : evt.keyCode
+      // ref: http://www.columbia.edu/kermit/ascii.html
+      const PRINTABLE_CTL_RANGE = charCode > 31
+      const NON_DIGIT = charCode < 48 || charCode > 57
+      const NON_COLON = charCode !== 58
+      const NON_PERIOD = charCode !== 46
+      if (PRINTABLE_CTL_RANGE && NON_DIGIT && NON_COLON && NON_PERIOD) {
+        this.showWarningMessage = true
+        evt.preventDefault()
+      } else {
+        this.showWarningMessage = false
+        // only allow digits, '.' and ':' (without quotes)
+        return true
       }
+    }
   }
 }
 </script>

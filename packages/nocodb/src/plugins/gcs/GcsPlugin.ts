@@ -1,11 +1,11 @@
-import { IStorageAdapter, XcStoragePlugin } from 'nc-plugin';
+import { IStorageAdapterV2, XcStoragePlugin } from 'nc-plugin';
 
 import Gcs from './Gcs';
 
 class GcsPlugin extends XcStoragePlugin {
   private static storageAdapter: Gcs;
 
-  public getAdapter(): IStorageAdapter {
+  public getAdapter(): IStorageAdapterV2 {
     return GcsPlugin.storageAdapter;
   }
 

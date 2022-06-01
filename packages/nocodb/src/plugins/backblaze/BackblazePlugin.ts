@@ -1,11 +1,11 @@
-import { IStorageAdapter, XcStoragePlugin } from 'nc-plugin';
+import { IStorageAdapterV2, XcStoragePlugin } from 'nc-plugin';
 
 import Backblaze from './Backblaze';
 
 class BackblazePlugin extends XcStoragePlugin {
   private static storageAdapter: Backblaze;
 
-  public getAdapter(): IStorageAdapter {
+  public getAdapter(): IStorageAdapterV2 {
     return BackblazePlugin.storageAdapter;
   }
 

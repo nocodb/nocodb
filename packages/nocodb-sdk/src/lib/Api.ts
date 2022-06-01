@@ -3512,7 +3512,12 @@ export class Api<
      */
     uploadByUrl: (
       query: { path: string },
-      data: { url?: string }[],
+      data: {
+        url?: string;
+        fileName?: string;
+        mimetype?: string;
+        size?: string;
+      }[],
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

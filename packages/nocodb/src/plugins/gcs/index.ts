@@ -6,7 +6,7 @@ import GcsPlugin from './GcsPlugin';
 const config: XcPluginConfig = {
   builder: GcsPlugin,
   title: 'GCS',
-  version: '0.0.1',
+  version: '0.0.2',
   logo: 'plugins/gcs.png',
   description:
     'Google Cloud Storage is a RESTful online file storage web service for storing and accessing data on Google Cloud Platform infrastructure.',

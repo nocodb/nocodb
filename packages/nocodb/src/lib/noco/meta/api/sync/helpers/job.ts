@@ -2,11 +2,9 @@ import FetchAT from './fetchAT';
 import { UITypes } from 'nocodb-sdk';
 import { Tele } from 'nc-help';
 // import * as sMap from './syncMap';
-import FormData from 'form-data';
 
 import { Api } from 'nocodb-sdk';
 
-import axios from 'axios';
 import Airtable from 'airtable';
 import jsonfile from 'jsonfile';
 import hash from 'object-hash';
@@ -1368,49 +1366,66 @@ export default async (
         case UITypes.Attachment:
           if (!syncDB.options.syncAttachment) rec[key] = null;
           else {
-            const tempArr = [];
-            for (const v of value) {
-              const binaryImage = await axios
-                .get(v.url, {
-                  responseType: 'stream',
-                  headers: {
-                    'Content-Type': v.type
-                  }
-                })
-                .then(response => {
-                  return response.data;
-                })
-                .catch(error => {
-                  console.log(error);
-                  return false;
-                });
+            let tempArr = [];
+            // for (const v of value) {
+            //   const binaryImage = await axios
+            //     .get(v.url, {
+            //       responseType: 'stream',
+            //       headers: {
+            //         'Content-Type': v.type
+            //       }
+            //     })
+            //     .then(response => {
+            //       return response.data;
+            //     })
+            //     .catch(error => {
+            //       console.log(error);
+            //       return false;
+            //     });
+            //
+            //   const imageFile: any = new FormData();
+            //   imageFile.append('files', binaryImage, {
+            //     filename: v.filename.includes('?')
+            //       ? v.filename.split('?')[0]
+            //       : v.filename
+            //   });
+            //
+            //   const rs = await axios
+            //     .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
+            //       params: {
+            //         path: `noco/${sDB.projectName}/${table.title}/${key}`
+            //       },
+            //       headers: {
+            //         'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
+            //         'xc-auth': sDB.authToken
+            //       }
+            //     })
+            //     .then(response => {
+            //       return response.data;
+            //     })
+            //     .catch(e => {
+            //       console.log(e);
+            //     });
+            //
+            //   tempArr.push(...(rs || []));
+            // }
 
-              const imageFile: any = new FormData();
-              imageFile.append('files', binaryImage, {
-                filename: v.filename.includes('?')
-                  ? v.filename.split('?')[0]
-                  : v.filename
-              });
-
-              const rs = await axios
-                .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
-                  params: {
-                    path: `noco/${sDB.projectName}/${table.title}/${key}`
-                  },
-                  headers: {
-                    'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
-                    'xc-auth': sDB.authToken
-                  }
-                })
-                .then(response => {
-                  return response.data;
-                })
-                .catch(e => {
-                  console.log(e);
-                });
-
-              tempArr.push(...(rs || []));
+            try {
+              tempArr = await api.storage.uploadByUrl(
+                {
+                  path: `noco/${sDB.projectName}/${table.title}/${key}`
+                },
+                value?.map(attachment => ({
+                  fileName: attachment.filename,
+                  url: attachment.url,
+                  size: attachment.size,
+                  mimetype: attachment.type
+                }))
+              );
+            } catch (e) {
+              console.log(e);
             }
+
             rec[key] = JSON.stringify(tempArr);
           }
           break;

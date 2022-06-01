@@ -1409,7 +1409,7 @@ export default async (
                   console.log(e);
                 });
 
-              tempArr.push(...rs);
+              tempArr.push(...(rs || []));
             }
             rec[key] = JSON.stringify(tempArr);
           }

@@ -134,7 +134,8 @@ export async function importLTARData({
   insertedAssocRef = {},
   logDetailed = _str => {},
   logBasic = _str => {},
-  records
+  records,
+  atNcAliasRef
 }: {
   projectName: string;
   table: { title?: string; id?: string };
@@ -145,6 +146,11 @@ export async function importLTARData({
   api: Api<any>;
   insertedAssocRef: { [assocTableId: string]: boolean };
   records?: Array<{ fields: any; id: string }>;
+  atNcAliasRef: {
+    [ncTableId: string]: {
+      [ncTitle: string]: string;
+    };
+  };
 }) {
   const assocTableMetas: Array<{
     modelMeta: { id?: string; title?: string };
@@ -207,10 +213,12 @@ export async function importLTARData({
 
       // todo: use actual alias instead of sanitized
       assocTableData.push(
-        ...(rec?.[assocMeta.colMeta.title] || []).map(id => ({
-          [assocMeta.curCol.title]: record.id,
-          [assocMeta.refCol.title]: id
-        }))
+        ...(rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []).map(
+          id => ({
+            [assocMeta.curCol.title]: record.id,
+            [assocMeta.refCol.title]: id
+          })
+        )
       );
     }
 

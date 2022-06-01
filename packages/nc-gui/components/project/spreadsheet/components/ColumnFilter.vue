@@ -92,31 +92,16 @@
               </template>
             </v-select>
 
-            <v-select
+            <field-list-auto-complete-dropdown
               :key="i + '_6'"
               v-model="filter.fk_column_id"
               class="caption nc-filter-field-select"
-              :items="columns"
-              :placeholder="$t('objects.field')"
-              solo
-              flat
-              dense
+              :columns="columns"
               :disabled="filter.readOnly"
-              hide-details
-              item-value="id"
-              item-text="title"
               @click.stop
               @change="saveOrUpdate(filter, i)"
-            >
-              <template #item="{ item }">
-                <span :class="`caption font-weight-regular nc-filter-fld-${item.title}`">
-                  <v-icon color="grey darken-4" small class="mr-1">
-                    {{ item.icon }}
-                  </v-icon>
-                  {{ item.title }}
-                </span>
-              </template>
-            </v-select>
+            />
+
             <v-select
               :key="'k' + i"
               v-model="filter.comparison_op"
@@ -184,9 +169,13 @@
 
 <script>
 import { getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
+import FieldListAutoCompleteDropdown from '~/components/project/spreadsheet/components/FieldListAutoCompleteDropdown'
 
 export default {
   name: 'ColumnFilter',
+  components: {
+    FieldListAutoCompleteDropdown
+  },
   props: {
     fieldList: [Array],
     meta: Object,
@@ -268,6 +257,11 @@ export default {
     ]
   }),
   computed: {
+    columnIcon() {
+      return this.meta.columns.reduce((iconsObj, c) => {
+        return { ...iconsObj, [c.title]: getUIDTIcon(c.uidt) }
+      }, {})
+    },
     columnsById() {
       return (this.columns || []).reduce((o, c) => ({ ...o, [c.id]: c }), {})
     },

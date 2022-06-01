@@ -49,6 +49,8 @@ export const genTest = (apiType, dbType) => {
 
                 // verify
                 mainPage.getPagination(5).click();
+                // kludge: flicker on load
+                cy.wait(3000)
                 mainPage
                     .getCell("Country", 10)
                     .contains("Test Country")

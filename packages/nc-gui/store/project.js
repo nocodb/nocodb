@@ -200,6 +200,9 @@ export const getters = {
   GtrProjectPrefix(state) {
     return state.project && state.project.prefix
   },
+  GtrClientType(state) {
+    return state.project && state.project.bases && state.project.bases[0]&& state.project.bases[0].type
+  },
 
   GtrApiEnvironment(state) {
     const projJson = state.unserializedList && state.unserializedList[0] ? state.unserializedList[0].projectJson : null

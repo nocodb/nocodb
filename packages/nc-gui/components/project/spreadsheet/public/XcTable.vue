@@ -77,7 +77,7 @@
               :data="data"
               :available-columns="availableColumns"
               :show-fields="showFields"
-              :nodes="{dbAlias:''}"
+              :nodes="{...nodes, dbConnection:{client}}"
               :sql-ui="sqlUi"
               :columns-width="columnsWidth"
               :password="password"
@@ -401,6 +401,7 @@ export default {
 
         this.sorts = this.viewMeta.sorts
         this.viewName = this.viewMeta.title
+        this.client = this.viewMeta.client
       } catch (e) {
         if (e.response && e.response.status === 404) {
           this.notFound = true

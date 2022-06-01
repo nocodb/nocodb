@@ -4,6 +4,7 @@
       open-on-hover
       bottom
       offset-y
+      transition="slide-y-transition"
     >
       <template #activator="{on}">
         <v-btn
@@ -309,6 +310,8 @@ export default {
                   input = '1'
                 }
               } else if (v.uidt === UITypes.Number) {
+                if (input == '') { input = null }
+              } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
                 if (input == '') { input = null }
               }
               res[col.destCn] = input

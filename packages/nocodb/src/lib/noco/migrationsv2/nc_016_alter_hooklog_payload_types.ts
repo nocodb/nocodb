@@ -1,26 +1,28 @@
-export const state = () => ({
-  releaseVersion: null,
-  hiddenRelease: null,
-  latestRelease: null
-})
+import Knex from 'knex';
+import { MetaTable } from '../../utils/globals';
 
-export const mutations = {
-  MutReleaseVersion(state, releaseVersion) {
-    state.releaseVersion = releaseVersion
-  },
-  MutHiddenRelease(state, hiddenRelease) {
-    state.hiddenRelease = hiddenRelease
-  },
-  MutLatestRelease(state, latestRelease) {
-    state.latestRelease = latestRelease
+const up = async (knex: Knex) => {
+  if (knex.client.config.client !== 'sqlite3') {
+    await knex.schema.alterTable(MetaTable.HOOK_LOGS, table => {
+      table.text('payload').alter();
+    });
   }
-}
+};
+
+const down = async knex => {
+  if (knex.client.config.client !== 'sqlite3') {
+    await knex.schema.alterTable(MetaTable.HOOK_LOGS, table => {
+      table.boolean('payload').alter();
+    });
+  }
+};
+
+export { up, down };
 
 /**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ * @copyright Copyright (c) 2022, Xgene Cloud Ltd
  *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author willnewii <willnewii@163.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

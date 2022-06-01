@@ -2,7 +2,7 @@ import { AirtableBase } from 'airtable/lib/airtable_base';
 import { Api, RelationTypes, TableType, UITypes } from 'nocodb-sdk';
 
 const BULK_DATA_BATCH_SIZE = 2000;
-const ASSOC_BULK_DATA_BATCH_SIZE = 2000;
+const ASSOC_BULK_DATA_BATCH_SIZE = 5000;
 
 async function readAllData({
   table,
@@ -199,14 +199,14 @@ export async function importLTARData({
   let nestedLinkCnt = 0;
   // Iterate over all related M2M associative  table
   for (const assocMeta of assocTableMetas) {
-    const insertData = [];
+    const assocTableData = [];
 
     //  extract insert data from records
     for (const record of allData) {
       const rec = record.fields;
 
       // todo: use actual alias instead of sanitized
-      insertData.push(
+      assocTableData.push(
         ...(rec?.[assocMeta.colMeta.title] || []).map(id => ({
           [assocMeta.curCol.title]: record.id,
           [assocMeta.refCol.title]: id
@@ -214,20 +214,29 @@ export async function importLTARData({
       );
     }
 
-    nestedLinkCnt += insertData.length;
+    nestedLinkCnt += assocTableData.length;
     // Insert datas as chunks of size `ASSOC_BULK_DATA_BATCH_SIZE`
-    for (let i = 0; i < insertData.length; i += ASSOC_BULK_DATA_BATCH_SIZE) {
+    for (
+      let i = 0;
+      i < assocTableData.length;
+      i += ASSOC_BULK_DATA_BATCH_SIZE
+    ) {
       logBasic(
         `:: Importing '${table.title}' LTAR data :: ${i + 1} - ${Math.min(
           i + ASSOC_BULK_DATA_BATCH_SIZE,
-          insertData.length
+          assocTableData.length
         )}`
       );
+
+      console.log(
+        assocTableData.slice(i, i + ASSOC_BULK_DATA_BATCH_SIZE).length
+      );
+
       await api.dbTableRow.bulkCreate(
         'nc',
         projectName,
         assocMeta.modelMeta.id,
-        insertData.slice(i, ASSOC_BULK_DATA_BATCH_SIZE)
+        assocTableData.slice(i, i + ASSOC_BULK_DATA_BATCH_SIZE)
       );
     }
   }

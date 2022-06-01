@@ -157,6 +157,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Meta | Post | project | sharedBaseCreate | /api/v1/db/meta/projects/{projectId}/shared |
 | Meta | Patch | project | sharedBaseUpdate | /api/v1/db/meta/projects/{projectId}/shared |
 | Meta | Post | storage | upload | /api/v1/db/storage/upload |
+| Meta | Post | storage | uploadByUrl | /api/v1/db/storage/upload-by-url |
 | Meta | Get | utils | commentList | /api/v1/db/meta/audits/comments |
 | Meta | Post | utils | commentRow | /api/v1/db/meta/audits/comments |
 | Meta | Get | utils | commentCount | /api/v1/db/meta/audits/comments/count |

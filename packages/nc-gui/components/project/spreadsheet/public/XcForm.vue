@@ -376,7 +376,7 @@ export default {
         const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
 
         if ((col && col.rqd && !col.cdf) || column.required) {
-          obj.localState[col.title] = { required }
+          obj.localState[column.title] = { required }
         }
       } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title] = {

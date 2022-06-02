@@ -1,25 +1,14 @@
 <template>
   <div class="duration-cell-wrapper">
-    <!--      v-model="localState"-->
-      <!-- v-on="parentListeners" -->
-
-      <!-- @keypress="checkDurationFormat($event)" -->
-
-    <!-- show unparse value when focusing -->
     <input
-      v-show="focused"
+      style="background: black; color: white"
       ref="durationUnparsedInput"
-      v-model="unparsedValue"
+      v-model="localState"
       :placeholder="selectedDurationTitle"
-      @blur="onUserInputBlur"
-    >
-    <!-- show the parsed value when bluring -->
-    <input
-      v-show="!focused"
-      ref="durationParsedInput"
-      v-model="parsedValue"
-      :placeholder="selectedDurationTitle"
-      @focus="onFocus"
+      @blur="onBlur"
+      @keypress="checkDurationFormat($event)"
+      @keydown.enter="$emit('input', msValue)"
+      v-on="parentListeners"
     >
     <div v-if="showWarningMessage == true" class="duration-warning">
       <!-- TODO: i18n -->
@@ -41,19 +30,30 @@ export default {
   },
   data: () => ({
     showWarningMessage: false,
-    focused: false,
-    unparsedValue: null,
-    parsedValue: null
+    msValue: null
   }),
   computed: {
     localState: {
       get() {
-        console.log("Trigging GET " + this.unparsedValue)
-        return this.unparsedValue
+        return this.parseDuration(this.value)
       },
       set(val) {
-        console.log('Trigging SET ' + val)
-        this.unparsedValue = val
+        // 10:00 (10 mins) -> 600000ms
+        const duration = moment.duration(val)
+        if (moment.isDuration(duration)) {
+          const d = duration._data
+          console.log(d)
+          const ms = d.hours * 3600000 + d.minutes * 60000 + d.seconds * 1000 + d.milliseconds
+          if (ms >= 0) {
+            console.log('VALID = ' + ms)
+            this.msValue = ms
+          } else {
+            console.log('NOT VALID')
+          }
+        } else {
+          console.log("NOT DURATION")
+          console.log(duration)
+        }
       }
     },
     parentListeners() {
@@ -76,21 +76,8 @@ export default {
       return durationOptions[this.column?.meta?.duration || 0].title
     }
   },
-  created() {
-    this.parsedValue = this.parseDuration(this.value)
-    this.unparsedValue = this.parsedValue
-  },
-   watch: {
-    value (val, oldVal) {
-        console.log("val " + val)
-        console.log("oldVal " + oldVal)
-      if (val != oldVal) {
-        this.parsedValue = this.parseDuration(val)
-        this.unparsedValue = this.parsedValue
-      }
-    }
-  },
   methods: {
+    // TODO: put it to helper
     parseDuration(val) {
       if (!val) return null
       console.log("parseDuration= " + val)
@@ -132,33 +119,8 @@ export default {
         return true
       }
     },
-    onUserInputBlur(){
-      console.log("onUserInputBlur")
-      // 10:00 (10 mins) -> 600000ms
-      const duration = moment.duration(this.unparsedValue)
-      if (moment.isDuration(duration)) {
-        const d = duration._data
-        console.log(d)
-        const ms = d.hours * 3600000 + d.minutes * 60000 + d.seconds * 1000 + d.milliseconds
-        if (ms >= 0) {
-          console.log('VALID = ' + ms)
-          this.$emit('input', ms)
-          this.unparsedValue = this.parseDuration(ms)
-          this.parsedValue = this.parseDuration(ms)
-        } else {
-          console.log('NOT VALID')
-        }
-      } else {
-        console.log("NOT DURATION")
-        console.log(duration)
-      }
-      this.focused = false
-    },
-    onFocus() {
-      console.log("onFocus")
-      this.focused = true
-      this.$nextTick(() => this.$refs.durationUnparsedInput.focus())
-      this.$nextTick(() => this.$refs.durationParsedInput.blur())
+    onBlur(){
+      this.$emit('input', this.msValue)
     },
   }
 }

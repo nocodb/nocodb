@@ -1,9 +1,9 @@
 <template>
-  <input style="background-color: red; color: white;" v-model="localState" :disabled="true"/>
+  <span>{{ localValue }}</span>
 </template>
 
 <script>
-import moment from 'moment'
+import { parseDuration } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
@@ -13,15 +13,9 @@ export default {
     localValue: null
   }),
   created() {
-    this.localValue = this.value  
+    this.localValue = parseDuration(this.value, this.column?.meta?.duration || 0)
   },
-  computed: {
-    localState: {
-      get() {
-        return this.parseDuration(this.localValue)
-      }
-    }
-  },
+  computed: { },
   watch: { 
     value (val, oldVal) {
       if (val != oldVal && (!val && val !== 0)) {
@@ -31,32 +25,6 @@ export default {
       }
     }
   },
-  methods: {
-    parseDuration(val) {
-        if (!val) return null
-        console.log("parseDuration= " + val)
-        // 600000ms --> 10:00 (10 mins)
-        const d = moment.duration(val, 'milliseconds')._data
-        const durationType = this.column?.meta?.duration || 0
-        if (durationType === 0) {
-        // h:mm
-        return `${d.hours}:${d.minutes}`
-        } else if (durationType === 1) {
-        // h:mm:ss
-        return `${d.hours}:${d.minutes}:${d.seconds}`
-        } else if (durationType === 2) {
-        // h:mm:ss.s
-        return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 100)}`
-        } else if (durationType === 3) {
-        // h:mm:ss.ss
-        return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 10)}`
-        } else if (durationType === 4) {
-        // h:mm:ss.sss
-        return `${d.hours}:${d.minutes}:${d.seconds}.${d.milliseconds}`
-        }
-        return val
-    },
-  }
 }
 </script>
 

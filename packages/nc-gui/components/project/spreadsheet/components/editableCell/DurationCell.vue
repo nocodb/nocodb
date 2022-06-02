@@ -1,14 +1,12 @@
 <template>
   <div class="duration-cell-wrapper">
     <input
-      style="background: black; color: white"
-      ref="durationUnparsedInput"
+      ref="durationInput"
       v-model="localState"
-      :placeholder="selectedDurationTitle"
+      :placeholder="durationPlaceholder"
       @blur="onBlur"
       @keypress="checkDurationFormat($event)"
-      @keydown.enter="$emit('input', msValue)"
-      v-on="parentListeners"
+      @keydown.enter="$emit('input', durationInMS)"
     >
     <div v-if="showWarningMessage == true" class="duration-warning">
       <!-- TODO: i18n -->
@@ -19,7 +17,7 @@
 
 <script>
 import moment from 'moment'
-import { durationOptions } from '~/helpers/durationHelper'
+import { durationOptions, parseDuration } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
@@ -30,83 +28,35 @@ export default {
   },
   data: () => ({
     showWarningMessage: false,
-    msValue: null
+    durationInMS: null
   }),
-  mounted(){
-    window.addEventListener("keypress", _ => {
-      this.$refs.durationUnparsedInput.focus();
-    });
-  },
   computed: {
     localState: {
       get() {
-        return this.parseDuration(this.value)
+        return parseDuration(this.value, this.column?.meta?.duration || 0)
       },
       set(val) {
         // 10:00 (10 mins) -> 600000ms
         const duration = moment.duration(val)
         if (moment.isDuration(duration)) {
           const d = duration._data
-          console.log(d)
           const ms = d.hours * 3600000 + d.minutes * 60000 + d.seconds * 1000 + d.milliseconds
           if (ms >= 0) {
-            console.log('VALID = ' + ms)
-            this.msValue = ms
-          } else {
-            console.log('NOT VALID')
+            this.durationInMS = ms
           }
-        } else {
-          console.log("NOT DURATION")
-          console.log(duration)
         }
       }
     },
-    parentListeners() {
-      const $listeners = {}
-
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
-
-      if (this.$listeners.cancel) {
-        $listeners.cancel = this.$listeners.cancel
-      }
-
-      return $listeners
-    },
-    selectedDurationTitle() {
+    durationPlaceholder() {
       return durationOptions[this.column?.meta?.duration || 0].title
     }
   },
+  mounted() {
+    window.addEventListener('keypress', (_) => {
+      this.$refs.durationInput.focus()
+    })
+  },
   methods: {
-    // TODO: put it to helper
-    parseDuration(val) {
-      if (!val) return null
-      console.log("parseDuration= " + val)
-      // 600000ms --> 10:00 (10 mins)
-      const d = moment.duration(val, 'milliseconds')._data
-      const durationType = this.column?.meta?.duration || 0
-      if (durationType === 0) {
-        // h:mm
-        return `${d.hours}:${d.minutes}`
-      } else if (durationType === 1) {
-        // h:mm:ss
-        return `${d.hours}:${d.minutes}:${d.seconds}`
-      } else if (durationType === 2) {
-        // h:mm:ss.s
-        return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 100)}`
-      } else if (durationType === 3) {
-        // h:mm:ss.ss
-        return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 10)}`
-      } else if (durationType === 4) {
-        // h:mm:ss.sss
-        return `${d.hours}:${d.minutes}:${d.seconds}.${d.milliseconds}`
-      }
-      return val
-    },
     checkDurationFormat(evt) {
       evt = evt || window.event
       const charCode = (evt.which) ? evt.which : evt.keyCode
@@ -124,9 +74,9 @@ export default {
         return true
       }
     },
-    onBlur(){
-      this.$emit('input', this.msValue)
-    },
+    onBlur() {
+      this.$emit('input', this.durationInMS)
+    }
   }
 }
 </script>

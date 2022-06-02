@@ -1,10 +1,35 @@
+import moment from 'moment'
+
 export const durationOptions = [
-    {id: 0, title: 'h:mm', example: '(e.g. 1:23)'},
-    {id: 1, title: 'h:mm:ss', example: '(e.g. 3:45, 1:23:40)'},
-    {id: 2, title: 'h:mm:ss.s', example: '(e.g. 3:34.6, 1:23:40.0)'},
-    {id: 3, title: 'h:mm:ss.ss', example: '(e.g. 3.45.67, 1:23:40.00)'},
-    {id: 4, title: 'h:mm:ss.sss', example: '(e.g. 3.45.678, 1:23:40.000)'},
+  { id: 0, title: 'h:mm', example: '(e.g. 1:23)' },
+  { id: 1, title: 'h:mm:ss', example: '(e.g. 3:45, 1:23:40)' },
+  { id: 2, title: 'h:mm:ss.s', example: '(e.g. 3:34.6, 1:23:40.0)' },
+  { id: 3, title: 'h:mm:ss.ss', example: '(e.g. 3.45.67, 1:23:40.00)' },
+  { id: 4, title: 'h:mm:ss.sss', example: '(e.g. 3.45.678, 1:23:40.000)' }
 ]
+
+export const parseDuration = (val, durationType) => {
+  if (!val) { return null }
+  // 600000ms --> 10:00 (10 mins)
+  const d = moment.duration(val, 'milliseconds')._data
+  if (durationType === 0) {
+    // h:mm
+    return `${d.hours}:${d.minutes}`
+  } else if (durationType === 1) {
+    // h:mm:ss
+    return `${d.hours}:${d.minutes}:${d.seconds}`
+  } else if (durationType === 2) {
+    // h:mm:ss.s
+    return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 100)}`
+  } else if (durationType === 3) {
+    // h:mm:ss.ss
+    return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 10)}`
+  } else if (durationType === 4) {
+    // h:mm:ss.sss
+    return `${d.hours}:${d.minutes}:${d.seconds}.${d.milliseconds}`
+  }
+  return val
+}
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

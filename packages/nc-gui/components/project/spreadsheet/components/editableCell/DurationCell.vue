@@ -1,10 +1,25 @@
 <template>
   <div class="duration-cell-wrapper">
+    <!--      v-model="localState"-->
+      <!-- v-on="parentListeners" -->
+
+      <!-- @keypress="checkDurationFormat($event)" -->
+
+    <!-- show unparse value when focusing -->
     <input
-      v-model="localState"
+      v-show="focused"
+      ref="durationUnparsedInput"
+      v-model="unparsedValue"
       :placeholder="selectedDurationTitle"
-      v-on="parentListeners"
-      @keypress="checkDurationFormat($event)"
+      @blur="onUserInputBlur"
+    >
+    <!-- show the parsed value when bluring -->
+    <input
+      v-show="!focused"
+      ref="durationParsedInput"
+      v-model="parsedValue"
+      :placeholder="selectedDurationTitle"
+      @focus="onFocus"
     >
     <div v-if="showWarningMessage == true" class="duration-warning">
       <!-- TODO: i18n -->
@@ -21,43 +36,24 @@ export default {
   name: 'DurationCell',
   props: {
     column: Object,
-    value: [String, Number],
+    value: Number,
     readOnly: Boolean
   },
   data: () => ({
-    showWarningMessage: false
+    showWarningMessage: false,
+    focused: false,
+    unparsedValue: null,
+    parsedValue: null
   }),
   computed: {
     localState: {
       get() {
-        // 600000ms --> 10:00 (10 mins)
-        const d = moment.duration(this.value, 'milliseconds')._data
-        const durationType = this.column?.meta?.duration || 0
-        if (durationType === 0) {
-          // h:mm
-          return `${d.hours}:${d.minutes}`
-        } else if (durationType === 1) {
-          // h:mm:ss
-          return `${d.hours}:${d.minutes}:${d.seconds}`
-        } else if (durationType === 2) {
-          // h:mm:ss.s
-          return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 100)}`
-        } else if (durationType === 3) {
-          // h:mm:ss.ss
-          return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 10)}`
-        } else if (durationType === 4) {
-          // h:mm:ss.sss
-          return `${d.hours}:${d.minutes}:${d.seconds}.${d.milliseconds}`
-        }
-        return this.value
+        console.log("Trigging GET " + this.unparsedValue)
+        return this.unparsedValue
       },
       set(val) {
-        // 10:00 -> 600
-        // TODO: only save if val is valid
-        // use moment.isValid()
-        if (val) {
-          this.$emit('input', val)
-        }
+        console.log('Trigging SET ' + val)
+        this.unparsedValue = val
       }
     },
     parentListeners() {
@@ -80,7 +76,45 @@ export default {
       return durationOptions[this.column?.meta?.duration || 0].title
     }
   },
+  created() {
+    this.parsedValue = this.parseDuration(this.value)
+    this.unparsedValue = this.parsedValue
+  },
+   watch: {
+    value (val, oldVal) {
+        console.log("val " + val)
+        console.log("oldVal " + oldVal)
+      if (val != oldVal) {
+        this.parsedValue = this.parseDuration(val)
+        this.unparsedValue = this.parsedValue
+      }
+    }
+  },
   methods: {
+    parseDuration(val) {
+      if (!val) return null
+      console.log("parseDuration= " + val)
+      // 600000ms --> 10:00 (10 mins)
+      const d = moment.duration(val, 'milliseconds')._data
+      const durationType = this.column?.meta?.duration || 0
+      if (durationType === 0) {
+        // h:mm
+        return `${d.hours}:${d.minutes}`
+      } else if (durationType === 1) {
+        // h:mm:ss
+        return `${d.hours}:${d.minutes}:${d.seconds}`
+      } else if (durationType === 2) {
+        // h:mm:ss.s
+        return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 100)}`
+      } else if (durationType === 3) {
+        // h:mm:ss.ss
+        return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 10)}`
+      } else if (durationType === 4) {
+        // h:mm:ss.sss
+        return `${d.hours}:${d.minutes}:${d.seconds}.${d.milliseconds}`
+      }
+      return val
+    },
     checkDurationFormat(evt) {
       evt = evt || window.event
       const charCode = (evt.which) ? evt.which : evt.keyCode
@@ -97,7 +131,35 @@ export default {
         // only allow digits, '.' and ':' (without quotes)
         return true
       }
-    }
+    },
+    onUserInputBlur(){
+      console.log("onUserInputBlur")
+      // 10:00 (10 mins) -> 600000ms
+      const duration = moment.duration(this.unparsedValue)
+      if (moment.isDuration(duration)) {
+        const d = duration._data
+        console.log(d)
+        const ms = d.hours * 3600000 + d.minutes * 60000 + d.seconds * 1000 + d.milliseconds
+        if (ms >= 0) {
+          console.log('VALID = ' + ms)
+          this.$emit('input', ms)
+          this.unparsedValue = this.parseDuration(ms)
+          this.parsedValue = this.parseDuration(ms)
+        } else {
+          console.log('NOT VALID')
+        }
+      } else {
+        console.log("NOT DURATION")
+        console.log(duration)
+      }
+      this.focused = false
+    },
+    onFocus() {
+      console.log("onFocus")
+      this.focused = true
+      this.$nextTick(() => this.$refs.durationUnparsedInput.focus())
+      this.$nextTick(() => this.$refs.durationParsedInput.blur())
+    },
   }
 }
 </script>

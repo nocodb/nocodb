@@ -42,7 +42,6 @@
       :is-form="isForm"
       :column="column"
       :is-locked="isLocked"
-      v-on="parentListeners"
     />
 
     <boolean-cell
@@ -206,10 +205,13 @@ export default {
         return this.value
       },
       set(val) {
+        console.log("Val= " + val)
+        console.log("this.value= " + this.value)
         if (val !== this.value) {
           this.changed = true
+          console.log("Saving " + val)
           this.$emit('input', val)
-          if (this.isAttachment || this.isEnum || this.isBoolean || this.isRating || this.isSet || this.isTime || this.isDateTime || this.isDate) {
+          if (this.isAttachment || this.isEnum || this.isBoolean || this.isRating || this.isSet || this.isTime || this.isDateTime || this.isDate || this.isDuration) {
             this.syncData()
           } else if (!this.isCurrency) {
             this.syncDataDebounce(this)
@@ -240,7 +242,7 @@ export default {
     // this.$refs.input.focus();
   },
   beforeDestroy() {
-    if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isRating || this.isSet || this.isTime || this.isDateTime)) {
+    if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isRating || this.isSet || this.isTime || this.isDateTime || this.isDuration)) {
       this.changed = false
       this.$emit('change')
     }

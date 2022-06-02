@@ -32,6 +32,11 @@ export default {
     showWarningMessage: false,
     msValue: null
   }),
+  mounted(){
+    window.addEventListener("keypress", _ => {
+      this.$refs.durationUnparsedInput.focus();
+    });
+  },
   computed: {
     localState: {
       get() {

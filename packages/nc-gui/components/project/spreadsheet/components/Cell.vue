@@ -17,7 +17,7 @@
   <date-time-cell v-else-if="isDateTime" :value="value" />
   <time-cell v-else-if="isTime" :value="value" />
   <boolean-cell v-else-if="isBoolean" :value="value" read-only />
-  <duration-cell v-else-if="isDuration" :column="column" :value="value" />
+  <duration-cell v-else-if="isDuration" :column="column" :value="value" read-only/>
   <rating-cell v-else-if="isRating" :value="value" read-only />
   <currency-cell v-else-if="isCurrency" :value="value" :column="column" />
 
@@ -38,7 +38,7 @@ import BooleanCell from '~/components/project/spreadsheet/components/cell/Boolea
 import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCell'
 import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
 import CurrencyCell from '@/components/project/spreadsheet/components/cell/CurrencyCell'
-import DurationCell from '@/components/project/spreadsheet/components/editableCell/DurationCell'
+import DurationCell from '@/components/project/spreadsheet/components/cell/DurationCell'
 
 export default {
   name: 'TableCell',

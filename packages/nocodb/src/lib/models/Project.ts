@@ -73,6 +73,8 @@ export default class Project implements ProjectType {
         ncMeta
       );
     }
+
+    await NocoCache.del(CacheScope.INSTANCE_META);
     return this.getWithInfo(projectId, ncMeta);
   }
 
@@ -191,6 +193,8 @@ export default class Project implements ProjectType {
       await NocoCache.del(`${CacheScope.PROJECT}:ref:${o.id}`);
     }
 
+    await NocoCache.del(CacheScope.INSTANCE_META);
+
     // remove item in cache list
     await NocoCache.deepDel(
       CacheScope.PROJECT,
@@ -248,6 +252,9 @@ export default class Project implements ProjectType {
         );
       }
       o = { ...o, ...updateObj };
+
+      await NocoCache.del(CacheScope.INSTANCE_META);
+
       // set cache
       await NocoCache.set(key, o);
     }

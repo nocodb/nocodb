@@ -51,6 +51,9 @@ export default class User implements UserType {
       MetaTable.USERS,
       insertObj
     );
+
+    await NocoCache.del(CacheScope.INSTANCE_META);
+
     return this.get(id, ncMeta);
   }
   public static async update(id, user: Partial<User>, ncMeta = Noco.ncMeta) {

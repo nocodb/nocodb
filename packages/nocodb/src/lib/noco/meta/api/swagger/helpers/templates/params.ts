@@ -93,7 +93,7 @@ export const columnNameParam = (columns: SwaggerColumn[]) => {
 
   return {
     schema: {
-      type: 'enum',
+      type: 'string',
       enum: columnNames
     },
     name: 'columnName',

@@ -13,7 +13,7 @@
 const ncConfig = {
   baseURL: "http://localhost:8080",
   headers: {
-    'xc-auth': ""
+    'xc-auth': "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJlbWFpbCI6InVzZXJAbm9jb2RiLmNvbSIsImZpcnN0bmFtZSI6bnVsbCwibGFzdG5hbWUiOm51bGwsImlkIjoidXNfZ3RvN28zOXkwaWcyZDYiLCJyb2xlcyI6InVzZXIsc3VwZXIiLCJpYXQiOjE2NTQyNjE4NTN9.P1j670xZSHFNAL3FkoezAEerw4IZQbL5X8f1XAFveMc"
   }
 }
 
@@ -61,7 +61,7 @@ async function init(pName) {
 
 (async() => {
   // let project = await openProject("sample2");
-  let project = await init("sample2")
+  let project = await init("sample")
   let tblCity = await createTable(project.id, schemaCity)
   let tblCountry = await createTable(project.id, schemaCountry)
 
@@ -74,12 +74,26 @@ async function init(pName) {
     onDelete: 'CASCADE'
   });
 
-  await api.dbTableRow.bulkCreate("nc", project.id, tblCity.id, [{Title: "a1"}, {Title: "a2"}, {Title: "a3"}, {Title: "a4"}])
-  await api.dbTableRow.bulkCreate("nc", project.id, tblCountry.id, [{Title: "b1"}, {Title: "b2"}, {Title: "b3"}, {Title: "b4"}])
-  for (let i=1; i<=4; i++)
-    await api.dbTableRow.nestedAdd("nc", project.id, tblCity.id, `${i}`, "mm", "countryRead", `${i}`);
-  await api.dbTableRow.bulkDeleteAll("nc", project.id, tblCity.id, ["1", "2", "3", "4"])
-  await api.dbTableRow.bulkDeleteAll("nc", project.id, tblCountry.id, ["1", "2", "3", "4"])
+  await api.dbTableColumn.create(tblCountry.id, {
+    title: "cityList",
+    uidt: UITypes.LinkToAnotherRecord,
+    parentId: tblCountry.id,
+    childId: tblCity.id,
+    type: 'hm'
+  });
+
+  let cityRecords = []
+  for (let i=0; i<1000; i++)
+    cityRecords.push({Title: `city_${i}`})
+
+  await api.dbTableRow.bulkCreate("nc", project.id, tblCity.id, cityRecords)
+  await api.dbTableRow.bulkCreate("nc", project.id, tblCountry.id, [{Title: "b1"}, {Title: "b2"}])
+  for (let i=1; i<=1000; i++)
+    await api.dbTableRow.nestedAdd("nc", project.id, tblCity.id, `${i}`, "mm", "countryRead", `1`);
+  for (let i=1; i<=1000; i++)
+    await api.dbTableRow.nestedAdd("nc", project.id, tblCountry.id, `1`, "mm", "cityList", `${i}`);
+  // await api.dbTableRow.bulkDeleteAll("nc", project.id, tblCity.id, ["1", "2", "3", "4"])
+  // await api.dbTableRow.bulkDeleteAll("nc", project.id, tblCountry.id, ["1", "2", "3", "4"])
 
 })().catch(e => console.log(e))
 

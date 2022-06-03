@@ -156,7 +156,7 @@
     "nc-lib-gui": "npm:finn-nc-lib-gui@0.91.0-finn.0",
     "nc-plugin": "^0.1.1",
     "ncp": "^2.0.0",
-    "nocodb-sdk": "file:../nocodb-sdk",
+    "nocodb-sdk": "^0.91.7",
     "nodemailer": "^6.4.10",
     "object-hash": "^3.0.0",
     "ora": "^4.0.4",

@@ -13,7 +13,7 @@ const imageExt = [
 export default imageExt
 
 const isImage = (name, type) => {
-  return imageExt.some(e => name.toLowerCase().endsWith(`.${e}`)) || (type || '').startsWith('image/')
+  return imageExt.some(e => (name && name.toLowerCase().endsWith(`.${e}`))) || (type || '').startsWith('image/')
 }
 
 export { isImage }

@@ -14,7 +14,8 @@ export default {
     fieldsSync: true,
     gridColUpdate: true,
     filterSync: true,
-    csvImport: true
+    csvImport: true,
+    apiDocs: true
   },
   commenter: {
     smartSheet: true,

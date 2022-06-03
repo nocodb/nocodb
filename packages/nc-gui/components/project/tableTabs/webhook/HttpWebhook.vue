@@ -33,7 +33,7 @@
         >({{ paramsCount }})</b></span>
       </v-tab>
       <v-tab v-ge="['api-client','headers']" class="caption">
-        <span class="text-capitalize">Headers&nbsp;<b
+        <span class="text-capitalize nc-tab-hook-header">Headers&nbsp;<b
           v-if="headersCount"
           class="green--text"
         >({{

@@ -2,7 +2,7 @@
   <v-form v-if="hook" ref="form" v-model="valid" class="mx-4" lazy-validation>
     <div>
       <a class="pointer mx-4" @click="$emit('backToList')">
-        <v-icon class="ml-n1">mdi-arrow-left-bold</v-icon>
+        <v-icon class="ml-n1 nc-icon-hook-navigate-left">mdi-arrow-left-bold</v-icon>
       </a>
     </div>
     <v-card-title>
@@ -181,7 +181,7 @@
             v-model="hook.condition"
             dense
             hide-details
-            class="mt-1"
+            class="mt-1 nc-check-box-hook-condition"
             label="On Condition"
           />
 

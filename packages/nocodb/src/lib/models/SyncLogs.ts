@@ -1,4 +1,4 @@
-import Noco from '../noco/Noco';
+import Noco from '../Noco';
 import { MetaTable } from '../utils/globals';
 
 export default class SyncLogs {

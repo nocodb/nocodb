@@ -1,6 +1,6 @@
 import { AuditOperationTypes, AuditType } from 'nocodb-sdk';
 import { MetaTable } from '../utils/globals';
-import Noco from '../noco/Noco';
+import Noco from '../Noco';
 import Model from './Model';
 
 export default class Audit implements AuditType {

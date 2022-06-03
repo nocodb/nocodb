@@ -4,7 +4,7 @@ import {
   CacheScope,
   MetaTable
 } from '../utils/globals';
-import Noco from '../noco/Noco';
+import Noco from '../Noco';
 import NocoCache from '../cache/NocoCache';
 import User from './User';
 

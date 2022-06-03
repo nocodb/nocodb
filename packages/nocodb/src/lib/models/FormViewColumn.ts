@@ -1,9 +1,9 @@
-import Noco from '../noco/Noco';
+import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import { FormColumnType } from 'nocodb-sdk';
 import View from './View';
 import NocoCache from '../cache/NocoCache';
-import extractProps from '../noco/meta/helpers/extractProps';
+import extractProps from '../meta/helpers/extractProps';
 
 export default class FormViewColumn implements FormColumnType {
   id?: string;

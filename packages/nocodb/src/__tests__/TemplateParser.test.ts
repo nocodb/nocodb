@@ -1,6 +1,6 @@
 import { expect } from 'chai';
 import 'mocha';
-import NcTemplateParser from '../lib/template-parser/NcTemplateParser';
+import NcTemplateParser from '../lib/v1-legacy/templates/NcTemplateParser';
 import template from './template';
 
 describe('Template parser', () => {

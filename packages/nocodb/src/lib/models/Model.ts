@@ -1,8 +1,8 @@
-import Noco from '../../lib/noco/Noco';
+import Noco from '../Noco';
 import Column from './Column';
 import NocoCache from '../cache/NocoCache';
-import { XKnex } from '../sql-data-mapper';
-import { BaseModelSqlv2 } from '../sql-data-mapper/lib/sql/BaseModelSqlv2';
+import { XKnex } from '../db/sql-data-mapper';
+import { BaseModelSqlv2 } from '../db/sql-data-mapper/lib/sql/BaseModelSqlv2';
 import {
   isVirtualCol,
   ModelTypes,
@@ -18,7 +18,7 @@ import {
   MetaTable
 } from '../utils/globals';
 import View from './View';
-import { NcError } from '../noco/meta/helpers/catchError';
+import { NcError } from '../meta/helpers/catchError';
 import Audit from './Audit';
 
 export default class Model implements TableType {

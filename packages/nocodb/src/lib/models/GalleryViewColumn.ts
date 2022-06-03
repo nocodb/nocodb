@@ -1,4 +1,4 @@
-import Noco from '../noco/Noco';
+import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from '../utils/globals';
 import View from './View';
 import NocoCache from '../cache/NocoCache';

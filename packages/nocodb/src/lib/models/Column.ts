@@ -14,11 +14,11 @@ import {
   MetaTable
 } from '../utils/globals';
 import View from './View';
-import Noco from '../noco/Noco';
+import Noco from '../Noco';
 import Sort from './Sort';
 import Filter from './Filter';
-import addFormulaErrorIfMissingColumn from '../noco/meta/helpers/addFormulaErrorIfMissingColumn';
-import { NcError } from '../noco/meta/helpers/catchError';
+import addFormulaErrorIfMissingColumn from '../meta/helpers/addFormulaErrorIfMissingColumn';
+import { NcError } from '../meta/helpers/catchError';
 
 export default class Column<T = any> implements ColumnType {
   public fk_model_id: string;

@@ -1,5 +1,5 @@
 import Base from './/Base';
-import Noco from '../noco/Noco';
+import Noco from '../Noco';
 import { ProjectType } from 'nocodb-sdk';
 import {
   CacheDelDirection,
@@ -7,7 +7,7 @@ import {
   CacheScope,
   MetaTable
 } from '../utils/globals';
-import extractProps from '../noco/meta/helpers/extractProps';
+import extractProps from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
 
 export default class Project implements ProjectType {

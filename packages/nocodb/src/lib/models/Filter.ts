@@ -1,4 +1,4 @@
-import Noco from '../../lib/noco/Noco';
+import Noco from '../Noco';
 import Model from './Model';
 import Column from './Column';
 import {

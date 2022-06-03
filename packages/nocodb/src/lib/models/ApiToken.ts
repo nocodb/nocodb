@@ -4,7 +4,7 @@ import {
   CacheScope,
   MetaTable
 } from '../utils/globals';
-import Noco from '../noco/Noco';
+import Noco from '../Noco';
 import { nanoid } from 'nanoid';
 import NocoCache from '../cache/NocoCache';
 

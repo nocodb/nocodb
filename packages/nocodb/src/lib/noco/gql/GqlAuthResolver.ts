@@ -8,7 +8,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 
 import IEmailAdapter from '../../../interface/IEmailAdapter';
 import { DbConfig, NcConfig } from '../../../interface/config';
-import { Knex, XKnex } from '../../dataMapper';
+import { Knex, XKnex } from '../../sql-data-mapper';
 import Noco from '../Noco';
 
 import authSchema from './auth/schema';

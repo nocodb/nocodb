@@ -6,7 +6,7 @@ import { Router } from 'express';
 import { SqlClientFactory, Tele } from 'nc-help';
 
 import { NcConfig } from '../../interface/config';
-import Migrator from '../migrator/SqlMigrator/lib/KnexMigrator';
+import Migrator from '../sql-migrator/lib/KnexMigrator';
 
 import Noco from './Noco';
 import { GqlApiBuilder } from './gql/GqlApiBuilder';
@@ -702,14 +702,14 @@ export default class NcProjectBuilder {
             config: this.config,
             projectId: this.id
           });
-          /* create migrator */
+          /* create sql-migrator */
           const migrator = new Migrator({
             project_id: this.id,
             config: this.config,
             metaDb: this.app?.ncMeta?.knex
           });
 
-          /* if migrator folder doesn't exist for project - call migratior init */
+          /* if sql-migrator folder doesn't exist for project - call migratior init */
           const migrationFolder = path.join(
             this.app.getToolDir(),
             'nc',
@@ -725,7 +725,7 @@ export default class NcProjectBuilder {
             });
           }
 
-          /* migrator : sync & up */
+          /* sql-migrator : sync & up */
           await migrator.sync({
             folder: this.app.getToolDir(),
             env: this.appConfig.workingEnv,

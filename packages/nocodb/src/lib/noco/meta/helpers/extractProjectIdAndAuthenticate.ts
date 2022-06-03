@@ -1,16 +1,16 @@
 import { promisify } from 'util';
 
 import passport from 'passport';
-import Model from '../../../noco-models/Model';
-import View from '../../../noco-models/View';
-import Hook from '../../../noco-models/Hook';
-import GridViewColumn from '../../../noco-models/GridViewColumn';
-import FormViewColumn from '../../../noco-models/FormViewColumn';
-import GalleryViewColumn from '../../../noco-models/GalleryViewColumn';
-import Project from '../../../noco-models/Project';
-import Column from '../../../noco-models/Column';
-import Filter from '../../../noco-models/Filter';
-import Sort from '../../../noco-models/Sort';
+import Model from '../../../models/Model';
+import View from '../../../models/View';
+import Hook from '../../../models/Hook';
+import GridViewColumn from '../../../models/GridViewColumn';
+import FormViewColumn from '../../../models/FormViewColumn';
+import GalleryViewColumn from '../../../models/GalleryViewColumn';
+import Project from '../../../models/Project';
+import Column from '../../../models/Column';
+import Filter from '../../../models/Filter';
+import Sort from '../../../models/Sort';
 
 export default async (req, res, next) => {
   try {

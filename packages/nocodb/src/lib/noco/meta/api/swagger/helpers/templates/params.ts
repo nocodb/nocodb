@@ -1,6 +1,6 @@
 import { SwaggerColumn } from '../getSwaggerColumnMetas';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
-import LinkToAnotherRecordColumn from '../../../../../../noco-models/LinkToAnotherRecordColumn';
+import LinkToAnotherRecordColumn from '../../../../../../models/LinkToAnotherRecordColumn';
 
 export const rowIdParam = {
   schema: {

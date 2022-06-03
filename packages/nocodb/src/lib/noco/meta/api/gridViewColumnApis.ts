@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import GridViewColumn from '../../../noco-models/GridViewColumn';
+import GridViewColumn from '../../../models/GridViewColumn';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';

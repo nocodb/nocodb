@@ -1,34 +1,34 @@
 import { NcUpgraderCtx } from '../NcUpgrader';
 import Noco from '../../Noco';
-import User from '../../../noco-models/User';
-import Project from '../../../noco-models/Project';
-import ProjectUser from '../../../noco-models/ProjectUser';
-import Model from '../../../noco-models/Model';
+import User from '../../../models/User';
+import Project from '../../../models/Project';
+import ProjectUser from '../../../models/ProjectUser';
+import Model from '../../../models/Model';
 import {
   ModelTypes,
   substituteColumnAliasWithIdInFormula,
   UITypes,
   ViewTypes
 } from 'nocodb-sdk';
-import Column from '../../../noco-models/Column';
-import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
+import Column from '../../../models/Column';
+import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import NcHelp from '../../../utils/NcHelp';
-import RollupColumn from '../../../noco-models/RollupColumn';
-import View from '../../../noco-models/View';
-import GridView from '../../../noco-models/GridView';
-import KanbanView from '../../../noco-models/KanbanView';
-import FormView from '../../../noco-models/FormView';
-import GalleryView from '../../../noco-models/GalleryView';
-import Sort from '../../../noco-models/Sort';
-import Filter from '../../../noco-models/Filter';
-import ModelRoleVisibility from '../../../noco-models/ModelRoleVisibility';
+import RollupColumn from '../../../models/RollupColumn';
+import View from '../../../models/View';
+import GridView from '../../../models/GridView';
+import KanbanView from '../../../models/KanbanView';
+import FormView from '../../../models/FormView';
+import GalleryView from '../../../models/GalleryView';
+import Sort from '../../../models/Sort';
+import Filter from '../../../models/Filter';
+import ModelRoleVisibility from '../../../models/ModelRoleVisibility';
 import { MetaTable } from '../../../utils/globals';
-import Hook from '../../../noco-models/Hook';
-import FormViewColumn from '../../../noco-models/FormViewColumn';
-import GridViewColumn from '../../../noco-models/GridViewColumn';
+import Hook from '../../../models/Hook';
+import FormViewColumn from '../../../models/FormViewColumn';
+import GridViewColumn from '../../../models/GridViewColumn';
 import { getUniqueColumnAliasName } from '../../meta/helpers/getUniqueName';
 import NcProjectBuilderEE from '../../NcProjectBuilderEE';
-import Audit from '../../../noco-models/Audit';
+import Audit from '../../../models/Audit';
 
 export default async function(ctx: NcUpgraderCtx) {
   const ncMeta = ctx.ncMeta;

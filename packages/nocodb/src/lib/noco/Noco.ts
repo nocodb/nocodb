@@ -16,7 +16,7 @@ import requestIp from 'request-ip';
 import { v4 as uuidv4 } from 'uuid';
 
 import { NcConfig } from '../../interface/config';
-import Migrator from '../migrator/SqlMigrator/lib/KnexMigrator';
+import Migrator from '../sql-migrator/lib/KnexMigrator';
 import NcConfigFactory from '../utils/NcConfigFactory';
 
 import NcProjectBuilderCE from './NcProjectBuilder';
@@ -34,10 +34,10 @@ import mkdirp from 'mkdirp';
 import MetaAPILogger from './meta/MetaAPILogger';
 import NcUpgrader from './upgrader/NcUpgrader';
 import NcMetaMgrv2 from './meta/NcMetaMgrv2';
-import NocoCache from '../noco-cache/NocoCache';
+import NocoCache from '../cache/NocoCache';
 import registerMetaApis from './meta/api';
 import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
-import User from '../noco-models/User';
+import User from '../models/User';
 import { Tele } from 'nc-help';
 import * as http from 'http';
 import weAreHiring from '../utils/weAreHiring';

@@ -1,14 +1,14 @@
-import * as project from '../migrations/nc_001_init';
-import * as m2m from '../migrations/nc_002_add_m2m';
-import * as fkn from '../migrations/nc_003_add_fkn_column';
-import * as viewType from '../migrations/nc_004_add_view_type_column';
-import * as viewName from '../migrations/nc_005_add_view_name_column';
-import * as nc_006_alter_nc_shared_views from '../migrations/nc_006_alter_nc_shared_views';
-import * as nc_007_alter_nc_shared_views_1 from '../migrations/nc_007_alter_nc_shared_views_1';
-import * as nc_008_add_nc_shared_bases from '../migrations/nc_008_add_nc_shared_bases';
-import * as nc_009_add_model_order from '../migrations/nc_009_add_model_order';
-import * as nc_010_add_parent_title_column from '../migrations/nc_010_add_parent_title_column';
-import * as nc_011_remove_old_ses_plugin from '../migrations/nc_011_remove_old_ses_plugin';
+import * as project from '../../migrations/nc_001_init';
+import * as m2m from '../../migrations/nc_002_add_m2m';
+import * as fkn from '../../migrations/nc_003_add_fkn_column';
+import * as viewType from '../../migrations/nc_004_add_view_type_column';
+import * as viewName from '../../migrations/nc_005_add_view_name_column';
+import * as nc_006_alter_nc_shared_views from '../../migrations/nc_006_alter_nc_shared_views';
+import * as nc_007_alter_nc_shared_views_1 from '../../migrations/nc_007_alter_nc_shared_views_1';
+import * as nc_008_add_nc_shared_bases from '../../migrations/nc_008_add_nc_shared_bases';
+import * as nc_009_add_model_order from '../../migrations/nc_009_add_model_order';
+import * as nc_010_add_parent_title_column from '../../migrations/nc_010_add_parent_title_column';
+import * as nc_011_remove_old_ses_plugin from '../../migrations/nc_011_remove_old_ses_plugin';
 
 // Create a custom migration source class
 export default class XcMigrationSource {

@@ -2,7 +2,7 @@ import CryptoJS from 'crypto-js';
 import { customAlphabet } from 'nanoid';
 
 import { NcConfig } from '../../../interface/config';
-import { Knex, XKnex } from '../../dataMapper';
+import { Knex, XKnex } from '../../sql-data-mapper';
 import Noco from '../Noco';
 import XcMigrationSource from '../common/XcMigrationSource';
 

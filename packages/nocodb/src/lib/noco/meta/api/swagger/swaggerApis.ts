@@ -1,9 +1,9 @@
 // @ts-ignore
 import catchError, { NcError } from '../../helpers/catchError';
 import { Router } from 'express';
-import Model from '../../../../noco-models/Model';
+import Model from '../../../../models/Model';
 import getSwaggerJSON from './helpers/getSwaggerJSON';
-import Project from '../../../../noco-models/Project';
+import Project from '../../../../models/Project';
 import swaggerHtml from './swaggerHtml';
 import redocHtml from './redocHtml';
 

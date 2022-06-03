@@ -1,4 +1,4 @@
-import { XKnex } from '../../dataMapper';
+import { XKnex } from '../../sql-data-mapper';
 import { NcConfig } from '../../../interface/config';
 import fs from 'fs';
 import Knex from 'knex';

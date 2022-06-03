@@ -1,6 +1,6 @@
 import { NcConfig } from '../../../interface/config';
 import Noco from '../Noco';
-import { XKnex } from '../../dataMapper';
+import { XKnex } from '../../sql-data-mapper';
 
 const META_TABLES = {
   graphql: [

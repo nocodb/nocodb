@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
-import Audit from '../../../noco-models/Audit';
+import Audit from '../../../models/Audit';
 import { AuditOperationSubTypes, AuditOperationTypes } from 'nocodb-sdk';
-import Model from '../../../noco-models/Model';
+import Model from '../../../models/Model';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 

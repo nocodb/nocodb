@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import View from '../../../noco-models/View';
+import View from '../../../models/View';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { extractCsvData } from './dataApis/helpers';
 

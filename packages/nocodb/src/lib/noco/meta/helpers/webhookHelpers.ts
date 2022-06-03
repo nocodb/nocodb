@@ -1,10 +1,10 @@
 import Handlebars from 'handlebars';
-import Model from '../../../noco-models/Model';
+import Model from '../../../models/Model';
 import NcPluginMgrv2 from './NcPluginMgrv2';
-import Column from '../../../noco-models/Column';
-import Hook from '../../../noco-models/Hook';
-import Filter from '../../../noco-models/Filter';
-import HookLog from '../../../noco-models/HookLog';
+import Column from '../../../models/Column';
+import Hook from '../../../models/Hook';
+import Filter from '../../../models/Filter';
+import HookLog from '../../../models/HookLog';
 import { HookLogType } from 'nocodb-sdk';
 
 export function parseBody(

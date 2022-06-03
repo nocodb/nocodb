@@ -1,16 +1,16 @@
 import { Request, Response, Router } from 'express';
-import View from '../../../../noco-models/View';
-import Model from '../../../../noco-models/Model';
-import Base from '../../../../noco-models/Base';
+import View from '../../../../models/View';
+import Model from '../../../../models/Model';
+import Base from '../../../../models/Base';
 import NcConnectionMgrv2 from '../../../common/NcConnectionMgrv2';
 import { nocoExecute } from 'nc-help';
 import papaparse from 'papaparse';
 import { ErrorMessages, isSystemColumn, UITypes, ViewTypes } from 'nocodb-sdk';
-import Column from '../../../../noco-models/Column';
-import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
-import LookupColumn from '../../../../noco-models/LookupColumn';
+import Column from '../../../../models/Column';
+import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import LookupColumn from '../../../../models/LookupColumn';
 import catchError, { NcError } from '../../helpers/catchError';
-import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
+import getAst from '../../../../sql-data-mapper/lib/sql/helpers/getAst';
 
 async function exportCsv(req: Request, res: Response) {
   const view = await View.getByUUID(req.params.publicDataUuid);

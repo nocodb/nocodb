@@ -1,14 +1,14 @@
 import { Request, Response, Router } from 'express';
-import Model from '../../../../noco-models/Model';
+import Model from '../../../../models/Model';
 import { nocoExecute } from 'nc-help';
-import Base from '../../../../noco-models/Base';
+import Base from '../../../../models/Base';
 import NcConnectionMgrv2 from '../../../common/NcConnectionMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import View from '../../../../noco-models/View';
+import View from '../../../../models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
-import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
+import getAst from '../../../../sql-data-mapper/lib/sql/helpers/getAst';
 
 async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);

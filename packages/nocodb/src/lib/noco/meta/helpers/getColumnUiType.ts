@@ -1,7 +1,7 @@
-import Base from '../../../noco-models/Base';
-import Column from '../../../noco-models/Column';
+import Base from '../../../models/Base';
+import Column from '../../../models/Column';
 import { ColumnType } from 'nocodb-sdk';
-import ModelXcMetaFactory from '../../../sqlMgr/code/models/xc/ModelXcMetaFactory';
+import ModelXcMetaFactory from '../../../sql-mgr/code/models/xc/ModelXcMetaFactory';
 
 export default function getColumnUiType(
   base: Base,

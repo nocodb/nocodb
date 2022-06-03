@@ -1,5 +1,5 @@
 import { NcContextV2 } from '../NcMetaMgrv2';
-import Column from '../../../noco-models/Column';
+import Column from '../../../models/Column';
 import { UITypes } from 'nocodb-sdk';
 
 export default async function(this: NcContextV2, { args }: any) {

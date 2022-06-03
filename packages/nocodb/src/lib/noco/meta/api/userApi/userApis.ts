@@ -6,12 +6,12 @@ import * as ejs from 'ejs';
 
 import bcrypt from 'bcryptjs';
 import { promisify } from 'util';
-import User from '../../../../noco-models/User';
+import User from '../../../../models/User';
 import { Tele } from 'nc-help';
 
 const { v4: uuidv4 } = require('uuid');
 import * as jwt from 'jsonwebtoken';
-import Audit from '../../../../noco-models/Audit';
+import Audit from '../../../../models/Audit';
 import crypto from 'crypto';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 

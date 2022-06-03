@@ -2,7 +2,7 @@ import Handlebars from 'handlebars';
 import { IWebhookNotificationAdapter } from 'nc-plugin';
 import ejs from 'ejs';
 import IEmailAdapter from '../../../interface/IEmailAdapter';
-import { BaseModelSql } from '../../dataMapper';
+import { BaseModelSql } from '../../sql-data-mapper';
 
 // import axios from "axios";
 import BaseApiBuilder from './BaseApiBuilder';

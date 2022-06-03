@@ -1,19 +1,19 @@
 import { Request, Response } from 'express';
-import Project from '../../../noco-models/Project';
+import Project from '../../../models/Project';
 import { ModelTypes, ProjectListType, UITypes } from 'nocodb-sdk';
 
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import syncMigration from '../helpers/syncMigration';
 import { IGNORE_TABLES } from '../../common/BaseApiBuilder';
-import Column from '../../../noco-models/Column';
-import Model from '../../../noco-models/Model';
+import Column from '../../../models/Column';
+import Model from '../../../models/Model';
 import NcHelp from '../../../utils/NcHelp';
-import Base from '../../../noco-models/Base';
+import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
+import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import ProjectUser from '../../../noco-models/ProjectUser';
+import ProjectUser from '../../../models/ProjectUser';
 import { customAlphabet } from 'nanoid';
 import Noco from '../../Noco';
 import isDocker from 'is-docker';

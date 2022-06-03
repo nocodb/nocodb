@@ -1,4 +1,4 @@
-import { XKnex } from '../../dataMapper';
+import { XKnex } from '../../sql-data-mapper';
 import { Request } from 'express';
 
 export default class MetaAPILogger {

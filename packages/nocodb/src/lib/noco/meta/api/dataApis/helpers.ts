@@ -1,19 +1,19 @@
-import Project from '../../../../noco-models/Project';
-import Model from '../../../../noco-models/Model';
-import View from '../../../../noco-models/View';
+import Project from '../../../../models/Project';
+import Model from '../../../../models/Model';
+import View from '../../../../models/View';
 import { NcError } from '../../helpers/catchError';
 import { Request } from 'express';
-import Base from '../../../../noco-models/Base';
+import Base from '../../../../models/Base';
 import NcConnectionMgrv2 from '../../../common/NcConnectionMgrv2';
 import { isSystemColumn, UITypes } from 'nocodb-sdk';
 
 import { nocoExecute } from 'nc-help';
-import Column from '../../../../noco-models/Column';
-import LookupColumn from '../../../../noco-models/LookupColumn';
-import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
+import Column from '../../../../models/Column';
+import LookupColumn from '../../../../models/LookupColumn';
+import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
 
 import papaparse from 'papaparse';
-import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
+import getAst from '../../../../sql-data-mapper/lib/sql/helpers/getAst';
 export async function getViewAndModelFromRequestByAliasOrId(
   req:
     | Request<{ projectName: string; tableName: string; viewName?: string }>

@@ -1,6 +1,6 @@
 import { Request, Response, Router } from 'express';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import ApiToken from '../../../noco-models/ApiToken';
+import ApiToken from '../../../models/ApiToken';
 import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 

@@ -1,7 +1,7 @@
 import autoBind from 'auto-bind';
 
 import { Acls } from '../../../interface/config';
-import { BaseModelSql } from '../../dataMapper';
+import { BaseModelSql } from '../../sql-data-mapper';
 import Noco from '../Noco';
 
 import GqlBaseResolver from './GqlBaseResolver';

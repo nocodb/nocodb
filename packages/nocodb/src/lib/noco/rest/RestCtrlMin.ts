@@ -2,7 +2,7 @@ import autoBind from 'auto-bind';
 import { Request, Response, Router } from 'express';
 
 import { Acls } from '../../../interface/config';
-import { BaseModelSql } from '../../dataMapper';
+import { BaseModelSql } from '../../sql-data-mapper';
 
 function parseHrtimeToSeconds(hrtime) {
   const seconds = (hrtime[0] + hrtime[1] / 1e6).toFixed(3);

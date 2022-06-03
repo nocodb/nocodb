@@ -14,9 +14,9 @@ import {
 
 import XcDynamicChanges from '../../../interface/XcDynamicChanges';
 import { Acls, DbConfig, NcConfig } from '../../../interface/config';
-import { BaseModelSql, XKnex } from '../../dataMapper';
-import ModelXcMetaFactory from '../../sqlMgr/code/models/xc/ModelXcMetaFactory';
-import ExpressXcPolicy from '../../sqlMgr/code/policies/xc/ExpressXcPolicy';
+import { BaseModelSql, XKnex } from '../../sql-data-mapper';
+import ModelXcMetaFactory from '../../sql-mgr/code/models/xc/ModelXcMetaFactory';
+import ExpressXcPolicy from '../../sql-mgr/code/policies/xc/ExpressXcPolicy';
 import NcHelp from '../../utils/NcHelp';
 import NcProjectBuilder from '../NcProjectBuilder';
 import Noco from '../Noco';

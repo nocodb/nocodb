@@ -1,4 +1,4 @@
-import FormulaColumn from '../../../noco-models/FormulaColumn';
+import FormulaColumn from '../../../models/FormulaColumn';
 import jsep from 'jsep';
 
 export default function addFormulaErrorIfMissingColumn({

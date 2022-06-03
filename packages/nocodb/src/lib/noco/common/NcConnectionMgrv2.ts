@@ -1,4 +1,4 @@
-import { XKnex } from '../../dataMapper';
+import { XKnex } from '../../sql-data-mapper';
 // import { NcConfig } from '../../../interface/config';
 // import fs from 'fs';
 // import Knex from 'knex';
@@ -6,7 +6,7 @@ import { XKnex } from '../../dataMapper';
 import { SqlClientFactory } from 'nc-help';
 // import NcMetaIO from '../meta/NcMetaIO';
 import { defaultConnectionConfig } from '../../utils/NcConfigFactory';
-import Base from '../../noco-models/Base';
+import Base from '../../models/Base';
 import Noco from '../Noco';
 
 export default class NcConnectionMgrv2 {

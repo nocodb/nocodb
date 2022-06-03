@@ -1,16 +1,16 @@
 // import { nocoExecute } from '../noco-resolver/NocoExecute';
 // import { Router } from 'express';
-// import Model from '../../noco-models/Model';
-// import Column from '../../noco-models/Column';
+// import Model from '../../models/Model';
+// import Column from '../../models/Column';
 // import UITypes from '../../sqlUi/UITypes';
-// import LookupColumn from '../../noco-models/LookupColumn';
-// import RollupColumn from '../../noco-models/RollupColumn';
-// import Filter from '../../noco-models/Filter';
-// import Sort from '../../noco-models/Sort';
-// import LinkToAnotherRecordColumn from '../../noco-models/LinkToAnotherRecordColumn';
+// import LookupColumn from '../../models/LookupColumn';
+// import RollupColumn from '../../models/RollupColumn';
+// import Filter from '../../models/Filter';
+// import Sort from '../../models/Sort';
+// import LinkToAnotherRecordColumn from '../../models/LinkToAnotherRecordColumn';
 // import jsep from 'jsep';
 // import jsepTreeToFormula from '../common/helpers/jsepTreeToFormula';
-// import FormulaColumn from '../../noco-models/FormulaColumn';
+// import FormulaColumn from '../../models/FormulaColumn';
 // import Noco from '../Noco';
 // import { MetaTable } from '../../utils/globals';
 //

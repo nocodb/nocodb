@@ -12,7 +12,7 @@ import { ExtractJwt, Strategy } from 'passport-jwt';
 import validator from 'validator';
 
 import { DbConfig, NcConfig } from '../../../interface/config';
-import { Knex } from '../../dataMapper';
+import { Knex } from '../../sql-data-mapper';
 import Noco from '../Noco';
 
 const autoBind = require('auto-bind');

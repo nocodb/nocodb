@@ -3,7 +3,7 @@ import { Handler, Router } from 'express';
 import multer from 'multer';
 
 import { NcConfig } from '../../../interface/config';
-import ProjectMgr from '../../sqlMgr/ProjectMgr';
+import ProjectMgr from '../../sql-mgr/ProjectMgr';
 import projectAcl from '../../utils/projectAcl';
 import Noco from '../Noco';
 import NcPluginMgr from '../plugins/NcPluginMgr';

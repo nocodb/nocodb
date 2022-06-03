@@ -1,5 +1,5 @@
 import inflection from 'inflection';
-import Base from '../../../noco-models/Base';
+import Base from '../../../models/Base';
 
 export default function getTableNameAlias(
   tableName: string,

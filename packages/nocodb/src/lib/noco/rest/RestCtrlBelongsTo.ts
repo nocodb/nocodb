@@ -2,7 +2,7 @@ import autoBind from 'auto-bind';
 import { NextFunction, Request, Response } from 'express';
 
 import { Acl, Acls, Route } from '../../../interface/config';
-import { BaseModelSql } from '../../dataMapper';
+import { BaseModelSql } from '../../sql-data-mapper';
 
 import { RestBaseCtrl } from './RestBaseCtrl';
 

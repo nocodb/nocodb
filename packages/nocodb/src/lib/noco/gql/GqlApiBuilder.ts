@@ -8,9 +8,9 @@ import { BaseType } from 'xc-core-ts';
 
 import XcMetaMgr from '../../../interface/XcMetaMgr';
 import { DbConfig, NcConfig } from '../../../interface/config';
-import ExpressXcTsPolicyGql from '../../sqlMgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql';
-import GqlXcSchemaFactory from '../../sqlMgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
-import ModelXcMetaFactory from '../../sqlMgr/code/models/xc/ModelXcMetaFactory';
+import ExpressXcTsPolicyGql from '../../sql-mgr/code/gql-policies/xc-ts/ExpressXcTsPolicyGql';
+import GqlXcSchemaFactory from '../../sql-mgr/code/gql-schema/xc-ts/GqlXcSchemaFactory';
+import ModelXcMetaFactory from '../../sql-mgr/code/models/xc/ModelXcMetaFactory';
 import NcHelp from '../../utils/NcHelp';
 import NcProjectBuilder from '../NcProjectBuilder';
 import Noco from '../Noco';

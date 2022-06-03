@@ -1,5 +1,5 @@
-import User from '../../../../noco-models/User';
-import ProjectUser from '../../../../noco-models/ProjectUser';
+import User from '../../../../models/User';
+import ProjectUser from '../../../../models/ProjectUser';
 import { promisify } from 'util';
 import { Strategy as CustomStrategy } from 'passport-custom';
 
@@ -17,12 +17,12 @@ const jwtOptions = {
 };
 
 import bcrypt from 'bcryptjs';
-import Project from '../../../../noco-models/Project';
-import NocoCache from '../../../../noco-cache/NocoCache';
+import Project from '../../../../models/Project';
+import NocoCache from '../../../../cache/NocoCache';
 import { CacheGetType, CacheScope } from '../../../../utils/globals';
-import ApiToken from '../../../../noco-models/ApiToken';
+import ApiToken from '../../../../models/ApiToken';
 import Noco from '../../../Noco';
-import Plugin from '../../../../noco-models/Plugin';
+import Plugin from '../../../../models/Plugin';
 
 export function initStrategies(router): void {
   passport.use(

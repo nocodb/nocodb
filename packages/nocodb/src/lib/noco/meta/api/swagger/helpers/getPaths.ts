@@ -1,6 +1,6 @@
 import Noco from '../../../../Noco';
-import Model from '../../../../../noco-models/Model';
-import Project from '../../../../../noco-models/Project';
+import Model from '../../../../../models/Model';
+import Project from '../../../../../models/Project';
 import { getModelPaths, getViewPaths } from './templates/paths';
 import { SwaggerColumn } from './getSwaggerColumnMetas';
 import { SwaggerView } from './getSwaggerJSON';

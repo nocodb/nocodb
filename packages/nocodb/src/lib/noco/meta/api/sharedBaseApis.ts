@@ -2,7 +2,7 @@ import { Router } from 'express';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { v4 as uuidv4 } from 'uuid';
 import { Tele } from 'nc-help';
-import Project from '../../../noco-models/Project';
+import Project from '../../../models/Project';
 import { NcError } from '../helpers/catchError';
 // todo: load from config
 const config = {

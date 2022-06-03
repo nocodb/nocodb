@@ -1,9 +1,9 @@
-import Model from '../../../noco-models/Model';
-import ModelRoleVisibility from '../../../noco-models/ModelRoleVisibility';
+import Model from '../../../models/Model';
+import ModelRoleVisibility from '../../../models/ModelRoleVisibility';
 import { Router } from 'express';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
-import Project from '../../../noco-models/Project';
+import Project from '../../../models/Project';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 async function xcVisibilityMetaSetAll(req, res) {
   Tele.emit('evt', { evt_type: 'uiAcl:updated' });

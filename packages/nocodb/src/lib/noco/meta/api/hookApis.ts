@@ -1,10 +1,10 @@
 import catchError from '../helpers/catchError';
 import { Request, Response, Router } from 'express';
-import Hook from '../../../noco-models/Hook';
+import Hook from '../../../models/Hook';
 import { HookListType, HookType } from 'nocodb-sdk';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { invokeWebhook } from '../helpers/webhookHelpers';
-import Model from '../../../noco-models/Model';
+import Model from '../../../models/Model';
 import populateSamplePayload from '../helpers/populateSamplePayload';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';

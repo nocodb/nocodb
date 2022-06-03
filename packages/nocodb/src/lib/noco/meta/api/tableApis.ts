@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import Model from '../../../noco-models/Model';
+import Model from '../../../models/Model';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 import { Tele } from 'nc-help';
 import {
@@ -12,20 +12,20 @@ import {
   TableType,
   UITypes
 } from 'nocodb-sdk';
-import ProjectMgrv2 from '../../../sqlMgr/v2/ProjectMgrv2';
-import Project from '../../../noco-models/Project';
-import Audit from '../../../noco-models/Audit';
+import ProjectMgrv2 from '../../../sql-mgr/v2/ProjectMgrv2';
+import Project from '../../../models/Project';
+import Audit from '../../../models/Audit';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { xcVisibilityMetaGet } from './modelVisibilityApis';
-import View from '../../../noco-models/View';
+import View from '../../../models/View';
 import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import { NcError } from '../helpers/catchError';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';
-import Column from '../../../noco-models/Column';
+import Column from '../../../models/Column';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import getColumnUiType from '../helpers/getColumnUiType';
-import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
+import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export async function tableGet(req: Request, res: Response<TableType>) {

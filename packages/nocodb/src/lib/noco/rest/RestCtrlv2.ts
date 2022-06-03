@@ -2,9 +2,9 @@ import autoBind from 'auto-bind';
 import { Router } from 'express';
 
 import { Acls } from '../../../interface/config';
-import { BaseModelSql } from '../../dataMapper';
+import { BaseModelSql } from '../../sql-data-mapper';
 
-import { BaseModelSqlv2 } from '../../dataMapper/lib/sql/BaseModelSqlv2';
+import { BaseModelSqlv2 } from '../../sql-data-mapper/lib/sql/BaseModelSqlv2';
 // import { nocoExecute } from '../noco-resolver/NocoExecute';
 
 // function parseHrtimeToSeconds(hrtime) {

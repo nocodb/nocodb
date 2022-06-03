@@ -1,15 +1,15 @@
 import { Request, Response, Router } from 'express';
 // @ts-ignore
-import Model from '../../../noco-models/Model';
+import Model from '../../../models/Model';
 // @ts-ignore
 import { PagedResponseImpl } from '../helpers/PagedResponse';
 // @ts-ignore
 import { Table, TableList, TableListParams, TableReq } from 'nocodb-sdk';
 // @ts-ignore
-import ProjectMgrv2 from '../../../sqlMgr/v2/ProjectMgrv2';
+import ProjectMgrv2 from '../../../sql-mgr/v2/ProjectMgrv2';
 // @ts-ignore
-import Project from '../../../noco-models/Project';
-import Filter from '../../../noco-models/Filter';
+import Project from '../../../models/Project';
+import Filter from '../../../models/Filter';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';

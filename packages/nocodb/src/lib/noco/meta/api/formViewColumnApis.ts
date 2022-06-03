@@ -1,5 +1,5 @@
 import { Request, Response, Router } from 'express';
-import FormViewColumn from '../../../noco-models/FormViewColumn';
+import FormViewColumn from '../../../models/FormViewColumn';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';

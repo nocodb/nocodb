@@ -1,22 +1,22 @@
 import { Request, Response, Router } from 'express';
-import Model from '../../../../noco-models/Model';
+import Model from '../../../../models/Model';
 import { nocoExecute } from 'nc-help';
-import Base from '../../../../noco-models/Base';
+import Base from '../../../../models/Base';
 import NcConnectionMgrv2 from '../../../common/NcConnectionMgrv2';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
-import View from '../../../../noco-models/View';
+import View from '../../../../models/View';
 import catchError, { NcError } from '../../helpers/catchError';
 import multer from 'multer';
 import { ErrorMessages, UITypes, ViewTypes } from 'nocodb-sdk';
-import Column from '../../../../noco-models/Column';
-import LinkToAnotherRecordColumn from '../../../../noco-models/LinkToAnotherRecordColumn';
+import Column from '../../../../models/Column';
+import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 import path from 'path';
 import { nanoid } from 'nanoid';
 import { mimeIcons } from '../../../../utils/mimeTypes';
 import slash from 'slash';
 import { sanitizeUrlPath } from '../attachmentApis';
-import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
+import getAst from '../../../../sql-data-mapper/lib/sql/helpers/getAst';
 
 export async function dataList(req: Request, res: Response) {
   try {

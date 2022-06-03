@@ -1,7 +1,7 @@
 import { Request, Response, Router } from 'express';
 
 import { Tele } from 'nc-help';
-import SyncSource from '../../../../noco-models/SyncSource';
+import SyncSource from '../../../../models/SyncSource';
 import { PagedResponseImpl } from '../../helpers/PagedResponse';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 

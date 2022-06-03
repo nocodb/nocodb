@@ -1,15 +1,15 @@
 // // Project CRUD
 
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
-import Model from '../../../noco-models/Model';
-import Project from '../../../noco-models/Project';
+import Model from '../../../models/Model';
+import Project from '../../../models/Project';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import { isVirtualCol, ModelTypes, RelationTypes, UITypes } from 'nocodb-sdk';
 import { Router } from 'express';
-import Base from '../../../noco-models/Base';
-import ModelXcMetaFactory from '../../../sqlMgr/code/models/xc/ModelXcMetaFactory';
-import Column from '../../../noco-models/Column';
-import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
+import Base from '../../../models/Base';
+import ModelXcMetaFactory from '../../../sql-mgr/code/models/xc/ModelXcMetaFactory';
+import Column from '../../../models/Column';
+import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import { getUniqueColumnAliasName } from '../helpers/getUniqueName';
 import NcHelp from '../../../utils/NcHelp';
 import getTableNameAlias, { getColumnNameAlias } from '../helpers/getTableName';

@@ -1,14 +1,14 @@
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
 import { Router } from 'express';
 import { PagedResponseImpl } from '../helpers/PagedResponse';
-import ProjectUser from '../../../noco-models/ProjectUser';
+import ProjectUser from '../../../models/ProjectUser';
 import validator from 'validator';
 import { NcError } from '../helpers/catchError';
 import { v4 as uuidv4 } from 'uuid';
-import User from '../../../noco-models/User';
+import User from '../../../models/User';
 import { Tele } from 'nc-help';
-import Audit from '../../../noco-models/Audit';
-import NocoCache from '../../../noco-cache/NocoCache';
+import Audit from '../../../models/Audit';
+import NocoCache from '../../../cache/NocoCache';
 import { CacheGetType, CacheScope, MetaTable } from '../../../utils/globals';
 import * as ejs from 'ejs';
 import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';

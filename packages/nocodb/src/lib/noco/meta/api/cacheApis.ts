@@ -1,5 +1,5 @@
 import catchError from '../helpers/catchError';
-import NocoCache from '../../../noco-cache/NocoCache';
+import NocoCache from '../../../cache/NocoCache';
 import { Router } from 'express';
 
 export async function cacheGet(_, res) {

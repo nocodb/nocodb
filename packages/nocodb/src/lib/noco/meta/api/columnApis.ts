@@ -1,13 +1,13 @@
 import { Request, Response, Router } from 'express';
-import Model from '../../../noco-models/Model';
-import ProjectMgrv2 from '../../../sqlMgr/v2/ProjectMgrv2';
-import Base from '../../../noco-models/Base';
-import Column from '../../../noco-models/Column';
+import Model from '../../../models/Model';
+import ProjectMgrv2 from '../../../sql-mgr/v2/ProjectMgrv2';
+import Base from '../../../models/Base';
+import Column from '../../../models/Column';
 import validateParams from '../helpers/validateParams';
 import { Tele } from 'nc-help';
 
 import { customAlphabet } from 'nanoid';
-import LinkToAnotherRecordColumn from '../../../noco-models/LinkToAnotherRecordColumn';
+import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 import {
   getUniqueColumnAliasName,
   getUniqueColumnName
@@ -23,8 +23,8 @@ import {
   TableType,
   UITypes
 } from 'nocodb-sdk';
-import Audit from '../../../noco-models/Audit';
-import SqlMgrv2 from '../../../sqlMgr/v2/SqlMgrv2';
+import Audit from '../../../models/Audit';
+import SqlMgrv2 from '../../../sql-mgr/v2/SqlMgrv2';
 import Noco from '../../Noco';
 import NcMetaIO from '../NcMetaIO';
 import ncMetaAclMw from '../helpers/ncMetaAclMw';
@@ -33,7 +33,7 @@ import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import { metaApiMetrics } from '../helpers/apiMetrics';
-import FormulaColumn from '../../../noco-models/FormulaColumn';
+import FormulaColumn from '../../../models/FormulaColumn';
 import { MetaTable } from '../../../utils/globals';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
@@ -728,7 +728,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
   const base = await Base.get(table.base_id);
 
   // const ncMeta = await Noco.ncMeta.startTransaction();
-  // const sqlMgr = await ProjectMgrv2.getSqlMgrTrans(
+  // const sql-mgr = await ProjectMgrv2.getSqlMgrTrans(
   //   { id: base.project_id },
   //   ncMeta,
   //   base
@@ -929,12 +929,12 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
   }
 
   // await ncMeta.commit();
-  // await sqlMgr.commit();
+  // await sql-mgr.commit();
   Tele.emit('evt', { evt_type: 'column:deleted' });
 
   res.json(table);
   // } catch (e) {
-  //   sqlMgr.rollback();
+  //   sql-mgr.rollback();
   //   ncMeta.rollback();
   //   throw e;
   // }

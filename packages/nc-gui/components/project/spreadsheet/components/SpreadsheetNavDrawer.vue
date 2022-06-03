@@ -294,7 +294,7 @@
             class="caption d-100 mt-2"
             @click="webhookSliderModal=true"
           >
-            <v-icon small class="mr-2">
+            <v-icon small class="mr-2 nc-btn-webhook">
               mdi-hook
             </v-icon> Webhooks
           </v-btn>

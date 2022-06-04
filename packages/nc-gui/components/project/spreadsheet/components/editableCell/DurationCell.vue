@@ -52,7 +52,9 @@ export default {
   },
   mounted() {
     window.addEventListener('keypress', (_) => {
-      this.$refs.durationInput.focus()
+      if (this.$refs.durationInput) {
+        this.$refs.durationInput.focus()
+      }
     })
   },
   methods: {

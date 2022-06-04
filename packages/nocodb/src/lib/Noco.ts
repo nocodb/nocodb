@@ -41,6 +41,7 @@ import User from './models/User';
 import { Tele } from 'nc-help';
 import * as http from 'http';
 import weAreHiring from './utils/weAreHiring';
+import getInstance from './utils/getInstance';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -262,6 +263,9 @@ export default class Noco {
         return res.status(400).json({ msg: err.message });
       }
       next();
+    });
+    Tele.init({
+      instance: getInstance
     });
     Tele.emit('evt_app_started', await User.count());
     weAreHiring();

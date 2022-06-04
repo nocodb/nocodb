@@ -2,10 +2,16 @@ import { Request, Response, Router } from 'express';
 import catchError, { NcError } from '../../helpers/catchError';
 import View from '../../../models/View';
 import Model from '../../../models/Model';
-import { ErrorMessages, LinkToAnotherRecordType, UITypes } from 'nocodb-sdk';
+import {
+  ErrorMessages,
+  LinkToAnotherRecordType,
+  RelationTypes,
+  UITypes
+} from 'nocodb-sdk';
 import Column from '../../../models/Column';
 import Base from '../../../models/Base';
 import Project from '../../../models/Project';
+import LinkToAnotherRecordColumn from '../../../models/LinkToAnotherRecordColumn';
 
 export async function viewMetaGet(req: Request, res: Response) {
   const view: View & {
@@ -38,7 +44,20 @@ export async function viewMetaGet(req: Request, res: Response) {
   view.model.columns = view.columns
     .filter(c => {
       const column = view.model.columnsById[c.fk_column_id];
-      return c.show || (column.rqd && !column.cdf && !column.ai) || column.pk;
+      return (
+        c.show ||
+        (column.rqd && !column.cdf && !column.ai) ||
+        column.pk ||
+        view.model.columns.some(
+          c1 =>
+            c1.uidt === UITypes.LinkToAnotherRecord &&
+            (<LinkToAnotherRecordColumn>c1.colOptions).type ===
+              RelationTypes.BELONGS_TO &&
+            view.columns.some(vc => vc.fk_column_id === c1.id && vc.show) &&
+            (<LinkToAnotherRecordColumn>c1.colOptions).fk_child_column_id ===
+              c.fk_column_id
+        )
+      );
     })
     .map(
       c =>

@@ -24,11 +24,11 @@
                     (c) =>
                       (column &&
                         (c.column_name || '').toLowerCase() ===
-                        (column.column_name || '').toLowerCase()) ||
+                          (column.column_name || '').toLowerCase()) ||
                       ((v || '').toLowerCase() !==
                         (c.column_name || '').toLowerCase() &&
                         (v || '').toLowerCase() !==
-                        (c.title || '').toLowerCase())
+                          (c.title || '').toLowerCase())
                   ) ||
                   'Duplicate column name', // && meta.v.every(c => v !== c.title ) || 'Duplicate column name',
                 validateColumnName,
@@ -50,15 +50,12 @@
             <v-row>
               <v-col v-if="relation" cols="12">
                 <div class="caption">
-                  <p class="mb-1">
-                    Foreign Key
-                  </p>
+                  <p class="mb-1">Foreign Key</p>
 
-                  <v-icon small class="mt-n1">
-                    mdi-table
-                  </v-icon>
+                  <v-icon small class="mt-n1"> mdi-table </v-icon>
                   <span class="text-capitalize font-weight-bold body-1">
-                    {{ relation._rtn }}</span>
+                    {{ relation._rtn }}</span
+                  >
                   <v-icon
                     v-ge="['columns', 'fk-delete']"
                     small
@@ -68,10 +65,9 @@
                   >
                     mdi-delete-forever
                   </v-icon>
-                  <span
-                    v-if="relation.type === 'virtual'"
-                    class="caption"
-                  >(v)</span>
+                  <span v-if="relation.type === 'virtual'" class="caption"
+                    >(v)</span
+                  >
                 </div>
               </v-col>
               <template v-else>
@@ -96,7 +92,8 @@
                           {{ item.icon }}
                         </v-icon>
                         <span class="caption grey--text text--darken-4">
-                          {{ item.name }}</span>
+                          {{ item.name }}</span
+                        >
                       </div>
                     </template>
 
@@ -128,8 +125,8 @@
                   <v-alert
                     v-if="
                       column &&
-                        newColumn.uidt === 'SingleSelect' &&
-                        column.uidt === 'MultiSelect'
+                      newColumn.uidt === 'SingleSelect' &&
+                      column.uidt === 'MultiSelect'
                     "
                     dense
                     type="warning"
@@ -197,7 +194,10 @@
                 <v-col v-show="advanceOptions || !accordion" cols="12">
                   <v-row>
                     <v-col
-                      v-if="newColumn.meta && columnToValidate.includes(newColumn.uidt)"
+                      v-if="
+                        newColumn.meta &&
+                        columnToValidate.includes(newColumn.uidt)
+                      "
                       cols="12"
                       class="pt-0 pb-0"
                     >
@@ -278,7 +278,7 @@
                                           v-model="newColumn.rqd"
                                           :disabled="
                                             newColumn.pk ||
-                                              !sqlUi.columnEditable(newColumn)
+                                            !sqlUi.columnEditable(newColumn)
                                           "
                                           class="mr-2 mt-0"
                                           dense
@@ -292,7 +292,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >NN</span>
+                                              >NN</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -319,7 +320,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >PK</span>
+                                              >PK</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -336,7 +338,7 @@
                                             sqlUi.colPropUNDisabled(
                                               newColumn
                                             ) ||
-                                              !sqlUi.columnEditable(newColumn)
+                                            !sqlUi.columnEditable(newColumn)
                                           "
                                           class="mr-2 mt-0"
                                           dense
@@ -350,7 +352,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >AI</span>
+                                              >AI</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -371,7 +374,7 @@
                                             sqlUi.colPropUNDisabled(
                                               newColumn
                                             ) ||
-                                              !sqlUi.columnEditable(newColumn)
+                                            !sqlUi.columnEditable(newColumn)
                                           "
                                           @change="
                                             newColumn.altered =
@@ -381,7 +384,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >UN</span>
+                                              >UN</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -402,7 +406,7 @@
                                             sqlUi.colPropAuDisabled(
                                               newColumn
                                             ) ||
-                                              !sqlUi.columnEditable(newColumn)
+                                            !sqlUi.columnEditable(newColumn)
                                           "
                                           @change="
                                             newColumn.altered =
@@ -412,7 +416,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >AU</span>
+                                              >AU</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -434,7 +439,13 @@
                                   @change="onDataTypeChange"
                                 />
                               </v-col>
-                              <v-col :cols="sqlUi.showScale(newColumn) && !isSelect ? 6 : 12">
+                              <v-col
+                                :cols="
+                                  sqlUi.showScale(newColumn) && !isSelect
+                                    ? 6
+                                    : 12
+                                "
+                              >
                                 <!--label="Length / Values"-->
                                 <v-text-field
                                   v-if="!isSelect"
@@ -524,12 +535,13 @@
                   class="caption mx-2"
                   outlined
                 >
-                  This spreadsheet is connected to an SQLite DB.<br>
+                  This spreadsheet is connected to an SQLite DB.<br />
                   For production please see
                   <a
                     href="https://github.com/nocodb/nocodb#production-setup"
                     target="_blank"
-                  >here</a>.
+                    >here</a
+                  >.
                 </v-alert>
               </div>
             </v-row>
@@ -559,24 +571,24 @@
 </template>
 
 <script>
-import { MssqlUi, SqliteUi } from 'nocodb-sdk'
-import { UITypes, uiTypes } from '../helpers/uiTypes'
-import RollupOptions from './editColumn/RollupOptions'
-import FormulaOptions from '~/components/project/spreadsheet/components/editColumn/FormulaOptions'
-import LookupOptions from '~/components/project/spreadsheet/components/editColumn/LookupOptions'
-import CustomSelectOptions from '~/components/project/spreadsheet/components/editColumn/CustomSelectOptions'
-import RelationOptions from '~/components/project/spreadsheet/components/editColumn/RelationOptions'
-import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel'
-import LinkedToAnotherOptions from '~/components/project/spreadsheet/components/editColumn/LinkedToAnotherOptions'
-import { validateColumnName } from '~/helpers'
-import RatingOptions from '~/components/project/spreadsheet/components/editColumn/RatingOptions'
-import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/CheckboxOptions'
-import CurrencyOptions from '@/components/project/spreadsheet/components/editColumn/CurrencyOptions'
+import { MssqlUi, SqliteUi } from "nocodb-sdk";
+import { UITypes, uiTypes } from "../helpers/uiTypes";
+import RollupOptions from "./editColumn/RollupOptions";
+import FormulaOptions from "~/components/project/spreadsheet/components/editColumn/FormulaOptions";
+import LookupOptions from "~/components/project/spreadsheet/components/editColumn/LookupOptions";
+import CustomSelectOptions from "~/components/project/spreadsheet/components/editColumn/CustomSelectOptions";
+import RelationOptions from "~/components/project/spreadsheet/components/editColumn/RelationOptions";
+import DlgLabelSubmitCancel from "~/components/utils/DlgLabelSubmitCancel";
+import LinkedToAnotherOptions from "~/components/project/spreadsheet/components/editColumn/LinkedToAnotherOptions";
+import { validateColumnName } from "~/helpers";
+import RatingOptions from "~/components/project/spreadsheet/components/editColumn/RatingOptions";
+import CheckboxOptions from "~/components/project/spreadsheet/components/editColumn/CheckboxOptions";
+import CurrencyOptions from "@/components/project/spreadsheet/components/editColumn/CurrencyOptions";
 
-const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
+const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber];
 
 export default {
-  name: 'EditColumn',
+  name: "EditColumn",
   components: {
     CheckboxOptions,
     RatingOptions,
@@ -587,7 +599,7 @@ export default {
     DlgLabelSubmitCancel,
     RelationOptions,
     CustomSelectOptions,
-    CurrencyOptions
+    CurrencyOptions,
   },
   props: {
     nodes: Object,
@@ -596,7 +608,7 @@ export default {
     editColumn: Boolean,
     column: Object,
     columnIndex: Number,
-    value: Boolean
+    value: Boolean,
   },
   data: () => ({
     columnToValidate,
@@ -605,11 +617,14 @@ export default {
     newColumn: {},
     advanceOptions: false,
     idType: null,
-    idTypes: [{ value: 'AI', text: 'Auto increment number' }, { value: 'AG', text: 'Auto generated string' }]
+    idTypes: [
+      { value: "AI", text: "Auto increment number" },
+      { value: "AG", text: "Auto generated string" },
+    ],
   }),
   computed: {
     isIDCol() {
-      return this.column && this.column.uidt === UITypes.ID
+      return this.column && this.column.uidt === UITypes.ID;
     },
     accordion() {
       return ![
@@ -617,55 +632,58 @@ export default {
         UITypes.Lookup,
         UITypes.Rollup,
         UITypes.SpecificDBType,
-        UITypes.Formula
-      ].includes(this.newColumn && this.newColumn.uidt)
+        UITypes.Formula,
+      ].includes(this.newColumn && this.newColumn.uidt);
     },
     uiTypes() {
-      return [...uiTypes.filter(t => !this.editColumn || !t.virtual),
-        ...((!this.editColumn && this.meta.columns.every(c => !c.pk))
-          ? [{
-              name: 'ID',
-              icon: 'mdi-identifier'
-            }]
-          : [])
-      ]
+      return [
+        ...uiTypes.filter((t) => !this.editColumn || !t.virtual),
+        ...(!this.editColumn && this.meta.columns.every((c) => !c.pk)
+          ? [
+              {
+                name: "ID",
+                icon: "mdi-identifier",
+              },
+            ]
+          : []),
+      ];
     },
     isEditDisabled() {
-      return this.editColumn && this.sqlUi === SqliteUi
+      return this.editColumn && this.sqlUi === SqliteUi;
     },
     isSQLite() {
-      return this.sqlUi === SqliteUi
+      return this.sqlUi === SqliteUi;
     },
     isMSSQL() {
-      return this.sqlUi === MssqlUi
+      return this.sqlUi === MssqlUi;
     },
     dataTypes() {
-      return this.sqlUi.getDataTypeListForUiType(this.newColumn, this.idType)
+      return this.sqlUi.getDataTypeListForUiType(this.newColumn, this.idType);
     },
     isSelect() {
       return (
         this.newColumn &&
-        (this.newColumn.uidt === 'MultiSelect' ||
-          this.newColumn.uidt === 'SingleSelect')
-      )
+        (this.newColumn.uidt === "MultiSelect" ||
+          this.newColumn.uidt === "SingleSelect")
+      );
     },
     isRelation() {
-      return this.newColumn && this.newColumn.uidt === 'ForeignKey'
+      return this.newColumn && this.newColumn.uidt === "ForeignKey";
     },
     isLinkToAnotherRecord() {
-      return this.newColumn && this.newColumn.uidt === 'LinkToAnotherRecord'
+      return this.newColumn && this.newColumn.uidt === "LinkToAnotherRecord";
     },
     isLookup() {
-      return this.newColumn && this.newColumn.uidt === 'Lookup'
+      return this.newColumn && this.newColumn.uidt === "Lookup";
     },
     isRating() {
-      return this.newColumn && this.newColumn.uidt === UITypes.Rating
+      return this.newColumn && this.newColumn.uidt === UITypes.Rating;
     },
     isCheckbox() {
-      return this.newColumn && this.newColumn.uidt === UITypes.Checkbox
+      return this.newColumn && this.newColumn.uidt === UITypes.Checkbox;
     },
     isRollup() {
-      return this.newColumn && this.newColumn.uidt === 'Rollup'
+      return this.newColumn && this.newColumn.uidt === "Rollup";
     },
     relation() {
       return (
@@ -673,156 +691,158 @@ export default {
         this.column &&
         this.meta.belongsTo &&
         this.meta.belongsTo.find(
-          bt => bt.column_name === this.column.column_name
+          (bt) => bt.column_name === this.column.column_name
         )
-      )
+      );
     },
     isVirtual() {
-      return this.isLinkToAnotherRecord || this.isLookup || this.isRollup
+      return this.isLinkToAnotherRecord || this.isLookup || this.isRollup;
     },
     isCurrency() {
-      return this.newColumn && this.newColumn.uidt === UITypes.Currency
-    }
+      return this.newColumn && this.newColumn.uidt === UITypes.Currency;
+    },
   },
   watch: {
     column() {
-      this.genColumnData()
-    }
+      this.genColumnData();
+    },
   },
   async created() {
-    this.genColumnData()
+    this.genColumnData();
   },
   mounted() {
-    this.focusInput()
+    this.focusInput();
   },
   methods: {
     validateColumnName(v) {
       return validateColumnName(
         v,
-        this.$store.getters['project/GtrProjectIsGraphql']
-      )
+        this.$store.getters["project/GtrProjectIsGraphql"]
+      );
     },
     onRelColumnSelect(colMeta) {
       Object.assign(this.newColumn, {
         dt: colMeta.dt,
         dtxp: colMeta.dtxp,
         dtxs: colMeta.dtxs,
-        un: colMeta.un
-      })
+        un: colMeta.un,
+      });
     },
     genColumnData() {
       this.newColumn = this.column
         ? { ...this.column }
         : this.sqlUi.getNewColumn(
-          [...this.meta.columns, ...(this.meta.v || [])].length + 1
-        )
-      this.newColumn.cno = this.newColumn.column_name
+            [...this.meta.columns, ...(this.meta.v || [])].length + 1
+          );
+      this.newColumn.cno = this.newColumn.column_name;
     },
     close() {
-      this.$emit('close')
-      this.newColumn = {}
+      this.$emit("close");
+      this.newColumn = {};
     },
     async save() {
       if (!this.$refs.form.validate()) {
-        return
+        return;
       }
       try {
-        if (this.newColumn.uidt === 'Formula') {
-          await this.$refs.formula.save()
-          return this.$emit('saved')
+        if (this.newColumn.uidt === "Formula") {
+          await this.$refs.formula.save();
+          return this.$emit("saved");
           // return this.$toast.info('Coming Soon...').goAway(3000)
         }
 
         if (this.isLinkToAnotherRecord && this.$refs.relation) {
-          await this.$refs.relation.saveRelation()
-          return this.$emit('saved')
+          await this.$refs.relation.saveRelation();
+          return this.$emit("saved");
         }
         if (this.isLookup && this.$refs.lookup) {
-          return await this.$refs.lookup.save()
+          return await this.$refs.lookup.save();
         }
         if (this.isRollup && this.$refs.rollup) {
-          return await this.$refs.rollup.save()
+          return await this.$refs.rollup.save();
         }
-        if (this.newColumn.uidt === 'Formula' && this.$refs.formula) {
-          return await this.$refs.formula.save()
+        if (this.newColumn.uidt === "Formula" && this.$refs.formula) {
+          return await this.$refs.formula.save();
         }
 
-        this.newColumn.table_name = this.nodes.table_name
-        this.newColumn.title = this.newColumn.column_name
+        this.newColumn.table_name = this.nodes.table_name;
+        this.newColumn.title = this.newColumn.column_name;
 
         if (this.editColumn) {
-          await this.$api.dbTableColumn.update(this.column.id, this.newColumn)
+          await this.$api.dbTableColumn.update(this.column.id, this.newColumn);
         } else {
           if (this.newColumn.uidt === UITypes.ID) {
             // based on id column type set autogenerated meta prop
             if (this.isAutoGenId) {
               this.newColumn.meta = {
-                ag: 'nc'
-              }
+                ag: "nc",
+              };
             }
           }
-          await this.$api.dbTableColumn.create(this.meta.id, this.newColumn)
+          await this.$api.dbTableColumn.create(this.meta.id, this.newColumn);
         }
 
         this.$emit(
-          'saved',
+          "saved",
           this.newColumn.title,
           this.editColumn ? this.meta.columns[this.columnIndex].title : null
-        )
+        );
       } catch (e) {
-        console.log(e)
-        this.$toast
-          .error('Failed to save column: ' + e)
-          .goAway(3000)
-        throw e
+        console.log(e);
+        this.$toast.error("Failed to save column: " + e).goAway(3000);
+        throw e;
       }
 
-      this.$emit('close')
+      this.$emit("close");
 
-      this.$e('a:column:add', { datatype: this.newColumn.uidt })
+      this.$e("a:column:add", { datatype: this.newColumn.uidt });
     },
     onDataTypeChange() {
-      this.newColumn.rqd = false
+      this.newColumn.rqd = false;
       if (this.newColumn.uidt !== UITypes.ID) {
-        this.newColumn.primaryKey = false
+        this.newColumn.primaryKey = false;
       }
-      this.newColumn.ai = false
-      this.newColumn.cdf = null
-      this.newColumn.un = false
+      this.newColumn.ai = false;
+      this.newColumn.cdf = null;
+      this.newColumn.un = false;
       this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(
         this.newColumn.dt
-      )
+      );
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(
         this.newColumn.dt
-      )
+      );
 
-      this.newColumn.dtx = 'specificType'
+      this.newColumn.dtx = "specificType";
 
-      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
+      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect];
       if (
         this.column &&
         selectTypes.includes(this.newColumn.uidt) &&
         selectTypes.includes(this.column.uidt)
       ) {
-        this.newColumn.dtxp = this.column.dtxp
+        this.newColumn.dtxp = this.column.dtxp;
       }
 
       if (this.isCurrency) {
         if (this.column?.uidt === UITypes.Currency) {
-          this.newColumn.dtxp = this.column.dtxp
-          this.newColumn.dtxs = this.column.dtxs
+          this.newColumn.dtxp = this.column.dtxp;
+          this.newColumn.dtxs = this.column.dtxs;
         } else {
-          this.newColumn.dtxp = 19
-          this.newColumn.dtxs = 2
+          this.newColumn.dtxp = 19;
+          this.newColumn.dtxs = 2;
         }
       }
 
       // this.$set(this.newColumn, 'uidt', this.sqlUi.getUIType(this.newColumn));
 
-      this.newColumn.altered = this.newColumn.altered || 2
+      this.newColumn.altered = this.newColumn.altered || 2;
     },
     onUiOrIdTypeChange() {
-      const colProp = this.sqlUi.getDataTypeForUiType(this.newColumn, this.idType)
+      const colProp = this.sqlUi.getDataTypeForUiType(
+        this.newColumn,
+        this.idType
+      );
+
       this.newColumn = {
         ...this.newColumn,
         meta: null,
@@ -831,90 +851,89 @@ export default {
         ai: false,
         cdf: null,
         un: false,
-        dtx: 'specificType',
-        ...colProp
-      }
+        dtx: "specificType",
+        ...colProp,
+      };
 
       this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(
         this.newColumn.dt
-      )
+      );
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(
         this.newColumn.dt
-      )
-
-      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
+      );
+      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect];
       if (
         this.column &&
         selectTypes.includes(this.newColumn.uidt) &&
         selectTypes.includes(this.column.uidt)
       ) {
-        this.newColumn.dtxp = this.column.dtxp
+        this.newColumn.dtxp = this.column.dtxp;
       }
 
       if (columnToValidate.includes(this.newColumn.uidt)) {
         this.newColumn.meta = {
-          validate: this.newColumn.meta && this.newColumn.meta.validate
-        }
+          validate: this.newColumn.meta && this.newColumn.meta.validate,
+        };
       }
 
       if (this.isCurrency) {
         if (this.column?.uidt === UITypes.Currency) {
-          this.newColumn.dtxp = this.column.dtxp
-          this.newColumn.dtxs = this.column.dtxs
+          this.newColumn.dtxp = this.column.dtxp;
+          this.newColumn.dtxs = this.column.dtxs;
         } else {
-          this.newColumn.dtxp = 19
-          this.newColumn.dtxs = 2
+          this.newColumn.dtxp = 19;
+          this.newColumn.dtxs = 2;
         }
       }
 
-      this.newColumn.altered = this.newColumn.altered || 2
+      this.newColumn.altered = this.newColumn.altered || 2;
     },
     focusInput() {
       setTimeout(() => {
         if (this.$refs.column && this.$refs.column.$el) {
-          const el = this.$refs.column.$el.querySelector('input')
-          el.focus()
-          el.select()
+          const el = this.$refs.column.$el.querySelector("input");
+          el.focus();
+          el.select();
         }
-      }, 100)
+      }, 100);
     },
-    async deleteRelation(action = '', column) {
+    async deleteRelation(action = "", column) {
       try {
-        if (action === 'showDialog') {
-          this.relationDeleteDlg = true
-        } else if (action === 'hideDialog') {
-          this.relationDeleteDlg = false
+        if (action === "showDialog") {
+          this.relationDeleteDlg = true;
+        } else if (action === "hideDialog") {
+          this.relationDeleteDlg = false;
         } else {
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          const result = await this.$store.dispatch("sqlMgr/ActSqlOpPlus", [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
-            this.relation.type === 'virtual'
-              ? 'xcVirtualRelationDelete'
-              : 'relationDelete',
+            this.relation.type === "virtual"
+              ? "xcVirtualRelationDelete"
+              : "relationDelete",
             {
               childColumn: this.relation.column_name,
               childTable: this.nodes.table_name,
               parentTable: this.relation.rtn,
-              parentColumn: this.relation.rcn
-            }
-          ])
-          this.relationDeleteDlg = false
-          this.relation = null
-          this.$toast.success('Foreign Key deleted successfully').goAway(3000)
-          this.$emit('onRelationDelete')
+              parentColumn: this.relation.rcn,
+            },
+          ]);
+          this.relationDeleteDlg = false;
+          this.relation = null;
+          this.$toast.success("Foreign Key deleted successfully").goAway(3000);
+          this.$emit("onRelationDelete");
         }
       } catch (e) {
-        console.log(e)
+        console.log(e);
         this.$toast
-          .error('Foreign key relation delete failed' + e)
-          .goAway(3000)
-        throw e
+          .error("Foreign key relation delete failed" + e)
+          .goAway(3000);
+        throw e;
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

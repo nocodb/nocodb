@@ -14,24 +14,30 @@
 </template>
 
 <script>
-import colors from '@/mixins/colors'
+import colors from "@/mixins/colors";
 
 export default {
-  name: 'SetListCell',
+  name: "SetListCell",
   mixins: [colors],
-  props: ['value', 'column'],
+  props: ["value", "column"],
   computed: {
     setValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
+        return this.column.dtxp
+          .split(",")
+          .map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, ""));
       }
-      return []
+      return [];
     },
     selectedValues() {
-      return this.value ? this.value.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, '')) : []
-    }
-  }
-}
+      return this.value
+        ? this.value
+            .split(",")
+            .map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, ""))
+        : [];
+    },
+  },
+};
 </script>
 
 <style scoped>

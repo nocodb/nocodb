@@ -1,76 +1,81 @@
-import { UITypes } from 'nocodb-sdk'
-import { uiTypes } from '@/components/project/spreadsheet/helpers/uiTypes'
+import { UITypes } from "nocodb-sdk";
+import { uiTypes } from "@/components/project/spreadsheet/helpers/uiTypes";
 
 export default {
   props: {
     sqlUi: [Object, Function],
-    column: Object
+    column: Object,
   },
   computed: {
     uiDatatype() {
-      return this.column && this.column.uidt
+      return this.column && this.column.uidt;
     },
     uiDatatypeIcon() {
-      const ui = this.uiDatatype && uiTypes.find(ui => ui.name === this.uiDatatype)
-      return ui && ui.icon
+      const ui =
+        this.uiDatatype && uiTypes.find((ui) => ui.name === this.uiDatatype);
+      return ui && ui.icon;
     },
     abstractType() {
-      return this.sqlUi && this.column && this.column.dt && this.sqlUi.getAbstractType(this.column)
+      return (
+        this.sqlUi &&
+        this.column &&
+        this.column.dt &&
+        this.sqlUi.getAbstractType(this.column)
+      );
     },
     dataTypeLow() {
-      return this.column && this.column.dt && this.column.dt.toLowerCase()
+      return this.column && this.column.dt && this.column.dt.toLowerCase();
     },
     isBoolean() {
-      return this.abstractType === 'boolean'
+      return this.abstractType === "boolean";
     },
     isString() {
-      return this.abstractType === 'string'
+      return this.abstractType === "string";
     },
     isTextArea() {
-      return this.uiDatatype === UITypes.LongText
+      return this.uiDatatype === UITypes.LongText;
     },
     isInt() {
-      return this.abstractType === 'integer'
+      return this.abstractType === "integer";
     },
     isFloat() {
-      return this.abstractType === 'float'
+      return this.abstractType === "float";
     },
     isDate() {
-      return this.abstractType === 'date' || this.uiDatatype === 'Date'
+      return this.abstractType === "date" || this.uiDatatype === "Date";
     },
     isTime() {
-      return this.abstractType === 'time' || this.uiDatatype === 'Time'
+      return this.abstractType === "time" || this.uiDatatype === "Time";
     },
     isDateTime() {
-      return this.abstractType === 'datetime' || this.uiDatatype === 'DateTime'
+      return this.abstractType === "datetime" || this.uiDatatype === "DateTime";
     },
     isJSON() {
-      return this.uiDatatype === 'JSON'
+      return this.uiDatatype === "JSON";
     },
     isEnum() {
-      return this.uiDatatype === 'SingleSelect'
+      return this.uiDatatype === "SingleSelect";
     },
     isSet() {
-      return this.uiDatatype === 'MultiSelect'
+      return this.uiDatatype === "MultiSelect";
     },
     isURL() {
-      return this.uiDatatype === 'URL'
+      return this.uiDatatype === "URL";
     },
     isEmail() {
-      return this.uiDatatype === UITypes.Email
+      return this.uiDatatype === UITypes.Email;
     },
     isAttachment() {
-      return this.uiDatatype === 'Attachment'
+      return this.uiDatatype === "Attachment";
     },
     isRating() {
-      return this.uiDatatype === UITypes.Rating
+      return this.uiDatatype === UITypes.Rating;
     },
     isCurrency() {
-      return this.uiDatatype === 'Currency'
-    }
-
-  }
-}
+      return this.uiDatatype === "Currency";
+    },
+  },
+};
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

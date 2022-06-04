@@ -10,7 +10,7 @@
       class="primary nc-project-title theme--dark"
       :class="{ shared: sharedBase }"
     >
-      <img v-if="sharedBase" src="favicon-32.png" height="18" class="ml-2">
+      <img v-if="sharedBase" src="favicon-32.png" height="18" class="ml-2" />
       <h3
         v-if="sharedBase"
         class="nc-project-title white--text text-capitalize"
@@ -43,9 +43,7 @@
             class="elevation-0 mr-2 pl-3 pr-1 caption nc-table-list-filter"
           >
             <template #prepend-inner>
-              <v-icon small class="mt-2 ml-2 mr-1">
-                mdi-magnify
-              </v-icon>
+              <v-icon small class="mt-2 ml-2 mr-1"> mdi-magnify </v-icon>
             </template>
             <template #append>
               <v-icon
@@ -152,9 +150,7 @@
                   @contextmenu.prevent="showCTXMenu($event, item, true, false)"
                 >
                   <template #appendIcon>
-                    <v-icon small color="grey">
-                      mdi-chevron-down
-                    </v-icon>
+                    <v-icon small color="grey"> mdi-chevron-down </v-icon>
                   </template>
                   <template #activator>
                     <v-list-item-icon>
@@ -183,8 +179,7 @@
                             class="body-2 font-weight-medium"
                             v-on="on"
                           >
-                            {{
-                              $t("objects.tables")
+                            {{ $t("objects.tables")
                             }}<template
                               v-if="item.children && item.children.length"
                             >
@@ -196,13 +191,16 @@
                                       .toLowerCase()
                                       .includes(search.toLowerCase())
                                 ).length
-                              }})</template></span>
+                              }})</template
+                            ></span
+                          >
                           <span
                             v-else
                             class="body-2 font-weight-medium"
                             v-on="on"
                           >
-                            {{ item.name }}</span>
+                            {{ item.name }}</span
+                          >
                         </template>
                         <span class="caption">Only visible to Creator</span>
                       </v-tooltip>
@@ -211,8 +209,7 @@
                           v-if="item.type === 'tableDir'"
                           class="body-2 font-weight-medium"
                         >
-                          {{
-                            $t("objects.tables")
+                          {{ $t("objects.tables")
                           }}<template
                             v-if="item.children && item.children.length"
                           >
@@ -224,9 +221,12 @@
                                     .toLowerCase()
                                     .includes(search.toLowerCase())
                               ).length
-                            }})</template></span>
+                            }})</template
+                          ></span
+                        >
                         <span v-else class="caption font-weight-regular">
-                          {{ item.name }}</span>
+                          {{ item.name }}</span
+                        >
                       </template>
                     </v-list-item-title>
 
@@ -237,7 +237,7 @@
                         <x-icon
                           v-if="
                             _isUIAllowed('treeview-add-button') &&
-                              item.type !== 'viewDir'
+                            item.type !== 'viewDir'
                           "
                           :color="['x-active', 'grey']"
                           small
@@ -249,12 +249,12 @@
                           mdi-plus-circle-outline
                         </x-icon>
                       </template>
-                      <span
-                        class="caption"
-                      >Add new
+                      <span class="caption"
+                        >Add new
                         <span class="text-capitalize">{{
                           item.type.slice(0, -3)
-                        }}</span></span>
+                        }}</span></span
+                      >
                     </v-tooltip>
                   </template>
 
@@ -278,9 +278,9 @@
                           v-for="child in item.children || []"
                           v-show="
                             !search ||
-                              child.name
-                                .toLowerCase()
-                                .includes(search.toLowerCase())
+                            child.name
+                              .toLowerCase()
+                              .includes(search.toLowerCase())
                           "
                           :key="child.key"
                           v-t="['a:table:open']"
@@ -328,7 +328,7 @@
                             <v-tooltip
                               v-if="
                                 _isUIAllowed('creator_tooltip') &&
-                                  child.creator_tooltip
+                                child.creator_tooltip
                               "
                               bottom
                             >
@@ -355,7 +355,7 @@
                                   <v-icon
                                     v-if="
                                       _isUIAllowed('treeview-rename-button') ||
-                                        _isUIAllowed('ui-acl')
+                                      _isUIAllowed('ui-acl')
                                     "
                                     small
                                     v-on="on"
@@ -365,6 +365,7 @@
                                 </template>
 
                                 <v-list dense>
+                                  <!-- Rename menu option -->
                                   <v-list-item
                                     v-if="
                                       _isUIAllowed('treeview-rename-button')
@@ -391,6 +392,8 @@
                                       </span>
                                     </v-list-item-title>
                                   </v-list-item>
+
+                                  <!-- UIACL menu option-->
                                   <v-list-item
                                     v-if="_isUIAllowed('ui-acl')"
                                     v-t="['c:table:ui-acl']"
@@ -423,7 +426,7 @@
                 <v-list-item
                   v-else-if="
                     (item.type !== 'sqlClientDir' || showSqlClient) &&
-                      (item.type !== 'migrationsDir' || _isUIAllowed('audit'))
+                    (item.type !== 'migrationsDir' || _isUIAllowed('audit'))
                   "
                   :key="item.key"
                   :selectable="false"
@@ -459,7 +462,8 @@
                           class="caption font-weight-regular"
                           v-on="on"
                           @dblclick="showSqlClient = true"
-                        >{{ item.name }}</span>
+                          >{{ item.name }}</span
+                        >
                       </template>
                       <span class="caption">Only visible to Creator</span>
                     </v-tooltip>
@@ -467,7 +471,8 @@
                       v-else
                       class="caption font-weight-regular"
                       @dblclick="showSqlClient = true"
-                    >{{ item.name }}</span>
+                      >{{ item.name }}</span
+                    >
                   </v-list-item-title>
                 </v-list-item>
               </template>
@@ -527,9 +532,7 @@
                     v-on="on"
                   >
                     <v-list-item-icon>
-                      <v-icon x-small>
-                        mdi-storefront-outline
-                      </v-icon>
+                      <v-icon x-small> mdi-storefront-outline </v-icon>
                     </v-list-item-icon>
                     <!-- App Store -->
                     <v-list-item-title>
@@ -553,9 +556,7 @@
                     v-on="on"
                   >
                     <v-list-item-icon>
-                      <v-icon x-small>
-                        mdi-account-group
-                      </v-icon>
+                      <v-icon x-small> mdi-account-group </v-icon>
                     </v-list-item-icon>
                     <!-- Team & Auth -->
                     <v-list-item-title>
@@ -578,9 +579,7 @@
                     v-on="on"
                   >
                     <v-list-item-icon>
-                      <v-icon x-small>
-                        mdi-table-multiple
-                      </v-icon>
+                      <v-icon x-small> mdi-table-multiple </v-icon>
                     </v-list-item-icon>
                     <!-- Project Metadata -->
                     <v-list-item-title>
@@ -604,18 +603,14 @@
                     v-on="on"
                   >
                     <v-list-item-icon>
-                      <v-icon x-small>
-                        mdi-notebook-outline
-                      </v-icon>
+                      <v-icon x-small> mdi-notebook-outline </v-icon>
                     </v-list-item-icon>
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
                         $t("title.audit")
                       }}</span>
-                    </v-list-item-title
-                    </v-list-item
-                    >
+                    </v-list-item-title>
                   </v-list-item>
                 </template>
                 <!-- Meta Management -->
@@ -631,9 +626,7 @@
               <span class="body-2 font-weight-medium">{{
                 $t("activity.previewAs")
               }}</span>
-              <v-icon small class="ml-1">
-                mdi-drama-masks
-              </v-icon>
+              <v-icon small class="ml-1"> mdi-drama-masks </v-icon>
             </v-list-item>
 
             <v-list dense>
@@ -660,16 +653,15 @@
                     <span
                       class="caption text-capitalize"
                       :class="{ 'x-active--text': role.title === previewAs }"
-                    >{{ role.title }}</span>
+                      >{{ role.title }}</span
+                    >
                   </div>
                 </template>
               </div>
               <template v-if="previewAs">
                 <!--                <v-divider></v-divider>-->
                 <v-list-item @click="setPreviewUSer(null)">
-                  <v-icon small class="mr-1">
-                    mdi-close
-                  </v-icon>
+                  <v-icon small class="mr-1"> mdi-close </v-icon>
                   <!-- Reset Preview -->
                   <span class="caption nc-preview-reset">{{
                     $t("activity.resetReview")
@@ -686,10 +678,8 @@
           class="caption pointer nc-docs pb-2 pl-5 pr-3 pt-2 d-flex align-center"
           @click="openLink(apiLink)"
         >
-          <v-icon color="brown" small class="mr-2">
-            mdi-open-in-new
-          </v-icon>
-          {{ $t('title.apiDocs') }}
+          <v-icon color="brown" small class="mr-2"> mdi-open-in-new </v-icon>
+          {{ $t("title.apiDocs") }}
         </div>
 
         <template v-if="_isUIAllowed('settings')">
@@ -701,10 +691,8 @@
                   class="caption pointer nc-team-settings"
                   @click="click"
                 >
-                  <v-icon color="brown" small class="mr-1">
-                    mdi-cog
-                  </v-icon>
-                  {{ $t('title.teamAndSettings') }}
+                  <v-icon color="brown" small class="mr-1"> mdi-cog </v-icon>
+                  {{ $t("title.teamAndSettings") }}
                 </div>
               </template>
             </settings-modal>
@@ -780,7 +768,7 @@
 <script>
 /* eslint-disable */
 
-import {mapMutations, mapGetters, mapActions} from "vuex";
+import { mapMutations, mapGetters, mapActions } from "vuex";
 
 import rightClickOptions from "../helpers/rightClickOptions";
 import rightClickOptionsSub from "../helpers/rightClickOptionsSub";
@@ -788,11 +776,11 @@ import icons from "../helpers/treeViewIcons";
 
 import textDlgSubmitCancel from "./utils/DlgTextSubmitCancel";
 import dlgLabelSubmitCancel from "./utils/DlgLabelSubmitCancel";
-import {copyTextToClipboard} from "../helpers/xutils";
+import { copyTextToClipboard } from "../helpers/xutils";
 import DlgTableCreate from "~/components/utils/DlgTableCreate";
 import DlgViewCreate from "~/components/utils/DlgViewCreate";
 import SponsorMini from "~/components/SponsorMini";
-import {validateTableName} from "~/helpers";
+import { validateTableName } from "~/helpers";
 import QuickImport from "~/components/import/QuickImport";
 
 import draggable from "vuedraggable";
@@ -835,9 +823,9 @@ export default {
       commenter: "mdi-comment-account-outline",
     },
     rolesList: [
-      {title: "editor"},
-      {title: "commenter"},
-      {title: "viewer"},
+      { title: "editor" },
+      { title: "commenter" },
+      { title: "viewer" },
     ],
     showSqlClient: false,
     nestedMenu: {},
@@ -865,7 +853,7 @@ export default {
     x: 0,
     y: 0,
     menuItem: null,
-    menu: [{title: "Execute"}],
+    menu: [{ title: "Execute" }],
     icons,
     tree: [],
     active: [],
@@ -910,7 +898,11 @@ export default {
   }),
   computed: {
     apiLink() {
-      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
+      return new URL(
+        `/api/v1/db/meta/projects/${this.projectId}/swagger`,
+        this.$store.state.project.appInfo &&
+          this.$store.state.project.appInfo.ncSiteUrl
+      );
     },
     previewAs: {
       get() {
@@ -992,7 +984,7 @@ export default {
           "order",
           (children[event.moved.newIndex - 1].order +
             children[event.moved.newIndex + 1].order) /
-          2
+            2
         );
       }
 
@@ -1054,7 +1046,7 @@ export default {
           name: "App Store",
           key: `appStore`,
         };
-        item._nodes = {env: "_noco"};
+        item._nodes = { env: "_noco" };
         item._nodes.type = "appStore";
         this.$store.dispatch("tabs/ActAddTab", item);
       }
@@ -1095,7 +1087,7 @@ export default {
           name: `${this.$t("title.teamAndAuth")} `,
           key: `roles`,
         };
-        item._nodes = {env: "_noco"};
+        item._nodes = { env: "_noco" };
         item._nodes.type = "roles";
         this.$store.dispatch("tabs/ActAddTab", item);
       }
@@ -1111,7 +1103,7 @@ export default {
           name: `${this.$t("title.metaMgmt")}`,
           key: `disableOrEnableModel`,
         };
-        item._nodes = {env: "_noco"};
+        item._nodes = { env: "_noco" };
         item._nodes.type = "disableOrEnableModel";
         this.$store.dispatch("tabs/ActAddTab", item);
       }
@@ -1154,8 +1146,8 @@ export default {
         const el = this.$refs.drawer.$el;
         this.navigation.width =
           this.$refs.drawer.width =
-            el.style.width =
-              "50px";
+          el.style.width =
+            "50px";
         this.miniExpanded = false;
       }
     },
@@ -1308,15 +1300,15 @@ export default {
 
         if ("toast" in this.$route.query) {
           this.$toast
-          .success(
-            `Successfully generated ${(
-              this.$store.getters["project/GtrProjectType"] || ""
-            ).toUpperCase()} APIs`,
-            {
-              position: "top-center",
-            }
-          )
-          .goAway(5000);
+            .success(
+              `Successfully generated ${(
+                this.$store.getters["project/GtrProjectType"] || ""
+              ).toUpperCase()} APIs`,
+              {
+                position: "top-center",
+              }
+            )
+            .goAway(5000);
         }
 
         try {
@@ -1335,12 +1327,12 @@ export default {
               (n) => n.type === `${this.$route.query.type}Dir`
             );
             await this.addTab(
-              {...(node || this.listViewArr[0])},
+              { ...(node || this.listViewArr[0]) },
               false,
               true
             );
           } else {
-            await this.addTab({...this.listViewArr[0]}, false, true);
+            await this.addTab({ ...this.listViewArr[0] }, false, true);
           }
         }
       } catch (error) {
@@ -1518,7 +1510,7 @@ export default {
             dbAlias: item._nodes.dbAlias,
           },
           func,
-          {tn: item.name},
+          { tn: item.name },
         ]);
         if (result && result.data) {
           copyTextToClipboard(result.data, "selection");
@@ -1526,7 +1518,7 @@ export default {
           copyTextToClipboard("Example String", "selection");
         }
 
-        let sqlClientNode = {...item._nodes};
+        let sqlClientNode = { ...item._nodes };
         let newItem = {
           _nodes: sqlClientNode,
         };
@@ -1562,8 +1554,8 @@ export default {
         });
       } catch (e) {
         this.$toast
-        .error(await this._extractSdkResponseErrorMsg(e))
-        .goAway(3000);
+          .error(await this._extractSdkResponseErrorMsg(e))
+          .goAway(3000);
         return;
       }
       await this.removeTabsByName(item);
@@ -1836,7 +1828,7 @@ export default {
               dbAlias: item._nodes.dbAlias,
             },
             "viewRead",
-            {view_name: item._nodes.view_name},
+            { view_name: item._nodes.view_name },
           ]);
 
           await this.$store.dispatch("sqlMgr/ActSqlOpPlus", [
@@ -1945,8 +1937,7 @@ export default {
     this.loadDefaultTabs(true);
     // this.loadRoles();
   },
-  beforeCreate() {
-  },
+  beforeCreate() {},
   mounted() {
     // this.setBorderWidth();
     // this.setEvents();
@@ -2025,9 +2016,9 @@ export default {
 }
 
 /deep/
-.v-list-group
-.v-list-group__header
-.v-list-item__icon.v-list-group__header__append-icon {
+  .v-list-group
+  .v-list-group__header
+  .v-list-item__icon.v-list-group__header__append-icon {
   min-width: auto;
 }
 
@@ -2049,16 +2040,16 @@ export default {
 }
 
 /deep/
-.nc-table-list-filter.theme--light.v-text-field
-> .v-input__control
-> .v-input__slot:before {
+  .nc-table-list-filter.theme--light.v-text-field
+  > .v-input__control
+  > .v-input__slot:before {
   border-top-color: rgba(0, 0, 0, 0.12) !important;
 }
 
 /deep/
-.nc-table-list-filter.theme--dark.v-text-field
-> .v-input__control
-> .v-input__slot:before {
+  .nc-table-list-filter.theme--dark.v-text-field
+  > .v-input__control
+  > .v-input__slot:before {
   border-top-color: rgba(255, 255, 255, 0.12) !important;
 }
 

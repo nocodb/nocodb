@@ -51,13 +51,13 @@ export const parseDuration = (val, durationType) => {
   return val
 }
 
-export const getMSFromDuration = (val) => {
+export const getMSFromDuration = (val, durationType) => {
   const res = {
     valid: false,
     ms: null
   }
   // 10:00 (10 mins) -> 600000ms
-  const duration = moment.duration(val)
+  const duration = moment.duration(val, durationType == 0 ? 'minutes' : 'seconds')
   if (moment.isDuration(duration)) {
     const d = duration._data
     const ms = d.hours * 3600000 + d.minutes * 60000 + d.seconds * 1000 + d.milliseconds

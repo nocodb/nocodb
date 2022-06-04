@@ -1,9 +1,9 @@
 <template>
   <input
-      v-model="localValue"
-      :placeholder="durationPlaceholder"
-      readonly
-    />
+    v-model="localValue"
+    :placeholder="durationPlaceholder"
+    readonly
+  >
 </template>
 
 <script>
@@ -11,28 +11,31 @@ import { durationOptions, parseDuration } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
-  props: ['value'],
+  props: {
+    column: Object,
+    value: [String, Number]
+  },
   data: () => ({
     showWarningMessage: false,
     localValue: null
   }),
-  created() {
-    this.localValue = parseDuration(this.value, this.column?.meta?.duration || 0)
-  },
-  computed: { 
+  computed: {
     durationPlaceholder() {
       return durationOptions[this.column?.meta?.duration || 0].title
     }
   },
-  watch: { 
-    value (val, oldVal) {
+  watch: {
+    value(val, oldVal) {
       if (val != oldVal && (!val && val !== 0)) {
-          this.localValue = oldVal
+        this.localValue = oldVal
       } else {
-          this.localValue = val
+        this.localValue = val
       }
     }
   },
+  created() {
+    this.localValue = parseDuration(this.value, this.column?.meta?.duration || 0)
+  }
 }
 </script>
 

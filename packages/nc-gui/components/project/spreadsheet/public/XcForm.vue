@@ -128,18 +128,6 @@
                           >
                             Field is required.
                           </div>
-
-                          <!-- todo: optimize -->
-                          <template
-                            v-if="col.bt && $v.localState && $v.localState.$dirty && $v.localState[meta.columns.find(c => c.column_name === col.bt.column_name).title]"
-                          >
-                            <div
-                              v-if="!$v.localState[meta.columns.find(c => c.column_name === col.bt.column_name).title].required"
-                              class="error--text caption"
-                            >
-                              Field is required.
-                            </div>
-                          </template>
                         </div>
                         <template v-else>
                           <div
@@ -270,6 +258,17 @@ export default {
   },
   computed: {
 
+    btColumnsRefs() {
+      return (this.columns || []).reduce((aggObj, column) => {
+        if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions && column.colOptions.type === RelationTypes.BELONGS_TO) {
+          const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
+
+          aggObj[column.title] = col
+        }
+        return aggObj
+      }, {})
+    },
+
     sqlUiLoc() {
       // todo: replace with correct client
       return this.client && SqlUiFactory.create({ client: this.client })
@@ -376,7 +375,7 @@ export default {
         const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
 
         if ((col && col.rqd && !col.cdf) || column.required) {
-          obj.localState[col.title] = { required }
+          if (col) { obj.virtual[column.title] = { required } }
         }
       } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title] = {

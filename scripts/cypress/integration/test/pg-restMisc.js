@@ -10,6 +10,7 @@ let t7a = require("../common/7a_create_project_from_excel");
 const {
     setCurrentMode,
 } = require("../../support/page_objects/projectConstants");
+const t8a = require("../common/8a_webhook");
 
 // use 0 as mode to execute individual files (debug mode, skip pre-configs)
 // use 1 mode if noco.db doesnt contain user credentials (full run over GIT)
@@ -29,6 +30,10 @@ const nocoTestSuite = (apiType, dbType) => {
     // ncv2@fixme t6c.genTest(apiType, dbType);
     t6f.genTest(apiType, dbType);
     t6g.genTest(apiType, dbType);
+
+    // webhook tests
+    t8a.genTest(apiType, dbType)
+
     // **deletes created project, hence place it @ end
     t6e.genTest(apiType, dbType);
 

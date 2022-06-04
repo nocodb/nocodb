@@ -27,7 +27,7 @@
           <v-tooltip bottom>
             <template #activator="{on}">
               <v-img
-                v-if="isImage(item.title)"
+                v-if="isImage(item.title, item.mimetype)"
                 lazy-src="https://via.placeholder.com/60.png?text=Loading..."
                 alt="#"
                 max-height="99px"
@@ -62,7 +62,11 @@
           </v-tooltip>
         </div>
       </div>
-      <div v-if="isForm || active && !isPublicGrid && !isLocked" class="add d-flex align-center justify-center px-1 nc-attachment-add" @click="addFile">
+      <div
+        v-if="isForm || active && !isPublicGrid && !isLocked"
+        class="add d-flex align-center justify-center px-1 nc-attachment-add"
+        @click="addFile"
+      >
         <v-icon v-if="uploading" small color="primary" class="nc-attachment-add-spinner">
           mdi-loading mdi-spin
         </v-icon>
@@ -76,9 +80,15 @@
         >
           <v-icon x-small color="">
             mdi-plus
-          </v-icon> Attachment
+          </v-icon>
+          Attachment
         </v-btn>
-        <v-icon v-else-if="_isUIAllowed('tableAttachment')" v-show="active" small color="primary nc-attachment-add-icon">
+        <v-icon
+          v-else-if="_isUIAllowed('tableAttachment')"
+          v-show="active"
+          small
+          color="primary nc-attachment-add-icon"
+        >
           mdi-plus
         </v-icon>
       </div>
@@ -110,6 +120,8 @@
               </v-icon>
               <span class="caption">Attach File</span>
             </v-btn>
+
+            <!--            <v-text-field v-model="urlString" @keypress.enter="uploadByUrl" />-->
           </div>
 
           <div class="d-flex flex-wrap h-100">
@@ -138,7 +150,7 @@
                     </v-icon>
                     <div class="pa-2 d-flex align-center" style="height:200px">
                       <img
-                        v-if="isImage(item.title)"
+                        v-if="isImage(item.title, item.mimetype)"
                         style="max-height: 100%;max-width: 100%"
                         alt="#"
                         :src="item.url || item.data"
@@ -183,7 +195,7 @@
                 </p>
                 <div style="width:90vh;height:calc(100vh - 150px)" class="d-flex align-center justify-center">
                   <img
-                    v-if="isImage(item.title)"
+                    v-if="isImage(item.title, item.mimetype)"
                     style="max-width:90vh;max-height:calc(100vh - 100px)"
                     :src="item.url || item.data"
                   >
@@ -222,7 +234,7 @@
                 @click="carousel = i"
               >
                 <img
-                  v-if="isImage(item.title)"
+                  v-if="isImage(item.title, item.mimetype)"
                   style="max-width:100%;max-height:100%"
                   :src="item.url || item.data"
                 >
@@ -261,7 +273,8 @@ export default {
     showImage: false,
     selectedImage: null,
     dragOver: false,
-    localFilesState: []
+    localFilesState: [],
+    urlString: ''
   }),
   watch: {
     value(val, prev) {
@@ -286,6 +299,18 @@ export default {
   mounted() {
   },
   methods: {
+    async uploadByUrl() {
+      const data = await this.$api.storage.uploadByUrl(
+        {
+          path: ['noco', this.projectName, this.meta.title, this.column.title].join('/')
+        },
+        [{
+          url: this.urlString
+        }]
+      )
+
+      this.localState.push(...data)
+    },
     openUrl(url, target) {
       window.open(url, target)
     },
@@ -316,7 +341,7 @@ export default {
       if (this.isPublicForm) {
         this.localFilesState.push(...Array.from(this.$refs.file.files).map((file) => {
           const res = { file, title: file.name }
-          if (isImage(file.name)) {
+          if (isImage(file.name, file.mimetype)) {
             const reader = new FileReader()
             reader.onload = (e) => {
               this.$set(res, 'data', e.target.result)

@@ -15,7 +15,7 @@ const { rmdir } = require("fs");
 
 // https://stackoverflow.com/questions/61934443/read-excel-files-in-cypress
 const readXlsx = require("./read-xlsx");
-
+const makeServer = require('./server')
 /**
  * @type {Cypress.PluginConfig}
  */
@@ -66,6 +66,27 @@ module.exports = (on, config) => {
             return null;
         },
     });
+
+    let server, port, close
+
+    on('before:spec', async (spec) => {
+        // we can customize the server based on the spec about to run
+        const info = await makeServer()
+        // save the server instance information
+        server = info.server
+        port = info.port
+        close = info.close
+        console.log('started the server on port %d', port)
+    })
+
+    on('after:spec', async (spec) => {
+        if (!server) {
+            console.log('no server to close')
+            return
+        }
+        await close()
+        console.log('closed the server running on port %d', port)
+    })
 };
 
 // mysql connection
@@ -168,3 +189,25 @@ function _pgExec(query) {
         client.end();
     });
 }
+
+/**
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ *
+ * @author Raju Udava <sivadstala@gmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */

@@ -673,6 +673,7 @@
         </div>
 
         <v-divider />
+<<<<<<< HEAD
         <div
           v-t="['e:api-docs']"
           class="caption pointer nc-docs pb-2 pl-5 pr-3 pt-2 d-flex align-center"
@@ -681,6 +682,20 @@
           <v-icon color="brown" small class="mr-2"> mdi-open-in-new </v-icon>
           {{ $t("title.apiDocs") }}
         </div>
+=======
+        <template v-if="_isUIAllowed('apiDocs')">
+          <div
+            v-t="['e:api-docs']"
+            class="caption pointer nc-docs pb-2 pl-5 pr-3 pt-2 d-flex align-center"
+            @click="openLink(apiLink)"
+          >
+            <v-icon color="brown" small class="mr-2">
+              mdi-open-in-new
+            </v-icon>
+            {{ $t('title.apiDocs') }}
+          </div>
+        </template>
+>>>>>>> 3a4c65df65eae4d34a257752c017f528131906d0
 
         <template v-if="_isUIAllowed('settings')">
           <div class="pl-5 pr-3 d-flex align-center pb-2">

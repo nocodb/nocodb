@@ -169,7 +169,7 @@
                   <v-icon color="green" size="15">
                     mdi-loading mdi-spin
                   </v-icon>
-                  <span class="caption nc-text">Syncing
+                  <span class="caption nc-text">Importing
                   </span>
                   <!--                  <div class="nc-progress" />-->
                 </div>

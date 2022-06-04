@@ -1,5 +1,5 @@
-import Noco from './noco/Noco';
-import XcTry from './noco/nc.try';
+import Noco from './Noco';
+import XcTry from './v1-legacy/nc.try';
 import NcConfigFactory from './utils/NcConfigFactory';
 
 export default Noco;

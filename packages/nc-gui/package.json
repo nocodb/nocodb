@@ -69,7 +69,6 @@
     "@nuxtjs/vuetify": "^1.11.2",
     "@types/httpsnippet": "^1.23.1",
     "babel-eslint": "^10.1.0",
-    "cross-env": "^7.0.3",
     "eslint": "^7.31.0",
     "monaco-editor-webpack-plugin": "^1.9.1",
     "sass": "~1.32.12",

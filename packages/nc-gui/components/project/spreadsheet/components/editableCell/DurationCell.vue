@@ -28,7 +28,8 @@ export default {
   },
   data: () => ({
     showWarningMessage: false,
-    durationInMS: null
+    durationInMS: null,
+    isEdited: false,
   }),
   computed: {
     localState: {
@@ -36,6 +37,7 @@ export default {
         return parseDuration(this.value, this.column?.meta?.duration || 0)
       },
       set(val) {
+        this.isEdited = true
         // 10:00 (10 mins) -> 600000ms
         const duration = moment.duration(val)
         if (moment.isDuration(duration)) {
@@ -75,9 +77,10 @@ export default {
       }
     },
     onBlur() {
-      if (this.durationInMS) {
+      if (this.isEdited) {
         this.$emit('input', this.durationInMS)
       }
+      this.isEdited = false
     }
   }
 }

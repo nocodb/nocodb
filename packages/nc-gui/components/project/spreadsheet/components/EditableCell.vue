@@ -205,11 +205,8 @@ export default {
         return this.value
       },
       set(val) {
-        console.log("Val= " + val)
-        console.log("this.value= " + this.value)
         if (val !== this.value) {
           this.changed = true
-          console.log("Saving " + val)
           this.$emit('input', val)
           if (this.isAttachment || this.isEnum || this.isBoolean || this.isRating || this.isSet || this.isTime || this.isDateTime || this.isDate || this.isDuration) {
             this.syncData()

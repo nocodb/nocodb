@@ -16,8 +16,7 @@
 </template>
 
 <script>
-import moment from 'moment'
-import { durationOptions, parseDuration } from '~/helpers/durationHelper'
+import { durationOptions, parseDuration, getMSFromDuration } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
@@ -27,9 +26,12 @@ export default {
     readOnly: Boolean
   },
   data: () => ({
+    // flag to determine to show warning message or not
     showWarningMessage: false,
+    // duration in milliseconds
     durationInMS: null,
-    isEdited: false,
+    // check if the cell is edited or not
+    isEdited: false
   }),
   computed: {
     localState: {
@@ -38,14 +40,9 @@ export default {
       },
       set(val) {
         this.isEdited = true
-        // 10:00 (10 mins) -> 600000ms
-        const duration = moment.duration(val)
-        if (moment.isDuration(duration)) {
-          const d = duration._data
-          const ms = d.hours * 3600000 + d.minutes * 60000 + d.seconds * 1000 + d.milliseconds
-          if (ms >= 0) {
-            this.durationInMS = ms
-          }
+        const res = getMSFromDuration(val)
+        if (res.valid) {
+          this.durationInMS = res.ms
         }
       }
     },

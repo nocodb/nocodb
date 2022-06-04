@@ -31,6 +31,24 @@ export const parseDuration = (val, durationType) => {
   return val
 }
 
+export const getMSFromDuration = (val) => {
+  const res = {
+    valid: false,
+    ms: null
+  }
+  // 10:00 (10 mins) -> 600000ms
+  const duration = moment.duration(val)
+  if (moment.isDuration(duration)) {
+    const d = duration._data
+    const ms = d.hours * 3600000 + d.minutes * 60000 + d.seconds * 1000 + d.milliseconds
+    if (ms >= 0) {
+      res.valid = true
+      res.ms = ms
+    }
+  }
+  return res
+}
+
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *

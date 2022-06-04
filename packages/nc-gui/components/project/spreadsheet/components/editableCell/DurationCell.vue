@@ -6,7 +6,7 @@
       :placeholder="durationPlaceholder"
       @blur="onBlur"
       @keypress="checkDurationFormat($event)"
-      @keydown.enter="$emit('input', durationInMS)"
+      @keydown.enter="isEdited && $emit('input', durationInMS)"
     >
     <div v-if="showWarningMessage == true" class="duration-warning">
       <!-- TODO: i18n -->

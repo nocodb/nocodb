@@ -36,22 +36,22 @@
 </template>
 
 <script>
-import DateCell from "./cell/DateCell";
-import DateTimeCell from "./cell/DateTimeCell";
-import TimeCell from "./cell/TimeCell";
-import JsonCell from "~/components/project/spreadsheet/components/cell/JsonCell";
-import UrlCell from "~/components/project/spreadsheet/components/cell/UrlCell";
-import cell from "@/components/project/spreadsheet/mixins/cell";
-import SetListCell from "~/components/project/spreadsheet/components/cell/SetListCell";
-import EnumCell from "~/components/project/spreadsheet/components/cell/EnumCell";
-import EditableAttachmentCell from "~/components/project/spreadsheet/components/editableCell/EditableAttachmentCell";
-import BooleanCell from "~/components/project/spreadsheet/components/cell/BooleanCell";
-import EmailCell from "~/components/project/spreadsheet/components/cell/EmailCell";
-import RatingCell from "~/components/project/spreadsheet/components/editableCell/RatingCell";
-import CurrencyCell from "@/components/project/spreadsheet/components/cell/CurrencyCell";
+import DateCell from './cell/DateCell'
+import DateTimeCell from './cell/DateTimeCell'
+import TimeCell from './cell/TimeCell'
+import JsonCell from '~/components/project/spreadsheet/components/cell/JsonCell'
+import UrlCell from '~/components/project/spreadsheet/components/cell/UrlCell'
+import cell from '@/components/project/spreadsheet/mixins/cell'
+import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell'
+import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
+import EditableAttachmentCell from '~/components/project/spreadsheet/components/editableCell/EditableAttachmentCell'
+import BooleanCell from '~/components/project/spreadsheet/components/cell/BooleanCell'
+import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCell'
+import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
+import CurrencyCell from '@/components/project/spreadsheet/components/cell/CurrencyCell'
 
 export default {
-  name: "TableCell",
+  name: 'TableCell',
   components: {
     RatingCell,
     EmailCell,
@@ -64,19 +64,19 @@ export default {
     EnumCell,
     SetListCell,
     BooleanCell,
-    CurrencyCell,
+    CurrencyCell
   },
   mixins: [cell],
-  props: ["value", "dbAlias", "isLocked", "selected", "column"],
+  props: ['value', 'dbAlias', 'isLocked', 'selected', 'column'],
   computed: {
     title() {
-      if (typeof this.value === "string") {
-        return this.value;
+      if (typeof this.value === 'string') {
+        return this.value
       }
-      return "";
-    },
-  },
-};
+      return ''
+    }
+  }
+}
 </script>
 
 <style scoped>

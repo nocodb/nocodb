@@ -90,7 +90,8 @@
                 {{ $t("activity.setPrimary") }}
               </span>
             </template>
-            <span class="caption font-weight-bold"
+            <span
+class="caption font-weight-bold"
               >Primary value will be shown in place of primary key</span
             >
           </v-tooltip>
@@ -171,71 +172,71 @@
 </template>
 
 <script>
-import { UITypes } from "nocodb-sdk";
-import cell from "@/components/project/spreadsheet/mixins/cell";
-import EditColumn from "~/components/project/spreadsheet/components/EditColumn";
+import { UITypes } from 'nocodb-sdk'
+import cell from '@/components/project/spreadsheet/mixins/cell'
+import EditColumn from '~/components/project/spreadsheet/components/EditColumn'
 
 export default {
-  name: "HeaderCell",
+  name: 'HeaderCell',
   components: { EditColumn },
   mixins: [cell],
   props: [
-    "value",
-    "column",
-    "isForeignKey",
-    "meta",
-    "nodes",
-    "columnIndex",
-    "isForm",
-    "isPublicView",
-    "isVirtual",
-    "required",
-    "isLocked",
+    'value',
+    'column',
+    'isForeignKey',
+    'meta',
+    'nodes',
+    'columnIndex',
+    'isForm',
+    'isPublicView',
+    'isVirtual',
+    'required',
+    'isLocked'
   ],
   data: () => ({
     editColumnMenu: false,
-    columnDeleteDialog: false,
+    columnDeleteDialog: false
   }),
   methods: {
     showColumnEdit() {
       if (this.column.uidt === UITypes.ID) {
         return this.$toast
-          .info("Primary key column edit is not allowed.")
-          .goAway(3000);
+          .info('Primary key column edit is not allowed.')
+          .goAway(3000)
       }
-      this.editColumnMenu = true;
+      this.editColumnMenu = true
     },
     async deleteColumn() {
       try {
-        const column = { ...this.column, cno: this.column.column_name };
-        column.altered = 4;
-        const columns = this.meta.columns.slice();
-        columns[this.columnIndex] = column;
-        await this.$api.dbTableColumn.delete(column.id);
+        const column = { ...this.column, cno: this.column.column_name }
+        column.altered = 4
+        const columns = this.meta.columns.slice()
+        columns[this.columnIndex] = column
+        await this.$api.dbTableColumn.delete(column.id)
 
-        this.$emit("colDelete");
-        this.$emit("saved");
-        this.columnDeleteDialog = false;
+        this.$emit('colDelete')
+        this.$emit('saved')
+        this.columnDeleteDialog = false
       } catch (e) {
-        console.log(e);
+        console.log(e)
       }
     },
     async setAsPrimaryValue() {
       // todo: pass only updated fields
       try {
-        await this.$api.dbTableColumn.primaryColumnSet(this.column.id);
+        await this.$api.dbTableColumn.primaryColumnSet(this.column.id)
         this.$toast
-          .success("Successfully updated as primary column")
-          .goAway(3000);
+          .success('Successfully updated as primary column')
+          .goAway(3000)
       } catch (e) {
-        console.log(e);
-        this.$toast.error("Failed to update primary column").goAway(3000);
+        console.log(e)
+        this.$toast.error('Failed to update primary column').goAway(3000)
       }
-      this.$emit("saved");
-      this.columnDeleteDialog = false;
-    },
-  },
-};
+      this.$emit('saved')
+      this.columnDeleteDialog = false
+    }
+  }
+}
 </script>
 
 <style scoped>

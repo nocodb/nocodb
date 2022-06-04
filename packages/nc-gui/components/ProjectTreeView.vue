@@ -249,7 +249,8 @@
                           mdi-plus-circle-outline
                         </x-icon>
                       </template>
-                      <span class="caption"
+                      <span
+class="caption"
                         >Add new
                         <span class="text-capitalize">{{
                           item.type.slice(0, -3)

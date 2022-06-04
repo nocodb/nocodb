@@ -141,26 +141,26 @@
 </template>
 
 <script>
-import colors from "~/mixins/colors";
-import { copyTextToClipboard } from "~/helpers/xutils";
+import colors from '~/mixins/colors'
+import { copyTextToClipboard } from '~/helpers/xutils'
 
 export default {
-  name: "ShareBase",
+  name: 'ShareBase',
   mixins: [colors],
   data: () => ({
     base: {
-      enable: false,
-    },
+      enable: false
+    }
   }),
   computed: {
     url() {
       return this.base && this.base.uuid
         ? `${this.dashboardUrl}#/nc/base/${this.base.uuid}`
-        : null;
-    },
+        : null
+    }
   },
   mounted() {
-    this.loadSharedBase();
+    this.loadSharedBase()
   },
   methods: {
     async loadSharedBase() {
@@ -169,65 +169,65 @@ export default {
         //   { dbAlias: 'db' }, 'getSharedBaseLink'])
         const sharedBase = await this.$api.project.sharedBaseGet(
           this.$store.state.project.projectId
-        );
+        )
 
-        this.base = sharedBase || {};
+        this.base = sharedBase || {}
       } catch (e) {
-        console.log(e);
+        console.log(e)
       }
     },
-    async createSharedBase(roles = "viewer") {
+    async createSharedBase(roles = 'viewer') {
       try {
         // const sharedBase = await this.$store.dispatch('sqlMgr/ActSqlOp', [{ dbAlias: 'db' }, 'createSharedBaseLink', { roles }])
         const sharedBase = await this.$api.project.sharedBaseUpdate(
           this.$store.state.project.projectId,
           { roles }
-        );
+        )
 
-        this.base = sharedBase || {};
+        this.base = sharedBase || {}
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
 
-      this.$e("a:shared-base:enable", { role: roles });
+      this.$e('a:shared-base:enable', { role: roles })
     },
     async disableSharedBase() {
       try {
         await this.$api.project.sharedBaseDisable(
           this.$store.state.project.projectId
-        );
-        this.base = {};
+        )
+        this.base = {}
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
 
-      this.$e("a:shared-base:disable");
+      this.$e('a:shared-base:disable')
     },
     async recreate() {
       try {
         const sharedBase = await this.$api.project.sharedBaseCreate(
           this.$store.state.project.projectId,
-          { roles: this.base.roles || "viewer" }
-        );
-        this.base = sharedBase || {};
+          { roles: this.base.roles || 'viewer' }
+        )
+        this.base = sharedBase || {}
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000);
+        this.$toast.error(e.message).goAway(3000)
       }
 
-      this.$e("a:shared-base:recreate");
+      this.$e('a:shared-base:recreate')
     },
     copyUrl() {
-      copyTextToClipboard(this.url);
+      copyTextToClipboard(this.url)
       this.$toast
-        .success("Copied shareable base url to clipboard!")
-        .goAway(3000);
+        .success('Copied shareable base url to clipboard!')
+        .goAway(3000)
 
-      this.$e("c:shared-base:copy-url");
+      this.$e('c:shared-base:copy-url')
     },
     navigateToSharedBase() {
-      window.open(this.url, "_blank");
+      window.open(this.url, '_blank')
 
-      this.$e("c:shared-base:open-url");
+      this.$e('c:shared-base:open-url')
     },
     generateEmbeddableIframe() {
       copyTextToClipboard(`<iframe
@@ -236,13 +236,13 @@ src="${this.url}?embed"
 frameborder="0"
 width="100%"
 height="700"
-style="background: transparent; border: 1px solid #ddd"></iframe>`);
-      this.$toast.success("Copied embeddable html code!").goAway(3000);
+style="background: transparent; border: 1px solid #ddd"></iframe>`)
+      this.$toast.success('Copied embeddable html code!').goAway(3000)
 
-      this.$e("c:shared-base:copy-embed-frame");
-    },
-  },
-};
+      this.$e('c:shared-base:copy-embed-frame')
+    }
+  }
+}
 </script>
 
 <style scoped>

@@ -66,7 +66,8 @@
           >
             No one can edit the view configuration until it is unlocked.
           </v-list-item-subtitle>
-          <span class="caption mt-3"
+          <span
+class="caption mt-3"
             ><v-icon class="mr-1 mt-n1" x-small color="#fcb401">
               mdi-star</v-icon
             >Locked view.</span
@@ -91,7 +92,8 @@
             Only you can edit the view configuration. Other collaborators’
             personal views are hidden by default.
           </v-list-item-subtitle>
-          <span class="caption mt-3"
+          <span
+class="caption mt-3"
             ><v-icon class="mr-1 mt-n1" x-small color="#fcb401">
               mdi-star</v-icon
             >Coming soon.</span
@@ -104,20 +106,20 @@
 
 <script>
 export default {
-  name: "LockMenu",
-  props: ["value"],
+  name: 'LockMenu',
+  props: ['value'],
   data: () => ({}),
   methods: {
     changeLockType(type) {
-      this.$e("a:grid:lockmenu", { lockType: type });
-      if (type === "personal") {
-        return this.$toast.info("Coming soon").goAway(3000);
+      this.$e('a:grid:lockmenu', { lockType: type })
+      if (type === 'personal') {
+        return this.$toast.info('Coming soon').goAway(3000)
       }
-      this.$emit("input", type);
-      this.$toast.success(`Successfully Switched to ${type} view`).goAway(3000);
-    },
-  },
-};
+      this.$emit('input', type)
+      this.$toast.success(`Successfully Switched to ${type} view`).goAway(3000)
+    }
+  }
+}
 </script>
 
 <style scoped></style>

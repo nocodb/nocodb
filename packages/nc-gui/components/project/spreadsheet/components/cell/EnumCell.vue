@@ -13,32 +13,32 @@
 </template>
 
 <script>
-import { enumColor as colors } from "@/components/project/spreadsheet/helpers/colors";
+import { enumColor as colors } from '@/components/project/spreadsheet/helpers/colors'
 
 export default {
-  name: "EnumCell",
-  props: ["value", "column"],
+  name: 'EnumCell',
+  props: ['value', 'column'],
   computed: {
     colors() {
       const col = this.$store.state.settings.darkTheme
         ? colors.dark
-        : colors.light;
+        : colors.light
       if (this.column && this.column.dtxp) {
         return this.column.dtxp
-          .split(",")
-          .map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, ""))
+          .split(',')
+          .map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''))
           .reduce(
             (obj, v, i) => ({
               ...obj,
-              [v]: col[i],
+              [v]: col[i]
             }),
             {}
-          );
+          )
       }
-      return {};
-    },
-  },
-};
+      return {}
+    }
+  }
+}
 </script>
 
 <style scoped>

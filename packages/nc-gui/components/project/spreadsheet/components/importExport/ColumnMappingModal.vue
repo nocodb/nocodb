@@ -100,12 +100,12 @@ export default {
     meta: Object,
     importDataColumns: Array,
     value: Boolean,
-    parsedCsv: Object,
+    parsedCsv: Object
   },
   data() {
     return {
       mappings: [],
-      valid: false,
+      valid: false
     }
   },
   computed: {
@@ -207,7 +207,7 @@ export default {
     },
     getIcon(uidt) {
       return getUIDTIcon(uidt) || 'mdi-alpha-v-circle-outline'
-    },
+    }
   }
 }
 </script>

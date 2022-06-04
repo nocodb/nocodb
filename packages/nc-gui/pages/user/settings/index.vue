@@ -232,8 +232,7 @@ export default {
         } catch (e) {
           this.$toast
             .error(await this._extractSdkResponseErrorMsg(e))
-            .goAway(3000);
-          return;
+            .goAway(3000)
         }
       }
     },

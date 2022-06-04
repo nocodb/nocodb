@@ -22,7 +22,7 @@ export default {
   name: 'DurationCell',
   props: {
     column: Object,
-    value: Number,
+    value: [Number, String],
     readOnly: Boolean
   },
   data: () => ({

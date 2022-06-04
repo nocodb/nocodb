@@ -75,7 +75,9 @@ export default {
       }
     },
     onBlur() {
-      this.$emit('input', this.durationInMS)
+      if (this.durationInMS) {
+        this.$emit('input', this.durationInMS)
+      }
     }
   }
 }

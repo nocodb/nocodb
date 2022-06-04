@@ -8,25 +8,37 @@ export const durationOptions = [
   { id: 4, title: 'h:mm:ss.sss', example: '(e.g. 3.45.678, 1:23:40.000)' }
 ]
 
+// pad zero only for mm && ss
+// if the input is a single digit
+// e.g.  3 -> 03
+// e.g. 12 -> 12
+const padZero = (val) => {
+  if (val >= 0 && val <= 9) {
+    return `0${val}`
+  } else {
+    return val
+  }
+}
+
 export const parseDuration = (val, durationType) => {
   if (!val) { return null }
   // 600000ms --> 10:00 (10 mins)
   const d = moment.duration(val, 'milliseconds')._data
   if (durationType === 0) {
     // h:mm
-    return `${d.hours}:${d.minutes}`
+    return `${d.hours}:${padZero(d.minutes)}`
   } else if (durationType === 1) {
     // h:mm:ss
-    return `${d.hours}:${d.minutes}:${d.seconds}`
+    return `${d.hours}:${padZero(d.minutes)}:${padZero(d.seconds)}`
   } else if (durationType === 2) {
     // h:mm:ss.s
-    return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 100)}`
+    return `${d.hours}:${padZero(d.minutes)}:${padZero(d.seconds)}.${~~(d.milliseconds / 100)}`
   } else if (durationType === 3) {
     // h:mm:ss.ss
-    return `${d.hours}:${d.minutes}:${d.seconds}.${~~(d.milliseconds / 10)}`
+    return `${d.hours}:${padZero(d.minutes)}:${padZero(d.seconds)}.${~~(d.milliseconds / 10)}`
   } else if (durationType === 4) {
     // h:mm:ss.sss
-    return `${d.hours}:${d.minutes}:${d.seconds}.${d.milliseconds}`
+    return `${d.hours}:${padZero(d.minutes)}:${padZero(d.seconds)}.${d.milliseconds}`
   }
   return val
 }

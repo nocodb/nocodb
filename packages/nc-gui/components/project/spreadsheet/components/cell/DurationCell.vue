@@ -25,8 +25,13 @@ export default {
     }
   },
   watch: {
+    'column.meta.duration'(newValue, oldValue) {
+      if (oldValue !== newValue) {
+        this.localValue = parseDuration(this.value, newValue)
+      }
+    },
     value(val, oldVal) {
-      if (val != oldVal && (!val && val !== 0)) {
+      if (val !== oldVal && (!val && val !== 0)) {
         this.localValue = oldVal
       } else {
         this.localValue = val

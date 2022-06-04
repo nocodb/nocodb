@@ -1,9 +1,13 @@
 <template>
-  <span>{{ localValue }}</span>
+  <input
+      v-model="localValue"
+      :placeholder="durationPlaceholder"
+      readonly
+    />
 </template>
 
 <script>
-import { parseDuration } from '~/helpers/durationHelper'
+import { durationOptions, parseDuration } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
@@ -15,7 +19,11 @@ export default {
   created() {
     this.localValue = parseDuration(this.value, this.column?.meta?.duration || 0)
   },
-  computed: { },
+  computed: { 
+    durationPlaceholder() {
+      return durationOptions[this.column?.meta?.duration || 0].title
+    }
+  },
   watch: { 
     value (val, oldVal) {
       if (val != oldVal && (!val && val !== 0)) {

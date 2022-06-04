@@ -36,18 +36,21 @@ export default {
   computed: {
     localState: {
       get() {
-        return parseDuration(this.value, this.column?.meta?.duration || 0)
+        return parseDuration(this.value, this.durationType)
       },
       set(val) {
         this.isEdited = true
-        const res = getMSFromDuration(val)
+        const res = getMSFromDuration(val, this.durationType)
         if (res.valid) {
           this.durationInMS = res.ms
         }
       }
     },
     durationPlaceholder() {
-      return durationOptions[this.column?.meta?.duration || 0].title
+      return durationOptions[this.durationType].title
+    },
+    durationType() {
+      return this.column?.meta?.duration || 0;
     }
   },
   mounted() {

@@ -11,11 +11,17 @@ export default {
       return this.column && this.column.uidt
     },
     uiDatatypeIcon() {
-      const ui = this.uiDatatype && uiTypes.find(ui => ui.name === this.uiDatatype)
+      const ui =
+        this.uiDatatype && uiTypes.find(ui => ui.name === this.uiDatatype)
       return ui && ui.icon
     },
     abstractType() {
-      return this.sqlUi && this.column && this.column.dt && this.sqlUi.getAbstractType(this.column)
+      return (
+        this.sqlUi &&
+        this.column &&
+        this.column.dt &&
+        this.sqlUi.getAbstractType(this.column)
+      )
     },
     dataTypeLow() {
       return this.column && this.column.dt && this.column.dt.toLowerCase()
@@ -68,7 +74,6 @@ export default {
     isCurrency() {
       return this.uiDatatype === 'Currency'
     }
-
   }
 }
 /**

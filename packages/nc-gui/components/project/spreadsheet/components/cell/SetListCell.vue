@@ -23,12 +23,18 @@ export default {
   computed: {
     setValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
+        return this.column.dtxp
+          .split(',')
+          .map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''))
       }
       return []
     },
     selectedValues() {
-      return this.value ? this.value.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, '')) : []
+      return this.value
+        ? this.value
+          .split(',')
+          .map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''))
+        : []
     }
   }
 }

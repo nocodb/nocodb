@@ -1,9 +1,9 @@
 const formulaTypes = {
-  NUMERIC: "numeric",
-  STRING: "string",
-  DATE: "date",
-  LOGICAL: "logical",
-  COND_EXP: "conditional_expression"
+  NUMERIC: 'numeric',
+  STRING: 'string',
+  DATE: 'date',
+  LOGICAL: 'logical',
+  COND_EXP: 'conditional_expression'
 }
 
 const formulas = {

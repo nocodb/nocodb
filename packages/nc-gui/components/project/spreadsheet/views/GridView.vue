@@ -87,9 +87,9 @@
           <th
             v-if="
               !isLocked &&
-                !isVirtual &&
-                !isPublicView &&
-                _isUIAllowed('add-column')
+              !isVirtual &&
+              !isPublicView &&
+              _isUIAllowed('add-column')
             "
             v-t="['c:column:add']"
             :class="
@@ -100,9 +100,7 @@
             class="grey-border new-column-header pointer nc-grid-header-cell"
             @click="addNewColMenu = true"
           >
-            <v-icon small @click="addNewColMenu = true">
-              mdi-plus
-            </v-icon>
+            <v-icon small @click="addNewColMenu = true"> mdi-plus </v-icon>
             <v-menu v-model="addNewColMenu" offset-y content-class="" left>
               <template #activator="{ on }">
                 <span v-on="on" />
@@ -139,7 +137,8 @@
                 v-show="!rowMeta || !rowMeta.selected"
                 class="ml-2 grey--text"
                 :class="{ 'row-no': !isPublicView }"
-                >{{ row + 1 }}</span>
+                >{{ row + 1 }}</span
+              >
 
               <template v-if="!isPublicView">
                 <v-checkbox
@@ -171,9 +170,7 @@
 
               <template v-if="saving">
                 <v-spacer />
-                <v-icon small>
-                  mdi-spin mdi-loading
-                </v-icon>
+                <v-icon small> mdi-spin mdi-loading </v-icon>
               </template>
             </div>
           </td>
@@ -237,7 +234,7 @@
                   !isPublicView &&
                   editEnabled.col === col &&
                   editEnabled.row === row) ||
-                  enableEditable(columnObj)
+                enableEditable(columnObj)
               "
               v-model="rowObj[columnObj.title]"
               :column="columnObj"
@@ -248,7 +245,10 @@
               :is-locked="isLocked"
               :is-public="isPublicView"
               :view-id="viewId"
-              @save="editEnabled = {}; onCellValueChange(col, row, columnObj, true);"
+              @save="
+                editEnabled = {};
+                onCellValueChange(col, row, columnObj, true);
+              "
               @cancel="editEnabled = {}"
               @update="onCellValueChange(col, row, columnObj, false)"
               @blur="onCellValueChange(col, row, columnObj, true)"
@@ -279,10 +279,10 @@
         <tr
           v-if="
             !isView &&
-              !isLocked &&
-              !isPublicView &&
-              isEditable &&
-              relationType !== 'bt'
+            !isLocked &&
+            !isPublicView &&
+            isEditable &&
+            relationType !== 'bt'
           "
         >
           <td
@@ -293,9 +293,7 @@
           >
             <v-tooltip top>
               <template #activator="{ on }">
-                <v-icon small color="pink" v-on="on">
-                  mdi-plus
-                </v-icon>
+                <v-icon small color="pink" v-on="on"> mdi-plus </v-icon>
                 <span class="ml-1 caption grey--text">
                   {{ $t("activity.addRow") }}
                 </span>
@@ -633,30 +631,31 @@ export default {
 
           break
         // delete
-        case 46: {
-          if (this.editEnabled.col != null && this.editEnabled.row != null) {
-            return
+        case 46:
+          {
+            if (this.editEnabled.col != null && this.editEnabled.row != null) {
+              return
+            }
+
+            const rowObj = this.data[this.selected.row].row
+            const columnObj = this.availableColumns[this.selected.col]
+
+            if (
+              // this.isRequired(columnObj, rowObj, true) ||
+              columnObj.virtual
+            ) {
+              return
+            }
+
+            this.$set(rowObj, columnObj.title, null)
+            // update/save cell value
+            this.onCellValueChange(
+              this.selected.col,
+              this.selected.row,
+              columnObj,
+              true
+            )
           }
-
-          const rowObj = this.data[this.selected.row].row
-          const columnObj = this.availableColumns[this.selected.col]
-
-          if (
-            // this.isRequired(columnObj, rowObj, true) ||
-            columnObj.virtual
-          ) {
-            return
-          }
-
-          this.$set(rowObj, columnObj.title, null)
-          // update/save cell value
-          this.onCellValueChange(
-            this.selected.col,
-            this.selected.row,
-            columnObj,
-            true
-          )
-        }
           break
         // left
         case 37:
@@ -758,6 +757,7 @@ export default {
       this.$e('c:row-expand')
     },
     showRowContextMenu($event, rowObj, rowMeta, row, ...rest) {
+      console.log($event, rowObj, rowMeta, row, ...rest)
       this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row, ...rest)
     },
     onCellValueChange(col, row, column, saved) {
@@ -931,7 +931,7 @@ export default {
   }
 
   .search-field.v-text-field.v-text-field--solo.v-input--dense
-  > .v-input__control {
+    > .v-input__control {
     min-height: auto;
   }
 
@@ -1169,13 +1169,12 @@ td:first-child {
   tr {
     .nc-cell-hover-show {
       opacity: 0;
-      transition: .3s opacity;
+      transition: 0.3s opacity;
     }
 
     &:hover .nc-cell-hover-show {
-      opacity: .7;
+      opacity: 0.7;
     }
   }
 }
-
 </style>

@@ -116,7 +116,6 @@ export default {
           const err = await this._extractSdkResponseErrorMsg(e)
           this.formUtil.formErr = true
           this.formUtil.formErrMsg = err
-          return;
         }
       }
     }

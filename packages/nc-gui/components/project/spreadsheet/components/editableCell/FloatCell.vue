@@ -1,5 +1,5 @@
 <template>
-  <input v-model="localState" type="number" v-on="parentListeners">
+  <input v-model="localState" type="number" v-on="parentListeners" />
 </template>
 
 <script>

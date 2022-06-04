@@ -10,12 +10,12 @@ export default {
   props: ['value'],
   computed: {
     date() {
-      return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD')
+      return (
+        /^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)
+      ).format('YYYY-MM-DD')
     }
   }
 }
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

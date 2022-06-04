@@ -24,11 +24,11 @@
                     (c) =>
                       (column &&
                         (c.column_name || '').toLowerCase() ===
-                        (column.column_name || '').toLowerCase()) ||
+                          (column.column_name || '').toLowerCase()) ||
                       ((v || '').toLowerCase() !==
                         (c.column_name || '').toLowerCase() &&
                         (v || '').toLowerCase() !==
-                        (c.title || '').toLowerCase())
+                          (c.title || '').toLowerCase())
                   ) ||
                   'Duplicate column name', // && meta.v.every(c => v !== c.title ) || 'Duplicate column name',
                 validateColumnName,
@@ -50,15 +50,12 @@
             <v-row>
               <v-col v-if="relation" cols="12">
                 <div class="caption">
-                  <p class="mb-1">
-                    Foreign Key
-                  </p>
+                  <p class="mb-1">Foreign Key</p>
 
-                  <v-icon small class="mt-n1">
-                    mdi-table
-                  </v-icon>
+                  <v-icon small class="mt-n1"> mdi-table </v-icon>
                   <span class="text-capitalize font-weight-bold body-1">
-                    {{ relation._rtn }}</span>
+                    {{ relation._rtn }}</span
+                  >
                   <v-icon
                     v-ge="['columns', 'fk-delete']"
                     small
@@ -69,9 +66,10 @@
                     mdi-delete-forever
                   </v-icon>
                   <span
-                    v-if="relation.type === 'virtual'"
-                    class="caption"
-                  >(v)</span>
+v-if="relation.type === 'virtual'"
+class="caption"
+                    >(v)</span
+                  >
                 </div>
               </v-col>
               <template v-else>
@@ -96,7 +94,8 @@
                           {{ item.icon }}
                         </v-icon>
                         <span class="caption grey--text text--darken-4">
-                          {{ item.name }}</span>
+                          {{ item.name }}</span
+                        >
                       </div>
                     </template>
 
@@ -128,8 +127,8 @@
                   <v-alert
                     v-if="
                       column &&
-                        newColumn.uidt === 'SingleSelect' &&
-                        column.uidt === 'MultiSelect'
+                      newColumn.uidt === 'SingleSelect' &&
+                      column.uidt === 'MultiSelect'
                     "
                     dense
                     type="warning"
@@ -197,7 +196,10 @@
                 <v-col v-show="advanceOptions || !accordion" cols="12">
                   <v-row>
                     <v-col
-                      v-if="newColumn.meta && columnToValidate.includes(newColumn.uidt)"
+                      v-if="
+                        newColumn.meta &&
+                        columnToValidate.includes(newColumn.uidt)
+                      "
                       cols="12"
                       class="pt-0 pb-0"
                     >
@@ -278,7 +280,7 @@
                                           v-model="newColumn.rqd"
                                           :disabled="
                                             newColumn.pk ||
-                                              !sqlUi.columnEditable(newColumn)
+                                            !sqlUi.columnEditable(newColumn)
                                           "
                                           class="mr-2 mt-0"
                                           dense
@@ -292,7 +294,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >NN</span>
+                                              >NN</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -319,7 +322,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >PK</span>
+                                              >PK</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -336,7 +340,7 @@
                                             sqlUi.colPropUNDisabled(
                                               newColumn
                                             ) ||
-                                              !sqlUi.columnEditable(newColumn)
+                                            !sqlUi.columnEditable(newColumn)
                                           "
                                           class="mr-2 mt-0"
                                           dense
@@ -350,7 +354,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >AI</span>
+                                              >AI</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -371,7 +376,7 @@
                                             sqlUi.colPropUNDisabled(
                                               newColumn
                                             ) ||
-                                              !sqlUi.columnEditable(newColumn)
+                                            !sqlUi.columnEditable(newColumn)
                                           "
                                           @change="
                                             newColumn.altered =
@@ -381,7 +386,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >UN</span>
+                                              >UN</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -402,7 +408,7 @@
                                             sqlUi.colPropAuDisabled(
                                               newColumn
                                             ) ||
-                                              !sqlUi.columnEditable(newColumn)
+                                            !sqlUi.columnEditable(newColumn)
                                           "
                                           @change="
                                             newColumn.altered =
@@ -412,7 +418,8 @@
                                           <template #label>
                                             <span
                                               class="caption font-weight-bold"
-                                            >AU</span>
+                                              >AU</span
+                                            >
                                           </template>
                                         </v-checkbox>
                                       </div>
@@ -434,7 +441,13 @@
                                   @change="onDataTypeChange"
                                 />
                               </v-col>
-                              <v-col :cols="sqlUi.showScale(newColumn) && !isSelect ? 6 : 12">
+                              <v-col
+                                :cols="
+                                  sqlUi.showScale(newColumn) && !isSelect
+                                    ? 6
+                                    : 12
+                                "
+                              >
                                 <!--label="Length / Values"-->
                                 <v-text-field
                                   v-if="!isSelect"
@@ -524,12 +537,13 @@
                   class="caption mx-2"
                   outlined
                 >
-                  This spreadsheet is connected to an SQLite DB.<br>
+                  This spreadsheet is connected to an SQLite DB.<br />
                   For production please see
                   <a
                     href="https://github.com/nocodb/nocodb#production-setup"
                     target="_blank"
-                  >here</a>.
+                    >here</a
+                  >.
                 </v-alert>
               </div>
             </v-row>
@@ -605,7 +619,10 @@ export default {
     newColumn: {},
     advanceOptions: false,
     idType: null,
-    idTypes: [{ value: 'AI', text: 'Auto increment number' }, { value: 'AG', text: 'Auto generated string' }]
+    idTypes: [
+      { value: 'AI', text: 'Auto increment number' },
+      { value: 'AG', text: 'Auto generated string' }
+    ]
   }),
   computed: {
     isIDCol() {
@@ -621,12 +638,15 @@ export default {
       ].includes(this.newColumn && this.newColumn.uidt)
     },
     uiTypes() {
-      return [...uiTypes.filter(t => !this.editColumn || !t.virtual),
-        ...((!this.editColumn && this.meta.columns.every(c => !c.pk))
-          ? [{
-              name: 'ID',
-              icon: 'mdi-identifier'
-            }]
+      return [
+        ...uiTypes.filter(t => !this.editColumn || !t.virtual),
+        ...(!this.editColumn && this.meta.columns.every(c => !c.pk)
+          ? [
+              {
+                name: 'ID',
+                icon: 'mdi-identifier'
+              }
+            ]
           : [])
       ]
     },
@@ -771,9 +791,7 @@ export default {
         )
       } catch (e) {
         console.log(e)
-        this.$toast
-          .error('Failed to save column: ' + e)
-          .goAway(3000)
+        this.$toast.error('Failed to save column: ' + e).goAway(3000)
         throw e
       }
 
@@ -822,7 +840,11 @@ export default {
       this.newColumn.altered = this.newColumn.altered || 2
     },
     onUiOrIdTypeChange() {
-      const colProp = this.sqlUi.getDataTypeForUiType(this.newColumn, this.idType)
+      const colProp = this.sqlUi.getDataTypeForUiType(
+        this.newColumn,
+        this.idType
+      )
+
       this.newColumn = {
         ...this.newColumn,
         meta: null,
@@ -841,7 +863,6 @@ export default {
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(
         this.newColumn.dt
       )
-
       const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect]
       if (
         this.column &&

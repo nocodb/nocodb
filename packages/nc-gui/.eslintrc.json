@@ -1,22 +1,11 @@
 {
   "root": true,
   "parser": "vue-eslint-parser",
-  "ignorePatterns": [
-    "node_modules",
-    ".nuxt",
-    "dist",
-    "static"
-  ],
-  "extends": [
-    "@nuxtjs",
-    "plugin:@intlify/vue-i18n/recommended"
-  ],
+  "ignorePatterns": ["node_modules", ".nuxt", "dist", "static"],
+  "extends": ["@nuxtjs", "plugin:@intlify/vue-i18n/recommended"],
   "rules": {
     "no-console": "off",
-    "space-before-function-paren": [
-      "error",
-      "never"
-    ],
+    "space-before-function-paren": ["error", "never"],
     "require-await": "off",
     "@intlify/vue-i18n/no-raw-text": "off",
     "@intlify/vue-i18n/no-duplicate-keys-in-locale": [
@@ -26,9 +15,12 @@
       }
     ],
     "@intlify/vue-i18n/no-missing-keys": "error",
-    "max-len": ["warn", {
-      "code": 120
-    }]
+    "max-len": [
+      "warn",
+      {
+        "code": 120
+      }
+    ]
   },
   "parserOptions": {
     "parser": "babel-eslint",

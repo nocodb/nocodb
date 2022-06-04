@@ -14,9 +14,7 @@
         <v-menu bottom offset-y>
           <template #activator="{ on }">
             <div style="min-width: 56px" v-on="on">
-              <v-icon class="ml-2" small color="grey">
-                mdi-magnify
-              </v-icon>
+              <v-icon class="ml-2" small color="grey"> mdi-magnify </v-icon>
 
               <v-icon color="grey" class="pl-0 pa-1" small>
                 mdi-menu-down
@@ -59,11 +57,12 @@
       </div>
 
       <span
-        v-if="relationType && false"
-        class="caption grey--text"
-      >{{ refTable }}({{ relationPrimaryValue }}) ->
+v-if="relationType && false"
+class="caption grey--text"
+        >{{ refTable }}({{ relationPrimaryValue }}) ->
         {{ relationType === "hm" ? " Has Many " : " Belongs To " }} ->
-        {{ table }}</span>
+        {{ table }}</span
+      >
       <div class="d-inline-flex">
         <div>
           <fields
@@ -336,14 +335,25 @@
           :style="{ height: isForm ? '100%' : 'calc(100% - 36px)' }"
           style="overflow: auto; width: 100%"
         >
-          <div v-if="loadingData && (isGallery || isGrid)" class="d-100 h-100 align-center justify-center d-flex flex-column">
-            <v-progress-circular size="40" color="grey" width="2" indeterminate class="mb-4" />
-            <span v-if="selectedView" class="caption grey--text">Loading view data... </span>
+          <div
+            v-if="loadingData && (isGallery || isGrid)"
+            class="d-100 h-100 align-center justify-center d-flex flex-column"
+          >
+            <v-progress-circular
+              size="40"
+              color="grey"
+              width="2"
+              indeterminate
+              class="mb-4"
+            />
+            <span
+v-if="selectedView"
+class="caption grey--text"
+              >Loading view data...
+            </span>
           </div>
 
-          <template
-            v-else-if="selectedViewId && selectedView"
-          >
+          <template v-else-if="selectedViewId && selectedView">
             <!--          <v-skeleton-loader v-if="!dataLoaded && loadingData || !meta" type="table" />-->
             <template v-if="selectedView.type === viewTypes.GRID">
               <xc-grid-view
@@ -547,9 +557,7 @@
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('validators')"
         >
-          <v-icon x-small class="mr-2">
-            mdi-sticker-check-outline
-          </v-icon>
+          <v-icon x-small class="mr-2"> mdi-sticker-check-outline </v-icon>
           <span class="caption"> API Validators</span>
         </v-list-item>
         <v-divider v-if="showAdvanceOptions" class="advance-menu-divider" />
@@ -558,27 +566,21 @@
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('columns')"
         >
-          <v-icon x-small class="mr-2">
-            mdi-view-column
-          </v-icon>
+          <v-icon x-small class="mr-2"> mdi-view-column </v-icon>
           <span class="caption font-weight-light">SQL Columns</span>
         </v-list-item>
         <v-list-item
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('indexes')"
         >
-          <v-icon x-small class="mr-2">
-            mdi-blur
-          </v-icon>
+          <v-icon x-small class="mr-2"> mdi-blur </v-icon>
           <span class="caption font-weight-light">SQL Indexes</span>
         </v-list-item>
         <v-list-item
           v-if="showAdvanceOptions"
           @click="showAdditionalFeatOverlay('triggers')"
         >
-          <v-icon x-small class="mr-2">
-            mdi-shield-edit-outline
-          </v-icon>
+          <v-icon x-small class="mr-2"> mdi-shield-edit-outline </v-icon>
           <span class="caption font-weight-light">SQL Triggers</span>
         </v-list-item>
       </spreadsheet-nav-drawer>
@@ -618,7 +620,16 @@
           </v-list-item>
         </template>
 
-        <template v-if="isEditable && !isLocked && rowContextMenu.col && !rowContextMenu.col.rqd && !rowContextMenu.col.virtual && rowContextMenu.col.uidt !== 'Formula'">
+        <template
+          v-if="
+            isEditable &&
+            !isLocked &&
+            rowContextMenu.col &&
+            !rowContextMenu.col.rqd &&
+            !rowContextMenu.col.virtual &&
+            rowContextMenu.col.uidt !== 'Formula'
+          "
+        >
           <v-tooltip bottom>
             <template #activator="{ on }">
               <v-list-item
@@ -631,8 +642,9 @@
             </template>
 
             <span
-              class="caption"
-            >Set column value to <strong>null</strong></span>
+class="caption"
+              >Set column value to <strong>null</strong></span
+            >
           </v-tooltip>
         </template>
       </v-list>
@@ -683,8 +695,8 @@
       <expanded-form
         v-if="
           !isKanban &&
-            selectedExpandRowIndex != null &&
-            data[selectedExpandRowIndex]
+          selectedExpandRowIndex != null &&
+          data[selectedExpandRowIndex]
         "
         :key="selectedExpandRowIndex"
         v-model="data[selectedExpandRowIndex].row"
@@ -1009,23 +1021,23 @@ export default {
     },
     async createTableIfNewTable() {
       if (this.nodes.newTable && !this.nodes.tableCreated) {
-        const columns = this.sqlUi
-          .getNewTableColumns()
-          .filter((col) => {
-            if (col.column_name === 'id' && this.nodes.newTable.columns.includes('id_ag')) {
-              Object.assign(col, this.sqlUi.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+        const columns = this.sqlUi.getNewTableColumns().filter((col) => {
+          if (
+            col.column_name === 'id' &&
+            this.nodes.newTable.columns.includes('id_ag')
+          ) {
+            Object.assign(
+              col,
+              this.sqlUi.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG')
+            )
 
-              col.dtxp = this.sqlUi.getDefaultLengthForDatatype(
-                col.dt
-              )
-              col.dtxs = this.sqlUi.getDefaultScaleForDatatype(
-                col.dt
-              )
+            col.dtxp = this.sqlUi.getDefaultLengthForDatatype(col.dt)
+            col.dtxs = this.sqlUi.getDefaultScaleForDatatype(col.dt)
 
-              return true
-            }
-            return this.nodes.newTable.columns.includes(col.column_name)
-          })
+            return true
+          }
+          return this.nodes.newTable.columns.includes(col.column_name)
+        })
         await this.$api.dbTable.create(this.projectId, {
           table_name: this.nodes.table_name,
           title: this.nodes.title,
@@ -1077,7 +1089,9 @@ export default {
               pks.length &&
               pks.every(
                 col =>
-                  !rowObj[col.title] && !(col.columnDefault || col.default) && !(col.meta && col.meta.ag)
+                  !rowObj[col.title] &&
+                  !(col.columnDefault || col.default) &&
+                  !(col.meta && col.meta.ag)
               )
             ) {
               return this.$toast
@@ -1447,7 +1461,9 @@ export default {
         }))
         // }
       } catch (e) {
-        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
+        this.$toast
+          .error(await this._extractSdkResponseErrorMsg(e))
+          .goAway(3000)
       }
       this.loadingData = false
     },

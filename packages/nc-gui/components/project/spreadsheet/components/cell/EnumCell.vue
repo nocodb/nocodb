@@ -1,13 +1,14 @@
 <template>
   <div>
     <span
-      v-for="v in [(value||'').replace(/\\'/g, '\'').replace(/^'|'$/g, '')]"
+      v-for="v in [(value || '').replace(/\\'/g, '\'').replace(/^'|'$/g, '')]"
       :key="v"
       :style="{
-        background:colors[v]
+        background: colors[v],
       }"
       class="set-item ma-1 py-1 px-3"
-    >{{ v }}</span>
+      >{{ v }}</span
+    >
   </div>
 </template>
 
@@ -19,12 +20,20 @@ export default {
   props: ['value', 'column'],
   computed: {
     colors() {
-      const col = this.$store.state.settings.darkTheme ? colors.dark : colors.light
+      const col = this.$store.state.settings.darkTheme
+        ? colors.dark
+        : colors.light
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, '')).reduce((obj, v, i) => ({
-          ...obj,
-          [v]: col[i]
-        }), {})
+        return this.column.dtxp
+          .split(',')
+          .map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''))
+          .reduce(
+            (obj, v, i) => ({
+              ...obj,
+              [v]: col[i]
+            }),
+            {}
+          )
       }
       return {}
     }
@@ -33,7 +42,6 @@ export default {
 </script>
 
 <style scoped>
-
 .set-item {
   display: inline-block;
   border-radius: 25px;

@@ -308,23 +308,37 @@
           <v-icon small class="close-icon" @click="hideMiniSponsorCard">
             mdi-close-circle-outline
           </v-icon>
-
-          <!--          <extras />-->
           <v-divider class="mb-2" />
-
-          <extras class="pl-1" />
-          <v-btn
-            v-t="['e:hiring']"
-            color="primary"
-            outlined
-            class="caption d-100 my-2 "
-            href="https://angel.co/company/nocodb"
-            target="_blank"
-          >
-            🚀 We are Hiring! 🚀
-          </v-btn>
-
-          <!--          <sponsor-mini nav />-->
+          <flip-card width="100%" height="100px" :on-time="30 * 1000" :on-hover="false">
+            <template #front>
+              <extras class="pl-1 mt-1" />
+              <v-btn
+                v-t="['e:hiring']"
+                color="primary"
+                outlined
+                class="caption d-100 mt-4 "
+                href="https://angel.co/company/nocodb"
+                target="_blank"
+              >
+                🚀 We are Hiring! 🚀
+              </v-btn>
+            </template>
+            <template #back>
+              <span class="caption text-left body-1 textColor--text text--lighten-1">{{ supportCost }}</span>
+              <v-btn
+                color="primary"
+                class="caption d-100 my-2"
+                outlined
+                href="https://github.com/sponsors/nocodb"
+                target="_blank"
+              >
+                <v-icon small color="red" class="mr-2">
+                  mdi-cards-heart
+                </v-icon>
+                {{ $t('activity.sponsorUs') }}
+              </v-btn>
+            </template>
+          </flip-card>
         </div>
       </div>
     </v-container>
@@ -443,10 +457,11 @@ import { copyTextToClipboard } from '~/helpers/xutils'
 import SponsorMini from '~/components/SponsorMini'
 import CodeSnippet from '~/components/project/spreadsheet/components/CodeSnippet'
 import WebhookSlider from '~/components/project/tableTabs/webhook/WebhookSlider'
+import FlipCard from '~/components/project/spreadsheet/components/FlipCard'
 
 export default {
   name: 'SpreadsheetNavDrawer',
-  components: { WebhookSlider, CodeSnippet, SponsorMini, Extras, CreateViewDialog, draggable },
+  components: { WebhookSlider, CodeSnippet, SponsorMini, Extras, CreateViewDialog, draggable, FlipCard },
   props: {
     extraViewParams: Object,
     showAdvanceOptions: Boolean,
@@ -570,6 +585,13 @@ export default {
           viewType = 'view'
       }
       return `${this.dashboardUrl}#/nc/${viewType}/${this.shareLink.uuid}`
+    },
+    supportCost() {
+      const cost = parseInt(this.$store.getters['project/GtrProjectCost'])
+      if (cost > 0) {
+        return `This costs ~$${cost}/year in non-open source products.`
+      }
+      return 'Your donations will help us to make this product better.'
     }
   },
   watch: {
@@ -953,8 +975,8 @@ export default {
 
   .close-icon {
     position: absolute;
-    right: 10px;
-    top: 10px;
+    right: 4px;
+    top: 12px;
     z-index: 9;
     opacity: 0;
     transition: 0.4s opacity;

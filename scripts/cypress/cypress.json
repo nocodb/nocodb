@@ -20,7 +20,8 @@
         "test/pg-restTableOps.js",
         "test/pg-restViews.js",
         "test/pg-restRoles.js",
-        "test/pg-restMisc.js"
+        "test/pg-restMisc.js",
+        "common/9a_QuickTest.js"
     ],
     "defaultCommandTimeout": 13000,
     "pageLoadTimeout": 600000,
@@ -29,7 +30,7 @@
     "video": false,
     "retries": 0,
     "screenshotOnRunFailure": false,
-    "numTestsKeptInMemory": 0,
+    "numTestsKeptInMemory": 10,
     "experimentalInteractiveRunEvents": true,
     "env": {
         "testMode": [

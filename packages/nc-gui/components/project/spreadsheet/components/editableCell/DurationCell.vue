@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { durationOptions, parseDuration, getMSFromDuration } from '~/helpers/durationHelper'
+import { durationOptions, convertMS2Duration, convertDurationToMS } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
@@ -36,13 +36,13 @@ export default {
   computed: {
     localState: {
       get() {
-        return parseDuration(this.value, this.durationType)
+        return convertMS2Duration(this.value, this.durationType)
       },
       set(val) {
         this.isEdited = true
-        const res = getMSFromDuration(val, this.durationType)
-        if (res.valid) {
-          this.durationInMS = res.ms
+        const res = convertDurationToMS(val, this.durationType)
+        if (res._isValid) {
+          this.durationInMS = res._ms
         }
       }
     },

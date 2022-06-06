@@ -7,7 +7,7 @@
 </template>
 
 <script>
-import { durationOptions, parseDuration } from '~/helpers/durationHelper'
+import { durationOptions, convertMS2Duration } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
@@ -27,19 +27,15 @@ export default {
   watch: {
     'column.meta.duration'(newValue, oldValue) {
       if (oldValue !== newValue) {
-        this.localValue = parseDuration(this.value, newValue)
+        this.localValue = convertMS2Duration(this.value, newValue)
       }
     },
     value(val, oldVal) {
-      if (val !== oldVal && (!val && val !== 0)) {
-        this.localValue = oldVal
-      } else {
-        this.localValue = val
-      }
+      this.localValue = convertMS2Duration(val !== oldVal && (!val && val !== 0) ? oldVal : val, this.column?.meta?.duration || 0)
     }
   },
   created() {
-    this.localValue = parseDuration(this.value, this.column?.meta?.duration || 0)
+    this.localValue = convertMS2Duration(this.value, this.column?.meta?.duration || 0)
   }
 }
 </script>

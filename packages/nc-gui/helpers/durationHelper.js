@@ -1,11 +1,30 @@
-import moment from 'moment'
-
 export const durationOptions = [
-  { id: 0, title: 'h:mm', example: '(e.g. 1:23)' },
-  { id: 1, title: 'h:mm:ss', example: '(e.g. 3:45, 1:23:40)' },
-  { id: 2, title: 'h:mm:ss.s', example: '(e.g. 3:34.6, 1:23:40.0)' },
-  { id: 3, title: 'h:mm:ss.ss', example: '(e.g. 3.45.67, 1:23:40.00)' },
-  { id: 4, title: 'h:mm:ss.sss', example: '(e.g. 3.45.678, 1:23:40.000)' }
+  {
+    id: 0,
+    title: 'h:mm',
+    example: '(e.g. 1:23)',
+    regex: /(\d+)(?::(\d+))?/
+  }, {
+    id: 1,
+    title: 'h:mm:ss',
+    example: '(e.g. 3:45, 1:23:40)',
+    regex: /(\d+)?(?::(\d+))?(?:(\d+))?/
+  }, {
+    id: 2,
+    title: 'h:mm:ss.s',
+    example: '(e.g. 3:34.6, 1:23:40.0)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/
+  }, {
+    id: 3,
+    title: 'h:mm:ss.ss',
+    example: '(e.g. 3.45.67, 1:23:40.00)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/
+  }, {
+    id: 4,
+    title: 'h:mm:ss.sss',
+    example: '(e.g. 3.45.678, 1:23:40.000)',
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?(?:.(\d{0,4})?)?/
+  }
 ]
 
 // pad zero
@@ -28,43 +47,126 @@ const padZero = (val, isSSS = false) => {
   return val
 }
 
-export const parseDuration = (val, durationType) => {
-  if (!val) { return null }
+export const convertMS2Duration = (val, durationType) => {
   // 600000ms --> 10:00 (10 mins)
-  const d = moment.duration(val, 'milliseconds')._data
+  const milliseconds = val % 1000
+  const centiseconds = Math.round(milliseconds / 10)
+  const deciseconds = Math.round(centiseconds / 10)
+  const seconds = Math.floor((val / 1000) % 60)
+  const minutes = Math.floor((val / (1000 * 60)) % 60)
+  const hours = Math.floor((val / (1000 * 60 * 60)))
+
   if (durationType === 0) {
     // h:mm
-    return `${d.hours}:${padZero(d.minutes)}`
+    return `${padZero(hours)}:${padZero(minutes + (seconds >= 30))}`
   } else if (durationType === 1) {
     // h:mm:ss
-    return `${d.hours}:${padZero(d.minutes)}:${padZero(d.seconds)}`
+    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`
   } else if (durationType === 2) {
     // h:mm:ss.s
-    return `${d.hours}:${padZero(d.minutes)}:${padZero(d.seconds)}.${~~(d.milliseconds / 100)}`
+    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${padZero(deciseconds)}`
   } else if (durationType === 3) {
     // h:mm:ss.ss
-    return `${d.hours}:${padZero(d.minutes)}:${padZero(d.seconds)}.${padZero(~~(d.milliseconds / 10))}`
+    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${padZero(centiseconds)}`
   } else if (durationType === 4) {
     // h:mm:ss.sss
-    return `${d.hours}:${padZero(d.minutes)}:${padZero(d.seconds)}.${padZero(d.milliseconds, true)}`
+    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${padZero(milliseconds, true)}`
   }
   return val
 }
 
-export const getMSFromDuration = (val, durationType) => {
+export const convertDurationToMS = (val, durationType) => {
+  // 10:00 (10 mins) -> 600000 ms
   const res = {
-    valid: false,
-    ms: null
+    _ms: null,
+    _isValid: true
   }
-  // 10:00 (10 mins) -> 600000ms
-  const duration = moment.duration(val, durationType == 0 ? 'minutes' : 'seconds')
-  if (moment.isDuration(duration)) {
-    const d = duration._data
-    const ms = d.hours * 3600000 + d.minutes * 60000 + d.seconds * 1000 + d.milliseconds
-    if (ms >= 0) {
-      res.valid = true
-      res.ms = ms
+  const durationRegex = durationOptions[durationType].regex
+  if (durationRegex.test(val)) {
+    let h, mm, ss
+    const groups = val.match(durationRegex)
+    if (groups[0] && groups[1] && !groups[2] && !groups[3] && !groups[4]) {
+      const val = parseInt(groups[1], 10)
+      if (groups.input.slice(-1) === ':') {
+        // e.g. 30:
+        h = groups[1]
+        mm = 0
+        ss = 0
+      } else if (durationType === 0) {
+        // consider it as minutes
+        // e.g. 360 -> 06:00
+        h = Math.floor(val / 60)
+        mm = Math.floor((val - ((h * 3600)) / 60))
+        ss = 0
+      } else {
+        // consider it as seconds
+        // e.g. 3600 -> 01:00:00
+        h = Math.floor(groups[1] / 3600)
+        mm = Math.floor(groups[1] / 60) % 60
+        ss = val % 60
+      }
+    } else {
+      h = groups[1] || 0
+      mm = groups[2] || 0
+      ss = groups[3] || 0
     }
+
+    if (durationType === 0) {
+      // h:mm
+      res._ms = h * 3600000 + mm * 60000
+    } else if (durationType === 1) {
+      // h:mm:ss
+      res._ms = h * 3600000 + mm * 60000 + ss * 1000
+    } else if (durationType === 2) {
+      // h:mm:ss.s (deciseconds)
+      const ds = groups[4] || 0
+      const len = Math.log(ds) * Math.LOG10E + 1 | 0
+      const ms = (
+        // e.g. len = 4: 1234 -> 1, 1456 -> 1
+        // e.g. len = 3:  123 -> 1,  191 -> 2
+        // e.g. len = 2:   12 -> 1 ,  16 -> 2
+        len === 4
+          ? Math.round(ds / 1000)
+          : len === 3
+            ? Math.round(ds / 100)
+            : len === 2
+              ? Math.round(ds / 10)
+              // take whatever it is
+              : ds
+      ) * 100
+      res._ms = h * 3600000 + mm * 60000 + ss * 1000 + ms
+    } else if (durationType === 3) {
+      // h:mm:ss.ss (centiseconds)
+      const cs = groups[4] || 0
+      const len = Math.log(cs) * Math.LOG10E + 1 | 0
+      const ms = (
+        // e.g. len = 4: 1234 -> 12, 1285 -> 13
+        // e.g. len = 3:  123 -> 12,  128 -> 13
+        // check the third digit
+        len === 4
+          ? Math.round(cs / 100)
+          : len === 3
+            ? Math.round(cs / 10)
+            // take whatever it is
+            : cs
+      ) * 10
+      res._ms = h * 3600000 + mm * 60000 + ss * 1000 + ms
+    } else if (durationType === 4) {
+      // h:mm:ss.sss (milliseconds)
+      let ms = groups[4] || 0
+      const len = Math.log(ms) * Math.LOG10E + 1 | 0
+      ms = (
+        // e.g. 1235 -> 124
+        // e.g. 1234 -> 123
+        len === 4
+          ? Math.round(ms / 10)
+          // take whatever it is
+          : ms
+      ) * 1
+      res._ms = h * 3600000 + mm * 60000 + ss * 1000 + ms
+    }
+  } else {
+    res._isValid = false
   }
   return res
 }

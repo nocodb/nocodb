@@ -102,7 +102,11 @@ export const mutations = {
   },
   MutAppInfo(state, appInfo) {
     state.appInfo = appInfo
-  }
+  },
+  MutProjectCost(state, cost) {
+    state.project.cost = cost
+  },
+
 }
 
 function getSerializedEnvObj(data) {
@@ -293,6 +297,9 @@ export const getters = {
     && state.unserializedList[0].projectJson
     && state.unserializedList[0].projectJson.envs ? Object.keys(state.unserializedList[0].projectJson.envs) : []
   },
+  GtrProjectCost(state) {
+    return state.project.cost || 0
+  },
 
 }
 
@@ -351,6 +358,11 @@ export const actions = {
         this.$ncApis.clear()
         this.$ncApis.setProjectId(projectId)
       }
+
+      this.$api.project.cost(projectId).then(res => {
+        if (res.cost) commit('MutProjectCost', res.cost)
+      })
+
     } catch (e) {
       console.log(e)
       this.$toast.error(e).goAway(3000)

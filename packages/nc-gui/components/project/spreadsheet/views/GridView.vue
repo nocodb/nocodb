@@ -390,7 +390,8 @@ export default {
     aggCount: [],
     dragOver: false,
     gridViewCols: {},
-    unsaved: false
+    unsaved: false,
+    rightToLeftLanguages: ['fa']
   }),
   computed: {
     selectAll: {
@@ -660,13 +661,21 @@ export default {
           break
         // left
         case 37:
-          if (this.selected.col > 0) {
+          if (this.rightToLeftLanguages.includes(this.$store.state.settings.language)) {
+            if (this.selected.col < this.colLength - 1) {
+              this.selected.col++
+            }
+          } else if (this.selected.col > 0) {
             this.selected.col--
           }
           break
         // right
         case 39:
-          if (this.selected.col < this.colLength - 1) {
+          if (this.rightToLeftLanguages.includes(this.$store.state.settings.language)) {
+            if (this.selected.col > 0) {
+              this.selected.col--
+            }
+          } else if (this.selected.col < this.colLength - 1) {
             this.selected.col++
           }
           break

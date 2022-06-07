@@ -1660,7 +1660,7 @@ export class PgUi {
         colProp.dt = 'double precision';
         break;
       case 'Duration':
-        colProp.dt = 'int8';
+        colProp.dt = 'decimal';
         break;
       case 'Rating':
         colProp.dt = 'smallint';

@@ -75,7 +75,7 @@ export const convertMS2Duration = (val, durationType) => {
   return val
 }
 
-export const convertDurationToMS = (val, durationType) => {
+export const convertDurationToSeconds = (val, durationType) => {
   // 10:00 (10 mins) -> 600000 ms
   const res = {
     _ms: null,

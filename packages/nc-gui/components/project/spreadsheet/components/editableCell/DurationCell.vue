@@ -16,7 +16,7 @@
 </template>
 
 <script>
-import { durationOptions, convertMS2Duration, convertDurationToMS } from '~/helpers/durationHelper'
+import { durationOptions, convertMS2Duration, convertDurationToSeconds } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
@@ -40,7 +40,7 @@ export default {
       },
       set(val) {
         this.isEdited = true
-        const res = convertDurationToMS(val, this.durationType)
+        const res = convertDurationToSeconds(val, this.durationType)
         if (res._isValid) {
           this.durationInMS = res._ms
         }

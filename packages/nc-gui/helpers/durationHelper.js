@@ -48,13 +48,14 @@ const padZero = (val, isSSS = false) => {
 }
 
 export const convertMS2Duration = (val, durationType) => {
-  // 600000ms --> 10:00 (10 mins)
-  const milliseconds = val % 1000
+  if (val === null) { return val }
+  // 600.000 s --> 10:00 (10 mins)
+  const milliseconds = (val % 1) * 1000
   const centiseconds = Math.round(milliseconds / 10)
   const deciseconds = Math.round(centiseconds / 10)
-  const seconds = Math.floor((val / 1000) % 60)
-  const minutes = Math.floor((val / (1000 * 60)) % 60)
-  const hours = Math.floor((val / (1000 * 60 * 60)))
+  const hours = Math.floor(parseInt(val, 10) / (60 * 60))
+  const minutes = Math.floor((parseInt(val, 10) - (hours * 60 * 60)) / 60)
+  const seconds = parseInt(val, 10) - (hours * 60 * 60) - (minutes * 60)
 
   if (durationType === 0) {
     // h:mm
@@ -76,7 +77,7 @@ export const convertMS2Duration = (val, durationType) => {
 }
 
 export const convertDurationToSeconds = (val, durationType) => {
-  // 10:00 (10 mins) -> 600000 ms
+  // 10:00 (10 mins) -> 600.000 s
   const res = {
     _ms: null,
     _isValid: true
@@ -113,10 +114,10 @@ export const convertDurationToSeconds = (val, durationType) => {
 
     if (durationType === 0) {
       // h:mm
-      res._ms = h * 3600000 + mm * 60000
+      res._sec = h * 3600 + mm * 60
     } else if (durationType === 1) {
       // h:mm:ss
-      res._ms = h * 3600000 + mm * 60000 + ss * 1000
+      res._sec = h * 3600 + mm * 60 + ss
     } else if (durationType === 2) {
       // h:mm:ss.s (deciseconds)
       const ds = groups[4] || 0
@@ -134,7 +135,7 @@ export const convertDurationToSeconds = (val, durationType) => {
               // take whatever it is
               : ds
       ) * 100
-      res._ms = h * 3600000 + mm * 60000 + ss * 1000 + ms
+      res._sec = h * 3600 + mm * 60 + ss + ms / 1000
     } else if (durationType === 3) {
       // h:mm:ss.ss (centiseconds)
       const cs = groups[4] || 0
@@ -150,7 +151,7 @@ export const convertDurationToSeconds = (val, durationType) => {
             // take whatever it is
             : cs
       ) * 10
-      res._ms = h * 3600000 + mm * 60000 + ss * 1000 + ms
+      res._sec = h * 3600 + mm * 60 + ss + ms / 1000
     } else if (durationType === 4) {
       // h:mm:ss.sss (milliseconds)
       let ms = groups[4] || 0
@@ -163,7 +164,7 @@ export const convertDurationToSeconds = (val, durationType) => {
           // take whatever it is
           : ms
       ) * 1
-      res._ms = h * 3600000 + mm * 60000 + ss * 1000 + ms
+      res._sec = h * 3600 + mm * 60 + ss + ms / 1000
     }
   } else {
     res._isValid = false

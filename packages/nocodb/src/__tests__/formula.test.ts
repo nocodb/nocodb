@@ -1,7 +1,7 @@
 import { expect } from 'chai';
 import 'mocha';
-import knex from '../lib/dataMapper/lib/sql/CustomKnex';
-import formulaQueryBuilderFromString from '../lib/dataMapper/lib/sql/formulaQueryBuilderFromString';
+import knex from '../lib/db/sql-data-mapper/lib/sql/CustomKnex';
+import formulaQueryBuilderFromString from '../lib/db/sql-data-mapper/lib/sql/formulaQueryBuilderFromString';
 
 process.env.TEST = 'test';
 

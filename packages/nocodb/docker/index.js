@@ -1,4 +1,4 @@
-const Noco = require("../build/main/lib/noco/Noco").default;
+const Noco = require("../build/main/lib/Noco").default;
 const express = require('express');
 const cors = require('cors');
 const server = express();

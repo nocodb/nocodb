@@ -32,7 +32,7 @@
               <v-combobox
                 v-model="item.name"
                 v-ge="['api-client-headers','enable']"
-                class="body-2 caption"
+                class="body-2 caption nc-input-hook-header-key"
                 :items="headerListAuto"
                 :disabled="!item.enabled"
                 hide-details
@@ -46,7 +46,7 @@
             <td style="height: auto">
               <xAutoComplete
                 v-model="item.value"
-                class="body-2 caption"
+                class="body-2 caption nc-input-hook-header-value"
                 :disabled="!item.enabled"
                 placeholder="Value"
                 hide-details

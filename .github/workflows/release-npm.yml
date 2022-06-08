@@ -55,11 +55,13 @@ jobs:
           cd packages/nocodb-sdk &&
           npm install && npm run build && npm publish &&
           cd ../.. &&
+          sleep 30 &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNocodbSdk.js &&
           cd packages/nc-gui &&
           npm install &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} npm run build:copy:jsdeliver &&
           cd ../.. &&
+          sleep 60 &&
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} node scripts/upgradeNcGui.js && cd packages/nocodb && npm install && npm run obfuscate:build:publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}

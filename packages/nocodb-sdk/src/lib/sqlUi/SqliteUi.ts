@@ -714,6 +714,7 @@ export class SqliteUi {
       case 'double':
       case 'double precision':
       case 'float':
+      case 'decimal':
       case 'numeric':
         return 'float';
 

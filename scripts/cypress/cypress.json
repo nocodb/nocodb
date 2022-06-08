@@ -30,6 +30,7 @@
     "retries": 0,
     "screenshotOnRunFailure": false,
     "numTestsKeptInMemory": 0,
+    "experimentalInteractiveRunEvents": true,
     "env": {
         "testMode": [
             { "apiType": "rest", "dbType": "xcdb" },

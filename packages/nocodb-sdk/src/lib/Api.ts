@@ -1312,6 +1312,23 @@ export class Api<
       }),
 
     /**
+     * @description Project compare cost
+     *
+     * @tags Project
+     * @name Cost
+     * @summary Project compare cost
+     * @request GET:/api/v1/db/meta/projects/{projectId}/cost
+     * @response `200` `object` OK
+     */
+    cost: (projectId: string, params: RequestParams = {}) =>
+      this.request<object, any>({
+        path: `/api/v1/db/meta/projects/${projectId}/cost`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * No description
      *
      * @tags Project
@@ -3499,6 +3516,33 @@ export class Api<
         query: query,
         body: data,
         type: ContentType.FormData,
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Storage
+     * @name UploadByUrl
+     * @summary Attachment
+     * @request POST:/api/v1/db/storage/upload-by-url
+     */
+    uploadByUrl: (
+      query: { path: string },
+      data: {
+        url?: string;
+        fileName?: string;
+        mimetype?: string;
+        size?: string;
+      }[],
+      params: RequestParams = {}
+    ) =>
+      this.request<any, any>({
+        path: `/api/v1/db/storage/upload-by-url`,
+        method: 'POST',
+        query: query,
+        body: data,
+        type: ContentType.Json,
         ...params,
       }),
   };

@@ -976,10 +976,10 @@ export class MysqlUi {
         colProp.dtxp = 1;
         break;
       case 'MultiSelect':
-        colProp.dt = 'set';
+        colProp.dt = 'text';
         break;
       case 'SingleSelect':
-        colProp.dt = 'enum';
+        colProp.dt = 'text';
         break;
       case 'Collaborator':
         colProp.dt = 'varchar';

@@ -84,7 +84,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   //
   //   it('Signup with valid email', function (done) {
   //     request(app)
-  //       .post('/v1/graphql')
+  //       .post('/v1-legacy/graphql')
   //       .send({
   //         query: `mutation{ SignUp(data : { email: "${EMAIL_ID}", password: "${VALID_PASSWORD}"}){  token }}`
   //       })
@@ -104,7 +104,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   //
   //   it('Signup with invalid email', function (done) {
   //     request(app)
-  //       .post('/v1/graphql')
+  //       .post('/v1-legacy/graphql')
   //       .send({
   //         query: `mutation{ SignUp(data : { email: "test", password: "${VALID_PASSWORD}"}){  token }}`
   //       })
@@ -120,7 +120,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   //
   //   it('Signin with valid email', function (done) {
   //     request(app)
-  //       .post('/v1/graphql')
+  //       .post('/v1-legacy/graphql')
   //       .send({
   //         query: `mutation{ SignIn(data : { email: "${EMAIL_ID}", password: "${VALID_PASSWORD}"}){  token }}`
   //       })
@@ -140,7 +140,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   //
   //   it('me', function (done) {
   //     request(app)
-  //       .post('/v1/graphql')
+  //       .post('/v1-legacy/graphql')
   //       .set({'xc-auth': token})
   //       .send({
   //         query: `{ Me{  email  id }}`
@@ -159,7 +159,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   //
   //   it('Signin with invalid email', function (done) {
   //     request(app)
-  //       .post('/v1/graphql')
+  //       .post('/v1-legacy/graphql')
   //       .send({
   //         query: `mutation{ SignIn(data : { email: "abc@abcc.com", password: "randomPassord"}){  token }}`
   //       })
@@ -175,7 +175,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   //
   //   it('Forgot password with a non-existing email id', function (done) {
   //     request(app)
-  //       .post('/v1/graphql')
+  //       .post('/v1-legacy/graphql')
   //       .send({
   //         query: `mutation{ PasswordForgot(email: "abc@abcc.com")}`
   //       })
@@ -190,7 +190,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   //
   //   it('Forgot password with an existing email id', function (done) {
   //     request(app)
-  //       .post('/v1/graphql')
+  //       .post('/v1-legacy/graphql')
   //       .send({
   //         query: `mutation{ PasswordForgot(email: "${EMAIL_ID}")}`
   //       })
@@ -204,7 +204,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   //
   //   it('Email validate with an invalid token', function (done) {
   //     request(app)
-  //       .post('/v1/graphql')
+  //       .post('/v1-legacy/graphql')
   //       .send({
   //         query: `mutation{ EmailValidate(tokenId: "invalid-token-id")}`
   //       })
@@ -218,7 +218,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   //
   //   it('Reset Password with an invalid token', function (done) {
   //     request(app)
-  //       .post('/v1/graphql')
+  //       .post('/v1-legacy/graphql')
   //       .send({
   //         query: `mutation{ PasswordReset(password:"somePassword",tokenId: "invalid-token-id")}`
   //       })

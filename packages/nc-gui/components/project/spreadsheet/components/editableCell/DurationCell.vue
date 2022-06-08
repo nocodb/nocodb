@@ -42,7 +42,7 @@ export default {
         this.isEdited = true
         const res = convertDurationToSeconds(val, this.durationType)
         if (res._isValid) {
-          this.durationInMS = res._ms
+          this.durationInMS = res._sec
         }
       }
     },

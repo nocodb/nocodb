@@ -20,8 +20,8 @@ let records2 = {
   Done: true,
   Date: "2022-05-31",
   Rating: "1",
-  Actor: "Actor1, Actor2",
-  "Status (from Actor)": "Todo, In progress",
+  Actor: ["Actor1", "Actor2"],
+  "Status (from Actor)": ["Todo", "In progress"],
   RollUp: "128",
   Computation: "4.04"
 }
@@ -43,29 +43,38 @@ export const genTest = (apiType, dbType) => {
       cy.openTableTab("Film", 3)
 
       // normal cells
-      // for (let [key, value] of Object.entries(records)) {
-      //   mainPage.getCell(key, 1).contains(value).should("exist");
-      // }
+      for (let [key, value] of Object.entries(records)) {
+        mainPage.getCell(key, 1).contains(value).should("exist");
+      }
 
       // checkbox
-      // mainPage.getCell("Done", 1).find(".mdi-check-circle-outline").should(records2.Done?'exist':'not.exist')
+      mainPage.getCell("Done", 1).find(".mdi-check-circle-outline").should(records2.Done?'exist':'not.exist')
 
       // date
 
       // rating
-      // mainPage.getCell("Rating", 1).find("button.mdi-star").should("have.length", records2.Rating)
+      mainPage.getCell("Rating", 1).find("button.mdi-star").should("have.length", records2.Rating)
 
       // ltar
-      // cy.get(':nth-child(1) > [data-col="Actor"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name').contains("Actor1").should('exist')
-      // cy.get(':nth-child(1) > [data-col="Actor"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(2) > .v-chip__content > .name').contains("Actor2").should('exist')
+      mainPage.getCell("Actor", 1).scrollIntoView();
+      cy.get(':nth-child(1) > [data-col="Actor"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(1) > .v-chip__content > .name').contains(records2.Actor[0]).should('exist')
+      cy.get(':nth-child(1) > [data-col="Actor"] > .nc-virtual-cell > .v-lazy > .d-100 > .chips > :nth-child(2) > .v-chip__content > .name').contains(records2.Actor[1]).should('exist')
       // mainPage.getCell("Actor", 1).find(".nc-virtual-cell > .v-lazy > .d-100 > .chips").eq(0).contains("Actor1").should('exist')
       // mainPage.getCell("Actor", 1).find(".nc-virtual-cell > .v-lazy > .d-100 > .chips").eq(1).contains("Actor2").should('exist')
 
       // lookup
+      mainPage.getCell("Status (from Actor)", 1).scrollIntoView();
+      cy.get(':nth-child(1) > [data-col="Status (from Actor)"] > .nc-virtual-cell > .v-lazy > .d-flex > :nth-child(1) > .v-chip__content > div > .set-item').contains(records2["Status (from Actor)"][0]).should('exist')
+      cy.get(':nth-child(1) > [data-col="Status (from Actor)"] > .nc-virtual-cell > .v-lazy > .d-flex > :nth-child(2) > .v-chip__content > div > .set-item').contains(records2["Status (from Actor)"][1]).should('exist')
 
       // rollup
+      mainPage.getCell("RollUp", 1).scrollIntoView();
+      // cy.get(':nth-child(1) > [data-col="RollUp"] > .nc-virtual-cell > .v-lazy > span').contains(records2.RollUp).should('exist')
+      cy.get(`:nth-child(1) > [data-col="RollUp"] > .nc-virtual-cell`).contains(records2.RollUp).should('exist')
 
       // formula
+      mainPage.getCell("Computation", 1).scrollIntoView();
+      cy.get(`:nth-child(1) > [data-col="Computation"] > .nc-virtual-cell`).contains(records2.Computation).should('exist')
 
 
       cy.closeTableTab("Film")

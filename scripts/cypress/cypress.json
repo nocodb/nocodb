@@ -30,7 +30,7 @@
     "video": false,
     "retries": 0,
     "screenshotOnRunFailure": false,
-    "numTestsKeptInMemory": 10,
+    "numTestsKeptInMemory": 0,
     "experimentalInteractiveRunEvents": true,
     "env": {
         "testMode": [

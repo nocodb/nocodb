@@ -852,7 +852,7 @@ export class SqliteUi {
         colProp.dt = 'double';
         break;
       case 'Duration':
-        colProp.dt = 'integer';
+        colProp.dt = 'decimal';
         break;
       case 'Rating':
         colProp.dt = 'integer';

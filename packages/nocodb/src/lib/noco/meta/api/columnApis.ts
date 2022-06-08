@@ -503,6 +503,11 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
     default:
       {
         colBody = getColumnPropsFromUIDT(colBody, base);
+        if (colBody.uidt === UITypes.Duration) {
+          // by default, colBody.dtxs is 2
+          // Duration column needs more that that
+          colBody.dtxs = "4"
+        }
         const tableUpdateBody = {
           ...table,
           tn: table.table_name,

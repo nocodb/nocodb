@@ -58,7 +58,7 @@ async function userInvite(req, res, next): Promise<any> {
       const projectUser = await ProjectUser.get(req.params.projectId, user.id);
       if (projectUser) {
         NcError.badRequest(
-          `${user.email} has been added to this project already`
+          `${user.email} with role ${projectUser.roles} already exists in this project`
         );
       }
 

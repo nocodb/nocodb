@@ -4551,7 +4551,9 @@ export default class NcMetaMgr {
           'Access-Control-Expose-Headers': 'nc-export-offset',
           'nc-export-offset': csvData.offset,
           'nc-export-elapsed-time': csvData.elapsed,
-          'Content-Disposition': `attachment; filename="${args.args.model_name}-export.csv"`
+          'Content-Disposition': `attachment; filename="${encodeURI(
+            args.args.model_name
+          )}-export.csv"`
         });
         res.send(csvData.data);
       }

@@ -284,7 +284,8 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
 
   await User.update(user.id, {
     salt,
-    password
+    password,
+    email: user.email
   });
 
   Audit.insert({
@@ -324,12 +325,13 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
             (req as any).ncSiteUrl
           }/api/v1/db/auth/password/reset/${token}.`,
           html: ejs.render(template, {
-            resetLink: (req as any).ncSiteUrl + `/api/v1/db/auth/password/reset/${token}`
+            resetLink:
+              (req as any).ncSiteUrl + `/api/v1/db/auth/password/reset/${token}`
           })
         })
       );
     } catch (e) {
-      console.log(e)
+      console.log(e);
       return NcError.badRequest(
         'Email Plugin is not found. Please contact administrators to configure it in App Store first.'
       );
@@ -343,9 +345,7 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
       ip: (req as any).clientIp
     });
   } else {
-    return NcError.badRequest(
-      'Your email has not been registered.'
-    );
+    return NcError.badRequest('Your email has not been registered.');
   }
   res.json({ msg: 'Please check your email to reset the password' });
 }

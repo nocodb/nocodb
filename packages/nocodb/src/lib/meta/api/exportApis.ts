@@ -11,7 +11,9 @@ async function exportCsv(req: Request, res: Response) {
     'Access-Control-Expose-Headers': 'nc-export-offset',
     'nc-export-offset': offset,
     'nc-export-elapsed-time': elapsed,
-    'Content-Disposition': `attachment; filename="${view.title}-export.csv"`
+    'Content-Disposition': `attachment; filename="${encodeURI(
+      view.title
+    )}-export.csv"`
   });
   res.send(data);
 }

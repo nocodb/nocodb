@@ -22,11 +22,11 @@ export default {
   name: 'FlipCard',
   props: {
     width: {
-      type: Number,
+      type: String,
       required: true
     },
     height: {
-      type: Number,
+      type: String,
       required: true
     },
     onHover: {

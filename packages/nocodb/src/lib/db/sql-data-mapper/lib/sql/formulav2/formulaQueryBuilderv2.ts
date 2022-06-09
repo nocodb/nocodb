@@ -627,7 +627,7 @@ export default async function formulaQueryBuilderv2(
             }
             return query;
           })
-          .join()})${colAlias}`
+          .join()})${colAlias}`.replace(/\?/g, '\\?')
       );
     } else if (pt.type === 'Literal') {
       return knex.raw(`?${colAlias}`, [pt.value]);

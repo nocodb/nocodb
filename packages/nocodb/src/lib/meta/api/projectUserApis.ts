@@ -52,24 +52,32 @@ async function userInvite(req, res, next): Promise<any> {
   for (const email of emails) {
     // add user to project if user already exist
     const user = await User.getByEmail(email);
+
     if (user) {
+      // check if this user has been added to this project
+      const projectUser = await ProjectUser.get(req.params.projectId, user.id);
+      if (projectUser) {
+        NcError.badRequest(
+          `${user.email} has been added to this project already`
+        );
+      }
+
       // todo : provide a different role
       await User.update(user.id, {
         roles: 'user'
       });
 
-      if (!(await ProjectUser.get(req.params.projectId, user.id))) {
-        await ProjectUser.insert({
-          project_id: req.params.projectId,
-          fk_user_id: user.id,
-          roles: req.body.roles || 'editor'
-        });
-      }
+      await ProjectUser.insert({
+        project_id: req.params.projectId,
+        fk_user_id: user.id,
+        roles: req.body.roles || 'editor'
+      });
 
       const cachedUser = await NocoCache.get(
         `${CacheScope.USER}:${email}___${req.params.projectId}`,
         CacheGetType.TYPE_OBJECT
       );
+
       if (cachedUser) {
         cachedUser.roles = req.body.roles || 'editor';
         await NocoCache.set(

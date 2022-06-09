@@ -1311,6 +1311,11 @@ export default async (
             let tempArr = [];
 
             try {
+              logBasic(
+                ` :: Retrieving attachment :: ${value
+                  ?.map(a => a.filename?.split('?')?.[0])
+                  .join(', ')}`
+              );
               tempArr = await api.storage.uploadByUrl(
                 {
                   path: `noco/${sDB.projectName}/${table.title}/${key}`

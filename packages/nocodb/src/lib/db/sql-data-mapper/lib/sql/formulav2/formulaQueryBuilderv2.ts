@@ -246,7 +246,7 @@ export default async function formulaQueryBuilderv2(
                   >();
                   // if (relation.type !== 'bt') continue;
 
-                  const colOptions = (await col.getColOptions()) as LinkToAnotherRecordColumn;
+                  const colOptions = (await lookupColumn.getColOptions()) as LinkToAnotherRecordColumn;
                   const childColumn = await colOptions.getChildColumn();
                   const parentColumn = await colOptions.getParentColumn();
                   const childModel = await childColumn.getModel();

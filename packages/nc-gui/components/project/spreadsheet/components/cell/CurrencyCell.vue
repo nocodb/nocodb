@@ -13,8 +13,11 @@ export default {
   computed: {
     currency() {
       try {
-        return new Intl.NumberFormat(this.currencyMeta.currency_locale || 'en-US',
-          { style: 'currency', currency: this.currencyMeta.currency_code || 'USD' }).format(this.value)
+        return isNaN(this.value)
+          ? this.value
+          : new Intl.NumberFormat(this.currencyMeta.currency_locale || 'en-US',
+            { style: 'currency', currency: this.currencyMeta.currency_code || 'USD' })
+            .format(this.value)
       } catch (e) {
         return this.value
       }

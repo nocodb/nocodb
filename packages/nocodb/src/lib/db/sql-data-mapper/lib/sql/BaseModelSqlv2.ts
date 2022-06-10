@@ -70,9 +70,9 @@ class BaseModelSqlv2 {
   private _columns = {};
 
   private config: any = {
-    limitDefault: 25,
-    limitMin: 1,
-    limitMax: 1000
+    limitDefault: process.env.DB_QUERY_LIMIT_DEFAULT || 25,
+    limitMin: process.env.DB_QUERY_LIMIT_MIN || 1,
+    limitMax: process.env.DB_QUERY_LIMIT_MAX || 1000
   };
 
   constructor({

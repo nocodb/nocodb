@@ -35,6 +35,7 @@ export default {
     localState: {
       get() {
         if (!this.value) {
+          this.$refs?.picker?.clearHandler()
           return this.value
         }
 

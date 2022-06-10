@@ -51,6 +51,10 @@ export default {
       const browserLan = (navigator.languages || [navigator.language || navigator.userLanguage || 'en']).map(v => v.toLowerCase())
       return zhLan.some(l => browserLan.includes(l))
     },
+    _isRtl() {
+      const rtl = ['fa']
+      return rtl.includes(this.$store.state.settings.language)
+    },
     ...mapGetters({
       _isUIAllowed: 'users/GtrIsUIAllowed',
       projectName: 'project/GtrProjectName',

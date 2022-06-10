@@ -287,20 +287,20 @@ export default {
     type() {
       return 'jwt'
       // return (
-      //   this.$store.state.project.projectInfo &&
-      //   this.$store.state.project.projectInfo.authType
+      //   this.$store.state.project.appInfo &&
+      //   this.$store.state.project.appInfo.authType
       // )
     },
     googleAuthEnabled() {
       return (
-        this.$store.state.project.projectInfo &&
-        this.$store.state.project.projectInfo.googleAuthEnabled
+        this.$store.state.project.appInfo &&
+        this.$store.state.project.appInfo.googleAuthEnabled
       )
     },
     githubAuthEnabled() {
       return (
-        this.$store.state.project.projectInfo &&
-        this.$store.state.project.projectInfo.githubAuthEnabled
+        this.$store.state.project.appInfo &&
+        this.$store.state.project.appInfo.githubAuthEnabled
       )
     },
     signUpEnabled() {

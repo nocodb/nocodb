@@ -17,7 +17,7 @@
       >
         {{ $store.getters["project/GtrProjectName"] }}
       </h3>
-      <github-star-btn v-else/>
+      <github-star-btn v-else />
     </div>
     <v-navigation-drawer
       ref="drawer"
@@ -65,7 +65,7 @@
             type="list-item,list-item-three-line@3,list-item@2,list-item-three-line@3"
           />
 
-          <v-treeview
+          <!--          <v-treeview
             v-else-if="isTreeView"
             v-model="tree"
             class="mt-5 project-tree nc-project-tree"
@@ -96,9 +96,9 @@
                       <v-icon size="16">
                         mdi-database
                       </v-icon>
-                      <!--                  <img-->
-                      <!--                    class="grey lighten-3"-->
-                      <!--                    :width="16" :src="`/db-icons/${dbIcons[item._nodes.dbConnection.client]}`"/>-->
+                      &lt;!&ndash;                  <img&ndash;&gt;
+                      &lt;!&ndash;                    class="grey lighten-3"&ndash;&gt;
+                      &lt;!&ndash;                    :width="16" :src="`/db-icons/${dbIcons[item._nodes.dbConnection.client]}`"/>&ndash;&gt;
                     </template>
                     <template v-else>
                       <v-icon
@@ -130,7 +130,7 @@
                 <span>{{ item.tooltip || item.name }}</span>
               </v-tooltip>
             </template>
-          </v-treeview>
+          </v-treeview>-->
           <v-container v-else fluid class="px-1 pt-0">
             <v-list
               height="30"
@@ -159,7 +159,7 @@
                   <template #activator>
                     <v-list-item-icon>
                       <v-icon
-                        v-if="open && icons[item._nodes.type].openIcon"
+                        v-if="icons[item._nodes.type].openIcon"
                         small
                         style="cursor: auto"
                         :color="icons[item._nodes.type].openColor"
@@ -186,17 +186,17 @@
                             {{
                               $t("objects.tables")
                             }}<template
-                            v-if="item.children && item.children.length"
-                          >
+                              v-if="item.children && item.children.length"
+                            >
                               ({{
-                              item.children.filter(
-                                (child) =>
-                                  !search ||
-                                  child.name
-                                  .toLowerCase()
-                                  .includes(search.toLowerCase())
-                              ).length
-                            }})</template></span>
+                                item.children.filter(
+                                  (child) =>
+                                    !search ||
+                                    child.name
+                                      .toLowerCase()
+                                      .includes(search.toLowerCase())
+                                ).length
+                              }})</template></span>
                           <span
                             v-else
                             class="body-2 font-weight-medium"
@@ -214,23 +214,23 @@
                           {{
                             $t("objects.tables")
                           }}<template
-                          v-if="item.children && item.children.length"
-                        >
+                            v-if="item.children && item.children.length"
+                          >
                             ({{
-                            item.children.filter(
-                              (child) =>
-                                !search ||
-                                child.name
-                                .toLowerCase()
-                                .includes(search.toLowerCase())
-                            ).length
-                          }})</template></span>
+                              item.children.filter(
+                                (child) =>
+                                  !search ||
+                                  child.name
+                                    .toLowerCase()
+                                    .includes(search.toLowerCase())
+                              ).length
+                            }})</template></span>
                         <span v-else class="caption font-weight-regular">
                           {{ item.name }}</span>
                       </template>
                     </v-list-item-title>
 
-                    <v-spacer/>
+                    <v-spacer />
 
                     <v-tooltip bottom>
                       <template #activator="{ on }">
@@ -253,8 +253,8 @@
                         class="caption"
                       >Add new
                         <span class="text-capitalize">{{
-                            item.type.slice(0, -3)
-                          }}</span></span>
+                          item.type.slice(0, -3)
+                        }}</span></span>
                     </v-tooltip>
                   </template>
 
@@ -342,13 +342,13 @@
                                 </span>
                               </template>
                               <span class="caption">{{
-                                  child.creator_tooltip
-                                }}</span>
+                                child.creator_tooltip
+                              }}</span>
                             </v-tooltip>
                             <span v-else class="caption">{{ child.name }}</span>
                           </v-list-item-title>
                           <template v-if="child.type === 'table'">
-                            <v-spacer/>
+                            <v-spacer />
                             <div class="action d-flex" @click.stop>
                               <v-menu>
                                 <template #activator="{ on }">
@@ -446,7 +446,7 @@
                 >
                   <v-list-item-icon>
                     <v-icon
-                      v-if="open && icons[item._nodes.type].openIcon"
+                      v-if="icons[item._nodes.type].openIcon"
                       small
                       style="cursor: auto"
                       :color="icons[item._nodes.type].openColor"
@@ -493,7 +493,7 @@
           />
         </div>
         <div class="pr-3 advance-menu d-none" :class="{ 'pl-3': !mini }">
-          <v-divider v-if="_isUIAllowed('treeViewProjectSettings')"/>
+          <v-divider v-if="_isUIAllowed('treeViewProjectSettings')" />
 
           <v-list
             v-if="_isUIAllowed('treeViewProjectSettings')"
@@ -504,8 +504,8 @@
               <v-list-item-title>
                 <!-- Settings -->
                 <span class="body-2 font-weight-medium">{{
-                    $t("activity.settings")
-                  }}</span>
+                  $t("activity.settings")
+                }}</span>
                 <v-tooltip top>
                   <template #activator="{ on }">
                     <x-icon
@@ -544,8 +544,8 @@
                     <!-- App Store -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                          $t("title.appStore")
-                        }}</span>
+                        $t("title.appStore")
+                      }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
@@ -570,8 +570,8 @@
                     <!-- Team & Auth -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                          $t("title.teamAndAuth")
-                        }}</span>
+                        $t("title.teamAndAuth")
+                      }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
@@ -595,8 +595,8 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                          $t("title.projMeta")
-                        }}</span>
+                        $t("title.projMeta")
+                      }}</span>
                     </v-list-item-title>
                   </v-list-item>
                 </template>
@@ -621,9 +621,11 @@
                     <!-- Project Metadata -->
                     <v-list-item-title>
                       <span class="font-weight-regular caption">{{
-                          $t("title.audit")
-                        }}</span>
-                    </v-list-item-title>
+                        $t("title.audit")
+                      }}</span>
+                    </v-list-item-title
+                    </v-list-item
+                    >
                   </v-list-item>
                 </template>
                 <!-- Meta Management -->
@@ -631,14 +633,14 @@
               </v-tooltip>
             </template>
           </v-list>
-          <v-divider/>
+          <v-divider />
 
           <v-list v-if="_isUIAllowed('previewAs') || previewAs" dense>
             <v-list-item>
               <!-- Preview as -->
               <span class="body-2 font-weight-medium">{{
-                  $t("activity.previewAs")
-                }}</span>
+                $t("activity.previewAs")
+              }}</span>
               <v-icon small class="ml-1">
                 mdi-drama-masks
               </v-icon>
@@ -680,17 +682,15 @@
                   </v-icon>
                   <!-- Reset Preview -->
                   <span class="caption nc-preview-reset">{{
-                      $t("activity.resetReview")
-                    }}</span>
+                    $t("activity.resetReview")
+                  }}</span>
                 </v-list-item>
               </template>
             </v-list>
           </v-list>
         </div>
 
-
-
-        <v-divider/>
+        <v-divider />
         <div
           v-t="['e:api-docs']"
           class="caption pointer nc-docs pb-2 pl-5 pr-3 pt-2 d-flex align-center"
@@ -701,7 +701,6 @@
           </v-icon>
           {{ $t('title.apiDocs') }}
         </div>
-
 
         <template v-if="_isUIAllowed('settings')">
           <div class="pl-5 pr-3 d-flex align-center pb-2">
@@ -722,9 +721,8 @@
           </div>
         </template>
 
-
         <!--        <v-divider/>-->
-<!--        <extras class="pl-1"/>-->
+        <!--        <extras class="pl-1"/>-->
       </div>
     </v-navigation-drawer>
 
@@ -786,12 +784,12 @@
       :dialog-show="dialogDeleteTable.dialogShow"
       :heading="dialogDeleteTable.heading + ' ' + dialogDeleteTable.nodes.table_name"
     />
-    <excel-import
-      ref="excelImport"
-      v-model="excelImportDialog"
+    <quick-import
+      ref="quickImport"
+      v-model="quickImportDialog"
       hide-label
       import-to-project
-      @success="onExcelImport"
+      @success="onQuickImport"
     />
   </div>
 </template>
@@ -805,20 +803,20 @@ import rightClickOptions from "../helpers/rightClickOptions";
 import rightClickOptionsSub from "../helpers/rightClickOptionsSub";
 import icons from "../helpers/treeViewIcons";
 
-import textDlgSubmitCancel from "./utils/dlgTextSubmitCancel";
-import dlgLabelSubmitCancel from "./utils/dlgLabelSubmitCancel";
+import textDlgSubmitCancel from "./utils/DlgTextSubmitCancel";
+import dlgLabelSubmitCancel from "./utils/DlgLabelSubmitCancel";
 import {copyTextToClipboard} from "../helpers/xutils";
-import DlgTableCreate from "@/components/utils/dlgTableCreate";
-import DlgViewCreate from "@/components/utils/dlgViewCreate";
-import SponsorMini from "@/components/sponsorMini";
+import DlgTableCreate from "~/components/utils/DlgTableCreate";
+import DlgViewCreate from "~/components/utils/DlgViewCreate";
+import SponsorMini from "~/components/SponsorMini";
 import {validateTableName} from "~/helpers";
-import ExcelImport from "~/components/import/excelImport";
+import QuickImport from "~/components/import/QuickImport";
 
 import draggable from "vuedraggable";
-import GithubStarBtn from "~/components/githubStarBtn";
-import SettingsModal from "~/components/settings/settingsModal";
-import Language from "~/components/utils/language";
-import Extras from "~/components/project/spreadsheet/components/extras";
+import GithubStarBtn from "~/components/GithubStarBtn";
+import SettingsModal from "~/components/settings/SettingsModal";
+import Language from "~/components/utils/Language";
+import Extras from "~/components/project/spreadsheet/components/Extras";
 
 export default {
   components: {
@@ -827,7 +825,7 @@ export default {
     SettingsModal,
     GithubStarBtn,
     draggable,
-    ExcelImport,
+    QuickImport,
     SponsorMini,
     DlgViewCreate,
     DlgTableCreate,
@@ -878,10 +876,9 @@ export default {
     },
     loadingProjects: true,
     caseInsensitive: true,
-    // open: [],
     search: null,
     menuVisible: false,
-    excelImportDialog: false,
+    quickImportDialog: false,
     x: 0,
     y: 0,
     menuItem: null,
@@ -934,7 +931,7 @@ export default {
   }),
   computed: {
     apiLink() {
-      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.ncSiteUrl)
+      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
     },
     previewAs: {
       get() {
@@ -1088,8 +1085,8 @@ export default {
     },
     changeTheme() {
       this.$store.dispatch(
-        "windows/ActToggleDarkMode",
-        !this.$store.state.windows.darkTheme
+        "settings/ActToggleDarkMode",
+        !this.$store.state.settings.darkTheme
       );
     },
     openLink(link) {
@@ -1317,7 +1314,7 @@ export default {
         this.miniExpanded = false;
       }
     },
-    onExcelImport() {
+    onQuickImport() {
       if (!this.menuItem || this.menuItem.type !== "tableDir") {
         this.menuItem = this.listViewArr.find((n) => n.type === "tableDir");
       }
@@ -1357,31 +1354,31 @@ export default {
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "viewDir" && !open) {
           await this.loadViews(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "functionDir" && !open) {
           await this.loadFunctions(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "procedureDir" && !open) {
           await this.loadProcedures(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "sequenceDir" && !open) {
           await this.loadSequences(item);
           const currentlyOpened = JSON.parse(JSON.stringify(this.open));
           currentlyOpened.push(item._nodes.key);
           this.activeListItem = item._nodes.key;
-          this.open = currentlyOpened;
+          // this.open = currentlyOpened;
         } else if (item._nodes.type === "env") {
           return;
         } else {
@@ -1413,7 +1410,7 @@ export default {
             if (item._nodes.type === "table") {
               let tableIndex = +item._nodes.key.split(".").pop();
               if (
-                !(await this.$store.dispatch("windows/ActCheckMaxTable", {
+                !(await this.$store.dispatch("settings/ActCheckMaxTable", {
                   tableIndex,
                 }))
               ) {
@@ -1593,7 +1590,7 @@ export default {
             await this.loadViews(this.menuItem);
             this.$toast.success("Views refreshed").goAway(1000);
           } else if (action === "IMPORT_EXCEL") {
-            this.excelImportDialog = true;
+            this.quickImportDialog = true;
           } else if (action === "ENV_DB_FUNCTIONS_REFRESH") {
             await this.loadFunctions(this.menuItem);
             this.$toast.success("Functions refreshed").goAway(1000);

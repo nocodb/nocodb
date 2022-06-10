@@ -171,7 +171,8 @@
     "headLogin": "เข้าสู่ระบบ nocodb",
     "resetPassword": "รีเซ็ตรหัสผ่านของคุณ",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "แจ้งเตือนผ่าน",
@@ -306,6 +307,7 @@
     "deleteRow": "ลบแถว",
     "deleteSelectedRow": "ลบแถวที่เลือก",
     "importExcel": "นำเข้า Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "ดาวน์โหลดเป็น CSV",
     "uploadCSV": "อัปโหลด CSV",
     "import": "นำเข้า",
@@ -397,6 +399,7 @@
       "upload_sub": "หรือลากและวางไฟล์",
       "excelSupport": "รองรับ:. xls, .xlsx,. xlsm, .ods, .ots",
       "excelURL": "ป้อน URL ไฟล์ Excel",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# ของแถวที่จะแยกวิเคราะห์กับ DataType",
       "excelImport": "มีแผ่นงานสำหรับนำเข้า",
       "exportMetadata": "คุณต้องการส่งออกข้อมูลเมตาจากตาราง Meta หรือไม่?",

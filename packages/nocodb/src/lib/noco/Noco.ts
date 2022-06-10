@@ -40,6 +40,7 @@ import NcPluginMgrv2 from './meta/helpers/NcPluginMgrv2';
 import User from '../noco-models/User';
 import { Tele } from 'nc-help';
 import * as http from 'http';
+// import weAreHiring from '../utils/weAreHiring';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -94,10 +95,6 @@ export default class Noco {
   private ncToolApi;
   private config: NcConfig;
   private requestContext: any;
-
-  private io: any;
-  // @ts-ignore
-  private socketClient: any;
 
   constructor() {
     process.env.PORT = process.env.PORT || '8080';
@@ -177,8 +174,6 @@ export default class Noco {
 
     this.initSentry();
     NocoCache.init();
-
-    this.initWebSocket();
 
     // this.apiInfInfoList = [];
     //
@@ -269,6 +264,7 @@ export default class Noco {
       next();
     });
     Tele.emit('evt_app_started', await User.count());
+    // weAreHiring();
     return this.router;
   }
 
@@ -486,71 +482,6 @@ export default class Noco {
         'Warning : ignoring migrations on boot since tools directory not defined'
       );
     }
-  }
-
-  private initWebSocket(): void {
-    // todo: Auth
-
-    this.router.get(`${this.config.dashboardPath}/demo`, (_req, res) => {
-      (Noco._ncMeta as any).updateKnex({
-        client: 'sqlite3',
-        connection: {
-          filename: 'xcDemo.db'
-        }
-      });
-
-      res.json({ msg: 'done' });
-    });
-
-    this.io = require('socket.io')();
-    this.io.listen(8083);
-    this.io.on('connection', client => {
-      this.socketClient = client;
-
-      client.on('disconnect', () => {
-        this.socketClient = null;
-      });
-    });
-
-    const statusMonitor = require('express-status-monitor')({
-      websocket: this.io,
-      port: 8083
-    });
-
-    this.router.use(statusMonitor);
-    this.router.get(
-      `${this.config.dashboardPath}/status`,
-      statusMonitor.pageRoute
-    );
-
-    /*
-        title: 'Express Status',  // Default title
-          theme: 'default.css',     // Default styles
-          path: '/status',
-          socketPath: '/socket.io', // In case you use a custom path
-          websocket: existingSocketIoInstance,
-          spans: [{
-          interval: 1,            // Every second
-          retention: 60           // Keep 60 datapoints in memory
-        }, {
-          interval: 5,            // Every 5 seconds
-          retention: 60
-        }, {
-          interval: 15,           // Every 15 seconds
-          retention: 60
-        }],
-          chartVisibility: {
-          cpu: true,
-            mem: true,
-            load: true,
-            eventLoop: true,
-            heap: true,
-            responseTime: true,
-            rps: true,
-            statusCodes: true
-        },
-        healthChecks: [],
-          ignoreStartsWith: '/admin'*/
   }
 
   private async readOrGenJwtSecret(): Promise<any> {

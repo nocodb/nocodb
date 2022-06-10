@@ -61,6 +61,52 @@ export async function releaseVersion(_req: Request, res: Response) {
   res.json(result);
 }
 
+export async function axiosRequestMake(req: Request, res: Response) {
+  const { apiMeta } = req.body;
+  if (apiMeta?.body) {
+    try {
+      apiMeta.body = JSON.parse(apiMeta.body);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  if (apiMeta?.auth) {
+    try {
+      apiMeta.auth = JSON.parse(apiMeta.auth);
+    } catch (e) {
+      console.log(e);
+    }
+  }
+
+  apiMeta.response = {};
+  const _req = {
+    params: apiMeta.parameters
+      ? apiMeta.parameters.reduce((paramsObj, param) => {
+          if (param.name && param.enabled) {
+            paramsObj[param.name] = param.value;
+          }
+          return paramsObj;
+        }, {})
+      : {},
+    url: apiMeta.url,
+    method: apiMeta.method || 'GET',
+    data: apiMeta.body || {},
+    headers: apiMeta.headers
+      ? apiMeta.headers.reduce((headersObj, header) => {
+          if (header.name && header.enabled) {
+            headersObj[header.name] = header.value;
+          }
+          return headersObj;
+        }, {})
+      : {},
+    responseType: apiMeta.responseType || 'json',
+    withCredentials: true
+  };
+  const data = await require('axios')(_req);
+  return res.json(data?.data);
+}
+
 export default router => {
   router.post(
     '/api/v1/db/meta/connection/test',
@@ -68,4 +114,5 @@ export default router => {
   );
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
   router.get('/api/v1/db/meta/nocodb/version', catchError(releaseVersion));
+  router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
 };

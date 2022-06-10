@@ -54,7 +54,7 @@ docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
 - NocoDB benötigt eine Datenbank zur Eingabe: Siehe [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- Fehlt diese Eingabe, wird aus SQLite zurückgegriffen. Um SQLite dauerhaft zu machen, kann `/usr/app/data/` gemountet werden. 
+- Fehlt diese Eingabe, wird auf SQLite zurückgegriffen. Um SQLite beständig zu machen, kann `/usr/app/data/` gemountet werden. 
 
   Beispiel:
 

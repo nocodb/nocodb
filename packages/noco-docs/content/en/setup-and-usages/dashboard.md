@@ -30,7 +30,7 @@ Once you have logged into NocoDB, you should see `My Projects`.
 
 To create a project, you can click `New Project`.  
     
-![image](https://user-images.githubusercontent.com/35857179/163135493-2afcc8c9-153b-4c82-9f41-397facd10b1a.png)
+![image](https://user-images.githubusercontent.com/35857179/167252813-84876756-f6a1-488a-a185-cbb09f163c5b.png)
 
 ### Creating Empty Project
 
@@ -96,25 +96,6 @@ Tip 3: You can click Edit Connection JSON and specify the schema you want to use
 }
 ```
 
-Click `Test Database Connection` to see if the connection can be established or not. NocoDB create's a new **empty database** with specified parameters, if the database doesn't exist.
+Click `Test Database Connection` to see if the connection can be established or not. NocoDB creates a new **empty database** with specified parameters if the database doesn't exist.
 
 ![image](https://user-images.githubusercontent.com/35857179/163136039-ad521d74-6996-4173-84ba-cfc55392c3b7.png)
-
-<!-- ### Creating Project from Excel
-
-Click `Create Project from Excel`, you can either upload / drag and drop Excel file (OR) specify Excel file URL.
-
-<alert>
-A local SQLite will be used.
-</alert>
-    
-<img src="https://user-images.githubusercontent.com/86527202/144373863-7ced9315-a70b-4746-9295-325e463dc110.png" width="60%"/>  
-
-Supported file formats
-
-- Xls
-- Xlsx
-- Xlsm
-- Ods
-- Ots
- -->

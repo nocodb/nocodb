@@ -55,6 +55,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Get | dbTableRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
 | Data | Get | dbTableRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/find-one |
 | Data | Get | dbTableRow | groupBy | /api/v1/db/data/{orgs}/{projectName}/{tableName}/groupby |
+| Data | Get | dbTableRow | exist | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId}/exist |
 | Data | Post | dbTableRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName} |
 | Data | Get | dbTableRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
 | Data | Patch | dbTableRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/{rowId} |
@@ -63,6 +64,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Data | Get | dbViewRow | list | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
 | Data | Get | dbViewRow | findOne | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/find-one |
 | Data | Get | dbViewRow | groupBy | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/groupby |
+| Data | Get | dbViewRow | exist | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId}/exist |
 | Data | Post | dbViewRow | create | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName} |
 | Data | Get | dbViewRow | read | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |
 | Data | Patch | dbViewRow | update | /api/v1/db/data/{orgs}/{projectName}/{tableName}/views/{viewName}/{rowId} |

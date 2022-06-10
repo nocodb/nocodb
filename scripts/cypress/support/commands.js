@@ -180,6 +180,8 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
         cy.get(".nc-grid-row").should("have.length", rc);
     }
 
+    // kludge: add delay to skip flicker
+    cy.wait(3000)
     cy.snip(`GridView_${tn}`);
 });
 
@@ -258,6 +260,7 @@ Cypress.Commands.add("getActiveContentModal", () => {
 
 Cypress.Commands.add("createTable", (name) => {
     cy.get(".add-btn").click();
+    cy.getActiveMenu().contains("Add new table").should('exist').click()
     cy.get('.nc-create-table-card .nc-table-name input[type="text"]')
         .first()
         .click()

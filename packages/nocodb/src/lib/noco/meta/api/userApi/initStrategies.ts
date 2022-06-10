@@ -190,6 +190,7 @@ export function initStrategies(router): void {
     })
   );
 
+  // mostly copied from older code
   Plugin.getPluginByTitle('Google').then(googlePlugin => {
     if (googlePlugin && googlePlugin.input) {
       const settings = JSON.parse(googlePlugin.input);
@@ -235,14 +236,12 @@ export function initStrategies(router): void {
                       user.roles === 'owner' ? 'owner,creator' : user.roles;
                     // + (user.roles ? `,${user.roles}` : '');
 
-                    // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
                     done(null, user);
                   })
                   .catch(e => done(e));
               } else {
                 // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
                 if (user) {
-                  // await NocoCache.set(`${CacheScope.USER}:${key}`, user);
                   return done(null, user);
                 } else {
                   let roles = 'editor';

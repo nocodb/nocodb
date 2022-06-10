@@ -73,7 +73,7 @@ export default ({ store, $axios, redirect, $toast, route, app }) => {
       })
       .catch(async(error) => {
         await store.dispatch('users/ActSignOut')
-        if (store.state.project.projectInfo.firstUser) {
+        if (store.state.project.appInfo.firstUser) {
           redirect('/')
         } else {
           $toast.clear()

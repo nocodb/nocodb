@@ -1,4 +1,4 @@
-import UITypes from "../UITypes";
+import UITypes from '../UITypes';
 
 import { MssqlUi } from './MssqlUi';
 import { MysqlUi } from './MysqlUi';
@@ -22,8 +22,6 @@ export class SqlUiFactory {
       //   return Tidb;
       // if (connectionConfig.meta.dbtype === "vitess")
       //   return Vitess;
-
-      console.log('- - - -In Mysql UI');
 
       return MysqlUi;
     }
@@ -68,7 +66,7 @@ export type SqlUIColumn = {
   uidt?: UITypes;
   uip?: string;
   uicn?: string;
-  altered?:number;
+  altered?: number;
 };
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

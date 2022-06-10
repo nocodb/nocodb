@@ -1,6 +1,5 @@
 <template>
   <v-app v-if="isProjectInfoLoaded">
-    <snackbar />
     <v-app-bar
       class="elevation-0"
       color="primary"
@@ -29,8 +28,8 @@
             <span
               class="caption font-weight-light pointer"
             >(v{{
-              $store.state.project.projectInfo &&
-                $store.state.project.projectInfo.version
+              $store.state.project.appInfo &&
+                $store.state.project.appInfo.version
             }})</span>
           </v-tooltip>
 
@@ -59,7 +58,6 @@
 
       <div style="flex: 1" class="d-flex justify-end">
         <v-toolbar-items class="hidden-sm-and-down nc-topright-menu">
-          <important-announcement />
           <release-info />
 
           <language class="mr-3" />
@@ -85,7 +83,7 @@
               @shortkey="$router.push('/')"
             />
             <x-btn
-              v-if="!$store.state.windows.nc"
+              v-if="!$store.state.settings.nc"
               text
               btn.class="caption font-weight-bold px-2 text-capitalize"
               tooltip="Enable/Disable Models"
@@ -332,18 +330,17 @@
 <script>
 
 import { mapGetters, mapActions, mapMutations } from 'vuex'
-import ReleaseInfo from '@/components/releaseInfo'
+import ReleaseInfo from '~/components/ReleaseInfo'
 import 'splitpanes/dist/splitpanes.css'
-import XBtn from '../components/global/xBtn'
-import dlgUnexpectedError from '../components/utils/dlgUnexpectedError'
-import settings from '../components/settings'
+import XBtn from '../components/global/XBtn'
+import dlgUnexpectedError from '../components/utils/DlgUnexpectedError'
+import settings from '../components/Settings'
 import { copyTextToClipboard } from '@/helpers/xutils'
-import Snackbar from '~/components/snackbar'
-import Language from '~/components/utils/language'
-import Loader from '~/components/loader'
-import PreviewAs from '~/components/previewAs'
-import ShareOrInviteModal from '~/components/auth/shareOrInviteModal'
-import ImportantAnnouncement from '../components/importantAnnouncement.vue'
+import Language from '~/components/utils/Language'
+import Loader from '~/components/Loader'
+import PreviewAs from '~/components/PreviewAs'
+import ShareOrInviteModal from '~/components/auth/ShareOrInviteModal'
+import weAreHiring from '~/helpers/weAreHiring'
 
 export default {
   components: {
@@ -353,10 +350,8 @@ export default {
     ReleaseInfo,
     Language,
     XBtn,
-    Snackbar,
     dlgUnexpectedError,
-    settings,
-    ImportantAnnouncement
+    settings
   },
   data: () => ({
     clickCount: true,
@@ -394,10 +389,10 @@ export default {
   computed: {
 
     swaggerLink() {
-      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.ncSiteUrl)
+      return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
     },
     redocLink() {
-      return new URL(`/api/v1/db/meta/projects/${this.projectId}/redoc`, this.$store.state.project.projectInfo && this.$store.state.project.projectInfo.ncSiteUrl)
+      return new URL(`/api/v1/db/meta/projects/${this.projectId}/redoc`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
     },
     ...mapGetters({
       logo: 'plugins/brandLogo',
@@ -451,12 +446,15 @@ export default {
     this.selectedEnv = this.$store.getters['project/GtrActiveEnv']
     this.loadProjectInfo()
   },
+  created() {
+    weAreHiring()
+  },
   methods: {
     ...mapActions({ changeActiveTab: 'tabs/changeActiveTab' }),
     ...mapMutations({
-      toggleLogWindow: 'windows/MutToggleLogWindow',
-      toggleOutputWindow: 'windows/MutToggleOutputWindow',
-      toggleTreeviewWindow: 'windows/MutToggleTreeviewWindow'
+      toggleLogWindow: 'settings/MutToggleLogWindow',
+      toggleOutputWindow: 'settings/MutToggleOutputWindow',
+      toggleTreeviewWindow: 'settings/MutToggleTreeviewWindow'
     }),
     async loadProjectInfo() {
       // if (this.$route.params.project_id) {
@@ -482,7 +480,7 @@ export default {
     },
 
     isProjectInfoLoaded() {
-      return this.$store.state.project.projectInfo !== null
+      return this.$store.state.project.appInfo !== null
     },
     githubClickHandler(e) {
       //   e.preventDefault();
@@ -728,8 +726,8 @@ export default {
     },
     changeTheme() {
       this.$store.dispatch(
-        'windows/ActToggleDarkMode',
-        !this.$store.state.windows.darkTheme
+        'settings/ActToggleDarkMode',
+        !this.$store.state.settings.darkTheme
       )
       this.$e('c:navbar:theme')
     },

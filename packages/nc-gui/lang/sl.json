@@ -171,7 +171,8 @@
     "headLogin": "Prijava | Nocodb.",
     "resetPassword": "Ponastavi geslo",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "Obvestite VIO.",
@@ -306,6 +307,7 @@
     "deleteRow": "Izbriši vrstico",
     "deleteSelectedRow": "Izbrišite izbrane vrstice",
     "importExcel": "Uvoz Excel.",
+    "importCSV": "Import CSV",
     "downloadCSV": "Prenesite kot CSV.",
     "uploadCSV": "Upload CSV.",
     "import": "Uvozi",
@@ -397,6 +399,7 @@
       "upload_sub": "ali datoteko povlecite in spustite",
       "excelSupport": "Podprto: .xls, .xlsx, .xlsm, .ods, .h",
       "excelURL": "Vnesite URL EXCEL datoteke",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "# vrstic za razčlenjevanje data podatkov",
       "excelImport": "List (-e) so na voljo za uvoz",
       "exportMetadata": "Želite izvoz metapodatkov iz meta tabele?",

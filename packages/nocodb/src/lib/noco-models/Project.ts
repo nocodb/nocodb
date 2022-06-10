@@ -161,7 +161,7 @@ export default class Project implements ProjectType {
         }
       }
     } else {
-      if (projectData.deleted) {
+      if (projectData?.deleted) {
         projectData = null;
       }
     }

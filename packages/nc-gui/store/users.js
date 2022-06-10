@@ -159,18 +159,18 @@ export const actions = {
           } else {
             commit('MutSetUser', res)
           }
-          commit('windows/MutPollingSet', 0, { root: true })
+          commit('settings/MutPollingSet', 0, { root: true })
         } catch (e) {
           if (e.response.status === 504) {
-            commit('windows/MutPollingIncrementBy', 1, { root: true })
+            commit('settings/MutPollingIncrementBy', 1, { root: true })
 
-            if (rootGetters['windows/GtrMaxPollingRetryExceeded']) {
+            if (rootGetters['settings/GtrMaxPollingRetryExceeded']) {
               commit('MutSetUser', null)
-              commit('windows/MutPollingSet', 0, { root: true })
+              commit('settings/MutPollingSet', 0, { root: true })
             }
           } else {
             commit('MutSetUser', null)
-            commit('windows/MutPollingSet', 0, { root: true })
+            commit('settings/MutPollingSet', 0, { root: true })
           }
         }
       } else {
@@ -324,7 +324,7 @@ export const actions = {
       commit('MutUiAbility', uiAbility.data)
 
       if (changed) {
-        commit('windows/MutToggleDarkMode', true, { root: true })
+        commit('settings/MutToggleDarkMode', true, { root: true })
       }
     } catch (e) {
       console.log(e)

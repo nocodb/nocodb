@@ -171,7 +171,8 @@
     "headLogin": "로그인 | NocoDB.",
     "resetPassword": "비밀번호를 재설정",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "통지를 통지합니다",
@@ -306,6 +307,7 @@
     "deleteRow": "행 삭제",
     "deleteSelectedRow": "선택한 행을 삭제합니다",
     "importExcel": "수입 Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "CSV로 다운로드하십시오",
     "uploadCSV": "CSV 업로드",
     "import": "가져오기",
@@ -397,6 +399,7 @@
       "upload_sub": "또는 끌어서 놓기 파일",
       "excelSupport": "지원 : .xls, .xlsx, .xlsm, .ods, .ots",
       "excelURL": "Excel 파일 URL을 입력하십시오",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "파싱 ​​할 행의 # DataType을 추론합니다",
       "excelImport": "시트는 수입 가능합니다",
       "exportMetadata": "메타 테이블에서 메타 데이터를 내보내려면 원하십니까?",

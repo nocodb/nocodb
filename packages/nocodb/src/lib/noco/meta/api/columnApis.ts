@@ -3,7 +3,6 @@ import Model from '../../../noco-models/Model';
 import ProjectMgrv2 from '../../../sqlMgr/v2/ProjectMgrv2';
 import Base from '../../../noco-models/Base';
 import Column from '../../../noco-models/Column';
-import { substituteColumnAliasWithIdInFormula } from '../helpers/formulaHelpers';
 import validateParams from '../helpers/validateParams';
 import { Tele } from 'nc-help';
 
@@ -19,6 +18,8 @@ import {
   isVirtualCol,
   LinkToAnotherRecordType,
   RelationTypes,
+  substituteColumnAliasWithIdInFormula,
+  substituteColumnIdWithAliasInFormula,
   TableType,
   UITypes
 } from 'nocodb-sdk';
@@ -32,6 +33,8 @@ import getColumnPropsFromUIDT from '../helpers/getColumnPropsFromUIDT';
 import mapDefaultPrimaryValue from '../helpers/mapDefaultPrimaryValue';
 import NcConnectionMgrv2 from '../../common/NcConnectionMgrv2';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import FormulaColumn from '../../../noco-models/FormulaColumn';
+import { MetaTable } from '../../../utils/globals';
 
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 10);
 
@@ -293,6 +296,19 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
                 parentColumn: parent.primaryKey.column_name
               });
             }
+
+            // todo: create index for virtual relations as well
+            // create index for foreign key in pg
+            if (base.type === 'pg') {
+              await createColumnIndex({
+                column: new Column({
+                  ...newColumn,
+                  fk_model_id: child.id
+                }),
+                base,
+                sqlMgr
+              });
+            }
           }
           await createHmAndBtColumn(
             child,
@@ -447,6 +463,27 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             fk_mm_parent_column_id: childCol.id,
             fk_related_model_id: child.id
           });
+
+          // todo: create index for virtual relations as well
+          // create index for foreign key in pg
+          if (base.type === 'pg') {
+            await createColumnIndex({
+              column: new Column({
+                ...associateTableCols[0],
+                fk_model_id: assocModel.id
+              }),
+              base,
+              sqlMgr
+            });
+            await createColumnIndex({
+              column: new Column({
+                ...associateTableCols[1],
+                fk_model_id: assocModel.id
+              }),
+              base,
+              sqlMgr
+            });
+          }
         }
       }
       Tele.emit('evt', { evt_type: 'relation:created' });
@@ -493,11 +530,23 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         }> = (await sqlClient.columnList({ tn: table.table_name }))?.data?.list;
 
         const insertedColumnMeta =
-          columns.find(c => c.cn === colBody.column_name) || {};
+          columns.find(c => c.cn === colBody.column_name) || ({} as any);
+
+        if (
+          colBody.uidt === UITypes.SingleSelect ||
+          colBody.uidt === UITypes.MultiSelect
+        ) {
+          insertedColumnMeta.dtxp = colBody.dtxp;
+        }
 
         await Column.insert({
           ...colBody,
           ...insertedColumnMeta,
+          dtxp: [UITypes.MultiSelect, UITypes.SingleSelect].includes(
+            colBody.uidt as any
+          )
+            ? colBody.dtxp
+            : insertedColumnMeta.dtxp,
           fk_model_id: table.id
         });
       }
@@ -606,20 +655,47 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         cn: c.column_name,
         cno: c.column_name
       })),
-      columns: table.columns.map(c => {
-        if (c.id === req.params.columnId) {
-          return {
-            ...c,
-            ...colBody,
-            cn: colBody.column_name,
-            cno: c.column_name,
-            altered: Altered.UPDATE_COLUMN
-          };
-        } else {
-          (c as any).cn = c.column_name;
-        }
-        return c;
-      })
+      columns: await Promise.all(
+        table.columns.map(async c => {
+          if (c.id === req.params.columnId) {
+            const res = {
+              ...c,
+              ...colBody,
+              cn: colBody.column_name,
+              cno: c.column_name,
+              altered: Altered.UPDATE_COLUMN
+            };
+
+            // update formula with new column name
+            if (c.column_name != colBody.column_name) {
+              const formulas = await Noco.ncMeta
+                .knex(MetaTable.COL_FORMULA)
+                .where('formula', 'like', `%${c.id}%`);
+              if (formulas) {
+                const new_column = c;
+                new_column.column_name = colBody.column_name;
+                new_column.title = colBody.title;
+                for (const f of formulas) {
+                  // the formula with column IDs only
+                  const formula = f.formula;
+                  // replace column IDs with alias to get the new formula_raw
+                  const new_formula_raw = substituteColumnIdWithAliasInFormula(
+                    formula,
+                    [new_column]
+                  );
+                  await FormulaColumn.update(c.id, {
+                    formula_raw: new_formula_raw
+                  });
+                }
+              }
+            }
+            return Promise.resolve(res);
+          } else {
+            (c as any).cn = c.column_name;
+          }
+          return Promise.resolve(c);
+        })
+      )
     };
 
     const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
@@ -952,6 +1028,29 @@ const deleteHmOrBtRelation = async (
   // delete foreign key column
   await Column.delete(childColumn.id, ncMeta);
 };
+
+async function createColumnIndex({
+  column,
+  sqlMgr,
+  base,
+  indexName = null,
+  nonUnique = true
+}: {
+  column: Column;
+  sqlMgr: SqlMgrv2;
+  base: Base;
+  indexName?: string;
+  nonUnique?: boolean;
+}) {
+  const model = await column.getModel();
+  const indexArgs = {
+    columns: [column.column_name],
+    tn: model.table_name,
+    non_unique: nonUnique,
+    indexName
+  };
+  sqlMgr.sqlOpPlus(base, 'indexCreate', indexArgs);
+}
 
 const router = Router({ mergeParams: true });
 router.post(

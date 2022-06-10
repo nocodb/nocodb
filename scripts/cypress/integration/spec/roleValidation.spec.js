@@ -78,7 +78,7 @@ export function _editSchema(roleType, previewMode) {
     cy.get(".add-btn").should(validationString);
     cy.get(".v-tabs-bar")
         .eq(0)
-        .find("button.mdi-plus-box")
+        .find(".add-btn.mdi-plus-box")
         .should(validationString);
 
     // delete table option
@@ -212,9 +212,10 @@ export function _editComment(roleType, previewMode) {
 // right navigation menu bar
 //      Editor/Viewer/Commenter : can only view 'existing' views
 //      Rest: can create/edit
-export function _viewMenu(roleType, previewMode) {
+export function _viewMenu(roleType, previewMode, navDrawListCnt) {
     let columnName = "City";
-    let navDrawListCnt = 2;
+    // let navDrawListCnt = 2;
+
     // Download CSV
     let actionsMenuItemsCnt = 1;
 

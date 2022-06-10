@@ -172,7 +172,14 @@ async function signUpNotAllowed(token, user): Promise<boolean> {
   );
 }
 
-async function successfulSign({ user, err, info, req, res, auditDescription }) {
+async function successfulSignIn({
+  user,
+  err,
+  info,
+  req,
+  res,
+  auditDescription
+}) {
   try {
     if (!user || !user.email) {
       if (err) {
@@ -225,7 +232,7 @@ async function signin(req, res, next) {
     'local',
     { session: false },
     async (err, user, info): Promise<any> =>
-      await successfulSign({
+      await successfulSignIn({
         user,
         err,
         info,
@@ -244,7 +251,7 @@ async function googleSignin(req, res, next) {
       callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath
     },
     async (err, user, info): Promise<any> =>
-      await successfulSign({
+      await successfulSignIn({
         user,
         err,
         info,

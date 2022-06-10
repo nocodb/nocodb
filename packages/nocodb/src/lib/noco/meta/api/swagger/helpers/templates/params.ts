@@ -80,7 +80,8 @@ export const columnNameQueryParam = {
   },
   in: 'query',
   name: 'column_name',
-  description: 'Column name of the column you want to group by, eg. `column_name=column1`'
+  description:
+    'Column name of the column you want to group by, eg. `column_name=column1`'
 };
 
 export const columnNameParam = (columns: SwaggerColumn[]) => {

@@ -63,9 +63,39 @@ Most internet businesses equip themselves with either spreadsheet or a database 
 ## Our Mission
 Our mission is to provide the most powerful no-code interface for databases which is open source to every single internet business in the world. This would not only democratise access to a powerful computing tool but also bring forth a billion+ people who will have radical tinkering-and-building abilities on internet. 
 
-## Contributions
+# Contributions
 
-All contributions are welcome. NocoDB projects can be found in the [NocoDB](https://github.com/nocodb) Github organization. Our core uses [The AGPL V3 license](https://github.com/nocodb/nocodb/blob/master/LICENSE) and all contributors should read the [contribution guides](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md) before making your first contribution. 
+Thanks for spending your time to contribute! The following is a set of guidelines for contributing to NocoDB. 
+
+
+## Pull Request Guidelines
+
+- When you create a PR, you should fill in all the info defined in this [template](https://github.com/nocodb/nocodb/blob/master/.github/pull_request_template.md).
+
+- We adopt [Gitflow Design](https://www.atlassian.com/git/tutorials/comparing-workflows/gitflow-workflow). However, we do not have release branches. 
+
+    ![git flow design](https://wac-cdn.atlassian.com/dam/jcr:cc0b526e-adb7-4d45-874e-9bcea9898b4a/04%20Hotfix%20branches.svg?cdnVersion=176)
+
+- The `master` branch is just a snapshot of the latest stable release. All development should be done in dedicated branches. 
+**Do not submit PRs against the `master` branch.**
+
+- Checkout a topic branch from the relevant branch, e.g. `develop`, and merge back against that branch.
+
+- Multiple small commits are allowed on the PR - They will be squashed into one commit before merging.
+
+- If your changes are related to a special issue, add `ref: #xxx` to link the issue where xxx is the issue id.
+
+## Development Setup
+
+Please refer to [Development Setup](https://github.com/nocodb/nocodb#development-setup).
+
+### Committing Changes
+
+We encourage all contributors to commit messages following [Commit Message Convention](./COMMIT_CONVENTION.md).
+
+### Applying License
+
+We require a CLA (Contributor License Agreement). This is a one-time process. Please click this [link](https://cla-assistant.io/nocodb/nocodb) to agree to the CLA for nocodb/nocodb. 
 
 You can also share your thoughts and discuss with our community members via [discord](https://discord.gg/5RgZmkW) or [Github Discussion](https://github.com/nocodb/nocodb/discussions). We also share our [Immediate Roadmap](https://github.com/nocodb/nocodb/projects/1) and all opinions are welcome.
 

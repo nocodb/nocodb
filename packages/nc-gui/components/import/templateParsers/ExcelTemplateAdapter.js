@@ -42,7 +42,7 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
       }
       tableNamePrefixRef[tn] = 0
 
-      const table = { tn, refTn: tn, columns: [] }
+      const table = { table_name: tn, ref_table_name: tn, columns: [] }
       this.data[tn] = []
       const ws = this.wb.Sheets[sheet]
       const range = XLSX.utils.decode_range(ws['!ref'])
@@ -79,8 +79,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
         columnNamePrefixRef[cn] = 0
 
         const column = {
-          cn,
-          refCn: cn
+          column_name: cn,
+          ref_column_name: cn
         }
 
         table.columns.push(column)

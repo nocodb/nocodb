@@ -3,7 +3,7 @@
 </template>
 
 <script>
-import XcKanban from '../../../components/project/spreadsheet/public/xcKanban'
+import XcKanban from '../../../components/project/spreadsheet/public/XcKanban'
 
 export default {
   components: { XcKanban },

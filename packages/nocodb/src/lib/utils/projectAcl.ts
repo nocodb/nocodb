@@ -23,6 +23,7 @@ export default {
     dataDelete: true,
     dataInsert: true,
     dataRead: true,
+    dataExist: true,
     commentsCount: true,
     exportCsv: true,
 
@@ -53,6 +54,7 @@ export default {
     formViewGet: true,
     projectInfoGet: true,
     gridColumnUpdate: true,
+    galleryViewGet: true,
 
     // old
     xcTableAndViewList: true,
@@ -155,9 +157,12 @@ export default {
     // data
     dataList: true,
     dataRead: true,
+    dataExist: true,
     dataFindOne: true,
     dataGroupBy: true,
     commentsCount: true,
+
+    galleryViewGet: true,
 
     xcTableAndViewList: true,
     xcVirtualTableList: true,
@@ -192,12 +197,17 @@ export default {
     // data
     dataList: true,
     dataRead: true,
+    dataExist: true,
+    dataFindOne: true,
+    dataGroupBy: true,
     commentsCount: true,
     exportCsv: true,
 
     // sort & filter
     sortList: true,
     projectInfoGet: true,
+
+    galleryViewGet: true,
 
     mmList: true,
     hmList: true,

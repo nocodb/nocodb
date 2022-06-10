@@ -156,7 +156,7 @@
     "userMgmt": "مدیریت کاربران",
     "apiTokenMgmt": "مدیریت توکن‌های API",
     "rolesMgmt": "مدیریت نقش‌ها",
-    "projMeta": "فرداده‌های پروژه",
+    "projMeta": "فراداده‌های پروژه",
     "metaMgmt": "فرا مدیریت",
     "metadata": "فراداده",
     "exportImportMeta": "ورود و خروج فراداده",
@@ -171,7 +171,8 @@
     "headLogin": "ورود | NocoDB",
     "resetPassword": "بازنشانی کلمه عبور شما",
     "teamAndSettings": "Team & Settings",
-    "apiDocs": "API Docs"
+    "apiDocs": "API Docs",
+    "importFromAirtable": "Import From Airtable"
   },
   "labels": {
     "notifyVia": "اعلان از طریق",
@@ -306,6 +307,7 @@
     "deleteRow": "حذف ردیف جدید",
     "deleteSelectedRow": "حذف ردیف‌های انتخاب شده",
     "importExcel": "وارد کردن فایل Excel",
+    "importCSV": "Import CSV",
     "downloadCSV": "دانلود به‌عنوان CSV",
     "uploadCSV": "بارگذاری CSV",
     "import": "وارد کردن",
@@ -397,6 +399,7 @@
       "upload_sub": "یا فایل را بکشید و رها کنید",
       "excelSupport": "فرمت‌های پشتیبانی شده: xls - xlsx - xlsm - ods - ots",
       "excelURL": "URL فایل Excel را انتخاب کنید",
+      "csvURL": "Enter CSV file URL",
       "footMsg": "تعداد ردیف‌ها برای parse جهت یافتن نوع داده",
       "excelImport": "صفحه(های) آماده برای ورود",
       "exportMetadata": "آیا می‌خواهید فراداده را از فراجدول‌ها خارج کنید؟",
@@ -457,7 +460,7 @@
       "loginMsg": "ورود به NocoDB",
       "passwordRecovery": {
         "message_1": "لطفا پست الکترونیکی خود را که در هنگام ثبت نام استفاده کردید وارد کنید.",
-        "message_2": "ما یک لینک جهت تغییر کلمه عبور به پست الکترونیکی شما ارسال خواهیم‌کرد.",
+        "message_2": "ما یک لینک جهت تغییر کلمه عبور به پست الکترونیکی شما ارسال خواهیم کرد.",
         "success": "لطفا برای تغییر کلمه عبور به پست الکترونیکی خود مراجعه کنید"
       },
       "signUp": {

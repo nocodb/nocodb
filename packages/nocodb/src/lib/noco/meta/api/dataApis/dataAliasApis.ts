@@ -187,6 +187,19 @@ async function dataRead(req: Request, res: Response) {
   );
 }
 
+async function dataExist(req: Request, res: Response) {
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+
+  const base = await Base.get(model.base_id);
+
+  const baseModel = await Model.getBaseModelSQL({
+    id: model.id,
+    viewId: view?.id,
+    dbDriver: NcConnectionMgrv2.get(base)
+  });
+
+  res.json(await baseModel.exist(req.params.rowId));
+}
 const router = Router({ mergeParams: true });
 
 // table data crud apis
@@ -209,10 +222,17 @@ router.get(
 );
 
 router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId/exist',
+  apiMetrics,
+  ncMetaAclMw(dataExist, 'dataExist')
+);
+
+router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/count',
   apiMetrics,
   ncMetaAclMw(dataCount, 'dataCount')
 );
+
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/count',
   apiMetrics,
@@ -224,11 +244,13 @@ router.get(
   apiMetrics,
   ncMetaAclMw(dataRead, 'dataRead')
 );
+
 router.patch(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
   apiMetrics,
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
+
 router.delete(
   '/api/v1/db/data/:orgs/:projectName/:tableName/:rowId',
   apiMetrics,
@@ -260,26 +282,36 @@ router.get(
   ncMetaAclMw(dataGroupBy, 'dataGroupBy')
 );
 
+router.get(
+  '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId/exist',
+  apiMetrics,
+  ncMetaAclMw(dataExist, 'dataExist')
+);
+
 router.post(
   '/api/v1/db/data/:orgs/:projectName/:tableName',
   apiMetrics,
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
+
 router.post(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName',
   apiMetrics,
   ncMetaAclMw(dataInsert, 'dataInsert')
 );
+
 router.patch(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   apiMetrics,
   ncMetaAclMw(dataUpdate, 'dataUpdate')
 );
+
 router.get(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   apiMetrics,
   ncMetaAclMw(dataRead, 'dataRead')
 );
+
 router.delete(
   '/api/v1/db/data/:orgs/:projectName/:tableName/views/:viewName/:rowId',
   apiMetrics,

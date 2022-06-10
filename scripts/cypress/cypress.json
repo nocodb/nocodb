@@ -43,7 +43,11 @@
             "user": "root",
             "password": "password"
         },
-        "screenshot": false
+        "screenshot": false,
+        "airtable": {
+            "apiKey": "keyn1MR87qgyUsYg4",
+            "sharedBase": "https://airtable.com/shrkSQdtKNzUfAbIY"
+        }
     },
     "fixturesFolder": "scripts/cypress/fixtures",
     "integrationFolder": "scripts/cypress/integration",

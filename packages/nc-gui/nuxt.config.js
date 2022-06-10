@@ -242,7 +242,7 @@ export default {
     duration: 3000
   },
   css: [
-    // '@/assets/style/fonts.css',
+    '@/assets/style/fonts.css',
     '@/assets/css/global.css',
     // "~/assets/style/app.styl",
     '@mdi/font/css/materialdesignicons.css',

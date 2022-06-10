@@ -59,7 +59,7 @@ export const limitParam = {
   in: 'query',
   name: 'limit',
   description:
-    'The `limit` parameter used for pagination, the response collection size depends on limit value and default value is `25`. Maximum value is `1000`.',
+    'The `limit` parameter used for pagination, the response collection size depends on limit value with default value `25` and maximum value `1000`, which can be overridden by environment variables `DB_QUERY_LIMIT_DEFAULT` and `DB_QUERY_LIMIT_MAX` respectively.',
   example: 25
 };
 export const offsetParam = {

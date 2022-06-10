@@ -44,9 +44,6 @@ jobs:
     runs-on: ubuntu-latest
     env:
       working-directory: ./packages/nocodb
-    strategy:
-      matrix:
-        node-version: [16]
     steps:
       - name: Get Docker Repository
         id: get-docker-repository
@@ -77,7 +74,7 @@ jobs:
       - name: Use Node.js ${{ matrix.node-version }}
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.15.0
 
       - name: upgrade packages for nightly build or pr build
         if: ${{ github.event.inputs.targetEnv == 'DEV' || inputs.targetEnv == 'DEV' }}

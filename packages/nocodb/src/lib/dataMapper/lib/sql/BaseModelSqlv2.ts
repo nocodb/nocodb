@@ -94,12 +94,14 @@ class BaseModelSqlv2 {
     args: {
       where?: string;
       filterArr?: Filter[];
+      sort?: string | string[];
     } = {}
   ): Promise<any> {
     const qb = this.dbDriver(this.model.table_name);
     await this.selectObject({ qb });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
+    const sorts = extractSortsObject(args?.sort, aliasColObjMap);
     const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
 
     await conditionV2(
@@ -120,7 +122,12 @@ class BaseModelSqlv2 {
       this.dbDriver
     );
 
-    const data = await qb.first();
+    if (Array.isArray(sorts) && sorts?.length) {
+      await sortV2(sorts, qb, this.dbDriver);
+    } else if (this.model.primaryKey) {
+      qb.orderBy(this.model.primaryKey.column_name);
+    }
+    const data = await this.run(qb.first());
 
     if (data) {
       const proto = await this.getProto();

@@ -23,6 +23,7 @@ export default class Filter {
   comparison_op?:
     | 'eq'
     | 'neq'
+    | 'not'
     | 'like'
     | 'nlike'
     | 'empty'

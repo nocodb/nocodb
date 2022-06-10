@@ -472,13 +472,13 @@ export default class Column<T = any> implements ColumnType {
         colData.meta = JSON.parse(colData.meta);
       } catch {
         //check if colData has somethig
-        if(colData){
+        if (colData) {
           colData.meta = {};
-        }else{
+        } else {
           //colData is null
-          colData ={
-            "meta":{}
-          }
+          colData = {
+            meta: {}
+          };
         }
       }
       await NocoCache.set(`${CacheScope.COLUMN}:${colId}`, colData);

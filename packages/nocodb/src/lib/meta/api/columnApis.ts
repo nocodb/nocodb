@@ -723,21 +723,21 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 export async function columnDelete(req: Request, res: Response<TableType>) {
   const column = await Column.get({ colId: req.params.columnId });
   //check if the column.fk_model_id exist
-  if(column.fk_model_id){
+  if (column.fk_model_id) {
     const table = await Model.getWithInfo({
       id: column.fk_model_id
     });
     const base = await Base.get(table.base_id);
-  
+
     // const ncMeta = await Noco.ncMeta.startTransaction();
     // const sql-mgr = await ProjectMgrv2.getSqlMgrTrans(
     //   { id: base.project_id },
     //   ncMeta,
     //   base
     // );
-  
+
     const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
-  
+
     switch (column.uidt) {
       case UITypes.Lookup:
       case UITypes.Rollup:
@@ -751,10 +751,10 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
           >();
           const childColumn = await relationColOpt.getChildColumn();
           const childTable = await childColumn.getModel();
-  
+
           const parentColumn = await relationColOpt.getParentColumn();
           const parentTable = await parentColumn.getModel();
-  
+
           switch (relationColOpt.type) {
             case 'bt':
             case 'hm':
@@ -776,7 +776,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                 const mmTable = await relationColOpt.getMMModel();
                 const mmParentCol = await relationColOpt.getMMParentColumn();
                 const mmChildCol = await relationColOpt.getMMChildColumn();
-  
+
                 await deleteHmOrBtRelation(
                   {
                     relationColOpt: null,
@@ -790,7 +790,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                   },
                   true
                 );
-  
+
                 await deleteHmOrBtRelation(
                   {
                     relationColOpt: null,
@@ -807,7 +807,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                 const columnsInRelatedTable: Column[] = await relationColOpt
                   .getRelatedTable()
                   .then(m => m.getColumns());
-  
+
                 for (const c of columnsInRelatedTable) {
                   if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
                   const colOpt = await c.getColOptions<
@@ -825,9 +825,9 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                     break;
                   }
                 }
-  
+
                 await Column.delete(relationColOpt.fk_column_id);
-  
+
                 // delete bt columns in m2m table
                 await mmTable.getColumns();
                 for (const c of mmTable.columns) {
@@ -839,7 +839,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                     await Column.delete(c.id);
                   }
                 }
-  
+
                 // delete hm columns in parent table
                 await parentTable.getColumns();
                 for (const c of parentTable.columns) {
@@ -851,7 +851,7 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                     await Column.delete(c.id);
                   }
                 }
-  
+
                 // delete hm columns in child table
                 await childTable.getColumns();
                 for (const c of childTable.columns) {
@@ -863,10 +863,10 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
                     await Column.delete(c.id);
                   }
                 }
-  
+
                 // retrieve columns in m2m table again
                 await mmTable.getColumns();
-  
+
                 // ignore deleting table if it has more than 2 columns
                 // the expected 2 columns would be table1_id & table2_id
                 if (mmTable.columns.length === 2) {
@@ -904,13 +904,13 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
             return c;
           })
         };
-  
+
         await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
-  
+
         await Column.delete(req.params.columnId);
       }
     }
-  
+
     Audit.insert({
       project_id: base.project_id,
       op_type: AuditOperationTypes.TABLE_COLUMN,
@@ -919,9 +919,9 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
       description: `deleted column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
       ip: (req as any).clientIp
     }).then(() => {});
-  
+
     await table.getColumns();
-  
+
     const primaryValueColumn = mapDefaultPrimaryValue(table.columns);
     if (primaryValueColumn) {
       await Model.updatePrimaryColumn(
@@ -929,18 +929,18 @@ export async function columnDelete(req: Request, res: Response<TableType>) {
         primaryValueColumn.id
       );
     }
-  
+
     // await ncMeta.commit();
     // await sql-mgr.commit();
     Tele.emit('evt', { evt_type: 'column:deleted' });
-  
+
     res.json(table);
     // } catch (e) {
     //   sql-mgr.rollback();
     //   ncMeta.rollback();
     //   throw e;
     // }
-  }else{
+  } else {
     //if not exist do nothing
     res.json(null);
   }

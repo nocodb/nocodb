@@ -722,222 +722,228 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 
 export async function columnDelete(req: Request, res: Response<TableType>) {
   const column = await Column.get({ colId: req.params.columnId });
-  const table = await Model.getWithInfo({
-    id: column.fk_model_id
-  });
-  const base = await Base.get(table.base_id);
+  //check if the column.fk_model_id exist
+  if (column.fk_model_id) {
+    const table = await Model.getWithInfo({
+      id: column.fk_model_id
+    });
+    const base = await Base.get(table.base_id);
 
-  // const ncMeta = await Noco.ncMeta.startTransaction();
-  // const sql-mgr = await ProjectMgrv2.getSqlMgrTrans(
-  //   { id: base.project_id },
-  //   ncMeta,
-  //   base
-  // );
+    // const ncMeta = await Noco.ncMeta.startTransaction();
+    // const sql-mgr = await ProjectMgrv2.getSqlMgrTrans(
+    //   { id: base.project_id },
+    //   ncMeta,
+    //   base
+    // );
 
-  const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
 
-  switch (column.uidt) {
-    case UITypes.Lookup:
-    case UITypes.Rollup:
-    case UITypes.Formula:
-      await Column.delete(req.params.columnId);
-      break;
-    case UITypes.LinkToAnotherRecord:
-      {
-        const relationColOpt = await column.getColOptions<
-          LinkToAnotherRecordColumn
-        >();
-        const childColumn = await relationColOpt.getChildColumn();
-        const childTable = await childColumn.getModel();
+    switch (column.uidt) {
+      case UITypes.Lookup:
+      case UITypes.Rollup:
+      case UITypes.Formula:
+        await Column.delete(req.params.columnId);
+        break;
+      case UITypes.LinkToAnotherRecord:
+        {
+          const relationColOpt = await column.getColOptions<
+            LinkToAnotherRecordColumn
+          >();
+          const childColumn = await relationColOpt.getChildColumn();
+          const childTable = await childColumn.getModel();
 
-        const parentColumn = await relationColOpt.getParentColumn();
-        const parentTable = await parentColumn.getModel();
+          const parentColumn = await relationColOpt.getParentColumn();
+          const parentTable = await parentColumn.getModel();
 
-        switch (relationColOpt.type) {
-          case 'bt':
-          case 'hm':
-            {
-              await deleteHmOrBtRelation({
-                relationColOpt,
-                base,
-                childColumn,
-                childTable,
-                parentColumn,
-                parentTable,
-                sqlMgr
-                // ncMeta
-              });
-            }
-            break;
-          case 'mm':
-            {
-              const mmTable = await relationColOpt.getMMModel();
-              const mmParentCol = await relationColOpt.getMMParentColumn();
-              const mmChildCol = await relationColOpt.getMMChildColumn();
-
-              await deleteHmOrBtRelation(
-                {
-                  relationColOpt: null,
-                  parentColumn: parentColumn,
-                  childTable: mmTable,
-                  sqlMgr,
-                  parentTable: parentTable,
-                  childColumn: mmParentCol,
-                  base
+          switch (relationColOpt.type) {
+            case 'bt':
+            case 'hm':
+              {
+                await deleteHmOrBtRelation({
+                  relationColOpt,
+                  base,
+                  childColumn,
+                  childTable,
+                  parentColumn,
+                  parentTable,
+                  sqlMgr
                   // ncMeta
-                },
-                true
-              );
+                });
+              }
+              break;
+            case 'mm':
+              {
+                const mmTable = await relationColOpt.getMMModel();
+                const mmParentCol = await relationColOpt.getMMParentColumn();
+                const mmChildCol = await relationColOpt.getMMChildColumn();
 
-              await deleteHmOrBtRelation(
-                {
-                  relationColOpt: null,
-                  parentColumn: childColumn,
-                  childTable: mmTable,
-                  sqlMgr,
-                  parentTable: childTable,
-                  childColumn: mmChildCol,
-                  base
-                  // ncMeta
-                },
-                true
-              );
-              const columnsInRelatedTable: Column[] = await relationColOpt
-                .getRelatedTable()
-                .then(m => m.getColumns());
+                await deleteHmOrBtRelation(
+                  {
+                    relationColOpt: null,
+                    parentColumn: parentColumn,
+                    childTable: mmTable,
+                    sqlMgr,
+                    parentTable: parentTable,
+                    childColumn: mmParentCol,
+                    base
+                    // ncMeta
+                  },
+                  true
+                );
 
-              for (const c of columnsInRelatedTable) {
-                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
-                const colOpt = await c.getColOptions<
-                  LinkToAnotherRecordColumn
-                >();
-                if (
-                  colOpt.type === 'mm' &&
-                  colOpt.fk_parent_column_id === childColumn.id &&
-                  colOpt.fk_child_column_id === parentColumn.id &&
-                  colOpt.fk_mm_model_id === mmTable.id &&
-                  colOpt.fk_mm_parent_column_id === mmChildCol.id &&
-                  colOpt.fk_mm_child_column_id === mmParentCol.id
-                ) {
-                  await Column.delete(c.id);
-                  break;
+                await deleteHmOrBtRelation(
+                  {
+                    relationColOpt: null,
+                    parentColumn: childColumn,
+                    childTable: mmTable,
+                    sqlMgr,
+                    parentTable: childTable,
+                    childColumn: mmChildCol,
+                    base
+                    // ncMeta
+                  },
+                  true
+                );
+                const columnsInRelatedTable: Column[] = await relationColOpt
+                  .getRelatedTable()
+                  .then(m => m.getColumns());
+
+                for (const c of columnsInRelatedTable) {
+                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  const colOpt = await c.getColOptions<
+                    LinkToAnotherRecordColumn
+                  >();
+                  if (
+                    colOpt.type === 'mm' &&
+                    colOpt.fk_parent_column_id === childColumn.id &&
+                    colOpt.fk_child_column_id === parentColumn.id &&
+                    colOpt.fk_mm_model_id === mmTable.id &&
+                    colOpt.fk_mm_parent_column_id === mmChildCol.id &&
+                    colOpt.fk_mm_child_column_id === mmParentCol.id
+                  ) {
+                    await Column.delete(c.id);
+                    break;
+                  }
+                }
+
+                await Column.delete(relationColOpt.fk_column_id);
+
+                // delete bt columns in m2m table
+                await mmTable.getColumns();
+                for (const c of mmTable.columns) {
+                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  const colOpt = await c.getColOptions<
+                    LinkToAnotherRecordColumn
+                  >();
+                  if (colOpt.type === 'bt') {
+                    await Column.delete(c.id);
+                  }
+                }
+
+                // delete hm columns in parent table
+                await parentTable.getColumns();
+                for (const c of parentTable.columns) {
+                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  const colOpt = await c.getColOptions<
+                    LinkToAnotherRecordColumn
+                  >();
+                  if (colOpt.fk_related_model_id === mmTable.id) {
+                    await Column.delete(c.id);
+                  }
+                }
+
+                // delete hm columns in child table
+                await childTable.getColumns();
+                for (const c of childTable.columns) {
+                  if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
+                  const colOpt = await c.getColOptions<
+                    LinkToAnotherRecordColumn
+                  >();
+                  if (colOpt.fk_related_model_id === mmTable.id) {
+                    await Column.delete(c.id);
+                  }
+                }
+
+                // retrieve columns in m2m table again
+                await mmTable.getColumns();
+
+                // ignore deleting table if it has more than 2 columns
+                // the expected 2 columns would be table1_id & table2_id
+                if (mmTable.columns.length === 2) {
+                  await mmTable.delete();
                 }
               }
-
-              await Column.delete(relationColOpt.fk_column_id);
-
-              // delete bt columns in m2m table
-              await mmTable.getColumns();
-              for (const c of mmTable.columns) {
-                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
-                const colOpt = await c.getColOptions<
-                  LinkToAnotherRecordColumn
-                >();
-                if (colOpt.type === 'bt') {
-                  await Column.delete(c.id);
-                }
-              }
-
-              // delete hm columns in parent table
-              await parentTable.getColumns();
-              for (const c of parentTable.columns) {
-                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
-                const colOpt = await c.getColOptions<
-                  LinkToAnotherRecordColumn
-                >();
-                if (colOpt.fk_related_model_id === mmTable.id) {
-                  await Column.delete(c.id);
-                }
-              }
-
-              // delete hm columns in child table
-              await childTable.getColumns();
-              for (const c of childTable.columns) {
-                if (c.uidt !== UITypes.LinkToAnotherRecord) continue;
-                const colOpt = await c.getColOptions<
-                  LinkToAnotherRecordColumn
-                >();
-                if (colOpt.fk_related_model_id === mmTable.id) {
-                  await Column.delete(c.id);
-                }
-              }
-
-              // retrieve columns in m2m table again
-              await mmTable.getColumns();
-
-              // ignore deleting table if it has more than 2 columns
-              // the expected 2 columns would be table1_id & table2_id
-              if (mmTable.columns.length === 2) {
-                await mmTable.delete();
-              }
-            }
-            break;
-        }
-      }
-      Tele.emit('evt', { evt_type: 'raltion:deleted' });
-      break;
-    case UITypes.ForeignKey:
-      NcError.notImplemented();
-      break;
-    default: {
-      const tableUpdateBody = {
-        ...table,
-        tn: table.table_name,
-        originalColumns: table.columns.map(c => ({
-          ...c,
-          cn: c.column_name,
-          cno: c.column_name
-        })),
-        columns: table.columns.map(c => {
-          if (c.id === req.params.columnId) {
-            return {
-              ...c,
-              cn: c.column_name,
-              cno: c.column_name,
-              altered: Altered.DELETE_COLUMN
-            };
-          } else {
-            (c as any).cn = c.column_name;
+              break;
           }
-          return c;
-        })
-      };
+        }
+        Tele.emit('evt', { evt_type: 'raltion:deleted' });
+        break;
+      case UITypes.ForeignKey:
+        NcError.notImplemented();
+        break;
+      default: {
+        const tableUpdateBody = {
+          ...table,
+          tn: table.table_name,
+          originalColumns: table.columns.map(c => ({
+            ...c,
+            cn: c.column_name,
+            cno: c.column_name
+          })),
+          columns: table.columns.map(c => {
+            if (c.id === req.params.columnId) {
+              return {
+                ...c,
+                cn: c.column_name,
+                cno: c.column_name,
+                altered: Altered.DELETE_COLUMN
+              };
+            } else {
+              (c as any).cn = c.column_name;
+            }
+            return c;
+          })
+        };
 
-      await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+        await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
 
-      await Column.delete(req.params.columnId);
+        await Column.delete(req.params.columnId);
+      }
     }
+
+    Audit.insert({
+      project_id: base.project_id,
+      op_type: AuditOperationTypes.TABLE_COLUMN,
+      op_sub_type: AuditOperationSubTypes.DELETED,
+      user: (req as any)?.user?.email,
+      description: `deleted column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
+      ip: (req as any).clientIp
+    }).then(() => {});
+
+    await table.getColumns();
+
+    const primaryValueColumn = mapDefaultPrimaryValue(table.columns);
+    if (primaryValueColumn) {
+      await Model.updatePrimaryColumn(
+        primaryValueColumn.fk_model_id,
+        primaryValueColumn.id
+      );
+    }
+
+    // await ncMeta.commit();
+    // await sql-mgr.commit();
+    Tele.emit('evt', { evt_type: 'column:deleted' });
+
+    res.json(table);
+    // } catch (e) {
+    //   sql-mgr.rollback();
+    //   ncMeta.rollback();
+    //   throw e;
+    // }
+  } else {
+    //if not exist do nothing
+    res.json(null);
   }
-
-  Audit.insert({
-    project_id: base.project_id,
-    op_type: AuditOperationTypes.TABLE_COLUMN,
-    op_sub_type: AuditOperationSubTypes.DELETED,
-    user: (req as any)?.user?.email,
-    description: `deleted column ${column.column_name} with alias ${column.title} from table ${table.table_name}`,
-    ip: (req as any).clientIp
-  }).then(() => {});
-
-  await table.getColumns();
-
-  const primaryValueColumn = mapDefaultPrimaryValue(table.columns);
-  if (primaryValueColumn) {
-    await Model.updatePrimaryColumn(
-      primaryValueColumn.fk_model_id,
-      primaryValueColumn.id
-    );
-  }
-
-  // await ncMeta.commit();
-  // await sql-mgr.commit();
-  Tele.emit('evt', { evt_type: 'column:deleted' });
-
-  res.json(table);
-  // } catch (e) {
-  //   sql-mgr.rollback();
-  //   ncMeta.rollback();
-  //   throw e;
-  // }
 }
 
 const deleteHmOrBtRelation = async (

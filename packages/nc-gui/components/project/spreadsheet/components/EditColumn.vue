@@ -642,7 +642,7 @@ export default {
       ]
     },
     isEditDisabled() {
-      return this.editColumn && this.sqlUi === SqliteUi
+      return this.editColumn && this.sqlUi === SqliteUi && this.column.uidt !== UITypes.Duration
     },
     isSQLite() {
       return this.sqlUi === SqliteUi

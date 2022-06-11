@@ -186,7 +186,8 @@ export async function hmList(req: Request, res: Response, next) {
 
   res.json(
     new PagedResponseImpl(data, {
-      totalRows: count
+      count,
+      ...req.query
     } as any)
   );
 }

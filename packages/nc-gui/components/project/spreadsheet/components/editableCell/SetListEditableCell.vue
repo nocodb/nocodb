@@ -57,7 +57,6 @@ export default {
       },
       set(val) {
         this.$emit('input', val.filter(v => this.setValues.includes(v)).join(','))
-        this.$emit('update')
       }
     },
     setValues() {

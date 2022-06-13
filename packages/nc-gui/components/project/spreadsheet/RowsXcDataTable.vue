@@ -755,6 +755,7 @@ import Pagination from '~/components/project/spreadsheet/components/Pagination'
 import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilterMenu'
 import MoreActions from '~/components/project/spreadsheet/components/MoreActions'
 import ShareViewMenu from '~/components/project/spreadsheet/components/ShareViewMenu'
+import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText'
 
 export default {
   name: 'RowsXcDataTable',
@@ -1217,8 +1218,8 @@ export default {
               fk_model_id: this.meta.id,
               column_name: column.title,
               row_id: id,
-              value: rowObj[column.title],
-              prev_value: oldRow[column.title]
+              value: getPlainText(rowObj[column.title]),
+              prev_value: getPlainText(oldRow[column.title])
             })
             .then(() => {})
 

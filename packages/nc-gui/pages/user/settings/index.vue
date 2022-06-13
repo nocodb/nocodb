@@ -227,8 +227,10 @@ export default {
               newPassword: this.passwordDetails.newPassword
             }
           )
-          this.$toast.success('Password changed successfully.').goAway(3000)
+          this.$toast.success('Password changed successfully. Please login again.').goAway(3000)
           this.$refs.formType[0].reset()
+          await this.$store.dispatch('users/ActSignOut')
+          this.$router.push('/user/authentication/signin')
         } catch (e) {
           this.$toast
             .error(await this._extractSdkResponseErrorMsg(e))

@@ -96,6 +96,8 @@ export async function signup(req: Request, res: Response<TableType>) {
       }
     }
 
+    const token_version = randomTokenString();
+
     await User.insert({
       firstname,
       lastname,
@@ -104,7 +106,7 @@ export async function signup(req: Request, res: Response<TableType>) {
       password,
       email_verification_token,
       roles,
-      token_expired: false
+      token_version
     });
   }
   user = await User.getByEmail(email);
@@ -151,7 +153,8 @@ export async function signup(req: Request, res: Response<TableType>) {
         firstname: user.firstname,
         lastname: user.lastname,
         id: user.id,
-        roles: user.roles
+        roles: user.roles,
+        token_version: user.token_version
       },
       Noco.getConfig().auth.jwt.secret,
       Noco.getConfig().auth.jwt.options
@@ -181,10 +184,15 @@ async function successfulSignIn({
     await promisify((req as any).login.bind(req))(user);
     const refreshToken = randomTokenString();
 
+    let token_version = user.token_version;
+    if (!token_version) {
+      token_version = randomTokenString();
+    }
+
     await User.update(user.id, {
       refresh_token: refreshToken,
       email: user.email,
-      token_expired: false
+      token_version
     });
     setTokenCookie(res, refreshToken);
 
@@ -203,7 +211,8 @@ async function successfulSignIn({
           firstname: user.firstname,
           lastname: user.lastname,
           id: user.id,
-          roles: user.roles
+          roles: user.roles,
+          token_version
         },
 
         Noco.getConfig().auth.jwt.secret,
@@ -292,7 +301,7 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
     salt,
     password,
     email: user.email,
-    token_expired: true
+    token_version: null
   });
 
   Audit.insert({
@@ -320,7 +329,8 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
     await User.update(user.id, {
       email: user.email,
       reset_password_token: token,
-      reset_password_expires: new Date(Date.now() + 60 * 60 * 1000)
+      reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
+      token_version: null
     });
     try {
       const template = (await import('./ui/emailTemplates/forgotPassword'))
@@ -371,7 +381,7 @@ async function tokenValidate(req, res): Promise<any> {
   if (user.reset_password_expires < new Date()) {
     NcError.badRequest('Password reset url expired');
   }
-  if (user.token_expired) {
+  if (!user.token_version) {
     NcError.badRequest('Token Expired. Please login again.');
   }
   res.json(true);
@@ -403,7 +413,7 @@ async function passwordReset(req, res): Promise<any> {
     email: user.email,
     reset_password_expires: null,
     reset_password_token: '',
-    token_expired: true
+    token_version: null
   });
 
   Audit.insert({
@@ -461,8 +471,7 @@ async function refreshToken(req, res): Promise<any> {
 
     await User.update(user.id, {
       email: user.email,
-      refresh_token: refreshToken,
-      token_expired: false
+      refresh_token: refreshToken
     });
 
     setTokenCookie(res, refreshToken);

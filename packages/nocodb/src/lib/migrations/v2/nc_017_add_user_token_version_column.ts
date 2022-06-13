@@ -2,13 +2,13 @@ import Knex from 'knex';
 
 const up = async (knex: Knex) => {
   await knex.schema.alterTable('nc_users_v2', table => {
-    table.boolean('token_expired').defaultTo(false);
+    table.string('token_version');
   });
 };
 
 const down = async knex => {
   await knex.schema.alterTable('nc_users_v2', table => {
-    table.dropColumns('token_expired');
+    table.dropColumns('token_version');
   });
 };
 

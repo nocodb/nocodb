@@ -7,21 +7,13 @@ import Filter from '../../models/Filter';
 import HookLog from '../../models/HookLog';
 import { HookLogType } from 'nocodb-sdk';
 
-export function parseBody(
-  template: string,
-  user: any,
-  data: any,
-  payload: any
-): string {
+export function parseBody(template: string, data: any): string {
   if (!template) {
     return template;
   }
 
   return Handlebars.compile(template, { noEscape: true })({
-    data,
-    user,
-    payload,
-    env: process.env
+    data
   });
 }
 
@@ -121,28 +113,24 @@ export async function handleHttpWebHook(apiMeta, user, data) {
   // }
 }
 
-export function axiosRequestMake(_apiMeta, user, data) {
+export function axiosRequestMake(_apiMeta, _user, data) {
   const apiMeta = { ..._apiMeta };
   if (apiMeta.body) {
     try {
       apiMeta.body = JSON.parse(apiMeta.body, (_key, value) => {
-        return typeof value === 'string'
-          ? parseBody(value, user, data, apiMeta)
-          : value;
+        return typeof value === 'string' ? parseBody(value, data) : value;
       });
     } catch (e) {
-      apiMeta.body = parseBody(apiMeta.body, user, data, apiMeta);
+      apiMeta.body = parseBody(apiMeta.body, data);
     }
   }
   if (apiMeta.auth) {
     try {
       apiMeta.auth = JSON.parse(apiMeta.auth, (_key, value) => {
-        return typeof value === 'string'
-          ? parseBody(value, user, data, apiMeta)
-          : value;
+        return typeof value === 'string' ? parseBody(value, data) : value;
       });
     } catch (e) {
-      apiMeta.auth = parseBody(apiMeta.auth, user, data, apiMeta);
+      apiMeta.auth = parseBody(apiMeta.auth, data);
     }
   }
   apiMeta.response = {};
@@ -150,23 +138,18 @@ export function axiosRequestMake(_apiMeta, user, data) {
     params: apiMeta.parameters
       ? apiMeta.parameters.reduce((paramsObj, param) => {
           if (param.name && param.enabled) {
-            paramsObj[param.name] = parseBody(param.value, user, data, apiMeta);
+            paramsObj[param.name] = parseBody(param.value, data);
           }
           return paramsObj;
         }, {})
       : {},
-    url: parseBody(apiMeta.path, user, data, apiMeta),
+    url: parseBody(apiMeta.path, data),
     method: apiMeta.method,
     data: apiMeta.body,
     headers: apiMeta.headers
       ? apiMeta.headers.reduce((headersObj, header) => {
           if (header.name && header.enabled) {
-            headersObj[header.name] = parseBody(
-              header.value,
-              user,
-              data,
-              apiMeta
-            );
+            headersObj[header.name] = parseBody(header.value, data);
           }
           return headersObj;
         }, {})
@@ -208,24 +191,9 @@ export async function invokeWebhook(
       case 'Email':
         {
           const res = await (await NcPluginMgrv2.emailAdapter())?.mailSend({
-            to: parseBody(
-              notification?.payload?.to,
-              user,
-              data,
-              notification?.payload
-            ),
-            subject: parseBody(
-              notification?.payload?.subject,
-              user,
-              data,
-              notification?.payload
-            ),
-            html: parseBody(
-              notification?.payload?.body,
-              user,
-              data,
-              notification?.payload
-            )
+            to: parseBody(notification?.payload?.to, data),
+            subject: parseBody(notification?.payload?.subject, data),
+            html: parseBody(notification?.payload?.body, data)
           });
           hookLog = {
             ...hook,
@@ -258,16 +226,9 @@ export async function invokeWebhook(
           const res = await (
             await NcPluginMgrv2.webhookNotificationAdapters(notification.type)
           ).sendMessage(
-            parseBody(
-              notification?.payload?.body,
-              user,
-              data,
-              notification?.payload
-            ),
+            parseBody(notification?.payload?.body, data),
             JSON.parse(JSON.stringify(notification?.payload), (_key, value) => {
-              return typeof value === 'string'
-                ? parseBody(value, user, data, notification?.payload)
-                : value;
+              return typeof value === 'string' ? parseBody(value, data) : value;
             })
           );
 

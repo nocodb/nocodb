@@ -34,8 +34,7 @@ import Hook from '../../../../models/Hook';
 import NcPluginMgrv2 from '../../../../meta/helpers/NcPluginMgrv2';
 import {
   _transformSubmittedFormDataForEmail,
-  invokeWebhook,
-  parseBody
+  invokeWebhook
 } from '../../../../meta/helpers/webhookHelpers';
 import Validator from 'validator';
 import { customValidators } from './customValidators';
@@ -1791,7 +1790,7 @@ class BaseModelSqlv2 {
           // todo: notification template
           (await NcPluginMgrv2.emailAdapter())?.mailSend({
             to: emails.join(','),
-            subject: parseBody('NocoDB Form', req, data, {}),
+            subject: 'NocoDB Form',
             html: ejs.render(formSubmissionEmailTemplate, {
               data: transformedData,
               tn: this.model.table_name,

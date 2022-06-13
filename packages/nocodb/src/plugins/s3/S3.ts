@@ -2,10 +2,11 @@ import fs from 'fs';
 import path from 'path';
 
 import AWS from 'aws-sdk';
-import { IStorageAdapter, XcFile } from 'nc-plugin';
 import slash from 'slash';
+import { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import request from 'request';
 
-export default class S3 implements IStorageAdapter {
+export default class S3 implements IStorageAdapterV2 {
   private s3Client: AWS.S3;
   private input: any;
 
@@ -38,6 +39,37 @@ export default class S3 implements IStorageAdapter {
           resolve(data.Location);
         }
       });
+    });
+  }
+  async fileCreateByUrl(key: string, url: string): Promise<any> {
+    const uploadParams: any = {
+      ACL: 'public-read'
+    };
+    return new Promise((resolve, reject) => {
+      // Configure the file stream and obtain the upload parameters
+      request(
+        {
+          url: url,
+          encoding: null
+        },
+        (err, _, body) => {
+          if (err) return reject(err);
+
+          uploadParams.Body = body;
+          uploadParams.Key = key;
+
+          // call S3 to retrieve upload file to specified bucket
+          this.s3Client.upload(uploadParams, (err1, data) => {
+            if (err) {
+              console.log('Error', err);
+              reject(err1);
+            }
+            if (data) {
+              resolve(data.Location);
+            }
+          });
+        }
+      );
     });
   }
 

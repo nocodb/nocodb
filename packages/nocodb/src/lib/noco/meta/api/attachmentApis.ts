@@ -54,6 +54,44 @@ export async function upload(req: Request, res: Response) {
   res.json(attachments);
 }
 
+export async function uploadViaURL(req: Request, res: Response) {
+  const filePath = sanitizeUrlPath(
+    req.query?.path?.toString()?.split('/') || ['']
+  );
+  const destPath = path.join('nc', 'uploads', ...filePath);
+
+  const storageAdapter = await NcPluginMgrv2.storageAdapter();
+  const attachments = await Promise.all(
+    req.body?.map?.(async urlMeta => {
+      const { url, fileName: _fileName } = urlMeta;
+      const fileName = `${nanoid(6)}${_fileName || url.split('/').pop()}`;
+
+      let attachmentUrl = await (storageAdapter as any).fileCreateByUrl(
+        slash(path.join(destPath, fileName)),
+        url
+      );
+
+      if (!attachmentUrl) {
+        attachmentUrl = `${(req as any).ncSiteUrl}/download/${filePath.join(
+          '/'
+        )}/${fileName}`;
+      }
+
+      return {
+        url: attachmentUrl,
+        title: fileName,
+        mimetype: urlMeta.mimetype,
+        size: urlMeta.size,
+        icon: mimeIcons[path.extname(fileName).slice(1)] || undefined
+      };
+    })
+  );
+
+  Tele.emit('evt', { evt_type: 'image:uploaded' });
+
+  res.json(attachments);
+}
+
 export async function fileRead(req, res) {
   try {
     const storageAdapter = await NcPluginMgrv2.storageAdapter();
@@ -152,6 +190,10 @@ router.post(
     storage: multer.diskStorage({})
   }).any(),
   ncMetaAclMw(upload, 'upload')
+);
+router.post(
+  '/api/v1/db/storage/upload-by-url',
+  ncMetaAclMw(uploadViaURL, 'uploadViaURL')
 );
 router.get(/^\/download\/(.+)$/, catchError(fileRead));
 

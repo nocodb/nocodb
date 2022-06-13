@@ -91,7 +91,7 @@
             :field-list="[...realFieldList, ...formulaFieldList]"
             dense
             :view-id="selectedViewId"
-            @updated="loadTableData"
+            @updated="loadTableData(false)"
           />
           <sort-list
             v-if="!isForm"
@@ -99,7 +99,7 @@
             :is-locked="isLocked"
             :meta="meta"
             :view-id="selectedViewId"
-            @updated="loadTableData"
+            @updated="loadTableData(false)"
           />
         </div>
         <share-view-menu

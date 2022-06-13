@@ -2,17 +2,16 @@ import FetchAT from './fetchAT';
 import { UITypes } from 'nocodb-sdk';
 import { Tele } from 'nc-help';
 // import * as sMap from './syncMap';
-import FormData from 'form-data';
 
 import { Api } from 'nocodb-sdk';
 
-import axios from 'axios';
 import Airtable from 'airtable';
 import jsonfile from 'jsonfile';
 import hash from 'object-hash';
 
 import dayjs from 'dayjs';
 import utc from 'dayjs/plugin/utc';
+import { importData, importLTARData } from './readAndProcessData';
 
 dayjs.extend(utc);
 
@@ -81,8 +80,14 @@ export default async (
   const nestedRollupTbl: any[] = [];
   const ncSysFields = { id: 'ncRecordId', hash: 'ncRecordHash' };
   const storeLinks = false;
-  const skipAttachments = false;
   const ncLinkDataStore: any = {};
+  const insertedAssocRef: any = {};
+
+  const atNcAliasRef: {
+    [ncTableId: string]: {
+      [ncTitle: string]: string;
+    };
+  } = {};
 
   const uniqueTableNameGen = getUniqueNameGenerator('sheet');
 
@@ -103,6 +108,10 @@ export default async (
     migrationSkipLog: {
       count: 0,
       log: []
+    },
+    data: {
+      records: 0,
+      nestedLinks: 0
     }
   };
 
@@ -118,6 +127,13 @@ export default async (
 
   async function getAirtableSchema(sDB) {
     const start = Date.now();
+
+    if (!sDB.shareId)
+      throw {
+        message:
+          'Invalid Shared Base ID :: Ensure www.airtable.com/<SharedBaseID> is accessible. Refer https://bit.ly/3x0OdXI for details'
+      };
+
     if (sDB.shareId.startsWith('exp')) {
       const template = await FetchAT.readTemplate(sDB.shareId);
       await FetchAT.initialize(template.template.exploreApplication.shareId);
@@ -164,8 +180,7 @@ export default async (
     collaborator: UITypes.Collaborator,
     multiCollaborator: UITypes.Collaborator,
     date: UITypes.Date,
-    // kludge: phone: UITypes.PhoneNumber,
-    phone: UITypes.SingleLineText,
+    phone: UITypes.PhoneNumber,
     number: UITypes.Number,
     rating: UITypes.Rating,
     formula: UITypes.Formula,
@@ -210,6 +225,7 @@ export default async (
 
   // aTbl: retrieve table name from table ID
   //
+  // @ts-ignore
   function aTbl_getTableName(tblId) {
     const sheetObj = g_aTblSchema.find(tbl => tbl.id === tblId);
     return {
@@ -608,6 +624,10 @@ export default async (
               srcTbl,
               aTblLinkColumns[i].name
             );
+
+            // LTAR alias ref to AT
+            atNcAliasRef[srcTbl.id] = atNcAliasRef[srcTbl.id] || {};
+            atNcAliasRef[srcTbl.id][ncName.title] = aTblLinkColumns[i].name;
 
             logDetailed(
               `NC API: dbTableColumn.create LinkToAnotherRecord ${ncName.title}`
@@ -1190,38 +1210,9 @@ export default async (
 
   //////////  Data processing
 
-  async function nocoLinkProcessing(projName, table, record, _field) {
-    const rec = record.fields;
-
-    for (const [key, value] of Object.entries(rec)) {
-      const refRowIdList: any = value;
-      const referenceColumnName = key;
-
-      if (refRowIdList.length) {
-        for (let i = 0; i < refRowIdList.length; i++) {
-          logDetailed(
-            `NC API: dbTableRow.nestedAdd ${record.id}/mm/${referenceColumnName}/${refRowIdList[0][i]}`
-          );
-
-          const _perfStart = recordPerfStart();
-          await api.dbTableRow.nestedAdd(
-            'noco',
-            projName,
-            table.id,
-            `${record.id}`,
-            'mm',
-            encodeURIComponent(referenceColumnName),
-            `${refRowIdList[i]}`
-          );
-          recordPerfStats(_perfStart, 'dbTableRow.nestedAdd');
-        }
-      }
-    }
-  }
-
   async function nocoBaseDataProcessing_v2(sDB, table, record) {
     const recordHash = hash(record);
-    const rec = record.fields;
+    const rec = { ...record.fields };
 
     // kludge -
     // trim spaces on either side of column name
@@ -1315,51 +1306,26 @@ export default async (
           break;
 
         case UITypes.Attachment:
-          if (skipAttachments) rec[key] = null;
+          if (!syncDB.options.syncAttachment) rec[key] = null;
           else {
-            const tempArr = [];
-            for (const v of value) {
-              const binaryImage = await axios
-                .get(v.url, {
-                  responseType: 'stream',
-                  headers: {
-                    'Content-Type': v.type
-                  }
-                })
-                .then(response => {
-                  return response.data;
-                })
-                .catch(error => {
-                  console.log(error);
-                  return false;
-                });
+            let tempArr = [];
 
-              const imageFile: any = new FormData();
-              imageFile.append('files', binaryImage, {
-                filename: v.filename.includes('?')
-                  ? v.filename.split('?')[0]
-                  : v.filename
-              });
-
-              const rs = await axios
-                .post(sDB.baseURL + '/api/v1/db/storage/upload', imageFile, {
-                  params: {
-                    path: `noco/${sDB.projectName}/${table.title}/${key}`
-                  },
-                  headers: {
-                    'Content-Type': `multipart/form-data; boundary=${imageFile._boundary}`,
-                    'xc-auth': sDB.authToken
-                  }
-                })
-                .then(response => {
-                  return response.data;
-                })
-                .catch(e => {
-                  console.log(e);
-                });
-
-              tempArr.push(...rs);
+            try {
+              tempArr = await api.storage.uploadByUrl(
+                {
+                  path: `noco/${sDB.projectName}/${table.title}/${key}`
+                },
+                value?.map(attachment => ({
+                  fileName: attachment.filename?.split('?')?.[0],
+                  url: attachment.url,
+                  size: attachment.size,
+                  mimetype: attachment.type
+                }))
+              );
+            } catch (e) {
+              console.log(e);
             }
+
             rec[key] = JSON.stringify(tempArr);
           }
           break;
@@ -1376,71 +1342,7 @@ export default async (
     return rec;
   }
 
-  async function nocoReadData(sDB, table) {
-    ncLinkDataStore[table.title] = {};
-    const insertJobs: Promise<any>[] = [];
-
-    return new Promise((resolve, reject) => {
-      base(table.title)
-        .select({
-          pageSize: 100
-          // maxRecords: 1,
-        })
-        .eachPage(
-          async function page(records, fetchNextPage) {
-            // console.log(JSON.stringify(records, null, 2));
-
-            // This function (`page`) will get called for each page of records.
-            logBasic(
-              `:: ${table.title} : ${recordCnt + 1} ~ ${(recordCnt += 100)}`
-            );
-
-            // await Promise.all(
-            //   records.map(record => _callback(sDB, table, record))
-            // );
-            const ncRecords = [];
-            for (let i = 0; i < records.length; i++) {
-              const r = await nocoBaseDataProcessing_v2(sDB, table, records[i]);
-              ncRecords.push(r);
-            }
-
-            // wait for previous job's to finish
-            await Promise.all(insertJobs);
-
-            const _perfStart = recordPerfStart();
-            insertJobs.push(
-              api.dbTableRow.bulkCreate(
-                'nc',
-                sDB.projectName,
-                table.id, // encodeURIComponent(table.title),
-                ncRecords
-              )
-            );
-            recordPerfStats(_perfStart, 'dbTableRow.bulkCreate');
-
-            // To fetch the next page of records, call `fetchNextPage`.
-            // If there are more records, `page` will get called again.
-            // If there are no more records, `done` will get called.
-            // logBasic(
-            //   `:: ${Date.now()} Awaiting response from Airtable Data API ...`
-            // );
-            fetchNextPage();
-          },
-          async function done(err) {
-            if (err) {
-              console.error(err);
-              reject(err);
-            }
-
-            // wait for all jobs to be completed
-            await Promise.all(insertJobs);
-
-            resolve(null);
-          }
-        );
-    });
-  }
-
+  // @ts-ignore
   async function nocoReadDataSelected(projName, table, callback, fields) {
     return new Promise((resolve, reject) => {
       base(table.title)
@@ -1853,6 +1755,8 @@ export default async (
     logBasic(`::   Grid:         ${rtc.view.grid}`);
     logBasic(`::   Gallery:      ${rtc.view.gallery}`);
     logBasic(`::   Form:         ${rtc.view.form}`);
+    logBasic(`:: Total Records:  ${rtc.data.records}`);
+    logBasic(`:: Total Nested Links: ${rtc.data.nestedLinks}`);
 
     const duration = Date.now() - start;
     logBasic(`:: Migration time:      ${duration}`);
@@ -1892,7 +1796,9 @@ export default async (
           axios: {
             count: rtc.fetchAt.count,
             time: rtc.fetchAt.time
-          }
+          },
+          totalRecords: rtc.data.records,
+          nestedLinks: rtc.data.nestedLinks
         }
       }
     });
@@ -2188,6 +2094,8 @@ export default async (
 
         logBasic('Reading Records...');
 
+        const recordsMap = {};
+
         for (let i = 0; i < ncTblList.list.length; i++) {
           const _perfStart = recordPerfStart();
           const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
@@ -2198,52 +2106,91 @@ export default async (
             continue;
 
           recordCnt = 0;
-          await nocoReadData(syncDB, ncTbl);
+          // await nocoReadData(syncDB, ncTbl);
+
+          recordsMap[ncTbl.id] = await importData({
+            projectName: syncDB.projectName,
+            table: ncTbl,
+            base,
+            api,
+            logBasic,
+            nocoBaseDataProcessing_v2,
+            sDB: syncDB,
+            logDetailed
+          });
+          rtc.data.records += recordsMap[ncTbl.id].length;
+
           logDetailed(`Data inserted from ${ncTbl.title}`);
         }
 
         logBasic('Configuring Record Links...');
+        for (let i = 0; i < ncTblList.list.length; i++) {
+          const ncTbl = await api.dbTable.read(ncTblList.list[i].id);
+          rtc.data.nestedLinks += await importLTARData({
+            table: ncTbl,
+            projectName: syncDB.projectName,
+            api,
+            base,
+            fields: null, //Object.values(tblLinkGroup).flat(),
+            logBasic,
+            insertedAssocRef,
+            logDetailed,
+            records: recordsMap[ncTbl.id],
+            atNcAliasRef
+          });
+        }
+
         if (storeLinks) {
           // const insertJobs: Promise<any>[] = [];
-          for (const [pTitle, v] of Object.entries(ncLinkDataStore)) {
-            logBasic(`:: ${pTitle}`);
-            for (const [, record] of Object.entries(v)) {
-              const tbl = ncTblList.list.find(a => a.title === pTitle);
-              await nocoLinkProcessing(syncDB.projectName, tbl, record, 0);
-              // insertJobs.push(
-              //   nocoLinkProcessing(syncDB.projectName, tbl, record, 0)
-              // );
-            }
-          }
+          // for (const [pTitle, v] of Object.entries(ncLinkDataStore)) {
+          //   logBasic(`:: ${pTitle}`);
+          //   for (const [, record] of Object.entries(v)) {
+          //     const tbl = ncTblList.list.find(a => a.title === pTitle);
+          //     await nocoLinkProcessing(syncDB.projectName, tbl, record, 0);
+          //     // insertJobs.push(
+          //     //   nocoLinkProcessing(syncDB.projectName, tbl, record, 0)
+          //     // );
+          //   }
+          // }
           // await Promise.all(insertJobs);
           // await nocoLinkProcessing(syncDB.projectName, 0, 0, 0);
         } else {
-          // create link groups (table: link fields)
-          const tblLinkGroup = {};
-          for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
-            const x = ncLinkMappingTable[idx];
-            if (tblLinkGroup[x.aTbl.tblId] === undefined)
-              tblLinkGroup[x.aTbl.tblId] = [x.aTbl.name];
-            else tblLinkGroup[x.aTbl.tblId].push(x.aTbl.name);
-          }
-
-          for (const [k, v] of Object.entries(tblLinkGroup)) {
-            const ncTbl = await nc_getTableSchema(aTbl_getTableName(k).tn);
-
-            // not a migrated table, skip
-            if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
-              continue;
-
-            recordCnt = 0;
-            await nocoReadDataSelected(
-              syncDB.projectName,
-              ncTbl,
-              async (projName, table, record, _field) => {
-                await nocoLinkProcessing(projName, table, record, _field);
-              },
-              v
-            );
-          }
+          // // create link groups (table: link fields)
+          //           // const tblLinkGroup = {};
+          //           // for (let idx = 0; idx < ncLinkMappingTable.length; idx++) {
+          //           //   const x = ncLinkMappingTable[idx];
+          //           //   if (tblLinkGroup[x.aTbl.tblId] === undefined)
+          //           //     tblLinkGroup[x.aTbl.tblId] = [x.aTbl.name];
+          //           //   else tblLinkGroup[x.aTbl.tblId].push(x.aTbl.name);
+          //           // }
+          //           //
+          //           // const ncTbl = await nc_getTableSchema(aTbl_getTableName(k).tn);
+          //           //
+          //           // await importLTARData({
+          //           //   table: ncTbl,
+          //           //   projectName: syncDB.projectName,
+          //           //   api,
+          //           //   base,
+          //           //   fields: Object.values(tblLinkGroup).flat(),
+          //           //   logBasic
+          //           // });
+          // for (const [k, v] of Object.entries(tblLinkGroup)) {
+          //   const ncTbl = await nc_getTableSchema(aTbl_getTableName(k).tn);
+          //
+          //   // not a migrated table, skip
+          //   if (undefined === aTblSchema.find(x => x.name === ncTbl.title))
+          //     continue;
+          //
+          //   recordCnt = 0;
+          //   await nocoReadDataSelected(
+          //     syncDB.projectName,
+          //     ncTbl,
+          //     async (projName, table, record, _field) => {
+          //       await nocoLinkProcessing(projName, table, record, _field);
+          //     },
+          //     v
+          //   );
+          // }
         }
       } catch (error) {
         logDetailed(

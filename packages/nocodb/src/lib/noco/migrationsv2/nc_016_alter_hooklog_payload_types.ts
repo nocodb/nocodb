@@ -1,27 +1,28 @@
-const imageExt = [
-  'jpeg',
-  'gif',
-  'png',
-  'png',
-  'svg',
-  'bmp',
-  'ico',
-  'jpg',
-  'webp'
-]
+import Knex from 'knex';
+import { MetaTable } from '../../utils/globals';
 
-export default imageExt
+const up = async (knex: Knex) => {
+  if (knex.client.config.client !== 'sqlite3') {
+    await knex.schema.alterTable(MetaTable.HOOK_LOGS, table => {
+      table.text('payload').alter();
+    });
+  }
+};
 
-const isImage = (name, type) => {
-  return imageExt.some(e => name.toLowerCase().endsWith(`.${e}`)) || (type || '').startsWith('image/')
-}
+const down = async knex => {
+  if (knex.client.config.client !== 'sqlite3') {
+    await knex.schema.alterTable(MetaTable.HOOK_LOGS, table => {
+      table.boolean('payload').alter();
+    });
+  }
+};
 
-export { isImage }
+export { up, down };
+
 /**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ * @copyright Copyright (c) 2022, Xgene Cloud Ltd
  *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author willnewii <willnewii@163.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

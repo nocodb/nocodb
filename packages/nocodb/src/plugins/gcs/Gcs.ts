@@ -2,9 +2,10 @@ import fs from 'fs';
 import path from 'path';
 
 import { Storage, StorageOptions } from '@google-cloud/storage';
-import { IStorageAdapter, XcFile } from 'nc-plugin';
+import { IStorageAdapterV2, XcFile } from 'nc-plugin';
+import request from 'request';
 
-export default class Gcs implements IStorageAdapter {
+export default class Gcs implements IStorageAdapterV2 {
   private storageClient: Storage;
   private bucketName: string;
   private input: any;
@@ -71,8 +72,15 @@ export default class Gcs implements IStorageAdapter {
     // this.bucketName = process.env.NC_GCS_BUCKET;
     options.credentials = {
       client_email: this.input.client_email,
-      private_key: this.input.private_key
+      // replace \n with real line breaks to avoid
+      // error:0909006C:PEM routines:get_name:no start line
+      private_key: this.input.private_key.replace(/\\n/gm, '\n')
     };
+
+    // default project ID would be used if it is not provided
+    if (this.input.project_id) {
+      options.projectId = this.input.project_id
+    }
 
     this.bucketName = this.input.bucket;
 
@@ -95,6 +103,28 @@ export default class Gcs implements IStorageAdapter {
     } catch (e) {
       throw e;
     }
+  }
+
+  fileCreateByUrl(destPath: string, url: string): Promise<any> {
+    return new Promise((resolve, reject) => {
+      // Configure the file stream and obtain the upload parameters
+      request(
+        {
+          url: url,
+          encoding: null
+        },
+        (err, _, body) => {
+          if (err) return reject(err);
+
+          this.storageClient
+            .bucket(this.bucketName)
+            .file(destPath)
+            .save(body)
+            .then(res => resolve(res))
+            .catch(reject);
+        }
+      );
+    });
   }
 }
 /**

@@ -307,6 +307,11 @@ export default class NcMetaIOImpl extends NcMetaIO {
       (query as any).condition(args.xcCondition);
     }
 
+    if (args?.orderBy) {
+      for (const [col, dir] of Object.entries(args.orderBy)) {
+        query.orderBy(col, dir);
+      }
+    }
     if (args?.fields?.length) {
       query.select(...args.fields);
     }

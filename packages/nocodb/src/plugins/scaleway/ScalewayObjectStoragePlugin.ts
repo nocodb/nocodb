@@ -1,4 +1,4 @@
-import { IStorageAdapter, XcStoragePlugin } from 'nc-plugin';
+import { IStorageAdapterV2, XcStoragePlugin } from 'nc-plugin';
 
 import ScalewayObjectStorage from './ScalewayObjectStorage';
 
@@ -10,7 +10,7 @@ class ScalewayObjectStoragePlugin extends XcStoragePlugin {
     );
     await ScalewayObjectStoragePlugin.storageAdapter.init();
   }
-  public getAdapter(): IStorageAdapter {
+  public getAdapter(): IStorageAdapterV2 {
     return ScalewayObjectStoragePlugin.storageAdapter;
   }
 }

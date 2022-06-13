@@ -1,11 +1,11 @@
-import { IStorageAdapter, XcStoragePlugin } from 'nc-plugin';
+import { IStorageAdapterV2, XcStoragePlugin } from 'nc-plugin';
 
 import Vultr from './Vultr';
 
 class VultrPlugin extends XcStoragePlugin {
   private static storageAdapter: Vultr;
 
-  public getAdapter(): IStorageAdapter {
+  public getAdapter(): IStorageAdapterV2 {
     return VultrPlugin.storageAdapter;
   }
 

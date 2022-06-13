@@ -1,26 +1,19 @@
-const imageExt = [
-  'jpeg',
-  'gif',
-  'png',
-  'png',
-  'svg',
-  'bmp',
-  'ico',
-  'jpg',
-  'webp'
-]
+import IStorageAdapter from "./IStorageAdapter";
 
-export default imageExt
-
-const isImage = (name, type) => {
-  return imageExt.some(e => name.toLowerCase().endsWith(`.${e}`)) || (type || '').startsWith('image/')
+export default interface IStorageAdapterV2 extends IStorageAdapter {
+  fileCreateByUrl(destPath: string, url: string, fileMeta?: FileMeta): Promise<any>
 }
 
-export { isImage }
+
+interface FileMeta {
+  fileName?: string;
+  mimetype?: string;
+  size?: number | string;
+}
+
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
- * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version

@@ -11,7 +11,7 @@
 
 // This function is called when a project is opened or re-opened (e.g. due to
 // the project's config changing)
-const { rmdir } = require("fs");
+const { rmdir, copyFile } = require("fs");
 
 // https://stackoverflow.com/questions/61934443/read-excel-files-in-cypress
 const readXlsx = require("./read-xlsx");
@@ -26,6 +26,18 @@ module.exports = (on, config) => {
 
     // register utility tasks to read and parse Excel files
     on("task", {
+        copyFile() {
+          console.log("copyFile", __dirname)
+          return new Promise((resolve, reject) => {
+              copyFile("./scripts/cypress/fixtures/quickTest/noco_0_91_7.db", "./packages/nocodb/noco.db", (err) => {
+                  if(err) {
+                      console.log(err)
+                      return reject(err)
+                  }
+                  resolve(null);
+              })
+          })
+        },
         deleteFolder(folderName) {
             console.log("deleting folder %s", folderName);
 
@@ -36,10 +48,8 @@ module.exports = (on, config) => {
                     (err) => {
                         if (err) {
                             console.error(err);
-
                             return reject(err);
                         }
-
                         resolve(null);
                     }
                 );

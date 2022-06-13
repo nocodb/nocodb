@@ -5,8 +5,6 @@ import {
 import { loginPage, projectsPage } from "../../support/page_objects/navigation";
 import { mainPage } from "../../support/page_objects/mainPage";
 
-let independentSuite = true
-
 // normal fields
 let records = {
     Name: "Movie-1",
@@ -68,13 +66,8 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Webhook`, () => {
         before(() => {
-            if(independentSuite) {
-                cy.waitForSpinners();
-                cy.signinOrSignup(roles.owner.credentials);
-            }
-            else {
-                loginPage.signIn(roles.owner.credentials);
-            }
+            cy.task("copyFile")
+            loginPage.signIn(roles.owner.credentials);
             projectsPage.openProject("sample");
         });
 

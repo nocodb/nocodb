@@ -100,12 +100,9 @@ export const genTest = (apiType, dbType) => {
                 .contains("Save")
                 .click({ force: true });
 
-            cy.toastWait("Formula column updated successfully");
+            cy.toastWait("Duration column updated successfully");
 
             // validate if deleted (column shouldnt exist)
-
-            // FIXME: 
-            // Expected <th.grey-border.caption.font-wight-regular.nc-grid-header-cell.grey.lighten-4.grey--text.text--darken-2> not to exist in the DOM, but it was continuously found.
             cy.get(`th:contains(${oldName})`).should("not.exist");
             cy.get(`th:contains(${newName})`).should("exist");
         };
@@ -115,27 +112,22 @@ export const genTest = (apiType, dbType) => {
 
         it("Duration: h:mm", () => {
             addDurationColumn("NC_DURATION_0", "h:mm (e.g. 1:23)");
-            // TODO: validate
         });
 
         it("Duration: h:mm:ss", () => {
             addDurationColumn("NC_DURATION_1", "h:mm:ss (e.g. 3:45, 1:23:40)");
-            // TODO: validate
         });
 
         it("Duration: h:mm:ss.s", () => {
             addDurationColumn("NC_DURATION_2", "h:mm:ss.s (e.g. 3:34.6, 1:23:40.0)");
-            // TODO: validate
         });
 
         it("Duration: h:mm:ss.ss", () => {
             addDurationColumn("NC_DURATION_3", "h:mm:ss.ss (e.g. 3.45.67, 1:23:40.00)");
-            // TODO: validate
         });
 
         it("Duration: h:mm:ss.sss", () => {
             addDurationColumn("NC_DURATION_4", "h:mm:ss.sss (e.g. 3.45.678, 1:23:40.000)");
-            // TODO: validate
         });
 
         // Update Duration column name with a new format (type_idx + 1 % 5) 
@@ -143,54 +135,49 @@ export const genTest = (apiType, dbType) => {
         it("Duration: Edit Column NC_DURATION_0", () => {
             editColumnByName(
                 "NC_DURATION_0",
-                "NC_DURATION_0_EDITED",
+                "NC_DURATION_EDITED_0",
                 "h:mm:ss (e.g. 3:45, 1:23:40)"
             );
-            // TODO: validate
         });
 
         it("Duration: Edit Column NC_DURATION_1", () => {
             editColumnByName(
                 "NC_DURATION_1",
-                "NC_DURATION_1_EDITED",
+                "NC_DURATION_EDITED_1",
                 "h:mm:ss.s (e.g. 3:34.6, 1:23:40.0)"
             );
-            // TODO: validate
         });
 
         it("Duration: Edit Column NC_DURATION_2", () => {
             editColumnByName(
                 "NC_DURATION_2",
-                "NC_DURATION_2_EDITED",
+                "NC_DURATION_EDITED_2",
                 "h:mm:ss (e.g. 3:45, 1:23:40)"
             );
-            // TODO: validate
         });
 
         it("Duration: Edit Column NC_DURATION_3", () => {
             editColumnByName(
                 "NC_DURATION_3",
-                "NC_DURATION_3_EDITED",
+                "NC_DURATION_EDITED_3",
                 "h:mm:ss.ss (e.g. 3.45.67, 1:23:40.00)"
             );
-            // TODO: validate
         });
 
         it("Duration: Edit Column NC_DURATION_4", () => {
             editColumnByName(
                 "NC_DURATION_4",
-                "NC_DURATION_4_EDITED",
+                "NC_DURATION_EDITED_4",
                 "h:mm (e.g. 1:23)"
             );
-            // TODO: validate
         });
 
         it("Duration: Delete column", () => {
-            deleteColumnByName("NC_DURATION_0_EDITED");
-            deleteColumnByName("NC_DURATION_1_EDITED");
-            deleteColumnByName("NC_DURATION_2_EDITED");
-            deleteColumnByName("NC_DURATION_3_EDITED");
-            deleteColumnByName("NC_DURATION_4_EDITED");
+            deleteColumnByName("NC_DURATION_EDITED_0");
+            deleteColumnByName("NC_DURATION_EDITED_1");
+            deleteColumnByName("NC_DURATION_EDITED_2");
+            deleteColumnByName("NC_DURATION_EDITED_3");
+            deleteColumnByName("NC_DURATION_EDITED_4");
         });
 
         it("Duration: Add data with h:mm", () => {

@@ -22,6 +22,7 @@ export default class User implements UserType {
   email_verification_token?: string;
   email_verified: boolean;
   roles?: string;
+  token_expired?: boolean;
 
   constructor(data: User) {
     Object.assign(this, data);
@@ -43,7 +44,8 @@ export default class User implements UserType {
       'reset_password_token',
       'email_verification_token',
       'email_verified',
-      'roles'
+      'roles',
+      'token_expired'
     ]);
     const { id } = await ncMeta.metaInsert2(
       null,
@@ -71,7 +73,8 @@ export default class User implements UserType {
       'reset_password_token',
       'email_verification_token',
       'email_verified',
-      'roles'
+      'roles',
+      'token_expired'
     ]);
     // get existing cache
     const keys = [

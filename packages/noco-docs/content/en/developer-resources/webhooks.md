@@ -66,15 +66,9 @@ For INSERT/ UPDATE based triggers, use following handlebars to access correspond
 Note that, for Update trigger - all the fields in the ROW will be accessible, not just the field updated.
 For DELETE based triggers, **only** {{ data.id }} is accessible representing ID of the column deleted.
   
-For all trigger, following **user** information associated with person trigger can be accessed.
-
--   {{ **user**.id }} : Unique auto incremented NocoDB system value
--   {{ **user**.email }} : User E-mail.
--   {{ **user**.roles }} : User Role amongst [Owner, Creator, Editor, Commenter, Viewer].
-
 ### JSON format
 
-Use {{ json data }} {{ json user }} to dump complete data & user information available in JSON format
+Use {{ json data }} to dump complete data & user information available in JSON format
 
 ### Additional references:
 

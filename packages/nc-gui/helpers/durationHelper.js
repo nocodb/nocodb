@@ -35,16 +35,7 @@ export const durationOptions = [
 // e.g.  1 -> 001
 // e.g. 10 -> 010
 const padZero = (val, isSSS = false) => {
-  if (isSSS) {
-    if (val >= 0 && val <= 9) {
-      return `00${val}`
-    } else if (val >= 10 && val <= 99) {
-      return `0${val}`
-    }
-  } else if (val >= 0 && val <= 9) {
-    return `0${val}`
-  }
-  return val
+  return (val + '').padStart(isSSS ? 3 : 2, '0')
 }
 
 export const convertMS2Duration = (val, durationType) => {

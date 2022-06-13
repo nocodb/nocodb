@@ -70,9 +70,9 @@ class BaseModelSqlv2 {
   private _columns = {};
 
   private config: any = {
-    limitDefault: 25,
-    limitMin: 1,
-    limitMax: 1000
+    limitDefault: Math.max(+process.env.DB_QUERY_LIMIT_DEFAULT || 25, 1),
+    limitMin: Math.max(+process.env.DB_QUERY_LIMIT_MIN || 1, 1),
+    limitMax: Math.max(+process.env.DB_QUERY_LIMIT_MAX || 1000, 1)
   };
 
   constructor({
@@ -1370,6 +1370,7 @@ class BaseModelSqlv2 {
   get isPg() {
     return this.clientType === 'pg';
   }
+
   get isMySQL() {
     return this.clientType === 'mysql2' || this.clientType === 'mysql';
   }

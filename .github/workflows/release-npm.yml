@@ -35,20 +35,17 @@ jobs:
     runs-on: ubuntu-latest
     env:
       working-directory: ./packages/nocodb
-    strategy:
-      matrix:
-        node-version: [16]
     steps:
       - name: Checkout
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
           ref: ${{ github.ref }}
-      - name: NPM Setup and Publish with ${{ matrix.node-version }}
+      - name: NPM Setup and Publish with 16.15.0
         # Setup .npmrc file to publish to npm
         uses: actions/setup-node@v2
         with:
-          node-version: ${{ matrix.node-version }}
+          node-version: 16.15.0
           registry-url: 'https://registry.npmjs.org'
       - run: |
           targetEnv=${{ github.event.inputs.targetEnv || inputs.targetEnv }} targetVersion=${{ github.event.inputs.tag || inputs.tag }} node scripts/bumpNocodbSdkVersion.js &&

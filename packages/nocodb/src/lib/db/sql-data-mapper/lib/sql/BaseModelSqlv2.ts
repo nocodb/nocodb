@@ -34,13 +34,13 @@ import Hook from '../../../../models/Hook';
 import NcPluginMgrv2 from '../../../../meta/helpers/NcPluginMgrv2';
 import {
   _transformSubmittedFormDataForEmail,
-  invokeWebhook,
-  parseBody
+  invokeWebhook
 } from '../../../../meta/helpers/webhookHelpers';
 import Validator from 'validator';
 import { customValidators } from './customValidators';
 import { NcError } from '../../../../meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
+import DOMPurify from 'isomorphic-dompurify';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -1716,7 +1716,9 @@ class BaseModelSqlv2 {
       row_id: id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.INSERT,
-      description: `${id} inserted into ${this.model.title}`,
+      description: DOMPurify.sanitize(
+        `${id} inserted into ${this.model.title}`
+      ),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
       user: req?.user?.email
@@ -1760,7 +1762,7 @@ class BaseModelSqlv2 {
       row_id: id,
       op_type: AuditOperationTypes.DATA,
       op_sub_type: AuditOperationSubTypes.DELETE,
-      description: `${id} deleted from ${this.model.title}`,
+      description: DOMPurify.sanitize(`${id} deleted from ${this.model.title}`),
       // details: JSON.stringify(data),
       ip: req?.clientIp,
       user: req?.user?.email
@@ -1790,7 +1792,7 @@ class BaseModelSqlv2 {
           // todo: notification template
           (await NcPluginMgrv2.emailAdapter())?.mailSend({
             to: emails.join(','),
-            subject: parseBody('NocoDB Form', req, data, {}),
+            subject: 'NocoDB Form',
             html: ejs.render(formSubmissionEmailTemplate, {
               data: transformedData,
               tn: this.model.table_name,

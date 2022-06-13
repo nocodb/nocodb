@@ -95,6 +95,7 @@
       :is-form="isForm"
       :column="column"
       v-on="parentListeners"
+      @input="$emit('save')"
     />
 
     <json-editable-cell
@@ -110,6 +111,7 @@
       v-model="localState"
       :column="column"
       v-on="parentListeners"
+      @input="$emit('save')"
     />
     <set-list-cell
       v-else-if="isSet"
@@ -208,9 +210,9 @@ export default {
         if (val !== this.value) {
           this.changed = true
           this.$emit('input', val)
-          if (this.isAttachment || this.isEnum || this.isBoolean || this.isRating || this.isSet || this.isTime || this.isDateTime || this.isDate || this.isDuration) {
+          if (this.isAttachment || this.isBoolean || this.isRating || this.isTime || this.isDateTime || this.isDate || this.isDuration) {
             this.syncData()
-          } else if (!this.isCurrency) {
+          } else if (!this.isCurrency && !this.isEnum && !this.isSet) {
             this.syncDataDebounce(this)
           }
         }
@@ -239,7 +241,7 @@ export default {
     // this.$refs.input.focus();
   },
   beforeDestroy() {
-    if (this.changed && !(this.isAttachment || this.isEnum || this.isBoolean || this.isRating || this.isSet || this.isTime || this.isDateTime || this.isDuration)) {
+    if (this.changed && !(this.isAttachment || this.isBoolean || this.isRating || this.isTime || this.isDateTime || this.isDuration)) {
       this.changed = false
       this.$emit('change')
     }

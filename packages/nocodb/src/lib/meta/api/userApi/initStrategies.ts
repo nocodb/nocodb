@@ -53,7 +53,8 @@ export function initStrategies(router): void {
       firstname,
       lastname,
       isAuthorized,
-      isPublicBase
+      isPublicBase,
+      token_version
     },
     done
   ) {
@@ -72,7 +73,8 @@ export function initStrategies(router): void {
       provider,
       firstname,
       lastname,
-      roles
+      roles,
+      token_version
     });
   });
 
@@ -100,11 +102,17 @@ export function initStrategies(router): void {
         );
 
         if (cachedVal) {
+          if (cachedVal.token_version !== jwtPayload.token_version) {
+            return done(new Error('Token Expired. Please login again.'));
+          }
           return done(null, cachedVal);
         }
 
         User.getByEmail(jwtPayload?.email)
           .then(async user => {
+            if (user.token_version !== jwtPayload.token_version) {
+              return done(new Error('Token Expired. Please login again.'));
+            }
             if (req.ncProjectId) {
               // this.xcMeta
               //   .metaGet(req.ncProjectId, null, 'nc_projects_users', {

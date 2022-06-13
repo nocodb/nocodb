@@ -42,7 +42,8 @@ passport.serializeUser(function(
     firstname,
     lastname,
     isAuthorized,
-    isPublicBase
+    isPublicBase,
+    token_version
   },
   done
 ) {
@@ -61,7 +62,8 @@ passport.serializeUser(function(
     provider,
     firstname,
     lastname,
-    roles
+    roles,
+    token_version
   });
 });
 

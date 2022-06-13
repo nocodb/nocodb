@@ -71,7 +71,8 @@ export async function signup(req: Request, res: Response<TableType>) {
         password,
         email_verification_token,
         invite_token: null,
-        invite_token_expires: null
+        invite_token_expires: null,
+        email: user.email
       });
     } else {
       NcError.badRequest('User already exist');
@@ -95,6 +96,8 @@ export async function signup(req: Request, res: Response<TableType>) {
       }
     }
 
+    const token_version = randomTokenString();
+
     await User.insert({
       firstname,
       lastname,
@@ -102,7 +105,8 @@ export async function signup(req: Request, res: Response<TableType>) {
       salt,
       password,
       email_verification_token,
-      roles
+      roles,
+      token_version
     });
   }
   user = await User.getByEmail(email);
@@ -126,7 +130,8 @@ export async function signup(req: Request, res: Response<TableType>) {
   await promisify((req as any).login.bind(req))(user);
   const refreshToken = randomTokenString();
   await User.update(user.id, {
-    refresh_token: refreshToken
+    refresh_token: refreshToken,
+    email: user.email
   });
 
   setTokenCookie(res, refreshToken);
@@ -148,7 +153,8 @@ export async function signup(req: Request, res: Response<TableType>) {
         firstname: user.firstname,
         lastname: user.lastname,
         id: user.id,
-        roles: user.roles
+        roles: user.roles,
+        token_version: user.token_version
       },
       Noco.getConfig().auth.jwt.secret,
       Noco.getConfig().auth.jwt.options
@@ -178,8 +184,15 @@ async function successfulSignIn({
     await promisify((req as any).login.bind(req))(user);
     const refreshToken = randomTokenString();
 
+    let token_version = user.token_version;
+    if (!token_version) {
+      token_version = randomTokenString();
+    }
+
     await User.update(user.id, {
-      refresh_token: refreshToken
+      refresh_token: refreshToken,
+      email: user.email,
+      token_version
     });
     setTokenCookie(res, refreshToken);
 
@@ -198,7 +211,8 @@ async function successfulSignIn({
           firstname: user.firstname,
           lastname: user.lastname,
           id: user.id,
-          roles: user.roles
+          roles: user.roles,
+          token_version
         },
 
         Noco.getConfig().auth.jwt.secret,
@@ -249,6 +263,7 @@ async function googleSignin(req, res, next) {
 function randomTokenString(): string {
   return crypto.randomBytes(40).toString('hex');
 }
+
 function setTokenCookie(res, token): void {
   // create http only cookie with refresh token that expires in 7 days
   const cookieOptions = {
@@ -285,7 +300,8 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
   await User.update(user.id, {
     salt,
     password,
-    email: user.email
+    email: user.email,
+    token_version: null
   });
 
   Audit.insert({
@@ -311,8 +327,10 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
   if (user) {
     const token = uuidv4();
     await User.update(user.id, {
+      email: user.email,
       reset_password_token: token,
-      reset_password_expires: new Date(Date.now() + 60 * 60 * 1000)
+      reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
+      token_version: null
     });
     try {
       const template = (await import('./ui/emailTemplates/forgotPassword'))
@@ -363,6 +381,9 @@ async function tokenValidate(req, res): Promise<any> {
   if (user.reset_password_expires < new Date()) {
     NcError.badRequest('Password reset url expired');
   }
+  if (!user.token_version) {
+    NcError.badRequest('Token Expired. Please login again.');
+  }
   res.json(true);
 }
 
@@ -389,8 +410,10 @@ async function passwordReset(req, res): Promise<any> {
   await User.update(user.id, {
     salt,
     password,
+    email: user.email,
     reset_password_expires: null,
-    reset_password_token: ''
+    reset_password_token: '',
+    token_version: null
   });
 
   Audit.insert({
@@ -416,6 +439,7 @@ async function emailVerification(req, res): Promise<any> {
   }
 
   await User.update(user.id, {
+    email: user.email,
     email_verification_token: '',
     email_verified: true
   });
@@ -446,6 +470,7 @@ async function refreshToken(req, res): Promise<any> {
     const refreshToken = randomTokenString();
 
     await User.update(user.id, {
+      email: user.email,
       refresh_token: refreshToken
     });
 

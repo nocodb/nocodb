@@ -224,6 +224,8 @@
     "open-cli": "^5.0.0",
     "prettier": "^1.19.1",
     "raw-body": "^2.4.1",
+    "rewire": "^6.0.0",
+    "sinon": "^14.0.0",
     "standard-version": "^8.0.1",
     "supertest": "^4.0.2",
     "terser-webpack-plugin": "^4.1.0",

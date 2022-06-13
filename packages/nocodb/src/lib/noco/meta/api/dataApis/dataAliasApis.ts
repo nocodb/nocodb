@@ -8,7 +8,7 @@ import View from '../../../../noco-models/View';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { getViewAndModelFromRequestByAliasOrId } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
-import getAst from '../../../../dataMapper/lib/sql/helpers/getAst';
+import { getAst } from '../../../../dataMapper/lib/sql/helpers/getAstExporter';
 
 async function dataList(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
@@ -156,15 +156,9 @@ async function getFindOne(model, view: View, req) {
   } catch (e) {}
 
   const data = await baseModel.findOne(args);
+  const getAstValue = await getAst({ model, query: args, view });
 
-  return data
-    ? await nocoExecute(
-        await getAst({ model, query: args, view }),
-        data,
-        {},
-        {}
-      )
-    : {};
+  return data ? await nocoExecute(getAstValue, data, {}, {}) : {};
 }
 
 async function dataRead(req: Request, res: Response) {

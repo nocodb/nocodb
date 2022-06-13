@@ -242,9 +242,9 @@
 
                       <p
                         v-else
+                        v-dompurify-html="log.details"
                         class="caption mb-0"
                         style="word-break: break-all"
-                        v-html="log.details"
                       />
 
                       <p class="time text-right mb-0">
@@ -329,6 +329,7 @@ import EditableCell from '~/components/project/spreadsheet/components/EditableCe
 import colors from '@/mixins/colors'
 import VirtualCell from '~/components/project/spreadsheet/components/VirtualCell'
 import VirtualHeaderCell from '~/components/project/spreadsheet/components/VirtualHeaderCell'
+import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText'
 
 const relativeTime = require('dayjs/plugin/relativeTime')
 const utc = require('dayjs/plugin/utc')
@@ -555,8 +556,8 @@ export default {
                 fk_model_id: this.meta.id,
                 column_name: key,
                 row_id: id,
-                value: updatedObj[key],
-                prev_value: this.oldRow[key]
+                value: getPlainText(updatedObj[key]),
+                prev_value: getPlainText(this.oldRow[key])
               })
               .then(() => {
               })

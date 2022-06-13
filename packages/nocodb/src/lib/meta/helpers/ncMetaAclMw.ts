@@ -2,10 +2,14 @@ import projectAcl from '../../utils/projectAcl';
 import { NextFunction, Request, Response } from 'express';
 import catchError, { NcError } from './catchError';
 import extractProjectIdAndAuthenticate from './extractProjectIdAndAuthenticate';
+import NocoCache from '../../cache/NocoCache';
+import Noco from '../../Noco';
+import { CacheGetType, CacheScope, MetaTable } from '../../utils/globals';
+
 export default function(handlerFn, permissionName) {
   return [
     extractProjectIdAndAuthenticate,
-    catchError(function authMiddleware(req, _res, next) {
+    catchError(async function authMiddleware(req, _res, next) {
       const roles = req?.session?.passport?.user?.roles;
       if (
         !(
@@ -19,6 +23,23 @@ export default function(handlerFn, permissionName) {
         )
       ) {
         NcError.unauthorized('Unauthorized access');
+      }
+
+      // check if the token is still valid
+      const email = req?.session?.passport?.user?.email;
+      let user =
+        email &&
+        (await NocoCache.get(
+          `${CacheScope.USER}:${email}`,
+          CacheGetType.TYPE_OBJECT
+        ));
+      if (!user) {
+        user = await Noco.ncMeta.metaGet2(null, null, MetaTable.USERS, {
+          email
+        });
+      }
+      if (user.token_expired) {
+        NcError.unauthorized('Token Expired. Please login again.');
       }
       next();
     }),

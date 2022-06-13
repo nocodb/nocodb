@@ -206,9 +206,9 @@ By default, SQLite is used for storing meta data. However, you can specify your 
 | NC_SENTRY_DSN                      | No        | For Sentry monitoring                                                                                                   |                                                                                                |   |
 | NC_DISABLE_ERR_REPORT              | No        | Disable error reporting                                                                                                 |                                                                                                |   |
 | NC_REDIS_URL                       | No        | Custom Redis URL. Example: `redis://:authpassword@127.0.0.1:6380/4`                                                     | Meta data will be stored in memory                                                             |   |
-| NC_DISABLE_CACHE                   | No        | To be used only while debugging. On setting this to `true` - meta data be fetched from db instead of redis/cache.           | `false`                                                                                    |   |
+| NC_DISABLE_CACHE                   | No        | To be used only while debugging. On setting this to `true` - meta data be fetched from db instead of redis/cache.       | `false`                                                                                    |   |
 | NC_BASEURL_INTERNAL                | No        | Used as base url for internal(server) API calls                                                                         | Default value in docker will be `http://localhost:$PORT` and in all other case it's populated from request object |   |
-
+| NC_DD_APM_ENABLED                  | No        | Enables datadog tracing of the app if `true`                                                                            | `false`                                                                                        |   |
 ### AWS ECS (Fargate)
 
 #### Create ECS Cluster

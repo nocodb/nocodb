@@ -153,7 +153,7 @@ class BaseModelSqlv2 {
     } else if (this.model.primaryKey) {
       qb.orderBy(this.model.primaryKey.column_name);
     }
-    const data = await this.run(qb.first());
+    const data = await this.extractRawQueryAndExec(qb.first());
 
     if (data) {
       const proto = await this.getProto();

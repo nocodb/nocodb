@@ -3,6 +3,7 @@
     <v-datetime-picker
       ref="picker"
       v-model="localState"
+      v-if="!showMessage"
       class="caption xc-date-time-picker"
       :text-field-props="{
         class:'caption mt-0 pt-0',
@@ -16,6 +17,10 @@
       }"
       v-on="parentListeners"
     />
+    <div v-if="showMessage" class="edit-warning">
+      <!-- TODO: i18n -->
+      ERR: Couldn't parse {{ this.value }}
+    </div>
   </div>
 </template>
 
@@ -31,6 +36,9 @@ export default {
   props: {
     value: [String, Date, Number], ignoreFocus: Boolean
   },
+  data: () => ({
+    showMessage: false
+  }),
   computed: {
     isMysql() {
       return ['mysql', 'mysql2'].indexOf(this.$store.getters['project/GtrClientType'])
@@ -40,8 +48,12 @@ export default {
         if (!this.value) {
           return this.value
         }
-        return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
-          .format('YYYY-MM-DD HH:mm')
+        const d = (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
+        if (d.isValid()) {
+          return d.format('YYYY-MM-DD HH:mm')
+        } else {
+          this.showMessage = true
+        }
       },
       set(value) {
         if (this.isMysql) {
@@ -84,6 +96,12 @@ export default {
   margin-top: 0 !important;
   padding-top: 0 !important;
   font-size: inherit !important;
+}
+
+.edit-warning {
+  padding: 10px;
+  text-align: left;
+  color: #E65100;
 }
 </style>
 <!--

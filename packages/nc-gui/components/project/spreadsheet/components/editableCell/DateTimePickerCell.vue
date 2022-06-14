@@ -65,6 +65,13 @@ export default {
     }
   },
   mounted() {
+    // listen dialog click:outside event and save on close
+    if (this.$refs.picker && this.$refs.picker.$children && this.$refs.picker.$children[0]) {
+      this.$refs.picker.$children[0].$on('click:outside', () => {
+        this.$refs.picker.okHandler()
+      })
+    }
+
     if (!this.ignoreFocus) {
       this.$refs.picker.display = true
     }

@@ -112,6 +112,8 @@ jobs:
   publish-docs:
     needs: close-resolved-issues
     uses: ./.github/workflows/publish-docs.yml
+    secrets:
+      GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
   # Change nocodb-sdk back to local path
   update-sdk-path:

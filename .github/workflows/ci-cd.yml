@@ -12,6 +12,7 @@ on:
             - ".github/workflows/ci-cd.yml"
     pull_request:
         branches: [develop]
+        types: [opened, synchronize, reopened, converted_to_draft]
         paths:
             - "packages/nc-gui/**"
             - "scripts/cypress/**"

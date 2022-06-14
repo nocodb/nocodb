@@ -1,21 +1,27 @@
 <template>
   <div>
-    <v-datetime-picker
-      ref="picker"
-      v-model="localState"
-      class="caption xc-date-time-picker"
-      :text-field-props="{
-        class:'caption mt-0 pt-0',
-        flat:true,
-        solo:true,
-        dense:true,
-        hideDetails:true
-      }"
-      :time-picker-props="{
-        format:'24hr'
-      }"
-      v-on="parentListeners"
-    />
+    <div v-show="!showMessage">
+      <v-datetime-picker
+        ref="picker"
+        v-model="localState"
+        class="caption xc-date-time-picker"
+        :text-field-props="{
+          class:'caption mt-0 pt-0',
+          flat:true,
+          solo:true,
+          dense:true,
+          hideDetails:true
+        }"
+        :time-picker-props="{
+          format:'24hr'
+        }"
+        v-on="parentListeners"
+      />
+    </div>
+    <div v-show="showMessage" class="edit-warning" @dblclick="$refs.picker.display = true">
+      <!-- TODO: i18n -->
+      ERR: Couldn't parse {{ this.value }}
+    </div>
   </div>
 </template>
 
@@ -31,6 +37,9 @@ export default {
   props: {
     value: [String, Date, Number], ignoreFocus: Boolean
   },
+  data: () => ({
+    showMessage: false
+  }),
   computed: {
     isMysql() {
       return ['mysql', 'mysql2'].indexOf(this.$store.getters['project/GtrClientType'])
@@ -40,8 +49,13 @@ export default {
         if (!this.value) {
           return this.value
         }
-        return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
-          .format('YYYY-MM-DD HH:mm')
+        const d = (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
+        if (d.isValid()) {
+          this.showMessage = false
+          return d.format('YYYY-MM-DD HH:mm')
+        } else {
+          this.showMessage = true
+        }
       },
       set(value) {
         if (this.isMysql) {
@@ -65,6 +79,13 @@ export default {
     }
   },
   mounted() {
+    // listen dialog click:outside event and save on close
+    if (this.$refs.picker && this.$refs.picker.$children && this.$refs.picker.$children[0]) {
+      this.$refs.picker.$children[0].$on('click:outside', () => {
+        this.$refs.picker.okHandler()
+      })
+    }
+
     if (!this.ignoreFocus) {
       this.$refs.picker.display = true
     }
@@ -77,6 +98,12 @@ export default {
   margin-top: 0 !important;
   padding-top: 0 !important;
   font-size: inherit !important;
+}
+
+.edit-warning {
+  padding: 10px;
+  text-align: left;
+  color: #E65100;
 }
 </style>
 <!--

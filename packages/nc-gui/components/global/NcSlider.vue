@@ -26,9 +26,22 @@ export default {
   mounted() {
     (document.querySelector('[data-app]') || this.$root.$el).append(this.$el)
   },
-
   destroyed() {
     this.$el.parentNode && this.$el.parentNode.removeChild(this.$el)
+  },
+  created() {
+    document.body.addEventListener('keyup', this.onKeyup, true)
+  },
+  beforeDestroy() {
+    document.body.removeEventListener('keyup', this.onKeyup, true)
+  },
+
+  methods: {
+    onKeyup(e) {
+      if (e.key === 'Escape') {
+        this.modal = false
+      }
+    }
   }
 }
 </script>

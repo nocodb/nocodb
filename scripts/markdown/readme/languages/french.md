@@ -6,7 +6,7 @@
 
 </h1>
 <p align="center">
-Tournez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb dans une feuille de calcul intelligente. 
+Transformez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb en un tableur intelligent. 
 </p>
 <div align="center">
  
@@ -33,10 +33,11 @@ Tournez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb dans une 
 </p>
 
 
-# Essayer rapidement
-### 1-Click Deploy
+# Essayez rapidement
+### Déploiement en 1 Clic
 
 #### Heroku
+Avant de le faire, assurez-vous que vous avez un compte Heroku. Par défaut, un add-on Heroku Postgres sera utilisé comme meta database. Vous pouvez voir la string pour se connecter définie en tant que `DATABASE_URL` en naviguant dans Heroku App Settings et en sélectionnant Config Vars.
 <a href="https://heroku.com/deploy?template=https://github.com/nocodb/nocodb-seed-heroku">
     <img 
     src="https://www.herokucdn.com/deploy/button.svg" 
@@ -46,25 +47,31 @@ Tournez n'importe quel MySQL, PostgreSQL, SQL Server, SQLite & Mariadb dans une 
 </a>
 <br>
 
-### Utiliser Docker
+### Utilisez Docker
 ```bash
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- If this input is absent, we fallback to SQLite. In order too persist sqlite, you can mount `/usr/app/data/`. 
+- NocoDB a besoin d'une base de données en entrée : Voir [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- Si cette entrée est absente, nous utiliserons SQLite. Afin de conserver Sqlite, vous pouvez rentrer l'information `/usr/app/data/`. 
 
-  Example:
+  Exemple:
 
   ```
   docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
   ```
-> To persist data you can mount volume at `/usr/app/data/`.
+> Pour conserver les données, vous pouvez installer le volume dans `/usr/app/data/`.
 
-### En utilisant npm
+### NPX
+
+Vous pouvez exécuter la commande ci-dessous pour passer par la configuration interactive.
+
 ```
 npx create-nocodb-app
 ```
+
+<img src="https://user-images.githubusercontent.com/35857179/163672964-00ef5d62-0434-447d-ac01-3ebb780099b9.png" width="520px"/>
+
 ### En utilisant git
 ```
 git clone https://github.com/nocodb/nocodb-seed
@@ -132,18 +139,20 @@ Accès au tableau de bord en utilisant : [http://localhost:8080/dashboard](http:
 - ⚡ Contrôle d'accès: contrôle d'accès à grain fin, même à la base de données, au niveau de la table et de la colonne.
 
 ### App Store for Workflow Automation
-- ⚡ Chat: équipes de Microsoft, relais, discorde, la plus grande
-- ⚡ Email: SMTP, SES, MailChimp
+
+Nous proposons différentes intégrations dans trois catégories principales. Voir <a href="https://docs.nocodb.com/setup-and-usages/app-store" target="_blank">l'App Store</a> pour plus de détails.
+
+- ⚡ Chat: Slack, Discord, Mattermost, Microsoft Teams, WhatsApp, etc
+- ⚡ Email: AWS SES, SMTP, MailerSend, etc
 - ⚡ SMS: Twilio
-- ⚡ WhatsApp
-- ⚡ Toute API tierce
+- ⚡ Stockage : AWS S3, Google Cloud Storage, Minio, etc
 
-### Accès d'API programmatique via
-- ⚡ Apis de repos (Swagger)
-- ⚡ API GraphQL.
-- ⚡ inclut l'authentification JWT et l'authentification sociale
-- ⚡ Jetons API à intégrer avec Zapier, Integromat.
+### Accès à l'API via
 
+Nous proposons les moyens suivants pour permettre aux utilisateurs d'invoquer des actions de manière programmée. Vous pouvez utiliser un jeton (soit JWT ou Social Auth) pour valider vos demandes d'autorisation à NocoDB. 
+
+- ⚡ REST API
+- ⚡ NocoDB SDK
 
 # Configuration de la production 
 NocoDB nécessite une base de données pour stocker les métadonnées des vues des feuilles de calcul et des bases de données externes. Et les paramètres de connexion pour cette base de données peuvent être spécifiés dans la variable d'environnement `NC_DB`. 

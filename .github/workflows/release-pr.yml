@@ -5,7 +5,8 @@ on:
     # opened: pull request is created
     # reopened: closed pull request is reopened
     # synchronize: commit(s) pushed to the pull request
-    types: [opened, reopened, synchronize]
+    # ready_for_review: non PR release
+    types: [opened, reopened, synchronize, ready_for_review]
     paths:
       - "packages/nocodb-sdk/**"
       - "packages/nc-gui/**"
@@ -14,7 +15,7 @@ on:
 jobs:
   # Validate Branch
   validate-branch:
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
     runs-on: ubuntu-latest
     steps:
       - run: |
@@ -25,7 +26,7 @@ jobs:
 
   # enrich tag for pr release
   set-tag:
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
     runs-on: 'ubuntu-latest'
     needs: [validate-branch]
     steps:
@@ -53,7 +54,7 @@ jobs:
 
   # Build, install, publish frontend and backend to npm
   release-npm:
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
     needs: [set-tag]
     uses: ./.github/workflows/release-npm.yml
     with:
@@ -64,7 +65,7 @@ jobs:
 
   # Build docker image and push to docker hub
   release-docker:
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
     needs: [release-npm, set-tag]
     uses: ./.github/workflows/release-docker.yml
     with:
@@ -84,7 +85,7 @@ jobs:
   #         echo docker run -d -p 8888:8080 nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
   
   leave-comment:
-    if: ${{ github.actor != 'dependabot[bot]' }}
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
     runs-on: 'ubuntu-latest'
     needs: [release-docker, set-tag]
     steps:

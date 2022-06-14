@@ -33,6 +33,7 @@
     "stop:pg": "docker-compose -f ./scripts/cypress/docker-compose-pg.yml down"
   },
   "dependencies": {
+    "express": "^4.18.1",
     "mysql2": "^2.3.3",
     "pg": "^8.7.3",
     "sqlite3": "^5.0.2"

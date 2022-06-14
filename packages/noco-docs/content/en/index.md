@@ -91,7 +91,7 @@ Please refer to [Development Setup](https://github.com/nocodb/nocodb#development
 
 ### Committing Changes
 
-We encourage all contributors to commit messages following [Commit Message Convention](./COMMIT_CONVENTION.md).
+We encourage all contributors to commit messages following [Commit Message Convention](https://github.com/nocodb/nocodb/blob/master/.github/COMMIT_CONVENTION.md).
 
 ### Applying License
 

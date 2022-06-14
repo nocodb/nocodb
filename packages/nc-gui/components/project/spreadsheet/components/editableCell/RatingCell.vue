@@ -5,7 +5,7 @@
       :length="ratingMeta.max"
       dense
       x-small
-      :disabled="readOnly"
+      :readonly="readOnly"
       clearable
     >
       <template #item="{isFilled, click}">

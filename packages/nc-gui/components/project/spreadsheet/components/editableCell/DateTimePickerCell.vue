@@ -1,23 +1,24 @@
 <template>
   <div>
-    <v-datetime-picker
-      ref="picker"
-      v-model="localState"
-      v-if="!showMessage"
-      class="caption xc-date-time-picker"
-      :text-field-props="{
-        class:'caption mt-0 pt-0',
-        flat:true,
-        solo:true,
-        dense:true,
-        hideDetails:true
-      }"
-      :time-picker-props="{
-        format:'24hr'
-      }"
-      v-on="parentListeners"
-    />
-    <div v-if="showMessage" class="edit-warning">
+    <div v-show="!showMessage">
+      <v-datetime-picker
+        ref="picker"
+        v-model="localState"
+        class="caption xc-date-time-picker"
+        :text-field-props="{
+          class:'caption mt-0 pt-0',
+          flat:true,
+          solo:true,
+          dense:true,
+          hideDetails:true
+        }"
+        :time-picker-props="{
+          format:'24hr'
+        }"
+        v-on="parentListeners"
+      />
+    </div>
+    <div v-show="showMessage" class="edit-warning" @dblclick="$refs.picker.display = true">
       <!-- TODO: i18n -->
       ERR: Couldn't parse {{ this.value }}
     </div>
@@ -50,6 +51,7 @@ export default {
         }
         const d = (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
         if (d.isValid()) {
+          this.showMessage = false
           return d.format('YYYY-MM-DD HH:mm')
         } else {
           this.showMessage = true

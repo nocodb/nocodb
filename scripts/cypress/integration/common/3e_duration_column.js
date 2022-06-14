@@ -46,8 +46,6 @@ export const genTest = (apiType, dbType) => {
             fetchParentFromLabel("Duration Format");
             cy.getActiveMenu().contains(durationFormat).click();
 
-            cy.snipActiveMenu("Duration");
-
             // click on Save
             cy.get(".nc-col-create-or-edit-card").contains("Save").click();
 
@@ -94,8 +92,6 @@ export const genTest = (apiType, dbType) => {
             fetchParentFromLabel("Duration Format");
             cy.getActiveMenu().contains(newDurationFormat).click();
 
-            cy.snipActiveMenu("Duration");
-
             cy.get(".nc-col-create-or-edit-card")
                 .contains("Save")
                 .click({ force: true });
@@ -109,13 +105,15 @@ export const genTest = (apiType, dbType) => {
 
         const addDurationData = (colName, index, cellValue, expectedValue) => {
             cy.get(".nc-add-new-row-btn:visible").should("exist");
+            cy.wait(500)
+
             cy.get(".nc-add-new-row-btn").click({ force: true });
-            // FIXME: 
-            cy.get(`#data-table-form-${colName} > input`).first().type(cellValue);
-            cy.snipActiveModal("Modal_AddNewRow");
+            cy.get(`.duration-cell-wrapper > input`).first().should('exist').type(cellValue);
             cy.getActiveModal().find("button").contains("Save row").click({ force: true });
-            cy.toastWait("updated successfully");
-            mainPage.getCell(colName, index).contains(expectedValue).should("exist");
+            cy.toastWait("Row updated successfully");
+            mainPage.getCell(colName, index).find('input').then(($e) => {
+                expect($e[0].value).to.equal(expectedValue)
+            })
         }
 
         ///////////////////////////////////////////////////

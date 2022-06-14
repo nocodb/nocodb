@@ -5,6 +5,9 @@ on:
   workflow_dispatch:
   # Triggered by release-nocodb.yml
   workflow_call:
+    secrets:
+      GH_TOKEN:
+        required: true
 
 jobs:
   copy-file:

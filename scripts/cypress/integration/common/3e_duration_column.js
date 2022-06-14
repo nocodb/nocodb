@@ -8,23 +8,23 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
     describe(`${apiType.toUpperCase()} api - DURATION`, () => {
+        const tableName = "DurationTable";
+
         // to retrieve few v-input nodes from their label
         //
         const fetchParentFromLabel = (label) => {
             cy.get("label").contains(label).parents(".v-input").click();
         };
 
-        // Run once before test- create project
+        // Run once before test- create table
         //
         before(() => {
             mainPage.tabReset();
-            // open a table to work on views
-            //
-            cy.openTableTab("City", 25);
+            cy.createTable(tableName);
         });
 
         after(() => {
-            cy.closeTableTab("City");
+            cy.deleteTable(tableName);
         });
 
         // Routine to create a new look up column
@@ -107,28 +107,40 @@ export const genTest = (apiType, dbType) => {
             cy.get(`th:contains(${newName})`).should("exist");
         };
 
+        const addDurationData = (colName, index, cellValue, expectedValue) => {
+            cy.get(".nc-add-new-row-btn:visible").should("exist");
+            cy.get(".nc-add-new-row-btn").click({ force: true });
+            // FIXME: 
+            cy.get(`#data-table-form-${colName} > input`).first().type(cellValue);
+            cy.snipActiveModal("Modal_AddNewRow");
+            cy.getActiveModal().find("button").contains("Save row").click({ force: true });
+            cy.toastWait("updated successfully");
+            mainPage.getCell(colName, index).contains(expectedValue).should("exist");
+        }
+
         ///////////////////////////////////////////////////
         // Test case
 
         it("Duration: h:mm", () => {
             addDurationColumn("NC_DURATION_0", "h:mm (e.g. 1:23)");
+            addDurationData("NC_DURATION_0", 1, "1:30", "01:30")
         });
 
-        it("Duration: h:mm:ss", () => {
-            addDurationColumn("NC_DURATION_1", "h:mm:ss (e.g. 3:45, 1:23:40)");
-        });
+        // it("Duration: h:mm:ss", () => {
+        //     addDurationColumn("NC_DURATION_1", "h:mm:ss (e.g. 3:45, 1:23:40)");
+        // });
 
-        it("Duration: h:mm:ss.s", () => {
-            addDurationColumn("NC_DURATION_2", "h:mm:ss.s (e.g. 3:34.6, 1:23:40.0)");
-        });
+        // it("Duration: h:mm:ss.s", () => {
+        //     addDurationColumn("NC_DURATION_2", "h:mm:ss.s (e.g. 3:34.6, 1:23:40.0)");
+        // });
 
-        it("Duration: h:mm:ss.ss", () => {
-            addDurationColumn("NC_DURATION_3", "h:mm:ss.ss (e.g. 3.45.67, 1:23:40.00)");
-        });
+        // it("Duration: h:mm:ss.ss", () => {
+        //     addDurationColumn("NC_DURATION_3", "h:mm:ss.ss (e.g. 3.45.67, 1:23:40.00)");
+        // });
 
-        it("Duration: h:mm:ss.sss", () => {
-            addDurationColumn("NC_DURATION_4", "h:mm:ss.sss (e.g. 3.45.678, 1:23:40.000)");
-        });
+        // it("Duration: h:mm:ss.sss", () => {
+        //     addDurationColumn("NC_DURATION_4", "h:mm:ss.sss (e.g. 3.45.678, 1:23:40.000)");
+        // });
 
         // Update Duration column name with a new format (type_idx + 1 % 5) 
 
@@ -140,68 +152,45 @@ export const genTest = (apiType, dbType) => {
             );
         });
 
-        it("Duration: Edit Column NC_DURATION_1", () => {
-            editColumnByName(
-                "NC_DURATION_1",
-                "NC_DURATION_EDITED_1",
-                "h:mm:ss.s (e.g. 3:34.6, 1:23:40.0)"
-            );
-        });
+        // it("Duration: Edit Column NC_DURATION_1", () => {
+        //     editColumnByName(
+        //         "NC_DURATION_1",
+        //         "NC_DURATION_EDITED_1",
+        //         "h:mm:ss.s (e.g. 3:34.6, 1:23:40.0)"
+        //     );
+        // });
 
-        it("Duration: Edit Column NC_DURATION_2", () => {
-            editColumnByName(
-                "NC_DURATION_2",
-                "NC_DURATION_EDITED_2",
-                "h:mm:ss (e.g. 3:45, 1:23:40)"
-            );
-        });
+        // it("Duration: Edit Column NC_DURATION_2", () => {
+        //     editColumnByName(
+        //         "NC_DURATION_2",
+        //         "NC_DURATION_EDITED_2",
+        //         "h:mm:ss (e.g. 3:45, 1:23:40)"
+        //     );
+        // });
 
-        it("Duration: Edit Column NC_DURATION_3", () => {
-            editColumnByName(
-                "NC_DURATION_3",
-                "NC_DURATION_EDITED_3",
-                "h:mm:ss.ss (e.g. 3.45.67, 1:23:40.00)"
-            );
-        });
+        // it("Duration: Edit Column NC_DURATION_3", () => {
+        //     editColumnByName(
+        //         "NC_DURATION_3",
+        //         "NC_DURATION_EDITED_3",
+        //         "h:mm:ss.ss (e.g. 3.45.67, 1:23:40.00)"
+        //     );
+        // });
 
-        it("Duration: Edit Column NC_DURATION_4", () => {
-            editColumnByName(
-                "NC_DURATION_4",
-                "NC_DURATION_EDITED_4",
-                "h:mm (e.g. 1:23)"
-            );
-        });
+        // it("Duration: Edit Column NC_DURATION_4", () => {
+        //     editColumnByName(
+        //         "NC_DURATION_4",
+        //         "NC_DURATION_EDITED_4",
+        //         "h:mm (e.g. 1:23)"
+        //     );
+        // });
 
         it("Duration: Delete column", () => {
             deleteColumnByName("NC_DURATION_EDITED_0");
-            deleteColumnByName("NC_DURATION_EDITED_1");
-            deleteColumnByName("NC_DURATION_EDITED_2");
-            deleteColumnByName("NC_DURATION_EDITED_3");
-            deleteColumnByName("NC_DURATION_EDITED_4");
+            // deleteColumnByName("NC_DURATION_EDITED_1");
+            // deleteColumnByName("NC_DURATION_EDITED_2");
+            // deleteColumnByName("NC_DURATION_EDITED_3");
+            // deleteColumnByName("NC_DURATION_EDITED_4");
         });
-
-        it("Duration: Add data with h:mm", () => {
-            // TODO:
-        });
-
-        it("Duration: Add data with h:mm:ss", () => {
-            // TODO:
-        });
-
-        it("Duration: Add data with h:mm:ss.s", () => {
-            // TODO:
-        });
-
-        it("Duration: Add data with h:mm:ss.ss", () => {
-            // TODO:
-        });
-
-        it("Duration: Add data with h:mm:ss.sss", () => {
-            // TODO:
-        });
-
-        // TODO: Change format to verify the data
-        // ...
     });
 };
 

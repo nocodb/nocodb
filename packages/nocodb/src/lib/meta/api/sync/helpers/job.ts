@@ -1628,10 +1628,11 @@ export default async (
       );
       const _perfStart = recordPerfStart();
       insertJobs.push(
-        api.auth.projectUserAdd(ncCreatedProjectSchema.id, {
-          email: value.email,
-          roles: userRoles[value.permissionLevel]
-        })
+          api.auth.projectUserAdd(ncCreatedProjectSchema.id, {
+            email: value.email,
+            roles: userRoles[value.permissionLevel]
+          })
+          .catch(e => e.response?.data?.msg ? logBasic(`NOTICE: ${e.response.data.msg}`) : console.log(e))
       );
       recordPerfStats(_perfStart, 'auth.projectUserAdd');
     }

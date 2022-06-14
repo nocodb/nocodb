@@ -211,14 +211,15 @@ export default async (
     const col_alias = name.trim().replace(/\./g, '_');
 
     // check if already a column exists with same name?
-    const duplicateColumn = table.columns.find(x => x.title === col_alias);
-    if (duplicateColumn) {
-      if (enableErrorLogs) console.log(`## Duplicate ${col_alias}`);
+    const duplicateTitle = table.columns.find(x => x.title?.toLowerCase() === col_alias?.toLowerCase());
+    const duplicateColumn = table.columns.find(x => x.column_name?.toLowerCase() === col_name?.toLowerCase());
+    if (duplicateTitle) {
+      if (enableErrorLogs) console.log(`## Duplicate title ${col_alias}`);
     }
 
     return {
       // kludge: error observed in Nc with space around column-name
-      title: col_alias + (duplicateColumn ? '_2' : ''),
+      title: col_alias + (duplicateTitle ? '_2' : ''),
       column_name: col_name + (duplicateColumn ? '_2' : '')
     };
   }

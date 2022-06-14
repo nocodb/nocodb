@@ -110,7 +110,7 @@ jobs:
 
   # Publish Docs
   publish-docs:
-    needs: release-docker
+    needs: close-resolved-issues
     uses: ./.github/workflows/publish-docs.yml
 
   # Change nocodb-sdk back to local path

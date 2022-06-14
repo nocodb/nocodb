@@ -10,7 +10,6 @@ import User from '../../../models/User';
 import { Tele } from 'nc-help';
 
 const { v4: uuidv4 } = require('uuid');
-import * as jwt from 'jsonwebtoken';
 import Audit from '../../../models/Audit';
 import crypto from 'crypto';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
@@ -20,6 +19,7 @@ import extractProjectIdAndAuthenticate from '../../helpers/extractProjectIdAndAu
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { MetaTable } from '../../../utils/globals';
 import Noco from '../../../Noco';
+import { genJwt } from './helpers';
 
 export async function signup(req: Request, res: Response<TableType>) {
   const {
@@ -147,18 +147,7 @@ export async function signup(req: Request, res: Response<TableType>) {
   });
 
   res.json({
-    token: jwt.sign(
-      {
-        email: user.email,
-        firstname: user.firstname,
-        lastname: user.lastname,
-        id: user.id,
-        roles: user.roles,
-        token_version: user.token_version
-      },
-      Noco.getConfig().auth.jwt.secret,
-      Noco.getConfig().auth.jwt.options
-    )
+    token: genJwt(user, Noco.getConfig())
   } as any);
 }
 
@@ -205,19 +194,7 @@ async function successfulSignIn({
     });
 
     res.json({
-      token: jwt.sign(
-        {
-          email: user.email,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          id: user.id,
-          roles: user.roles,
-          token_version
-        },
-
-        Noco.getConfig().auth.jwt.secret,
-        Noco.getConfig().auth.jwt.options
-      )
+      token: genJwt(user, Noco.getConfig())
     } as any);
   } catch (e) {
     console.log(e);
@@ -477,17 +454,7 @@ async function refreshToken(req, res): Promise<any> {
     setTokenCookie(res, refreshToken);
 
     res.json({
-      token: jwt.sign(
-        {
-          email: user.email,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          id: user.id,
-          roles: user.roles
-        },
-        Noco.getConfig().auth.jwt.secret,
-        Noco.getConfig().auth.jwt.options
-      )
+      token: genJwt(user, Noco.getConfig())
     } as any);
   } catch (e) {
     return res.status(400).json({ msg: e.message });

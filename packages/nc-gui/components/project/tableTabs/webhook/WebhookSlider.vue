@@ -72,6 +72,6 @@ export default {
 
 <style scoped lang="scss">
 ::v-deep{
-  .nc-content{max-width: 600px !important}
+  .nc-content{max-width: 700px !important}
 }
 </style>

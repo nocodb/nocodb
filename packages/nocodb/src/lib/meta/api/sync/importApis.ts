@@ -7,7 +7,7 @@ import NocoJobs from '../../../jobs/NocoJobs';
 import job, { AirtableSyncConfig } from './helpers/job';
 import SyncSource from '../../../models/SyncSource';
 import Noco from '../../../Noco';
-import * as jwt from 'jsonwebtoken';
+import { genJwt } from '../userApi/helpers';
 const AIRTABLE_IMPORT_JOB = 'AIRTABLE_IMPORT_JOB';
 const AIRTABLE_PROGRESS_JOB = 'AIRTABLE_PROGRESS_JOB';
 
@@ -76,18 +76,7 @@ export default (router: Router, clients: { [id: string]: Socket }) => {
       const syncSource = await SyncSource.get(req.params.syncId);
 
       const user = await syncSource.getUser();
-      const token = jwt.sign(
-        {
-          email: user.email,
-          firstname: user.firstname,
-          lastname: user.lastname,
-          id: user.id,
-          roles: user.roles
-        },
-
-        Noco.getConfig().auth.jwt.secret,
-        Noco.getConfig().auth.jwt.options
-      );
+      const token = genJwt(user, Noco.getConfig());
 
       // Treat default baseUrl as siteUrl from req object
       let baseURL = (req as any).ncSiteUrl;

@@ -78,6 +78,7 @@ jobs:
     with:
       tag: ${{ needs.process-input.outputs.target_tag }}
       prev_tag: ${{ needs.process-input.outputs.prev_tag }}
+      tagHeadSHA: 'N'
     secrets:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 

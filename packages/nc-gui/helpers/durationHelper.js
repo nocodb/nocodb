@@ -56,7 +56,7 @@ export const convertMS2Duration = (val, durationType) => {
     return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}`
   } else if (durationType === 2) {
     // h:mm:ss.s
-    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${padZero(deciseconds)}`
+    return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${deciseconds}`
   } else if (durationType === 3) {
     // h:mm:ss.ss
     return `${padZero(hours)}:${padZero(minutes)}:${padZero(seconds)}.${padZero(centiseconds)}`

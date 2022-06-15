@@ -42,6 +42,7 @@ import { Tele } from 'nc-help';
 import * as http from 'http';
 import weAreHiring from './utils/weAreHiring';
 import getInstance from './utils/getInstance';
+import initAdminFromEnv from './meta/api/userApi/initAdminFromEnv';
 
 const log = debug('nc:app');
 require('dotenv').config();
@@ -186,8 +187,8 @@ export default class Noco {
     }
 
     await Noco._ncMeta.metaInit();
-
     await this.readOrGenJwtSecret();
+    await initAdminFromEnv();
 
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
 

@@ -244,10 +244,7 @@ export default {
         ],
         password: [
           // Password is required
-          v => !!v || this.$t('msg.error.signUpRules.passwdRequired'),
-          // You password must be atleast 8 characters
-          v =>
-            (v && v.length >= 8) || this.$t('msg.error.signUpRules.passwdLength')
+          v => !!v || this.$t('msg.error.signUpRules.passwdRequired')
         ]
       },
       formUtil: {

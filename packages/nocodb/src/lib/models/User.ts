@@ -48,7 +48,9 @@ export default class User implements UserType {
       'token_version'
     ]);
 
-    insertObj.email = insertObj.email?.toLowerCase();
+    if (insertObj.email) {
+      insertObj.email = insertObj.email.toLowerCase();
+    }
 
     const { id } = await ncMeta.metaInsert2(
       null,
@@ -80,7 +82,9 @@ export default class User implements UserType {
       'token_version'
     ]);
 
-    updateObj.email = updateObj.email?.toLowerCase();
+    if (updateObj.email) {
+      updateObj.email = updateObj.email.toLowerCase();
+    }
     // get existing cache
     const keys = [
       // update user:<id>

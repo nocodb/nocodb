@@ -16,7 +16,7 @@ Click `Let's Begin` button to sign up.
 
 Enter your work email and your password.
 
-<alert>
+<alert id="password-conditions">
   Your password has at least 8 letters with one uppercase, one number and one special letter
 </alert>
 

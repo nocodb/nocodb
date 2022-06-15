@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TableType } from 'nocodb-sdk';
+import { TableType, validatePassword } from 'nocodb-sdk';
 import catchError, { NcError } from '../../helpers/catchError';
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';
@@ -30,6 +30,12 @@ export async function signup(req: Request, res: Response<TableType>) {
     ignore_subscribe
   } = req.body;
   let { password } = req.body;
+
+  // validate password and throw error if password is satisfying the conditions
+  const { valid, error } = validatePassword(password);
+  if (!valid) {
+    NcError.badRequest(`Password : ${error}`);
+  }
 
   if (!isEmail(_email)) {
     NcError.badRequest(`Invalid email`);
@@ -262,6 +268,13 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
   if (!currentPassword || !newPassword) {
     return NcError.badRequest('Missing new/old password');
   }
+
+  // validate password and throw error if password is satisfying the conditions
+  const { valid, error } = validatePassword(newPassword);
+  if (!valid) {
+    NcError.badRequest(`Password : ${error}`);
+  }
+
   const user = await User.getByEmail((req as any).user.email);
   const hashedPassword = await promisify(bcrypt.hash)(
     currentPassword,
@@ -379,6 +392,12 @@ async function passwordReset(req, res): Promise<any> {
   }
   if (user.provider && user.provider !== 'local') {
     NcError.badRequest('Email registered via social account');
+  }
+
+  // validate password and throw error if password is satisfying the conditions
+  const { valid, error } = validatePassword(req.body.password);
+  if (!valid) {
+    NcError.badRequest(`Password : ${error}`);
   }
 
   const salt = await promisify(bcrypt.genSalt)(10);

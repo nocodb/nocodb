@@ -91,7 +91,7 @@ export default class Plugin implements PluginType {
   /**
    * get plugin by title
    */
-  public static async getPluginByTitle(title: string) {
+  public static async getPluginByTitle(title: string, ncMeta = Noco.ncMeta) {
     let plugin =
       title &&
       (await NocoCache.get(
@@ -99,7 +99,7 @@ export default class Plugin implements PluginType {
         CacheGetType.TYPE_OBJECT
       ));
     if (!plugin) {
-      plugin = await Noco.ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
+      plugin = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
         title
       });
       await NocoCache.set(`${CacheScope.PLUGIN}:${title}`, plugin);

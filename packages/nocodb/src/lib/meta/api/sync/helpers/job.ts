@@ -167,6 +167,10 @@ export default async (
     return ft.view;
   }
 
+  function getRootDbType() {
+    return ncCreatedProjectSchema?.bases[0]?.type;
+  }
+
   // base mapping table
   const aTblNcTypeMap = {
     foreignKey: UITypes.LinkToAnotherRecord,
@@ -488,10 +492,14 @@ export default async (
         // change from default 'tinytext' as airtable allows more than 255 characters
         // for single line text column type
         if (col.type === 'text') ncCol.dt = 'text';
-        if (ncCol.uidt === UITypes.Decimal) {
-          ncCol.dt = 'double';
-          ncCol.dtxp = 22;
-          ncCol.dtxs = '2';
+
+        // #fix-2363-decimal-out-of-range
+        if (['sqlite3', 'mysql2'].includes(getRootDbType())) {
+          if (ncCol.uidt === UITypes.Decimal) {
+            ncCol.dt = 'double';
+            ncCol.dtxp = 22;
+            ncCol.dtxs = '2';
+          }
         }
 
         // additional column parameters when applicable

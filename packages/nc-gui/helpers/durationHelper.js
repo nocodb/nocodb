@@ -8,7 +8,7 @@ export const durationOptions = [
     id: 1,
     title: 'h:mm:ss',
     example: '(e.g. 3:45, 1:23:40)',
-    regex: /(\d+)?(?::(\d+))?(?:(\d+))?/
+    regex: /(\d+)?(?::(\d+))?(?::(\d+))?/
   }, {
     id: 2,
     title: 'h:mm:ss.s',

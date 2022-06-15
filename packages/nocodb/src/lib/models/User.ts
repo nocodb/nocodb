@@ -47,6 +47,11 @@ export default class User implements UserType {
       'roles',
       'token_version'
     ]);
+
+    if (insertObj.email) {
+      insertObj.email = insertObj.email.toLowerCase();
+    }
+
     const { id } = await ncMeta.metaInsert2(
       null,
       null,
@@ -76,6 +81,10 @@ export default class User implements UserType {
       'roles',
       'token_version'
     ]);
+
+    if (updateObj.email) {
+      updateObj.email = updateObj.email.toLowerCase();
+    }
     // get existing cache
     const keys = [
       // update user:<id>
@@ -97,7 +106,8 @@ export default class User implements UserType {
     // set meta
     return await ncMeta.metaUpdate(null, null, MetaTable.USERS, updateObj, id);
   }
-  public static async getByEmail(email, ncMeta = Noco.ncMeta) {
+  public static async getByEmail(_email: string, ncMeta = Noco.ncMeta) {
+    const email = _email?.toLowerCase();
     let user =
       email &&
       (await NocoCache.get(

@@ -237,12 +237,17 @@ export default class Project implements ProjectType {
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {
       // update data
+      // new uuid is generated
       if (o.uuid && updateObj.uuid && o.uuid !== updateObj.uuid) {
         await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
         await NocoCache.set(
           `${CacheScope.PROJECT}:${updateObj.uuid}`,
           projectId
         );
+      }
+      // disable shared base
+      if (o.uuid && updateObj.uuid === null) {
+        await NocoCache.del(`${CacheScope.PROJECT}:${o.uuid}`);
       }
       if (o.title && updateObj.title && o.title !== updateObj.title) {
         await NocoCache.del(`${CacheScope.PROJECT}:${o.title}`);

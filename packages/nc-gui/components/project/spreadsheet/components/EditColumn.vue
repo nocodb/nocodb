@@ -145,7 +145,13 @@
                     there are multiple values associated with a cell
                   </v-alert>
                 </v-col>
-
+                <v-col v-if="isDate" cols="12">
+                  <date-options
+                    v-model="newColumn.meta"
+                    :column="newColumn"
+                    :meta="meta"
+                  />
+                </v-col>
                 <v-col v-if="isSelect" cols="12">
                   <custom-select-options
                     v-model="newColumn.dtxp"
@@ -572,6 +578,7 @@ import { validateColumnName } from '~/helpers'
 import RatingOptions from '~/components/project/spreadsheet/components/editColumn/RatingOptions'
 import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/CheckboxOptions'
 import CurrencyOptions from '@/components/project/spreadsheet/components/editColumn/CurrencyOptions'
+import DateOptions from '@/components/project/spreadsheet/components/editColumn/DateOptions'
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -587,7 +594,8 @@ export default {
     DlgLabelSubmitCancel,
     RelationOptions,
     CustomSelectOptions,
-    CurrencyOptions
+    CurrencyOptions,
+    DateOptions
   },
   props: {
     nodes: Object,
@@ -682,6 +690,9 @@ export default {
     },
     isCurrency() {
       return this.newColumn && this.newColumn.uidt === UITypes.Currency
+    },
+    isDate(){
+      return this.newColumn && this.newColumn.uidt === UITypes.Date
     }
   },
   watch: {

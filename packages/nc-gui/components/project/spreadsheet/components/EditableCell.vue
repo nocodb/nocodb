@@ -58,6 +58,7 @@
     <date-picker-cell
       v-else-if="isDate"
       v-model="localState"
+      :column="column"
       v-on="parentListeners"
     />
 

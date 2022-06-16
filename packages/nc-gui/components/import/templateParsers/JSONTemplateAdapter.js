@@ -43,6 +43,8 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   }
 
   parse() {
+    const jsonData = Array.isArray(this.this.jsonData) ? this.this.jsonData : [this.jsonData]
+
     // for (let i = 0; i < this.wb.SheetNames.length; i++) {
     // const columnNamePrefixRef = { id: 0 }
 
@@ -56,7 +58,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
     // const range = XLSX.utils.decode_range(ws['!ref'])
     // const rows = XLSX.utils.sheet_to_json(ws, { header: 1, blankrows: false, cellDates: true, defval: null })
 
-    const objKeys = Object.keys(this.jsonData[0])
+    const objKeys = Object.keys(jsonData[0])
 
     for (let col = 0; col < objKeys.length; col++) {
       const key = objKeys[col]
@@ -69,18 +71,18 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
 
       table.columns.push(column)
 
-      column.uidt = jsonTypeToUidt[typeof this.jsonData[0][key]] || UITypes.SingleLineText
+      column.uidt = jsonTypeToUidt[typeof jsonData[0][key]] || UITypes.SingleLineText
 
       // todo: optimize
       if (column.uidt === UITypes.SingleLineText) {
         // check for long text
-        if (this.jsonData.some(r =>
+        if (jsonData.some(r =>
           (r[key] || '').toString().match(/[\r\n]/) ||
           (r[key] || '').toString().length > 255)
         ) {
           column.uidt = UITypes.LongText
         } else {
-          const vals = this.jsonData
+          const vals = jsonData
             .map(r => r[key])
             .filter(v => v !== null && v !== undefined && v.toString().trim() !== '')
 
@@ -110,18 +112,18 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
           }
         }
       } else if (column.uidt === UITypes.Number) {
-        if (this.jsonData.slice(1, this.config.maxRowsToParse).some((v) => {
+        if (jsonData.slice(1, this.config.maxRowsToParse).some((v) => {
           return v && v[key] && parseInt(+v[key]) !== +v[key]
         })) {
           column.uidt = UITypes.Decimal
         }
-        if (this.jsonData.every((v, i) => {
+        if (jsonData.every((v, i) => {
           return v[key] && v[key].toString().startsWith('$')
         })) {
           column.uidt = UITypes.Currency
         }
       } else if (column.uidt === UITypes.DateTime) {
-        if (this.jsonData.every((v, i) => {
+        if (jsonData.every((v, i) => {
           return v[key] && v[key].toString().split(' ').length === 1
         })) {
           column.uidt = UITypes.Date
@@ -130,7 +132,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
     }
 
     // let rowIndex = 0
-    for (const row of this.jsonData) {
+    for (const row of jsonData) {
       const rowData = {}
       for (let i = 0; i < table.columns.length; i++) {
         if (table.columns[i].uidt === UITypes.Checkbox) {

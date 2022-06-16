@@ -23,7 +23,7 @@
           </v-tab>
 
           <v-tab-item>
-            <div class="nc-excel-import-tab-item ">
+            <div class="nc-json-import-tab-item ">
               <div
                 class="nc-droppable d-flex align-center justify-center flex-column"
                 :style="{
@@ -57,7 +57,7 @@
             </div>
           </v-tab-item>
           <v-tab-item>
-            <div class="nc-excel-import-tab-item align-center">
+            <div class="nc-json-import-tab-item align-center">
               <div class="pa-4 d-100 h-100">
                 <v-form ref="form" v-model="valid">
                   <div class="d-flex">
@@ -82,19 +82,21 @@
             </div>
           </v-tab-item>
           <v-tab-item>
-            <div class="nc-excel-import-tab-item align-center">
+            <div class="nc-json-import-tab-item align-center">
               <div class="pa-4 d-100 h-100">
                 <v-form ref="form" v-model="valid">
                   <div class="">
                     <!--label="Enter excel file url"-->
                     <monaco-json-editor
                       v-model="jsonString"
-                      style="height:300px"
+                      style="height:320px"
                     />
-                    <v-btn v-t="['c:project:create:excel:load-url']" class="ml-3" color="primary" @click="loadJsonString">
-                      <!--Load-->
-                      {{ $t('general.load') }}
-                    </v-btn>
+                    <div class="text-center mt-4">
+                      <v-btn v-t="['c:project:create:excel:load-url']" class="ml-3" color="primary" @click="loadJsonString">
+                        <!--Load-->
+                        {{ $t('general.load') }}
+                      </v-btn>
+                    </div>
                   </div>
                 </v-form>
               </div>
@@ -110,7 +112,7 @@
               <v-icon small color="grey lighten-1">mdi-menu-{{ showMore ? 'up' : 'down' }}</v-icon>
             </span>
           </div>
-          <div class="mb-2 pt-2 nc-excel-import-options" :style="{ maxHeight: showMore ? '100px' : '0'}">
+          <div class="mb-2 pt-2 nc-json-import-options" :style="{ maxHeight: showMore ? '200px' : '0'}">
             <p />
             <!--hint="# of rows to parse to infer data type"-->
             <v-text-field
@@ -123,6 +125,18 @@
               outlined
               type="number"
             />
+
+            <v-checkbox
+              v-model="parserConfig.normalizeNested"
+              style="width: 250px"
+              class="mx-auto mb-2"
+              dense
+              hide-details
+            >
+              <template #label>
+                <span class="caption">Normalize nested</span>
+              </template>
+            </v-checkbox>
           </div>
         </div>
       </v-card>
@@ -133,19 +147,17 @@
         <input
           v-if="quickImportType == 'excel'"
           ref="file"
-          class="nc-excel-import-input"
+          class="nc-json-import-input"
           type="file"
           style="display: none"
-          accept=".xlsx, .xls, .xlsm, .ods, .ots"
           @change="_change($event)"
         >
         <input
           v-if="quickImportType == 'csv'"
           ref="file"
-          class="nc-excel-import-input"
+          class="nc-json-import-input"
           type="file"
           style="display: none"
-          accept=".csv"
           @change="_change($event)"
         >
         <v-btn
@@ -163,12 +175,12 @@
           {{ $t('activity.import') }}
         </v-btn>
       </template>
-      <span class="caption">Create template from Excel</span>
+      <span class="caption">Create template from JSON</span>
     </v-tooltip>
 
     <v-dialog v-if="templateData" v-model="templateEditorModal" max-width="1000">
       <v-card class="pa-6" min-width="500">
-        <template-editor :project-template.sync="templateData" excel-import :quick-import-type="quickImportType">
+        <template-editor :project-template.sync="templateData" json-import :quick-import-type="quickImportType">
           <template #toolbar="{valid}">
             <h3 class="mt-2 grey--text">
               <span>
@@ -182,7 +194,7 @@
               :template-data="templateData"
               :import-data="importData"
               :import-to-project="importToProject"
-              excel-import
+              json-import
               :valid="valid"
               create-gql-text="Import as GQL Project"
               create-rest-text="Import as REST Project"
@@ -206,11 +218,9 @@
 
 <script>
 
-// import XLSX from 'xlsx'
 import TemplateEditor from '~/components/templates/Editor'
 import CreateProjectFromTemplateBtn from '~/components/templates/CreateProjectFromTemplateBtn'
 import ExcelUrlTemplateAdapter from '~/components/import/templateParsers/ExcelUrlTemplateAdapter'
-import ExcelTemplateAdapter from '~/components/import/templateParsers/ExcelTemplateAdapter'
 import MonacoJsonEditor from '~/components/monaco/MonacoJsonEditor'
 import JSONTemplateAdapter from '~/components/import/templateParsers/JSONTemplateAdapter'
 
@@ -233,19 +243,11 @@ export default {
       url: '',
       showMore: false,
       parserConfig: {
-        maxRowsToParse: 500
+        maxRowsToParse: 500,
+        normalizeNested: false
       },
       filename: '',
-      jsonString: `[{
-        "data": "Click Here",
-        "size": 36,
-        "style": "bold",
-        "name": "text1",
-        "hOffset": 250,
-        "vOffset": 100,
-        "alignment": "center",
-        "onMouseUp": "sun1.opacity = (sun1.opacity / 100) * 90;"
-    }]`
+      jsonString: ''
     }
   },
   computed: {
@@ -317,13 +319,14 @@ export default {
         this.importData = null
         switch (type) {
           case 'file':
-            templateGenerator = new ExcelTemplateAdapter(name, val, this.parserConfig)
+            templateGenerator = new JSONTemplateAdapter(name, val, this.parserConfig)
             break
           case 'url':
             templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
+            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
             break
           case 'string':
-            templateGenerator = new JSONTemplateAdapter('test', val)
+            templateGenerator = new JSONTemplateAdapter('test', val, this.parserConfig)
             break
         }
         await templateGenerator.init()
@@ -355,15 +358,6 @@ export default {
         return
       }
 
-      if (this.quickImportType === 'excel') {
-        if (!/.*\.(xls|xlsx|xlsm|ods|ots)/.test(file.name)) {
-          return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots!').goAway(3000)
-        }
-      } else if (this.quickImportType === 'csv') {
-        if (!/.*\.(csv)/.test(file.name)) {
-          return this.$toast.error('Dropped file is not an accepted file type. The accepted file type is .csv!').goAway(3000)
-        }
-      }
       this._file(file)
     },
     dragOverHandler(ev) {
@@ -376,11 +370,11 @@ export default {
         return
       }
 
-      this.$store.commit('loader/MutMessage', 'Loading excel file from url')
+      this.$store.commit('loader/MutMessage', 'Loading json file from url')
 
       let i = 0
       const int = setInterval(() => {
-        this.$store.commit('loader/MutMessage', `Loading excel file${'.'.repeat(++i % 4)}`)
+        this.$store.commit('loader/MutMessage', `Loading json file${'.'.repeat(++i % 4)}`)
       }, 1000)
 
       this.dropOrUpload = false
@@ -391,21 +385,7 @@ export default {
     },
 
     async loadJsonString() {
-      // if ((this.$refs.form && !this.$refs.form.validate()) || !this.url) {
-      //   return
-      // }
-
-      this.$store.commit('loader/MutMessage', 'Loading excel file from url')
-
-      let i = 0
-      const int = setInterval(() => {
-        this.$store.commit('loader/MutMessage', `Loading excel file${'.'.repeat(++i % 4)}`)
-      }, 1000)
-
-      this.dropOrUpload = false
-
       await this.parseAndExtractData('string', this.jsonString)
-      clearInterval(int)
       this.$store.commit('loader/MutClear')
     }
 
@@ -421,7 +401,7 @@ export default {
   border: 2px dashed #ddd;
 }
 
-.nc-excel-import-tab-item {
+.nc-json-import-tab-item {
   min-height: 400px;
   padding: 20px;
   display: flex;
@@ -429,7 +409,7 @@ export default {
   width: 100%;
 }
 
-.nc-excel-import-options {
+.nc-json-import-options {
   transition: .4s max-height;
   overflow: hidden;
 }

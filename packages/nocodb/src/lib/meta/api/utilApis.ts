@@ -60,8 +60,11 @@ export async function releaseVersion(_req: Request, res: Response) {
   res.json(result);
 }
 
-export async function axiosRequestMake(req: Request, res: Response) {
+async function _axiosRequestMake(req: Request, res: Response, type: string) {
   const { apiMeta } = req.body;
+  if (type === 'csvUrl' || type === 'excelUrl') {
+    apiMeta.responseType = 'arraybuffer';
+  }
   if (apiMeta?.body) {
     try {
       apiMeta.body = JSON.parse(apiMeta.body);
@@ -104,6 +107,16 @@ export async function axiosRequestMake(req: Request, res: Response) {
   };
   const data = await require('axios')(_req);
   return res.json(data?.data);
+}
+
+export async function axiosRequestMake(req: Request, res: Response) {
+  const {
+    apiMeta: { type }
+  } = req.body;
+  if (type === 'csvUrl' || type === 'excelUrl') {
+    return await _axiosRequestMake(req, res, type);
+  }
+  return res.json({});
 }
 
 export default router => {

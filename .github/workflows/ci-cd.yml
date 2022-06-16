@@ -61,7 +61,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-pg-restTableOps-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-pg-restViews-run-cache:
@@ -106,7 +106,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-pg-restViews-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-pg-restRoles-run-cache:
@@ -151,7 +151,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-pg-restRoles-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-pg-restMisc-run-cache:
@@ -196,7 +196,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-pg-restMisc-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restTableOps-run-cache:
@@ -241,7 +241,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-restTableOps-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restViews-run-cache:
@@ -286,7 +286,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-restViews-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restRoles-run-cache:
@@ -331,7 +331,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-restRoles-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-restMisc-run-cache:
@@ -376,7 +376,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-restMisc-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restTableOps-run-cache:
@@ -421,7 +421,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-xcdb-restTableOps-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restViews-run-cache:
@@ -466,7 +466,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-xcdb-restViews-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restRoles-run-cache:
@@ -511,7 +511,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-xcdb-restRoles-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
     cypress-xcdb-restMisc-run-cache:
@@ -556,7 +556,7 @@ jobs:
               if: always()
               uses: actions/upload-artifact@v2
               with:
-                  name: restTableOps-snapshots
+                  name: cypress-xcdb-restMisc-run-cache-snapshots
                   path: scripts/cypress/screenshots
                   retention-days: 2
 #    docker:

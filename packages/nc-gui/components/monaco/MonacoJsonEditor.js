@@ -83,6 +83,9 @@ export default {
   },
 
   methods: {
+    format() {
+      this.editor.getAction('editor.action.formatDocument').run()
+    },
     resizeLayout() {
       this.editor.layout();
     },

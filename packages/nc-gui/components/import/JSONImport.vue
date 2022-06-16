@@ -2,7 +2,7 @@
   <div :class="{'pt-10':!hideLabel}">
     <v-dialog v-model="dropOrUpload" max-width="600">
       <v-card max-width="600">
-        <v-tabs height="30" :value="2">
+        <v-tabs height="30">
           <v-tab>
             <v-icon small class="mr-1">
               mdi-file-upload-outline
@@ -61,18 +61,18 @@
               <div class="pa-4 d-100 h-100">
                 <v-form ref="form" v-model="valid">
                   <div class="d-flex">
-                    <!--label="Enter excel file url"-->
+                    <!-- todo:  i18n label-->
                     <v-text-field
                       v-model="url"
                       hide-details="auto"
                       type="url"
-                      :label="quickImportType == 'excel' ? $t('msg.info.excelURL') : $t('msg.info.csvURL') "
+                      label="Enter JSON file url"
                       class="caption"
                       outlined
                       dense
                       :rules="[v => !!v || $t('general.required') ]"
                     />
-                    <v-btn v-t="['c:project:create:excel:load-url']" class="ml-3" color="primary" @click="loadUrl">
+                    <v-btn v-t="['c:project:create:json:load-url']" class="ml-3" color="primary" @click="loadUrl">
                       <!--Load-->
                       {{ $t('general.load') }}
                     </v-btn>
@@ -85,9 +85,14 @@
             <div class="nc-json-import-tab-item align-center">
               <div class="pa-4 d-100 h-100">
                 <v-form ref="form" v-model="valid">
-                  <div class="">
+                  <div class="nc-json-editor-wrapper">
+                    <v-btn small class="nc-json-format-btn" @click="formatJson">
+                      Format
+                    </v-btn>
+
                     <!--label="Enter excel file url"-->
                     <monaco-json-editor
+                      ref="editor"
                       v-model="jsonString"
                       style="height:320px"
                     />
@@ -135,6 +140,17 @@
             >
               <template #label>
                 <span class="caption">Normalize nested</span>
+              </template>
+            </v-checkbox>
+            <v-checkbox
+              v-model="parserConfig.importData"
+              style="width: 250px"
+              class="mx-auto mb-2"
+              dense
+              hide-details
+            >
+              <template #label>
+                <span class="caption">Import data</span>
               </template>
             </v-checkbox>
           </div>
@@ -220,9 +236,9 @@
 
 import TemplateEditor from '~/components/templates/Editor'
 import CreateProjectFromTemplateBtn from '~/components/templates/CreateProjectFromTemplateBtn'
-import ExcelUrlTemplateAdapter from '~/components/import/templateParsers/ExcelUrlTemplateAdapter'
 import MonacoJsonEditor from '~/components/monaco/MonacoJsonEditor'
 import JSONTemplateAdapter from '~/components/import/templateParsers/JSONTemplateAdapter'
+import JSONUrlTemplateAdapter from '~/components/import/templateParsers/JSONUrlTemplateAdapter'
 
 export default {
   name: 'JsonImport',
@@ -244,7 +260,8 @@ export default {
       showMore: false,
       parserConfig: {
         maxRowsToParse: 500,
-        normalizeNested: false
+        normalizeNested: false,
+        importData: true
       },
       filename: '',
       jsonString: ''
@@ -258,6 +275,9 @@ export default {
       get() {
         return this.value
       }
+    },
+    tables() {
+      return this.$store.state.project.tables || []
     }
   },
   mounted() {
@@ -267,6 +287,10 @@ export default {
     }
   },
   methods: {
+    formatJson() {
+      console.log(this.$refs.editor)
+      this.$refs.editor.format()
+    },
 
     selectFile() {
       this.$refs.file.files = null
@@ -319,19 +343,21 @@ export default {
         this.importData = null
         switch (type) {
           case 'file':
-            templateGenerator = new JSONTemplateAdapter(name, val, this.parserConfig)
+            templateGenerator = new JSONTemplateAdapter('JSON', val, this.parserConfig)
             break
           case 'url':
-            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
-            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
+            templateGenerator = new JSONUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
             break
           case 'string':
-            templateGenerator = new JSONTemplateAdapter('test', val, this.parserConfig)
+            templateGenerator = new JSONTemplateAdapter('JSON', val, this.parserConfig)
             break
         }
         await templateGenerator.init()
         templateGenerator.parse()
         this.templateData = templateGenerator.getTemplate()
+
+        this.templateData.tables[0].table_name = this.populateUniqueTableName()
+
         this.importData = templateGenerator.getData()
         this.templateEditorModal = true
       } catch (e) {
@@ -364,7 +390,11 @@ export default {
       // Prevent default behavior (Prevent file from being opened)
       ev.preventDefault()
     },
-
+    populateUniqueTableName() {
+      let c = 1
+      while (this.tables.some(t => t.title === `Sheet${c}`)) { c++ }
+      return `Sheet${c}`
+    },
     async loadUrl() {
       if ((this.$refs.form && !this.$refs.form.validate()) || !this.url) {
         return
@@ -412,5 +442,16 @@ export default {
 .nc-json-import-options {
   transition: .4s max-height;
   overflow: hidden;
+}
+
+.nc-json-editor-wrapper{
+  position: relative;
+}
+
+.nc-json-format-btn{
+  position:absolute;
+  right:4px;
+  top:4px;
+  z-index:9;
 }
 </style>

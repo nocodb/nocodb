@@ -1,16 +1,6 @@
-import { TemplateGenerator } from 'nocodb-sdk'
-import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
-import { getCheckboxValue, isCheckboxType } from '~/components/import/templateParsers/parserHelpers'
+import JSONTemplateAdapter from '~/components/import/templateParsers/JSONTemplateAdapter'
 
-const jsonTypeToUidt = {
-  number: UITypes.Number,
-  string: UITypes.SingleLineText,
-  date: UITypes.DateTime,
-  boolean: UITypes.Checkbox,
-  object: UITypes.LongText
-}
-
-export default class JSONTemplateAdapter extends JSONTemplateAdapter {
+export default class JSONUrlTemplateAdapter extends JSONTemplateAdapter {
   constructor(url, $store, parserConfig, $api) {
     const name = url.split('/').pop()
     super(name, null, parserConfig)
@@ -22,11 +12,10 @@ export default class JSONTemplateAdapter extends JSONTemplateAdapter {
   async init() {
     const data = await this.$api.utils.axiosRequestMake({
       apiMeta: {
-        url: this.url,
-        responseType: 'arraybuffer'
+        url: this.url
       }
     })
-    this.jsonData = data.data
+    this._jsonData = data
     await super.init()
   }
 }

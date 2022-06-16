@@ -504,6 +504,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
       {
         colBody = getColumnPropsFromUIDT(colBody, base);
         if (colBody.uidt === UITypes.Duration) {
+          colBody.dtxp = "20"
           // by default, colBody.dtxs is 2
           // Duration column needs more that that
           colBody.dtxs = "4"

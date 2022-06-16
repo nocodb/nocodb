@@ -4,7 +4,6 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 import { projectsPage } from "../../support/page_objects/navigation";
 import { mainPage } from "../../support/page_objects/mainPage";
-import * as timers from "timers";
 
 let apiKey = ""
 let sharedBase = ""
@@ -33,7 +32,7 @@ export const genTest = (apiType, dbType) => {
       cy.getActiveMenu().contains("Airtable").should('exist').click();
 
       // enable turbo
-      // cy.getActiveModal().find(".nc-btn-enable-turbo").should('exist').click()
+      cy.getActiveModal().find(".nc-btn-enable-turbo").should('exist').click()
 
       cy.getActiveModal().find(".nc-input-api-key").should('exist').clear().type(apiKey)
       cy.getActiveModal().find(".nc-input-shared-base").should('exist').clear().type(sharedBase)
@@ -43,48 +42,9 @@ export const genTest = (apiType, dbType) => {
       cy.getActiveModal().find(".nc-btn-go-dashboard", {timeout: 180000}).should('exist').click()
 
     });
-
-    let tn = [
-      "Film",
-      "Actor",
-      "Producer",
-    ]
-
-    let cn = [
-      "Name",
-      "Notes",
-      "Status",
-      "Tags",
-      "Done",
-      "Date",
-      "Phone",
-      "Email",
-      "URL",
-      "Number",
-      "Percent",
-      "Duration",
-      "Rating",
-      // "Calculation",
-      "Actor",
-      "Status (from Actor)",
-      // "Status Rollup (from Actor)",
-    ]
-
-    it("Verify Schema", () => {
-      // verify if all tables exist
-      for(let i=0; i<tn.length; i++)
-        cy.get(".nc-project-tree").contains(tn[i]).should('exist')
-
-      for(let i=0; i<cn.length; i++)
-        cy.get(".nc-grid-header-row").find(`[data-col="${cn[i]}"]`).should('exist')
-
-    });
-
-    it("Verify Data", () => {
-
-    });
   });
 };
+
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

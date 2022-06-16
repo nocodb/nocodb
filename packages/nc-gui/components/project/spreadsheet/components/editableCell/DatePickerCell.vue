@@ -18,13 +18,13 @@ import dayjs from 'dayjs'
 export default {
   name: 'DatePickerCell',
   props: {
+    column: Object,
     value: [String, Date]
   },
   computed: {
     localState: {
       get() {
         if (!this.value || !dayjs(this.value).isValid()) { return undefined }
-
         return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD')
       },
       set(val) {
@@ -35,9 +35,17 @@ export default {
     },
     date() {
       if (!this.value || this.localState) {
-        return this.localState
+        return this.localState ? dayjs(this.localState).format(this.datepickerMeta.date_format || 'YYYY-MM-DD') : this.localState 
       }
       return 'Invalid Date'
+    },
+    datepickerMeta(){
+      return {
+        date_format: "YYYY-MM-DD",
+        ...(this.column && this.column.meta
+          ? this.column.meta
+          : {})
+      }
     },
     parentListeners() {
       const $listeners = {}

@@ -594,7 +594,7 @@ jobs:
               npm run start:api:cache
               npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
-            spec: "./scripts/cypress/integration/test/quickTest.js.js"
+            spec: "./scripts/cypress/integration/test/quickTest.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
             wait-on-timeout: 1200
             config-file: scripts/cypress/cypress.json
@@ -639,7 +639,7 @@ jobs:
               npm run build:common
               npm run start:api:cache:pg
               npm run start:web
-            spec: "./scripts/cypress/integration/test/quickTest.js.js"
+            spec: "./scripts/cypress/integration/test/quickTest.js"
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
             wait-on-timeout: 1200
             config-file: scripts/cypress/cypress.json

@@ -191,7 +191,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         } else {
           const newPasswordHash = await promisify(bcrypt.hash)(
             process.env.NC_ADMIN_PASSWORD,
-            superUser.hash
+            superUser.salt
           );
 
           if (newPasswordHash !== superUser.password) {

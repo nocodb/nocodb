@@ -169,7 +169,8 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 salt,
                 email,
                 password,
-                email_verification_token
+                email_verification_token,
+                token_version: null
               },
               ncMeta
             );
@@ -181,22 +182,32 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 salt,
                 email,
                 password,
-                email_verification_token
+                email_verification_token,
+                token_version: null
               },
               ncMeta
             );
           }
         } else {
-          // if email's are not different update the password and hash
-          await User.update(
-            superUser.id,
-            {
-              salt,
-              password,
-              email_verification_token
-            },
-            ncMeta
+          const newPasswordHash = await promisify(bcrypt.hash)(
+            process.env.NC_ADMIN_PASSWORD,
+            superUser.hash
           );
+
+          if (newPasswordHash !== superUser.password) {
+            // if email's are same and passwords are different
+            // then update the password and token version
+            await User.update(
+              superUser.id,
+              {
+                salt,
+                password,
+                email_verification_token,
+                token_version: null
+              },
+              ncMeta
+            );
+          }
         }
       }
       await ncMeta.commit();

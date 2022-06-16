@@ -267,10 +267,7 @@ export default {
         // validate data type
         if (parsedTree.callee.type === jsep.IDENTIFIER) {
           const expectedType = formulas[parsedTree.callee.name].type
-          if (
-            expectedType === formulaTypes.NUMERIC ||
-            expectedType === formulaTypes.STRING
-          ) {
+          if (expectedType === formulaTypes.NUMERIC) {
             parsedTree.arguments.map(arg => this.validateAgainstType(arg, expectedType, null, typeErrors))
           } else if (expectedType === formulaTypes.DATE) {
             if (parsedTree.callee.name === 'DATEADD') {

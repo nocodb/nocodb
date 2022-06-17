@@ -13,8 +13,7 @@ export default class ExcelUrlTemplateAdapter extends ExcelTemplateAdapter {
   async init() {
     const data = await this.$api.utils.axiosRequestMake({
       apiMeta: {
-        url: this.url,
-        type: this.quickImportType === 'excel' ? 'excelUrl' : 'csvUrl'
+        url: this.url
       }
     })
     this.excelData = data.data

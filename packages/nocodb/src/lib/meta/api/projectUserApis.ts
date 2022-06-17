@@ -15,6 +15,7 @@ import NcPluginMgrv2 from '../helpers/NcPluginMgrv2';
 import Noco from '../../Noco';
 import { PluginCategory } from 'nocodb-sdk';
 import { metaApiMetrics } from '../helpers/apiMetrics';
+import { randomTokenString } from '../helpers/stringHelpers';
 
 async function userList(req, res) {
   res.json({
@@ -101,7 +102,8 @@ async function userInvite(req, res, next): Promise<any> {
           invite_token,
           invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
           email,
-          roles: 'user'
+          roles: 'user',
+          token_version: randomTokenString()
         });
 
         // add user to project

@@ -8,6 +8,7 @@ import passport from 'passport';
 import { ExtractJwt } from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
+import { randomTokenString } from '../../helpers/stringHelpers';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
 
@@ -102,7 +103,11 @@ export function initStrategies(router): void {
         );
 
         if (cachedVal) {
-          if (cachedVal.token_version !== jwtPayload.token_version) {
+          if (
+            cachedVal.token_version &&
+            jwtPayload.token_version &&
+            cachedVal.token_version !== jwtPayload.token_version
+          ) {
             return done(new Error('Token Expired. Please login again.'));
           }
           return done(null, cachedVal);
@@ -110,7 +115,11 @@ export function initStrategies(router): void {
 
         User.getByEmail(jwtPayload?.email)
           .then(async user => {
-            if (user.token_version !== jwtPayload.token_version) {
+            if (
+              user.token_version &&
+              jwtPayload.token_version &&
+              user.token_version !== jwtPayload.token_version
+            ) {
               return done(new Error('Token Expired. Please login again.'));
             }
             if (req.ncProjectId) {
@@ -266,7 +275,8 @@ export function initStrategies(router): void {
                     password: '',
                     salt,
                     roles,
-                    email_verified: true
+                    email_verified: true,
+                    token_version: randomTokenString()
                   });
                   return done(null, user);
                 }

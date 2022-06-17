@@ -67,8 +67,9 @@
                       :rules="
                         [
                           v => !!v || $t('general.required'), 
-                          v => quickImportType === 'excel' ? 
-                            (/.*\.(xls|xlsx|xlsm|ods|ots)/.test(v) || errorMessages.importExcel) : 
+                          v => !(/(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g).test(v) || errorMessages.ipBlockList,
+                          v => quickImportType === 'excel' ?
+                            (/.*\.(xls|xlsx|xlsm|ods|ots)/.test(v) || errorMessages.importExcel) :
                             (/.*\.(csv)/.test(v) || errorMessages.importCSV),
                         ]"
                     />
@@ -222,7 +223,8 @@ export default {
       filename: '',
       errorMessages: {
         importExcel: "Target file is not an accepted file type. The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots!",
-        importCSV: "Target file is not an accepted file type. The accepted file type is .csv!"
+        importCSV: "Target file is not an accepted file type. The accepted file type is .csv!",
+        ipBlockList: "IP Not allowed!"
       }
     }
   },

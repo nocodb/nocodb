@@ -1,19 +1,26 @@
 <template>
-	<v-text-field
+	<v-autocomplete
 	v-model="colMeta.date_format"
 	label="Date Format"
 	class="caption nc-column-name-input"
+	:rules="[isValidDateFormat]"
+	:items="dateFormatList"
 	dense
 	outlined
-	></v-text-field>
+	/>
 </template>
 <script>
+import { dateFormat, validatedateFormat } from '~/helpers/dateFormatHelper'
 export default {
 	name: "DateOptions",
 	props: ['column', 'meta', 'value'],
 	data: () => ({
 		colMeta: {
 			date_format:"YYYY-MM-DD"
+		},
+		dateFormatList: dateFormat,
+		isValidDateFormat: (value) => {
+			return validatedateFormat(value) || 'Invalid Date Format'
 		}
   	}),
 	watch: {

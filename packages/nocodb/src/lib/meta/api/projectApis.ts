@@ -95,6 +95,10 @@ async function projectCreate(req: Request<any, any>, res) {
     projectBody.is_meta = false;
   }
 
+  if (projectBody?.title.length > 50) {
+    NcError.badRequest('Project title exceeds 50 characters');
+  }
+
   if (await Project.getByTitle(projectBody?.title)) {
     NcError.badRequest('Project title already in use');
   }

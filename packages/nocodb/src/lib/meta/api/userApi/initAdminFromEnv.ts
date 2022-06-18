@@ -103,7 +103,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           // check user account already present with the new admin email
           const existingUserWithNewEmail = await User.getByEmail(email, ncMeta);
 
-          if (existingUserWithNewEmail) {
+          if (existingUserWithNewEmail?.id) {
             // get all project access belongs to the existing account
             // and migrate to the admin account
             const existingUserProjects = await ncMeta.metaList2(
@@ -155,7 +155,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             }
 
             // delete existing user
-            ncMeta.metaDelete(
+            await ncMeta.metaDelete(
               null,
               null,
               MetaTable.USERS,

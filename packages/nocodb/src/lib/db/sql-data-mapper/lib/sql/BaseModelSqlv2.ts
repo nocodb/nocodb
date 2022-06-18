@@ -1242,7 +1242,7 @@ class BaseModelSqlv2 {
       await populatePk(this.model, data);
 
       // todo: filter based on view
-      const insertObj = await this.model.mapAliasToColumn(data, sanitize);
+      const insertObj = await this.model.mapAliasToColumn(data);
 
       await this.validate(insertObj);
 
@@ -1275,11 +1275,12 @@ class BaseModelSqlv2 {
         if (response?.length) {
           id = response[0];
         } else {
-          id = (await query)[0];
+          id = (
+            await this.dbDriver.raw(query.toString().replaceAll('\\?', '?'))
+          )[0].insertId;
         }
 
         if (ai) {
-          // response = await this.readByPk(id)
           response = await this.readByPk(id);
         } else {
           response = data;
@@ -1326,14 +1327,11 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      // const driver = trx ? trx : this.dbDriver;
-      //
-      // this.validate(data);
-      // await this._run(
-      await this.dbDriver(this.tnPath)
+      const query = this.dbDriver(this.tnPath)
         .update(updateObj)
         .where(await this._wherePk(id));
-      // );
+
+      await this.dbDriver.raw(query.toString().replaceAll('\\?', '?'));
 
       const response = await this.readByPk(id);
       await this.afterUpdate(response, trx, cookie);

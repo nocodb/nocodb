@@ -2,18 +2,17 @@ import User from '../../../models/User';
 import ProjectUser from '../../../models/ProjectUser';
 import { promisify } from 'util';
 import { Strategy as CustomStrategy } from 'passport-custom';
-
-import { Strategy } from 'passport-jwt';
 import passport from 'passport';
-import { ExtractJwt } from 'passport-jwt';
+import passportJWT from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
 import { randomTokenString } from '../../helpers/stringHelpers';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
+const ExtractJwt = passportJWT.ExtractJwt;
+const JwtStrategy = passportJWT.Strategy;
 
 const jwtOptions = {
-  expiresIn: process.env.NC_JWT_EXPIRES_IN ?? '10h',
   jwtFromRequest: ExtractJwt.fromHeader('xc-auth')
 };
 
@@ -84,7 +83,7 @@ export function initStrategies(router): void {
   });
 
   passport.use(
-    new Strategy(
+    new JwtStrategy(
       {
         secretOrKey: Noco.getConfig().auth.jwt.secret,
         ...jwtOptions,

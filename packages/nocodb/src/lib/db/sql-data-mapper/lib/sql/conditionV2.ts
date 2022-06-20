@@ -203,16 +203,18 @@ const parseConditionV2 = async (
         filter.comparison_op === 'notempty'
       )
         filter.value = '';
-      let field = customWhereClause
+      let field = (customWhereClause
         ? filter.value
         : alias
         ? `${alias}.${column.column_name}`
-        : column.column_name;
+        : column.column_name
+      ).replaceAll('?', '\\\\?');
       let val = customWhereClause ? customWhereClause : filter.value;
 
       return qb => {
         switch (filter.comparison_op) {
           case 'eq':
+            console.log(qb.toQuery());
             qb = qb.where(field, val);
             break;
           case 'neq':
@@ -221,7 +223,7 @@ const parseConditionV2 = async (
           case 'like':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
-              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%')
+              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
             } else {
               val = `%${val}%`;
             }
@@ -234,7 +236,7 @@ const parseConditionV2 = async (
           case 'nlike':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
-              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%')
+              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
             } else {
               val = `%${val}%`;
             }

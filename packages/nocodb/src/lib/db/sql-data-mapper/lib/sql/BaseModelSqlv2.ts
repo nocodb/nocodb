@@ -308,8 +308,9 @@ class BaseModelSqlv2 {
     qb.count(this.model.primaryKey?.column_name || '*', {
       as: 'count'
     }).first();
-
-    return ((await qb) as any).count;
+    return ((await this.dbDriver.raw(
+      qb.toQuery().replaceAll('\\?', '?')
+    )) as any)[0][0].count;
   }
 
   async groupBy(

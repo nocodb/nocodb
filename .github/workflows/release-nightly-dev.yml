@@ -37,7 +37,7 @@ jobs:
     outputs:
       nightly_build_tag: ${{ steps.tag-step.outputs.NIGHTLY_BUILD_TAG }}
       is_daily: ${{ steps.tag-step.outputs.IS_DAILY }}
-      current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }} 
+      current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }}
   # Build frontend and backend and publish to npm
   release-npm:
     needs: set-tag
@@ -47,6 +47,13 @@ jobs:
       targetEnv: 'DEV'
     secrets:
       NPM_TOKEN: "${{ secrets.NPM_TOKEN }}"
+
+  # Build executables and publish to GitHub
+  release-executables:
+    needs: [set-tag, release-npm]
+    uses: ./.github/workflows/release-executables.yml
+    with:
+      tag: ${{ needs.set-tag.outputs.nightly_build_tag }}
 
   # Build docker image and push to docker hub
   release-docker:

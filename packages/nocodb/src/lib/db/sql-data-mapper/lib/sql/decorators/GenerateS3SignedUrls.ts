@@ -1,6 +1,6 @@
 import * as _ from 'lodash';
 import S3 from '../../../../../plugins/s3/S3';
-import NcPluginMgrv2 from '../../../../noco/meta/helpers/NcPluginMgrv2';
+import NcPluginMgrv2 from '../../../../../meta/helpers/NcPluginMgrv2';
 
 /**
  * Decorate function to Replace private S3 URLs with signed URLs.

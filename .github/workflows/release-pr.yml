@@ -82,7 +82,7 @@ jobs:
     needs: [set-tag, release-npm]
     uses: ./.github/workflows/release-executables.yml
     with:
-      tag: ${{ needs.set-tag.outputs.target_tag }}
+      tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
 
   # leave-comment:
   #   runs-on: 'ubuntu-latest'

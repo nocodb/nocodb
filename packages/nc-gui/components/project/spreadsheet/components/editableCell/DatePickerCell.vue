@@ -1,7 +1,7 @@
 <template>
   <v-menu>
     <template #activator="{on}">
-      <input v-model="localState" class="value" v-on="on">
+      <input :value="date" class="value" v-on="on">
     </template>
     <v-date-picker
       v-model="localState"
@@ -23,13 +23,21 @@ export default {
   computed: {
     localState: {
       get() {
-        if (!this.value) { return this.value }
+        if (!this.value || !dayjs(this.value).isValid()) { return undefined }
 
         return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD')
       },
       set(val) {
-        this.$emit('input', val && dayjs(val).format('YYYY-MM-DD'))
+        if (dayjs(val).isValid()) {
+          this.$emit('input', val && dayjs(val).format('YYYY-MM-DD'))
+        }
       }
+    },
+    date() {
+      if (!this.value || this.localState) {
+        return this.localState
+      }
+      return 'Invalid Date'
     },
     parentListeners() {
       const $listeners = {}

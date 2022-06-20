@@ -2,7 +2,7 @@
   <v-form v-if="hook" ref="form" v-model="valid" class="mx-4" lazy-validation>
     <div>
       <a class="pointer mx-4" @click="$emit('backToList')">
-        <v-icon class="ml-n1">mdi-arrow-left-bold</v-icon>
+        <v-icon class="ml-n1 nc-icon-hook-navigate-left">mdi-arrow-left-bold</v-icon>
       </a>
     </div>
     <v-card-title>
@@ -15,6 +15,7 @@
           outlined
           tooltip="Save"
           small
+          class="nc-btn-webhook-test"
           :disabled="loading || !valid || !hook.event"
           @click.prevent="$refs.webhookTest.testWebhook()"
         >
@@ -24,6 +25,7 @@
           tooltip="Save"
           color="primary"
           small
+          class="nc-btn-webhook-save"
           :disabled="loading || !valid || !hook.event"
           @click.prevent="saveHooks"
         >
@@ -39,7 +41,7 @@
     <v-card-text>
       <v-text-field
         v-model="hook.title"
-        class="caption"
+        class="caption nc-text-field-hook-title"
         outlined
         dense
         :label="$t('general.title')"
@@ -49,6 +51,7 @@
       <v-row>
         <v-col>
           <webhook-event
+            class="nc-text-field-hook-event"
             :event.sync="hook.event"
             :operation.sync="hook.operation"
           />
@@ -61,7 +64,7 @@
             required
             :items="notificationList"
             :rules="[(v) => !!v || `${$t('general.required')}`]"
-            class="caption"
+            class="caption nc-text-field-hook-notification-type"
             :prepend-inner-icon="notificationIcon[hook.notification.type]"
             @change="onNotTypeChange"
           >
@@ -178,7 +181,7 @@
             v-model="hook.condition"
             dense
             hide-details
-            class="mt-1"
+            class="mt-1 nc-check-box-hook-condition"
             label="On Condition"
           />
 

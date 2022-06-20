@@ -1,7 +1,7 @@
 if (process.env.NC_DD_APM_ENABLED === 'true') {
   const tracer = require('dd-trace').init();
 }
-const Noco = require("../build/main/lib/noco/Noco").default;
+const Noco = require("../build/main/lib/Noco").default;
 const express = require('express');
 const cors = require('cors');
 const server = express();

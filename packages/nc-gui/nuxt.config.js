@@ -67,6 +67,10 @@ export default {
       ssr: false
     },
     {
+      src: '~plugins/domPurify.js',
+      ssr: false
+    },
+    {
       src: '~plugins/axiosInterceptor.js',
       ssr: false
     },

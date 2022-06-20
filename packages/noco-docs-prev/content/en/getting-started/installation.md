@@ -146,10 +146,8 @@ If you plan to input some special characters, you may need to change the charact
 | PORT | No | For setting app running port | `8080` |
 | NC_SENTRY_DSN           | No        | For Sentry monitoring                                                     |   |
 | NC_DISABLE_ERR_REPORT | No | Disable error reporting  |  |
-| AWS_ACCESS_KEY_ID | No | For Litestream - S3 access key id               | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-| AWS_SECRET_ACCESS_KEY | No | For Litestream - S3 secret access key         | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-| AWS_BUCKET | No | For Litestream - S3 bucket                              | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
-| AWS_BUCKET_PATH | No | For Litestream - S3 bucket path (like folder within S3 bucket) | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3  |
+
+
 
 ### Docker Compose
 

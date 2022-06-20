@@ -72,7 +72,8 @@ export enum CacheScope {
   PLUGIN = 'plugin',
   PROJECT_USER = 'projectUser',
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
-  API_TOKEN = 'apiToken'
+  API_TOKEN = 'apiToken',
+  INSTANCE_META = 'instanceMeta'
 }
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',

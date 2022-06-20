@@ -252,6 +252,11 @@ export default {
     async deleteColumn() {
       try {
         await this.$api.dbTableColumn.delete(this.column.id)
+
+        if (this.column.uidt === UITypes.LinkToAnotherRecord && this.column.colOptions) {
+          this.$store.dispatch('meta/ActLoadMeta', { force: true, id: this.column.colOptions.fk_related_model_id }).then(() => {})
+        }
+
         this.$emit('saved')
         this.columnDeleteDialog = false
       } catch (e) {

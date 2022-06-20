@@ -735,6 +735,7 @@ import Pagination from '~/components/project/spreadsheet/components/Pagination'
 import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilterMenu'
 import MoreActions from '~/components/project/spreadsheet/components/MoreActions'
 import ShareViewMenu from '~/components/project/spreadsheet/components/ShareViewMenu'
+import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText'
 
 export default {
   name: 'RowsXcDataTable',

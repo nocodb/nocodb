@@ -78,6 +78,7 @@ jobs:
     with:
       tag: ${{ needs.process-input.outputs.target_tag }}
       prev_tag: ${{ needs.process-input.outputs.prev_tag }}
+      tagHeadSHA: 'N'
     secrets:
       NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
@@ -110,8 +111,10 @@ jobs:
 
   # Publish Docs
   publish-docs:
-    needs: release-docker
+    needs: close-resolved-issues
     uses: ./.github/workflows/publish-docs.yml
+    secrets:
+      GH_TOKEN: "${{ secrets.GH_TOKEN }}"
 
   # Change nocodb-sdk back to local path
   update-sdk-path:

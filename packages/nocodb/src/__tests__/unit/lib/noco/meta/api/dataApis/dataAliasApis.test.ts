@@ -2,11 +2,11 @@
 
 import rewire from 'rewire';
 import sinon from 'sinon';
-import Base from '../../../../../../../lib/noco-models/Base';
-import Model from '../../../../../../../lib/noco-models/Model';
-import NcConnectionMgrv2 from '../../../../../../../lib/noco/common/NcConnectionMgrv2';
+import Base from '../../../../../../../lib/models/Base';
+import Model from '../../../../../../../lib/models/Model';
+import NcConnectionMgrv2 from '../../../../../../../lib/utils/common/NcConnectionMgrv2';
 import { expect } from 'chai';
-import * as getAstExporter from '../../../../../../../lib/dataMapper/lib/sql/helpers/getAstExporter';
+import * as getAstExporter from '../../../../../../../lib/db/sql-data-mapper/lib/sql/helpers/getAstExporter';
 
 const dataAliasApis = rewire(
   '../../../../../../../../src/lib/noco/meta/api/dataApis/dataAliasApis'

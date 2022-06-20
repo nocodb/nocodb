@@ -77,7 +77,7 @@ export default ({ store, $axios, redirect, $toast, route, app }) => {
           redirect('/')
         } else {
           $toast.clear()
-          $toast.info('Token expired please login to continue', {
+          $toast.info('Token Expired. Please login again.', {
             position: 'bottom-center'
           }).goAway(5000)
           redirect('/user/authentication/signin')

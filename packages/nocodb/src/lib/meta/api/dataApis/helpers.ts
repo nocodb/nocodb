@@ -57,7 +57,7 @@ export async function extractCsvData(view: View, req: Request) {
   });
 
   let offset = +req.query.offset || 0;
-  const limit = 100;
+  const limit = 1024;
   // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
   const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 5000;
   const csvRows = [];

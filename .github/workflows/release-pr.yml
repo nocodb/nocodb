@@ -83,6 +83,8 @@ jobs:
     uses: ./.github/workflows/release-executables.yml
     with:
       tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+    secrets:
+      NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
 
   # leave-comment:
   #   runs-on: 'ubuntu-latest'

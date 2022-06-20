@@ -13,13 +13,16 @@ on:
         description: "Timely version"
         required: true
         type: string
+    secrets:
+      NC_GITHUB_TOKEN:
+        required: true
 jobs:
   build-executables:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
         with:
-          token: ${{ secrets.GITHUB_TOKEN }}
+          token: ${{ secrets.NC_GITHUB_TOKEN }}
           repository: 'nocodb/nocodb-timely'
       - name: Cache node modules
         id: cache-npm
@@ -109,7 +112,7 @@ jobs:
       - name: Upload executables(except mac executables) to release
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.NC_GITHUB_TOKEN }}
           file: dist/**
           tag: ${{ github.event.inputs.tag || inputs.tag }}
           overwrite: true
@@ -159,7 +162,7 @@ jobs:
       - name: Upload mac executables to release
         uses: svenstaro/upload-release-action@v2
         with:
-          repo_token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.NC_GITHUB_TOKEN }}
           file: mac-dist/**
           tag: ${{ github.event.inputs.tag || inputs.tag }}
           overwrite: true

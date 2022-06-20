@@ -359,7 +359,7 @@ export const actions = {
         this.$ncApis.setProjectId(projectId)
       }
 
-      this.$api.project.cost(projectId).then(res => {
+      typeof this.$api.project.cost == "function" && this.$api.project.cost(projectId).then(res => {
         if (res.cost) commit('MutProjectCost', res.cost)
       })
 

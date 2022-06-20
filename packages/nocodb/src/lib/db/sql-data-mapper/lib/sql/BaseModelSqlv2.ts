@@ -1277,7 +1277,7 @@ class BaseModelSqlv2 {
           id = response[0];
         } else {
           const res = await this.extractRawQueryAndExec(query);
-          id = res.id ?? res[0].insertId;
+          id = res?.id ?? res[0]?.insertId;
         }
 
         if (ai) {

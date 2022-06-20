@@ -115,7 +115,7 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: executables
+          name: ${{ github.event.inputs.tag || inputs.tag }}
           path: mac-dist
           retention-days: 1
 
@@ -126,7 +126,7 @@ jobs:
 
       - uses: actions/download-artifact@master
         with:
-          name: executables
+          name: ${{ github.event.inputs.tag || inputs.tag }}
           path: mac-dist
 
       - name: Sign macOS executables
@@ -136,7 +136,7 @@ jobs:
 
       - uses: actions/upload-artifact@master
         with:
-          name: executables
+          name: ${{ github.event.inputs.tag || inputs.tag }}
           path: mac-dist
           retention-days: 1
 
@@ -147,7 +147,7 @@ jobs:
     steps:
       - uses: actions/download-artifact@master
         with:
-          name: executables
+          name: ${{ github.event.inputs.tag || inputs.tag }}
           path: mac-dist
       - name: Compress files
         run: |

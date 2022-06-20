@@ -6,7 +6,8 @@ on:
     inputs:
       tag:
         description: "Timely version"
-        required: true  # Triggered by release-nocodb.yml / release-nightly-dev.yml / release-pr.yml
+        required: true
+  # Triggered by release-nightly-dev.yml / release-pr.yml
   workflow_call:
     inputs:
       tag:
@@ -80,22 +81,14 @@ jobs:
 
       - name : Install dependencies and build executables
         run: |
+          # install npm dependendencies
           npm i
-
-          # npm i --target_arch=x64 --target_platform=darwin
-
-          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --target_arch=ia32
-          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --target_arch=x64
-          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --target_arch=arm
-          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --target_arch=x64
-          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --target_arch=arm
 
           # Copy sqlite binaries
           rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/
 
           # clean up code to optimize size
           npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
-
 
           # build executables
           npm run build
@@ -104,6 +97,7 @@ jobs:
           mv ./dist/Noco-macos-arm64 ./mac-dist/
           mv ./dist/Noco-macos-x64 ./mac-dist/
 
+          # Compress executables
           GZIP=-9 tar -czvf ./dist/Noco-linux-x64.tar.gz ./dist/Noco-linux-x64
           GZIP=-9 tar -czvf ./dist/Noco-win-x64.tar.gz ./dist/Noco-win-x64.exe
           GZIP=-9 tar -czvf ./dist/Noco-linux-arm64.tar.gz ./dist/Noco-linux-arm64
@@ -135,7 +129,8 @@ jobs:
           name: executables
           path: mac-dist
 
-      - run: |
+      - name: Sign macOS executables
+        run: |
           /usr/bin/codesign --force -s - ./mac-dist/Noco-macos-arm64 -v
           /usr/bin/codesign --force -s - ./mac-dist/Noco-macos-x64 -v
 
@@ -146,7 +141,7 @@ jobs:
           retention-days: 1
 
 
-  publish:
+  publish-mac-executables:
     needs: sign-mac-executables
     runs-on: ubuntu-latest
     steps:

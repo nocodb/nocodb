@@ -8,6 +8,7 @@ import LookupColumn from '../../../../models/LookupColumn';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
+import { sanitize } from './helpers/sanitize';
 
 export default async function sortV2(
   sortList: Sort[],
@@ -205,7 +206,7 @@ export default async function sortV2(
         }
         break;
       default:
-        qb.orderBy(`${column.column_name}`, sort.direction || 'asc');
+        qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
         break;
     }
   }

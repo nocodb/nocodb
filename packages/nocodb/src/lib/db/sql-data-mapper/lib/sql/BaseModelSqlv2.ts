@@ -2036,14 +2036,13 @@ class BaseModelSqlv2 {
 
   private async extractRawQueryAndExec(qb: QueryBuilder) {
     const query = unsanitize(qb.toQuery());
-    if (query.slice(0, 6) === 'select') {
-      return this.isPg
-        ? (await this.dbDriver.raw(query))?.rows
-        : await this.dbDriver.from(
-            this.dbDriver.raw(query).wrap('(', ') __nc_alias')
-          );
-    }
-    return await this.dbDriver.raw(query);
+    return this.isPg
+      ? (await this.dbDriver.raw(query))?.rows
+      : query.slice(0, 6) === 'select'
+      ? await this.dbDriver.from(
+          this.dbDriver.raw(query).wrap('(', ') __nc_alias')
+        )
+      : await this.dbDriver.raw(query);
   }
 }
 

@@ -10,6 +10,7 @@ import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 // import LookupColumn from '../../../models/LookupColumn';
+import { sanitize } from './helpers/sanitize';
 
 export default async function conditionV2(
   conditionObj: Filter | Filter[],
@@ -203,12 +204,13 @@ const parseConditionV2 = async (
         filter.comparison_op === 'notempty'
       )
         filter.value = '';
-      let field = (customWhereClause
-        ? filter.value
-        : alias
-        ? `${alias}.${column.column_name}`
-        : column.column_name
-      ).replaceAll('?', '\\\\?');
+      let field = sanitize(
+        customWhereClause
+          ? filter.value
+          : alias
+          ? `${alias}.${column.column_name}`
+          : column.column_name
+      );
       let val = customWhereClause ? customWhereClause : filter.value;
 
       return qb => {

@@ -909,7 +909,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
 
-    return (await this.dbDriver.raw(unsanitize(qb.toQuery())))[0].map(c => {
+    return (await this.extractRawQueryAndExec(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -995,7 +995,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, args);
 
     const proto = await parentModel.getProto();
-    return (await this.dbDriver.raw(unsanitize(qb.toQuery())))[0].map(c => {
+    return (await this.extractRawQueryAndExec(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -2028,7 +2028,7 @@ class BaseModelSqlv2 {
   }
 
   private async extractRawQueryAndExec(qb: QueryBuilder) {
-    const query = qb.toQuery().replaceAll('\\?', '?');
+    const query = unsanitize(qb.toQuery());
     return this.isPg
       ? (await this.dbDriver.raw(query))?.rows
       : await this.dbDriver.from(

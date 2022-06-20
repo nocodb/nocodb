@@ -66,8 +66,8 @@ jobs:
         run: |
           npm i -E nocodb-daily@$TAG
 
-          git config --global user.name "Pranav C"
-          git config --global user.email "pranavxc@gmail.com"
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
 
           git commit package.json -m "Update to $TAG"
           git tag $TAG

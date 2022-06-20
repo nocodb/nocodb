@@ -114,7 +114,7 @@ jobs:
       - uses: peter-evans/commit-comment@v2
         with:
           body: |
-            The PR changes have been deployed as executables. Pleae visit following link to download executables : https://github.com/nocodb/nocodb-timely/releases/tag/${{ needs.set-tag.outputs.target_tag }}
+            The PR changes have been deployed as executables. Pleae visit following link to download executables : https://github.com/nocodb/nocodb-timely/releases/tag/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
 
   # if-merged:
   #   if: github.event.pull_request.merged == true

@@ -216,7 +216,6 @@ const parseConditionV2 = async (
       return qb => {
         switch (filter.comparison_op) {
           case 'eq':
-            console.log(qb.toQuery());
             qb = qb.where(field, val);
             break;
           case 'neq':

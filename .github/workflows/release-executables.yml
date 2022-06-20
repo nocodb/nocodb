@@ -1,0 +1,169 @@
+name: "Release : Executables"
+
+on:
+  # Triggered manually
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: "Timely version"
+        required: true  # Triggered by release-nocodb.yml / release-nightly-dev.yml / release-pr.yml
+  workflow_call:
+    inputs:
+      tag:
+        description: "Timely version"
+        required: true
+        type: string
+jobs:
+  build-executables:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          repository: 'nocodb/nocodb-timely'
+      - name: Cache node modules
+        id: cache-npm
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-node-modules
+        with:
+          # npm cache files are stored in `~/.npm` on Linux/macOS
+          path: ~/.npm
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Cache pkg modules
+        id: cache-pkg
+        uses: actions/cache@v3
+        env:
+          cache-name: cache-pkg
+        with:
+          # pkg cache files are stored in `~/.pkg-cache`
+          path: ~/.pkg-cache
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/package-lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Install QEMU and ldid
+        run: |
+          # Install qemu
+          sudo apt install qemu binfmt-support qemu-user-static
+          # install ldid
+          git clone https://github.com/daeken/ldid.git
+          cd ./ldid
+          ./make.sh
+          sudo cp ./ldid /usr/local/bin
+
+      - name: Update nocodb-timely
+        env:
+          TAG: ${{ github.event.inputs.tag || inputs.tag }}
+        run: |
+          npm i -E nocodb-daily@$TAG
+
+          git config --global user.name "Pranav C"
+          git config --global user.email "pranavxc@gmail.com"
+
+          git commit package.json -m "Update to $TAG"
+          git tag $TAG
+          git push --tags
+
+
+      - uses: actions/setup-node@v3
+        with:
+          node-version: 16
+
+      - name : Install dependencies and build executables
+        run: |
+          npm i
+
+          # npm i --target_arch=x64 --target_platform=darwin
+
+          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=win32 --target_arch=ia32
+          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --target_arch=x64
+          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=darwin --target_arch=arm
+          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --target_arch=x64
+          # npx node-pre-gyp install --directory=./node_modules/sqlite3 --target_platform=linux --target_arch=arm
+
+          # Copy sqlite binaries
+          rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/
+
+          # clean up code to optimize size
+          npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
+
+
+          # build executables
+          npm run build
+
+          mkdir ./mac-dist
+          mv ./dist/Noco-macos-arm64 ./mac-dist/
+          mv ./dist/Noco-macos-x64 ./mac-dist/
+
+          GZIP=-9 tar -czvf ./dist/Noco-linux-x64.tar.gz ./dist/Noco-linux-x64
+          GZIP=-9 tar -czvf ./dist/Noco-win-x64.tar.gz ./dist/Noco-win-x64.exe
+          GZIP=-9 tar -czvf ./dist/Noco-linux-arm64.tar.gz ./dist/Noco-linux-arm64
+          GZIP=-9 tar -czvf ./dist/Noco-win-arm64.tar.gz ./dist/Noco-win-arm64.exe
+
+      - name: Upload executables(except mac executables) to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.NC_GITHUB_TOKEN }}
+          file: dist/**
+          tag: ${{ github.event.inputs.tag || inputs.tag }}
+          overwrite: true
+          file_glob: true
+          repo_name: nocodb/nocodb-timely
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: executables
+          path: mac-dist
+          retention-days: 1
+
+  sign-mac-executables:
+    runs-on: macos-latest
+    needs: build-executables
+    steps:
+
+      - uses: actions/download-artifact@master
+        with:
+          name: executables
+          path: mac-dist
+
+      - run: |
+          /usr/bin/codesign --force -s - ./mac-dist/Noco-macos-arm64 -v
+          /usr/bin/codesign --force -s - ./mac-dist/Noco-macos-x64 -v
+
+      - uses: actions/upload-artifact@master
+        with:
+          name: executables
+          path: mac-dist
+          retention-days: 1
+
+
+  publish:
+    needs: sign-mac-executables
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@master
+        with:
+          name: executables
+          path: mac-dist
+      - name: Compress files
+        run: |
+          GZIP=-9 tar -czvf ./mac-dist/Noco-macos-x64.tar.gz ./mac-dist/Noco-macos-x64
+          GZIP=-9 tar -czvf ./mac-dist/Noco-macos-arm64.tar.gz ./mac-dist/Noco-macos-arm64
+
+      - name: Upload mac executables to release
+        uses: svenstaro/upload-release-action@v2
+        with:
+          repo_token: ${{ secrets.NC_GITHUB_TOKEN }}
+          file: mac-dist/**
+          tag: ${{ github.event.inputs.tag || inputs.tag }}
+          overwrite: true
+          file_glob: true
+          repo_name: nocodb/nocodb-timely
+
+

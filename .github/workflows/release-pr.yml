@@ -109,7 +109,7 @@ jobs:
   leave-executable-comment:
     if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
     runs-on: 'ubuntu-latest'
-    needs: [release-executables]
+    needs: [release-executables, set-tag]
     steps:
       - uses: peter-evans/commit-comment@v2
         with:

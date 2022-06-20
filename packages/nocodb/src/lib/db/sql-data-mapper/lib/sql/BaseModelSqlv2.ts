@@ -1277,10 +1277,10 @@ class BaseModelSqlv2 {
         } else {
           id = (
             await this.dbDriver.raw(query.toString().replaceAll('\\?', '?'))
-          )[0].insertId;
+          )[0]?.insertId;
         }
 
-        if (ai) {
+        if (ai && id) {
           response = await this.readByPk(id);
         } else {
           response = data;

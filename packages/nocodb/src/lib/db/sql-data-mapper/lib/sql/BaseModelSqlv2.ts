@@ -241,7 +241,6 @@ class BaseModelSqlv2 {
 
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-
     const data = await this.extractRawQueryAndExec(qb);
 
     return data?.map(d => {
@@ -2027,10 +2026,11 @@ class BaseModelSqlv2 {
   }
 
   private async extractRawQueryAndExec(qb: QueryBuilder) {
+    const query = qb.toQuery().replaceAll('\\?', '?');
     return this.isPg
-      ? qb
+      ? (await this.dbDriver.raw(query))?.rows
       : await this.dbDriver.from(
-          this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
+          this.dbDriver.raw(query).wrap('(', ') __nc_alias')
         );
   }
 }
@@ -2167,7 +2167,7 @@ function getCompositePk(primaryKeys: Column[], row) {
 }
 
 export function sanitize(v) {
-  return v?.replace(/([^\\]|^)([?])/g, '$1\\$2');
+  return v?.replaceAll('?', '\\\\?');
 }
 
 export { BaseModelSqlv2 };

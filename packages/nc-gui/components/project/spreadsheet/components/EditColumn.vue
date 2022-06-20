@@ -691,7 +691,7 @@ export default {
     isCurrency() {
       return this.newColumn && this.newColumn.uidt === UITypes.Currency
     },
-    isDate(){
+    isDate() {
       return this.newColumn && this.newColumn.uidt === UITypes.Date
     }
   },

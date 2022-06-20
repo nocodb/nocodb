@@ -35,13 +35,13 @@ export default {
     },
     date() {
       if (!this.value || this.localState) {
-        return this.localState ? dayjs(this.localState).format(this.datepickerMeta.date_format || 'YYYY-MM-DD') : this.localState 
+        return this.localState ? dayjs(this.localState).format(this.datepickerMeta.date_format || 'YYYY-MM-DD') : this.localState
       }
       return 'Invalid Date'
     },
-    datepickerMeta(){
+    datepickerMeta() {
       return {
-        date_format: "YYYY-MM-DD",
+        date_format: 'YYYY-MM-DD',
         ...(this.column && this.column.meta
           ? this.column.meta
           : {})

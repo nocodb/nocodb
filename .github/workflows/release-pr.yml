@@ -119,16 +119,16 @@ jobs:
             #### MacOS
 
             ```bash
-            curl https://github.com/nocodb/nocodb-timely/releases/download/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-macos-arm64 \
-            && chmod +x Noco-macos-arm64 \
-            && ./Noco-linux-arm64
+            curl https://github.com/nocodb/nocodb-timely/releases/download/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-macos-arm64 -o Noco -L \
+                && chmod +x Noco \
+                && ./Noco
             ```
             #### Linux
 
             ```bash
-            curl https://github.com/nocodb/nocodb-timely/releases/download/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-linux-x64 \
-            && chmod +x Noco-linux-x64 \
-            && ./Noco-linux-x64
+            curl https://github.com/nocodb/nocodb-timely/releases/download/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-linux-x64 -o Noco -L \
+                 && chmod +x Noco \
+                 && ./Noco
             ```
             #### windows
 

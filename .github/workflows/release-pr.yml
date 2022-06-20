@@ -83,7 +83,6 @@ jobs:
     uses: ./.github/workflows/release-executables.yml
     with:
       tag: ${{ needs.set-tag.outputs.target_tag }}
-      current-version: ${{ needs.set-tag.outputs.current_version }}
 
   # leave-comment:
   #   runs-on: 'ubuntu-latest'

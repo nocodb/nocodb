@@ -5,7 +5,7 @@
     </template>
     <div class="d-flex flex-column justify-center" @click.stop>
       <v-time-picker v-model="localState" v-on="parentListeners" />
-      <v-btn small color="primary" @click="$emit('update')">
+      <v-btn small color="primary" @click="$emit('save')">
         <!-- Save -->
         {{ $t('general.save') }}
       </v-btn>
@@ -15,7 +15,6 @@
 
 <script>
 import dayjs from 'dayjs'
-import { MysqlUi } from 'nocodb-sdk'
 
 export default {
   name: 'TimePickerCell',

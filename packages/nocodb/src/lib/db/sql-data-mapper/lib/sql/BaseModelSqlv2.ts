@@ -1276,12 +1276,19 @@ class BaseModelSqlv2 {
         if (response?.length) {
           id = response[0];
         } else {
-          id = (
-            await this.dbDriver.raw(query.toString().replaceAll('\\?', '?'))
-          )[0]?.insertId;
+          const res = await this.extractRawQueryAndExec(query);
+          id = res.id ?? res[0].insertId;
         }
 
-        if (ai && id) {
+        if (ai) {
+          if (this.isSqlite) {
+            // sqlite doesnt return id after insert
+            id = (
+              await this.dbDriver(this.tnPath)
+                .select(ai.column_name)
+                .max(ai.column_name, { as: 'id' })
+            )[0].id;
+          }
           response = await this.readByPk(id);
         } else {
           response = data;
@@ -1332,7 +1339,7 @@ class BaseModelSqlv2 {
         .update(updateObj)
         .where(await this._wherePk(id));
 
-      await this.dbDriver.raw(query.toString().replaceAll('\\?', '?'));
+      await this.extractRawQueryAndExec(query);
 
       const response = await this.readByPk(id);
       await this.afterUpdate(response, trx, cookie);
@@ -2029,11 +2036,14 @@ class BaseModelSqlv2 {
 
   private async extractRawQueryAndExec(qb: QueryBuilder) {
     const query = unsanitize(qb.toQuery());
-    return this.isPg
-      ? (await this.dbDriver.raw(query))?.rows
-      : await this.dbDriver.from(
-          this.dbDriver.raw(query).wrap('(', ') __nc_alias')
-        );
+    if (query.slice(0, 6) === 'select') {
+      return this.isPg
+        ? (await this.dbDriver.raw(query))?.rows
+        : await this.dbDriver.from(
+            this.dbDriver.raw(query).wrap('(', ') __nc_alias')
+          );
+    }
+    return await this.dbDriver.raw(query);
   }
 }
 

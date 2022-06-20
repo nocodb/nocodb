@@ -41,6 +41,7 @@ import { customValidators } from './customValidators';
 import { NcError } from '../../../../meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
+import { sanitize, unsanitize } from './helpers/sanitize';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -907,7 +908,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
 
-    return (await qb).map(c => {
+    return (await this.dbDriver.raw(unsanitize(qb.toQuery())))[0].map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -993,8 +994,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, args);
 
     const proto = await parentModel.getProto();
-
-    return (await qb).map(c => {
+    return (await this.dbDriver.raw(unsanitize(qb.toQuery())))[0].map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -2165,10 +2165,6 @@ function _wherePk(primaryKeys: Column[], id) {
 
 function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map(c => row[c.title]).join('___');
-}
-
-export function sanitize(v) {
-  return v?.replaceAll('?', '\\\\?');
 }
 
 export { BaseModelSqlv2 };

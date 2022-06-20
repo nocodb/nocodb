@@ -119,8 +119,8 @@ jobs:
             #### MacOS
 
             ```bash
-            curl https://github.com/nocodb/nocodb-timely/releases/download/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-linux-arm64 \
-            && chmod +x Noco-linux-arm64 \
+            curl https://github.com/nocodb/nocodb-timely/releases/download/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-macos-arm64 \
+            && chmod +x Noco-macos-arm64 \
             && ./Noco-linux-arm64
             ```
             #### Linux

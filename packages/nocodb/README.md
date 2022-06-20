@@ -1,10 +1,11 @@
-# nocodb
+# Nocodb
 
 ## Running locally
 
 Even though this package is a backend project, you can still visit the dashboard as it includes ``nc-lib-gui``. 
 
 ```
+
 npm install
 npm run watch:run
 # open localhost:8080/dashboard in browser

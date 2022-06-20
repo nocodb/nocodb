@@ -119,16 +119,20 @@ jobs:
             #### MacOS
 
             ```bash
-            curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-macos-arm64 -o Noco -L \
+            mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} \
+                && cd ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} \
+                && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-macos-arm64 -o Noco -L \
                 && chmod +x Noco \
                 && ./Noco
             ```
             #### Linux
 
             ```bash
-            curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-linux-x64 -o Noco -L \
-                 && chmod +x Noco \
-                 && ./Noco
+            mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} \
+               && cd ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} \
+               && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-linux-x64 -o Noco -L \
+               && chmod +x Noco \
+               && ./Noco
             ```
             #### windows
 

@@ -10,58 +10,58 @@
             <span class="caption text-capitalize">Upload</span>
           </v-tab>
           <v-tab>
-            <v-icon small class="mr-1">
+            <!--            <v-icon small class="mr-1">
               mdi-link-variant
             </v-icon>
             <span class="caption text-capitalize">URL</span>
-          </v-tab>
-          <v-tab>
-            <v-icon small class="mr-1">
-              mdi-link-variant
-            </v-icon>
-            <span class="caption text-capitalize">String</span>
-          </v-tab>
+          </v-tab>-->
+            <v-tab>
+              <v-icon small class="mr-1">
+                mdi-link-variant
+              </v-icon>
+              <span class="caption text-capitalize">String</span>
+            </v-tab>
 
-          <v-tab-item>
-            <div class="nc-json-import-tab-item ">
-              <div
-                class="nc-droppable d-flex align-center justify-center flex-column"
-                :style="{
-                  background : dragOver ? '#7772' : ''
-                }"
-                @click="$refs.file.click()"
-                @drop.prevent="dropHandler"
-                @dragover.prevent="dragOver = true"
-                @dragenter.prevent="dragOver = true"
-                @dragexit="dragOver = false"
-                @dragleave="dragOver = false"
-                @dragend="dragOver = false"
-              >
-                <x-icon :color="['primary','grey']" size="50">
-                  mdi-file-plus-outline
-                </x-icon>
-                <p class="title  mb-1 mt-2">
-                  <!-- Select File to Upload-->
-                  {{ $t('msg.info.upload') }}
-                </p>
-                <p class="grey--text mb-1">
-                  <!-- or drag and drop file-->
-                  {{ $t('msg.info.upload_sub') }}
-                </p>
+            <v-tab-item>
+              <div class="nc-json-import-tab-item ">
+                <div
+                  class="nc-droppable d-flex align-center justify-center flex-column"
+                  :style="{
+                    background : dragOver ? '#7772' : ''
+                  }"
+                  @click="$refs.file.click()"
+                  @drop.prevent="dropHandler"
+                  @dragover.prevent="dragOver = true"
+                  @dragenter.prevent="dragOver = true"
+                  @dragexit="dragOver = false"
+                  @dragleave="dragOver = false"
+                  @dragend="dragOver = false"
+                >
+                  <x-icon :color="['primary','grey']" size="50">
+                    mdi-file-plus-outline
+                  </x-icon>
+                  <p class="title  mb-1 mt-2">
+                    <!-- Select File to Upload-->
+                    {{ $t('msg.info.upload') }}
+                  </p>
+                  <p class="grey--text mb-1">
+                    <!-- or drag and drop file-->
+                    {{ $t('msg.info.upload_sub') }}
+                  </p>
 
-                <p v-if="quickImportType == 'excel'" class="caption grey--text">
-                  <!-- Supported: .xls, .xlsx, .xlsm, .ods, .ots -->
-                  {{ $t('msg.info.excelSupport') }}
-                </p>
+                  <p v-if="quickImportType == 'excel'" class="caption grey--text">
+                    <!-- Supported: .xls, .xlsx, .xlsm, .ods, .ots -->
+                    {{ $t('msg.info.excelSupport') }}
+                  </p>
+                </div>
               </div>
-            </div>
-          </v-tab-item>
-          <v-tab-item>
+            </v-tab-item>
+            <!--          <v-tab-item>
             <div class="nc-json-import-tab-item align-center">
               <div class="pa-4 d-100 h-100">
                 <v-form ref="form" v-model="valid">
                   <div class="d-flex">
-                    <!-- todo:  i18n label-->
+                    &lt;!&ndash; todo:  i18n label&ndash;&gt;
                     <v-text-field
                       v-model="url"
                       hide-details="auto"
@@ -77,40 +77,41 @@
                         ]"
                     />
                     <v-btn v-t="['c:project:create:json:load-url']" class="ml-3" color="primary" @click="loadUrl">
-                      <!--Load-->
+                      &lt;!&ndash;Load&ndash;&gt;
                       {{ $t('general.load') }}
                     </v-btn>
                   </div>
                 </v-form>
               </div>
             </div>
-          </v-tab-item>
-          <v-tab-item>
-            <div class="nc-json-import-tab-item align-center">
-              <div class="pa-4 d-100 h-100">
-                <v-form ref="form" v-model="valid">
-                  <div class="nc-json-editor-wrapper">
-                    <v-btn small class="nc-json-format-btn" @click="formatJson">
-                      Format
-                    </v-btn>
-
-                    <!--label="Enter excel file url"-->
-                    <monaco-json-editor
-                      ref="editor"
-                      v-model="jsonString"
-                      style="height:320px"
-                    />
-                    <div class="text-center mt-4">
-                      <v-btn v-t="['c:project:create:excel:load-url']" class="ml-3" color="primary" @click="loadJsonString">
-                        <!--Load-->
-                        {{ $t('general.load') }}
+          </v-tab-item>-->
+            <v-tab-item>
+              <div class="nc-json-import-tab-item align-center">
+                <div class="pa-4 d-100 h-100">
+                  <v-form ref="form" v-model="valid">
+                    <div class="nc-json-editor-wrapper">
+                      <v-btn small class="nc-json-format-btn" @click="formatJson">
+                        Format
                       </v-btn>
+
+                      <!--label="Enter excel file url"-->
+                      <monaco-json-editor
+                        ref="editor"
+                        v-model="jsonString"
+                        style="height:320px"
+                      />
+                      <div class="text-center mt-4">
+                        <v-btn v-t="['c:project:create:excel:load-url']" class="ml-3" color="primary" @click="loadJsonString">
+                          <!--Load-->
+                          {{ $t('general.load') }}
+                        </v-btn>
+                      </div>
                     </div>
-                  </div>
-                </v-form>
+                  </v-form>
+                </div>
               </div>
-            </div>
-          </v-tab-item>
+            </v-tab-item>
+          </v-tab>
         </v-tabs>
 
         <div class="px-4 pb-2">

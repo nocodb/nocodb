@@ -416,6 +416,13 @@ export async function projectCost(req, res) {
     cost = Math.min(120 * userCount, 36000);
   }
 
+  Tele.event({
+    event: 'a:project:cost',
+    data: {
+      cost
+    }
+  });
+
   res.json({ cost });
 }
 

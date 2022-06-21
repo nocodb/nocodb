@@ -157,6 +157,32 @@ export default class View implements ViewType {
     return viewId && this.get(viewId?.id || viewId);
   }
 
+  public static async getDefaultView(
+    fk_model_id: string,
+    ncMeta = Noco.ncMeta
+  ) {
+    let view =
+      fk_model_id &&
+      (await NocoCache.get(
+        `${CacheScope.VIEW}:${fk_model_id}:default`,
+        CacheGetType.TYPE_OBJECT
+      ));
+    if (!view) {
+      view = await ncMeta.metaGet2(
+        null,
+        null,
+        MetaTable.VIEWS,
+        {
+          fk_model_id,
+          is_default: 1
+        },
+        null
+      );
+      await NocoCache.set(`${CacheScope.VIEW}:${fk_model_id}:default`, view);
+    }
+    return view && new View(view);
+  }
+
   public static async list(modelId: string, ncMeta = Noco.ncMeta) {
     let viewsList = await NocoCache.getList(CacheScope.VIEW, [modelId]);
     if (!viewsList.length) {
@@ -666,6 +692,9 @@ export default class View implements ViewType {
     if (o) {
       // update data
       o = { ...o, ...updateObj };
+      if (o.is_default) {
+        await NocoCache.set(`${CacheScope.VIEW}:${o.fk_model_id}:default`, o);
+      }
       // set cache
       await NocoCache.set(key, o);
     }

@@ -81,7 +81,6 @@ export default {
         UITypes.Number,
         UITypes.Decimal,
         UITypes.Percent,
-        UITypes.Duration,
         UITypes.Count,
         UITypes.AutoNumber,
         UITypes.SpecificDBType,
@@ -92,7 +91,8 @@ export default {
       return [
         UITypes.Currency,
         UITypes.Year,
-        UITypes.Time
+        UITypes.Time,
+        UITypes.Duration
       ].includes(this.uiDatatype)
     }
   }

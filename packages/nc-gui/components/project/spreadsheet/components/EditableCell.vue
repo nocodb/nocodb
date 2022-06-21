@@ -42,6 +42,7 @@
       :is-form="isForm"
       :column="column"
       :is-locked="isLocked"
+      v-on="parentListeners"
     />
 
     <boolean-cell

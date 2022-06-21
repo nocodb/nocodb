@@ -70,7 +70,11 @@
                       class="caption"
                       outlined
                       dense
-                      :rules="[v => !!v || $t('general.required') ]"
+                      :rules="
+                        [
+                          v => !!v || $t('general.required'),
+                          v => !(/(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g).test(v) || errorMessages.ipBlockList
+                        ]"
                     />
                     <v-btn v-t="['c:project:create:json:load-url']" class="ml-3" color="primary" @click="loadUrl">
                       <!--Load-->
@@ -264,7 +268,10 @@ export default {
         importData: true
       },
       filename: '',
-      jsonString: ''
+      jsonString: '',
+      errorMessages: {
+        ipBlockList: 'IP Not allowed!'
+      }
     }
   },
   computed: {

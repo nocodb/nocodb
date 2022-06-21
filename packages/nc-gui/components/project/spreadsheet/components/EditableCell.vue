@@ -35,6 +35,15 @@
       v-on="$listeners"
     />
 
+    <duration-cell
+      v-else-if="isDuration"
+      v-model="localState"
+      :active="active"
+      :is-form="isForm"
+      :column="column"
+      :is-locked="isLocked"
+    />
+
     <boolean-cell
       v-else-if="isBoolean"
       v-model="localState"
@@ -148,6 +157,7 @@ import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
 import SetListEditableCell from '~/components/project/spreadsheet/components/editableCell/SetListEditableCell'
 import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell'
 import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
+import DurationCell from '~/components/project/spreadsheet/components/editableCell/DurationCell'
 
 export default {
   name: 'EditableCell',
@@ -167,7 +177,8 @@ export default {
     TextAreaCell,
     DateTimePickerCell,
     TextCell,
-    DatePickerCell
+    DatePickerCell,
+    DurationCell
   },
   mixins: [cell],
   props: {
@@ -199,7 +210,7 @@ export default {
         if (val !== this.value) {
           this.changed = true
           this.$emit('input', val)
-          if (this.isAttachment || this.isBoolean || this.isRating || this.isTime || this.isDateTime || this.isDate) {
+          if (this.isAttachment || this.isBoolean || this.isRating || this.isTime || this.isDateTime || this.isDate || this.isDuration) {
             this.syncData()
           } else if (!this.isCurrency && !this.isEnum && !this.isSet) {
             this.syncDataDebounce(this)
@@ -230,7 +241,7 @@ export default {
     // this.$refs.input.focus();
   },
   beforeDestroy() {
-    if (this.changed && !(this.isAttachment || this.isBoolean || this.isRating || this.isTime || this.isDateTime)) {
+    if (this.changed && !(this.isAttachment || this.isBoolean || this.isRating || this.isTime || this.isDateTime || this.isDuration)) {
       this.changed = false
       this.$emit('change')
     }

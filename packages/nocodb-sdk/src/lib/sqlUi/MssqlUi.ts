@@ -123,6 +123,7 @@ export class MssqlUi {
         pk: false,
         un: false,
         ai: false,
+        au: true,
         cdf: 'GETDATE()',
         clen: 45,
         np: null,
@@ -919,7 +920,9 @@ export class MssqlUi {
     // if (1) {
     col.altered = col.altered || 2;
     // }
-
+    if (col.au) {
+      col.cdf = 'GETDATE()';
+    }
     // if (!col.ai) {
     //   col.dtx = 'specificType'
     // } else {

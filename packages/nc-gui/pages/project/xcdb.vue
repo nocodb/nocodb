@@ -39,7 +39,7 @@
               :full-width="false"
               class="nc-metadb-project-name"
               :label="$t('placeholder.projName')"
-              :rules="[v => !!v || $t('general.required')]"
+              :rules="form.titleValidationRule"
             />
 
             <!--            <div class="wrapper mb-5 mt-5">
@@ -109,7 +109,13 @@ export default {
            icon: require('@/assets/img/grpc-icon-color.png'),
            type: 'img'
          }, */
-    ]
+    ],
+    form: {
+      titleValidationRule: [
+        v => !!v || 'Title is required',
+        v => v.length <= 50 || 'Project name exceeds 50 characters',
+      ],
+    },
   }),
   computed: {
     typeIcon() {

@@ -22,7 +22,7 @@ When a non-draft Pull Request is created, reopened or synchronized, a timely bui
 
 The docker images will be built and pushed to Docker Hub (See [nocodb/nocodb-timely](https://hub.docker.com/r/nocodb/nocodb-timely/tags) for the full list). Once the image is ready, Github bot will add a comment with the command in the pull request. The tag would be `<NOCODB_CURRENT_VERSION>-pr-<PR_NUMBER>-<YYYYMMDD>-<HHMM>`. 
 
-![image](https://user-images.githubusercontent.com/35857179/174941154-d0b30123-a49a-4a94-921a-0db67e71782b.png)
+![image](https://user-images.githubusercontent.com/35857179/175012097-240dab05-da93-4c4e-87c1-1c36fb1350bd.png)
 
 ## Executables
 
@@ -39,4 +39,4 @@ Currently, we only support the following targets:
 
 Once the executables are ready, Github bot will add a comment with the commands in the pull request. 
 
-![image](https://user-images.githubusercontent.com/35857179/174941177-c7f05710-26db-45ab-bc9a-438fbf65a544.png)
+![image](https://user-images.githubusercontent.com/35857179/175012070-f5f3e7b8-6dc5-4d1c-9f7e-654bc5039521.png)

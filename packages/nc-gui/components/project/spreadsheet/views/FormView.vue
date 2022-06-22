@@ -617,35 +617,21 @@ export default {
       ) {
         continue
       }
-      if (
-        !column.virtual &&
-        (((column.rqd || column.notnull) && !column.cdf) ||
-          (column.pk && !(column.ai || column.default)) ||
-          this.localParams.fields[column.title].required)
-      ) {
+      if (!isVirtualCol(column) && (((column.rqd || column.notnull) && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)) {
         obj.localState[column.title] = { required }
-      } else if (column.bt) {
-        const col = this.meta.columns.find(
-          c => c.column_name === column.bt.column_name
-        )
-        if (
-          (col.rqd && !col.default) ||
-          this.localParams.fields[column.title].required
-        ) {
-          obj.localState[col.title] = { required }
+      } else if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions && column.colOptions.type === RelationTypes.BELONGS_TO) {
+        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
+
+        if ((col && col.rqd && !col.cdf) || column.required) {
+          if (col) { obj.virtual[column.title] = { required } }
         }
-      } else if (
-        column.virtual &&
-        this.localParams.fields[column.title].required &&
-        (column.mm || column.hm)
-      ) {
+      } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title] = {
           minLength: minLength(1),
           required
         }
       }
     }
-
     return obj
   },
   computed: {

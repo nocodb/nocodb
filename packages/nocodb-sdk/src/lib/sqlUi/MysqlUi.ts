@@ -1036,7 +1036,7 @@ export class MysqlUi {
         colProp.dt = 'double';
         break;
       case 'Duration':
-        colProp.dt = 'int';
+        colProp.dt = 'decimal';
         break;
       case 'Rating':
         colProp.dt = 'int';

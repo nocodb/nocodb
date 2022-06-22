@@ -39,7 +39,7 @@ const padZero = (val, isSSS = false) => {
 }
 
 export const convertMS2Duration = (val, durationType) => {
-  if (val === null || val === undefined) { return val }
+  if (val === "" || val === null || val === undefined) { return val }
   // 600.000 s --> 10:00 (10 mins)
   const milliseconds = Math.round((val % 1) * 1000)
   const centiseconds = Math.round(milliseconds / 10)

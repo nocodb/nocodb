@@ -135,12 +135,15 @@ async function getFindOne(model, view: View, req) {
     args.sortArr = JSON.parse(args.sortArrJson);
   } catch (e) {}
 
-  return await nocoExecute(
-    await getAst({ model, query: args, view }),
-    await baseModel.findOne(args),
-    {},
-    {}
-  );
+  const data = await baseModel.findOne(args);
+  return data
+    ? await nocoExecute(
+        await getAst({ model, query: args, view }),
+        data,
+        {},
+        {}
+      )
+    : {};
 }
 
 async function getDataGroupBy(model, view: View, req) {

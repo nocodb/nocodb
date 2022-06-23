@@ -21,6 +21,17 @@ jobs:
   build-executables:
     runs-on: ubuntu-latest
     steps:
+      # Get the latest draft release for asset upload url
+      - uses: cardinalby/git-get-release-action@v1
+          id: get_release
+          env:
+            GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+          with:
+            latest: 1
+            draft: true
+      # Store upload url to access across jobs
+      - run: |
+          echo "::set-output name=UPLOAD_URL::${{ steps.get_release.outputs.upload_url }}"
       - uses: actions/checkout@v3
       - name: Cache node modules
         id: cache-npm
@@ -35,6 +46,7 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
+
       - name: Cache pkg modules
         id: cache-pkg
         uses: actions/cache@v3
@@ -97,6 +109,51 @@ jobs:
           overwrite: true
           file_glob: true
 
+
+      - name: Upload win-arm64 build to asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./scripts/pkg-executable/dist/Noco-win-arm64
+          asset_name: Noco-win-arm64
+          asset_content_type: application/octet-stream
+
+      - name: Upload win-x64 build to asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./scripts/pkg-executable/dist/Noco-win-x64
+          asset_name: Noco-win-x64
+          asset_content_type: application/octet-stream
+
+      - name: Upload linux-arm64 build to asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./scripts/pkg-executable/dist/Noco-linux-arm64
+          asset_name: Noco-linux-arm64
+          asset_content_type: application/octet-stream
+
+      - name: Upload linux-x64 build to asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./scripts/pkg-executable/dist/Noco-linux-x64
+          asset_name: Noco-linux-x64
+          asset_content_type: application/octet-stream
+
       - uses: actions/upload-artifact@master
         with:
           name: ${{ github.event.inputs.tag || inputs.tag }}
@@ -140,55 +197,82 @@ jobs:
         with:
           path: 'homebrew-nocodb'
           token: ${{ secrets.NC_GITHUB_TOKEN }}
-          repository: 'nocodb/homebrew-noco'
+          repository: 'nocodb/homebrew-nocodb'
           fetch-depth: 0
 
       - name: Compress files and calculate checksum
           run: |
-            cp ./mac-dist/Noco-macos-x64 ./mac-dist/noco
-            tar -czf ./mac-dist/noco.tar.gz ./mac-dist/noco
-            rm ./mac-dist/noco
-            echo "::set-output name=CHECKSUM::$(shasum -a 256 ./mac-dist/noco.tar.gz | awk '{print $1}')"
+            cp ./mac-dist/Noco-macos-x64 ./mac-dist/nocodb
+            tar -czf ./mac-dist/nocodb.tar.gz ./mac-dist/nocodb
+            rm ./mac-dist/nocodb
+            echo "::set-output name=CHECKSUM::$(shasum -a 256 ./mac-dist/nocodb.tar.gz | awk '{print $1}')"
           id: compress
 
 
-
-      - name: Upload mac executables to release
-        uses: svenstaro/upload-release-action@v2
+      - name: Upload macos-x64 build to asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          repo_token: ${{ secrets.NC_GITHUB_TOKEN }}
-          file: scripts/pkg-executable/mac-dist/**
-          tag: ${{ github.event.inputs.tag || inputs.tag }}
-          overwrite: true
-          file_glob: true
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./scripts/pkg-executable/mac-dist/Noco-macos-x64
+          asset_name: Noco-macos-x64
+          asset_content_type: application/octet-stream
+
+
+
+      - name: Upload macos-arm64 build to asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./scripts/pkg-executable/mac-dist/Noco-macos-arm64
+          asset_name: Noco-macos-arm64
+          asset_content_type: application/octet-stream
+
+
+
+      - name: Upload macos compressed build to asset
+        id: upload-release-asset
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          asset_path: ./scripts/pkg-executable/mac-dist/nocodb.tar.gz
+          asset_name: Noco-macos-arm64
+          asset_content_type: application/octet-stream
 
 
       - name: Generate Homebrew Formula class and push
         run: |
           FORMULA_CLASS_STR=$(cat << EOF
-          class Noco < Formula
+          class Nocodb < Formula
             desc "Get Human Readable file size information. - CLI"
             homepage "https://github.com/nocodb/nocodb"
-            url "https://github.com/novcodb/nocodb/releases/download/${{ github.event.inputs.tag || inputs.tag }}/noco.tar.gz"
+            url "https://github.com/nocodb/nocodb/releases/download/${{ github.event.inputs.tag || inputs.tag }}/nocodb.tar.gz"
             sha256 "${{ steps.compress.outputs.CHECKSUM }}"
             license "MIT"
             version "${{ github.event.inputs.tag || inputs.tag }}"
 
             def install
-              bin.install "noco"
+              bin.install "nocodb"
             end
           end
           EOF
           )
 
-          printf "$FORMULA_CLASS_STR" > homebrew-nocodb/Formula/noco.rb
-
           cd ./homebrew-nocodb
+
+          printf "$FORMULA_CLASS_STR" > ./Formula/nocodb.rb
 
           git config user.name 'github-actions[bot]'
           git config user.email 'github-actions[bot]@users.noreply.github.com'
 
-          git commit ./Formula/noco.rb -m "Automatic publish"
+          git commit ./Formula/nocodb.rb -m "Automatic publish"
           git push
 
 

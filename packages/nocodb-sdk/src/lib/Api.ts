@@ -3209,6 +3209,22 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Utils
+     * @name AppHealth
+     * @request GET:/api/v1/db/meta/nocodb/health
+     * @response `200` `any` OK
+     */
+    appHealth: (params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/db/meta/nocodb/health`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
      * @description Get All K/V pairs in NocoCache
      *
      * @tags Utils

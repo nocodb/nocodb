@@ -23,15 +23,12 @@ jobs:
     steps:
       # Get the latest draft release for asset upload url
       - uses: cardinalby/git-get-release-action@v1
-          id: get_release
-          env:
-            GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
-          with:
-            latest: 1
-            draft: true
-      # Store upload url to access across jobs
-      - run: |
-          echo "::set-output name=UPLOAD_URL::${{ steps.get_release.outputs.upload_url }}"
+        id: get_release
+        env:
+          GITHUB_TOKEN: ${{ secrets.NC_GITHUB_TOKEN }}
+        with:
+          latest: 1
+          draft: true
       - uses: actions/checkout@v3
       - name: Cache node modules
         id: cache-npm
@@ -64,6 +61,7 @@ jobs:
       # for building images for all platforms these libraries are required in Linux
       - name: Install QEMU and ldid
         run: |
+          sudo apt update
           # Install qemu
           sudo apt install qemu binfmt-support qemu-user-static
           # install ldid
@@ -95,6 +93,8 @@ jobs:
           # build executables
           npm run build
 
+          ls ./dist
+
           # Move macOS executables for signing
           mkdir ./mac-dist
           mv ./dist/Noco-macos-arm64 ./mac-dist/
@@ -107,23 +107,21 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./scripts/pkg-executable/dist/Noco-win-arm64
+          asset_path: ./scripts/pkg-executable/dist/Noco-win-arm64.exe
           asset_name: Noco-win-arm64
           asset_content_type: application/octet-stream
 
       - name: Upload win-x64 build to asset
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.get_release.outputs.upload_url }}
-          asset_path: ./scripts/pkg-executable/dist/Noco-win-x64
+          asset_path: ./scripts/pkg-executable/dist/Noco-win-x64.exe
           asset_name: Noco-win-x64
           asset_content_type: application/octet-stream
 
       - name: Upload linux-arm64 build to asset
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -134,7 +132,6 @@ jobs:
           asset_content_type: application/octet-stream
 
       - name: Upload linux-x64 build to asset
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -149,7 +146,8 @@ jobs:
           name: ${{ github.event.inputs.tag || inputs.tag }}
           path: scripts/pkg-executable/mac-dist
           retention-days: 1
-
+    outputs:
+      upload_url: ${{ steps.get_release.outputs.upload_url }}
   sign-mac-executables:
     runs-on: macos-latest
     needs: build-executables
@@ -173,7 +171,7 @@ jobs:
 
 
   publish-mac-executables-and-homebrew:
-    needs: sign-mac-executables
+    needs: [sign-mac-executables,build-executables]
     runs-on: ubuntu-latest
     steps:
       - uses: actions/download-artifact@master
@@ -191,21 +189,21 @@ jobs:
           fetch-depth: 0
 
       - name: Compress files and calculate checksum
-          run: |
-            cp ./mac-dist/Noco-macos-x64 ./mac-dist/nocodb
-            tar -czf ./mac-dist/nocodb.tar.gz ./mac-dist/nocodb
-            rm ./mac-dist/nocodb
-            echo "::set-output name=CHECKSUM::$(shasum -a 256 ./mac-dist/nocodb.tar.gz | awk '{print $1}')"
-          id: compress
+        run: |
+          cd ./scripts/pkg-executable
+          cp ./mac-dist/Noco-macos-x64 ./mac-dist/nocodb
+          tar -czf ./mac-dist/nocodb.tar.gz ./mac-dist/nocodb
+          rm ./mac-dist/nocodb
+          echo "::set-output name=CHECKSUM::$(shasum -a 256 ./mac-dist/nocodb.tar.gz | awk '{print $1}')"
+        id: compress
 
 
       - name: Upload macos-x64 build to asset
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          upload_url: ${{ needs.build-executables.outputs.upload_url }}
           asset_path: ./scripts/pkg-executable/mac-dist/Noco-macos-x64
           asset_name: Noco-macos-x64
           asset_content_type: application/octet-stream
@@ -213,12 +211,11 @@ jobs:
 
 
       - name: Upload macos-arm64 build to asset
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          upload_url: ${{ needs.build-executables.outputs.upload_url }}
           asset_path: ./scripts/pkg-executable/mac-dist/Noco-macos-arm64
           asset_name: Noco-macos-arm64
           asset_content_type: application/octet-stream
@@ -226,14 +223,13 @@ jobs:
 
 
       - name: Upload macos compressed build(for homebrew) to asset
-        id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
-          upload_url: ${{ steps.get_release.outputs.upload_url }}
+          upload_url: ${{ needs.build-executables.outputs.upload_url }}
           asset_path: ./scripts/pkg-executable/mac-dist/nocodb.tar.gz
-          asset_name: Noco-macos-arm64
+          asset_name: nocodb.tar.gz
           asset_content_type: application/octet-stream
 
 

@@ -1,3 +1,4 @@
+process.env.NC_BINARY_BUILD = 'true';
 (async () => {
   try {
     const app = require('express')();

@@ -51,7 +51,7 @@ jobs:
   # Build executables and publish to GitHub
   release-executables:
     needs: [set-tag, release-npm]
-    uses: ./.github/workflows/release-executables.yml
+    uses: ./.github/workflows/release-timely-executables.yml
     with:
       tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.nightly_build_tag }}
     secrets:

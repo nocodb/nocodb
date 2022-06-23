@@ -5,13 +5,13 @@ on:
   workflow_dispatch:
     inputs:
       tag:
-        description: "Tag name"
+        description: "Timely version"
         required: true
-  # Triggered by release-nocodb.yml
+  # Triggered by release-nightly-dev.yml / release-pr.yml
   workflow_call:
     inputs:
       tag:
-        description: "Tag name"
+        description: "Timely version"
         required: true
         type: string
     secrets:
@@ -22,6 +22,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v3
+        with:
+          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          repository: 'nocodb/nocodb-timely'
       - name: Cache node modules
         id: cache-npm
         uses: actions/cache@v3
@@ -48,8 +51,6 @@ jobs:
             ${{ runner.os }}-build-${{ env.cache-name }}-
             ${{ runner.os }}-build-
             ${{ runner.os }}-
-
-      # for building images for all platforms these librarues
       - name: Install QEMU and ldid
         run: |
           # Install qemu
@@ -60,17 +61,26 @@ jobs:
           ./make.sh
           sudo cp ./ldid /usr/local/bin
 
+      - name: Update nocodb-timely
+        env:
+          TAG: ${{ github.event.inputs.tag || inputs.tag }}
+        run: |
+          npm i -E nocodb-daily@$TAG
+
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+          git commit package.json -m "Update to $TAG"
+          git tag $TAG
+          git push --tags
+
+
       - uses: actions/setup-node@v3
         with:
           node-version: 16
 
-      - name : Install nocodb, other dependencies and build executables
+      - name : Install dependencies and build executables
         run: |
-          cd ./scripts/pkg-executable
-
-          # Install nocodb version based on provided tag name
-          npm i -E nocodb@$TAG
-
           # install npm dependendencies
           npm i
 
@@ -83,7 +93,6 @@ jobs:
           # build executables
           npm run build
 
-          # Move macOS executables for signing
           mkdir ./mac-dist
           mv ./dist/Noco-macos-arm64 ./mac-dist/
           mv ./dist/Noco-macos-x64 ./mac-dist/
@@ -92,15 +101,16 @@ jobs:
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.NC_GITHUB_TOKEN }}
-          file: scripts/pkg-executable/dist/**
+          file: dist/**
           tag: ${{ github.event.inputs.tag || inputs.tag }}
           overwrite: true
           file_glob: true
+          repo_name: nocodb/nocodb-timely
 
       - uses: actions/upload-artifact@master
         with:
           name: ${{ github.event.inputs.tag || inputs.tag }}
-          path: scripts/pkg-executable/mac-dist
+          path: mac-dist
           retention-days: 1
 
   sign-mac-executables:
@@ -111,17 +121,17 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: ${{ github.event.inputs.tag || inputs.tag }}
-          path: scripts/pkg-executable/mac-dist
+          path: mac-dist
 
       - name: Sign macOS executables
         run: |
-          /usr/bin/codesign --force -s - ./scripts/pkg-executable/mac-dist/Noco-macos-arm64 -v
-          /usr/bin/codesign --force -s - ./scripts/pkg-executable/mac-dist/Noco-macos-x64 -v
+          /usr/bin/codesign --force -s - ./mac-dist/Noco-macos-arm64 -v
+          /usr/bin/codesign --force -s - ./mac-dist/Noco-macos-x64 -v
 
       - uses: actions/upload-artifact@master
         with:
           name: ${{ github.event.inputs.tag || inputs.tag }}
-          path: scripts/pkg-executable/mac-dist
+          path: mac-dist
           retention-days: 1
 
 
@@ -132,15 +142,16 @@ jobs:
       - uses: actions/download-artifact@master
         with:
           name: ${{ github.event.inputs.tag || inputs.tag }}
-          path: scripts/pkg-executable/mac-dist
+          path: mac-dist
 
       - name: Upload mac executables to release
         uses: svenstaro/upload-release-action@v2
         with:
           repo_token: ${{ secrets.NC_GITHUB_TOKEN }}
-          file: scripts/pkg-executable/mac-dist/**
+          file: mac-dist/**
           tag: ${{ github.event.inputs.tag || inputs.tag }}
           overwrite: true
           file_glob: true
+          repo_name: nocodb/nocodb-timely
 
 

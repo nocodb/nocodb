@@ -86,7 +86,7 @@ const getAst = async ({
             (!fields?.length || fields.includes(col.title)) &&
             value
           : fields?.length
-          ? fields.includes(col.title)
+          ? fields.includes(col.title) && value
           : value
     };
   }, Promise.resolve({}));

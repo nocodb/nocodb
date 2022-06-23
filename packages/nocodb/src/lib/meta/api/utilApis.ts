@@ -63,10 +63,8 @@ export async function releaseVersion(_req: Request, res: Response) {
 export async function appHealth(_: Request, res: Response) {
   res.json({
     message: 'OK',
-    timestamp: Date(),
-    uptime: process.uptime(),
-    memoryUsage: process.memoryUsage(),
-    cpuUsage: process.cpuUsage()
+    timestamp: Date.now(),
+    uptime: process.uptime()
   });
 }
 

@@ -1,13 +1,13 @@
 ---
 title: "Primary Key"
 description: "Primary Key"
-position: 574
+position: 575
 category: "Product"
 menuTitle: "Primary Key"
 ---
 
 ## What is a Primary Key ?
-- Key in a relational database table that is unique for each record
+- A primary key is a special database table column designated to uniquely identify each table record.
 
 ## What is the use of Primary Key ?
 - As it uniquely identifies an individual record of a table, it is used internally by NocoDB for all operations associated with a record

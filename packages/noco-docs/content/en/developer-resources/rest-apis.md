@@ -167,6 +167,7 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Meta | Post | utils | testConnection | /api/v1/db/meta/projects/connection/test |
 | Meta | Get | utils | appInfo | /api/v1/db/meta/nocodb/info |
 | Meta | Get | utils | appVersion | /api/v1/db/meta/nocodb/version |
+| Meta | Get | utils | appHealth | /api/v1/db/meta/nocodb/health |
 
 ## Query params
 

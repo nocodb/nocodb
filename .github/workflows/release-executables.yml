@@ -125,7 +125,7 @@ jobs:
           retention-days: 1
 
 
-  publish-mac-executables:
+  publish-mac-executables-and-homebrew:
     needs: sign-mac-executables
     runs-on: ubuntu-latest
     steps:
@@ -133,6 +133,25 @@ jobs:
         with:
           name: ${{ github.event.inputs.tag || inputs.tag }}
           path: scripts/pkg-executable/mac-dist
+
+
+
+      - uses: actions/checkout@v3
+        with:
+          path: 'homebrew-nocodb'
+          token: ${{ secrets.NC_GITHUB_TOKEN }}
+          repository: 'nocodb/homebrew-noco'
+          fetch-depth: 0
+
+      - name: Compress files and calculate checksum
+          run: |
+            cp ./mac-dist/Noco-macos-x64 ./mac-dist/noco
+            tar -czf ./mac-dist/noco.tar.gz ./mac-dist/noco
+            rm ./mac-dist/noco
+            echo "::set-output name=CHECKSUM::$(shasum -a 256 ./mac-dist/noco.tar.gz | awk '{print $1}')"
+          id: compress
+
+
 
       - name: Upload mac executables to release
         uses: svenstaro/upload-release-action@v2
@@ -142,5 +161,36 @@ jobs:
           tag: ${{ github.event.inputs.tag || inputs.tag }}
           overwrite: true
           file_glob: true
+
+
+      - name: Generate Homebrew Formula class and push
+        run: |
+          FORMULA_CLASS_STR=$(cat << EOF
+          class Noco < Formula
+            desc "Get Human Readable file size information. - CLI"
+            homepage "https://github.com/nocodb/nocodb"
+            url "https://github.com/novcodb/nocodb/releases/download/${{ github.event.inputs.tag || inputs.tag }}/noco.tar.gz"
+            sha256 "${{ steps.compress.outputs.CHECKSUM }}"
+            license "MIT"
+            version "${{ github.event.inputs.tag || inputs.tag }}"
+
+            def install
+              bin.install "noco"
+            end
+          end
+          EOF
+          )
+
+          printf "$FORMULA_CLASS_STR" > homebrew-nocodb/Formula/noco.rb
+
+          cd ./homebrew-nocodb
+
+          git config user.name 'github-actions[bot]'
+          git config user.email 'github-actions[bot]@users.noreply.github.com'
+
+          git commit ./Formula/noco.rb -m "Automatic publish"
+          git push
+
+
 
 

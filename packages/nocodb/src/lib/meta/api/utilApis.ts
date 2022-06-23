@@ -60,6 +60,16 @@ export async function releaseVersion(_req: Request, res: Response) {
   res.json(result);
 }
 
+export async function appHealth(_: Request, res: Response) {
+  res.json({
+    message: 'OK',
+    timestamp: Date(),
+    uptime: process.uptime(),
+    memoryUsage: process.memoryUsage(),
+    cpuUsage: process.cpuUsage()
+  });
+}
+
 async function _axiosRequestMake(req: Request, res: Response) {
   const { apiMeta } = req.body;
 
@@ -133,5 +143,6 @@ export default router => {
   );
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
   router.get('/api/v1/db/meta/nocodb/version', catchError(releaseVersion));
+  router.get('/api/v1/db/meta/nocodb/health', catchError(appHealth));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
 };

@@ -156,9 +156,15 @@ async function getFindOne(model, view: View, req) {
   } catch (e) {}
 
   const data = await baseModel.findOne(args);
-  const getAstValue = await getAst({ model, query: args, view });
 
-  return data ? await nocoExecute(getAstValue, data, {}, {}) : {};
+  return data
+    ? await nocoExecute(
+        await getAst({ model, query: args, view }),
+        data,
+        {},
+        {}
+      )
+    : {};
 }
 
 async function dataRead(req: Request, res: Response) {

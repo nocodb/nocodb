@@ -1,4 +1,4 @@
-name: "Release : Timely Executables"
+name: "Release : Executables"
 
 on:
   # Triggered manually
@@ -61,7 +61,7 @@ jobs:
             ${{ runner.os }}-build-
             ${{ runner.os }}-
 
-      # for building images for all platforms these librarues
+      # for building images for all platforms these libraries are required in Linux
       - name: Install QEMU and ldid
         run: |
           # Install qemu
@@ -90,7 +90,7 @@ jobs:
           rsync -rvzhP ./binaries/binding/ ./node_modules/sqlite3/lib/binding/
 
           # clean up code to optimize size
-          npx modclean --patterns="default:*" --ignore="nc-lib-gui-daily/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
+          npx modclean --patterns="default:*" --ignore="nc-lib-gui/**,dayjs/**,express-status-monitor/**,sqlite3/**" --run
 
           # build executables
           npm run build
@@ -99,16 +99,6 @@ jobs:
           mkdir ./mac-dist
           mv ./dist/Noco-macos-arm64 ./mac-dist/
           mv ./dist/Noco-macos-x64 ./mac-dist/
-
-      - name: Upload executables(except mac executables) to release
-        uses: svenstaro/upload-release-action@v2
-        with:
-          repo_token: ${{ secrets.NC_GITHUB_TOKEN }}
-          file: scripts/pkg-executable/dist/**
-          tag: ${{ github.event.inputs.tag || inputs.tag }}
-          overwrite: true
-          file_glob: true
-
 
       - name: Upload win-arm64 build to asset
         id: upload-release-asset
@@ -235,7 +225,7 @@ jobs:
 
 
 
-      - name: Upload macos compressed build to asset
+      - name: Upload macos compressed build(for homebrew) to asset
         id: upload-release-asset
         uses: actions/upload-release-asset@v1
         env:

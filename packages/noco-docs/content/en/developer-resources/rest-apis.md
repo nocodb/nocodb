@@ -21,15 +21,15 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 
 | Category | Method | Tag | Function Name | Path |
 |---|---|---|---|---|
-| Auth | Post | auth | signup | /api/v1/db/auth/user/signup |
-| Auth | Post | auth | signin | /api/v1/db/auth/user/signin |
-| Auth | Get | auth | me | /api/v1/db/auth/user/me |
-| Auth | Post | auth | passwordForgot | /api/v1/db/auth/password/forgot |
-| Auth | Post | auth | passwordChange | /api/v1/db/auth/password/change |
-| Auth | Post | auth | passwordReset | /api/v1/db/auth/password/reset/{token} |
-| Auth | Post | auth | tokenRefresh | /api/v1/db/auth/token/refresh |
-| Auth | Post | auth | passwordResetTokenValidate | /api/v1/db/auth/token/validate/{token} |
-| Auth | Post | auth | emailValidate | /api/v1/db/auth/email/validate/{email} |
+| Auth | Post | auth | signup | /api/v1/auth/user/signup |
+| Auth | Post | auth | signin | /api/v1/auth/user/signin |
+| Auth | Get | auth | me | /api/v1/auth/user/me |
+| Auth | Post | auth | passwordForgot | /api/v1/auth/password/forgot |
+| Auth | Post | auth | passwordChange | /api/v1/auth/password/change |
+| Auth | Post | auth | passwordReset | /api/v1/auth/password/reset/{token} |
+| Auth | Post | auth | tokenRefresh | /api/v1/auth/token/refresh |
+| Auth | Post | auth | passwordResetTokenValidate | /api/v1/auth/token/validate/{token} |
+| Auth | Post | auth | emailValidate | /api/v1/auth/email/validate/{email} |
 
 ### Public APIs
 

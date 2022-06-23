@@ -54,7 +54,7 @@ export default `<!DOCTYPE html>
     methods: {},
     async created() {
       try {
-        const valid = (await axios.post('<%- baseUrl %>/api/v1/db/auth/email/validate/' + this.token)).data;
+        const valid = (await axios.post('<%- baseUrl %>/api/v1/auth/email/validate/' + this.token)).data;
         this.valid = !!valid;
       } catch (e) {
         this.valid = false;

@@ -53,6 +53,7 @@ jobs:
             ${{ runner.os }}-
       - name: Install QEMU and ldid
         run: |
+          sudo apt update
           # Install qemu
           sudo apt install qemu binfmt-support qemu-user-static
           # install ldid

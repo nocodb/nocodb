@@ -193,7 +193,8 @@ Currently, the default value for {orgs} is <b>noco</b>. Users will be able to ch
 | Operation | Meaning | Example |
 |---|---|---|
 | eq | equal | (colName,eq,colValue) |
-| not | not equal | (colName,not,colValue) |
+| neq | not equal | (colName,neq,colValue) |
+| not | not equal (alias of neq) | (colName,not,colValue) |
 | gt | greater than | (colName,gt,colValue) |
 | ge | greater or equal | (colName,ge,colValue) |
 | lt | less than | (colName,lt,colValue) |

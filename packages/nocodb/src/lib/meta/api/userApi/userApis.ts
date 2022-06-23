@@ -516,7 +516,7 @@ const mapRoutes = router => {
     })(req, res, next)
   );
 
-  // new API
+  // deprecated new API
   router.post('/api/v1/db/auth/user/signup', catchError(signup));
   router.post('/api/v1/db/auth/user/signin', catchError(signin));
   router.get(
@@ -547,6 +547,40 @@ const mapRoutes = router => {
   );
   router.get(
     '/api/v1/db/auth/password/reset/:tokenId',
+    catchError(renderPasswordReset)
+  );
+
+  // new API
+  router.post('/api/v1/auth/user/signup', catchError(signup));
+  router.post('/api/v1/auth/user/signin', catchError(signin));
+  router.get(
+    '/api/v1/auth/user/me',
+    extractProjectIdAndAuthenticate,
+    catchError(me)
+  );
+  router.post('/api/v1/auth/password/forgot', catchError(passwordForgot));
+  router.post(
+    '/api/v1/auth/token/validate/:tokenId',
+    catchError(tokenValidate)
+  );
+  router.post(
+    '/api/v1/auth/password/reset/:tokenId',
+    catchError(passwordReset)
+  );
+  router.post(
+    '/api/v1/auth/email/validate/:tokenId',
+    catchError(emailVerification)
+  );
+  router.post(
+    '/api/v1/auth/password/change',
+    ncMetaAclMw(passwordChange, 'passwordChange')
+  );
+  router.post(
+    '/api/v1/auth/token/refresh',
+    ncMetaAclMw(refreshToken, 'refreshToken')
+  );
+  router.get(
+    '/api/v1/auth/password/reset/:tokenId',
     catchError(renderPasswordReset)
   );
 };

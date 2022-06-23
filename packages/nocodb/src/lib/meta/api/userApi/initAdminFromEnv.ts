@@ -5,10 +5,11 @@ import { Tele } from 'nc-help';
 
 import bcrypt from 'bcryptjs';
 import Noco from '../../../Noco';
-import { MetaTable } from '../../../utils/globals';
+import { CacheScope, MetaTable } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
+import NocoCache from '../../../cache/NocoCache';
 
 const { isEmail } = require('validator');
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
@@ -160,6 +161,21 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
               null,
               MetaTable.USERS,
               existingUserWithNewEmail.id
+            );
+
+            // clear cache
+            await NocoCache.delAll(
+              CacheScope.USER,
+              `${existingUserWithNewEmail.email}___*`
+            );
+            await NocoCache.del(
+              `${CacheScope.USER}:${existingUserWithNewEmail.id}`
+            );
+            await NocoCache.del(
+              `${CacheScope.USER}:${existingUserWithNewEmail.email}`
+            );
+            await NocoCache.del(
+              `${CacheScope.USER}:${existingUserWithNewEmail.email}`
             );
 
             // Update email and password of super admin account

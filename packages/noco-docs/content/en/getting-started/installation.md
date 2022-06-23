@@ -60,9 +60,9 @@ npm start
 ### Homebrew
 
 ```bash
-brew tap nocodb/noco
-brew install noco
-noco
+brew tap nocodb/nocodb
+brew install nocodb
+nocodb
 ```
 
 ### Docker 

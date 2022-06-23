@@ -327,10 +327,10 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
           subject: 'Password Reset Link',
           text: `Visit following link to update your password : ${
             (req as any).ncSiteUrl
-          }/api/v1/db/auth/password/reset/${token}.`,
+          }/api/v1/auth/password/reset/${token}.`,
           html: ejs.render(template, {
             resetLink:
-              (req as any).ncSiteUrl + `/api/v1/db/auth/password/reset/${token}`
+              (req as any).ncSiteUrl + `/api/v1/auth/password/reset/${token}`
           })
         })
       );
@@ -516,7 +516,7 @@ const mapRoutes = router => {
     })(req, res, next)
   );
 
-  // deprecated new API
+  // deprecated APIs
   router.post('/api/v1/db/auth/user/signup', catchError(signup));
   router.post('/api/v1/db/auth/user/signin', catchError(signin));
   router.get(

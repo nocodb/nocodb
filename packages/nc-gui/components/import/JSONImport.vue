@@ -143,7 +143,31 @@
               hide-details
             >
               <template #label>
-                <span class="caption">Normalize nested</span>
+                <span class="caption">Flatten nested</span>
+                <v-tooltip bottom position-y="">
+                  <template #activator="{ on }">
+                    <v-icon small class="ml-1" v-on="on">
+                      mdi-information-outline
+                    </v-icon>
+                  </template>
+                  <div class="caption" style="width: 260px">
+                    If flatten nested option is set it will flatten nested object as root level property. In normal case nested object will treat as JSON column.
+                    <br>
+                    <br>
+                    For example the following input: <code class="caption font-weight-bold">{
+                      "prop1": {
+                      "prop2": "value"
+                      },
+                      "prop3": "value",
+                      "prop4": 1
+                      }</code> will treat as:
+                    <code class="caption font-weight-bold">{
+                      "prop1_prop2": "value",
+                      "prop3": "value",
+                      "prop4": 1
+                      }</code>
+                  </div>
+                </v-tooltip>
               </template>
             </v-checkbox>
             <v-checkbox

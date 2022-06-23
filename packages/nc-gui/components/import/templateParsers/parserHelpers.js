@@ -51,7 +51,7 @@ export const isMultiLineTextType = (values, col = null) => {
 
 export const extractMultiOrSingleSelectProps = (colData) => {
   const colProps = {}
-  if (colData.some(v => v && v.toString().includes(','))) {
+  if (colData.some(v => v && (v || '').toString().includes(','))) {
     let flattenedVals = colData.flatMap(v => v ? v.toString().trim().split(/\s*,\s*/) : [])
     const uniqueVals = flattenedVals = flattenedVals
       .filter((v, i, arr) => i === arr.findIndex(v1 => v.toLowerCase() === v1.toLowerCase()))
@@ -60,7 +60,7 @@ export const extractMultiOrSingleSelectProps = (colData) => {
       colProps.dtxp = `'${uniqueVals.join("','")}'`
     }
   } else {
-    const uniqueVals = colData.map(v => v.toString().trim()).filter((v, i, arr) => i === arr.findIndex(v1 => v.toLowerCase() === v1.toLowerCase()))
+    const uniqueVals = colData.map(v => (v || '').toString().trim()).filter((v, i, arr) => i === arr.findIndex(v1 => v.toLowerCase() === v1.toLowerCase()))
     if (colData.length > uniqueVals.length && uniqueVals.length <= Math.ceil(colData.length / 2)) {
       colProps.uidt = UITypes.SingleSelect
       colProps.dtxp = `'${uniqueVals.join("','")}'`

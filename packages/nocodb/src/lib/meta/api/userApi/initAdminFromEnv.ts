@@ -174,10 +174,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             await NocoCache.del(
               `${CacheScope.USER}:${existingUserWithNewEmail.email}`
             );
-            await NocoCache.del(
-              `${CacheScope.USER}:${existingUserWithNewEmail.email}`
-            );
-
+            
             // Update email and password of super admin account
             await User.update(
               superUser.id,

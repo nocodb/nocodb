@@ -107,6 +107,13 @@
                         hide-details
                         dense
                       />
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncViews"
+                        class="caption"
+                        label="Import Secondary Views"
+                        hide-details
+                        dense
+                      />
                       <v-tooltip bottom>
                         <template #activator="{ on }">
                           <div v-on="on">
@@ -225,7 +232,7 @@ export default {
         apiKey: '',
         shareId: '',
         options: {
-          syncViews: false,
+          syncViews: true,
           syncData: true,
           syncRollup: false,
           syncLookup: true,
@@ -327,7 +334,7 @@ export default {
             apiKey: '',
             shareId: '',
             options: {
-              syncViews: false,
+              syncViews: true,
               syncData: true,
               syncRollup: false,
               syncLookup: true,

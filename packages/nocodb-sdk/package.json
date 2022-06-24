@@ -60,6 +60,7 @@
     "eslint-plugin-eslint-comments": "^3.2.0",
     "eslint-plugin-functional": "^3.0.2",
     "eslint-plugin-import": "^2.22.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "gh-pages": "^3.1.0",
     "npm-run-all": "^4.1.5",
     "nyc": "^15.1.0",
@@ -67,9 +68,8 @@
     "prettier": "^2.1.1",
     "standard-version": "^9.0.0",
     "ts-node": "^9.0.0",
-    "typedoc": "^0.19.0",
-    "typescript": "^4.0.2",
-    "eslint-plugin-prettier": "^4.0.0"
+    "typedoc": "^0.22.17",
+    "typescript": "^4.0.2"
   },
   "files": [
     "build/main",

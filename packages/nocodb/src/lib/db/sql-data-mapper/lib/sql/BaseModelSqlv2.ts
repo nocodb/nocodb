@@ -1259,12 +1259,11 @@ class BaseModelSqlv2 {
       // const driver = trx ? trx : this.dbDriver;
 
       const query = this.dbDriver(this.tnPath).insert(insertObj);
-
       if (this.isPg || this.isMssql) {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
         );
-        response = await query;
+        response = await this.extractRawQueryAndExec(query);
       }
 
       const ai = this.model.columns.find(c => c.ai);
@@ -2035,7 +2034,12 @@ class BaseModelSqlv2 {
   }
 
   private async extractRawQueryAndExec(qb: QueryBuilder) {
-    const query = unsanitize(qb.toQuery());
+    let query = qb.toQuery();
+    if (!this.isPg && !this.isMssql) {
+      query = unsanitize(qb.toQuery());
+    } else {
+      query = sanitize(query);
+    }
     return this.isPg
       ? (await this.dbDriver.raw(query))?.rows
       : query.slice(0, 6) === 'select'

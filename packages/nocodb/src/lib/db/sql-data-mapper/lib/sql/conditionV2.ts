@@ -219,6 +219,7 @@ const parseConditionV2 = async (
             qb = qb.where(field, val);
             break;
           case 'neq':
+          case 'not':
             qb = qb.whereNot(field, val);
             break;
           case 'like':

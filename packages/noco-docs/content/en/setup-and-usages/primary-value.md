@@ -1,7 +1,7 @@
 ---
 title: "Primary value"
 description: "Primary value"
-position: 575
+position: 580
 category: "Product"
 menuTitle: "Primary value"
 ---

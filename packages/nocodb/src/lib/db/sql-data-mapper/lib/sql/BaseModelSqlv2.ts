@@ -91,7 +91,7 @@ class BaseModelSqlv2 {
   }
 
   public async readByPk(id?: any): Promise<any> {
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
 
     await this.selectObject({ qb });
 
@@ -107,7 +107,7 @@ class BaseModelSqlv2 {
   }
 
   public async exist(id?: any): Promise<any> {
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ qb });
     const pks = this.model.primaryKeys;
     if ((id + '').split('___').length != pks.length) {
@@ -120,12 +120,14 @@ class BaseModelSqlv2 {
     args: {
       where?: string;
       filterArr?: Filter[];
+      sort?: string | string[];
     } = {}
   ): Promise<any> {
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ qb });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
+    const sorts = extractSortsObject(args?.sort, aliasColObjMap);
     const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
 
     await conditionV2(
@@ -145,6 +147,12 @@ class BaseModelSqlv2 {
       qb,
       this.dbDriver
     );
+
+    if (Array.isArray(sorts) && sorts?.length) {
+      await sortV2(sorts, qb, this.dbDriver);
+    } else if (this.model.primaryKey) {
+      qb.orderBy(this.model.primaryKey.column_name);
+    }
 
     const data = await qb.first();
 
@@ -168,15 +176,12 @@ class BaseModelSqlv2 {
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
 
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ qb });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
-
     let sorts = extractSortsObject(args?.sort, aliasColObjMap);
-
     const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
-
     // todo: replace with view id
     if (!ignoreFilterSort && this.viewId) {
       await conditionV2(
@@ -257,7 +262,7 @@ class BaseModelSqlv2 {
     await this.model.getColumns();
     const { where } = this._getListArgs(args);
 
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
 
     // qb.xwhere(where, await this.model.getAliasColMapping());
     const aliasColObjMap = await this.model.getAliasColObjMap();
@@ -328,7 +333,7 @@ class BaseModelSqlv2 {
   ) {
     const { where, ...rest } = this._getListArgs(args as any);
 
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
     qb.select(args.column_name);
 
@@ -1615,7 +1620,7 @@ class BaseModelSqlv2 {
       } else {
         await this.model.getColumns();
         const { where } = this._getListArgs(args);
-        const qb = this.dbDriver(this.model.table_name);
+        const qb = this.dbDriver(this.tnPath);
         const aliasColObjMap = await this.model.getAliasColObjMap();
         const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
@@ -1677,7 +1682,7 @@ class BaseModelSqlv2 {
     try {
       await this.model.getColumns();
       const { where } = this._getListArgs(args);
-      const qb = this.dbDriver(this.model.table_name);
+      const qb = this.dbDriver(this.tnPath);
       const aliasColObjMap = await this.model.getAliasColObjMap();
       const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 

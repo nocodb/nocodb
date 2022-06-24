@@ -35,6 +35,16 @@
       v-on="$listeners"
     />
 
+    <duration-cell
+      v-else-if="isDuration"
+      v-model="localState"
+      :active="active"
+      :is-form="isForm"
+      :column="column"
+      :is-locked="isLocked"
+      v-on="parentListeners"
+    />
+
     <boolean-cell
       v-else-if="isBoolean"
       v-model="localState"
@@ -65,6 +75,7 @@
       v-else-if="isTime"
       v-model="localState"
       v-on="parentListeners"
+      @save="$emit('save')"
     />
 
     <date-time-picker-cell
@@ -86,7 +97,6 @@
       :is-form="isForm"
       :column="column"
       v-on="parentListeners"
-      @input="$emit('save')"
     />
 
     <json-editable-cell
@@ -102,7 +112,6 @@
       v-model="localState"
       :column="column"
       v-on="parentListeners"
-      @input="$emit('save')"
     />
     <set-list-cell
       v-else-if="isSet"
@@ -148,6 +157,7 @@ import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
 import SetListEditableCell from '~/components/project/spreadsheet/components/editableCell/SetListEditableCell'
 import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell'
 import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
+import DurationCell from '~/components/project/spreadsheet/components/editableCell/DurationCell'
 
 export default {
   name: 'EditableCell',
@@ -167,7 +177,8 @@ export default {
     TextAreaCell,
     DateTimePickerCell,
     TextCell,
-    DatePickerCell
+    DatePickerCell,
+    DurationCell
   },
   mixins: [cell],
   props: {
@@ -199,10 +210,10 @@ export default {
         if (val !== this.value) {
           this.changed = true
           this.$emit('input', val)
-          if (this.isAttachment || this.isBoolean || this.isRating || this.isTime || this.isDateTime || this.isDate) {
-            this.syncData()
-          } else if (!this.isCurrency && !this.isEnum && !this.isSet) {
+          if (this.isAutoSaved) {
             this.syncDataDebounce(this)
+          } else if (!this.isManualSaved) {
+            this.saveData()
           }
         }
       }
@@ -230,7 +241,7 @@ export default {
     // this.$refs.input.focus();
   },
   beforeDestroy() {
-    if (this.changed && !(this.isAttachment || this.isBoolean || this.isRating || this.isTime || this.isDateTime)) {
+    if (this.changed && this.isAutoSaved) {
       this.changed = false
       this.$emit('change')
     }
@@ -241,6 +252,12 @@ export default {
       if (this.changed && !this.destroyed) {
         this.changed = false
         this.$emit('update')
+      }
+    },
+    saveData() {
+      if (this.changed && !this.destroyed) {
+        this.changed = false
+        this.$emit('save')
       }
     }
   }

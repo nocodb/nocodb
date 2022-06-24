@@ -404,7 +404,13 @@ export default class Model implements TableType {
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
       const val = data?.[col.column_name] ?? data?.[col.title];
-      insertObj[col.column_name.replaceAll('?', '\\\\?')] = val;
+      if (val !== undefined) {
+        insertObj[
+          col.column_name.replace(/([^\\]|^)(\?+)/g, (_, m1, m2) => {
+            return `${m1}${m2.split('?').join('\\?')}`;
+          })
+        ] = val;
+      }
     }
     return insertObj;
   }

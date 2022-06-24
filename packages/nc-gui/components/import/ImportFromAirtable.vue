@@ -87,6 +87,13 @@
                         dense
                       />
                       <v-checkbox
+                        v-model="syncSource.details.options.syncViews"
+                        class="caption"
+                        label="Import Secondary Views"
+                        hide-details
+                        dense
+                      />
+                      <v-checkbox
                         v-model="syncSource.details.options.syncRollup"
                         class="caption"
                         label="Import Rollup Columns"
@@ -104,13 +111,6 @@
                         v-model="syncSource.details.options.syncAttachment"
                         class="caption"
                         label="Import Attachment Columns"
-                        hide-details
-                        dense
-                      />
-                      <v-checkbox
-                        v-model="syncSource.details.options.syncViews"
-                        class="caption"
-                        label="Import Secondary Views"
                         hide-details
                         dense
                       />

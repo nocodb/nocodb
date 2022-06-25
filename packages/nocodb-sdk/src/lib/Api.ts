@@ -3197,12 +3197,12 @@ export class Api<
      *
      * @tags Utils
      * @name AppVersion
-     * @request GET:/api/v1/db/meta/nocodb/version
+     * @request GET:/api/v1/version
      * @response `200` `any` OK
      */
     appVersion: (params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/api/v1/db/meta/nocodb/version`,
+        path: `/api/v1/version`,
         method: 'GET',
         format: 'json',
         ...params,
@@ -3213,12 +3213,12 @@ export class Api<
      *
      * @tags Utils
      * @name AppHealth
-     * @request GET:/api/v1/db/meta/nocodb/health
+     * @request GET:/api/v1/health
      * @response `200` `any` OK
      */
     appHealth: (params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/api/v1/db/meta/nocodb/health`,
+        path: `/api/v1/health`,
         method: 'GET',
         format: 'json',
         ...params,

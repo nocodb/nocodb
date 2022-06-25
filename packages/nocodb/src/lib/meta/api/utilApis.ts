@@ -140,7 +140,7 @@ export default router => {
     ncMetaAclMw(testConnection, 'testConnection')
   );
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
-  router.get('/api/v1/db/meta/nocodb/version', catchError(releaseVersion));
-  router.get('/api/v1/db/meta/nocodb/health', catchError(appHealth));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
+  router.get('/api/v1/version', catchError(releaseVersion));
+  router.get('/api/v1/health', catchError(appHealth));
 };

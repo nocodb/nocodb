@@ -5107,7 +5107,7 @@
         ]
       }
     },
-    "/api/v1/db/meta/nocodb/version": {
+    "/api/v1/version": {
       "parameters": [],
       "get": {
         "summary": "",
@@ -5128,7 +5128,7 @@
         "description": ""
       }
     },
-    "/api/v1/db/meta/nocodb/health": {
+    "/api/v1/health": {
       "parameters": [],
       "get": {
         "summary": "",

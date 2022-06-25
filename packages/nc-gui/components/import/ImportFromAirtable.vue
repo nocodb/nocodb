@@ -8,7 +8,6 @@
         <div
           v-t="['c:airtable-import:turbo-mode']"
           class="ml-2 mt-3 title pointer nc-btn-enable-turbo"
-          @click="enableTurbo"
         >
           🚀
         </div>
@@ -83,6 +82,13 @@
                         v-model="syncSource.details.options.syncData"
                         class="caption mt-n4"
                         label="Import Data"
+                        hide-details
+                        dense
+                      />
+                      <v-checkbox
+                        v-model="syncSource.details.options.syncViews"
+                        class="caption"
+                        label="Import Secondary Views"
                         hide-details
                         dense
                       />
@@ -225,7 +231,7 @@ export default {
         apiKey: '',
         shareId: '',
         options: {
-          syncViews: false,
+          syncViews: true,
           syncData: true,
           syncRollup: false,
           syncLookup: true,
@@ -327,7 +333,7 @@ export default {
             apiKey: '',
             shareId: '',
             options: {
-              syncViews: false,
+              syncViews: true,
               syncData: true,
               syncRollup: false,
               syncLookup: true,
@@ -350,10 +356,10 @@ export default {
         this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
     },
-    enableTurbo() {
-      this.$set(this.syncSource.details.options, 'syncViews', true)
-      this.$toast.success('🚀🚀 Ludicrous mode activated! Let\'s go! 🚀🚀').goAway(3000)
-    },
+    // enableTurbo() {
+    //   this.$set(this.syncSource.details.options, 'syncViews', true)
+    //   this.$toast.success('🚀🚀 Ludicrous mode activated! Let\'s go! 🚀🚀').goAway(3000)
+    // },
     migrateSync(src) {
       if (!src.details?.options) {
         src.details.options = {

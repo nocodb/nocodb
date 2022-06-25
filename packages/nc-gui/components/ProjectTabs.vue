@@ -316,6 +316,21 @@
             </v-list-item-title>
           </v-list-item>
           <v-list-item
+            v-if="_isUIAllowed('jsonImport')"
+            v-t="['a:actions:import-json']"
+            @click="jsonImportModal = true"
+          >
+            <v-list-item-title>
+              <v-icon small>
+                mdi-code-json
+              </v-icon>
+              <span class="caption">
+                <!-- TODO: i18n -->
+                JSON file
+              </span>
+            </v-list-item-title>
+          </v-list-item>
+          <v-list-item
             v-if="_isUIAllowed('excelQuickImport')"
             v-t="['a:actions:import-excel']"
             @click="onImportFromExcelOrCSV('excel')"
@@ -370,6 +385,13 @@
       @closeModal="quickImportModal = false"
     />
 
+    <!-- Import From JSON string / file -->
+    <json-import
+      v-model="jsonImportModal"
+      hide-label
+      @closeModal="jsonImportModal = false"
+    />
+
     <import-from-airtable v-if="airtableImportModal" v-model="airtableImportModal" />
   </v-container>
 </template>
@@ -404,9 +426,11 @@ import GlobalAcl from '~/components/GlobalAcl'
 import AuditTab from '~/components/project/AuditTab'
 import QuickImport from '~/components/import/QuickImport'
 import ImportFromAirtable from '~/components/import/ImportFromAirtable'
+import JsonImport from '~/components/import/JSONImport'
 
 export default {
   components: {
+    JsonImport,
     ImportFromAirtable,
     SwaggerClient,
     // Screensaver,
@@ -447,7 +471,8 @@ export default {
       showScreensaver: false,
       quickImportModal: false,
       quickImportType: '',
-      airtableImportModal: false
+      airtableImportModal: false,
+      jsonImportModal: false
     }
   },
   methods: {

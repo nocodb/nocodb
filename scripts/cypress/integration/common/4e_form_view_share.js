@@ -131,7 +131,7 @@ export const genTest = (apiType, dbType) => {
                         // all fields, barring removed field should exist
                         cy.get('[title="City"]').should("exist");
                         cy.get('[title="LastUpdate"]').should("exist");
-                        cy.get('[title="CountryRead"]').should("exist");
+                        cy.get('[title="Country"]').should("exist");
                         cy.get('[title="AddressList"]').should("not.exist");
 
                         // order of LastUpdate & City field is retained

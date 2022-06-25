@@ -57,7 +57,7 @@ async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(),
-      type === 'bt' ? alias : `${parent.title}Read`
+      type === 'bt' ? alias : `${parent.title}`
     );
     await Column.insert<LinkToAnotherRecordColumn>({
       title,
@@ -79,7 +79,7 @@ async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await parent.getColumns(),
-      type === 'hm' ? alias : `${child.title}List`
+      type === 'hm' ? alias : `${child.title} List`
     );
     await Column.insert({
       title,
@@ -427,7 +427,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           await Column.insert({
             title: getUniqueColumnAliasName(
               await child.getColumns(),
-              `${parent.title}List`
+              `${parent.title} List`
             ),
             uidt: UITypes.LinkToAnotherRecord,
             type: 'mm',
@@ -447,7 +447,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           await Column.insert({
             title: getUniqueColumnAliasName(
               await parent.getColumns(),
-              req.body.title ?? `${child.title}List`
+              req.body.title ?? `${child.title} List`
             ),
 
             uidt: UITypes.LinkToAnotherRecord,

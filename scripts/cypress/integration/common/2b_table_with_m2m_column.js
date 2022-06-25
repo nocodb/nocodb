@@ -23,10 +23,10 @@ export const genTest = (apiType, dbType) => {
 
         it("Expand m2m column", () => {
             // expand first row
-            cy.get('td[data-col="FilmList"] div', { timeout: 12000 })
+            cy.get('td[data-col="Film List"] div', { timeout: 12000 })
                 .first()
                 .click({ force: true });
-            cy.get('td[data-col="FilmList"] div .mdi-arrow-expand')
+            cy.get('td[data-col="Film List"] div .mdi-arrow-expand')
                 .first()
                 .click({ force: true });
 

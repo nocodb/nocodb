@@ -215,7 +215,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
             uidt: UITypes.LinkToAnotherRecord,
             type: 'hm',
             hm,
-            title: `${hm.title}List`
+            title: `${hm.title} List`
           };
         }),
         ...belongsTo.map(bt => {
@@ -230,7 +230,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
             uidt: UITypes.LinkToAnotherRecord,
             type: 'bt',
             bt,
-            title: `${bt.rtitle}Read`
+            title: `${bt.rtitle}`
           };
         })
       ];

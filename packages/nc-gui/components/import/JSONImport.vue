@@ -220,9 +220,8 @@
           <template #toolbar="{valid}">
             <h3 class="mt-2 grey--text">
               <span>
-                JSON
+                JSON Import
               </span>
-              : {{ templateData.title }}
             </h3>
             <v-spacer />
             <v-spacer />
@@ -367,13 +366,13 @@ export default {
         this.importData = null
         switch (type) {
           case 'file':
-            templateGenerator = new JSONTemplateAdapter('JSON', val, this.parserConfig)
+            templateGenerator = new JSONTemplateAdapter(name, val, this.parserConfig)
             break
           case 'url':
             templateGenerator = new JSONUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
             break
           case 'string':
-            templateGenerator = new JSONTemplateAdapter('JSON', val, this.parserConfig)
+            templateGenerator = new JSONTemplateAdapter(name, val, this.parserConfig)
             break
         }
         await templateGenerator.init()

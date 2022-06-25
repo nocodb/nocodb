@@ -193,6 +193,7 @@
           class="nc-json-import-input"
           type="file"
           style="display: none"
+          accept=".json"
           @change="_change($event)"
         >
         <v-btn
@@ -285,7 +286,8 @@ export default {
       filename: '',
       jsonString: '',
       errorMessages: {
-        ipBlockList: 'IP Not allowed!'
+        ipBlockList: 'IP Not allowed!',
+        importJSON: 'Target file is not an accepted file type. The accepted file type is .json!'
       }
     }
   },
@@ -404,6 +406,10 @@ export default {
 
       if (!file) {
         return
+      }
+
+      if (!/.*\.json/.test(file.name)) {
+        return this.$toast.error(this.errorMessages.importJSON).goAway(3000)
       }
 
       this._file(file)

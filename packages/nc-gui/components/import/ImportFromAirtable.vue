@@ -8,7 +8,6 @@
         <div
           v-t="['c:airtable-import:turbo-mode']"
           class="ml-2 mt-3 title pointer nc-btn-enable-turbo"
-          @click="enableTurbo"
         >
           🚀
         </div>
@@ -357,10 +356,10 @@ export default {
         this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
       }
     },
-    enableTurbo() {
-      this.$set(this.syncSource.details.options, 'syncViews', true)
-      this.$toast.success('🚀🚀 Ludicrous mode activated! Let\'s go! 🚀🚀').goAway(3000)
-    },
+    // enableTurbo() {
+    //   this.$set(this.syncSource.details.options, 'syncViews', true)
+    //   this.$toast.success('🚀🚀 Ludicrous mode activated! Let\'s go! 🚀🚀').goAway(3000)
+    // },
     migrateSync(src) {
       if (!src.details?.options) {
         src.details.options = {

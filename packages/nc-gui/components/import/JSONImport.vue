@@ -279,7 +279,7 @@ export default {
       showMore: false,
       parserConfig: {
         maxRowsToParse: 500,
-        normalizeNested: false,
+        normalizeNested: true,
         importData: true
       },
       filename: '',

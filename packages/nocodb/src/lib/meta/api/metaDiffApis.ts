@@ -785,7 +785,7 @@ export async function extractAndGenerateManyToManyRelations(
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelA.columns,
-            `${modelB.title}MMList`
+            `${modelB.title}List`
           ),
           fk_model_id: modelA.id,
           fk_related_model_id: modelB.id,
@@ -803,7 +803,7 @@ export async function extractAndGenerateManyToManyRelations(
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelB.columns,
-            `${modelA.title}MMList`
+            `${modelA.title}List`
           ),
           fk_model_id: modelB.id,
           fk_related_model_id: modelA.id,

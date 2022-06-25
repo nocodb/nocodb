@@ -228,7 +228,7 @@ export const genTest = (apiType, dbType) => {
                 const verifyCsv = (retrievedRecords) => {
                     // expected output, statically configured
                     let storedRecords = [
-                        `Address,District,PostalCode,Phone,Location,CustomerList,StaffList,CityRead,StaffMMList`,
+                        `Address,District,PostalCode,Phone,Location,CustomerList,StaffList,CityRead,StaffList`,
                         `1888 Kabul Drive,,20936,,1,,Ife,,`,
                         `1661 Abha Drive,,14400,,1,,Pudukkottai,,`,
                     ];
@@ -265,7 +265,7 @@ export const genTest = (apiType, dbType) => {
                 cy.get('[data-col="CustomerList"]').should("exist");
                 cy.get('[data-col="StaffList"]').should("exist");
                 cy.get('[data-col="CityRead"]').should("exist");
-                cy.get('[data-col="StaffMMList"]').should("exist");
+                cy.get('[data-col="StaffList"]').should("exist");
 
                 // has many field validation
                 mainPage
@@ -322,17 +322,17 @@ export const genTest = (apiType, dbType) => {
             it(`Share GRID view : Virtual column validation > many to many`, () => {
                 // many-to-many field validation
                 mainPage
-                    .getCell("StaffMMList", 1)
+                    .getCell("StaffList", 1)
                     .click()
                     .find("button.mdi-close-thick")
                     .should("not.exist");
                 mainPage
-                    .getCell("StaffMMList", 1)
+                    .getCell("StaffList", 1)
                     .click()
                     .find("button.mdi-plus")
                     .should("not.exist");
                 mainPage
-                    .getCell("StaffMMList", 1)
+                    .getCell("StaffList", 1)
                     .click()
                     .find("button.mdi-arrow-expand")
                     .click();

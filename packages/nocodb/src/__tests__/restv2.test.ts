@@ -209,7 +209,7 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Rollup,
           alias: 'filmCount',
           rollupColumn: 'FilmId',
-          relationColumn: 'FilmMMList',
+          relationColumn: 'FilmList',
           rollupFunction: 'count'
         }
       ];
@@ -413,7 +413,7 @@ describe('Noco v2 Tests', () => {
         type: UITypes.Lookup,
         alias: 'filmNames',
         lookupColumn: 'Title',
-        relationColumn: 'FilmMMList'
+        relationColumn: 'FilmList'
       };
       request(app)
         .post(`/nc/${projectId}/generate`)
@@ -1335,7 +1335,7 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'filmIds',
           lookupColumn: 'FilmId',
-          relationColumn: 'FilmMMList'
+          relationColumn: 'FilmList'
         },
         {
           table: 'actor',
@@ -1398,7 +1398,7 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Rollup,
           alias: 'actorsCount',
           rollupColumn: 'ActorId',
-          relationColumn: 'ActorMMList',
+          relationColumn: 'ActorList',
           rollupFunction: 'count'
         },
         {
@@ -1406,7 +1406,7 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'actorsCountList',
           lookupColumn: 'actorsCount',
-          relationColumn: 'FilmMMList'
+          relationColumn: 'FilmList'
         },
         {
           table: 'actor',

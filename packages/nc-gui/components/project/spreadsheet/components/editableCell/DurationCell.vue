@@ -7,6 +7,7 @@
       @blur="onBlur"
       @keypress="checkDurationFormat($event)"
       @keydown.enter="isEdited && $emit('input', durationInMS)"
+      v-on="parentListeners"
     >
     <div v-if="showWarningMessage == true" class="duration-warning">
       <!-- TODO: i18n -->
@@ -51,6 +52,18 @@ export default {
     },
     durationType() {
       return this.column?.meta?.duration || 0
+    },
+    parentListeners() {
+      const $listeners = {}
+
+      if (this.$listeners.blur) {
+        $listeners.blur = this.$listeners.blur
+      }
+      if (this.$listeners.focus) {
+        $listeners.focus = this.$listeners.focus
+      }
+
+      return $listeners
     }
   },
   mounted() {

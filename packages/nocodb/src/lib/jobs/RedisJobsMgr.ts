@@ -11,7 +11,9 @@ export default class RedisJobsMgr extends JobsMgr {
     super();
     this.queue = {};
     this.workers = {};
-    this.connection = new Redis(config);
+    this.connection = new Redis(config, {
+      maxRetriesPerRequest: null
+    });
   }
 
   async add(

@@ -70,6 +70,30 @@ export default {
     },
     isDuration() {
       return this.uiDatatype === UITypes.Duration
+    },
+    isAutoSaved() {
+      return [
+        UITypes.SingleLineText,
+        UITypes.LongText,
+        UITypes.PhoneNumber,
+        UITypes.Email,
+        UITypes.URL,
+        UITypes.Number,
+        UITypes.Decimal,
+        UITypes.Percent,
+        UITypes.Count,
+        UITypes.AutoNumber,
+        UITypes.SpecificDBType,
+        UITypes.Geometry
+      ].includes(this.uiDatatype)
+    },
+    isManualSaved() {
+      return [
+        UITypes.Currency,
+        UITypes.Year,
+        UITypes.Time,
+        UITypes.Duration
+      ].includes(this.uiDatatype)
     }
   }
 }

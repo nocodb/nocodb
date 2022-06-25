@@ -44,14 +44,14 @@ jobs:
             # bump the version from PREV_TAG
             TARGET_TAG=$(echo ${PREV_TAG} | awk -F. -v OFS=. '{$NF += 1 ; print}')
           fi
-          
+
           echo target version: ${TARGET_TAG}
           echo previous version: ${PREV_TAG}
           echo "::set-output name=target_tag::${TARGET_TAG}"
           echo "::set-output name=prev_tag::${PREV_TAG}"
       - name: Verify
         run : |
-          echo ${{ steps.process-input.outputs.target_tag }} 
+          echo ${{ steps.process-input.outputs.target_tag }}
 
   # Merge develop to master
   pr-to-master:
@@ -94,6 +94,15 @@ jobs:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
       DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
 
+  # Build executables and publish to GitHub
+  release-executables:
+    needs: [release-draft-note, process-input]
+    uses: ./.github/workflows/release-executables.yml
+    with:
+      tag: ${{ needs.process-input.outputs.target_tag }}
+    secrets:
+      NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
+
   # Close all issues with target tags 'Fixed' & 'Resolved'
   close-fixed-issues:
     needs: [release-docker, process-input]
@@ -101,7 +110,7 @@ jobs:
     with:
       issue_label: 'Status: Fixed'
       version: ${{ needs.process-input.outputs.target_tag }}
-  
+
   close-resolved-issues:
     needs: [close-fixed-issues, process-input]
     uses: ./.github/workflows/release-close-issue.yml

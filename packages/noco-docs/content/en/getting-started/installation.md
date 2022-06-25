@@ -57,6 +57,14 @@ npm install
 npm start
 ```
 
+### Homebrew
+
+```bash
+brew tap nocodb/nocodb
+brew install nocodb
+nocodb
+```
+
 ### Docker 
 
 If you are a Docker user, you may try this way!

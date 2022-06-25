@@ -139,8 +139,8 @@ export const genTest = (apiType, dbType) => {
             cy.openViewsTab("CustomerList", 25);
             cy.closeViewsTab("CustomerList");
 
-            cy.openViewsTab("Film List", 25);
-            cy.closeViewsTab("Film List");
+            cy.openViewsTab("FilmList", 25);
+            cy.closeViewsTab("FilmList");
 
             cy.openViewsTab("SalesByFilmCategory", 16);
             cy.closeViewsTab("SalesByFilmCategory");

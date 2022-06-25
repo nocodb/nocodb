@@ -72,7 +72,7 @@ export const genTest = (apiType, dbType) => {
                 //     "#data-table-form-City"
                 // );
 
-                cy.get('[title="AddressList"]').drag(".nc-drag-n-drop-to-hide");
+                cy.get('[title="Address List"]').drag(".nc-drag-n-drop-to-hide");
 
                 cy.get(".nc-form > .mx-auto")
                     .find('[type="checkbox"]')
@@ -132,7 +132,7 @@ export const genTest = (apiType, dbType) => {
                         cy.get('[title="City"]').should("exist");
                         cy.get('[title="LastUpdate"]').should("exist");
                         cy.get('[title="Country"]').should("exist");
-                        cy.get('[title="AddressList"]').should("not.exist");
+                        cy.get('[title="Address List"]').should("not.exist");
 
                         // order of LastUpdate & City field is retained
                         cy.get(".nc-field-wrapper")

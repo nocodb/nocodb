@@ -80,9 +80,9 @@ export const genTest = (apiType, dbType) => {
             // 4a. Address table, has many field
             cy.openTableTab("Address", 25);
 
-            mainPage.getCell("CityRead", 1).scrollIntoView();
+            mainPage.getCell("City", 1).scrollIntoView();
             mainPage
-                .getCell("CityRead", 1)
+                .getCell("City", 1)
                 .find(".name")
                 .contains("Lethbridge")
                 .should("exist");

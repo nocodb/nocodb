@@ -231,7 +231,7 @@ export const genTest = (apiType, dbType) => {
                 const verifyCsv = (retrievedRecords) => {
                     // expected output, statically configured
                     let storedRecords = [
-                        `Address,District,PostalCode,Phone,Location,CustomerList,Staff List,City,Staff List`,
+                        `Address,District,PostalCode,Phone,Location,Customer List,Staff List,City,Staff List`,
                         `1993 Tabuk Lane,Tamil Nadu,64221,648482415405,[object Object],2,,Tambaram,`,
                         `1661 Abha Drive,Tamil Nadu,14400,270456873752,[object Object],1,,Pudukkottai,`,
                     ];

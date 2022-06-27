@@ -65,7 +65,7 @@ export const genTest = (apiType, dbType) => {
             validateTreeField(2, "Address");
             validateTreeField(12, "Staff");
             validateTreeField(13, "ActorInfo");
-            validateTreeField(14, "CustomerList");
+            validateTreeField(14, "Customer List");
 
             // undo project-tree expand operation
             cy.get(".nc-project-tree")

@@ -686,7 +686,7 @@ export async function metaDiffSync(req, res) {
               } else if (change.relationType === RelationTypes.HAS_MANY) {
                 const title = getUniqueColumnAliasName(
                   childModel.columns,
-                  `${childModel.title || childModel.table_name}List`
+                  `${childModel.title || childModel.table_name} List`
                 );
                 await Column.insert<LinkToAnotherRecordColumn>({
                   uidt: UITypes.LinkToAnotherRecord,

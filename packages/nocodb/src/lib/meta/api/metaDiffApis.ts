@@ -671,7 +671,7 @@ export async function metaDiffSync(req, res) {
               if (change.relationType === RelationTypes.BELONGS_TO) {
                 const title = getUniqueColumnAliasName(
                   childModel.columns,
-                  `${parentModel.title || parentModel.table_name}Read`
+                  `${parentModel.title || parentModel.table_name}`
                 );
                 await Column.insert<LinkToAnotherRecordColumn>({
                   uidt: UITypes.LinkToAnotherRecord,
@@ -686,7 +686,7 @@ export async function metaDiffSync(req, res) {
               } else if (change.relationType === RelationTypes.HAS_MANY) {
                 const title = getUniqueColumnAliasName(
                   childModel.columns,
-                  `${childModel.title || childModel.table_name}List`
+                  `${childModel.title || childModel.table_name} List`
                 );
                 await Column.insert<LinkToAnotherRecordColumn>({
                   uidt: UITypes.LinkToAnotherRecord,
@@ -785,7 +785,7 @@ export async function extractAndGenerateManyToManyRelations(
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelA.columns,
-            `${modelB.title}MMList`
+            `${modelB.title} List`
           ),
           fk_model_id: modelA.id,
           fk_related_model_id: modelB.id,
@@ -803,7 +803,7 @@ export async function extractAndGenerateManyToManyRelations(
         await Column.insert<LinkToAnotherRecordColumn>({
           title: getUniqueColumnAliasName(
             modelB.columns,
-            `${modelA.title}MMList`
+            `${modelA.title} List`
           ),
           fk_model_id: modelB.id,
           fk_related_model_id: modelA.id,

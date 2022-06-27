@@ -113,7 +113,7 @@ export const genTest = (apiType, dbType) => {
 
             const verifyCsv = (retrievedRecords) => {
                 let storedRecords = [
-                    `Country,CityList,testAttach`,
+                    `Country,City List,testAttach`,
                     `Afghanistan,Kabul,1.json(http://localhost:8080/download/p_h0wxjx5kgoq3w4/vw_skyvc7hsp9i34a/2HvU8R.json)`,
                 ];
 

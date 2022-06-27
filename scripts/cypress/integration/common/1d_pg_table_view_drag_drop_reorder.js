@@ -23,7 +23,7 @@ export const genTest = (apiType, dbType) => {
         /*
             Original order of list items
             Actor, Address, Category, City, Country, Customer, FIlm, FilmText, Language, Payment, Rental Staff
-            ActorInfo, CustomerList, FilmList, NiceButSlowerFilmList, SalesByFilmCategory, SalesByStore, StaffList
+            ActorInfo, Customer List, Film List, NiceButSlowerFilm List, SalesByFilmCategory, SalesByStore, Staff List
         */
 
         it(`Table & SQL View list, Drag/drop`, () => {

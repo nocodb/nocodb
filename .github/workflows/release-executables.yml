@@ -79,7 +79,7 @@ jobs:
           cd ./scripts/pkg-executable
 
           # Install nocodb version based on provided tag name
-          npm i -E nocodb@$TAG
+          npm i -E nocodb@${{ github.event.inputs.tag || inputs.tag }}
 
           # install npm dependendencies
           npm i
@@ -237,7 +237,7 @@ jobs:
         run: |
           FORMULA_CLASS_STR=$(cat << EOF
           class Nocodb < Formula
-            desc "Get Human Readable file size information. - CLI"
+            desc "NocoDB : Opensource smart spreadsheet"
             homepage "https://github.com/nocodb/nocodb"
             url "https://github.com/nocodb/nocodb/releases/download/${{ github.event.inputs.tag || inputs.tag }}/nocodb.tar.gz"
             sha256 "${{ steps.compress.outputs.CHECKSUM }}"

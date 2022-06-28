@@ -48,7 +48,7 @@
       "es2017"
     ],
     "types": [
-      "node"
+      "mocha", "node"
     ],
     "typeRoots": [
       "node_modules/@types",

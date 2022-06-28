@@ -228,7 +228,7 @@ export const genTest = (apiType, dbType) => {
                 const verifyCsv = (retrievedRecords) => {
                     // expected output, statically configured
                     let storedRecords = [
-                        `Address,District,PostalCode,Phone,Location,CustomerList,StaffList,CityRead,StaffMMList`,
+                        `Address,District,PostalCode,Phone,Location,Customer List,Staff List,City,Staff List`,
                         `1888 Kabul Drive,,20936,,1,,Ife,,`,
                         `1661 Abha Drive,,14400,,1,,Pudukkottai,,`,
                     ];
@@ -262,24 +262,24 @@ export const genTest = (apiType, dbType) => {
 
             it(`Share GRID view : Virtual column validation > has many`, () => {
                 // verify column headers
-                cy.get('[data-col="CustomerList"]').should("exist");
-                cy.get('[data-col="StaffList"]').should("exist");
-                cy.get('[data-col="CityRead"]').should("exist");
-                cy.get('[data-col="StaffMMList"]').should("exist");
+                cy.get('[data-col="Customer List"]').should("exist");
+                cy.get('[data-col="Staff List"]').should("exist");
+                cy.get('[data-col="City"]').should("exist");
+                cy.get('[data-col="Staff List"]').should("exist");
 
                 // has many field validation
                 mainPage
-                    .getCell("CustomerList", 3)
+                    .getCell("Customer List", 3)
                     .click()
                     .find("button.mdi-close-thick")
                     .should("not.exist");
                 mainPage
-                    .getCell("CustomerList", 3)
+                    .getCell("Customer List", 3)
                     .click()
                     .find("button.mdi-plus")
                     .should("not.exist");
                 mainPage
-                    .getCell("CustomerList", 3)
+                    .getCell("Customer List", 3)
                     .click()
                     .find("button.mdi-arrow-expand")
                     .click();
@@ -303,17 +303,17 @@ export const genTest = (apiType, dbType) => {
             it(`Share GRID view : Virtual column validation > belongs to`, () => {
                 // belongs to field validation
                 mainPage
-                    .getCell("CityRead", 1)
+                    .getCell("City", 1)
                     .click()
                     .find("button.mdi-close-thick")
                     .should("not.exist");
                 mainPage
-                    .getCell("CityRead", 1)
+                    .getCell("City", 1)
                     .click()
                     .find("button.mdi-arrow-expand")
                     .should("not.exist");
                 mainPage
-                    .getCell("CityRead", 1)
+                    .getCell("City", 1)
                     .find(".v-chip")
                     .contains("al-Ayn")
                     .should("exist");
@@ -322,17 +322,17 @@ export const genTest = (apiType, dbType) => {
             it(`Share GRID view : Virtual column validation > many to many`, () => {
                 // many-to-many field validation
                 mainPage
-                    .getCell("StaffMMList", 1)
+                    .getCell("Staff List", 1)
                     .click()
                     .find("button.mdi-close-thick")
                     .should("not.exist");
                 mainPage
-                    .getCell("StaffMMList", 1)
+                    .getCell("Staff List", 1)
                     .click()
                     .find("button.mdi-plus")
                     .should("not.exist");
                 mainPage
-                    .getCell("StaffMMList", 1)
+                    .getCell("Staff List", 1)
                     .click()
                     .find("button.mdi-arrow-expand")
                     .click();

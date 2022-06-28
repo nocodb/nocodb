@@ -57,6 +57,14 @@ npm install
 npm start
 ```
 
+### Homebrew
+
+```bash
+brew tap nocodb/nocodb
+brew install nocodb
+nocodb
+```
+
 ### Docker 
 
 If you are a Docker user, you may try this way!
@@ -206,6 +214,19 @@ It is mandatory to configure `NC_DB` environment variables for production usecas
 | AWS_SECRET_ACCESS_KEY              | No        | For Litestream - S3 secret access key                                                                                   | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
 | AWS_BUCKET                         | No        | For Litestream - S3 bucket                                                                                              | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
 | AWS_BUCKET_PATH                    | No        | For Litestream - S3 bucket path (like folder within S3 bucket)                                                          | If Litestream is configured and NC_DB is not present. SQLite gets backed up to S3              |   |
+| NC_SMTP_FROM                       | No        | For SMTP plugin - Email sender address                                                                                  |                                                                                                |   |
+| NC_SMTP_HOST                       | No        | For SMTP plugin - SMTP host value                                                                                       |                                                                                                |   |
+| NC_SMTP_PORT                       | No        | For SMTP plugin - SMTP port value                                                                                       |                                                                                                |   |
+| NC_SMTP_USERNAME                   | No        | For SMTP plugin (Optional) - SMTP username value for authentication                                                                |                                                                                                |   |
+| NC_SMTP_PASSWORD                   | No        | For SMTP plugin (Optional) - SMTP password value for authentication                                                                |                                                                                                |   |
+| NC_SMTP_SECURE                     | No        | For SMTP plugin (Optional) - To enable secure set value as `true` any other value treated as false                      |                                                                                                |   |
+| NC_SMTP_IGNORE_TLS                 | No        | For SMTP plugin (Optional) - To ignore tls set value as `true` any other value treated as false. For more info visit https://nodemailer.com/smtp/ |                                                                      |   |
+| NC_S3_BUCKET_NAME                  | No        | For S3 storage plugin - AWS S3 bucket name                                                                              |                                                                                                |   |
+| NC_S3_REGION                       | No        | For S3 storage plugin - AWS S3 region                                                                                   |                                                                                                |   |
+| NC_S3_ACCESS_KEY                   | No        | For S3 storage plugin - AWS access key credential for accessing resource                                                |                                                                                                |   |
+| NC_S3_ACCESS_SECRET                | No        | For S3 storage plugin - AWS access secret credential for accessing resource                                             |                                                                                                |   |
+| NC_ADMIN_EMAIL                     | No        | For updating/creating super admin with provided email and password                                                      |                                                                                                |   |
+| NC_ADMIN_PASSWORD                  | No        | For updating/creating super admin with provided email and password. Your password should have at least 8 letters with one uppercase, one number and one special letter(Allowed special chars <code>$&+,:;=?@#&#124;'.^*()%!_-"</code> )                                                     |                                                                                                |   |
 
 ### AWS ECS (Fargate)
 

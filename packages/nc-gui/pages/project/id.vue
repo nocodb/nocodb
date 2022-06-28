@@ -84,7 +84,7 @@
                   <v-text-field
                     v-model="project.title"
                     v-ge="['project','name']"
-                    :rules="form.titleRequiredRule"
+                    :rules="form.titleValidationRule"
                     :height="20"
                     label="Enter Project Name"
                     autofocus
@@ -650,7 +650,10 @@ export default {
       /** ************** START : form related ****************/
       form: {
         portValidationRule: [v => /^\d+$/.test(v) || 'Not a valid port'],
-        titleRequiredRule: [v => !!v || 'Title is required'],
+        titleValidationRule: [
+          v => !!v || 'Title is required',
+          v => v.length <= 50 || 'Project name exceeds 50 characters',
+        ],
         requiredRule: [v => !!v || 'Field is required'],
         folderRequiredRule: [v => !!v || 'Folder path is required']
       },

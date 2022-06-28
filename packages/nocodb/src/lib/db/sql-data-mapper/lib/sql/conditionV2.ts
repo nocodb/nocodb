@@ -10,6 +10,7 @@ import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
 import FormulaColumn from '../../../../models/FormulaColumn';
 import { RelationTypes, UITypes } from 'nocodb-sdk';
 // import LookupColumn from '../../../models/LookupColumn';
+import { sanitize } from './helpers/sanitize';
 
 export default async function conditionV2(
   conditionObj: Filter | Filter[],
@@ -203,11 +204,13 @@ const parseConditionV2 = async (
         filter.comparison_op === 'notempty'
       )
         filter.value = '';
-      let field = customWhereClause
-        ? filter.value
-        : alias
-        ? `${alias}.${column.column_name}`
-        : column.column_name;
+      let field = sanitize(
+        customWhereClause
+          ? filter.value
+          : alias
+          ? `${alias}.${column.column_name}`
+          : column.column_name
+      );
       let val = customWhereClause ? customWhereClause : filter.value;
 
       return qb => {
@@ -216,12 +219,13 @@ const parseConditionV2 = async (
             qb = qb.where(field, val);
             break;
           case 'neq':
+          case 'not':
             qb = qb.whereNot(field, val);
             break;
           case 'like':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
-              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%')
+              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
             } else {
               val = `%${val}%`;
             }
@@ -234,7 +238,7 @@ const parseConditionV2 = async (
           case 'nlike':
             if (column.uidt === UITypes.Formula) {
               [field, val] = [val, field];
-              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%')
+              val = `%${val}%`.replace(/^%'([\s\S]*)'%$/, '%$1%');
             } else {
               val = `%${val}%`;
             }

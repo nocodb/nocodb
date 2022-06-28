@@ -41,6 +41,7 @@ import { customValidators } from './customValidators';
 import { NcError } from '../../../../meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
+import { sanitize, unsanitize } from './helpers/sanitize';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -90,7 +91,7 @@ class BaseModelSqlv2 {
   }
 
   public async readByPk(id?: any): Promise<any> {
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
 
     await this.selectObject({ qb });
 
@@ -106,7 +107,7 @@ class BaseModelSqlv2 {
   }
 
   public async exist(id?: any): Promise<any> {
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ qb });
     const pks = this.model.primaryKeys;
     if ((id + '').split('___').length != pks.length) {
@@ -119,12 +120,14 @@ class BaseModelSqlv2 {
     args: {
       where?: string;
       filterArr?: Filter[];
+      sort?: string | string[];
     } = {}
   ): Promise<any> {
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ qb });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
+    const sorts = extractSortsObject(args?.sort, aliasColObjMap);
     const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
 
     await conditionV2(
@@ -144,6 +147,12 @@ class BaseModelSqlv2 {
       qb,
       this.dbDriver
     );
+
+    if (Array.isArray(sorts) && sorts?.length) {
+      await sortV2(sorts, qb, this.dbDriver);
+    } else if (this.model.primaryKey) {
+      qb.orderBy(this.model.primaryKey.column_name);
+    }
 
     const data = await qb.first();
 
@@ -167,15 +176,12 @@ class BaseModelSqlv2 {
   ): Promise<any> {
     const { where, ...rest } = this._getListArgs(args as any);
 
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ qb });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
-
     let sorts = extractSortsObject(args?.sort, aliasColObjMap);
-
     const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
-
     // todo: replace with view id
     if (!ignoreFilterSort && this.viewId) {
       await conditionV2(
@@ -241,7 +247,6 @@ class BaseModelSqlv2 {
 
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-
     const data = await this.extractRawQueryAndExec(qb);
 
     return data?.map(d => {
@@ -257,7 +262,7 @@ class BaseModelSqlv2 {
     await this.model.getColumns();
     const { where } = this._getListArgs(args);
 
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
 
     // qb.xwhere(where, await this.model.getAliasColMapping());
     const aliasColObjMap = await this.model.getAliasColObjMap();
@@ -306,11 +311,11 @@ class BaseModelSqlv2 {
       );
     }
 
-    qb.count(this.model.primaryKey?.column_name || '*', {
+    qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count'
     }).first();
-
-    return ((await qb) as any).count;
+    const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
+    return (this.isPg ? res.rows[0] : res[0][0] ?? res[0]).count;
   }
 
   async groupBy(
@@ -326,7 +331,7 @@ class BaseModelSqlv2 {
   ) {
     const { where, ...rest } = this._getListArgs(args as any);
 
-    const qb = this.dbDriver(this.model.table_name);
+    const qb = this.dbDriver(this.tnPath);
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
     qb.select(args.column_name);
 
@@ -907,7 +912,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
 
-    return (await qb).map(c => {
+    return (await this.extractRawQueryAndExec(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -993,8 +998,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, args);
 
     const proto = await parentModel.getProto();
-
-    return (await qb).map(c => {
+    return (await this.extractRawQueryAndExec(qb)).map(c => {
       c.__proto__ = proto;
       return c;
     });
@@ -1242,7 +1246,7 @@ class BaseModelSqlv2 {
       await populatePk(this.model, data);
 
       // todo: filter based on view
-      const insertObj = await this.model.mapAliasToColumn(data, sanitize);
+      const insertObj = await this.model.mapAliasToColumn(data);
 
       await this.validate(insertObj);
 
@@ -1258,12 +1262,11 @@ class BaseModelSqlv2 {
       // const driver = trx ? trx : this.dbDriver;
 
       const query = this.dbDriver(this.tnPath).insert(insertObj);
-
       if (this.isPg || this.isMssql) {
         query.returning(
           `${this.model.primaryKey.column_name} as ${this.model.primaryKey.title}`
         );
-        response = await query;
+        response = await this.extractRawQueryAndExec(query);
       }
 
       const ai = this.model.columns.find(c => c.ai);
@@ -1275,11 +1278,19 @@ class BaseModelSqlv2 {
         if (response?.length) {
           id = response[0];
         } else {
-          id = (await query)[0];
+          const res = await this.extractRawQueryAndExec(query);
+          id = res?.id ?? res[0]?.insertId;
         }
 
         if (ai) {
-          // response = await this.readByPk(id)
+          if (this.isSqlite) {
+            // sqlite doesnt return id after insert
+            id = (
+              await this.dbDriver(this.tnPath)
+                .select(ai.column_name)
+                .max(ai.column_name, { as: 'id' })
+            )[0].id;
+          }
           response = await this.readByPk(id);
         } else {
           response = data;
@@ -1326,14 +1337,11 @@ class BaseModelSqlv2 {
 
       await this.beforeUpdate(data, trx, cookie);
 
-      // const driver = trx ? trx : this.dbDriver;
-      //
-      // this.validate(data);
-      // await this._run(
-      await this.dbDriver(this.tnPath)
+      const query = this.dbDriver(this.tnPath)
         .update(updateObj)
         .where(await this._wherePk(id));
-      // );
+
+      await this.extractRawQueryAndExec(query);
 
       const response = await this.readByPk(id);
       await this.afterUpdate(response, trx, cookie);
@@ -1610,7 +1618,7 @@ class BaseModelSqlv2 {
       } else {
         await this.model.getColumns();
         const { where } = this._getListArgs(args);
-        const qb = this.dbDriver(this.model.table_name);
+        const qb = this.dbDriver(this.tnPath);
         const aliasColObjMap = await this.model.getAliasColObjMap();
         const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
@@ -1672,7 +1680,7 @@ class BaseModelSqlv2 {
     try {
       await this.model.getColumns();
       const { where } = this._getListArgs(args);
-      const qb = this.dbDriver(this.model.table_name);
+      const qb = this.dbDriver(this.tnPath);
       const aliasColObjMap = await this.model.getAliasColObjMap();
       const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
@@ -2029,11 +2037,19 @@ class BaseModelSqlv2 {
   }
 
   private async extractRawQueryAndExec(qb: QueryBuilder) {
+    let query = qb.toQuery();
+    if (!this.isPg && !this.isMssql) {
+      query = unsanitize(qb.toQuery());
+    } else {
+      query = sanitize(query);
+    }
     return this.isPg
-      ? qb
-      : await this.dbDriver.from(
-          this.dbDriver.raw(qb.toString()).wrap('(', ') __nc_alias')
-        );
+      ? (await this.dbDriver.raw(query))?.rows
+      : query.slice(0, 6) === 'select'
+      ? await this.dbDriver.from(
+          this.dbDriver.raw(query).wrap('(', ') __nc_alias')
+        )
+      : await this.dbDriver.raw(query);
   }
 }
 
@@ -2166,10 +2182,6 @@ function _wherePk(primaryKeys: Column[], id) {
 
 function getCompositePk(primaryKeys: Column[], row) {
   return primaryKeys.map(c => row[c.title]).join('___');
-}
-
-export function sanitize(v) {
-  return v?.replace(/([^\\]|^)([?])/g, '$1\\$2');
 }
 
 export { BaseModelSqlv2 };

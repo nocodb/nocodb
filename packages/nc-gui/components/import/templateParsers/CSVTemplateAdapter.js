@@ -1,6 +1,5 @@
 import Papaparse from 'papaparse'
 import TemplateGenerator from '~/components/import/templateParsers/TemplateGenerator'
-
 export default class CSVTemplateAdapter extends TemplateGenerator {
   constructor(name, data) {
     super()

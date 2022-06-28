@@ -31,7 +31,7 @@ export const genTest = (apiType, dbType) => {
                 //     `Angola,"Benguela, Namibe"`,
                 // ];
                 let storedRecords = [
-                    ['Country','CityList'],
+                    ['Country','City List'],
                     ['Afghanistan','Kabul'],
                     ['Algeria','Skikda', 'Bchar', 'Batna'],
                     ['American Samoa','Tafuna'],
@@ -41,7 +41,7 @@ export const genTest = (apiType, dbType) => {
                 // if (isPostgres()) {
                 //     // order of second entry is different
                 //     storedRecords = [
-                //         `Country,CityList`,
+                //         `Country,City List`,
                 //         `Afghanistan,Kabul`,
                 //         `Algeria,"Skikda, Bchar, Batna"`,
                 //         `American Samoa,Tafuna`,

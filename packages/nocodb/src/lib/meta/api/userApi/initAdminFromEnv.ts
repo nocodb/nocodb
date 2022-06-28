@@ -5,10 +5,11 @@ import { Tele } from 'nc-help';
 
 import bcrypt from 'bcryptjs';
 import Noco from '../../../Noco';
-import { MetaTable } from '../../../utils/globals';
+import { CacheScope, MetaTable } from '../../../utils/globals';
 import ProjectUser from '../../../models/ProjectUser';
 import { validatePassword } from 'nocodb-sdk';
 import boxen from 'boxen';
+import NocoCache from '../../../cache/NocoCache';
 
 const { isEmail } = require('validator');
 const rolesLevel = { owner: 0, creator: 1, editor: 2, commenter: 3, viewer: 4 };
@@ -103,7 +104,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           // check user account already present with the new admin email
           const existingUserWithNewEmail = await User.getByEmail(email, ncMeta);
 
-          if (existingUserWithNewEmail) {
+          if (existingUserWithNewEmail?.id) {
             // get all project access belongs to the existing account
             // and migrate to the admin account
             const existingUserProjects = await ncMeta.metaList2(
@@ -155,13 +156,25 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             }
 
             // delete existing user
-            ncMeta.metaDelete(
+            await ncMeta.metaDelete(
               null,
               null,
               MetaTable.USERS,
               existingUserWithNewEmail.id
             );
 
+            // clear cache
+            await NocoCache.delAll(
+              CacheScope.USER,
+              `${existingUserWithNewEmail.email}___*`
+            );
+            await NocoCache.del(
+              `${CacheScope.USER}:${existingUserWithNewEmail.id}`
+            );
+            await NocoCache.del(
+              `${CacheScope.USER}:${existingUserWithNewEmail.email}`
+            );
+            
             // Update email and password of super admin account
             await User.update(
               superUser.id,
@@ -169,7 +182,9 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 salt,
                 email,
                 password,
-                email_verification_token
+                email_verification_token,
+                token_version: null,
+                refresh_token: null
               },
               ncMeta
             );
@@ -181,22 +196,34 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 salt,
                 email,
                 password,
-                email_verification_token
+                email_verification_token,
+                token_version: null,
+                refresh_token: null
               },
               ncMeta
             );
           }
         } else {
-          // if email's are not different update the password and hash
-          await User.update(
-            superUser.id,
-            {
-              salt,
-              password,
-              email_verification_token
-            },
-            ncMeta
+          const newPasswordHash = await promisify(bcrypt.hash)(
+            process.env.NC_ADMIN_PASSWORD,
+            superUser.salt
           );
+
+          if (newPasswordHash !== superUser.password) {
+            // if email's are same and passwords are different
+            // then update the password and token version
+            await User.update(
+              superUser.id,
+              {
+                salt,
+                password,
+                email_verification_token,
+                token_version: null,
+                refresh_token: null
+              },
+              ncMeta
+            );
+          }
         }
       }
       await ncMeta.commit();

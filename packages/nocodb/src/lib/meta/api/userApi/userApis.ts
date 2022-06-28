@@ -179,15 +179,14 @@ async function successfulSignIn({
     await promisify((req as any).login.bind(req))(user);
     const refreshToken = randomTokenString();
 
-    let token_version = user.token_version;
-    if (!token_version) {
-      token_version = randomTokenString();
+    if (!user.token_version) {
+      user.token_version = randomTokenString();
     }
 
     await User.update(user.id, {
       refresh_token: refreshToken,
       email: user.email,
-      token_version
+      token_version: user.token_version
     });
     setTokenCookie(res, refreshToken);
 

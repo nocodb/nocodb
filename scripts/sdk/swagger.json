@@ -5107,11 +5107,32 @@
         ]
       }
     },
-    "/api/v1/db/meta/nocodb/version": {
+    "/api/v1/version": {
       "parameters": [],
       "get": {
         "summary": "",
         "operationId": "utils-app-version",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "description": ""
+      }
+    },
+    "/api/v1/health": {
+      "parameters": [],
+      "get": {
+        "summary": "",
+        "operationId": "utils-app-health",
         "responses": {
           "200": {
             "description": "OK",

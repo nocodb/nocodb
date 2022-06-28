@@ -103,8 +103,8 @@ export function initStrategies(router): void {
 
         if (cachedVal) {
           if (
-            cachedVal.token_version &&
-            jwtPayload.token_version &&
+            !cachedVal.token_version ||
+            !jwtPayload.token_version ||
             cachedVal.token_version !== jwtPayload.token_version
           ) {
             return done(new Error('Token Expired. Please login again.'));
@@ -115,8 +115,8 @@ export function initStrategies(router): void {
         User.getByEmail(jwtPayload?.email)
           .then(async user => {
             if (
-              user.token_version &&
-              jwtPayload.token_version &&
+              !user.token_version ||
+              !jwtPayload.token_version ||
               user.token_version !== jwtPayload.token_version
             ) {
               return done(new Error('Token Expired. Please login again.'));

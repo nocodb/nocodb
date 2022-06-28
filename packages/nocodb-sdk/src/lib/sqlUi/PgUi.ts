@@ -1740,7 +1740,7 @@ export class PgUi {
         return ['json', 'char', 'character', 'character varying', 'text'];
 
       case 'JSON':
-        return ['json', 'text'];
+        return ['json', 'jsonb', 'text'];
       case 'Checkbox':
         return [
           'bit',

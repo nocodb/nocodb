@@ -439,7 +439,7 @@ class ModelXcMetaPg extends BaseModelXcMeta {
       case 'set':
         return 'MultiSelect';
       case 'json':
-        return 'LongText';
+        return 'JSON';
       case 'blob':
         return 'LongText';
       case 'geometry':
@@ -512,9 +512,8 @@ class ModelXcMetaPg extends BaseModelXcMeta {
       case 'interval':
         return 'string';
       case 'json':
-        return 'json';
       case 'jsonb':
-        return 'string';
+        return 'json';
 
       case 'language_handler':
       case 'lsec':

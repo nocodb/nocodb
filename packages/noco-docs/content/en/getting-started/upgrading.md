@@ -97,3 +97,14 @@ In the "Automatic deploys" section, select "Enable Automatic Deploys":
 Head back to your forked nocodb-seed-heroku repo on your GitHub account. Edit one of your files and make a simple modification (example, add some random characters to the readme.md) and commit the change directly to the main branch.
 
 This will trigger the Heroku deployment. Your app should now be updated to the latest release of NocoDB.
+
+## Homebrew
+
+Run following commands to upgrade Homebrew Noocodb version.
+
+```bash
+# Update the local homebrew formulas
+brew update
+# Upgrade nocodb package
+brew upgrade nocodb
+```

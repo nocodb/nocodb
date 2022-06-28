@@ -314,9 +314,7 @@ class BaseModelSqlv2 {
     qb.count(this.model.primaryKey?.column_name || '*', {
       as: 'count'
     }).first();
-    const res = (await this.dbDriver.raw(
-      qb.toQuery().replaceAll('\\?', '?')
-    )) as any;
+    const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;
     return (this.isPg ? res.rows[0] : res[0][0] ?? res[0]).count;
   }
 

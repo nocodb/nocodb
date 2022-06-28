@@ -20,6 +20,7 @@ import {
 import View from './View';
 import { NcError } from '../meta/helpers/catchError';
 import Audit from './Audit';
+import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
 
 export default class Model implements TableType {
   copy_enabled: boolean;
@@ -405,11 +406,7 @@ export default class Model implements TableType {
       if (isVirtualCol(col)) continue;
       const val = data?.[col.column_name] ?? data?.[col.title];
       if (val !== undefined) {
-        insertObj[
-          col.column_name.replace(/([^\\]|^)(\?+)/g, (_, m1, m2) => {
-            return `${m1}${m2.split('?').join('\\?')}`;
-          })
-        ] = val;
+        insertObj[sanitize(col.column_name)] = val;
       }
     }
     return insertObj;

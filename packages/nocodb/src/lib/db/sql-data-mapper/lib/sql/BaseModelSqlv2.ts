@@ -311,7 +311,7 @@ class BaseModelSqlv2 {
       );
     }
 
-    qb.count(this.model.primaryKey?.column_name || '*', {
+    qb.count(sanitize(this.model.primaryKey?.column_name) || '*', {
       as: 'count'
     }).first();
     const res = (await this.dbDriver.raw(unsanitize(qb.toQuery()))) as any;

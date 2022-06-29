@@ -10,7 +10,7 @@
     }
   ],
   "paths": {
-    "/api/v1/db/auth/user/signup": {
+    "/api/v1/auth/user/signup": {
       "post": {
         "summary": "Signup",
         "operationId": "auth-signup",
@@ -95,7 +95,7 @@
         "description": "Create a new user with provided email and password and first user is marked as super admin. "
       }
     },
-    "/api/v1/db/auth/user/signin": {
+    "/api/v1/auth/user/signin": {
       "post": {
         "summary": "Signin",
         "operationId": "auth-signin",
@@ -167,7 +167,7 @@
       },
       "parameters": []
     },
-    "/api/v1/db/auth/user/me": {
+    "/api/v1/auth/user/me": {
       "parameters": [],
       "get": {
         "summary": "User info",
@@ -214,7 +214,7 @@
         ]
       }
     },
-    "/api/v1/db/auth/password/forgot": {
+    "/api/v1/auth/password/forgot": {
       "post": {
         "summary": "Password forgot",
         "operationId": "auth-password-forgot",
@@ -248,7 +248,7 @@
       },
       "parameters": []
     },
-    "/api/v1/db/auth/password/change": {
+    "/api/v1/auth/password/change": {
       "post": {
         "summary": "Password change",
         "operationId": "auth-password-change",
@@ -336,7 +336,7 @@
       },
       "parameters": []
     },
-    "/api/v1/db/auth/token/validate/{token}": {
+    "/api/v1/auth/token/validate/{token}": {
       "post": {
         "summary": "Reset token verify",
         "operationId": "auth-password-reset-token-validate",
@@ -361,7 +361,7 @@
         }
       ]
     },
-    "/api/v1/db/auth/email/validate/{token}": {
+    "/api/v1/auth/email/validate/{token}": {
       "post": {
         "summary": "Verify email",
         "operationId": "auth-email-validate",
@@ -386,7 +386,7 @@
         }
       ]
     },
-    "/api/v1/db/auth/password/reset/{token}": {
+    "/api/v1/auth/password/reset/{token}": {
       "post": {
         "summary": "Password reset",
         "operationId": "auth-password-reset",
@@ -425,7 +425,7 @@
         }
       ]
     },
-    "/api/v1/db/auth/token/refresh": {
+    "/api/v1/auth/token/refresh": {
       "post": {
         "summary": "Refresh token",
         "operationId": "auth-token-refresh",
@@ -5107,11 +5107,32 @@
         ]
       }
     },
-    "/api/v1/db/meta/nocodb/version": {
+    "/api/v1/version": {
       "parameters": [],
       "get": {
         "summary": "",
         "operationId": "utils-app-version",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Utils"
+        ],
+        "description": ""
+      }
+    },
+    "/api/v1/health": {
+      "parameters": [],
+      "get": {
+        "summary": "",
+        "operationId": "utils-app-health",
         "responses": {
           "200": {
             "description": "OK",

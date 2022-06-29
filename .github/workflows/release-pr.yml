@@ -50,7 +50,7 @@ jobs:
           echo ${{ steps.tag-step.outputs.CURRENT_VERSION }}
     outputs:
       target_tag: ${{ steps.tag-step.outputs.TARGET_TAG }}
-      current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }} 
+      current_version: ${{ steps.tag-step.outputs.CURRENT_VERSION }}
 
   # Build, install, publish frontend and backend to npm
   release-npm:
@@ -77,13 +77,22 @@ jobs:
       DOCKERHUB_USERNAME: "${{ secrets.DOCKERHUB_USERNAME }}"
       DOCKERHUB_TOKEN: "${{ secrets.DOCKERHUB_TOKEN }}"
 
+  # Build executables and publish to GitHub
+  release-executables:
+    needs: [set-tag, release-npm]
+    uses: ./.github/workflows/release-timely-executables.yml
+    with:
+      tag: ${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
+    secrets:
+      NC_GITHUB_TOKEN: "${{ secrets.NC_GITHUB_TOKEN }}"
+
   # leave-comment:
   #   runs-on: 'ubuntu-latest'
   #   needs: [release-docker, set-tag]
   #   steps:
   #     - run: |
   #         echo docker run -d -p 8888:8080 nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
-  
+
   leave-comment:
     if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
     runs-on: 'ubuntu-latest'
@@ -96,7 +105,43 @@ jobs:
             ```
             docker run -d -p 8888:8080 nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
             ```
-  
+
+  leave-executable-comment:
+    if: ${{ github.actor != 'dependabot[bot]' && github.event.pull_request.draft == false }}
+    runs-on: 'ubuntu-latest'
+    needs: [release-executables, set-tag]
+    steps:
+      - uses: peter-evans/commit-comment@v2
+        with:
+          body: |
+            ### Run Executables
+
+            #### MacOS
+
+            ```bash
+            mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} && cd "$_" \
+                && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-macos-arm64 -o noco -L \
+                && chmod +x noco \
+                && ./noco
+            ```
+            #### Linux
+
+            ```bash
+            mkdir -p ./${{ needs.set-tag.outputs.current_version }}/${{ needs.set-tag.outputs.target_tag }} && cd "$_" \
+               && curl http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-linux-x64 -o noco -L \
+               && chmod +x noco \
+               && ./noco
+            ```
+            #### Windows
+
+            ```bash
+            iwp http://dl.nocodb.com/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}/Noco-win-arm64.exe
+            .\Noco-win-arm64.exe
+            ```
+
+            For executables visit [here](https://github.com/nocodb/nocodb-timely/releases/tag/${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }})
+
+
   # if-merged:
   #   if: github.event.pull_request.merged == true
   #   runs-on: ubuntu-latest

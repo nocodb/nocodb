@@ -23,12 +23,12 @@ export const genTest = (apiType, dbType) => {
 
         it("Expand belongs-to column", () => {
             // expand first row
-            cy.get('td[data-col="CityList"] div:visible', {
+            cy.get('td[data-col="City List"] div:visible', {
                 timeout: 12000,
             })
                 .first()
                 .click();
-            cy.get('td[data-col="CityList"] div .mdi-arrow-expand:visible')
+            cy.get('td[data-col="City List"] div .mdi-arrow-expand:visible')
                 .first()
                 .click();
 

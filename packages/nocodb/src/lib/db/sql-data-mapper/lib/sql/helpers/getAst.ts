@@ -86,8 +86,7 @@ const getAst = async ({
             (!fields?.length || fields.includes(col.title)) &&
             value
           : fields?.length
-          ? fields.includes(col.title) &&
-            (col.uidt !== UITypes.LinkToAnotherRecord || value)
+          ? fields.includes(col.title) && value
           : value
     };
   }, Promise.resolve({}));

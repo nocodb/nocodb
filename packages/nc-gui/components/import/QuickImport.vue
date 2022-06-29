@@ -60,11 +60,18 @@
                       v-model="url"
                       hide-details="auto"
                       type="url"
-                      :label="quickImportType == 'excel' ? $t('msg.info.excelURL') : $t('msg.info.csvURL') "
+                      :label="quickImportType === 'excel' ? $t('msg.info.excelURL') : $t('msg.info.csvURL') "
                       class="caption"
                       outlined
                       dense
-                      :rules="[v => !!v || $t('general.required') ]"
+                      :rules="
+                        [
+                          v => !!v || $t('general.required'), 
+                          v => !(/(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g).test(v) || errorMessages.ipBlockList,
+                          v => quickImportType === 'excel' ?
+                            (/.*\.(xls|xlsx|xlsm|ods|ots)/.test(v) || errorMessages.importExcel) :
+                            (/.*\.(csv)/.test(v) || errorMessages.importCSV),
+                        ]"
                     />
                     <v-btn v-t="['c:project:create:excel:load-url']" class="ml-3" color="primary" @click="loadUrl">
                       <!--Load-->
@@ -213,7 +220,12 @@ export default {
       parserConfig: {
         maxRowsToParse: 500
       },
-      filename: ''
+      filename: '',
+      errorMessages: {
+        importExcel: "Target file is not an accepted file type. The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots!",
+        importCSV: "Target file is not an accepted file type. The accepted file type is .csv!",
+        ipBlockList: "IP Not allowed!"
+      }
     }
   },
   computed: {
@@ -288,7 +300,7 @@ export default {
             templateGenerator = new ExcelTemplateAdapter(name, val, this.parserConfig)
             break
           case 'url':
-            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
+            templateGenerator = new ExcelUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api, this.quickImportType)
             break
         }
         await templateGenerator.init()
@@ -322,11 +334,11 @@ export default {
 
       if (this.quickImportType === 'excel') {
         if (!/.*\.(xls|xlsx|xlsm|ods|ots)/.test(file.name)) {
-          return this.$toast.error('Dropped file is not an accepted file type. The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots!').goAway(3000)
+          return this.$toast.error(this.errorMessages.importExcel).goAway(3000)
         }
       } else if (this.quickImportType === 'csv') {
         if (!/.*\.(csv)/.test(file.name)) {
-          return this.$toast.error('Dropped file is not an accepted file type. The accepted file type is .csv!').goAway(3000)
+          return this.$toast.error(this.errorMessages.importCSV).goAway(3000)
         }
       }
       this._file(file)

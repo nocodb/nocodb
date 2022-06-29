@@ -20,6 +20,7 @@ import {
 import View from './View';
 import { NcError } from '../meta/helpers/catchError';
 import Audit from './Audit';
+import { sanitize } from '../db/sql-data-mapper/lib/sql/helpers/sanitize';
 
 export default class Model implements TableType {
   copy_enabled: boolean;
@@ -399,13 +400,14 @@ export default class Model implements TableType {
     return true;
   }
 
-  async mapAliasToColumn(data, sanitize = v => v) {
+  async mapAliasToColumn(data) {
     const insertObj = {};
     for (const col of await this.getColumns()) {
       if (isVirtualCol(col)) continue;
-      const val =
-        data?.[sanitize(col.column_name)] ?? data?.[sanitize(col.title)];
-      if (val !== undefined) insertObj[sanitize(col.column_name)] = val;
+      const val = data?.[col.column_name] ?? data?.[col.title];
+      if (val !== undefined) {
+        insertObj[sanitize(col.column_name)] = val;
+      }
     }
     return insertObj;
   }

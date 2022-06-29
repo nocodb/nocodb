@@ -194,7 +194,12 @@
                     <span>Only works if S3 plugin is enabled.</span>
                   </v-tooltip>
                 </v-col>
-                <v-col v-if="accordion" cols="12" class="pt-0" :class="{'pb-0': advanceOptions}">
+                <v-col
+                  v-if="accordion"
+                  cols="12"
+                  class="pt-0"
+                  :class="{ 'pb-0': advanceOptions }"
+                >
                   <div
                     class="pointer grey--text text-right caption nc-more-options"
                     @click="advanceOptions = !advanceOptions"
@@ -226,7 +231,31 @@
                       />
                     </v-col>
 
-                    <template v-if="newColumn.uidt !== 'Formula'">
+                    <template v-if="newColumn.uidt === 'Formula'">
+                      <v-col cols="12">
+                        <formula-options
+                          ref="formula"
+                          :column="newColumn"
+                          :nodes="nodes"
+                          :meta="meta"
+                          :is-s-q-lite="isSQLite"
+                          :alias="newColumn.column_name"
+                          :is-m-s-s-q-l="isMSSQL"
+                          :sql-ui="sqlUi"
+                          v-on="$listeners"
+                        />
+                      </v-col>
+                    </template>
+                    <template v-else-if="newColumn.uidt === 'Duration'">
+                      <v-col cols="12">
+                        <duration-options
+                          v-model="newColumn.meta"
+                          :column="newColumn"
+                          :meta="meta"
+                        />
+                      </v-col>
+                    </template>
+                    <template v-else>
                       <v-col v-if="isLookup" cols="12">
                         <lookup-options
                           ref="lookup"
@@ -513,21 +542,6 @@
                         </v-col>
                       </template>
                     </template>
-                    <template v-else>
-                      <v-col cols="12">
-                        <formula-options
-                          ref="formula"
-                          :column="newColumn"
-                          :nodes="nodes"
-                          :meta="meta"
-                          :is-s-q-lite="isSQLite"
-                          :alias="newColumn.column_name"
-                          :is-m-s-s-q-l="isMSSQL"
-                          :sql-ui="sqlUi"
-                          v-on="$listeners"
-                        />
-                      </v-col>
-                    </template>
                   </v-row>
                 </v-col>
               </template>
@@ -588,6 +602,7 @@ import { validateColumnName } from '~/helpers'
 import RatingOptions from '~/components/project/spreadsheet/components/editColumn/RatingOptions'
 import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/CheckboxOptions'
 import CurrencyOptions from '@/components/project/spreadsheet/components/editColumn/CurrencyOptions'
+import DurationOptions from '@/components/project/spreadsheet/components/editColumn/DurationOptions'
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -603,7 +618,8 @@ export default {
     DlgLabelSubmitCancel,
     RelationOptions,
     CustomSelectOptions,
-    CurrencyOptions
+    CurrencyOptions,
+    DurationOptions
   },
   props: {
     nodes: Object,
@@ -633,7 +649,8 @@ export default {
         UITypes.Lookup,
         UITypes.Rollup,
         UITypes.SpecificDBType,
-        UITypes.Formula
+        UITypes.Formula,
+        UITypes.Duration
       ].includes(this.newColumn && this.newColumn.uidt)
     },
     uiTypes() {
@@ -647,7 +664,7 @@ export default {
       ]
     },
     isEditDisabled() {
-      return this.editColumn && this.sqlUi === SqliteUi
+      return this.editColumn && this.sqlUi === SqliteUi && this.column.uidt !== UITypes.Duration
     },
     isSQLite() {
       return this.sqlUi === SqliteUi

@@ -61,8 +61,17 @@ export async function releaseVersion(_req: Request, res: Response) {
   res.json(result);
 }
 
-export async function axiosRequestMake(req: Request, res: Response) {
+export async function appHealth(_: Request, res: Response) {
+  res.json({
+    message: 'OK',
+    timestamp: Date.now(),
+    uptime: process.uptime()
+  });
+}
+
+async function _axiosRequestMake(req: Request, res: Response) {
   const { apiMeta } = req.body;
+
   if (apiMeta?.body) {
     try {
       apiMeta.body = JSON.parse(apiMeta.body);
@@ -107,12 +116,32 @@ export async function axiosRequestMake(req: Request, res: Response) {
   return res.json(data?.data);
 }
 
+export async function axiosRequestMake(req: Request, res: Response) {
+  const {
+    apiMeta: { url }
+  } = req.body;
+  const isExcelImport = /.*\.(xls|xlsx|xlsm|ods|ots)/;
+  const isCSVImport = /.*\.(csv)/;
+  const ipBlockList = /(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g;
+  if (
+    ipBlockList.test(url) ||
+    (!isCSVImport.test(url) && !isExcelImport.test(url))
+  ) {
+    return res.json({});
+  }
+  if (isCSVImport || isExcelImport) {
+    req.body.apiMeta.responseType = 'arraybuffer';
+  }
+  return await _axiosRequestMake(req, res);
+}
+
 export default router => {
   router.post(
     '/api/v1/db/meta/connection/test',
     ncMetaAclMw(testConnection, 'testConnection')
   );
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
-  router.get('/api/v1/db/meta/nocodb/version', catchError(releaseVersion));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
+  router.get('/api/v1/version', catchError(releaseVersion));
+  router.get('/api/v1/health', catchError(appHealth));
 };

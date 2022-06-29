@@ -119,7 +119,7 @@ export const genTest = (apiType, dbType) => {
                     .should("exist");
                 cy.get(".nc-field-wrapper")
                     .eq(1)
-                    .contains("CityList")
+                    .contains("City List")
                     .should("exist");
                 cy.get(".nc-field-wrapper")
                     .eq(2)

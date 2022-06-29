@@ -20,7 +20,8 @@
         "test/pg-restTableOps.js",
         "test/pg-restViews.js",
         "test/pg-restRoles.js",
-        "test/pg-restMisc.js"
+        "test/pg-restMisc.js",
+        "common/9a_QuickTest.js"
     ],
     "defaultCommandTimeout": 13000,
     "pageLoadTimeout": 600000,
@@ -47,7 +48,7 @@
         "screenshot": false,
         "airtable": {
             "apiKey": "keyn1MR87qgyUsYg4",
-            "sharedBase": "https://airtable.com/shrkSQdtKNzUfAbIY"
+            "sharedBase": "https://airtable.com/shr4z0qmh6dg5s3eB"
         }
     },
     "fixturesFolder": "scripts/cypress/fixtures",

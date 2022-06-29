@@ -8,10 +8,11 @@ on:
 jobs:
   release:
     runs-on: ubuntu-latest
-    strategy:
-      matrix:
-        node-version: [16]
     steps:
+      - name: Setup Node
+        uses: actions/setup-node@v1
+        with:
+            node-version: 16.15.0
       - name: Checkout
         uses: actions/checkout@v2
         with:

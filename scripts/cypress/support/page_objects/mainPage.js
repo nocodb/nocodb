@@ -214,11 +214,11 @@ export class _mainPage {
             .contains(" Install ")
             .click({ force: true });
         cy.getActiveModal()
-            .find('[placeholder="eg: admin@example.com"]')
+            .find('[placeholder="eg: admin@run.com"]')
             .click()
             .type(from);
         cy.getActiveModal()
-            .find('[placeholder="eg: smtp.example.com"]')
+            .find('[placeholder="eg: smtp.run.com"]')
             .click()
             .type(host);
         cy.getActiveModal().find('[placeholder="Port"]').click().type(port);

@@ -1,32 +1,39 @@
 <template>
-  <v-row class="currency-wrapper">
-    <v-col cols="6">
-      <!--label="Format Locale"-->
-      <v-autocomplete
-        v-model="colMeta.currency_locale"
-        dense
-        class="caption"
-        label="Currency Locale"
-        :rules="[isValidCurrencyLocale]"
-        :items="currencyLocaleList"
-        outlined
-        hide-details
-      />
-    </v-col>
-    <v-col cols="6">
-      <!--label="Currency Code"-->
-      <v-autocomplete
-        v-model="colMeta.currency_code"
-        dense
-        class="caption"
-        label="Currency Code"
-        :rules="[isValidCurrencyCode]"
-        :items="currencyList"
-        outlined
-        hide-details
-      />
-    </v-col>
-  </v-row>
+  <v-tooltip top :disabled="!(isMoney && isPG)">
+    <template #activator="{ on, attrs }">
+      <v-row class="currency-wrapper" v-bind="attrs" v-on="on">
+        <v-col cols="6">
+          <!--label="Format Locale"-->
+          <v-autocomplete
+            v-model="colMeta.currency_locale"
+            dense
+            class="caption"
+            label="Currency Locale"
+            :rules="[isValidCurrencyLocale]"
+            :items="currencyLocaleList"
+            outlined
+            hide-details
+            :disabled="isMoney && isPG"
+          />
+        </v-col>
+        <v-col cols="6">
+          <!--label="Currency Code"-->
+          <v-autocomplete
+            v-model="colMeta.currency_code"
+            dense
+            class="caption"
+            label="Currency Code"
+            :rules="[isValidCurrencyCode]"
+            :items="currencyList"
+            outlined
+            hide-details
+            :disabled="isMoney && isPG"
+          />
+        </v-col>
+      </v-row>
+    </template>
+    <span>{{ message }}</span>
+  </v-tooltip>
 </template>
 
 <script>
@@ -49,6 +56,20 @@ export default {
       return validateCurrencyCode(value) || 'Invalid Currency Code'
     }
   }),
+  computed: {
+    isMoney() {
+      return this.column.dt === 'money'
+    },
+    isPG() {
+      return ['pg'].includes(this.$store.getters['project/GtrClientType'])
+    },
+    message() {
+      if (this.isMoney && this.isPG) {
+        return "PostgreSQL 'money' type has own currency settings"
+      }
+      return ''
+    }
+  },
   watch: {
     value() {
       this.colMeta = this.value || {}

@@ -10,7 +10,6 @@ export const genTest = (apiType, dbType) => {
         before(() => {
             // loginPage.loginAndOpenProject(apiType, dbType);
             // open a table to work on views
-            //
             // cy.openTableTab('City');
         });
 

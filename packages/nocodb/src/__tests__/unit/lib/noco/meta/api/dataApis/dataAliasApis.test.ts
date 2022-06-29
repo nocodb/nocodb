@@ -2,14 +2,14 @@
 
 import rewire from 'rewire';
 import sinon from 'sinon';
-import Base from '../../../../../../../lib/noco-models/Base';
-import Model from '../../../../../../../lib/noco-models/Model';
-import NcConnectionMgrv2 from '../../../../../../../lib/noco/common/NcConnectionMgrv2';
+import Base from '../../../../../../../lib/models/Base';
+import Model from '../../../../../../../lib/models/Model';
+import NcConnectionMgrv2 from '../../../../../../../lib/utils/common/NcConnectionMgrv2';
 import { expect } from 'chai';
-import * as getAstExporter from '../../../../../../../lib/dataMapper/lib/sql/helpers/getAstExporter';
+import * as getAstObject from '../../../../../../../lib/db/sql-data-mapper/lib/sql/helpers/getAst';
 
 const dataAliasApis = rewire(
-  '../../../../../../../../src/lib/noco/meta/api/dataApis/dataAliasApis'
+  '../../../../../../../lib/meta/api/dataApis/dataAliasApis'
 );
 const getFindOne = dataAliasApis.__get__('getFindOne');
 
@@ -39,7 +39,7 @@ describe('getFindOne', () => {
   );
   sinon.replace(NcConnectionMgrv2, 'get', sinon.fake.returns(dbDriver));
   const getAstFake = sinon.fake.returns({ id: 1 });
-  sinon.replace(getAstExporter, 'getAst', getAstFake);
+  sinon.replace(getAstObject, 'default', getAstFake);
 
   it('calls Base.get to find base', async () => {
     await getFindOne(model, view, req);
@@ -69,11 +69,6 @@ describe('getFindOne', () => {
   });
 
   describe('when data is found', () => {
-    it('calls getAst', async () => {
-      await getFindOne(model, view, req);
-      expect(getAstFake.called).to.be.true;
-    });
-
     it('returns data', async () => {
       const findOneResult = {
         id: 'dataId'

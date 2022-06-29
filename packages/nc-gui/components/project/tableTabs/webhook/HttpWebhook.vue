@@ -5,7 +5,7 @@
         v-model="api.method"
         outlined
         dense
-        class="caption"
+        class="caption nc-select-hook-url-method"
         :items="Object.keys(apiMethodMeta)"
         style="max-width:100px;"
       />
@@ -14,7 +14,7 @@
         outlined
         placeholder="http://example.com"
         dense
-        class="flex-grow-1 ml-2 caption"
+        class="flex-grow-1 ml-2 caption nc-text-field-hook-url-path"
       />
     </div>
 
@@ -33,7 +33,7 @@
         >({{ paramsCount }})</b></span>
       </v-tab>
       <v-tab v-ge="['api-client','headers']" class="caption">
-        <span class="text-capitalize">Headers&nbsp;<b
+        <span class="text-capitalize nc-tab-hook-header">Headers&nbsp;<b
           v-if="headersCount"
           class="green--text"
         >({{

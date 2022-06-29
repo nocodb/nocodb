@@ -66,7 +66,7 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Webhook`, () => {
         before(() => {
-            cy.task("copyFile")
+            // cy.task("copyFile")
             loginPage.signIn(roles.owner.credentials);
             projectsPage.openProject("sample");
         });

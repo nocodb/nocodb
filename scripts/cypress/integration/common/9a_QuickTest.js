@@ -119,7 +119,7 @@ export const genTest = (apiType, dbType, testMode) => {
             // date
 
             // duration
-            mainPage.getCell("Duration", 1).find('input').then(($e) => {
+            mainPage.getCell("Duration", cellIdx).find('input').then(($e) => {
                 expect($e[0].value).to.equal(records2.Duration)
             })
 

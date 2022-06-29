@@ -1,16 +1,17 @@
 <template>
   <div class="container">
-    <div>
-      <img alt="Vue logo" src="../assets/icon.png" width="50">
-      <Toast />
 
-      <div >
-        <form @submit.prevent="greet">
-          <InputText type="text" v-model="text"/>
-          <Button type="submit" label="Submit"/>
-        </form>
-      </div>
-    </div>
+    <Card style="width:500px">
+      <template #title>
+        Signup
+      </template>
+      <template #content>
+        <InputText type="text" v-model="value" label="Email"/>
+       </template>
+      <template #footer>
+        <Button label="Small" icon="pi pi-check" class="p-button-sm"  />
+      </template>
+    </Card>
   </div>
 </template>
 

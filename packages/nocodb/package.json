@@ -71,6 +71,7 @@
     "watch:run": "cross-env NC_DISABLE_TELE1=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
     "watch:run:cypress": "cross-env EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/docker --log-error --project tsconfig.json\"",
     "watch:run:cypress:pg": "cross-env EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
+    "watch:run:cypress:pg:cyquick": "cross-env EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG_CyQuick.ts --log-error --project tsconfig.json\"",
     "watch:run:mysql": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunMysql --log-error --project tsconfig.json\"",
     "watch:run:pg": "cross-env  NC_DISABLE_TELE=true EE=true nodemon -e ts,js -w ./src -x \"ts-node src/run/dockerRunPG --log-error --project tsconfig.json\"",
     "run": "ts-node src/run/docker",

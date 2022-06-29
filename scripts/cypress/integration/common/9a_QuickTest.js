@@ -17,11 +17,11 @@ let records = {
     Number: "1",
     Value: "$1.00",
     Percent: "0.01",
-    Duration: "60",
 };
 
 // links/ computed fields
 let records2 = {
+    Duration: "00:01",
     Done: true,
     Date: "2022-05-31",
     Rating: "1",
@@ -66,7 +66,7 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Webhook`, () => {
         before(() => {
-            cy.task("copyFile")
+            // cy.task("copyFile")
             loginPage.signIn(roles.owner.credentials);
             projectsPage.openProject("sample");
         });
@@ -88,6 +88,11 @@ export const genTest = (apiType, dbType) => {
                 .should(records2.Done ? "exist" : "not.exist");
 
             // date
+
+            // duration
+            mainPage.getCell("Duration", 1).find('input').then(($e) => {
+                expect($e[0].value).to.equal(records2.Duration)
+            })
 
             // rating
             mainPage

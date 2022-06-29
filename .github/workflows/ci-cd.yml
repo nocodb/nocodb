@@ -628,13 +628,13 @@ jobs:
             wait-on: "http://localhost:8080, http://localhost:3000/_nuxt/runtime.js"
             wait-on-timeout: 1200
             config-file: scripts/cypress/cypress.json
-                           - name: Upload screenshots
-                           if: always()
-                           uses: actions/upload-artifact@v2
-                           with:
-                             name: cy-quick-pg-snapshots
-                             path: scripts/cypress/screenshots
-                             retention-days: 2
+        - name: Upload screenshots
+          if: always()
+          uses: actions/upload-artifact@v2
+          with:
+            name: cy-quick-pg-snapshots
+            path: scripts/cypress/screenshots
+            retention-days: 2
 #    docker:
 #        runs-on: ubuntu-latest
 #        steps:

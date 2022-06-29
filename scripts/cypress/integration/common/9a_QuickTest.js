@@ -17,7 +17,7 @@ let records = {
     Number: "1",
     Value: "$1.00",
     Percent: "0.01",
-    Duration: "60",
+    Duration: "00:01",
 };
 
 // links/ computed fields

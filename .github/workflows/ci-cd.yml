@@ -577,7 +577,6 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              npm run build:common
               npm run start:api:cache
               npm run start:web
               docker-compose -f ./scripts/docker-compose-cypress.yml up -d
@@ -622,7 +621,6 @@ jobs:
           uses: cypress-io/github-action@v2
           with:
             start: |
-              npm run build:common
               npm run start:api:cache:pg  
               npm run start:web
               docker-compose -f ./scripts/cypress/docker-compose-pg-cy-quick.yml up -d

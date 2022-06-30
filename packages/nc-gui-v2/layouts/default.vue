@@ -1,11 +1,13 @@
 <template>
-  <v-layout>
-    <v-app-bar color="grey-lighten-2"></v-app-bar>
-<!--    <v-navigation-drawer color="grey-darken-2" permanent></v-navigation-drawer>-->
-    <v-main>
+  <div class="">
+    <div class="topbar">
+    </div>
+    <div class="sidebar">
+    </div>
+    <div class="content">
       <slot></slot>
-    </v-main>
-  </v-layout>
+    </div>
+  </div>
 </template>
 
 <script>

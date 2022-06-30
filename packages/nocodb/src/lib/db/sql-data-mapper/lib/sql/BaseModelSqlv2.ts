@@ -610,7 +610,10 @@ class BaseModelSqlv2 {
       !this.isSqlite
     );
 
-    const children = await this.extractRawQueryAndExec(finalQb);
+    let children = await this.extractRawQueryAndExec(finalQb);
+    if (this.isSqlite || this.isMySQL) {
+      children = children[0];
+    }
     const proto = await (
       await Model.getBaseModelSQL({
         id: rtnId,

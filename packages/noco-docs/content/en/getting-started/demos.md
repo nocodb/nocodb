@@ -1,6 +1,6 @@
 ---
 title: 'Demos'
-description: 'Demos'
+description: 'NocoDB Demos'
 position: 30
 category: 'Getting started'
 fullscreen: true

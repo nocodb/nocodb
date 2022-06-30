@@ -1,6 +1,6 @@
 ---
 title: "i18n"
-description: "Contribute to NocoDB's i18n translation"
+description: "How to contribute to NocoDB's i18n translation?"
 position: 2000
 category: "Engineering"
 menuTitle: "i18n"

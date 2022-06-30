@@ -1,6 +1,6 @@
 ---
 title: 'Upgrading'
-description: 'Upgrading NocoDB : Docker, npm, Heroku!'
+description: 'Upgrading NocoDB : Docker, Node, Heroku and Homebrew!'
 position: 20
 category: 'Getting started'
 menuTitle: 'Upgrading'
@@ -100,7 +100,7 @@ This will trigger the Heroku deployment. Your app should now be updated to the l
 
 ## Homebrew
 
-Run following commands to upgrade Homebrew Noocodb version.
+Run following commands to upgrade Homebrew Nocodb version.
 
 ```bash
 # Update the local homebrew formulas

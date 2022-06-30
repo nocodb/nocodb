@@ -1,6 +1,6 @@
 ---
 title: 'Import Airtable to NocoDB'
-description: 'Import Airtable to NocoDB'
+description: 'A complete import of your Airtable to any MySQL, Postgres, SQLite and SQL server databases within minutes'
 position: 1150
 category: 'Product'
 menuTitle: 'Import Airtable to NocoDB'

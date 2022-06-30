@@ -1,6 +1,6 @@
 ---
 title: 'Views'
-description: 'Views'
+description: 'Understanding Views in NocoDB!'
 position: 600
 category: 'Product'
 menuTitle: 'Views'

@@ -1,6 +1,6 @@
 ---
 title: "Formulas"
-description: "Formulas"
+description: "NocoDB Formulas Syntaxes and Functions"
 position: 570
 category: "Product"
 menuTitle: "Formulas"

@@ -1,6 +1,6 @@
 ---
 title: 'Audit'
-description: 'Audit log'
+description: 'NocoDB provides all the user operation logs under Audit log'
 position: 590
 category: 'Product'
 menuTitle: 'Audit'

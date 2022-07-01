@@ -87,6 +87,31 @@ const parseConditionV2 = async (
       const parentModel = await parentColumn.getModel();
       await parentModel.getColumns();
       if (colOptions.type === RelationTypes.HAS_MANY) {
+        if (
+          filter.comparison_op === 'empty' ||
+          filter.comparison_op === 'notempty'
+        ) {
+          const selectParentQb = knex(parentModel.table_name);
+          console.log('HERE1');
+          console.log(selectParentQb.toQuery());
+
+          const selectHmCount = knex(childModel.table_name)
+            .select(childColumn.column_name)
+            .count(childColumn.column_name)
+            .whereNotNull(childColumn.column_name)
+            .groupBy(childColumn.column_name);
+          console.log('HERE2');
+          console.log(selectHmCount.toQuery());
+
+          const q = selectParentQb.leftJoin(
+            selectHmCount.as('t2'),
+            parentModel.table_name + '.' + parentColumn.column_name,
+            't2.' + childColumn.column_name
+          );
+          console.log('HERE3');
+          console.log(q.toQuery());
+          return q;
+        }
         const selectQb = knex(childModel.table_name).select(
           childColumn.column_name
         );

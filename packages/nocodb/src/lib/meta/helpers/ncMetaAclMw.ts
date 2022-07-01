@@ -1,4 +1,5 @@
 import projectAcl from '../../utils/projectAcl';
+import ProjectUser from '../../models/ProjectUser';
 import { NextFunction, Request, Response } from 'express';
 import catchError, { NcError } from './catchError';
 import extractProjectIdAndAuthenticate from './extractProjectIdAndAuthenticate';
@@ -61,10 +62,21 @@ export default function(handlerFn, permissionName) {
           );
         });
       if (!isAllowed) {
+        const projectOwnersEmailsCommaSeperated = (
+          await ProjectUser.getOwnersList({
+            project_id: req.params.projectId,
+          })
+        )
+          .map((user) => user.email)
+          .join(',');
         NcError.forbidden(
           `${permissionName} - ${Object.keys(roles).filter(
             k => roles[k]
-          )} : Not allowed`
+          )} : Not allowed.${
+            permissionName === 'projectGet'
+              ? ` Please contact ${projectOwnersEmailsCommaSeperated} for access.`
+              : ''
+          }`
         );
       }
       //   }

@@ -369,31 +369,7 @@ aws ecs create-service \
 </alert>
 
 ## Development Setup
-
-If you want to modify the source code,
-
-- Start the backend locally
-
-```bash
-cd packages/nocodb
-npm install
-npm run watch:run
-```
-
-- Start the frontend locally
-
-```bash
-cd packages/nc-gui
-npm install
-npm run dev
-```
-
-- Open ``localhost:3000/dashboard`` in browser
-
-<alert>
-  nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. <br>
-   You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
-</alert>
+Please refer to [Development Setup](https://github.com/nocodb/nocodb#development-setup).
 
 ## Sample Demos
 

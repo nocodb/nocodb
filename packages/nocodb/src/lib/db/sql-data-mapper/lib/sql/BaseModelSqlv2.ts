@@ -611,7 +611,7 @@ class BaseModelSqlv2 {
     );
 
     let children = await this.extractRawQueryAndExec(finalQb);
-    if (this.isSqlite || this.isMySQL) {
+    if (this.isMySQL) {
       children = children[0];
     }
     const proto = await (

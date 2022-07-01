@@ -111,6 +111,17 @@ const parseConditionV2 = async (
           else qbP.whereIn(parentColumn.column_name, selectQb);
         };
       } else if (colOptions.type === RelationTypes.BELONGS_TO) {
+        if (filter.comparison_op === 'null') {
+          return (qb) => {
+            qb.whereNull(childColumn.column_name);
+          };
+        }
+        if (filter.comparison_op === 'notnull') {
+          return (qb) => {
+            qb.whereNotNull(childColumn.column_name);
+          };
+        }
+
         const selectQb = knex(parentModel.table_name).select(
           parentColumn.column_name
         );

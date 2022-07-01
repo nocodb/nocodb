@@ -11,7 +11,7 @@ export const genTest = (apiType, dbType) => {
         });
 
         after(() => {
-            cy.closeTableTab("Country");
+          cy.closeTableTab("City");
         });
 
         it("Table column header, URL validation", () => {
@@ -21,7 +21,27 @@ export const genTest = (apiType, dbType) => {
             cy.url().should("contain", `name=Country`);
         });
 
-        it("Expand belongs-to column", () => {
+        it("Grid cell chip content validation", () => {
+          // grid cell content validation
+          mainPage.getCell("City List", 1)
+            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .contains("Kabul")
+            .should('exist');
+          mainPage.getCell("City List", 2)
+            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .contains("Batna")
+            .should('exist');
+          mainPage.getCell("City List", 2)
+            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .contains("Bchar")
+            .should('exist');
+          mainPage.getCell("City List", 2)
+            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .contains("Skikda")
+            .should('exist');
+        })
+
+        it("Expand has-many column", () => {
             // expand first row
             cy.get('td[data-col="City List"] div:visible', {
                 timeout: 12000,
@@ -66,6 +86,24 @@ export const genTest = (apiType, dbType) => {
                         });
                 });
         });
+
+        it("Belongs to column, validate", () => {
+          cy.closeTableTab("Country");
+          cy.openTableTab("City", 25);
+          cy.get(`.project-tab:contains(City):visible`).should("exist");
+          cy.url().should("contain", `name=City`);
+
+          // grid cell content validation
+          mainPage.getCell("Country", 1)
+            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .contains("Spain")
+            .should('exist');
+          mainPage.getCell("Country", 2)
+            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .contains("Saudi Arabia")
+            .should('exist');
+
+        })
     });
 };
 

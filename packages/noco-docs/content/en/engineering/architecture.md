@@ -1,6 +1,6 @@
 ---
 title: "NocoDB Architecture"
-description: "NocoDB Architecture"
+description: "NocoDB Architecture Overview"
 position: 4000
 category: "Engineering"
 menuTitle: "NocoDB Architecture"

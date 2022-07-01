@@ -1,6 +1,6 @@
 ---
 title: 'Metadata'
-description: 'Metadata'
+description: 'NocoDB Project Metadata'
 position: 600
 category: 'Product'
 menuTitle: 'Metadata'

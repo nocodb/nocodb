@@ -6,11 +6,6 @@ category: 'Welcome'
 menuTitle: 'Introduction'
 ---
 
-<alert type="warning">
-    This documentation is only for version 0.90 onwards. If you are looking for the previous versions, please check out 
-     <a href="https://docs-prev.nocodb.com/" target="_blank">here</a>. 
-</alert>
-
 ## Welcome!
 
 NocoDB is a no-code database platform that allows teams to collaborate and build applications with ease of a familiar and intuitive spreadsheet interface. This allows even non-developers or business users to become software creators.
@@ -97,8 +92,8 @@ We encourage all contributors to commit messages following [Commit Message Conve
 
 We require a CLA (Contributor License Agreement). This is a one-time process. Please click this [link](https://cla-assistant.io/nocodb/nocodb) to agree to the CLA for nocodb/nocodb. 
 
-You can also share your thoughts and discuss with our community members via [discord](https://discord.gg/5RgZmkW) or [Github Discussion](https://github.com/nocodb/nocodb/discussions). We also share our [Immediate Roadmap](https://github.com/nocodb/nocodb/projects/1) and all opinions are welcome.
+You can also share your thoughts and discuss with our community members via [Discord](https://discord.gg/5RgZmkW) or [Github Discussion](https://github.com/nocodb/nocodb/discussions). We also share our [Immediate Roadmap](https://github.com/nocodb/nocodb/projects/1) and all opinions are welcome.
 
 ## Support
 
-If you have any issues or questions, you can reach out for help in our [discord](https://discord.gg/5RgZmkW).
+If you have any issues or questions, you can reach out for help in our [Discord](https://discord.gg/5RgZmkW).

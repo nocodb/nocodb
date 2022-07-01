@@ -1,5 +1,6 @@
 ---
 title: 'REST APIs'
+description: 'NocoDB REST API Overview'
 position: 1010
 category: 'Developer Resources'
 menuTitle: 'REST APIs'

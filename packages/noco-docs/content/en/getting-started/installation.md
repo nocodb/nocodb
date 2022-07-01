@@ -20,7 +20,6 @@ Simple installation - takes about three minutes!
     
 ## Quick try
 
-
 ### 1-Click Deploy to Heroku
 
 Before doing so, make sure you have a Heroku account. By default, an add-on Heroku Postgres will be used as meta database. You can see the connection string defined in `DATABASE_URL` by navigating to Heroku App Settings and selecting Config Vars.
@@ -85,7 +84,6 @@ curl http://get.nocodb.com/macos-arm64 -o nocodb -L \
   && chmod +x nocodb \
   && ./nocodb
 ```
-
 
 ##### Linux (x64)
 

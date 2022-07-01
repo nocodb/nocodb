@@ -1,6 +1,6 @@
 ---
 title: "Link To Another Record"
-description: "Link To Another Record"
+description: "Understanding Link To Another Record (LTAR) Columns!"
 position: 540
 category: "Product"
 menuTitle: "Link To Another Record"

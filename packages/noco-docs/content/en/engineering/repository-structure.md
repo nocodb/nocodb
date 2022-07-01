@@ -1,6 +1,6 @@
 ---
 title: "Repository Structure"
-description: "Repository Structure"
+description: "NocoDB Repository Structure Overview"
 position: 3000
 category: "Engineering"
 menuTitle: "Repository Structure"

@@ -1,0 +1,24 @@
+{
+  "private": true,
+  "scripts": {
+    "build": "nuxt build",
+    "dev": "nuxt dev",
+    "generate": "nuxt generate",
+    "preview": "nuxt preview"
+  },
+  "devDependencies": {
+    "@nuxtjs/tailwindcss": "^5.1.2",
+    "fibers": "^5.0.1",
+    "nuxt": "3.0.0-rc.3",
+    "sass": "^1.53.0",
+    "sass-loader": "^10.3.0"
+  },
+  "dependencies": {
+    "nocodb-sdk": "file:../nocodb-sdk",
+    "nuxt3-store": "^1.0.0",
+    "vuetify": "^3.0.0-alpha.12",
+    "primevue": "3.10.0",
+    "primeflex": "3.2.0",
+    "primeicons": "5.0.0"
+  }
+}

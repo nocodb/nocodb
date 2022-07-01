@@ -12,20 +12,20 @@ export default defineNuxtConfig({
     // '~/plugins/vuetify.ts',
     // '~/plugins/api.ts',
   ],
-  // css: ['vuetify/lib/styles/main.sass'],
-  // build: {
-  //   transpile: ['vuetify']
-  // },
-
-  css: [
-    'primevue/resources/themes/saga-blue/theme.css',
-    'primevue/resources/primevue.css',
-    'primeicons/primeicons.css',
-    'primeflex/primeflex.css',
-  ],
+  css: ['vuetify/lib/styles/main.sass'],
   build: {
-    transpile: ['primevue']
+    transpile: ['vuetify']
   },
+
+  // css: [
+  //   'primevue/resources/themes/saga-blue/theme.css',
+  //   'primevue/resources/primevue.css',
+  //   'primeicons/primeicons.css',
+  //   'primeflex/primeflex.css',
+  // ],
+  // build: {
+  //   transpile: ['primevue']
+  // },
 
   vite: {
     define: {

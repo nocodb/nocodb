@@ -1,32 +1,30 @@
 <template>
   <div>
     <!-- Enter your work email -->
-    <Card class="p-4 mx-auto mt-5" style="max-width: 500px">
-      <template #content>
+    <v-card class="pa-10 mx-auto mt-10" style="max-width: 500px">
+      <v-card-text>
 
-        <Message class="" v-if="error" severity="error">{{ error }}</Message>
+        <v-alert density="medium" class="mb-4" v-if="error" type="error">{{ error }}</v-alert>
 
-        <div class="p-float-label mt-5">
-          <InputText id="email" type="text" v-model="form.email" style="width:100%"/>
-          <label for="email">Email</label>
+        <div class="p-float-label ">
+          <v-text-field label="Email" id="email" type="text" v-model="form.email" style="width:100%"/>
         </div>
 
         <!-- Enter your password -->
-        <div class="p-float-label mt-5">
-          <InputText id="password" type="password" v-model="form.password" style="width:100%"/>
-          <label for="password">Password</label>
+        <div class="p-float-label ">
+          <v-text-field  label="Password" id="password" type="password" v-model="form.password" style="width:100%"/>
         </div>
 
         <div class="text-center">
-          <Button
-              class="mt-5"
-              @click="signUp"
+          <v-btn
+            class=""
+            @click="signUp"
           >
             <b>Sign Up</b>
-          </Button>
+          </v-btn>
         </div>
-      </template>
-    </Card>
+      </v-card-text>
+    </v-card>
   </div>
 
 </template>

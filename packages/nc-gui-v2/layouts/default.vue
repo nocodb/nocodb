@@ -5,7 +5,13 @@
 <!--    <div class="sidebar">-->
 <!--    </div>-->
 <!--    <div class="content">-->
-      <slot></slot>
+
+
+    <v-layout>
+      <v-app-bar color=""></v-app-bar>
+<slot></slot>
+    </v-layout>
+
 <!--    </div>-->
   </div>
 </template>

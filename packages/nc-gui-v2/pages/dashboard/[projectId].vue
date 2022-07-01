@@ -1,7 +1,22 @@
 <template>
 
   <NuxtLayout>
-    <!--  todo: move to layout or create a reusable component -->
+    <v-navigation-drawer color="" permanent>
+
+      <DashboardTreeView></DashboardTreeView>
+    </v-navigation-drawer>
+    <v-main>
+      <v-container>
+        <DashboardTabView></DashboardTabView>
+      </v-container>
+
+
+    </v-main>
+  </NuxtLayout>
+
+
+<!--  <NuxtLayout>
+    &lt;!&ndash;  todo: move to layout or create a reusable component &ndash;&gt;
     <div class="nc-container">
       <div class="nc-topbar shadow-2">
       </div>
@@ -13,7 +28,7 @@
       </div>
     </div>
 
-  </NuxtLayout>
+  </NuxtLayout>-->
 </template>
 
 <script setup lang="ts">

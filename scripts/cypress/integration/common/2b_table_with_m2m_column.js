@@ -21,6 +21,18 @@ export const genTest = (apiType, dbType) => {
             cy.url().should("contain", `name=Actor`);
         });
 
+        it("M2m chip content validation on grid", () => {
+          // grid m2m content validation
+          mainPage.getCell("Film List", 1)
+            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .contains("ACADEMY DINOSAUR")
+            .should('exist');
+          mainPage.getCell("Film List", 1)
+            .find('.nc-virtual-cell > .v-lazy > .d-flex > .chips')
+            .contains("ANACONDA CONFESSIONS")
+            .should('exist');
+        });
+
         it("Expand m2m column", () => {
             // expand first row
             cy.get('td[data-col="Film List"] div', { timeout: 12000 })

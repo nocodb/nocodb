@@ -35,9 +35,7 @@ jobs:
           branch: 'bot/update-nocodb-sdk-path'
           delete-branch: true
           title: 'Update nocodb-sdk to local path'
-          labels: |
-            Bot: Automated PR
-            Bot: Automerge
+          labels: 'Bot: Automerge'
       - name: Check outputs
         run: |
           echo "Pull Request Number - ${{ steps.cpr.outputs.pull-request-number }}"

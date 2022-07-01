@@ -47,7 +47,7 @@ jobs:
           source_branch: "develop"
           destination_branch: "master"  
           pr_title: '${{ github.event.inputs.tag || inputs.tag }} Pre-release'
-          pr_label: 'Bot: Automated PR,Bot: Automerge'
+          pr_label: 'Bot: Automerge'
       - name: Check outputs
         if: ${{ github.event.inputs.targetEnv == 'PROD' || inputs.targetEnv == 'PROD' }}
         run: |

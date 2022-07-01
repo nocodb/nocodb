@@ -2,6 +2,9 @@
 //
 
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
+import { projectsPage } from "../../support/page_objects/navigation";
+import { mainPage } from "../../support/page_objects/mainPage";
+
 let apiKey = ""
 let sharedBase = ""
 
@@ -12,6 +15,11 @@ export const genTest = (apiType, dbType) => {
     before(() => {
       apiKey = Cypress.env("airtable").apiKey;
       sharedBase = Cypress.env("airtable").sharedBase;
+
+      mainPage.toolBarTopLeft(mainPage.HOME).click({force: true})
+      projectsPage.createProject({ dbType: "none", apiType: "REST", name: "importSample" }, {})
+      // projectsPage.openProject("importSample")
+      // cy.openTableTab("Film", 3)
     });
 
     after(() => {});
@@ -31,13 +39,12 @@ export const genTest = (apiType, dbType) => {
       cy.getActiveModal().find(".nc-btn-airtable-import").should('exist').click()
 
       // it will take a while for import to finish
-      cy.getActiveModal().find(".nc-btn-go-dashboard", {timeout: 120000}).should('exist').click()
+      cy.getActiveModal().find(".nc-btn-go-dashboard", {timeout: 180000}).should('exist').click()
 
     });
-    it("Verify Schema", () => {});
-    it("Verify Data", () => {});
   });
 };
+
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

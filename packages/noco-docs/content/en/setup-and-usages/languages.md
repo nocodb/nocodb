@@ -1,6 +1,6 @@
 ---
 title: 'Languages'
-description: 'Languages'
+description: 'Multiple languages on Dashboard!'
 position: 900
 category: 'Product'
 menuTitle: 'Languages'

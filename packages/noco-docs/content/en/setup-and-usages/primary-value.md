@@ -1,6 +1,6 @@
 ---
 title: "Primary value"
-description: "Primary value"
+description: "Understanding Primary Value in NocoDB!"
 position: 580
 category: "Product"
 menuTitle: "Primary value"

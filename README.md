@@ -148,6 +148,37 @@ nocodb/nocodb:latest
 
 > If you plan to input some special characters, you may need to change the character set and collation yourself when creating the database. Please check out the examples for [MySQL Docker](https://github.com/nocodb/nocodb/issues/1340#issuecomment-1049481043).
 
+## Binaries
+##### MacOS (x64)
+```bash
+curl http://get.nocodb.com/macos-x64 -o nocodb -L && chmod +x nocodb && ./nocodb
+```
+
+##### MacOS (arm64)
+```bash
+curl http://get.nocodb.com/macos-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
+```
+
+##### Linux (x64)
+```bash
+curl http://get.nocodb.com/linux-x64 -o nocodb -L && chmod +x nocodb && ./nocodb
+```
+##### Linux (arm64)
+```bash
+curl http://get.nocodb.com/linux-arm64 -o nocodb -L && chmod +x nocodb && ./nocodb
+```
+
+##### Windows (x64)
+```bash
+iwp http://get.nocodb.com/win-x64 
+.\Noco-win-x64.exe
+```
+
+##### Windows (arm64)
+```bash
+iwp http://get.nocodb.com/win-arm64 
+.\Noco-win-arm64.exe
+```
 
 ## Docker Compose
 

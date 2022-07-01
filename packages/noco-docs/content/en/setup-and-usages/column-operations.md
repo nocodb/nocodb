@@ -1,6 +1,6 @@
 ---
 title: "Column Operations"
-description: "Column Operations"
+description: "Column Operations: Fields, Sort & Filter"
 position: 520
 category: "Product"
 menuTitle: "Column Operations"

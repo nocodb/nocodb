@@ -1,6 +1,6 @@
 ---
 title: 'FAQs'
-description: 'FAQs'
+description: 'General FAQs'
 position: 1000000
 category: 'FAQ'
 menuTitle: 'FAQs'
@@ -65,7 +65,6 @@ Auth Token is a JWT Token generated based on the logged-in user. By default, the
 
 API Token is a Nano ID with a length of 40. If you are passing API Token, make sure that the header is called `xc-token`.
 
- 
 ## Do you plan to have Enterprise Edition ?
 
 For features that make sense for enterprises like below - yes 

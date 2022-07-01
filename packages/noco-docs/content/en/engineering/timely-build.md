@@ -1,6 +1,6 @@
 ---
 title: "Timely Build"
-description: "Timely Build"
+description: "NocoDB provides Timely Build for Docker and Binary Executables"
 position: 5000
 category: "Engineering"
 menuTitle: "Timely Build"

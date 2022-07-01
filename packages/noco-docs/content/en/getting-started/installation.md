@@ -20,7 +20,6 @@ Simple installation - takes about three minutes!
     
 ## Quick try
 
-
 ### 1-Click Deploy to Heroku
 
 Before doing so, make sure you have a Heroku account. By default, an add-on Heroku Postgres will be used as meta database. You can see the connection string defined in `DATABASE_URL` by navigating to Heroku App Settings and selecting Config Vars.
@@ -85,7 +84,6 @@ curl http://get.nocodb.com/macos-arm64 -o nocodb -L \
   && chmod +x nocodb \
   && ./nocodb
 ```
-
 
 ##### Linux (x64)
 
@@ -369,31 +367,7 @@ aws ecs create-service \
 </alert>
 
 ## Development Setup
-
-If you want to modify the source code,
-
-- Start the backend locally
-
-```bash
-cd packages/nocodb
-npm install
-npm run watch:run
-```
-
-- Start the frontend locally
-
-```bash
-cd packages/nc-gui
-npm install
-npm run dev
-```
-
-- Open ``localhost:3000/dashboard`` in browser
-
-<alert>
-  nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. <br>
-   You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
-</alert>
+Please refer to [Development Setup](https://github.com/nocodb/nocodb#development-setup).
 
 ## Sample Demos
 

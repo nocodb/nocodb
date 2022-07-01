@@ -1,6 +1,6 @@
 ---
 title: "Lookup"
-description: "Lookup"
+description: "Understanding Lookup Column!"
 position: 550
 category: "Product"
 menuTitle: "Lookup"

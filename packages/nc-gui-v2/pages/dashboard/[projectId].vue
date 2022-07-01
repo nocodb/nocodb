@@ -1,4 +1,5 @@
 <template>
+  <!--  todo: move to layout or create a reusable component -->
   <div class="nc-container">
     <div class="nc-topbar shadow-2">
     </div>
@@ -12,16 +13,26 @@
 </template>
 
 <script setup lang="ts">
-import {useNuxtApp} from "#app";
 import {useProject} from "~/composables/project";
+import {watch} from "vue";
+import {useTabs} from "~/composables/tabs";
 
 const route = useRoute()
 const {loadProject, loadTables} = useProject()
+const {clearTabs} = useTabs()
 
 
 onMounted(async () => {
   await loadProject(route.params.projectId as string)
   await loadTables()
+})
+
+watch(() => route.params.projectId, async (newVal, oldVal) => {
+  if (newVal && newVal !== oldVal) {
+    clearTabs()
+    await loadProject(newVal as string)
+    await loadTables()
+  }
 })
 
 </script>
@@ -34,7 +45,7 @@ onMounted(async () => {
     left: 0;
     height: 50px;
     width: 100%;
-
+    z-index: 5;
   }
 
   .nc-sidebar {

@@ -34,10 +34,9 @@
 <script setup lang="ts">
 import {ref, reactive} from 'vue'
 import {useUser} from "~/composables/user";
-import {Api} from "nocodb-sdk";
 import {extractSdkResponseErrorMsg} from "~/helpers/errorUtils";
 
-const {$api}: { $api: Api<any> } = useNuxtApp() as any
+const {$api, $router} = useNuxtApp()
 const valid = ref()
 const error = ref()
 const form = reactive({
@@ -50,7 +49,8 @@ const signUp = async () => {
   error.value = null
   try {
     const {token} = await $api.auth.signup(form)
-    setToken(token)
+    await setToken(token)
+    $router.push('/projects')
   } catch (e) {
     error.value = await extractSdkResponseErrorMsg(e)
   }

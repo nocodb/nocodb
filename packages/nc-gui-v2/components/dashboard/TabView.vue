@@ -1,8 +1,8 @@
 <template>
   <div>
-    <TabMenu :model="tabItems" v-model:activeIndex="activeIndex"/>
-    <template v-if="tabItems && tabItems[activeIndex]">
-     <TabsSmartsheet :tab-meta="tabs[activeIndex]" :key="tabs[activeIndex].id"/>
+    <TabMenu :model="tabItems" v-model:activeIndex="activeTab"/>
+    <template v-if="tabItems && tabItems[activeTab]">
+     <TabsSmartsheet :tab-meta="tabs[activeTab]" :key="tabs[activeTab].id"/>
     </template>
   </div>
 </template>
@@ -11,8 +11,7 @@
 
 import {useTabs} from "~/composables/tabs";
 
-const {tabs} = useTabs()
-const activeIndex = ref(0)
+const {tabs,activeTab} = useTabs()
 
 const tabItems = computed(() => {
   return tabs.value.map(tab => {

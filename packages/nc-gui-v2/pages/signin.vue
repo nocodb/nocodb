@@ -35,9 +35,11 @@
 import {ref, reactive} from 'vue'
 import {useUser} from "~/composables/user";
 import {extractSdkResponseErrorMsg} from "~/helpers/errorUtils";
-import {useNuxtApp} from "#app";
+import {useNuxtApp, useRouter} from "#app";
 
-const {$api} = useNuxtApp()
+const { $api} = useNuxtApp()
+const $router = useRouter()
+
 const valid = ref()
 const error = ref()
 const form = reactive({
@@ -50,7 +52,8 @@ const signIn = async () => {
   error.value = null
   try {
     const {token} = await $api.auth.signin(form)
-    setToken(token)
+    await setToken(token)
+    await $router.push('/projects')
   } catch (e) {
     error.value = await extractSdkResponseErrorMsg(e)
   }

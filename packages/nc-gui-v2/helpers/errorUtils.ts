@@ -8,7 +8,7 @@ export async function extractSdkResponseErrorMsg(e:Error & {response:any}) {
       msg = 'Some internal error occurred'
     }
   } else {
-    msg = e.response.data.msg || 'Some internal error occurred'
+    msg = e.response.data.msg || e.response.data.message || 'Some internal error occurred'
   }
   return msg || 'Some error occurred'
 }

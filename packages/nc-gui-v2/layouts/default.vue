@@ -1,12 +1,12 @@
 <template>
   <div class="">
-    <div class="topbar">
-    </div>
-    <div class="sidebar">
-    </div>
-    <div class="content">
+<!--    <div class="topbar">-->
+<!--    </div>-->
+<!--    <div class="sidebar">-->
+<!--    </div>-->
+<!--    <div class="content">-->
       <slot></slot>
-    </div>
+<!--    </div>-->
   </div>
 </template>
 

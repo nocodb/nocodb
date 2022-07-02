@@ -6,6 +6,7 @@ category: "Engineering"
 menuTitle: "Daily builds explained"
 ---
 
+
 NocoDB provides timely build versions on Docker and Executables by compiling our source code and packaging as a deliverable so that it can
 
 - reduce pull request cycle time

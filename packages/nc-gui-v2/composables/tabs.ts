@@ -1,14 +1,14 @@
-import {useState} from "#app";
+import { useState } from '#app'
 
 interface TabItem {
-  type: 'table' | 'view',
-  title: string,
-  id:string
+  type: 'table' | 'view'
+  title: string
+  id: string
 }
 
 export const useTabs = () => {
   const tabs = useState<Array<TabItem>>('tabs', () => [])
-  const activeTab = useState<number>('activeTab', ()=>0)
+  const activeTab = useState<number>('activeTab', () => 0)
 
   const addTab = (tabMeta: TabItem) => {
     tabs.value = [...(tabs.value || []), tabMeta]
@@ -18,5 +18,5 @@ export const useTabs = () => {
     tabs.value = []
   }
 
-  return {tabs, addTab, activeTab, clearTabs}
+  return { tabs, addTab, activeTab, clearTabs }
 }

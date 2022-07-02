@@ -1,16 +1,14 @@
-<template>
-  <div class="container">
-
-  </div>
-</template>
-
 <script setup lang="ts">
-import {useRouter} from "#app";
+import { useRouter } from '#app'
 
-const $router = useRouter()
+const router = useRouter()
 
-$router.replace('/projects')
+router.replace('/projects')
 </script>
+
+<template>
+  <div class="container" />
+</template>
 
 <style lang="scss">
 

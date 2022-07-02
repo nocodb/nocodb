@@ -7,6 +7,7 @@
     "preview": "nuxt preview"
   },
   "devDependencies": {
+    "@antfu/eslint-config": "^0.25.2",
     "@nuxtjs/tailwindcss": "^5.1.2",
     "fibers": "^5.0.1",
     "nuxt": "3.0.0-rc.3",

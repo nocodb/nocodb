@@ -1,51 +1,46 @@
-import {store} from 'nuxt3-store'
-import {Api} from "nocodb-sdk";
-import {useNuxtApp} from "#app";
+import { store } from 'nuxt3-store'
+import { useNuxtApp } from '#app'
 
-export  const useUser = () =>{
-  const user =  store({
+export const useUser = () => {
+  const user = store({
     name: 'user',
     type: 'localstorage',
-    value: {token: null, user : null},
+    value: { token: null, user: null },
     reactiveType: 'reactive',
-    version: '1.0.0'
+    version: '1.0.0',
   })
 
-  const {$api} = useNuxtApp()
+  const { $api } = useNuxtApp()
   const route = useRoute()
   const router = useRouter()
 
-
-  const getUser =async (args = {}) => {
+  const getUser = async (args = {}) => {
     const userInfo = await $api.auth.me(args, {
       headers: {
-        'xc-auth': user.value.token
-      }
+        'xc-auth': user.value.token,
+      },
     })
 
     user.user = userInfo
   }
 
-  const setToken =  (token) => {
+  const setToken = (token) => {
     user.token = token
   }
-
-
 
   $api?.instance?.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
-    if (user?.token) {
+    if (user?.token)
       config.headers['xc-auth'] = user?.token
-    }
+
     if (!config.url.endsWith('/user/me') && !config.url.endsWith('/admin/roles')) {
       // config.headers['xc-preview'] = store.state.users.previewAs
     }
 
     if (!config.url.endsWith('/user/me') && !config.url.endsWith('/admin/roles')) {
-      if (route && route.params && route.params.shared_base_id) {
+      if (route && route.params && route.params.shared_base_id)
         config.headers['xc-shared-base-id'] = route.params.shared_base_id
-      }
     }
 
     return config
@@ -82,13 +77,13 @@ export  const useUser = () =>{
 
     // Try request again with new token
     return $api.instance.post('/auth/refresh-token', null, {
-      withCredentials: true
+      withCredentials: true,
     })
       .then((token) => {
         // New request with new token
         const config = error.config
         config.headers['xc-auth'] = token.data.token
-        user.token =  token.data.token
+        user.token = token.data.token
 
         return new Promise((resolve, reject) => {
           $api.instance.request(config).then((response) => {
@@ -99,12 +94,13 @@ export  const useUser = () =>{
         })
       })
       .catch(async (error) => {
-        //todo: clear token
+        // todo: clear token
         // await store.dispatch('users/ActSignOut')
         setToken(null)
         if (store.state.project.appInfo.firstUser) {
           router.replace('/')
-        } else {
+        }
+        else {
           // $toast.clear()
           // $toast.info('Token Expired. Please login again.', {
           //   position: 'bottom-center'
@@ -115,10 +111,5 @@ export  const useUser = () =>{
       })
   })
 
-
-  return {user,setToken, getUser}
+  return { user, setToken, getUser }
 }
-
-
-
-

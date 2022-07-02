@@ -12,7 +12,7 @@
 // import Dropdown from "primevue/dropdown";
 // import ToastService from "primevue/toastservice";
 //
-export default defineNuxtPlugin(nuxtApp => {
+export default defineNuxtPlugin((nuxtApp) => {
 //   nuxtApp.vueApp.use(PrimeVue, { ripple: true });
 //   nuxtApp.vueApp.use(ToastService);
 //   nuxtApp.vueApp.component("Button", Button);
@@ -26,4 +26,4 @@ export default defineNuxtPlugin(nuxtApp => {
 //   nuxtApp.vueApp.component("Dropdown", Dropdown);
 //   nuxtApp.vueApp.component("Column", Column);
 //   //other components that you need
-});
+})

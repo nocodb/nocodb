@@ -108,6 +108,7 @@
               class="flex-shrink-1 flex-grow-0 caption nc-filter-operation-select"
               :items="filterComparisonOp(filter)"
               :placeholder="$t('labels.operation')"
+              v-show="filter && filter.fk_column_id"
               solo
               flat
               style="max-width: 120px"
@@ -142,6 +143,7 @@
               v-else
               :key="i + '_7'"
               v-model="filter.value"
+              v-show="filter && filter.fk_column_id"
               solo
               flat
               hide-details

@@ -21,7 +21,7 @@ Convierte cualquier MySQL, PostgreSQL, SQL Server, SQLite y Mariadb en una hoja 
     <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
     <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
     <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
-    <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
+    <a href="https://docs.nocodb.com/"><b>Documentación</b></a>
 </p>
 
 ![OpenSourceAirtableAlternative](https://user-images.githubusercontent.com/5435402/133762127-e94da292-a1c3-4458-b09a-02cd5b57be53.png)
@@ -53,10 +53,10 @@ Convierte cualquier MySQL, PostgreSQL, SQL Server, SQLite y Mariadb en una hoja 
 docker run -d --name nocodb -p 8080:8080 nocodb/nocodb:latest
 ```
 
-- NocoDB needs a database as input : See [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
-- Para habilitar datos no perecederos se puede usar `/usr/app/data/`.
+- NocoDB necesita de una base de datos previamente creada: Leer [Production Setup](https://github.com/nocodb/nocodb/blob/master/README.md#production-setup).
+- Para habilitar datos no efímeros se puede usar `/usr/app/data/`.
 
-  Example:
+  Ejemplo:
 
   ```
   docker run -d -p 8080:8080 --name nocodb -v "$(pwd)"/nocodb:/usr/app/data/ nocodb/nocodb:latest
@@ -128,30 +128,29 @@ Para accesar al dashboard: [http://localhost:8080/dashboard](http://localhost:80
 
 ### Atractiva interfaz de hoja de cálculo
 
-- ⚡ Buscar, ordenar, filtrar, ocultar columnas con la facilidad de Uber
-- ⚡ Crear vistas: Grid, Galería, Kanban, Forma
-- ⚡ Compartir Vistas: Publicas & Protegidas por contraseña
-- ⚡ Vistas personales y cerradas
-- ⚡ Sube imágenes en celdas (funciona con S3, Minio, GCP, Azure, DigitalCean, Linode, OVH, BackBlaze) !!
-- ⚡ Roles: Propietario, Creador, Editor, Comentarista, Visor, Comentarista, Roles personalizados.
-- ⚡ Control de acceso: Control de acceso de grano fino Incluso en la base de datos, la tabla y el nivel de columna.
+- ⚡ Operaciones Básicas: Crear, Leer, Actualizar y Borrar en Tablas, Columnas y Filas
+- ⚡ Operaciones en Celdas: Ordenar, Filtrar, Ocultar / Mostrar Columnas
+- ⚡ Multiples Tipos de Vistas: Cuadrícula (Por defecto), Galería y Forma
+- ⚡ Tipos de Permisos para Ver: Vistas Colaborativas y Vistas Privadas
+- ⚡ Comparte Bases / Vistas: Públicas o Privadas (Protegidas con contraseña)
+- ⚡ Variaciones de Tipos de Celda: ID, Acceso a otra celda, Búsqueda, Acumulación, Texto de una sola línea, Archivo adjunto, Divisa, Fórmula, etc.
+- ⚡ Control de acceso con Roles: Control de acceso granular en diferentes niveles
+- ⚡ y más ...
 
 ### App Store para Automatización de Flujos de Trabajo:
+Proveemos diferentes integraciones en tres categorías principales. Ver <a href="https://docs.nocodb.com/setup-and-usages/app-store" target="_blank">App Store</a> para más detalles.
 
-- ⚡ Chat: Microsoft Equips, Slack, Discord, MOSE
-- ⚡ Correo electrónico: SMTP, SES, MailChimp
-- ⚡ SMS: Twilio
-- ⚡ whatsapp
-- ⚡ Cualquier API externa
+- ⚡ Chat: Slack, Discord, Mattermost, etc.
+- ⚡ Correo electrónico: AWS SES, SMTP, MailerSend, etc.
+- ⚡ Almacenamiento: AWS S3, Google Cloud Storage, Minio, etc.
 
-### Acceso a API programático a través de:
+### Acceso Programático
+Proveemos las siguientes maneras para dejar que los usuarios puedan invocar acciones a través de la programación. Puedes usar un token (JWT o Auth Social) para firmar tus solicitudes de autorización a NocoDB.
 
-- ⚡ APIES DE RESTIDO (SWAGGERS)
-- ⚡ GRAPHQL APIES.
-- ⚡ Incluye Autenticación JWT y AUTE SOCIAL
-- ⚡ Tokens API para integrarse con Zapier, Integromat.
+- ⚡ REST APIs
+- ⚡ NocoDB SDK
 
-# Setup para Entorno de Producción:
+# Configruación para Entorno de Producción:
 
 Nocodb requiere una base de datos para almacenar metadatos de vistas a las hojas de cálculo y bases de datos externas. Y los parámetros de conexión para esta base de datos se pueden especificar en la variable de entorno NC_DB.
 
@@ -196,20 +195,20 @@ docker-compose up -d
 
 ## Variables de entorno
 
-Please refer to [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
+Por favor diríjase a [Environment variables](https://docs.nocodb.com/getting-started/installation#environment-variables)
 
-# Development setup
+# Configuración de desarollo
 
-Please refer to [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
+Por favor diríjase a [Development Setup](https://github.com/nocodb/nocodb/tree/master#development-setup)
 
 # Contribuciones
 
-Please refer to [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
+Por favor diríjase a [Contribution Guide](https://github.com/nocodb/nocodb/blob/master/.github/CONTRIBUTING.md).
 
 # Por qué estamos construyendo esto?
 
-La mayoría de las empresas de Internet emplean una hoja de cálculo o una base de datos para resolver sus necesidades comerciales. Las hojas de cálculo son utilizadas por mil millones de personas colaborativamente todos los días. Sin embargo, estamos lejos de trabajar a velocidades similares en bases de datos, ya que son herramientas computacionalmente más poderosas. Los intentos de resolver esto con las ofrendas de SaaS han significado horribles controles de acceso, lockin de proveedores, lockin de datos, cambios abruptos de precios y, lo que es más importante, un techo de vidrio sobre lo que es posible en el futuro."
+La mayoría de las empresas de Internet emplean una hoja de cálculo o una base de datos para resolver sus necesidades comerciales. Las hojas de cálculo son utilizadas por billones de personas o más de manera colaborativa todos los días. Sin embargo, estamos lejos de trabajar a velocidades similares en bases de datos, ya que son herramientas computacionalmente más poderosas. Los intentos de resolver esto con soluciones SaaS han significado horribles controles de acceso, dependencia de un proveedor, dependencia de datos, cambios abruptos de precios y lo que es más importante, un techo de cristal sobre lo que es posible en el futuro."
 
 # Nuestra misión
 
-Nuestra misión es proporcionar la interfaz sin-código más potente para bases de datos open-source para negocios de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también brindará a mil millones de personas que tendrán habilidades radicales de retención y construcción en Internet."
+Nuestra misión es proporcionar la interfaz sin-código más potente para bases de datos, la cual es open-source para negocios de Internet en el mundo. Esto no solo democratizaría el acceso a una poderosa herramienta de computación, sino que también producirá a billones de personas o más con habilidades radicales de perfección y construcción en Internet."

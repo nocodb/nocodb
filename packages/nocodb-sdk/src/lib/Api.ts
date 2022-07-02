@@ -1238,6 +1238,24 @@ export class Api<
       }),
 
     /**
+     * No description
+     *
+     * @tags Project
+     * @name Update
+     * @summary Project update
+     * @request PATCH:/api/v1/db/meta/projects/{projectId}
+     * @response `200` `void` OK
+     */
+    update: (projectId: string, data: any, params: RequestParams = {}) =>
+      this.request<void, any>({
+        path: `/api/v1/db/meta/projects/${projectId}`,
+        method: 'PATCH',
+        body: data,
+        type: ContentType.Json,
+        ...params,
+      }),
+
+    /**
      * @description Read project details
      *
      * @tags Project

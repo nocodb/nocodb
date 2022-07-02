@@ -47,18 +47,6 @@
                 </template>
               </v-text-field>
               <v-spacer />
-              <!-- Import NocoDB Project by uploading metadata zip file -->
-              <!--              <x-btn-->
-              <!--                vbind:tooltip="$t('msg.info.importText')"-->
-              <!--                outlined-->
-              <!--                color="grey"-->
-              <!--                @click="-->
-              <!--                  $refs.importFile.click();-->
-              <!--                  project_id = null;-->
-              <!--                "-->
-              <!--              >-->
-              <!--                <v-icon>mdi-import</v-icon>-->
-              <!--              </x-btn>-->
 
               <template v-if="connectToExternalDB">
                 <v-menu offset-y bottom open-on-hover>
@@ -212,139 +200,30 @@
                     <td
                       style="width: 150px; min-width: 150px; max-width: 150px"
                     >
+                      <!-- Delete Project -->
+                      <!-- TODO: only show it for creators  -->
                       <x-icon
                         :tooltip="$t('activity.deleteProject')"
                         class="pointer mr-2"
-                        icon.class="delete-icon"
+                        icon.class="icon"
                         small
                         color="red grey"
                         @click.stop="deleteProject(props.item)"
                       >
                         mdi-delete-outline
                       </x-icon>
-
-                      <div
-                        v-if="
-                          props.item.allowed &&
-                            _isUIAllowed('projectActions', true) &&
-                            props.item.is_creator
-                        "
-                        :class="{
-                          'action-icons': !(
-                            projectStatusUpdating &&
-                            props.item.id === statusUpdatingProjectId
-                          ),
-                        }"
+                      <!-- Edit Project -->
+                      <!-- TODO: only show it for creators  -->
+                      <x-icon
+                        :tooltip="$t('activity.editProject')"
+                        class="pointer mr-2"
+                        icon.class="icon"
+                        small
+                        color="blue grey"
+                        @click.stop="onEditProject(props.item)"
                       >
-                        <!-- Stop Project -->
-                        <x-icon
-                          v-if="props.item.status === 'started'"
-                          :tooltip="$t('activity.stopProject')"
-                          class="pointer mr-2"
-                          color="orange grey"
-                          @click.stop="stopProject(props.item)"
-                        >
-                          mdi-stop-circle-outline
-                        </x-icon>
-                        <!-- Start Project -->
-                        <x-icon
-                          v-else-if="props.item.status === 'stopped'"
-                          :tooltip="$t('activity.startProject')"
-                          class="pointer mr-2"
-                          color="green grey"
-                          @click.stop="startProject(props.item)"
-                        >
-                          mdi-play-circle-outline
-                        </x-icon>
-                        <x-icon
-                          v-if="
-                            projectStatusUpdating &&
-                              props.item.id === statusUpdatingProjectId
-                          "
-                          class="mr-1"
-                        >
-                          mdi-loading mdi-spin
-                        </x-icon>
-                        <!-- Restart Project -->
-                        <x-icon
-                          :tooltip="$t('activity.restartProject')"
-                          class="pointer mr-2"
-                          color="primary grey"
-                          @click.stop="restartProject(props.item)"
-                        >
-                          mdi-restart
-                        </x-icon>
-                        <!-- Delete Project -->
-                        <x-icon
-                          :tooltip="$t('activity.deleteProject')"
-                          class="pointer mr-2"
-                          color="red grey"
-                          @click.stop="deleteProject(props.item)"
-                        >
-                          mdi-delete-circle-outline
-                        </x-icon>
-
-                        <v-menu offset-y>
-                          <template #activator="{ on }">
-                            <x-icon color="grey" v-on="on">
-                              mdi-dots-vertical
-                            </x-icon>
-                          </template>
-                          <v-list dense>
-                            <v-list-item
-                              dense
-                              @click="
-                                $refs.importFile.click();
-                                project_id = props.item.id;
-                              "
-                            >
-                              <v-list-item-icon class="mr-1">
-                                <v-icon small>
-                                  mdi-import
-                                </v-icon>
-                              </v-list-item-icon>
-                              <v-list-item-title>
-                                <!-- Import Metadata -->
-                                <span class="caption font-weight-regular">{{
-                                  $t("activity.importMetadata")
-                                }}</span>
-                              </v-list-item-title>
-                            </v-list-item>
-                            <v-list-item
-                              dense
-                              @click="exportMetaZip(props.item.id)"
-                            >
-                              <v-list-item-icon class="mr-1">
-                                <v-icon small>
-                                  mdi-export
-                                </v-icon>
-                              </v-list-item-icon>
-                              <v-list-item-title>
-                                <!-- Export Metadata -->
-                                <span class="caption font-weight-regular">{{
-                                  $t("activity.exportMetadata")
-                                }}</span>
-                              </v-list-item-title>
-                            </v-list-item>
-                            <v-list-item
-                              dense
-                              @click="resetMeta(props.item.id)"
-                            >
-                              <v-list-item-icon class="mr-1">
-                                <v-icon small>
-                                  mdi-delete-variant
-                                </v-icon>
-                              </v-list-item-icon>
-                              <v-list-item-title>
-                                <!-- Clear Metadata -->
-                                <span class="caption font-weight-regular">{{
-                                  $t("activity.clearMetadata")
-                                }}</span>
-                              </v-list-item-title>
-                            </v-list-item>
-                          </v-list>
-                        </v-menu>
-                      </div>
+                        mdi-circle-edit-outline
+                      </x-icon>
                     </td>
                   </tr>
                 </template>
@@ -564,14 +443,6 @@
         </v-list-item>
       </v-list>
     </div>
-
-    <input
-      v-show="false"
-      ref="importFile"
-      type="file"
-      accept=".zip"
-      @change="importMetaZip"
-    >
 
     <dlg-label-submit-cancel
       v-if="dialogShow"
@@ -844,6 +715,10 @@ export default {
         this.$e('c:project:create:extdb')
       }
     },
+    onEditProject(project) {
+      this.$router.push(`/project/edit?projectId=${project.id}`)
+      this.$e('c:project:edit:rename')
+    },
     onCreateProjectFromTemplate() {
       this.templatesModal = true
       this.$e('c:project:create:template')
@@ -899,115 +774,6 @@ export default {
         path: `project/0?edit=true&projectId=${project.id}`
       })
     },
-    async projectOpenFolder(project) {},
-
-    async exportMetaZip(projectId) {
-      this.dialogShow = true
-      this.confirmMessage = 'Do you want to export metadata from meta tables?'
-      this.confirmAction = async(act) => {
-        if (act === 'hideDialog') {
-          this.dialogShow = false
-        } else {
-          this.loading = 'export-zip'
-          let data
-          try {
-            data = await this.$store.dispatch('sqlMgr/ActSqlOp', [
-              {
-                // dbAlias: 'db',
-                project_id: projectId,
-                env: '_noco'
-              },
-              'xcMetaTablesExportDbToZip',
-              null,
-              null,
-              {
-                responseType: 'blob'
-              }
-            ])
-            const url = window.URL.createObjectURL(
-              new Blob([data], { type: 'application/zip' })
-            )
-            const link = document.createElement('a')
-            link.href = url
-            link.setAttribute('download', 'meta.zip') // or any other extension
-            document.body.appendChild(link)
-            link.click()
-            this.$toast
-              .success(`${this.$t('msg.toast.exportMetadata')}`)
-              .goAway(3000)
-          } catch (e) {
-            console.log(e)
-            this.$toast.error(e.message).goAway(3000)
-          }
-          this.dialogShow = false
-          this.loading = null
-        }
-      }
-    },
-    async resetMeta(projectId) {
-      this.dialogShow = true
-      this.confirmMessage = 'Do you want to clear metadata from meta tables?'
-      this.confirmAction = async(act) => {
-        if (act === 'hideDialog') {
-          this.dialogShow = false
-        } else {
-          this.loading = 'reset-metadata'
-          try {
-            await this.$store.dispatch('sqlMgr/ActSqlOp', [
-              {
-                // dbAlias: 'db',
-                env: '_noco',
-                project_id: projectId
-              },
-              'xcMetaTablesReset'
-            ])
-            // this.$toast.success('Metadata cleared successfully').goAway(3000)
-            this.$toast
-              .success(`${this.$t('msg.toast.clearMetadata')}`)
-              .goAway(3000)
-          } catch (e) {
-            console.log(e)
-            this.$toast.error(e.message).goAway(3000)
-          }
-          this.dialogShow = false
-          this.loading = null
-        }
-      }
-    },
-    async importMetaZip() {
-      const projectId = this.project_id
-      if (
-        this.$refs.importFile &&
-        this.$refs.importFile.files &&
-        this.$refs.importFile.files[0]
-      ) {
-        const zipFile = this.$refs.importFile.files[0]
-        this.loading = 'import-zip'
-        try {
-          this.$refs.importFile.value = ''
-          await this.$store.dispatch('sqlMgr/ActUploadOld', [
-            {
-              // dbAlias: 'db',
-              project_id: projectId,
-              env: '_noco'
-            },
-            'xcMetaTablesImportZipToLocalFsAndDb',
-            {},
-            zipFile
-          ])
-          // this.$toast.success('Successfully imported metadata').goAway(3000)
-          this.$toast
-            .success(`${this.$t('msg.toast.importMetadata')}`)
-            .goAway(3000)
-          await this.projectsLoad()
-        } catch (e) {
-          console.log(e)
-          this.$toast.error(e.message).goAway(3000)
-        }
-        this.dialogShow = false
-        this.loading = null
-      }
-    }
   }
 }
 </script>
@@ -1043,11 +809,11 @@ tr:hover .action-icons {
 .nc-container {
   position: relative;
 }
-/deep/ .project-row .delete-icon {
+/deep/ .project-row .icon {
   opacity: 0;
   transition: 0.2s opacity;
 }
-/deep/ .project-row:hover .delete-icon {
+/deep/ .project-row:hover .icon {
   opacity: 1;
 }
 </style>

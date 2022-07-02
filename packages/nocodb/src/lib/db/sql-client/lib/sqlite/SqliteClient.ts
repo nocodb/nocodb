@@ -166,7 +166,7 @@ class SqliteClient extends KnexClient {
    * @param args {tn}
    * @returns
    */
-  async createTableIfNotExists(args: any) {
+  async createTableIfNotExists(args: any = {}) {
     const _func = this.createTableIfNotExists.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -247,7 +247,7 @@ class SqliteClient extends KnexClient {
     return result;
   }
 
-  async hasDatabase(args: any) {
+  async hasDatabase(args: any = {}) {
     const _func = this.hasDatabase.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -303,7 +303,7 @@ class SqliteClient extends KnexClient {
     return result;
   }
 
-  async schemaList(args: any) {
+  async schemaList(args: any = {}) {
     const _func = this.createDatabaseIfNotExists.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -339,7 +339,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - columns[].cc -
    * @property {String} - columns[].csn -
    */
-  async columnList(args: any) {
+  async columnList(args: any = {}) {
     const _func = this.columnList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -440,7 +440,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - indexes[].comment -
    * @property {String} - indexes[].index_comment -
    */
-  async indexList(args: any) {
+  async indexList(args: any = {}) {
     const _func = this.indexList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -509,7 +509,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - relations[].dr -
    * @property {String} - relations[].mo -
    */
-  async relationList(args: any) {
+  async relationList(args: any = {}) {
     const _func = this.relationList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -557,7 +557,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - relations[].dr -
    * @property {String} - relations[].mo -
    */
-  async relationListAll(args: any) {
+  async relationListAll(args: any = {}) {
     const _func = this.relationList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -611,7 +611,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - triggers[].collation_connection
    * @property {String} - triggers[].database collation
    */
-  async triggerList(args: any) {
+  async triggerList(args: any = {}) {
     const _func = this.triggerList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -654,7 +654,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - functions[].collation_connection
    * @property {String} - functions[].database collation
    */
-  async functionList(args: any) {
+  async functionList(args: any = {}) {
     const _func = this.functionList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -708,7 +708,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - procedures[].collation_connection
    * @property {String} - procedures[].database collation
    */
-  async procedureList(args: any) {
+  async procedureList(args: any = {}) {
     const _func = this.procedureList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -753,7 +753,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - views[].view_name
    * @property {String} - views[].view_definition
    */
-  async viewList(args: any) {
+  async viewList(args: any = {}) {
     const _func = this.viewList.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -791,7 +791,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - collation_connection
    * @property {String} - character_set_client
    */
-  async functionRead(args: any) {
+  async functionRead(args: any = {}) {
     const _func = this.functionRead.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -843,7 +843,7 @@ class SqliteClient extends KnexClient {
    * @property {String} - collation_connection
    * @property {String} - character_set_client
    */
-  async procedureRead(args: any) {
+  async procedureRead(args: any = {}) {
     const _func = this.procedureRead.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -891,7 +891,7 @@ class SqliteClient extends KnexClient {
    * @returns {Object[]} - views
    * @property {String} - views[].tn
    */
-  async viewRead(args: any) {
+  async viewRead(args: any = {}) {
     const _func = this.viewRead.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -916,7 +916,7 @@ class SqliteClient extends KnexClient {
     return result;
   }
 
-  async triggerRead(args: any) {
+  async triggerRead(args: any = {}) {
     const _func = this.triggerRead.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -951,7 +951,7 @@ class SqliteClient extends KnexClient {
     return result;
   }
 
-  async schemaCreate(args: any) {
+  async schemaCreate(args: any = {}) {
     const _func = this.schemaCreate.name;
     // const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -962,7 +962,7 @@ class SqliteClient extends KnexClient {
     return rows;
   }
 
-  async schemaDelete(args: any) {
+  async schemaDelete(args: any = {}) {
     const _func = this.schemaDelete.name;
     // const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -974,7 +974,7 @@ class SqliteClient extends KnexClient {
   }
 
   /** ************** END : sql queries *************** */
-  async triggerDelete(args: any) {
+  async triggerDelete(args: any = {}) {
     const _func = this.triggerDelete.name;
     const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -992,7 +992,7 @@ class SqliteClient extends KnexClient {
     return result;
   }
 
-  async functionDelete(args: any) {
+  async functionDelete(args: any = {}) {
     const _func = this.createDatabaseIfNotExists.name;
     // const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -1003,7 +1003,7 @@ class SqliteClient extends KnexClient {
     return rows;
   }
 
-  async procedureDelete(args: any) {
+  async procedureDelete(args: any = {}) {
     const _func = this.procedureDelete.name;
     // const result = new Result();
     log.api(`${_func}:args:`, args);
@@ -1054,7 +1054,7 @@ class SqliteClient extends KnexClient {
    * @param {String} - args.timing
    * @returns {Object[]} - result rows
    */
-  async functionCreate(args: any) {
+  async functionCreate(args: any = {}) {
     const func = this.functionCreate.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -1081,7 +1081,7 @@ class SqliteClient extends KnexClient {
    * @param {String} - args.timing
    * @returns {Object[]} - result rows
    */
-  async functionUpdate(args: any) {
+  async functionUpdate(args: any = {}) {
     const func = this.functionUpdate.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -1109,7 +1109,7 @@ class SqliteClient extends KnexClient {
    * @param {String} - args.timing
    * @returns {Object[]} - result rows
    */
-  async procedureCreate(args: any) {
+  async procedureCreate(args: any = {}) {
     const func = this.procedureCreate.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -1136,7 +1136,7 @@ class SqliteClient extends KnexClient {
    * @param {String} - args.timing
    * @returns {Object[]} - result rows
    */
-  async procedureUpdate(args: any) {
+  async procedureUpdate(args: any = {}) {
     const func = this.procedureUpdate.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -1164,7 +1164,7 @@ class SqliteClient extends KnexClient {
    * @param {String} - args.timing
    * @returns {Object[]} - result rows
    */
-  async triggerCreate(args: any) {
+  async triggerCreate(args: any = {}) {
     const func = this.triggerCreate.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -1196,7 +1196,7 @@ class SqliteClient extends KnexClient {
    * @param {String} - args.oldStatement
    * @returns {Object[]} - result rows
    */
-  async triggerUpdate(args: any) {
+  async triggerUpdate(args: any = {}) {
     const func = this.triggerUpdate.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -1228,7 +1228,7 @@ class SqliteClient extends KnexClient {
    * @param {String} - args.view_definition
    * @returns {Object} - up and down statements
    */
-  async viewCreate(args: any) {
+  async viewCreate(args: any = {}) {
     const func = this.viewCreate.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -1258,7 +1258,7 @@ class SqliteClient extends KnexClient {
    * @param {String} - args.oldViewDefination
    * @returns {Object} - up and down statements
    */
-  async viewUpdate(args: any) {
+  async viewUpdate(args: any = {}) {
     const func = this.viewUpdate.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -1290,7 +1290,7 @@ class SqliteClient extends KnexClient {
    * @param {String} - args.oldViewDefination
    * @returns {Object} - up and down statements
    */
-  async viewDelete(args: any) {
+  async viewDelete(args: any = {}) {
     const func = this.viewDelete.name;
     const result = new Result();
     log.api(`${func}:args:`, args);
@@ -2004,7 +2004,7 @@ class SqliteClient extends KnexClient {
    * @returns {Number} code
    * @returns {String} message
    */
-  async totalRecords(args: any) {
+  async totalRecords(args: any = {}) {
     const func = this.totalRecords.name;
     const result = new Result();
     log.api(`${func}:args:`, args);

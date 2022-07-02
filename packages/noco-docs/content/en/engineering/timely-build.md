@@ -1,9 +1,9 @@
 ---
-title: "Timely Build"
-description: "NocoDB provides Timely Build for Docker and Binary Executables"
-position: 5000
+title: "Daily builds explained"
+description: "Daily builds explained"
+position: 3250
 category: "Engineering"
-menuTitle: "Timely Build"
+menuTitle: "Daily builds explained"
 ---
 
 NocoDB provides timely build versions on Docker and Executables by compiling our source code and packaging as a deliverable so that it can

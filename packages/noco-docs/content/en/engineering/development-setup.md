@@ -1,9 +1,9 @@
 ---
-title: "Repository structure"
-description: "Repository structure"
-position: 3100
+title: "Development setup"
+description: "How to setup your development environment"
+position: 3200
 category: "Engineering"
-menuTitle: "Repository structure"
+menuTitle: "Development setup"
 ---
 
 We use ``Lerna`` to manage multi-packages. We have the following [packages](https://github.com/nocodb/nocodb/tree/master/packages).

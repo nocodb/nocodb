@@ -82,7 +82,7 @@ Thanks for spending your time to contribute! The following is a set of guideline
 
 ## Development Setup
 
-Please refer to [Development Setup](https://github.com/nocodb/nocodb#development-setup).
+Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup).
 
 ### Committing Changes
 

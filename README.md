@@ -316,65 +316,7 @@ Please refer to [Environment variables](https://docs.nocodb.com/getting-started/
 
 # Development Setup 
 
-## Cloning the Project
-
-```shell
-git clone https://github.com/nocodb/nocodb
-cd nocodb
-```
-
-## Build SDK
-
-```shell
-cd packages/nocodb-sdk
-npm install
-npm run build
-```
-
-## Running Backend locally
-
-```shell
-cd packages/nocodb
-npm install
-npm run watch:run
-# open localhost:8080/dashboard in browser
-```
-
-## Running Frontend locally 
-
-```shell
-cd packages/nc-gui
-npm install
-npm run dev
-# open localhost:3000/dashboard in browser
-```
-
-Changes made to code automatically restart.
-
-> nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
-
-## Running Cypress tests locally
-
-```shell
-# install dependencies(cypress)
-npm install
-
-# run mysql database with required database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
-
-# Run backend api using following command
-npm run start:api
-
-# Run frontend web UI using following command
-npm run start:web
-
-# wait until both 3000 and 8080 ports are available
-# and run cypress test using following command
-npm run cypress:run
-
-# or run following command to run it with GUI
-npm run cypress:open
-```
+Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
 
 # Contributing
 

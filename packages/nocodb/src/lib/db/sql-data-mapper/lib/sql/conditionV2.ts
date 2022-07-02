@@ -172,6 +172,29 @@ const parseConditionV2 = async (
         const mmParentColumn = await colOptions.getMMParentColumn();
         const mmChildColumn = await colOptions.getMMChildColumn();
 
+        if (
+          filter.comparison_op === 'empty' ||
+          filter.comparison_op === 'notempty'
+        ) {
+          const selectMmCount = knex(mmModel.table_name)
+            .count(mmChildColumn.column_name)
+            .where(
+              mmChildColumn.column_name,
+              knex.raw('??.??', [
+                alias || childModel.table_name,
+                childColumn.column_name,
+              ])
+            );
+
+          return (qb) => {
+            if (filter.comparison_op === 'empty') {
+              qb.where(knex.raw('0'), selectMmCount);
+            } else {
+              qb.whereNot(knex.raw('0'), selectMmCount);
+            }
+          };
+        }
+
         const selectQb = knex(mmModel.table_name)
           .select(mmChildColumn.column_name)
           .join(

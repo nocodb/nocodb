@@ -1,17 +1,16 @@
-<template>
-  <div>
-  <Sidebar :visible="true" position="left" :dismissable="false">
-    Content
-
-  </Sidebar>
-  </div>
-</template>
-
 <script>
 export default {
-  name: "dashboard"
+  name: 'Dashboard',
 }
 </script>
+
+<template>
+  <div>
+    <Sidebar :visible="true" position="left" :dismissable="false">
+      Content
+    </Sidebar>
+  </div>
+</template>
 
 <style scoped>
 

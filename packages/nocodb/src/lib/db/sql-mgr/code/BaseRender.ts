@@ -8,10 +8,11 @@
 // import fsExtra from "fs-extra";
 // import md5 from "md5";
 // import dayjs from "dayjs";import Emit from "../../sql-migrator/util/emit";
-import Debug from '../../sql-migrator/util/Debug';
-import Emit from '../../sql-migrator/util/emit';
 
 // const beautify = js_beautify.js;
+
+import Debug from '../../util/Debug';
+import Emit from '../../util/emit';
 
 class BaseRender {
   protected dir: any;

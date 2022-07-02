@@ -6,16 +6,18 @@ import { Tele } from 'nc-help';
 import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
 import inflection from 'inflection';
-import { Debug, Result, SqlClientFactory } from 'nc-help';
 import slash from 'slash';
+import SqlClientFactory from '../sql-client/lib/SqlClientFactory';
 // import debug from 'debug';
 
-const log = new Debug('SqlMgr');
 import KnexMigrator from '../sql-migrator/lib/KnexMigrator';
 // import {XKnex} from "../sql-data-mapper";
 import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
 import { customAlphabet } from 'nanoid';
+import Debug from '../util/Debug';
+import Result from '../util/Result';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 20);
+const log = new Debug('SqlMgr');
 
 const ToolOps = {
   DB_TABLE_LIST: 'tableList',

@@ -1,9 +1,9 @@
+import SqlClientFactory from '../../db/sql-client/lib/SqlClientFactory';
 import { XKnex } from '../../db/sql-data-mapper';
 // import { NcConfig } from '../../../interface/config';
 // import fs from 'fs';
 // import Knex from 'knex';
 
-import { SqlClientFactory } from 'nc-help';
 // import NcMetaIO from '../meta/NcMetaIO';
 import { defaultConnectionConfig } from '../NcConfigFactory';
 import Base from '../../models/Base';

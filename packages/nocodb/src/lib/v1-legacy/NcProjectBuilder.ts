@@ -3,9 +3,10 @@ import path from 'path';
 
 import axios from 'axios';
 import { Router } from 'express';
-import { SqlClientFactory, Tele } from 'nc-help';
+import { Tele } from 'nc-help';
 
 import { NcConfig } from '../../interface/config';
+import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 import Migrator from '../db/sql-migrator/lib/KnexMigrator';
 
 import Noco from '../Noco';

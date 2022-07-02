@@ -1,4 +1,3 @@
-import { SqlClientFactory } from 'nc-help';
 import fs from 'fs';
 import parseDbUrl from 'parse-database-url';
 import { URL } from 'url';
@@ -10,6 +9,7 @@ import {
   NcConfig
 } from '../../interface/config';
 import * as path from 'path';
+import SqlClientFactory from '../db/sql-client/lib/SqlClientFactory';
 
 const {
   uniqueNamesGenerator,

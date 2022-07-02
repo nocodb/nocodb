@@ -5,13 +5,12 @@ import { promisify } from 'util';
 import glob from 'glob';
 import Handlebars from 'handlebars';
 import mkdirp from 'mkdirp';
-import { SqlClientFactory } from 'nc-help';
 import rmdir from 'rmdir';
-
-import Debug from '../util/Debug';
-import Result from '../util/Result';
-import Emit from '../util/emit';
-import * as fileHelp from '../util/file.help';
+import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
+import Debug from '../../util/Debug';
+import Emit from '../../util/emit';
+import Result from '../../util/Result';
+import * as fileHelp from '../../util/file.help';
 
 import SqlMigrator from './SqlMigrator';
 import NcConfigFactory from '../../../utils/NcConfigFactory';

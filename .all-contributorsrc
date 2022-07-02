@@ -801,6 +801,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "cande1gut",
+      "name": "Cande",
+      "avatar_url": "https://avatars.githubusercontent.com/u/5407915?v=4",
+      "profile": "http://cande.me",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

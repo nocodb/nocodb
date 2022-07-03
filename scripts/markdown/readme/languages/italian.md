@@ -202,7 +202,7 @@ Please refer to [Environment variables](https://docs.nocodb.com/getting-started/
 
 # Setup di sviluppo
 
-Please refer to [Development Setup](https://docs.nocodb.com/engineering/development-setup)
+Please refer to [Development Setup](https://docs-dev.nocodb.com/engineering/development-setup)
 
 # Contributi
 

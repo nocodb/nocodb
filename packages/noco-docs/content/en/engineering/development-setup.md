@@ -6,20 +6,34 @@ category: "Engineering"
 menuTitle: "Development setup"
 ---
 
-We use ``Lerna`` to manage multi-packages. We have the following [packages](https://github.com/nocodb/nocodb/tree/master/packages).
+### Clone the repo
+```
+git clone https://github.com/nocodb/nocodb
+cd nocodb/packages
+```
 
-- ``packages/nc-cli`` : A CLI to create NocoDB app.
+### Build SDK
+```
+# build nocodb-sdk
+cd nocodb-sdk
+npm install
+npm run build
+```
 
-- ``packages/nocodb-sdk``: API client sdk of nocodb.
+### Build Backend
+```
+# build backend - runs on port 8080
+cd ../nocodb
+npm install
+npm run watch:run
+```
 
-- ``packages/nc-gui``: NocoDB Frontend.
+### Build Frontend
+```
+# build frontend - runs on port 3000
+cd ../nc-gui
+npm install
+npm run dev 
+```
 
-- ``packages/nc-lib-gui``: The build version of ``nc-gui`` which will be used in ``packages/nocodb``.
-
-- ``packages/nc-plugin``: Plugin template.
-
-- ``packages/noco-blog``: NocoDB Blog which will be auto-released to [nocodb/noco-blog](https://github.com/nocodb/noco-blog).
-
-- ``packages/noco-docs``: NocoDB Documentation which will be auto-released to [nocodb/noco-docs](https://github.com/nocodb/noco-docs).
-
-- ``packages/nocodb``: NocoDB Backend, hosted in [NPM](https://www.npmjs.com/package/nocodb).
+Any changes made to frontend and backend will be automatically reflected in the browser.

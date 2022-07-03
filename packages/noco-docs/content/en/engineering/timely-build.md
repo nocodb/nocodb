@@ -1,19 +1,19 @@
 ---
-title: "Daily builds explained"
-description: "Daily builds explained"
+title: "Build on pull requests"
+description: "Build on pull requests"
 position: 3250
 category: "Engineering"
-menuTitle: "Daily builds explained"
+menuTitle: "Build on pull requests"
 ---
 
 
-NocoDB provides timely build versions on Docker and Executables by compiling our source code and packaging as a deliverable so that it can
+NocoDB creates docker and binaries for each PR.
 
+This is to
 - reduce pull request cycle time
 - allow issue reporters / reviewers to verify the fix without setting up their local machines
 
 ## Docker
-
 When a non-draft Pull Request is created, reopened or synchronized, a timely build for Docker would be triggered for the changes only included in the following paths.
 
 - `packages/nocodb-sdk/**`

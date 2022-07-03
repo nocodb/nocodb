@@ -36,7 +36,7 @@ Why? Sometimes we may mess up in NPM deployment. As NPM doesn't allow us to rede
 - Once `release-docker` is finished, then test it locally first. You'll be expected to see `Upgrade Available` notification in UI as we haven't published the release note. (the version is retrieved from there)
 - Once everything is finished, then publish the release note and the deployment is considered as DONE.
 
-## Jobs Explanations
+## Release action explained 
 
 ### validate-branch
 

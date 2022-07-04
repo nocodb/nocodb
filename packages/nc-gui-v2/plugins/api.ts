@@ -1,27 +1,21 @@
 import { useNuxtApp } from "#app";
 import { Api } from "nocodb-sdk";
 import { defineNuxtPlugin } from "nuxt3/app";
-import { watch } from "vue";
-import { useUser } from "~/composables/user";
-
 
 export default defineNuxtPlugin((nuxtApp) => {
 
 
-  const { user } = useUser();
 
   // Doing something with nuxtApp
 
   const api = getApi(null, null);
 
-  nuxtApp.provide("api", api);
+  // nuxtApp.provide("api", api);
 
-
-  debugger
 
   return {
     provide: {
-      api123: api
+      api
     }
   };
 });
@@ -41,10 +35,3 @@ export function getApi($store, $axios) {
   }
   return api;
 }
-
-//
-// export default function({ store: $store, $axios, ...rest }, inject) {
-//   const api = getApi($store, $axios)
-//
-//   inject('api', api)
-// }

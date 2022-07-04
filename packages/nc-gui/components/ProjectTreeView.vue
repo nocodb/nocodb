@@ -783,7 +783,7 @@
       type="error"
       :actions-mtd="deleteTable"
       :dialog-show="dialogDeleteTable.dialogShow"
-      :heading="`${dialogDeleteTable.heading} ${dialogDeleteTable.nodes.table_name}`"
+      :heading="`${dialogDeleteTable.heading} ${dialogDeleteTable.tableName}`"
     />
     <quick-import
       ref="quickImport"

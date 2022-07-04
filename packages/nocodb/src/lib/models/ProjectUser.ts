@@ -108,6 +108,41 @@ export default class ProjectUser {
     return await queryBuilder;
   }
 
+  public static async getOwnersList(
+    {
+      project_id,
+    }: {
+      project_id: string;
+    },
+    ncMeta = Noco.ncMeta
+  ) {
+    const queryBuilder = ncMeta
+      .knex(MetaTable.USERS)
+      .select(
+        `${MetaTable.USERS}.id`,
+        `${MetaTable.USERS}.email`,
+        `${MetaTable.USERS}.invite_token`,
+        `${MetaTable.USERS}.roles as main_roles`,
+        `${MetaTable.PROJECT_USERS}.project_id`,
+        `${MetaTable.PROJECT_USERS}.roles as roles`
+      );
+    queryBuilder.where(`${MetaTable.PROJECT_USERS}.roles`, '=', 'owner');
+
+    queryBuilder.leftJoin(MetaTable.PROJECT_USERS, function () {
+      this.on(
+        `${MetaTable.PROJECT_USERS}.fk_user_id`,
+        '=',
+        `${MetaTable.USERS}.id`
+      ).andOn(
+        `${MetaTable.PROJECT_USERS}.project_id`,
+        '=',
+        ncMeta.knex.raw('?', [project_id])
+      );
+    });
+
+    return await queryBuilder;
+  }
+
   public static async getUsersCount(
     {
       query

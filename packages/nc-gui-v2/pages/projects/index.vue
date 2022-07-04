@@ -4,7 +4,7 @@ import { useRouter } from '#app'
 const { $api } = useNuxtApp()
 const { user } = useUser()
 
-const $router = useRouter()
+const router = useRouter()
 
 const projects = ref()
 
@@ -18,14 +18,7 @@ const loadProjects = async () => {
 }
 
 const navigateToDashboard = async (project) => {
-  await $router.push(`/dashboard/${project.id}`)
-}
-
-const navigateToCreateProject = () => {
-  $router.push('/projects/create')
-}
-const navigateToCreateExtProject = () => {
-  $router.push('/projects/create-external')
+  await router.push(`/dashboard/${project.id}`)
 }
 
 onMounted(async () => {
@@ -35,15 +28,15 @@ onMounted(async () => {
 
 <template>
   <NuxtLayout>
-    <v-navigation-drawer color="" permanent />
+    <v-navigation-drawer :permanent="true" />
     <v-main>
       <v-container>
         <div class="pa-2 d-flex mb-10">
           <v-spacer />
-          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="navigateToCreateProject">
+          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="router.push('/projects/create')">
             Create Project
           </v-btn>
-          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="navigateToCreateExtProject">
+          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="router.push('/projects/create')">
             Create External Project
           </v-btn>
         </div><v-row>

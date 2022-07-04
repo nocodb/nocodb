@@ -1,4 +1,4 @@
-import type { Api, TableType } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import { useNuxtApp, useState } from '#app'
 import { useUser } from '~/composables/user'
 import { useProject } from '~/composables/project'

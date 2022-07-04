@@ -103,9 +103,6 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     }
   }
 
-  // Cleanup table name
-  req.body.table_name = req.body.table_name.toLowerCase().replace(/ /g, '_');
-
   // validate table name
   if (/^\s+|\s+$/.test(req.body.table_name)) {
     NcError.badRequest(

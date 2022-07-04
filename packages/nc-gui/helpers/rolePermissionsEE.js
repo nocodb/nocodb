@@ -15,20 +15,24 @@ export default {
     gridColUpdate: true,
     filterSync: true,
     csvImport: true,
-    apiDocs: true
+    apiDocs: true,
+    settings: true
   },
   commenter: {
     smartSheet: true,
     column: true,
-    rowComments: true
+    rowComments: true,
+    settings: true
   },
   viewer: {
     smartSheet: true,
-    column: true
+    column: true,
+    settings: true
   },
   user: {
     projectCreate: true,
-    projectActions: true
+    projectActions: true,
+    settings: true
   }
 }
 /**

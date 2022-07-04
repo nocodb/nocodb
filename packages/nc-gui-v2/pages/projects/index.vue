@@ -38,7 +38,7 @@ onMounted(async () => {
       </v-btn>
     </div>
     <v-row>
-      <v-col v-for="project in projects" :key="project.id" cols="4">
+      <v-col v-for="project of projects" :key="project.id" cols="4">
         <v-card @click="navigateToDashboard(project)">
           <v-card-title>
             <div class="text-center">

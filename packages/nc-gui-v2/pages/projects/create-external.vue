@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useToast } from 'vue-toastification'
+import { useI18n } from 'vue-i18n'
 import { useNuxtApp, useRouter } from '#app'
 import { extractSdkResponseErrorMsg } from '~/helpers/errorUtils'
 
@@ -9,7 +10,7 @@ const clientTypes = [
     text: 'MySql',
     value: 'mysql2',
   }, {
-    text: 'MSSAL',
+    text: 'MSSQL',
     value: 'mssql',
   }, {
     text: 'PostgreSQL',
@@ -42,6 +43,7 @@ const $router = useRouter()
 const { $api } = useNuxtApp()
 const { user } = useUser()
 const toast = useToast()
+
 const titleValidationRule = [
   v => !!v || 'Title is required',
   v => v.length <= 50 || 'Project name exceeds 50 characters',
@@ -89,6 +91,7 @@ const createProject = async () => {
               <!-- rule text: Required -->
               <v-text-field
                 v-model="name"
+                :rules="titleValidationRule"
                 class="nc-metadb-project-name"
                 label="Project name"
               />
@@ -183,8 +186,7 @@ const createProject = async () => {
                   mdi-rocket-launch-outline
                 </v-icon>
                 <!-- Create -->
-                <!--                <span class="mr-1">{{ // $t("general.create") }}</span> -->
-                <span class="mr-1"> Create project </span>
+                <span class="mr-1">{{ $t("general.create") }} </span>
               </v-btn>
             </div>
           </v-container>

@@ -34,6 +34,7 @@ export  const useUser = () =>{
 
   $api?.instance?.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
+
     if (user?.token) {
       config.headers['xc-auth'] = user?.token
     }

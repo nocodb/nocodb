@@ -57,7 +57,7 @@ async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await child.getColumns(),
-      type === 'bt' ? alias : `${parent.title}Read`
+      type === 'bt' ? alias : `${parent.title}`
     );
     await Column.insert<LinkToAnotherRecordColumn>({
       title,
@@ -79,7 +79,7 @@ async function createHmAndBtColumn(
   {
     const title = getUniqueColumnAliasName(
       await parent.getColumns(),
-      type === 'hm' ? alias : `${child.title}List`
+      type === 'hm' ? alias : `${child.title} List`
     );
     await Column.insert({
       title,
@@ -427,7 +427,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           await Column.insert({
             title: getUniqueColumnAliasName(
               await child.getColumns(),
-              `${child.title}MMList`
+              `${parent.title} List`
             ),
             uidt: UITypes.LinkToAnotherRecord,
             type: 'mm',
@@ -447,7 +447,7 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           await Column.insert({
             title: getUniqueColumnAliasName(
               await parent.getColumns(),
-              req.body.title ?? `${parent.title}MMList`
+              req.body.title ?? `${child.title} List`
             ),
 
             uidt: UITypes.LinkToAnotherRecord,
@@ -503,6 +503,12 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
     default:
       {
         colBody = getColumnPropsFromUIDT(colBody, base);
+        if (colBody.uidt === UITypes.Duration) {
+          colBody.dtxp = '20';
+          // by default, colBody.dtxs is 2
+          // Duration column needs more that that
+          colBody.dtxs = '4';
+        }
         const tableUpdateBody = {
           ...table,
           tn: table.table_name,

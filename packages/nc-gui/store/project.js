@@ -365,7 +365,7 @@ export const actions = {
 
     } catch (e) {
       console.log(e)
-      this.$toast.error(e).goAway(3000)
+      this.$toast.error(e?.response?.data?.msg || e).goAway(3000)
       this.$router.push('/projects')
     }
   },

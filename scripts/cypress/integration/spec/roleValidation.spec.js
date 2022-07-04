@@ -236,7 +236,7 @@ export function _viewMenu(roleType, previewMode, navDrawListCnt) {
         // Download CSV / Upload CSV / Shared View List / Webhook
         actionsMenuItemsCnt = 4;
     } else if (roleType == "editor") {
-        // Download CSV / Upload CSV 
+        // Download CSV / Upload CSV
         actionsMenuItemsCnt = 2;
     }
 

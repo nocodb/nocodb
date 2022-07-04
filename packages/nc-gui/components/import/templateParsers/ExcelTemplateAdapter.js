@@ -27,7 +27,25 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   }
 
   async init() {
-    this.wb = XLSX.read(new Uint8Array(this.excelData), { type: 'array', cellText: true, cellDates: true })
+    const options = {
+      cellText: true, 
+      cellDates: true 
+    }
+    if (this.name.slice(-3) === 'csv') {
+      this.wb = XLSX.read(
+        (new TextDecoder).decode(new Uint8Array(this.excelData)), 
+        { 
+          type: "string",
+          ...options
+        });
+    } else {
+      this.wb = XLSX.read(
+        new Uint8Array(this.excelData), 
+        { 
+          type: 'array', 
+          ...options
+        })
+    }
   }
 
   parse() {

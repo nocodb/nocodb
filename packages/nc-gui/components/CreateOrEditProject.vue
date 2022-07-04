@@ -89,7 +89,7 @@
                       ref="name"
                       v-model="project.title"
                       v-ge="['project', 'name']"
-                      :rules="form.titleRequiredRule"
+                      :rules="form.titleValidationRule"
                       :height="20"
                       :label="$t('placeholder.projName')"
                       autofocus
@@ -453,14 +453,14 @@
                                             "
                                           />
                                         </v-col>
-                                        <!--  todo : Schema name -->
+                                        <!--  Schema name -->
                                         <v-col
                                           v-if="db.client === 'mssql' || db.client === 'pg'"
                                           cols="4"
                                           class="py-0"
                                         >
                                           <v-text-field
-                                            v-model="schema"
+                                            v-model="db.searchPath[0]"
                                             :disabled="edit && enableDbEdit < 2"
                                             class="body-2 database-field"
                                             :rules="form.requiredRule"
@@ -891,7 +891,6 @@ export default {
   layout: 'empty',
   data() {
     return {
-      schema: 'public',
       testSuccess: false,
       projectCreated: false,
       allSchemas: false,
@@ -963,7 +962,10 @@ export default {
       /** ************** START : form related ****************/
       form: {
         portValidationRule: [v => /^\d+$/.test(v) || 'Not a valid port'],
-        titleRequiredRule: [v => !!v || 'Title is required'],
+        titleValidationRule: [
+          v => !!v || 'Title is required',
+          v => v.length <= 50 || 'Project name exceeds 50 characters',
+        ],
         requiredRule: [v => !!v || 'Field is required'],
         folderRequiredRule: [v => !!v || 'Folder path is required']
       },
@@ -1539,9 +1541,7 @@ export default {
       this.projectReloading = true
 
       const con = projectJson.envs._noco.db[0]
-      if (con.client === 'pg' || con.client === 'mssql') {
-        con.searchPath = [this.schema]
-      } else if ('searchPath' in con) {
+      if (con.client !== 'pg' && con.client !== 'mssql' && 'searchPath' in con) {
         delete con.searchPath
       }
 
@@ -1892,9 +1892,9 @@ export default {
     },
     onDatabaseTypeChanged(client, db1, index, env) {
       if (this.databaseNames[client] === 'mssql') {
-        this.schema = 'dbo'
+        this.project.envs[env].db[index].searchPath[0] = 'dbo'
       } else if (this.databaseNames[client] === 'pg') {
-        this.schema = 'public'
+        this.project.envs[env].db[index].searchPath[0] = 'public'
       }
 
       for (const env in this.project.envs) {

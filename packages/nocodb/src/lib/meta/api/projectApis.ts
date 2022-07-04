@@ -95,6 +95,10 @@ async function projectCreate(req: Request<any, any>, res) {
     projectBody.is_meta = false;
   }
 
+  if (projectBody?.title.length > 50) {
+    NcError.badRequest('Project title exceeds 50 characters');
+  }
+
   if (await Project.getByTitle(projectBody?.title)) {
     NcError.badRequest('Project title already in use');
   }
@@ -211,7 +215,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
             uidt: UITypes.LinkToAnotherRecord,
             type: 'hm',
             hm,
-            title: `${hm.title}List`
+            title: `${hm.title} List`
           };
         }),
         ...belongsTo.map(bt => {
@@ -226,7 +230,7 @@ async function populateMeta(base: Base, project: Project): Promise<any> {
             uidt: UITypes.LinkToAnotherRecord,
             type: 'bt',
             bt,
-            title: `${bt.rtitle}Read`
+            title: `${bt.rtitle}`
           };
         })
       ];
@@ -411,6 +415,13 @@ export async function projectCost(req, res) {
     // $120/user/yr
     cost = Math.min(120 * userCount, 36000);
   }
+
+  Tele.event({
+    event: 'a:project:cost',
+    data: {
+      cost
+    }
+  });
 
   res.json({ cost });
 }

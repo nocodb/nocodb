@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { TableType } from 'nocodb-sdk';
+import { TableType, validatePassword } from 'nocodb-sdk';
 import catchError, { NcError } from '../../helpers/catchError';
 const { isEmail } = require('validator');
 import * as ejs from 'ejs';
@@ -11,7 +11,6 @@ import { Tele } from 'nc-help';
 
 const { v4: uuidv4 } = require('uuid');
 import Audit from '../../../models/Audit';
-import crypto from 'crypto';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 
 import passport from 'passport';
@@ -21,6 +20,7 @@ import { MetaTable } from '../../../utils/globals';
 import Noco from '../../../Noco';
 import * as _ from 'lodash';
 import { genJwt } from './helpers';
+import { randomTokenString } from '../../helpers/stringHelpers';
 
 export async function signup(req: Request, res: Response<TableType>) {
   const {
@@ -31,6 +31,12 @@ export async function signup(req: Request, res: Response<TableType>) {
     ignore_subscribe
   } = req.body;
   let { password } = req.body;
+
+  // validate password and throw error if password is satisfying the conditions
+  const { valid, error } = validatePassword(password);
+  if (!valid) {
+    NcError.badRequest(`Password : ${error}`);
+  }
 
   if (!isEmail(_email)) {
     NcError.badRequest(`Invalid email`);
@@ -189,15 +195,14 @@ async function successfulSignIn({
     await promisify((req as any).login.bind(req))(user);
     const refreshToken = randomTokenString();
 
-    let token_version = user.token_version;
-    if (!token_version) {
-      token_version = randomTokenString();
+    if (!user.token_version) {
+      user.token_version = randomTokenString();
     }
 
     await User.update(user.id, {
       refresh_token: refreshToken,
       email: user.email,
-      token_version
+      token_version: user.token_version
     });
     setTokenCookie(res, refreshToken);
 
@@ -253,10 +258,6 @@ async function googleSignin(req, res, next) {
   )(req, res, next);
 }
 
-function randomTokenString(): string {
-  return crypto.randomBytes(40).toString('hex');
-}
-
 function setTokenCookie(res, token): void {
   // create http only cookie with refresh token that expires in 7 days
   const cookieOptions = {
@@ -278,6 +279,13 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
   if (!currentPassword || !newPassword) {
     return NcError.badRequest('Missing new/old password');
   }
+
+  // validate password and throw error if password is satisfying the conditions
+  const { valid, error } = validatePassword(newPassword);
+  if (!valid) {
+    NcError.badRequest(`Password : ${error}`);
+  }
+
   const user = await User.getByEmail((req as any).user.email);
   const hashedPassword = await promisify(bcrypt.hash)(
     currentPassword,
@@ -334,10 +342,10 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
           subject: 'Password Reset Link',
           text: `Visit following link to update your password : ${
             (req as any).ncSiteUrl
-          }/api/v1/db/auth/password/reset/${token}.`,
+          }/api/v1/auth/password/reset/${token}.`,
           html: ejs.render(template, {
             resetLink:
-              (req as any).ncSiteUrl + `/api/v1/db/auth/password/reset/${token}`
+              (req as any).ncSiteUrl + `/api/v1/auth/password/reset/${token}`
           })
         })
       );
@@ -395,6 +403,12 @@ async function passwordReset(req, res): Promise<any> {
   }
   if (user.provider && user.provider !== 'local') {
     NcError.badRequest('Email registered via social account');
+  }
+
+  // validate password and throw error if password is satisfying the conditions
+  const { valid, error } = validatePassword(req.body.password);
+  if (!valid) {
+    NcError.badRequest(`Password : ${error}`);
   }
 
   const salt = await promisify(bcrypt.genSalt)(10);
@@ -517,7 +531,7 @@ const mapRoutes = router => {
     })(req, res, next)
   );
 
-  // new API
+  // deprecated APIs
   router.post('/api/v1/db/auth/user/signup', catchError(signup));
   router.post('/api/v1/db/auth/user/signin', catchError(signin));
   router.get(
@@ -548,6 +562,40 @@ const mapRoutes = router => {
   );
   router.get(
     '/api/v1/db/auth/password/reset/:tokenId',
+    catchError(renderPasswordReset)
+  );
+
+  // new API
+  router.post('/api/v1/auth/user/signup', catchError(signup));
+  router.post('/api/v1/auth/user/signin', catchError(signin));
+  router.get(
+    '/api/v1/auth/user/me',
+    extractProjectIdAndAuthenticate,
+    catchError(me)
+  );
+  router.post('/api/v1/auth/password/forgot', catchError(passwordForgot));
+  router.post(
+    '/api/v1/auth/token/validate/:tokenId',
+    catchError(tokenValidate)
+  );
+  router.post(
+    '/api/v1/auth/password/reset/:tokenId',
+    catchError(passwordReset)
+  );
+  router.post(
+    '/api/v1/auth/email/validate/:tokenId',
+    catchError(emailVerification)
+  );
+  router.post(
+    '/api/v1/auth/password/change',
+    ncMetaAclMw(passwordChange, 'passwordChange')
+  );
+  router.post(
+    '/api/v1/auth/token/refresh',
+    ncMetaAclMw(refreshToken, 'refreshToken')
+  );
+  router.get(
+    '/api/v1/auth/password/reset/:tokenId',
     catchError(renderPasswordReset)
   );
 };

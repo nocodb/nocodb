@@ -5,18 +5,22 @@ import {
   getViewAndModelFromRequestByAliasOrId
 } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
+import View from '../../../models/View';
 
 async function csvDataExport(req: Request, res: Response) {
-  const { view } = await getViewAndModelFromRequestByAliasOrId(req);
-
-  const { offset, elapsed, data } = await extractCsvData(view, req);
+  const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
+  let targetView = view;
+  if (!targetView) {
+    targetView = await View.getDefaultView(model.id);
+  }
+  const { offset, elapsed, data } = await extractCsvData(targetView, req);
 
   res.set({
     'Access-Control-Expose-Headers': 'nc-export-offset',
     'nc-export-offset': offset,
     'nc-export-elapsed-time': elapsed,
     'Content-Disposition': `attachment; filename="${encodeURI(
-      view.title
+      targetView.title
     )}-export.csv"`
   });
   res.send(data);

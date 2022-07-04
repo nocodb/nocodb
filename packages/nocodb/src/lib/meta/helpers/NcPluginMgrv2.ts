@@ -31,6 +31,7 @@ import Noco from '../../Noco';
 import Local from '../../v1-legacy/plugins/adapters/storage/Local';
 import { MetaTable } from '../../utils/globals';
 import { PluginCategory } from 'nocodb-sdk';
+import Plugin from '../../models/Plugin';
 
 const defaultPlugins = [
   SlackPluginConfig,
@@ -97,25 +98,54 @@ class NcPluginMgrv2 {
           pluginConfig.id
         );
       }
+    }
+    await this.initPluginsFromEnv();
+  }
 
-      /* init only the active plugins */
-      // if (pluginConfig?.active) {
-      //   const tempPlugin = new plugin.builder(this.app, plugin);
-      //
-      //   this.activePlugins.push(tempPlugin);
-      //
-      //   if (pluginConfig?.input) {
-      //     pluginConfig.input = JSON.parse(pluginConfig.input);
-      //   }
-      //
-      //   try {
-      //     await tempPlugin.init(pluginConfig?.input);
-      //   } catch (e) {
-      //     console.log(
-      //       `Plugin(${plugin?.title}) initialization failed : ${e.message}`
-      //     );
-      //   }
-      // }
+  private static async initPluginsFromEnv() {
+    /*
+     * NC_S3_BUCKET_NAME
+     * NC_S3_REGION
+     * NC_S3_ACCESS_KEY
+     * NC_S3_ACCESS_SECRET
+     * */
+
+    if (
+      process.env.NC_S3_BUCKET_NAME &&
+      process.env.NC_S3_REGION &&
+      process.env.NC_S3_ACCESS_KEY &&
+      process.env.NC_S3_ACCESS_SECRET
+    ) {
+      const s3Plugin = await Plugin.getPluginByTitle(S3PluginConfig.title);
+      await Plugin.update(s3Plugin.id, {
+        active: true,
+        input: JSON.stringify({
+          bucket: process.env.NC_S3_BUCKET_NAME,
+          region: process.env.NC_S3_REGION,
+          access_key: process.env.NC_S3_ACCESS_KEY,
+          access_secret: process.env.NC_S3_ACCESS_SECRET
+        })
+      });
+    }
+
+    if (
+      process.env.NC_SMTP_FROM &&
+      process.env.NC_SMTP_HOST &&
+      process.env.NC_SMTP_PORT
+    ) {
+      const smtpPlugin = await Plugin.getPluginByTitle(SMTPPluginConfig.title);
+      await Plugin.update(smtpPlugin.id, {
+        active: true,
+        input: JSON.stringify({
+          from: process.env.NC_SMTP_FROM,
+          host: process.env.NC_SMTP_HOST,
+          port: process.env.NC_SMTP_PORT,
+          username: process.env.NC_SMTP_USERNAME,
+          password: process.env.NC_SMTP_PASSWORD,
+          secure: process.env.NC_SMTP_SECURE,
+          ignoreTLS: process.env.NC_SMTP_IGNORE_TLS
+        })
+      });
     }
   }
 

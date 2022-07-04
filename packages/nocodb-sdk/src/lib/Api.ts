@@ -805,7 +805,7 @@ export class Api<
      * @tags Auth
      * @name Signup
      * @summary Signup
-     * @request POST:/api/v1/db/auth/user/signup
+     * @request POST:/api/v1/auth/user/signup
      * @response `200` `{ token?: string }` OK
      * @response `400` `{ msg?: string }` Bad Request
      * @response `401` `void` Unauthorized
@@ -816,7 +816,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<{ token?: string }, { msg?: string } | void>({
-        path: `/api/v1/db/auth/user/signup`,
+        path: `/api/v1/auth/user/signup`,
         method: 'POST',
         body: data,
         format: 'json',
@@ -829,7 +829,7 @@ export class Api<
      * @tags Auth
      * @name Signin
      * @summary Signin
-     * @request POST:/api/v1/db/auth/user/signin
+     * @request POST:/api/v1/auth/user/signin
      * @response `200` `{ token?: string }` OK
      * @response `400` `{ msg?: string }` Bad Request
      */
@@ -838,7 +838,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<{ token?: string }, { msg?: string }>({
-        path: `/api/v1/db/auth/user/signin`,
+        path: `/api/v1/auth/user/signin`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -852,12 +852,12 @@ export class Api<
      * @tags Auth
      * @name Me
      * @summary User info
-     * @request GET:/api/v1/db/auth/user/me
+     * @request GET:/api/v1/auth/user/me
      * @response `200` `UserInfoType` OK
      */
     me: (query?: { project_id?: string }, params: RequestParams = {}) =>
       this.request<UserInfoType, any>({
-        path: `/api/v1/db/auth/user/me`,
+        path: `/api/v1/auth/user/me`,
         method: 'GET',
         query: query,
         format: 'json',
@@ -870,13 +870,13 @@ export class Api<
      * @tags Auth
      * @name PasswordForgot
      * @summary Password forgot
-     * @request POST:/api/v1/db/auth/password/forgot
+     * @request POST:/api/v1/auth/password/forgot
      * @response `200` `void` OK
      * @response `401` `void` Unauthorized
      */
     passwordForgot: (data: { email?: string }, params: RequestParams = {}) =>
       this.request<void, void>({
-        path: `/api/v1/db/auth/password/forgot`,
+        path: `/api/v1/auth/password/forgot`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -889,7 +889,7 @@ export class Api<
      * @tags Auth
      * @name PasswordChange
      * @summary Password change
-     * @request POST:/api/v1/db/auth/password/change
+     * @request POST:/api/v1/auth/password/change
      * @response `200` `{ msg?: string }` OK
      * @response `400` `{ msg?: string }` Bad request
      */
@@ -898,7 +898,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<{ msg?: string }, { msg?: string }>({
-        path: `/api/v1/db/auth/password/change`,
+        path: `/api/v1/auth/password/change`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -912,12 +912,12 @@ export class Api<
      * @tags Auth
      * @name PasswordResetTokenValidate
      * @summary Reset token verify
-     * @request POST:/api/v1/db/auth/token/validate/{token}
+     * @request POST:/api/v1/auth/token/validate/{token}
      * @response `200` `void` OK
      */
     passwordResetTokenValidate: (token: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/db/auth/token/validate/${token}`,
+        path: `/api/v1/auth/token/validate/${token}`,
         method: 'POST',
         ...params,
       }),
@@ -928,12 +928,12 @@ export class Api<
      * @tags Auth
      * @name EmailValidate
      * @summary Verify email
-     * @request POST:/api/v1/db/auth/email/validate/{token}
+     * @request POST:/api/v1/auth/email/validate/{token}
      * @response `200` `void` OK
      */
     emailValidate: (token: string, params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/db/auth/email/validate/${token}`,
+        path: `/api/v1/auth/email/validate/${token}`,
         method: 'POST',
         ...params,
       }),
@@ -944,7 +944,7 @@ export class Api<
      * @tags Auth
      * @name PasswordReset
      * @summary Password reset
-     * @request POST:/api/v1/db/auth/password/reset/{token}
+     * @request POST:/api/v1/auth/password/reset/{token}
      * @response `200` `void` OK
      */
     passwordReset: (
@@ -953,7 +953,7 @@ export class Api<
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
-        path: `/api/v1/db/auth/password/reset/${token}`,
+        path: `/api/v1/auth/password/reset/${token}`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
@@ -966,12 +966,12 @@ export class Api<
      * @tags Auth
      * @name TokenRefresh
      * @summary Refresh token
-     * @request POST:/api/v1/db/auth/token/refresh
+     * @request POST:/api/v1/auth/token/refresh
      * @response `200` `void` OK
      */
     tokenRefresh: (params: RequestParams = {}) =>
       this.request<void, any>({
-        path: `/api/v1/db/auth/token/refresh`,
+        path: `/api/v1/auth/token/refresh`,
         method: 'POST',
         ...params,
       }),
@@ -3197,12 +3197,28 @@ export class Api<
      *
      * @tags Utils
      * @name AppVersion
-     * @request GET:/api/v1/db/meta/nocodb/version
+     * @request GET:/api/v1/version
      * @response `200` `any` OK
      */
     appVersion: (params: RequestParams = {}) =>
       this.request<any, any>({
-        path: `/api/v1/db/meta/nocodb/version`,
+        path: `/api/v1/version`,
+        method: 'GET',
+        format: 'json',
+        ...params,
+      }),
+
+    /**
+     * No description
+     *
+     * @tags Utils
+     * @name AppHealth
+     * @request GET:/api/v1/health
+     * @response `200` `any` OK
+     */
+    appHealth: (params: RequestParams = {}) =>
+      this.request<any, any>({
+        path: `/api/v1/health`,
         method: 'GET',
         format: 'json',
         ...params,

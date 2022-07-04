@@ -84,6 +84,9 @@ export default class User implements UserType {
 
     if (updateObj.email) {
       updateObj.email = updateObj.email.toLowerCase();
+    } else {
+      // set email prop to avoid generation of invalid cache key
+      updateObj.email = (await this.get(id, ncMeta))?.email?.toLowerCase();
     }
     // get existing cache
     const keys = [

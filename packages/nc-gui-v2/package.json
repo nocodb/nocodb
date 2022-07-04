@@ -16,7 +16,7 @@
   "dependencies": {
     "nocodb-sdk": "file:../nocodb-sdk",
     "nuxt3-store": "^1.0.0",
-    "vuetify": "^3.0.0-alpha.12",
+    "vuetify": "^3.0.0-alpha.13",
     "primevue": "3.10.0",
     "primeflex": "3.2.0",
     "primeicons": "5.0.0"

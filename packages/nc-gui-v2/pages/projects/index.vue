@@ -3,6 +3,14 @@
     <v-navigation-drawer color="" permanent></v-navigation-drawer>
     <v-main>
       <v-container>
+
+
+        <div class="pa-2 d-flex mb-10">
+          <v-spacer></v-spacer>
+          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="createProject">Create Project</v-btn>
+          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="createExtProject">Create External Project</v-btn>
+        </div>
+
         <!--  tod
         o: move to layout or create a reusable component -->
         <!--  <div class="nc-container">-->
@@ -54,6 +62,9 @@ const loadProjects = async () => {
 const navigateToDashboard = async (project) => {
   await $router.push("/dashboard/" + project.id);
 };
+
+const createProject =()=> $router.push('/projects/create')
+const createExtProject =()=> $router.push('/projects/createExternal')
 
 onMounted(async () => {
   await loadProjects();

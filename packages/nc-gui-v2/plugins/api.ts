@@ -1,13 +1,20 @@
 import { Api } from 'nocodb-sdk'
 import { defineNuxtPlugin } from 'nuxt3/app'
 
-const addAxiosInterceptors = ($api: Api<any>) => {
+export default defineNuxtPlugin((nuxtApp) => {
+  const api = getApi(null, null)
+
+  addAxiosInterceptors(api)
+
+  nuxtApp.provide('api', api)
+})
+
+function addAxiosInterceptors(api: Api<any>) {
   const router = useRouter()
   const route = useRoute()
-
   const { user, setToken } = useUser()
 
-  $api?.instance?.interceptors.request.use((config) => {
+  api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
     if (user?.token)
@@ -25,12 +32,12 @@ const addAxiosInterceptors = ($api: Api<any>) => {
     return config
   })
 
-  // $axios.setBaseURL('http://localhost:8080')
-
-  $api?.instance?.interceptors.response.use((response) => {
+  api.instance.interceptors.response.use((response) => {
     // Return a successful response back to the calling service
+    console.log(response)
     return response
-  }, (error) => {
+  },
+  (error) => {
     if (error.response && error.response.data && error.response.data.msg === 'Database config not found') {
       router.replace('/project/0')
       return
@@ -55,7 +62,7 @@ const addAxiosInterceptors = ($api: Api<any>) => {
     }
 
     // Try request again with new token
-    return $api.instance.post('/auth/refresh-token', null, {
+    return api.instance.post('/auth/refresh-token', null, {
       withCredentials: true,
     })
       .then((token) => {
@@ -65,7 +72,7 @@ const addAxiosInterceptors = ($api: Api<any>) => {
         user.token = token.data.token
 
         return new Promise((resolve, reject) => {
-          $api.instance.request(config).then((response) => {
+          api.instance.request(config).then((response) => {
             resolve(response)
           }).catch((error) => {
             reject(error)
@@ -91,20 +98,6 @@ const addAxiosInterceptors = ($api: Api<any>) => {
       })
   })
 }
-
-export default defineNuxtPlugin((nuxtApp) => {
-  const { user } = useUser()
-  const api = getApi(null, null)
-
-  watch(() => user.token, (newToken, oldToken) => {
-    if (newToken !== oldToken)
-      addAxiosInterceptors(api)
-  })
-
-  addAxiosInterceptors(api)
-
-  nuxtApp.provide('api', api)
-})
 
 export function getApi($store, $axios) {
   const api = new Api({

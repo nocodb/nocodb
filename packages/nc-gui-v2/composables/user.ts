@@ -13,13 +13,11 @@ export const useUser = () => {
   const { $api } = useNuxtApp()
 
   const getUser = async (args = {}) => {
-    const userInfo = await $api.auth.me(args, {
+    user.user = await $api.auth.me(args, {
       headers: {
         'xc-auth': user.value.token,
       },
     })
-
-    user.user = userInfo
   }
 
   const setToken = (token) => {

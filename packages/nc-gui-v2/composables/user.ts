@@ -1,4 +1,5 @@
 import { store } from 'nuxt3-store'
+import type { Api } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
 const user = store({
@@ -12,12 +13,8 @@ const user = store({
 export const useUser = () => {
   const { $api } = useNuxtApp()
 
-  const getUser = async (args = {}) => {
-    user.user = await $api.auth.me(args, {
-      headers: {
-        'xc-auth': user.value.token,
-      },
-    })
+  const getUser = async (...args: Parameters<Api<any>['auth']['me']>) => {
+    user.user = await $api.auth.me(...args)
   }
 
   const setToken = (token) => {

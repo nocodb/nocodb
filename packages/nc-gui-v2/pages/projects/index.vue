@@ -47,11 +47,7 @@ const $router = useRouter();
 const projects = ref();
 
 const loadProjects = async () => {
-  const projectsResponse = await $api.project.list({}, {
-    headers: {
-      "xc-auth": user.token
-    }
-  });
+  const projectsResponse = await $api.project.list();
   projects.value = projectsResponse.list;
 };
 

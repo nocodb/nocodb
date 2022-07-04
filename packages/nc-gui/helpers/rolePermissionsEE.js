@@ -16,18 +16,18 @@ export default {
     filterSync: true,
     csvImport: true,
     apiDocs: true,
-    settings: true
+    projectSettings: true
   },
   commenter: {
     smartSheet: true,
     column: true,
     rowComments: true,
-    settings: true
+    projectSettings: true
   },
   viewer: {
     smartSheet: true,
     column: true,
-    settings: true
+    projectSettings: true
   },
   user: {
     projectCreate: true,

@@ -1,34 +1,37 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
-import { useNuxtApp, useRouter } from '#app'
 
-const name = ref('')
-const loading = ref(false)
-const valid = ref(false)
+import { useNuxtApp, useRouter } from "#app";
+import { ref } from "vue";
+
+const name = ref('');
+const loading = ref(false);
+const valid = ref(false);
 const projectDatasource = reactive({
-  client: 'mysql2',
-  connection: {
+  client:'mysql2',
+  connection:{
     user: 'root',
     password: 'password',
     port: 3306,
     host: 'localhost',
     database: '',
-  },
-})
+  }
+});
 
-const { $api } = useNuxtApp()
-const $router = useRouter()
-const { user } = useUser()
+const { $api } = useNuxtApp();
+const $router = useRouter();
+const {user} = useUser()
+
 
 const titleValidationRule = [
-  v => !!v || 'Title is required',
-  v => v.length <= 50 || 'Project name exceeds 50 characters',
-]
+  v => !!v || "Title is required",
+  v => v.length <= 50 || "Project name exceeds 50 characters"
+];
 
 const createProject = async () => {
-  loading.value = true
+  loading.value = true;
   try {
-    const result = await $api.project.create({
+
+    const result= await $api.project.create({
       title: name.value,
       bases: [
         {
@@ -36,19 +39,20 @@ const createProject = async () => {
           config: projectDatasource,
           // inflection_column: inflection.column_name,
           // inflection_table: inflection.table_name
-        },
+        }
       ],
-      external: true,
+      external: true
     })
 
-    await $router.push(`/dashboard/${result.id}`)
-  }
-  catch (e) {
+    await $router.push( `/dashboard/${result.id}`);
+  } catch (e) {
     // todo: toast
     // this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
   }
-  loading.value = false
-}
+  loading.value = false;
+
+};
+
 </script>
 
 <template>
@@ -56,10 +60,11 @@ const createProject = async () => {
     <div class="main  justify-center d-flex mx-auto" style="min-height: 600px;overflow: auto">
       <v-form ref="form" v-model="valid" @submit.prevent="createProject">
         <v-card style="width:530px;margin-top: 100px" class="mx-auto">
+
           <!-- Create Project -->
           <v-container class="pb-10 px-12" style="padding-top: 43px !important;">
             <h1 class="mt-4 mb-4 text-center">
-              <!--            {{ $t('activity.createProject') }} -->
+              <!--            {{ $t('activity.createProject') }}-->
               Create Project
             </h1>
             <div class="mx-auto" style="width:350px">
@@ -70,13 +75,17 @@ const createProject = async () => {
                 class="nc-metadb-project-name"
                 label="Project name"
               />
-              <!--                :rules="titleValidationRule" -->
+              <!--                :rules="titleValidationRule"-->
             </div>
+
 
             <v-container fluid>
               <v-row>
                 <v-col cols="6">
-                  <v-text-field
+                  <v-select
+                    :items="clientTypes"
+                    item-title="text"
+                    item-value="value"
                     v-model="projectDatasource.client"
                     class="nc-metadb-project-name"
                     label="Database client"
@@ -134,7 +143,7 @@ const createProject = async () => {
                   mdi-rocket-launch-outline
                 </v-icon>
                 <!-- Create -->
-                <!--                <span class="mr-1">{{ // $t("general.create") }}</span> -->
+                <!--                <span class="mr-1">{{ // $t("general.create") }}</span>-->
                 <span class="mr-1"> Create project </span>
               </v-btn>
             </div>

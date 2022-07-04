@@ -1,6 +1,8 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { useNuxtApp, useRouter } from '#app'
+import { extractSdkResponseErrorMsg } from '~/helpers/errorUtils'
 
 const clientTypes = [
   {
@@ -36,10 +38,10 @@ const inflection = reactive({
   columnName: 'camelize',
 })
 
-const { $api } = useNuxtApp()
 const $router = useRouter()
+const { $api } = useNuxtApp()
 const { user } = useUser()
-
+const toast = useToast()
 const titleValidationRule = [
   v => !!v || 'Title is required',
   v => v.length <= 50 || 'Project name exceeds 50 characters',
@@ -65,7 +67,7 @@ const createProject = async () => {
   }
   catch (e) {
     // todo: toast
-    // this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
   loading.value = false
 }
@@ -98,6 +100,7 @@ const createProject = async () => {
                 <v-col cols="6">
                   <v-select
                     v-model="projectDatasource.client"
+                    density="compact"
                     :items="clientTypes"
                     item-title="text"
                     item-value="value"
@@ -108,6 +111,7 @@ const createProject = async () => {
                 <v-col cols="6">
                   <v-text-field
                     v-model="projectDatasource.connection.host"
+                    density="compact"
                     class="nc-metadb-project-name"
                     label="Host"
                   />
@@ -115,6 +119,7 @@ const createProject = async () => {
                 <v-col cols="6">
                   <v-text-field
                     v-model="projectDatasource.connection.port"
+                    density="compact"
                     class="nc-metadb-project-name"
                     label="Port"
                     type="number"
@@ -123,6 +128,7 @@ const createProject = async () => {
                 <v-col cols="6">
                   <v-text-field
                     v-model="projectDatasource.connection.user"
+                    density="compact"
                     class="nc-metadb-project-name"
                     label="Username"
                   />
@@ -130,6 +136,7 @@ const createProject = async () => {
                 <v-col cols="6">
                   <v-text-field
                     v-model="projectDatasource.connection.password"
+                    density="compact"
                     class="nc-metadb-project-name"
                     type="password"
                     label="Password"
@@ -138,6 +145,7 @@ const createProject = async () => {
                 <v-col cols="6">
                   <v-text-field
                     v-model="projectDatasource.connection.database"
+                    density="compact"
                     class="nc-metadb-project-name"
                     label="Database name"
                   />
@@ -146,6 +154,7 @@ const createProject = async () => {
                 <v-col cols="6">
                   <v-text-field
                     v-model="inflection.tableName"
+                    density="compact"
                     class="nc-metadb-project-name"
                     type="password"
                     label="Password"
@@ -154,6 +163,7 @@ const createProject = async () => {
                 <v-col cols="6">
                   <v-text-field
                     v-model="inflection.columnName"
+                    density="compact"
                     class="nc-metadb-project-name"
                     label="Database name"
                   />

@@ -9,9 +9,7 @@ export default {
     <v-app-bar color="" />
     <v-navigation-drawer :permanent="true" />
     <v-main>
-      <v-container>
-        <slot />
-      </v-container>
+      <slot />
     </v-main>
   </v-layout>
 </template>

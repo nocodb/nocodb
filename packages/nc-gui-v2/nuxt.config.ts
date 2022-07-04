@@ -9,6 +9,15 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
 
+  meta: {
+    title: 'NocoDB',
+    description: 'NocoDB GUI V2',
+    titleTemplate: (titleChunk) => {
+      // If undefined or blank then we don't need the hyphen
+      return titleChunk ? `${titleChunk} - NocoDB` : 'NocoDB'
+    },
+  },
+
   vite: {
     define: {
       'process.env.DEBUG': 'false',

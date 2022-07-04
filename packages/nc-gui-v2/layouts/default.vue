@@ -5,22 +5,13 @@ export default {
 </script>
 
 <template>
-  <div class="">
-    <!--    <div class="topbar"> -->
-    <!--    </div> -->
-    <!--    <div class="sidebar"> -->
-    <!--    </div> -->
-    <!--    <div class="content"> -->
-
-    <v-layout>
-      <v-app-bar color="" />
-      <slot />
-    </v-layout>
-
-    <!--    </div> -->
-  </div>
+  <v-layout>
+    <v-app-bar color="" />
+    <v-navigation-drawer :permanent="true" />
+    <v-main>
+      <v-container>
+        <slot />
+      </v-container>
+    </v-main>
+  </v-layout>
 </template>
-
-<style scoped>
-
-</style>

@@ -1,18 +1,23 @@
 <template>
   <div>
-    <!--    <TabMenu :model="tabItems" v-model:activeIndex="activeTab"/>
-        <template v-if="tabItems && tabItems[activeTab]">
-         <TabsSmartsheet :tab-meta="tabs[activeTab]" :key="tabs[activeTab].id"/>
-        </template>-->
 
-    <v-tabs v-model="activeTab">
 
-      <v-tab v-for="(tab,i) in tabs" :key="i" v-model:activeIndex="activeTab" >{{tab.title}} </v-tab>
+    <v-tabs density="compact" v-model="activeTab">
 
-      <v-tab-item v-for="(tab,i) in tabs" :key="i">
-        <TabsSmartsheet :tab-meta="tab" />
-      </v-tab-item>
+      <v-tab v-for="(tab,i) in tabs" :key="i" :value="i" >{{tab.title}} </v-tab>
+
     </v-tabs>
+
+    <v-window v-model="activeTab">
+      <v-window-item
+        v-for="(tab,i) in tabs"
+        :key="i"
+        :value="i"
+      >
+        <TabsSmartsheet :tab-meta="tab" />
+      </v-window-item>
+    </v-window>
+
   </div>
 </template>
 

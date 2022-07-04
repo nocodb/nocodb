@@ -39,6 +39,7 @@ import { useTabs } from "~/composables/tabs";
 const route = useRoute();
 const { loadProject, loadTables } = useProject();
 const { clearTabs } = useTabs();
+const {user} = useUser()
 
 
 onMounted(async () => {

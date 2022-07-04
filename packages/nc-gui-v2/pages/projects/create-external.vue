@@ -115,7 +115,6 @@ const createProject = async () => {
                   <v-text-field
                     v-model="projectDatasource.connection.host"
                     density="compact"
-                    class="nc-metadb-project-name"
                     label="Host"
                   />
                 </v-col>
@@ -123,7 +122,6 @@ const createProject = async () => {
                   <v-text-field
                     v-model="projectDatasource.connection.port"
                     density="compact"
-                    class="nc-metadb-project-name"
                     label="Port"
                     type="number"
                   />
@@ -132,7 +130,6 @@ const createProject = async () => {
                   <v-text-field
                     v-model="projectDatasource.connection.user"
                     density="compact"
-                    class="nc-metadb-project-name"
                     label="Username"
                   />
                 </v-col>
@@ -140,7 +137,6 @@ const createProject = async () => {
                   <v-text-field
                     v-model="projectDatasource.connection.password"
                     density="compact"
-                    class="nc-metadb-project-name"
                     type="password"
                     label="Password"
                   />
@@ -149,16 +145,14 @@ const createProject = async () => {
                   <v-text-field
                     v-model="projectDatasource.connection.database"
                     density="compact"
-                    class="nc-metadb-project-name"
                     label="Database name"
                   />
                 </v-col>
 
-                <v-col cols="6">
+                <!--                <v-col cols="6">
                   <v-text-field
                     v-model="inflection.tableName"
                     density="compact"
-                    class="nc-metadb-project-name"
                     type="password"
                     label="Password"
                   />
@@ -167,10 +161,9 @@ const createProject = async () => {
                   <v-text-field
                     v-model="inflection.columnName"
                     density="compact"
-                    class="nc-metadb-project-name"
                     label="Database name"
                   />
-                </v-col>
+                </v-col> -->
               </v-row>
             </v-container>
 
@@ -197,16 +190,4 @@ const createProject = async () => {
 </template>
 
 <style scoped>
-/deep/ label {
-  font-size: .75rem;
-}
-
-.wrapper {
-  border: 2px solid var(--v-backgroundColor-base);
-  border-radius: 4px;
-}
-
-.main {
-  height: calc(100vh - 48px)
-}
 </style>

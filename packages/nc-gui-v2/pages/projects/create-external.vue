@@ -1,58 +1,74 @@
 <script lang="ts" setup>
+import { ref } from 'vue'
+import { useNuxtApp, useRouter } from '#app'
 
-import { useNuxtApp, useRouter } from "#app";
-import { ref } from "vue";
+const clientTypes = [
+  {
+    text: 'MySql',
+    value: 'mysql2',
+  }, {
+    text: 'MSSAL',
+    value: 'mssql',
+  }, {
+    text: 'PostgreSQL',
+    value: 'pg',
+  }, {
+    text: 'SQLite',
+    value: 'sqlite',
+  },
+]
 
-const name = ref('');
-const loading = ref(false);
-const valid = ref(false);
+const name = ref('')
+const loading = ref(false)
+const valid = ref(false)
 const projectDatasource = reactive({
-  client:'mysql2',
-  connection:{
+  client: 'mysql2',
+  connection: {
     user: 'root',
     password: 'password',
     port: 3306,
     host: 'localhost',
     database: '',
-  }
-});
+  },
+})
+const inflection = reactive({
+  tableName: 'camelize',
+  columnName: 'camelize',
+})
 
-const { $api } = useNuxtApp();
-const $router = useRouter();
-const {user} = useUser()
-
+const { $api } = useNuxtApp()
+const $router = useRouter()
+const { user } = useUser()
 
 const titleValidationRule = [
-  v => !!v || "Title is required",
-  v => v.length <= 50 || "Project name exceeds 50 characters"
-];
+  v => !!v || 'Title is required',
+  v => v.length <= 50 || 'Project name exceeds 50 characters',
+]
 
 const createProject = async () => {
-  loading.value = true;
+  loading.value = true
   try {
-
-    const result= await $api.project.create({
+    const result = await $api.project.create({
       title: name.value,
       bases: [
         {
           type: projectDatasource.client,
           config: projectDatasource,
-          // inflection_column: inflection.column_name,
-          // inflection_table: inflection.table_name
-        }
+          inflection_column: inflection.columnName,
+          inflection_table: inflection.tableName,
+        },
       ],
-      external: true
+      external: true,
     })
 
-    await $router.push( `/dashboard/${result.id}`);
-  } catch (e) {
+    await $router.push(`/dashboard/${result.id}`)
+  }
+  catch (e) {
     // todo: toast
     // this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
   }
-  loading.value = false;
-
-};
-
+  loading.value = false
+}
 </script>
 
 <template>
@@ -60,11 +76,10 @@ const createProject = async () => {
     <div class="main  justify-center d-flex mx-auto" style="min-height: 600px;overflow: auto">
       <v-form ref="form" v-model="valid" @submit.prevent="createProject">
         <v-card style="width:530px;margin-top: 100px" class="mx-auto">
-
           <!-- Create Project -->
           <v-container class="pb-10 px-12" style="padding-top: 43px !important;">
             <h1 class="mt-4 mb-4 text-center">
-              <!--            {{ $t('activity.createProject') }}-->
+              <!--            {{ $t('activity.createProject') }} -->
               Create Project
             </h1>
             <div class="mx-auto" style="width:350px">
@@ -75,18 +90,17 @@ const createProject = async () => {
                 class="nc-metadb-project-name"
                 label="Project name"
               />
-              <!--                :rules="titleValidationRule"-->
+              <!--                :rules="titleValidationRule" -->
             </div>
-
 
             <v-container fluid>
               <v-row>
                 <v-col cols="6">
                   <v-select
+                    v-model="projectDatasource.client"
                     :items="clientTypes"
                     item-title="text"
                     item-value="value"
-                    v-model="projectDatasource.client"
                     class="nc-metadb-project-name"
                     label="Database client"
                   />
@@ -128,12 +142,28 @@ const createProject = async () => {
                     label="Database name"
                   />
                 </v-col>
+
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="inflection.tableName"
+                    class="nc-metadb-project-name"
+                    type="password"
+                    label="Password"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="inflection.columnName"
+                    class="nc-metadb-project-name"
+                    label="Database name"
+                  />
+                </v-col>
               </v-row>
             </v-container>
 
             <div class="text-center">
               <v-btn
-                class="mt-3"
+                class="mt-3 mx-auto"
                 large
                 :loading="loading"
                 color="primary"
@@ -143,7 +173,7 @@ const createProject = async () => {
                   mdi-rocket-launch-outline
                 </v-icon>
                 <!-- Create -->
-                <!--                <span class="mr-1">{{ // $t("general.create") }}</span>-->
+                <!--                <span class="mr-1">{{ // $t("general.create") }}</span> -->
                 <span class="mr-1"> Create project </span>
               </v-btn>
             </div>

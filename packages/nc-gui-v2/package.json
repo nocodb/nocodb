@@ -15,7 +15,6 @@
     "sass-loader": "^10.3.0"
   },
   "dependencies": {
-    "@nuxtjs/toast": "^3.3.1",
     "nocodb-sdk": "file:../nocodb-sdk",
     "nuxt3-store": "^1.0.0",
     "vuetify": "^3.0.0-alpha.13"

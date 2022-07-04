@@ -8,7 +8,7 @@ import { createI18n } from 'vue-i18n'
 export default defineNuxtPlugin(async (nuxtApp) => {
   // Set the i18n instance on app
   // This way we can use it globally in our components through this.$i18n
-  nuxtApp.vueApp.i18n = createI18n({
+  const i18n = createI18n({
     // Set the initial locale
     locale: 'en', // store.state.settings.language,
 
@@ -45,9 +45,12 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       fa: await import('~/lang/fa.json'),
       tr: await import('~/lang/tr.json'),
     },
-  })
+  });
 
-  nuxtApp.vueApp.use(nuxtApp.vueApp.i18n)
+  (nuxtApp.vueApp as any).i18n = i18n
+  nuxtApp.vueApp.use(i18n)
+
+  // todo: toggle based on state
   // store.watch(
   //   state => state.settings.language,
   //   (language) => {

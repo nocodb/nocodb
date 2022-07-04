@@ -85,7 +85,7 @@ const addAxiosInterceptors = ($api: Api<any>) => {
         // $toast.info('Token Expired. Please login again.', {
         //   position: 'bottom-center'
         // }).goAway(5000)
-        router.replace('/user/authentication/signin')
+        router.replace('/signin')
         // }
         return Promise.reject(error)
       })

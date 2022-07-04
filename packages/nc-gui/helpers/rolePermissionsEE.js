@@ -32,7 +32,7 @@ export default {
   user: {
     projectCreate: true,
     projectActions: true,
-    settings: true
+    projectSettings: true
   }
 }
 /**

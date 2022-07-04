@@ -1096,11 +1096,11 @@ export default {
     openLink(link) {
       window.open(link, "_blank");
     },
-    async checkAndDeleteTable(table) {
+    async checkAndDeleteTable(table, action = 'showDialog') {
       this.dialogDeleteTable.tableName = table.table_name
       this.dialogDeleteTable.nodes = table._nodes
       this.dialogDeleteTable.id = table.id
-      await this.deleteTable('showDialog')
+      await this.deleteTable(action)
       this.$e('c:table:delete')
     },
     async deleteTable(action = '') {
@@ -1879,7 +1879,7 @@ export default {
         this.selectedNodeForDelete = {
           dialog: true,
           item: item,
-          heading: `Click Submit to Delete The ${item._nodes.type}`,
+          heading: `Click Submit to Delete The ${item._nodes.type}: ${item.name}`,
         };
       } else if (action === "hideDialog") {
         this.selectedNodeForDelete = {
@@ -1890,34 +1890,8 @@ export default {
       } else {
         item = this.selectedNodeForDelete.item;
         if (item._nodes.type === "table") {
-          const result = await this.$store.dispatch("sqlMgr/ActSqlOp", [
-            {
-              env: item._nodes.env,
-              dbAlias: item._nodes.dbAlias,
-            },
-            "columnList",
-            {
-              table_name: item._nodes.table_name,
-            },
-          ]);
-
-          await this.sqlMgr.sqlOpPlus(
-            {
-              env: item._nodes.env,
-              dbAlias: item._nodes.dbAlias,
-            },
-            "tableDelete",
-            {
-              table_name: item._nodes.table_name,
-              columns: columns.data.list,
-            }
-          );
-          await this.loadTablesFromParentTreeNode({
-            _nodes: {
-              ...item._nodes,
-            },
-          });
-          this.$toast.success("Table deleted successfully").goAway(3000);
+          await this.checkAndDeleteTable(item, '')
+          
         } else if (item._nodes.type === "view") {
           const view = await this.$store.dispatch("sqlMgr/ActSqlOp", [
             {

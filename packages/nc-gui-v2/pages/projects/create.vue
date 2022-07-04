@@ -6,7 +6,7 @@ const name = ref('')
 const loading = ref(false)
 const valid = ref(false)
 
-const { $api } = useNuxtApp()
+const { $api, $toast } = useNuxtApp()
 const $router = useRouter()
 const { user } = useUser()
 
@@ -26,7 +26,7 @@ const createProject = async () => {
   }
   catch (e) {
     // todo: toast
-    // this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
+    $toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
   }
   loading.value = false
 }

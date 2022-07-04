@@ -6,24 +6,21 @@ const { tabs, activeTab } = useTabs()
 
 <template>
   <div>
-
-
-    <v-tabs density="compact" v-model="activeTab">
-
-      <v-tab v-for="(tab,i) in tabs" :key="i" :value="i" >{{tab.title}} </v-tab>
-
+    <v-tabs v-model="activeTab" density="compact">
+      <v-tab v-for="(tab, i) in tabs" :key="i" :value="i">
+        {{ tab.title }}
+      </v-tab>
     </v-tabs>
 
     <v-window v-model="activeTab">
       <v-window-item
-        v-for="(tab,i) in tabs"
+        v-for="(tab, i) in tabs"
         :key="i"
         :value="i"
       >
         <TabsSmartsheet :tab-meta="tab" />
       </v-window-item>
     </v-window>
-
   </div>
 </template>
 

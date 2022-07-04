@@ -48,7 +48,8 @@
             @input="loadTableData"
           />
 
-          <csv-export-import
+          <more-actions
+            v-if="allowDownload"
             :is-view="isView"
             :query-params="{...queryParams, showFields, fieldsOrder}"
             :public-view-id="$route.params.id"
@@ -132,12 +133,12 @@ import FieldsMenu from '../components/FieldsMenu'
 import SortListMenu from '../components/SortListMenu'
 import ColumnFilterMenu from '../components/ColumnFilterMenu'
 import XcGridView from '../views/GridView'
-import CsvExportImport from '~/components/project/spreadsheet/components/MoreActions'
+import MoreActions from '~/components/project/spreadsheet/components/MoreActions'
 
 export default {
   name: 'XcTable',
   components: {
-    CsvExportImport,
+    MoreActions,
     XcGridView,
     ColumnFilterMenu,
     SortListMenu,
@@ -225,7 +226,8 @@ export default {
     }],
     rowContextMenu: null,
     modelName: null,
-    tableMeta: null
+    tableMeta: null,
+    allowDownload: true,
   }),
   computed: {
     concatenatedXWhere() {
@@ -402,6 +404,7 @@ export default {
         this.sorts = this.viewMeta.sorts
         this.viewName = this.viewMeta.title
         this.client = this.viewMeta.client
+        this.allowDownload = this.viewMeta.download
       } catch (e) {
         if (e.response && e.response.status === 404) {
           this.notFound = true

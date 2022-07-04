@@ -55,7 +55,7 @@ const createProject = async () => {
             </div>
             <div class="text-center">
               <v-btn
-                class="mt-3"
+                class="mt-3 mx-auto"
                 large
                 :loading="loading"
                 color="primary"

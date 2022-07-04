@@ -724,7 +724,6 @@ export class HttpClient<SecurityDataType = unknown> {
         formData.append(key, property);
       } else if (typeof property === 'object' && property !== null) {
         if (Array.isArray(property)) {
-          // eslint-disable-next-line functional/no-loop-statement
           for (const prop of property) {
             formData.append(`${key}[]`, prop);
           }

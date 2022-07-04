@@ -3,13 +3,12 @@ import path from 'path';
 import { promisify } from 'util';
 
 import glob from 'glob';
+import SqlClientFactory from '../../sql-client/lib/SqlClientFactory';
+import Debug from '../../util/Debug';
+import Emit from '../../util/emit';
 // import Handlebars from 'handlebars';
 // import mkdirp from 'mkdirp';
-import { SqlClientFactory } from 'nc-help';
-import Debug from '../util/Debug';
-import Result from '../util/Result';
-import Emit from '../util/emit';
-import * as fileHelp from '../util/file.help';
+import * as fileHelp from '../../util/file.help';
 
 // import SqlMigrator from './SqlMigrator';
 // import NcConfigFactory from '../../../utils/NcConfigFactory';
@@ -18,6 +17,7 @@ import { XKnex } from '../../sql-data-mapper';
 import Project from '../../../models/Project';
 import Base from '../../../models/Base';
 import NcConnectionMgrv2 from '../../../utils/common/NcConnectionMgrv2';
+import Result from '../../util/Result';
 
 const evt = new Emit();
 const log = new Debug('KnexMigrator');

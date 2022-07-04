@@ -45,7 +45,7 @@ export default class Debug {
     return log;
   }
 
-  ppe(e, func) {
+  ppe(e, func?) {
     return this.ppException(e, func);
   }
 }

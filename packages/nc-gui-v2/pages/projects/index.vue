@@ -21,6 +21,13 @@ const navigateToDashboard = async (project) => {
   await $router.push(`/dashboard/${project.id}`)
 }
 
+const navigateToCreateProject = () => {
+  $router.push('/projects/create')
+}
+const navigateToCreateExtProject = () => {
+  $router.push('/projects/create-external')
+}
+
 onMounted(async () => {
   await loadProjects()
 })
@@ -33,10 +40,10 @@ onMounted(async () => {
       <v-container>
         <div class="pa-2 d-flex mb-10">
           <v-spacer />
-          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="createProject">
+          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="navigateToCreateProject">
             Create Project
           </v-btn>
-          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="createExtProject">
+          <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="navigateToCreateExtProject">
             Create External Project
           </v-btn>
         </div><v-row>

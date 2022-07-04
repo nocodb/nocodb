@@ -56,7 +56,7 @@ export const roles = {
             password: "Password123.",
         },
         validations: {
-            advSettings: false,
+            advSettings: true,
             editSchema: false,
             editData: true,
             editComment: true,
@@ -70,7 +70,7 @@ export const roles = {
             password: "Password123.",
         },
         validations: {
-            advSettings: false,
+            advSettings: true,
             editSchema: false,
             editData: false,
             editComment: true,
@@ -84,7 +84,7 @@ export const roles = {
             password: "Password123.",
         },
         validations: {
-            advSettings: false,
+            advSettings: true,
             editSchema: false,
             editData: false,
             editComment: false,

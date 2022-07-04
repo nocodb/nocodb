@@ -388,59 +388,71 @@
             </v-icon>
           </div>
 
-          <v-switch
-            v-model="passwordProtect"
-            dense
-            @change="onPasswordProtectChange"
-          >
-            <template #label>
-              <!-- Restrict access with a password -->
-              <span v-show="!passwordProtect" class="caption">
-                {{ $t("msg.info.beforeEnablePwd") }}
-              </span>
-              <!-- Access is password restricted -->
-              <span v-show="passwordProtect" class="caption">
-                {{ $t("msg.info.afterEnablePwd") }}
-              </span>
-            </template>
-          </v-switch>
-
-          <div
-            v-if="passwordProtect"
-            class="d-flex flex-column align-center justify-center"
-          >
-            <v-text-field
-              v-model="shareLink.password"
-              autocomplete="new-password"
-              browser-autocomplete="new-password"
-              class="password-field mr-2 caption"
-              style="max-width: 230px"
-              :type="showShareLinkPassword ? 'text' : 'password'"
-              :hint="$t('placeholder.password.enter')"
-              persistent-hint
-              dense
-              solo
-              flat
-            >
-              <template #append>
-                <v-icon
-                  small
-                  @click="showShareLinkPassword = !showShareLinkPassword"
+          <v-expansion-panels v-model="advanceOptionsPanel" class="mx-auto" flat>
+            <v-expansion-panel>
+              <v-expansion-panel-header hide-actions>
+                <v-spacer />
+                <span class="grey--text caption">More Options <v-icon color="grey" small>
+                  mdi-chevron-{{ advanceOptionsPanel === 0 ? 'up' : 'down' }}
+                </v-icon></span>
+              </v-expansion-panel-header>
+              <v-expansion-panel-content>
+                <v-checkbox
+                  v-model="passwordProtect"
+                  class="caption"
+                  :label="$t('msg.info.beforeEnablePwd')"
+                  hide-details
+                  dense
+                  @change="onPasswordProtectChange"
+                />
+                <div
+                  v-if="passwordProtect"
+                  class="d-flex flex-column align-center justify-center"
                 >
-                  {{ showShareLinkPassword ? "visibility_off" : "visibility" }}
-                </v-icon>
-              </template>
-            </v-text-field>
-            <v-btn
-              color="primary"
-              class="caption"
-              small
-              @click="saveShareLinkPassword"
-            >
-              <!-- Save password -->
-              {{ $t("placeholder.password.save") }}
-            </v-btn>
-          </div>
+                  <v-text-field
+                    v-model="shareLink.password"
+                    autocomplete="new-password"
+                    browser-autocomplete="new-password"
+                    class="password-field mr-2 caption"
+                    style="max-width: 230px"
+                    :type="showShareLinkPassword ? 'text' : 'password'"
+                    :hint="$t('placeholder.password.enter')"
+                    persistent-hint
+                    dense
+                    solo
+                    flat
+                  >
+                    <template #append>
+                      <v-icon
+                        small
+                        @click="showShareLinkPassword = !showShareLinkPassword"
+                      >
+                        {{ showShareLinkPassword ? "visibility_off" : "visibility" }}
+                      </v-icon>
+                    </template>
+                  </v-text-field>
+                  <v-btn
+                    color="primary"
+                    class="caption"
+                    small
+                    @click="saveShareLinkPassword"
+                  >
+                    <!-- Save password -->
+                    {{ $t("placeholder.password.save") }}
+                  </v-btn>
+                </div>
+                <v-checkbox
+                  v-if="selectedView && selectedView.type === viewTypes.GRID"
+                  v-model="allowDownload"
+                  class="caption"
+                  label="Allow Download"
+                  hide-details
+                  dense
+                  @change="onAllowDownloadChange"
+                />
+              </v-expansion-panel-content>
+            </v-expansion-panel>
+          </v-expansion-panels>
         </v-container>
       </v-card>
     </v-dialog>
@@ -497,6 +509,7 @@ export default {
     queryParams: Object
   },
   data: () => ({
+    advanceOptionsPanel: false,
     webhookSliderModal: false,
     codeSnippetModal: false,
     drag: false,
@@ -512,6 +525,7 @@ export default {
     searchQueryVal: '',
     showShareLinkPassword: false,
     passwordProtect: false,
+    allowDownload: true,
     sharedViewPassword: '',
     overAdvShieldIcon: false,
     overShieldIcon: false,
@@ -525,7 +539,7 @@ export default {
       [ViewTypes.GRID]: 'grid',
       [ViewTypes.FORM]: 'form',
       [ViewTypes.GALLERY]: 'gallery'
-    }
+    },
   }),
   computed: {
     isSharedBase() {
@@ -710,6 +724,9 @@ export default {
         this.saveShareLinkPassword()
       }
     },
+    onAllowDownloadChange() {
+      this.saveAllowDownload()
+    },
     async saveShareLinkPassword() {
       try {
         await this.$api.dbViewShare.update(this.shareLink.id, {
@@ -732,6 +749,23 @@ export default {
       }
 
       this.$e('a:view:share:enable-pwd')
+    },
+    async saveAllowDownload() {
+      try {
+        await this.$api.dbViewShare.update(this.shareLink.id, {
+          download: this.allowDownload
+        })
+        this.$toast.success('Successfully updated').goAway(3000)
+      } catch (e) {
+        this.$toast
+          .error(await this._extractSdkResponseErrorMsg(e))
+          .goAway(3000)
+      }
+      if (this.allowDownload) {
+        this.$e('a:view:share:enable-download')
+      } else {
+        this.$e('a:view:share:disable-download')
+      }
     },
     async loadViews() {
       // this.viewsList = await this.sqlOp(
@@ -1011,5 +1045,8 @@ export default {
 .ghost {
   opacity: 0.5;
   background: grey;
+}
+.mx-auto .v-expansion-panel{
+  background: var(--v-backgroundColor-base)
 }
 </style>

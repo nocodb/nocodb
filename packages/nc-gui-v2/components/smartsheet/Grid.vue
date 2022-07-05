@@ -1,12 +1,13 @@
 <script lang="ts" setup>
-import { Api } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 import { useUser } from '~/composables/user'
 
-const { tabMeta, meta } = defineProps({
-  tabMeta: Object,
-  meta: Object,
-})
+interface Props {
+  tabMeta: Record<string, any>
+  meta: Record<string, any>
+}
+
+const { tabMeta, meta } = defineProps<Props>()
 
 const { project } = useProject()
 const { user } = useUser()
@@ -37,7 +38,7 @@ onMounted(async () => {
       <v-table>
         <thead>
           <tr>
-            <th v-for="col in meta.columns">
+            <th v-for="(col, i) of meta.columns" :key="`${col.title}-${i}`">
               {{ col.title }}
             </th>
           </tr>
@@ -49,11 +50,6 @@ onMounted(async () => {
             </th>
           </tr>
         </tbody>
-        <!--        <Column v-for="col in meta.columns" :key="col.id" :field="col.title" :header="col.title">
-                  <template v-if="col.uidt === 'LinkToAnotherRecord'" #body="{data:{[col.title]:d}}">
-                    {{ d && (Array.isArray(d) ? d : [d]).map(c1 => c1[Object.keys(c1)[1]]).join(', ') }}
-                  </template>
-                </Column> -->
       </v-table>
     </div>
   </div>

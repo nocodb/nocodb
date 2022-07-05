@@ -1,5 +1,6 @@
 import type { NuxtApp as BaseApp } from '#app/nuxt'
 import type { Api } from 'nocodb-sdk'
+import type { RemovableRef } from '@vueuse/core'
 import type { GlobalState } from '~/lib/types'
 
 declare module '#app/nuxt' {
@@ -10,6 +11,6 @@ declare module '#app/nuxt' {
     }
     // tele.emit
     $e: (event: string, data: any) => void
-    $state: GlobalState
+    $state: RemovableRef<GlobalState>
   }
 }

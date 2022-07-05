@@ -68,7 +68,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     },
   })
   function getListener(binding) {
-    return function (e) {
+    return function () {
       if (!socket)
         return
 

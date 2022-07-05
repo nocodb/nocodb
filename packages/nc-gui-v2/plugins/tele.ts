@@ -83,7 +83,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
   }
   if (user.token)
-    init(user.token)
+    await init(user.token)
 
   watch(() => user.token, (newToken, oldToken) => {
     if (newToken !== oldToken) {

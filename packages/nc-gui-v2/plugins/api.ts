@@ -9,6 +9,8 @@ export default defineNuxtPlugin((nuxtApp) => {
   nuxtApp.provide('api', api)
 })
 
+const DbNotFoundMsg = 'Database config not found'
+
 function addAxiosInterceptors(api: Api<any>) {
   const router = useRouter()
   const route = useRoute()
@@ -32,84 +34,80 @@ function addAxiosInterceptors(api: Api<any>) {
     return config
   })
 
-  api.instance.interceptors.response.use((response) => {
-    // Return a successful response back to the calling service
-    console.log(response)
-    return response
-  },
-  (error) => {
-    if (error.response && error.response.data && error.response.data.msg === 'Database config not found') {
-      router.replace('/project/0')
-      return
-    }
+  // Return a successful response back to the calling service
+  api.instance.interceptors.response.use(response => response,
+    // Handle Error
+    (error) => {
+      if (error.response && error.response.data && error.response.data.msg === DbNotFoundMsg)
+        return router.replace('/project/0')
 
-    // Return any error which is not due to authentication back to the calling service
-    if (!error.response || error.response.status !== 401) {
-      return new Promise((resolve, reject) => {
-        reject(error)
-      })
-    }
+      // Return any error which is not due to authentication back to the calling service
+      if (!error.response || error.response.status !== 401) {
+        return new Promise((resolve, reject) => {
+          reject(error)
+        })
+      }
 
-    // Logout user if token refresh didn't work or user is disabled
-    if (error.config.url === '/auth/refresh-token') {
+      // Logout user if token refresh didn't work or user is disabled
+      if (error.config.url === '/auth/refresh-token') {
       // todo: clear token
-      // store.dispatch('users/ActSignOut')
-      setToken(null)
-
-      return new Promise((resolve, reject) => {
-        reject(error)
-      })
-    }
-
-    // Try request again with new token
-    return api.instance.post('/auth/refresh-token', null, {
-      withCredentials: true,
-    })
-      .then((token) => {
-        // New request with new token
-        const config = error.config
-        config.headers['xc-auth'] = token.data.token
-        user.token = token.data.token
+        setToken(null)
 
         return new Promise((resolve, reject) => {
-          api.instance.request(config).then((response) => {
-            resolve(response)
-          }).catch((error) => {
-            reject(error)
+          reject(error)
+        })
+      }
+
+      // Try request again with new token
+      return api.instance.post('/auth/refresh-token', null, {
+        withCredentials: true,
+      })
+        .then((token) => {
+        // New request with new token
+          const config = error.config
+          config.headers['xc-auth'] = token.data.token
+          user.token = token.data.token
+
+          return new Promise((resolve, reject) => {
+            api.instance.request(config).then((response) => {
+              resolve(response)
+            }).catch((error) => {
+              reject(error)
+            })
           })
         })
-      })
-      .catch(async (error) => {
+        .catch(async (error) => {
         // todo: clear token
         // await store.dispatch('users/ActSignOut')
-        setToken(null)
-        // todo: handle new user
-        // if (store.state.project.appInfo.firstUser) {
-        //   router.replace('/')
-        // }
-        // else {
-        // $toast.clear()
-        // $toast.info('Token Expired. Please login again.', {
-        //   position: 'bottom-center'
-        // }).goAway(5000)
-        router.replace('/signin')
-        // }
-        return Promise.reject(error)
-      })
-  })
+          setToken(null)
+          // todo: handle new user
+          // if (store.state.project.appInfo.firstUser) {
+          //   router.replace('/')
+          // }
+          // else {
+          // $toast.clear()
+          // $toast.info('Token Expired. Please login again.', {
+          //   position: 'bottom-center'
+          // }).goAway(5000)
+          router.replace('/signin')
+          // }
+          return Promise.reject(error)
+        })
+    })
 }
 
-export function getApi($store, $axios) {
+export function getApi(store, axios) {
   const api = new Api({
     baseURL: 'http://localhost:8080',
     headers: {
-      'xc-auth': $store?.state?.users?.token,
+      'xc-auth': store?.state?.users?.token,
     },
   })
 
-  if ($axios) {
+  if (axios) {
     // overwrite with nuxt axios instance
-    api.instance = $axios
+    api.instance = axios
   }
+
   return api
 }

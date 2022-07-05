@@ -3,6 +3,10 @@ import { watch } from 'vue'
 import { useProject } from '~/composables/project'
 import { useTabs } from '~/composables/tabs'
 
+definePageMeta({
+  layout: 'without-sidebar',
+})
+
 const route = useRoute()
 const { user } = useUser()
 const { loadProject, loadTables } = useProject()
@@ -26,16 +30,14 @@ watch(
 </script>
 
 <template>
-  <NuxtLayout>
-    <v-navigation-drawer color="" permanent>
-      <DashboardTreeView />
-    </v-navigation-drawer>
-    <v-main>
-      <v-container>
-        <DashboardTabView />
-      </v-container>
-    </v-main>
-  </NuxtLayout>
+  <v-navigation-drawer permanent>
+    <DashboardTreeView />
+  </v-navigation-drawer>
+  <v-main>
+    <v-container>
+      <DashboardTabView />
+    </v-container>
+  </v-main>
 </template>
 
 <style scoped lang="scss">

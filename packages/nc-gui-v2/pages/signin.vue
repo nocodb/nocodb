@@ -27,7 +27,7 @@ const signIn = async () => {
     <!-- Enter your work email -->
     <v-card class="pa-10 mx-auto mt-10" style="max-width: 500px">
       <v-card-text>
-        <v-alert v-if="error" density="medium" class="mb-10" type="error">
+        <v-alert v-if="error" class="mb-10" type="error">
           {{ error }}
         </v-alert>
 

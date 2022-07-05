@@ -1,11 +1,11 @@
-import type { TableType } from 'nocodb-sdk'
+import type { ProjectType, TableType } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
 export const useProject = () => {
   const { $api } = useNuxtApp()
 
-  const project = useState<{ id?: string; title?: string }>('project')
-  const tables = useState<TableType[]>('tables')
+  const project = useState<ProjectType>('project', null)
+  const tables = useState<Array<TableType>>('tables', null)
 
   const loadTables = async () => {
     if (project.value.id) {

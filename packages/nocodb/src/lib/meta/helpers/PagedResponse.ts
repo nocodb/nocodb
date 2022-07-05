@@ -6,9 +6,21 @@ export class PagedResponseImpl<T> {
     {
       limit = 25,
       offset = 0,
-      count = null
-    }: { limit?: number; offset?: number; count?: number } = {}
+      count = null,
+      shuffle = false,
+    }: {
+      limit?: number;
+      offset?: number;
+      count?: number;
+      shuffle?: boolean;
+    } = {}
   ) {
+    if (shuffle) {
+      for (let i = list.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [list[i], list[j]] = [list[j], list[i]];
+      }
+    }
     this.list = list;
     if (count !== null) {
       this.pageInfo = { totalRows: +count };

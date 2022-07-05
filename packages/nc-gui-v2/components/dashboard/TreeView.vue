@@ -8,7 +8,7 @@ const { addTab } = useTabs()
 
 <template>
   <div>
-    <v-list density="medium">
+    <v-list>
       <v-list-item
         v-for="table in tables"
         :key="table.id"

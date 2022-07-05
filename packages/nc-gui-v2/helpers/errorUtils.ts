@@ -4,12 +4,10 @@ export async function extractSdkResponseErrorMsg(e: Error & { response: any }) {
   if (e.response.data instanceof Blob) {
     try {
       msg = JSON.parse(await e.response.data.text()).msg
-    }
-    catch {
+    } catch {
       msg = 'Some internal error occurred'
     }
-  }
-  else {
+  } else {
     msg = e.response.data.msg || e.response.data.message || 'Some internal error occurred'
   }
   return msg || 'Some error occurred'

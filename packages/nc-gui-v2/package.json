@@ -9,14 +9,17 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.25.2",
-    "@intlify/vite-plugin-vue-i18n": "^3.4.0",
+    "@intlify/vite-plugin-vue-i18n": "^4.0.0",
     "@vueuse/nuxt": "^8.6.0",
     "nuxt": "3.0.0-rc.4",
     "sass": "^1.53.0"
   },
   "dependencies": {
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-plugin-prettier": "^4.0.0",
     "nocodb-sdk": "file:../nocodb-sdk",
     "nuxt3-store": "^1.0.0",
+    "prettier": "^2.7.1",
     "socket.io-client": "^4.5.1",
     "vue-i18n": "^9.1.10",
     "vue-toastification": "^2.0.0-rc.5",

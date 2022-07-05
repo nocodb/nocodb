@@ -10,7 +10,8 @@ const { addTab } = useTabs()
   <div>
     <v-list density="medium">
       <v-list-item
-        v-for="table in tables" :key="table.id"
+        v-for="table in tables"
+        :key="table.id"
         class="p-2 text-sm pointer"
         @click="addTab({ type: 'table', title: table.title, id: table.id })"
       >
@@ -21,7 +22,7 @@ const { addTab } = useTabs()
 </template>
 
 <style scoped>
-.pointer{
+.pointer {
   cursor: pointer;
 }
 </style>

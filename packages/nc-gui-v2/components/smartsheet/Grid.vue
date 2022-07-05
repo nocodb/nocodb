@@ -16,13 +16,17 @@ const rows = ref()
 const { $api } = useNuxtApp()
 
 const loadData = async () => {
-  const response = await $api.dbTableRow.list('noco',
+  const response = await $api.dbTableRow.list(
+    'noco',
     project.value.id,
-    meta.id, {}, {
+    meta.id,
+    {},
+    {
       headers: {
         'xc-auth': user.token,
       },
-    })
+    },
+  )
 
   rows.value = response.list
 }
@@ -55,6 +59,4 @@ onMounted(async () => {
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

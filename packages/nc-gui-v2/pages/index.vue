@@ -10,6 +10,4 @@ router.replace('/projects')
   <div class="container" />
 </template>
 
-<style lang="scss">
-
-</style>
+<style lang="scss"></style>

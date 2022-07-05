@@ -20,6 +20,7 @@
   <duration-cell v-else-if="isDuration" :column="column" :value="value" read-only />
   <rating-cell v-else-if="isRating" :value="value" read-only />
   <currency-cell v-else-if="isCurrency" :value="value" :column="column" />
+  <percent-cell v-else-if="isPercent" :column="column" :value="value" read-only />
 
   <span v-else :class="{'long-text-cell' : isTextArea}" :title="title">{{ value }}</span>
 </template>
@@ -39,10 +40,11 @@ import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCel
 import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
 import CurrencyCell from '@/components/project/spreadsheet/components/cell/CurrencyCell'
 import DurationCell from '@/components/project/spreadsheet/components/cell/DurationCell'
+import PercentCell from '@/components/project/spreadsheet/components/cell/PercentCell'
 
 export default {
   name: 'TableCell',
-  components: { RatingCell, EmailCell, TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell, CurrencyCell, DurationCell },
+  components: { RatingCell, EmailCell, TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell, CurrencyCell, DurationCell, PercentCell },
   mixins: [cell],
   props: ['value', 'dbAlias', 'isLocked', 'selected', 'column'],
   computed: {

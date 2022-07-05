@@ -45,6 +45,16 @@
       v-on="parentListeners"
     />
 
+    <percent-cell
+      v-else-if="isPercent"
+      v-model="localState"
+      :active="active"
+      :is-form="isForm"
+      :column="column"
+      :is-locked="isLocked"
+      v-on="parentListeners"
+    />
+
     <boolean-cell
       v-else-if="isBoolean"
       v-model="localState"
@@ -158,6 +168,7 @@ import SetListEditableCell from '~/components/project/spreadsheet/components/edi
 import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell'
 import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
 import DurationCell from '~/components/project/spreadsheet/components/editableCell/DurationCell'
+import PercentCell from '~/components/project/spreadsheet/components/editableCell/PercentCell'
 
 export default {
   name: 'EditableCell',
@@ -178,7 +189,8 @@ export default {
     DateTimePickerCell,
     TextCell,
     DatePickerCell,
-    DurationCell
+    DurationCell,
+    PercentCell
   },
   mixins: [cell],
   props: {

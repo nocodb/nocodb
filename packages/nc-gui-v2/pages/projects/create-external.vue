@@ -22,10 +22,7 @@ const { user } = useUser()
 const toast = useToast()
 const { t: $t } = useI18n()
 
-const titleValidationRule = [
-  v => !!v || 'Title is required',
-  v => v.length <= 50 || 'Project name exceeds 50 characters',
-]
+const titleValidationRule = [(v) => !!v || 'Title is required', (v) => v.length <= 50 || 'Project name exceeds 50 characters']
 
 const createProject = async () => {
   loading.value = true
@@ -44,8 +41,7 @@ const createProject = async () => {
     })
 
     await $router.push(`/dashboard/${result.id}`)
-  }
-  catch (e) {
+  } catch (e) {
     // todo: toast
     toast.error(await extractSdkResponseErrorMsg(e))
   }
@@ -59,8 +55,7 @@ const testConnection = async () => {
 
     if (projectDatasource.value.client === 'sqlite3') {
       testSuccess.value = true
-    }
-    else {
+    } else {
       const testConnectionConfig = {
         ...projectDatasource,
         connection: {
@@ -73,14 +68,12 @@ const testConnection = async () => {
 
       if (result.code === 0) {
         testSuccess.value = true
-      }
-      else {
+      } else {
         testSuccess.value = false
         toast.error($t('msg.error.dbConnectionFailed') + result.message)
       }
     }
-  }
-  catch (e) {
+  } catch (e) {
     testSuccess.value = false
     toast.error(await extractSdkResponseErrorMsg(e))
   }
@@ -89,24 +82,19 @@ const testConnection = async () => {
 
 <template>
   <NuxtLayout>
-    <div class="main  justify-center d-flex mx-auto" style="min-height: 600px;overflow: auto">
+    <div class="main justify-center d-flex mx-auto" style="min-height: 600px; overflow: auto">
       <v-form ref="form" v-model="valid" @submit.prevent="createProject">
-        <v-card style="width:530px;margin-top: 100px" class="mx-auto">
+        <v-card style="width: 530px; margin-top: 100px" class="mx-auto">
           <!-- Create Project -->
-          <v-container class="pb-10 px-12" style="padding-top: 43px !important;">
+          <v-container class="pb-10 px-12" style="padding-top: 43px !important">
             <h1 class="mt-4 mb-4 text-center">
               <!--            {{ $t('activity.createProject') }} -->
               Create Project
             </h1>
-            <div class="mx-auto" style="width:350px">
+            <div class="mx-auto" style="width: 350px">
               <!-- label="Enter Project Name" -->
               <!-- rule text: Required -->
-              <v-text-field
-                v-model="name"
-                :rules="titleValidationRule"
-                class="nc-metadb-project-name"
-                label="Project name"
-              />
+              <v-text-field v-model="name" :rules="titleValidationRule" class="nc-metadb-project-name" label="Project name" />
               <!--                :rules="titleValidationRule" -->
             </div>
 
@@ -124,26 +112,13 @@ const testConnection = async () => {
                   />
                 </v-col>
                 <v-col cols="6">
-                  <v-text-field
-                    v-model="projectDatasource.connection.host"
-                    density="compact"
-                    label="Host"
-                  />
+                  <v-text-field v-model="projectDatasource.connection.host" density="compact" label="Host" />
                 </v-col>
                 <v-col cols="6">
-                  <v-text-field
-                    v-model="projectDatasource.connection.port"
-                    density="compact"
-                    label="Port"
-                    type="number"
-                  />
+                  <v-text-field v-model="projectDatasource.connection.port" density="compact" label="Port" type="number" />
                 </v-col>
                 <v-col cols="6">
-                  <v-text-field
-                    v-model="projectDatasource.connection.user"
-                    density="compact"
-                    label="Username"
-                  />
+                  <v-text-field v-model="projectDatasource.connection.user" density="compact" label="Username" />
                 </v-col>
                 <v-col cols="6">
                   <v-text-field
@@ -154,11 +129,7 @@ const testConnection = async () => {
                   />
                 </v-col>
                 <v-col cols="6">
-                  <v-text-field
-                    v-model="projectDatasource.connection.database"
-                    density="compact"
-                    label="Database name"
-                  />
+                  <v-text-field v-model="projectDatasource.connection.database" density="compact" label="Database name" />
                 </v-col>
 
                 <!--                <v-col cols="6">
@@ -179,25 +150,16 @@ const testConnection = async () => {
               </v-row>
             </v-container>
 
-            <div class=" d-flex justify-center" style="gap: 4px">
-              <v-btn
-                :disabled="!testSuccess"
-                class=""
-                large
-                :loading="loading"
-                color="primary"
-                @click="createProject"
-              >
-                <v-icon class="mr-1 mt-n1">
-                  mdi-rocket-launch-outline
-                </v-icon>
+            <div class="d-flex justify-center" style="gap: 4px">
+              <v-btn :disabled="!testSuccess" class="" large :loading="loading" color="primary" @click="createProject">
+                <v-icon class="mr-1 mt-n1"> mdi-rocket-launch-outline </v-icon>
                 <!-- Create -->
-                <span class="mr-1">{{ $t("general.create") }} </span>
+                <span class="mr-1">{{ $t('general.create') }} </span>
               </v-btn>
 
               <v-btn size="sm" class="text-sm text-capitalize">
                 <!-- Test Database Connection -->
-                {{ $t("activity.testDbConn") }}
+                {{ $t('activity.testDbConn') }}
               </v-btn>
             </div>
           </v-container>
@@ -207,5 +169,4 @@ const testConnection = async () => {
   </NuxtLayout>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

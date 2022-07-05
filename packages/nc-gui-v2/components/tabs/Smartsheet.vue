@@ -16,10 +16,12 @@ onMounted(async () => {
   await getMeta(tabMeta?.id)
 })
 
-watch(() => tabMeta && tabMeta?.id, async (newVal, oldVal) => {
-  if (newVal !== oldVal)
-    await getMeta(newVal)
-})
+watch(
+  () => tabMeta && tabMeta?.id,
+  async (newVal, oldVal) => {
+    if (newVal !== oldVal) await getMeta(newVal)
+  },
+)
 </script>
 
 <template>
@@ -30,6 +32,4 @@ watch(() => tabMeta && tabMeta?.id, async (newVal, oldVal) => {
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -13,13 +13,16 @@ onMounted(async () => {
   await loadTables()
 })
 
-watch(() => route.params.projectId, async (newVal, oldVal) => {
-  if (newVal && newVal !== oldVal) {
-    clearTabs()
-    await loadProject(newVal as string)
-    await loadTables()
-  }
-})
+watch(
+  () => route.params.projectId,
+  async (newVal, oldVal) => {
+    if (newVal && newVal !== oldVal) {
+      clearTabs()
+      await loadProject(newVal as string)
+      await loadTables()
+    }
+  },
+)
 </script>
 
 <template>

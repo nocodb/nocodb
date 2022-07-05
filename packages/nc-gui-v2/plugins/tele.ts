@@ -12,8 +12,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   const init = async (token: string) => {
     try {
-      if (socket)
-        socket.disconnect()
+      if (socket) socket.disconnect()
 
       // todo: extract base url
       const url = 'http://localhost:8080' // new URL($axios.defaults.baseURL, window.location.href.split(/[?#]/)[0]).href
@@ -24,14 +23,11 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       socket.on('connect_error', () => {
         socket.disconnect()
       })
-    }
-    catch {
-    }
+    } catch {}
   }
 
   router.afterEach((to, from) => {
-    if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type)))
-      return
+    if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) return
 
     socket.emit('page', {
       path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
@@ -65,38 +61,32 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   nuxtApp.vueApp.directive('t', {
     created(el, binding, vnode) {
-      if (vnode.el)
-        vnode.el.addEventListener('click', getListener(binding))
-      else
-        el.addEventListener('click', getListener(binding))
+      if (vnode.el) vnode.el.addEventListener('click', getListener(binding))
+      else el.addEventListener('click', getListener(binding))
     },
   })
 
   function getListener(binding: any) {
     return function () {
-      if (!socket)
-        return
+      if (!socket) return
 
       const event = binding.value && binding.value[0]
       const data = binding.value && binding.value[1]
       const extra = binding.value && binding.value.slice(2)
-      tele.emit(event,
-        {
-          data,
-          extra,
-        })
+      tele.emit(event, {
+        data,
+        extra,
+      })
     }
   }
 
-  if (user.token)
-    await init(user.token)
+  if (user.token) await init(user.token)
 
-  watch(() => user.token, (newToken, oldToken) => {
-    if (newToken !== oldToken)
-      init(newToken)
-
-    else if (!newToken)
-      socket.disconnect()
-  })
+  watch(
+    () => user.token,
+    (newToken, oldToken) => {
+      if (newToken !== oldToken) init(newToken)
+      else if (!newToken) socket.disconnect()
+    },
+  )
 })
-

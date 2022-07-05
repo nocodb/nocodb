@@ -5,6 +5,7 @@ const baseRules = {
 }
 
 module.exports = {
-  extends: ['@antfu'],
+  extends: ['@antfu', 'plugin:prettier/recommended'],
+  plugins: ['prettier'],
   rules: baseRules,
 }

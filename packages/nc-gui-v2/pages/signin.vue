@@ -21,8 +21,7 @@ const signIn = async () => {
     const { token } = await $api.auth.signin(form)
     await setToken(token)
     await $router.push('/projects')
-  }
-  catch (e) {
+  } catch (e) {
     error.value = await extractSdkResponseErrorMsg(e)
   }
 }
@@ -37,20 +36,17 @@ const signIn = async () => {
           {{ error }}
         </v-alert>
 
-        <div class="p-float-label ">
-          <v-text-field id="email" v-model="form.email" label="Email" type="text" style="width:100%" />
+        <div class="p-float-label">
+          <v-text-field id="email" v-model="form.email" label="Email" type="text" style="width: 100%" />
         </div>
 
         <!-- Enter your password -->
-        <div class="p-float-label ">
-          <v-text-field id="password" v-model="form.password" label="Password" type="password" style="width:100%" />
+        <div class="p-float-label">
+          <v-text-field id="password" v-model="form.password" label="Password" type="password" style="width: 100%" />
         </div>
 
         <div class="text-center">
-          <v-btn
-            class=""
-            @click="signIn"
-          >
+          <v-btn class="" @click="signIn">
             <b>Sign In</b>
           </v-btn>
         </div>
@@ -59,6 +55,4 @@ const signIn = async () => {
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

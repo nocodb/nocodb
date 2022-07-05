@@ -1,48 +1,26 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useToast } from 'vue-toastification'
 import { useI18n } from 'vue-i18n'
+import { useToast } from 'vue-toastification'
 import { useNuxtApp, useRouter } from '#app'
 import { extractSdkResponseErrorMsg } from '~/helpers/errorUtils'
-
-const clientTypes = [
-  {
-    text: 'MySql',
-    value: 'mysql2',
-  }, {
-    text: 'MSSQL',
-    value: 'mssql',
-  }, {
-    text: 'PostgreSQL',
-    value: 'pg',
-  }, {
-    text: 'SQLite',
-    value: 'sqlite',
-  },
-]
+import { clientTypes, getDefaultConnectionConfig, getTestDatabaseName } from '~/helpers/projectCreateUtils'
 
 const name = ref('')
 const loading = ref(false)
 const valid = ref(false)
-const projectDatasource = reactive({
-  client: 'mysql2',
-  connection: {
-    user: 'root',
-    password: 'password',
-    port: 3306,
-    host: 'localhost',
-    database: '',
-  },
-})
+const testSuccess = ref(false)
+const projectDatasource = ref(getDefaultConnectionConfig('mysql2'))
 const inflection = reactive({
   tableName: 'camelize',
   columnName: 'camelize',
 })
 
 const $router = useRouter()
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 const { user } = useUser()
 const toast = useToast()
+const { t: $t } = useI18n()
 
 const titleValidationRule = [
   v => !!v || 'Title is required',
@@ -56,8 +34,8 @@ const createProject = async () => {
       title: name.value,
       bases: [
         {
-          type: projectDatasource.client,
-          config: projectDatasource,
+          type: projectDatasource.value.client,
+          config: projectDatasource.value,
           inflection_column: inflection.columnName,
           inflection_table: inflection.tableName,
         },
@@ -72,6 +50,40 @@ const createProject = async () => {
     toast.error(await extractSdkResponseErrorMsg(e))
   }
   loading.value = false
+}
+
+const testConnection = async () => {
+  $e('a:project:create:extdb:test-connection')
+  try {
+    // this.handleSSL(projectDatasource)
+
+    if (projectDatasource.value.client === 'sqlite3') {
+      testSuccess.value = true
+    }
+    else {
+      const testConnectionConfig = {
+        ...projectDatasource,
+        connection: {
+          ...projectDatasource.value.connection,
+          database: getTestDatabaseName(projectDatasource.value),
+        },
+      }
+
+      const result = await $api.utils.testConnection(testConnectionConfig)
+
+      if (result.code === 0) {
+        testSuccess.value = true
+      }
+      else {
+        testSuccess.value = false
+        toast.error($t('msg.error.dbConnectionFailed') + result.message)
+      }
+    }
+  }
+  catch (e) {
+    testSuccess.value = false
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 </script>
 
@@ -167,9 +179,10 @@ const createProject = async () => {
               </v-row>
             </v-container>
 
-            <div class="text-center">
+            <div class=" d-flex justify-center" style="gap: 4px">
               <v-btn
-                class="mt-3 mx-auto"
+                :disabled="!testSuccess"
+                class=""
                 large
                 :loading="loading"
                 color="primary"
@@ -180,6 +193,11 @@ const createProject = async () => {
                 </v-icon>
                 <!-- Create -->
                 <span class="mr-1">{{ $t("general.create") }} </span>
+              </v-btn>
+
+              <v-btn size="sm" class="text-sm text-capitalize">
+                <!-- Test Database Connection -->
+                {{ $t("activity.testDbConn") }}
               </v-btn>
             </div>
           </v-container>

@@ -4,7 +4,7 @@ import vueI18n from '@intlify/vite-plugin-vue-i18n'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  modules: ['nuxt3-store', '@vueuse/nuxt'],
+  modules: ['@vueuse/nuxt'],
 
   ssr: false,
 

@@ -42,6 +42,7 @@ import { NcError } from '../../../../meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
+import { fisherYatesShuffle } from '../../../../meta/helpers/shuffleHelper';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -247,8 +248,10 @@ class BaseModelSqlv2 {
 
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    const data = await this.extractRawQueryAndExec(qb);
-
+    let data = await this.extractRawQueryAndExec(qb);
+    if (+rest?.shuffle) {
+      data = fisherYatesShuffle(data);
+    }
     return data?.map((d) => {
       d.__proto__ = proto;
       return d;
@@ -354,8 +357,11 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-
-    return await qb;
+    let data = await qb;
+    if (+rest?.shuffle) {
+      data = fisherYatesShuffle(data);
+    }
+    return data;
   }
 
   async multipleHmList({ colId, ids }, args?: { limit?; offset? }) {
@@ -861,8 +867,11 @@ class BaseModelSqlv2 {
     applyPaginate(qb, args);
 
     const proto = await childModel.getProto();
-
-    return (await qb).map((c) => {
+    let data = await qb;
+    if (+args?.shuffle) {
+      data = fisherYatesShuffle(data);
+    }
+    return data.map((c) => {
       c.__proto__ = proto;
       return c;
     });
@@ -954,8 +963,11 @@ class BaseModelSqlv2 {
     applyPaginate(qb, args);
 
     const proto = await childModel.getProto();
-
-    return (await this.extractRawQueryAndExec(qb)).map((c) => {
+    let data = await this.extractRawQueryAndExec(qb);
+    if (+args?.shuffle) {
+      data = fisherYatesShuffle(data);
+    }
+    return data.map((c) => {
       c.__proto__ = proto;
       return c;
     });
@@ -1047,7 +1059,11 @@ class BaseModelSqlv2 {
     applyPaginate(qb, args);
 
     const proto = await parentModel.getProto();
-    return (await this.extractRawQueryAndExec(qb)).map((c) => {
+    let data = await this.extractRawQueryAndExec(qb);
+    if (+args?.shuffle) {
+      data = fisherYatesShuffle(data);
+    }
+    return data.map((c) => {
       c.__proto__ = proto;
       return c;
     });
@@ -1227,6 +1243,7 @@ class BaseModelSqlv2 {
     const obj: XcFilter = {};
     obj.where = args.where || args.w || '';
     obj.having = args.having || args.h || '';
+    obj.shuffle = args.shuffle || args.r || '';
     obj.condition = args.condition || args.c || {};
     obj.conditionGraph = args.conditionGraph || {};
     obj.limit = Math.max(

@@ -157,10 +157,10 @@ async function getFindOne(model, view: View, req) {
 
   const data = await baseModel.findOne(args);
 
-  return data[0]
+  return data?.[0]
     ? await nocoExecute(
         await getAst({ model, query: args, view }),
-        data[0],
+        data?.[0],
         {},
         {}
       )

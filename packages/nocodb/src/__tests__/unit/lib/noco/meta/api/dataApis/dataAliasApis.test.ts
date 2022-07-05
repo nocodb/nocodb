@@ -73,7 +73,7 @@ describe('getFindOne', () => {
       const findOneResult = {
         id: 'dataId'
       };
-      baseModel.findOne = sinon.fake.returns(findOneResult);
+      baseModel.findOne = sinon.fake.returns([findOneResult]);
       expect(await getFindOne(model, view, req)).eql(findOneResult);
     });
   });

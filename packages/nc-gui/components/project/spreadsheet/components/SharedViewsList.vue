@@ -19,6 +19,10 @@
                 {{ $t('labels.password') }}
               </th>
               <th class="caption grey--text">
+                <!-- TODO: i18n -->
+                Download Allowed
+              </th>
+              <th class="caption grey--text">
                 <!--Actions-->
                 {{ $t('labels.actions') }}
               </th>
@@ -44,6 +48,12 @@
                   <v-icon small @click="$set(currentView, 'showPassword' , !currentView.showPassword)">
                     {{ currentView.showPassword ? 'visibility_off' : 'visibility' }}
                   </v-icon>
+                </template>
+              </td>
+              <td class="caption">
+                {{ currentView }}
+                <template v-if="'download' in currentView">
+                  <span>{{ ~~currentView.download === 1 ? '✔️' : '❌' }}</span>
                 </template>
               </td>
               <td class="caption">
@@ -82,6 +92,12 @@
                     <v-icon small @click="$set(link, 'showPassword' , !link.showPassword)">
                       {{ link.showPassword ? 'visibility_off' : 'visibility' }}
                     </v-icon>
+                  </template>
+                </td>
+                <td class="caption">
+                  {{ link }}
+                  <template v-if="'download' in link">
+                    <span>{{ ~~link.download === 1 ? '✔️' : '❌' }}</span>
                   </template>
                 </td>
                 <td class="caption">

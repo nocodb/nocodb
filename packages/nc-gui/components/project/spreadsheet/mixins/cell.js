@@ -71,6 +71,9 @@ export default {
     isDuration() {
       return this.uiDatatype === UITypes.Duration
     },
+    isPercent() {
+      return this.uiDatatype === UITypes.Percent
+    },
     isAutoSaved() {
       return [
         UITypes.SingleLineText,
@@ -79,7 +82,6 @@ export default {
         UITypes.Email,
         UITypes.URL,
         UITypes.Number,
-        UITypes.Decimal,
         UITypes.Percent,
         UITypes.Count,
         UITypes.AutoNumber,
@@ -92,7 +94,8 @@ export default {
         UITypes.Currency,
         UITypes.Year,
         UITypes.Time,
-        UITypes.Duration
+        UITypes.Duration,
+        UITypes.Decimal
       ].includes(this.uiDatatype)
     }
   }

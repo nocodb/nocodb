@@ -13,17 +13,11 @@ const { tabs, activeTab } = useTabs()
     </v-tabs>
 
     <v-window v-model="activeTab">
-      <v-window-item
-        v-for="(tab, i) in tabs"
-        :key="i"
-        :value="i"
-      >
+      <v-window-item v-for="(tab, i) in tabs" :key="i" :value="i">
         <TabsSmartsheet :tab-meta="tab" />
       </v-window-item>
     </v-window>
   </div>
 </template>
 
-<style scoped>
-
-</style>
+<style scoped></style>

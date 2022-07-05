@@ -1,19 +1,20 @@
 import { defineNuxtPlugin } from 'nuxt/app'
 import { createI18n } from 'vue-i18n'
 
+import type en from '~/lang/en.json'
+
+// Type-define 'en' as the master schema for the resource
+type MessageSchema = typeof en
+
 export default defineNuxtPlugin(async (nuxtApp) => {
-  // Set the i18n instance on app
-  // This way we can use it globally in our components through this.$i18n
   const i18n = createI18n({
-    // Set the initial locale
-    locale: 'en',
+    locale: 'en', // Set the initial locale
 
-    // Set the fallback locale in case the current locale can't be found
-    fallbackLocale: 'en',
+    fallbackLocale: 'en', // Set the fallback locale in case the current locale can't be found
 
-    legacy: false,
+    legacy: false, // disable legacy API (we use the composition API and inject utilities)
 
-    globalInjection: true,
+    globalInjection: true, // enable global injection, so all utilities are injected into all components
 
     // Associate each locale to a content file
     messages: {
@@ -45,9 +46,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       fa: await import('~/lang/fa.json'),
       tr: await import('~/lang/tr.json'),
     },
-  });
+  })
 
-  (nuxtApp.vueApp as any).i18n = i18n
+  ;(nuxtApp.vueApp as any).i18n = i18n
   nuxtApp.vueApp.use(i18n)
 })
 /**

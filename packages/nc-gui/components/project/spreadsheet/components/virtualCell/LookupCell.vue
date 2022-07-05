@@ -36,13 +36,25 @@
         />
       </template>
       <template v-else>
-        <template v-if="localValue">
+        <template v-if="lookupColumnMeta['uidt'] === UITypes.Attachment">
+          <table-cell
+            v-for="(v,i) in localValue"
+            :key="i"
+            :is-locked="true"
+            :column="lookupColumnMeta"
+            :meta="lookupTableMeta"
+            :db-alias="nodes.dbAlias"
+            :value="v"
+            :sql-ui="sqlUi"
+          />
+        </template>
+        <template v-else-if="localValue">
           <item-chip
-            v-for="(value,i) in localValue"
+            v-for="(v,i) in localValue"
             :key="i"
             style="margin: 1.5px"
             :active="active"
-            :value="value"
+            :value="v"
             :readonly="true"
           >
             <table-cell
@@ -51,7 +63,7 @@
               :column="lookupColumnMeta"
               :meta="lookupTableMeta"
               :db-alias="nodes.dbAlias"
-              :value="value"
+              :value="v"
               :sql-ui="sqlUi"
             />
           </item-chip>

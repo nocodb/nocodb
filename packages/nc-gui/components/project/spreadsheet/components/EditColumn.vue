@@ -233,6 +233,15 @@
                         />
                       </v-col>
                     </template>
+                    <template v-else-if="newColumn.uidt === 'Percent'">
+                      <v-col cols="12">
+                        <percent-options
+                          v-model="newColumn.meta"
+                          :column="newColumn"
+                          :meta="meta"
+                        />
+                      </v-col>
+                    </template>
                     <template v-else>
                       <v-col v-if="isLookup" cols="12">
                         <lookup-options
@@ -581,6 +590,7 @@ import RatingOptions from '~/components/project/spreadsheet/components/editColum
 import CheckboxOptions from '~/components/project/spreadsheet/components/editColumn/CheckboxOptions'
 import CurrencyOptions from '@/components/project/spreadsheet/components/editColumn/CurrencyOptions'
 import DurationOptions from '@/components/project/spreadsheet/components/editColumn/DurationOptions'
+import PercentOptions from '@/components/project/spreadsheet/components/editColumn/PercentOptions'
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -597,7 +607,8 @@ export default {
     RelationOptions,
     CustomSelectOptions,
     CurrencyOptions,
-    DurationOptions
+    DurationOptions,
+    PercentOptions
   },
   props: {
     nodes: Object,
@@ -628,7 +639,8 @@ export default {
         UITypes.Rollup,
         UITypes.SpecificDBType,
         UITypes.Formula,
-        UITypes.Duration
+        UITypes.Duration,
+        UITypes.Percent
       ].includes(this.newColumn && this.newColumn.uidt)
     },
     uiTypes() {

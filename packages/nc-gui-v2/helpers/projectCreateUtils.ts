@@ -10,24 +10,27 @@ const testDataBaseNames = {
 export type ClientType = 'mysql2' | 'mssql' | 'pg' | 'sqlite3' | 'vitess'
 
 export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
-  if (db.client === 'pg')
-    return db.connection?.database
+  if (db.client === 'pg') return db.connection?.database
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames]
 }
 
-export const clientTypes = [{
-  text: 'MySql',
-  value: 'mysql2',
-}, {
-  text: 'MSSQL',
-  value: 'mssql',
-}, {
-  text: 'PostgreSQL',
-  value: 'pg',
-}, {
-  text: 'SQLite',
-  value: 'sqlite',
-},
+export const clientTypes = [
+  {
+    text: 'MySql',
+    value: 'mysql2',
+  },
+  {
+    text: 'MSSQL',
+    value: 'mssql',
+  },
+  {
+    text: 'PostgreSQL',
+    value: 'pg',
+  },
+  {
+    text: 'SQLite',
+    value: 'sqlite',
+  },
 ]
 
 const homeDir = ''

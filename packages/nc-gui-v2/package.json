@@ -15,6 +15,7 @@
     "sass": "^1.53.0"
   },
   "dependencies": {
+    "@vueuse/core": "^8.7.5",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
     "nocodb-sdk": "file:../nocodb-sdk",

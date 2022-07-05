@@ -1,53 +1,16 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
+import { Languages } from '~/lib/enums'
 
-const { $e } = useNuxtApp()
+const { $e, $state } = useNuxtApp()
 
-const { availableLocales = ['en'] } = useI18n()
-
-const labels = reactive({
-  de: 'Deutsch',
-  en: 'English',
-  es: 'Español',
-  fa: 'فارسی',
-  fr: 'Français',
-  id: 'Bahasa Indonesia',
-  ja: '日本語',
-  it_IT: 'Italiano',
-  ko: '한국인',
-  lv: 'Latviešu',
-  nl: 'Nederlandse',
-  ru: 'Pусский',
-  zh_CN: '大陆简体',
-  zh_HK: '香港繁體',
-  zh_TW: '臺灣正體',
-  sv: 'Svenska',
-  tr: 'Turkish',
-  da: 'Dansk',
-  vi: 'Tiếng Việt',
-  no: 'Norsk',
-  iw: 'עִברִית',
-  fi: 'Suomalainen',
-  uk: 'Українська',
-  hr: 'Hrvatski',
-  th: 'ไทย',
-  sl: 'Slovenščina',
-  pt_BR: 'Português (Brasil)',
-})
+const { availableLocales = ['en'], locale } = useI18n()
 
 const languages = $computed(() => {
   return availableLocales.sort()
 })
 
-let language = $computed({
-  get: () => 'en', // todo: add language from state
-  set: () => {
-    // todo: set language to state
-    applyDirection()
-  },
-})
-
-const isRtlLang = $computed(() => ['fa'].includes(language))
+const isRtlLang = $computed(() => ['fa'].includes($state.value.lang))
 
 function applyDirection() {
   const targetDirection = isRtlLang ? 'rtl' : 'ltr'
@@ -58,7 +21,8 @@ function applyDirection() {
 }
 
 function changeLanguage(lang: string) {
-  language = lang
+  $state.value.lang = lang
+  locale.value = lang
   $e('c:navbar:lang', { lang })
 }
 
@@ -83,7 +47,7 @@ onMounted(() => {
           @click="changeLanguage(lang)"
         >
           <v-list-item-subtitle class="text-capitalize">
-            {{ labels[lang] || lang }}
+            {{ Languages[lang] || lang }}
           </v-list-item-subtitle>
         </v-list-item>
         <v-divider />

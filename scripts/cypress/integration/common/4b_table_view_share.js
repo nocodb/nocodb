@@ -14,8 +14,9 @@ const generateLinkWithPwd = () => {
     cy.snipActiveModal("Modal_ShareView");
 
     // enable checkbox & feed pwd, save
+    cy.getActiveModal().find('button:contains("More Options")').click();
     cy.getActiveModal()
-        .find('[role="switch"][type="checkbox"]')
+        .find('[role="checkbox"][type="checkbox"]')
         .click({ force: true });
     cy.getActiveModal().find('input[type="password"]').type("1");
 

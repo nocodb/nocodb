@@ -1,4 +1,5 @@
 import { defineNuxtPlugin } from 'nuxt/app'
+import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
 
 // todo: ignore init if tele disabled
@@ -7,9 +8,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   const route = useRoute()
   const { user } = useUser()
 
-  let socket
+  let socket: Socket
 
-  const init = async (token) => {
+  const init = async (token: string) => {
     try {
       if (socket)
         socket.disconnect()
@@ -22,7 +23,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
       socket.on('connect_error', () => {
         socket.disconnect()
-        socket = null
       })
     }
     catch {
@@ -37,14 +37,18 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       path: to.matched[0].path + (to.query && to.query.type ? `?type=${to.query.type}` : ''),
     })
   })
-  if (socket) {
-    socket.emit('page', {
-      path: route.matched[0].path + (route.query && route.query.type ? `?type=${route.query.type}` : ''),
-    })
-  }
+
+  /**
+   * unreachable code?
+      if (socket) {
+        socket.emit('page', {
+          path: route.matched[0].path + (route.query && route.query.type ? `?type=${route.query.type}` : ''),
+        })
+      }
+   */
 
   const tele = {
-    emit(evt, data) {
+    emit(evt: string, data: Record<string, any>) {
       // debugger
       if (socket) {
         socket.emit('event', {
@@ -67,7 +71,8 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         el.addEventListener('click', getListener(binding))
     },
   })
-  function getListener(binding) {
+
+  function getListener(binding: any) {
     return function () {
       if (!socket)
         return
@@ -82,17 +87,16 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         })
     }
   }
+
   if (user.token)
     await init(user.token)
 
   watch(() => user.token, (newToken, oldToken) => {
-    if (newToken !== oldToken) {
+    if (newToken !== oldToken)
       init(newToken)
-    }
-    else if (!newToken) {
+
+    else if (!newToken)
       socket.disconnect()
-      socket = null
-    }
   })
 })
 

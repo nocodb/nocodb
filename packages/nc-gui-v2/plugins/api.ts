@@ -49,7 +49,7 @@ function addAxiosInterceptors(api: Api<any>) {
       // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/refresh-token') {
         // todo: clear token
-        setToken(null)
+        setToken()
 
         return new Promise((resolve, reject) => {
           reject(error)
@@ -65,7 +65,7 @@ function addAxiosInterceptors(api: Api<any>) {
           // New request with new token
           const config = error.config
           config.headers['xc-auth'] = token.data.token
-          user.token = token.data.token
+          if (user) user.token = token.data.token
 
           return new Promise((resolve, reject) => {
             api.instance
@@ -81,7 +81,7 @@ function addAxiosInterceptors(api: Api<any>) {
         .catch(async (error) => {
           // todo: clear token
           // await store.dispatch('users/ActSignOut')
-          setToken(null)
+          setToken()
           // todo: handle new user
           // if (store.state.project.appInfo.firstUser) {
           //   router.replace('/')

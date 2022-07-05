@@ -14,7 +14,7 @@ export default defineNuxtConfig({
     transpile: ['vuetify'],
   },
 
-  head: {
+  meta: {
     title: 'NocoDB',
     description: 'NocoDB GUI V2',
     titleTemplate: (titleChunk: string) => {

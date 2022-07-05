@@ -868,34 +868,11 @@ export default {
       this.$e('a:view:delete', { view: view.type })
     },
     async genShareLink() {
-      // const sharedViewUrl = await this.$store.dispatch('sqlMgr/ActSqlOp', [
-      //   { dbAlias: this.nodes.dbAlias },
-      //   'createSharedViewLink',
-      //   {
-      //     model_name: this.table,
-      //     // meta: this.meta,
-      //     query_params: {
-      //       where: this.concatenatedXWhere,
-      //       sort: this.sort,
-      //       fields: Object.keys(this.showFields)
-      //         .filter(f => this.showFields[f])
-      //         .join(','),
-      //       showFields: this.showFields,
-      //       fieldsOrder: this.fieldsOrder,
-      //       extraViewParams: this.extraViewParams,
-      //       selectedViewId: this.selectedViewId,
-      //       columnsWidth: this.columnsWidth
-      //     },
-      //     view_name: this.selectedView.title,
-      //     type: this.selectedView.type,
-      //     show_as: this.selectedView.show_as,
-      //     password: this.sharedViewPassword
-      //   }
-      // ])
       const shared = await this.$api.dbViewShare.create(this.selectedViewId)
-
       // todo: url
       this.shareLink = shared
+      this.passwordProtect = shared.password !== null
+      this.allowDownload = shared.download
       this.showShareModel = true
     },
     copyView(view, i) {

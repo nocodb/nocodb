@@ -56,9 +56,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     },
   }
 
-  inject('tele', tele)
-  inject('e', tele.emit)
-
   nuxtApp.vueApp.directive('t', {
     created(el, binding, vnode) {
       if (vnode.el) vnode.el.addEventListener('click', getListener(binding))
@@ -80,13 +77,16 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
   }
 
-  if (user.token) await init(user.token)
+  if (user?.token) await init(user.token)
 
   watch(
-    () => user.token,
+    () => user?.token,
     (newToken, oldToken) => {
       if (newToken !== oldToken) init(newToken)
       else if (!newToken) socket.disconnect()
     },
   )
+
+  nuxtApp.provide('tele', tele)
+  nuxtApp.provide('e', tele.emit)
 })

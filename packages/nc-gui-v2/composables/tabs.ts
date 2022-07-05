@@ -1,6 +1,6 @@
 import { useState } from '#app'
 
-interface TabItem {
+export interface TabItem {
   type: 'table' | 'view'
   title: string
   id: string

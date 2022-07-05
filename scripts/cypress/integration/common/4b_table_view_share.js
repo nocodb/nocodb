@@ -15,14 +15,14 @@ const generateLinkWithPwd = () => {
 
     // enable checkbox & feed pwd, save
     cy.getActiveModal().find('button:contains("More Options")').click();
-    cy.getActiveModal().find('[role="checkbox"][type="checkbox"]').first().click({ force: true });
-    cy.getActiveModal().find('input[type="password"]').type("1");
-
-    cy.snipActiveModal("Modal_ShareView_Password");
-
-    cy.getActiveModal().find('button:contains("Save password")').click();
-
-    cy.toastWait("Successfully updated");
+    const passwordCheckbox = cy.getActiveModal().find('[role="checkbox"][type="checkbox"]').first()
+    if (passwordCheckbox.eq(0)) {
+        passwordCheckbox.click({ force: true });
+        cy.getActiveModal().find('input[type="password"]').type("1");
+        cy.snipActiveModal("Modal_ShareView_Password");
+        cy.getActiveModal().find('button:contains("Save password")').click();
+        cy.toastWait("Successfully updated");
+    }
 
     // copy link text, visit URL
     cy.getActiveModal()
@@ -92,6 +92,11 @@ export const genTest = (apiType, dbType) => {
             cy.get("body")
                 .find(".v-dialog.v-dialog--active")
                 .should("not.exist");
+
+            // Verify Download as CSV is here
+            cy.get(".nc-actions-menu-btn").click();
+            cy.snipActiveMenu("Menu_ActionsMenu");
+            cy.get(`.menuable__content__active .v-list-item span:contains("Download as CSV")`).should("exist");
         });
 
         it("Delete view", () => {

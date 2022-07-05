@@ -50,7 +50,7 @@
                   </v-icon>
                 </template>
               </td>
-              <td class="caption">
+              <td class="caption text-center">
                 <template v-if="'download' in currentView">
                   <span>{{ ~~currentView.download === 1 ? '✔️' : '❌' }}</span>
                 </template>
@@ -93,7 +93,7 @@
                     </v-icon>
                   </template>
                 </td>
-                <td class="caption">
+                <td class="caption text-center">
                   <template v-if="'download' in link">
                     <span>{{ ~~link.download === 1 ? '✔️' : '❌' }}</span>
                   </template>

@@ -1,20 +1,20 @@
-// plugins/i18n.js
-
 import { defineNuxtPlugin } from 'nuxt/app'
 import { createI18n } from 'vue-i18n'
-
-// Tell Vue to use our plugin
 
 export default defineNuxtPlugin(async (nuxtApp) => {
   // Set the i18n instance on app
   // This way we can use it globally in our components through this.$i18n
   const i18n = createI18n({
     // Set the initial locale
-    locale: 'en', // store.state.settings.language,
+    locale: 'en',
 
     // Set the fallback locale in case the current locale can't be found
     fallbackLocale: 'en',
-    allowComposition: true,
+
+    legacy: false,
+
+    globalInjection: true,
+
     // Associate each locale to a content file
     messages: {
       en: await import('~/lang/en.json'),
@@ -49,15 +49,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
 
   (nuxtApp.vueApp as any).i18n = i18n
   nuxtApp.vueApp.use(i18n)
-
-  // todo: toggle based on state
-  // store.watch(
-  //   state => state.settings.language,
-  //   (language) => {
-  //     if (app.i18n.availableLocales.includes(language))
-  //       app.i18n.locale = language
-  //   },
-  // )
 })
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

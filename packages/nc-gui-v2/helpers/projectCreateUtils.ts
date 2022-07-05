@@ -12,7 +12,7 @@ export type ClientType = 'mysql2' | 'mssql' | 'pg' | 'sqlite3' | 'vitess'
 export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
   if (db.client === 'pg')
     return db.connection?.database
-  return testDataBaseNames[db.client]
+  return testDataBaseNames[db.client as keyof typeof testDataBaseNames]
 }
 
 export const clientTypes = [{

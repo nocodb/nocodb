@@ -286,11 +286,15 @@ const parseConditionV2 = async (
             } else {
               val = `%${val}%`;
             }
-            qb = qb.where(
-              field,
-              qb?.client?.config?.client === 'pg' ? 'ilike' : 'like',
-              val
-            );
+            if (qb?.client?.config?.client === 'pg') {
+              qb = qb.whereRaw('??::text ilike ?', [field, val]);
+            } else {
+              qb = qb.where(
+                field,
+                'like',
+                val
+              );
+            }
             break;
           case 'nlike':
             if (column.uidt === UITypes.Formula) {

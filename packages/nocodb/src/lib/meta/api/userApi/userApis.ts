@@ -366,9 +366,6 @@ async function tokenValidate(req, res): Promise<any> {
   if (user.reset_password_expires < new Date()) {
     NcError.badRequest('Password reset url expired');
   }
-  if (!user.token_version) {
-    NcError.badRequest('Token Expired. Please login again.');
-  }
   res.json(true);
 }
 

@@ -2,24 +2,25 @@ import { Api } from 'nocodb-sdk'
 import { defineNuxtPlugin } from 'nuxt3/app'
 
 export default defineNuxtPlugin((nuxtApp) => {
-  const api = getApi(null, null)
+  const api = new Api({
+    baseURL: 'http://localhost:8080',
+  })
 
-  addAxiosInterceptors(api)
+  addAxiosInterceptors(api, nuxtApp)
 
   nuxtApp.provide('api', api)
 })
 
 const DbNotFoundMsg = 'Database config not found'
 
-function addAxiosInterceptors(api: Api<any>) {
+function addAxiosInterceptors(api: Api<any>, app: any) {
   const router = useRouter()
   const route = useRoute()
-  const { user, setToken } = useUser()
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
-    if (user?.token) config.headers['xc-auth'] = user?.token
+    if (app.$state.value.token) config.headers['xc-auth'] = app.$state.value.token
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       // config.headers['xc-preview'] = store.state.users.previewAs
@@ -48,8 +49,7 @@ function addAxiosInterceptors(api: Api<any>) {
 
       // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/refresh-token') {
-        // todo: clear token
-        setToken()
+        app.$state.value.token = undefined
 
         return new Promise((resolve, reject) => {
           reject(error)
@@ -65,7 +65,7 @@ function addAxiosInterceptors(api: Api<any>) {
           // New request with new token
           const config = error.config
           config.headers['xc-auth'] = token.data.token
-          if (user) user.token = token.data.token
+          if (app.$state.value.token) app.$state.value.token = token.data.token
 
           return new Promise((resolve, reject) => {
             api.instance
@@ -79,38 +79,13 @@ function addAxiosInterceptors(api: Api<any>) {
           })
         })
         .catch(async (error) => {
-          // todo: clear token
-          // await store.dispatch('users/ActSignOut')
-          setToken()
+          app.$state.value.token = undefined
           // todo: handle new user
-          // if (store.state.project.appInfo.firstUser) {
-          //   router.replace('/')
-          // }
-          // else {
-          // $toast.clear()
-          // $toast.info('Token Expired. Please login again.', {
-          //   position: 'bottom-center'
-          // }).goAway(5000)
+
           router.replace('/signin')
-          // }
+
           return Promise.reject(error)
         })
     },
   )
-}
-
-export function getApi(store: any, axios: any) {
-  const api = new Api({
-    baseURL: 'http://localhost:8080',
-    headers: {
-      'xc-auth': store?.state?.users?.token,
-    },
-  })
-
-  if (axios) {
-    // overwrite with nuxt axios instance
-    api.instance = axios
-  }
-
-  return api
 }

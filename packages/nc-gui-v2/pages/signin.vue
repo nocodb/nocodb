@@ -1,27 +1,22 @@
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { useUser } from '~/composables/user'
 import { extractSdkResponseErrorMsg } from '~/helpers/errorUtils'
-import { useNuxtApp, useRouter } from '#app'
+import { navigateTo, useNuxtApp } from '#app'
 
-const { $api } = useNuxtApp()
-const $router = useRouter()
+const { $api, $state } = useNuxtApp()
 
-const valid = ref()
 const error = ref()
 const form = reactive({
   email: '',
   password: '',
 })
-const { user, setToken } = useUser()
 
 const signIn = async () => {
   error.value = null
   try {
     const { token } = await $api.auth.signin(form)
-    await setToken(token)
-    await $router.push('/projects')
-  } catch (e) {
+    $state.value.token = token
+    await navigateTo('/projects')
+  } catch (e: any) {
     error.value = await extractSdkResponseErrorMsg(e)
   }
 }
@@ -37,22 +32,26 @@ const signIn = async () => {
         </v-alert>
 
         <div class="p-float-label">
-          <v-text-field id="email" v-model="form.email" label="Email" type="text" style="width: 100%" />
+          <v-text-field id="email" v-model="form.email" :label="$t('labels.email')" type="text" style="width: 100%" />
         </div>
 
         <!-- Enter your password -->
         <div class="p-float-label">
-          <v-text-field id="password" v-model="form.password" label="Password" type="password" style="width: 100%" />
+          <v-text-field
+            id="password"
+            v-model="form.password"
+            :label="$t('labels.password')"
+            type="password"
+            style="width: 100%"
+          />
         </div>
 
         <div class="text-center">
           <v-btn class="" @click="signIn">
-            <b>Sign In</b>
+            <b>{{ $t('general.signIn') }}</b>
           </v-btn>
         </div>
       </v-card-text>
     </v-card>
   </div>
 </template>
-
-<style scoped></style>

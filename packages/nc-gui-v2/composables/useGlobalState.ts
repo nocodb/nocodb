@@ -3,6 +3,9 @@ import type { GlobalState } from '~/lib/types'
 
 const storageKey = 'nocodb-gui-v2'
 
+/**
+ * Global State is injected by state plugin, so manual initialization is unnecessary and should be avoided
+ */
 export const useGlobalState = () => {
   const preferredLanguages = $(usePreferredLanguages())
   return createGlobalState(() =>

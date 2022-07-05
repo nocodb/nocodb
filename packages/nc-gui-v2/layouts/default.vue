@@ -1,13 +1,15 @@
 <script>
 export default {
-  name: 'Default',
+  name: 'General',
 }
 </script>
 
 <template>
   <v-layout>
-    <v-app-bar color="" />
-    <v-navigation-drawer :permanent="true" />
+    <slot name="header">
+      <v-app-bar color="" />
+    </slot>
+    <slot name="sidebar" />
     <v-main>
       <slot />
     </v-main>

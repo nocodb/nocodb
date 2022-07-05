@@ -1,9 +1,15 @@
 <script lang="ts" setup>
 import { navigateTo } from '#app'
 
+const route = useRoute()
+
 const openDiscord = () => {
   //   shell.openExternal('https://discord.gg/5RgZmkW')
 }
+
+const isDashboard = computed(() => {
+  return route.path && (route.path === '/nc' || route.path === '/nc/' || route.path.startsWith('/nc/'))
+})
 </script>
 
 <script lang="ts">
@@ -19,20 +25,20 @@ export default {
         <div class="d-flex align-center pt-1" style="flex: 1">
           <v-toolbar-title>
             <v-tooltip bottom>
-              <!-- Home -->
               {{ $t('general.home') }}
               <span class="caption font-weight-light pointer">(version)</span>
             </v-tooltip>
 
-            <span class="body-1 ml-n1" @click="navigateTo('/projects')">brandname</span>
+            <span class="body-1" @click="navigateTo('/projects')">NocoDB</span>
           </v-toolbar-title>
 
-          <!-- loading
-          <span v-show="$nuxt.$loading.show" class="caption grey--text ml-3"
-            >{{ $t('general.loading') }} <v-icon small color="grey">mdi-spin mdi-loading</v-icon></span
-          >
+          <!-- todo: loading is not yet supported by nuxt 3 - see https://v3.nuxtjs.org/migration/component-options#loading
+          <span v-show="$nuxt.$loading.show" class="caption grey--text ml-3">
+            {{ $t('general.loading') }} <v-icon small color="grey">mdi-spin mdi-loading</v-icon>
+          </span>
 
 
+          todo: replace shortkey?
           <span v-shortkey="['ctrl', 'shift', 'd']" @shortkey="openDiscord" />
            -->
         </div>
@@ -47,9 +53,9 @@ export default {
           <v-toolbar-items class="hidden-sm-and-down nc-topright-menu">
             <!-- todo: implement components
             <release-info />
-
-            <language class="mr-3" />
             -->
+
+            <general-language class="mr-3" />
 
             <!-- todo: implement isDashboard
             <template v-if="isDashboard">

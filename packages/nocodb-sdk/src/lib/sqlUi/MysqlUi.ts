@@ -1033,7 +1033,7 @@ export class MysqlUi {
         };
         break;
       case 'Percent':
-        colProp.dt = 'double';
+        colProp.dt = 'decimal';
         break;
       case 'Duration':
         colProp.dt = 'decimal';

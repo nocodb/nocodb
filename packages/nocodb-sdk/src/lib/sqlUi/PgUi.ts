@@ -1657,7 +1657,7 @@ export class PgUi {
         };
         break;
       case 'Percent':
-        colProp.dt = 'double precision';
+        colProp.dt = 'decimal';
         break;
       case 'Duration':
         colProp.dt = 'decimal';

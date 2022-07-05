@@ -1144,7 +1144,7 @@ export class MssqlUi {
         };
         break;
       case 'Percent':
-        colProp.dt = 'double';
+        colProp.dt = 'decimal';
         break;
       case 'Duration':
         colProp.dt = 'decimal';

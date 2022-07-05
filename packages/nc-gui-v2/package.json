@@ -10,11 +10,9 @@
   "devDependencies": {
     "@antfu/eslint-config": "^0.25.2",
     "@intlify/vite-plugin-vue-i18n": "^3.4.0",
-    "@nuxtjs/tailwindcss": "^5.1.2",
-    "fibers": "^5.0.1",
-    "nuxt": "3.0.0-rc.3",
-    "sass": "^1.53.0",
-    "sass-loader": "^10.3.0"
+    "@vueuse/nuxt": "^8.6.0",
+    "nuxt": "3.0.0-rc.4",
+    "sass": "^1.53.0"
   },
   "dependencies": {
     "nocodb-sdk": "file:../nocodb-sdk",

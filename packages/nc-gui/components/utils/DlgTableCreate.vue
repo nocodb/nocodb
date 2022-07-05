@@ -154,8 +154,6 @@
 </template>
 
 <script>
-
-import inflection from 'inflection'
 import { validateTableName } from '~/helpers'
 
 export default {
@@ -196,8 +194,8 @@ export default {
     }
   },
   watch: {
-    'table.alias'(v) {
-      this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v.replace(/^\s+|\s+$/g, m => new Array(m.length).fill('_').join('')))}`)
+    'table.alias'(alias) {
+      this.$set(this.table, 'name', `${this.projectPrefix || ''}${alias}`)
     }
   },
   created() {

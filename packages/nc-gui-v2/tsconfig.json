@@ -2,6 +2,18 @@
   "extends": "./.nuxt/tsconfig.json",
   "compilerOptions": {
     "strict": true,
+    "esModuleInterop": true,
+    "incremental": false,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noUnusedLocals": false,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
     "types": ["@intlify/vite-plugin-vue-i18n/client"]
-  }
+  },
+  "exclude": [
+    "node_modules",
+    "dist"
+  ]
 }

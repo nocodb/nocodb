@@ -11,8 +11,8 @@ export const useMetas = () => {
   const metas = useState<{ [idOrTitle: string]: TableType | any }>('metas', () => ({}))
 
   const getMeta = async (tableIdOrTitle: string, force = false) => {
-    if (!force && metas[tableIdOrTitle])
-      return metas[tableIdOrTitle]
+    if (!force && metas[tableIdOrTitle as keyof typeof metas])
+      return metas[tableIdOrTitle as keyof typeof metas]
 
     const modelId = (tables.value.find(t => t.title === tableIdOrTitle || t.id === tableIdOrTitle) || {}).id
     if (!modelId) {
@@ -28,7 +28,7 @@ export const useMetas = () => {
 
     metas.value = {
       ...metas.value,
-      [model.id]: model,
+      [model.id!]: model,
       [model.title]: model,
     }
 

@@ -22,11 +22,11 @@ function addAxiosInterceptors(api: Api<any>) {
     if (user?.token)
       config.headers['xc-auth'] = user?.token
 
-    if (!config.url.endsWith('/user/me') && !config.url.endsWith('/admin/roles')) {
+    if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       // config.headers['xc-preview'] = store.state.users.previewAs
     }
 
-    if (!config.url.endsWith('/user/me') && !config.url.endsWith('/admin/roles')) {
+    if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       if (route && route.params && route.params.shared_base_id)
         config.headers['xc-shared-base-id'] = route.params.shared_base_id
     }
@@ -96,7 +96,7 @@ function addAxiosInterceptors(api: Api<any>) {
     })
 }
 
-export function getApi(store, axios) {
+export function getApi(store: any, axios: any) {
   const api = new Api({
     baseURL: 'http://localhost:8080',
     headers: {

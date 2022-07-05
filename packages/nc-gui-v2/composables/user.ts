@@ -17,7 +17,7 @@ export const useUser = () => {
     user.user = await $api.auth.me(...args)
   }
 
-  const setToken = (token) => {
+  const setToken = (token: string) => {
     user.token = token
   }
 

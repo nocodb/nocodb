@@ -82,7 +82,6 @@ export default {
         UITypes.Email,
         UITypes.URL,
         UITypes.Number,
-        UITypes.Percent,
         UITypes.Count,
         UITypes.AutoNumber,
         UITypes.SpecificDBType,
@@ -95,7 +94,8 @@ export default {
         UITypes.Year,
         UITypes.Time,
         UITypes.Duration,
-        UITypes.Decimal
+        UITypes.Decimal,
+        UITypes.Percent
       ].includes(this.uiDatatype)
     }
   }

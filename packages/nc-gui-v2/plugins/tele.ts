@@ -6,7 +6,6 @@ import io from 'socket.io-client'
 export default defineNuxtPlugin(async (nuxtApp) => {
   const router = useRouter()
   const route = useRoute()
-  const { user } = useUser()
 
   let socket: Socket
 
@@ -77,10 +76,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
   }
 
-  if (user?.token) await init(user.token)
+  if (nuxtApp.$state.user && nuxtApp.$state.token) await init(nuxtApp.$state.token)
 
   watch(
-    () => user?.token,
+    () => nuxtApp.$state.token,
     (newToken, oldToken) => {
       if (newToken !== oldToken) init(newToken)
       else if (!newToken) socket.disconnect()

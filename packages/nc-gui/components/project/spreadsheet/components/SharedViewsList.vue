@@ -51,7 +51,6 @@
                 </template>
               </td>
               <td class="caption">
-                {{ currentView }}
                 <template v-if="'download' in currentView">
                   <span>{{ ~~currentView.download === 1 ? '✔️' : '❌' }}</span>
                 </template>
@@ -95,7 +94,6 @@
                   </template>
                 </td>
                 <td class="caption">
-                  {{ link }}
                   <template v-if="'download' in link">
                     <span>{{ ~~link.download === 1 ? '✔️' : '❌' }}</span>
                   </template>

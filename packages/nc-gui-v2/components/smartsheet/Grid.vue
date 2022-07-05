@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { useNuxtApp } from '#app'
-import { useUser } from '~/composables/user'
 
 interface Props {
   tabMeta: Record<string, any>
@@ -10,20 +9,19 @@ interface Props {
 const { tabMeta, meta } = defineProps<Props>()
 
 const { project } = useProject()
-const { user } = useUser()
 const rows = ref()
 
-const { $api } = useNuxtApp()
+const { $api, $state } = useNuxtApp()
 
 const loadData = async () => {
   const response = await $api.dbTableRow.list(
     'noco',
-    project.value.id,
+    project.value.id!,
     meta.id,
     {},
     {
       headers: {
-        'xc-auth': user.token,
+        'xc-auth': $state.value.token,
       },
     },
   )

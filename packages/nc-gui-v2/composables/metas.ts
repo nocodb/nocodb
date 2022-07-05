@@ -1,11 +1,9 @@
 import type { TableType } from 'nocodb-sdk'
 import { useNuxtApp, useState } from '#app'
-import { useUser } from '~/composables/user'
 import { useProject } from '~/composables/project'
 
 export const useMetas = () => {
   const { $api } = useNuxtApp()
-  const { user } = useUser()
   const { tables } = useProject()
 
   const metas = useState<{ [idOrTitle: string]: TableType | any }>('metas', () => ({}))
@@ -19,11 +17,7 @@ export const useMetas = () => {
       return
     }
 
-    const model = await $api.dbTable.read(modelId, {
-      headers: {
-        'xc-auth': user.token,
-      },
-    })
+    const model = await $api.dbTable.read(modelId)
 
     metas.value = {
       ...metas.value,

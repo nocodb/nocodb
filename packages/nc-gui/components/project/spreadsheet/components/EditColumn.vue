@@ -768,7 +768,7 @@ export default {
         }
 
         if (this.newColumn.uidt === UITypes.Percent && this.newColumn?.meta?.defaultNumber) {
-          this.newColumn.cdf = this.newColumn?.meta?.defaultNumber
+          this.newColumn.cdf = Number(this.newColumn?.meta?.defaultNumber) / 100 
         }
 
         if (this.isLinkToAnotherRecord && this.$refs.relation) {

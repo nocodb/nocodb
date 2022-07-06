@@ -1,6 +1,7 @@
 import path from 'path'
 import { defineNuxtConfig } from 'nuxt'
 import vueI18n from '@intlify/vite-plugin-vue-i18n'
+import Icons from 'unplugin-icons/vite'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -27,6 +28,10 @@ export default defineNuxtConfig({
     plugins: [
       vueI18n({
         include: path.resolve(__dirname, './lang'),
+      }),
+      Icons({
+        autoInstall: true,
+        compiler: 'vue3',
       }),
     ],
     define: {

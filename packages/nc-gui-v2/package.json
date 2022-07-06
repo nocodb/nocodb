@@ -9,10 +9,13 @@
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.25.2",
+    "@iconify-json/material-symbols": "^1.1.8",
     "@intlify/vite-plugin-vue-i18n": "^4.0.0",
+    "@vue/compiler-sfc": "^3.2.37",
     "@vueuse/nuxt": "^8.6.0",
     "nuxt": "3.0.0-rc.4",
-    "sass": "^1.53.0"
+    "sass": "^1.53.0",
+    "unplugin-icons": "^0.14.7"
   },
   "dependencies": {
     "@vueuse/core": "^8.7.5",

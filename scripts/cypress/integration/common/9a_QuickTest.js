@@ -16,7 +16,7 @@ let records = {
     URL: "www.a.com",
     Number: "1",
     Value: "$1.00",
-    Percent: "0.01",
+    Percent: "0.01%",
 };
 
 // links/ computed fields

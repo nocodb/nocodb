@@ -57,7 +57,7 @@ export default {
 
             <v-menu>
               <template #activator="{ props }">
-                <MdiDotsVertical class="cursor-pointer" @click="props.onClick" />
+                <MdiDotsVertical class="md:text-xl cursor-pointer" @click="props.onClick" />
               </template>
               <v-list class="!py-0 nc-user-menu min-w-32">
                 <nuxt-link

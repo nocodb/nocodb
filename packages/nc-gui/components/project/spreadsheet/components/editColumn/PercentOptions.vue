@@ -26,6 +26,16 @@
           </div>
         </template>
       </v-autocomplete>
+      <v-text-field
+        v-model="colMeta.defaultNumber"
+        type="number"
+        hide-details="auto"
+        color="primary"
+        class="caption nc-column-name-input"
+        label="Default Number"
+        dense
+        outlined
+      />
     </v-row>
     <v-row class="percent-switch-wrapper">
       <v-switch
@@ -56,7 +66,8 @@ export default {
     })),
     colMeta: {
       percentOption: 0,
-      allowNegativeNumber: false
+      allowNegativeNumber: false,
+      defaultNumber: null
     }
   }),
   watch: {

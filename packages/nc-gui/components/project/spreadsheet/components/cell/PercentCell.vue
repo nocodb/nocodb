@@ -16,17 +16,17 @@ export default {
   }),
   computed: {},
   watch: {
-    'column.meta.percentOption'(newValue, oldValue) {
+    'column.meta.precision'(newValue, oldValue) {
       if (oldValue !== newValue) {
         this.localValue = renderPercent(this.value, newValue);
       }
     },
     value(val, oldVal) {
-      this.localValue = renderPercent(val, this.column?.meta?.percentOption || 0);
+      this.localValue = renderPercent(val, this.column?.meta?.precision || 0);
     },
   },
   created() {
-    this.localValue = renderPercent(this.value, this.column?.meta?.percentOption || 0);
+    this.localValue = renderPercent(this.value, this.column?.meta?.precision || 0);
   },
   methods: {},
 };

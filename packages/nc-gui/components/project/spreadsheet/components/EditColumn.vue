@@ -637,8 +637,8 @@ export default {
           // return this.$toast.info('Coming Soon...').goAway(3000)
         }
 
-        if (this.newColumn.uidt === UITypes.Percent && this.newColumn?.meta?.defaultNumber) {
-          this.newColumn.cdf = Number(this.newColumn?.meta?.defaultNumber) / 100;
+        if (this.newColumn.uidt === UITypes.Percent && this.newColumn?.meta?.default) {
+          this.newColumn.cdf = Number(this.newColumn?.meta?.default) / 100;
         }
 
         if (this.isLinkToAnotherRecord && this.$refs.relation) {

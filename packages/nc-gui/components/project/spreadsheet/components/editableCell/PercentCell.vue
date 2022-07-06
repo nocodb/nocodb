@@ -43,13 +43,13 @@ export default {
         if (val === null) {
           val = 0;
         }
-        if (isValidPercent(val, this.column?.meta?.allowNegativeNumber)) {
+        if (isValidPercent(val, this.column?.meta?.negative)) {
           this.percent = val / 100;
         }
       },
     },
     percentType() {
-      return this.column?.meta?.percentOption || 0;
+      return this.column?.meta?.precision || 0;
     },
     parentListeners() {
       const $listeners = {};
@@ -82,7 +82,7 @@ export default {
       const CAPTIAL_LETTER_E = charCode === 69;
       const SMALL_LETTER_E = charCode === 101;
       const NEGATIVE_SIGN = charCode === 45;
-      const NEGATIVE_SIGN_INVALID = !this.column?.meta?.allowNegativeNumber && NEGATIVE_SIGN;
+      const NEGATIVE_SIGN_INVALID = !this.column?.meta?.negative && NEGATIVE_SIGN;
       if (NEGATIVE_SIGN_INVALID) {
         this.warningMessage = 'Negative Number is not allowed. Please configure it in Column setting.';
         evt.preventDefault();
@@ -98,7 +98,7 @@ export default {
         // only allow:
         // 1. digits
         // 2. '.'
-        // 3. '-' if this.column?.meta?.allowNegativeNumber is true
+        // 3. '-' if this.column?.meta?.negative is true
         return true;
       }
     },

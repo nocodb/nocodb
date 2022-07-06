@@ -1,4 +1,4 @@
-export const percentOptions = [
+export const precisions = [
   { id: 0, title: '1' },
   { id: 1, title: '1.0' },
   { id: 2, title: '1.00' },
@@ -10,15 +10,15 @@ export const percentOptions = [
   { id: 8, title: '1.00000000' }
 ]
 
-export const renderPercent = (value, percentOption, withPercentSymbol = true) => {
+export const renderPercent = (value, precision, withPercentSymbol = true) => {
   if (!value) { return value }
-  value = (Number(value) * 100).toFixed(percentOption)
+  value = (Number(value) * 100).toFixed(precision)
   if (withPercentSymbol) { return padPercentSymbol(value) }
   return value
 }
 
-export const isValidPercent = (val, allowNegativeNumber) => {
-  if (allowNegativeNumber) { return /^-?\d{1,20}(\.\d+)?$/.test(val) }
+export const isValidPercent = (val, negative) => {
+  if (negative) { return /^-?\d{1,20}(\.\d+)?$/.test(val) }
   return /^\d{1,20}(\.\d+)?$/.test(val)
 }
 

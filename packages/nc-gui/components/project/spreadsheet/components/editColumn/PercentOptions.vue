@@ -3,7 +3,7 @@
     <v-row class="percent-wrapper">
       <!-- TODO: i18n -->
       <v-autocomplete
-        v-model="colMeta.percentOption"
+        v-model="colMeta.precision"
         hide-details
         class="caption ui-type nc-ui-dt-dropdown"
         label="Precision"
@@ -11,7 +11,7 @@
         outlined
         item-value="id"
         item-text="title"
-        :items="percentOptionsList"
+        :items="precisionsList"
       >
         <template #selection="{ item }">
           <div>
@@ -27,7 +27,7 @@
         </template>
       </v-autocomplete>
       <v-text-field
-        v-model="colMeta.defaultNumber"
+        v-model="colMeta.default"
         type="number"
         hide-details="auto"
         color="primary"
@@ -38,7 +38,7 @@
       />
     </v-row>
     <v-row class="percent-switch-wrapper">
-      <v-switch v-model="colMeta.allowNegativeNumber" dense>
+      <v-switch v-model="colMeta.negative" dense>
         <template #label>
           <span>
             <!-- TODO: i18n -->
@@ -51,20 +51,20 @@
 </template>
 
 <script>
-import { percentOptions } from '~/helpers/percentHelper';
+import { precisions } from '~/helpers/percentHelper';
 
 export default {
-  name: 'PercentOptions',
+  name: 'precisions',
   props: ['column', 'meta', 'value'],
   data: () => ({
-    percentOptionsList: percentOptions.map(o => ({
+    precisionsList: precisions.map(o => ({
       ...o,
       title: o.title,
     })),
     colMeta: {
-      percentOption: 0,
-      allowNegativeNumber: false,
-      defaultNumber: null,
+      precision: 0,
+      negative: false,
+      default: null,
     },
   }),
   watch: {

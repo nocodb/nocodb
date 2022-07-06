@@ -405,8 +405,8 @@ export default async (
           return {
             type: UITypes.Percent,
             data: {
-              percentOption: col.typeOptions?.precision,
-              allowNegativeNumber: col.typeOptions?.negative,
+              precision: col.typeOptions?.precision,
+              negative: col.typeOptions?.negative,
             },
           };
         return { type: undefined };

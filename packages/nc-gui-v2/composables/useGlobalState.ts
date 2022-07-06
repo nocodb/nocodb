@@ -1,4 +1,4 @@
-import { createGlobalState, usePreferredLanguages, useStorage } from '@vueuse/core'
+import { createGlobalState, usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
 import type { GlobalState } from '~/lib/types'
 
 const storageKey = 'nocodb-gui-v2'
@@ -8,7 +8,8 @@ const storageKey = 'nocodb-gui-v2'
  */
 export const useGlobalState = () => {
   const preferredLanguages = $(usePreferredLanguages())
+  const darkMode = $(usePreferredDark())
   return createGlobalState(() =>
-    useStorage<GlobalState>(storageKey, { token: undefined, user: undefined, lang: preferredLanguages[0] || 'en' }),
+    useStorage<GlobalState>(storageKey, { token: undefined, user: undefined, lang: preferredLanguages[0] || 'en', darkMode }),
   )
 }

@@ -59,14 +59,13 @@ onMounted(() => {
 </template>
 
 <style scoped lang="scss">
-::v-deep {
-  .nc-language-list {
-    min-width: 200px;
-    max-height: 90vh;
-    overflow: auto;
-    .v-list-item {
-      min-height: 30px !important;
-    }
+:deep(.nc-language-list) {
+  min-width: 200px;
+  max-height: 90vh;
+  overflow: auto;
+
+  .v-list-item {
+    min-height: 30px !important;
   }
 }
 </style>

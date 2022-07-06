@@ -2,27 +2,13 @@
 import { inject, ComputedRef } from 'vue'
 import { isVirtualCol } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
-import { useNuxtApp } from '#app'
-import type { TabItem } from '~/composables/tabs'
+import { useData } from '~/composables/data'
 
-const tabMeta = inject<TabItem>('tabMeta')
 const meta = inject<ComputedRef<TableType>>('meta')
 
-const { project } = useProject()
-const rows = ref()
+const { loadData, paginationData, formattedData: data } = useData(meta)
 
-const { $api, $state } = useNuxtApp()
-
-const loadData = async () => {
-  const response = await $api.dbTableRow.list(
-    'noco',
-    project.value.id!,
-    meta.id
-  )
-
-  rows.value = response.list
-}
-onMounted(loadData)
+onMounted(() => loadData({}))
 </script>
 
 <template>
@@ -39,7 +25,7 @@ onMounted(loadData)
     </thead>
     <tbody>
       <tr
-        v-for="(row, rowIndex) in rows"
+        v-for="({ row }, rowIndex) in data"
         :key="rowIndex"
         class="nc-grid-row"
       >

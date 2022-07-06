@@ -140,7 +140,7 @@ const testConnection = async () => {
                 <v-text-field v-model="projectDatasource.connection.database" density="compact" label="Database name" />
               </v-col>
 
-                <!--                <v-col cols="6">
+              <!--                <v-col cols="6">
                   <v-text-field
                     v-model="inflection.tableName"
                     density="compact"
@@ -155,22 +155,22 @@ const testConnection = async () => {
                     label="Database name"
                   />
                 </v-col> -->
-              </v-row>
-            </v-container>
+            </v-row>
+          </v-container>
 
-            <div class="d-flex justify-center" style="gap: 4px">
-              <v-btn :disabled="!testSuccess" large :loading="loading" color="primary" @click="createProject">
-                <MaterialSymbolsRocketLaunchOutline class="mr-1" />
-                <span> {{ $t('general.create') }} </span>
-              </v-btn>
+          <div class="d-flex justify-center" style="gap: 4px">
+            <v-btn :disabled="!testSuccess" large :loading="loading" color="primary" @click="createProject">
+              <MaterialSymbolsRocketLaunchOutline class="mr-1" />
+              <span> {{ $t('general.create') }} </span>
+            </v-btn>
 
-<!--              <v-btn small class="px-2">-->
-              <!--     todo:implement test connection -->
-              <!--         <v-btn size="sm" class="text-sm text-capitalize">
+            <!--              <v-btn small class="px-2"> -->
+            <!--     todo:implement test connection -->
+            <!--         <v-btn size="sm" class="text-sm text-capitalize">
                 &lt;!&ndash; Test Database Connection &ndash;&gt;
                 {{ $t('activity.testDbConn') }}
-              </v-btn>-->
-            </div>
+              </v-btn> -->
+          </div>
         </v-card>
       </v-form>
     </v-container>

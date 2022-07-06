@@ -1,5 +1,31 @@
 <script>
-import colors from '@/components/project/spreadsheet/helpers/colors'
+
+
+import { computed } from "@vue/reactivity";
+import { ColumnType } from "nocodb-sdk";
+import { inject, Ref } from "vue";
+import {enumColor}from "~/utils/colorsUtils";
+
+const column = inject<ColumnType>("column");
+const isForm = inject<boolean>("isForm");
+
+const { modelValue } = defineProps<{ modelValue: any }>();
+const emit = defineEmits(["update:modelValue"]);
+
+const localState = computed({
+  get() {
+    return modelValue?.replace(/\\'/g, "'").replace(/^'|'$/g, "");
+  },
+  set(val) {
+    emit("update:modelValue", val);
+  }
+});
+
+const options = computed<string[]>(() => {
+  return column?.dtxp?.split(",").map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, "")) || [];
+});
+
+/*import colors from '@/components/project/spreadsheet/helpers/colors'
 
 export default {
   name: 'SetListCheckboxCell',
@@ -47,7 +73,7 @@ export default {
     event.initMouseEvent('mousedown', true, true, window)
     this.$el.dispatchEvent(event)
   },
-}
+}*/
 </script>
 
 <template>
@@ -73,27 +99,3 @@ export default {
   border-radius: 25px;
 }
 </style>
-<!--
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
--->

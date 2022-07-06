@@ -1,29 +1,17 @@
-<template>
-  <textarea
-    ref="textarea"
-    v-model="localState"
-    rows="4"
-    v-on="parentListeners"
-    @keydown.alt.enter.stop
-    @keydown.shift.enter.stop
-  />
-</template>
-
 <script>
 export default {
   name: 'TextAreaCell',
   props: {
-    value: String
+    value: String,
   },
   computed: {
-
     localState: {
       get() {
         return this.value
       },
       set(val) {
         this.$emit('input', val)
-      }
+      },
     },
     parentListeners() {
       const $listeners = {}
@@ -36,19 +24,31 @@ export default {
       }
 
       return $listeners
-    }
+    },
   },
   created() {
     this.localState = this.value
   },
   mounted() {
     this.$refs.textarea && this.$refs.textarea.focus()
-  }
+  },
 }
 </script>
 
+<template>
+  <textarea
+    ref="textarea"
+    v-model="localState"
+    rows="4"
+    v-on="parentListeners"
+    @keydown.alt.enter.stop
+    @keydown.shift.enter.stop
+  />
+</template>
+
 <style scoped>
-input, textarea {
+input,
+textarea {
   width: 100%;
   min-height: 60px;
   height: 100%;

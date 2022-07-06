@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
 import { useNuxtApp, useRouter } from '#app'
-import { extractSdkResponseErrorMsg } from "~/utils/errorUtils";
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
 const name = ref('')
 const loading = ref(false)
@@ -10,7 +10,10 @@ const valid = ref(false)
 const { $api, $toast } = useNuxtApp()
 const $router = useRouter()
 
-const titleValidationRule = [(v:string) => !!v || 'Title is required', (v:string) => v.length <= 50 || 'Project name exceeds 50 characters']
+const titleValidationRule = [
+  (v: string) => !!v || 'Title is required',
+  (v: string) => v.length <= 50 || 'Project name exceeds 50 characters',
+]
 
 const createProject = async () => {
   loading.value = true
@@ -20,7 +23,7 @@ const createProject = async () => {
     })
 
     await $router.push(`/nc/${result.id}`)
-  } catch (e:any) {
+  } catch (e: any) {
     // todo: toast
     $toast.error(await extractSdkResponseErrorMsg(e)).goAway(3000)
   }
@@ -59,7 +62,7 @@ const createProject = async () => {
 </template>
 
 <style scoped>
-/deep/ label {
+:deep(label) {
   font-size: 0.75rem;
 }
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import useProject from '~/composables/useProject'
-import  useTabs from '~/composables/useTabs'
+import useTabs from '~/composables/useTabs'
 
 const { tables } = useProject()
 const { addTab } = useTabs()

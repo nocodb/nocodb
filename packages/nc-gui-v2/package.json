@@ -1,11 +1,19 @@
 {
   "private": true,
   "scripts": {
-    "build": "nuxt build",
-    "dev": "nuxt dev",
-    "generate": "nuxt generate",
-    "preview": "nuxt preview",
+    "build": "nuxi build",
+    "dev": "nuxi dev",
+    "generate": "nuxi generate",
+    "start": "node .output/server/index.mjs",
     "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore ."
+  },
+  "dependencies": {
+    "@vueuse/core": "^8.7.5",
+    "nocodb-sdk": "file:../nocodb-sdk",
+    "socket.io-client": "^4.5.1",
+    "vue-i18n": "^9.1.10",
+    "vue-toastification": "^2.0.0-rc.5",
+    "vuetify": "^3.0.0-alpha.13"
   },
   "devDependencies": {
     "@antfu/eslint-config": "^0.25.2",
@@ -13,20 +21,14 @@
     "@intlify/vite-plugin-vue-i18n": "^4.0.0",
     "@vue/compiler-sfc": "^3.2.37",
     "@vueuse/nuxt": "^8.6.0",
-    "nuxt": "3.0.0-rc.4",
-    "sass": "^1.53.0",
-    "unplugin-icons": "^0.14.7"
-  },
-  "dependencies": {
-    "@vueuse/core": "^8.7.5",
+    "@windicss/plugin-scrollbar": "^1.2.3",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
-    "nocodb-sdk": "file:../nocodb-sdk",
-    "nuxt3-store": "^1.0.0",
+    "nuxt": "3.0.0-rc.4",
+    "nuxt-windicss": "^2.4.2",
     "prettier": "^2.7.1",
-    "socket.io-client": "^4.5.1",
-    "vue-i18n": "^9.1.10",
-    "vue-toastification": "^2.0.0-rc.5",
-    "vuetify": "^3.0.0-alpha.13"
+    "sass": "^1.53.0",
+    "unplugin-icons": "^0.14.7",
+    "windicss": "^3.5.6"
   }
 }

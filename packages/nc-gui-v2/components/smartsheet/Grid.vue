@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { inject, ComputedRef, onMounted } from "vue";
+import type { ComputedRef } from 'vue'
+import { inject, onMounted } from 'vue'
 import { isVirtualCol } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
-import  useViewData  from '~/composables/useViewData'
+import useViewData from '~/composables/useViewData'
 
 const meta = inject<ComputedRef<TableType>>('meta')
 
@@ -12,34 +13,24 @@ onMounted(() => loadData({}))
 </script>
 
 <template>
-  <table
-    class="xc-row-table nc-grid backgroundColorDefault"
-  >
+  <table class="xc-row-table nc-grid backgroundColorDefault">
     <thead>
       <tr>
         <th>#</th>
-        <th v-for="(col) in meta.columns" :key="col.title">
+        <th v-for="col in meta.columns" :key="col.title">
           {{ col.title }}
         </th>
       </tr>
     </thead>
     <tbody>
-      <tr
-        v-for="({ row }, rowIndex) in data"
-        :key="rowIndex"
-        class="nc-grid-row"
-      >
-        <td
-          key="row-index"
-          style="width: 65px"
-          class="caption nc-grid-cell"
-        >
+      <tr v-for="({ row }, rowIndex) in data" :key="rowIndex" class="nc-grid-row">
+        <td key="row-index" style="width: 65px" class="caption nc-grid-cell">
           <div class="d-flex align-center">
             {{ rowIndex + 1 }}
           </div>
         </td>
         <td
-          v-for="(columnObj) in meta.columns"
+          v-for="columnObj in meta.columns"
           :key="rowIndex + columnObj.title"
           class="cell pointer nc-grid-cell"
           :class="{
@@ -128,18 +119,18 @@ onMounted(() => loadData({}))
             :column="columnObj"
             :value="row[columnObj.title]"
           />
-        <!-- :selected="selected.col === col && selected.row === row" -->
-        <!--        :is-locked="isLocked" -->
-        <!--            :column="columnObj" -->
-        <!--            :meta="meta" -->
-        <!--            :db-alias="nodes.dbAlias" -->
-        <!--            :value="rowObj[columnObj.title]" -->
-        <!--            :sql-ui="sqlUi" -->
-        <!--            @enableedit=" -->
-        <!--              makeSelected(col, row); -->
-        <!--              makeEditable(col, row, columnObj.ai, rowMeta); -->
-        <!--            " -->
-        <!--          /> -->
+          <!-- :selected="selected.col === col && selected.row === row" -->
+          <!--        :is-locked="isLocked" -->
+          <!--            :column="columnObj" -->
+          <!--            :meta="meta" -->
+          <!--            :db-alias="nodes.dbAlias" -->
+          <!--            :value="rowObj[columnObj.title]" -->
+          <!--            :sql-ui="sqlUi" -->
+          <!--            @enableedit=" -->
+          <!--              makeSelected(col, row); -->
+          <!--              makeEditable(col, row, columnObj.ai, rowMeta); -->
+          <!--            " -->
+          <!--          /> -->
         </td>
       </tr>
     </tbody>
@@ -164,10 +155,10 @@ th {
   border-top: 1px solid #7f828b33 !important;
   border-collapse: collapse;
 
-  font-size:.8rem;
+  font-size: 0.8rem;
 }
 
-td{
+td {
   text-overflow: ellipsis;
   white-space: nowrap;
 }

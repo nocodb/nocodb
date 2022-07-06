@@ -1,7 +1,3 @@
-<template>
-  <span>{{ dateTime }}</span>
-</template>
-
 <script>
 import dayjs from 'dayjs'
 
@@ -10,12 +6,16 @@ export default {
   props: ['value'],
   computed: {
     dateTime() {
-      return !this.value ? this.value : (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD HH:mm')
-    }
-  }
+      return !this.value
+        ? this.value
+        : (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD HH:mm')
+    },
+  },
 }
 </script>
 
-<style scoped>
+<template>
+  <span>{{ dateTime }}</span>
+</template>
 
-</style>
+<style scoped></style>

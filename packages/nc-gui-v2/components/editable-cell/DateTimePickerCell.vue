@@ -1,32 +1,4 @@
-<template>
-  <div>
-    <div v-show="!showMessage">
-      <v-datetime-picker
-        ref="picker"
-        v-model="localState"
-        class="caption xc-date-time-picker"
-        :text-field-props="{
-          class:'caption mt-0 pt-0',
-          flat:true,
-          solo:true,
-          dense:true,
-          hideDetails:true
-        }"
-        :time-picker-props="{
-          format:'24hr'
-        }"
-        v-on="parentListeners"
-      />
-    </div>
-    <div v-show="showMessage" class="edit-warning" @dblclick="$refs.picker.display = true">
-      <!-- TODO: i18n -->
-      ERR: Couldn't parse {{ this.value }}
-    </div>
-  </div>
-</template>
-
 <script>
-
 import dayjs from 'dayjs'
 import utc from 'dayjs/plugin/utc'
 
@@ -35,10 +7,11 @@ dayjs.extend(utc)
 export default {
   name: 'DateTimePickerCell',
   props: {
-    value: [String, Date, Number], ignoreFocus: Boolean
+    value: [String, Date, Number],
+    ignoreFocus: Boolean,
   },
   data: () => ({
-    showMessage: false
+    showMessage: false,
   }),
   computed: {
     isMysql() {
@@ -49,7 +22,7 @@ export default {
         if (!this.value) {
           return this.value
         }
-        const d = (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
+        const d = /^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)
         if (d.isValid()) {
           this.showMessage = false
           return d.format('YYYY-MM-DD HH:mm')
@@ -63,7 +36,7 @@ export default {
         } else {
           this.$emit('input', value && dayjs(value).format('YYYY-MM-DD HH:mm:ssZ'))
         }
-      }
+      },
     },
     parentListeners() {
       const $listeners = {}
@@ -76,7 +49,7 @@ export default {
       }
 
       return $listeners
-    }
+    },
   },
   mounted() {
     // listen dialog click:outside event and save on close
@@ -89,12 +62,40 @@ export default {
     if (!this.ignoreFocus) {
       this.$refs.picker.display = true
     }
-  }
+  },
 }
 </script>
 
+<template>
+  <div>
+    <div v-show="!showMessage">
+      <v-datetime-picker
+        ref="picker"
+        v-model="localState"
+        class="caption xc-date-time-picker"
+        :text-field-props="{
+          class: 'caption mt-0 pt-0',
+          flat: true,
+          solo: true,
+          dense: true,
+          hideDetails: true,
+        }"
+        :time-picker-props="{
+          format: '24hr',
+        }"
+        v-on="parentListeners"
+      />
+    </div>
+    <div v-show="showMessage" class="edit-warning" @dblclick="$refs.picker.display = true">
+      <!-- TODO: i18n -->
+      ERR: Couldn't parse {{ value }}
+    </div>
+  </div>
+</template>
+
 <style scoped>
-/deep/ .v-input, /deep/ .v-text-field {
+:deep(.v-input),
+:deep(.v-text-field) {
   margin-top: 0 !important;
   padding-top: 0 !important;
   font-size: inherit !important;
@@ -103,7 +104,7 @@ export default {
 .edit-warning {
   padding: 10px;
   text-align: left;
-  color: #E65100;
+  color: #e65100;
 }
 </style>
 <!--

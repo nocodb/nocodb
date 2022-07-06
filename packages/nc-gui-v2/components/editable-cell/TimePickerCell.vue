@@ -1,25 +1,10 @@
-<template>
-  <v-menu>
-    <template #activator="{on}">
-      <input v-model="localState" class="value" v-on="on">
-    </template>
-    <div class="d-flex flex-column justify-center" @click.stop>
-      <v-time-picker v-model="localState" v-on="parentListeners" />
-      <v-btn small color="primary" @click="$emit('save')">
-        <!-- Save -->
-        {{ $t('general.save') }}
-      </v-btn>
-    </div>
-  </v-menu>
-</template>
-
 <script>
 import dayjs from 'dayjs'
 
 export default {
   name: 'TimePickerCell',
   props: {
-    value: [String, Date]
+    value: [String, Date],
   },
   computed: {
     isMysql() {
@@ -51,8 +36,7 @@ export default {
             this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ssZ'))
           }
         }
-      }
-
+      },
     },
     parentListeners() {
       const $listeners = {}
@@ -69,15 +53,30 @@ export default {
       }
 
       return $listeners
-    }
+    },
   },
   mounted() {
     if (this.$el && this.$el.$el) {
       this.$el.$el.focus()
     }
-  }
+  },
 }
 </script>
+
+<template>
+  <v-menu>
+    <template #activator="{ on }">
+      <input v-model="localState" class="value" v-on="on" />
+    </template>
+    <div class="d-flex flex-column justify-center" @click.stop>
+      <v-time-picker v-model="localState" v-on="parentListeners" />
+      <v-btn small color="primary" @click="$emit('save')">
+        <!-- Save -->
+        {{ $t('general.save') }}
+      </v-btn>
+    </div>
+  </v-menu>
+</template>
 
 <style scoped>
 .value {

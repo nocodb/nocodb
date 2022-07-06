@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import useColumn  from '~/composables/useColumn'
+import useColumn from '~/composables/useColumn'
 
 const { column, value } = defineProps<{ column: ColumnType; value: any }>()
 provide('column', column)
@@ -38,11 +38,7 @@ const {
   <!--  <CellDuration v-else-if="isDuration" /> -->
   <!--  <CellRating v-else-if="isRating" /> -->
   <!--  <CellCurrency v-else-if="isCurrency" /> -->
-  <span
-    v-else
-    :title="title"
-  >{{ value }}</span>
+  <span v-else :title="title">{{ value }}</span>
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>

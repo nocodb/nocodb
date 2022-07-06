@@ -5,11 +5,11 @@ import Icons from 'unplugin-icons/vite'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
-  modules: ['@vueuse/nuxt'],
+  modules: ['@vueuse/nuxt', 'nuxt-windicss'],
 
   ssr: false,
 
-  css: ['vuetify/lib/styles/main.sass'],
+  css: ['virtual:windi.css', 'virtual:windi-devtools', 'vuetify/lib/styles/main.sass'],
 
   build: {
     transpile: ['vuetify'],

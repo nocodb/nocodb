@@ -1,40 +1,3 @@
-<template>
-  <v-select
-    v-model="localState"
-    solo
-    dense
-    flat
-    :items="enumValues"
-    hide-details
-    class="mt-0"
-    :clearable="!column.rqd"
-    v-on="parentListeners"
-  >
-    <template #selection="{item}">
-      <div
-        class="d-100"
-        :class="{
-          'text-center' : !isForm
-        }"
-      >
-        <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]" class="ma-1">
-          {{ item }}
-        </v-chip>
-      </div>
-    </template>
-    <template #item="{item}">
-      <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">
-        {{ item }}
-      </v-chip>
-    </template>
-    <template #append>
-      <v-icon small class="mt-1">
-        mdi-menu-down
-      </v-icon>
-    </template>
-  </v-select>
-</template>
-
 <script>
 import colors from '@/mixins/colors'
 
@@ -45,22 +8,20 @@ export default {
   props: {
     value: String,
     column: Object,
-    isForm: Boolean
+    isForm: Boolean,
   },
   computed: {
     localState: {
       get() {
-        return this.value && this.value.replace(/\\'/g, '\'').replace(/^'|'$/g, '')
+        return this.value && this.value.replace(/\\'/g, "'").replace(/^'|'$/g, '')
       },
       set(val) {
         this.$emit('input', val)
-      }
+      },
     },
     enumValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp
-          .split(',')
-          .map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
+        return this.column.dtxp.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''))
       }
       return []
     },
@@ -75,7 +36,7 @@ export default {
       }
 
       return $listeners
-    }
+    },
   },
   mounted() {
     // this.$el.focus();
@@ -83,16 +44,51 @@ export default {
     // event = document.createEvent('MouseEvents');
     // event.initMouseEvent('mousedown', true, true, window);
     // this.$el.dispatchEvent(event);
-  }
+  },
 }
 </script>
+
+<template>
+  <v-select
+    v-model="localState"
+    solo
+    dense
+    flat
+    :items="enumValues"
+    hide-details
+    class="mt-0"
+    :clearable="!column.rqd"
+    v-on="parentListeners"
+  >
+    <template #selection="{ item }">
+      <div
+        class="d-100"
+        :class="{
+          'text-center': !isForm,
+        }"
+      >
+        <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]" class="ma-1">
+          {{ item }}
+        </v-chip>
+      </div>
+    </template>
+    <template #item="{ item }">
+      <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">
+        {{ item }}
+      </v-chip>
+    </template>
+    <template #append>
+      <v-icon small class="mt-1"> mdi-menu-down </v-icon>
+    </template>
+  </v-select>
+</template>
 
 <style scoped lang="scss">
 ::v-deep {
   .v-select {
     min-width: 150px;
   }
-  .v-input__slot{
+  .v-input__slot {
     padding-right: 0 !important;
     padding-left: 35px !important;
   }

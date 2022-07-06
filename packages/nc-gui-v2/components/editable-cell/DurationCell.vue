@@ -1,30 +1,12 @@
-<template>
-  <div class="duration-cell-wrapper">
-    <input
-      ref="durationInput"
-      v-model="localState"
-      :placeholder="durationPlaceholder"
-      @blur="onBlur"
-      @keypress="checkDurationFormat($event)"
-      @keydown.enter="isEdited && $emit('input', durationInMS)"
-      v-on="parentListeners"
-    >
-    <div v-if="showWarningMessage == true" class="duration-warning">
-      <!-- TODO: i18n -->
-      Please enter a number
-    </div>
-  </div>
-</template>
-
 <script>
-import { durationOptions, convertMS2Duration, convertDurationToSeconds } from '~/helpers/durationHelper'
+import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
   props: {
     column: Object,
     value: [Number, String],
-    readOnly: Boolean
+    readOnly: Boolean,
   },
   data: () => ({
     // flag to determine to show warning message or not
@@ -32,7 +14,7 @@ export default {
     // duration in milliseconds
     durationInMS: null,
     // check if the cell is edited or not
-    isEdited: false
+    isEdited: false,
   }),
   computed: {
     localState: {
@@ -45,7 +27,7 @@ export default {
         if (res._isValid) {
           this.durationInMS = res._sec
         }
-      }
+      },
     },
     durationPlaceholder() {
       return durationOptions[this.durationType].title
@@ -64,7 +46,7 @@ export default {
       }
 
       return $listeners
-    }
+    },
   },
   mounted() {
     window.addEventListener('keypress', (_) => {
@@ -76,7 +58,7 @@ export default {
   methods: {
     checkDurationFormat(evt) {
       evt = evt || window.event
-      const charCode = (evt.which) ? evt.which : evt.keyCode
+      const charCode = evt.which ? evt.which : evt.keyCode
       // ref: http://www.columbia.edu/kermit/ascii.html
       const PRINTABLE_CTL_RANGE = charCode > 31
       const NON_DIGIT = charCode < 48 || charCode > 57
@@ -96,13 +78,30 @@ export default {
         this.$emit('input', this.durationInMS)
       }
       this.isEdited = false
-    }
-  }
+    },
+  },
 }
 </script>
 
-<style scoped>
+<template>
+  <div class="duration-cell-wrapper">
+    <input
+      ref="durationInput"
+      v-model="localState"
+      :placeholder="durationPlaceholder"
+      @blur="onBlur"
+      @keypress="checkDurationFormat($event)"
+      @keydown.enter="isEdited && $emit('input', durationInMS)"
+      v-on="parentListeners"
+    />
+    <div v-if="showWarningMessage == true" class="duration-warning">
+      <!-- TODO: i18n -->
+      Please enter a number
+    </div>
+  </div>
+</template>
 
+<style scoped>
 .duration-cell-wrapper {
   padding: 10px;
 }
@@ -110,7 +109,7 @@ export default {
 .duration-warning {
   text-align: left;
   margin-top: 10px;
-  color: #E65100;
+  color: #e65100;
 }
 </style>
 

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, onMounted, provide, watch } from 'vue'
-import { useMetas } from '~/composables/metas'
+import  useMetas  from '~/composables/useMetas'
 
 const { tabMeta } = defineProps({
   tabMeta: Object,

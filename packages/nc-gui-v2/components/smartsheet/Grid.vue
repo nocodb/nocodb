@@ -2,11 +2,11 @@
 import { inject, ComputedRef, onMounted } from "vue";
 import { isVirtualCol } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
-import { useData } from '~/composables/data'
+import  useViewData  from '~/composables/useViewData'
 
 const meta = inject<ComputedRef<TableType>>('meta')
 
-const { loadData, paginationData, formattedData: data } = useData(meta)
+const { loadData, paginationData, formattedData: data } = useViewData(meta)
 
 onMounted(() => loadData({}))
 </script>

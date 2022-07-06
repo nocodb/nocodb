@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { inject } from 'vue'
-import { enumColor } from '~/composables/colors'
+import { enumColor } from "~/utils/colorsUtils";
 
 const colors = enumColor.light
 

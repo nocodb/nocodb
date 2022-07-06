@@ -1,14 +1,9 @@
 // todo:
 export default () => {
-  const localFilesState = reactive([]);
-  const attachments = ref([]);
+  const localFilesState = reactive([])
+  const attachments = ref([])
 
+  const uploadFile = () => {}
 
-  const uploadFile = () => {
-
-  };
-
-
-  return { uploadFile, localFilesState, attachments };
-
+  return { uploadFile, localFilesState, attachments }
 }

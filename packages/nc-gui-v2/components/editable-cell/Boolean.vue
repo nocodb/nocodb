@@ -1,5 +1,38 @@
-<script>
-export default {
+<script setup lang="ts">
+
+import { ColumnType } from "nocodb-sdk";
+import { computed } from "vue";
+
+const column = inject<ColumnType & { meta?: any }>("column");
+const isForm =inject<boolean>('isForm')
+
+const { modelValue:value } = defineProps<{ modelValue: any }>()
+const emit = defineEmits(["update:modelValue"]);
+
+const checkboxMeta = computed(() => {
+  return {
+    icon: {
+      checked: "mdi-check-circle-outline",
+      unchecked: "mdi-checkbox-blank-circle-outline"
+    },
+    color: "primary",
+    // ...(column?.meta || {})
+  };
+});
+const localState = $computed({
+  get() {
+    return value;
+  }, set(val) {
+    emit("update:modelValue", val);
+  }
+});
+
+const toggle = () =>  {
+  localState = !localState
+}
+
+
+/*export default {
   name: 'BooleanCell',
   props: {
     column: Object,
@@ -42,11 +75,12 @@ export default {
       this.localState = !this.localState
     },
   },
-}
+}*/
 </script>
 
 <template>
-  <div class="d-flex align-center" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !localState }">
+  <div
+    class="d-flex align-center" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !localState }">
     <v-icon small :color="checkboxMeta.color" @click="toggle">
       {{ localState ? checkedIcon : uncheckedIcon }}
     </v-icon>

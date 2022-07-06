@@ -13,6 +13,9 @@ const isPublicView = false;
 const selected = reactive<{ row?: number | null; col?: number | null }>({});
 const editEnabled = ref(false);
 
+provide('isForm', false)
+provide('isGrid', true)
+
 const { loadData, paginationData, formattedData: data } = useViewData(meta);
 
 onMounted(() => loadData({}));

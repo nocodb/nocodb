@@ -1,7 +1,7 @@
 <template>
   <v-card width="1000" max-width="100%">
     <v-toolbar height="55" class="elevation-1">
-      <div class="d-100 d-flex">
+      <div class="header d-100 d-flex">
         <h5 class="title text-center">
           <v-icon :color="iconColor"> mdi-table-arrow-right </v-icon>
 
@@ -17,10 +17,9 @@
         <v-btn small text @click="reload">
           <v-icon small> mdi-reload </v-icon>
         </v-btn>
-
         <x-icon
           v-if="!isNew && _isUIAllowed('rowComments')"
-          icon-class="mr-2"
+          icon-class="ml-1 mr-2 px-1 py-1"
           tooltip="Toggle comments"
           small
           text
@@ -671,6 +670,10 @@ h5 {
   background: var(--v-backgroundColorDefault-base);
 }
 
+.header {
+  display: flex;
+  align-items: center;
+}
 .nc-chip {
   padding: 8px;
   border-radius: 8px;

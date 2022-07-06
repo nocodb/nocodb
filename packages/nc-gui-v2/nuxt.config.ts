@@ -20,10 +20,6 @@ export default defineNuxtConfig({
     '~/assets/style-v2.css',
   ],
 
-  build: {
-    transpile: ['vuetify'],
-  },
-
   meta: {
     title: 'NocoDB',
     description: 'NocoDB GUI V2',

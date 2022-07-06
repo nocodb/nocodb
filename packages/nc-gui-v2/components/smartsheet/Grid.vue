@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { inject, ComputedRef } from 'vue'
+import { inject, ComputedRef, onMounted } from "vue";
 import { isVirtualCol } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
 import { useData } from '~/composables/data'

@@ -8,7 +8,7 @@
       @keypress="checkPercentFormat($event)"
       @keydown.enter="isEdited && $emit('input', percent)"
       v-on="parentListeners"
-    >
+    />
     <div v-if="warningMessage" class="percent-warning">
       {{ warningMessage }}
     </div>
@@ -16,14 +16,14 @@
 </template>
 
 <script>
-import { isValidPercent, renderPercent } from '~/helpers/percentHelper'
+import { isValidPercent, renderPercent } from '~/helpers/percentHelper';
 
 export default {
   name: 'PercentCell',
   props: {
     column: Object,
     value: [Number, String],
-    readOnly: Boolean
+    readOnly: Boolean,
   },
   data: () => ({
     // flag to determine to show warning message or not
@@ -31,83 +31,88 @@ export default {
     // percent in decimal format
     percent: null,
     // check if the cell is edited or not
-    isEdited: false
+    isEdited: false,
   }),
   computed: {
     localState: {
       get() {
-        return renderPercent(this.value, this.percentType, false)
+        return renderPercent(this.value, this.percentType, false);
       },
       set(val) {
-        this.isEdited = true
-        if (val === null) { val = 0 }
-        if (isValidPercent(val, this.column?.meta?.allowNegativeNumber)) {
-          this.percent = val / 100
+        this.isEdited = true;
+        if (val === null) {
+          val = 0;
         }
-      }
+        if (isValidPercent(val, this.column?.meta?.allowNegativeNumber)) {
+          this.percent = val / 100;
+        }
+      },
     },
     percentType() {
-      return this.column?.meta?.percentOption || 0
+      return this.column?.meta?.percentOption || 0;
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   mounted() {
-    window.addEventListener('keypress', (_) => {
+    window.addEventListener('keypress', _ => {
       if (this.$refs.percentInput) {
-        this.$refs.percentInput.focus()
+        this.$refs.percentInput.focus();
       }
-    })
+    });
   },
   methods: {
     checkPercentFormat(evt) {
-      evt = evt || window.event
-      const charCode = (evt.which) ? evt.which : evt.keyCode
+      evt = evt || window.event;
+      const charCode = evt.which ? evt.which : evt.keyCode;
       // ref: http://www.columbia.edu/kermit/ascii.html
-      const PRINTABLE_CTL_RANGE = charCode > 31
-      const NON_DIGIT = charCode < 48 || charCode > 57
-      const NON_PERIOD = charCode !== 46
-      const CAPTIAL_LETTER_E = charCode === 69
-      const SMALL_LETTER_E = charCode === 101
-      const NEGATIVE_SIGN = charCode === 45
-      const NEGATIVE_SIGN_INVALID = !this.column?.meta?.allowNegativeNumber && NEGATIVE_SIGN
+      const PRINTABLE_CTL_RANGE = charCode > 31;
+      const NON_DIGIT = charCode < 48 || charCode > 57;
+      const NON_PERIOD = charCode !== 46;
+      const CAPTIAL_LETTER_E = charCode === 69;
+      const SMALL_LETTER_E = charCode === 101;
+      const NEGATIVE_SIGN = charCode === 45;
+      const NEGATIVE_SIGN_INVALID = !this.column?.meta?.allowNegativeNumber && NEGATIVE_SIGN;
       if (NEGATIVE_SIGN_INVALID) {
-        this.warningMessage = 'Negative Number is not allowed. Please configure it in Column setting.'
-        evt.preventDefault()
-      } else if ((PRINTABLE_CTL_RANGE && (NON_DIGIT && NEGATIVE_SIGN_INVALID) && NON_PERIOD) || (CAPTIAL_LETTER_E || SMALL_LETTER_E)) {
-        this.warningMessage = 'Please enter a number'
-        evt.preventDefault()
+        this.warningMessage = 'Negative Number is not allowed. Please configure it in Column setting.';
+        evt.preventDefault();
+      } else if (
+        (PRINTABLE_CTL_RANGE && NON_DIGIT && NEGATIVE_SIGN_INVALID && NON_PERIOD) ||
+        CAPTIAL_LETTER_E ||
+        SMALL_LETTER_E
+      ) {
+        this.warningMessage = 'Please enter a number';
+        evt.preventDefault();
       } else {
-        this.warningMessage = null
+        this.warningMessage = null;
         // only allow:
         // 1. digits
         // 2. '.'
         // 3. '-' if this.column?.meta?.allowNegativeNumber is true
-        return true
+        return true;
       }
     },
     onBlur() {
       if (this.isEdited) {
-        this.$emit('input', this.percent)
+        this.$emit('input', this.percent);
       }
-      this.isEdited = false
-    }
-  }
-}
+      this.isEdited = false;
+    },
+  },
+};
 </script>
 
 <style scoped>
-
 .percent-cell-wrapper {
   padding: 10px;
 }
@@ -115,7 +120,7 @@ export default {
 .percent-warning {
   text-align: left;
   margin-top: 10px;
-  color: #E65100;
+  color: #e65100;
 }
 </style>
 

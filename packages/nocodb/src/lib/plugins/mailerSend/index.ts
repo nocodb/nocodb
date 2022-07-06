@@ -21,41 +21,41 @@ const config: XcPluginConfig = {
         label: 'API KEy',
         placeholder: 'eg: ***************',
         type: XcType.Password,
-        required: true
+        required: true,
       },
       {
         key: 'from',
         label: 'From',
         placeholder: 'eg: admin@run.com',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'from_name',
         label: 'From Name',
         placeholder: 'eg: Adam',
         type: XcType.SingleLineText,
-        required: true
-      }
+        required: true,
+      },
     ],
     actions: [
       {
         label: 'Test',
         key: 'test',
         actionType: XcActionType.TEST,
-        type: XcType.Button
+        type: XcType.Button,
       },
       {
         label: 'Save',
         key: 'save',
         actionType: XcActionType.SUBMIT,
-        type: XcType.Button
-      }
+        type: XcType.Button,
+      },
     ],
     msgOnInstall:
       'Successfully installed and email notification will use MailerSend configuration',
-    msgOnUninstall: ''
-  }
+    msgOnUninstall: '',
+  },
 };
 
 export default config;

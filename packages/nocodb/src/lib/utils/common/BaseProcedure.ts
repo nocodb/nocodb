@@ -26,14 +26,14 @@ export default class BaseProcedure {
   }
 
   public functionDelete(name: string): void {
-    const index = this.functions.findIndex(f => f.function_name === name);
+    const index = this.functions.findIndex((f) => f.function_name === name);
     if (index > -1) {
       this.functions.splice(index, 1);
     }
   }
 
   public procedureDelete(name: string): void {
-    const index = this.procedures.findIndex(f => f.procedure_name === name);
+    const index = this.procedures.findIndex((f) => f.procedure_name === name);
     if (index > -1) {
       this.procedures.splice(index, 1);
     }

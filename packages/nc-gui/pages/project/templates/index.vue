@@ -2,15 +2,12 @@
   <project-templates />
 </template>
 <script>
-
-import ProjectTemplates from '~/components/templates/List'
+import ProjectTemplates from '~/components/templates/List';
 export default {
   components: {
-    ProjectTemplates
-  }
-}
+    ProjectTemplates,
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

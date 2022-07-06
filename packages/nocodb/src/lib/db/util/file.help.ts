@@ -1,14 +1,14 @@
 import dayjs from 'dayjs';
 
-const getUniqFilenamePrefix = function() {
+const getUniqFilenamePrefix = function () {
   return dayjs().format('YYYYMMDD_HHmmssSSS');
 };
 
-const getFilenameForUp = function(prefix) {
+const getFilenameForUp = function (prefix) {
   return prefix + '.up.sql';
 };
 
-const getFilenameForDown = function(prefix) {
+const getFilenameForDown = function (prefix) {
   return prefix + '.down.sql';
 };
 

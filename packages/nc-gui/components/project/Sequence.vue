@@ -3,27 +3,28 @@
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
         <v-breadcrumbs
-          :items="[{
-                     text: nodes.env,
-                     disabled: true,
-                     href: '#'
-                   },{
-                     text: nodes.dbAlias,
-                     disabled: true,
-                     href: '#'
-                   },
-                   {
-                     text: originalNodes.sequence_name + ' (sequence)',
-                     disabled: true,
-                     href: '#'
-                   }]"
+          :items="[
+            {
+              text: nodes.env,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.dbAlias,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: originalNodes.sequence_name + ' (sequence)',
+              disabled: true,
+              href: '#',
+            },
+          ]"
           divider=">"
           small
         >
           <template #divider>
-            <v-icon small color="grey lighten-2">
-              forward
-            </v-icon>
+            <v-icon small color="grey lighten-2"> forward </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
@@ -63,19 +64,15 @@
         Delete Sequence
       </x-btn>
     </v-toolbar>
-    <br>
+    <br />
     <v-row>
       <v-col cols="8" offset="2">
         <v-simple-table v-if="newSequence">
           <template #default>
             <thead>
               <tr>
-                <th class="text-left">
-                  Name
-                </th>
-                <th class="text-left">
-                  Value
-                </th>
+                <th class="text-left">Name</th>
+                <th class="text-left">Value</th>
               </tr>
             </thead>
             <tbody>
@@ -85,7 +82,7 @@
                   <v-row />
                   <v-text-field
                     v-model="sequence.sequence_name"
-                    :rules="[v=> !!v || 'Value required']"
+                    :rules="[v => !!v || 'Value required']"
                     @input="sequenceNameChanged()"
                   />
                 </td>
@@ -98,12 +95,8 @@
           <template #default>
             <thead>
               <tr>
-                <th class="text-left">
-                  Name
-                </th>
-                <th class="text-left">
-                  Value
-                </th>
+                <th class="text-left">Name</th>
+                <th class="text-left">Value</th>
               </tr>
             </thead>
             <tbody>
@@ -113,15 +106,15 @@
                   <v-text-field
                     v-model="sequence.sequence_name"
                     :disabled="nodes.dbConnection.client === 'mssql'"
-                    :rules="[v=> !!v || 'Value required']"
+                    :rules="[v => !!v || 'Value required']"
                     @input="sequenceNameChanged()"
                   />
                 </td>
               </tr>
               <tr
-                v-for="(item,key,i) in sequence"
+                v-for="(item, key, i) in sequence"
                 :key="i"
-                :style="key ==='sequence_name' ? 'display:none' : ''"
+                :style="key === 'sequence_name' ? 'display:none' : ''"
                 class="grey--text"
               >
                 <td>{{ key }}</td>
@@ -146,9 +139,9 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex';
 
-import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel'
+import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel';
 
 export default {
   components: { dlgLabelSubmitCancel },
@@ -159,42 +152,44 @@ export default {
       sequence: {},
       newSequence: !!this.nodes.newSequence,
       oldCreateSequence: '',
-      dialogShow: false
-    }
+      dialogShow: false,
+    };
   },
   computed: {
-    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
   },
   methods: {
     ...mapActions({
-      loadSequencesFromChildTreeNode:
-          'project/loadSequencesFromChildTreeNode',
-      loadSequencesFromParentTreeNode:
-          'project/loadSequencesFromParentTreeNode',
-      removeSequenceTab: 'tabs/removeSequenceTab'
+      loadSequencesFromChildTreeNode: 'project/loadSequencesFromChildTreeNode',
+      loadSequencesFromParentTreeNode: 'project/loadSequencesFromParentTreeNode',
+      removeSequenceTab: 'tabs/removeSequenceTab',
     }),
     async loadSequences() {
       try {
-        this.$store.commit('notification/MutToggleProgressBar', true)
+        this.$store.commit('notification/MutToggleProgressBar', true);
         if (this.newSequence) {
           this.sequence = {
-            sequence_name: this.originalNodes.sequence_name
-          }
-          this.$store.commit('notification/MutToggleProgressBar', false)
-          return
+            sequence_name: this.originalNodes.sequence_name,
+          };
+          this.$store.commit('notification/MutToggleProgressBar', false);
+          return;
         }
 
-        const result = await this.sqlMgr.sqlOp({
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'sequenceList', { sequence_name: this.originalNodes.sequence_name })
+        const result = await this.sqlMgr.sqlOp(
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+          },
+          'sequenceList',
+          { sequence_name: this.originalNodes.sequence_name }
+        );
 
-        this.sequence = { ...result.data.list.find(seq => seq.sequence_name === this.originalNodes.sequence_name) }
+        this.sequence = { ...result.data.list.find(seq => seq.sequence_name === this.originalNodes.sequence_name) };
       } catch (e) {
-        console.log(e)
-        this.$toast.error('Loading sequence failed')
+        console.log(e);
+        this.$toast.error('Loading sequence failed');
       } finally {
-        this.$store.commit('notification/MutToggleProgressBar', false)
+        this.$store.commit('notification/MutToggleProgressBar', false);
       }
     },
     async applyChanges() {
@@ -203,78 +198,79 @@ export default {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'sequenceCreate',
-            this.sequence])
+            this.sequence,
+          ]);
 
           await this.loadSequencesFromChildTreeNode({
             _nodes: {
-              ...this.nodes
-            }
-          })
-          this.originalNodes.sequence_name = this.sequence.sequence_name
-          this.newSequence = false
-          await this.loadSequences()
-          this.$toast.success('Sequence created successfully').goAway(3000)
+              ...this.nodes,
+            },
+          });
+          this.originalNodes.sequence_name = this.sequence.sequence_name;
+          this.newSequence = false;
+          await this.loadSequences();
+          this.$toast.success('Sequence created successfully').goAway(3000);
         } else {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'sequenceUpdate',
-            this.sequence
-          ])
+            this.sequence,
+          ]);
 
-          this.$toast.success('Sequence updated successfully').goAway(3000)
+          this.$toast.success('Sequence updated successfully').goAway(3000);
         }
       } catch (e) {
-        this.$toast.error('Saving sequence failed').goAway(3000)
-        throw e
+        this.$toast.error('Saving sequence failed').goAway(3000);
+        throw e;
       }
     },
     async deleteSequence(action = '') {
       try {
         if (action === 'showDialog') {
-          this.dialogShow = true
+          this.dialogShow = true;
         } else if (action === 'hideDialog') {
-          this.dialogShow = false
+          this.dialogShow = false;
         } else {
           await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'sequenceDelete',
             {
-              sequence_name: this.originalNodes.sequence_name
-            }])
+              sequence_name: this.originalNodes.sequence_name,
+            },
+          ]);
 
           this.removeSequenceTab({
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias,
-            sequence_name: this.originalNodes.sequence_name
-          })
+            sequence_name: this.originalNodes.sequence_name,
+          });
           await this.loadSequencesFromParentTreeNode({
             _nodes: {
-              ...this.nodes
-            }
-          })
-          this.dialogShow = false
-          this.$toast.success('Sequence deleted successfully').goAway(3000)
+              ...this.nodes,
+            },
+          });
+          this.dialogShow = false;
+          this.$toast.success('Sequence deleted successfully').goAway(3000);
         }
       } catch (e) {
-        this.$toast.error('Deleting sequence failed').goAway(3000)
-        throw e
+        this.$toast.error('Deleting sequence failed').goAway(3000);
+        throw e;
       }
     },
     sequenceNameChanged() {
-      this.edited = this.sequence.sequence_name.trim() !== ''
-    }
+      this.edited = this.sequence.sequence_name.trim() !== '';
+    },
   },
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {
     // 'sequence' : {
     //   deep:true,
@@ -286,28 +282,24 @@ export default {
     // }
   },
   async created() {
-    this.originalNodes = { ...this.nodes }
-    await this.loadSequences()
+    this.originalNodes = { ...this.nodes };
+    await this.loadSequences();
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes']
-}
+  props: ['nodes'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

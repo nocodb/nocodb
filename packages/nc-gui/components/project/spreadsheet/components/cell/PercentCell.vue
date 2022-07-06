@@ -1,48 +1,38 @@
 <template>
-  <input
-    v-model="localValue"
-    readonly
-  >
+  <input v-model="localValue" readonly />
 </template>
 
 <script>
-
-import { renderPercent } from '~/helpers/percentHelper'
+import { renderPercent } from '~/helpers/percentHelper';
 
 export default {
   name: 'PercentCell',
   props: {
     column: Object,
-    value: [String, Number]
+    value: [String, Number],
   },
   data: () => ({
-    localValue: null
+    localValue: null,
   }),
-  computed: {
-
-  },
+  computed: {},
   watch: {
     'column.meta.percentOption'(newValue, oldValue) {
       if (oldValue !== newValue) {
-        this.localValue = renderPercent(this.value, newValue)
+        this.localValue = renderPercent(this.value, newValue);
       }
     },
     value(val, oldVal) {
-      this.localValue = renderPercent(val, this.column?.meta?.percentOption || 0)
-    }
+      this.localValue = renderPercent(val, this.column?.meta?.percentOption || 0);
+    },
   },
   created() {
-    this.localValue = renderPercent(this.value, this.column?.meta?.percentOption || 0)
+    this.localValue = renderPercent(this.value, this.column?.meta?.percentOption || 0);
   },
-  methods: {
-
-  }
-}
+  methods: {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 
 <!--
 /**

@@ -79,19 +79,10 @@
         :is-form="isForm"
         :column="column"
         :is-locked="isLocked"
-        v-on="$listeners "
+        v-on="$listeners"
       />
-      <formula-cell
-        v-else-if="formula"
-        :row="row"
-        :column="column"
-        :client="nodes.dbConnection.client"
-      />
-      <rollup-cell
-        v-else-if="rollup"
-        :row="row"
-        :column="column"
-      />
+      <formula-cell v-else-if="formula" :row="row" :column="column" :client="nodes.dbConnection.client" />
+      <rollup-cell v-else-if="rollup" :row="row" :column="column" />
     </v-lazy>
     <span v-if="hint" class="nc-hint">{{ hint }}</span>
     <div v-if="isLocked" class="nc-locked-overlay" />
@@ -99,13 +90,13 @@
 </template>
 
 <script>
-import { UITypes } from 'nocodb-sdk'
-import RollupCell from './virtualCell/RollupCell'
-import FormulaCell from './virtualCell/FormulaCell'
-import hasManyCell from './virtualCell/HasManyCell'
-import LookupCell from './virtualCell/LookupCell'
-import manyToManyCell from './virtualCell/ManyToManyCell'
-import belongsToCell from './virtualCell/BelongsToCell'
+import { UITypes } from 'nocodb-sdk';
+import RollupCell from './virtualCell/RollupCell';
+import FormulaCell from './virtualCell/FormulaCell';
+import hasManyCell from './virtualCell/HasManyCell';
+import LookupCell from './virtualCell/LookupCell';
+import manyToManyCell from './virtualCell/ManyToManyCell';
+import belongsToCell from './virtualCell/BelongsToCell';
 
 // todo: optimize parent/child meta extraction
 
@@ -117,14 +108,14 @@ export default {
     LookupCell,
     belongsToCell,
     manyToManyCell,
-    hasManyCell
+    hasManyCell,
   },
   props: {
     breadcrumbs: {
       type: Array,
       default() {
-        return []
-      }
+        return [];
+      },
     },
     column: [Object],
     row: [Object],
@@ -135,11 +126,11 @@ export default {
     sqlUi: [Object, Function],
     isNew: {
       type: Boolean,
-      default: false
+      default: false,
     },
     isForm: {
       type: Boolean,
-      default: false
+      default: false,
     },
     disabledColumns: Object,
     hint: String,
@@ -147,44 +138,47 @@ export default {
     required: Boolean,
     isPublic: Boolean,
     metas: Object,
-    password: String
+    password: String,
   },
   computed: {
     hm() {
-      return this.column && this.column.uidt === UITypes.LinkToAnotherRecord && this.column.colOptions.type === 'hm'
+      return this.column && this.column.uidt === UITypes.LinkToAnotherRecord && this.column.colOptions.type === 'hm';
     },
     bt() {
-      return this.column && (this.column.uidt === UITypes.ForeignKey || this.column.uidt === UITypes.LinkToAnotherRecord) && this.column.colOptions.type === 'bt'
+      return (
+        this.column &&
+        (this.column.uidt === UITypes.ForeignKey || this.column.uidt === UITypes.LinkToAnotherRecord) &&
+        this.column.colOptions.type === 'bt'
+      );
     },
     mm() {
-      return this.column && this.column.uidt === UITypes.LinkToAnotherRecord && this.column.colOptions.type === 'mm'
+      return this.column && this.column.uidt === UITypes.LinkToAnotherRecord && this.column.colOptions.type === 'mm';
     },
     lookup() {
-      return this.column && this.column.uidt === UITypes.Lookup
+      return this.column && this.column.uidt === UITypes.Lookup;
     },
     formula() {
-      return this.column && this.column.uidt === UITypes.Formula
+      return this.column && this.column.uidt === UITypes.Formula;
     },
     rollup() {
-      return this.column && this.column.uidt === UITypes.Rollup
-    }
+      return this.column && this.column.uidt === UITypes.Rollup;
+    },
   },
   methods: {
     async save(row) {
       if (row && this.$refs.cell && this.$refs.cell.saveLocalState) {
         try {
-          await this.$refs.cell.saveLocalState(row)
-        } catch (e) {
-        }
+          await this.$refs.cell.saveLocalState(row);
+        } catch (e) {}
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
 .nc-hint {
-  font-size: .61rem;
+  font-size: 0.61rem;
   color: grey;
 }
 

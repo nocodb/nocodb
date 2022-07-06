@@ -3,7 +3,7 @@ import { ColumnType } from 'nocodb-sdk';
 export default function mapDefaultPrimaryValue<T extends ColumnType>(
   columnsArr: Array<T>
 ): void | T {
-  if (!columnsArr.some(column => column.pv)) {
+  if (!columnsArr.some((column) => column.pv)) {
     let len = columnsArr.length;
     let pkIndex = -1;
 

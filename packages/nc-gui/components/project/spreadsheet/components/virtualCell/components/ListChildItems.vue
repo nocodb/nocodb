@@ -1,11 +1,9 @@
 <template>
   <v-card width="600" color="">
-    <v-card-title v-if="!isForm" class="textColor--text mx-2" :class="{'py-2':isForm}">
+    <v-card-title v-if="!isForm" class="textColor--text mx-2" :class="{ 'py-2': isForm }">
       <span v-if="!isForm">{{ meta ? meta.title : 'Children' }}</span>
       <v-spacer />
-      <v-icon small class="mr-1" @click="loadData()">
-        mdi-reload
-      </v-icon>
+      <v-icon small class="mr-1" @click="loadData()"> mdi-reload </v-icon>
       <v-btn
         v-if="(isForm || !isPublic) && !readOnly && (isPublic || _isUIAllowed('xcDatatableEditable'))"
         small
@@ -13,58 +11,41 @@
         color="primary"
         @click="$emit('new-record')"
       >
-        <v-icon
-          small
-        >
-          mdi-link
-        </v-icon>&nbsp;
-        Link to '{{ meta.title }}'
+        <v-icon small> mdi-link </v-icon>&nbsp; Link to '{{ meta.title }}'
       </v-btn>
     </v-card-title>
     <v-card-text>
-      <div class="items-container pt-2 mb-n4" :class="{'mx-n2' : isForm}">
+      <div class="items-container pt-2 mb-n4" :class="{ 'mx-n2': isForm }">
         <div v-if="!readOnly && (isPublic || _isUIAllowed('xcDatatableEditable'))" class="text-right mb-2 mt-n2 mx-2">
-          <v-btn
-            v-if="isForm"
-            x-small
-            class="caption"
-            color="primary"
-            outlined
-            @click="$emit('new-record')"
-          >
-            <v-icon
-              x-small
-            >
-              mdi-link
-            </v-icon>&nbsp;
-            Link to '{{ meta.title }}'
+          <v-btn v-if="isForm" x-small class="caption" color="primary" outlined @click="$emit('new-record')">
+            <v-icon x-small> mdi-link </v-icon>&nbsp; Link to '{{ meta.title }}'
           </v-btn>
         </div>
         <template v-if="isDataAvail">
           <v-card
-            v-for="(ch,i) in ((data && data.list) || localState)"
+            v-for="(ch, i) in (data && data.list) || localState"
             :key="i"
             class="mx-2 mb-2 child-list-modal child-card"
             outlined
-            @click="!readOnly && $emit('edit',ch) "
+            @click="!readOnly && $emit('edit', ch)"
           >
             <div class="remove-child-icon d-flex align-center">
               <x-icon
-                v-if="((isPublic && isForm) || (!isPublic && _isUIAllowed('xcDatatableEditable'))) && !readOnly "
+                v-if="((isPublic && isForm) || (!isPublic && _isUIAllowed('xcDatatableEditable'))) && !readOnly"
                 :tooltip="`Unlink this '${meta.title}' from '${parentMeta.title}'`"
-                :color="['error','grey']"
+                :color="['error', 'grey']"
                 small
                 icon.class="mr-1 mt-n1"
-                @click.stop="$emit('unlink',ch,i)"
+                @click.stop="$emit('unlink', ch, i)"
               >
                 mdi-link-variant-remove
               </x-icon>
               <x-icon
                 v-if="!isPublic && type === RelationTypes.HAS_MANY && !readOnly && _isUIAllowed('xcDatatableEditable')"
                 :tooltip="`Delete row in '${meta.title}'`"
-                :color="['error','grey']"
+                :color="['error', 'grey']"
                 small
-                @click.stop="$emit('delete',ch,i)"
+                @click.stop="$emit('delete', ch, i)"
               >
                 mdi-delete-outline
               </x-icon>
@@ -72,39 +53,38 @@
 
             <v-card-title class="primary-value textColor--text text--lighten-2">
               {{ ch[primaryCol] }}
-              <span
-                v-if="primaryKey"
-                class="grey--text caption primary-key ml-1"
-              > (Primary Key : {{ ch[primaryKey] }})</span>
+              <span v-if="primaryKey" class="grey--text caption primary-key ml-1">
+                (Primary Key : {{ ch[primaryKey] }})</span
+              >
             </v-card-title>
           </v-card>
         </template>
 
         <div
           v-else-if="data || localState"
-          class="text-center  textLight--text"
-          :class="{'pt-6 pb-4' : !isForm , 'pt-4 pb-3':isForm}"
+          class="text-center textLight--text"
+          :class="{ 'pt-6 pb-4': !isForm, 'pt-4 pb-3': isForm }"
         >
           No item{{ bt ? '' : 's' }} found
         </div>
 
         <div v-if="isForm" class="mb-2 d-flex align-center justify-center">
           <pagination
-            v-if="!bt && data && data.pageInfo&& data.pageInfo.totalRows > 1"
+            v-if="!bt && data && data.pageInfo && data.pageInfo.totalRows > 1"
             v-model="page"
             :size="size"
-            :count="data && data.pageInfo&& data.pageInfo.totalRows"
+            :count="data && data.pageInfo && data.pageInfo.totalRows"
             @input="loadData"
           />
         </div>
       </div>
     </v-card-text>
-    <v-card-actions v-if="!isForm" class="justify-center flex-column" :class="{'py-0':isForm}">
+    <v-card-actions v-if="!isForm" class="justify-center flex-column" :class="{ 'py-0': isForm }">
       <pagination
-        v-if="!bt && data && data.pageInfo&& data.pageInfo.totalRows > 1"
+        v-if="!bt && data && data.pageInfo && data.pageInfo.totalRows > 1"
         v-model="page"
         :size="size"
-        :count="data && data.pageInfo&& data.pageInfo.totalRows"
+        :count="data && data.pageInfo && data.pageInfo.totalRows"
         class="mb-3"
         @input="loadData"
       />
@@ -114,8 +94,8 @@
 </template>
 
 <script>
-import { RelationTypes } from 'nocodb-sdk'
-import Pagination from '~/components/project/spreadsheet/components/Pagination'
+import { RelationTypes } from 'nocodb-sdk';
+import Pagination from '~/components/project/spreadsheet/components/Pagination';
 
 export default {
   name: 'ListChildItems',
@@ -129,13 +109,13 @@ export default {
     value: Boolean,
     title: {
       type: String,
-      default: 'Link Record'
+      default: 'Link Record',
     },
     queryParams: {
       type: Object,
       default() {
-        return {}
-      }
+        return {};
+      },
     },
     primaryKey: String,
     primaryCol: String,
@@ -148,57 +128,59 @@ export default {
     rowId: [String, Number],
     column: Object,
     type: String,
-    password: String
+    password: String,
   },
   data: () => ({
     RelationTypes,
     data: null,
-    page: 1
+    page: 1,
   }),
   computed: {
     isDataAvail() {
-      return (this.data && this.data.list && this.data.list.length) || (this.localState && this.localState.length)
+      return (this.data && this.data.list && this.data.list.length) || (this.localState && this.localState.length);
     },
     show: {
       set(v) {
-        this.$emit('input', v)
+        this.$emit('input', v);
       },
       get() {
-        return this.value
-      }
-    }
+        return this.value;
+      },
+    },
   },
   watch: {
     queryParams() {
-      this.loadData()
-    }
+      this.loadData();
+    },
   },
   mounted() {
-    this.loadData()
+    this.loadData();
   },
   methods: {
     async loadData() {
-      if ((!this.isForm && this.isPublic) && this.$route.params.id) {
+      if (!this.isForm && this.isPublic && this.$route.params.id) {
         if (this.column && this.column.colOptions && this.rowId) {
-          this.data = (await this.$api.public.dataNestedList(
+          this.data = await this.$api.public.dataNestedList(
             this.$route.params.id,
             this.rowId,
             this.column.colOptions.type,
             this.column.fk_column_id || this.column.id,
             {
               limit: this.size,
-              offset: this.size * (this.page - 1)
-            }, {}))
+              offset: this.size * (this.page - 1),
+            },
+            {}
+          );
         }
 
-        return
+        return;
       }
 
       if (this.isNew) {
-        return
+        return;
       }
       if (this.column && this.column.colOptions) {
-        this.data = (await this.$api.dbTableRow.nestedList(
+        this.data = await this.$api.dbTableRow.nestedList(
           'noco',
           this.projectName,
           this.parentMeta.title,
@@ -207,24 +189,22 @@ export default {
           this.column.title,
           {
             limit: this.size,
-            offset: this.size * (this.page - 1)
-          }))
-      } else {
-        this.data = (await this.$api.dbTableRow.list(
-          'noco',
-          this.projectName, this.meta.title, {
-            limit: this.size,
             offset: this.size * (this.page - 1),
-            ...this.queryParams
-          }))
+          }
+        );
+      } else {
+        this.data = await this.$api.dbTableRow.list('noco', this.projectName, this.meta.title, {
+          limit: this.size,
+          offset: this.size * (this.page - 1),
+          ...this.queryParams,
+        });
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
-
 .child-list-modal {
   position: relative;
 
@@ -239,7 +219,6 @@ export default {
   &:hover .remove-child-icon {
     opacity: 1;
   }
-
 }
 
 .items-container {
@@ -247,7 +226,6 @@ export default {
   max-height: min(500px, 60vh);
   overflow-y: auto;
 }
-
 </style>
 
 <!--

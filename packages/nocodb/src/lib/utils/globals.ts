@@ -36,7 +36,7 @@ export enum MetaTable {
   MODEL_ROLE_VISIBILITY = 'nc_disabled_models_for_role_v2',
   API_TOKENS = 'nc_api_tokens',
   SYNC_SOURCE = 'nc_sync_source_v2',
-  SYNC_LOGS = 'nc_sync_logs_v2'
+  SYNC_LOGS = 'nc_sync_logs_v2',
 }
 
 export enum CacheScope {
@@ -73,15 +73,15 @@ export enum CacheScope {
   PROJECT_USER = 'projectUser',
   MODEL_ROLE_VISIBILITY = 'modelRoleVisibility',
   API_TOKEN = 'apiToken',
-  INSTANCE_META = 'instanceMeta'
+  INSTANCE_META = 'instanceMeta',
 }
 export enum CacheGetType {
   TYPE_ARRAY = 'TYPE_ARRAY',
   TYPE_OBJECT = 'TYPE_OBJECT',
-  TYPE_STRING = 'TYPE_STRING'
+  TYPE_STRING = 'TYPE_STRING',
 }
 
 export enum CacheDelDirection {
   PARENT_TO_CHILD = 'PARENT_TO_CHILD',
-  CHILD_TO_PARENT = 'CHILD_TO_PARENT'
+  CHILD_TO_PARENT = 'CHILD_TO_PARENT',
 }

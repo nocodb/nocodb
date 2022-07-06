@@ -1,8 +1,6 @@
 <template>
   <v-dialog v-model="show" width="600" content-class="dialog">
-    <v-icon small class="close-icon" @click="$emit('input',false)">
-      mdi-close
-    </v-icon>
+    <v-icon small class="close-icon" @click="$emit('input', false)"> mdi-close </v-icon>
     <list-child-items
       v-if="show"
       ref="child"
@@ -28,7 +26,7 @@
 </template>
 
 <script>
-import ListChildItems from '~/components/project/spreadsheet/components/virtualCell/components/ListChildItems'
+import ListChildItems from '~/components/project/spreadsheet/components/virtualCell/components/ListChildItems';
 
 export default {
   name: 'ListChildItemsModal',
@@ -42,13 +40,13 @@ export default {
     value: Boolean,
     title: {
       type: String,
-      default: 'Link Record'
+      default: 'Link Record',
     },
     queryParams: {
       type: Object,
       default() {
-        return {}
-      }
+        return {};
+      },
     },
     primaryKey: String,
     primaryCol: String,
@@ -59,32 +57,31 @@ export default {
     mm: [Object, Boolean],
     isPublic: Boolean,
     rowId: [String, Number],
-    column: Object
+    column: Object,
   },
   data: () => ({
     data: null,
-    page: 1
+    page: 1,
   }),
   computed: {
     show: {
       set(v) {
-        this.$emit('input', v)
+        this.$emit('input', v);
       },
       get() {
-        return this.value
-      }
-    }
+        return this.value;
+      },
+    },
   },
-  mounted() {
-  },
+  mounted() {},
   methods: {
     async loadData() {
       if (this.$refs && this.$refs.child) {
-        this.$refs.child.loadData()
+        this.$refs.child.loadData();
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -101,7 +98,6 @@ export default {
     }
   }
 }
-
 </style>
 
 <!--

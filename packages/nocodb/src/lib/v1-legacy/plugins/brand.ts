@@ -8,62 +8,62 @@ const input: XcForm = {
       label: 'Title',
       placeholder: 'Title',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'logo',
       label: 'Logo',
       placeholder: 'Logo',
       type: XcType.Attachment,
-      required: true
+      required: true,
     },
     {
       key: 'favicon',
       label: 'Favicon',
       placeholder: 'Favicon',
       type: XcType.Attachment,
-      required: false
+      required: false,
     },
     {
       key: 'website',
       label: 'Website',
       placeholder: 'Website',
       type: XcType.URL,
-      required: false
+      required: false,
     },
     {
       key: 'twitter',
       label: 'Twitter',
       placeholder: 'Twitter',
       type: XcType.URL,
-      required: false
+      required: false,
     },
     {
       key: 'facebook',
       label: 'Facebook',
       placeholder: 'Facebook',
       type: XcType.URL,
-      required: false
+      required: false,
     },
     {
       key: 'youtube',
       label: 'Youtube',
       placeholder: 'Youtube',
       type: XcType.URL,
-      required: false
-    }
+      required: false,
+    },
   ],
   actions: [
     {
       label: 'Save',
       key: 'save',
       actionType: XcActionType.SUBMIT,
-      type: XcType.Button
-    }
+      type: XcType.Button,
+    },
   ],
   msgOnInstall:
     'Successfully installed and hard refresh the browser to reflect the changes',
-  msgOnUninstall: ''
+  msgOnUninstall: '',
 };
 
 export default {
@@ -74,5 +74,5 @@ export default {
   price: 'Free',
   tags: 'Brand',
   category: 'Brand',
-  input_schema: JSON.stringify(input)
+  input_schema: JSON.stringify(input),
 };

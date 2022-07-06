@@ -18,27 +18,26 @@ export default {
   name: 'TextField',
   props: {
     value: String,
-    inputDetails: Object
+    inputDetails: Object,
   },
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     parentListeners() {
-      const $listeners = {}
-      return $listeners
-    }
-  }
-}
+      const $listeners = {};
+      return $listeners;
+    },
+  },
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

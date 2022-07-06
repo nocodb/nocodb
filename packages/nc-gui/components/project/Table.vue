@@ -14,12 +14,9 @@
       >
         <template v-if="_isUIAllowed('smartSheet')">
           <v-tab v-show="relationTabs && relationTabs.length" class="">
-            <v-icon small>
-              mdi-table-edit
-            </v-icon>&nbsp;<span
-              class="caption text-capitalize font-weight-bold"
+            <v-icon small> mdi-table-edit </v-icon>&nbsp;<span class="caption text-capitalize font-weight-bold">
+              {{ nodes.title }}</span
             >
-              {{ nodes.title }}</span>
           </v-tab>
           <v-tab-item style="height: 100%">
             <rows-xc-data-table
@@ -50,16 +47,16 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
-import { UITypes } from 'nocodb-sdk'
-import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel'
-import { isMetaTable } from '@/helpers/xutils'
-import RowsXcDataTable from '~/components/project/spreadsheet/RowsXcDataTable'
+import { mapActions } from 'vuex';
+import { UITypes } from 'nocodb-sdk';
+import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel';
+import { isMetaTable } from '@/helpers/xutils';
+import RowsXcDataTable from '~/components/project/spreadsheet/RowsXcDataTable';
 
 export default {
   components: {
     RowsXcDataTable,
-    dlgLabelSubmitCancel
+    dlgLabelSubmitCancel,
   },
   data() {
     return {
@@ -74,104 +71,109 @@ export default {
       loadRows: false,
       loadColumnsMock: false,
       relationTabs: [],
-      deleteId: null
-    }
+      deleteId: null,
+    };
   },
   methods: {
     async handleKeyDown(event) {
-      const activeTabEleKey = `tabs${this.active}`
-      if (
-        this.$refs[activeTabEleKey] &&
-        this.$refs[activeTabEleKey].handleKeyDown
-      ) {
-        await this.$refs[activeTabEleKey].handleKeyDown(event)
+      const activeTabEleKey = `tabs${this.active}`;
+      if (this.$refs[activeTabEleKey] && this.$refs[activeTabEleKey].handleKeyDown) {
+        await this.$refs[activeTabEleKey].handleKeyDown(event);
       }
     },
     ...mapActions({
       removeTableTab: 'tabs/removeTableTab',
-      loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode'
+      loadTablesFromParentTreeNode: 'project/loadTablesFromParentTreeNode',
     }),
     mtdNewTableUpdate(value) {
-      this.newTableCopy = value
+      this.newTableCopy = value;
     },
     async deleteTable(action = '', id) {
       if (id) {
-        this.deleteId = id
+        this.deleteId = id;
       }
       if (action === 'showDialog') {
-        this.dialogShow = true
+        this.dialogShow = true;
       } else if (action === 'hideDialog') {
-        this.dialogShow = false
+        this.dialogShow = false;
       } else {
         try {
-          const meta = await this.$store.dispatch('meta/ActLoadMeta', { id: this.deleteId })
+          const meta = await this.$store.dispatch('meta/ActLoadMeta', { id: this.deleteId });
 
-          const relationColumns = meta.columns.filter(c => c.uidt === UITypes.LinkToAnotherRecord)
+          const relationColumns = meta.columns.filter(c => c.uidt === UITypes.LinkToAnotherRecord);
 
           if (relationColumns.length) {
-            const refColMsgs = await Promise.all(relationColumns.map(async(c, i) => {
-              const refMeta = await this.$store.dispatch('meta/ActLoadMeta', { id: c.colOptions.fk_related_model_id })
-              return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
-            }))
-            this.$toast.info(`<div style="padding:10px 4px">Unable to delete tables because of the following.
+            const refColMsgs = await Promise.all(
+              relationColumns.map(async (c, i) => {
+                const refMeta = await this.$store.dispatch('meta/ActLoadMeta', {
+                  id: c.colOptions.fk_related_model_id,
+                });
+                return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`;
+              })
+            );
+            this.$toast
+              .info(
+                `<div style="padding:10px 4px">Unable to delete tables because of the following.
                 <br><br>${refColMsgs.join('<br>')}<br><br>
                 Delete them & try again</div>
-            `).goAway(10000)
-            this.dialogShow = false
-            return
+            `
+              )
+              .goAway(10000);
+            this.dialogShow = false;
+            return;
           }
 
-          await this.$api.dbTable.delete(this.deleteId)
+          await this.$api.dbTable.delete(this.deleteId);
 
           this.removeTableTab({
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias,
-            table_name: this.nodes.table_name
-          })
+            table_name: this.nodes.table_name,
+          });
 
           await this.loadTablesFromParentTreeNode({
             _nodes: {
-              ...this.nodes
-            }
-          })
+              ...this.nodes,
+            },
+          });
 
           this.$store.commit('meta/MutMeta', {
             key: this.nodes.table_name,
-            value: null
-          })
+            value: null,
+          });
           this.$store.commit('meta/MutMeta', {
             key: this.deleteId,
-            value: null
-          })
-         this.$toast.info(`Deleted table ${this.nodes.title} successfully`).goAway(3000)
+            value: null,
+          });
+          this.$toast.info(`Deleted table ${this.nodes.title} successfully`).goAway(3000);
         } catch (e) {
-          const msg = await this._extractSdkResponseErrorMsg(e)
-          this.$toast.error(msg).goAway(3000)
+          const msg = await this._extractSdkResponseErrorMsg(e);
+          this.$toast.error(msg).goAway(3000);
         }
-        this.dialogShow = false
-        this.$e('a:table:delete')
+        this.dialogShow = false;
+        this.$e('a:table:delete');
       }
     },
     onTabChange() {
-      this.$emit('update:hideLogWindows', this.active === 2)
-    }
+      this.$emit('update:hideLogWindows', this.active === 2);
+    },
   },
   computed: {
     isMetaTable() {
-      return isMetaTable(this.nodes.table_name)
-    }
+      return isMetaTable(this.nodes.table_name);
+    },
   },
   mounted() {
-    this.onTabChange()
+    this.onTabChange();
   },
   props: {
     nodes: Object,
     hideLogWindows: Boolean,
     tabId: String,
     isActive: Boolean,
-    isView: Boolean
-  }
-}
+    isView: Boolean,
+  },
+};
 </script>
 
 <style scoped>

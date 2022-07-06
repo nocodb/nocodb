@@ -2,7 +2,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  MetaTable
+  MetaTable,
 } from '../utils/globals';
 import Noco from '../Noco';
 import { nanoid } from 'nanoid';
@@ -28,7 +28,7 @@ export default class ApiToken {
     const token = nanoid(40);
     await ncMeta.metaInsert(null, null, MetaTable.API_TOKENS, {
       description: apiToken.description,
-      token
+      token,
     });
     await NocoCache.appendToList(
       CacheScope.API_TOKEN,
@@ -44,7 +44,7 @@ export default class ApiToken {
       tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS);
       await NocoCache.setList(CacheScope.API_TOKEN, [], tokens);
     }
-    return tokens?.map(t => new ApiToken(t));
+    return tokens?.map((t) => new ApiToken(t));
   }
   static async delete(token, ncMeta = Noco.ncMeta) {
     await NocoCache.deepDel(

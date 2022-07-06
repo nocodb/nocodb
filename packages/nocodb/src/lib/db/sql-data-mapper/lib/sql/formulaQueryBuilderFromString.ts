@@ -25,7 +25,7 @@ export default function formulaQueryBuilder(
                 type: 'BinaryExpression',
                 operator: '+',
                 left: pt.arguments[0],
-                right: { ...pt, arguments: pt.arguments.slice(1) }
+                right: { ...pt, arguments: pt.arguments.slice(1) },
               },
               alias,
               prevBinaryOp
@@ -54,7 +54,7 @@ export default function formulaQueryBuilder(
                   type: 'BinaryExpression',
                   operator: '||',
                   left: pt.arguments[0],
-                  right: { ...pt, arguments: pt.arguments.slice(1) }
+                  right: { ...pt, arguments: pt.arguments.slice(1) },
                 },
                 alias,
                 prevBinaryOp
@@ -81,19 +81,19 @@ export default function formulaQueryBuilder(
                 {
                   type: 'Literal',
                   value: 'URI::(',
-                  raw: '"URI::("'
+                  raw: '"URI::("',
                 },
                 pt.arguments[0],
                 {
                   type: 'Literal',
                   value: ')',
-                  raw: '")"'
-                }
+                  raw: '")"',
+                },
               ],
               callee: {
                 type: 'Identifier',
-                name: 'CONCAT'
-              }
+                name: 'CONCAT',
+              },
             },
             alias,
             prevBinaryOp
@@ -109,7 +109,7 @@ export default function formulaQueryBuilder(
               aliasToCol: aliasToColumn,
               fn,
               colAlias,
-              prevBinaryOp
+              prevBinaryOp,
             });
             if (res) return res;
           }
@@ -118,7 +118,7 @@ export default function formulaQueryBuilder(
 
       return knex.raw(
         `${pt.callee.name}(${pt.arguments
-          .map(arg => fn(arg).toQuery())
+          .map((arg) => fn(arg).toQuery())
           .join()})${colAlias}`
       );
     } else if (pt.type === 'Literal') {
@@ -134,7 +134,7 @@ export default function formulaQueryBuilder(
         pt.left = {
           callee: { name: 'FLOAT' },
           type: 'CallExpression',
-          arguments: [pt.left]
+          arguments: [pt.left],
         };
       }
 

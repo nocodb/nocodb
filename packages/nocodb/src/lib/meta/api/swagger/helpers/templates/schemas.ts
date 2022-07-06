@@ -15,11 +15,11 @@ export const getModelSchemas = (ctx: {
       ...(ctx.columns?.reduce(
         (colsObj, { title, virtual, column, ...fieldProps }) => ({
           ...colsObj,
-          [title]: fieldProps
+          [title]: fieldProps,
         }),
         {}
-      ) || {})
-    }
+      ) || {}),
+    },
   },
   [`${ctx.tableName}Request`]: {
     title: `${ctx.tableName} Request`,
@@ -33,13 +33,13 @@ export const getModelSchemas = (ctx: {
           ...(virtual
             ? {}
             : {
-                [title]: fieldProps
-              })
+                [title]: fieldProps,
+              }),
         }),
         {}
-      ) || {})
-    }
-  }
+      ) || {}),
+    },
+  },
 });
 export const getViewSchemas = (ctx: {
   tableName: string;
@@ -57,11 +57,11 @@ export const getViewSchemas = (ctx: {
       ...(ctx.columns?.reduce(
         (colsObj, { title, virtual, column, ...fieldProps }) => ({
           ...colsObj,
-          [title]: fieldProps
+          [title]: fieldProps,
         }),
         {}
-      ) || {})
-    }
+      ) || {}),
+    },
   },
   [`${ctx.tableName}${ctx.viewName}GridRequest`]: {
     title: `${ctx.tableName} : ${ctx.viewName} Request`,
@@ -75,11 +75,11 @@ export const getViewSchemas = (ctx: {
           ...(virtual
             ? {}
             : {
-                [title]: fieldProps
-              })
+                [title]: fieldProps,
+              }),
         }),
         {}
-      ) || {})
-    }
-  }
+      ) || {}),
+    },
+  },
 });

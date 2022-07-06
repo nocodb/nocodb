@@ -5,6 +5,7 @@
     "dev": "cross-env EE=true nuxt",
     "build": "cross-env EE=true nuxt build",
     "lint": "eslint . --ext .js,.vue --fix --quiet",
+    "fix:prettier": "prettier \"**/*.vue\" --write",
     "start": "cross-env EE=true nuxt start",
     "generate": "nuxt generate",
     "build:copy": "cross-env EE=true npm run build; rm -rf ../nc-lib-gui/lib/dist/; rsync -rvzh ./dist/ ../nc-lib-gui/lib/dist/",

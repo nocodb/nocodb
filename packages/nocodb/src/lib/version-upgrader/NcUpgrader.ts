@@ -30,7 +30,7 @@ export default class NcUpgrader {
         { name: '0009044', handler: null },
         { name: '0011043', handler: ncProjectEnvUpgrader },
         { name: '0011045', handler: ncProjectEnvUpgrader0011045 },
-        { name: '0090000', handler: ncProjectUpgraderV2_0090000 }
+        { name: '0090000', handler: ncProjectUpgraderV2_0090000 },
       ];
       if (!(await ctx.ncMeta.knexConnection?.schema?.hasTable?.('nc_store'))) {
         return;
@@ -38,7 +38,7 @@ export default class NcUpgrader {
       this.log(`upgrade : Getting configuration from meta database`);
 
       const config = await ctx.ncMeta.metaGet('', '', 'nc_store', {
-        key: this.STORE_KEY
+        key: this.STORE_KEY,
       });
 
       if (config) {
@@ -62,10 +62,10 @@ export default class NcUpgrader {
                 '',
                 'nc_store',
                 {
-                  value: JSON.stringify(config)
+                  value: JSON.stringify(config),
                 },
                 {
-                  key: NcUpgrader.STORE_KEY
+                  key: NcUpgrader.STORE_KEY,
                 }
               );
 
@@ -84,7 +84,7 @@ export default class NcUpgrader {
         configObj.version = isOld ? '0009000' : process.env.NC_VERSION;
         await ctx.ncMeta.metaInsert('', '', 'nc_store', {
           key: NcUpgrader.STORE_KEY,
-          value: JSON.stringify(configObj)
+          value: JSON.stringify(configObj),
         });
         if (isOld) {
           await this.upgrade(ctx);
@@ -94,7 +94,7 @@ export default class NcUpgrader {
       Tele.emit('evt', {
         evt_type: 'appMigration:upgraded',
         from: oldVersion,
-        to: process.env.NC_VERSION
+        to: process.env.NC_VERSION,
       });
     } catch (e) {
       await ctx.ncMeta.rollback(e);
@@ -103,10 +103,7 @@ export default class NcUpgrader {
         from: oldVersion,
         to: process.env.NC_VERSION,
         msg: e.message,
-        err: e?.stack
-          ?.split?.('\n')
-          .slice(0, 2)
-          .join('\n')
+        err: e?.stack?.split?.('\n').slice(0, 2).join('\n'),
       });
       console.log(getUpgradeErrorLog(e, oldVersion, process.env.NC_VERSION));
       throw e;

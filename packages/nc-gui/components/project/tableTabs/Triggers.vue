@@ -1,9 +1,7 @@
 <template>
   <v-row class="pa-0 ma-0">
     <v-overlay v-if="isMetaTable" absolute>
-      <v-alert type="info">
-        Meta tables are not editable
-      </v-alert>
+      <v-alert type="info"> Meta tables are not editable </v-alert>
     </v-overlay>
 
     <v-col cols="12 pa-0">
@@ -11,33 +9,34 @@
         <v-toolbar flat height="42" class="toolbar-border-bottom">
           <v-toolbar-title>
             <v-breadcrumbs
-              :items="[{
-                         text: nodes.env,
-                         disabled: true,
-                         href: '#'
-                       },{
-                         text: nodes.dbAlias,
-                         disabled: true,
-                         href: '#'
-                       },
-                       {
-                         text: nodes.title + ' (table)',
-                         disabled: true,
-                         href: '#'
-                       }]"
+              :items="[
+                {
+                  text: nodes.env,
+                  disabled: true,
+                  href: '#',
+                },
+                {
+                  text: nodes.dbAlias,
+                  disabled: true,
+                  href: '#',
+                },
+                {
+                  text: nodes.title + ' (table)',
+                  disabled: true,
+                  href: '#',
+                },
+              ]"
               divider=">"
               small
             >
               <template #divider>
-                <v-icon small color="grey lighten-2">
-                  forward
-                </v-icon>
+                <v-icon small color="grey lighten-2"> forward </v-icon>
               </template>
             </v-breadcrumbs>
           </v-toolbar-title>
           <v-spacer />
           <x-btn
-            v-ge="['triggers','load']"
+            v-ge="['triggers', 'load']"
             outlined
             tooltip="Load Triggers"
             small
@@ -45,14 +44,12 @@
             color="primary"
             @click="loadTriggerList"
           >
-            <v-icon small left>
-              refresh
-            </v-icon>
+            <v-icon small left> refresh </v-icon>
             <!-- Reload -->
             {{ $t('general.reload') }}
           </x-btn>
           <x-btn
-            v-ge="['triggers','new']"
+            v-ge="['triggers', 'new']"
             outlined
             tooltip="Create New Trigger"
             small
@@ -64,7 +61,7 @@
             New Trigger
           </x-btn>
           <x-btn
-            v-ge="['triggers','delete']"
+            v-ge="['triggers', 'delete']"
             outlined
             :tooltip="$t('activity.deleteTable')"
             small
@@ -77,13 +74,7 @@
           </x-btn>
         </v-toolbar>
         <v-skeleton-loader v-if="loading" type="table" />
-        <v-data-table
-          v-else
-          dense
-          :headers="headers"
-          :items="triggers"
-          footer-props.items-per-page-options="30"
-        >
+        <v-data-table v-else dense :headers="headers" :items="triggers" footer-props.items-per-page-options="30">
           <template #item="props">
             <tr>
               <td>{{ props.item.trigger }}</td>
@@ -92,16 +83,11 @@
               <td>{{ props.item.statement }}</td>
               <td>
                 <div>
-                  <x-icon
-                    v-ge="['triggers','edit']"
-                    color="primary"
-                    small
-                    @click="showTriggerDlg(props.item)"
-                  >
+                  <x-icon v-ge="['triggers', 'edit']" color="primary" small @click="showTriggerDlg(props.item)">
                     mdi-square-edit-outline
                   </x-icon>
                   <x-icon
-                    v-ge="['triggers','delete']"
+                    v-ge="['triggers', 'delete']"
                     small
                     color="error"
                     @click="deleteTrigger('showDialog', props.item)"
@@ -135,10 +121,10 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
-import triggerAddEditDlg from '../dlgs/DlgTriggerAddEdit'
-import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel'
+import triggerAddEditDlg from '../dlgs/DlgTriggerAddEdit';
+import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel';
 
 export default {
   components: { triggerAddEditDlg, dlgLabelSubmitCancel },
@@ -150,20 +136,20 @@ export default {
       headers: [
         {
           text: 'Trigger Name',
-          sortable: false
+          sortable: false,
         },
         { text: 'Event', sortable: false },
         { text: 'Timing', sortable: false },
         { text: 'Statement', sortable: false },
-        { text: '', sortable: false }
+        { text: '', sortable: false },
       ],
       dialogShow: false,
-      selectedTrigger: null
-    }
+      selectedTrigger: null,
+    };
   },
   methods: {
     async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
-      console.log(metaKey, key, altKey, shiftKey, ctrlKey)
+      console.log(metaKey, key, altKey, shiftKey, ctrlKey);
       // cmd + s -> save
       // cmd + l -> reload
       // cmd + n -> new
@@ -174,25 +160,25 @@ export default {
         // case 'true_s' :
         //   await this.applyChanges();
         //   break;
-        case 'true_l' :
-          await this.loadTriggerList()
-          break
-        case 'true_n' :
-          this.showTriggerDlg()
-          break
-        case 'true_d' :
-          await this.deleteTable('showDialog')
-          break
+        case 'true_l':
+          await this.loadTriggerList();
+          break;
+        case 'true_n':
+          this.showTriggerDlg();
+          break;
+        case 'true_d':
+          await this.deleteTable('showDialog');
+          break;
       }
     },
 
     async loadTriggerList() {
-      this.loading = true
+      this.loading = true;
       try {
-        this.$store.commit('notification/MutToggleProgressBar', true)
+        this.$store.commit('notification/MutToggleProgressBar', true);
         if (this.newTable) {
-          this.$store.commit('notification/MutToggleProgressBar', false)
-          return
+          this.$store.commit('notification/MutToggleProgressBar', false);
+          return;
         }
         // const client = await this.sqlMgr.projectGetSqlClient({
         //   env: this.nodes.env,
@@ -210,25 +196,33 @@ export default {
         //   table_name: this.nodes.table_name
         // })
 
-        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'triggerList', {
-          table_name: this.nodes.table_name
-        }])
+        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+          },
+          'triggerList',
+          {
+            table_name: this.nodes.table_name,
+          },
+        ]);
 
-        console.log('triggers', result.data.list)
-        this.triggers = result.data.list
+        console.log('triggers', result.data.list);
+        this.triggers = result.data.list;
       } catch (e) {
-        console.log(e)
+        console.log(e);
       } finally {
-        this.$store.commit('notification/MutToggleProgressBar', false)
+        this.$store.commit('notification/MutToggleProgressBar', false);
       }
-      this.loading = false
+      this.loading = false;
     },
     showTriggerDlg(trigger) {
-      if (trigger) { this.selectedTrigger = trigger } else { this.selectedTrigger = {} }
-      this.dialogShow = true
+      if (trigger) {
+        this.selectedTrigger = trigger;
+      } else {
+        this.selectedTrigger = {};
+      }
+      this.dialogShow = true;
     },
     async mtdTriggerDlgSubmit(triggerObject, newTrigger) {
       try {
@@ -240,97 +234,95 @@ export default {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'triggerCreate',
-            triggerObject
-          ])
-          console.log('triggerCreate result: ', result)
-          this.$toast.success('Trigger created successfully').goAway(3000)
+            triggerObject,
+          ]);
+          console.log('triggerCreate result: ', result);
+          this.$toast.success('Trigger created successfully').goAway(3000);
         } else {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'triggerUpdate',
             {
               ...triggerObject,
-              oldStatement: this.selectedTrigger.statement
-            }])
+              oldStatement: this.selectedTrigger.statement,
+            },
+          ]);
 
-          console.log('triggerUpdate result: ', result)
-          this.$toast.success('Trigger updated successfully').goAway(3000)
+          console.log('triggerUpdate result: ', result);
+          this.$toast.success('Trigger updated successfully').goAway(3000);
         }
 
-        await this.loadTriggerList()
-        this.selectedTrigger = null
-        this.dialogShow = false
+        await this.loadTriggerList();
+        this.selectedTrigger = null;
+        this.dialogShow = false;
       } catch (error) {
-        console.error('triggerCreate error: ', error)
+        console.error('triggerCreate error: ', error);
       }
     },
     mtdTriggerDlgCancel() {
-      this.dialogShow = false
-      this.selectedTrigger = null
+      this.dialogShow = false;
+      this.selectedTrigger = null;
     },
     async deleteTrigger(action = '', trigger) {
       if (action === 'showDialog') {
-        this.showTriggerDeleteDialog = true
-        this.selectedTriggerForDelete = trigger
+        this.showTriggerDeleteDialog = true;
+        this.selectedTriggerForDelete = trigger;
       } else if (action === 'hideDialog') {
-        this.showTriggerDeleteDialog = false
-        this.selectedTriggerForDelete = null
+        this.showTriggerDeleteDialog = false;
+        this.selectedTriggerForDelete = null;
       } else {
         const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
+            dbAlias: this.nodes.dbAlias,
           },
           'triggerDelete',
           {
             ...this.selectedTriggerForDelete,
             table_name: this.nodes.table_name,
-            oldStatement: this.selectedTriggerForDelete.statement
-          }])
+            oldStatement: this.selectedTriggerForDelete.statement,
+          },
+        ]);
 
-        console.log('triggerDelete result ', result)
-        await this.loadTriggerList()
-        this.showTriggerDeleteDialog = false
-        this.selectedTriggerForDelete = null
+        console.log('triggerDelete result ', result);
+        await this.loadTriggerList();
+        this.showTriggerDeleteDialog = false;
+        this.selectedTriggerForDelete = null;
 
-        this.$toast.success('Trigger deleted successfully').goAway(3000)
+        this.$toast.success('Trigger deleted successfully').goAway(3000);
       }
-    }
+    },
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {},
   created() {
-    this.loadTriggerList()
+    this.loadTriggerList();
   },
-  mounted() {
-  },
+  mounted() {},
   beforeDestroy() {
-    console.log('triggerlist before destroy')
+    console.log('triggerlist before destroy');
   },
-  destroy() {
-  },
+  destroy() {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes', 'newTable', 'deleteTable', 'isMetaTable']
-}
+  props: ['nodes', 'newTable', 'deleteTable', 'isMetaTable'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

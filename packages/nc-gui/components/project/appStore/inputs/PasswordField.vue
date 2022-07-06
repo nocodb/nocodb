@@ -25,26 +25,26 @@ export default {
   name: 'PasswordField',
   props: {
     value: String,
-    inputDetails: Object
+    inputDetails: Object,
   },
   data: () => ({
-    show: false
+    show: false,
   }),
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     parentListeners() {
-      const $listeners = {}
-      return $listeners
-    }
-  }
-}
+      const $listeners = {};
+      return $listeners;
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -53,14 +53,14 @@ export default {
   display: inline-block;
 }
 
-.wrapper input{
+.wrapper input {
   padding-right: 20px;
 }
 
-.toggle-icon{
+.toggle-icon {
   position: absolute;
-right:4px;
-  top:5px;
+  right: 4px;
+  top: 5px;
 }
 </style>
 <!--

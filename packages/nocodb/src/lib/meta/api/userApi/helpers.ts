@@ -11,7 +11,7 @@ export function genJwt(user: User, config: NcConfig) {
       lastname: user.lastname,
       id: user.id,
       roles: user.roles,
-      token_version: user.token_version
+      token_version: user.token_version,
     },
     config.auth.jwt.secret,
     config.auth.jwt.options

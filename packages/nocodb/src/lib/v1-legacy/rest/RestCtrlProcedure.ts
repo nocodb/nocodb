@@ -102,12 +102,12 @@ export class RestCtrlProcedure extends BaseProcedure {
     ): Promise<any> => {
       const roles = (req as any)?.locals?.user?.roles ??
         (req as any)?.session?.passport?.user?.roles ?? {
-          guest: true
+          guest: true,
         };
 
       try {
         const allowed = Object.keys(roles).some(
-          role => roles[role] && this.acls?.[name]?.[role]
+          (role) => roles[role] && this.acls?.[name]?.[role]
         );
 
         if (allowed) {
@@ -118,12 +118,12 @@ export class RestCtrlProcedure extends BaseProcedure {
             ? `Access Denied : Please Login or Signup for a new account`
             : `Access Denied for this account`;
           return res.status(403).json({
-            msg
+            msg,
           });
         }
       } catch (e) {
         return res.status(403).json({
-          msg: e.message
+          msg: e.message,
         });
       }
     }).bind(this);
@@ -136,14 +136,14 @@ export class RestCtrlProcedure extends BaseProcedure {
       tags: [
         {
           name: `Procedures`,
-          description: ``
+          description: ``,
         },
         {
           name: `Functions`,
-          description: ``
-        }
+          description: ``,
+        },
       ],
-      paths: {}
+      paths: {},
     };
 
     if (this.functions) {
@@ -163,16 +163,16 @@ export class RestCtrlProcedure extends BaseProcedure {
                 in: 'body',
                 name: 'body',
                 description: `Array of function arguments`,
-                required: true
-              }
+                required: true,
+              },
             ],
             responses: {
               '200': {
                 description: '',
-                type: 'object'
-              }
-            }
-          }
+                type: 'object',
+              },
+            },
+          },
         };
       }
     }
@@ -193,16 +193,16 @@ export class RestCtrlProcedure extends BaseProcedure {
                 in: 'body',
                 name: 'body',
                 description: `Array of procedure arguments`,
-                required: true
-              }
+                required: true,
+              },
             ],
             responses: {
               '200': {
                 description: '',
-                type: 'object'
-              }
-            }
-          }
+                type: 'object',
+              },
+            },
+          },
         };
       }
     }

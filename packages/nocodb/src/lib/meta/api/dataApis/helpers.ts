@@ -24,13 +24,13 @@ export async function getViewAndModelFromRequestByAliasOrId(
   const model = await Model.getByAliasOrId({
     project_id: project.id,
     base_id: project.bases?.[0]?.id,
-    aliasOrId: req.params.tableName
+    aliasOrId: req.params.tableName,
   });
   const view =
     req.params.viewName &&
     (await View.getByTitleOrId({
       titleOrId: req.params.viewName,
-      fk_model_id: model.id
+      fk_model_id: model.id,
     }));
   if (!model) NcError.notFound('Table not found');
   return { model, view };
@@ -43,17 +43,17 @@ export async function extractCsvData(view: View, req: Request) {
   await view.getColumns();
 
   view.model.columns = view.columns
-    .filter(c => c.show)
+    .filter((c) => c.show)
     .map(
-      c =>
+      (c) =>
         new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any)
     )
-    .filter(column => !isSystemColumn(column) || view.show_system_fields);
+    .filter((column) => !isSystemColumn(column) || view.show_system_fields);
 
   const baseModel = await Model.getBaseModelSQL({
     id: view.model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   let offset = +req.query.offset || 0;
@@ -76,7 +76,7 @@ export async function extractCsvData(view: View, req: Request) {
         query: req.query,
         includePkByDefault: false,
         model: view.model,
-        view
+        view,
       }),
       await baseModel.list({ ...req.query, offset, limit }),
       {},
@@ -95,7 +95,7 @@ export async function extractCsvData(view: View, req: Request) {
         if (isSystemColumn(column) && !view.show_system_fields) continue;
         csvRow[column.title] = await serializeCellValue({
           value: row[column.title],
-          column
+          column,
         });
       }
       csvRows.push(csvRow);
@@ -104,11 +104,11 @@ export async function extractCsvData(view: View, req: Request) {
 
   const data = papaparse.unparse(
     {
-      fields: view.model.columns.map(c => c.title),
-      data: csvRows
+      fields: view.model.columns.map((c) => c.title),
+      data: csvRows,
     },
     {
-      escapeFormulae: true
+      escapeFormulae: true,
     }
   );
 
@@ -117,7 +117,7 @@ export async function extractCsvData(view: View, req: Request) {
 
 export async function serializeCellValue({
   value,
-  column
+  column,
 }: {
   column?: Column;
   value: any;
@@ -138,7 +138,7 @@ export async function serializeCellValue({
       } catch {}
 
       return (data || []).map(
-        attachment =>
+        (attachment) =>
           `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`
       );
     }
@@ -148,10 +148,10 @@ export async function serializeCellValue({
         const lookupColumn = await colOptions.getLookupColumn();
         return (
           await Promise.all(
-            [...(Array.isArray(value) ? value : [value])].map(async v =>
+            [...(Array.isArray(value) ? value : [value])].map(async (v) =>
               serializeCellValue({
                 value: v,
-                column: lookupColumn
+                column: lookupColumn,
               })
             )
           )
@@ -160,13 +160,12 @@ export async function serializeCellValue({
       break;
     case UITypes.LinkToAnotherRecord:
       {
-        const colOptions = await column.getColOptions<
-          LinkToAnotherRecordColumn
-        >();
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
         const relatedModel = await colOptions.getRelatedTable();
         await relatedModel.getColumns();
         return [...(Array.isArray(value) ? value : [value])]
-          .map(v => {
+          .map((v) => {
             return v[relatedModel.primaryValue?.title];
           })
           .join(', ');

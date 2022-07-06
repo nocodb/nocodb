@@ -35,7 +35,7 @@ export default async function sortV2(
           const builder = (
             await genRollupSelectv2({
               knex,
-              columnOptions: (await column.getColOptions()) as RollupColumn
+              columnOptions: (await column.getColOptions()) as RollupColumn,
             })
           ).builder;
 
@@ -46,7 +46,9 @@ export default async function sortV2(
         {
           const builder = (
             await formulaQueryBuilderv2(
-              (await column.getColOptions<FormulaColumn>()).formula,
+              (
+                await column.getColOptions<FormulaColumn>()
+              ).formula,
               null,
               knex,
               model
@@ -64,9 +66,8 @@ export default async function sortV2(
             const lookup = await column.getColOptions<LookupColumn>();
             {
               const relationCol = await lookup.getRelationColumn();
-              const relation = await relationCol.getColOptions<
-                LinkToAnotherRecordColumn
-              >();
+              const relation =
+                await relationCol.getColOptions<LinkToAnotherRecordColumn>();
               if (relation.type !== RelationTypes.BELONGS_TO) return;
 
               const childColumn = await relation.getChildColumn();
@@ -79,7 +80,7 @@ export default async function sortV2(
               selectQb = knex(`${parentModel.table_name} as ${alias}`).where(
                 `${alias}.${parentColumn.column_name}`,
                 knex.raw(`??`, [
-                  `${childModel.table_name}.${childColumn.column_name}`
+                  `${childModel.table_name}.${childColumn.column_name}`,
                 ])
               );
             }
@@ -87,13 +88,11 @@ export default async function sortV2(
             let prevAlias = alias;
             while (lookupColumn.uidt === UITypes.Lookup) {
               const nestedAlias = `__nc_sort${aliasCount++}`;
-              const nestedLookup = await lookupColumn.getColOptions<
-                LookupColumn
-              >();
+              const nestedLookup =
+                await lookupColumn.getColOptions<LookupColumn>();
               const relationCol = await nestedLookup.getRelationColumn();
-              const relation = await relationCol.getColOptions<
-                LinkToAnotherRecordColumn
-              >();
+              const relation =
+                await relationCol.getColOptions<LinkToAnotherRecordColumn>();
               // if any of the relation in nested lookup is
               // not belongs to then ignore the sort option
               if (relation.type !== 'bt') return;
@@ -121,7 +120,8 @@ export default async function sortV2(
                   const builder = (
                     await genRollupSelectv2({
                       knex,
-                      columnOptions: (await lookupColumn.getColOptions()) as RollupColumn
+                      columnOptions:
+                        (await lookupColumn.getColOptions()) as RollupColumn,
                     })
                   ).builder;
                   selectQb.select(builder);
@@ -130,12 +130,12 @@ export default async function sortV2(
               case UITypes.LinkToAnotherRecord:
                 {
                   const nestedAlias = `__nc_sort${aliasCount++}`;
-                  const relation = await lookupColumn.getColOptions<
-                    LinkToAnotherRecordColumn
-                  >();
+                  const relation =
+                    await lookupColumn.getColOptions<LinkToAnotherRecordColumn>();
                   if (relation.type !== 'bt') return;
 
-                  const colOptions = (await column.getColOptions()) as LinkToAnotherRecordColumn;
+                  const colOptions =
+                    (await column.getColOptions()) as LinkToAnotherRecordColumn;
                   const childColumn = await colOptions.getChildColumn();
                   const parentColumn = await colOptions.getParentColumn();
                   const childModel = await childColumn.getModel();
@@ -156,7 +156,9 @@ export default async function sortV2(
                 {
                   const builder = (
                     await formulaQueryBuilderv2(
-                      (await column.getColOptions<FormulaColumn>()).formula,
+                      (
+                        await column.getColOptions<FormulaColumn>()
+                      ).formula,
                       null,
                       knex,
                       model
@@ -180,12 +182,12 @@ export default async function sortV2(
         break;
       case UITypes.LinkToAnotherRecord:
         {
-          const relation = await column.getColOptions<
-            LinkToAnotherRecordColumn
-          >();
+          const relation =
+            await column.getColOptions<LinkToAnotherRecordColumn>();
           if (relation.type !== 'bt') return;
 
-          const colOptions = (await column.getColOptions()) as LinkToAnotherRecordColumn;
+          const colOptions =
+            (await column.getColOptions()) as LinkToAnotherRecordColumn;
           const childColumn = await colOptions.getChildColumn();
           const parentColumn = await colOptions.getParentColumn();
           const childModel = await childColumn.getModel();
@@ -198,7 +200,7 @@ export default async function sortV2(
             .where(
               `${parentModel.table_name}.${parentColumn.column_name}`,
               knex.raw(`??`, [
-                `${childModel.table_name}.${childColumn.column_name}`
+                `${childModel.table_name}.${childColumn.column_name}`,
               ])
             );
 

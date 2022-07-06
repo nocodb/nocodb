@@ -7,11 +7,7 @@
     @dragend="dragOver = false"
     @drop.prevent.stop="onFileDrop"
   >
-    <table
-      v-if="data"
-      class="xc-row-table nc-grid backgroundColorDefault"
-      style=""
-    >
+    <table v-if="data" class="xc-row-table nc-grid backgroundColorDefault" style="">
       <thead>
         <tr class="text-left nc-grid-header-row">
           <th
@@ -85,12 +81,7 @@
           </th>
 
           <th
-            v-if="
-              !isLocked &&
-                !isVirtual &&
-                !isPublicView &&
-                _isUIAllowed('add-column')
-            "
+            v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')"
             v-t="['c:column:add']"
             :class="
               $store.state.settings.darkTheme
@@ -100,9 +91,7 @@
             class="grey-border new-column-header pointer nc-grid-header-cell"
             @click="addNewColMenu = true"
           >
-            <v-icon small @click="addNewColMenu = true">
-              mdi-plus
-            </v-icon>
+            <v-icon small @click="addNewColMenu = true"> mdi-plus </v-icon>
             <v-menu v-model="addNewColMenu" offset-y content-class="" left>
               <template #activator="{ on }">
                 <span v-on="on" />
@@ -139,7 +128,8 @@
                 v-show="!rowMeta || !rowMeta.selected"
                 class="ml-2 grey--text"
                 :class="{ 'row-no': !isPublicView }"
-                >{{ row + 1 }}</span>
+                >{{ row + 1 }}</span
+              >
 
               <template v-if="!isPublicView">
                 <v-checkbox
@@ -171,9 +161,7 @@
 
               <template v-if="saving">
                 <v-spacer />
-                <v-icon small>
-                  mdi-spin mdi-loading
-                </v-icon>
+                <v-icon small> mdi-spin mdi-loading </v-icon>
               </template>
             </div>
           </td>
@@ -183,11 +171,7 @@
             :key="row + columnObj.title"
             class="cell pointer nc-grid-cell"
             :class="{
-              active:
-                !isPublicView &&
-                selected.col === col &&
-                selected.row === row &&
-                isEditable,
+              active: !isPublicView && selected.col === col && selected.row === row && isEditable,
               'primary-column': primaryValueColumn === columnObj.title,
               'text-center': isCentrallyAligned(columnObj),
               required: isRequired(columnObj, rowObj),
@@ -195,9 +179,7 @@
             :data-col="columnObj.title"
             @dblclick="makeEditable(col, row, columnObj.ai, rowMeta)"
             @click="makeSelected(col, row)"
-            @contextmenu="
-              showRowContextMenu($event, rowObj, rowMeta, row, col, columnObj)
-            "
+            @contextmenu="showRowContextMenu($event, rowObj, rowMeta, row, col, columnObj)"
           >
             <virtual-cell
               v-if="isVirtualCol(columnObj)"
@@ -218,10 +200,7 @@
                 (...args) =>
                   updateCol(
                     ...args,
-                    columnObj.bt &&
-                      meta.columns.find(
-                        (c) => c.column_name === columnObj.bt.column_name
-                      ),
+                    columnObj.bt && meta.columns.find(c => c.column_name === columnObj.bt.column_name),
                     col,
                     row
                   )
@@ -237,7 +216,7 @@
                   !isPublicView &&
                   editEnabled.col === col &&
                   editEnabled.row === row) ||
-                  enableEditable(columnObj)
+                enableEditable(columnObj)
               "
               v-model="rowObj[columnObj.title]"
               :column="columnObj"
@@ -248,7 +227,10 @@
               :is-locked="isLocked"
               :is-public="isPublicView"
               :view-id="viewId"
-              @save="editEnabled = {}; onCellValueChange(col, row, columnObj, true);"
+              @save="
+                editEnabled = {};
+                onCellValueChange(col, row, columnObj, true);
+              "
               @cancel="editEnabled = {}"
               @update="onCellValueChange(col, row, columnObj, false)"
               @blur="onCellValueChange(col, row, columnObj, true)"
@@ -276,15 +258,7 @@
             />
           </td>
         </tr>
-        <tr
-          v-if="
-            !isView &&
-              !isLocked &&
-              !isPublicView &&
-              isEditable &&
-              relationType !== 'bt'
-          "
-        >
+        <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
           <td
             v-t="['c:row:add:grid-bottom']"
             :colspan="visibleColLength + 1"
@@ -293,11 +267,9 @@
           >
             <v-tooltip top>
               <template #activator="{ on }">
-                <v-icon small color="pink" v-on="on">
-                  mdi-plus
-                </v-icon>
+                <v-icon small color="pink" v-on="on"> mdi-plus </v-icon>
                 <span class="ml-1 caption grey--text">
-                  {{ $t("activity.addRow") }}
+                  {{ $t('activity.addRow') }}
                 </span>
               </template>
               <span class="caption"> Add new row</span>
@@ -311,27 +283,27 @@
     <!--    <div is="style" v-html="resizeColStyle" />-->
     <dynamic-style>
       <template v-if="resizingCol">
-        [data-col="{{ resizingCol }}"]{min-width:{{
+        [data-col="{{ resizingCol }}"]{min-width:{{ resizingColWidth }};max-width:{{ resizingColWidth }};width:{{
           resizingColWidth
-        }};max-width:{{ resizingColWidth }};width:{{ resizingColWidth }};}
+        }};}
       </template>
     </dynamic-style>
   </div>
 </template>
 
 <script>
-import { isVirtualCol } from 'nocodb-sdk'
-import HeaderCell from '../components/HeaderCell'
-import EditableCell from '../components/EditableCell'
-import EditColumn from '../components/EditColumn'
+import { isVirtualCol } from 'nocodb-sdk';
+import HeaderCell from '../components/HeaderCell';
+import EditableCell from '../components/EditableCell';
+import EditColumn from '../components/EditColumn';
 // import columnStyling from '../helpers/columnStyling'
-import VirtualCell from '../components/VirtualCell'
-import VirtualHeaderCell from '../components/VirtualHeaderCell'
-import colors from '@/mixins/colors'
-import TableCell from '~/components/project/spreadsheet/components/Cell'
-import DynamicStyle from '~/components/DynamicStyle'
-import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
-import { copyTextToClipboard } from '~/helpers/xutils'
+import VirtualCell from '../components/VirtualCell';
+import VirtualHeaderCell from '../components/VirtualHeaderCell';
+import colors from '@/mixins/colors';
+import TableCell from '~/components/project/spreadsheet/components/Cell';
+import DynamicStyle from '~/components/DynamicStyle';
+import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes';
+import { copyTextToClipboard } from '~/helpers/xutils';
 
 export default {
   name: 'XcGridView',
@@ -342,7 +314,7 @@ export default {
     TableCell,
     EditColumn,
     EditableCell,
-    HeaderCell
+    HeaderCell,
   },
   mixins: [colors],
   props: {
@@ -370,7 +342,7 @@ export default {
     // columnsWidth: { type: Object },
     isPkAvail: Boolean,
     password: String,
-    viewId: String
+    viewId: String,
   },
   data: () => ({
     resizingCol: null,
@@ -381,31 +353,28 @@ export default {
     addNewColMenu: false,
     selected: {
       row: null,
-      col: null
+      col: null,
     },
     editEnabled: {
       row: null,
-      col: null
+      col: null,
     },
     aggCount: [],
     dragOver: false,
     gridViewCols: {},
     unsaved: false,
-    rightToLeftLanguages: ['fa']
+    rightToLeftLanguages: ['fa'],
   }),
   computed: {
     selectAll: {
       get() {
-        return !!(
-          this.data.length &&
-          this.data.every(d => d.rowMeta && d.rowMeta.selected)
-        )
+        return !!(this.data.length && this.data.every(d => d.rowMeta && d.rowMeta.selected));
       },
       set(v) {
         for (const d of this.data) {
-          this.$set(d.rowMeta, 'selected', v)
+          this.$set(d.rowMeta, 'selected', v);
         }
-      }
+      },
     },
     ids() {
       return (
@@ -419,131 +388,115 @@ export default {
               .join('___')
           )) ||
         []
-      )
+      );
     },
     haveHasManyrelation() {
-      return !!Object.keys(this.hasMany).length
+      return !!Object.keys(this.hasMany).length;
     },
     colLength() {
-      return (this.availableColumns && this.availableColumns.length) || 0
+      return (this.availableColumns && this.availableColumns.length) || 0;
     },
     rowLength() {
-      return (this.data && this.data.length) || 0
+      return (this.data && this.data.length) || 0;
     },
     availColNames() {
-      return (
-        (this.availableColumns && this.availableColumns.map(c => c.title)) ||
-        []
-      )
+      return (this.availableColumns && this.availableColumns.map(c => c.title)) || [];
     },
     groupedAggCount() {
       // eslint-disable-next-line camelcase
       return this.aggCount
         ? this.aggCount.reduce(
-          (o, { row_id, count }) => ({
-            ...o,
-            [row_id]: count
-          }),
-          {}
-        )
-        : {}
+            (o, { row_id, count }) => ({
+              ...o,
+              [row_id]: count,
+            }),
+            {}
+          )
+        : {};
     },
     style() {
-      let style = ''
+      let style = '';
       for (const c of this.availableColumns) {
-        const val =
-          (this.gridViewCols &&
-            this.gridViewCols[c.id] &&
-            this.gridViewCols[c.id].width) ||
-          '200px'
+        const val = (this.gridViewCols && this.gridViewCols[c.id] && this.gridViewCols[c.id].width) || '200px';
 
         if (val && c.key !== this.resizingCol) {
-          style += `[data-col="${c.title}"]{min-width:${val};max-width:${val};width: ${val};}`
+          style += `[data-col="${c.title}"]{min-width:${val};max-width:${val};width: ${val};}`;
         }
       }
 
-      return style
-    }
+      return style;
+    },
     // resizeColStyle() {
     //   return this.resizingCol ? ` [data-col="${this.resizingCol}"]{min-width:${this.resizingColWidth};max-width:${this.resizingColWidth};width:${this.resizingColWidth};}` : ''
     // }
   },
   watch: {
     data() {
-      this.xcAuditModelCommentsCount()
+      this.xcAuditModelCommentsCount();
     },
     viewId(v, o) {
       if (v !== o) {
-        this.loadGridViewCols()
+        this.loadGridViewCols();
       }
-    }
+    },
   },
   mounted() {
     // this.calculateColumnWidth()
   },
   created() {
-    document.addEventListener('keydown', this.onKeyDown)
-    this.loadGridViewCols()
-    this.xcAuditModelCommentsCount()
-    const self = this
-    window.addEventListener('beforeunload', function() {
+    document.addEventListener('keydown', this.onKeyDown);
+    this.loadGridViewCols();
+    this.xcAuditModelCommentsCount();
+    const self = this;
+    window.addEventListener('beforeunload', function () {
       if (self.unsaved) {
         if (self.editEnabled.row != null && self.editEnabled.row != null) {
-          const columnObj = self.availableColumns[self.editEnabled.col]
-          self.onCellValueChange(
-            self.editEnabled.col,
-            self.editEnabled.row,
-            columnObj,
-            true
-          )
+          const columnObj = self.availableColumns[self.editEnabled.col];
+          self.onCellValueChange(self.editEnabled.col, self.editEnabled.row, columnObj, true);
         }
       }
-    })
+    });
   },
   beforeDestroy() {
-    document.removeEventListener('keydown', this.onKeyDown)
+    document.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
     async loadGridViewCols() {
       if (!this.viewId) {
-        return
+        return;
       }
-      const colsData = await this.$api.dbView.gridColumnsList(this.viewId)
+      const colsData = await this.$api.dbView.gridColumnsList(this.viewId);
       this.gridViewCols = colsData.reduce(
         (o, col) => ({
           ...o,
-          [col.fk_column_id]: col
+          [col.fk_column_id]: col,
         }),
         {}
-      )
+      );
     },
     onFileDrop(event) {
-      this.$emit('drop', event)
+      this.$emit('drop', event);
     },
     isRequired(_columnObj, rowObj, ignoreCurrentValue = false) {
       if (this.isPublicView || this.loading) {
-        return false
+        return false;
       }
 
-      let columnObj = _columnObj
+      let columnObj = _columnObj;
       if (columnObj.bt) {
-        columnObj = this.meta.columns.find(
-          c => c.column_name === columnObj.bt.column_name
-        )
+        columnObj = this.meta.columns.find(c => c.column_name === columnObj.bt.column_name);
       }
 
       return (
         columnObj &&
         columnObj.rqd &&
-        (ignoreCurrentValue ||
-          rowObj[columnObj.title] === undefined ||
-          rowObj[columnObj.title] === null) &&
+        (ignoreCurrentValue || rowObj[columnObj.title] === undefined || rowObj[columnObj.title] === null) &&
         !columnObj.default
-      )
+      );
     },
     updateCol(row, column, value, columnObj, colIndex, rowIndex) {
-      this.$set(row, column, value)
-      this.onCellValueChange(colIndex, rowIndex, columnObj, true)
+      this.$set(row, column, value);
+      this.onCellValueChange(colIndex, rowIndex, columnObj, true);
     },
     calculateColumnWidth() {
       // setTimeout(() => {
@@ -573,12 +526,12 @@ export default {
         'DateTime',
         'CreateTime',
         'LastModifiedTime',
-        'Currency'
-      ].includes(col.uidt)
+        'Currency',
+      ].includes(col.uidt);
     },
     async xcAuditModelCommentsCount() {
       if (this.isPublicView || !this.data || !this.data.length) {
-        return
+        return;
       }
       // const aggCount = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   dbAlias: this.nodes.dbAlias
@@ -595,120 +548,112 @@ export default {
           return this.meta.columns
             .filter(c => c.pk)
             .map(c => r[c.title])
-            .join('___')
+            .join('___');
         }),
-        fk_model_id: this.meta.id
-      })
+        fk_model_id: this.meta.id,
+      });
     },
 
     async onKeyDown(e) {
-      if (
-        this.selected.col === null ||
-        this.selected.row === null ||
-        this.isLocked
-      ) {
-        return
+      if (this.selected.col === null || this.selected.row === null || this.isLocked) {
+        return;
       }
 
       switch (e.keyCode) {
         // tab
         case 9:
-          e.preventDefault()
+          e.preventDefault();
           this.editEnabled = {
             col: null,
-            row: null
-          }
+            row: null,
+          };
           if (e.shiftKey) {
             if (this.selected.col > 0) {
-              this.selected.col--
+              this.selected.col--;
             } else if (this.selected.row > 0) {
-              this.selected.row--
-              this.selected.col = this.colLength - 1
+              this.selected.row--;
+              this.selected.col = this.colLength - 1;
             }
           } else if (this.selected.col < this.colLength - 1) {
-            this.selected.col++
+            this.selected.col++;
           } else if (this.selected.row < this.rowLength - 1) {
-            this.selected.row++
-            this.selected.col = 0
+            this.selected.row++;
+            this.selected.col = 0;
           }
 
-          break
+          break;
         // delete
-        case 46: {
-          if (this.editEnabled.col != null && this.editEnabled.row != null) {
-            return
+        case 46:
+          {
+            if (this.editEnabled.col != null && this.editEnabled.row != null) {
+              return;
+            }
+
+            const rowObj = this.data[this.selected.row].row;
+            const columnObj = this.availableColumns[this.selected.col];
+
+            if (
+              // this.isRequired(columnObj, rowObj, true) ||
+              columnObj.virtual
+            ) {
+              return;
+            }
+
+            this.$set(rowObj, columnObj.title, null);
+            // update/save cell value
+            this.onCellValueChange(this.selected.col, this.selected.row, columnObj, true);
           }
-
-          const rowObj = this.data[this.selected.row].row
-          const columnObj = this.availableColumns[this.selected.col]
-
-          if (
-            // this.isRequired(columnObj, rowObj, true) ||
-            columnObj.virtual
-          ) {
-            return
-          }
-
-          this.$set(rowObj, columnObj.title, null)
-          // update/save cell value
-          this.onCellValueChange(
-            this.selected.col,
-            this.selected.row,
-            columnObj,
-            true
-          )
-        }
-          break
+          break;
         // left
         case 37:
           if (this.rightToLeftLanguages.includes(this.$store.state.settings.language)) {
             if (this.selected.col < this.colLength - 1) {
-              this.selected.col++
+              this.selected.col++;
             }
           } else if (this.selected.col > 0) {
-            this.selected.col--
+            this.selected.col--;
           }
-          break
+          break;
         // right
         case 39:
           if (this.rightToLeftLanguages.includes(this.$store.state.settings.language)) {
             if (this.selected.col > 0) {
-              this.selected.col--
+              this.selected.col--;
             }
           } else if (this.selected.col < this.colLength - 1) {
-            this.selected.col++
+            this.selected.col++;
           }
-          break
+          break;
         // up
         case 38:
           if (this.selected.row > 0) {
-            this.selected.row--
+            this.selected.row--;
           }
-          break
+          break;
         // down
         case 40:
           if (this.selected.row < this.rowLength - 1) {
-            this.selected.row++
+            this.selected.row++;
           }
-          break
+          break;
         // enter
         case 13:
-          this.makeEditable(this.selected.col, this.selected.row)
-          break
+          this.makeEditable(this.selected.col, this.selected.row);
+          break;
         default: {
           if (this.editEnabled.col != null && this.editEnabled.row != null) {
-            return
+            return;
           }
 
-          const rowObj = this.data[this.selected.row].row
-          const columnObj = this.availableColumns[this.selected.col]
+          const rowObj = this.data[this.selected.row].row;
+          const columnObj = this.availableColumns[this.selected.col];
 
           if (e.metaKey || e.ctrlKey) {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
-                copyTextToClipboard(rowObj[columnObj.title] || '')
-                break
+                copyTextToClipboard(rowObj[columnObj.title] || '');
+                break;
               // // paste ctrl/cmd + v
               // case 86: {
               //   const text = await navigator.clipboard.readText()
@@ -719,106 +664,90 @@ export default {
           }
 
           if (e.ctrlKey || e.altKey || e.metaKey) {
-            return
+            return;
           }
 
           if (e.key && e.key.length === 1) {
             if (!this.isPkAvail && !this.data[this.selected.row].rowMeta.new) {
-              return this.$toast
-                .info(
-                  "Update not allowed for table which doesn't have primary Key"
-                )
-                .goAway(3000)
+              return this.$toast.info("Update not allowed for table which doesn't have primary Key").goAway(3000);
             }
 
-            this.$set(
-              this.data[this.selected.row].row,
-              this.availableColumns[this.selected.col].title,
-              ''
-            )
-            this.editEnabled = { ...this.selected }
+            this.$set(this.data[this.selected.row].row, this.availableColumns[this.selected.col].title, '');
+            this.editEnabled = { ...this.selected };
           }
         }
       }
     },
     onClickOutside() {
       if (
-        (this.meta.columns &&
-          this.meta.columns[this.selected.col] &&
-          this.meta.columns[this.selected.col].virtual) ||
+        (this.meta.columns && this.meta.columns[this.selected.col] && this.meta.columns[this.selected.col].virtual) ||
         (this.availableColumns &&
           this.availableColumns[this.editEnabled.col] &&
           this.availableColumns[this.editEnabled.col].uidt === 'JSON')
       ) {
-        return
+        return;
       }
-      this.selected.col = null
-      this.selected.row = null
-      this.editEnabled.col = null
-      this.editEnabled.row = null
+      this.selected.col = null;
+      this.selected.row = null;
+      this.editEnabled.col = null;
+      this.editEnabled.row = null;
     },
     onNewColCreation(col, oldCol) {
-      this.addNewColMenu = false
-      this.addNewColModal = false
-      this.$emit('onNewColCreation', col, oldCol)
+      this.addNewColMenu = false;
+      this.addNewColModal = false;
+      this.$emit('onNewColCreation', col, oldCol);
     },
     expandRow(...args) {
-      this.$emit('expandRow', ...args)
-      this.$e('c:row-expand')
+      this.$emit('expandRow', ...args);
+      this.$e('c:row-expand');
     },
     showRowContextMenu($event, rowObj, rowMeta, row, ...rest) {
-      this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row, ...rest)
+      this.$emit('showRowContextMenu', $event, rowObj, rowMeta, row, ...rest);
     },
     onCellValueChange(col, row, column, saved) {
-      this.$emit('onCellValueChange', col, row, column, saved)
+      this.$emit('onCellValueChange', col, row, column, saved);
       if (saved) {
-        this.unsaved = false
+        this.unsaved = false;
       }
     },
     navigateToNext() {
       if (this.selected.row < this.rowLength - 1) {
-        this.selected.row++
+        this.selected.row++;
       }
     },
     navigateToPrev() {
       if (this.selected.row > 0) {
-        this.selected.row--
+        this.selected.row--;
       }
     },
     makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
         this.selected = {
           col,
-          row
-        }
-        this.editEnabled = {}
+          row,
+        };
+        this.editEnabled = {};
       }
     },
     makeEditable(col, row, _, rowMeta) {
       if (this.isPublicView || !this.isEditable || this.isView) {
-        return
+        return;
       }
 
       if (!this.isPkAvail && !rowMeta.new) {
-        return this.$toast
-          .info("Update not allowed for table which doesn't have primary Key")
-          .goAway(3000)
+        return this.$toast.info("Update not allowed for table which doesn't have primary Key").goAway(3000);
       }
       if (this.availableColumns[col].ai) {
-        return this.$toast
-          .info('Auto Increment field is not editable')
-          .goAway(3000)
+        return this.$toast.info('Auto Increment field is not editable').goAway(3000);
       }
       if (this.availableColumns[col].pk && !this.data[row].rowMeta.new) {
-        return this.$toast
-          .info('Editing primary key not supported')
-          .goAway(3000)
+        return this.$toast.info('Editing primary key not supported').goAway(3000);
       }
       if (this.editEnabled.col !== col || this.editEnabled.row !== row) {
         this.editEnabled = {
           col,
-          row
-        }
+          row,
+        };
       }
     },
     enableEditable(column) {
@@ -830,39 +759,34 @@ export default {
         (column && column.uidt === UITypes.Date) ||
         (column && column.uidt === UITypes.Time) ||
         (column && column.uidt === UITypes.Rating) ||
-        (this.sqlUi &&
-          column.dt &&
-          this.sqlUi.getAbstractType(column) === 'boolean')
-      )
+        (this.sqlUi && column.dt && this.sqlUi.getAbstractType(column) === 'boolean')
+      );
     },
     insertNewRow(atEnd = false, expand = false) {
-      this.$emit('insertNewRow', atEnd, expand)
+      this.$emit('insertNewRow', atEnd, expand);
     },
     async onresize(colId, size) {
-      const gridColId =
-        this.gridViewCols &&
-        this.gridViewCols[colId] &&
-        this.gridViewCols[colId].id
+      const gridColId = this.gridViewCols && this.gridViewCols[colId] && this.gridViewCols[colId].id;
       if (!gridColId) {
-        return
+        return;
       }
-      this.$set(this.gridViewCols[colId], 'width', size)
+      this.$set(this.gridViewCols[colId], 'width', size);
       if (this._isUIAllowed('gridColUpdate')) {
         await this.$api.dbView.gridColumnUpdate(gridColId, {
-          width: size
-        })
+          width: size,
+        });
       }
       // this.$emit('update:columnsWidth', { ...this.columnsWidth, [col]: size })
     },
     onXcResizing(_cn, width) {
-      this.resizingCol = _cn
-      this.resizingColWidth = width
+      this.resizingCol = _cn;
+      this.resizingColWidth = width;
     },
     log(e, s) {
-      console.log(e.target, s)
-    }
-  }
-}
+      console.log(e.target, s);
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -939,8 +863,7 @@ export default {
     margin: -1px;
   }
 
-  .search-field.v-text-field.v-text-field--solo.v-input--dense
-  > .v-input__control {
+  .search-field.v-text-field.v-text-field--solo.v-input--dense > .v-input__control {
     min-height: auto;
   }
 
@@ -982,7 +905,7 @@ th {
 
 td.active::after,
 td.active::before {
-  content: "";
+  content: '';
   position: absolute;
   z-index: 3;
   height: calc(100% + 2px);
@@ -1102,7 +1025,7 @@ tbody tr:hover {
 }
 
 th::before {
-  content: "";
+  content: '';
   position: absolute;
   width: 100%;
   background: inherit;
@@ -1128,7 +1051,7 @@ td.primary-column {
   right: 0;
   background: var(--v-primary-base);
   opacity: 0.2;
-  content: "";
+  content: '';
   z-index: 1;
   pointer-events: none;
 }
@@ -1178,13 +1101,12 @@ td:first-child {
   tr {
     .nc-cell-hover-show {
       opacity: 0;
-      transition: .3s opacity;
+      transition: 0.3s opacity;
     }
 
     &:hover .nc-cell-hover-show {
-      opacity: .7;
+      opacity: 0.7;
     }
   }
 }
-
 </style>

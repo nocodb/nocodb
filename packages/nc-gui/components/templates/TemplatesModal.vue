@@ -1,16 +1,13 @@
 <template>
   <div class="d-flex align-center">
-    <span
-      v-if="!hideLabel"
-      v-ripple
-      class="caption font-weight-bold pointer"
-      @click="templatesModal = true"
-    >Templates</span>
+    <span v-if="!hideLabel" v-ripple class="caption font-weight-bold pointer" @click="templatesModal = true"
+      >Templates</span
+    >
     <v-dialog v-if="templatesModal" v-model="templatesModal">
       <v-card height="90vh">
         <project-templates
           :create-project="createProject"
-          style="height:90vh"
+          style="height: 90vh"
           modal
           :loading="loading"
           :project-template.sync="templateData"
@@ -29,7 +26,7 @@
 </template>
 
 <script>
-import ProjectTemplates from '~/components/templates/List'
+import ProjectTemplates from '~/components/templates/List';
 
 export default {
   name: 'TemplatesModal',
@@ -37,7 +34,7 @@ export default {
   props: {
     hideLabel: Boolean,
     value: Boolean,
-    createProject: Boolean
+    createProject: Boolean,
   },
   data: () => ({
     templateData: null,
@@ -64,81 +61,91 @@ export default {
       'Please wait..',
       'Please wait.',
       'Please wait..',
-      'Please wait...'
-    ]
+      'Please wait...',
+    ],
   }),
   computed: {
     templatesModal: {
       get() {
-        return this.value
+        return this.value;
       },
       set(v) {
-        this.$emit('input', v)
-      }
-    }
+        this.$emit('input', v);
+      },
+    },
   },
   methods: {
     async importTemplate(template, projectType) {
       if (this.createProject) {
-        this.projectCreation = true
+        this.projectCreation = true;
         try {
           const interv = setInterval(() => {
-            this.loaderMessagesIndex = this.loaderMessagesIndex < this.loaderMessages.length - 1 ? this.loaderMessagesIndex + 1 : 6
-          }, 1000)
+            this.loaderMessagesIndex =
+              this.loaderMessagesIndex < this.loaderMessages.length - 1 ? this.loaderMessagesIndex + 1 : 6;
+          }, 1000);
 
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
-            title: template.title,
-            projectType,
-            template
-          }])
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+            null,
+            'projectCreateByWebWithXCDB',
+            {
+              title: template.title,
+              projectType,
+              template,
+            },
+          ]);
 
-          await this.$store.dispatch('project/ActLoadProjectInfo')
+          await this.$store.dispatch('project/ActLoadProjectInfo');
 
-          clearInterval(interv)
+          clearInterval(interv);
 
-          this.projectReloading = false
+          this.projectReloading = false;
 
-          if (this.$store.state.project.appInfo.firstUser || this.$store.state.project.appInfo.authType === 'masterKey') {
+          if (
+            this.$store.state.project.appInfo.firstUser ||
+            this.$store.state.project.appInfo.authType === 'masterKey'
+          ) {
             return this.$router.push({
-              path: '/user/authentication/signup'
-            })
+              path: '/user/authentication/signup',
+            });
           }
 
           this.$router.push({
             path: `/nc/${result.id}`,
             query: {
-              new: 1
-            }
-          })
+              new: 1,
+            },
+          });
         } catch (e) {
-          this.$toast.error(e.message).goAway(3000)
+          this.$toast.error(e.message).goAway(3000);
         }
-        this.projectCreation = false
+        this.projectCreation = false;
       } else {
         try {
-          const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-            // todo: extract based on active
-            dbAlias: 'db', // this.nodes.dbAlias,
-            env: '_noco'
-          }, 'xcModelsCreateFromTemplate', {
-            template
-          }])
+          const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+            {
+              // todo: extract based on active
+              dbAlias: 'db', // this.nodes.dbAlias,
+              env: '_noco',
+            },
+            'xcModelsCreateFromTemplate',
+            {
+              template,
+            },
+          ]);
 
           if (res && res.tables && res.tables.length) {
-            this.$toast.success(`Imported ${res.tables.length} tables successfully`).goAway(3000)
+            this.$toast.success(`Imported ${res.tables.length} tables successfully`).goAway(3000);
           } else {
-            this.$toast.success('Template imported successfully').goAway(3000)
+            this.$toast.success('Template imported successfully').goAway(3000);
           }
-          this.templatesModal = false
+          this.templatesModal = false;
         } catch (e) {
-          this.$toast.error(e.message).goAway(3000)
+          this.$toast.error(e.message).goAway(3000);
         }
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

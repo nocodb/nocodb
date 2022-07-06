@@ -1,11 +1,11 @@
 import Knex from 'knex';
 import { RelationTypes } from 'nocodb-sdk';
 
-export default function({
+export default function ({
   knex,
   rollup: _rollup,
   hasMany,
-  manyToMany
+  manyToMany,
 }: {
   tn: string;
   knex: Knex;
@@ -18,7 +18,7 @@ export default function({
   switch (rollup.type) {
     case RelationTypes.HAS_MANY:
       if (!rollup.tn || !rollup.rtn) {
-        rollup = { ...rollup, ...hasMany.find(hm => hm.tn === rollup.rltn) };
+        rollup = { ...rollup, ...hasMany.find((hm) => hm.tn === rollup.rltn) };
       }
       return knex(rollup.rltn)
         [rollup.fn]?.(knex.ref(`${rollup.rltn}.${rollup.rlcn}`))
@@ -32,7 +32,7 @@ export default function({
       if (!rollup.tn || !rollup.rtn || !rollup.vtn) {
         rollup = {
           ...rollup,
-          ...manyToMany.find(mm => mm.rtn === rollup.rltn)
+          ...manyToMany.find((mm) => mm.rtn === rollup.rltn),
         };
       }
       return knex(rollup.rltn)

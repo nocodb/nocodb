@@ -26,20 +26,24 @@ export default class Debug {
   ppException(e, func = null) {
     let log = '';
     log += `                                              EXCEPTION OCCURED!! in ${this.namespace.red.bold} @ ${func}`;
-    log += '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
-      .red.bold;
+    log +=
+      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
+        .red.bold;
     log += `MESSAGE:\n`.yellow.bold;
     log += `${e.message}\n`.yellow.bold;
-    log += '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
-      .red.bold;
+    log +=
+      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
+        .red.bold;
     log += `CODE:\n`.yellow.bold;
     log += `${e.code}\n`.yellow.bold;
-    log += '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
-      .red.bold;
+    log +=
+      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
+        .red.bold;
     log += `STACK:\n`.yellow.bold;
     log += `${e.stack}\n`.yellow.bold;
-    log += '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
-      .red.bold;
+    log +=
+      '\n- - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -\n'
+        .red.bold;
     console.log(boxen(log, { padding: 1, borderStyle: 'double' }));
     console.log(e);
     return log;

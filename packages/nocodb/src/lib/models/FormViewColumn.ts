@@ -50,7 +50,7 @@ export default class FormViewColumn implements FormColumnType {
       fk_view_id: column.fk_view_id,
       fk_column_id: column.fk_column_id,
       order: await ncMeta.metaGetNextOrder(MetaTable.FORM_VIEW_COLUMNS, {
-        fk_view_id: column.fk_view_id
+        fk_view_id: column.fk_view_id,
       }),
       show: column.show,
       project_id: column.project_id,
@@ -58,7 +58,7 @@ export default class FormViewColumn implements FormColumnType {
       label: column.label,
       help: column.help,
       description: column.description,
-      required: column.required
+      required: column.required,
     };
 
     if (!(column.project_id && column.base_id)) {
@@ -89,7 +89,7 @@ export default class FormViewColumn implements FormColumnType {
     ncMeta = Noco.ncMeta
   ): Promise<FormViewColumn[]> {
     let viewColumns = await NocoCache.getList(CacheScope.FORM_VIEW_COLUMN, [
-      viewId
+      viewId,
     ]);
     if (!viewColumns.length) {
       viewColumns = await ncMeta.metaList2(
@@ -98,11 +98,11 @@ export default class FormViewColumn implements FormColumnType {
         MetaTable.FORM_VIEW_COLUMNS,
         {
           condition: {
-            fk_view_id: viewId
+            fk_view_id: viewId,
           },
           orderBy: {
-            order: 'asc'
-          }
+            order: 'asc',
+          },
         }
       );
       await NocoCache.setList(
@@ -116,7 +116,7 @@ export default class FormViewColumn implements FormColumnType {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity)
     );
-    return viewColumns?.map(v => new FormViewColumn(v));
+    return viewColumns?.map((v) => new FormViewColumn(v));
   }
 
   static async update(
@@ -130,7 +130,7 @@ export default class FormViewColumn implements FormColumnType {
       'description',
       'required',
       'show',
-      'order'
+      'order',
     ]);
     // get existing cache
     const key = `${CacheScope.FORM_VIEW_COLUMN}:${columnId}`;

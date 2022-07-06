@@ -32,7 +32,7 @@ export default async (req, res, next) => {
       req.body?.fk_model_id
     ) {
       const model = await Model.getByIdOrName({
-        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id
+        id: params.tableId || req.query?.fk_model_id || req.body?.fk_model_id,
       });
       req.ncProjectId = model?.project_id;
     } else if (params.viewId) {
@@ -91,7 +91,7 @@ export default async (req, res, next) => {
             return resolve({
               ...user,
               isAuthorized: true,
-              roles: req.header('xc-preview')
+              roles: req.header('xc-preview'),
             });
           }
 
@@ -103,7 +103,7 @@ export default async (req, res, next) => {
             'authtoken',
             {
               session: false,
-              optional: false
+              optional: false,
             },
             (_err, user, _info) => {
               // if (_err) return reject(_err);
@@ -111,7 +111,7 @@ export default async (req, res, next) => {
                 return resolve({
                   ...user,
                   isAuthorized: true,
-                  roles: user.roles === 'owner' ? 'owner,creator' : user.roles
+                  roles: user.roles === 'owner' ? 'owner,creator' : user.roles,
                 });
               } else {
                 resolve({ roles: 'guest' });
@@ -125,7 +125,7 @@ export default async (req, res, next) => {
               return resolve({
                 ...user,
                 isAuthorized: true,
-                isPublicBase: true
+                isPublicBase: true,
               });
             } else {
               resolve({ roles: 'guest' });

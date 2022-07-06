@@ -1,11 +1,5 @@
 <template>
-  <v-checkbox
-    v-model="localState"
-    color="primary lighten-1"
-    hide-details
-    dense
-    v-on="parentListeners"
-  />
+  <v-checkbox v-model="localState" color="primary lighten-1" hide-details dense v-on="parentListeners" />
 </template>
 
 <script>
@@ -13,27 +7,26 @@ export default {
   name: 'CheckBoxField',
   props: {
     value: String,
-    inputDetails: Object
+    inputDetails: Object,
   },
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     parentListeners() {
-      const $listeners = {}
-      return $listeners
-    }
-  }
-}
+      const $listeners = {};
+      return $listeners;
+    },
+  },
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

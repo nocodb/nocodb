@@ -6,14 +6,14 @@
         v-model="localState"
         class="caption xc-date-time-picker"
         :text-field-props="{
-          class:'caption mt-0 pt-0',
-          flat:true,
-          solo:true,
-          dense:true,
-          hideDetails:true
+          class: 'caption mt-0 pt-0',
+          flat: true,
+          solo: true,
+          dense: true,
+          hideDetails: true,
         }"
         :time-picker-props="{
-          format:'24hr'
+          format: '24hr',
         }"
         v-on="parentListeners"
       />
@@ -26,75 +26,76 @@
 </template>
 
 <script>
+import dayjs from 'dayjs';
+import utc from 'dayjs/plugin/utc';
 
-import dayjs from 'dayjs'
-import utc from 'dayjs/plugin/utc'
-
-dayjs.extend(utc)
+dayjs.extend(utc);
 
 export default {
   name: 'DateTimePickerCell',
   props: {
-    value: [String, Date, Number], ignoreFocus: Boolean
+    value: [String, Date, Number],
+    ignoreFocus: Boolean,
   },
   data: () => ({
-    showMessage: false
+    showMessage: false,
   }),
   computed: {
     isMysql() {
-      return ['mysql', 'mysql2'].indexOf(this.$store.getters['project/GtrClientType'])
+      return ['mysql', 'mysql2'].indexOf(this.$store.getters['project/GtrClientType']);
     },
     localState: {
       get() {
         if (!this.value) {
-          return this.value
+          return this.value;
         }
-        const d = (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))
+        const d = /^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value);
         if (d.isValid()) {
-          this.showMessage = false
-          return d.format('YYYY-MM-DD HH:mm')
+          this.showMessage = false;
+          return d.format('YYYY-MM-DD HH:mm');
         } else {
-          this.showMessage = true
+          this.showMessage = true;
         }
       },
       set(value) {
         if (this.isMysql) {
-          this.$emit('input', value && dayjs(value).format('YYYY-MM-DD HH:mm:ss'))
+          this.$emit('input', value && dayjs(value).format('YYYY-MM-DD HH:mm:ss'));
         } else {
-          this.$emit('input', value && dayjs(value).format('YYYY-MM-DD HH:mm:ssZ'))
+          this.$emit('input', value && dayjs(value).format('YYYY-MM-DD HH:mm:ssZ'));
         }
-      }
+      },
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
         // $listeners.blur = this.$listeners.blur
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   mounted() {
     // listen dialog click:outside event and save on close
     if (this.$refs.picker && this.$refs.picker.$children && this.$refs.picker.$children[0]) {
       this.$refs.picker.$children[0].$on('click:outside', () => {
-        this.$refs.picker.okHandler()
-      })
+        this.$refs.picker.okHandler();
+      });
     }
 
     if (!this.ignoreFocus) {
-      this.$refs.picker.display = true
+      this.$refs.picker.display = true;
     }
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
-/deep/ .v-input, /deep/ .v-text-field {
+/deep/ .v-input,
+/deep/ .v-text-field {
   margin-top: 0 !important;
   padding-top: 0 !important;
   font-size: inherit !important;
@@ -103,7 +104,7 @@ export default {
 .edit-warning {
   padding: 10px;
   text-align: left;
-  color: #E65100;
+  color: #e65100;
 }
 </style>
 <!--

@@ -24,9 +24,7 @@
           small
         >
           <template #divider>
-            <v-icon small color="grey lighten-2">
-              forward
-            </v-icon>
+            <v-icon small color="grey lighten-2"> forward </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
@@ -34,41 +32,23 @@
 
       <!--tooltip="Close webhooks modal"-->
       <x-btn outlined small @click.prevent="$emit('close')">
-        <v-icon small left>
-          mdi-close-circle-outline
-        </v-icon>
+        <v-icon small left> mdi-close-circle-outline </v-icon>
         <!-- Close -->
-        {{ $t("general.close") }}
+        {{ $t('general.close') }}
       </x-btn>
 
       <!--tooltip="Reload hooks"-->
-      <x-btn
-        v-ge="['hooks', 'reload']"
-        outlined
-        color="primary"
-        small
-        @click.prevent="loadHooksList"
-      >
-        <v-icon small left>
-          mdi-reload
-        </v-icon>
+      <x-btn v-ge="['hooks', 'reload']" outlined color="primary" small @click.prevent="loadHooksList">
+        <v-icon small left> mdi-reload </v-icon>
         <!-- Reload -->
-        {{ $t("general.reload") }}
+        {{ $t('general.reload') }}
       </x-btn>
 
       <!--:tooltip="$t('tooltip.saveChanges')"-->
-      <x-btn
-        v-ge="['hooks', 'add new']"
-        outlined
-        color="primary"
-        small
-        @click.prevent="addNewHook"
-      >
-        <v-icon small left>
-          mdi-plus
-        </v-icon>
+      <x-btn v-ge="['hooks', 'add new']" outlined color="primary" small @click.prevent="addNewHook">
+        <v-icon small left> mdi-plus </v-icon>
         <!--Add New-->
-        {{ $t("activity.addWebhook") }}
+        {{ $t('activity.addWebhook') }}
       </x-btn>
 
       <!--      <x-btn outlined tooltip="Save Changes"
@@ -96,23 +76,23 @@
                         <th />
                         <th>
                           <!--Title-->
-                          {{ $t("general.title") }}
+                          {{ $t('general.title') }}
                         </th>
                         <th>
                           <!--Event-->
-                          {{ $t("general.event") }}
+                          {{ $t('general.event') }}
                         </th>
                         <th>
                           <!--Condition-->
-                          {{ $t("general.condition") }}
+                          {{ $t('general.condition') }}
                         </th>
                         <th>
                           <!--Notify Via-->
-                          {{ $t("labels.notifyVia") }}
+                          {{ $t('labels.notifyVia') }}
                         </th>
                         <th>
                           <!--Action-->
-                          {{ $t("labels.action") }}
+                          {{ $t('labels.action') }}
                         </th>
                       </tr>
                     </thead>
@@ -126,21 +106,13 @@
                           <td>{{ item.title }}</td>
                           <td>{{ item.event }} {{ item.operation }}</td>
                           <td>
-                            <v-icon v-if="item.condition" color="success" small>
-                              mdi-check-bold
-                            </v-icon>
+                            <v-icon v-if="item.condition" color="success" small> mdi-check-bold </v-icon>
                           </td>
                           <td>
                             {{ item.notification && item.notification.type }}
                           </td>
                           <td>
-                            <x-icon
-                              small
-                              color="error"
-                              @click.stop="deleteHook(item, i)"
-                            >
-                              mdi-delete
-                            </x-icon>
+                            <x-icon small color="error" @click.stop="deleteHook(item, i)"> mdi-delete </x-icon>
                             <!--              <x-icon small :color="loading || !valid || !hook.event ?  'grey' : 'primary'"
                                                 @click.stop="(!loading && valid && hook.event) && saveHooks()">save
                                         </x-icon>-->
@@ -150,18 +122,10 @@
                       <tr v-else>
                         <td colspan="6" class="text-center py-5">
                           <!--:tooltip="$t('tooltip.saveChanges')"-->
-                          <x-btn
-                            v-ge="['hooks', 'add new']"
-                            outlined
-                            color="primary"
-                            small
-                            @click.prevent="addNewHook"
-                          >
-                            <v-icon small left>
-                              mdi-plus
-                            </v-icon>
+                          <x-btn v-ge="['hooks', 'add new']" outlined color="primary" small @click.prevent="addNewHook">
+                            <v-icon small left> mdi-plus </v-icon>
                             <!--Add New Webhook-->
-                            {{ $t("activity.addWebhook") }}
+                            {{ $t('activity.addWebhook') }}
                           </x-btn>
                         </td>
                       </tr>
@@ -185,11 +149,9 @@
                   :disabled="loading || !valid || !hook.event"
                   @click.prevent="saveHooks"
                 >
-                  <v-icon small left>
-                    save
-                  </v-icon>
+                  <v-icon small left> save </v-icon>
                   <!-- Save -->
-                  {{ $t("general.save") }}
+                  {{ $t('general.save') }}
                 </x-btn>
               </v-card-title>
               <v-card-text>
@@ -200,13 +162,10 @@
                   dense
                   :label="$t('general.title')"
                   required
-                  :rules="[(v) => !!v || `${$t('general.required')}`]"
+                  :rules="[v => !!v || `${$t('general.required')}`]"
                 />
 
-                <webhook-event
-                  :event.sync="hook.event"
-                  :operation.sync="hook.operation"
-                />
+                <webhook-event :event.sync="hook.event" :operation.sync="hook.operation" />
 
                 <v-card class="mb-8">
                   <v-card-text>
@@ -241,7 +200,7 @@
                   :label="$t('general.notification')"
                   required
                   :items="notificationList"
-                  :rules="[(v) => !!v || `${$t('general.required')}`]"
+                  :rules="[v => !!v || `${$t('general.required')}`]"
                   class="caption"
                   :prepend-inner-icon="notificationIcon[hook.notification.type]"
                   @change="onNotTypeChange"
@@ -266,7 +225,7 @@
                   <v-combobox
                     v-if="slackChannels"
                     v-model="notification.channels"
-                    :rules="[(v) => !!v || `${$t('general.required')}`]"
+                    :rules="[v => !!v || `${$t('general.required')}`]"
                     :items="slackChannels"
                     item-text="channel"
                     label="Select Slack channels"
@@ -280,7 +239,7 @@
                   <v-combobox
                     v-if="teamsChannels"
                     v-model="notification.channels"
-                    :rules="[(v) => !!v || `${$t('general.required')}`]"
+                    :rules="[v => !!v || `${$t('general.required')}`]"
                     :items="teamsChannels"
                     item-text="channel"
                     label="Select Teams channels"
@@ -294,7 +253,7 @@
                   <v-combobox
                     v-if="discordChannels"
                     v-model="notification.channels"
-                    :rules="[(v) => !!v || `${$t('general.required')}`]"
+                    :rules="[v => !!v || `${$t('general.required')}`]"
                     :items="discordChannels"
                     item-text="channel"
                     label="Select Discord channels"
@@ -308,7 +267,7 @@
                   <v-combobox
                     v-if="mattermostChannels"
                     v-model="notification.channels"
-                    :rules="[(v) => !!v || `${$t('general.required')}`]"
+                    :rules="[v => !!v || `${$t('general.required')}`]"
                     :items="mattermostChannels"
                     item-text="channel"
                     label="Select Mattermost channels"
@@ -329,10 +288,7 @@
                       dense
                       outlined
                       :label="input.label"
-                      :rules="[
-                        (v) =>
-                          !input.required || !!v || `${$t('general.required')}`,
-                      ]"
+                      :rules="[v => !input.required || !!v || `${$t('general.required')}`]"
                     />
                     <v-text-field
                       v-else
@@ -342,10 +298,7 @@
                       dense
                       outlined
                       :label="input.label"
-                      :rules="[
-                        (v) =>
-                          !input.required || !!v || `${$t('general.required')}`,
-                      ]"
+                      :rules="[v => !input.required || !!v || `${$t('general.required')}`]"
                     />
                   </template>
                 </template>
@@ -353,28 +306,20 @@
 
               <v-card-text>
                 <span class="caption grey--text">
-                  <em>Available context variables are
-                    <strong>data and user</strong></em>
+                  <em>Available context variables are <strong>data and user</strong></em>
                   <v-tooltip top>
                     <template #activator="{ on }">
-                      <v-icon
-                        small
-                        color="grey"
-                        class="ml-2"
-                        v-on="on"
-                      >mdi-information</v-icon>
+                      <v-icon small color="grey" class="ml-2" v-on="on">mdi-information</v-icon>
                     </template>
                     <span class="caption">
-                      <strong>data</strong> : Row data <br>
-                      <strong>user</strong> : User information<br>
+                      <strong>data</strong> : Row data <br />
+                      <strong>user</strong> : User information<br />
                     </span>
                   </v-tooltip>
-                  <br>
-                  <a
-                    href="https://docs.nocodb.com/developer-resources/webhooks/Webhooks.vue"
-                  >
+                  <br />
+                  <a href="https://docs.nocodb.com/developer-resources/webhooks/Webhooks.vue">
                     <!--Document Reference-->
-                    {{ $t("labels.docReference") }}
+                    {{ $t('labels.docReference') }}
                   </a>
                 </span>
 
@@ -399,11 +344,11 @@
 </template>
 
 <script>
-import HttpWebhook from './webhook/HttpWebhook'
-import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter'
+import HttpWebhook from './webhook/HttpWebhook';
+import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter';
 // import FormInput from '~/components/project/appStore/FormInput'
-import WebhookEvent from '~/components/project/tableTabs/webhook/WebhookEvent'
-import WebhooksTest from '~/components/project/tableTabs/webhook/WebhooksTest'
+import WebhookEvent from '~/components/project/tableTabs/webhook/WebhookEvent';
+import WebhooksTest from '~/components/project/tableTabs/webhook/WebhooksTest';
 
 export default {
   name: 'Webhooks',
@@ -412,7 +357,7 @@ export default {
     HttpWebhook,
     WebhookEvent,
     // FormInput,
-    ColumnFilter
+    ColumnFilter,
   },
   props: ['nodes'],
   data: () => ({
@@ -436,7 +381,7 @@ export default {
       'Discord',
       'Mattermost',
       'Twilio',
-      'Whatsapp Twilio'
+      'Whatsapp Twilio',
     ],
     filters: [],
     hook: null,
@@ -449,12 +394,9 @@ export default {
       Discord: 'mdi-discord',
       Mattermost: 'mdi-chat',
       'Whatsapp Twilio': 'mdi-whatsapp',
-      Twilio: 'mdi-cellphone-message'
+      Twilio: 'mdi-cellphone-message',
     },
-    urlRules: [
-      v =>
-        !v || !v.trim() || /^https?:\/\/.{1,}/.test(v) || 'Not a valid URL'
-    ],
+    urlRules: [v => !v || !v.trim() || /^https?:\/\/.{1,}/.test(v) || 'Not a valid URL'],
     fieldList: [],
     inputs: {
       Email: [
@@ -463,22 +405,22 @@ export default {
           label: 'To Address',
           placeholder: 'To Address',
           type: 'SingleLineText',
-          required: true
+          required: true,
         },
         {
           key: 'subject',
           label: 'Subject',
           placeholder: 'Subject',
           type: 'SingleLineText',
-          required: true
+          required: true,
         },
         {
           key: 'body',
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       Slack: [
         {
@@ -486,8 +428,8 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       'Microsoft Teams': [
         {
@@ -495,8 +437,8 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       Discord: [
         {
@@ -504,8 +446,8 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       Mattermost: [
         {
@@ -513,8 +455,8 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       Twilio: [
         {
@@ -522,15 +464,15 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
+          required: true,
         },
         {
           key: 'to',
           label: 'Comma separated Mobile #',
           placeholder: 'Comma separated Mobile #',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       'Whatsapp Twilio': [
         {
@@ -538,38 +480,38 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
+          required: true,
         },
         {
           key: 'to',
           label: 'Comma separated Mobile #',
           placeholder: 'Comma separated Mobile #',
           type: 'LongText',
-          required: true
-        }
-      ]
-    }
+          required: true,
+        },
+      ],
+    },
   }),
   async created() {
-    await this.loadMeta()
-    await this.loadHooksList()
+    await this.loadMeta();
+    await this.loadHooksList();
     // todo: load only necessary plugins
-    await this.loadPluginList()
-    this.selectedHook = 0
-    this.onEventChange()
+    await this.loadPluginList();
+    this.selectedHook = 0;
+    this.onEventChange();
   },
   methods: {
     async loadPluginList() {
       try {
         // const plugins = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginList'])
-        const plugins = (await this.$api.plugin.list()).list
+        const plugins = (await this.$api.plugin.list()).list;
         // plugins.push(...plugins.splice(0, 3))
         this.apps = plugins.reduce((o, p) => {
-          p.tags = p.tags ? p.tags.split(',') : []
-          p.parsedInput = p.input && JSON.parse(p.input)
-          o[p.title] = p
-          return o
-        }, {})
+          p.tags = p.tags ? p.tags.split(',') : [];
+          p.parsedInput = p.input && JSON.parse(p.input);
+          o[p.title] = p;
+          return o;
+        }, {});
       } catch (e) {}
     },
     checkConditionAvail() {
@@ -580,15 +522,14 @@ export default {
       // this.hook.condition = []
     },
     async onNotTypeChange() {
-      this.notification = {}
+      this.notification = {};
       if (this.hook.notification.type === 'Slack') {
         // const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
         //   title: 'Slack'
         // }])
         // this.slackChannels = JSON.parse(plugin.input) || []
 
-        this.slackChannels =
-          (this.apps && this.apps.Slack && this.apps.Slack.parsedInput) || []
+        this.slackChannels = (this.apps && this.apps.Slack && this.apps.Slack.parsedInput) || [];
       }
       if (this.hook.notification.type === 'Microsoft Teams') {
         // const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
@@ -596,86 +537,68 @@ export default {
         // }])
         // this.teamsChannels = JSON.parse(plugin.input) || []
         this.teamsChannels =
-          (this.apps &&
-            this.apps['Microsoft Teams'] &&
-            this.apps['Microsoft Teams'].parsedInput) ||
-          []
+          (this.apps && this.apps['Microsoft Teams'] && this.apps['Microsoft Teams'].parsedInput) || [];
       }
       if (this.hook.notification.type === 'Discord') {
         // const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
         //   title: 'Discord'
         // }])
-        this.discordChannels =
-          (this.apps && this.apps.Discord && this.apps.Discord.parsedInput) ||
-          []
+        this.discordChannels = (this.apps && this.apps.Discord && this.apps.Discord.parsedInput) || [];
       }
       if (this.hook.notification.type === 'Mattermost') {
         // const plugin = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginRead', {
         //   title: 'Mattermost'
         // }])
         // this.mattermostChannels = JSON.parse(plugin.input) || []
-        this.mattermostChannels =
-          (this.apps &&
-            this.apps.Mattermost &&
-            this.apps.Mattermost.parsedInput) ||
-          []
+        this.mattermostChannels = (this.apps && this.apps.Mattermost && this.apps.Mattermost.parsedInput) || [];
       }
     },
     async onEventChange() {
-      this.key++
+      this.key++;
       if (!this.hooks || !this.hooks.length) {
-        return
+        return;
       }
-      const { notification: { payload, type } = {}, ...hook } =
-        this.hooks[this.selectedHook] || {}
+      const { notification: { payload, type } = {}, ...hook } = this.hooks[this.selectedHook] || {};
 
       this.hook = {
         ...hook,
         notification: {
-          type
-        }
-      }
+          type,
+        },
+      };
       // this.enableCondition = !!(this.hook && this.hook.condition && Object.keys(this.hook.condition).length)
-      await this.onNotTypeChange()
-      this.notification = payload
+      await this.onNotTypeChange();
+      this.notification = payload;
       if (this.hook.notification.type === 'Slack') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map(v =>
-            this.slackChannels.find(s => v.webhook_url === s.webhook_url)
-          )
+          this.notification.webhook_url.map(v => this.slackChannels.find(s => v.webhook_url === s.webhook_url));
       }
       if (this.hook.notification.type === 'Microsoft Teams') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map(v =>
-            this.teamsChannels.find(s => v.webhook_url === s.webhook_url)
-          )
+          this.notification.webhook_url.map(v => this.teamsChannels.find(s => v.webhook_url === s.webhook_url));
       }
       if (this.hook.notification.type === 'Discord') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map(v =>
-            this.discordChannels.find(s => v.webhook_url === s.webhook_url)
-          )
+          this.notification.webhook_url.map(v => this.discordChannels.find(s => v.webhook_url === s.webhook_url));
       }
       if (this.hook.notification.type === 'Mattermost') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map(v =>
-            this.mattermostChannels.find(s => v.webhook_url === s.webhook_url)
-          )
+          this.notification.webhook_url.map(v => this.mattermostChannels.find(s => v.webhook_url === s.webhook_url));
       }
       if (this.hook.notification.type === 'URL') {
         // eslint-disable-next-line no-self-assign
-        this.notification.api = this.notification.api
+        this.notification.api = this.notification.api;
       }
     },
     async saveHooks() {
       if (!this.$refs.form.validate() || !this.valid || !this.hook.event) {
-        return
+        return;
       }
-      this.loading = true
+      this.loading = true;
       try {
         // const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [
         //   {
@@ -692,51 +615,49 @@ export default {
         //     }
         //   }
         // ])
-        let res
+        let res;
         if (this.hook.id) {
           res = await this.$api.dbTableWebhook.update(this.hook.id, {
             ...this.hook,
             notification: {
               ...this.hook.notification,
-              payload: this.notification
-            }
-          })
+              payload: this.notification,
+            },
+          });
         } else {
           res = await this.$api.dbTableWebhook.create(this.meta.id, {
             ...this.hook,
             notification: {
               ...this.hook.notification,
-              payload: this.notification
-            }
-          })
+              payload: this.notification,
+            },
+          });
         }
 
         if (!this.hook.id && res) {
-          this.hook.id = res.id
+          this.hook.id = res.id;
         }
         if (this.$refs.filter) {
           await this.$refs.filter.applyChanges(false, {
-            hookId: this.hook.id
-          })
+            hookId: this.hook.id,
+          });
         }
 
-        this.$toast
-          .success('Webhook details updated successfully')
-          .goAway(3000)
+        this.$toast.success('Webhook details updated successfully').goAway(3000);
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(e.message).goAway(3000);
       }
-      this.loading = false
-      await this.loadHooksList()
+      this.loading = false;
+      await this.loadHooksList();
 
       this.$e('a:webhook:add', {
         operation: this.hook.operation,
         condition: this.hook.condition,
-        notification: this.hook.notification.type
-      })
+        notification: this.hook.notification.type,
+      });
     },
     async loadMeta() {
-      this.loadingMeta = true
+      this.loadingMeta = true;
       // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
@@ -744,14 +665,14 @@ export default {
       //   tn: this.nodes.table_name
       // }] )
       this.meta = await this.$store.dispatch('meta/ActLoadMeta', {
-        table_name: this.nodes.table_name
-      }) // JSON.parse(tableMeta.meta)
-      this.fieldList = this.meta.columns.map(c => c.column_name)
-      this.loadingMeta = false
+        table_name: this.nodes.table_name,
+      }); // JSON.parse(tableMeta.meta)
+      this.fieldList = this.meta.columns.map(c => c.column_name);
+      this.loadingMeta = false;
     },
     async loadHooksList() {
-      this.key++
-      this.loading = true
+      this.key++;
+      this.loading = true;
       // const hooks = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
@@ -759,49 +680,49 @@ export default {
       //   tn: this.nodes.table_name
       // }])
 
-      const hooks = await this.$api.dbTableWebhook.list(this.meta.id)
+      const hooks = await this.$api.dbTableWebhook.list(this.meta.id);
 
-      this.hooks = hooks.list.map((h) => {
-        h.notification = h.notification && JSON.parse(h.notification)
+      this.hooks = hooks.list.map(h => {
+        h.notification = h.notification && JSON.parse(h.notification);
         // h.condition = h.condition && JSON.parse(h.condition)
 
-        return h
-      })
-      this.loading = false
+        return h;
+      });
+      this.loading = false;
     },
     addNewHook() {
-      this.key++
-      this.selectedHook = this.hooks.length
+      this.key++;
+      this.selectedHook = this.hooks.length;
       this.hooks.push({
         notification: {
           // type:'Email'
-        }
-      })
-      this.onEventChange()
-      this.$refs.form.resetValidation()
+        },
+      });
+      this.onEventChange();
+      this.$refs.form.resetValidation();
 
-      this.$e('c:webhook:add', { count: this.hooks.length })
+      this.$e('c:webhook:add', { count: this.hooks.length });
     },
     async deleteHook(item, i) {
       try {
         if (item.id) {
-          await this.$api.dbTableWebhook.delete(item.id)
-          this.hooks.splice(i, 1)
+          await this.$api.dbTableWebhook.delete(item.id);
+          this.hooks.splice(i, 1);
         } else {
-          this.hooks.splice(i, 1)
+          this.hooks.splice(i, 1);
         }
-        this.$toast.success('Hook deleted successfully').goAway(3000)
+        this.$toast.success('Hook deleted successfully').goAway(3000);
         if (!this.hooks.length) {
-          this.hook = null
+          this.hook = null;
         }
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(e.message).goAway(3000);
       }
 
-      this.$e('a:webhook:delete')
-    }
-  }
-}
+      this.$e('a:webhook:delete');
+    },
+  },
+};
 </script>
 
 <style scoped>

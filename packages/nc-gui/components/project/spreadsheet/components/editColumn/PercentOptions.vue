@@ -38,10 +38,7 @@
       />
     </v-row>
     <v-row class="percent-switch-wrapper">
-      <v-switch
-        v-model="colMeta.allowNegativeNumber"
-        dense
-      >
+      <v-switch v-model="colMeta.allowNegativeNumber" dense>
         <template #label>
           <span>
             <!-- TODO: i18n -->
@@ -54,7 +51,7 @@
 </template>
 
 <script>
-import { percentOptions } from '~/helpers/percentHelper'
+import { percentOptions } from '~/helpers/percentHelper';
 
 export default {
   name: 'PercentOptions',
@@ -62,26 +59,26 @@ export default {
   data: () => ({
     percentOptionsList: percentOptions.map(o => ({
       ...o,
-      title: o.title
+      title: o.title,
     })),
     colMeta: {
       percentOption: 0,
       allowNegativeNumber: false,
-      defaultNumber: null
-    }
+      defaultNumber: null,
+    },
   }),
   watch: {
     value() {
-      this.colMeta = this.value || {}
+      this.colMeta = this.value || {};
     },
     colMeta(v) {
-      this.$emit('input', v)
-    }
+      this.$emit('input', v);
+    },
   },
   created() {
-    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta }
-  }
-}
+    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta };
+  },
+};
 </script>
 
 <style scoped>

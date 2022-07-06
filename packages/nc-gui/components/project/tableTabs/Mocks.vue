@@ -4,33 +4,34 @@
       <v-toolbar height="42" flat class="toolbar-border-bottom">
         <v-toolbar-title>
           <v-breadcrumbs
-            :items="[{
-                       text: nodes.env,
-                       disabled: true,
-                       href: '#'
-                     },{
-                       text: nodes.dbAlias,
-                       disabled: true,
-                       href: '#'
-                     },
-                     {
-                       text: nodes.table_name + ' (mocks)',
-                       disabled: true,
-                       href: '#'
-                     }]"
+            :items="[
+              {
+                text: nodes.env,
+                disabled: true,
+                href: '#',
+              },
+              {
+                text: nodes.dbAlias,
+                disabled: true,
+                href: '#',
+              },
+              {
+                text: nodes.table_name + ' (mocks)',
+                disabled: true,
+                href: '#',
+              },
+            ]"
             divider=">"
             small
           >
             <template #divider>
-              <v-icon small>
-                forward
-              </v-icon>
+              <v-icon small> forward </v-icon>
             </template>
           </v-breadcrumbs>
         </v-toolbar-title>
         <v-spacer />
         <x-btn
-          v-ge="['mocks','load']"
+          v-ge="['mocks', 'load']"
           outlined
           tooltip="Reload Rows"
           small
@@ -38,15 +39,13 @@
           class="primary"
           @click="loadColumnList"
         >
-          <v-icon small left>
-            refresh
-          </v-icon>
+          <v-icon small left> refresh </v-icon>
           <!-- Reload -->
           {{ $t('general.reload') }}
         </x-btn>
 
         <x-btn
-          v-ge="['mocks','load-faker-fns']"
+          v-ge="['mocks', 'load-faker-fns']"
           outlined
           tooltip="Load suggested faker function based on field name"
           color="primary"
@@ -54,14 +53,12 @@
           small
           @click="mapFieldWithSuggestedFakerFn"
         >
-          <v-icon left small>
-            mdi-function
-          </v-icon>
+          <v-icon left small> mdi-function </v-icon>
           Predict Faker Functions
         </x-btn>
 
         <x-btn
-          v-ge="['mocks','save']"
+          v-ge="['mocks', 'save']"
           outlined
           :tooltip="$t('tooltip.saveChanges')"
           color="success"
@@ -70,24 +67,14 @@
           :disabled="disableSaveButton"
           @click="saveFakeFunctions"
         >
-          <v-icon
-            small
-            left
-          >
-            save
-          </v-icon>
+          <v-icon small left> save </v-icon>
           <!-- Save -->
           {{ $t('general.save') }}
         </x-btn>
       </v-toolbar>
 
-      <v-data-table
-        dense
-        :headers="colsHeader"
-        :items="cols"
-        class="column-table"
-      >
-        <template #item="{item}">
+      <v-data-table dense :headers="colsHeader" :items="cols" class="column-table">
+        <template #item="{ item }">
           <tr>
             <td>
               {{ item.column_name }}<span class="font-weight-thin"> - {{ item.dt }}</span>
@@ -98,7 +85,7 @@
               <v-autocomplete
                 v-else
                 v-model="item.fakerFunction"
-                v-ge="['mocks','change-faker-fn']"
+                v-ge="['mocks', 'change-faker-fn']"
                 :items="fakerFunctionList | filterFakerList(item.dt)"
                 item-text="name"
                 item-value="value"
@@ -106,7 +93,7 @@
               >
                 <template #selection="{ item }">
                   <div class="body-2">
-                    {{ item.name }}<span v-if="item.type" class="font-weight-thin "> &nbsp;- {{ item.type }}</span>
+                    {{ item.name }}<span v-if="item.type" class="font-weight-thin"> &nbsp;- {{ item.type }}</span>
                   </div>
                 </template>
 
@@ -126,10 +113,10 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import fakerFunctionList from '../../../helpers/fakerFunctionList'
-import dataTypeMapping from '../../../helpers/findDataTypeMapping'
-const levenshtein = require('fast-levenshtein')
+import { mapGetters } from 'vuex';
+import fakerFunctionList from '../../../helpers/fakerFunctionList';
+import dataTypeMapping from '../../../helpers/findDataTypeMapping';
+const levenshtein = require('fast-levenshtein');
 
 export default {
   components: {},
@@ -139,12 +126,12 @@ export default {
       cols: [],
       primaryKeys: [],
       fakerFunctionList,
-      disableSaveButton: true
-    }
+      disableSaveButton: true,
+    };
   },
   methods: {
     async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
-      console.log(metaKey, key, altKey, shiftKey, ctrlKey)
+      console.log(metaKey, key, altKey, shiftKey, ctrlKey);
       // cmd + s -> save
       // cmd + l -> reload
       // cmd + n -> new
@@ -152,29 +139,29 @@ export default {
       // cmd + enter -> send api
 
       switch ([metaKey, key].join('_')) {
-        case 'true_s' :
-          await this.saveFakeFunctions()
-          break
-        case 'true_l' :
-          await this.loadColumnList()
-          break
-          // case 'true_n' :
-          //   this.addColumn();
-          //   break;
-          // case 'true_d' :
-          //   await this.deleteTable('showDialog');
-          //   break;
+        case 'true_s':
+          await this.saveFakeFunctions();
+          break;
+        case 'true_l':
+          await this.loadColumnList();
+          break;
+        // case 'true_n' :
+        //   this.addColumn();
+        //   break;
+        // case 'true_d' :
+        //   await this.deleteTable('showDialog');
+        //   break;
       }
     },
 
     async loadColumnList() {
-      this.disableSaveButton = true
+      this.disableSaveButton = true;
       const columnsList = await this.client.fakerColumnsList({
         table_name: this.nodes.table_name,
-        seedsFolder: this.seedsFolder
-      })
-      console.log(columnsList)
-      this.cols = columnsList.data.list
+        seedsFolder: this.seedsFolder,
+      });
+      console.log(columnsList);
+      this.cols = columnsList.data.list;
 
       // columnsList.data.list.map(({cn, dt, ai, pk}) => {
       //   if (pk) this.primaryKeys.push(cn);
@@ -184,89 +171,90 @@ export default {
       // })
     },
     mapFieldWithSuggestedFakerFn() {
-      this.cols = this.cols.map((col) => {
-        let suggestion = null
-        let lScore = Infinity
-        const nativeType = dataTypeMapping(col.dt)
+      this.cols = this.cols.map(col => {
+        let suggestion = null;
+        let lScore = Infinity;
+        const nativeType = dataTypeMapping(col.dt);
         fakerFunctionList.forEach((fakerFn, i) => {
-          if (nativeType !== 'string' && nativeType !== fakerFn.type) { return }
+          if (nativeType !== 'string' && nativeType !== fakerFn.type) {
+            return;
+          }
 
           if (i) {
-            const ls = levenshtein.get(col.column_name.toLowerCase(), fakerFn.name.toLowerCase())
+            const ls = levenshtein.get(col.column_name.toLowerCase(), fakerFn.name.toLowerCase());
             if (lScore > ls) {
-              lScore = ls
-              suggestion = fakerFn
+              lScore = ls;
+              suggestion = fakerFn;
             }
           } else {
-            suggestion = fakerFn
-            lScore = levenshtein.get(col.column_name.toLowerCase(), fakerFn.name.toLowerCase())
+            suggestion = fakerFn;
+            lScore = levenshtein.get(col.column_name.toLowerCase(), fakerFn.name.toLowerCase());
           }
-        })
+        });
 
         if (lScore < 3) {
-          this.disableSaveButton = false
-          return { ...col, fakerFunction: suggestion.value }
+          this.disableSaveButton = false;
+          return { ...col, fakerFunction: suggestion.value };
         }
-        return col
-      })
+        return col;
+      });
     },
     async saveFakeFunctions() {
       try {
-        await this.client.fakerColumnsCreate({ fakerColumns: this.cols, seedsFolder: this.seedsFolder, table_name: this.nodes.table_name })
+        await this.client.fakerColumnsCreate({
+          fakerColumns: this.cols,
+          seedsFolder: this.seedsFolder,
+          table_name: this.nodes.table_name,
+        });
       } catch (e) {
-        this.$toast.error('Saving changes to faker functions failed').goAway(3000)
-        throw e
+        this.$toast.error('Saving changes to faker functions failed').goAway(3000);
+        throw e;
       }
-    }
+    },
   },
   computed: {
-    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
   },
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {},
   async created() {
     try {
       this.seedsFolder = this.sqlMgr.projectGetFolder({
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      })
+        dbAlias: this.nodes.dbAlias,
+      });
       this.client = await this.sqlMgr.projectGetSqlClient({
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      })
-      await this.loadColumnList()
+        dbAlias: this.nodes.dbAlias,
+      });
+      await this.loadColumnList();
     } catch (e) {
-      console.log(e)
-      this.$toast.error('Loading columns and faker functions failed').goAway(3000)
-      throw e
+      console.log(e);
+      this.$toast.error('Loading columns and faker functions failed').goAway(3000);
+      throw e;
     }
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
   filters: {
     filterFakerList(list, type) {
-      const nativeType = dataTypeMapping(type)
-      return list.filter(item => (nativeType === 'string') || (nativeType === item.type))
-    }
+      const nativeType = dataTypeMapping(type);
+      return list.filter(item => nativeType === 'string' || nativeType === item.type);
+    },
   },
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes', 'newTable', 'mtdNewTableUpdate', 'deleteTable']
-}
+  props: ['nodes', 'newTable', 'mtdNewTableUpdate', 'deleteTable'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

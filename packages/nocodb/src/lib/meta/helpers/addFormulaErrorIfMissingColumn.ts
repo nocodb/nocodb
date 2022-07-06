@@ -4,7 +4,7 @@ import jsep from 'jsep';
 export default function addFormulaErrorIfMissingColumn({
   formula,
   columnId,
-  title
+  title,
 }: {
   formula: FormulaColumn;
   columnId: string;
@@ -14,7 +14,7 @@ export default function addFormulaErrorIfMissingColumn({
 
   const fn = (pt, virtualColumn) => {
     if (pt.type === 'CallExpression') {
-      pt.arguments.map(arg => fn(arg, virtualColumn));
+      pt.arguments.map((arg) => fn(arg, virtualColumn));
     } else if (pt.type === 'Literal') {
     } else if (pt.type === 'Identifier') {
       if (pt.name === columnId) {

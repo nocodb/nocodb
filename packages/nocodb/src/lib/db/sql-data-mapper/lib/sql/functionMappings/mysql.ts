@@ -54,7 +54,7 @@ const mysql2 = {
       )}))
       END${colAlias}`
     );
-  }
+  },
 };
 
 export default mysql2;

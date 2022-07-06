@@ -45,7 +45,7 @@ class SqliteClient extends KnexClient {
       'datetime',
       'text',
       'varchar',
-      'timestamp'
+      'timestamp',
     ];
 
     return result;
@@ -176,19 +176,20 @@ class SqliteClient extends KnexClient {
       const exists = await this.hasTable({ tn: args.tn });
 
       if (!exists.data.value) {
-        const data = await this.sqlClient.schema.createTable(args.tn, function(
-          table
-        ) {
-          table.increments();
-          table.string('title').notNullable();
-          table.string('titleDown').nullable();
-          table.string('description').nullable();
-          table.integer('batch').nullable();
-          table.string('checksum').nullable();
-          table.integer('status').nullable();
-          table.dateTime('created');
-          table.timestamps();
-        });
+        const data = await this.sqlClient.schema.createTable(
+          args.tn,
+          function (table) {
+            table.increments();
+            table.string('title').notNullable();
+            table.string('titleDown').nullable();
+            table.string('description').nullable();
+            table.integer('batch').nullable();
+            table.string('checksum').nullable();
+            table.integer('status').nullable();
+            table.dateTime('created');
+            table.timestamps();
+          }
+        );
         log.debug('Table created:', `${args.tn}`, data);
       } else {
         log.debug(`${args.tn} tables exists`);
@@ -671,7 +672,7 @@ class SqliteClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let fn = response[0][i];
-          fn = _.mapKeys(fn, function(_v, k) {
+          fn = _.mapKeys(fn, function (_v, k) {
             return k.toLowerCase();
           });
           fn.function_name = fn.name;
@@ -725,7 +726,7 @@ class SqliteClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
-          procedure = _.mapKeys(procedure, function(_v, k) {
+          procedure = _.mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
           procedure.procedure_name = procedure.name;
@@ -809,7 +810,7 @@ class SqliteClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let _function = response[0][i];
 
-          _function = _.mapKeys(_function, function(_v, k) {
+          _function = _.mapKeys(_function, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -861,7 +862,7 @@ class SqliteClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
 
-          procedure = _.mapKeys(procedure, function(_v, k) {
+          procedure = _.mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -983,7 +984,7 @@ class SqliteClient extends KnexClient {
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: query }],
-        downStatement: [{ sql: `;` }]
+        downStatement: [{ sql: `;` }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1175,7 +1176,7 @@ class SqliteClient extends KnexClient {
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: query }],
-        downStatement: [{ sql: ';' }]
+        downStatement: [{ sql: ';' }],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1210,7 +1211,7 @@ class SqliteClient extends KnexClient {
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: ';' }]
+        downStatement: [{ sql: ';' }],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1238,7 +1239,7 @@ class SqliteClient extends KnexClient {
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
-        downStatement: [{ sql: `;` }]
+        downStatement: [{ sql: `;` }],
         //downStatement: [{sql:`DROP VIEW ${args.view_name}`}]
       };
     } catch (e) {
@@ -1268,7 +1269,7 @@ class SqliteClient extends KnexClient {
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
-        downStatement: [{ sql: ';' }]
+        downStatement: [{ sql: ';' }],
         // downStatement: [{`CREATE VIEW ${args.view_name} AS \n${
         //   args.oldViewDefination
         // }`}]
@@ -1302,7 +1303,7 @@ class SqliteClient extends KnexClient {
 
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
-        downStatement: [{ sql: ';' }]
+        downStatement: [{ sql: ';' }],
         // downStatement: `CREATE VIEW ${args.view_name} AS \n${
         //   args.oldViewDefination
         // }`
@@ -1370,7 +1371,7 @@ class SqliteClient extends KnexClient {
       /**************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upQuery }, ...triggerStatements.upStatement],
-        downStatement: downStatement
+        downStatement: downStatement,
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1385,7 +1386,7 @@ class SqliteClient extends KnexClient {
     let upQuery = '';
     const downQuery = '';
 
-    const pk = args.columns.find(c => c.pk);
+    const pk = args.columns.find((c) => c.pk);
     if (!pk) return result;
 
     for (let i = 0; i < args.columns.length; i++) {
@@ -1416,7 +1417,7 @@ class SqliteClient extends KnexClient {
     let upQuery = '';
     const downQuery = '';
 
-    const pk = args.columns.find(c => c.pk);
+    const pk = args.columns.find((c) => c.pk);
     if (!pk) return result;
 
     for (let i = 0; i < args.columns.length; i++) {
@@ -1485,7 +1486,7 @@ class SqliteClient extends KnexClient {
 
       for (let i = 0; i < args.columns.length; ++i) {
         const oldColumn = lodash.find(originalColumns, {
-          cn: args.columns[i].cno
+          cn: args.columns[i].cno,
         });
 
         if (args.columns[i].altered & 4) {
@@ -1551,7 +1552,7 @@ class SqliteClient extends KnexClient {
       }
 
       await Promise.all(
-        upQuery.split(';').map(async query => {
+        upQuery.split(';').map(async (query) => {
           if (query.trim().length) await this.sqlClient.raw(query);
         })
       );
@@ -1565,9 +1566,9 @@ class SqliteClient extends KnexClient {
       result.data.object = {
         upStatement: [
           { sql: this.querySeparator() + upQuery },
-          ...afterUpdate.upStatement
+          ...afterUpdate.upStatement,
         ],
-        downStatement: [{ sql: ';' }]
+        downStatement: [{ sql: ';' }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1604,7 +1605,7 @@ class SqliteClient extends KnexClient {
       /** ************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upStatement }],
-        downStatement
+        downStatement,
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1629,7 +1630,7 @@ class SqliteClient extends KnexClient {
       result = await this.columnList(args);
       const upQuery = this.createTable(args.tn, {
         tn: args.tn,
-        columns: result.data.list
+        columns: result.data.list,
       });
       result.data = upQuery;
     } catch (e) {
@@ -1819,7 +1820,7 @@ class SqliteClient extends KnexClient {
       /* Filter relations for current table */
       if (args.tn) {
         relations = relations.filter(
-          r => r.tn === args.tn || r.rtn === args.tn
+          (r) => r.tn === args.tn || r.rtn === args.tn
         );
       }
 
@@ -1916,7 +1917,7 @@ class SqliteClient extends KnexClient {
     // query += ` DROP COLUMN ${n.cn}`;
     // query = existingQuery ? query : `ALTER TABLE "${t}" ${query};`;
     // return query;
-    await this.sqlClient.schema.alterTable(t, tb => {
+    await this.sqlClient.schema.alterTable(t, (tb) => {
       tb.dropColumn(n.cn);
     });
 

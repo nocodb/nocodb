@@ -41,7 +41,7 @@ class BaseRender {
     this.log.api(data);
     this.evt.evt.emit('UI', {
       status: 0,
-      data: `File : ${data}`
+      data: `File : ${data}`,
     });
   }
 
@@ -49,7 +49,7 @@ class BaseRender {
     this.log.warn(data);
     this.evt.evt.emit('UI', {
       status: 1,
-      data: `File : ${data}`
+      data: `File : ${data}`,
     });
   }
 
@@ -57,7 +57,7 @@ class BaseRender {
     this.log.error(data);
     this.evt.evt.emit('UI', {
       status: -1,
-      data: `File : ${data}`
+      data: `File : ${data}`,
     });
   }
 

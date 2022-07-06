@@ -10,7 +10,7 @@ import {
   TableListType,
   TableReqType,
   TableType,
-  UITypes
+  UITypes,
 } from 'nocodb-sdk';
 import ProjectMgrv2 from '../../db/sql-mgr/v2/ProjectMgrv2';
 import Project from '../../models/Project';
@@ -30,7 +30,7 @@ import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export async function tableGet(req: Request, res: Response<TableType>) {
   const table = await Model.getWithInfo({
-    id: req.params.tableId
+    id: req.params.tableId,
   });
 
   // todo: optimise
@@ -39,7 +39,7 @@ export async function tableGet(req: Request, res: Response<TableType>) {
   //await View.list(req.params.tableId)
   table.views = viewList.filter((table: any) => {
     return Object.keys((req as any).session?.passport?.user?.roles).some(
-      role =>
+      (role) =>
         (req as any)?.session?.passport?.user?.roles[role] &&
         !table.disabled[role]
     );
@@ -60,7 +60,7 @@ export async function tableList(req: Request, res: Response<TableListType>) {
     o[view.fk_model_id] = o[view.fk_model_id] || 0;
     if (
       Object.keys((req as any).session?.passport?.user?.roles).some(
-        role =>
+        (role) =>
           (req as any)?.session?.passport?.user?.roles[role] &&
           !view.disabled[role]
       )
@@ -73,16 +73,16 @@ export async function tableList(req: Request, res: Response<TableListType>) {
   const tableList = (
     await Model.list({
       project_id: req.params.projectId,
-      base_id: req.params.baseId
+      base_id: req.params.baseId,
     })
-  ).filter(t => tableViewMapping[t.id]);
+  ).filter((t) => tableViewMapping[t.id]);
 
   res // todo: pagination
     .json(
       new PagedResponseImpl(
         req.query?.includeM2M
           ? tableList
-          : (tableList.filter(t => !t.mm) as Model[])
+          : (tableList.filter((t) => !t.mm) as Model[])
       )
     );
 }
@@ -114,7 +114,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     !(await Model.checkTitleAvailable({
       table_name: req.body.table_name,
       project_id: project.id,
-      base_id: base.id
+      base_id: base.id,
     }))
   ) {
     NcError.badRequest('Duplicate table name');
@@ -132,7 +132,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     !(await Model.checkAliasAvailable({
       title: req.body.title,
       project_id: project.id,
-      base_id: base.id
+      base_id: base.id,
     }))
   ) {
     NcError.badRequest('Duplicate table alias');
@@ -141,23 +141,25 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
-  req.body.columns = req.body.columns?.map(c => ({
+  req.body.columns = req.body.columns?.map((c) => ({
     ...getColumnPropsFromUIDT(c as any, base),
-    cn: c.column_name
+    cn: c.column_name,
   }));
   await sqlMgr.sqlOpPlus(base, 'tableCreate', {
     ...req.body,
-    tn: req.body.table_name
+    tn: req.body.table_name,
   });
 
-  const columns: Array<Omit<Column, 'column_name' | 'title'> & {
-    cn: string;
-    system?: boolean;
-  }> = (await sqlClient.columnList({ tn: req.body.table_name }))?.data?.list;
+  const columns: Array<
+    Omit<Column, 'column_name' | 'title'> & {
+      cn: string;
+      system?: boolean;
+    }
+  > = (await sqlClient.columnList({ tn: req.body.table_name }))?.data?.list;
 
   const tables = await Model.list({
     project_id: project.id,
-    base_id: base.id
+    base_id: base.id,
   });
 
   Audit.insert({
@@ -166,7 +168,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
     op_sub_type: AuditOperationSubTypes.CREATED,
     user: (req as any)?.user?.email,
     description: `created table ${req.body.table_name} with alias ${req.body.title}  `,
-    ip: (req as any).clientIp
+    ip: (req as any).clientIp,
   }).then(() => {});
 
   mapDefaultPrimaryValue(req.body.columns);
@@ -178,7 +180,7 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
       ...req.body,
       columns: columns.map((c, i) => {
         const colMetaFromReq = req.body?.columns?.find(
-          c1 => c.cn === c1.column_name
+          (c1) => c.cn === c1.column_name
         );
         return {
           ...colMetaFromReq,
@@ -191,10 +193,10 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
             : c.dtxp,
           title: colMetaFromReq?.title || getColumnNameAlias(c.cn, base),
           column_name: c.cn,
-          order: i + 1
+          order: i + 1,
         };
       }),
-      order: +(tables?.pop()?.order ?? 0) + 1
+      order: +(tables?.pop()?.order ?? 0) + 1,
     })
   );
 }
@@ -207,7 +209,7 @@ export async function tableUpdate(req: Request<any, any>, res) {
       title: req.body.title,
       project_id: model.project_id,
       base_id: model.base_id,
-      exclude_id: req.params.tableId
+      exclude_id: req.params.tableId,
     }))
   ) {
     NcError.badRequest('Duplicate table name');
@@ -225,15 +227,15 @@ export async function tableDelete(req: Request, res: Response) {
   await table.getColumns();
 
   const relationColumns = table.columns.filter(
-    c => c.uidt === UITypes.LinkToAnotherRecord
+    (c) => c.uidt === UITypes.LinkToAnotherRecord
   );
 
   if (relationColumns?.length) {
     const referredTables = await Promise.all(
-      relationColumns.map(async c =>
+      relationColumns.map(async (c) =>
         c
           .getColOptions<LinkToAnotherRecordColumn>()
-          .then(opt => opt.getRelatedTable())
+          .then((opt) => opt.getRelatedTable())
           .then()
       )
     );
@@ -245,11 +247,11 @@ export async function tableDelete(req: Request, res: Response) {
   }
 
   const project = await Project.getWithInfo(table.project_id);
-  const base = project.bases.find(b => b.id === table.base_id);
+  const base = project.bases.find((b) => b.id === table.base_id);
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
   (table as any).tn = table.table_name;
-  table.columns = table.columns.filter(c => !isVirtualCol(c));
-  table.columns.forEach(c => {
+  table.columns = table.columns.filter((c) => !isVirtualCol(c));
+  table.columns.forEach((c) => {
     (c as any).cn = c.column_name;
   });
 
@@ -258,7 +260,7 @@ export async function tableDelete(req: Request, res: Response) {
   } else if (table.type === ModelTypes.VIEW) {
     await sqlMgr.sqlOpPlus(base, 'viewDelete', {
       ...table,
-      view_name: table.table_name
+      view_name: table.table_name,
     });
   }
 
@@ -268,7 +270,7 @@ export async function tableDelete(req: Request, res: Response) {
     op_sub_type: AuditOperationSubTypes.DELETED,
     user: (req as any)?.user?.email,
     description: `Deleted ${table.type} ${table.table_name} with alias ${table.title}  `,
-    ip: (req as any).clientIp
+    ip: (req as any).clientIp,
   }).then(() => {});
 
   Tele.emit('evt', { evt_type: 'table:deleted' });

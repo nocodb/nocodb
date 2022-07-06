@@ -11,20 +11,15 @@
         <p class="hidden" v-on="on" />
       </template>
       <v-card class="elevation-20">
-        <v-card-title class="grey darken-2 subheading" style="height:30px">
+        <v-card-title class="grey darken-2 subheading" style="height: 30px">
           <!-- {{ this.heading }} for {{ this.column.column_name }} -->
         </v-card-title>
         <v-form v-model="valid">
           <v-card-text class="pt-4 pl-4">
-            <p class="headline">
-              {{ heading }} for {{ column.column_name }}
-            </p>
-            <v-row
-              justify="space-between"
-            >
+            <p class="headline">{{ heading }} for {{ column.column_name }}</p>
+            <v-row justify="space-between">
               <v-col class="pa-1" cols="6">
                 <v-autocomplete
-
                   v-model="relation.parentTable"
                   :loading="isRefTablesLoading"
                   label="Select Reference Table"
@@ -50,9 +45,7 @@
               </v-col>
             </v-row>
 
-            <v-row
-              justify="space-between"
-            >
+            <v-row justify="space-between">
               <v-col class="pa-1" cols="6">
                 <v-autocomplete
                   v-model="relation.onUpdate"
@@ -100,11 +93,7 @@
               <!-- Cancel -->
               {{ $t('general.cancel') }}
             </v-btn>
-            <v-btn
-              class="primary "
-              :disabled="!valid"
-              @click="mtdDialogSubmit(relation)"
-            >
+            <v-btn class="primary" :disabled="!valid" @click="mtdDialogSubmit(relation)">
               <u class="shortkey">S</u>ubmit
             </v-btn>
           </v-card-actions>
@@ -115,19 +104,13 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
   data() {
     return {
       valid: false,
-      onUpdateDeleteOptions: [
-        'NO ACTION',
-        'CASCADE',
-        'RESTRICT',
-        'SET NULL',
-        'SET DEFAULT'
-      ],
+      onUpdateDeleteOptions: ['NO ACTION', 'CASCADE', 'RESTRICT', 'SET NULL', 'SET DEFAULT'],
       relation: {
         childColumn: this.column.column_name,
         childTable: this.nodes.table_name,
@@ -136,19 +119,21 @@ export default {
         onDelete: 'CASCADE',
         onUpdate: 'CASCADE',
         updateRelation: !!this.column.rtn,
-        type: 'real'
+        type: 'real',
       },
       isRefTablesLoading: false,
       isRefColumnsLoading: false,
       refColumns: [],
       refTables: [],
-      relationColumnChanged: false
-    }
+      relationColumnChanged: false,
+    };
   },
   methods: {
     async loadColumnList() {
-      if (!this.relation.parentTable) { return }
-      this.isRefColumnsLoading = true
+      if (!this.relation.parentTable) {
+        return;
+      }
+      this.isRefColumnsLoading = true;
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
@@ -162,28 +147,32 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // }, 'columnList', {   table_name: this.relation.parentTable})
 
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'columnList', { table_name: this.relation.parentTable }])
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+        },
+        'columnList',
+        { table_name: this.relation.parentTable },
+      ]);
 
-      const columns = result.data.list
-      this.refColumns = JSON.parse(JSON.stringify(columns))
+      const columns = result.data.list;
+      this.refColumns = JSON.parse(JSON.stringify(columns));
 
       if (this.relation.updateRelation && !this.relationColumnChanged) {
         // only first time when editing add defaault value to this field
-        this.relation.parentColumn = this.column.rcn
-        this.relationColumnChanged = true
+        this.relation.parentColumn = this.column.rcn;
+        this.relationColumnChanged = true;
       } else {
         // find pk column and assign to parentColumn
-        const pkKeyColumns = this.refColumns.filter(el => el.pk)
-        this.relation.parentColumn = (pkKeyColumns[0] || {}).column_name || ''
+        const pkKeyColumns = this.refColumns.filter(el => el.pk);
+        this.relation.parentColumn = (pkKeyColumns[0] || {}).column_name || '';
       }
 
-      this.isRefColumnsLoading = false
+      this.isRefColumnsLoading = false;
     },
     async loadTablesList() {
-      this.isRefTablesLoading = true
+      this.isRefTablesLoading = true;
       // const client = await this.sqlMgr.projectGetSqlClient({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias
@@ -195,67 +184,58 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // }, 'tableList');
 
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'tableList'])
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+        },
+        'tableList',
+      ]);
 
-      const tables = result.data.list
+      const tables = result.data.list;
 
-      this.refTables = JSON.parse(JSON.stringify(tables))
-      this.isRefTablesLoading = false
-    }
+      this.refTables = JSON.parse(JSON.stringify(tables));
+      this.isRefTablesLoading = false;
+    },
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {
     'relation.parentTable'() {
-      this.loadColumnList()
-    }
+      this.loadColumnList();
+    },
   },
   async created() {
-    await this.loadTablesList()
+    await this.loadTablesList();
 
     if (!this.relation.parentTable) {
-      let table_name = (this.refTables[0] || {}).table_name || ''
+      let table_name = (this.refTables[0] || {}).table_name || '';
       if (table_name === 'nc_evolutions' || table_name === '_evolutions') {
-        table_name = (this.refTables[1] || {}).table_name || ''
+        table_name = (this.refTables[1] || {}).table_name || '';
       }
-      this.relation.parentTable = table_name
+      this.relation.parentTable = table_name;
     }
     if (this.column.rtn) {
-      this.relation.parentTable = this.column.rtn
+      this.relation.parentTable = this.column.rtn;
     }
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: [
-    'nodes',
-    'column',
-    'heading',
-    'dialogShow',
-    'mtdDialogCancel',
-    'mtdDialogSubmit'
-  ]
-}
+  props: ['nodes', 'column', 'heading', 'dialogShow', 'mtdDialogCancel', 'mtdDialogSubmit'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

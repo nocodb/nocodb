@@ -33,12 +33,12 @@ import {
   dataAliasExportApis,
   dataAliasNestedApis,
   dataApis,
-  oldDataApis
+  oldDataApis,
 } from './dataApis';
 import {
   publicDataApis,
   publicDataExportApis,
-  publicMetaApis
+  publicMetaApis,
 } from './publicApis';
 import { Tele } from 'nc-help';
 import { Server, Socket } from 'socket.io';
@@ -51,7 +51,7 @@ import syncSourceApis from './sync/syncSourceApis';
 
 const clients: { [id: string]: Socket } = {};
 
-export default function(router: Router, server) {
+export default function (router: Router, server) {
   initStrategies(router);
   projectApis(router);
   utilApis(router);
@@ -97,10 +97,10 @@ export default function(router: Router, server) {
     cors: {
       origin: '*',
       allowedHeaders: ['xc-auth'],
-      credentials: true
-    }
+      credentials: true,
+    },
   });
-  io.use(function(socket, next) {
+  io.use(function (socket, next) {
     passport.authenticate(
       'jwt',
       { session: false },
@@ -113,17 +113,17 @@ export default function(router: Router, server) {
         next();
       }
     )(socket.handshake, {}, next);
-  }).on('connection', socket => {
+  }).on('connection', (socket) => {
     clients[socket.id] = socket;
     const id = getHash(
       (process.env.NC_SERVER_UUID || Tele.id) +
         (socket?.handshake as any)?.user?.id
     );
 
-    socket.on('page', args => {
+    socket.on('page', (args) => {
       Tele.page({ ...args, id });
     });
-    socket.on('event', args => {
+    socket.on('event', (args) => {
       Tele.event({ ...args, id });
     });
   });
@@ -132,8 +132,5 @@ export default function(router: Router, server) {
 }
 
 function getHash(str) {
-  return crypto
-    .createHash('md5')
-    .update(str)
-    .digest('hex');
+  return crypto.createHash('md5').update(str).digest('hex');
 }

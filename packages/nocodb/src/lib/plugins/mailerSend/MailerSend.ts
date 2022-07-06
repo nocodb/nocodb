@@ -13,7 +13,7 @@ export default class Mailer implements IEmailAdapter {
 
   public async init(): Promise<any> {
     this.mailersend = new MailerSend({
-      api_key: this.input?.api_key
+      api_key: this.input?.api_key,
     });
   }
 
@@ -39,7 +39,7 @@ export default class Mailer implements IEmailAdapter {
       await this.mailSend({
         to: email,
         subject: 'Test email',
-        html: 'Test email'
+        html: 'Test email',
       } as any);
       return true;
     } catch (e) {

@@ -18,29 +18,29 @@ const config: XcPluginConfig = {
         label: 'Bucket name',
         placeholder: 'Bucket name',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'region',
         label: 'Region of bucket',
         placeholder: 'Region of bucket',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'access_key',
         label: 'Access Key',
         placeholder: 'Access Key',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'access_secret',
         label: 'Access Secret',
         placeholder: 'Access Secret',
         type: XcType.Password,
-        required: true
-      }
+        required: true,
+      },
     ],
     actions: [
       {
@@ -48,20 +48,20 @@ const config: XcPluginConfig = {
         placeholder: 'Test',
         key: 'test',
         actionType: XcActionType.TEST,
-        type: XcType.Button
+        type: XcType.Button,
       },
       {
         label: 'Save',
         placeholder: 'Save',
         key: 'save',
         actionType: XcActionType.SUBMIT,
-        type: XcType.Button
-      }
+        type: XcType.Button,
+      },
     ],
     msgOnInstall: 'Successfully installed Scaleway Object Storage',
-    msgOnUninstall: ''
+    msgOnUninstall: '',
   },
-  category: 'Storage'
+  category: 'Storage',
 };
 
 export default config;

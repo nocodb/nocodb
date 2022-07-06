@@ -1,47 +1,48 @@
 <template>
-  <input v-model="localState" v-on="parentListeners">
+  <input v-model="localState" v-on="parentListeners" />
 </template>
 
 <script>
 export default {
   name: 'TextCell',
   props: {
-    value: [String, Object, Number, Boolean, Array]
+    value: [String, Object, Number, Boolean, Array],
   },
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
       if (this.$listeners.cancel) {
-        $listeners.cancel = this.$listeners.cancel
+        $listeners.cancel = this.$listeners.cancel;
       }
 
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   mounted() {
-    this.$el.focus()
-  }
-}
+    this.$el.focus();
+  },
+};
 </script>
 
 <style scoped>
-input, textarea {
+input,
+textarea {
   width: 100%;
   height: 100%;
   color: var(--v-textColor-base);

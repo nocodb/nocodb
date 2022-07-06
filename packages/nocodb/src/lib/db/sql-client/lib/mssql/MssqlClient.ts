@@ -32,9 +32,10 @@ class MssqlClient extends KnexClient {
         upStatement: [{ sql: query }],
         downStatement: [
           {
-            sql: this.querySeparator() + `CREATE SEQUENCE ${args.sequence_name}`
-          }
-        ]
+            sql:
+              this.querySeparator() + `CREATE SEQUENCE ${args.sequence_name}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -69,11 +70,11 @@ class MssqlClient extends KnexClient {
       args.databaseName = this.connectionConfig.connection.database;
       const rows = await this.sqlClient.raw(`SELECT * FROM sys.SEQUENCES;`);
 
-      result.data.list = rows.map(seq => {
+      result.data.list = rows.map((seq) => {
         return {
           ...seq,
           sequence_name: seq.name,
-          original_sequence_name: seq.name
+          original_sequence_name: seq.name,
         };
       });
     } catch (e) {
@@ -113,8 +114,10 @@ class MssqlClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: query }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP SEQUENCE ${args.sequence_name}` }
-        ]
+          {
+            sql: this.querySeparator() + `DROP SEQUENCE ${args.sequence_name}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -157,7 +160,7 @@ class MssqlClient extends KnexClient {
       await this.sqlClient.raw(upQuery);
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -230,7 +233,7 @@ class MssqlClient extends KnexClient {
       'uniqueidentifier',
       'varbinary',
       'xml',
-      'varchar'
+      'varchar',
     ];
 
     return result;
@@ -301,7 +304,7 @@ class MssqlClient extends KnexClient {
                 EXEC('CREATE SCHEMA ??')`,
           [
             this.connectionConfig.searchPath[0],
-            this.connectionConfig.searchPath[0]
+            this.connectionConfig.searchPath[0],
           ]
         );
       }
@@ -360,7 +363,7 @@ class MssqlClient extends KnexClient {
       if (!exists) {
         await this.sqlClient.schema.createTable(
           this.getTnPath(args.tn),
-          function(table) {
+          function (table) {
             table.increments();
             table.string('title').notNullable();
             table.string('titleDown').nullable();
@@ -864,7 +867,7 @@ class MssqlClient extends KnexClient {
         CASCADE: 'CASCADE',
         RESTRICT: 'RESTRICT',
         SET_NULL: 'SET NULL',
-        SET_DEFAULT: 'SET DEFAULT'
+        SET_DEFAULT: 'SET DEFAULT',
       };
 
       for (const row of response) {
@@ -929,7 +932,7 @@ class MssqlClient extends KnexClient {
         CASCADE: 'CASCADE',
         RESTRICT: 'RESTRICT',
         SET_NULL: 'SET NULL',
-        SET_DEFAULT: 'SET DEFAULT'
+        SET_DEFAULT: 'SET DEFAULT',
       };
 
       for (const row of response) {
@@ -1354,9 +1357,9 @@ class MssqlClient extends KnexClient {
         upStatement: [{ sql: query }],
         downStatement: [
           {
-            sql: `${this.querySeparator()}${args.oldStatement}`
-          }
-        ]
+            sql: `${this.querySeparator()}${args.oldStatement}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1378,7 +1381,7 @@ class MssqlClient extends KnexClient {
       await this.sqlClient.raw(upQuery);
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1403,12 +1406,12 @@ class MssqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `DROP PROCEDURE IF EXISTS ${args.procedure_name}`
-          }
+              `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
+          },
         ],
         downStatement: [
-          { sql: this.querySeparator() + `${args.create_procedure}` }
-        ]
+          { sql: this.querySeparator() + `${args.create_procedure}` },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1436,15 +1439,15 @@ class MssqlClient extends KnexClient {
       await this.sqlClient.raw(`${args.create_function}`);
       result.data.object = {
         upStatement: [
-          { sql: this.querySeparator() + `${args.create_function}` }
+          { sql: this.querySeparator() + `${args.create_function}` },
         ],
         downStatement: [
           {
             sql:
               this.querySeparator() +
-              `DROP FUNCTION IF EXISTS ${args.function_name}`
-          }
-        ]
+              `DROP FUNCTION IF EXISTS ${args.function_name}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1478,8 +1481,8 @@ class MssqlClient extends KnexClient {
               this.querySeparator() +
               `DROP FUNCTION IF EXISTS ${
                 args.function_name
-              };${this.querySeparator()}\n${args.create_function}`
-          }
+              };${this.querySeparator()}\n${args.create_function}`,
+          },
         ],
         downStatement: [
           {
@@ -1487,9 +1490,9 @@ class MssqlClient extends KnexClient {
               this.querySeparator() +
               `DROP FUNCTION IF EXISTS ${
                 args.function_name
-              };${this.querySeparator()} ${args.oldCreateFunction}`
-          }
-        ]
+              };${this.querySeparator()} ${args.oldCreateFunction}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1517,13 +1520,14 @@ class MssqlClient extends KnexClient {
       await this.sqlClient.raw(`${args.create_procedure}`);
       result.data.object = {
         upStatement: [
-          { sql: this.querySeparator() + `${args.create_procedure}` }
+          { sql: this.querySeparator() + `${args.create_procedure}` },
         ],
         downStatement: [
           {
-            sql: this.querySeparator() + `DROP PROCEDURE ${args.procedure_name}`
-          }
-        ]
+            sql:
+              this.querySeparator() + `DROP PROCEDURE ${args.procedure_name}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1559,8 +1563,8 @@ class MssqlClient extends KnexClient {
               this.querySeparator() +
               `DROP PROCEDURE IF EXISTS ${
                 args.procedure_name
-              };${this.querySeparator()}\n${args.create_procedure}`
-          }
+              };${this.querySeparator()}\n${args.create_procedure}`,
+          },
         ],
         downStatement: [
           {
@@ -1568,9 +1572,9 @@ class MssqlClient extends KnexClient {
               this.querySeparator() +
               `DROP PROCEDURE IF EXISTS ${
                 args.procedure_name
-              };${this.querySeparator()}${args.oldCreateProcedure}`
-          }
-        ]
+              };${this.querySeparator()}${args.oldCreateProcedure}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1602,8 +1606,8 @@ class MssqlClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP TRIGGER ${args.trigger_name}` }
-        ]
+          { sql: this.querySeparator() + `DROP TRIGGER ${args.trigger_name}` },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1643,8 +1647,8 @@ class MssqlClient extends KnexClient {
               this.querySeparator() +
               `ALTER TRIGGER ${args.trigger_name} ON ${this.getTnPath(
                 args.tn
-              )} \n${args.timing} ${args.event}\n AS\n${args.statement}`
-          }
+              )} \n${args.timing} ${args.event}\n AS\n${args.statement}`,
+          },
         ],
         downStatement: [
           {
@@ -1652,9 +1656,9 @@ class MssqlClient extends KnexClient {
               this.querySeparator() +
               `ALTER TRIGGER ${args.trigger_name} ON ${this.getTnPath(
                 args.tn
-              )} \n${args.timing} ${args.event}\n AS\n${args.statement}`
-          }
-        ]
+              )} \n${args.timing} ${args.event}\n AS\n${args.statement}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1683,8 +1687,8 @@ class MssqlClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP VIEW ${args.view_name}` }
-        ]
+          { sql: this.querySeparator() + `DROP VIEW ${args.view_name}` },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1719,9 +1723,9 @@ class MssqlClient extends KnexClient {
               this.querySeparator() +
               `DROP VIEW ${args.view_name} ; ${this.querySeparator()}${
                 args.oldViewDefination
-              };`
-          }
-        ]
+              };`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1754,9 +1758,9 @@ class MssqlClient extends KnexClient {
         upStatement: [{ sql: this.querySeparator() + query }],
         downStatement: [
           {
-            sql: this.querySeparator() + args.oldViewDefination
-          }
-        ]
+            sql: this.querySeparator() + args.oldViewDefination,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1824,8 +1828,8 @@ class MssqlClient extends KnexClient {
         upStatement: [{ sql: upQuery }, ...triggerStatements.upStatement],
         downStatement: [
           ...triggerStatements.downStatement,
-          { sql: downStatement }
-        ]
+          { sql: downStatement },
+        ],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1840,7 +1844,7 @@ class MssqlClient extends KnexClient {
     let upQuery = '';
     let downQuery = '';
 
-    const pk = args.columns.find(c => c.pk);
+    const pk = args.columns.find((c) => c.pk);
     if (!pk) return result;
 
     for (let i = 0; i < args.columns.length; i++) {
@@ -1875,7 +1879,7 @@ class MssqlClient extends KnexClient {
     let upQuery = '';
     let downQuery = '';
 
-    const pk = args.columns.find(c => c.pk);
+    const pk = args.columns.find((c) => c.pk);
     if (!pk) return result;
 
     for (let i = 0; i < args.columns.length; i++) {
@@ -1948,7 +1952,7 @@ class MssqlClient extends KnexClient {
 
       for (let i = 0; i < args.columns.length; ++i) {
         const oldColumn = lodash.find(originalColumns, {
-          cn: args.columns[i].cno
+          cn: args.columns[i].cno,
         });
 
         if (args.columns[i].altered & 4) {
@@ -2023,12 +2027,12 @@ class MssqlClient extends KnexClient {
       result.data.object = {
         upStatement: [
           { sql: this.querySeparator() + upQuery },
-          ...afterUpdate.upStatement
+          ...afterUpdate.upStatement,
         ],
         downStatement: [
           ...afterUpdate.downStatement,
-          { sql: this.querySeparator() + downQuery }
-        ]
+          { sql: this.querySeparator() + downQuery },
+        ],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2061,7 +2065,7 @@ class MssqlClient extends KnexClient {
       this.emit(`Success : ${upStatement}`);
 
       let relationsList: any = await this.relationList({
-        tn: this.getTnPath(args.tn)
+        tn: this.getTnPath(args.tn),
       });
 
       relationsList = relationsList.data.list;
@@ -2070,7 +2074,7 @@ class MssqlClient extends KnexClient {
         downQuery +=
           this.querySeparator() +
           (await this.sqlClient.schema
-            .table(this.getTnPath(relation.tn), function(table) {
+            .table(this.getTnPath(relation.tn), function (table) {
               table = table
                 .foreign(relation.cn, null)
                 .references(relation.rcn)
@@ -2102,7 +2106,7 @@ class MssqlClient extends KnexClient {
             tn: this.getTnPath(args.tn),
             indexName: key_name,
             non_unique,
-            columns: []
+            columns: [],
           };
         }
         indexesMap[key_name].columns.push(cn);
@@ -2114,7 +2118,7 @@ class MssqlClient extends KnexClient {
         downQuery +=
           this.querySeparator() +
           this.sqlClient.schema
-            .table(tn, function(table) {
+            .table(tn, function (table) {
               if (non_unique) {
                 table.index(columns, key_name);
               } else {
@@ -2130,7 +2134,7 @@ class MssqlClient extends KnexClient {
       /** ************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2155,7 +2159,7 @@ class MssqlClient extends KnexClient {
       result = await this.columnList(args);
       const upQuery = this.createTable(args.tn, {
         tn: args.tn,
-        columns: result.data.list
+        columns: result.data.list,
       });
       result.data = upQuery;
     } catch (e) {
@@ -2508,7 +2512,7 @@ class MssqlClient extends KnexClient {
             'tinyint',
             'geometry',
             'datetime',
-            'text'
+            'text',
           ].includes(n.dt)
         )
           query += n.dtxp && n.dtxp != -1 ? `(${n.dtxp})` : '';

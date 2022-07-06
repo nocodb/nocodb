@@ -2,11 +2,13 @@
   <div>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('twitter')"
-      v-ge="['twitter','']"
+      v-ge="['twitter', '']"
       href="#"
       :class="iconClass"
       class="px-2"
-      @click.prevent="openUrl(`https://twitter.com/intent/tweet?url=${shareUrl}&text=${encodedSummary}&hashtags=${hashTags}`)"
+      @click.prevent="
+        openUrl(`https://twitter.com/intent/tweet?url=${shareUrl}&text=${encodedSummary}&hashtags=${hashTags}`)
+      "
     >
       <img
         src="social/twitter.png"
@@ -15,16 +17,20 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
 
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('linkedin')"
-      v-ge="['linkedin','']"
+      v-ge="['linkedin', '']"
       href="#"
       :class="iconClass"
       class="px-2"
-      @click.prevent="openUrl(`https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&title=${encodedTitle}&summary=${encodedSummary}`)"
+      @click.prevent="
+        openUrl(
+          `https://www.linkedin.com/shareArticle?mini=true&url=${shareUrl}&title=${encodedTitle}&summary=${encodedSummary}`
+        )
+      "
     >
       <img
         src="social/linkedin.png"
@@ -33,16 +39,20 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
 
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('facebook')"
-      v-ge="['facebook','']"
+      v-ge="['facebook', '']"
       href="#"
       :class="iconClass"
       class="px-2"
-      @click.prevent="openUrl(`https://www.facebook.com/sharer/sharer.php?u=${shareUrl}&title=${encodedTitle}&summary=${encodedSummary}&quote=${encodedTitle}&hashtag=${fbHashTags}`)"
+      @click.prevent="
+        openUrl(
+          `https://www.facebook.com/sharer/sharer.php?u=${shareUrl}&title=${encodedTitle}&summary=${encodedSummary}&quote=${encodedTitle}&hashtag=${fbHashTags}`
+        )
+      "
     >
       <img
         src="social/facebook.png"
@@ -51,12 +61,12 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
 
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('reddit')"
-      v-ge="['reddit','']"
+      v-ge="['reddit', '']"
       href="#"
       :class="iconClass"
       class="px-2"
@@ -69,16 +79,18 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
 
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('pinterest')"
-      v-ge="['pinterest','']"
+      v-ge="['pinterest', '']"
       href="#"
       :class="iconClass"
       class="px-2"
-      @click.prevent="openUrl(`https://pinterest.com/pin/create/button/?url=${shareUrl}&description==${encodedSummary}`)"
+      @click.prevent="
+        openUrl(`https://pinterest.com/pin/create/button/?url=${shareUrl}&description==${encodedSummary}`)
+      "
     >
       <img
         src="social/pinterest.png"
@@ -87,12 +99,12 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
 
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('whatsapp')"
-      v-ge="['whatsapp','']"
+      v-ge="['whatsapp', '']"
       href="#"
       :class="iconClass"
       class="px-2"
@@ -105,11 +117,11 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('telegram')"
-      v-ge="['telegram','']"
+      v-ge="['telegram', '']"
       href="#"
       :class="iconClass"
       class="px-2"
@@ -122,11 +134,11 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('wechat')"
-      v-ge="['wechat','']"
+      v-ge="['wechat', '']"
       :class="iconClass"
       class="px-2"
       @click.prevent="openUrl(`https://www.addtoany.com/add_to/wechat?linkurl=${shareUrl}&linkname=${encodedTitle}`)"
@@ -138,11 +150,11 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('line')"
-      v-ge="['line','']"
+      v-ge="['line', '']"
       href="#"
       :class="iconClass"
       class="px-2"
@@ -155,11 +167,11 @@
         :style="css"
         title="Social Media Share"
         @click.prevent="openUrl(`http://line.me/R/msg/text/?${encodedTitle}%0D%0A${shareUrl}`)"
-      >
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('odnoklassniki')"
-      v-ge="['odnoklassniki','']"
+      v-ge="['odnoklassniki', '']"
       href="#"
       :class="iconClass"
       class="px-2"
@@ -171,12 +183,16 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-        @click.prevent="openUrl(`https://connect.ok.ru/dk?st.cmd=WidgetSharePreview&st.shareUrl=${shareUrl}&st.comments=${encodedSummary}`)"
-      >
+        @click.prevent="
+          openUrl(
+            `https://connect.ok.ru/dk?st.cmd=WidgetSharePreview&st.shareUrl=${shareUrl}&st.comments=${encodedSummary}`
+          )
+        "
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('weibo')"
-      v-ge="['weibo','']"
+      v-ge="['weibo', '']"
       href="#"
       :class="iconClass"
       class="px-2"
@@ -189,14 +205,18 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('renren')"
-      v-ge="['renren','']"
+      v-ge="['renren', '']"
       :class="iconClass"
       class="px-2"
-      @click.prevent="openUrl(`http://widget.renren.com/dialog/share?resourceUrl=${shareUrl}&srcUrl=${shareUrl}&title=${encodedTitle}&description=${encodedSummary}`)"
+      @click.prevent="
+        openUrl(
+          `http://widget.renren.com/dialog/share?resourceUrl=${shareUrl}&srcUrl=${shareUrl}&title=${encodedTitle}&description=${encodedSummary}`
+        )
+      "
     >
       <img
         src="social/png/renren.png"
@@ -205,11 +225,11 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('douban')"
-      v-ge="['douban','']"
+      v-ge="['douban', '']"
       :class="iconClass"
       class="px-2"
       @click.prevent="openUrl(`http://www.douban.com/recommend/?url=${shareUrl}&title=${encodedTitle}`)"
@@ -221,15 +241,19 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('vk')"
-      v-ge="['vk','']"
+      v-ge="['vk', '']"
       href="#"
       :class="iconClass"
       class="px-2"
-      @click.prevent="openUrl(`https://vk.com/share.php?url=${shareUrl})&title=${encodedTitle}&description=${encodedSummary}&noparse=true`)"
+      @click.prevent="
+        openUrl(
+          `https://vk.com/share.php?url=${shareUrl})&title=${encodedTitle}&description=${encodedSummary}&noparse=true`
+        )
+      "
     >
       <img
         src="social/png/vk.png"
@@ -238,11 +262,11 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('wykop')"
-      v-ge="['wykop','']"
+      v-ge="['wykop', '']"
       :class="iconClass"
       class="px-2"
       @click.prevent="openUrl(`https://www.addtoany.com/add_to/wykop?linkurl=${shareUrl}&linkname=${encodedTitle}`)"
@@ -254,7 +278,7 @@
         :width="width"
         :style="css"
         title="Social Media Share"
-      >
+      />
     </a>
   </div>
 </template>
@@ -265,29 +289,28 @@ export default {
   props: {
     url: String,
     socialMedias: {
-      type: Array
+      type: Array,
     },
     title: {
       default: 'NocoDB',
-      type: String
+      type: String,
     },
     summary: {
-      type: String
+      type: String,
     },
     hashTags: {
       default: '',
-      type: String
+      type: String,
     },
     css: {
-      default: ''
+      default: '',
     },
     width: {
-      default: '45px'
+      default: '45px',
     },
     iconClass: {
-      default: ''
-    }
-
+      default: '',
+    },
   },
   data() {
     return {
@@ -296,37 +319,37 @@ export default {
         'Instantly generate #Rest & #GraphQL APIs on any #SQL Database (Supports : MySQL, PostgresSQL, MsSQL, SQLite, MariaDB) #nocodb',
         'Instant #serverless Rest & #GraphQL APIs on any Database #nocodb',
         'Instant APIs on any SQL Database (Supports : #REST #GraphQL #MySQL, #PostgresSQL, #MsSQL, #SQLite, #MariaDB) #nocodb',
-        'Generate Instant APIs on any SQL Database (Supports : #REST #GraphQL #MySQL, #PostgresSQL, #MsSQL, #SQLite, #MariaDB) #nocodb'
-      ]
-    }
+        'Generate Instant APIs on any SQL Database (Supports : #REST #GraphQL #MySQL, #PostgresSQL, #MsSQL, #SQLite, #MariaDB) #nocodb',
+      ],
+    };
   },
   computed: {
     shareUrl() {
-      return encodeURIComponent(this.url)
+      return encodeURIComponent(this.url);
     },
     encodedSummary() {
-      return ''// encodeURIComponent(this.summary || this.summaryArr[Math.floor(Math.random() * this.summaryArr.length)])
+      return ''; // encodeURIComponent(this.summary || this.summaryArr[Math.floor(Math.random() * this.summaryArr.length)])
     },
     encodedTitle() {
-      return encodeURIComponent(this.title || 'NocoDB')
+      return encodeURIComponent(this.title || 'NocoDB');
     },
     fbHashTags() {
-      return this.hashTags && ('%23' + this.hashTags)
-    }
+      return this.hashTags && '%23' + this.hashTags;
+    },
   },
   methods: {
     openUrl(url) {
-      window.open(url, '_blank')
-    }
-  }
-}
+      window.open(url, '_blank');
+    },
+  },
+};
 </script>
 
 <style scoped>
-.img-responsive{
-  width:30px;
+.img-responsive {
+  width: 30px;
 }
-.small .img-responsive{
-  width:25px;
+.small .img-responsive {
+  width: 25px;
 }
 </style>

@@ -11,7 +11,7 @@ export default class NcHelp {
       }
     } else {
       await Promise.all(
-        fns.map(async f => {
+        fns.map(async (f) => {
           await f();
         })
       );
@@ -24,7 +24,7 @@ export default class NcHelp {
     const enabledKeys = debug
       .disable()
       .split(',')
-      .filter(v => v.trim());
+      .filter((v) => v.trim());
     for (const [key, enabled] of Object.entries(args)) {
       if (enabled) {
         if (!enabledKeys.includes(key)) {

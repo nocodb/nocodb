@@ -1,13 +1,7 @@
 <template>
   <v-overlay :value="message" z-index="99999" opacity=".9">
     <div class="d-flex flex-column align-center">
-      <v-progress-circular
-        v-if="progress !== null "
-        :rotate="360"
-        :size="100"
-        :width="15"
-        :value="progress"
-      >
+      <v-progress-circular v-if="progress !== null" :rotate="360" :size="100" :width="15" :value="progress">
         {{ progress }}%
       </v-progress-circular>
 
@@ -20,19 +14,16 @@
 <script>
 export default {
   name: 'Loader',
-  props: {
-  },
+  props: {},
   computed: {
     message() {
-      return this.$store.state.loader.message
+      return this.$store.state.loader.message;
     },
     progress() {
-      return this.$store.state.loader.progress
-    }
-  }
-}
+      return this.$store.state.loader.progress;
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

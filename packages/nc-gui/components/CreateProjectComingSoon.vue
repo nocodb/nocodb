@@ -1,27 +1,20 @@
 <template>
-  <v-expansion-panels
-    focusable
-    accordion=""
-    class="elevation-20"
-    style="border: 1px solid grey"
-  >
+  <v-expansion-panels focusable accordion="" class="elevation-20" style="border: 1px solid grey">
     <v-expansion-panel>
       <v-expansion-panel-header disable-icon-rotate>
         <div>
-          <v-icon color="grey darken-1">
-            mdi-timer-sand
-          </v-icon> &nbsp;
+          <v-icon color="grey darken-1"> mdi-timer-sand </v-icon> &nbsp;
           <span class="grey--text text--darken-1">Coming Soon</span>
         </div>
       </v-expansion-panel-header>
 
       <v-expansion-panel-content>
         <v-row>
-          <v-col v-for="(item,i) in items" :key="i" cols="4">
+          <v-col v-for="(item, i) in items" :key="i" cols="4">
             <v-card class="card">
               <div
                 class="white--text d-flex flex-column card-header"
-                :style="{ background: item.background,height:'200px'}"
+                :style="{ background: item.background, height: '200px' }"
               >
                 <div class="card-icon d-flex flex-grow-1 align-center justify-center">
                   <!--                  <v-icon size="80px">mdi-account-group</v-icon>-->
@@ -45,32 +38,31 @@ export default {
       {
         background: 'linear-gradient(#6458bf1a, #110dec80)',
         title: 'Social Login',
-        description: 'Facebook/Google login for the application'
+        description: 'Facebook/Google login for the application',
       },
       {
         background: 'linear-gradient(#6458bf1a, #ff5200cc)',
         title: 'Push Notification',
-        description: 'Google Firebase based cloud messaging service'
+        description: 'Google Firebase based cloud messaging service',
       },
       {
         background: 'linear-gradient(rgba(100, 88, 191, 0.1), #4caf50)',
         title: 'Cron Jobs',
-        description: 'Scheduled asynchronous Background/cron jobs'
+        description: 'Scheduled asynchronous Background/cron jobs',
       },
       {
         background: 'linear-gradient(rgba(100, 88, 191, 0.1), rgb(236 13 13 / 50%))',
         title: 'Cloud Storage',
-        description: 'Cloud based file storage like S3'
+        description: 'Cloud based file storage like S3',
       },
       {
         background: 'linear-gradient(rgba(100, 88, 191, 0.1), #252526)',
         title: 'Cache',
-        description: 'Caching for optimizing speed'
-      }
-
-    ]
-  })
-}
+        description: 'Caching for optimizing speed',
+      },
+    ],
+  }),
+};
 </script>
 
 <style scoped lang="scss">

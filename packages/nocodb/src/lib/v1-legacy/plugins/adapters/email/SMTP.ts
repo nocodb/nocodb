@@ -24,8 +24,8 @@ class SMTP implements IEmailAdapter {
           : this.input?.ignoreTLS === 'true',
       auth: {
         user: this.input?.username,
-        pass: this.input?.password
-      }
+        pass: this.input?.password,
+      },
     };
     this.transporter = nodemailer.createTransport(config);
   }
@@ -41,7 +41,7 @@ class SMTP implements IEmailAdapter {
       this.mailSend({
         to: email,
         subject: 'Test email',
-        html: 'Test email'
+        html: 'Test email',
       } as any);
       return true;
     } catch (e) {

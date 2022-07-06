@@ -3,10 +3,8 @@
     <v-row v-if="resetSuccess" align="center">
       <v-col md="6" offset-md="3">
         <v-card class="pa-5 elevation-10" color="">
-          <h1 class="text-center" color="accent">
-            RESET PASSWORD
-          </h1>
-          <br>
+          <h1 class="text-center" color="accent">RESET PASSWORD</h1>
+          <br />
 
           <v-form ref="formType" v-model="valid" lazy-validation>
             <v-text-field
@@ -29,30 +27,22 @@
               :type="e3 ? 'password' : 'text'"
             />
 
-            <v-btn
-              large
-              color="primary"
-              @click="resetUserPassword"
-            >
-              RESET PASSWORD
-            </v-btn>
+            <v-btn large color="primary" @click="resetUserPassword"> RESET PASSWORD </v-btn>
           </v-form>
         </v-card>
       </v-col>
     </v-row>
     <v-row v-else>
       <v-alert v-model="alert" type="warning" dismissible>
-        <h1 class="title is-2">
-          Invalid RESET token - make sure you have opened right reset link
-        </h1>
+        <h1 class="title is-2">Invalid RESET token - make sure you have opened right reset link</h1>
       </v-alert>
     </v-row>
   </v-row>
 </template>
 
 <script>
-import { isEmail } from '@/helpers'
-import passwordValidateMixin from '@/pages/user/authentication/passwordValidateMixin'
+import { isEmail } from '@/helpers';
+import passwordValidateMixin from '@/pages/user/authentication/passwordValidateMixin';
 
 export default {
   directives: {},
@@ -60,7 +50,7 @@ export default {
   mixins: [passwordValidateMixin],
   validate({ params }) {
     // console.log('validate');
-    return true
+    return true;
   },
   props: {},
   data() {
@@ -69,32 +59,24 @@ export default {
       passwordDetails: {
         newPassword: '',
         verifyPassword: null,
-        token: null
+        token: null,
       },
 
       formRules: {
-        email: [
-          v => !!v || 'E-mail is required',
-          v => isEmail(v) || 'E-mail must be valid'
-        ],
-        password: [
-          v => (this.PasswordValidate(v)) || this.passwordValidateMsg
-        ],
-        password1: [
-          v => (this.PasswordValidate1(v)) || 'Confirm password should match'
-        ]
+        email: [v => !!v || 'E-mail is required', v => isEmail(v) || 'E-mail must be valid'],
+        password: [v => this.PasswordValidate(v) || this.passwordValidateMsg],
+        password1: [v => this.PasswordValidate1(v) || 'Confirm password should match'],
       },
       passwordProgress: 0,
       passwordValidateMsg: '',
       valid: true,
       e3: true,
-      alert: true
-
-    }
+      alert: true,
+    };
   },
   head() {
     // console.log('head');
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
@@ -103,7 +85,7 @@ export default {
   },
   async mounted() {
     // console.log('mounted', this.$route.query);
-    this.resetSuccess = await this.$store.dispatch('users/ActGetPasswordReset', this.$route.query)
+    this.resetSuccess = await this.$store.dispatch('users/ActGetPasswordReset', this.$route.query);
     // this.resetSuccess =  true;
     // console.log('mounted', this.resetSuccess);
   },
@@ -113,36 +95,34 @@ export default {
   methods: {
     async resetUserPassword(e) {
       if (this.$refs.formType.validate()) {
-        e.preventDefault()
-        this.passwordDetails.token = this.$route.query.token
+        e.preventDefault();
+        this.passwordDetails.token = this.$route.query.token;
         // console.log('passworDetails', this.passwordDetails);
 
-        await this.$recaptchaLoaded()
-        const recaptchaToken = await this.$recaptcha('login')
+        await this.$recaptchaLoaded();
+        const recaptchaToken = await this.$recaptcha('login');
 
-        await this.$store.dispatch('users/ActPostPasswordReset', { ...this.passwordDetails, recaptchaToken })
-        this.$router.push('/')
+        await this.$store.dispatch('users/ActPostPasswordReset', { ...this.passwordDetails, recaptchaToken });
+        this.$router.push('/');
       }
     },
     PasswordValidate1(confirmPassword) {
       if (confirmPassword) {
-        return this.passwordDetails.newPassword.startsWith(confirmPassword)
+        return this.passwordDetails.newPassword.startsWith(confirmPassword);
       }
-      return false
-    }
+      return false;
+    },
   },
   beforeCreated() {
     // console.log('beforeCreate');
   },
   destroy() {
     // console.log('destroy');
-  }
-}
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -36,7 +36,7 @@ class MysqlClient extends KnexClient {
     log.api(data);
     evt.evt.emit('UI', {
       status: 0,
-      data: `SQL : ${data}`
+      data: `SQL : ${data}`,
     });
   }
 
@@ -44,7 +44,7 @@ class MysqlClient extends KnexClient {
     log.warn(data);
     evt.evt.emit('UI', {
       status: 1,
-      data: `SQL : ${data}`
+      data: `SQL : ${data}`,
     });
   }
 
@@ -52,7 +52,7 @@ class MysqlClient extends KnexClient {
     log.error(data);
     evt.evt.emit('UI', {
       status: -1,
-      data: `SQL : ${data}`
+      data: `SQL : ${data}`,
     });
   }
 
@@ -213,7 +213,7 @@ class MysqlClient extends KnexClient {
       'multilinestring',
       'multipolygon',
       // "geometrycollection",
-      'json'
+      'json',
     ];
 
     return result;
@@ -313,7 +313,7 @@ class MysqlClient extends KnexClient {
       const tempSqlClient = knex(connectionParamsWithoutDb);
 
       const data = await tempSqlClient.raw(this.queries[func].default.sql, [
-        args.database
+        args.database,
       ]);
 
       log.debug('Create database if not exists', data);
@@ -360,7 +360,7 @@ class MysqlClient extends KnexClient {
       const exists = await this.sqlClient.schema.hasTable(args.tn);
 
       if (!exists) {
-        await this.sqlClient.schema.createTable(args.tn, function(table) {
+        await this.sqlClient.schema.createTable(args.tn, function (table) {
           table.increments();
           table.string('title').notNullable();
           table.string('titleDown').nullable();
@@ -431,7 +431,7 @@ class MysqlClient extends KnexClient {
 
     try {
       const rows = await this.sqlClient.raw(this.queries[func].default.sql, [
-        `${args.databaseName}`
+        `${args.databaseName}`,
       ]);
       result.data.value = rows.length > 0;
     } catch (e) {
@@ -505,7 +505,7 @@ class MysqlClient extends KnexClient {
       if (response.length === 2) {
         for (let i = 0; i < response[0].length; ++i) {
           if (!keyInResponse) {
-            keyInResponse = Object.keys(response[0][i]).find(k =>
+            keyInResponse = Object.keys(response[0][i]).find((k) =>
               /^Tables_in_/i.test(k)
             );
           }
@@ -523,7 +523,7 @@ class MysqlClient extends KnexClient {
       this.emitTele({
         mysql: 1,
         table_count: result.data.list.length,
-        api_count: result.data.list.length * 10
+        api_count: result.data.list.length * 10,
       });
     } catch (e) {
       log.ppe(e, func);
@@ -550,7 +550,7 @@ class MysqlClient extends KnexClient {
                                 order by schema_name;`
       );
       if (response.length === 2) {
-        result.data.list = response[0].map(v =>
+        result.data.list = response[0].map((v) =>
           lodash.mapKeys(v, (_, k) => k.toLowerCase())
         );
       } else {
@@ -604,7 +604,7 @@ class MysqlClient extends KnexClient {
 
       const response = await this.sqlClient.raw(
         await this._getQuery({
-          func
+          func,
         }),
         [args.databaseName, args.tn, args.databaseName, args.tn]
       );
@@ -753,7 +753,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let index = response[0][i];
-          index = lodash.mapKeys(index, function(_v, k) {
+          index = lodash.mapKeys(index, function (_v, k) {
             return k.toLowerCase();
           });
           index.cn = index.column_name;
@@ -800,7 +800,7 @@ class MysqlClient extends KnexClient {
     try {
       const response = await this.sqlClient.raw(
         await this._getQuery({
-          func
+          func,
         }),
         [this.connectionConfig.connection.database, args.tn]
       );
@@ -810,7 +810,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let index = response[0][i];
-          index = lodash.mapKeys(index, function(_v, k) {
+          index = lodash.mapKeys(index, function (_v, k) {
             return k.toLowerCase();
           });
           indexes.push(index);
@@ -868,7 +868,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let relation = response[0][i];
-          relation = lodash.mapKeys(relation, function(_v, k) {
+          relation = lodash.mapKeys(relation, function (_v, k) {
             return k.toLowerCase();
           });
           relations.push(relation);
@@ -923,7 +923,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let relation = response[0][i];
-          relation = lodash.mapKeys(relation, function(_v, k) {
+          relation = lodash.mapKeys(relation, function (_v, k) {
             return k.toLowerCase();
           });
           relations.push(relation);
@@ -934,7 +934,7 @@ class MysqlClient extends KnexClient {
         this.emitTele({
           mysql: 1,
           relation_count: result.data.list.length,
-          api_count: result.data.list.length * 10
+          api_count: result.data.list.length * 10,
         });
       } else {
         log.debug('Unknown response for databaseList:', response);
@@ -985,7 +985,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let trigger = response[0][i];
-          trigger = lodash.mapKeys(trigger, function(_v, k) {
+          trigger = lodash.mapKeys(trigger, function (_v, k) {
             return k.toLowerCase();
           });
           trigger.trigger_name = trigger.trigger;
@@ -1040,7 +1040,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let fn = response[0][i];
-          fn = lodash.mapKeys(fn, function(_v, k) {
+          fn = lodash.mapKeys(fn, function (_v, k) {
             return k.toLowerCase();
           });
           fn.function_name = fn.name;
@@ -1099,7 +1099,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
-          procedure = lodash.mapKeys(procedure, function(_v, k) {
+          procedure = lodash.mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
           procedure.procedure_name = procedure.name;
@@ -1151,7 +1151,7 @@ class MysqlClient extends KnexClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           if (!keyInResponse) {
-            keyInResponse = Object.keys(response[0][i]).find(k =>
+            keyInResponse = Object.keys(response[0][i]).find((k) =>
               /^Tables_in_/i.test(k)
             );
           }
@@ -1205,7 +1205,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let _function = response[0][i];
 
-          _function = lodash.mapKeys(_function, function(_v, k) {
+          _function = lodash.mapKeys(_function, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -1259,7 +1259,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let procedure = response[0][i];
 
-          procedure = lodash.mapKeys(procedure, function(_v, k) {
+          procedure = lodash.mapKeys(procedure, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -1311,7 +1311,7 @@ class MysqlClient extends KnexClient {
         for (let i = 0; i < response[0].length; ++i) {
           let view = response[0][i];
 
-          view = lodash.mapKeys(view, function(_v, k) {
+          view = lodash.mapKeys(view, function (_v, k) {
             return k.toLowerCase();
           });
 
@@ -1375,7 +1375,7 @@ class MysqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `create database ${args.database_name}`
     const rows = await this.sqlClient.raw(this.queries[func].default.sql, [
-      args.database_name
+      args.database_name,
     ]);
     return rows;
   }
@@ -1385,7 +1385,7 @@ class MysqlClient extends KnexClient {
     log.api(`${func}:args:`, args);
     // `drop database ${args.database_name}`
     const rows = await this.sqlClient.raw(this.queries[func].default.sql, [
-      args.database_name
+      args.database_name,
     ]);
     return rows;
   }
@@ -1413,8 +1413,8 @@ class MysqlClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: query }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP TRIGGER ${args.trigger_name}` }
-        ]
+          { sql: this.querySeparator() + `DROP TRIGGER ${args.trigger_name}` },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1454,8 +1454,8 @@ class MysqlClient extends KnexClient {
               args.trigger_name
             }\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${
               args.statement
-            }`
-          }
+            }`,
+          },
         ],
         downStatement: [
           {
@@ -1463,9 +1463,9 @@ class MysqlClient extends KnexClient {
               args.trigger_name
             }\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${
               args.oldStatement
-            }`
-          }
-        ]
+            }`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1493,9 +1493,9 @@ class MysqlClient extends KnexClient {
               args.trigger_name
             }\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${
               args.oldStatement
-            }`
-          }
-        ]
+            }`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1526,8 +1526,8 @@ class MysqlClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: query }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP VIEW ${args.view_name}` }
-        ]
+          { sql: this.querySeparator() + `DROP VIEW ${args.view_name}` },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1562,9 +1562,9 @@ class MysqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `CREATE VIEW ${args.view_name} AS \n${args.oldViewDefination}`
-          }
-        ]
+              `CREATE VIEW ${args.view_name} AS \n${args.oldViewDefination}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1599,9 +1599,9 @@ class MysqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `CREATE VIEW ${args.view_name} AS \n${args.oldViewDefination}`
-          }
-        ]
+              `CREATE VIEW ${args.view_name} AS \n${args.oldViewDefination}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1627,11 +1627,13 @@ class MysqlClient extends KnexClient {
       await this.sqlClient.raw(`${args.create_function}`);
       result.data.object = {
         upStatement: [
-          { sql: this.querySeparator() + `${args.create_function}` }
+          { sql: this.querySeparator() + `${args.create_function}` },
         ],
         downStatement: [
-          { sql: this.querySeparator() + `DROP FUNCTION ${args.function_name}` }
-        ]
+          {
+            sql: this.querySeparator() + `DROP FUNCTION ${args.function_name}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1664,8 +1666,8 @@ class MysqlClient extends KnexClient {
               this.querySeparator() +
               `DROP FUNCTION IF EXISTS ${
                 args.function_name
-              };${this.querySeparator()}\n${args.create_function}`
-          }
+              };${this.querySeparator()}\n${args.create_function}`,
+          },
         ],
         downStatement: [
           {
@@ -1673,9 +1675,9 @@ class MysqlClient extends KnexClient {
               this.querySeparator() +
               `DROP FUNCTION IF EXISTS ${
                 args.function_name
-              };${this.querySeparator()}${args.oldCreateFunction}`
-          }
-        ]
+              };${this.querySeparator()}${args.oldCreateFunction}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1704,12 +1706,12 @@ class MysqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `DROP FUNCTION IF EXISTS ${args.function_name}`
-          }
+              `DROP FUNCTION IF EXISTS ${args.function_name}`,
+          },
         ],
         downStatement: [
-          { sql: this.querySeparator() + `${args.create_function}` }
-        ]
+          { sql: this.querySeparator() + `${args.create_function}` },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1735,13 +1737,14 @@ class MysqlClient extends KnexClient {
       await this.sqlClient.raw(`${args.create_procedure}`);
       result.data.object = {
         upStatement: [
-          { sql: this.querySeparator() + `${args.create_procedure}` }
+          { sql: this.querySeparator() + `${args.create_procedure}` },
         ],
         downStatement: [
           {
-            sql: this.querySeparator() + `DROP PROCEDURE ${args.procedure_name}`
-          }
-        ]
+            sql:
+              this.querySeparator() + `DROP PROCEDURE ${args.procedure_name}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1776,8 +1779,8 @@ class MysqlClient extends KnexClient {
               this.querySeparator() +
               `DROP PROCEDURE IF EXISTS ${
                 args.procedure_name
-              }; ${this.querySeparator()} \n${args.create_procedure}`
-          }
+              }; ${this.querySeparator()} \n${args.create_procedure}`,
+          },
         ],
         downStatement: [
           {
@@ -1785,9 +1788,9 @@ class MysqlClient extends KnexClient {
               this.querySeparator() +
               `DROP PROCEDURE IF EXISTS ${
                 args.procedure_name
-              }; ${this.querySeparator()} ${args.oldCreateProcedure}`
-          }
-        ]
+              }; ${this.querySeparator()} ${args.oldCreateProcedure}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1818,12 +1821,12 @@ class MysqlClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `DROP PROCEDURE IF EXISTS ${args.procedure_name}`
-          }
+              `DROP PROCEDURE IF EXISTS ${args.procedure_name}`,
+          },
         ],
         downStatement: [
-          { sql: this.querySeparator() + `${args.create_procedure}` }
-        ]
+          { sql: this.querySeparator() + `${args.create_procedure}` },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1865,7 +1868,7 @@ class MysqlClient extends KnexClient {
   }
 
   mapFieldWithSuggestedFakerFn(cols) {
-    const newCols = cols.map(col => {
+    const newCols = cols.map((col) => {
       let suggestion = null;
       let l_score = Infinity;
       const nativeType = findDataType.mapDataType(col.dt);
@@ -1923,8 +1926,8 @@ class MysqlClient extends KnexClient {
           rows: { value: 8, description: 'Maximum number of rows' },
           foreign_key_rows: {
             value: 2,
-            description: '1:n - Total number foreign key per relation'
-          }
+            description: '1:n - Total number foreign key per relation',
+          },
         },
         { spaces: 2 }
       );
@@ -1965,7 +1968,7 @@ class MysqlClient extends KnexClient {
         await this.fakerColumnsCreate({
           seedsFolder: args.seedsFolder,
           tn: table.tn,
-          fakerColumns: columns
+          fakerColumns: columns,
         });
       }
 
@@ -2030,7 +2033,7 @@ class MysqlClient extends KnexClient {
       /**************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: downStatement }]
+        downStatement: [{ sql: downStatement }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2083,7 +2086,7 @@ class MysqlClient extends KnexClient {
 
       for (let i = 0; i < args.columns.length; ++i) {
         const oldColumn = lodash.find(originalColumns, {
-          cn: args.columns[i].cno
+          cn: args.columns[i].cno,
         });
 
         if (args.columns[i].altered & 4) {
@@ -2134,7 +2137,7 @@ class MysqlClient extends KnexClient {
 
       if (upQuery) {
         upQuery = this.genQuery(`ALTER TABLE ?? ${this.sanitize(upQuery)};`, [
-          args.tn
+          args.tn,
         ]);
         downQuery = this.genQuery(
           `ALTER TABLE ?? ${this.sanitize(downQuery)};`,
@@ -2148,7 +2151,7 @@ class MysqlClient extends KnexClient {
 
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + upQuery }],
-        downStatement: [{ sql: this.querySeparator() + downQuery }]
+        downStatement: [{ sql: this.querySeparator() + downQuery }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2194,7 +2197,7 @@ class MysqlClient extends KnexClient {
       /** ************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2437,7 +2440,7 @@ class MysqlClient extends KnexClient {
 
     query += this.alterTablePK(args.columns, [], query, true);
     query = this.genQuery(`CREATE TABLE ?? (${this.sanitize(query)});`, [
-      args.tn
+      args.tn,
     ]);
 
     return query;

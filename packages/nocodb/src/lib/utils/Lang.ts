@@ -19,7 +19,7 @@ const offset: any = -dummy.getTimezoneOffset();
 const locale: string = offset === 330 ? 'en-IN' : osLocale.sync();
 
 enum STR {
-  SLOGAN
+  SLOGAN,
 }
 
 class Lang {

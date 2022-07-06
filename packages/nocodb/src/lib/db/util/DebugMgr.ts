@@ -7,7 +7,7 @@ const levels = {
   info: 'I',
   error: 'E',
   warn: 'W',
-  debug: 'D'
+  debug: 'D',
 };
 export default class DebugMgr {
   static _create(namespace) {
@@ -32,23 +32,23 @@ export default class DebugMgr {
 
       namespaces[namespace][`${namespace}_A`] = {
         level: 'api',
-        enabled: debug.enabled(`${namespace}_A`)
+        enabled: debug.enabled(`${namespace}_A`),
       };
       namespaces[namespace][`${namespace}_W`] = {
         level: 'warn',
-        enabled: debug.enabled(`${namespace}_W`)
+        enabled: debug.enabled(`${namespace}_W`),
       };
       namespaces[namespace][`${namespace}_I`] = {
         level: 'info',
-        enabled: debug.enabled(`${namespace}_I`)
+        enabled: debug.enabled(`${namespace}_I`),
       };
       namespaces[namespace][`${namespace}_E`] = {
         level: 'error',
-        enabled: debug.enabled(`${namespace}_E`)
+        enabled: debug.enabled(`${namespace}_E`),
       };
       namespaces[namespace][`${namespace}_D`] = {
         level: 'debug',
-        enabled: debug.enabled(`${namespace}_D`)
+        enabled: debug.enabled(`${namespace}_D`),
       };
     }
   }

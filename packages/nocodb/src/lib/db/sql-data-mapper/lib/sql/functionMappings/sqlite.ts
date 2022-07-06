@@ -19,7 +19,7 @@ const sqlite3 = {
       type: 'BinaryExpression',
       operator: '%',
       left: args.pt.arguments[0],
-      right: args.pt.arguments[1]
+      right: args.pt.arguments[1],
     });
   },
   REPEAT(args: MapFnArgs) {
@@ -64,19 +64,17 @@ const sqlite3 = {
         STRFTIME('%Y-%m-%d %H:%M', DATETIME(DATETIME(${fn(
           pt.arguments[0]
         )}, 'localtime'), 
-        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} || ' ${String(fn(pt.arguments[2])).replace(
-        /["']/g,
-        ''
-      )}'))
+        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} || ' ${String(
+        fn(pt.arguments[2])
+      ).replace(/["']/g, '')}'))
       ELSE 
         DATE(DATETIME(${fn(pt.arguments[0])}, 'localtime'), 
-        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} || ' ${String(fn(pt.arguments[2])).replace(
-        /["']/g,
-        ''
-      )}')
+        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])} || ' ${String(
+        fn(pt.arguments[2])
+      ).replace(/["']/g, '')}')
       END${colAlias}`
     );
-  }
+  },
 };
 
 export default sqlite3;

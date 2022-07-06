@@ -12,7 +12,7 @@ export default class RedisJobsMgr extends JobsMgr {
     this.queue = {};
     this.workers = {};
     this.connection = new Redis(config, {
-      maxRetriesPerRequest: null
+      maxRetriesPerRequest: null,
     });
   }
 
@@ -40,7 +40,7 @@ export default class RedisJobsMgr extends JobsMgr {
   ) {
     this.workers[jobName] = new Worker(
       jobName,
-      async payload => {
+      async (payload) => {
         try {
           await workerFn(payload.data, (...args) =>
             this.invokeProgressCbks(jobName, ...args)

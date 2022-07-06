@@ -1,11 +1,11 @@
 <template>
   <div style="height: 100vh">
-    <splitpanes style="height:calc(100% - 25px); position: relative;" class="xc-theme">
+    <splitpanes style="height: calc(100% - 25px); position: relative" class="xc-theme">
       <pane
-        :min-size="showProjectTree? 10 : 1.5"
+        :min-size="showProjectTree ? 10 : 1.5"
         :size="showProjectTree ? paneSize : 1.5"
-        :max-size="showProjectTree? 50 : 1.5"
-        style="position: relative;overflow-x: hidden"
+        :max-size="showProjectTree ? 50 : 1.5"
+        style="position: relative; overflow-x: hidden"
       >
         <ProjectTreeView v-show="showProjectTree" ref="treeview" shared-base />
         <v-btn
@@ -13,8 +13,8 @@
           icon
           color="grey"
           class="pane-toggle"
-          style="transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1);right:-8px"
-          :class="{'pane-toggle-active': showProjectTree}"
+          style="transition: all 0.3s cubic-bezier(0.25, 0.8, 0.5, 1); right: -8px"
+          :class="{ 'pane-toggle-active': showProjectTree }"
           @click="toggleTreeView"
         >
           <v-icon x-small color="rgba(127,130,139)">
@@ -28,112 +28,114 @@
     </splitpanes>
     <div class="nc-embedded-options d-flex align-center px-3">
       <v-spacer />
-      <a href="https://github.com/nocodb/nocodb" target="_blank" class=" d-inline-flex align-center caption">
-        <img src="favicon-32.png" height="15" class="mr-2">
-        <span>Built with </span> &nbsp;
-        <span class=""><span class="font-weight-bold"> NocoDB</span> </span></a>
-      <span v-if="embed" class="caption pointer ml-4" @click="showLargerVersion"><v-icon small>mdi-arrow-expand</v-icon> Expand</span>
+      <a href="https://github.com/nocodb/nocodb" target="_blank" class="d-inline-flex align-center caption">
+        <img src="favicon-32.png" height="15" class="mr-2" />
+        <span>Built with </span> &nbsp; <span class=""><span class="font-weight-bold"> NocoDB</span> </span></a
+      >
+      <span v-if="embed" class="caption pointer ml-4" @click="showLargerVersion"
+        ><v-icon small>mdi-arrow-expand</v-icon> Expand</span
+      >
     </div>
   </div>
 </template>
 <script>
-
-import { Splitpanes, Pane } from 'splitpanes'
-import ProjectTabs from '~/components/ProjectTabs'
-import ProjectTreeView from '@/components/ProjectTreeView'
+import { Splitpanes, Pane } from 'splitpanes';
+import ProjectTabs from '~/components/ProjectTabs';
+import ProjectTreeView from '@/components/ProjectTreeView';
 
 export default {
   components: {
     ProjectTreeView,
     ProjectTabs,
     Splitpanes,
-    Pane
+    Pane,
   },
   layout: 'shared',
   data() {
     return {
       paneSize: 18,
       mainPanelSize: 82,
-      showProjectTree: true
-    }
+      showProjectTree: true,
+    };
   },
   computed: {
     pid() {
-      return this.$route.params.project_id
+      return this.$route.params.project_id;
     },
     embed() {
-      return this.$store.state.embed
-    }
+      return this.$store.state.embed;
+    },
   },
   async created() {
     this.$store.watch(
       state => state.panelSize.treeView && state.panelSize.treeView.size,
-      (newSize) => {
-        this.paneSize = newSize
+      newSize => {
+        this.paneSize = newSize;
       }
-    )
+    );
   },
 
   mounted() {
     if ('new' in this.$route.query) {
-      this.simpleAnim()
-      this.$router.replace({ query: {} })
+      this.simpleAnim();
+      this.$router.replace({ query: {} });
     }
     try {
       // eslint-disable-next-line no-undef
-      hj('stateChange', `${this.$axios.defaults.baseURL}/dashboard/#/nc/`)
-    } catch (e) {
-    }
+      hj('stateChange', `${this.$axios.defaults.baseURL}/dashboard/#/nc/`);
+    } catch (e) {}
   },
   methods: {
     showLargerVersion() {
-      window.open(location.href.replace(/([?&])embed&?/, '$1'), '_blank')
+      window.open(location.href.replace(/([?&])embed&?/, '$1'), '_blank');
     },
     tableCreate(table) {
       if (this.$refs.treeview) {
-        this.$refs.treeview.mtdTableCreate(table)
+        this.$refs.treeview.mtdTableCreate(table);
       }
     },
     simpleAnim() {
-      const count = 200
+      const count = 200;
       const defaults = {
-        origin: { y: 0.7 }
-      }
+        origin: { y: 0.7 },
+      };
 
       function fire(particleRatio, opts) {
-        window.confetti(Object.assign({}, defaults, opts, {
-          particleCount: Math.floor(count * particleRatio)
-        }))
+        window.confetti(
+          Object.assign({}, defaults, opts, {
+            particleCount: Math.floor(count * particleRatio),
+          })
+        );
       }
 
       fire(0.25, {
         spread: 26,
-        startVelocity: 55
-      })
+        startVelocity: 55,
+      });
       fire(0.2, {
-        spread: 60
-      })
+        spread: 60,
+      });
       fire(0.35, {
         spread: 100,
         decay: 0.91,
-        scalar: 0.8
-      })
+        scalar: 0.8,
+      });
       fire(0.1, {
         spread: 120,
         startVelocity: 25,
         decay: 0.92,
-        scalar: 1.2
-      })
+        scalar: 1.2,
+      });
       fire(0.1, {
         spread: 120,
-        startVelocity: 45
-      })
+        startVelocity: 45,
+      });
     },
     toggleTreeView() {
-      this.showProjectTree = !this.showProjectTree
-    }
-  }
-}
+      this.showProjectTree = !this.showProjectTree;
+    },
+  },
+};
 </script>
 <style scoped>
 /deep/ .splitpanes__splitter {
@@ -151,11 +153,10 @@ export default {
 }
 
 .pane-toggle-active {
-
 }
 
 .theme--light .pane-toggle {
-  background-color: #FFFFFF;
+  background-color: #ffffff;
   border: 2px solid rgba(0, 0, 0, 0.12);
 }
 
@@ -163,12 +164,11 @@ export default {
   background-color: #363636;
 }
 
-.nc-embedded-options{
+.nc-embedded-options {
   height: 25px;
   width: 100%;
   border: 1px solid #bbb;
 }
-
 </style>
 <!--
 /**

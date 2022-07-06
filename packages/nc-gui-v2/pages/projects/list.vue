@@ -105,17 +105,17 @@ const formatTitle = (title: string) =>
           >
             {{ formatTitle(project.title) }}
 
-            <v-icon class="nc-project-star-icon" small color="white" v-on="on" @click.stop> mdi-star-outline </v-icon>
+            <v-icon class="nc-project-star-icon" small color="white" @click.stop> mdi-star-outline </v-icon>
 
             <v-menu bottom offset-y>
-              <template #activator="{ on }">
-                <v-icon class="nc-project-option-menu-icon" color="white" v-on="on" @click.stop> mdi-menu-down </v-icon>
+              <template #activator="{ props }">
+                <v-icon class="nc-project-option-menu-icon" color="white" @click.stop="props.onClick"> mdi-menu-down </v-icon>
               </template>
               <v-list dense>
                 <v-list-item>
                   <v-list-item-title>
                     <v-icon small color="red"> mdi-delete-outline </v-icon>
-                    Delete
+                    {{ $t('general.delete') }}
                   </v-list-item-title>
                 </v-list-item>
               </v-list>
@@ -129,7 +129,7 @@ const formatTitle = (title: string) =>
 
         <div class="pointer nc-project-item nc-project-item elevation-0 d-flex align-center justify-center flex-column">
           <button>Button</button>
-          <div class="text-center pa-2 nc-project-title body-2 font-weight-medium">Add project</div>
+          <div class="text-center pa-2 nc-project-title body-2 font-weight-medium">{{ $t('activity.createProject') }}</div>
         </div>
       </div>
       <div v-else class="px-4 py-10 text-center textColor--text text--lighten-3 caption backgroundColor">

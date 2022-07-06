@@ -2,6 +2,10 @@
 import type { ProjectType } from 'nocodb-sdk'
 import { navigateTo } from '#app'
 import useColors from '~/composables/useColors'
+import MdiStarOutline from '~icons/mdi/star-outline'
+import MdiMenuDown from '~icons/mdi/menu-down'
+import MdiDeleteOutline from '~icons/mdi/delete-outline'
+import MdiPlus from '~icons/mdi/plus'
 
 const { $api, $e } = useNuxtApp()
 const { getColorByIndex } = useColors()
@@ -105,17 +109,19 @@ const formatTitle = (title: string) =>
           >
             {{ formatTitle(project.title) }}
 
-            <v-icon class="nc-project-star-icon" small color="white" @click.stop> mdi-star-outline </v-icon>
+            <MdiStarOutline class="nc-project-star-icon" @click.stop />
 
             <v-menu bottom offset-y>
               <template #activator="{ props }">
-                <v-icon class="nc-project-option-menu-icon" color="white" @click.stop="props.onClick"> mdi-menu-down </v-icon>
+                <MdiMenuDown class="nc-project-option-menu-icon" @click.stop="props.onClick" />
               </template>
               <v-list dense>
                 <v-list-item>
                   <v-list-item-title>
-                    <v-icon small color="red"> mdi-delete-outline </v-icon>
-                    {{ $t('general.delete') }}
+                    <div class="d-flex align-center" @click.stop>
+                      <MdiDeleteOutline class="text-red mr-1" />
+                      {{ $t('general.delete') }}
+                    </div>
                   </v-list-item-title>
                 </v-list-item>
               </v-list>
@@ -128,7 +134,9 @@ const formatTitle = (title: string) =>
         </div>
 
         <div class="pointer nc-project-item nc-project-item elevation-0 d-flex align-center justify-center flex-column">
-          <button>Button</button>
+          <div class="nc-project-thumbnail nc-add-project text-uppercase d-flex align-center justify-center grey lighten-2">
+            <MdiPlus />
+          </div>
           <div class="text-center pa-2 nc-project-title body-2 font-weight-medium">{{ $t('activity.createProject') }}</div>
         </div>
       </div>
@@ -144,10 +152,12 @@ const formatTitle = (title: string) =>
   flex-wrap: wrap;
   position: relative;
 }
+
 .nc-project-item {
   width: 150px;
   align-items: center;
 }
+
 .nc-project-thumbnail {
   height: 100px;
   width: 100px;
@@ -158,35 +168,50 @@ const formatTitle = (title: string) =>
   margin-inside: auto;
   position: relative;
 }
+
 .nc-project-option-menu-icon,
 .nc-project-star-icon {
+  width: auto;
+  height: 1.5rem;
   position: absolute;
   opacity: 0;
   transition: 0.3s opacity;
 }
+
 .nc-project-star-icon {
-  top: 8px;
-  right: 10px;
+  top: 5px;
+  right: 5px;
 }
+
 .nc-project-option-menu-icon {
   bottom: 5px;
   right: 5px;
 }
+
 .nc-project-thumbnail:hover .nc-project-option-menu-icon,
 .nc-project-thumbnail:hover .nc-project-star-icon {
   opacity: 1;
 }
+
 .nc-project-title {
   text-transform: capitalize;
   text-align: center;
 }
+
 .nc-project-title.nc-add-project {
   font-size: 60px;
 }
-/deep/ .v-navigation-drawer__border {
+
+:deep(.v-navigation-drawer__border) {
   background-color: transparent !important;
 }
-.nc-project-thumbnail:hover {
+
+.nc-project-thumbnail {
   background-image: linear-gradient(#0002, #0002);
+  opacity: 0.5;
+}
+
+.nc-project-thumbnail:hover {
+  opacity: 1;
 }
 </style>

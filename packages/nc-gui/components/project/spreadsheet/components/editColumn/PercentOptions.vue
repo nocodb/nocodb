@@ -1,31 +1,46 @@
 <template>
-  <v-row class="percent-wrapper">
-    <!-- TODO: i18n -->
-    <v-autocomplete
-      v-model="colMeta.percentOption"
-      hide-details
-      class="caption ui-type nc-ui-dt-dropdown"
-      label="Precision"
-      dense
-      outlined
-      item-value="id"
-      item-text="title"
-      :items="percentOptionsList"
-    >
-      <template #selection="{ item }">
-        <div>
-          <span class="caption grey--text text--darken-4">
+  <div>
+    <v-row class="percent-wrapper">
+      <!-- TODO: i18n -->
+      <v-autocomplete
+        v-model="colMeta.percentOption"
+        hide-details
+        class="caption ui-type nc-ui-dt-dropdown"
+        label="Precision"
+        dense
+        outlined
+        item-value="id"
+        item-text="title"
+        :items="percentOptionsList"
+      >
+        <template #selection="{ item }">
+          <div>
+            <span class="caption grey--text text--darken-4">
+              {{ item.title }}
+            </span>
+          </div>
+        </template>
+        <template #item="{ item }">
+          <div class="caption">
             {{ item.title }}
+          </div>
+        </template>
+      </v-autocomplete>
+    </v-row>
+    <v-row class="percent-switch-wrapper">
+      <v-switch
+        v-model="colMeta.allowNegativeNumber"
+        dense
+      >
+        <template #label>
+          <span>
+            <!-- TODO: i18n -->
+            Allow negative numbers
           </span>
-        </div>
-      </template>
-      <template #item="{ item }">
-        <div class="caption">
-          {{ item.title }}
-        </div>
-      </template>
-    </v-autocomplete>
-  </v-row>
+        </template>
+      </v-switch>
+    </v-row>
+  </div>
 </template>
 
 <script>
@@ -40,7 +55,8 @@ export default {
       title: o.title
     })),
     colMeta: {
-      percentOption: 0
+      percentOption: 0,
+      allowNegativeNumber: false
     }
   }),
   watch: {
@@ -62,7 +78,7 @@ export default {
   margin: 0;
 }
 
-.percent-wrapper .caption:first-child {
-  margin: -10px 0px 10px 5px;
+.percent-switch-wrapper {
+  margin: 0px 0px 0px 5px;
 }
 </style>

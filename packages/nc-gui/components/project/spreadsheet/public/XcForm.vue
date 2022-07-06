@@ -1,8 +1,6 @@
 <template>
   <v-container class="h-100 j-excel-container">
-    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300">
-      Not found
-    </v-alert>
+    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300"> Not found </v-alert>
 
     <v-row v-else :class="{ 'd-flex justify-center': submitted }">
       <template v-if="submitted">
@@ -15,9 +13,7 @@
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
             <div v-if="view.submit_another_form" class="text-center">
-              <v-btn color="primary" @click="submitted = false">
-                Submit Another Form
-              </v-btn>
+              <v-btn color="primary" @click="submitted = false"> Submit Another Form </v-btn>
             </div>
           </div>
         </v-col>
@@ -106,9 +102,9 @@
                           <div
                             v-if="
                               $v.virtual &&
-                                $v.virtual.$dirty &&
-                                $v.virtual[col.title] &&
-                                (!$v.virtual[col.title].required || !$v.virtual[col.title].minLength)
+                              $v.virtual.$dirty &&
+                              $v.virtual[col.title] &&
+                              (!$v.virtual[col.title].required || !$v.virtual[col.title].minLength)
                             "
                             class="error--text caption"
                           >
@@ -123,7 +119,7 @@
                             @click.stop
                             @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
                           >
-                            <input style="height: 100%; width: 100%" readonly disabled :value="localState[col.title]">
+                            <input style="height: 100%; width: 100%" readonly disabled :value="localState[col.title]" />
                           </div>
 
                           <div v-else @click.stop>
@@ -154,9 +150,7 @@
                   </div>
                 </div>
                 <div class="my-10 text-center">
-                  <v-btn color="primary" :loading="submitting" :disabled="submitting" @click="save">
-                    Submit
-                  </v-btn>
+                  <v-btn color="primary" :loading="submitting" :disabled="submitting" @click="save"> Submit </v-btn>
                 </div>
               </div>
             </div>
@@ -199,14 +193,14 @@
 </template>
 
 <script>
-import { validationMixin } from 'vuelidate'
-import { required, minLength } from 'vuelidate/lib/validators'
-import { ErrorMessages, isVirtualCol, RelationTypes, UITypes, SqlUiFactory } from 'nocodb-sdk'
-import form from '../mixins/form'
-import VirtualHeaderCell from '../components/VirtualHeaderCell'
-import HeaderCell from '../components/HeaderCell'
-import VirtualCell from '../components/VirtualCell'
-import EditableCell from '../components/EditableCell'
+import { validationMixin } from 'vuelidate';
+import { required, minLength } from 'vuelidate/lib/validators';
+import { ErrorMessages, isVirtualCol, RelationTypes, UITypes, SqlUiFactory } from 'nocodb-sdk';
+import form from '../mixins/form';
+import VirtualHeaderCell from '../components/VirtualHeaderCell';
+import HeaderCell from '../components/HeaderCell';
+import VirtualCell from '../components/VirtualCell';
+import EditableCell from '../components/EditableCell';
 
 export default {
   name: 'XcForm',
@@ -214,7 +208,7 @@ export default {
     EditableCell,
     VirtualCell,
     HeaderCell,
-    VirtualHeaderCell
+    VirtualHeaderCell,
   },
   mixins: [form, validationMixin],
   data() {
@@ -237,8 +231,8 @@ export default {
       virtual: {},
       metas: {},
       secondsRemain: null,
-      notFound: false
-    }
+      notFound: false,
+    };
   },
   computed: {
     btColumnsRefs() {
@@ -248,77 +242,77 @@ export default {
           column.colOptions &&
           column.colOptions.type === RelationTypes.BELONGS_TO
         ) {
-          const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
+          const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id);
 
-          aggObj[column.title] = col
+          aggObj[column.title] = col;
         }
-        return aggObj
-      }, {})
+        return aggObj;
+      }, {});
     },
 
     sqlUiLoc() {
       // todo: replace with correct client
-      return this.client && SqlUiFactory.create({ client: this.client })
-    }
+      return this.client && SqlUiFactory.create({ client: this.client });
+    },
   },
   watch: {
     submitted(val) {
       if (val && this.view.show_blank_form) {
-        this.secondsRemain = 5
+        this.secondsRemain = 5;
         const intvl = setInterval(() => {
           if (--this.secondsRemain < 0) {
-            this.submitted = false
-            clearInterval(intvl)
+            this.submitted = false;
+            clearInterval(intvl);
           }
-        }, 1000)
+        }, 1000);
       }
-    }
+    },
   },
   async mounted() {
-    await this.loadMetaData()
+    await this.loadMetaData();
   },
   methods: {
     isVirtualCol,
     async loadMetaData() {
-      this.loading = true
+      this.loading = true;
       try {
         this.viewMeta = await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
-          headers: { 'xc-password': this.password }
-        })
+          headers: { 'xc-password': this.password },
+        });
 
-        this.view = this.viewMeta.view
-        this.meta = this.viewMeta.model
-        this.metas = this.viewMeta.relatedMetas
+        this.view = this.viewMeta.view;
+        this.meta = this.viewMeta.model;
+        this.metas = this.viewMeta.relatedMetas;
         this.columns = this.meta.columns
           .filter(c => c.show)
-          .filter(col => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord)
-        this.client = this.viewMeta.client
+          .filter(col => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord);
+        this.client = this.viewMeta.client;
       } catch (e) {
         if (e.response && e.response.status === 404) {
-          this.notFound = true
+          this.notFound = true;
         } else if ((await this._extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
-          this.showPasswordModal = true
+          this.showPasswordModal = true;
         }
       }
 
-      this.loadingData = false
+      this.loadingData = false;
     },
     async save() {
       try {
-        this.$v.$touch()
+        this.$v.$touch();
         if (this.$v.localState.$invalid || this.$v.virtual.$invalid) {
-          this.$toast.error('Provide values of all required field').goAway(3000)
-          return
+          this.$toast.error('Provide values of all required field').goAway(3000);
+          return;
         }
 
-        this.submitting = true
-        const data = { ...this.localState, ...this.virtual }
-        const attachment = {}
+        this.submitting = true;
+        const data = { ...this.localState, ...this.virtual };
+        const attachment = {};
 
         for (const col of this.meta.columns) {
           if (col.uidt === UITypes.Attachment) {
-            attachment[`_${col.title}`] = data[col.title]
-            delete data[col.title]
+            attachment[`_${col.title}`] = data[col.title];
+            delete data[col.title];
           }
         }
 
@@ -326,39 +320,39 @@ export default {
           this.$route.params.id,
           {
             data,
-            ...attachment
+            ...attachment,
           },
           {
-            headers: { 'xc-password': this.password }
+            headers: { 'xc-password': this.password },
           }
-        )
+        );
 
-        this.virtual = {}
-        this.localState = {}
+        this.virtual = {};
+        this.localState = {};
 
-        this.submitted = true
+        this.submitted = true;
 
         this.$toast
           .success(this.view.success_msg || 'Saved successfully.', {
-            position: 'bottom-right'
+            position: 'bottom-right',
           })
-          .goAway(3000)
+          .goAway(3000);
       } catch (e) {
-        console.log(e)
-        this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
+        console.log(e);
+        this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000);
       }
-      this.submitting = false
+      this.submitting = false;
     },
     updateCol(_, column, id) {
-      this.$set(this.localState, column, id)
-    }
+      this.$set(this.localState, column, id);
+    },
   },
 
   validations() {
     const obj = {
       localState: {},
-      virtual: {}
-    }
+      virtual: {},
+    };
     for (const column of this.columns) {
       // if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
       //   continue
@@ -369,29 +363,29 @@ export default {
           (column.pk && !(column.ai || column.cdf)) ||
           column.required)
       ) {
-        obj.localState[column.title] = { required }
+        obj.localState[column.title] = { required };
       } else if (
         column.uidt === UITypes.LinkToAnotherRecord &&
         column.colOptions &&
         column.colOptions.type === RelationTypes.BELONGS_TO
       ) {
-        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
+        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id);
 
         if ((col && col.rqd && !col.cdf) || column.required) {
           if (col) {
-            obj.virtual[column.title] = { required }
+            obj.virtual[column.title] = { required };
           }
         }
       } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title] = {
           minLength: minLength(1),
-          required
-        }
+          required,
+        };
       }
     }
-    return obj
-  }
-}
+    return obj;
+  },
+};
 </script>
 
 <style scoped lang="scss">

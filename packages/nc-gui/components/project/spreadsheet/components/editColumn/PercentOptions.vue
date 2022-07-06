@@ -32,7 +32,7 @@
         hide-details="auto"
         color="primary"
         class="caption nc-column-name-input"
-        label="Default Number"
+        label="Default Number (%)"
         dense
         outlined
       />

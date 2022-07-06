@@ -14,7 +14,7 @@ export default {
   ],
 }
 
-const enumColor = {
+export const enumColor = {
   light: ['#cfdffe', '#d0f1fd', '#c2f5e8', '#ffdaf6', '#ffdce5', '#fee2d5', '#ffeab6', '#d1f7c4', '#ede2fe', '#eeeeee'],
   dark: [
     '#2d7ff999',
@@ -30,4 +30,14 @@ const enumColor = {
   ],
 }
 
-export { enumColor }
+export const themeColors = {
+  'background': '#FFFFFF',
+  'surface': '#FFFFFF',
+  'primary': '#1348ba',
+  'secondary': '#03DAC6',
+  'secondary-darken-1': '#018786',
+  'error': '#B00020',
+  'info': '#2196F3',
+  'success': '#4CAF50',
+  'warning': '#FB8C00',
+}

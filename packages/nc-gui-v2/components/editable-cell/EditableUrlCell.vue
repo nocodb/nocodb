@@ -1,7 +1,3 @@
-<template>
-  <input v-model="localState" v-on="parentListeners">
-</template>
-
 <script>
 import { isValidURL } from '@/helpers'
 
@@ -9,7 +5,7 @@ export default {
   name: 'EditableUrlCell',
   props: {
     value: String,
-    column: Object
+    column: Object,
   },
   computed: {
     localState: {
@@ -17,12 +13,10 @@ export default {
         return this.value
       },
       set(val) {
-        if (!(
-          this.column &&
-          this.column.meta &&
-          this.column.meta.validate
-        ) || isValidURL(val)) { this.$emit('input', val) }
-      }
+        if (!(this.column && this.column.meta && this.column.meta.validate) || isValidURL(val)) {
+          this.$emit('input', val)
+        }
+      },
     },
     parentListeners() {
       const $listeners = {}
@@ -39,16 +33,21 @@ export default {
       }
 
       return $listeners
-    }
+    },
   },
   mounted() {
     this.$el.focus()
-  }
+  },
 }
 </script>
 
+<template>
+  <input v-model="localState" v-on="parentListeners" />
+</template>
+
 <style scoped>
-input, textarea {
+input,
+textarea {
   width: 100%;
   height: 100%;
   color: var(--v-textColor-base);

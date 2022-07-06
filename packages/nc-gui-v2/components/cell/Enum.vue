@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { inject } from 'vue'
-import { enumColor } from "~/utils/colorsUtils";
+import { enumColor } from '~/utils/colorsUtils'
 
 const colors = enumColor.light
 
@@ -18,7 +18,8 @@ const column = inject<ColumnType>('column')
         background: colors[v],
       }"
       class="set-item ma-1 py-1 px-3"
-    >{{ v }}</span>
+      >{{ v }}</span
+    >
   </div>
 </template>
 

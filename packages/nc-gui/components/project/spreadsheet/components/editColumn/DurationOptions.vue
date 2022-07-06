@@ -35,7 +35,7 @@
 import { durationOptions } from '~/helpers/durationHelper'
 
 export default {
-  name: 'DuractionOptions',
+  name: 'DurationOptions',
   props: ['column', 'meta', 'value'],
   data: () => ({
     durationOptionList: durationOptions.map(o => ({

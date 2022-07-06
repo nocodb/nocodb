@@ -61,7 +61,7 @@ export default {
   },
   table: {
     'Table Rename': 'ENV_DB_TABLES_RENAME',
-    // "Table Delete": "ENV_DB_TABLES_DELETE",
+    "Table Delete": "ENV_DB_TABLES_DELETE",
     // d1: null,
     // "Send to SQL Editor": {
     // 'Copy To Clipboard': {

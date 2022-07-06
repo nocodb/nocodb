@@ -143,6 +143,7 @@ export default {
             key: this.deleteId,
             value: null
           })
+         this.$toast.info(`Deleted table ${this.nodes.title} successfully`).goAway(3000)
         } catch (e) {
           const msg = await this._extractSdkResponseErrorMsg(e)
           this.$toast.error(msg).goAway(3000)

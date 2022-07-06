@@ -409,9 +409,18 @@
                                       </span>
                                     </v-list-item-title>
                                   </v-list-item>
+                                  <v-list-item v-if="_isUIAllowed('table-delete')" dense @click="checkAndDeleteTable(child)">
+                                    <v-list-item-icon>
+                                      <v-icon x-small>
+                                        mdi-delete-outline
+                                      </v-icon>
+                                    </v-list-item-icon>
+                                    <v-list-item-title>
+                                      <span classs="caption">Delete</span>
+                                    </v-list-item-title>
+                                  </v-list-item>
                                 </v-list>
                               </v-menu>
-
                               <!--                          <v-icon @click.stop="" x-small>mdi-delete-outline</v-icon>-->
                             </div>
                           </template>
@@ -769,6 +778,13 @@
       :heading="selectedNodeForDelete.heading"
       type="error"
     />
+    <dlgLabelSubmitCancel
+      v-if="dialogDeleteTable.dialogShow"
+      type="error"
+      :actions-mtd="deleteTable"
+      :dialog-show="dialogDeleteTable.dialogShow"
+      :heading="`${dialogDeleteTable.heading} ${dialogDeleteTable.tableName}`"
+    />
     <quick-import
       ref="quickImport"
       v-model="quickImportDialog"
@@ -783,6 +799,7 @@
 /* eslint-disable */
 
 import {mapMutations, mapGetters, mapActions} from "vuex";
+import { UITypes } from 'nocodb-sdk'
 
 import rightClickOptions from "../helpers/rightClickOptions";
 import rightClickOptionsSub from "../helpers/rightClickOptionsSub";
@@ -903,6 +920,12 @@ export default {
       field: "Table Name",
       cookie: null,
       defaultValue: null,
+    },
+    dialogDeleteTable: {
+      dialogShow: false,
+      heading: 'Click Submit to Delete the Table:',
+      nodes: {},
+      id: '',
     },
     selectedNodeForDelete: {
       dialog: false,
@@ -1073,7 +1096,69 @@ export default {
     openLink(link) {
       window.open(link, "_blank");
     },
+    async checkAndDeleteTable(table, action = 'showDialog') {
+      this.dialogDeleteTable.tableName = table.title
+      this.dialogDeleteTable.nodes = table._nodes
+      this.dialogDeleteTable.id = table.id
+      await this.deleteTable(action)
+      this.$e('c:table:delete')
+    },
+    async deleteTable(action = '') {
+      if (action === 'showDialog') {
+        this.dialogDeleteTable.dialogShow = true
+      } else if (action === 'hideDialog') {
+        this.dialogDeleteTable.dialogShow = false
+      } else {
+        try {
+          const nodes = this.dialogDeleteTable.nodes;
+          const id = this.dialogDeleteTable.id
+          const meta = await this.$store.dispatch('meta/ActLoadMeta', { id })
+          const relationColumns = meta.columns.filter(c => c.uidt === UITypes.LinkToAnotherRecord)
 
+          if (relationColumns.length) {
+            const refColMsgs = await Promise.all(relationColumns.map(async(c, i) => {
+              const refMeta = await this.$store.dispatch('meta/ActLoadMeta', { id: c.colOptions.fk_related_model_id })
+              return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
+            }))
+            this.$toast.info(`<div style="padding:10px 4px">Unable to delete tables because of the following.
+                <br><br>${refColMsgs.join('<br>')}<br><br>
+                Delete them & try again</div>
+            `).goAway(10000)
+            this.dialogDeleteTable.dialogShow = false
+            return
+          }
+
+          await this.$api.dbTable.delete(id)
+
+          this.removeTableTab({
+            env: nodes.env,
+            dbAlias: nodes.dbAlias,
+            table_name: nodes.table_name
+          })
+
+          await this.loadTablesFromParentTreeNode({
+            _nodes: {
+              ...nodes
+            }
+          })
+
+          this.$store.commit('meta/MutMeta', {
+            key: nodes.table_name,
+            value: null
+          })
+          this.$store.commit('meta/MutMeta', {
+            key: id,
+            value: null
+          })
+         this.$toast.info(`Deleted table ${nodes.title} successfully`).goAway(3000)
+        } catch (e) {
+          const msg = await this._extractSdkResponseErrorMsg(e)
+          this.$toast.error(msg).goAway(3000)
+        }
+        this.dialogDeleteTable.dialogShow = false
+        this.$e('a:table:delete')
+      }
+    },
     /*    settingsTabAdd() {
           const tabIndex = this.tabs.findIndex(el => el.key === `projectSettings`);
           if (tabIndex !== -1) {
@@ -1189,6 +1274,7 @@ export default {
         "project/loadProceduresFromParentTreeNode",
       removeTabsByName: "tabs/removeTabsByName",
       clearProjects: "project/clearProjects",
+      removeTableTab: 'tabs/removeTableTab',
     }),
     async addTab(item, open, leaf) {
       // console.log("addtab item", item, open, leaf);
@@ -1792,7 +1878,7 @@ export default {
         this.selectedNodeForDelete = {
           dialog: true,
           item: item,
-          heading: `Click Submit to Delete The ${item._nodes.type}`,
+          heading: `Click Submit to Delete The ${item._nodes.type}: ${item.name}`,
         };
       } else if (action === "hideDialog") {
         this.selectedNodeForDelete = {
@@ -1803,34 +1889,8 @@ export default {
       } else {
         item = this.selectedNodeForDelete.item;
         if (item._nodes.type === "table") {
-          const result = await this.$store.dispatch("sqlMgr/ActSqlOp", [
-            {
-              env: item._nodes.env,
-              dbAlias: item._nodes.dbAlias,
-            },
-            "columnList",
-            {
-              table_name: item._nodes.table_name,
-            },
-          ]);
-
-          await this.sqlMgr.sqlOpPlus(
-            {
-              env: item._nodes.env,
-              dbAlias: item._nodes.dbAlias,
-            },
-            "tableDelete",
-            {
-              table_name: item._nodes.table_name,
-              columns: columns.data.list,
-            }
-          );
-          await this.loadTablesFromParentTreeNode({
-            _nodes: {
-              ...item._nodes,
-            },
-          });
-          this.$toast.success("Table deleted successfully").goAway(3000);
+          await this.checkAndDeleteTable(item, '')
+          
         } else if (item._nodes.type === "view") {
           const view = await this.$store.dispatch("sqlMgr/ActSqlOp", [
             {

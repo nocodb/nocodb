@@ -164,14 +164,13 @@ const testConnection = async () => {
                 <span> {{ $t('general.create') }} </span>
               </v-btn>
 
-              <v-btn small class="px-2">
+<!--              <v-btn small class="px-2">-->
               <!--     todo:implement test connection -->
               <!--         <v-btn size="sm" class="text-sm text-capitalize">
                 &lt;!&ndash; Test Database Connection &ndash;&gt;
                 {{ $t('activity.testDbConn') }}
               </v-btn>-->
             </div>
-          </v-container>
         </v-card>
       </v-form>
     </v-container>

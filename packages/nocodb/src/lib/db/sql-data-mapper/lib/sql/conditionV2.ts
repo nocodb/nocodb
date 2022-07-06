@@ -289,11 +289,7 @@ const parseConditionV2 = async (
             if (qb?.client?.config?.client === 'pg') {
               qb = qb.whereRaw('??::text ilike ?', [field, val]);
             } else {
-              qb = qb.where(
-                field,
-                'like',
-                val
-              );
+              qb = qb.where(field, 'like', val);
             }
             break;
           case 'nlike':

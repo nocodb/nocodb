@@ -10,7 +10,7 @@ export default class XcCache {
     if (!this.instance) {
       const options = {
         max: 500,
-        maxAge: 1000 * 60 * 60
+        maxAge: 1000 * 60 * 60,
       };
       if (config) {
         const input = JSON.parse(config.input);

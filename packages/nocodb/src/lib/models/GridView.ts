@@ -34,7 +34,7 @@ export default class GridView {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.GRID_VIEW, {
-        fk_view_id: viewId
+        fk_view_id: viewId,
       });
       await NocoCache.set(`${CacheScope.GRID_VIEW}:${viewId}`, view);
     }
@@ -46,7 +46,7 @@ export default class GridView {
     const insertObj = {
       fk_view_id: view.fk_view_id,
       project_id: view.project_id,
-      base_id: view.base_id
+      base_id: view.base_id,
     };
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id, ncMeta);

@@ -20,7 +20,7 @@ export default class FileCollection {
 
     if (!exists) {
       await promisify(jsonfile.writeFile)(this.args.path, [], {
-        spaces: 2
+        spaces: 2,
       });
     }
   }
@@ -31,7 +31,7 @@ export default class FileCollection {
 
   async write(args) {
     await promisify(jsonfile.writeFile)(this.args.path, args.data, {
-      spaces: 2
+      spaces: 2,
     });
   }
 }

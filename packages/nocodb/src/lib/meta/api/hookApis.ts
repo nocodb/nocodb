@@ -27,7 +27,7 @@ export async function hookCreate(
   Tele.emit('evt', { evt_type: 'webhooks:created' });
   const hook = await Hook.insert({
     ...req.body,
-    fk_model_id: req.params.tableId
+    fk_model_id: req.params.tableId,
   });
   res.json(hook);
 }
@@ -54,7 +54,7 @@ export async function hookTest(req: Request<any, any>, res: Response) {
 
   const {
     hook,
-    payload: { data, user }
+    payload: { data, user },
   } = req.body;
   await invokeWebhook(
     new Hook(hook),

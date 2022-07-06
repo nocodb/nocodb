@@ -36,7 +36,7 @@ class ExpressXcTsRoutes extends BaseRender {
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -44,8 +44,8 @@ async function(req, res){
     const data = await req.model.list(req.query);
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/findOne`,
@@ -54,7 +54,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -62,8 +62,8 @@ async function(req, res){
     const data = await req.model.findOne(req.query);
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/m2mNotChildren/:assoc/:pid`,
@@ -72,12 +72,12 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
-                `
-        ]
+                `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/groupby/:column_name`,
@@ -86,7 +86,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -97,8 +97,8 @@ async function(req, res){
     });
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/count`,
@@ -107,7 +107,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -117,8 +117,8 @@ async function(req, res){
     });
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/bulk`,
@@ -127,7 +127,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -135,8 +135,8 @@ async function(req, res){
     const data = await req.model.insertb(req.body);
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/bulk`,
@@ -145,7 +145,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -153,8 +153,8 @@ async function(req, res){
     const data = await req.model.updateb(req.body);
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/bulk`,
@@ -163,7 +163,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -171,8 +171,8 @@ async function(req, res){
     const data = await req.model.delb(req.body)
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/:id/exists`,
@@ -181,7 +181,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -189,8 +189,8 @@ async function(req, res){
     const data = await req.model.exists(req.params.id);
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/distinct`,
@@ -199,7 +199,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -209,8 +209,8 @@ async function(req, res){
     });
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/distribute`,
@@ -219,7 +219,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -229,8 +229,8 @@ async function(req, res){
     });
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/aggregate`,
@@ -239,7 +239,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -250,8 +250,8 @@ async function(req, res){
     });
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/groupby`,
@@ -260,7 +260,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -271,8 +271,8 @@ async function(req, res){
     });
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/:id`,
@@ -281,7 +281,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: true
+          guest: true,
         },
         functions: [
           `
@@ -289,8 +289,8 @@ async function(req, res){
     const data = await req.model.readByPk(req.params.id);
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}`,
@@ -299,7 +299,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -307,8 +307,8 @@ async function(req, res){
     const data = await req.model.insert(req.body, null, req);
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/:id`,
@@ -317,7 +317,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -325,8 +325,8 @@ async function(req, res){
     const data = await req.model.updateByPk(req.params.id, req.body, null, req);
     res.json(data);
 }
-        `
-        ]
+        `,
+        ],
       },
       {
         path: `/api/${this.ctx.routeVersionLetter}/${ejsData._tn}/:id`,
@@ -335,7 +335,7 @@ async function(req, res){
         acl: {
           admin: true,
           user: true,
-          guest: false
+          guest: false,
         },
         functions: [
           `
@@ -343,9 +343,9 @@ async function(req, res){
     const data = await req.model.delByPk(req.params.id, null, req);
     res.json(data);
 }
-        `
-        ]
-      }
+        `,
+        ],
+      },
     ];
 
     if (this.ctx.type === 'view') {

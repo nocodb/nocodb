@@ -36,9 +36,12 @@ const pg = {
   DATEADD: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     return knex.raw(
       `${fn(pt.arguments[0])} + (${fn(pt.arguments[1])} || 
-      '${String(fn(pt.arguments[2])).replace(/["']/g, '')}')::interval${colAlias}`
+      '${String(fn(pt.arguments[2])).replace(
+        /["']/g,
+        ''
+      )}')::interval${colAlias}`
     );
-  }
+  },
 };
 
 export default pg;

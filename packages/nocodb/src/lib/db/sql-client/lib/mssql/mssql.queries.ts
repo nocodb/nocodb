@@ -35,5 +35,5 @@ export default {
   xml: {},
   'Spatial Geometry Types': {},
   'Spatial Geography Types': {},
-  table: {}
+  table: {},
 };

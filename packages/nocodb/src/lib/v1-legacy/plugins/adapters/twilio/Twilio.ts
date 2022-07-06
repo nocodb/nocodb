@@ -33,7 +33,7 @@ export default class Twilio {
         await this.client.messages.create({
           body: content,
           from: this.input.from,
-          to: num
+          to: num,
         });
       } catch (e) {
         console.log(e);

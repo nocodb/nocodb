@@ -12,13 +12,13 @@ async function xcVisibilityMetaSetAll(req, res) {
       const dataInDb = await ModelRoleVisibility.get({
         role,
         // fk_model_id: d.fk_model_id,
-        fk_view_id: d.id
+        fk_view_id: d.id,
       });
       if (dataInDb) {
         if (d.disabled[role]) {
           if (!dataInDb.disabled) {
             await ModelRoleVisibility.update(d.id, role, {
-              disabled: d.disabled[role]
+              disabled: d.disabled[role],
             });
           }
         } else {
@@ -28,7 +28,7 @@ async function xcVisibilityMetaSetAll(req, res) {
         await ModelRoleVisibility.insert({
           fk_view_id: d.id,
           disabled: d.disabled[role],
-          role
+          role,
         });
       }
     }
@@ -55,10 +55,10 @@ export async function xcVisibilityMetaGet(
     _models ||
     (await Model.list({
       project_id: projectId,
-      base_id: project?.bases?.[0]?.id
+      base_id: project?.bases?.[0]?.id,
     }));
 
-  models = includeM2M ? models : (models.filter(t => !t.mm) as Model[]);
+  models = includeM2M ? models : (models.filter((t) => !t.mm) as Model[]);
 
   const result = await models.reduce(async (_obj, model) => {
     const obj = await _obj;
@@ -81,7 +81,7 @@ export async function xcVisibilityMetaGet(
         tn: view.title,
         _tn: view.title,
         ...view,
-        disabled: { ...defaultDisabled }
+        disabled: { ...defaultDisabled },
       };
       // }
     }

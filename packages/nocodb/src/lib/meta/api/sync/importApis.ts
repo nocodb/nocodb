@@ -14,7 +14,7 @@ const AIRTABLE_PROGRESS_JOB = 'AIRTABLE_PROGRESS_JOB';
 enum SyncStatus {
   PROGRESS = 'PROGRESS',
   COMPLETED = 'COMPLETED',
-  FAILED = 'FAILED'
+  FAILED = 'FAILED',
 }
 
 export default (router: Router, clients: { [id: string]: Socket }) => {
@@ -26,7 +26,7 @@ export default (router: Router, clients: { [id: string]: Socket }) => {
       clients?.[payload?.id]?.emit('progress', {
         msg: progress?.msg,
         level: progress?.level,
-        status: progress?.status
+        status: progress?.status,
       });
     }
   );
@@ -37,17 +37,17 @@ export default (router: Router, clients: { [id: string]: Socket }) => {
       progress: {
         msg: progress?.msg,
         level: progress?.level,
-        status: progress?.status
-      }
+        status: progress?.status,
+      },
     });
   });
-  NocoJobs.jobsMgr.addSuccessCbk(AIRTABLE_IMPORT_JOB, payload => {
+  NocoJobs.jobsMgr.addSuccessCbk(AIRTABLE_IMPORT_JOB, (payload) => {
     NocoJobs.jobsMgr.add(AIRTABLE_PROGRESS_JOB, {
       payload,
       progress: {
         msg: 'Complete!',
-        status: SyncStatus.COMPLETED
-      }
+        status: SyncStatus.COMPLETED,
+      },
     });
   });
   NocoJobs.jobsMgr.addFailureCbk(AIRTABLE_IMPORT_JOB, (payload, error: any) => {
@@ -55,8 +55,8 @@ export default (router: Router, clients: { [id: string]: Socket }) => {
       payload,
       progress: {
         msg: error?.message || 'Failed due to some internal error',
-        status: SyncStatus.FAILED
-      }
+        status: SyncStatus.FAILED,
+      },
     });
   });
 
@@ -65,7 +65,7 @@ export default (router: Router, clients: { [id: string]: Socket }) => {
     catchError((req, res) => {
       NocoJobs.jobsMgr.add(AIRTABLE_IMPORT_JOB, {
         id: req.query.id,
-        ...req.body
+        ...req.body,
       });
       res.json({});
     })
@@ -94,7 +94,7 @@ export default (router: Router, clients: { [id: string]: Socket }) => {
         ...(syncSource?.details || {}),
         projectId: syncSource.project_id,
         authToken: token,
-        baseURL
+        baseURL,
       });
       res.json({});
     })

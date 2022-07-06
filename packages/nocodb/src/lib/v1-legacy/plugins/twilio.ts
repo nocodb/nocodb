@@ -8,22 +8,22 @@ const input: XcForm = {
       label: 'Account SID',
       placeholder: 'Account SID',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'token',
       label: 'Auth Token',
       placeholder: 'Auth Token',
       type: XcType.Password,
-      required: true
+      required: true,
     },
     {
       key: 'from',
       label: 'From Phone Number',
       placeholder: 'From Phone Number',
       type: XcType.SingleLineText,
-      required: true
-    }
+      required: true,
+    },
   ],
   actions: [
     {
@@ -31,19 +31,19 @@ const input: XcForm = {
       placeholder: 'Test',
       key: 'test',
       actionType: XcActionType.TEST,
-      type: XcType.Button
+      type: XcType.Button,
     },
     {
       label: 'Save',
       placeholder: 'Save',
       key: 'save',
       actionType: XcActionType.SUBMIT,
-      type: XcType.Button
-    }
+      type: XcType.Button,
+    },
   ],
   msgOnInstall:
     'Successfully installed and Twilio is enabled for notification.',
-  msgOnUninstall: ''
+  msgOnUninstall: '',
 };
 
 export default {
@@ -55,5 +55,5 @@ export default {
   price: 'Free',
   tags: 'Chat',
   category: 'Twilio',
-  input_schema: JSON.stringify(input)
+  input_schema: JSON.stringify(input),
 };

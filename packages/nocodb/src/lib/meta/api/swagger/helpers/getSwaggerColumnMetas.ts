@@ -10,14 +10,14 @@ export default async (
   project: Project,
   ncMeta = Noco.ncMeta
 ): Promise<SwaggerColumn[]> => {
-  const dbType = await project.getBases().then(b => b?.[0]?.type);
+  const dbType = await project.getBases().then((b) => b?.[0]?.type);
   return Promise.all(
-    columns.map(async c => {
+    columns.map(async (c) => {
       const field: SwaggerColumn = {
         title: c.title,
         type: 'object',
         virtual: true,
-        column: c
+        column: c,
       };
 
       switch (c.uidt) {

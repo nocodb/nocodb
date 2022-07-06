@@ -27,8 +27,8 @@ export default class Gcs implements IStorageAdapterV2 {
           // Enable long-lived HTTP caching headers
           // Use only if the contents of the file will never change
           // (If the contents will change, use cacheControl: 'no-cache')
-          cacheControl: 'public, max-age=31536000'
-        }
+          cacheControl: 'public, max-age=31536000',
+        },
       });
 
     return uploadResponse[0].publicUrl();
@@ -70,12 +70,12 @@ export default class Gcs implements IStorageAdapterV2 {
       client_email: this.input.client_email,
       // replace \n with real line breaks to avoid
       // error:0909006C:PEM routines:get_name:no start line
-      private_key: this.input.private_key.replace(/\\n/gm, '\n')
+      private_key: this.input.private_key.replace(/\\n/gm, '\n'),
     };
 
     // default project ID would be used if it is not provided
     if (this.input.project_id) {
-      options.projectId = this.input.project_id
+      options.projectId = this.input.project_id;
     }
 
     this.bucketName = this.input.bucket;
@@ -92,7 +92,7 @@ export default class Gcs implements IStorageAdapterV2 {
         path: tempFile,
         mimetype: '',
         originalname: 'temp.txt',
-        size: ''
+        size: '',
       });
       fs.unlinkSync(tempFile);
       return true;
@@ -107,7 +107,7 @@ export default class Gcs implements IStorageAdapterV2 {
       request(
         {
           url: url,
-          encoding: null
+          encoding: null,
         },
         (err, _, body) => {
           if (err) return reject(err);
@@ -116,7 +116,7 @@ export default class Gcs implements IStorageAdapterV2 {
             .bucket(this.bucketName)
             .file(destPath)
             .save(body)
-            .then(res => resolve(res))
+            .then((res) => resolve(res))
             .catch(reject);
         }
       );

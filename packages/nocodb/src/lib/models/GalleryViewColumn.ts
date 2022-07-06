@@ -47,11 +47,11 @@ export default class GalleryViewColumn {
       fk_view_id: column.fk_view_id,
       fk_column_id: column.fk_column_id,
       order: await ncMeta.metaGetNextOrder(MetaTable.GALLERY_VIEW_COLUMNS, {
-        fk_view_id: column.fk_view_id
+        fk_view_id: column.fk_view_id,
       }),
       show: column.show,
       project_id: column.project_id,
-      base_id: column.base_id
+      base_id: column.base_id,
     };
 
     if (!(column.project_id && column.base_id)) {
@@ -86,7 +86,7 @@ export default class GalleryViewColumn {
     ncMeta = Noco.ncMeta
   ): Promise<GalleryViewColumn[]> {
     let views = await NocoCache.getList(CacheScope.GALLERY_VIEW_COLUMN, [
-      viewId
+      viewId,
     ]);
     if (!views.length) {
       views = await ncMeta.metaList2(
@@ -95,11 +95,11 @@ export default class GalleryViewColumn {
         MetaTable.GALLERY_VIEW_COLUMNS,
         {
           condition: {
-            fk_view_id: viewId
+            fk_view_id: viewId,
           },
           orderBy: {
-            order: 'asc'
-          }
+            order: 'asc',
+          },
         }
       );
       await NocoCache.setList(CacheScope.GALLERY_VIEW_COLUMN, [viewId], views);
@@ -109,6 +109,6 @@ export default class GalleryViewColumn {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity)
     );
-    return views?.map(v => new GalleryViewColumn(v));
+    return views?.map((v) => new GalleryViewColumn(v));
   }
 }

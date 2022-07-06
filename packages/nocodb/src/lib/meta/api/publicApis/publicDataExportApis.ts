@@ -26,12 +26,12 @@ async function exportCsv(req: Request, res: Response) {
   await view.getColumns();
 
   view.model.columns = view.columns
-    .filter(c => c.show)
+    .filter((c) => c.show)
     .map(
-      c =>
+      (c) =>
         new Column({ ...c, ...view.model.columnsById[c.fk_column_id] } as any)
     )
-    .filter(column => !isSystemColumn(column) || view.show_system_fields);
+    .filter((column) => !isSystemColumn(column) || view.show_system_fields);
 
   if (!model) NcError.notFound('Table not found');
 
@@ -48,14 +48,14 @@ async function exportCsv(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({
     query: req.query,
     model,
     view,
-    includePkByDefault: false
+    includePkByDefault: false,
   });
 
   let offset = +req.query.offset || 0;
@@ -91,7 +91,7 @@ async function exportCsv(req: Request, res: Response) {
       for (const column of view.model.columns) {
         csvRow[column.title] = await serializeCellValue({
           value: row[column.title],
-          column
+          column,
         });
       }
       csvRows.push(csvRow);
@@ -107,14 +107,14 @@ async function exportCsv(req: Request, res: Response) {
             : 0
         )
         .filter(
-          c =>
+          (c) =>
             !fields || !Array.isArray(fields) || fields.includes(c.title as any)
         )
-        .map(c => c.title),
-      data: csvRows
+        .map((c) => c.title),
+      data: csvRows,
     },
     {
-      escapeFormulae: true
+      escapeFormulae: true,
     }
   );
 
@@ -124,14 +124,14 @@ async function exportCsv(req: Request, res: Response) {
     'nc-export-elapsed-time': elapsed,
     'Content-Disposition': `attachment; filename="${encodeURI(
       view.title
-    )}-export.csv"`
+    )}-export.csv"`,
   });
   res.send(data);
 }
 
 async function serializeCellValue({
   value,
-  column
+  column,
 }: {
   column?: Column;
   value: any;
@@ -152,7 +152,7 @@ async function serializeCellValue({
       } catch {}
 
       return (data || []).map(
-        attachment =>
+        (attachment) =>
           `${encodeURI(attachment.title)}(${encodeURI(attachment.url)})`
       );
     }
@@ -162,10 +162,10 @@ async function serializeCellValue({
         const lookupColumn = await colOptions.getLookupColumn();
         return (
           await Promise.all(
-            [...(Array.isArray(value) ? value : [value])].map(async v =>
+            [...(Array.isArray(value) ? value : [value])].map(async (v) =>
               serializeCellValue({
                 value: v,
-                column: lookupColumn
+                column: lookupColumn,
               })
             )
           )
@@ -174,13 +174,12 @@ async function serializeCellValue({
       break;
     case UITypes.LinkToAnotherRecord:
       {
-        const colOptions = await column.getColOptions<
-          LinkToAnotherRecordColumn
-        >();
+        const colOptions =
+          await column.getColOptions<LinkToAnotherRecordColumn>();
         const relatedModel = await colOptions.getRelatedTable();
         await relatedModel.getColumns();
         return [...(Array.isArray(value) ? value : [value])]
-          .map(v => {
+          .map((v) => {
             return v[relatedModel.primaryValue?.title];
           })
           .join(', ');

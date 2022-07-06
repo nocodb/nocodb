@@ -50,7 +50,7 @@ export async function filterChildrenRead(
   try {
     const filter = await Filter.parentFilterList({
       viewId: req.params.viewId,
-      parentId: req.params.filterParentId
+      parentId: req.params.filterParentId,
     });
 
     res.json(filter);
@@ -68,7 +68,7 @@ export async function filterCreate(
   try {
     const filter = await Filter.insert({
       ...req.body,
-      fk_view_id: req.params.viewId
+      fk_view_id: req.params.viewId,
     });
 
     Tele.emit('evt', { evt_type: 'filter:created' });
@@ -84,7 +84,7 @@ export async function filterUpdate(req, res, next) {
   try {
     const filter = await Filter.update(req.params.filterId, {
       ...req.body,
-      fk_view_id: req.params.viewId
+      fk_view_id: req.params.viewId,
     });
     Tele.emit('evt', { evt_type: 'filter:updated' });
     res.json(filter);
@@ -111,7 +111,7 @@ export async function hookFilterList(
   res: Response
 ) {
   const filter = await Filter.rootFilterListByHook({
-    hookId: req.params.hookId
+    hookId: req.params.hookId,
   });
 
   res.json(filter);
@@ -120,7 +120,7 @@ export async function hookFilterList(
 export async function hookFilterCreate(req: Request<any, any, TableReq>, res) {
   const filter = await Filter.insert({
     ...req.body,
-    fk_hook_id: req.params.hookId
+    fk_hook_id: req.params.hookId,
   });
 
   Tele.emit('evt', { evt_type: 'hookFilter:created' });

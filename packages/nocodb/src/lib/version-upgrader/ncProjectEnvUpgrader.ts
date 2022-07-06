@@ -1,6 +1,6 @@
 import { NcUpgraderCtx } from './NcUpgrader';
 
-export default async function(ctx: NcUpgraderCtx) {
+export default async function (ctx: NcUpgraderCtx) {
   const projects = await ctx.ncMeta.projectList();
 
   for (const project of projects) {

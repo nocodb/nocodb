@@ -33,12 +33,12 @@ dbConfig.meta = {
   api: {
     type: 'rest',
     prefix: '',
-    graphqlDepthLimit: 10
+    graphqlDepthLimit: 10,
   },
   inflection: {
     tn: 'camelize',
-    column_name: 'camelize'
-  }
+    column_name: 'camelize',
+  },
 } as any;
 
 const projectCreateReqBody = {
@@ -52,8 +52,8 @@ const projectCreateReqBody = {
       envs: {
         _noco: {
           db: [dbConfig],
-          apiClient: { data: [] }
-        }
+          apiClient: { data: [] },
+        },
       },
       workingEnv: '_noco',
       meta: {
@@ -64,7 +64,7 @@ const projectCreateReqBody = {
         projectType: 'rest',
         type: 'mvc',
         language: 'ts',
-        db: { client: 'sqlite3', connection: { filename: 'noco.db' } }
+        db: { client: 'sqlite3', connection: { filename: 'noco.db' } },
       },
       seedsFolder: 'seeds',
       queriesFolder: 'queries',
@@ -74,10 +74,10 @@ const projectCreateReqBody = {
       language: 'ts',
       apiClient: { data: [] },
       auth: {
-        jwt: { secret: 'b8ed266d-4475-4028-8c3d-590f58bee867', dbAlias: 'db' }
-      }
-    }
-  }
+        jwt: { secret: 'b8ed266d-4475-4028-8c3d-590f58bee867', dbAlias: 'db' },
+      },
+    },
+  },
 };
 
 // console.log(JSON.stringify(dbConfig, null, 2));
@@ -86,7 +86,7 @@ describe('Noco v2 Tests', () => {
   let app;
 
   // Called once before any of the tests in this block begin.
-  before(function(done) {
+  before(function (done) {
     this.timeout(200000);
 
     (async () => {
@@ -101,22 +101,22 @@ describe('Noco v2 Tests', () => {
       // await knex(config.envs[process.env.NODE_ENV || 'dev'].db[0])('xc_users').del();
     })()
       .then(done)
-      .catch(e => {
+      .catch((e) => {
         done(e);
       });
   });
 
-  after(done => {
+  after((done) => {
     done();
     process.exit();
   });
 
-  describe('API Tests', function() {
+  describe('API Tests', function () {
     this.timeout(10000);
     const EMAIL_ID = 'abc@g.com';
     const VALID_PASSWORD = '1234566778';
 
-    before(function(done) {
+    before(function (done) {
       this.timeout(120000);
       request(app)
         .post('/auth/signup')
@@ -131,7 +131,7 @@ describe('Noco v2 Tests', () => {
           request(app)
             .post('/auth/signin')
             .send({ email: EMAIL_ID, password: VALID_PASSWORD })
-            .expect(200, async function(_err, res) {
+            .expect(200, async function (_err, res) {
               token = res.body.token;
               request(app)
                 .post('/dashboard')
@@ -148,7 +148,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Simple country list', function(done) {
+    it('Simple country list', function (done) {
       console.log(`/nc/${projectId}/api/v2/country`);
       request(app)
         .get(`/nc/${projectId}/api/v2/country`)
@@ -172,20 +172,20 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add Rollup column(hm)', function(done) {
+    it('Add Rollup column(hm)', function (done) {
       const payload = {
         table: 'country',
         type: UITypes.Rollup,
         alias: 'cityCount',
         rollupColumn: 'CityId',
         relationColumn: 'CityList',
-        rollupFunction: 'count'
+        rollupFunction: 'count',
       };
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -201,7 +201,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add Rollup column(mm)', function(done) {
+    it('Add Rollup column(mm)', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -210,14 +210,14 @@ describe('Noco v2 Tests', () => {
           alias: 'filmCount',
           rollupColumn: 'FilmId',
           relationColumn: 'Film List',
-          rollupFunction: 'count'
-        }
+          rollupFunction: 'count',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/actor/1`)
@@ -232,19 +232,19 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add simple Lookup column(hm)', function(done) {
+    it('Add simple Lookup column(hm)', function (done) {
       const payload = {
         table: 'country',
         type: UITypes.Lookup,
         alias: 'cityNames',
         lookupColumn: 'City',
-        relationColumn: 'CityList'
+        relationColumn: 'CityList',
       };
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -263,7 +263,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add simple Lookup column(bt)', function(done) {
+    it('Add simple Lookup column(bt)', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -271,14 +271,14 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'cityName',
           lookupColumn: 'City',
-          relationColumn: 'CityRead'
-        }
+          relationColumn: 'CityRead',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/address`)
@@ -294,28 +294,28 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add nested Lookup column(hm) - Country => City => Address => Address', function(done) {
+    it('Add nested Lookup column(hm) - Country => City => Address => Address', function (done) {
       const payload = [
         {
           table: 'city',
           type: UITypes.Lookup,
           alias: 'NestedAddress1',
           lookupColumn: 'Address',
-          relationColumn: 'AddressList'
+          relationColumn: 'AddressList',
         },
         {
           table: 'country',
           type: UITypes.Lookup,
           alias: 'NestedAddress2',
           lookupColumn: 'NestedAddress1',
-          relationColumn: 'CityList'
-        }
+          relationColumn: 'CityList',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -334,7 +334,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add nested Lookup column(bt) - Address => City => Country => Country', function(done) {
+    it('Add nested Lookup column(bt) - Address => City => Country => Country', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -342,21 +342,21 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'CountryName',
           lookupColumn: 'Country',
-          relationColumn: 'CountryRead'
+          relationColumn: 'CountryRead',
         },
         {
           table: 'address',
           type: UITypes.Lookup,
           alias: 'CountryName',
           lookupColumn: 'CountryName',
-          relationColumn: 'CityRead'
-        }
+          relationColumn: 'CityRead',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/address/1`)
@@ -370,7 +370,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add nested Lookup with Rollup - Country => City => AddressCount', function(done) {
+    it('Add nested Lookup with Rollup - Country => City => AddressCount', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -379,21 +379,21 @@ describe('Noco v2 Tests', () => {
           alias: 'addressCount',
           rollupColumn: 'AddressId',
           rollupFunction: 'count',
-          relationColumn: 'AddressList'
+          relationColumn: 'AddressList',
         },
         {
           table: 'country',
           type: UITypes.Lookup,
           alias: 'AddressCount',
           lookupColumn: 'addressCount',
-          relationColumn: 'CityList'
-        }
+          relationColumn: 'CityList',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country/1`)
@@ -407,19 +407,19 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add simple nested Lookup column(mm) - Actor <=> Film <=> Title', function(done) {
+    it('Add simple nested Lookup column(mm) - Actor <=> Film <=> Title', function (done) {
       const payload = {
         table: 'actor',
         type: UITypes.Lookup,
         alias: 'filmNames',
         lookupColumn: 'Title',
-        relationColumn: 'Film List'
+        relationColumn: 'Film List',
       };
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/actor/1`)
@@ -435,21 +435,21 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add simple formula column - LEN(Country)', function(done) {
+    it('Add simple formula column - LEN(Country)', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'formula1',
-          formula: 'LEN(Country)'
-        }
+          formula: 'LEN(Country)',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country/1`)
@@ -465,7 +465,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add formula column with rollup - ADD(cityCount, 10)', function(done) {
+    it('Add formula column with rollup - ADD(cityCount, 10)', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -474,20 +474,20 @@ describe('Noco v2 Tests', () => {
           alias: 'cityCount',
           rollupColumn: 'CityId',
           relationColumn: 'CityList',
-          rollupFunction: 'count'
+          rollupFunction: 'count',
         },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'formula2',
-          formula: 'ADD(cityCount, 10)'
-        }
+          formula: 'ADD(cityCount, 10)',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country/1`)
@@ -504,20 +504,20 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it("Add formula column with bt column - address - CONCAT('City name is : ',CityRead)", function(done) {
+    it("Add formula column with bt column - address - CONCAT('City name is : ',CityRead)", function (done) {
       const payload = [
         {
           table: 'address',
           type: UITypes.Formula,
           alias: 'formula3',
-          formula: "CONCAT('City name is : ',CityRead)"
-        }
+          formula: "CONCAT('City name is : ',CityRead)",
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/address/1`)
@@ -533,34 +533,34 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it("Add formula column with nested lookup(bt only) column - address - CONCAT('City name is : ',CountryName)", function(done) {
+    it("Add formula column with nested lookup(bt only) column - address - CONCAT('City name is : ',CountryName)", function (done) {
       const payload = [
         {
           table: 'city',
           type: UITypes.Lookup,
           alias: 'FormulaNestedCountry1',
           lookupColumn: 'Country',
-          relationColumn: 'CountryRead'
+          relationColumn: 'CountryRead',
         },
         {
           table: 'address',
           type: UITypes.Lookup,
           alias: 'FormulaNestedCountry2',
           lookupColumn: 'FormulaNestedCountry1',
-          relationColumn: 'CityRead'
+          relationColumn: 'CityRead',
         },
         {
           table: 'address',
           type: UITypes.Formula,
           alias: 'formula4',
-          formula: "CONCAT('Country name is : ',FormulaNestedCountry2)"
-        }
+          formula: "CONCAT('Country name is : ',FormulaNestedCountry2)",
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/address/1`)
@@ -576,26 +576,26 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add formula column with another formula column - ADD(LEN(Country),2)', function(done) {
+    it('Add formula column with another formula column - ADD(LEN(Country),2)', function (done) {
       const payload = [
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'formula5',
-          formula: 'LEN(Country)'
+          formula: 'LEN(Country)',
         },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'formula6',
-          formula: 'ADD(formula5,2)'
-        }
+          formula: 'ADD(formula5,2)',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country/1`)
@@ -612,27 +612,27 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Lookup with nested formula - Country => City => LEN(City)', function(done) {
+    it('Lookup with nested formula - Country => City => LEN(City)', function (done) {
       const payload = [
         {
           table: 'city',
           type: UITypes.Formula,
           alias: 'formula7',
-          formula: 'LEN(City)'
+          formula: 'LEN(City)',
         },
         {
           table: 'country',
           type: UITypes.Lookup,
           alias: 'CityNameLength',
           relationColumn: 'CityList',
-          lookupColumn: 'formula7'
-        }
+          lookupColumn: 'formula7',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country/1`)
@@ -650,21 +650,21 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Simple sort - Country - desc', function(done) {
+    it('Simple sort - Country - desc', function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllSort' },
         {
           table: 'country',
           type: 'Sort',
           column: 'Country',
-          direction: 'desc'
-        }
+          direction: 'desc',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -678,27 +678,27 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Sort by formula column - sort by country name length(LEN(Country)) - desc', function(done) {
+    it('Sort by formula column - sort by country name length(LEN(Country)) - desc', function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllSort' },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'formula9',
-          formula: 'LEN(Country)'
+          formula: 'LEN(Country)',
         },
         {
           table: 'country',
           type: 'Sort',
           column: 'formula9',
-          direction: 'desc'
-        }
+          direction: 'desc',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -716,7 +716,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Sort by Rollup column - sort by cityCount - desc', function(done) {
+    it('Sort by Rollup column - sort by cityCount - desc', function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllSort' },
         {
@@ -725,20 +725,20 @@ describe('Noco v2 Tests', () => {
           alias: 'sortCityCount',
           rollupColumn: 'CityId',
           relationColumn: 'CityList',
-          rollupFunction: 'count'
+          rollupFunction: 'count',
         },
         {
           table: 'country',
           type: 'Sort',
           column: 'sortCityCount',
-          direction: 'desc'
-        }
+          direction: 'desc',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -759,21 +759,21 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Sort by LinkToAnotherRecord(bt) column - address by city - desc', function(done) {
+    it('Sort by LinkToAnotherRecord(bt) column - address by city - desc', function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllSort' },
         {
           table: 'address',
           type: 'Sort',
           column: 'CityRead',
-          direction: 'desc'
-        }
+          direction: 'desc',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/address`)
@@ -789,7 +789,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Sort by Lookup(bt) column - address by country - desc', function(done) {
+    it('Sort by Lookup(bt) column - address by country - desc', function (done) {
       const payload = [
         { table: 'address', type: 'DeleteAllSort' },
         {
@@ -797,27 +797,27 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'SortCountry1',
           lookupColumn: 'Country',
-          relationColumn: 'CountryRead'
+          relationColumn: 'CountryRead',
         },
         {
           table: 'address',
           type: UITypes.Lookup,
           alias: 'SortCountry2',
           lookupColumn: 'SortCountry1',
-          relationColumn: 'CityRead'
+          relationColumn: 'CityRead',
         },
         {
           table: 'address',
           type: 'Sort',
           column: 'SortCountry2',
-          direction: 'desc'
-        }
+          direction: 'desc',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/address`)
@@ -831,7 +831,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it("Simple filter -  filter countries starts with 'in'", function(done) {
+    it("Simple filter -  filter countries starts with 'in'", function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllFilter' },
         {
@@ -840,15 +840,15 @@ describe('Noco v2 Tests', () => {
           filter: {
             column: 'Country',
             comparison_op: 'like',
-            value: 'in%'
-          }
-        }
+            value: 'in%',
+          },
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -862,7 +862,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it("Filter with OR -  filter countries starts with 'in' or 'za'", function(done) {
+    it("Filter with OR -  filter countries starts with 'in' or 'za'", function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllFilter' },
         {
@@ -874,22 +874,22 @@ describe('Noco v2 Tests', () => {
               {
                 column: 'Country',
                 comparison_op: 'like',
-                value: 'in%'
+                value: 'in%',
               },
               {
                 column: 'Country',
                 comparison_op: 'like',
-                value: 'za%'
-              }
-            ]
-          }
-        }
+                value: 'za%',
+              },
+            ],
+          },
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -904,7 +904,7 @@ describe('Noco v2 Tests', () => {
             });
         });
     });
-    it('Filter with Rollup -  filter country by city count', function(done) {
+    it('Filter with Rollup -  filter country by city count', function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllFilter' },
         {
@@ -913,7 +913,7 @@ describe('Noco v2 Tests', () => {
           alias: 'filterCityCount',
           rollupColumn: 'CityId',
           relationColumn: 'CityList',
-          rollupFunction: 'count'
+          rollupFunction: 'count',
         },
         {
           table: 'country',
@@ -921,15 +921,15 @@ describe('Noco v2 Tests', () => {
           filter: {
             column: 'filterCityCount',
             comparison_op: 'eq',
-            value: '4'
-          }
-        }
+            value: '4',
+          },
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -944,7 +944,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Filter with Lookup -  filter country by city name', function(done) {
+    it('Filter with Lookup -  filter country by city name', function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllFilter' },
         {
@@ -952,7 +952,7 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'filterCityNames',
           lookupColumn: 'City',
-          relationColumn: 'CityList'
+          relationColumn: 'CityList',
         },
         {
           table: 'country',
@@ -960,15 +960,15 @@ describe('Noco v2 Tests', () => {
           filter: {
             column: 'filterCityNames',
             comparison_op: 'like',
-            value: 'ban%'
-          }
-        }
+            value: 'ban%',
+          },
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -977,13 +977,14 @@ describe('Noco v2 Tests', () => {
               if (err) done(err);
               expect(res.body?.CountryList).to.be.an('Array');
               for (const c of res.body?.CountryList)
-                expect(c.filterCityNames.some(c => /^ban/i.test(c))).to.be.true;
+                expect(c.filterCityNames.some((c) => /^ban/i.test(c))).to.be
+                  .true;
               done();
             });
         });
     });
 
-    it('Filter with LinkToAnotherRecord -  filter country by cityList', function(done) {
+    it('Filter with LinkToAnotherRecord -  filter country by cityList', function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllFilter' },
         {
@@ -992,15 +993,15 @@ describe('Noco v2 Tests', () => {
           filter: {
             column: 'CityList',
             comparison_op: 'like',
-            value: 'ban%'
-          }
-        }
+            value: 'ban%',
+          },
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -1009,20 +1010,20 @@ describe('Noco v2 Tests', () => {
               if (err) done(err);
               expect(res.body?.CountryList).to.be.an('Array');
               for (const c of res.body?.CountryList)
-                expect(c.CityList.some(c => /^ban/i.test(c.City))).to.be.true;
+                expect(c.CityList.some((c) => /^ban/i.test(c.City))).to.be.true;
               done();
             });
         });
     });
 
-    it('Filter with Formula -  filter country by Country name length', function(done) {
+    it('Filter with Formula -  filter country by Country name length', function (done) {
       const payload = [
         { table: 'country', type: 'DeleteAllFilter' },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'filterFormula',
-          formula: 'LEN(Country)'
+          formula: 'LEN(Country)',
         },
         {
           table: 'country',
@@ -1030,15 +1031,15 @@ describe('Noco v2 Tests', () => {
           filter: {
             column: 'filterFormula',
             comparison_op: 'eq',
-            value: 10
-          }
-        }
+            value: 10,
+          },
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -1053,7 +1054,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Filter with nested Lookup -  filter address by country name', function(done) {
+    it('Filter with nested Lookup -  filter address by country name', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -1061,14 +1062,14 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'CountryName',
           lookupColumn: 'Country',
-          relationColumn: 'CountryRead'
+          relationColumn: 'CountryRead',
         },
         {
           table: 'address',
           type: UITypes.Lookup,
           alias: 'CountryName',
           lookupColumn: 'CountryName',
-          relationColumn: 'CityRead'
+          relationColumn: 'CityRead',
         },
         {
           table: 'address',
@@ -1076,15 +1077,15 @@ describe('Noco v2 Tests', () => {
           filter: {
             column: 'CountryName',
             comparison_op: 'eq',
-            value: 'India'
-          }
-        }
+            value: 'India',
+          },
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/address`)
@@ -1099,7 +1100,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Filter with nested Lookup(rollup)', function(done) {
+    it('Filter with nested Lookup(rollup)', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -1108,14 +1109,14 @@ describe('Noco v2 Tests', () => {
           alias: 'addressCount',
           rollupColumn: 'AddressId',
           relationColumn: 'AddressList',
-          rollupFunction: 'count'
+          rollupFunction: 'count',
         },
         {
           table: 'country',
           type: UITypes.Lookup,
           alias: 'addressCount',
           lookupColumn: 'addressCount',
-          relationColumn: 'CityList'
+          relationColumn: 'CityList',
         },
         {
           table: 'country',
@@ -1123,15 +1124,15 @@ describe('Noco v2 Tests', () => {
           filter: {
             column: 'addressCount',
             comparison_op: 'eq',
-            value: '2'
-          }
-        }
+            value: '2',
+          },
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -1140,13 +1141,13 @@ describe('Noco v2 Tests', () => {
               if (err) done(err);
               expect(res.body?.CountryList).to.be.an('Array');
               for (const a of res.body?.CountryList)
-                expect(a.addressCount.some(v => +v === 2)).to.be.true;
+                expect(a.addressCount.some((v) => +v === 2)).to.be.true;
               done();
             });
         });
     });
 
-    it('Filter with nested Lookup(link to another record)', function(done) {
+    it('Filter with nested Lookup(link to another record)', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -1154,7 +1155,7 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'addressList',
           lookupColumn: 'AddressList',
-          relationColumn: 'CityList'
+          relationColumn: 'CityList',
         },
         {
           table: 'country',
@@ -1162,15 +1163,15 @@ describe('Noco v2 Tests', () => {
           filter: {
             column: 'addressList',
             comparison_op: 'like',
-            value: '%11%'
-          }
-        }
+            value: '%11%',
+          },
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -1179,28 +1180,28 @@ describe('Noco v2 Tests', () => {
               if (err) done(err);
               expect(res.body?.CountryList).to.be.an('Array');
               for (const c of res.body?.CountryList)
-                expect(c.addressList.some(a => a.Address.includes('11'))).to.be
-                  .true;
+                expect(c.addressList.some((a) => a.Address.includes('11'))).to
+                  .be.true;
               done();
             });
         });
     });
 
-    it('Add formula column with hm column - citykist', function(done) {
+    it('Add formula column with hm column - citykist', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'formula',
-          formula: "CONCAT('City name is : ', CityList)"
-        }
+          formula: "CONCAT('City name is : ', CityList)",
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country/1`)
@@ -1210,34 +1211,34 @@ describe('Noco v2 Tests', () => {
               expect(res.body?.CountryRead).to.be.an('Object');
               expect(res.body?.CountryRead?.['formula']).to.be.eq(
                 'City name is : ' +
-                  res.body?.CountryRead?.CityList.map(c => c.City).join(',')
+                  res.body?.CountryRead?.CityList.map((c) => c.City).join(',')
               );
               done();
             });
         });
     });
 
-    it('Add formula column with hm - Addition', function(done) {
+    it('Add formula column with hm - Addition', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'max',
-          formula: "MAX(CityList,'Bcd')"
+          formula: "MAX(CityList,'Bcd')",
         },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'min',
-          formula: "MIN(CityList,'Bcd')"
-        }
+          formula: "MIN(CityList,'Bcd')",
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -1245,12 +1246,9 @@ describe('Noco v2 Tests', () => {
             .expect(200, (err, res) => {
               if (err) done(err);
               expect(res.body?.CountryList).to.be.a('Array');
-              res.body?.CountryList.forEach(c => {
-                const cities = [
-                  ...c.CityList.map(c1 => c1.City),
-                  'Bcd'
-                ].sort((a, b) =>
-                  a.toLowerCase().localeCompare(b.toLowerCase())
+              res.body?.CountryList.forEach((c) => {
+                const cities = [...c.CityList.map((c1) => c1.City), 'Bcd'].sort(
+                  (a, b) => a.toLowerCase().localeCompare(b.toLowerCase())
                 );
                 expect(c.min).to.be.eq(cities[0]);
                 expect(c.max).to.be.eq(cities[cities.length - 1]);
@@ -1260,7 +1258,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add formula column with hm lookup - sum, avg, min, max', function(done) {
+    it('Add formula column with hm lookup - sum, avg, min, max', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -1268,38 +1266,38 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'cityIds',
           lookupColumn: 'CityId',
-          relationColumn: 'CityList'
+          relationColumn: 'CityList',
         },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'sum',
-          formula: 'ADD(cityIds, 100)'
+          formula: 'ADD(cityIds, 100)',
         },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'avg',
-          formula: 'AVG(cityIds, 100)'
+          formula: 'AVG(cityIds, 100)',
         },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'min',
-          formula: 'MIN(cityIds, 100)'
+          formula: 'MIN(cityIds, 100)',
         },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'max',
-          formula: 'MAX(cityIds, 100)'
-        }
+          formula: 'MAX(cityIds, 100)',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -1307,7 +1305,7 @@ describe('Noco v2 Tests', () => {
             .expect(200, (err, res) => {
               if (err) done(err);
               expect(res.body?.CountryList).to.be.an('Array');
-              res.body?.CountryList.forEach(country => {
+              res.body?.CountryList.forEach((country) => {
                 expect(+country.min).to.be.eq(
                   Math.min(...country.cityIds, 100)
                 );
@@ -1327,7 +1325,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add formula column with mm lookup - sum, avg, min, max', function(done) {
+    it('Add formula column with mm lookup - sum, avg, min, max', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -1335,38 +1333,38 @@ describe('Noco v2 Tests', () => {
           type: UITypes.Lookup,
           alias: 'filmIds',
           lookupColumn: 'FilmId',
-          relationColumn: 'Film List'
+          relationColumn: 'Film List',
         },
         {
           table: 'actor',
           type: UITypes.Formula,
           alias: 'sum',
-          formula: 'ADD(filmIds, 100)'
+          formula: 'ADD(filmIds, 100)',
         },
         {
           table: 'actor',
           type: UITypes.Formula,
           alias: 'min',
-          formula: 'MIN(filmIds, 100)'
+          formula: 'MIN(filmIds, 100)',
         },
         {
           table: 'actor',
           type: UITypes.Formula,
           alias: 'max',
-          formula: 'MAX(filmIds, 100)'
+          formula: 'MAX(filmIds, 100)',
         },
         {
           table: 'actor',
           type: UITypes.Formula,
           alias: 'avg',
-          formula: 'AVG(filmIds, 100)'
-        }
+          formula: 'AVG(filmIds, 100)',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/actor`)
@@ -1374,7 +1372,7 @@ describe('Noco v2 Tests', () => {
             .expect(200, (err, res) => {
               if (err) done(err);
               expect(res.body?.ActorList).to.be.an('Array');
-              res.body?.ActorList.forEach(film => {
+              res.body?.ActorList.forEach((film) => {
                 expect(+film.min).to.be.eq(Math.min(...film.filmIds, 100));
                 expect(+film.max).to.be.eq(Math.max(...film.filmIds, 100));
                 expect(+film.sum).to.be.eq(
@@ -1390,7 +1388,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add formula column with - mm lookup & Rollup', function(done) {
+    it('Add formula column with - mm lookup & Rollup', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -1399,27 +1397,27 @@ describe('Noco v2 Tests', () => {
           alias: 'actorsCount',
           rollupColumn: 'ActorId',
           relationColumn: 'ActorList',
-          rollupFunction: 'count'
+          rollupFunction: 'count',
         },
         {
           table: 'actor',
           type: UITypes.Lookup,
           alias: 'actorsCountList',
           lookupColumn: 'actorsCount',
-          relationColumn: 'Film List'
+          relationColumn: 'Film List',
         },
         {
           table: 'actor',
           type: UITypes.Formula,
           alias: 'formula',
-          formula: 'ADD(actorsCountList, 100)'
-        }
+          formula: 'ADD(actorsCountList, 100)',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/actor`)
@@ -1427,7 +1425,7 @@ describe('Noco v2 Tests', () => {
             .expect(200, (err, res) => {
               if (err) done(err);
               expect(res.body?.ActorList).to.be.an('Array');
-              res.body?.ActorList.forEach(film => {
+              res.body?.ActorList.forEach((film) => {
                 expect(+film.formula).to.be.eq(
                   [...film.actorsCountList, 100].reduce((s, v) => +s + +v)
                 );
@@ -1438,7 +1436,7 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add formula column with - hm lookup & Rollup', function(done) {
+    it('Add formula column with - hm lookup & Rollup', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
@@ -1447,27 +1445,27 @@ describe('Noco v2 Tests', () => {
           alias: 'addressCount1',
           rollupColumn: 'AddressId',
           relationColumn: 'AddressList',
-          rollupFunction: 'count'
+          rollupFunction: 'count',
         },
         {
           table: 'country',
           type: UITypes.Lookup,
           alias: 'addressCount',
           lookupColumn: 'addressCount1',
-          relationColumn: 'CityList'
+          relationColumn: 'CityList',
         },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'formula',
-          formula: 'ADD(addressCount, 100)'
-        }
+          formula: 'ADD(addressCount, 100)',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -1475,7 +1473,7 @@ describe('Noco v2 Tests', () => {
             .expect(200, (err, res) => {
               if (err) done(err);
               expect(res.body?.CountryList).to.be.an('Array');
-              res.body?.CountryList.forEach(country => {
+              res.body?.CountryList.forEach((country) => {
                 expect(+country.formula).to.be.eq(
                   [...country.addressCount, 100].reduce(
                     (s, v) => s + (+v || 0),
@@ -1489,34 +1487,34 @@ describe('Noco v2 Tests', () => {
         });
     });
 
-    it('Add formula column with - hm lookup & Formula', function(done) {
+    it('Add formula column with - hm lookup & Formula', function (done) {
       const payload = [
         { type: 'DeleteAllMetas' },
         {
           table: 'city',
           type: UITypes.Formula,
           alias: 'cityFormula',
-          formula: 'ADD(CityId,100)'
+          formula: 'ADD(CityId,100)',
         },
         {
           table: 'country',
           type: UITypes.Lookup,
           alias: 'cityFormulaList',
           lookupColumn: 'cityFormula',
-          relationColumn: 'CityList'
+          relationColumn: 'CityList',
         },
         {
           table: 'country',
           type: UITypes.Formula,
           alias: 'formula',
-          formula: 'ADD(cityFormulaList, 100)'
-        }
+          formula: 'ADD(cityFormulaList, 100)',
+        },
       ];
       request(app)
         .post(`/nc/${projectId}/generate`)
         .send(payload)
         .set('xc-auth', token)
-        .expect(200, err => {
+        .expect(200, (err) => {
           if (err) done(err);
           request(app)
             .get(`/nc/${projectId}/api/v2/country`)
@@ -1524,7 +1522,7 @@ describe('Noco v2 Tests', () => {
             .expect(200, (err, res) => {
               if (err) done(err);
               expect(res.body?.CountryList).to.be.an('Array');
-              res.body?.CountryList.forEach(country => {
+              res.body?.CountryList.forEach((country) => {
                 expect(+country.formula).to.be.eq(
                   country.CityList.reduce((s, c) => s + +c.CityId + 100, 100)
                 );

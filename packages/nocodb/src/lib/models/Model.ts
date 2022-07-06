@@ -9,13 +9,13 @@ import {
   TableReqType,
   TableType,
   UITypes,
-  ViewTypes
+  ViewTypes,
 } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  MetaTable
+  MetaTable,
 } from '../utils/globals';
 import View from './View';
 import { NcError } from '../meta/helpers/catchError';
@@ -59,7 +59,7 @@ export default class Model implements TableType {
   public async getColumns(ncMeta = Noco.ncMeta): Promise<Column[]> {
     this.columns = await Column.list(
       {
-        fk_model_id: this.id
+        fk_model_id: this.id,
       },
       ncMeta
     );
@@ -74,17 +74,17 @@ export default class Model implements TableType {
 
   public get primaryKey(): Column {
     if (!this.columns) return null;
-    return this.columns?.find(c => c.pk);
+    return this.columns?.find((c) => c.pk);
   }
 
   public get primaryKeys(): Column[] {
     if (!this.columns) return null;
-    return this.columns?.filter(c => c.pk);
+    return this.columns?.filter((c) => c.pk);
   }
 
   public get primaryValue(): Column {
     if (!this.columns) return null;
-    const pCol = this.columns?.find(c => c.pv);
+    const pCol = this.columns?.find((c) => c.pv);
     if (pCol) return pCol;
     const pkIndex = this.columns.indexOf(this.primaryKey);
     if (pkIndex < this.columns.length - 1) return this.columns[pkIndex + 1];
@@ -113,12 +113,12 @@ export default class Model implements TableType {
           model.order ||
           (await ncMeta.metaGetNextOrder(MetaTable.FORM_VIEW_COLUMNS, {
             project_id: projectId,
-            base_id: baseId
+            base_id: baseId,
           })),
         type: model.type || ModelTypes.TABLE,
         created_at: model.created_at,
         updated_at: model.updated_at,
-        id: model.id
+        id: model.id,
       }
     );
 
@@ -135,7 +135,7 @@ export default class Model implements TableType {
         is_default: true,
         type: ViewTypes.GRID,
         created_at: model.created_at,
-        updated_at: model.updated_at
+        updated_at: model.updated_at,
       },
       ncMeta
     );
@@ -150,7 +150,7 @@ export default class Model implements TableType {
   public static async list(
     {
       project_id,
-      base_id
+      base_id,
     }: {
       project_id: string;
       base_id: string;
@@ -165,8 +165,8 @@ export default class Model implements TableType {
         MetaTable.MODELS,
         {
           orderBy: {
-            order: 'asc'
-          }
+            order: 'asc',
+          },
         }
       );
 
@@ -177,13 +177,13 @@ export default class Model implements TableType {
         (a.order != null ? a.order : Infinity) -
         (b.order != null ? b.order : Infinity)
     );
-    return modelList.map(m => new Model(m));
+    return modelList.map((m) => new Model(m));
   }
 
   public static async listWithInfo(
     {
       project_id,
-      db_alias
+      db_alias,
     }: {
       project_id: string;
       db_alias: string;
@@ -192,7 +192,7 @@ export default class Model implements TableType {
   ): Promise<Model[]> {
     let modelList = await NocoCache.getList(CacheScope.MODEL, [
       project_id,
-      db_alias
+      db_alias,
     ]);
     if (!modelList.length) {
       modelList = await ncMeta.metaList2(
@@ -204,7 +204,7 @@ export default class Model implements TableType {
       await NocoCache.setList(CacheScope.MODEL, [project_id], modelList);
     }
 
-    return modelList.map(m => new Model(m));
+    return modelList.map((m) => new Model(m));
   }
 
   public static async clear({ id }: { id: string }): Promise<void> {
@@ -277,7 +277,7 @@ export default class Model implements TableType {
   public static async getWithInfo(
     {
       table_name,
-      id
+      id,
     }: {
       table_name?: string;
       id?: string;
@@ -296,7 +296,7 @@ export default class Model implements TableType {
         null,
         MetaTable.MODELS,
         id || {
-          table_name
+          table_name,
         }
       );
       await NocoCache.set(`${CacheScope.MODEL}:${modelData.id}`, modelData);
@@ -329,7 +329,7 @@ export default class Model implements TableType {
     return new BaseModelSqlv2({
       dbDriver: args.dbDriver,
       viewId: args.viewId,
-      model
+      model,
     });
   }
 
@@ -369,7 +369,7 @@ export default class Model implements TableType {
       }
       if (colOptionTableName && cacheScopeName) {
         await ncMeta.metaDelete(null, null, colOptionTableName, {
-          fk_column_id: col.id
+          fk_column_id: col.id,
         });
         await NocoCache.deepDel(
           cacheScopeName,
@@ -385,7 +385,7 @@ export default class Model implements TableType {
       CacheDelDirection.CHILD_TO_PARENT
     );
     await ncMeta.metaDelete(null, null, MetaTable.COLUMNS, {
-      fk_model_id: this.id
+      fk_model_id: this.id,
     });
 
     await NocoCache.deepDel(
@@ -429,7 +429,7 @@ export default class Model implements TableType {
       null,
       MetaTable.MODELS,
       {
-        title
+        title,
       },
       tableId
     );
@@ -451,7 +451,7 @@ export default class Model implements TableType {
       null,
       MetaTable.MODELS,
       {
-        mm: isMm
+        mm: isMm,
       },
       tableId
     );
@@ -494,7 +494,7 @@ export default class Model implements TableType {
       null,
       MetaTable.MODELS,
       {
-        order
+        order,
       },
       tableId
     );
@@ -507,7 +507,7 @@ export default class Model implements TableType {
   ) {
     const model = await this.getWithInfo({ id: tableId });
     const currentPvCol = model.primaryValue;
-    const newPvCol = model.columns.find(c => c.id === columnId);
+    const newPvCol = model.columns.find((c) => c.id === columnId);
 
     if (!newPvCol) NcError.badRequest('Column not found');
 
@@ -526,7 +526,7 @@ export default class Model implements TableType {
         null,
         MetaTable.COLUMNS,
         {
-          pv: false
+          pv: false,
         },
         currentPvCol.id
       );
@@ -546,7 +546,7 @@ export default class Model implements TableType {
       null,
       MetaTable.COLUMNS,
       {
-        pv: true
+        pv: true,
       },
       newPvCol.id
     );
@@ -569,7 +569,7 @@ export default class Model implements TableType {
       null,
       MetaTable.MODELS,
       {
-        mm: true
+        mm: true,
       },
       id
     );
@@ -579,7 +579,7 @@ export default class Model implements TableType {
     {
       project_id,
       base_id,
-      aliasOrId
+      aliasOrId,
     }: {
       project_id: string;
       base_id: string | undefined;
@@ -605,15 +605,15 @@ export default class Model implements TableType {
           _or: [
             {
               id: {
-                eq: aliasOrId
-              }
+                eq: aliasOrId,
+              },
             },
             {
               title: {
-                eq: aliasOrId
-              }
-            }
-          ]
+                eq: aliasOrId,
+              },
+            },
+          ],
         }
       );
       await NocoCache.set(
@@ -631,7 +631,7 @@ export default class Model implements TableType {
       table_name,
       project_id,
       base_id,
-      exclude_id
+      exclude_id,
     }: { table_name; project_id; base_id; exclude_id? },
     ncMeta = Noco.ncMeta
   ) {
@@ -640,7 +640,7 @@ export default class Model implements TableType {
       base_id,
       MetaTable.MODELS,
       {
-        table_name
+        table_name,
       },
       null,
       exclude_id && { id: { neq: exclude_id } }
@@ -652,7 +652,7 @@ export default class Model implements TableType {
       title,
       project_id,
       base_id,
-      exclude_id
+      exclude_id,
     }: { title; project_id; base_id; exclude_id? },
     ncMeta = Noco.ncMeta
   ) {
@@ -661,7 +661,7 @@ export default class Model implements TableType {
       base_id,
       MetaTable.MODELS,
       {
-        title
+        title,
       },
       null,
       exclude_id && { id: { neq: exclude_id } }

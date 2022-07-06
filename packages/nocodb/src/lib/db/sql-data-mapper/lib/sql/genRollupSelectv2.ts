@@ -4,19 +4,20 @@ import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordCol
 import { QueryBuilder } from 'knex';
 import { RelationTypes } from 'nocodb-sdk';
 
-export default async function({
+export default async function ({
   knex,
   // tn,
   // column,
   alias,
-  columnOptions
+  columnOptions,
 }: {
   knex: XKnex;
   alias?: string;
   columnOptions: RollupColumn;
 }): Promise<{ builder: QueryBuilder | any }> {
   const relationColumn = await columnOptions.getRelationColumn();
-  const relationColumnOption: LinkToAnotherRecordColumn = (await relationColumn.getColOptions()) as LinkToAnotherRecordColumn;
+  const relationColumnOption: LinkToAnotherRecordColumn =
+    (await relationColumn.getColOptions()) as LinkToAnotherRecordColumn;
   const rollupColumn = await columnOptions.getRollupColumn();
   const childCol = await relationColumnOption.getChildColumn();
   const childModel = await childCol?.getModel();
@@ -39,7 +40,7 @@ export default async function({
             ),
             '=',
             knex.ref(`${childModel.table_name}.${childCol.column_name}`)
-          )
+          ),
       };
     case RelationTypes.MANY_TO_MANY: {
       const mmModel = await relationColumnOption.getMMModel();
@@ -63,7 +64,7 @@ export default async function({
             knex.ref(
               `${alias || childModel.table_name}.${childCol.column_name}`
             )
-          )
+          ),
       };
     }
 

@@ -14,16 +14,16 @@ module.exports = {
             connection: {
               filename:
                 DOCKER_DB_FILE ||
-                `${path.join(process.cwd(), 'xmigrator', 'default_dev.db')}`
+                `${path.join(process.cwd(), 'xmigrator', 'default_dev.db')}`,
             },
-            useNullAsDefault: true
+            useNullAsDefault: true,
           },
           meta: {
             tn: 'nc_evolutions',
-            dbAlias: 'primary'
-          }
-        }
-      ]
+            dbAlias: 'primary',
+          },
+        },
+      ],
     },
     test: {
       api: {},
@@ -35,17 +35,17 @@ module.exports = {
             connection: {
               filename:
                 DOCKER_DB_FILE ||
-                `${path.join(process.cwd(), 'xmigrator', 'default_test.db')}`
+                `${path.join(process.cwd(), 'xmigrator', 'default_test.db')}`,
             },
-            useNullAsDefault: true
+            useNullAsDefault: true,
           },
           meta: {
             tn: 'nc_evolutions',
-            dbAlias: 'primary'
-          }
-        }
-      ]
-    }
+            dbAlias: 'primary',
+          },
+        },
+      ],
+    },
   },
   workingEnv: '_noco',
   meta: {
@@ -54,8 +54,8 @@ module.exports = {
     queriesFolder: 'queries',
     apisFolder: 'apis',
     orm: 'sequelize',
-    router: 'express'
-  }
+    router: 'express',
+  },
 };
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

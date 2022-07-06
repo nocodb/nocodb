@@ -6,7 +6,7 @@ export class PagedResponseImpl<T> {
     {
       limit = 25,
       offset = 0,
-      count = null
+      count = null,
     }: { limit?: number; offset?: number; count?: number } = {}
   ) {
     this.list = list;

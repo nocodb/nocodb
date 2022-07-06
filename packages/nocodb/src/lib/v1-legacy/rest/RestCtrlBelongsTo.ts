@@ -59,7 +59,7 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
   public async list(req: Request | any, res): Promise<void> {
     const data = await req.childModel.belongsTo({
       parents: req.parentModel.tn,
-      ...req.query
+      ...req.query,
     } as any);
     res.xcJson(data);
   }
@@ -78,7 +78,7 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
       get: 'read',
       post: 'create',
       put: 'update',
-      delete: 'delete'
+      delete: 'delete',
     };
 
     const roleOperationPossible = (roles, operation, object) => {
@@ -95,7 +95,7 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
           );
           (req as any).query.childNestedCondition = {
             condition,
-            models: this.models
+            models: this.models,
           };
         }
         if (this.parentAcl?.[roleName]?.[operation]?.custom) {
@@ -106,14 +106,14 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
           );
           (req as any).query.conditionGraph = {
             condition,
-            models: this.models
+            models: this.models,
           };
         }
 
         const childColumns = this.childAcl[roleName]?.[operation]?.columns;
         if (childColumns) {
           const allowedChildCols = Object.keys(childColumns).filter(
-            col => childColumns[col]
+            (col) => childColumns[col]
           );
           res.locals.xcAcl.allowedChildCols =
             res.locals.xcAcl.allowedChildCols || [];
@@ -153,11 +153,11 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
       if (columns) {
         // todo: merge allowed columns if multiple roles
         const allowedParentCols = Object.keys(columns).filter(
-          col => columns[col]
+          (col) => columns[col]
         );
         Object.assign(res.locals.xcAcl, {
           allowedParentCols,
-          parentColumns: columns
+          parentColumns: columns,
         });
         return Object.values(columns).some(Boolean);
       }
@@ -167,7 +167,7 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
 
     const roles = (req as any)?.locals?.user?.roles ??
       (req as any)?.session?.passport?.user?.roles ?? {
-        guest: true
+        guest: true,
       };
 
     try {
@@ -185,12 +185,12 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
           ? `Access Denied : Please Login or Signup for a new account`
           : `Access Denied for this account`;
         return res.status(403).json({
-          msg
+          msg,
         });
       }
     } catch (e) {
       return res.status(403).json({
-        msg: e.message
+        msg: e.message,
       });
     }
   }
@@ -205,12 +205,8 @@ export class RestCtrlBelongsTo extends RestBaseCtrl {
       return res.json(data);
     }
 
-    const {
-      allowedChildCols,
-      allowedParentCols,
-      parentColumns,
-      childColumns
-    } = res.locals.xcAcl;
+    const { allowedChildCols, allowedParentCols, parentColumns, childColumns } =
+      res.locals.xcAcl;
 
     const isBt = req.url
       .toLowerCase()

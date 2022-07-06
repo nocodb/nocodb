@@ -98,7 +98,7 @@ export default class RedisCacheMgr extends CacheMgr {
     );
     return Promise.all(
       keys.map(
-        async k =>
+        async (k) =>
           await this.deepDel(scope, k, CacheDelDirection.CHILD_TO_PARENT)
       )
     );
@@ -106,7 +106,7 @@ export default class RedisCacheMgr extends CacheMgr {
 
   async getList(scope: string, subKeys: string[]): Promise<any[]> {
     // remove null from arrays
-    subKeys = subKeys.filter(k => k);
+    subKeys = subKeys.filter((k) => k);
     // e.g. key = <scope>:<project_id_1>:<base_id_1>:list
     const key =
       subKeys.length === 0
@@ -116,7 +116,7 @@ export default class RedisCacheMgr extends CacheMgr {
     const arr = (await this.get(key, CacheGetType.TYPE_ARRAY)) || [];
     log(`RedisCacheMgr::getList: getting list with key ${key}`);
     return Promise.all(
-      arr.map(async k => await this.get(k, CacheGetType.TYPE_OBJECT))
+      arr.map(async (k) => await this.get(k, CacheGetType.TYPE_OBJECT))
     );
   }
 
@@ -126,7 +126,7 @@ export default class RedisCacheMgr extends CacheMgr {
     list: any[]
   ): Promise<boolean> {
     // remove null from arrays
-    subListKeys = subListKeys.filter(k => k);
+    subListKeys = subListKeys.filter((k) => k);
     // construct key for List
     // e.g. <scope>:<project_id_1>:<base_id_1>:list
     const listKey =
@@ -175,7 +175,7 @@ export default class RedisCacheMgr extends CacheMgr {
           continue;
         }
         // remove target Key
-        list = list.filter(k => k !== key);
+        list = list.filter((k) => k !== key);
         // delete list
         log(`RedisCacheMgr::deepDel: remove listKey ${listKey}`);
         await this.del(listKey);
@@ -192,7 +192,7 @@ export default class RedisCacheMgr extends CacheMgr {
       // given a list key, delete all the children
       const listOfChildren = await this.get(key, CacheGetType.TYPE_ARRAY);
       // delete each child key
-      await Promise.all(listOfChildren.map(async k => await this.del(k)));
+      await Promise.all(listOfChildren.map(async (k) => await this.del(k)));
       // delete list key
       return await this.del(key);
     } else {
@@ -207,7 +207,7 @@ export default class RedisCacheMgr extends CacheMgr {
     key: string
   ): Promise<boolean> {
     // remove null from arrays
-    subListKeys = subListKeys.filter(k => k);
+    subListKeys = subListKeys.filter((k) => k);
     // e.g. key = <scope>:<project_id_1>:<base_id_1>:list
     const listKey =
       subListKeys.length === 0
@@ -229,7 +229,7 @@ export default class RedisCacheMgr extends CacheMgr {
     const data = await this.client.keys('*');
     const res = {};
     return await Promise.all(
-      data.map(async k => {
+      data.map(async (k) => {
         res[k] = await this.get(
           k,
           k.slice(-4) === 'list'

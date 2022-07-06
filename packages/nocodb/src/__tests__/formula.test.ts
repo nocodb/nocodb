@@ -12,7 +12,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
   let knexSqliteRef;
 
   // Called once before any of the tests in this block begin.
-  before(function(done) {
+  before(function (done) {
     knexMysqlRef = knex({ client: 'mysql2' });
     knexMssqlRef = knex({ client: 'mssql' });
     knexPgRef = knex({ client: 'pg' });
@@ -20,12 +20,12 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
     done();
   });
 
-  after(done => {
+  after((done) => {
     done();
   });
 
-  describe('Formulas', function() {
-    it('Simple formula', function(done) {
+  describe('Formulas', function () {
+    it('Simple formula', function (done) {
       expect(
         formulaQueryBuilderFromString(
           "concat(city, ' _ ',city_id+country_id)",
@@ -56,7 +56,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
       ).eq("`city` || ' _ ' || (`city_id` + `country_id`) as a");
       done();
     });
-    it('Addition', function(done) {
+    it('Addition', function (done) {
       expect(
         formulaQueryBuilderFromString(
           'ADD(city_id,country_id,2,3,4,5,4)',
@@ -87,7 +87,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
       ).eq('`city_id` + `country_id` + 2 + 3 + 4 + 5 + 4 as a');
       done();
     });
-    it('Average', function(done) {
+    it('Average', function (done) {
       expect(
         formulaQueryBuilderFromString(
           'AVG(city_id,country_id,2,3,4,5,4)',

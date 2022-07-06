@@ -1,13 +1,13 @@
 import Knex from 'knex';
 
 const up = async (knex: Knex) => {
-  await knex.schema.alterTable('nc_relations', table => {
+  await knex.schema.alterTable('nc_relations', (table) => {
     table.string('fkn');
   });
 };
 
-const down = async knex => {
-  await knex.schema.alterTable('nc_relations', table => {
+const down = async (knex) => {
+  await knex.schema.alterTable('nc_relations', (table) => {
     table.dropColumns('fkn');
   });
 };

@@ -28,7 +28,7 @@ export const findObjectInArrayByKey = (key, value, objArray) => {
   return null;
 };
 
-export const round = function(number, precision) {
+export const round = function (number, precision) {
   const factor = Math.pow(10, precision);
   const tempNumber = number * factor;
   const roundedTempNumber = Math.round(tempNumber);
@@ -42,7 +42,7 @@ export const numberRound = (number, precision) => {
   return roundedTempNumber / factor;
 };
 
-export const numberGetLength = number => {
+export const numberGetLength = (number) => {
   let n = number;
 
   if (number < 0) {
@@ -52,12 +52,12 @@ export const numberGetLength = number => {
   return n.toString().length;
 };
 
-export const numberGetFixed = number => {
+export const numberGetFixed = (number) => {
   //console.log(number, typeof number);
   return parseInt(number.toFixed());
 };
 
-export const getStepArraySimple = function(min, max, step) {
+export const getStepArraySimple = function (min, max, step) {
   const arr = [];
   for (let i = min; i <= max; i = i + step) {
     arr.push(i);
@@ -111,7 +111,7 @@ export const getStepArray = (min, max, stddev) => {
   return arr;
 };
 
-export const getMysqlSchemaQuery = function() {
+export const getMysqlSchemaQuery = function () {
   return (
     'select ' +
     'c.table_name as tn, c.column_name as cn, c.ordinal_position as cop,' +
@@ -147,11 +147,11 @@ export const getMysqlSchemaQuery = function() {
   );
 };
 
-export const getChartQuery = function() {
+export const getChartQuery = function () {
   return 'select ? as ??, count(*) as _count from ?? where ?? between ? and ? ';
 };
 
-export const getDataType = function(colType, typesArr) {
+export const getDataType = function (colType, typesArr) {
   // console.log(colType,typesArr);
   for (let i = 0; i < typesArr.length; ++i) {
     if (colType.indexOf(typesArr[i]) !== -1) {
@@ -161,7 +161,7 @@ export const getDataType = function(colType, typesArr) {
   return 0;
 };
 
-export const getColumnType = function(column) {
+export const getColumnType = function (column) {
   const strTypes = [
     'varchar',
     'text',
@@ -186,7 +186,7 @@ export const getColumnType = function(column) {
     'raw',
     'long raw',
     'bfile',
-    'nclob'
+    'nclob',
   ];
   const intTypes = [
     'bit',
@@ -205,7 +205,7 @@ export const getColumnType = function(column) {
     'smallserial',
     'bool',
     'boolean',
-    'number'
+    'number',
   ];
   const floatTypes = [
     'float',
@@ -217,7 +217,7 @@ export const getColumnType = function(column) {
     'real',
     'money',
     'smallmoney',
-    'dec'
+    'dec',
   ];
   const dateTypes = [
     'date',
@@ -233,7 +233,7 @@ export const getColumnType = function(column) {
     'smalldatetime',
     'datetimeoffset',
     'interval year',
-    'interval day'
+    'interval day',
   ];
 
   // const rowIds = ['rowId', 'urowid'];
@@ -252,7 +252,7 @@ export const getColumnType = function(column) {
   }
 };
 
-export const getType = function(colType, typesArr) {
+export const getType = function (colType, typesArr) {
   // for (let i = 0; i < typesArr.length; ++i) {
   //   // if (typesArr[i].indexOf(colType) !== -1) {
   //   //   return 1;

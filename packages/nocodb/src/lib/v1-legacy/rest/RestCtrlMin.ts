@@ -65,7 +65,7 @@ export class RestCtrlMin {
   public async groupby(req: Request | any, res: Response): Promise<void> {
     const data = await req.model.groupBy({
       ...req.params,
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
@@ -73,28 +73,28 @@ export class RestCtrlMin {
   public async aggregate(req: Request | any, res: Response): Promise<void> {
     const data = await req.model.aggregate({
       ...req.params,
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
 
   public async count(req: Request | any, res: Response): Promise<void> {
     const data = await req.model.countByPk({
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
 
   public async distinct(req: Request | any, res): Promise<void> {
     const data = await req.model.distinct({
-      ...req.query
+      ...req.query,
     } as any);
     res.xcJson(data);
   }
 
   public async distribute(req: Request | any, res: Response): Promise<void> {
     const data = await req.model.distribution({
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
@@ -255,7 +255,7 @@ export class RestCtrlMin {
       '/api/v2/:_tn',
       (req: any, res: any, next) => {
         req.model = Object.values(this.models).find(
-          m => m._tn === req.params._tn
+          (m) => m._tn === req.params._tn
         );
         res.xcJson = res.json;
         next();

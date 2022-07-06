@@ -13,7 +13,7 @@ export function parseBody(template: string, data: any): string {
   }
 
   return Handlebars.compile(template, { noEscape: true })({
-    data
+    data,
   });
 }
 
@@ -26,7 +26,7 @@ export async function validateCondition(filters: Filter[], data: any) {
   for (const _filter of filters) {
     const filter = _filter instanceof Filter ? _filter : new Filter(_filter);
     let res;
-    const field = await filter.getColumn().then(c => c.title);
+    const field = await filter.getColumn().then((c) => c.title);
     let val = data[field];
     switch (typeof filter.value) {
       case 'boolean':
@@ -154,7 +154,7 @@ export function axiosRequestMake(_apiMeta, _user, data) {
           return headersObj;
         }, {})
       : {},
-    withCredentials: true
+    withCredentials: true,
   };
   return req;
 }
@@ -190,17 +190,19 @@ export async function invokeWebhook(
     switch (notification?.type) {
       case 'Email':
         {
-          const res = await (await NcPluginMgrv2.emailAdapter())?.mailSend({
+          const res = await (
+            await NcPluginMgrv2.emailAdapter()
+          )?.mailSend({
             to: parseBody(notification?.payload?.to, data),
             subject: parseBody(notification?.payload?.subject, data),
-            html: parseBody(notification?.payload?.body, data)
+            html: parseBody(notification?.payload?.body, data),
           });
           hookLog = {
             ...hook,
             type: notification.type,
             payload: JSON.stringify(notification?.payload),
             response: JSON.stringify(res),
-            triggered_by: user?.email
+            triggered_by: user?.email,
           };
         }
         break;
@@ -217,7 +219,7 @@ export async function invokeWebhook(
             type: notification.type,
             payload: JSON.stringify(notification?.payload),
             response: JSON.stringify(res),
-            triggered_by: user?.email
+            triggered_by: user?.email,
           };
         }
         break;
@@ -237,7 +239,7 @@ export async function invokeWebhook(
             type: notification.type,
             payload: JSON.stringify(notification?.payload),
             response: JSON.stringify(res),
-            triggered_by: user?.email
+            triggered_by: user?.email,
           };
         }
         break;
@@ -248,7 +250,7 @@ export async function invokeWebhook(
       ...hook,
       error_code: e.error_code,
       error_message: e.message,
-      error: JSON.stringify(e)
+      error: JSON.stringify(e),
     };
     if (throwErrorOnFailure) throw e;
   } finally {
@@ -281,7 +283,7 @@ export function _transformSubmittedFormDataForEmail(
         transformedData[col.title] = JSON.parse(transformedData[col.title]);
       }
       transformedData[col.title] = (transformedData[col.title] || [])
-        .map(attachment => {
+        .map((attachment) => {
           if (
             ['jpeg', 'gif', 'png', 'apng', 'svg', 'bmp', 'ico', 'jpg'].includes(
               attachment.title.split('.').pop()

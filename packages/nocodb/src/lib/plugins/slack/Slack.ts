@@ -10,7 +10,7 @@ export default class Slack implements IWebhookNotificationAdapter {
     for (const { webhook_url } of payload?.channels) {
       try {
         await axios.post(webhook_url, {
-          text
+          text,
         });
       } catch (e) {
         console.log(e);

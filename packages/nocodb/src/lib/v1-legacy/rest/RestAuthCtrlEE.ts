@@ -13,10 +13,10 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
     const emails = (req.body.email || '')
       .toLowerCase()
       .split(/\s*,\s*/)
-      .map(v => v.trim());
+      .map((v) => v.trim());
 
     // check for invalid emails
-    const invalidEmails = emails.filter(v => !validator.isEmail(v));
+    const invalidEmails = emails.filter((v) => !validator.isEmail(v));
     if (!emails.length) {
       return next(new Error('Invalid email address'));
     }
@@ -43,7 +43,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
       if (user) {
         await this.users
           .update({
-            roles: 'user'
+            roles: 'user',
           })
           .where({ roles: 'user_new', email });
 
@@ -64,7 +64,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
           op_sub_type: 'INVITE',
           user: req.user.email,
           description: `invited ${email} to ${req.body.project_id} project `,
-          ip: req.clientIp
+          ip: req.clientIp,
         });
       } else {
         try {
@@ -73,7 +73,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
             invite_token,
             invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
             email,
-            roles: 'user'
+            roles: 'user',
           });
 
           const { id } = await this.users.where({ email }).first();
@@ -92,7 +92,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
             op_sub_type: 'INVITE',
             user: req.user.email,
             description: `invited ${email} to ${req.body.project_id} project `,
-            ip: req.clientIp
+            ip: req.clientIp,
           });
           // in case of single user check for smtp failure
           // and send back token if failed
@@ -116,7 +116,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
 
     if (emails.length === 1) {
       res.json({
-        msg: 'success'
+        msg: 'success',
       });
     } else {
       return res.json({ invite_token, emails, error });
@@ -138,7 +138,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
     try {
       const user = await this.users
         .where({
-          id: req.params.id
+          id: req.params.id,
         })
         .first();
 
@@ -167,10 +167,10 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
         null,
         'nc_projects_users',
         {
-          roles: req.body.roles
+          roles: req.body.roles,
         },
         {
-          user_id: req.params.id
+          user_id: req.params.id,
           // email: req.body.email
         }
       );
@@ -182,11 +182,11 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
         op_sub_type: 'ROLES_MANAGEMENT',
         user: req.user.email,
         description: `updated roles for ${user.email} with ${req.body.roles} `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
 
       res.json({
-        msg: 'User details updated successfully'
+        msg: 'User details updated successfully',
       });
     } catch (e) {
       next(e);
@@ -198,7 +198,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
       new Strategy(
         {
           ...this.jwtOptions,
-          passReqToCallback: true
+          passReqToCallback: true,
         },
         (req, jwtPayload, done) => {
           const keyVals = [jwtPayload?.email];
@@ -213,16 +213,16 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
 
           this.users
             .where({
-              email: jwtPayload?.email
+              email: jwtPayload?.email,
             })
             .first()
-            .then(user => {
+            .then((user) => {
               if (req.ncProjectId) {
                 this.xcMeta
                   .metaGet(req.ncProjectId, null, 'nc_projects_users', {
-                    user_id: user?.id
+                    user_id: user?.id,
                   })
-                  .then(projectUser => {
+                  .then((projectUser) => {
                     user.roles = projectUser.roles;
                     user.roles =
                       user.roles === 'owner' ? 'owner,creator' : user.roles;
@@ -239,7 +239,7 @@ export default class RestAuthCtrlEE extends RestAuthCtrl {
                 }
               }
             })
-            .catch(err => {
+            .catch((err) => {
               return done(err);
             });
         }

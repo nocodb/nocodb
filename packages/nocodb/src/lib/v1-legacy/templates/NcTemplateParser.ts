@@ -5,7 +5,7 @@ import {
   PgUi,
   SqliteUi,
   SqlUiFactory,
-  UITypes
+  UITypes,
 } from 'nocodb-sdk';
 
 export default class NcTemplateParser {
@@ -34,11 +34,11 @@ export default class NcTemplateParser {
   public parse(template?: any): any {
     const tables = [];
     this.template = template || this.template;
-    const tableTemplates = this.template.tables.map(tableTemplate => {
+    const tableTemplates = this.template.tables.map((tableTemplate) => {
       const t = {
         ...tableTemplate,
         tn: this.getTable(tableTemplate.tn),
-        _tn: tableTemplate._tn || tableTemplate.tn
+        _tn: tableTemplate._tn || tableTemplate.tn,
       };
       const table = this.extractTable(t);
       tables.push(table);
@@ -61,10 +61,10 @@ export default class NcTemplateParser {
     const defaultColumns = this.sqlUi
       .getNewTableColumns()
       .filter(
-        column =>
+        (column) =>
           column.cn !== 'title' &&
           (column.uidt !== 'ID' ||
-            tableTemplate.columns.every(c => c.uidt !== 'ID'))
+            tableTemplate.columns.every((c) => c.uidt !== 'ID'))
       );
 
     return {
@@ -73,8 +73,8 @@ export default class NcTemplateParser {
       columns: [
         defaultColumns[0],
         ...this.extractTableColumns(tableTemplate.columns),
-        ...defaultColumns.slice(1)
-      ]
+        ...defaultColumns.slice(1),
+      ],
     };
   }
 
@@ -109,7 +109,7 @@ export default class NcTemplateParser {
               dtxs: this.sqlUi.getDefaultScaleForDatatype(colProp.dt),
               ...colProp,
               _cn: tableColumn.cn,
-              ...tableColumn
+              ...tableColumn,
             });
           }
           break;
@@ -123,13 +123,13 @@ export default class NcTemplateParser {
     if (!this._m2mRelations) this._m2mRelations = [];
     for (const hasMany of tableTemplate.hasMany || []) {
       const childTable = this.tables.find(
-        table => table.tn === this.getTable(hasMany.tn)
+        (table) => table.tn === this.getTable(hasMany.tn)
       );
       const parentTable = this.tables.find(
-        table => table.tn === tableTemplate.tn
+        (table) => table.tn === tableTemplate.tn
       );
       const parentPrimaryColumn = parentTable.columns.find(
-        column => column.uidt === UITypes.ID
+        (column) => column.uidt === UITypes.ID
       );
       //
       // // if duplicate relation ignore
@@ -160,7 +160,7 @@ export default class NcTemplateParser {
         dtxp: parentPrimaryColumn.dtxp,
         dtxs: parentPrimaryColumn.dtxs,
         un: parentPrimaryColumn.un,
-        altered: 1
+        altered: 1,
       });
 
       // add relation create entry
@@ -172,27 +172,27 @@ export default class NcTemplateParser {
         parentColumn: parentPrimaryColumn.cn,
         parentTable: tableTemplate.tn,
         type: this.client === 'sqlite3' ? 'virtual' : 'real',
-        updateRelation: false
+        updateRelation: false,
       });
     }
     for (const manyToMany of tableTemplate.manyToMany || []) {
       // @ts-ignore
       const childTable = this.tables.find(
-        table => table.tn === this.getTable(manyToMany.rtn)
+        (table) => table.tn === this.getTable(manyToMany.rtn)
       );
       const parentTable = this.tables.find(
-        table => table.tn === tableTemplate.tn
+        (table) => table.tn === tableTemplate.tn
       );
       const parentPrimaryColumn = parentTable.columns.find(
-        column => column.uidt === UITypes.ID
+        (column) => column.uidt === UITypes.ID
       );
       const childPrimaryColumn = childTable.columns.find(
-        column => column.uidt === UITypes.ID
+        (column) => column.uidt === UITypes.ID
       );
 
       // if duplicate relation ignore
       if (
-        this._m2mRelations.some(mm => {
+        this._m2mRelations.some((mm) => {
           return (
             (mm.childTable === childTable.tn &&
               mm.parentTable === parentTable.tn) ||
@@ -214,7 +214,7 @@ export default class NcTemplateParser {
         parentColumn: parentPrimaryColumn.cn,
         parentTable: parentTable.tn,
         type: this.client === 'sqlite3' ? 'virtual' : 'real',
-        updateRelation: false
+        updateRelation: false,
       });
     }
   }

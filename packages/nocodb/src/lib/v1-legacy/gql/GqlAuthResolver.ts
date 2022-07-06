@@ -19,7 +19,7 @@ const autoBind = require('auto-bind');
 const { isEmail } = require('validator');
 // import swaggerUi from 'swagger-ui-express';
 
-passport.serializeUser(function(
+passport.serializeUser(function (
   { id, email, email_verified, roles, provider, firstname, lastname },
   done
 ) {
@@ -32,11 +32,11 @@ passport.serializeUser(function(
     lastname,
     roles: (roles || '')
       .split(',')
-      .reduce((obj, role) => ({ ...obj, [role]: true }), {})
+      .reduce((obj, role) => ({ ...obj, [role]: true }), {}),
   });
 });
 
-passport.deserializeUser(function(user, done) {
+passport.deserializeUser(function (user, done) {
   done(null, user);
 });
 
@@ -83,33 +83,33 @@ export default class GqlAuthResolver {
 
     const apiPrefix = this.connectionConfig?.meta?.api?.prefix || 'v1';
 
-    this.app.router.get('/password/reset/:token', function(req, res) {
+    this.app.router.get('/password/reset/:token', function (req, res) {
       res.render(__dirname + '/auth/resetPassword', {
         token: JSON.stringify(req.params?.token),
-        baseUrl: `/api/${apiPrefix}/`
+        baseUrl: `/api/${apiPrefix}/`,
       });
     });
-    this.app.router.get('/email/verify/:token', function(req, res) {
+    this.app.router.get('/email/verify/:token', function (req, res) {
       res.render(__dirname + '/auth/emailVerify', {
         token: JSON.stringify(req.params?.token),
-        baseUrl: `/api/${apiPrefix}/`
+        baseUrl: `/api/${apiPrefix}/`,
       });
     });
 
-    this.app.router.get('/signin', function(_req, res) {
+    this.app.router.get('/signin', function (_req, res) {
       res.render(__dirname + '/auth/signin', {
-        baseUrl: `/api/${apiPrefix}/`
+        baseUrl: `/api/${apiPrefix}/`,
       });
     });
 
-    this.app.router.get('/signup', function(_req, res) {
+    this.app.router.get('/signup', function (_req, res) {
       res.render(__dirname + '/auth/signup', {
-        baseUrl: `/api/${apiPrefix}/`
+        baseUrl: `/api/${apiPrefix}/`,
       });
     });
 
     this.app.router.use(async (req, res, next) => {
-      const user = await new Promise(resolve => {
+      const user = await new Promise((resolve) => {
         passport.authenticate(
           'jwt',
           { session: false },
@@ -134,17 +134,17 @@ export default class GqlAuthResolver {
       new Strategy(this.jwtOptions, (jwt_payload, done) => {
         this.users
           .where({
-            email: jwt_payload?.email
+            email: jwt_payload?.email,
           })
           .first()
-          .then(user => {
+          .then((user) => {
             if (user) {
               return done(null, user);
             } else {
               return done(new Error('User not found'));
             }
           })
-          .catch(err => {
+          .catch((err) => {
             return done(err);
           });
       })
@@ -154,9 +154,9 @@ export default class GqlAuthResolver {
       new PassportLocalStrategy(
         {
           usernameField: 'email',
-          session: false
+          session: false,
         },
-        async function(email, password, done) {
+        async function (email, password, done) {
           try {
             const user = await self.users.where({ email }).first();
             if (!user) {
@@ -190,8 +190,8 @@ export default class GqlAuthResolver {
         PasswordReset: this.passwordReset,
         EmailValidate: this.emailVerification,
         TokenVerify: this.tokenValidate,
-        ChangePassword: this.passwordChange
-      })
+        ChangePassword: this.passwordChange,
+      }),
     };
   }
 
@@ -226,11 +226,11 @@ export default class GqlAuthResolver {
                   firstname: user.firstname,
                   lastname: user.lastname,
                   id: user.id,
-                  roles: user.roles
+                  roles: user.roles,
                 },
                 this.jwtOptions.secretOrKey,
                 this.config?.auth?.jwt?.options
-              )
+              ),
             });
           } catch (e) {
             console.log(e);
@@ -251,7 +251,7 @@ export default class GqlAuthResolver {
 
     let user = await this.users
       .where({
-        email
+        email,
       })
       .first();
 
@@ -273,12 +273,12 @@ export default class GqlAuthResolver {
       email,
       salt,
       password,
-      email_verification_token
+      email_verification_token,
     });
 
     user = await this.users
       .where({
-        email
+        email,
       })
       .first();
 
@@ -288,8 +288,8 @@ export default class GqlAuthResolver {
         to: email,
         subject: 'Verify email',
         html: ejs.render(template, {
-          verifyLink: `${req.ncSiteUrl}/email/verify/${user.email_verification_token}`
-        })
+          verifyLink: `${req.ncSiteUrl}/email/verify/${user.email_verification_token}`,
+        }),
       });
     } catch (e) {
       console.log(
@@ -307,11 +307,11 @@ export default class GqlAuthResolver {
           firstname: user.firstname,
           lastname: user.lastname,
           id: user.id,
-          roles: user.roles
+          roles: user.roles,
         },
         this.jwtOptions.secretOrKey,
         this.config?.auth?.jwt?.options
-      )
+      ),
     };
   }
 
@@ -333,7 +333,7 @@ export default class GqlAuthResolver {
     await this.users
       .update({
         reset_password_token: token,
-        reset_password_expires: new Date(Date.now() + 60 * 60 * 1000)
+        reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
       })
       .where({ id: user.id });
 
@@ -345,8 +345,8 @@ export default class GqlAuthResolver {
         subject: 'Password Reset Link',
         text: `Visit following link to update your password : ${req.ncSiteUrl}/password/reset/${token}.`,
         html: ejs.render(template, {
-          resetLink: `${req.ncSiteUrl}/password/reset/${token}`
-        })
+          resetLink: `${req.ncSiteUrl}/password/reset/${token}`,
+        }),
       });
     } catch (e) {
       console.log(
@@ -397,10 +397,10 @@ export default class GqlAuthResolver {
         salt,
         password,
         reset_password_expires: null,
-        reset_password_token: ''
+        reset_password_token: '',
       })
       .where({
-        id: user.id
+        id: user.id,
       });
 
     return true;
@@ -430,7 +430,7 @@ export default class GqlAuthResolver {
     await this.users
       .update({
         salt,
-        password
+        password,
       })
       .where({ id: user.id });
 
@@ -449,7 +449,7 @@ export default class GqlAuthResolver {
     await this.users
       .update({
         email_verification_token: '',
-        email_verified: true
+        email_verified: true,
       })
       .where({ id: user.id });
 
@@ -464,17 +464,17 @@ export default class GqlAuthResolver {
     await this.users
       .update({
         firstname: req.body.firstname,
-        lastname: req.body.lastname
+        lastname: req.body.lastname,
       })
       .where({
-        id: req.user.id
+        id: req.user.id,
       });
     res.json({ msg: 'Updated successfully' });
   }
 
   private async createTableIfNotExist() {
     if (!(await this.dbDriver.schema.hasTable('xc_users'))) {
-      await this.dbDriver.schema.createTable('xc_users', function(table) {
+      await this.dbDriver.schema.createTable('xc_users', function (table) {
         table.increments();
         table.string('email');
         table.string('password', 255);

@@ -59,11 +59,11 @@ class PGClient extends KnexClient {
 
       await this.sqlClient.raw(`create user ? with encrypted password ?`, [
         args.user,
-        args.password
+        args.password,
       ]);
       await this.sqlClient.raw(`grant all privileges on database ?? to ?`, [
         args.schema,
-        args.user
+        args.user,
       ]);
 
       log.debug('Create database if not exists', data);
@@ -101,9 +101,11 @@ class PGClient extends KnexClient {
         upStatement: [{ sql: query }],
         downStatement: [
           {
-            sql: `${this.querySeparator()}CREATE SEQUENCE ${args.sequence_name}`
-          }
-        ]
+            sql: `${this.querySeparator()}CREATE SEQUENCE ${
+              args.sequence_name
+            }`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -139,10 +141,10 @@ class PGClient extends KnexClient {
       const { rows } = await this.raw(`select *
               from INFORMATION_SCHEMA.sequences;`);
 
-      result.data.list = rows.map(seq => {
+      result.data.list = rows.map((seq) => {
         return {
           ...seq,
-          original_sequence_name: seq.sequence_name
+          original_sequence_name: seq.sequence_name,
         };
       });
     } catch (e) {
@@ -176,8 +178,10 @@ class PGClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: query }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP SEQUENCE ${args.sequence_name}` }
-        ]
+          {
+            sql: this.querySeparator() + `DROP SEQUENCE ${args.sequence_name}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -213,7 +217,7 @@ class PGClient extends KnexClient {
       await this.sqlClient.raw(upQuery);
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -380,7 +384,7 @@ class PGClient extends KnexClient {
       'unknown',
       'void',
       'xid',
-      'xml'
+      'xml',
     ];
 
     return result;
@@ -474,7 +478,7 @@ class PGClient extends KnexClient {
           (this.connectionConfig.searchPath &&
             this.connectionConfig.searchPath[0]) ||
             'public',
-          this.connectionConfig.connection.user
+          this.connectionConfig.connection.user,
         ]
       );
       // }
@@ -541,19 +545,20 @@ class PGClient extends KnexClient {
       );
 
       if (exists.rows.length === 0) {
-        const data = await this.sqlClient.schema.createTable(args.tn, function(
-          table
-        ) {
-          table.increments();
-          table.string('title').notNullable();
-          table.string('titleDown').nullable();
-          table.string('description').nullable();
-          table.integer('batch').nullable();
-          table.string('checksum').nullable();
-          table.integer('status').nullable();
-          table.dateTime('created');
-          table.timestamps();
-        });
+        const data = await this.sqlClient.schema.createTable(
+          args.tn,
+          function (table) {
+            table.increments();
+            table.string('title').notNullable();
+            table.string('titleDown').nullable();
+            table.string('description').nullable();
+            table.integer('batch').nullable();
+            table.string('checksum').nullable();
+            table.integer('status').nullable();
+            table.dateTime('created');
+            table.timestamps();
+          }
+        );
         log.debug('Table created:', `${args.tn}`, data);
       } else {
         log.debug(`${args.tn} tables exists`);
@@ -596,9 +601,7 @@ class PGClient extends KnexClient {
     log.api(`${_func}:args:`, args);
 
     try {
-      const {
-        rows
-      } = await this.sqlClient.raw(
+      const { rows } = await this.sqlClient.raw(
         `SELECT table_schema,table_name as tn, table_catalog FROM information_schema.tables where table_schema=? and table_name = '${args.tn}' and table_catalog = '${this.connectionConfig.connection.database}'`,
         [this.schema]
       );
@@ -1077,7 +1080,7 @@ class PGClient extends KnexClient {
         c: 'CASCADE',
         r: 'RESTRICT',
         n: 'SET NULL',
-        d: 'SET DEFAULT'
+        d: 'SET DEFAULT',
       };
 
       for (const row of rows) {
@@ -1148,7 +1151,7 @@ class PGClient extends KnexClient {
         c: 'CASCADE',
         r: 'RESTRICT',
         n: 'SET NULL',
-        d: 'SET DEFAULT'
+        d: 'SET DEFAULT',
       };
 
       for (const row of rows) {
@@ -1191,9 +1194,7 @@ class PGClient extends KnexClient {
     try {
       args.databaseName = this.connectionConfig.connection.database;
 
-      const {
-        rows
-      } = await this.sqlClient.raw(
+      const { rows } = await this.sqlClient.raw(
         `select * from information_schema.triggers where trigger_schema=? and event_object_table='${args.tn}'`,
         [this.schema]
       );
@@ -1252,7 +1253,7 @@ class PGClient extends KnexClient {
         if (!('prokind' in rows[i]) || rows[i].prokind !== 'p')
           functionRows.push({
             create_function: rows[i].prosrc,
-            function_name: rows[i].proname
+            function_name: rows[i].proname,
           });
       }
 
@@ -1307,7 +1308,7 @@ class PGClient extends KnexClient {
         if ('prokind' in rows[i] && rows[i].prokind === 'p')
           procedureRows.push({
             create_procedure: rows[i].prosrc,
-            procedure_name: rows[i].proname
+            procedure_name: rows[i].proname,
           });
       }
 
@@ -1553,7 +1554,7 @@ class PGClient extends KnexClient {
     try {
       const upQuery = this.genQuery(`DROP TRIGGER IF EXISTS ?? ON ??`, [
         args.trigger_name,
-        args.tn
+        args.tn,
       ]);
       await this.sqlClient.raw(upQuery);
       result.data.object = {
@@ -1565,9 +1566,9 @@ class PGClient extends KnexClient {
               this.genQuery(
                 `CREATE TRIGGER ?? \n${args.timing} ${args.event}\nON ?? FOR EACH ROW\n${args.statement}`,
                 [args.trigger_name, args.tn]
-              )
-          }
-        ]
+              ),
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1599,7 +1600,7 @@ class PGClient extends KnexClient {
       await this.sqlClient.raw(upQuery);
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1679,7 +1680,7 @@ class PGClient extends KnexClient {
       await this.sqlClient.raw(upQuery);
 
       const functionCreated = await this.functionRead({
-        function_name: args.function_name
+        function_name: args.function_name,
       });
 
       const downQuery =
@@ -1688,7 +1689,7 @@ class PGClient extends KnexClient {
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1722,7 +1723,7 @@ class PGClient extends KnexClient {
       await this.sqlClient.raw(upQuery);
 
       const functionCreated = await this.functionRead({
-        function_name: args.function_name
+        function_name: args.function_name,
       });
 
       downQuery =
@@ -1731,7 +1732,7 @@ class PGClient extends KnexClient {
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1767,7 +1768,7 @@ class PGClient extends KnexClient {
         `DROP PROCEDURE IF EXISTS ${args.procedure_name}`;
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1804,7 +1805,7 @@ class PGClient extends KnexClient {
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: ';' }]
+        downStatement: [{ sql: ';' }],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1836,8 +1837,8 @@ class PGClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: upQuery }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP TRIGGER ${args.trigger_name}` }
-        ]
+          { sql: this.querySeparator() + `DROP TRIGGER ${args.trigger_name}` },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1880,7 +1881,7 @@ class PGClient extends KnexClient {
           } ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.statement}`,
         downStatement:
           this.querySeparator() +
-          `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.oldStatement}`
+          `CREATE TRIGGER ${args.trigger_name} \n${args.timing} ${args.event}\nON "${args.tn}" FOR EACH ROW\n${args.oldStatement}`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1909,8 +1910,8 @@ class PGClient extends KnexClient {
       result.data.object = {
         upStatement: [{ sql: this.querySeparator() + query }],
         downStatement: [
-          { sql: this.querySeparator() + `DROP VIEW "${args.view_name}"` }
-        ]
+          { sql: this.querySeparator() + `DROP VIEW "${args.view_name}"` },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1941,7 +1942,7 @@ class PGClient extends KnexClient {
         upStatement: this.querySeparator() + query,
         downStatement:
           this.querySeparator() +
-          `CREATE VIEW "${args.view_name}" AS \n${args.oldViewDefination}`
+          `CREATE VIEW "${args.view_name}" AS \n${args.oldViewDefination}`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1976,9 +1977,9 @@ class PGClient extends KnexClient {
           {
             sql:
               this.querySeparator() +
-              `CREATE VIEW "${args.view_name}" AS \n${args.oldViewDefination}`
-          }
-        ]
+              `CREATE VIEW "${args.view_name}" AS \n${args.oldViewDefination}`,
+          },
+        ],
       };
     } catch (e) {
       log.ppe(e, func);
@@ -2046,8 +2047,8 @@ class PGClient extends KnexClient {
         upStatement: [{ sql: upQuery }, ...triggerStatements.upStatement],
         downStatement: [
           ...triggerStatements.downStatement,
-          { sql: downStatement }
-        ]
+          { sql: downStatement },
+        ],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2095,7 +2096,7 @@ class PGClient extends KnexClient {
           this.querySeparator() +
           this.genQuery(`DROP TRIGGER IF EXISTS ?? ON ??;`, [
             triggerName,
-            args.tn
+            args.tn,
           ]) +
           this.querySeparator() +
           this.genQuery(`DROP FUNCTION IF EXISTS ??()`, [triggerFnName]);
@@ -2146,7 +2147,7 @@ class PGClient extends KnexClient {
           this.querySeparator() +
           this.genQuery(`DROP TRIGGER IF EXISTS ?? ON ??;`, [
             triggerName,
-            args.tn
+            args.tn,
           ]) +
           this.querySeparator() +
           this.genQuery(`DROP FUNCTION IF EXISTS ??()`, [triggerFnName]);
@@ -2202,7 +2203,7 @@ class PGClient extends KnexClient {
 
       for (let i = 0; i < args.columns.length; ++i) {
         const oldColumn = lodash.find(originalColumns, {
-          cn: args.columns[i].cno
+          cn: args.columns[i].cno,
         });
 
         if (args.columns[i].altered & 4) {
@@ -2281,12 +2282,12 @@ class PGClient extends KnexClient {
       result.data.object = {
         upStatement: [
           { sql: this.querySeparator() + upQuery },
-          ...afterUpdate.upStatement
+          ...afterUpdate.upStatement,
         ],
         downStatement: [
           ...afterUpdate.downStatement,
-          { sql: this.querySeparator() + downQuery }
-        ]
+          { sql: this.querySeparator() + downQuery },
+        ],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2339,7 +2340,7 @@ class PGClient extends KnexClient {
         downQuery +=
           this.querySeparator() +
           (await this.sqlClient.schema
-            .table(relation.tn, function(table) {
+            .table(relation.tn, function (table) {
               table = table
                 .foreign(relation.cn, null)
                 .references(relation.rcn)
@@ -2369,7 +2370,7 @@ class PGClient extends KnexClient {
             tn: args.tn,
             indexName: key_name,
             non_unique,
-            columns: []
+            columns: [],
           };
         }
         indexesMap[key_name].columns.push(cn);
@@ -2381,7 +2382,7 @@ class PGClient extends KnexClient {
         downQuery +=
           this.querySeparator() +
           this.sqlClient.schema
-            .table(tn, function(table) {
+            .table(tn, function (table) {
               if (non_unique) {
                 table.index(columns, indexName);
               } else {
@@ -2399,7 +2400,7 @@ class PGClient extends KnexClient {
       /** ************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: this.querySeparator() + downQuery }]
+        downStatement: [{ sql: this.querySeparator() + downQuery }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2424,7 +2425,7 @@ class PGClient extends KnexClient {
       result = await this.columnList(args);
       const upQuery = this.createTable(args.tn, {
         tn: args.tn,
-        columns: result.data.list
+        columns: result.data.list,
       });
       result.data = upQuery;
     } catch (e) {
@@ -2618,7 +2619,7 @@ class PGClient extends KnexClient {
       query += numOfPksInOriginal.length
         ? this.genQuery(`alter TABLE ?? drop constraint IF EXISTS ??;`, [
             t,
-            `${t}_pkey`
+            `${t}_pkey`,
           ])
         : '';
       if (numOfPksInNew.length) {

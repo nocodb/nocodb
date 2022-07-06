@@ -14,7 +14,7 @@ export async function dataList(req: Request, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
+    id: view?.fk_model_id || req.params.viewId,
   });
 
   if (!model) return next(new Error('Table not found'));
@@ -26,7 +26,7 @@ export async function mmList(req: Request, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
+    id: view?.fk_model_id || req.params.viewId,
   });
 
   if (!model) return next(new Error('Table not found'));
@@ -36,27 +36,27 @@ export async function mmList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const key = `${model.title}List`;
   const requestObj: any = {
-    [key]: 1
+    [key]: 1,
   };
 
   const data = (
     await nocoExecute(
       requestObj,
       {
-        [key]: async args => {
+        [key]: async (args) => {
           return await baseModel.mmList(
             {
               colId: req.params.colId,
-              parentId: req.params.rowId
+              parentId: req.params.rowId,
             },
             args
           );
-        }
+        },
       },
       {},
 
@@ -66,13 +66,13 @@ export async function mmList(req: Request, res: Response, next) {
 
   const count: any = await baseModel.mmListCount({
     colId: req.params.colId,
-    parentId: req.params.rowId
+    parentId: req.params.rowId,
   });
 
   res.json(
     new PagedResponseImpl(data, {
       count,
-      ...req.query
+      ...req.query,
     })
   );
 }
@@ -81,7 +81,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
+    id: view?.fk_model_id || req.params.viewId,
   });
 
   if (!model) return next(new Error('Table not found'));
@@ -91,27 +91,27 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const key = 'List';
   const requestObj: any = {
-    [key]: 1
+    [key]: 1,
   };
 
   const data = (
     await nocoExecute(
       requestObj,
       {
-        [key]: async args => {
+        [key]: async (args) => {
           return await baseModel.getMmChildrenExcludedList(
             {
               colId: req.params.colId,
-              pid: req.params.rowId
+              pid: req.params.rowId,
             },
             args
           );
-        }
+        },
       },
       {},
 
@@ -122,7 +122,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   const count = await baseModel.getMmChildrenExcludedListCount(
     {
       colId: req.params.colId,
-      pid: req.params.rowId
+      pid: req.params.rowId,
     },
     req.query
   );
@@ -130,7 +130,7 @@ export async function mmExcludedList(req: Request, res: Response, next) {
   res.json(
     new PagedResponseImpl(data, {
       count,
-      ...req.query
+      ...req.query,
     })
   );
 }
@@ -139,7 +139,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
+    id: view?.fk_model_id || req.params.viewId,
   });
 
   if (!model) return next(new Error('Table not found'));
@@ -149,27 +149,27 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const key = 'List';
   const requestObj: any = {
-    [key]: 1
+    [key]: 1,
   };
 
   const data = (
     await nocoExecute(
       requestObj,
       {
-        [key]: async args => {
+        [key]: async (args) => {
           return await baseModel.getHmChildrenExcludedList(
             {
               colId: req.params.colId,
-              pid: req.params.rowId
+              pid: req.params.rowId,
             },
             args
           );
-        }
+        },
       },
       {},
 
@@ -180,7 +180,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   const count = await baseModel.getHmChildrenExcludedListCount(
     {
       colId: req.params.colId,
-      pid: req.params.rowId
+      pid: req.params.rowId,
     },
     req.query
   );
@@ -188,7 +188,7 @@ export async function hmExcludedList(req: Request, res: Response, next) {
   res.json(
     new PagedResponseImpl(data, {
       count,
-      ...req.query
+      ...req.query,
     })
   );
 }
@@ -197,7 +197,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
+    id: view?.fk_model_id || req.params.viewId,
   });
 
   if (!model) return next(new Error('Table not found'));
@@ -207,27 +207,27 @@ export async function btExcludedList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const key = 'List';
   const requestObj: any = {
-    [key]: 1
+    [key]: 1,
   };
 
   const data = (
     await nocoExecute(
       requestObj,
       {
-        [key]: async args => {
+        [key]: async (args) => {
           return await baseModel.getBtChildrenExcludedList(
             {
               colId: req.params.colId,
-              cid: req.params.rowId
+              cid: req.params.rowId,
             },
             args
           );
-        }
+        },
       },
       {},
 
@@ -238,7 +238,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   const count = await baseModel.getBtChildrenExcludedListCount(
     {
       colId: req.params.colId,
-      cid: req.params.rowId
+      cid: req.params.rowId,
     },
     req.query
   );
@@ -246,7 +246,7 @@ export async function btExcludedList(req: Request, res: Response, next) {
   res.json(
     new PagedResponseImpl(data, {
       count,
-      ...req.query
+      ...req.query,
     })
   );
 }
@@ -255,7 +255,7 @@ export async function hmList(req: Request, res: Response, next) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
+    id: view?.fk_model_id || req.params.viewId,
   });
 
   if (!model) return next(new Error('Table not found'));
@@ -265,27 +265,27 @@ export async function hmList(req: Request, res: Response, next) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const key = `${model.title}List`;
   const requestObj: any = {
-    [key]: 1
+    [key]: 1,
   };
 
   const data = (
     await nocoExecute(
       requestObj,
       {
-        [key]: async args => {
+        [key]: async (args) => {
           return await baseModel.hmList(
             {
               colId: req.params.colId,
-              id: req.params.rowId
+              id: req.params.rowId,
             },
             args
           );
-        }
+        },
       },
       {},
       { nested: { [key]: req.query } }
@@ -294,12 +294,12 @@ export async function hmList(req: Request, res: Response, next) {
 
   const count = await baseModel.hmListCount({
     colId: req.params.colId,
-    id: req.params.rowId
+    id: req.params.rowId,
   });
 
   res.json(
     new PagedResponseImpl(data, {
-      totalRows: count
+      totalRows: count,
     } as any)
   );
 }
@@ -307,7 +307,7 @@ export async function hmList(req: Request, res: Response, next) {
 async function dataRead(req: Request, res: Response, next) {
   try {
     const model = await Model.getByIdOrName({
-      id: req.params.viewId
+      id: req.params.viewId,
     });
     if (!model) return next(new Error('Table not found'));
 
@@ -315,7 +315,7 @@ async function dataRead(req: Request, res: Response, next) {
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
-      dbDriver: NcConnectionMgrv2.get(base)
+      dbDriver: NcConnectionMgrv2.get(base),
     });
 
     res.json(
@@ -335,7 +335,7 @@ async function dataRead(req: Request, res: Response, next) {
 async function dataInsert(req: Request, res: Response, next) {
   try {
     const model = await Model.getByIdOrName({
-      id: req.params.viewId
+      id: req.params.viewId,
     });
     if (!model) return next(new Error('Table not found'));
 
@@ -343,7 +343,7 @@ async function dataInsert(req: Request, res: Response, next) {
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
-      dbDriver: NcConnectionMgrv2.get(base)
+      dbDriver: NcConnectionMgrv2.get(base),
     });
 
     res.json(await baseModel.insert(req.body, null, req));
@@ -382,7 +382,7 @@ async function dataInsert(req: Request, res: Response, next) {
 async function dataUpdate(req: Request, res: Response, next) {
   try {
     const model = await Model.getByIdOrName({
-      id: req.params.viewId
+      id: req.params.viewId,
     });
     if (!model) return next(new Error('Table not found'));
 
@@ -390,7 +390,7 @@ async function dataUpdate(req: Request, res: Response, next) {
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
-      dbDriver: NcConnectionMgrv2.get(base)
+      dbDriver: NcConnectionMgrv2.get(base),
     });
 
     res.json(await baseModel.updateByPk(req.params.rowId, req.body, null, req));
@@ -415,7 +415,7 @@ async function dataUpdate(req: Request, res: Response, next) {
 async function dataDelete(req: Request, res: Response, next) {
   try {
     const model = await Model.getByIdOrName({
-      id: req.params.viewId
+      id: req.params.viewId,
     });
     if (!model) return next(new Error('Table not found'));
 
@@ -423,7 +423,7 @@ async function dataDelete(req: Request, res: Response, next) {
 
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
-      dbDriver: NcConnectionMgrv2.get(base)
+      dbDriver: NcConnectionMgrv2.get(base),
     });
 
     res.json(await baseModel.delByPk(req.params.rowId, null, req));
@@ -439,7 +439,7 @@ async function getDataList(model, view: View, req) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({ query: req.query, model, view });
@@ -463,7 +463,7 @@ async function getDataList(model, view: View, req) {
 
   return new PagedResponseImpl(data, {
     count,
-    ...req.query
+    ...req.query,
   });
 }
 //@ts-ignore
@@ -471,7 +471,7 @@ async function relationDataDelete(req, res) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
+    id: view?.fk_model_id || req.params.viewId,
   });
 
   if (!model) NcError.notFound('Table not found');
@@ -481,13 +481,13 @@ async function relationDataDelete(req, res) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   await baseModel.removeChild({
     colId: req.params.colId,
     childId: req.params.childId,
-    rowId: req.params.rowId
+    rowId: req.params.rowId,
   });
 
   res.json({ msg: 'success' });
@@ -498,7 +498,7 @@ async function relationDataAdd(req, res) {
   const view = await View.get(req.params.viewId);
 
   const model = await Model.getByIdOrName({
-    id: view?.fk_model_id || req.params.viewId
+    id: view?.fk_model_id || req.params.viewId,
   });
 
   if (!model) NcError.notFound('Table not found');
@@ -508,13 +508,13 @@ async function relationDataAdd(req, res) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   await baseModel.addChild({
     colId: req.params.colId,
     childId: req.params.childId,
-    rowId: req.params.rowId
+    rowId: req.params.rowId,
   });
 
   res.json({ msg: 'success' });

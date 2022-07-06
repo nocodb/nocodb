@@ -14,24 +14,24 @@ async function swaggerJson(req, res) {
 
   const models = await Model.list({
     project_id: req.params.projectId,
-    base_id: null
+    base_id: null,
   });
 
   const swagger = await getSwaggerJSON(project, models);
 
   swagger.servers = [
     {
-      url: req.ncSiteUrl
+      url: req.ncSiteUrl,
     },
     {
       url: '{customUrl}',
       variables: {
         customUrl: {
           default: req.ncSiteUrl,
-          description: 'Provide custom nocodb app base url'
-        }
-      }
-    }
+          description: 'Provide custom nocodb app base url',
+        },
+      },
+    },
   ] as any;
 
   res.json(swagger);

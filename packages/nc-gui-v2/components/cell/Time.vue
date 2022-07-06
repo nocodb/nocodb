@@ -1,7 +1,3 @@
-<template>
-  <span>{{ time }}</span>
-</template>
-
 <script>
 export default {
   name: 'TimeCell',
@@ -9,11 +5,13 @@ export default {
   computed: {
     time() {
       return typeof this.value === 'string' ? this.value.replace(/(\d)T(?=\d)/, '$1 ') : this.value
-    }
-  }
+    },
+  },
 }
 </script>
 
-<style scoped>
+<template>
+  <span>{{ time }}</span>
+</template>
 
-</style>
+<style scoped></style>

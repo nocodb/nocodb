@@ -1,3 +1,51 @@
+<script>
+export default {
+  name: 'TextAreaCell',
+  props: {
+    value: String,
+    isForm: Boolean,
+  },
+  data: () => ({
+    localState: '',
+  }),
+  computed: {
+    parentListeners() {
+      const $listeners = {}
+
+      if (this.$listeners.blur) {
+        $listeners.blur = this.$listeners.blur
+      }
+      if (this.$listeners.focus) {
+        $listeners.focus = this.$listeners.focus
+      }
+
+      return $listeners
+    },
+  },
+  watch: {
+    value(val) {
+      this.localState = val
+    },
+    localState(val) {
+      if (this.isForm) {
+        this.$emit('input', val)
+      }
+    },
+  },
+  created() {
+    this.localState = this.value
+  },
+  mounted() {
+    this.$refs.textarea && this.$refs.textarea.focus()
+  },
+  methods: {
+    save() {
+      this.$emit('input', this.localState)
+    },
+  },
+}
+</script>
+
 <template>
   <div>
     <div v-if="!isForm" class="d-flex ma-1">
@@ -11,70 +59,15 @@
         {{ $t('general.save') }}
       </v-btn>
     </div>
-    <textarea
-      ref="textarea"
-      v-model="localState"
-      rows="3"
-      v-on="parentListeners"
-      @input="isForm && save()"
-      @keydown.stop.enter
-    />
+    <textarea ref="textarea" v-model="localState" rows="3" v-on="parentListeners" @input="isForm && save()" @keydown.stop.enter />
   </div>
 </template>
 
-<script>
-export default {
-  name: 'TextAreaCell',
-  props: {
-    value: String,
-    isForm: Boolean
-  },
-  data: () => ({
-    localState: ''
-  }),
-  computed: {
-
-    parentListeners() {
-      const $listeners = {}
-
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
-
-      return $listeners
-    }
-  },
-  watch: {
-    value(val) {
-      this.localState = val
-    },
-    localState(val) {
-      if (this.isForm) {
-        this.$emit('input', val)
-      }
-    }
-  },
-  created() {
-    this.localState = this.value
-  },
-  mounted() {
-    this.$refs.textarea && this.$refs.textarea.focus()
-  },
-  methods: {
-    save() {
-      this.$emit('input', this.localState)
-    }
-  }
-}
-</script>
-
 <style scoped>
-input, textarea {
+input,
+textarea {
   width: 100%;
-  min-height:60px;
+  min-height: 60px;
   height: calc(100% - 28px);
   color: var(--v-textColor-base);
 }

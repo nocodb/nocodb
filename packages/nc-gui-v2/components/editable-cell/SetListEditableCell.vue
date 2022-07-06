@@ -1,43 +1,3 @@
-<template>
-  <div>
-    <v-combobox
-      v-model="localState"
-      :items="setValues"
-      multiple
-      chips
-      flat
-      dense
-      solo
-      hide-details
-      deletable-chips
-      class="text-center mt-0 "
-    >
-      <template #selection="data">
-        <v-chip
-          :key="data.item"
-          small
-          class="ma-1 "
-          :color="colors[setValues.indexOf(data.item) % colors.length]"
-          @click:close="data.parent.selectItem(data.item)"
-        >
-          {{ data.item }}
-        </v-chip>
-      </template>
-
-      <template #item="{item}">
-        <v-chip small :color="colors[setValues.indexOf(item) % colors.length]">
-          {{ item }}
-        </v-chip>
-      </template>
-      <template #append>
-        <v-icon small class="mt-2">
-          mdi-menu-down
-        </v-icon>
-      </template>
-    </v-combobox>
-  </div>
-</template>
-
 <script>
 import colors from '@/mixins/colors'
 
@@ -46,24 +6,20 @@ export default {
   mixins: [colors],
   props: {
     value: String,
-    column: Object
+    column: Object,
   },
   computed: {
     localState: {
       get() {
-        return this.value && this.value
-          .match(/(?:[^',]|\\')+(?='?(?:,|$))/g)
-          .map(v => v.replace(/\\'/g, '\''))
+        return this.value && this.value.match(/(?:[^',]|\\')+(?='?(?:,|$))/g).map((v) => v.replace(/\\'/g, "'"))
       },
       set(val) {
-        this.$emit('input', val.filter(v => this.setValues.includes(v)).join(','))
-      }
+        this.$emit('input', val.filter((v) => this.setValues.includes(v)).join(','))
+      },
     },
     setValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp
-          .match(/(?:[^']|\\')+(?='?(?:,|$))/g)
-          .map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
+        return this.column.dtxp.match(/(?:[^']|\\')+(?='?(?:,|$))/g).map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''))
       }
       return []
     },
@@ -78,7 +34,7 @@ export default {
       }
 
       return $listeners
-    }
+    },
   },
   mounted() {
     // this.$el.focus();
@@ -86,9 +42,47 @@ export default {
     // event = document.createEvent('MouseEvents');
     // event.initMouseEvent('mousedown', true, true, window);
     // this.$el.dispatchEvent(event);
-  }
+  },
 }
 </script>
+
+<template>
+  <div>
+    <v-combobox
+      v-model="localState"
+      :items="setValues"
+      multiple
+      chips
+      flat
+      dense
+      solo
+      hide-details
+      deletable-chips
+      class="text-center mt-0"
+    >
+      <template #selection="data">
+        <v-chip
+          :key="data.item"
+          small
+          class="ma-1"
+          :color="colors[setValues.indexOf(data.item) % colors.length]"
+          @click:close="data.parent.selectItem(data.item)"
+        >
+          {{ data.item }}
+        </v-chip>
+      </template>
+
+      <template #item="{ item }">
+        <v-chip small :color="colors[setValues.indexOf(item) % colors.length]">
+          {{ item }}
+        </v-chip>
+      </template>
+      <template #append>
+        <v-icon small class="mt-2"> mdi-menu-down </v-icon>
+      </template>
+    </v-combobox>
+  </div>
+</template>
 
 <style scoped>
 select {
@@ -101,7 +95,6 @@ select {
   /*Firefox */
   appearance: menulist;
 }
-
 </style>
 <!--
 /**

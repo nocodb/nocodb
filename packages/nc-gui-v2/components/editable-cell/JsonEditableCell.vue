@@ -1,6 +1,71 @@
+<script>
+import MonacoJsonObjectEditor from '@/components/monaco/MonacoJsonObjectEditor'
+
+export default {
+  name: 'JsonEditableCell',
+  components: { MonacoJsonObjectEditor },
+  props: {
+    value: [String, Object],
+    isForm: Boolean,
+  },
+  data: () => ({
+    localState: '',
+    expand: false,
+    isValid: true,
+    error: undefined,
+  }),
+  computed: {
+    parentListeners() {
+      const $listeners = {}
+
+      if (this.$listeners.blur) {
+        $listeners.blur = this.$listeners.blur
+      }
+      if (this.$listeners.focus) {
+        $listeners.focus = this.$listeners.focus
+      }
+
+      return $listeners
+    },
+  },
+  watch: {
+    value(val) {
+      try {
+        this.localState = typeof val === 'string' ? JSON.parse(val) : val
+      } catch (e) {
+        // ignore parse error for invalid JSON
+      }
+    },
+    localState(val) {
+      if (this.isForm) {
+        this.$emit('input', JSON.stringify(val))
+      }
+    },
+  },
+  created() {
+    try {
+      this.localState = typeof this.value === 'string' ? JSON.parse(this.value) : this.value
+    } catch (e) {
+      // ignore parse error for invalid JSON
+    }
+  },
+  mounted() {},
+  methods: {
+    save() {
+      this.expand = false
+      this.$emit('input', JSON.stringify(this.localState))
+    },
+    validate(n, e) {
+      this.isValid = n
+      this.error = e
+    },
+  },
+}
+</script>
+
 <template>
   <v-dialog :is="expand ? 'v-dialog' : 'div'" v-model="expand" max-width="800px" class="cell-container" @keydown.stop.enter>
-    <div class="d-flex pa-1 " :class="{backgroundColor:expand}">
+    <div class="d-flex pa-1" :class="{ backgroundColor: expand }">
       <v-spacer />
       <v-icon small class="mr-2" @click="expand = !expand">
         {{ expand ? 'mdi-arrow-collapse' : 'mdi-arrow-expand' }}
@@ -15,23 +80,23 @@
           {{ $t('general.save') }}
         </v-btn>
       </template>
-      <v-btn v-else-if="expand" x-small @click="expand=false">
+      <v-btn v-else-if="expand" x-small @click="expand = false">
         <!-- Close -->
         {{ $t('general.close') }}
       </v-btn>
     </div>
-    <monaco-json-object-editor
+    <MonacoJsonObjectEditor
       v-if="expand"
       v-model="localState"
       class="text-left caption"
-      style="width: 300px;min-height:min(600px,80vh);min-width:100%; "
+      style="width: 300px; min-height: min(600px, 80vh); min-width: 100%"
       @validate="validate"
     />
-    <monaco-json-object-editor
+    <MonacoJsonObjectEditor
       v-else
       v-model="localState"
       class="text-left caption"
-      style="width: 300px;min-height:200px;min-width:100%;"
+      style="width: 300px; min-height: 200px; min-width: 100%"
       @validate="validate"
     />
     <div v-show="error" class="px-2 py-1 text-left caption error--text">
@@ -40,76 +105,9 @@
   </v-dialog>
 </template>
 
-<script>
-import MonacoJsonObjectEditor from '@/components/monaco/MonacoJsonObjectEditor'
-
-export default {
-  name: 'JsonEditableCell',
-  components: { MonacoJsonObjectEditor },
-  props: {
-    value: [String, Object],
-    isForm: Boolean
-  },
-  data: () => ({
-    localState: '',
-    expand: false,
-    isValid: true,
-    error: undefined
-  }),
-  computed: {
-
-    parentListeners() {
-      const $listeners = {}
-
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
-
-      return $listeners
-    }
-  },
-  watch: {
-    value(val) {
-      try {
-        this.localState = typeof val === 'string' ? JSON.parse(val) : val
-      } catch (e) {
-        // ignore parse error for invalid JSON
-      }
-    },
-    localState(val) {
-      if (this.isForm) {
-        this.$emit('input', JSON.stringify(val))
-      }
-    }
-  },
-  created() {
-    try {
-      this.localState = typeof this.value === 'string' ? JSON.parse(this.value) : this.value
-    } catch (e) {
-      // ignore parse error for invalid JSON
-    }
-  },
-  mounted() {
-  },
-  methods: {
-    save() {
-      this.expand = false
-      this.$emit('input', JSON.stringify(this.localState))
-    },
-    validate(n, e) {
-      this.isValid = n
-      this.error = e
-    }
-  }
-}
-</script>
-
 <style scoped>
 .cell-container {
-  width: 100%
+  width: 100%;
 }
 </style>
 <!--

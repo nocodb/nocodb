@@ -15,13 +15,13 @@ export default class LookupColumn {
 
   public async getRelationColumn(): Promise<Column> {
     return await Column.get({
-      colId: this.fk_relation_column_id
+      colId: this.fk_relation_column_id,
     });
   }
 
   public async getLookupColumn(): Promise<Column> {
     return await Column.get({
-      colId: this.fk_lookup_column_id
+      colId: this.fk_lookup_column_id,
     });
   }
 
@@ -32,7 +32,7 @@ export default class LookupColumn {
     await ncMeta.metaInsert2(null, null, MetaTable.COL_LOOKUP, {
       fk_column_id: data.fk_column_id,
       fk_relation_column_id: data.fk_relation_column_id,
-      fk_lookup_column_id: data.fk_lookup_column_id
+      fk_lookup_column_id: data.fk_lookup_column_id,
     });
 
     await NocoCache.appendToList(

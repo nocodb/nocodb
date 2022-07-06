@@ -5,7 +5,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  MetaTable
+  MetaTable,
 } from '../utils/globals';
 import View from './View';
 import { FilterType, UITypes } from 'nocodb-sdk';
@@ -38,7 +38,7 @@ export default class Filter {
       ? (await View.get(this.fk_view_id, ncMeta)).getModel(ncMeta)
       : Model.getByIdOrName(
           {
-            id: this.fk_model_id
+            id: this.fk_model_id,
           },
           ncMeta
         );
@@ -60,7 +60,7 @@ export default class Filter {
       logical_op: filter.logical_op,
 
       project_id: filter.project_id,
-      base_id: filter.base_id
+      base_id: filter.base_id,
     };
     if (!(filter.project_id && filter.base_id)) {
       const model = await Column.get({ colId: filter.fk_column_id }, ncMeta);
@@ -76,7 +76,7 @@ export default class Filter {
     );
     if (filter?.children?.length) {
       await Promise.all(
-        filter.children.map(f =>
+        filter.children.map((f) =>
           this.insert({ ...f, fk_parent_id: row.id }, ncMeta)
         )
       );
@@ -145,7 +145,7 @@ export default class Filter {
       fk_parent_id: filter.fk_parent_id,
 
       is_group: filter.is_group,
-      logical_op: filter.logical_op
+      logical_op: filter.logical_op,
     };
     // get existing cache
     const key = `${CacheScope.FILTER_EXP}:${id}`;
@@ -180,7 +180,7 @@ export default class Filter {
   public getColumn(): Promise<Column> {
     if (!this.fk_column_id) return null;
     return Column.get({
-      colId: this.fk_column_id
+      colId: this.fk_column_id,
     });
   }
 
@@ -206,17 +206,17 @@ export default class Filter {
     if (this.children) return this.children;
     if (!this.is_group) return null;
     let childFilters = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      this.id
+      this.id,
     ]);
     if (!childFilters.length) {
       childFilters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
         condition: {
-          fk_parent_id: this.id
-        }
+          fk_parent_id: this.id,
+        },
       });
       await NocoCache.setList(CacheScope.FILTER_EXP, [this.id], childFilters);
     }
-    return childFilters && childFilters.map(f => new Filter(f));
+    return childFilters && childFilters.map((f) => new Filter(f));
   }
 
   // public static async getFilter({
@@ -237,7 +237,7 @@ export default class Filter {
 
   public static async getFilterObject(
     {
-      viewId
+      viewId,
     }: {
       viewId: string;
     },
@@ -246,7 +246,7 @@ export default class Filter {
     let filters = await NocoCache.getList(CacheScope.FILTER_EXP, [viewId]);
     if (!filters.length) {
       filters = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
-        condition: { fk_view_id: viewId }
+        condition: { fk_view_id: viewId },
       });
 
       await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filters);
@@ -255,7 +255,7 @@ export default class Filter {
     const result: FilterType = {
       is_group: true,
       children: [],
-      logical_op: 'AND'
+      logical_op: 'AND',
     };
 
     const grouped = {};
@@ -316,7 +316,7 @@ export default class Filter {
       ));
     if (!filterObj) {
       filterObj = await ncMeta.metaGet2(null, null, MetaTable.FILTER_EXP, {
-        id
+        id,
       });
       await NocoCache.set(`${CacheScope.FILTER_EXP}:${id}`, filterObj);
     }
@@ -330,11 +330,11 @@ export default class Filter {
     let filterObjs = await NocoCache.getList(CacheScope.FILTER_EXP, [viewId]);
     if (!filterObjs.length) {
       filterObjs = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
-        condition: { fk_view_id: viewId }
+        condition: { fk_view_id: viewId },
       });
       await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
     }
-    return filterObjs?.map(f => new Filter(f));
+    return filterObjs?.map((f) => new Filter(f));
   }
   //
   // static async parentFilterList(

@@ -82,7 +82,7 @@ export default class NcProjectBuilder {
   }
 
   public async handleRunTimeChanges(data: any): Promise<any> {
-    const curBuilder = this.apiBuilders.find(builder => {
+    const curBuilder = this.apiBuilders.find((builder) => {
       return (
         (data.req?.dbAlias || data.req?.args?.dbAlias) === builder.getDbAlias()
       );
@@ -95,7 +95,7 @@ export default class NcProjectBuilder {
           'db',
           'nc_hooks',
           {
-            type: 'AUTH_MIDDLEWARE'
+            type: 'AUTH_MIDDLEWARE',
           }
         );
         break;
@@ -119,7 +119,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'CREATED',
           user: data.user.email,
           description: `created relation between tables ${data.req.args.childTable} and ${data.req.args.parentTable} `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         console.log(
           `Added new relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`
@@ -137,7 +137,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'DELETED',
           user: data.user.email,
           description: `deleted relation between tables ${data.req.args.childTable} and ${data.req.args.parentTable} `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         console.log(
           `Deleted relation between : ${data.req.args.parentTable} ==> ${data.req.args.childTable}`
@@ -154,7 +154,7 @@ export default class NcProjectBuilder {
           data.req.args.childTable,
           {
             ...data.req.args,
-            virtual: true
+            virtual: true,
           }
         );
         console.log(
@@ -167,7 +167,7 @@ export default class NcProjectBuilder {
           data.req.args.childTable,
           {
             ...data.req.args,
-            virtual: true
+            virtual: true,
           }
         );
         console.log(
@@ -203,7 +203,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'CREATED',
           user: data.user.email,
           description: `created table ${data.req.args.tn} with alias ${data.req.args._tn}  `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         console.log(`Added new routes for table : ${data.req.args.tn}`);
         break;
@@ -215,7 +215,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'CREATED',
           user: data.user.email,
           description: `created view ${data.req.args.view_name} `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         console.log(`Added new routes for table : ${data.req.args.tn}`);
         break;
@@ -227,7 +227,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'UPDATED',
           user: data.user.email,
           description: `updated view ${data.req.args.view_name} `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         console.log(`Added new routes for table : ${data.req.args.tn}`);
         break;
@@ -239,7 +239,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'DELETED',
           user: data.user.email,
           description: `deleted table ${data.req.args.tn} `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         console.log(`Deleted routes for table : ${data.req.args.tn}`);
         break;
@@ -252,7 +252,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'RENAMED',
           user: data.user.email,
           description: `renamed table ${data.req.args.tn_old} to  ${data.req.args.tn}  `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         console.log(`Updated routes for table : ${data.req.args.tn}`);
         break;
@@ -268,7 +268,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'RENAMED',
           user: data.user.email,
           description: `renamed table alias  ${data.req.args.tn_old} to  ${data.req.args.tn}  `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         console.log(`Updated routes for table : ${data.req.args.tn}`);
         break;
@@ -325,7 +325,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'UPDATED',
           user: data.user.email,
           description: `updated table ${data.req.args.tn} with alias ${data.req.args._tn} `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         console.log(`Updated validations for table : ${data.req.args.tn}`);
         break;
@@ -425,7 +425,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'DELETED',
           user: data.user.email,
           description: `deleted view ${data.req.args.view_name} `,
-          ip: data.ctx.req.clientIp
+          ip: data.ctx.req.clientIp,
         });
         break;
 
@@ -487,7 +487,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'STOPPED',
           user: data.user.email,
           description: `stopped project ${this.title}(${this.id}) `,
-          ip: data?.ctx?.req?.clientIp
+          ip: data?.ctx?.req?.clientIp,
         });
         break;
 
@@ -498,7 +498,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'STARTED',
           user: data.user.email,
           description: `started project ${this.title}(${this.id}) `,
-          ip: data?.ctx?.req?.clientIp
+          ip: data?.ctx?.req?.clientIp,
         });
         break;
 
@@ -522,7 +522,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'DELETED',
           user: data.user.email,
           description: `deleted project ${this.title}(${this.id}) `,
-          ip: data?.ctx?.req?.clientIp
+          ip: data?.ctx?.req?.clientIp,
         });
         break;
 
@@ -535,7 +535,7 @@ export default class NcProjectBuilder {
           op_sub_type: 'RESTARTED',
           user: data.user.email,
           description: `restarted project ${this.title}(${this.id}) `,
-          ip: data?.ctx?.req?.clientIp
+          ip: data?.ctx?.req?.clientIp,
         });
         break;
 
@@ -608,9 +608,9 @@ export default class NcProjectBuilder {
             ...db.meta,
             api: {
               ...db.meta.api,
-              prefix: db.meta.api.prefix || this.genVer(i)
-            }
-          }
+              prefix: db.meta.api.prefix || this.genVer(i),
+            },
+          },
         };
 
         this.apiBuilders.push(
@@ -628,7 +628,7 @@ export default class NcProjectBuilder {
         /* get all schemas and create APIs for all of them */
         const sqlClient = SqlClientFactory.create({
           ...db,
-          connection: { ...db.connection, database: undefined }
+          connection: { ...db.connection, database: undefined },
         });
 
         // @ts-ignore
@@ -642,9 +642,9 @@ export default class NcProjectBuilder {
               dbAlias: i ? db.meta.dbAlias + i : db.meta.dbAlias,
               api: {
                 ...db.meta.api,
-                prefix: db.meta.api.prefix || this.genVer(i)
-              }
-            }
+                prefix: db.meta.api.prefix || this.genVer(i),
+              },
+            },
           };
 
           this.apiBuilders.push(
@@ -679,7 +679,7 @@ export default class NcProjectBuilder {
       i
         .toString(26)
         .split('')
-        .map(v => l[parseInt(v, 26)])
+        .map((v) => l[parseInt(v, 26)])
         .join('') + '1'
     );
   }
@@ -701,13 +701,13 @@ export default class NcProjectBuilder {
             dbAlias: connectionConfig?.meta?.dbAlias,
             env: this.config.env,
             config: this.config,
-            projectId: this.id
+            projectId: this.id,
           });
           /* create sql-migrator */
           const migrator = new Migrator({
             project_id: this.id,
             config: this.config,
-            metaDb: this.app?.ncMeta?.knex
+            metaDb: this.app?.ncMeta?.knex,
           });
 
           /* if sql-migrator folder doesn't exist for project - call migratior init */
@@ -722,7 +722,7 @@ export default class NcProjectBuilder {
             await migrator.init({
               folder: this.app.getToolDir(),
               env: this.appConfig.workingEnv,
-              dbAlias: connectionConfig.meta.dbAlias
+              dbAlias: connectionConfig.meta.dbAlias,
             });
           }
 
@@ -731,7 +731,7 @@ export default class NcProjectBuilder {
             folder: this.app.getToolDir(),
             env: this.appConfig.workingEnv,
             dbAlias: connectionConfig.meta.dbAlias,
-            sqlClient
+            sqlClient,
           });
 
           await migrator.migrationsUp({
@@ -740,7 +740,7 @@ export default class NcProjectBuilder {
             dbAlias: connectionConfig.meta.dbAlias,
             migrationSteps: 99999,
             sqlContentMigrate: 1,
-            sqlClient
+            sqlClient,
           });
         } catch (e) {
           console.log(e);
@@ -777,8 +777,7 @@ export default class NcProjectBuilder {
             )
           ) {
             return res.status(401).json({
-              msg:
-                'Unauthorized access : xc-auth does not have admin permission'
+              msg: 'Unauthorized access : xc-auth does not have admin permission',
             });
           }
         } else if (this.config.auth.masterKey) {
@@ -786,8 +785,7 @@ export default class NcProjectBuilder {
             req.headers['xc-master-key'] !== this.config.auth.masterKey.secret
           ) {
             return res.status(401).json({
-              msg:
-                'Unauthorized access : xc-admin header missing or not matching'
+              msg: 'Unauthorized access : xc-admin header missing or not matching',
             });
           }
         }
@@ -802,7 +800,7 @@ export default class NcProjectBuilder {
           gqlApiUrl: `/nc/${this.id}/${builder.apiPrefix}/graphql`,
           grpcApiUrl: ``,
           apiType: builder.apiType,
-          database: builder.getDbName()
+          database: builder.getDbName(),
         };
       }
 
@@ -810,8 +808,8 @@ export default class NcProjectBuilder {
         info,
         aggregatedInfo: {
           list: this.apiInfInfoList,
-          aggregated: this.aggregatedApiInfo
-        }
+          aggregated: this.aggregatedApiInfo,
+        },
       };
 
       res.json(result);
@@ -830,7 +828,7 @@ export default class NcProjectBuilder {
 
           arrSum[4] + (+infoObj.apiCount || +infoObj.resolversCount || 0),
           // arrSum[3] + +info.timeTaken
-          (Date.now() - this.startTime) / 1000
+          (Date.now() - this.startTime) / 1000,
         ],
         [0, 0, 0, 0, 0, 0]
       )
@@ -847,7 +845,7 @@ export default class NcProjectBuilder {
 
   protected async addAuthHookToMiddleware(): Promise<any> {
     this.authHook = await this.app.ncMeta.metaGet(this.id, 'db', 'nc_hooks', {
-      type: 'AUTH_MIDDLEWARE'
+      type: 'AUTH_MIDDLEWARE',
     });
 
     this.router.use(async (req: any, _res, next) => {
@@ -857,7 +855,7 @@ export default class NcProjectBuilder {
             this.authHook.url,
             {},
             {
-              headers: req.headers
+              headers: req.headers,
             }
           );
           req.locals = req.locals || {};
@@ -896,7 +894,7 @@ export default class NcProjectBuilder {
       NcConnectionMgr.delete({
         dbAlias: connectionConfig?.meta?.dbAlias,
         env: this.config.env,
-        projectId: this.id
+        projectId: this.id,
       });
     }
     NcProjectBuilder.triggerGarbageCollect();

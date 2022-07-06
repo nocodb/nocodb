@@ -25,23 +25,23 @@
 </template>
 
 <script>
-import Db from '~/components/project/auditTab/Db'
-import SqlLogAndOutput from '~/components/project/SqlLogAndOutput'
-import Audit from '~/components/project/auditTab/Audit'
-import AuditCE from '~/components/project/auditTab/AuditCE'
+import Db from '~/components/project/auditTab/Db';
+import SqlLogAndOutput from '~/components/project/SqlLogAndOutput';
+import Audit from '~/components/project/auditTab/Audit';
+import AuditCE from '~/components/project/auditTab/AuditCE';
 
 export default {
   name: 'AuditTab',
-  components: { Db, Audit: (process.env.EE ? Audit : AuditCE), SqlLogAndOutput },
-  props: ['nodes']
-}
+  components: { Db, Audit: process.env.EE ? Audit : AuditCE, SqlLogAndOutput },
+  props: ['nodes'],
+};
 </script>
 
 <style scoped lang="scss">
-::v-deep{
-  .v-window{
-    height:calc(100% - 32px);
-    .v-window__container{
+::v-deep {
+  .v-window {
+    height: calc(100% - 32px);
+    .v-window__container {
       height: 100%;
     }
   }

@@ -13,15 +13,9 @@
           <v-list v-if="views && views.length" dense>
             <v-list-item dense>
               <!-- Views -->
-              <span class="body-2 font-weight-medium">{{
-                $t("objects.views")
-              }}</span>
+              <span class="body-2 font-weight-medium">{{ $t('objects.views') }}</span>
             </v-list-item>
-            <v-list-item-group
-              v-model="selectedViewIdLocal"
-              mandatory
-              color="primary"
-            >
+            <v-list-item-group v-model="selectedViewIdLocal" mandatory color="primary">
               <draggable
                 :is="_isUIAllowed('viewlist-drag-n-drop') ? 'draggable' : 'div'"
                 v-model="viewsList"
@@ -29,10 +23,7 @@
                 v-bind="dragOptions"
                 @change="onMove($event)"
               >
-                <transition-group
-                  type="transition"
-                  :name="!drag ? 'flip-list' : null"
-                >
+                <transition-group type="transition" :name="!drag ? 'flip-list' : null">
                   <v-list-item
                     v-for="(view, i) in viewsList"
                     :key="view.id"
@@ -40,9 +31,7 @@
                     dense
                     :value="view.id"
                     active-class="x-active--text"
-                    :class="`body-2  view nc-view-item nc-draggable-child nc-${
-                      viewTypeAlias[view.type]
-                    }-view-item`"
+                    :class="`body-2  view nc-view-item nc-draggable-child nc-${viewTypeAlias[view.type]}-view-item`"
                     @click="$emit('rerender')"
                   >
                     <v-icon
@@ -54,24 +43,15 @@
                       mdi-drag-vertical
                     </v-icon>
                     <v-list-item-icon class="mr-n1">
-                      <v-icon
-                        v-if="viewIcons[view.type]"
-                        x-small
-                        :color="viewIcons[view.type].color"
-                      >
+                      <v-icon v-if="viewIcons[view.type]" x-small :color="viewIcons[view.type].color">
                         {{ viewIcons[view.type].icon }}
                       </v-icon>
-                      <v-icon v-else color="primary" small>
-                        mdi-table
-                      </v-icon>
+                      <v-icon v-else color="primary" small> mdi-table </v-icon>
                     </v-list-item-icon>
                     <v-list-item-title>
                       <v-tooltip bottom>
                         <template #activator="{ on }">
-                          <div
-                            class="font-weight-regular"
-                            style="overflow: hidden; text-overflow: ellipsis"
-                          >
+                          <div class="font-weight-regular" style="overflow: hidden; text-overflow: ellipsis">
                             <input
                               v-if="view.edit"
                               :ref="`input${i}`"
@@ -79,11 +59,9 @@
                               @click.stop
                               @keydown.enter.stop="updateViewName(view, i)"
                               @blur="updateViewName(view, i)"
-                            >
+                            />
                             <template v-else>
-                              <span v-on="on">{{
-                                view.alias || view.title
-                              }}</span>
+                              <span v-on="on">{{ view.alias || view.title }}</span>
                             </template>
                           </div>
                         </template>
@@ -126,21 +104,13 @@
                         mdi-delete-outline
                       </x-icon>
                     </template>
-                    <v-icon
-                      v-if="view.id === selectedViewId"
-                      small
-                      class="check-icon"
-                    >
-                      mdi-check-bold
-                    </v-icon>
+                    <v-icon v-if="view.id === selectedViewId" small class="check-icon"> mdi-check-bold </v-icon>
                   </v-list-item>
                 </transition-group>
               </draggable>
             </v-list-item-group>
           </v-list>
-          <template
-            v-if="hideViews && _isUIAllowed('virtualViewsCreateOrEdit')"
-          >
+          <template v-if="hideViews && _isUIAllowed('virtualViewsCreateOrEdit')">
             <v-divider class="advance-menu-divider" />
 
             <v-list
@@ -151,11 +121,8 @@
             >
               <v-list-item dense>
                 <!-- Create a View -->
-                <span
-                  class="body-2 font-weight-medium"
-                  @dblclick="enableDummyFeat = true"
-                >
-                  {{ $t("activity.createView") }}
+                <span class="body-2 font-weight-medium" @dblclick="enableDummyFeat = true">
+                  {{ $t('activity.createView') }}
                 </span>
                 <v-tooltip top>
                   <template #activator="{ on }">
@@ -172,7 +139,7 @@
                   </template>
                   <!-- Only visible to Creator -->
                   <span class="caption">
-                    {{ $t("msg.info.onlyCreator") }}
+                    {{ $t('msg.info.onlyCreator') }}
                   </span>
                 </v-tooltip>
               </v-list-item>
@@ -185,24 +152,20 @@
                     @click="openCreateViewDlg(viewTypes.GRID)"
                   >
                     <v-list-item-icon class="mr-n1">
-                      <v-icon color="blue" x-small>
-                        mdi-grid-large
-                      </v-icon>
+                      <v-icon color="blue" x-small> mdi-grid-large </v-icon>
                     </v-list-item-icon>
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Grid -->
-                        {{ $t("objects.viewType.grid") }}
+                        {{ $t('objects.viewType.grid') }}
                       </span>
                     </v-list-item-title>
                     <v-spacer />
-                    <v-icon class="mr-1" small>
-                      mdi-plus
-                    </v-icon>
+                    <v-icon class="mr-1" small> mdi-plus </v-icon>
                   </v-list-item>
                 </template>
                 <!-- Add Grid View -->
-                {{ $t("msg.info.addView.grid") }}
+                {{ $t('msg.info.addView.grid') }}
               </v-tooltip>
               <v-tooltip bottom>
                 <template #activator="{ on }">
@@ -213,25 +176,21 @@
                     @click="openCreateViewDlg(viewTypes.GALLERY)"
                   >
                     <v-list-item-icon class="mr-n1">
-                      <v-icon color="orange" x-small>
-                        mdi-camera-image
-                      </v-icon>
+                      <v-icon color="orange" x-small> mdi-camera-image </v-icon>
                     </v-list-item-icon>
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Gallery -->
-                        {{ $t("objects.viewType.gallery") }}
+                        {{ $t('objects.viewType.gallery') }}
                       </span>
                     </v-list-item-title>
 
                     <v-spacer />
-                    <v-icon class="mr-1" small>
-                      mdi-plus
-                    </v-icon>
+                    <v-icon class="mr-1" small> mdi-plus </v-icon>
                   </v-list-item>
                 </template>
                 <!-- Add Gallery View -->
-                {{ $t("msg.info.addView.gallery") }}
+                {{ $t('msg.info.addView.gallery') }}
               </v-tooltip>
 
               <v-tooltip bottom>
@@ -244,45 +203,30 @@
                     @click="openCreateViewDlg(viewTypes.FORM)"
                   >
                     <v-list-item-icon class="mr-n1">
-                      <v-icon
-                        x-small
-                        :color="viewIcons[viewTypes.FORM].color"
-                        class="mt-n1"
-                      >
-                        mdi-form-select
-                      </v-icon>
+                      <v-icon x-small :color="viewIcons[viewTypes.FORM].color" class="mt-n1"> mdi-form-select </v-icon>
                     </v-list-item-icon>
                     <v-list-item-title>
                       <span class="font-weight-regular">
                         <!-- Form -->
 
-                        {{ $t("objects.viewType.form") }}
+                        {{ $t('objects.viewType.form') }}
                       </span>
                     </v-list-item-title>
 
                     <v-spacer />
-                    <v-icon class="mr-1" small>
-                      mdi-plus
-                    </v-icon>
+                    <v-icon class="mr-1" small> mdi-plus </v-icon>
                   </v-list-item>
                 </template>
                 <!-- Add Form View -->
-                {{ $t("msg.info.addView.form") }}
+                {{ $t('msg.info.addView.form') }}
               </v-tooltip>
             </v-list>
           </template>
         </div>
 
         <div v-if="!isSharedBase">
-          <v-btn
-            v-t="['c:snippet:open']"
-            color="primary"
-            class="caption d-100"
-            @click="codeSnippetModal=true"
-          >
-            <v-icon small class="mr-2">
-              mdi-xml
-            </v-icon> Get API Snippet
+          <v-btn v-t="['c:snippet:open']" color="primary" class="caption d-100" @click="codeSnippetModal = true">
+            <v-icon small class="mr-2"> mdi-xml </v-icon> Get API Snippet
           </v-btn>
           <code-snippet v-model="codeSnippetModal" :query-params="queryParams" :meta="meta" :view="selectedView" />
         </div>
@@ -292,11 +236,9 @@
             color="primary"
             outlined
             class="caption d-100 mt-2"
-            @click="webhookSliderModal=true"
+            @click="webhookSliderModal = true"
           >
-            <v-icon small class="mr-2 nc-btn-webhook">
-              mdi-hook
-            </v-icon> Webhooks
+            <v-icon small class="mr-2 nc-btn-webhook"> mdi-hook </v-icon> Webhooks
           </v-btn>
           <webhook-slider v-model="webhookSliderModal" :meta="meta" />
         </div>
@@ -305,9 +247,7 @@
           v-if="!isSharedBase && time - $store.state.settings.miniSponsorCard > 15 * 60 * 1000"
           class="py-2 sponsor-wrapper"
         >
-          <v-icon small class="close-icon" @click="hideMiniSponsorCard">
-            mdi-close-circle-outline
-          </v-icon>
+          <v-icon small class="close-icon" @click="hideMiniSponsorCard"> mdi-close-circle-outline </v-icon>
           <v-divider class="mb-2" />
           <flip-card width="100%" height="100px" :on-time="30 * 1000" :on-hover="false">
             <template #front>
@@ -316,7 +256,7 @@
                 v-t="['e:hiring']"
                 color="primary"
                 outlined
-                class="caption d-100 mt-4 "
+                class="caption d-100 mt-4"
                 href="https://angel.co/company/nocodb"
                 target="_blank"
               >
@@ -332,9 +272,7 @@
                 href="https://github.com/sponsors/nocodb"
                 target="_blank"
               >
-                <v-icon small color="red" class="mr-2">
-                  mdi-cards-heart
-                </v-icon>
+                <v-icon small color="red" class="mr-2"> mdi-cards-heart </v-icon>
                 {{ $t('activity.sponsorUs') }}
               </v-btn>
             </template>
@@ -364,37 +302,30 @@
         <v-container @click.stop>
           <h3 class="title mb-3">
             <!-- This view is shared via a private link -->
-            {{ $t("msg.info.privateLink") }}
+            {{ $t('msg.info.privateLink') }}
           </h3>
           <p class="grey&#45;&#45;text body-2">
             <!-- People with private link can only see cells visible in this view -->
           </p>
-          <div
-            style="border-radius: 4px"
-            class="share-link-box body-2 pa-2 d-flex align-center"
-          >
+          <div style="border-radius: 4px" class="share-link-box body-2 pa-2 d-flex align-center">
             {{ sharedViewUrl }}
             <v-spacer />
-            <a
-              v-t="['c:view:share:open-url']"
-              :href="`${sharedViewUrl}`"
-              style="text-decoration: none"
-              target="_blank"
-            >
+            <a v-t="['c:view:share:open-url']" :href="`${sharedViewUrl}`" style="text-decoration: none" target="_blank">
               <v-icon small class="mx-2">mdi-open-in-new</v-icon>
             </a>
-            <v-icon small class="pointer" @click="copyShareUrlToClipboard">
-              mdi-content-copy
-            </v-icon>
+            <v-icon small class="pointer" @click="copyShareUrlToClipboard"> mdi-content-copy </v-icon>
           </div>
 
           <v-expansion-panels v-model="advanceOptionsPanel" class="mx-auto" flat>
             <v-expansion-panel>
               <v-expansion-panel-header hide-actions>
                 <v-spacer />
-                <span class="grey--text caption">More Options <v-icon color="grey" small>
-                  mdi-chevron-{{ advanceOptionsPanel === 0 ? 'up' : 'down' }}
-                </v-icon></span>
+                <span class="grey--text caption"
+                  >More Options
+                  <v-icon color="grey" small>
+                    mdi-chevron-{{ advanceOptionsPanel === 0 ? 'up' : 'down' }}
+                  </v-icon></span
+                >
               </v-expansion-panel-header>
               <v-expansion-panel-content>
                 <v-checkbox
@@ -405,10 +336,7 @@
                   dense
                   @change="onPasswordProtectChange"
                 />
-                <div
-                  v-if="passwordProtect"
-                  class="d-flex flex-column align-center justify-center"
-                >
+                <div v-if="passwordProtect" class="d-flex flex-column align-center justify-center">
                   <v-text-field
                     v-model="shareLink.password"
                     autocomplete="new-password"
@@ -423,22 +351,14 @@
                     flat
                   >
                     <template #append>
-                      <v-icon
-                        small
-                        @click="showShareLinkPassword = !showShareLinkPassword"
-                      >
-                        {{ showShareLinkPassword ? "visibility_off" : "visibility" }}
+                      <v-icon small @click="showShareLinkPassword = !showShareLinkPassword">
+                        {{ showShareLinkPassword ? 'visibility_off' : 'visibility' }}
                       </v-icon>
                     </template>
                   </v-text-field>
-                  <v-btn
-                    color="primary"
-                    class="caption"
-                    small
-                    @click="saveShareLinkPassword"
-                  >
+                  <v-btn color="primary" class="caption" small @click="saveShareLinkPassword">
                     <!-- Save password -->
-                    {{ $t("placeholder.password.save") }}
+                    {{ $t('placeholder.password.save') }}
                   </v-btn>
                 </div>
                 <v-checkbox
@@ -460,16 +380,16 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable'
-import { ViewTypes } from 'nocodb-sdk'
-import CreateViewDialog from '~/components/project/spreadsheet/dialog/CreateViewDialog'
-import Extras from '~/components/project/spreadsheet/components/Extras'
-import viewIcons from '~/helpers/viewIcons'
-import { copyTextToClipboard } from '~/helpers/xutils'
-import SponsorMini from '~/components/SponsorMini'
-import CodeSnippet from '~/components/project/spreadsheet/components/CodeSnippet'
-import WebhookSlider from '~/components/project/tableTabs/webhook/WebhookSlider'
-import FlipCard from '~/components/project/spreadsheet/components/FlipCard'
+import draggable from 'vuedraggable';
+import { ViewTypes } from 'nocodb-sdk';
+import CreateViewDialog from '~/components/project/spreadsheet/dialog/CreateViewDialog';
+import Extras from '~/components/project/spreadsheet/components/Extras';
+import viewIcons from '~/helpers/viewIcons';
+import { copyTextToClipboard } from '~/helpers/xutils';
+import SponsorMini from '~/components/SponsorMini';
+import CodeSnippet from '~/components/project/spreadsheet/components/CodeSnippet';
+import WebhookSlider from '~/components/project/tableTabs/webhook/WebhookSlider';
+import FlipCard from '~/components/project/spreadsheet/components/FlipCard';
 
 export default {
   name: 'SpreadsheetNavDrawer',
@@ -482,7 +402,7 @@ export default {
     primaryValueColumn: [Number, String],
     toggleDrawer: {
       type: Boolean,
-      default: false
+      default: false,
     },
     nodes: Object,
     table: String,
@@ -496,7 +416,7 @@ export default {
     sortList: [Object, Array],
     load: {
       default: true,
-      type: Boolean
+      type: Boolean,
     },
     currentApiUrl: String,
     fieldsOrder: Array,
@@ -506,7 +426,7 @@ export default {
     groupingField: String,
     // showSystemFields: Boolean,
     views: Array,
-    queryParams: Object
+    queryParams: Object,
   },
   data: () => ({
     advanceOptionsPanel: false,
@@ -517,7 +437,7 @@ export default {
       animation: 200,
       group: 'description',
       disabled: false,
-      ghostClass: 'ghost'
+      ghostClass: 'ghost',
     },
     time: Date.now(),
     sponsorMiniVisible: true,
@@ -538,128 +458,118 @@ export default {
     viewTypeAlias: {
       [ViewTypes.GRID]: 'grid',
       [ViewTypes.FORM]: 'form',
-      [ViewTypes.GALLERY]: 'gallery'
+      [ViewTypes.GALLERY]: 'gallery',
     },
   }),
   computed: {
     isSharedBase() {
-      return this.$route.params && this.$route.params.shared_base_id
+      return this.$route.params && this.$route.params.shared_base_id;
     },
     viewsList: {
       set(v) {
-        this.$emit('update:views', v)
+        this.$emit('update:views', v);
       },
       get() {
-        return this.views
-      }
+        return this.views;
+      },
     },
     viewTypes() {
-      return ViewTypes
+      return ViewTypes;
     },
     newViewParams() {
       if (!this.showFields) {
-        return {}
+        return {};
       }
-      const showFields = { ...this.showFields }
-      Object.keys(showFields).forEach((k) => {
-        showFields[k] = true
-      })
-      return { showFields }
+      const showFields = { ...this.showFields };
+      Object.keys(showFields).forEach(k => {
+        showFields[k] = true;
+      });
+      return { showFields };
     },
     selectedViewIdLocal: {
       set(val) {
-        const view = (this.views || []).find(v => v.id === val)
+        const view = (this.views || []).find(v => v.id === val);
         this.$router.push({
           query: {
             ...this.$route.query,
-            view: view && view.id
-          }
-        })
+            view: view && view.id,
+          },
+        });
       },
       get() {
-        let id
+        let id;
         if (this.views) {
-          const view = this.views.find(v => v.id === this.$route.query.view)
-          id = (view && view.id) || ((this.views && this.views[0]) || {}).id
+          const view = this.views.find(v => v.id === this.$route.query.view);
+          id = (view && view.id) || ((this.views && this.views[0]) || {}).id;
         }
-        return id
-      }
+        return id;
+      },
     },
     sharedViewUrl() {
-      let viewType
+      let viewType;
 
       switch (this.shareLink.type) {
         case this.viewTypes.FORM:
-          viewType = 'form'
-          break
+          viewType = 'form';
+          break;
         case this.viewTypes.KANBAN:
-          viewType = 'kanban'
-          break
+          viewType = 'kanban';
+          break;
         default:
-          viewType = 'view'
+          viewType = 'view';
       }
-      return `${this.dashboardUrl}#/nc/${viewType}/${this.shareLink.uuid}`
+      return `${this.dashboardUrl}#/nc/${viewType}/${this.shareLink.uuid}`;
     },
     supportCost() {
-      const cost = parseInt(this.$store.getters['project/GtrProjectCost'])
+      const cost = parseInt(this.$store.getters['project/GtrProjectCost']);
       if (cost > 0) {
-        return `This costs ~$${cost}/year in non-open source products.`
+        return `This costs ~$${cost}/year in non-open source products.`;
       }
-      return 'Your donations will help us to make this product better.'
-    }
+      return 'Your donations will help us to make this product better.';
+    },
   },
   watch: {
     async load(v) {
       if (v) {
-        await this.loadViews()
-        this.onViewIdChange(this.selectedViewIdLocal)
+        await this.loadViews();
+        this.onViewIdChange(this.selectedViewIdLocal);
       }
     },
     selectedViewIdLocal(id) {
-      this.onViewIdChange(id)
-    }
+      this.onViewIdChange(id);
+    },
   },
   async created() {
     if (this.load) {
-      await this.loadViews()
+      await this.loadViews();
     }
-    this.onViewIdChange(this.selectedViewIdLocal)
+    this.onViewIdChange(this.selectedViewIdLocal);
   },
   methods: {
     async onMove(event) {
       if (this.viewsList.length - 1 === event.moved.newIndex) {
-        this.$set(
-          this.viewsList[event.moved.newIndex],
-          'order',
-          this.viewsList[event.moved.newIndex - 1].order + 1
-        )
+        this.$set(this.viewsList[event.moved.newIndex], 'order', this.viewsList[event.moved.newIndex - 1].order + 1);
       } else if (event.moved.newIndex === 0) {
-        this.$set(
-          this.viewsList[event.moved.newIndex],
-          'order',
-          this.viewsList[1].order / 2
-        )
+        this.$set(this.viewsList[event.moved.newIndex], 'order', this.viewsList[1].order / 2);
       } else {
         this.$set(
           this.viewsList[event.moved.newIndex],
           'order',
-          (this.viewsList[event.moved.newIndex - 1].order +
-            this.viewsList[event.moved.newIndex + 1].order) /
-            2
-        )
+          (this.viewsList[event.moved.newIndex - 1].order + this.viewsList[event.moved.newIndex + 1].order) / 2
+        );
       }
       await this.$api.dbView.update(this.viewsList[event.moved.newIndex].id, {
         title: this.viewsList[event.moved.newIndex].title,
-        order: this.viewsList[event.moved.newIndex].order
-      })
+        order: this.viewsList[event.moved.newIndex].order,
+      });
 
-      this.$e('a:view:reorder')
+      this.$e('a:view:reorder');
     },
     onViewIdChange(id) {
-      const selectedView = this.views && this.views.find(v => v.id === id)
+      const selectedView = this.views && this.views.find(v => v.id === id);
       // const queryParams = {}
-      this.$emit('update:selectedViewId', id)
-      this.$emit('update:selectedView', selectedView)
+      this.$emit('update:selectedViewId', id);
+      this.$emit('update:selectedView', selectedView);
       // if (selectedView.type === 'table') {
       //   return;
       // }
@@ -682,26 +592,24 @@ export default {
       // } else {
       //   this.$emit('mapFieldsAndShowFields')
       // }
-      this.$emit('loadTableData')
+      this.$emit('loadTableData');
     },
     hideMiniSponsorCard() {
-      this.$store.commit('settings/MutMiniSponsorCard', Date.now())
+      this.$store.commit('settings/MutMiniSponsorCard', Date.now());
     },
     openCreateViewDlg(type) {
-      const mainView = this.viewsList.find(
-        v => v.type === 'table' || v.type === 'view'
-      )
+      const mainView = this.viewsList.find(v => v.type === 'table' || v.type === 'view');
       try {
         this.copyViewRef = this.copyViewRef || {
           query_params: JSON.stringify({
             ...this.newViewParams,
-            fieldsOrder: JSON.parse(mainView.query_params).fieldsOrder
-          })
-        }
+            fieldsOrder: JSON.parse(mainView.query_params).fieldsOrder,
+          }),
+        };
       } catch {}
-      this.createViewType = type
-      this.showCreateView = true
-      this.$e('c:view:create', { view: type })
+      this.createViewType = type;
+      this.showCreateView = true;
+      this.$e('c:view:create', { view: type });
     },
     isCentrallyAligned(col) {
       return ![
@@ -715,23 +623,23 @@ export default {
         'DateTime',
         'CreateTime',
         'LastModifiedTime',
-        'Currency'
-      ].includes(col.uidt)
+        'Currency',
+      ].includes(col.uidt);
     },
     onPasswordProtectChange() {
       if (!this.passwordProtect) {
-        this.shareLink.password = null
-        this.saveShareLinkPassword()
+        this.shareLink.password = null;
+        this.saveShareLinkPassword();
       }
     },
     onAllowCSVDownloadChange() {
-      this.saveAllowCSVDownload()
+      this.saveAllowCSVDownload();
     },
     async saveShareLinkPassword() {
       try {
         await this.$api.dbViewShare.update(this.shareLink.id, {
-          password: this.shareLink.password
-        })
+          password: this.shareLink.password,
+        });
 
         // await this.$store.dispatch('sqlMgr/ActSqlOp', [
         //   { dbAlias: this.nodes.dbAlias },
@@ -741,32 +649,28 @@ export default {
         //     password: this.shareLink.password
         //   }
         // ])
-        this.$toast.success('Successfully updated').goAway(3000)
+        this.$toast.success('Successfully updated').goAway(3000);
       } catch (e) {
-        this.$toast
-          .error(await this._extractSdkResponseErrorMsg(e))
-          .goAway(3000)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);
       }
 
-      this.$e('a:view:share:enable-pwd')
+      this.$e('a:view:share:enable-pwd');
     },
     async saveAllowCSVDownload() {
       try {
-        const meta = JSON.parse(this.shareLink.meta)
-        meta.allowCSVDownload = this.allowCSVDownload
+        const meta = JSON.parse(this.shareLink.meta);
+        meta.allowCSVDownload = this.allowCSVDownload;
         await this.$api.dbViewShare.update(this.shareLink.id, {
-          meta: JSON.stringify(meta)
-        })
-        this.$toast.success('Successfully updated').goAway(3000)
+          meta: JSON.stringify(meta),
+        });
+        this.$toast.success('Successfully updated').goAway(3000);
       } catch (e) {
-        this.$toast
-          .error(await this._extractSdkResponseErrorMsg(e))
-          .goAway(3000)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);
       }
       if (this.allowCSVDownload) {
-        this.$e('a:view:share:enable-csv-download')
+        this.$e('a:view:share:enable-csv-download');
       } else {
-        this.$e('a:view:share:disable-csv-download')
+        this.$e('a:view:share:disable-csv-download');
       }
     },
     async loadViews() {
@@ -783,8 +687,8 @@ export default {
 
       // this.viewsList = []
 
-      const views = (await this.$api.dbView.list(this.meta.id)).list
-      this.$emit('update:views', views)
+      const views = (await this.$api.dbView.list(this.meta.id)).list;
+      this.$emit('update:views', views);
     },
     // async onViewChange() {
     //   let query_params = {}
@@ -804,27 +708,23 @@ export default {
     //   this.$emit('loadTableData');
     // },
     copyapiUrlToClipboard() {
-      copyTextToClipboard(this.currentApiUrl)
-      this.clipboardSuccessHandler()
+      copyTextToClipboard(this.currentApiUrl);
+      this.clipboardSuccessHandler();
     },
     async updateViewName(view, index) {
       if (!view.edit) {
-        return
+        return;
       }
 
       // const oldTitle = view.title
 
-      this.$set(view, 'edit', false)
+      this.$set(view, 'edit', false);
       if (view.title_temp === view.title) {
-        return
+        return;
       }
-      if (
-        this.viewsList.some(
-          (v, i) => i !== index && (v.alias || v.title) === view.title_temp
-        )
-      ) {
-        this.$toast.info('View name should be unique').goAway(3000)
-        return
+      if (this.viewsList.some((v, i) => i !== index && (v.alias || v.title) === view.title_temp)) {
+        this.$toast.info('View name should be unique').goAway(3000);
+        return;
       }
       try {
         // if (this.selectedViewIdLocal === view.id) {
@@ -835,80 +735,76 @@ export default {
         //     }
         //   })
         // }
-        this.$set(view, 'title', view.title_temp)
+        this.$set(view, 'title', view.title_temp);
         await this.$api.dbView.update(view.id, {
           title: view.title,
-          order: view.order
-        })
-        this.$toast.success('View renamed successfully').goAway(3000)
+          order: view.order,
+        });
+        this.$toast.success('View renamed successfully').goAway(3000);
       } catch (e) {
-        this.$toast
-          .error(await this._extractSdkResponseErrorMsg(e))
-          .goAway(3000)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);
       }
     },
     showRenameTextBox(view, i) {
-      this.$set(view, 'edit', true)
-      this.$set(view, 'title_temp', view.title)
+      this.$set(view, 'edit', true);
+      this.$set(view, 'title_temp', view.title);
       this.$nextTick(() => {
-        const input = this.$refs[`input${i}`][0]
-        input.focus()
-        input.setSelectionRange(0, input.value.length)
-      })
-      this.$e('c:view:rename', { view: view.type })
+        const input = this.$refs[`input${i}`][0];
+        input.focus();
+        input.setSelectionRange(0, input.value.length);
+      });
+      this.$e('c:view:rename', { view: view.type });
     },
     async deleteView(view) {
       try {
-        await this.$api.dbView.delete(view.id)
-        this.$toast.success('View deleted successfully').goAway(3000)
-        await this.loadViews()
+        await this.$api.dbView.delete(view.id);
+        this.$toast.success('View deleted successfully').goAway(3000);
+        await this.loadViews();
       } catch (e) {
-        this.$toast
-          .error(await this._extractSdkResponseErrorMsg(e))
-          .goAway(3000)
+        this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);
       }
-      this.$e('a:view:delete', { view: view.type })
+      this.$e('a:view:delete', { view: view.type });
     },
     async genShareLink() {
-      const shared = await this.$api.dbViewShare.create(this.selectedViewId)
+      const shared = await this.$api.dbViewShare.create(this.selectedViewId);
       // todo: url
-      this.shareLink = shared
-      this.passwordProtect = shared.password !== null
-      this.allowCSVDownload = JSON.parse(shared.meta).allowCSVDownload
-      this.showShareModel = true
+      this.shareLink = shared;
+      this.passwordProtect = shared.password !== null;
+      this.allowCSVDownload = JSON.parse(shared.meta).allowCSVDownload;
+      this.showShareModel = true;
     },
     copyView(view, i) {
-      this.createViewType = view.type
-      this.showCreateView = true
-      this.copyViewRef = view
-      this.$e('c:view:copy', { view: view.type })
+      this.createViewType = view.type;
+      this.showCreateView = true;
+      this.copyViewRef = view;
+      this.$e('c:view:copy', { view: view.type });
     },
     async onViewCreate(viewMeta) {
-      this.copyViewRef = null
-      await this.loadViews()
-      this.selectedViewIdLocal = viewMeta.id
+      this.copyViewRef = null;
+      await this.loadViews();
+      this.selectedViewIdLocal = viewMeta.id;
       // await this.onViewChange();
-      this.$e('a:view:create', { view: viewMeta.type })
+      this.$e('a:view:create', { view: viewMeta.type });
     },
     clipboard(str) {
-      const el = document.createElement('textarea')
-      el.addEventListener('focusin', e => e.stopPropagation())
-      el.value = str
-      document.body.appendChild(el)
-      el.select()
-      document.execCommand('copy')
-      document.body.removeChild(el)
+      const el = document.createElement('textarea');
+      el.addEventListener('focusin', e => e.stopPropagation());
+      el.value = str;
+      document.body.appendChild(el);
+      el.select();
+      document.execCommand('copy');
+      document.body.removeChild(el);
     },
     clipboardSuccessHandler() {
-      this.$toast.info('Copied to clipboard').goAway(1000)
+      this.$toast.info('Copied to clipboard').goAway(1000);
     },
     copyShareUrlToClipboard() {
-      this.clipboard(this.sharedViewUrl)
-      this.clipboardSuccessHandler()
-      this.$e('c:view:share:copy-url')
-    }
-  }
-}
+      this.clipboard(this.sharedViewUrl);
+      this.clipboardSuccessHandler();
+      this.$e('c:view:share:copy-url');
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -974,7 +870,7 @@ export default {
   right: 0;
   background: var(--v-primary-base);
   opacity: 0.2;
-  content: "";
+  content: '';
   z-index: 1;
   pointer-events: none;
 }
@@ -1025,7 +921,7 @@ export default {
   opacity: 0.5;
   background: grey;
 }
-.mx-auto .v-expansion-panel{
-  background: var(--v-backgroundColor-base)
+.mx-auto .v-expansion-panel {
+  background: var(--v-backgroundColor-base);
 }
 </style>

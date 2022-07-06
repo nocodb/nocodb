@@ -8,9 +8,9 @@ async function readAllData({
   table,
   fields,
   base,
-  logBasic = _str => {},
+  logBasic = (_str) => {},
   triggerThreshold = BULK_DATA_BATCH_SIZE,
-  onThreshold = async _rec => {}
+  onThreshold = async (_rec) => {},
 }: {
   table: { title?: string };
   fields?;
@@ -28,7 +28,7 @@ async function readAllData({
     let thresholdCbkData = [];
 
     const selectParams: any = {
-      pageSize: 100
+      pageSize: 100,
     };
 
     if (fields) selectParams.fields = fields;
@@ -82,8 +82,8 @@ export async function importData({
   api,
   nocoBaseDataProcessing_v2,
   sDB,
-  logDetailed = _str => {},
-  logBasic = _str => {}
+  logDetailed = (_str) => {},
+  logBasic = (_str) => {},
 }: {
   projectName: string;
   table: { title?: string; id?: string };
@@ -110,12 +110,12 @@ export async function importData({
         }
 
         logBasic(
-          `:: Importing '${table.title}' data :: ${allRecords.length -
-            records.length +
-            1} - ${allRecords.length}`
+          `:: Importing '${table.title}' data :: ${
+            allRecords.length - records.length + 1
+          } - ${allRecords.length}`
         );
         await api.dbTableRow.bulkCreate('nc', projectName, table.id, allData);
-      }
+      },
     });
 
     return records;
@@ -132,10 +132,10 @@ export async function importLTARData({
   api,
   projectName,
   insertedAssocRef = {},
-  logDetailed = _str => {},
-  logBasic = _str => {},
+  logDetailed = (_str) => {},
+  logBasic = (_str) => {},
   records,
-  atNcAliasRef
+  atNcAliasRef,
 }: {
   projectName: string;
   table: { title?: string; id?: string };
@@ -165,7 +165,7 @@ export async function importLTARData({
       fields,
       base,
       logDetailed,
-      logBasic
+      logBasic,
     }));
 
   const modelMeta: any = await api.dbTable.read(table.id);
@@ -194,11 +194,11 @@ export async function importLTARData({
       modelMeta: assocModelMeta,
       colMeta,
       curCol: assocModelMeta.columns.find(
-        c => c.id === colMeta.colOptions.fk_mm_child_column_id
+        (c) => c.id === colMeta.colOptions.fk_mm_child_column_id
       ),
       refCol: assocModelMeta.columns.find(
-        c => c.id === colMeta.colOptions.fk_mm_parent_column_id
-      )
+        (c) => c.id === colMeta.colOptions.fk_mm_parent_column_id
+      ),
     });
   }
 
@@ -214,9 +214,9 @@ export async function importLTARData({
       // todo: use actual alias instead of sanitized
       assocTableData.push(
         ...(rec?.[atNcAliasRef[table.id][assocMeta.colMeta.title]] || []).map(
-          id => ({
+          (id) => ({
             [assocMeta.curCol.title]: record.id,
-            [assocMeta.refCol.title]: id
+            [assocMeta.refCol.title]: id,
           })
         )
       );

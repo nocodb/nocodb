@@ -10,11 +10,11 @@
     :clearable="!column.rqd"
     v-on="parentListeners"
   >
-    <template #selection="{item}">
+    <template #selection="{ item }">
       <div
         class="d-100"
         :class="{
-          'text-center' : !isForm
+          'text-center': !isForm,
         }"
       >
         <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]" class="ma-1">
@@ -22,21 +22,19 @@
         </v-chip>
       </div>
     </template>
-    <template #item="{item}">
+    <template #item="{ item }">
       <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">
         {{ item }}
       </v-chip>
     </template>
     <template #append>
-      <v-icon small class="mt-1">
-        mdi-menu-down
-      </v-icon>
+      <v-icon small class="mt-1"> mdi-menu-down </v-icon>
     </template>
   </v-select>
 </template>
 
 <script>
-import colors from '@/mixins/colors'
+import colors from '@/mixins/colors';
 
 export default {
   name: 'EnumListEditableCell',
@@ -45,37 +43,35 @@ export default {
   props: {
     value: String,
     column: Object,
-    isForm: Boolean
+    isForm: Boolean,
   },
   computed: {
     localState: {
       get() {
-        return this.value && this.value.replace(/\\'/g, '\'').replace(/^'|'$/g, '')
+        return this.value && this.value.replace(/\\'/g, "'").replace(/^'|'$/g, '');
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     enumValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp
-          .split(',')
-          .map(v => v.replace(/\\'/g, '\'').replace(/^'|'$/g, ''))
+        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''));
       }
-      return []
+      return [];
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   mounted() {
     // this.$el.focus();
@@ -83,8 +79,8 @@ export default {
     // event = document.createEvent('MouseEvents');
     // event.initMouseEvent('mousedown', true, true, window);
     // this.$el.dispatchEvent(event);
-  }
-}
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -92,7 +88,7 @@ export default {
   .v-select {
     min-width: 150px;
   }
-  .v-input__slot{
+  .v-input__slot {
     padding-right: 0 !important;
     padding-left: 35px !important;
   }

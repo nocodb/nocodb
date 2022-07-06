@@ -80,7 +80,7 @@ export default class XcProcedure {
           .getDbDriver()
           .raw(`Call ??(${new Array(args.length).fill('?').join(',')})`, [
             name,
-            ...args
+            ...args,
           ]);
         return result;
       } else {

@@ -13,7 +13,7 @@
           {{ $t('activity.createTable') }}
         </v-card-title>
 
-        <v-card-text class=" py-6 px-10 ">
+        <v-card-text class="py-6 px-10">
           <!--hint="Enter table name"-->
           <v-text-field
             ref="input"
@@ -30,14 +30,14 @@
 
           <div class="d-flex justify-end">
             <div class="grey--text caption pointer" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
-              {{ isAdvanceOptVisible? 'Hide' : 'Show' }} more
+              {{ isAdvanceOptVisible ? 'Hide' : 'Show' }} more
               <v-icon x-small color="grey">
-                {{ isAdvanceOptVisible ? 'mdi-minus-circle-outline':'mdi-plus-circle-outline' }}
+                {{ isAdvanceOptVisible ? 'mdi-minus-circle-outline' : 'mdi-plus-circle-outline' }}
               </v-icon>
             </div>
           </div>
 
-          <div class="nc-table-advanced-options" :class="{active: isAdvanceOptVisible}">
+          <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
             <!--hint="Table name as saved in database"-->
             <v-text-field
               v-if="!projectPrefix"
@@ -51,35 +51,37 @@
               class="mt-4 caption nc-table-name-alias"
             />
 
-            <div class=" mt-5">
+            <div class="mt-5">
               <label class="add-default-title grey--text">
                 <!--Add Default Columns-->
                 {{ $t('msg.info.addDefaultColumns') }}
               </label>
 
-              <div class=" d-flex caption justify-space-between align-center">
+              <div class="d-flex caption justify-space-between align-center">
                 <v-checkbox
                   key="chk1"
                   v-model="table.columns"
                   dense
-                  class="mt-0 "
+                  class="mt-0"
                   color="info"
                   hide-details
                   value="id"
-                  @click.capture.prevent.stop="()=>{
-                    $toast.info('ID column is required, you can rename this later if required.').goAway(3000);
-                    if(!table.columns.includes('id')){
-                      table.columns.push('id');
+                  @click.capture.prevent.stop="
+                    () => {
+                      $toast.info('ID column is required, you can rename this later if required.').goAway(3000);
+                      if (!table.columns.includes('id')) {
+                        table.columns.push('id');
+                      }
                     }
-                  }"
+                  "
                 >
                   <template #label>
                     <div>
-                      <span v-if="!isIdToggleAllowed" class="caption" @dblclick="isIdToggleAllowed=true">id</span>
+                      <span v-if="!isIdToggleAllowed" class="caption" @dblclick="isIdToggleAllowed = true">id</span>
                       <v-select
                         v-else
                         v-model="idType"
-                        style="max-width:100px"
+                        style="max-width: 100px"
                         class="caption"
                         outlined
                         dense
@@ -93,7 +95,7 @@
                   key="chk2"
                   v-model="table.columns"
                   dense
-                  class="mt-0 "
+                  class="mt-0"
                   color="info"
                   hide-details
                   value="title"
@@ -106,7 +108,7 @@
                   key="chk3"
                   v-model="table.columns"
                   dense
-                  class="mt-0 "
+                  class="mt-0"
                   color="info"
                   hide-details
                   value="created_at"
@@ -119,7 +121,7 @@
                   key="chk4"
                   v-model="table.columns"
                   dense
-                  class="mt-0 "
+                  class="mt-0"
                   color="info"
                   hide-details
                   value="updated_at"
@@ -154,9 +156,7 @@
 </template>
 
 <script>
-
-import inflection from 'inflection'
-import { validateTableName } from '~/helpers'
+import { validateTableName } from '~/helpers';
 
 export default {
   name: 'DlgTableCreate',
@@ -166,101 +166,103 @@ export default {
       isAdvanceOptVisible: false,
       table: {
         name: '',
-        columns: [
-          'id',
-          'title',
-          'created_at',
-          'updated_at'
-        ]
+        columns: ['id', 'title', 'created_at', 'updated_at'],
       },
       isIdToggleAllowed: false,
       valid: false,
       idType: 'AI',
-      idTypes: [{ value: 'AI', text: 'Auto increment number' }, { value: 'AG', text: 'Auto generated string' }]
-    }
+      idTypes: [
+        { value: 'AI', text: 'Auto increment number' },
+        { value: 'AG', text: 'Auto generated string' },
+      ],
+    };
   },
   computed: {
     dialogShow: {
       get() {
-        return this.value
+        return this.value;
       },
       set(v) {
-        this.$emit('input', v)
-      }
+        this.$emit('input', v);
+      },
     },
     projectPrefix() {
-      return this.$store.getters['project/GtrProjectPrefix']
+      return this.$store.getters['project/GtrProjectPrefix'];
     },
     tables() {
-      return this.$store.state.project.tables || []
-    }
+      return this.$store.state.project.tables || [];
+    },
   },
   watch: {
-    'table.alias'(v) {
-      this.$set(this.table, 'name', `${this.projectPrefix || ''}${inflection.underscore(v.replace(/^\s+|\s+$/g, m => new Array(m.length).fill('_').join('')))}`)
-    }
+    'table.alias'(alias) {
+      this.$set(this.table, 'name', `${this.projectPrefix || ''}${alias}`);
+    },
   },
   created() {
-    this.populateDefaultTitle()
+    this.populateDefaultTitle();
   },
   mounted() {
     setTimeout(() => {
-      const el = this.$refs.input.$el
-      el.querySelector('input').focus()
-      el.querySelector('input').select()
-    }, 100)
+      const el = this.$refs.input.$el;
+      el.querySelector('input').focus();
+      el.querySelector('input').select();
+    }, 100);
   },
 
   methods: {
     populateDefaultTitle() {
-      let c = 1
-      while (this.tables.some(t => t.title === `Sheet${c}`)) { c++ }
-      this.$set(this.table, 'alias', `Sheet${c}`)
+      let c = 1;
+      while (this.tables.some(t => t.title === `Sheet${c}`)) {
+        c++;
+      }
+      this.$set(this.table, 'alias', `Sheet${c}`);
     },
     validateTableName(v) {
-      return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
+      return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql']);
     },
     validateDuplicateAlias(v) {
-      return (this.tables || []).every(t => t.title !== (v || '')) || 'Duplicate table alias'
+      return (this.tables || []).every(t => t.title !== (v || '')) || 'Duplicate table alias';
     },
     validateLedingOrTrailingWhiteSpace(v) {
-      return !/^\s+|\s+$/.test(v) || 'Leading or trailing whitespace not allowed in table name'
+      return !/^\s+|\s+$/.test(v) || 'Leading or trailing whitespace not allowed in table name';
     },
     validateDuplicate(v) {
-      return (this.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
+      return (
+        (this.tables || []).every(t => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
+      );
     },
     onCreateBtnClick() {
       this.$emit('create', {
         ...this.table,
-        columns: this.table.columns.map(c => c === 'id' && this.idType === 'AG' ? 'id_ag' : c)
-      })
-    }
-  }
-}
+        columns: this.table.columns.map(c => (c === 'id' && this.idType === 'AG' ? 'id_ag' : c)),
+      });
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
-::v-deep{
+::v-deep {
   .v-text-field__details {
-    padding:0 2px !important;
+    padding: 0 2px !important;
     .v-messages:not(.error--text) {
       .v-messages__message {
         color: grey;
-        font-size: .65rem;
+        font-size: 0.65rem;
       }
     }
   }
 }
-.add-default-title{
-  font-size: .65rem;
+.add-default-title {
+  font-size: 0.65rem;
 }
 
-.nc-table-advanced-options{
-  max-height:0;
-  transition:.3s max-height;
+.nc-table-advanced-options {
+  max-height: 0;
+  transition: 0.3s max-height;
   overflow: hidden;
-  &.active{
-    max-height:200px
+  &.active {
+    max-height: 200px;
   }
 }
 </style>

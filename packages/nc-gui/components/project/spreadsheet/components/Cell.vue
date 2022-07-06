@@ -21,37 +21,53 @@
   <rating-cell v-else-if="isRating" :value="value" read-only />
   <currency-cell v-else-if="isCurrency" :value="value" :column="column" />
 
-  <span v-else :class="{'long-text-cell' : isTextArea}" :title="title">{{ value }}</span>
+  <span v-else :class="{ 'long-text-cell': isTextArea }" :title="title">{{ value }}</span>
 </template>
 
 <script>
-import DateCell from './cell/DateCell'
-import DateTimeCell from './cell/DateTimeCell'
-import TimeCell from './cell/TimeCell'
-import JsonCell from '~/components/project/spreadsheet/components/cell/JsonCell'
-import UrlCell from '~/components/project/spreadsheet/components/cell/UrlCell'
-import cell from '@/components/project/spreadsheet/mixins/cell'
-import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell'
-import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
-import EditableAttachmentCell from '~/components/project/spreadsheet/components/editableCell/EditableAttachmentCell'
-import BooleanCell from '~/components/project/spreadsheet/components/cell/BooleanCell'
-import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCell'
-import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
-import CurrencyCell from '@/components/project/spreadsheet/components/cell/CurrencyCell'
-import DurationCell from '@/components/project/spreadsheet/components/cell/DurationCell'
+import DateCell from './cell/DateCell';
+import DateTimeCell from './cell/DateTimeCell';
+import TimeCell from './cell/TimeCell';
+import JsonCell from '~/components/project/spreadsheet/components/cell/JsonCell';
+import UrlCell from '~/components/project/spreadsheet/components/cell/UrlCell';
+import cell from '@/components/project/spreadsheet/mixins/cell';
+import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell';
+import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell';
+import EditableAttachmentCell from '~/components/project/spreadsheet/components/editableCell/EditableAttachmentCell';
+import BooleanCell from '~/components/project/spreadsheet/components/cell/BooleanCell';
+import EmailCell from '~/components/project/spreadsheet/components/cell/EmailCell';
+import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell';
+import CurrencyCell from '@/components/project/spreadsheet/components/cell/CurrencyCell';
+import DurationCell from '@/components/project/spreadsheet/components/cell/DurationCell';
 
 export default {
   name: 'TableCell',
-  components: { RatingCell, EmailCell, TimeCell, DateTimeCell, DateCell, JsonCell, UrlCell, EditableAttachmentCell, EnumCell, SetListCell, BooleanCell, CurrencyCell, DurationCell },
+  components: {
+    RatingCell,
+    EmailCell,
+    TimeCell,
+    DateTimeCell,
+    DateCell,
+    JsonCell,
+    UrlCell,
+    EditableAttachmentCell,
+    EnumCell,
+    SetListCell,
+    BooleanCell,
+    CurrencyCell,
+    DurationCell,
+  },
   mixins: [cell],
   props: ['value', 'dbAlias', 'isLocked', 'selected', 'column'],
   computed: {
     title() {
-      if (typeof this.value === 'string') { return this.value }
-      return ''
-    }
-  }
-}
+      if (typeof this.value === 'string') {
+        return this.value;
+      }
+      return '';
+    },
+  },
+};
 </script>
 
 <style scoped>

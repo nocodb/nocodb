@@ -16,20 +16,20 @@ const getFindOne = dataAliasApis.__get__('getFindOne');
 describe('getFindOne', () => {
   const model = {
     id: 'modelId',
-    base_id: 'baseId'
+    base_id: 'baseId',
   };
   const view = {
-    id: 'viewId'
+    id: 'viewId',
   };
   const base = {
-    id: 'baseId'
+    id: 'baseId',
   };
   const dbDriver = {
-    id: 'dbDriverId'
+    id: 'dbDriverId',
   };
   const req = { query: {} };
   const baseModel = {
-    findOne: sinon.fake.returns(undefined)
+    findOne: sinon.fake.returns(undefined),
   };
   const baseGetFake = sinon.replace(Base, 'get', sinon.fake.returns(base));
   const baseModelFake = sinon.replace(
@@ -52,7 +52,7 @@ describe('getFindOne', () => {
       baseModelFake.calledWith({
         id: model.id,
         viewId: view.id,
-        dbDriver: dbDriver
+        dbDriver: dbDriver,
       })
     ).to.be.true;
   });
@@ -71,7 +71,7 @@ describe('getFindOne', () => {
   describe('when data is found', () => {
     it('returns data', async () => {
       const findOneResult = {
-        id: 'dataId'
+        id: 'dataId',
       };
       baseModel.findOne = sinon.fake.returns(findOneResult);
       expect(await getFindOne(model, view, req)).eql(findOneResult);

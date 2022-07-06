@@ -25,10 +25,10 @@ export abstract class RestBaseCtrl {
       ? this.generateHandlerFromStringBody(this.middlewareBody)
       : this.middleware;
 
-    customRoutes?.additional?.[this.controllerName]?.forEach(addRoute => {
+    customRoutes?.additional?.[this.controllerName]?.forEach((addRoute) => {
       const handlers = [middleware];
 
-      handlers.push(...addRoute.handler?.map(hn => this.catchErr(hn)));
+      handlers.push(...addRoute.handler?.map((hn) => this.catchErr(hn)));
 
       handlers.push(this.postMiddleware);
 
@@ -43,7 +43,7 @@ export abstract class RestBaseCtrl {
 
       if (customRoutes?.override?.[route.path]?.[route.type]?.length) {
         handlers.push(
-          ...customRoutes.override[route.path][route.type].map(hn =>
+          ...customRoutes.override[route.path][route.type].map((hn) =>
             this.catchErr(hn)
           )
         );
@@ -53,13 +53,13 @@ export abstract class RestBaseCtrl {
         route.functions.length
       ) {
         handlers.push(
-          ...route.functions.map(fnBody => {
+          ...route.functions.map((fnBody) => {
             return this.catchErr(this.generateHandlerFromStringBody(fnBody));
           })
         );
       } else {
         handlers.push(
-          ...route.handler.map(h => {
+          ...route.handler.map((h) => {
             return this.catchErr(
               typeof h === 'string'
                 ? (h in this ? this[h] : (_req, res) => res.json({})).bind(this)
@@ -113,11 +113,11 @@ export abstract class RestBaseCtrl {
 
   protected catchErr(handler): Handler {
     return (req, res, next) => {
-      (res as any).xcJson = data => {
+      (res as any).xcJson = (data) => {
         res.locals.responseData = data;
         next();
       };
-      Promise.resolve(handler.call(this, req, res, next)).catch(err => {
+      Promise.resolve(handler.call(this, req, res, next)).catch((err) => {
         next(err);
       });
     };
@@ -141,7 +141,7 @@ export abstract class RestBaseCtrl {
     return JSON.parse(JSON.stringify(obj), (_key, value) => {
       return typeof value === 'string'
         ? Handlebars.compile(value, { noEscape: true })({
-            req
+            req,
           })
         : value;
     });

@@ -22,13 +22,13 @@ async function userList(req, res) {
     users: new PagedResponseImpl(
       await ProjectUser.getUsersList({
         ...req.query,
-        project_id: req.params.projectId
+        project_id: req.params.projectId,
       }),
       {
         ...req.query,
-        count: await ProjectUser.getUsersCount(req.query)
+        count: await ProjectUser.getUsersCount(req.query),
       }
-    )
+    ),
   });
 }
 
@@ -36,10 +36,10 @@ async function userInvite(req, res, next): Promise<any> {
   const emails = (req.body.email || '')
     .toLowerCase()
     .split(/\s*,\s*/)
-    .map(v => v.trim());
+    .map((v) => v.trim());
 
   // check for invalid emails
-  const invalidEmails = emails.filter(v => !validator.isEmail(v));
+  const invalidEmails = emails.filter((v) => !validator.isEmail(v));
   if (!emails.length) {
     return NcError.badRequest('Invalid email address');
   }
@@ -65,13 +65,13 @@ async function userInvite(req, res, next): Promise<any> {
 
       // todo : provide a different role
       await User.update(user.id, {
-        roles: 'user'
+        roles: 'user',
       });
 
       await ProjectUser.insert({
         project_id: req.params.projectId,
         fk_user_id: user.id,
-        roles: req.body.roles || 'editor'
+        roles: req.body.roles || 'editor',
       });
 
       const cachedUser = await NocoCache.get(
@@ -93,7 +93,7 @@ async function userInvite(req, res, next): Promise<any> {
         op_sub_type: 'INVITE',
         user: req.user.email,
         description: `invited ${email} to ${req.params.projectId} project `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
     } else {
       try {
@@ -103,14 +103,14 @@ async function userInvite(req, res, next): Promise<any> {
           invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
           email,
           roles: 'user',
-          token_version: randomTokenString()
+          token_version: randomTokenString(),
         });
 
         // add user to project
         await ProjectUser.insert({
           project_id: req.params.projectId,
           fk_user_id: id,
-          roles: req.body.roles
+          roles: req.body.roles,
         });
 
         const count = await User.count();
@@ -122,7 +122,7 @@ async function userInvite(req, res, next): Promise<any> {
           op_sub_type: 'INVITE',
           user: req.user.email,
           description: `invited ${email} to ${req.params.projectId} project `,
-          ip: req.clientIp
+          ip: req.clientIp,
         });
         // in case of single user check for smtp failure
         // and send back token if failed
@@ -147,7 +147,7 @@ async function userInvite(req, res, next): Promise<any> {
 
   if (emails.length === 1) {
     res.json({
-      msg: 'success'
+      msg: 'success',
     });
   } else {
     return res.json({ invite_token, emails, error });
@@ -193,11 +193,11 @@ async function projectUserUpdate(req, res, next): Promise<any> {
       op_sub_type: 'ROLES_MANAGEMENT',
       user: req.user.email,
       description: `updated roles for ${user.email} with ${req.body.roles} `,
-      ip: req.clientIp
+      ip: req.clientIp,
     });
 
     res.json({
-      msg: 'User details updated successfully'
+      msg: 'User details updated successfully',
     });
   } catch (e) {
     next(e);
@@ -223,7 +223,7 @@ async function projectUserDelete(req, res): Promise<any> {
 
   await ProjectUser.delete(project_id, req.params.userId);
   res.json({
-    msg: 'success'
+    msg: 'success',
   });
 }
 
@@ -239,12 +239,12 @@ async function projectUserInviteResend(req, res): Promise<any> {
 
   await User.update(user.id, {
     invite_token,
-    invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+    invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
   });
 
   const pluginData = await Noco.ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
     category: PluginCategory.EMAIL,
-    active: true
+    active: true,
   });
 
   if (!pluginData) {
@@ -261,7 +261,7 @@ async function projectUserInviteResend(req, res): Promise<any> {
     user: user.email,
     description: `resent a invite to ${user.email} `,
     ip: req.clientIp,
-    project_id: req.params.projectId
+    project_id: req.params.projectId,
   });
 
   res.json({ msg: 'success' });
@@ -289,10 +289,10 @@ async function sendInviteEmail(
           projectName: req.body?.projectName,
           roles: (req.body?.roles || '')
             .split(',')
-            .map(r => r.replace(/^./, m => m.toUpperCase()))
+            .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
             .join(', '),
-          adminEmail: req.session?.passport?.user?.email
-        })
+          adminEmail: req.session?.passport?.user?.email,
+        }),
       });
       return true;
     }

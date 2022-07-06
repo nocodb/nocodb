@@ -1,37 +1,21 @@
 <!--eslint-disable-->
 
 <template>
-  <v-dialog
-    v-model="dialogShow"
-    width="60%"
-  >
-    <v-tabs
-      v-model="activeTab"
-      height="32"
-    >
+  <v-dialog v-model="dialogShow" width="60%">
+    <v-tabs v-model="activeTab" height="32">
       <v-tabs-slider />
 
-      <v-tab
-        v-for="env in envs"
-        :key="env"
-        :to="`#${env}`"
-      >
+      <v-tab v-for="env in envs" :key="env" :to="`#${env}`">
         {{ env }}
       </v-tab>
-      <div style="padding:0;margin-top:3px;margin-left:20px">
-        <x-btn
-          v-if="!isDashboard"
-          small
-          tooltip="Add a new environment"
-          outlined
-          @click="addNewEnvDialog = true"
-        >
+      <div style="padding: 0; margin-top: 3px; margin-left: 20px">
+        <x-btn v-if="!isDashboard" small tooltip="Add a new environment" outlined @click="addNewEnvDialog = true">
           Add Env
         </x-btn>
       </div>
 
       <v-spacer />
-      <div style="padding:0;margin-left:20px">
+      <div style="padding: 0; margin-left: 20px">
         <x-btn
           v-if="!isDashboard && activeTab !== 'global'"
           small
@@ -50,35 +34,23 @@
           small
           @click="saveEnvironment(env)"
         >
-          <v-icon
-            small
-          >
-            save
-          </v-icon> &nbsp;Save All
+          <v-icon small> save </v-icon> &nbsp;Save All
         </x-btn>
       </div>
-      <v-tab-item
-        v-for="(env) in envs"
-        :key="env"
-        :value="env"
-      >
-        <div class="d-flex" style="height: 100%; width:100%">
+      <v-tab-item v-for="env in envs" :key="env" :value="env">
+        <div class="d-flex" style="height: 100%; width: 100%">
           <v-simple-table class="ignore-height-style params-table my-4" style="width: 100%" dense>
             <template #default>
               <thead>
                 <tr>
                   <th class="text-left body-2" width="5%" />
-                  <th class="text-left body-2 grey--text" width="40%">
-                    Key
-                  </th>
-                  <th class="text-left body-2 grey--text" width="40%">
-                    Value
-                  </th>
+                  <th class="text-left body-2 grey--text" width="40%">Key</th>
+                  <th class="text-left body-2 grey--text" width="40%">Value</th>
                   <th class="text-left body-2" width="5%" />
                 </tr>
               </thead>
               <draggable v-if="value" v-model="envValues[env].data" tag="tbody">
-                <tr v-for="(item,i) in envValues[env].data" :key="i">
+                <tr v-for="(item, i) in envValues[env].data" :key="i">
                   <td>
                     <v-checkbox
                       v-model="item.enabled"
@@ -98,7 +70,7 @@
                       hide-details
                       single-line
                       dense
-                      @input="handleInput(env,i,item.key)"
+                      @input="handleInput(env, i, item.key)"
                     />
                   </td>
                   <td style="height: auto">
@@ -113,12 +85,7 @@
                     />
                   </td>
                   <td class="">
-                    <x-icon
-                      tooltip="Delete environment key"
-                      color="error grey"
-                      small
-                      @click="removeKey(env,i)"
-                    >
+                    <x-icon tooltip="Delete environment key" color="error grey" small @click="removeKey(env, i)">
                       mdi-delete-outline
                     </x-icon>
                   </td>
@@ -131,9 +98,7 @@
     </v-tabs>
     <v-dialog v-model="addNewEnvDialog" max-width="500">
       <v-card>
-        <v-card-title class="headline">
-          New Environment
-        </v-card-title>
+        <v-card-title class="headline"> New Environment </v-card-title>
 
         <v-card-text>
           <v-text-field v-model="newEnvName" hide-details outlined dense label="Enter environment name" />
@@ -142,22 +107,12 @@
         <v-card-actions>
           <v-spacer />
 
-          <v-btn
-            color="green darken-1"
-            text
-            @click="addNewEnvDialog = false"
-          >
+          <v-btn color="green darken-1" text @click="addNewEnvDialog = false">
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </v-btn>
 
-          <v-btn
-            color="green darken-1"
-            text
-            @click="addNewEnvironment(newEnvName)"
-          >
-            Create
-          </v-btn>
+          <v-btn color="green darken-1" text @click="addNewEnvironment(newEnvName)"> Create </v-btn>
         </v-card-actions>
       </v-card>
     </v-dialog>
@@ -167,187 +122,182 @@
 <script>
 /* eslint-disable */
 
-import draggable from 'vuedraggable'
+import draggable from 'vuedraggable';
 export default {
   name: 'Environment',
   directives: {},
   components: {
-    draggable
+    draggable,
   },
-  validate ({ params }) {
-    return true
+  validate({ params }) {
+    return true;
   },
   props: {
     value: Boolean,
-    env: String
+    env: String,
   },
-  data () {
+  data() {
     return {
       addNewEnvDialog: false,
       newEnvName: '',
       activeTab: 'global',
-      envValues: {}
-    }
+      envValues: {},
+    };
   },
-  head () {
-    return {}
+  head() {
+    return {};
   },
   computed: {
     dialogShow: {
-      get () {
-        return this.value
+      get() {
+        return this.value;
       },
-      set (val) {
-        this.$emit('input', val)
+      set(val) {
+        this.$emit('input', val);
+      },
+    },
+    envs() {
+      if (this.isDashboard) {
+        return ['global', ...Object.keys(this.$store.getters['project/GtrProjectJson'].envs)];
+      } else {
+        return ['global', ...Object.keys(this.$store.state.project.defaultProject.envs)];
       }
     },
-    envs () {
-      if (this.isDashboard) {
-        return ['global', ...(Object.keys(this.$store.getters['project/GtrProjectJson'].envs))]
-      } else {
-        return ['global', ...(Object.keys(this.$store.state.project.defaultProject.envs))]
-      }
-    }
   },
   watch: {
-    env (env) {
-      this.activeTab = env
-    }
+    env(env) {
+      this.activeTab = env;
+    },
   },
-  created () {
-    this.activeTab = this.env
-    this.loadEnvironments()
+  created() {
+    this.activeTab = this.env;
+    this.loadEnvironments();
 
     // listen for active project change
     this.$store.watch(
       state => state.project.unserializedList,
-      (unserializedList) => {
-        if (unserializedList.envs) { this.loadEnvironments() }
+      unserializedList => {
+        if (unserializedList.envs) {
+          this.loadEnvironments();
+        }
       }
-    )
+    );
   },
-  mounted () {
-  },
-  beforeDestroy () {
-  },
+  mounted() {},
+  beforeDestroy() {},
   methods: {
-    async addNewEnvironment (name) {
-      this.addNewEnvDialog = false
+    async addNewEnvironment(name) {
+      this.addNewEnvDialog = false;
       if (!this.isDashboard) {
-        const projectJsonPath = config.electron.defaultProjectPath
-        const freshProjectObj = JSON.parse(JSON.stringify(this.$store.state.project.defaultProject))
-        freshProjectObj.envs[name] = { apiClient: { data: [] } }
-        fs.writeFileSync(
-          projectJsonPath,
-          JSON.stringify(freshProjectObj, null, 2),
-          'utf-8')
-        this.$store.commit('project/setDefaultProjectJson', JSON.parse(JSON.stringify(freshProjectObj)))
-        this.loadEnvironments()
+        const projectJsonPath = config.electron.defaultProjectPath;
+        const freshProjectObj = JSON.parse(JSON.stringify(this.$store.state.project.defaultProject));
+        freshProjectObj.envs[name] = { apiClient: { data: [] } };
+        fs.writeFileSync(projectJsonPath, JSON.stringify(freshProjectObj, null, 2), 'utf-8');
+        this.$store.commit('project/setDefaultProjectJson', JSON.parse(JSON.stringify(freshProjectObj)));
+        this.loadEnvironments();
       }
     },
-    deleteEnvironemt (env) {
+    deleteEnvironemt(env) {
       if (!this.isDashboard) {
-        const projectJsonPath = config.electron.defaultProjectPath
-        const freshProjectObj = JSON.parse(JSON.stringify(this.$store.state.project.defaultProject))
-        delete freshProjectObj.envs[env]
-        fs.writeFileSync(
-          projectJsonPath,
-          JSON.stringify(freshProjectObj, null, 2),
-          'utf-8')
-        this.$store.commit('project/setDefaultProjectJson', JSON.parse(JSON.stringify(freshProjectObj)))
-        this.loadEnvironments()
+        const projectJsonPath = config.electron.defaultProjectPath;
+        const freshProjectObj = JSON.parse(JSON.stringify(this.$store.state.project.defaultProject));
+        delete freshProjectObj.envs[env];
+        fs.writeFileSync(projectJsonPath, JSON.stringify(freshProjectObj, null, 2), 'utf-8');
+        this.$store.commit('project/setDefaultProjectJson', JSON.parse(JSON.stringify(freshProjectObj)));
+        this.loadEnvironments();
       }
     },
     // add extra column if last row is filled
-    handleInput (env, i, key) {
+    handleInput(env, i, key) {
       if (i === this.envValues[env].data.length - 1 && key.length) {
-        this.envValues[env].data = [...this.envValues[env].data, { key: '', value: '', enabled: true }]
+        this.envValues[env].data = [...this.envValues[env].data, { key: '', value: '', enabled: true }];
       }
     },
     // remove environment key
-    removeKey (env, i) {
-      this.envValues[env].data.splice(i, 1)
+    removeKey(env, i) {
+      this.envValues[env].data.splice(i, 1);
       if (!this.envValues[env].data.length) {
-        this.envValues[env].data = [{ key: '', value: '', enabled: true }]
+        this.envValues[env].data = [{ key: '', value: '', enabled: true }];
       }
     },
     // filter empty environments and save project JSON
-    async saveEnvironmentFile (projectJsonPath, freshProject) {
-      this.envs.forEach((env) => {
-        let envObj = {}
-        if (!this.envValues[env] || !this.envValues[env].data) { this.$set(this.envValues, env, { data: [] }) } else { envObj = this.envValues[env] }
-        if (env === 'global') {
-          freshProject.apiClient.data = envObj.data.filter(o => o.key.trim())
+    async saveEnvironmentFile(projectJsonPath, freshProject) {
+      this.envs.forEach(env => {
+        let envObj = {};
+        if (!this.envValues[env] || !this.envValues[env].data) {
+          this.$set(this.envValues, env, { data: [] });
         } else {
-          freshProject.envs[env].apiClient.data = envObj.data.filter(o => o.key.trim())
+          envObj = this.envValues[env];
         }
-      })
+        if (env === 'global') {
+          freshProject.apiClient.data = envObj.data.filter(o => o.key.trim());
+        } else {
+          freshProject.envs[env].apiClient.data = envObj.data.filter(o => o.key.trim());
+        }
+      });
 
-      fs.writeFileSync(
-        projectJsonPath,
-        JSON.stringify(freshProject, null, 2),
-        'utf-8')
+      fs.writeFileSync(projectJsonPath, JSON.stringify(freshProject, null, 2), 'utf-8');
     },
-    async saveEnvironment (env) {
+    async saveEnvironment(env) {
       try {
-        let projectJsonPath, freshProjectObj
+        let projectJsonPath, freshProjectObj;
 
         // make a copy of project json and get it's file path
         // save the changes made to project json and update in state
         if (this.isDashboard) {
-          projectJsonPath = path.join(this.$store.getters['project/currentProjectFolder'], 'config.xc.json')
-          freshProjectObj = JSON.parse(fs.readFileSync(projectJsonPath))
-          await this.saveEnvironmentFile(projectJsonPath, freshProjectObj)
-          this.$store.commit('project/setProjectJson', JSON.parse(JSON.stringify(freshProjectObj), (key, value) => {
-            return typeof value === 'string' ? Handlebars.compile(value, { noEscape: true })(process.env) : value
-          }))
+          projectJsonPath = path.join(this.$store.getters['project/currentProjectFolder'], 'config.xc.json');
+          freshProjectObj = JSON.parse(fs.readFileSync(projectJsonPath));
+          await this.saveEnvironmentFile(projectJsonPath, freshProjectObj);
+          this.$store.commit(
+            'project/setProjectJson',
+            JSON.parse(JSON.stringify(freshProjectObj), (key, value) => {
+              return typeof value === 'string' ? Handlebars.compile(value, { noEscape: true })(process.env) : value;
+            })
+          );
         } else {
-          projectJsonPath = config.electron.defaultProjectPath
-          freshProjectObj = JSON.parse(JSON.stringify(this.$store.state.project.defaultProject))
-          await this.saveEnvironmentFile(projectJsonPath, freshProjectObj)
-          this.$store.commit('project/setDefaultProjectJson', JSON.parse(JSON.stringify(freshProjectObj)))
+          projectJsonPath = config.electron.defaultProjectPath;
+          freshProjectObj = JSON.parse(JSON.stringify(this.$store.state.project.defaultProject));
+          await this.saveEnvironmentFile(projectJsonPath, freshProjectObj);
+          this.$store.commit('project/setDefaultProjectJson', JSON.parse(JSON.stringify(freshProjectObj)));
         }
 
-        this.$toast.success('Environment saved successfully').goAway(3000)
+        this.$toast.success('Environment saved successfully').goAway(3000);
       } catch (e) {
-        console.log(e)
-        this.$toast.error('Invalid JSON failed to save environment').goAway(3000)
+        console.log(e);
+        this.$toast.error('Invalid JSON failed to save environment').goAway(3000);
       }
     },
     // load current environment values for active project from state
-    loadEnvironments () {
-      let projectJsonObj
+    loadEnvironments() {
+      let projectJsonObj;
       if (this.isDashboard) {
-        projectJsonObj = this.$store.getters['project/GtrProjectJson']
+        projectJsonObj = this.$store.getters['project/GtrProjectJson'];
       } else {
-        projectJsonObj = this.$store.state.project.defaultProject
+        projectJsonObj = this.$store.state.project.defaultProject;
       }
 
       // extract environment object (key-value pair)
-      this.envValues = JSON.parse(JSON.stringify({
-        global: projectJsonObj.apiClient,
-        ...(projectJsonObj.envs
-          ? Object.entries(projectJsonObj.envs)
-            .reduce((obj, [name, env]) => ({ [name]: env.apiClient, ...obj }), {})
-          : [])
-      }))
+      this.envValues = JSON.parse(
+        JSON.stringify({
+          global: projectJsonObj.apiClient,
+          ...(projectJsonObj.envs
+            ? Object.entries(projectJsonObj.envs).reduce((obj, [name, env]) => ({ [name]: env.apiClient, ...obj }), {})
+            : []),
+        })
+      );
 
       // add extra empty environment to show in form
       for (const env in this.envValues) {
-        this.envValues[env].data.push({ key: '', value: '', enabled: true })
+        this.envValues[env].data.push({ key: '', value: '', enabled: true });
       }
-    }
+    },
   },
-  beforeCreated () {
-  },
-  destroy () {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

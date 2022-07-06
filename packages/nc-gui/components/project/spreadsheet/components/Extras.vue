@@ -1,50 +1,66 @@
 <template>
   <div class="wrapper">
     <div v-if="_isZh">
-      <p class="caption grey--text d-block mb-3 text-center pt-2">
-        Please share a word about us
-      </p>
+      <p class="caption grey--text d-block mb-3 text-center pt-2">Please share a word about us</p>
       <share-icons
         class="d-flex justify-center mb-2"
         url="https://github.com/nocodb/nocodb"
-        :social-medias="['renren','douban','weibo','wechat']"
+        :social-medias="['renren', 'douban', 'weibo', 'wechat']"
       />
       <v-divider />
       <div class="text-center caption grey--text mt-3 mb-1">
-        Built with Vue JS<br><img src="vue.svg" class="vue-icon mt-1 mb-n1" alt="vue.js" width="30">
+        Built with Vue JS<br /><img src="vue.svg" class="vue-icon mt-1 mb-n1" alt="vue.js" width="30" />
       </div>
     </div>
     <template v-else>
       <div class="d-flex justify-end">
         <v-list
           width="100%"
-          class="
-          py-0
-          flex-shrink-1
-          text-left
-          elevation-0
-          rounded-sm
-          community-card
-          item
-        "
+          class="py-0 flex-shrink-1 text-left elevation-0 rounded-sm community-card item"
           :class="{ active: true }"
           dense
         >
           <v-list-item>
             <div class="d-flex justify-space-between d-100 pr-2">
-              <v-icon v-t="['e:community:discord']" size="22" :color="textColors[0]" @click="open('https://discord.gg/5RgZmkW')">
+              <v-icon
+                v-t="['e:community:discord']"
+                size="22"
+                :color="textColors[0]"
+                @click="open('https://discord.gg/5RgZmkW')"
+              >
                 mdi-discord
               </v-icon>
-              <v-icon v-t="['e:community:discourse']" class=" discourse" size="22" :color="textColors[0]" @click="open('https://community.nocodb.com/')">
+              <v-icon
+                v-t="['e:community:discourse']"
+                class="discourse"
+                size="22"
+                :color="textColors[0]"
+                @click="open('https://community.nocodb.com/')"
+              >
                 mdi-discourse
               </v-icon>
-              <v-icon v-t="['e:community:reddit']" size="22" color="#ff4600" @click="open('https://www.reddit.com/r/NocoDB/')">
+              <v-icon
+                v-t="['e:community:reddit']"
+                size="22"
+                color="#ff4600"
+                @click="open('https://www.reddit.com/r/NocoDB/')"
+              >
                 mdi-reddit
               </v-icon>
-              <v-icon v-t="['e:community:twitter']" size="22" :color="textColors[1]" @click="open('https://twitter.com/NocoDB')">
+              <v-icon
+                v-t="['e:community:twitter']"
+                size="22"
+                :color="textColors[1]"
+                @click="open('https://twitter.com/NocoDB')"
+              >
                 mdi-twitter
               </v-icon>
-              <v-icon v-t="['e:community:book-demo']" size="22" :color="textColors[3]" @click="open('https://calendly.com/nocodb-meeting')">
+              <v-icon
+                v-t="['e:community:book-demo']"
+                size="22"
+                :color="textColors[3]"
+                @click="open('https://calendly.com/nocodb-meeting')"
+              >
                 mdi-calendar-month
               </v-icon>
             </div>
@@ -117,23 +133,23 @@
 </template>
 
 <script>
-import ShareIcons from '../../../ShareIcons'
-import colors from '~/mixins/colors'
+import ShareIcons from '../../../ShareIcons';
+import colors from '~/mixins/colors';
 
 export default {
   name: 'Extras',
   components: { ShareIcons },
   mixins: [colors],
   data: () => ({
-    showCommunity: true
+    showCommunity: true,
   }),
   computed: {},
   mounted() {
     setInterval(() => {
-      this.showCommunity = !this.showCommunity
-    }, 60000)
-  }
-}
+      this.showCommunity = !this.showCommunity;
+    }, 60000);
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -144,7 +160,7 @@ export default {
     z-index: -1;
     opacity: 0;
     position: absolute;
-    transition: .6s opacity;
+    transition: 0.6s opacity;
     bottom: 0;
     right: 0;
     width: 100%;
@@ -167,7 +183,6 @@ export default {
 
 .v-icon.discourse::before {
   visibility: hidden;
-  content: "";
+  content: '';
 }
-
 </style>

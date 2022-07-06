@@ -20,7 +20,7 @@ export enum RouteType {
   PATCH = 'patch',
   DELETE = 'delete',
   HEAD = 'head',
-  OPTIONS = 'options'
+  OPTIONS = 'options',
 }
 
 type InflectionTypes =
@@ -259,7 +259,7 @@ export enum ServerlessType {
   ALIYUN = 'ALIYUN',
   ZEIT = 'ZEIT',
   LYRID = 'LYRID',
-  SERVERLESS = 'SERVERLESS'
+  SERVERLESS = 'SERVERLESS',
 }
 
 export class Result {
@@ -281,7 +281,7 @@ enum HTTPType {
   DELETE = 'delete',
   PATCH = 'patch',
   HEAD = 'head',
-  OPTIONS = 'options'
+  OPTIONS = 'options',
 }
 
 export interface XcRoute {

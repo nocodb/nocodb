@@ -1,10 +1,6 @@
 <template>
   <v-container fluid class="pa-0 ma-0" style="height: 100%">
-    <v-tabs
-      v-model="tab"
-      height="32"
-      color="x-active"
-    >
+    <v-tabs v-model="tab" height="32" color="x-active">
       <!--      <v-tab><span class="caption text-capitalize"> Version & Update</span></v-tab>-->
       <!--      <v-tab-item>-->
       <!--        <div class="d-flex justify-center d-100">-->
@@ -34,9 +30,7 @@
             </v-tab-item>-->
 
       <v-tab>
-        <v-icon icon x-small class="mr-2">
-          mdi-format-paint
-        </v-icon>
+        <v-icon icon x-small class="mr-2"> mdi-format-paint </v-icon>
         <span class="caption text-capitalize" @dblclick="enableEditProject = true">Themes</span>
       </v-tab>
       <v-tab-item>
@@ -47,12 +41,8 @@
 
       <template v-if="enableEditProject">
         <v-tab>
-          <v-icon icon x-small class="mr-2">
-            mdi-pencil-box-outline
-          </v-icon>
-          <span class="caption text-capitalize">
-            Edit Project
-          </span>
+          <v-icon icon x-small class="mr-2"> mdi-pencil-box-outline </v-icon>
+          <span class="caption text-capitalize"> Edit Project </span>
         </v-tab>
         <v-tab-item>
           <create-or-edit-project v-if="tab === 1" edit />
@@ -75,17 +65,17 @@
 </template>
 
 <script>
-import Appearance from '~/components/project/settings/Appearance'
-import CreateOrEditProject from '~/components/CreateOrEditProject'
+import Appearance from '~/components/project/settings/Appearance';
+import CreateOrEditProject from '~/components/CreateOrEditProject';
 
 export default {
   name: 'ProjectSettings',
   components: { CreateOrEditProject, Appearance },
   data: () => ({
     tab: 0,
-    enableEditProject: false
-  })
-}
+    enableEditProject: false,
+  }),
+};
 </script>
 
 <style scoped lang="scss">

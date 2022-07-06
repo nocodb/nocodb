@@ -1,6 +1,6 @@
 <template>
-  <div class="d-flex align-center ">
-    <input v-model="localState" type="checkbox" :disabled="true">
+  <div class="d-flex align-center">
+    <input v-model="localState" type="checkbox" :disabled="true" />
   </div>
 </template>
 
@@ -11,16 +11,14 @@ export default {
   computed: {
     localState: {
       get() {
-        return this.value
-      }
-    }
-  }
-}
+        return this.value;
+      },
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 
 <!--
 /**

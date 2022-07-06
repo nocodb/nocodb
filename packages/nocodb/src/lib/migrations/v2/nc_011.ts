@@ -3,8 +3,8 @@ import { MetaTable } from '../../utils/globals';
 // import ses from '../plugins/ses';
 // import cache from '../plugins/cache';
 
-const up = async knex => {
-  await knex.schema.createTable(MetaTable.PROJECT, table => {
+const up = async (knex) => {
+  await knex.schema.createTable(MetaTable.PROJECT, (table) => {
     table.string('id', 128).primary();
     table.string('title');
     table.string('prefix');
@@ -23,11 +23,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.BASES, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.BASES, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     // todo: foreign key
     // table.string('project_id', 128);
@@ -49,11 +46,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.MODELS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.MODELS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
     table.foreign('base_id').references(`${MetaTable.BASES}.id`);
@@ -78,11 +72,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.COLUMNS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.COLUMNS, (table) => {
+    table.string('id', 20).primary().notNullable();
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
     table.string('project_id', 128);
@@ -176,11 +167,8 @@ const up = async knex => {
   });
 */
 
-  await knex.schema.createTable(MetaTable.COL_RELATIONS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.COL_RELATIONS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('ref_db_alias');
     table.string('type');
@@ -222,11 +210,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.COL_SELECT_OPTIONS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.COL_SELECT_OPTIONS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('fk_column_id', 20);
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
@@ -238,11 +223,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.COL_LOOKUP, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.COL_LOOKUP, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('fk_column_id', 20);
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
@@ -264,11 +246,8 @@ const up = async knex => {
 
     table.timestamps(true, true);
   });
-  await knex.schema.createTable(MetaTable.COL_ROLLUP, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.COL_ROLLUP, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('fk_column_id', 20);
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
@@ -284,11 +263,8 @@ const up = async knex => {
     table.boolean('deleted');
     table.timestamps(true, true);
   });
-  await knex.schema.createTable(MetaTable.COL_FORMULA, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.COL_FORMULA, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('fk_column_id', 20);
     table.foreign('fk_column_id').references(`${MetaTable.COLUMNS}.id`);
@@ -302,11 +278,8 @@ const up = async knex => {
     table.float('order');
     table.timestamps(true, true);
   });
-  await knex.schema.createTable(MetaTable.VIEWS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.VIEWS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
@@ -332,11 +305,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.HOOKS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.HOOKS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
@@ -372,11 +342,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.HOOK_LOGS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.HOOK_LOGS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
@@ -405,11 +372,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.FILTER_EXP, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.FILTER_EXP, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
@@ -463,11 +427,8 @@ const up = async knex => {
   //   table.timestamps(true, true);
   // });
 
-  await knex.schema.createTable(MetaTable.SORT, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.SORT, (table) => {
+    table.string('id', 20).primary().notNullable();
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
     table.string('project_id', 128);
@@ -484,11 +445,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.SHARED_VIEWS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.SHARED_VIEWS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('fk_view_id', 20);
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
@@ -506,7 +464,7 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.FORM_VIEW, table => {
+  await knex.schema.createTable(MetaTable.FORM_VIEW, (table) => {
     // table
     //   .string('id', 20)
     //   .primary()
@@ -534,11 +492,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.FORM_VIEW_COLUMNS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.FORM_VIEW_COLUMNS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
@@ -564,7 +519,7 @@ const up = async knex => {
 
     table.timestamps(true, true);
   });
-  await knex.schema.createTable(MetaTable.GALLERY_VIEW, table => {
+  await knex.schema.createTable(MetaTable.GALLERY_VIEW, (table) => {
     // table
     //   .string('id', 20)
     //   .primary()
@@ -597,11 +552,8 @@ const up = async knex => {
 
     table.timestamps(true, true);
   });
-  await knex.schema.createTable(MetaTable.GALLERY_VIEW_COLUMNS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.GALLERY_VIEW_COLUMNS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
@@ -627,7 +579,7 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.GRID_VIEW, table => {
+  await knex.schema.createTable(MetaTable.GRID_VIEW, (table) => {
     table.string('fk_view_id', 20).primary();
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
 
@@ -640,11 +592,8 @@ const up = async knex => {
 
     table.timestamps(true, true);
   });
-  await knex.schema.createTable(MetaTable.GRID_VIEW_COLUMNS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.GRID_VIEW_COLUMNS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('fk_view_id', 20);
     table.foreign('fk_view_id').references(`${MetaTable.GRID_VIEW}.fk_view_id`);
@@ -669,7 +618,7 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.KANBAN_VIEW, table => {
+  await knex.schema.createTable(MetaTable.KANBAN_VIEW, (table) => {
     table.string('fk_view_id', 20).primary();
     table.foreign('fk_view_id').references(`${MetaTable.VIEWS}.id`);
 
@@ -691,11 +640,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.KANBAN_VIEW_COLUMNS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.KANBAN_VIEW_COLUMNS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
@@ -719,11 +665,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.USERS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.USERS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('email');
     table.string('password', 255);
@@ -742,7 +685,7 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.PROJECT_USERS, table => {
+  await knex.schema.createTable(MetaTable.PROJECT_USERS, (table) => {
     table.string('project_id', 128);
     table.foreign('project_id').references(`${MetaTable.PROJECT}.id`);
     table.string('fk_user_id', 20);
@@ -760,21 +703,15 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.ORGS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.ORGS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('title');
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.TEAMS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.TEAMS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('title');
     table.string('org_id', 20);
@@ -782,7 +719,7 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.TEAM_USERS, table => {
+  await knex.schema.createTable(MetaTable.TEAM_USERS, (table) => {
     table.string('org_id', 20);
     table.foreign('org_id').references(`${MetaTable.ORGS}.id`);
     table.string('user_id', 20);
@@ -790,11 +727,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.AUDIT, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.AUDIT, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('user');
 
@@ -820,11 +754,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.PLUGIN, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.PLUGIN, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('title', 45);
     table.text('description');
@@ -846,11 +777,8 @@ const up = async knex => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.MODEL_ROLE_VISIBILITY, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.MODEL_ROLE_VISIBILITY, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('base_id', 20);
     // table.foreign('base_id').references(`${MetaTable.BASES}.id`);
@@ -877,7 +805,7 @@ const up = async knex => {
   // ]);
 };
 
-const down = async knex => {
+const down = async (knex) => {
   await knex.schema.dropTable(MetaTable.MODEL_ROLE_VISIBILITY);
   await knex.schema.dropTable(MetaTable.PLUGIN);
   await knex.schema.dropTable(MetaTable.AUDIT);

@@ -2,28 +2,27 @@
   <v-container class="ma-0 pa-0" fluid>
     <v-toolbar height="42" class="toolbar-border-bottom elevation-0">
       <v-breadcrumbs
-        :items="[{
-          text: nodes.env,
-          disabled: true,
-          href: '#'
-        },{
-          text: nodes.dbAlias,
-          disabled: true,
-          href: '#'
-        }]"
+        :items="[
+          {
+            text: nodes.env,
+            disabled: true,
+            href: '#',
+          },
+          {
+            text: nodes.dbAlias,
+            disabled: true,
+            href: '#',
+          },
+        ]"
         divider=">"
         small
       >
         <template #divider>
-          <v-icon small color="grey lighten-2">
-            forward
-          </v-icon>
+          <v-icon small color="grey lighten-2"> forward </v-icon>
         </template>
       </v-breadcrumbs>
 
-      <p class=" pt-3">
-        Seed Database
-      </p>
+      <p class="pt-3">Seed Database</p>
 
       <v-spacer />
 
@@ -31,12 +30,8 @@
         Seed Initialise
       </x-btn>
       <!--      <x-btn outlined @click="seedTerm" color="red"> Clear all tables</x-btn>-->
-      <x-btn small outlined icon="mdi-play" color="primary" @click="seedStart">
-        Start Seeding
-      </x-btn>
-      <x-btn small outlined icon="mdi-stop" @click="seedStop">
-        Stop Seeding
-      </x-btn>
+      <x-btn small outlined icon="mdi-play" color="primary" @click="seedStart"> Start Seeding </x-btn>
+      <x-btn small outlined icon="mdi-stop" @click="seedStop"> Stop Seeding </x-btn>
       <x-btn small outlined :disabled="disableSaveButton" icon="save" @click="seedSettingsUpdate">
         Save Settings
       </x-btn>
@@ -47,16 +42,12 @@
         <v-simple-table class="ma-0 pa-0">
           <thead>
             <tr>
-              <th class="text-left" width="20%">
-                Key
-              </th>
-              <th class="text-left">
-                Value
-              </th>
+              <th class="text-left" width="20%">Key</th>
+              <th class="text-left">Value</th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(value,key) in settings" :key="key">
+            <tr v-for="(value, key) in settings" :key="key">
               <td>{{ key }}</td>
               <td>
                 <v-text-field
@@ -87,57 +78,56 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel'
+import { mapGetters } from 'vuex';
+import dlgLabelSubmitCancel from '../utils/DlgLabelSubmitCancel';
 
 export default {
   components: {
-    dlgLabelSubmitCancel
+    dlgLabelSubmitCancel,
   },
   data() {
     return {
       settings: {},
       dialogShow: false,
-      disableSaveButton: true
-    }
+      disableSaveButton: true,
+    };
   },
   computed: {
-    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
   },
   watch: {},
   async created() {
     this.seedsFolder = this.sqlMgr.projectGetFolder({
       env: this.nodes.env,
-      dbAlias: this.nodes.dbAlias
-    })
+      dbAlias: this.nodes.dbAlias,
+    });
     const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
       {
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
+        dbAlias: this.nodes.dbAlias,
       },
       'seedSettingsRead',
       {
-        seedsFolder: this.seedsFolder
-      }])
+        seedsFolder: this.seedsFolder,
+      },
+    ]);
 
     if (!Object.keys(result.data).length) {
-      await this.seedInit()
+      await this.seedInit();
     } else {
-      this.settings = result.data
+      this.settings = result.data;
     }
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
   methods: {
     async dlgAction(action = '') {
-      console.log('dlgAction', action)
+      console.log('dlgAction', action);
       if (action === 'hideDialog') {
-        this.dialogShow = false
+        this.dialogShow = false;
       } else {
-        this.dialogShow = false
-        await this.seedInit()
+        this.dialogShow = false;
+        await this.seedInit();
       }
     },
     async seedInit() {
@@ -145,17 +135,18 @@ export default {
         const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
+            dbAlias: this.nodes.dbAlias,
           },
           'seedInit',
           {
-            seedsFolder: this.seedsFolder
-          }])
+            seedsFolder: this.seedsFolder,
+          },
+        ]);
 
-        this.settings = result.data
+        this.settings = result.data;
       } catch (e) {
-        console.log(e)
-        throw e
+        console.log(e);
+        throw e;
       }
     },
 
@@ -164,34 +155,36 @@ export default {
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
+            dbAlias: this.nodes.dbAlias,
           },
           'seedTerm',
           {
-            seedsFolder: this.seedsFolder
-          }])
+            seedsFolder: this.seedsFolder,
+          },
+        ]);
       } catch (e) {
-        console.log(e)
-        throw e
+        console.log(e);
+        throw e;
       }
     },
 
     async seedStart() {
       try {
-        setTimeout(async() => {
+        setTimeout(async () => {
           await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'seedStart',
             {
-              seedsFolder: this.seedsFolder
-            }])
-        })
+              seedsFolder: this.seedsFolder,
+            },
+          ]);
+        });
       } catch (e) {
-        console.log(e)
-        throw e
+        console.log(e);
+        throw e;
       }
     },
 
@@ -200,55 +193,56 @@ export default {
         await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
+            dbAlias: this.nodes.dbAlias,
           },
           'seedStop',
           {
-            seedsFolder: this.seedsFolder
-          }])
+            seedsFolder: this.seedsFolder,
+          },
+        ]);
       } catch (e) {
-        console.log(e)
-        throw e
+        console.log(e);
+        throw e;
       }
     },
 
     async seedSettingsUpdate() {
       try {
-        this.settings.rows.value = +this.settings.rows.value > 100 ? 100 : this.settings.rows.value
+        this.settings.rows.value = +this.settings.rows.value > 100 ? 100 : this.settings.rows.value;
 
-        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'seedSettingsCreate', {
-          seedsFolder: this.seedsFolder,
-          settings: this.settings
-        }])
-        this.disableSaveButton = true
+        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+          },
+          'seedSettingsCreate',
+          {
+            seedsFolder: this.seedsFolder,
+            settings: this.settings,
+          },
+        ]);
+        this.disableSaveButton = true;
       } catch (e) {
-        console.log(e)
-        throw e
+        console.log(e);
+        throw e;
       }
-    }
-
+    },
   },
 
-  beforeCreated() {
-  },
-  destroy() {
-  },
+  beforeCreated() {},
+  destroy() {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes']
-}
+  props: ['nodes'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

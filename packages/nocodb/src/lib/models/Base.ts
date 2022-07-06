@@ -4,7 +4,7 @@ import {
   CacheDelDirection,
   CacheGetType,
   CacheScope,
-  MetaTable
+  MetaTable,
 } from '../utils/globals';
 import Model from './Model';
 import { BaseType } from 'nocodb-sdk';
@@ -42,7 +42,7 @@ export default class Base implements BaseType {
       'created_at',
       'updated_at',
       'inflection_column',
-      'inflection_table'
+      'inflection_table',
     ]);
     insertObj.config = CryptoJS.AES.encrypt(
       JSON.stringify(base.config),
@@ -69,7 +69,7 @@ export default class Base implements BaseType {
     ncMeta = Noco.ncMeta
   ): Promise<Base[]> {
     let baseDataList = await NocoCache.getList(CacheScope.BASE, [
-      args.projectId
+      args.projectId,
     ]);
     if (!baseDataList.length) {
       baseDataList = await ncMeta.metaList2(
@@ -79,7 +79,7 @@ export default class Base implements BaseType {
       );
       await NocoCache.setList(CacheScope.BASE, [args.projectId], baseDataList);
     }
-    return baseDataList?.map(baseData => {
+    return baseDataList?.map((baseData) => {
       return new Base(baseData);
     });
   }
@@ -131,7 +131,7 @@ export default class Base implements BaseType {
     const models = await Model.list(
       {
         base_id: this.id,
-        project_id: this.project_id
+        project_id: this.project_id,
       },
       ncMeta
     );

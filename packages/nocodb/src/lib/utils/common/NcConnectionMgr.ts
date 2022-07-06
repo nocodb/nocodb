@@ -25,7 +25,7 @@ export default class NcConnectionMgr {
   public static delete({
     dbAlias = 'db',
     env = '_noco',
-    projectId
+    projectId,
   }: {
     dbAlias: string;
     env: string;
@@ -47,7 +47,7 @@ export default class NcConnectionMgr {
     dbAlias = 'db',
     env = '_noco',
     config,
-    projectId
+    projectId,
   }: {
     dbAlias: string;
     env: string;
@@ -113,12 +113,12 @@ export default class NcConnectionMgr {
                   const res = next();
                   if (res instanceof Buffer) {
                     return [...res]
-                      .map(v => ('00' + v.toString(16)).slice(-2))
+                      .map((v) => ('00' + v.toString(16)).slice(-2))
                       .join('');
                   }
                   return res;
-                }
-              }
+                },
+              },
             } as any)
       );
       if (isSqlite) {
@@ -135,14 +135,14 @@ export default class NcConnectionMgr {
     env: string,
     dbAlias: string
   ) {
-    return config?.envs?.[env]?.db?.find(db => db?.meta?.dbAlias === dbAlias);
+    return config?.envs?.[env]?.db?.find((db) => db?.meta?.dbAlias === dbAlias);
   }
 
   public static getSqlClient({
     projectId,
     dbAlias = 'db',
     env = '_noco',
-    config
+    config,
   }: {
     dbAlias: string;
     env: string;
@@ -153,11 +153,11 @@ export default class NcConnectionMgr {
       dbAlias,
       env,
       config,
-      projectId
+      projectId,
     });
     return SqlClientFactory.create({
       knex,
-      ...this.getConnectionConfig(config, env, dbAlias)
+      ...this.getConnectionConfig(config, env, dbAlias),
     });
   }
 }

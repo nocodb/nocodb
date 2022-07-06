@@ -3,28 +3,31 @@
     <template v-if="!isSimpleProject">
       <v-toolbar height="42" class="toolbar-border-bottom elevation-0">
         <v-breadcrumbs
-          :items="[{
-            text: nodes.env,
-            disabled: true,
-            href: '#'
-          },{
-            text: nodes.dbAlias,
-            disabled: true,
-            href: '#'
-          }]"
+          :items="[
+            {
+              text: nodes.env,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.dbAlias,
+              disabled: true,
+              href: '#',
+            },
+          ]"
           divider=">"
           small
         >
           <template #divider>
-            <v-icon small color="grey lighten-2">
-              forward
-            </v-icon>
+            <v-icon small color="grey lighten-2"> forward </v-icon>
           </template>
         </v-breadcrumbs>
 
-        <p v-if="tableMigrationFiles.data.length" class=" pt-3 body-2">
+        <p v-if="tableMigrationFiles.data.length" class="pt-3 body-2">
           : Pending Migrations
-          <span><b>( {{ tableMigrationFiles.status }} )</b></span>
+          <span
+            ><b>( {{ tableMigrationFiles.status }} )</b></span
+          >
         </p>
 
         <v-spacer />
@@ -44,19 +47,14 @@
           @dblclick="showUpAndDownBtns = !showUpAndDownBtns"
           @click="loadEnv"
         >
-          <v-icon left small>
-            refresh
-          </v-icon>
+          <v-icon left small> refresh </v-icon>
           <!-- Reload -->
           {{ $t('general.reload') }}
         </x-btn>
 
-        <div
-          v-if=" showUpAndDownBtns &&tableMigrationFiles.data.length"
-          class="ml-1"
-        >
+        <div v-if="showUpAndDownBtns && tableMigrationFiles.data.length" class="ml-1">
           <v-menu
-            v-for="(menu,menuIndex) in migrationMenu"
+            v-for="(menu, menuIndex) in migrationMenu"
             :key="menuIndex"
             open-on-hover
             bottom
@@ -78,20 +76,13 @@
             </template>
 
             <v-list dense>
-              <div
-                v-for="(item, itemIndex) in menu.menuItems"
-                :key="itemIndex"
-              >
-                <v-list-item
-                  @click="item.action"
-                >
+              <div v-for="(item, itemIndex) in menu.menuItems" :key="itemIndex">
+                <v-list-item @click="item.action">
                   <v-list-item-title>
-                    <v-icon
-                      small
-                      :color="menu.color"
-                    >
+                    <v-icon small :color="menu.color">
                       {{ item.icon }}
-                    </v-icon> &nbsp;
+                    </v-icon>
+                    &nbsp;
                     {{ item.label }}
                   </v-list-item-title>
                 </v-list-item>
@@ -108,7 +99,7 @@
 
       <splitpanes
         v-if="tableMigrationFiles.data.length"
-        style="height:calc(100% - 42px);border-top: 1px solid grey"
+        style="height: calc(100% - 42px); border-top: 1px solid grey"
         class="xc-theme"
       >
         <pane min-size="20" size="40" style="overflow: auto">
@@ -118,33 +109,29 @@
               <v-checkbox
                 v-model="tableMigrationFiles.showPendingMigrations"
                 slot-scope="{ hover }"
-                class="pl-3 "
+                class="pl-3"
                 dense
                 color="primary lighten-1"
               >
                 <template #label="">
-                  <span
-                    class="body-2"
-                    :class="{'white--text ':hover}"
-                  >Show Only Pending Migrations ({{ tableMigrationFiles.status }})</span>
+                  <span class="body-2" :class="{ 'white--text ': hover }"
+                    >Show Only Pending Migrations ({{ tableMigrationFiles.status }})</span
+                  >
                 </template>
               </v-checkbox>
             </v-hover>
             <v-data-table
               v-model="tableMigrationFiles.selected"
               dense
-              style="  border-top: 1px solid #7F828B33;"
+              style="border-top: 1px solid #7f828b33"
               :headers="tableMigrationFiles.headers"
               :items="tableMigrationFiles.data"
               footer-props.items-per-page-options="15"
             >
               <template #item="props">
                 <tr
-                  v-if="tableMigrationFiles.showPendingMigrations
-                    ? props.item.status === true
-                    : true"
-                  :active="!!selectedMigration.migration &&
-                    selectedMigration.migration.title == props.item.title"
+                  v-if="tableMigrationFiles.showPendingMigrations ? props.item.status === true : true"
+                  :active="!!selectedMigration.migration && selectedMigration.migration.title == props.item.title"
                   @click="getMigrationFiles(props.item)"
                 >
                   <td :class="findMigrationTextColor(props.item)" class="caption">
@@ -202,12 +189,10 @@
       </splitpanes>
       <v-row v-cloak v-else class="pa-4 ma-4" justify="center" align="center">
         <v-card class="pa-4 ma-4 text-center">
-          <p class="display-2">
-            Schema migrations will be created automatically
-          </p>
+          <p class="display-2">Schema migrations will be created automatically</p>
           <p class="display-2">
             Create a table and refresh this page.
-            <br>
+            <br />
             Show GIF
           </p>
         </v-card>
@@ -226,10 +211,10 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
-import { Splitpanes, Pane } from 'splitpanes'
-import MonacoEditor from '../../monaco/Monaco'
+import { Splitpanes, Pane } from 'splitpanes';
+import MonacoEditor from '../../monaco/Monaco';
 
 // const {shell, path} = require("electron").remote.require(
 //   "./libs"
@@ -241,7 +226,7 @@ export default {
     // dlgLabelSubmitCancel,
     MonacoEditor,
     Splitpanes,
-    Pane
+    Pane,
   },
   data() {
     return {
@@ -253,16 +238,16 @@ export default {
           { text: '#', sortable: false, width: '1%', class: '  text-center' },
           { text: 'Migration Files', value: 'migration', sortable: false, class: ' pa-4  text-center' },
           // { text: "Down File", sortable: false, width: "1%" ,class:''},
-          { text: 'Migrations applied', sortable: false, width: '1%', class: ' pa-4  text-center' }
+          { text: 'Migrations applied', sortable: false, width: '1%', class: ' pa-4  text-center' },
         ],
         data: [],
         status: '',
-        showPendingMigrations: false
+        showPendingMigrations: false,
       },
       tableMigrationRows: {
         heading: '',
         headers: [],
-        data: []
+        data: [],
       },
       selectedMigration: { migration: null, up: null, down: null },
       view: {},
@@ -278,15 +263,16 @@ export default {
             {
               label: 'Migration Up One',
               icon: 'mdi-redo',
-              action: () => this.migrationUp(1)
+              action: () => this.migrationUp(1),
             },
             {
               label: 'MIGRATION UP ALL',
               icon: 'mdi-fast-forward',
-              action: () => this.migrationUp()
-            }
-          ]
-        }, {
+              action: () => this.migrationUp(),
+            },
+          ],
+        },
+        {
           label: 'Migration Down',
           color: 'warning',
           tooltip: 'Revert Database Migrations',
@@ -294,49 +280,46 @@ export default {
             {
               label: 'Migration Down One',
               icon: 'mdi-undo',
-              action: () => this.migrationDown(1)
+              action: () => this.migrationDown(1),
             },
             {
               label: 'Migration Down All',
               icon: 'mdi-rewind',
-              action: () => this.migrationDown()
-            }
-          ]
-        }
-      ]
-    }
+              action: () => this.migrationDown(),
+            },
+          ],
+        },
+      ],
+    };
   },
   computed: {
     ...mapGetters({
       sqlMgr: 'sqlMgr/sqlMgr',
       currentProjectFolder: 'project/currentProjectFolder',
 
-      isSimpleProject: 'project/GtrProjectIsDbConnection'
-    })
+      isSimpleProject: 'project/GtrProjectIsDbConnection',
+    }),
   },
   watch: {},
   created() {
-    this.loadEnv()
+    this.loadEnv();
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
   methods: {
-
     // openFolder() {
     //   shell.openItem(path.join(this.currentProjectFolder, 'server', 'tool', this.nodes.dbAlias, 'migrations'));
     // },
 
     isMigrationButtonEnabled(name) {
-      return this.nodes.dbConnection.client === 'sqlite3' && name === 'Migration Down'
+      return this.nodes.dbConnection.client === 'sqlite3' && name === 'Migration Down';
     },
 
     async getMigrationFiles(migration) {
-      this.selectedMigration.migration = ''
-      this.selectedMigration.up = ''
-      this.selectedMigration.down = ''
-      this.selectedMigration.migration = migration
+      this.selectedMigration.migration = '';
+      this.selectedMigration.up = '';
+      this.selectedMigration.down = '';
+      this.selectedMigration.migration = migration;
       // let result = await this.sqlMgr.migrator().migrationsToSql({
       //   env: this.nodes.env,
       //   dbAlias: this.nodes.dbAlias,
@@ -351,99 +334,109 @@ export default {
       //   title: migration.title,
       //   titleDown: migration.titleDown
       // });
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsToSql', {
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias,
-        folder: this.currentProjectFolder,
-        title: migration.title,
-        titleDown: migration.titleDown
-      }])
-      this.selectedMigration.up = result.data.object.up
-      this.selectedMigration.down = result.data.object.down
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        null,
+        'migrationsToSql',
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+          folder: this.currentProjectFolder,
+          title: migration.title,
+          titleDown: migration.titleDown,
+        },
+      ]);
+      this.selectedMigration.up = result.data.object.up;
+      this.selectedMigration.down = result.data.object.down;
     },
 
     async loadEnv() {
       try {
-        this.$store.commit('notification/MutToggleProgressBar', true)
+        this.$store.commit('notification/MutToggleProgressBar', true);
         const migrationArgs = {
           env: this.nodes.env,
           dbAlias: this.nodes.dbAlias,
           folder: this.currentProjectFolder,
           sqlContentMigrate: 0,
           migrationSteps: 9999,
-          onlyList: true
-        }
+          onlyList: true,
+        };
 
         // let result = await this.sqlMgr.migrator().migrationsList(migrationArgs);
         // let result = await this.sqlMgr.sqlOp(null, 'migrationsList', migrationArgs);
-        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsList', migrationArgs])
-        let nextMigration = 0
+        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsList', migrationArgs]);
+        let nextMigration = 0;
 
         for (let i = 0; i < result.data.object.list.length; i++) {
-          const el = result.data.object.list[i]
-          el.nextMigration = 0
+          const el = result.data.object.list[i];
+          el.nextMigration = 0;
           if (el.status === true && nextMigration === 0) {
-            nextMigration = 1
-            el.nextMigration = nextMigration
+            nextMigration = 1;
+            el.nextMigration = nextMigration;
           } else if (el.status === true && nextMigration === 1) {
-            el.nextMigration = 2
+            el.nextMigration = 2;
           }
         }
 
-        this.tableMigrationFiles.data = result.data.object.list
-        this.tableMigrationFiles.status = result.data.object.pending
+        this.tableMigrationFiles.data = result.data.object.list;
+        this.tableMigrationFiles.status = result.data.object.pending;
         if (this.tableMigrationFiles.data[0]) {
-          await this.getMigrationFiles(this.tableMigrationFiles.data[0])
+          await this.getMigrationFiles(this.tableMigrationFiles.data[0]);
         }
       } catch (e) {
-        console.log(e)
+        console.log(e);
       } finally {
-        this.$store.commit('notification/MutToggleProgressBar', false)
+        this.$store.commit('notification/MutToggleProgressBar', false);
       }
     },
-    async applyChanges() {
-    },
-    async deleteView(action = '') {
-    },
+    async applyChanges() {},
+    async deleteView(action = '') {},
     async migrationUp(steps = 99999999999) {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsUp', {
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
-          migrationSteps: steps,
-          folder: this.currentProjectFolder,
-          sqlContentMigrate: 1
-        }])
-        this.$toast.success('Migration up was successfully completed.').goAway(5000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          null,
+          'migrationsUp',
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+            migrationSteps: steps,
+            folder: this.currentProjectFolder,
+            sqlContentMigrate: 1,
+          },
+        ]);
+        this.$toast.success('Migration up was successfully completed.').goAway(5000);
       } catch (e) {
-        this.$toast.error('Migration up was failed.').goAway(5000)
+        this.$toast.error('Migration up was failed.').goAway(5000);
       }
-      await this.loadEnv()
+      await this.loadEnv();
     },
     async migrationDown(steps = 99999999999) {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'migrationsDown', {
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias,
-          migrationSteps: steps,
-          folder: this.currentProjectFolder,
-          sqlContentMigrate: 1
-        }])
-        this.$toast.success('Migration down was successfully completed.').goAway(5000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          null,
+          'migrationsDown',
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+            migrationSteps: steps,
+            folder: this.currentProjectFolder,
+            sqlContentMigrate: 1,
+          },
+        ]);
+        this.$toast.success('Migration down was successfully completed.').goAway(5000);
       } catch (e) {
-        this.$toast.error('Migration down was failed.').goAway(5000)
+        this.$toast.error('Migration down was failed.').goAway(5000);
       }
-      await this.loadEnv()
+      await this.loadEnv();
     },
     findNextMigrationColor(item) {
       if (item.nextMigration === 1) {
-        return 'orange'
+        return 'orange';
       } else if (item.nextMigration === 2) {
-        return 'orange'
+        return 'orange';
       } else if (item.nextMigration === 0) {
-        return 'grey'
+        return 'grey';
       }
-      return ''
+      return '';
     },
     findMigrationTextColor(item) {
       // if (item.nextMigration === 1) {
@@ -453,27 +446,24 @@ export default {
       // } else if (item.nextMigration === 0) {
       //   return "grey--text";
       // }
-      return ''
-    }
+      return '';
+    },
   },
 
-  beforeCreated() {
-  },
-  destroy() {
-  },
+  beforeCreated() {},
+  destroy() {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes']
-}
+  props: ['nodes'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

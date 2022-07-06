@@ -1,9 +1,6 @@
 <template>
   <div class="">
-    <div
-      v-if="loading"
-      class="pr-4"
-    >
+    <div v-if="loading" class="pr-4">
       <v-skeleton-loader type="text" class="mx-2 mt-4 mr-14" />
       <v-skeleton-loader type="text@10" class="mx-2 mt-4" />
       <v-skeleton-loader type="text@2" class="mx-2 mt-4 mr-14" />
@@ -18,44 +15,30 @@
         <v-list-item-group v-model="category">
           <v-list-item v-for="c in categories" :key="c.category" :value="c.category" dense>
             <v-list-item-title>
-              <span
-                :class="{'font-weight-black' : category === c.category } "
-                class="body-1"
-              >
-                {{
-                  c.category
-                }}
-              </span> <span class="grey--text ">({{ c.count }})</span>
+              <span :class="{ 'font-weight-black': category === c.category }" class="body-1">
+                {{ c.category }}
+              </span>
+              <span class="grey--text">({{ c.count }})</span>
             </v-list-item-title>
           </v-list-item>
         </v-list-item-group>
       </v-list>
       <!--      v-if="counter > 4"-->
-      <v-btn
-        class="ml-4"
-        color="grey"
-        small
-        outlined
-        @click="showTemplateEditor"
-      >
-        <v-icon class="mr-1" small>
-          mdi-plus
-        </v-icon> New template
+      <v-btn class="ml-4" color="grey" small outlined @click="showTemplateEditor">
+        <v-icon class="mr-1" small> mdi-plus </v-icon> New template
       </v-btn>
 
       <v-tooltip bottom>
-        <template #activator="{on}">
+        <template #activator="{ on }">
           <v-btn
-            class="ml-4  mt-4"
+            class="ml-4 mt-4"
             color="grey"
             small
             outlined
             v-on="on"
             @click="$toast.info('Happy hacking!').goAway(3000)"
           >
-            <v-icon small class="mr-1">
-              mdi-file-excel-outline
-            </v-icon>
+            <v-icon small class="mr-1"> mdi-file-excel-outline </v-icon>
             Import
           </v-btn>
         </template>
@@ -72,7 +55,7 @@
         :full-width="false"
         style="width: 135px"
         type="password"
-        class="caption mt-4 ml-1 mr-3 ml-4 "
+        class="caption mt-4 ml-1 mr-3 ml-4"
         hide-details
       />
     </template>
@@ -86,55 +69,53 @@ export default {
   props: { value: String, counter: Number },
   data: () => ({
     categories: [],
-    loading: false
+    loading: false,
   }),
   computed: {
     counterLoc: {
       get() {
-        return this.$store.state.templateE
+        return this.$store.state.templateE;
       },
       set(c) {
-        this.$store.commit('mutTemplateE', c)
-      }
+        this.$store.commit('mutTemplateE', c);
+      },
     },
     category: {
       get() {
-        return this.value
+        return this.value;
       },
       set(v) {
-        this.$emit('input', v)
-      }
+        this.$emit('input', v);
+      },
     },
     t: {
       get() {
-        return this.$store.state.template
+        return this.$store.state.template;
       },
       set(t) {
-        this.$store.commit('mutTemplate', t)
-      }
-    }
+        this.$store.commit('mutTemplate', t);
+      },
+    },
   },
   created() {
-    this.loadCategories()
+    this.loadCategories();
   },
   methods: {
     async loadCategories() {
-      this.loading = true
+      this.loading = true;
       try {
-        const res = await this.$axios.get(`${process.env.NC_API_URL}/api/v1/nc/templates/categories`)
-        this.categories = res.data
+        const res = await this.$axios.get(`${process.env.NC_API_URL}/api/v1/nc/templates/categories`);
+        this.categories = res.data;
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
-      this.loading = false
+      this.loading = false;
     },
     showTemplateEditor() {
-      this.$emit('showTemplateEditor')
-    }
-  }
-}
+      this.$emit('showTemplateEditor');
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

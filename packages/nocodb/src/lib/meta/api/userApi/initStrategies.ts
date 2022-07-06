@@ -13,7 +13,7 @@ const ExtractJwt = passportJWT.ExtractJwt;
 const JwtStrategy = passportJWT.Strategy;
 
 const jwtOptions = {
-  jwtFromRequest: ExtractJwt.fromHeader('xc-auth')
+  jwtFromRequest: ExtractJwt.fromHeader('xc-auth'),
 };
 
 import bcrypt from 'bcryptjs';
@@ -29,21 +29,21 @@ export function initStrategies(router): void {
     'authtoken',
     new AuthTokenStrategy({ headerFields: ['xc-token'] }, (token, done) => {
       ApiToken.getByToken(token)
-        .then(apiToken => {
+        .then((apiToken) => {
           if (apiToken) {
             done(null, { roles: 'editor' });
           } else {
             return done({ msg: 'Invalid tok' });
           }
         })
-        .catch(e => {
+        .catch((e) => {
           console.log(e);
           done({ msg: 'Invalid tok' });
         });
     })
   );
 
-  passport.serializeUser(function(
+  passport.serializeUser(function (
     {
       id,
       email,
@@ -54,7 +54,7 @@ export function initStrategies(router): void {
       lastname,
       isAuthorized,
       isPublicBase,
-      token_version
+      token_version,
     },
     done
   ) {
@@ -74,11 +74,11 @@ export function initStrategies(router): void {
       firstname,
       lastname,
       roles,
-      token_version
+      token_version,
     });
   });
 
-  passport.deserializeUser(function(user, done) {
+  passport.deserializeUser(function (user, done) {
     done(null, user);
   });
 
@@ -88,7 +88,7 @@ export function initStrategies(router): void {
         secretOrKey: Noco.getConfig().auth.jwt.secret,
         ...jwtOptions,
         passReqToCallback: true,
-        ...Noco.getConfig().auth.jwt.options
+        ...Noco.getConfig().auth.jwt.options,
       },
       async (req, jwtPayload, done) => {
         const keyVals = [jwtPayload?.email];
@@ -113,7 +113,7 @@ export function initStrategies(router): void {
         }
 
         User.getByEmail(jwtPayload?.email)
-          .then(async user => {
+          .then(async (user) => {
             if (
               !user.token_version ||
               !jwtPayload.token_version ||
@@ -128,7 +128,7 @@ export function initStrategies(router): void {
               //   })
 
               ProjectUser.get(req.ncProjectId, user.id)
-                .then(async projectUser => {
+                .then(async (projectUser) => {
                   user.roles = projectUser?.roles || 'user';
                   user.roles =
                     user.roles === 'owner' ? 'owner,creator' : user.roles;
@@ -137,7 +137,7 @@ export function initStrategies(router): void {
                   await NocoCache.set(`${CacheScope.USER}:${key}`, user);
                   done(null, user);
                 })
-                .catch(e => done(e));
+                .catch((e) => done(e));
             } else {
               // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
               if (user) {
@@ -148,7 +148,7 @@ export function initStrategies(router): void {
               }
             }
           })
-          .catch(err => {
+          .catch((err) => {
             return done(err);
           });
       }
@@ -159,7 +159,7 @@ export function initStrategies(router): void {
     new PassportLocalStrategy(
       {
         usernameField: 'email',
-        session: false
+        session: false,
       },
       async (email, password, done) => {
         try {
@@ -198,7 +198,7 @@ export function initStrategies(router): void {
           );
         }
         user = {
-          roles: sharedProject?.roles
+          roles: sharedProject?.roles,
         };
       }
 
@@ -207,7 +207,7 @@ export function initStrategies(router): void {
   );
 
   // mostly copied from older code
-  Plugin.getPluginByTitle('Google').then(googlePlugin => {
+  Plugin.getPluginByTitle('Google').then((googlePlugin) => {
     if (googlePlugin && googlePlugin.input) {
       const settings = JSON.parse(googlePlugin.input);
       process.env.NC_GOOGLE_CLIENT_ID = settings.client_id;
@@ -234,7 +234,7 @@ export function initStrategies(router): void {
         clientSecret: process.env.NC_GOOGLE_CLIENT_SECRET,
         // todo: update url
         callbackURL: 'http://localhost:3000',
-        passReqToCallback: true
+        passReqToCallback: true,
       };
 
       const googleStrategy = new GoogleStrategy(
@@ -243,10 +243,10 @@ export function initStrategies(router): void {
           const email = profile.emails[0].value;
 
           User.getByEmail(email)
-            .then(async user => {
+            .then(async (user) => {
               if (req.ncProjectId) {
                 ProjectUser.get(req.ncProjectId, user.id)
-                  .then(async projectUser => {
+                  .then(async (projectUser) => {
                     user.roles = projectUser?.roles || 'user';
                     user.roles =
                       user.roles === 'owner' ? 'owner,creator' : user.roles;
@@ -254,7 +254,7 @@ export function initStrategies(router): void {
 
                     done(null, user);
                   })
-                  .catch(e => done(e));
+                  .catch((e) => done(e));
               } else {
                 // const roles = projectUser?.roles ? JSON.parse(projectUser.roles) : {guest: true};
                 if (user) {
@@ -275,13 +275,13 @@ export function initStrategies(router): void {
                     salt,
                     roles,
                     email_verified: true,
-                    token_version: randomTokenString()
+                    token_version: randomTokenString(),
                   });
                   return done(null, user);
                 }
               }
             })
-            .catch(err => {
+            .catch((err) => {
               return done(err);
             });
         }

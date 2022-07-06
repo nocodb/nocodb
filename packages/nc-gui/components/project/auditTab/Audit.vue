@@ -3,20 +3,13 @@
     <v-toolbar height="30" class="elevation-0">
       <v-spacer />
       <v-btn small outlined @click="loadAudits">
-        <v-icon small class="mr-2">
-          refresh
-        </v-icon>
+        <v-icon small class="mr-2"> refresh </v-icon>
         <!-- Reload -->
         {{ $t('general.reload') }}
       </v-btn>
     </v-toolbar>
     <v-container class="h-100 d-flex flex-column">
-      <v-simple-table
-        v-if="audits"
-        dense
-        style="max-width: 1000px; overflow: auto"
-        class="mx-auto flex-grow-1"
-      >
+      <v-simple-table v-if="audits" dense style="max-width: 1000px; overflow: auto" class="mx-auto flex-grow-1">
         <thead>
           <tr>
             <th class="caption">
@@ -43,7 +36,7 @@
           </tr>
         </thead>
         <tbody>
-          <tr v-for="(audit,i) in audits" :key="i">
+          <tr v-for="(audit, i) in audits" :key="i">
             <td class="caption">
               {{ audit.op_type }}
             </td>
@@ -61,7 +54,7 @@
             <!--          </td>-->
             <td class="caption">
               <v-tooltip bottom>
-                <template #activator="{on}">
+                <template #activator="{ on }">
                   <span v-on="on">{{ calculateDiff(audit.created_at) }}</span>
                 </template>
                 <span class="caption">{{ audit.created_at }}</span>
@@ -70,18 +63,13 @@
           </tr>
         </tbody>
       </v-simple-table>
-      <v-pagination
-        v-model="page"
-        :length="Math.ceil(count / limit)"
-        :total-visible="8"
-        @input="loadAudits"
-      />
+      <v-pagination v-model="page" :length="Math.ceil(count / limit)" :total-visible="8" @input="loadAudits" />
     </v-container>
   </div>
 </template>
 
 <script>
-import { calculateDiff } from '~/helpers'
+import { calculateDiff } from '~/helpers';
 
 export default {
   name: 'Audit',
@@ -89,10 +77,10 @@ export default {
     audits: null,
     count: 0,
     limit: 25,
-    page: 1
+    page: 1,
   }),
   created() {
-    this.loadAudits()
+    this.loadAudits();
   },
   methods: {
     async loadAudits() {
@@ -100,22 +88,17 @@ export default {
       //   limit: this.limit,
       //   offset: this.limit * (this.page - 1)
       // }])
-      const {
-        list, pageInfo
-      } = (await this.$api.project.auditList(
-        this.$store.state.project.projectId, {
-          limit: this.limit,
-          offset: this.limit * (this.page - 1)
-        }))
+      const { list, pageInfo } = await this.$api.project.auditList(this.$store.state.project.projectId, {
+        limit: this.limit,
+        offset: this.limit * (this.page - 1),
+      });
 
-      this.audits = list
-      this.count = pageInfo.totalRows
+      this.audits = list;
+      this.count = pageInfo.totalRows;
     },
-    calculateDiff
-  }
-}
+    calculateDiff,
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

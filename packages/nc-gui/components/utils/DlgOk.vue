@@ -11,21 +11,17 @@
         <p class="hidden" v-on="on" />
       </template>
       <v-card class="elevation-20">
-        <v-card-title class="grey darken-1 subheading" style="height:30px">
+        <v-card-title class="grey darken-1 subheading" style="height: 30px">
           {{ title || '' }}
         </v-card-title>
 
         <v-card-text class="pt-4 pl-4">
-          <span class="headline ">{{ heading }}</span>
+          <span class="headline">{{ heading }}</span>
         </v-card-text>
 
         <v-card-actions class="pa-4">
           <v-spacer />
-          <v-btn
-            small
-            :class="type"
-            @click="mtdOk()"
-          >
+          <v-btn small :class="type" @click="mtdOk()">
             {{ $t('general.ok') }}
           </v-btn>
         </v-card-actions>
@@ -35,41 +31,32 @@
 </template>
 
 <script>
-
 export default {
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   props: ['type', 'title', 'heading', 'dialogShow', 'mtdOk'],
   data() {
-    return {
-
-    }
+    return {};
   },
   head() {
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
-  created() {
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  mounted() {},
+  beforeDestroy() {},
   methods: {},
 
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

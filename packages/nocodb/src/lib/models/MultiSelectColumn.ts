@@ -20,7 +20,7 @@ export default class MultiSelectColumn {
       MetaTable.COL_SELECT_OPTIONS,
       {
         fk_column_id: data.fk_column_id,
-        title: data.title
+        title: data.title,
       }
     );
 
@@ -60,7 +60,7 @@ export default class MultiSelectColumn {
 
   public static async read(columnId: string, ncMeta = Noco.ncMeta) {
     let options = await NocoCache.getList(CacheScope.COL_SELECT_OPTION, [
-      columnId
+      columnId,
     ]);
     if (!options.length) {
       options = await ncMeta.metaList2(
@@ -78,7 +78,7 @@ export default class MultiSelectColumn {
 
     return options?.length
       ? {
-          options: options.map(c => new MultiSelectColumn(c))
+          options: options.map((c) => new MultiSelectColumn(c)),
         }
       : null;
   }

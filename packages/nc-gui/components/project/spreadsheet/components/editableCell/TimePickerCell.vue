@@ -1,7 +1,7 @@
 <template>
   <v-menu>
-    <template #activator="{on}">
-      <input v-model="localState" class="value" v-on="on">
+    <template #activator="{ on }">
+      <input v-model="localState" class="value" v-on="on" />
     </template>
     <div class="d-flex flex-column justify-center" @click.stop>
       <v-time-picker v-model="localState" v-on="parentListeners" />
@@ -14,69 +14,68 @@
 </template>
 
 <script>
-import dayjs from 'dayjs'
+import dayjs from 'dayjs';
 
 export default {
   name: 'TimePickerCell',
   props: {
-    value: [String, Date]
+    value: [String, Date],
   },
   computed: {
     isMysql() {
-      return ['mysql', 'mysql2'].indexOf(this.$store.getters['project/GtrClientType'])
+      return ['mysql', 'mysql2'].indexOf(this.$store.getters['project/GtrClientType']);
     },
     localState: {
       get() {
         if (!this.value) {
-          return this.value
+          return this.value;
         }
-        let dateTime = dayjs(this.value)
+        let dateTime = dayjs(this.value);
         if (!dateTime.isValid()) {
-          dateTime = dayjs(this.value, 'HH:mm:ss')
-        }
-        if (!dateTime.isValid()) {
-          dateTime = dayjs(`1999-01-01 ${this.value}`)
+          dateTime = dayjs(this.value, 'HH:mm:ss');
         }
         if (!dateTime.isValid()) {
-          return this.value
+          dateTime = dayjs(`1999-01-01 ${this.value}`);
         }
-        return dateTime.format('HH:mm:ss')
+        if (!dateTime.isValid()) {
+          return this.value;
+        }
+        return dateTime.format('HH:mm:ss');
       },
       set(val) {
-        const dateTime = dayjs(`1999-01-01 ${val}:00`)
+        const dateTime = dayjs(`1999-01-01 ${val}:00`);
         if (dateTime.isValid()) {
           if (this.isMysql) {
-            this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ss'))
+            this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ss'));
           } else {
-            this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ssZ'))
+            this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ssZ'));
           }
         }
-      }
-
+      },
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
       if (this.$listeners.cancel) {
-        $listeners.cancel = this.$listeners.cancel
+        $listeners.cancel = this.$listeners.cancel;
       }
 
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   mounted() {
     if (this.$el && this.$el.$el) {
-      this.$el.$el.focus()
+      this.$el.$el.focus();
     }
-  }
-}
+  },
+};
 </script>
 
 <style scoped>

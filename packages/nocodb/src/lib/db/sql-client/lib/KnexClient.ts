@@ -33,7 +33,7 @@ const strTypes = [
   'raw',
   'long raw',
   'bfile',
-  'nclob'
+  'nclob',
 ];
 const intTypes = [
   'integer',
@@ -49,7 +49,7 @@ const intTypes = [
   'serial',
   'bigserial',
   'smallserial',
-  'number'
+  'number',
 ];
 const floatTypes = [
   'float',
@@ -61,7 +61,7 @@ const floatTypes = [
   'real',
   'money',
   'smallmoney',
-  'dec'
+  'dec',
 ];
 const dateTypes = [
   'date',
@@ -76,7 +76,7 @@ const dateTypes = [
   'smalldatetime',
   'datetimeoffset',
   'interval year',
-  'interval day'
+  'interval day',
 ];
 const _enumTypes = ['enum', 'set'];
 const yearTypes = ['year'];
@@ -244,7 +244,7 @@ function renameColumn(_knexClient, connectionConfig, _table, o, n): any {
 
     const obj = {
       upStatement: [{ sql: upStatement }],
-      downStatement: [{ sql: downStatement }]
+      downStatement: [{ sql: downStatement }],
     };
 
     // console.log(obj);
@@ -642,7 +642,7 @@ class KnexClient extends SqlClient {
         Tele.emit('evt', {
           evt_type: 'project:external',
           payload: null,
-          check: true
+          check: true,
         });
       }
     } catch (e) {}
@@ -661,7 +661,7 @@ class KnexClient extends SqlClient {
       sqlite3: 0,
       rest: 0,
       graphql: 0,
-      ...data
+      ...data,
     });
   }
 
@@ -702,7 +702,7 @@ class KnexClient extends SqlClient {
       if (tableObj.primaryKeys.length > 1) {
         if (
           lodash.findIndex(tableObj.primaryKeys, {
-            cn: columnObj.cn
+            cn: columnObj.cn,
           }) > 0
         ) {
           return false;
@@ -719,7 +719,7 @@ class KnexClient extends SqlClient {
       tinyint: 127,
       smallint: 32767,
       mediumint: 8388607,
-      bigint: 2 ^ (63 - 1)
+      bigint: 2 ^ (63 - 1),
     };
 
     const maxUnsigned = {
@@ -727,7 +727,7 @@ class KnexClient extends SqlClient {
       tinyint: 255,
       smallint: 65535,
       mediumint: 16777215,
-      bigint: 2 ^ (64 - 1)
+      bigint: 2 ^ (64 - 1),
     };
 
     if (columnObject.un) {
@@ -742,7 +742,7 @@ class KnexClient extends SqlClient {
       tinyint: 127,
       smallint: 32767,
       mediumint: 8388607,
-      bigint: 2 ^ (63 - 1)
+      bigint: 2 ^ (63 - 1),
     };
 
     const maxUnsigned = {
@@ -750,7 +750,7 @@ class KnexClient extends SqlClient {
       tinyint: 255,
       smallint: 65535,
       mediumint: 16777215,
-      bigint: 2 ^ (64 - 1)
+      bigint: 2 ^ (64 - 1),
     };
 
     if (columnObject.un) {
@@ -766,7 +766,7 @@ class KnexClient extends SqlClient {
     if (tableObj.primaryKeys.length) {
       const dt = this.getKnexDataTypeMock(pk.ct);
       const col = lodash.find(tableObj.columns, {
-        cn: pk.cn
+        cn: pk.cn,
       });
 
       if (dt === 'integer') {
@@ -949,7 +949,7 @@ class KnexClient extends SqlClient {
 
           let fakerColumns: any = await this.fakerColumnsList({
             seedsFolder: args.seedsFolder,
-            tn: tn
+            tn: tn,
           });
           fakerColumns = fakerColumns.data.list;
 
@@ -1023,7 +1023,9 @@ class KnexClient extends SqlClient {
           for (let j = 0; j < this.metaDb.tables[tn].columns.length; ++j) {
             const colObj = this.metaDb.tables[tn].columns[j];
             const colUiObj = this.metaDb.tables[tn].uiModel.columns[j];
-            const fakerColObj = fakerColumns.find(col => col.cn === colObj.cn);
+            const fakerColObj = fakerColumns.find(
+              (col) => col.cn === colObj.cn
+            );
 
             console.log(
               '\tColumn: ',
@@ -1051,7 +1053,7 @@ class KnexClient extends SqlClient {
                   {
                     const enums = fakerColObj.dtxp
                       .split(',')
-                      .map(v => v.slice(1, -1));
+                      .map((v) => v.slice(1, -1));
                     const enumIndex = Math.floor(Math.random() * enums.length);
                     rows[k][colObj.cn] = enums[enumIndex];
                   }
@@ -1171,7 +1173,7 @@ class KnexClient extends SqlClient {
                 case 'json':
                   rows[k][colObj.cn] = JSON.stringify({
                     name: faker.name.firstName(),
-                    suffix: faker.name.suffix()
+                    suffix: faker.name.suffix(),
                   });
                   break;
                 case 'bit':
@@ -1192,7 +1194,7 @@ class KnexClient extends SqlClient {
                   } else {
                     while (1) {
                       const fakerColumn = fakerColumns.find(
-                        col => col.cn === colObj.cn
+                        (col) => col.cn === colObj.cn
                       );
 
                       const fakerFuncs = fakerColumn.fakerFunction
@@ -1276,7 +1278,7 @@ class KnexClient extends SqlClient {
         universalQuery = dataHelp.getMysqlSchemaQuery();
 
         const results = await this.knex.raw(universalQuery, [
-          this.connectionConfig.connection.database
+          this.connectionConfig.connection.database,
         ]);
 
         if (results.length) {
@@ -1531,7 +1533,7 @@ class KnexClient extends SqlClient {
     log.api(data);
     evt.evt.emit('UI', {
       status: 0,
-      data: `SQL : ${data}`
+      data: `SQL : ${data}`,
     });
   }
 
@@ -1539,7 +1541,7 @@ class KnexClient extends SqlClient {
     log.warn(data);
     evt.evt.emit('UI', {
       status: 1,
-      data: `SQL : ${data}`
+      data: `SQL : ${data}`,
     });
   }
 
@@ -1547,7 +1549,7 @@ class KnexClient extends SqlClient {
     log.error(data);
     evt.evt.emit('UI', {
       status: -1,
-      data: `SQL : ${data}`
+      data: `SQL : ${data}`,
     });
   }
 
@@ -1630,25 +1632,19 @@ class KnexClient extends SqlClient {
 
   async update(args) {
     const { tn, data, whereConditions } = args;
-    const res = await this.sqlClient(tn)
-      .where(whereConditions)
-      .update(data);
+    const res = await this.sqlClient(tn).where(whereConditions).update(data);
     return res;
   }
 
   async delete(args) {
     const { tn, whereConditions } = args;
-    const res = await this.sqlClient(tn)
-      .where(whereConditions)
-      .del();
+    const res = await this.sqlClient(tn).where(whereConditions).del();
     log.debug(res);
     return res;
   }
 
   async remove(tn, where) {
-    await this.sqlClient(tn)
-      .del()
-      .where(where);
+    await this.sqlClient(tn).del().where(where);
   }
 
   hasTable(_tn) {}
@@ -1719,7 +1715,7 @@ class KnexClient extends SqlClient {
       'multilinestring',
       'multipolygon',
       // "geometrycollection",
-      'json'
+      'json',
     ];
 
     return result;
@@ -1734,279 +1730,279 @@ class KnexClient extends SqlClient {
         dtxp: '10',
         dtxs: '',
         aggrDataType: 'numeric',
-        cdf: '1'
+        cdf: '1',
       },
       {
         type: 'tinyint',
         dtxp: '1',
         dtxs: '',
         aggrDataType: 'numeric',
-        cdf: '1'
+        cdf: '1',
       },
       {
         type: 'smallint',
         dtxp: '5',
         dtxs: '',
         aggrDataType: 'numeric',
-        cdf: '1'
+        cdf: '1',
       },
       {
         type: 'mediumint',
         dtxp: '8',
         dtxs: '',
         aggrDataType: 'numeric',
-        cdf: '1'
+        cdf: '1',
       },
       {
         type: 'bigint',
         dtxp: '20',
         dtxs: '',
         aggrDataType: 'numeric',
-        cdf: '1'
+        cdf: '1',
       },
       {
         type: 'bit',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'numeric',
-        cdf: '1'
+        cdf: '1',
       },
       {
         type: 'boolean',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'boolean',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'float',
         dtxp: '10',
         dtxs: '2',
         aggrDataType: 'float',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'decimal',
         dtxp: '10',
         dtxs: '2',
         aggrDataType: 'float',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'double',
         dtxp: '10',
         dtxs: '2',
         aggrDataType: 'float',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'serial',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'numeric',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'date',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'datetime',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'datetime',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'datetime',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'timestamp',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'datetime',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'time',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'time',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'year',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'year',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'char',
         dtxp: '10',
         dtxs: '',
         aggrDataType: 'char',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'varchar',
         dtxp: '10',
         dtxs: '',
         aggrDataType: 'char',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'nchar',
         dtxp: '10',
         dtxs: '',
         aggrDataType: 'char',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'text',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'text',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'tinytext',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'text',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'mediumtext',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'text',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'longtext',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'text',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'binary',
         dtxp: '255',
         dtxs: '',
         aggrDataType: 'binary',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'varbinary',
         dtxp: '255',
         dtxs: '',
         aggrDataType: 'binary',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'blob',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'blob',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'tinyblob',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'blob',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'mediumblob',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'blob',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'longblob',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'blob',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'enum',
         dtxp: `'a','b'`,
         dtxs: '',
         aggrDataType: 'enum',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'set',
         dtxp: `'a','b'`,
         dtxs: '',
         aggrDataType: 'set',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'geometry',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'geometry',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'point',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'geometry',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'linestring',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'geometry',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'polygon',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'geometry',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'multipoint',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'geometry',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'multilinestring',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'geometry',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'multipolygon',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'geometry',
-        cdf: ''
+        cdf: '',
       },
       {
         type: 'json',
         dtxp: '',
         dtxs: '',
         aggrDataType: 'json',
-        cdf: ''
-      }
+        cdf: '',
+      },
     ];
 
     if (args && 'aggrDataType' in args) {
       result.data.list = result.data.list.filter(
-        d => d.aggrDataType === args['aggrDataType']
+        (d) => d.aggrDataType === args['aggrDataType']
       );
     }
 
@@ -2115,7 +2111,7 @@ class KnexClient extends SqlClient {
       args.sqlClient = this.sqlClient;
 
       /** ************** create table *************** */
-      await this.sqlClient.schema.createTable(args.table, function(table) {
+      await this.sqlClient.schema.createTable(args.table, function (table) {
         const multiplePks = [];
         const columns = JSON.parse(JSON.stringify(args.columns));
 
@@ -2143,7 +2139,7 @@ class KnexClient extends SqlClient {
 
       /** ************** create up & down statements *************** */
       const upStatement = this.sqlClient.schema
-        .createTable(args.table, function(table) {
+        .createTable(args.table, function (table) {
           const multiplePks = [];
           const columns = JSON.parse(JSON.stringify(args.columns));
 
@@ -2176,7 +2172,7 @@ class KnexClient extends SqlClient {
       /** ************** return files *************** */
       result.data.object = {
         upStatement,
-        downStatement
+        downStatement,
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2218,7 +2214,7 @@ class KnexClient extends SqlClient {
       /** ************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downStatement }]
+        downStatement: [{ sql: downStatement }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2416,13 +2412,13 @@ class KnexClient extends SqlClient {
       /** ************** END : has PK changed *************** */
 
       /** ************** update table *************** */
-      await this.sqlClient.schema.alterTable(args.table, function(table) {
+      await this.sqlClient.schema.alterTable(args.table, function (table) {
         if (pksChanged) {
           pkUpdate(table, args.columns, args.originalColumns);
         } else {
           for (let i = 0; i < args.columns.length; ++i) {
             const column = lodash.find(originalColumns, {
-              cn: args.columns[i].cno
+              cn: args.columns[i].cno,
             });
 
             if (args.columns[i].altered & 8) {
@@ -2460,13 +2456,13 @@ class KnexClient extends SqlClient {
       } else {
         /** ************** create up & down statements *************** */
         const upStatement = this.sqlClient.schema
-          .alterTable(args.table, function(table) {
+          .alterTable(args.table, function (table) {
             if (pksChanged) {
               pkUpdate(table, args.columns, args.originalColumns);
             } else {
               for (let i = 0; i < args.columns.length; ++i) {
                 const column = lodash.find(originalColumns, {
-                  cn: args.columns[i].cno
+                  cn: args.columns[i].cno,
                 });
                 if (args.columns[i].altered & 8) {
                   // col remove
@@ -2494,13 +2490,13 @@ class KnexClient extends SqlClient {
         // log.debug(upStatement);
 
         const downStatement = this.sqlClient.schema
-          .alterTable(args.table, function(table) {
+          .alterTable(args.table, function (table) {
             if (pksChanged) {
               pkUpdate(table, args.columns, args.originalColumns);
             } else {
               for (let i = 0; i < args.columns.length; ++i) {
                 const column = lodash.find(originalColumns, {
-                  cn: args.columns[i].cno
+                  cn: args.columns[i].cno,
                 });
                 if (args.columns[i].altered & 8) {
                   // col remove
@@ -2526,7 +2522,7 @@ class KnexClient extends SqlClient {
 
         result.data.object = {
           upStatement,
-          downStatement
+          downStatement,
         };
       }
     } catch (e) {
@@ -2592,7 +2588,7 @@ class KnexClient extends SqlClient {
       /** ************** create up & down statements *************** */
       const upStatement = this.sqlClient.schema.dropTable(args.tn).toSQL();
       const downStatement = this.sqlClient.schema
-        .createTable(args.tn, function(tn) {
+        .createTable(args.tn, function (tn) {
           for (let i = 0; i < columns.length; ++i) {
             columnCreate(args.sqlClient, tn, columns[i]);
           }
@@ -2607,7 +2603,7 @@ class KnexClient extends SqlClient {
       /** ************** return files *************** */
       result.data.object = {
         upStatement,
-        downStatement
+        downStatement,
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2637,7 +2633,7 @@ class KnexClient extends SqlClient {
       args.table = args.tn;
 
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
-      await this.sqlClient.schema.table(args.table, function(table) {
+      await this.sqlClient.schema.table(args.table, function (table) {
         if (args.non_unique) {
           table.index(args.columns, indexName);
         } else {
@@ -2648,7 +2644,7 @@ class KnexClient extends SqlClient {
       const upStatement =
         this.querySeparator() +
         this.sqlClient.schema
-          .table(args.table, function(table) {
+          .table(args.table, function (table) {
             if (args.non_unique) {
               table.index(args.columns, indexName);
             } else {
@@ -2662,7 +2658,7 @@ class KnexClient extends SqlClient {
       const downStatement =
         this.querySeparator() +
         this.sqlClient.schema
-          .table(args.table, function(table) {
+          .table(args.table, function (table) {
             if (args.non_unique) {
               table.dropIndex(args.columns, indexName);
             } else {
@@ -2673,7 +2669,7 @@ class KnexClient extends SqlClient {
 
       result.data.object = {
         upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downStatement }]
+        downStatement: [{ sql: downStatement }],
       };
 
       // result.data.object = {
@@ -2708,7 +2704,7 @@ class KnexClient extends SqlClient {
       args.table = args.tn;
 
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
-      await this.sqlClient.schema.table(args.table, function(table) {
+      await this.sqlClient.schema.table(args.table, function (table) {
         if (args.non_unique_original) {
           table.dropIndex(args.columns, indexName);
         } else {
@@ -2719,7 +2715,7 @@ class KnexClient extends SqlClient {
       const upStatement =
         this.querySeparator() +
         this.sqlClient.schema
-          .table(args.table, function(table) {
+          .table(args.table, function (table) {
             if (args.non_unique_original) {
               table.dropIndex(args.columns, indexName);
             } else {
@@ -2733,7 +2729,7 @@ class KnexClient extends SqlClient {
       const downStatement =
         this.querySeparator() +
         this.sqlClient.schema
-          .table(args.table, function(table) {
+          .table(args.table, function (table) {
             if (args.non_unique_original) {
               table.index(args.columns, indexName);
             } else {
@@ -2744,7 +2740,7 @@ class KnexClient extends SqlClient {
 
       result.data.object = {
         upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downStatement }]
+        downStatement: [{ sql: downStatement }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2773,7 +2769,7 @@ class KnexClient extends SqlClient {
     try {
       // s = await this.sqlClient.schema.index(Object.keys(args.columns));
 
-      await this.sqlClient.schema.table(args.childTable, function(table) {
+      await this.sqlClient.schema.table(args.childTable, function (table) {
         table = table
           .foreign(args.childColumn, foreignKeyName)
           .references(args.parentColumn)
@@ -2790,7 +2786,7 @@ class KnexClient extends SqlClient {
       const upStatement =
         this.querySeparator() +
         (await this.sqlClient.schema
-          .table(args.childTable, function(table) {
+          .table(args.childTable, function (table) {
             table = table
               .foreign(args.childColumn, foreignKeyName)
               .references(args.parentColumn)
@@ -2810,7 +2806,7 @@ class KnexClient extends SqlClient {
       const downStatement =
         this.querySeparator() +
         this.sqlClient.schema
-          .table(args.childTable, function(table) {
+          .table(args.childTable, function (table) {
             table = table.dropForeign(args.childColumn, foreignKeyName);
           })
           .toQuery();
@@ -2830,7 +2826,7 @@ class KnexClient extends SqlClient {
 
       result.data.object = {
         upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downStatement }]
+        downStatement: [{ sql: downStatement }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -2860,14 +2856,14 @@ class KnexClient extends SqlClient {
     try {
       // const self = this;
 
-      await this.sqlClient.schema.table(args.childTable, function(table) {
+      await this.sqlClient.schema.table(args.childTable, function (table) {
         table.dropForeign(args.childColumn, foreignKeyName);
       });
 
       const upStatement =
         this.querySeparator() +
         this.sqlClient.schema
-          .table(args.childTable, function(table) {
+          .table(args.childTable, function (table) {
             table.dropForeign(args.childColumn, foreignKeyName);
           })
           .toQuery();
@@ -2875,7 +2871,7 @@ class KnexClient extends SqlClient {
       const downStatement =
         this.querySeparator() +
         (await this.sqlClient.schema
-          .table(args.childTable, function(table) {
+          .table(args.childTable, function (table) {
             table
               .foreign(args.childColumn, foreignKeyName)
               .references(args.parentColumn)
@@ -2898,7 +2894,7 @@ class KnexClient extends SqlClient {
 
       result.data.object = {
         upStatement: [{ sql: upStatement }],
-        downStatement: [{ sql: downStatement }]
+        downStatement: [{ sql: downStatement }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -3161,7 +3157,7 @@ class KnexClient extends SqlClient {
       const fakerColumnPath = path.join(args.seedsFolder, `${args.tn}.json`);
 
       await promisify(jsonfile.writeFile)(fakerColumnPath, args.fakerColumns, {
-        spaces: 2
+        spaces: 2,
       });
 
       this.emit(`Created : ${fakerColumnPath}`);
@@ -3328,7 +3324,7 @@ class KnexClient extends SqlClient {
       const seedSettings = path.join(args.seedsFolder, '__xseeds.json');
 
       await promisify(jsonfile.writeFile)(seedSettings, args.settings, {
-        spaces: 2
+        spaces: 2,
       });
       this.emit(`Success : Seed settings updated`);
     } catch (e) {
@@ -3365,7 +3361,7 @@ class KnexClient extends SqlClient {
 
   genQuery(query, args = [], shouldSanitize: any = 0) {
     if (shouldSanitize) {
-      args = (args || []).map(s =>
+      args = (args || []).map((s) =>
         typeof s === 'string' ? this.sanitize(s) : s
       );
     }

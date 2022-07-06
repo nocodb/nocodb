@@ -3,46 +3,40 @@
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
         <v-breadcrumbs
-          :items="[{
-                     text: nodes.env,
-                     disabled: true,
-                     href: '#'
-                   },{
-                     text: nodes.dbAlias,
-                     disabled: true,
-                     href: '#'
-                   },
-                   {
-                     text: nodes.view_name + ' (view)',
-                     disabled: true,
-                     href: '#'
-                   }]"
+          :items="[
+            {
+              text: nodes.env,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.dbAlias,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.view_name + ' (view)',
+              disabled: true,
+              href: '#',
+            },
+          ]"
           divider=">"
           small
         >
           <template #divider>
-            <v-icon small color="grey lighten-2">
-              forward
-            </v-icon>
+            <v-icon small color="grey lighten-2"> forward </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
       <v-spacer />
-      <x-btn
-        outlined
-        tooltip="Reload View"
-        small
-        color="primary"
-        icon="refresh"
-        @click="loadEnv()"
-      >
+      <x-btn outlined tooltip="Reload View" small color="primary" icon="refresh" @click="loadEnv()">
         <!-- Reload -->
         {{ $t('general.reload') }}
       </x-btn>
       <x-btn
         outlined
         :tooltip="$t('tooltip.saveChanges')"
-        :disabled="nodes.dbConnection.client === 'sqlite3' && !newView "
+        :disabled="nodes.dbConnection.client === 'sqlite3' && !newView"
         small
         color="primary"
         icon="save"
@@ -81,10 +75,10 @@
 </template>
 
 <script>
-import { mapActions } from 'vuex'
+import { mapActions } from 'vuex';
 
-import MonacoEditor from '../../monaco/Monaco'
-import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel'
+import MonacoEditor from '../../monaco/Monaco';
+import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel';
 
 export default {
   components: { MonacoEditor, dlgLabelSubmitCancel },
@@ -93,19 +87,19 @@ export default {
       view: {},
       oldViewDefination: '',
       newView: !!this.nodes.newView,
-      dialogShow: false
-    }
+      dialogShow: false,
+    };
   },
   computed: {},
   methods: {
     ...mapActions({
       loadViewsFromChildTreeNode: 'project/loadViewsFromChildTreeNode',
       loadViewsFromParentTreeNode: 'project/loadViewsFromParentTreeNode',
-      removeViewTab: 'tabs/removeViewTab'
+      removeViewTab: 'tabs/removeViewTab',
     }),
 
     async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
-      console.log(metaKey, key, altKey, shiftKey, ctrlKey)
+      console.log(metaKey, key, altKey, shiftKey, ctrlKey);
       // cmd + s -> save
       // cmd + l -> reload
       // cmd + n -> new
@@ -113,28 +107,28 @@ export default {
       // cmd + enter -> send api
 
       switch ([metaKey, key].join('_')) {
-        case 'true_s' :
-          await this.applyChanges()
-          break
-        case 'true_l' :
-          await this.loadEnv()
-          break
+        case 'true_s':
+          await this.applyChanges();
+          break;
+        case 'true_l':
+          await this.loadEnv();
+          break;
         // case 'true_n' :
         //   this.addColumn();
         //   break;
-        case 'true_d' :
-          await this.deleteView('showDialog')
-          break
+        case 'true_d':
+          await this.deleteView('showDialog');
+          break;
       }
     },
 
     async loadEnv() {
       try {
-        this.$store.commit('notification/MutToggleProgressBar', true)
+        this.$store.commit('notification/MutToggleProgressBar', true);
         if (this.newView) {
-          this.view = { view_name: this.nodes.view_name, view_definition: '' }
-          this.$store.commit('notification/MutToggleProgressBar', false)
-          return
+          this.view = { view_name: this.nodes.view_name, view_definition: '' };
+          this.$store.commit('notification/MutToggleProgressBar', false);
+          return;
         }
         // // console.log("env: this.env", this.env, this.dbAlias);
         // const client = await this.sqlMgr.projectGetSqlClient({
@@ -148,18 +142,22 @@ export default {
         //   dbAlias: this.nodes.dbAlias
         // }, 'viewRead', {view_name: this.nodes.view_name})
 
-        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'viewRead', { view_name: this.nodes.view_name }])
+        const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+          },
+          'viewRead',
+          { view_name: this.nodes.view_name },
+        ]);
 
-        console.log('view read', result)
-        this.view = { ...result.data.list[0] }
-        this.oldViewDefination = `${this.view.view_definition}` + '' // for migration statements
+        console.log('view read', result);
+        this.view = { ...result.data.list[0] };
+        this.oldViewDefination = `${this.view.view_definition}` + ''; // for migration statements
       } catch (e) {
-        console.log(e)
+        console.log(e);
       } finally {
-        this.$store.commit('notification/MutToggleProgressBar', false)
+        this.$store.commit('notification/MutToggleProgressBar', false);
       }
     },
     async applyChanges() {
@@ -168,113 +166,108 @@ export default {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'viewCreate',
             {
               view_name: this.nodes.view_name,
               title: this.nodes.title,
-              view_definition: this.view.view_definition
-            }]
-          )
+              view_definition: this.view.view_definition,
+            },
+          ]);
 
           await this.loadViewsFromChildTreeNode({
             _nodes: {
-              ...this.nodes
-            }
-          })
-          console.log('create view result', result)
-          this.newView = false
-          this.oldViewDefination = `${this.view.view_definition}` + '' // for migration statments
-          this.$toast.success('View created successfully').goAway(3000)
-          delete this.nodes.newView
-          this.$emit('created')
+              ...this.nodes,
+            },
+          });
+          console.log('create view result', result);
+          this.newView = false;
+          this.oldViewDefination = `${this.view.view_definition}` + ''; // for migration statments
+          this.$toast.success('View created successfully').goAway(3000);
+          delete this.nodes.newView;
+          this.$emit('created');
         } else {
           const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'viewUpdate',
             {
               view_name: this.nodes.view_name,
               view_definition: this.view.view_definition,
-              oldViewDefination: this.oldViewDefination
-            }]
-          )
-          this.$toast.success('View updated successfully').goAway(3000)
-          this.oldViewDefination = `${this.view.view_definition}` + '' // for migration statments
-          console.log('update view result', result)
+              oldViewDefination: this.oldViewDefination,
+            },
+          ]);
+          this.$toast.success('View updated successfully').goAway(3000);
+          this.oldViewDefination = `${this.view.view_definition}` + ''; // for migration statments
+          console.log('update view result', result);
         }
       } catch (e) {
-        this.$toast.error('Error while saving view').goAway(3000)
-        throw e
+        this.$toast.error('Error while saving view').goAway(3000);
+        throw e;
       }
     },
     async deleteView(action = '') {
       try {
         if (action === 'showDialog') {
-          this.dialogShow = true
+          this.dialogShow = true;
         } else if (action === 'hideDialog') {
-          this.dialogShow = false
+          this.dialogShow = false;
         } else {
           await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'viewDelete',
             {
               view_name: this.nodes.view_name,
-              oldViewDefination: this.oldViewDefination
-            }
-          ])
+              oldViewDefination: this.oldViewDefination,
+            },
+          ]);
           this.removeViewTab({
             env: this.nodes.env,
             dbAlias: this.nodes.dbAlias,
-            view_name: this.nodes.view_name
-          })
+            view_name: this.nodes.view_name,
+          });
           await this.loadViewsFromParentTreeNode({
             _nodes: {
-              ...this.nodes
-            }
-          })
-          this.dialogShow = false
+              ...this.nodes,
+            },
+          });
+          this.dialogShow = false;
 
-          this.$toast.success('View deleted successfully').goAway(3000)
+          this.$toast.success('View deleted successfully').goAway(3000);
         }
       } catch (e) {
-        this.$toast.error('View deleted failed').goAway(3000)
-        throw e
+        this.$toast.error('View deleted failed').goAway(3000);
+        throw e;
       }
-    }
+    },
   },
 
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {},
   async created() {
-    await this.loadEnv()
+    await this.loadEnv();
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes']
-}
+  props: ['nodes'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

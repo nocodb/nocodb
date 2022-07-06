@@ -2,7 +2,7 @@ import Noco from '../Noco';
 import { CacheGetType, CacheScope, MetaTable } from './globals';
 import NocoCache from '../cache/NocoCache';
 
-export default async function(force = false, ncMeta = Noco.ncMeta) {
+export default async function (force = false, ncMeta = Noco.ncMeta) {
   try {
     let res = await NocoCache.get(
       CacheScope.INSTANCE_META,
@@ -15,25 +15,25 @@ export default async function(force = false, ncMeta = Noco.ncMeta) {
         .first()
         .where('deleted', false)
         .where('is_meta', true)
-        .then(c => c.count);
+        .then((c) => c.count);
       const projectsExt = await ncMeta
         .knex(MetaTable.PROJECT)
         .count('id as count')
         .first()
         .where('deleted', false)
         .where('is_meta', false)
-        .then(c => c.count);
+        .then((c) => c.count);
       const impacted = await ncMeta
         .knex(MetaTable.USERS)
         .count('id as count')
         .first()
-        .then(c => c.count);
+        .then((c) => c.count);
       const created = await ncMeta
         .knex('nc_store')
         .select('created_at')
         .where('key', 'nc_server_id')
         .first()
-        .then(c => c.created_at);
+        .then((c) => c.created_at);
 
       const nc_db_type = Noco.getConfig()?.meta?.db?.client;
 

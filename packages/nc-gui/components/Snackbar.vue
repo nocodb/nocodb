@@ -11,7 +11,6 @@
 </template>
 
 <script>
-
 export default {
   data() {
     return {
@@ -24,51 +23,51 @@ export default {
           success: {
             message: ' successful',
             class: 'success',
-            icon: 'check_circle'
+            icon: 'check_circle',
           },
           error: {
             message: ' failed',
             class: 'error',
-            icon: 'error'
-          }
+            icon: 'error',
+          },
         },
-        data: null
-      }
-    }
+        data: null,
+      },
+    };
   },
   computed: {
     notification1() {
-      return this.$store.state.notification.snackbar
-    }
+      return this.$store.state.notification.snackbar;
+    },
   },
   watch: {
     message() {
       this.$nextTick(() => {
         // get all links which starts with http and on click open them in external browser
-        this.$refs.message && this.$refs.message.querySelectorAll('a[href^="http"]').forEach(ele =>
-          ele.addEventListener('click', (e) => {
-            e.preventDefault()
-            // shell.openExternal(ele.getAttribute('href'))
-          })
-        )
-      })
-    }
+        this.$refs.message &&
+          this.$refs.message.querySelectorAll('a[href^="http"]').forEach(ele =>
+            ele.addEventListener('click', e => {
+              e.preventDefault();
+              // shell.openExternal(ele.getAttribute('href'))
+            })
+          );
+      });
+    },
   },
   created() {
     this.$store.watch(
       state => state.snackbar.snack,
       () => {
-        const msg = this.$store.state.snackbar.snack
+        const msg = this.$store.state.snackbar.snack;
         if (msg !== '') {
-          this.show = true
-          this.message = this.$store.state.snackbar.snack
-          this.$store.commit('snackbar/setSnack', '')
+          this.show = true;
+          this.message = this.$store.state.snackbar.snack;
+          this.$store.commit('snackbar/setSnack', '');
         }
       }
-    )
-  }
-}
-
+    );
+  },
+};
 </script>
 <!--
 /**

@@ -1,16 +1,9 @@
 <template>
   <div>
-    <h3 class="mb-5 title grey--text">
-      Configure apps
-    </h3>
+    <h3 class="mb-5 title grey--text">Configure apps</h3>
     <v-divider />
     <div class="d-flex h-100 nc-app-store-tab mt-5">
-      <v-dialog
-        v-model="pluginInstallOverlay"
-        min-width="400px"
-        max-width="700px"
-        min-height="300"
-      >
+      <v-dialog v-model="pluginInstallOverlay" min-width="400px" max-width="700px" min-height="300">
         <v-card
           v-if="installPlugin && pluginInstallOverlay"
           :dark="$store.state.settings.darkTheme"
@@ -27,30 +20,18 @@
 
       <dlg-ok-new
         v-model="pluginUninstallModal"
-        :heading="`Please click on submit to reset ${
-          resetPluginRef && resetPluginRef.title
-        }`"
+        :heading="`Please click on submit to reset ${resetPluginRef && resetPluginRef.title}`"
         ok-label="Submit"
         type="primary"
         @ok="confirmResetPlugin"
       />
 
       <v-dialog min-width="400px" max-width="700px" min-height="300">
-        <v-card
-          v-if="resetPluginRef"
-          :dark="$store.state.settings.darkTheme"
-          :light="!$store.state.settings.darkTheme"
-        >
-          <v-card-text>
-            Please confirm to reset {{ resetPluginRef.title }}
-          </v-card-text>
+        <v-card v-if="resetPluginRef" :dark="$store.state.settings.darkTheme" :light="!$store.state.settings.darkTheme">
+          <v-card-text> Please confirm to reset {{ resetPluginRef.title }} </v-card-text>
           <v-card-actions>
-            <v-btn color="primary" @click="confirmResetPlugin">
-              Yes
-            </v-btn>
-            <v-btn @click="pluginUninstallModal = false">
-              No
-            </v-btn>
+            <v-btn color="primary" @click="confirmResetPlugin"> Yes </v-btn>
+            <v-btn @click="pluginUninstallModal = false"> No </v-btn>
           </v-card-actions>
         </v-card>
       </v-dialog>
@@ -62,51 +43,22 @@
 
             <v-card height="100%" class="elevatio app-item-card">
               <div class="install-btn">
-                <v-btn
-                  v-if="app.parsedInput"
-                  x-small
-                  outlined
-                  class="caption text-capitalize"
-                  @click="installApp(app)"
-                >
-                  <v-icon x-small class="mr-1">
-                    mdi-pencil
-                  </v-icon>
-                  {{ $t("general.edit") }}
+                <v-btn v-if="app.parsedInput" x-small outlined class="caption text-capitalize" @click="installApp(app)">
+                  <v-icon x-small class="mr-1"> mdi-pencil </v-icon>
+                  {{ $t('general.edit') }}
                 </v-btn>
-                <v-btn
-                  v-if="app.parsedInput"
-                  x-small
-                  outlined
-                  class="caption text-capitalize"
-                  @click="resetApp(app)"
-                >
-                  <v-icon x-small class="mr-1">
-                    mdi-close-circle-outline
-                  </v-icon>
+                <v-btn v-if="app.parsedInput" x-small outlined class="caption text-capitalize" @click="resetApp(app)">
+                  <v-icon x-small class="mr-1"> mdi-close-circle-outline </v-icon>
                   Reset
                 </v-btn>
-                <v-btn
-                  v-else
-                  x-small
-                  outlined
-                  class="caption text-capitalize"
-                  @click="installApp(app)"
-                >
-                  <v-icon x-small class="mr-1">
-                    mdi-plus
-                  </v-icon>
+                <v-btn v-else x-small outlined class="caption text-capitalize" @click="installApp(app)">
+                  <v-icon x-small class="mr-1"> mdi-plus </v-icon>
                   Install
                 </v-btn>
               </div>
 
               <div class="d-flex flex-no-wrap">
-                <v-avatar
-                  class="ma-3 align-self-center"
-                  size="50"
-                  tile
-                  :color="app.title === 'SES' ? '#242f3e' : ''"
-                >
+                <v-avatar class="ma-3 align-self-center" size="50" tile :color="app.title === 'SES' ? '#242f3e' : ''">
                   <v-img v-if="app.logo" :src="app.logo" contain />
                   <v-icon v-else-if="app.icon" color="#242f3e" size="50">
                     {{ app.icon }}
@@ -117,9 +69,7 @@
 
                   <v-card-subtitle class="pb-1" v-text="app.description" />
                   <v-card-actions>
-                    <div
-                      class="d-flex justify-space-between d-100 align-center"
-                    >
+                    <div class="d-flex justify-space-between d-100 align-center">
                       <!--                    <v-rating-->
                       <!--                      full-icon="mdi-star"-->
                       <!--                      readonly-->
@@ -191,8 +141,8 @@
 </template>
 
 <script>
-import AppInstall from '~/components/project/appStore/AppInstall'
-import DlgOkNew from '~/components/utils/DlgOkNew'
+import AppInstall from '~/components/project/appStore/AppInstall';
+import DlgOkNew from '~/components/utils/DlgOkNew';
 
 export default {
   name: 'AppStore',
@@ -214,75 +164,71 @@ export default {
       Brand: 'mdi-sparkles',
       Cache: 'mdi-cached',
       Enterprise: 'mdi-bank',
-      Chat: 'mdi-chat-outline'
-    }
+      Chat: 'mdi-chat-outline',
+    },
   }),
   computed: {
     filters() {
       return this.apps
         .reduce((arr, app) => arr.concat(app.tags || []), [])
         .filter((f, i, arr) => i === arr.indexOf(f))
-        .sort()
+        .sort();
     },
     filteredApps() {
       return this.apps.filter(
         app =>
-          (!this.query.trim() ||
-            app.title
-              .toLowerCase()
-              .includes(this.query.trim().toLowerCase())) &&
-          (!this.selectedTags.length ||
-            this.selectedTags.some(t => app.tags && app.tags.includes(t)))
-      )
-    }
+          (!this.query.trim() || app.title.toLowerCase().includes(this.query.trim().toLowerCase())) &&
+          (!this.selectedTags.length || this.selectedTags.some(t => app.tags && app.tags.includes(t)))
+      );
+    },
   },
   async created() {
-    await this.loadPluginList()
+    await this.loadPluginList();
   },
   methods: {
     async confirmResetPlugin() {
       try {
         await this.$api.plugin.update(this.resetPluginRef.id, {
           input: null,
-          active: 0
-        })
-        this.$toast.success('Plugin uninstalled successfully').goAway(5000)
-        await this.loadPluginList()
+          active: 0,
+        });
+        this.$toast.success('Plugin uninstalled successfully').goAway(5000);
+        await this.loadPluginList();
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(e.message).goAway(3000);
       }
 
-      this.$e('a:appstore:reset', { app: this.resetPluginRef.title })
+      this.$e('a:appstore:reset', { app: this.resetPluginRef.title });
     },
     async saved() {
-      this.pluginInstallOverlay = false
-      await this.loadPluginList()
-      this.$e('a:appstore:install', { app: this.installPlugin.title })
+      this.pluginInstallOverlay = false;
+      await this.loadPluginList();
+      this.$e('a:appstore:install', { app: this.installPlugin.title });
     },
     async installApp(app) {
-      this.pluginInstallOverlay = true
-      this.installPlugin = app
+      this.pluginInstallOverlay = true;
+      this.installPlugin = app;
 
-      this.$e('c:appstore:install', { app: app.title })
+      this.$e('c:appstore:install', { app: app.title });
     },
     async resetApp(app) {
-      this.pluginUninstallModal = true
-      this.resetPluginRef = app
+      this.pluginUninstallModal = true;
+      this.resetPluginRef = app;
     },
     async loadPluginList() {
       try {
         // const plugins = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginList'])
-        const plugins = (await this.$api.plugin.list()).list
+        const plugins = (await this.$api.plugin.list()).list;
         // plugins.push(...plugins.splice(0, 3))
-        this.apps = plugins.map((p) => {
-          p.tags = p.tags ? p.tags.split(',') : []
-          p.parsedInput = p.input && JSON.parse(p.input)
-          return p
-        })
+        this.apps = plugins.map(p => {
+          p.tags = p.tags ? p.tags.split(',') : [];
+          p.parsedInput = p.input && JSON.parse(p.input);
+          return p;
+        });
       } catch (e) {}
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

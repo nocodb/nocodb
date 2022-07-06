@@ -29,20 +29,20 @@
 </template>
 
 <script>
-import UserManagement from '~/components/auth/UserManagement'
-import Roles from '~/components/auth/Roles'
-import ApiTokens from '~/components/auth/ApiTokens'
+import UserManagement from '~/components/auth/UserManagement';
+import Roles from '~/components/auth/Roles';
+import ApiTokens from '~/components/auth/ApiTokens';
 
 export default {
   name: 'AuthTab',
   components: { ApiTokens, Roles, UserManagement },
   props: ['nodes'],
   data: () => ({
-    showConfirmDlg: false
+    showConfirmDlg: false,
   }),
   async created() {},
-  methods: {}
-}
+  methods: {},
+};
 </script>
 
 <style scoped lang="scss">

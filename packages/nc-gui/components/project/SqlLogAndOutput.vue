@@ -1,6 +1,6 @@
 <template>
   <splitpanes horizontal class="xc-theme">
-    <pane :size=" mainPanelSize" min-size="50" style="overflow: auto">
+    <pane :size="mainPanelSize" min-size="50" style="overflow: auto">
       <slot />
     </pane>
 
@@ -19,11 +19,10 @@
 </template>
 
 <script>
-
-import { Splitpanes, Pane } from 'splitpanes'
-import 'splitpanes/dist/splitpanes.css'
+import { Splitpanes, Pane } from 'splitpanes';
+import 'splitpanes/dist/splitpanes.css';
 // import ProjectLogs from '~/components/projectLogs'
-import ProjectOutput from '~/components/ProjectOutput'
+import ProjectOutput from '~/components/ProjectOutput';
 
 export default {
   name: 'SqlLogAndOutput',
@@ -31,39 +30,37 @@ export default {
     // ProjectLogs,
     ProjectOutput,
     Splitpanes,
-    Pane
+    Pane,
   },
   props: {
-    hide: Boolean
+    hide: Boolean,
   },
   data() {
     return {
-      mainPanelSize: 50
-    }
+      mainPanelSize: 50,
+    };
   },
   created() {
     if (!this.$store.state.settings.outputWindow && !this.$store.state.settings.logWindow) {
       this.$nextTick(() => {
-        this.mainPanelSize = 100
-      })
+        this.mainPanelSize = 100;
+      });
     }
     this.$store.watch(
       state => !state.settings.outputWindow && !state.settings.logWindow,
-      (newState) => {
+      newState => {
         if (newState) {
           this.$nextTick(() => {
-            this.mainPanelSize = 100
-          })
+            this.mainPanelSize = 100;
+          });
         }
       }
-    )
-  }
-}
+    );
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

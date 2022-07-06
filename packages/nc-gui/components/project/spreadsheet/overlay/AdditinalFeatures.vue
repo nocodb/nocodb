@@ -1,13 +1,5 @@
 <template>
-  <v-dialog
-    v-if="show"
-    v-model="show"
-    align="center"
-    absolute
-    opacity=".75"
-    z-index="9"
-    width="max(90%,600px)"
-  >
+  <v-dialog v-if="show" v-model="show" align="center" absolute opacity=".75" z-index="9" width="max(90%,600px)">
     <!--    :color="$store.state.settings.darkTheme ? 'white' : 'black'"-->
     <!--    :dark="$store.state.settings.darkTheme"-->
     <!--    :light="!$store.state.settings.darkTheme"-->
@@ -16,53 +8,17 @@
       <!--    <v-card max-height="100%" min-width="95%" max-width="100%" style="overflow: auto">-->
       <!--      <v-card-text>-->
 
-      <table-acl
-        v-if="type === 'acl'"
-        :nodes="nodes"
-      />
-      <columns
-        v-else-if="type === 'columns'"
-        :delete-table="deleteTable"
-        :nodes="nodes"
-      />
-      <indexes
-        v-else-if="type === 'indexes'"
-        :delete-table="deleteTable"
-        :nodes="nodes"
-      />
-      <triggers
-        v-else-if="type === 'triggers'"
-        :nodes="nodes"
-      />
-      <webhooks
-        v-else-if="type === 'webhooks'"
-        class=""
-        :nodes="nodes"
-        @close="show=false"
-      />
-      <validation
-        v-else-if="type === 'validators'"
-        :nodes="nodes"
-      />
+      <table-acl v-if="type === 'acl'" :nodes="nodes" />
+      <columns v-else-if="type === 'columns'" :delete-table="deleteTable" :nodes="nodes" />
+      <indexes v-else-if="type === 'indexes'" :delete-table="deleteTable" :nodes="nodes" />
+      <triggers v-else-if="type === 'triggers'" :nodes="nodes" />
+      <webhooks v-else-if="type === 'webhooks'" class="" :nodes="nodes" @close="show = false" />
+      <validation v-else-if="type === 'validators'" :nodes="nodes" />
 
-      <table-acl
-        v-else-if="type === 'view-acl'"
-        :nodes="nodes"
-      />
-      <view-columns
-        v-else-if="type === 'view-columns'"
-        :nodes="nodes"
-      />
-      <template
-        v-else-if="type === 'shared-views'"
-      >
-        <shared-views-list
-          v-if="show"
-          :selected-view="selectedView"
-          :model-name="table"
-          :nodes="nodes"
-          :meta="meta"
-        />
+      <table-acl v-else-if="type === 'view-acl'" :nodes="nodes" />
+      <view-columns v-else-if="type === 'view-columns'" :nodes="nodes" />
+      <template v-else-if="type === 'shared-views'">
+        <shared-views-list v-if="show" :selected-view="selectedView" :model-name="table" :nodes="nodes" :meta="meta" />
       </template>
 
       <!--      </v-card-text>-->
@@ -72,14 +28,14 @@
 </template>
 
 <script>
-import TableAcl from '~/components/project/tableTabs/TableAcl'
-import Columns from '~/components/project/tableTabs/Columns'
-import Indexes from '~/components/project/tableTabs/Indexes'
-import Triggers from '~/components/project/tableTabs/Triggers'
-import Webhooks from '~/components/project/tableTabs/Webhooks'
-import Validation from '~/components/project/tableTabs/Validation'
-import ViewColumns from '~/components/project/viewTabs/ViewColumns'
-import SharedViewsList from '~/components/project/spreadsheet/components/SharedViewsList'
+import TableAcl from '~/components/project/tableTabs/TableAcl';
+import Columns from '~/components/project/tableTabs/Columns';
+import Indexes from '~/components/project/tableTabs/Indexes';
+import Triggers from '~/components/project/tableTabs/Triggers';
+import Webhooks from '~/components/project/tableTabs/Webhooks';
+import Validation from '~/components/project/tableTabs/Validation';
+import ViewColumns from '~/components/project/viewTabs/ViewColumns';
+import SharedViewsList from '~/components/project/spreadsheet/components/SharedViewsList';
 
 export default {
   name: 'AdditionalFeatures',
@@ -88,14 +44,14 @@ export default {
   computed: {
     show: {
       set(v) {
-        this.$emit('input', v)
+        this.$emit('input', v);
       },
       get() {
-        return this.value
-      }
-    }
-  }
-}
+        return this.value;
+      },
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -117,6 +73,6 @@ export default {
 .feat-container {
   position: relative;
   align-self: center;
-  margin:auto !important;
+  margin: auto !important;
 }
 </style>

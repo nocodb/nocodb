@@ -6,43 +6,43 @@ export default {
       columns: [
         {
           cn: 'title',
-          uidt: 'SingleLineText'
+          uidt: 'SingleLineText',
         },
         {
           cn: 'body',
-          uidt: 'LongText'
-        }
+          uidt: 'LongText',
+        },
       ],
       hasMany: [
         {
-          tn: 'comment'
-        }
+          tn: 'comment',
+        },
       ],
       manyToMany: [
         {
-          rtn: 'tag'
-        }
-      ]
+          rtn: 'tag',
+        },
+      ],
     },
     {
       tn: 'comment',
       columns: [
         {
           cn: 'body',
-          uidt: 'LongText'
-        }
-      ]
+          uidt: 'LongText',
+        },
+      ],
     },
     {
       tn: 'tag',
       columns: [
         {
           cn: 'title',
-          uidt: 'SingleLineText'
-        }
-      ]
-    }
-  ]
+          uidt: 'SingleLineText',
+        },
+      ],
+    },
+  ],
 };
 
 export const blog = {
@@ -53,7 +53,7 @@ export const blog = {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'id',
       _cn: 'Id',
@@ -76,13 +76,13 @@ export const blog = {
       ns: 0,
       dtxp: '11',
       dtxs: '',
-      tn: 'blog'
+      tn: 'blog',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'title',
       _cn: 'Title',
@@ -106,13 +106,13 @@ export const blog = {
       dtxp: '45',
       dtxs: '',
       pv: true,
-      alias: 'Title'
+      alias: 'Title',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'created_at',
       _cn: 'CreatedAt',
@@ -136,13 +136,13 @@ export const blog = {
       dtxp: '',
       dtxs: '',
       default: 'CURRENT_TIMESTAMP',
-      columnDefault: 'CURRENT_TIMESTAMP'
+      columnDefault: 'CURRENT_TIMESTAMP',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'updated_at',
       _cn: 'UpdatedAt',
@@ -166,13 +166,13 @@ export const blog = {
       dtxp: '',
       dtxs: '',
       default: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
-      columnDefault: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'
+      columnDefault: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'body',
       _cn: 'body',
@@ -197,8 +197,8 @@ export const blog = {
       dtxs: ' ',
       cno: 'title5',
       tn: 'blog',
-      alias: 'body'
-    }
+      alias: 'body',
+    },
   ],
   pks: [],
   hasMany: [
@@ -222,7 +222,7 @@ export const blog = {
       created_at: '2021-10-29 07:28:12',
       updated_at: '2021-10-29 07:28:12',
       fkn: 'tag_blo_Dneo90_c_fk',
-      enabled: true
+      enabled: true,
     },
     {
       id: 1,
@@ -244,8 +244,8 @@ export const blog = {
       created_at: '2021-10-29 07:27:54',
       updated_at: '2021-10-29 07:27:54',
       fkn: null,
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   belongsTo: [],
   type: 'table',
@@ -271,9 +271,9 @@ export const blog = {
         created_at: '2021-10-29 07:27:54',
         updated_at: '2021-10-29 07:27:54',
         fkn: null,
-        enabled: true
+        enabled: true,
       },
-      _cn: 'blog => comment'
+      _cn: 'blog => comment',
     },
     {
       mm: {
@@ -287,10 +287,10 @@ export const blog = {
         _tn: 'blog',
         _cn: null,
         _rtn: 'tag',
-        _rcn: null
+        _rcn: null,
       },
-      _cn: 'blog <=> tag'
-    }
+      _cn: 'blog <=> tag',
+    },
   ],
   manyToMany: [
     {
@@ -304,9 +304,9 @@ export const blog = {
       _tn: 'blog',
       _cn: null,
       _rtn: 'tag',
-      _rcn: null
-    }
-  ]
+      _rcn: null,
+    },
+  ],
 };
 
 export const comment = {
@@ -317,7 +317,7 @@ export const comment = {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'id',
       _cn: 'Id',
@@ -340,13 +340,13 @@ export const comment = {
       ns: 0,
       dtxp: '11',
       dtxs: '',
-      tn: 'comment'
+      tn: 'comment',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'created_at',
       _cn: 'CreatedAt',
@@ -371,13 +371,13 @@ export const comment = {
       dtxs: '',
       default: 'CURRENT_TIMESTAMP',
       columnDefault: 'CURRENT_TIMESTAMP',
-      pv: true
+      pv: true,
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'updated_at',
       _cn: 'UpdatedAt',
@@ -401,13 +401,13 @@ export const comment = {
       dtxp: '',
       dtxs: '',
       default: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
-      columnDefault: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'
+      columnDefault: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'body',
       _cn: 'body',
@@ -432,13 +432,13 @@ export const comment = {
       dtxs: ' ',
       cno: 'title4',
       tn: 'comment',
-      alias: 'body'
+      alias: 'body',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'title5',
       _cn: 'title5',
@@ -462,8 +462,8 @@ export const comment = {
       dtxp: '11',
       dtxs: '',
       cno: 'title5',
-      tn: 'comment'
-    }
+      tn: 'comment',
+    },
   ],
   pks: [],
   hasMany: [],
@@ -488,8 +488,8 @@ export const comment = {
       created_at: '2021-10-29 07:27:54',
       updated_at: '2021-10-29 07:27:54',
       fkn: null,
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   type: 'table',
   v: [
@@ -514,11 +514,11 @@ export const comment = {
         created_at: '2021-10-29 07:27:54',
         updated_at: '2021-10-29 07:27:54',
         fkn: null,
-        enabled: true
+        enabled: true,
       },
-      _cn: 'blog <= comment'
-    }
-  ]
+      _cn: 'blog <= comment',
+    },
+  ],
 };
 
 export const tag = {
@@ -529,7 +529,7 @@ export const tag = {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'id',
       _cn: 'Id',
@@ -551,13 +551,13 @@ export const tag = {
       np: 11,
       ns: 0,
       dtxp: '11',
-      dtxs: ''
+      dtxs: '',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'title',
       _cn: 'Title',
@@ -581,13 +581,13 @@ export const tag = {
       dtxp: '45',
       dtxs: '',
       pv: true,
-      alias: 'Title'
+      alias: 'Title',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'created_at',
       _cn: 'CreatedAt',
@@ -611,13 +611,13 @@ export const tag = {
       dtxp: '',
       dtxs: '',
       default: 'CURRENT_TIMESTAMP',
-      columnDefault: 'CURRENT_TIMESTAMP'
+      columnDefault: 'CURRENT_TIMESTAMP',
     },
     {
       validate: {
         func: [],
         args: [],
-        msg: []
+        msg: [],
       },
       cn: 'updated_at',
       _cn: 'UpdatedAt',
@@ -641,8 +641,8 @@ export const tag = {
       dtxp: '',
       dtxs: '',
       default: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
-      columnDefault: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP'
-    }
+      columnDefault: 'CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP',
+    },
   ],
   pks: [],
   hasMany: [
@@ -666,8 +666,8 @@ export const tag = {
       created_at: '2021-10-29 07:28:11',
       updated_at: '2021-10-29 07:28:11',
       fkn: 'tag_blo_rKb7Gq_p_fk',
-      enabled: true
-    }
+      enabled: true,
+    },
   ],
   belongsTo: [],
   type: 'table',
@@ -684,10 +684,10 @@ export const tag = {
         _tn: 'tag',
         _cn: null,
         _rtn: 'blog',
-        _rcn: null
+        _rcn: null,
       },
-      _cn: 'tag <=> blog'
-    }
+      _cn: 'tag <=> blog',
+    },
   ],
   manyToMany: [
     {
@@ -701,7 +701,7 @@ export const tag = {
       _tn: 'tag',
       _cn: null,
       _rtn: 'blog',
-      _rcn: null
-    }
-  ]
+      _rcn: null,
+    },
+  ],
 };

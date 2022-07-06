@@ -7,7 +7,7 @@
     </v-toolbar>
     <v-container>
       <v-form ref="form" v-model="valid">
-        <div style="width:500px" class="mx-auto mt-10">
+        <div style="width: 500px" class="mx-auto mt-10">
           <v-text-field
             ref="input"
             v-model="name"
@@ -44,13 +44,7 @@
 
           <!-- Create Project -->
           <div class="text-center">
-            <v-btn
-              :loading="loading"
-              :disabled="!valid"
-              small
-              color="primary"
-              @click="createProject"
-            >
+            <v-btn :loading="loading" :disabled="!valid" small color="primary" @click="createProject">
               {{ $t('activity.createProject') }}
             </v-btn>
           </div>
@@ -75,62 +69,69 @@ export default {
         text: 'Automatic gRPC APIs on database',
         value: 'grpc',
         icon: require('@/assets/img/grpc-icon-color.png'),
-        type: 'img'
-      }
-    ]
+        type: 'img',
+      },
+    ],
   }),
   computed: {
     typeIcon() {
       if (this.projectType) {
-        return this.projectTypes.find(({ value }) => value === this.projectType)
+        return this.projectTypes.find(({ value }) => value === this.projectType);
       } else {
-        return { icon: 'mdi-server', iconColor: 'primary' }
+        return { icon: 'mdi-server', iconColor: 'primary' };
       }
-    }
+    },
   },
   mounted() {
     setTimeout(() => {
-      this.$refs.input.$el.querySelector('input').focus()
-    }, 100)
+      this.$refs.input.$el.querySelector('input').focus();
+    }, 100);
   },
   methods: {
     async createProject() {
       if (this.$refs.form.validate()) {
-        this.loading = true
+        this.loading = true;
         try {
-          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByOneClick', {
-            title: this.name,
-            projectType: this.projectType
-          }])
+          const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+            null,
+            'projectCreateByOneClick',
+            {
+              title: this.name,
+              projectType: this.projectType,
+            },
+          ]);
 
-          await this.$store.dispatch('project/ActLoadProjectInfo')
+          await this.$store.dispatch('project/ActLoadProjectInfo');
 
-          this.projectReloading = false
+          this.projectReloading = false;
 
-          if (this.$store.state.project.appInfo.firstUser || this.$store.state.project.appInfo.authType === 'masterKey') {
+          if (
+            this.$store.state.project.appInfo.firstUser ||
+            this.$store.state.project.appInfo.authType === 'masterKey'
+          ) {
             return this.$router.push({
-              path: '/user/authentication/signup'
-            })
+              path: '/user/authentication/signup',
+            });
           }
 
           this.$router.push({
             path: `/nc/${result.id}`,
             query: {
-              new: 1
-            }
-          })
+              new: 1,
+            },
+          });
         } catch (e) {
-          this.$toast.error(e.message).goAway(3000)
+          this.$toast.error(e.message).goAway(3000);
         }
-        this.loading = false
+        this.loading = false;
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
 /deep/ label {
-  font-size: .75rem;
+  font-size: 0.75rem;
 }
 </style>

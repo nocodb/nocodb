@@ -1,14 +1,10 @@
 <template>
   <v-tabs height="28" class="" color="x-active">
-    <v-tab>
-      SQL
-    </v-tab>
+    <v-tab> SQL </v-tab>
     <v-tab-item>
       <function-query :nodes="nodes" />
     </v-tab-item>
-    <v-tab>
-      ACL
-    </v-tab>
+    <v-tab> ACL </v-tab>
     <v-tab-item>
       <function-acl :nodes="nodes" />
     </v-tab-item>
@@ -16,18 +12,16 @@
 </template>
 
 <script>
-
-import FunctionQuery from './functionTab/FunctionQuery'
-import FunctionAcl from './functionTab/FunctionAcl'
+import FunctionQuery from './functionTab/FunctionQuery';
+import FunctionAcl from './functionTab/FunctionAcl';
 
 export default {
   components: { FunctionAcl, FunctionQuery },
-  props: ['nodes']
-}
+  props: ['nodes'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

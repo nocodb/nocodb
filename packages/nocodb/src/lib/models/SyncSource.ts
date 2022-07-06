@@ -43,11 +43,11 @@ export default class SyncSource {
       MetaTable.SYNC_SOURCE,
       {
         condition: {
-          project_id: projectId
+          project_id: projectId,
         },
         orderBy: {
-          created_at: 'asc'
-        }
+          created_at: 'asc',
+        },
       }
     );
 
@@ -58,7 +58,7 @@ export default class SyncSource {
         } catch {}
       }
     }
-    return syncSources?.map(h => new SyncSource(h));
+    return syncSources?.map((h) => new SyncSource(h));
   }
 
   public static async insert(
@@ -76,7 +76,7 @@ export default class SyncSource {
       type: syncSource?.type,
       details: syncSource?.details,
       project_id: syncSource?.project_id,
-      fk_user_id: syncSource?.fk_user_id
+      fk_user_id: syncSource?.fk_user_id,
     };
 
     if (insertObj.details && typeof insertObj.details === 'object') {
@@ -105,7 +105,7 @@ export default class SyncSource {
       'details',
       'deleted',
       'order',
-      'project_id'
+      'project_id',
     ]);
 
     if (updateObj.details && typeof updateObj.details === 'object') {

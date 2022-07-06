@@ -1,23 +1,10 @@
 <template>
   <v-app>
-    <v-app-bar
-      class="elevation-0"
-      color="primary"
-      app
-      clipped-left
-      dense
-      dark
-      height="40"
-    >
+    <v-app-bar class="elevation-0" color="primary" app clipped-left dense dark height="40">
       <v-toolbar-title>
         <v-tooltip bottom>
           <template #activator="{ on }">
-            <v-btn
-              to="/projects"
-              icon
-class="pa-1 brand-icon nc-noco-brand-icon"
-              v-on="on"
-            >
+            <v-btn to="/projects" icon class="pa-1 brand-icon nc-noco-brand-icon" v-on="on">
               <v-img :src="require('~/assets/img/icons/512x512-trans.png')" max-height="30px" max-width="30px" />
             </v-btn>
           </template>
@@ -41,12 +28,12 @@ class="pa-1 brand-icon nc-noco-brand-icon"
 
 <script>
 export default {
-  name: 'Public'
-}
+  name: 'Public',
+};
 </script>
 
 <style scoped>
-.card{
+.card {
   min-height: calc(100vh - 64px);
 }
 </style>

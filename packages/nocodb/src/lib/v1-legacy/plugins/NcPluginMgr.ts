@@ -5,7 +5,7 @@ import {
   XcEmailPlugin,
   XcPlugin,
   XcStoragePlugin,
-  XcWebhookNotificationPlugin
+  XcWebhookNotificationPlugin,
 } from 'nc-plugin';
 
 import BackblazePluginConfig from '../../plugins/backblaze';
@@ -51,7 +51,7 @@ const defaultPlugins = [
   SMTPPluginConfig,
   ScalewayPluginConfig,
   MailerSendConfig,
-  SESPluginConfig
+  SESPluginConfig,
 ];
 
 class NcPluginMgr {
@@ -71,7 +71,7 @@ class NcPluginMgr {
     /* Populate rows into nc_plugins table if not present */
     for (const plugin of defaultPlugins) {
       const pluginConfig = await this.ncMeta.metaGet(null, null, 'nc_plugins', {
-        title: plugin.title
+        title: plugin.title,
       });
 
       if (!pluginConfig) {
@@ -82,7 +82,7 @@ class NcPluginMgr {
           description: plugin.description,
           tags: plugin.tags,
           category: plugin.category,
-          input_schema: JSON.stringify(plugin.inputs)
+          input_schema: JSON.stringify(plugin.inputs),
         });
       }
 
@@ -114,16 +114,20 @@ class NcPluginMgr {
 
   public get storageAdapter(): IStorageAdapter {
     return (
-      (this.activePlugins?.find(
-        plugin => plugin instanceof XcStoragePlugin
-      ) as XcStoragePlugin)?.getAdapter() || new Local()
+      (
+        this.activePlugins?.find(
+          (plugin) => plugin instanceof XcStoragePlugin
+        ) as XcStoragePlugin
+      )?.getAdapter() || new Local()
     );
   }
 
   public get emailAdapter(): IEmailAdapter {
-    return (this.activePlugins?.find(
-      plugin => plugin instanceof XcEmailPlugin
-    ) as XcEmailPlugin)?.getAdapter();
+    return (
+      this.activePlugins?.find(
+        (plugin) => plugin instanceof XcEmailPlugin
+      ) as XcEmailPlugin
+    )?.getAdapter();
   }
 
   public get webhookNotificationAdapters(): {
@@ -131,9 +135,9 @@ class NcPluginMgr {
   } {
     return this.activePlugins?.reduce((obj, plugin) => {
       if (plugin instanceof XcWebhookNotificationPlugin) {
-        obj[
-          plugin?.config?.title
-        ] = (plugin as XcWebhookNotificationPlugin)?.getAdapter();
+        obj[plugin?.config?.title] = (
+          plugin as XcWebhookNotificationPlugin
+        )?.getAdapter();
       }
       return obj;
     }, {});
@@ -144,7 +148,7 @@ class NcPluginMgr {
       case 'Storage':
         {
           const plugin = defaultPlugins.find(
-            pluginConfig => pluginConfig?.title === args.title
+            (pluginConfig) => pluginConfig?.title === args.title
           );
           const tempPlugin = new plugin.builder(this.app, plugin);
           await tempPlugin.init(args?.input);
@@ -154,7 +158,7 @@ class NcPluginMgr {
       case 'Email':
         {
           const plugin = defaultPlugins.find(
-            pluginConfig => pluginConfig?.title === args.title
+            (pluginConfig) => pluginConfig?.title === args.title
           );
           const tempPlugin = new plugin.builder(this.app, plugin);
           await tempPlugin.init(args?.input);

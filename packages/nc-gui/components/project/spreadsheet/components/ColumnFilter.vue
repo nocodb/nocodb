@@ -1,18 +1,9 @@
 <template>
-  <div
-
-    class="backgroundColor pa-2 menu-filter-dropdown"
-    :style="{width:nested ? '100%' : '530px'}"
-  >
+  <div class="backgroundColor pa-2 menu-filter-dropdown" :style="{ width: nested ? '100%' : '530px' }">
     <div class="grid" @click.stop>
       <template v-for="(filter, i) in filters" dense>
         <template v-if="filter.status !== 'delete'">
-          <div
-            v-if="filter.is_group"
-            :key="i"
-            style="grid-column: span 4; padding: 6px"
-            class="elevation-4"
-          >
+          <div v-if="filter.is_group" :key="i" style="grid-column: span 4; padding: 6px" class="elevation-4">
             <div class="d-flex" style="gap: 6px; padding: 0 6px">
               <v-icon
                 v-if="!filter.readOnly"
@@ -67,11 +58,7 @@
               mdi-close-box
             </v-icon>
             <span v-else :key="i + '_1'" />
-            <span
-              v-if="!i"
-              :key="i + '_2'"
-              class="caption d-flex align-center"
-            >{{ $t("labels.where") }}</span>
+            <span v-if="!i" :key="i + '_2'" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
 
             <v-select
               v-else
@@ -108,6 +95,7 @@
               class="flex-shrink-1 flex-grow-0 caption nc-filter-operation-select"
               :items="filterComparisonOp(filter)"
               :placeholder="$t('labels.operation')"
+              v-show="filter && filter.fk_column_id"
               solo
               flat
               style="max-width: 120px"
@@ -122,14 +110,7 @@
                 <span class="caption font-weight-regular">{{ item.text }}</span>
               </template>
             </v-select>
-            <span
-              v-if="
-                ['null', 'notnull', 'empty', 'notempty'].includes(
-                  filter.comparison_op
-                )
-              "
-              :key="'span' + i"
-            />
+            <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="'span' + i" />
             <v-checkbox
               v-else-if="types[filter.field] === 'boolean'"
               :key="i + '_7'"
@@ -142,6 +123,7 @@
               v-else
               :key="i + '_7'"
               v-model="filter.value"
+              v-show="filter && filter.fk_column_id"
               solo
               flat
               hide-details
@@ -157,24 +139,22 @@
     </div>
 
     <v-btn small class="elevation-0 grey--text my-3" @click.stop="addFilter">
-      <v-icon small color="grey">
-        mdi-plus
-      </v-icon>
+      <v-icon small color="grey"> mdi-plus </v-icon>
       <!-- Add Filter -->
-      {{ $t("activity.addFilter") }}
+      {{ $t('activity.addFilter') }}
     </v-btn>
     <slot />
   </div>
 </template>
 
 <script>
-import { getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
-import FieldListAutoCompleteDropdown from '~/components/project/spreadsheet/components/FieldListAutoCompleteDropdown'
+import { getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes';
+import FieldListAutoCompleteDropdown from '~/components/project/spreadsheet/components/FieldListAutoCompleteDropdown';
 
 export default {
   name: 'ColumnFilter',
   components: {
-    FieldListAutoCompleteDropdown
+    FieldListAutoCompleteDropdown,
   },
   props: {
     fieldList: [Array],
@@ -184,7 +164,7 @@ export default {
     viewId: String,
     shared: Boolean,
     webHook: Boolean,
-    hookId: String
+    hookId: String,
   },
   data: () => ({
     filters: [],
@@ -199,210 +179,211 @@ export default {
       '>',
       '<',
       '>=',
-      '<='
+      '<=',
     ],
     comparisonOp: [
       {
         text: 'is equal',
-        value: 'eq'
+        value: 'eq',
       },
       {
         text: 'is not equal',
-        value: 'neq'
+        value: 'neq',
       },
       {
         text: 'is like',
-        value: 'like'
+        value: 'like',
       },
       {
         text: 'is not like',
-        value: 'nlike'
+        value: 'nlike',
       },
       {
         text: 'is empty',
         value: 'empty',
-        ignoreVal: true
+        ignoreVal: true,
       },
       {
         text: 'is not empty',
         value: 'notempty',
-        ignoreVal: true
+        ignoreVal: true,
       },
       {
         text: 'is null',
         value: 'null',
-        ignoreVal: true
+        ignoreVal: true,
       },
       {
         text: 'is not null',
         value: 'notnull',
-        ignoreVal: true
+        ignoreVal: true,
       },
       {
         text: '>',
-        value: 'gt'
+        value: 'gt',
       },
       {
         text: '<',
-        value: 'lt'
+        value: 'lt',
       },
       {
         text: '>=',
-        value: 'gte'
+        value: 'gte',
       },
       {
         text: '<=',
-        value: 'lte'
-      }
-    ]
+        value: 'lte',
+      },
+    ],
   }),
   computed: {
     columnIcon() {
       return this.meta.columns.reduce((iconsObj, c) => {
-        return { ...iconsObj, [c.title]: getUIDTIcon(c.uidt) }
-      }, {})
+        return { ...iconsObj, [c.title]: getUIDTIcon(c.uidt) };
+      }, {});
     },
     columnsById() {
-      return (this.columns || []).reduce((o, c) => ({ ...o, [c.id]: c }), {})
+      return (this.columns || []).reduce((o, c) => ({ ...o, [c.id]: c }), {});
     },
     autoApply() {
-      return this.$store.state.settings.autoApplyFilter && !this.webHook
+      return this.$store.state.settings.autoApplyFilter && !this.webHook;
     },
     columns() {
       return (
         this.meta &&
-        this.meta.columns.filter(c => c && (!c.colOptions || !c.system)).map(c => ({
-          ...c,
-          icon: getUIDTIcon(c.uidt)
-        }))
-      )
+        this.meta.columns
+          .filter(c => c && (!c.colOptions || !c.system))
+          .map(c => ({
+            ...c,
+            icon: getUIDTIcon(c.uidt),
+          }))
+      );
     },
     types() {
       if (!this.meta || !this.meta.columns || !this.meta.columns.length) {
-        return {}
+        return {};
       }
 
       return this.meta.columns.reduce((obj, col) => {
         switch (col.uidt) {
           case UITypes.Number:
           case UITypes.Decimal:
-            obj[col.title] = obj[col.column_name] = 'number'
-            break
+            obj[col.title] = obj[col.column_name] = 'number';
+            break;
           case UITypes.Checkbox:
-            obj[col.title] = obj[col.column_name] = 'boolean'
-            break
+            obj[col.title] = obj[col.column_name] = 'boolean';
+            break;
           default:
-            break
+            break;
         }
-        return obj
-      }, {})
-    }
+        return obj;
+      }, {});
+    },
   },
   watch: {
     async viewId(v) {
       if (v) {
-        await this.loadFilter()
+        await this.loadFilter();
       }
     },
     filters: {
       handler(v) {
-        this.$emit(
-          'input',
-          v &&
-            v.filter(f => (f.fk_column_id && f.comparison_op) || f.is_group)
-        )
+        this.$emit('input', v && v.filter(f => (f.fk_column_id && f.comparison_op) || f.is_group));
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   created() {
-    this.loadFilter()
+    this.loadFilter();
   },
   methods: {
     filterComparisonOp(f) {
-      return this.comparisonOp.filter((op) => {
-        if (
-          f &&
-          f.fk_column_id &&
-          this.columnsById[f.fk_column_id] &&
-          this.columnsById[f.fk_column_id].uidt ===
-            UITypes.LinkToAnotherRecord &&
-          this.columnsById[f.fk_column_id].uidt === UITypes.Lookup
-        ) {
-          return !['notempty', 'empty', 'notnull', 'null'].includes(op.value)
+      return this.comparisonOp.filter(op => {
+        if (f && f.fk_column_id && this.columnsById[f.fk_column_id]) {
+          const uidt = this.columnsById[f.fk_column_id].uidt;
+          if (uidt === UITypes.Lookup) {
+            // TODO: handle it later
+            return !['notempty', 'empty', 'notnull', 'null'].includes(op.value);
+          } else if (uidt === UITypes.LinkToAnotherRecord) {
+            const type = this.columnsById[f.fk_column_id].colOptions.type;
+            if (type === 'hm' || type === 'mm') {
+              // exclude notnull & null
+              return !['notnull', 'null'].includes(op.value);
+            } else if (type === 'bt') {
+              // exclude notempty & empty
+              return !['notempty', 'empty'].includes(op.value);
+            }
+          }
         }
-        return true
-      })
+        return true;
+      });
     },
     async applyChanges(nested = false, { hookId } = {}) {
       for (const [i, filter] of Object.entries(this.filters)) {
         if (filter.status === 'delete') {
           if (this.hookId || hookId) {
-            await this.$api.dbTableFilter.delete(filter.id)
+            await this.$api.dbTableFilter.delete(filter.id);
           } else {
-            await this.$api.dbTableFilter.delete(filter.id)
+            await this.$api.dbTableFilter.delete(filter.id);
           }
         } else if (filter.status === 'update') {
           if (filter.id) {
             if (this.hookId || hookId) {
               await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
-                fk_parent_id: this.parentId
-              })
+                fk_parent_id: this.parentId,
+              });
             } else {
               await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
-                fk_parent_id: this.parentId
-              })
+                fk_parent_id: this.parentId,
+              });
             }
           } else if (this.hookId || hookId) {
             this.$set(
               this.filters,
               i,
-              await this.$api.dbTableWebhookFilter.create(
-                this.hookId || hookId,
-                {
-                  ...filter,
-                  fk_parent_id: this.parentId
-                }
-              )
-            )
+              await this.$api.dbTableWebhookFilter.create(this.hookId || hookId, {
+                ...filter,
+                fk_parent_id: this.parentId,
+              })
+            );
           } else {
             this.$set(
               this.filters,
               i,
               await this.$api.dbTableFilter.create(this.viewId, {
                 ...filter,
-                fk_parent_id: this.parentId
+                fk_parent_id: this.parentId,
               })
-            )
+            );
           }
         }
       }
       if (this.$refs.nestedFilter) {
         for (const nestedFilter of this.$refs.nestedFilter) {
-          await nestedFilter.applyChanges(true)
+          await nestedFilter.applyChanges(true);
         }
       }
-      this.loadFilter()
+      this.loadFilter();
       if (!nested) {
-        this.$emit('updated')
+        this.$emit('updated');
       }
     },
     async loadFilter() {
-      let filters = []
+      let filters = [];
       if (this.viewId && this._isUIAllowed('filterSync')) {
         filters = this.parentId
           ? await this.$api.dbTableFilter.childrenRead(this.parentId)
-          : await this.$api.dbTableFilter.read(this.viewId)
+          : await this.$api.dbTableFilter.read(this.viewId);
       }
       if (this.hookId && this._isUIAllowed('filterSync')) {
         filters = this.parentId
           ? await this.$api.dbTableFilter.childrenRead(this.parentId)
-          : await this.$api.dbTableWebhookFilter.read(this.hookId)
+          : await this.$api.dbTableWebhookFilter.read(this.hookId);
       }
 
-      this.filters = filters
+      this.filters = filters;
     },
     addFilter() {
       this.filters.push({
@@ -410,74 +391,74 @@ export default {
         comparison_op: 'eq',
         value: '',
         status: 'update',
-        logical_op: 'and'
-      })
-      this.filters = this.filters.slice()
-      this.$e('a:filter:add', { length: this.filters.length })
+        logical_op: 'and',
+      });
+      this.filters = this.filters.slice();
+      this.$e('a:filter:add', { length: this.filters.length });
     },
     addFilterGroup() {
       this.filters.push({
         parentId: this.parentId,
         is_group: true,
-        status: 'update'
-      })
-      this.filters = this.filters.slice()
-      const index = this.filters.length - 1
-      this.saveOrUpdate(this.filters[index], index)
+        status: 'update',
+      });
+      this.filters = this.filters.slice();
+      const index = this.filters.length - 1;
+      this.saveOrUpdate(this.filters[index], index);
     },
     filterUpdateCondition(filter, i) {
-      this.saveOrUpdate(filter, i)
+      this.saveOrUpdate(filter, i);
       this.$e('a:filter:update', {
         logical: filter.logical_op,
-        comparison: filter.comparison_op
-      })
+        comparison: filter.comparison_op,
+      });
     },
     async saveOrUpdate(filter, i) {
       if (this.shared || !this._isUIAllowed('filterSync')) {
         // this.$emit('input', this.filters.filter(f => f.fk_column_id && f.comparison_op))
-        this.$emit('updated')
+        this.$emit('updated');
       } else if (!this.autoApply) {
-        filter.status = 'update'
+        filter.status = 'update';
       } else if (filter.id) {
         await this.$api.dbTableFilter.update(filter.id, {
           ...filter,
-          fk_parent_id: this.parentId
-        })
+          fk_parent_id: this.parentId,
+        });
 
-        this.$emit('updated')
+        this.$emit('updated');
       } else {
         this.$set(
           this.filters,
           i,
           await this.$api.dbTableFilter.create(this.viewId, {
             ...filter,
-            fk_parent_id: this.parentId
+            fk_parent_id: this.parentId,
           })
-        )
+        );
 
-        this.$emit('updated')
+        this.$emit('updated');
       }
     },
     async deleteFilter(filter, i) {
       if (this.shared || !this._isUIAllowed('filterSync')) {
-        this.filters.splice(i, 1)
-        this.$emit('updated')
+        this.filters.splice(i, 1);
+        this.$emit('updated');
       } else if (filter.id) {
         if (!this.autoApply) {
-          this.$set(filter, 'status', 'delete')
+          this.$set(filter, 'status', 'delete');
         } else {
-          await this.$api.dbTableFilter.delete(filter.id)
-          await this.loadFilter()
-          this.$emit('updated')
+          await this.$api.dbTableFilter.delete(filter.id);
+          await this.loadFilter();
+          this.$emit('updated');
         }
       } else {
-        this.filters.splice(i, 1)
-        this.$emit('updated')
+        this.filters.splice(i, 1);
+        this.$emit('updated');
       }
-      this.$e('a:filter:delete')
-    }
-  }
-}
+      this.$e('a:filter:delete');
+    },
+  },
+};
 </script>
 
 <style scoped>

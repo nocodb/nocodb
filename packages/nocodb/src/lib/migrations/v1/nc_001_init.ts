@@ -2,8 +2,8 @@ import cache from '../../v1-legacy/plugins/cache';
 import googleAuth from '../../v1-legacy/plugins/googleAuth';
 import ses from '../../v1-legacy/plugins/ses';
 
-const up = async knex => {
-  await knex.schema.createTable('nc_projects', table => {
+const up = async (knex) => {
+  await knex.schema.createTable('nc_projects', (table) => {
     table.string('id', 128).primary();
     table.string('title');
     table.string('status');
@@ -13,7 +13,7 @@ const up = async knex => {
     table.timestamps();
   });
 
-  await knex.schema.createTable('nc_roles', table => {
+  await knex.schema.createTable('nc_roles', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -30,14 +30,14 @@ const up = async knex => {
       title: 'owner',
       description:
         'Can add/remove creators. And full edit database structures & fields.',
-      type: 'SYSTEM'
+      type: 'SYSTEM',
     },
     {
       db_alias: '',
       project_id: '',
       title: 'creator',
       description: 'Can fully edit database structure & values',
-      type: 'SYSTEM'
+      type: 'SYSTEM',
     },
     {
       db_alias: '',
@@ -45,22 +45,22 @@ const up = async knex => {
       title: 'editor',
       description:
         'Can edit records but cannot change structure of database/fields',
-      type: 'SYSTEM'
+      type: 'SYSTEM',
     },
     {
       db_alias: '',
       project_id: '',
       title: 'commenter',
       description: 'Can view and comment the records but cannot edit anything',
-      type: 'SYSTEM'
+      type: 'SYSTEM',
     },
     {
       db_alias: '',
       project_id: '',
       title: 'viewer',
       description: 'Can view the records but cannot edit anything',
-      type: 'SYSTEM'
-    }
+      type: 'SYSTEM',
+    },
     // {
     //   db_alias: '',
     //   project_id: '',
@@ -70,7 +70,7 @@ const up = async knex => {
     // },
   ]);
 
-  await knex.schema.createTable('nc_hooks', table => {
+  await knex.schema.createTable('nc_hooks', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -101,10 +101,10 @@ const up = async knex => {
 
   await knex('nc_hooks').insert({
     // url: 'http://localhost:4000/auth/hook',
-    type: 'AUTH_MIDDLEWARE'
+    type: 'AUTH_MIDDLEWARE',
   });
 
-  await knex.schema.createTable('nc_store', table => {
+  await knex.schema.createTable('nc_store', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -125,18 +125,18 @@ const up = async knex => {
       'nc:api:gql': false,
       'nc:api:grpc': false,
       'nc:migrator': false,
-      'nc:datamapper': false
+      'nc:datamapper': false,
     }),
-    db_alias: ''
+    db_alias: '',
   });
 
   await knex('nc_store').insert({
     key: 'NC_PROJECT_COUNT',
     value: '0',
-    db_alias: ''
+    db_alias: '',
   });
 
-  await knex.schema.createTable('nc_cron', table => {
+  await knex.schema.createTable('nc_cron', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -157,7 +157,7 @@ const up = async knex => {
     table.timestamps();
   });
 
-  await knex.schema.createTable('nc_acl', table => {
+  await knex.schema.createTable('nc_acl', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -167,7 +167,7 @@ const up = async knex => {
     table.timestamps();
   });
 
-  await knex.schema.createTable('nc_models', table => {
+  await knex.schema.createTable('nc_models', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -193,7 +193,7 @@ const up = async knex => {
     table.index(['db_alias', 'title']);
   });
 
-  await knex.schema.createTable('nc_relations', table => {
+  await knex.schema.createTable('nc_relations', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias');
@@ -215,7 +215,7 @@ const up = async knex => {
     table.index(['db_alias', 'tn']);
   });
 
-  await knex.schema.createTable('nc_routes', table => {
+  await knex.schema.createTable('nc_routes', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -237,7 +237,7 @@ const up = async knex => {
     table.index(['db_alias', 'title', 'tn']);
   });
 
-  await knex.schema.createTable('nc_resolvers', table => {
+  await knex.schema.createTable('nc_resolvers', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -251,7 +251,7 @@ const up = async knex => {
     table.timestamps();
   });
 
-  await knex.schema.createTable('nc_loaders', table => {
+  await knex.schema.createTable('nc_loaders', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -264,7 +264,7 @@ const up = async knex => {
     table.timestamps();
   });
 
-  await knex.schema.createTable('nc_rpc', table => {
+  await knex.schema.createTable('nc_rpc', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias').defaultTo('db');
@@ -284,19 +284,16 @@ const up = async knex => {
     // table.text('placeholder', 'text');
     table.timestamps();
   });
-  await knex.schema.createTable('nc_projects_users', table => {
+  await knex.schema.createTable('nc_projects_users', (table) => {
     table.string('project_id').index(); // .references('id').inTable('nc_projects')
     // todo: foreign key
-    table
-      .integer('user_id')
-      .unsigned()
-      .index(); //.references('id').inTable('xc_users')
+    table.integer('user_id').unsigned().index(); //.references('id').inTable('xc_users')
     table.text('roles');
     // table.text('placeholder', 'text');
     table.timestamps();
   });
 
-  await knex.schema.createTable('nc_shared_views', table => {
+  await knex.schema.createTable('nc_shared_views', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias');
@@ -310,7 +307,7 @@ const up = async knex => {
     table.timestamps();
   });
 
-  await knex.schema.createTable('nc_disabled_models_for_role', table => {
+  await knex.schema.createTable('nc_disabled_models_for_role', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias', 45);
@@ -331,7 +328,7 @@ const up = async knex => {
     );
   });
 
-  await knex.schema.createTable('nc_plugins', table => {
+  await knex.schema.createTable('nc_plugins', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias');
@@ -358,12 +355,12 @@ const up = async knex => {
   await knex('nc_plugins').insert([
     googleAuth,
     ses,
-    cache
+    cache,
     // ee,
     // brand,
   ]);
 
-  await knex.schema.createTable('nc_audit', table => {
+  await knex.schema.createTable('nc_audit', (table) => {
     table.increments();
     table.string('user');
     table.string('ip');
@@ -385,7 +382,7 @@ const up = async knex => {
     table.timestamps();
   });
 
-  await knex.schema.createTable('nc_migrations', table => {
+  await knex.schema.createTable('nc_migrations', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias');
@@ -402,7 +399,7 @@ const up = async knex => {
     table.timestamps();
   });
 
-  await knex.schema.createTable('nc_api_tokens', table => {
+  await knex.schema.createTable('nc_api_tokens', (table) => {
     table.increments();
     table.string('project_id');
     table.string('db_alias');
@@ -415,7 +412,7 @@ const up = async knex => {
   });
 };
 
-const down = async knex => {
+const down = async (knex) => {
   await knex.schema.dropTable('nc_plugins');
   await knex.schema.dropTable('nc_disabled_models_for_role');
   await knex.schema.dropTable('nc_shared_views');

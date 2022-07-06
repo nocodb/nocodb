@@ -8,22 +8,22 @@ const input: XcForm = {
       label: 'Client ID',
       placeholder: 'Client ID',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'client_secret',
       label: 'Client Secret',
       placeholder: 'Client Secret',
       type: XcType.Password,
-      required: true
+      required: true,
     },
     {
       key: 'redirect_url',
       label: 'Redirect URL',
       placeholder: 'Redirect URL',
       type: XcType.SingleLineText,
-      required: true
-    }
+      required: true,
+    },
   ],
   actions: [
     {
@@ -31,19 +31,19 @@ const input: XcForm = {
       placeholder: 'Test',
       key: 'test',
       actionType: XcActionType.TEST,
-      type: XcType.Button
+      type: XcType.Button,
     },
     {
       label: 'Save',
       placeholder: 'Save',
       key: 'save',
       actionType: XcActionType.SUBMIT,
-      type: XcType.Button
-    }
+      type: XcType.Button,
+    },
   ],
   msgOnInstall:
     'Successfully installed and configured Github Authentication, restart NocoDB',
-  msgOnUninstall: ''
+  msgOnUninstall: '',
 };
 
 export default {
@@ -54,5 +54,5 @@ export default {
   price: 'Free',
   tags: 'Authentication',
   category: 'Github',
-  input_schema: JSON.stringify(input)
+  input_schema: JSON.stringify(input),
 };

@@ -18,29 +18,29 @@ const config: XcPluginConfig = {
         label: 'Bucket Name',
         placeholder: 'Bucket Name',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'region',
         label: 'Region',
         placeholder: 'Region',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'access_key',
         label: 'Access Key',
         placeholder: 'Access Key',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'access_secret',
         label: 'Access Secret',
         placeholder: 'Access Secret',
         type: XcType.Password,
-        required: true
-      }
+        required: true,
+      },
     ],
     actions: [
       {
@@ -48,22 +48,22 @@ const config: XcPluginConfig = {
         placeholder: 'Test',
         key: 'test',
         actionType: XcActionType.TEST,
-        type: XcType.Button
+        type: XcType.Button,
       },
       {
         label: 'Save',
         placeholder: 'Save',
         key: 'save',
         actionType: XcActionType.SUBMIT,
-        type: XcType.Button
-      }
+        type: XcType.Button,
+      },
     ],
     msgOnInstall:
       'Successfully installed and attachment will be stored in AWS S3',
-    msgOnUninstall: ''
+    msgOnUninstall: '',
   },
   category: PluginCategory.STORAGE,
-  tags: 'Storage'
+  tags: 'Storage',
 };
 
 export default config;

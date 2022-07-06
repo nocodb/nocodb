@@ -3,64 +3,45 @@
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
         <v-breadcrumbs
-          :items="[{
-                     text: nodes.env,
-                     disabled: true,
-                     href: '#'
-                   },{
-                     text: nodes.dbAlias,
-                     disabled: true,
-                     href: '#'
-                   },
-                   {
-                     text: nodes.table_name + ' (table)',
-                     disabled: true,
-                     href: '#'
-                   }]"
+          :items="[
+            {
+              text: nodes.env,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.dbAlias,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.table_name + ' (table)',
+              disabled: true,
+              href: '#',
+            },
+          ]"
           divider=">"
           small
         >
           <template #divider>
-            <v-icon small color="grey lighten-2">
-              forward
-            </v-icon>
+            <v-icon small color="grey lighten-2"> forward </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
       <v-spacer />
-      <v-btn
-        small
-        color="primary"
-        class="primary"
-        @click="loadConstraintList"
-      >
-        <v-icon left>
-          refresh
-        </v-icon>
+      <v-btn small color="primary" class="primary" @click="loadConstraintList">
+        <v-icon left> refresh </v-icon>
         Refresh
       </v-btn>
-      <v-btn
-        small
-        color="error "
-        class="error text-right"
-        @click="deleteTable('showDialog')"
-      >
+      <v-btn small color="error " class="error text-right" @click="deleteTable('showDialog')">
         {{ $t('activity.deleteTable') }}
       </v-btn>
-      <v-btn
-        icon
-        class="text-right"
-      >
+      <v-btn icon class="text-right">
         <v-icon>mdi-help-circle-outline</v-icon>
       </v-btn>
     </v-toolbar>
 
-    <v-data-table
-      dense
-      :headers="headers"
-      :items="constraints"
-      footer-props.items-per-page-options="30"
-    >
+    <v-data-table dense :headers="headers" :items="constraints" footer-props.items-per-page-options="30">
       <template #item="props">
         <td>{{ props.item.cstn }}</td>
         <td>{{ props.item.cst }}</td>
@@ -72,7 +53,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
   data() {
@@ -81,57 +62,54 @@ export default {
       headers: [
         {
           text: 'Constraint',
-          sortable: false
+          sortable: false,
         },
         { text: 'Constraint Type', sortable: false },
         { text: 'Column Name', sortable: false },
-        { text: 'Constraint Ordinal Position', sortable: false }
-      ]
-    }
+        { text: 'Constraint Ordinal Position', sortable: false },
+      ],
+    };
   },
   methods: {
     async loadConstraintList() {
-      if (this.newTable) { return }
+      if (this.newTable) {
+        return;
+      }
       // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
       const client = await this.sqlMgr.projectGetSqlClient({
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      })
+        dbAlias: this.nodes.dbAlias,
+      });
       const result = await client.constraintList({
-        tn: this.nodes.table_name
-      })
+        tn: this.nodes.table_name,
+      });
       // console.log("cons", result.data.list);
-      this.constraints = result.data.list
-    }
+      this.constraints = result.data.list;
+    },
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {},
   created() {
-    this.loadConstraintList()
+    this.loadConstraintList();
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes', 'newTable', 'deleteTable']
-}
+  props: ['nodes', 'newTable', 'deleteTable'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

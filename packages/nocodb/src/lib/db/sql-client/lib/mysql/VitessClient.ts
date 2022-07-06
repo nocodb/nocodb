@@ -220,7 +220,7 @@ class Vitess extends MysqlClient {
 
         for (let i = 0; i < response[0].length; ++i) {
           let index = response[0][i];
-          index = _.mapKeys(index, function(_v, k) {
+          index = _.mapKeys(index, function (_v, k) {
             return k.toLowerCase();
           });
           indexes.push(index);

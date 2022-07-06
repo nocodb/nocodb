@@ -12,9 +12,9 @@
       :total-visible="8"
       color="primary lighten-2"
       class="nc-pagination"
-      @input="$emit('input',page)"
+      @input="$emit('input', page)"
     />
-    <div v-else class="mx-auto d-flex align-center mt-n1 " style="max-width:250px">
+    <div v-else class="mx-auto d-flex align-center mt-n1" style="max-width: 250px">
       <span class="caption" style="white-space: nowrap"> Change page:</span>
       <v-text-field
         v-model="page"
@@ -24,10 +24,10 @@
         dense
         hide-details
         type="number"
-        @keydown.enter="$emit('input',page)"
+        @keydown.enter="$emit('input', page)"
       >
         <template #append>
-          <x-icon tooltip="Change page" small icon.class="mt-1" @click="$emit('input',page)">
+          <x-icon tooltip="Change page" small icon.class="mt-1" @click="$emit('input', page)">
             mdi-keyboard-return
           </x-icon>
         </template>
@@ -45,25 +45,26 @@ export default {
   props: {
     count: [Number, String],
     value: [Number, String],
-    size: [Number, String]
+    size: [Number, String],
   },
   data: () => ({
-    page: 1
+    page: 1,
   }),
   watch: {
     value(v) {
-      this.page = v
+      this.page = v;
     },
     count(c) {
-      const page = Math.max(1, Math.min(this.page, Math.ceil(c / this.size)))
-      if (this.value !== page) { this.$emit('input', page) }
-    }
+      const page = Math.max(1, Math.min(this.page, Math.ceil(c / this.size)));
+      if (this.value !== page) {
+        this.$emit('input', page);
+      }
+    },
   },
   mounted() {
-    this.page = this.value
-  }
-}
+    this.page = this.value;
+  },
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

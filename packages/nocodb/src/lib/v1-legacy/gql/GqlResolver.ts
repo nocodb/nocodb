@@ -55,7 +55,7 @@ export default class GqlResolver extends GqlBaseResolver {
       if (args.conditionGraph && typeof args.conditionGraph === 'string') {
         args.conditionGraph = {
           models: this.models,
-          condition: JSON.parse(args.conditionGraph)
+          condition: JSON.parse(args.conditionGraph),
         };
       }
       if (args.condition && typeof args.condition === 'string') {
@@ -68,7 +68,7 @@ export default class GqlResolver extends GqlBaseResolver {
     const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
 
-    return data.map(o => {
+    return data.map((o) => {
       return new req.gqlType(o);
     });
   }
@@ -114,7 +114,9 @@ export default class GqlResolver extends GqlBaseResolver {
   }
 
   public async distinct(args, { req }): Promise<any> {
-    const data = (await req.model.distinct(args)).map(d => new req.gqlType(d));
+    const data = (await req.model.distinct(args)).map(
+      (d) => new req.gqlType(d)
+    );
     return data;
   }
 
@@ -123,7 +125,7 @@ export default class GqlResolver extends GqlBaseResolver {
       if (args.conditionGraph && typeof args.conditionGraph === 'string') {
         args.conditionGraph = {
           models: this.models,
-          condition: JSON.parse(args.conditionGraph)
+          condition: JSON.parse(args.conditionGraph),
         };
       }
       if (args.condition && typeof args.condition === 'string') {
@@ -177,7 +179,7 @@ export default class GqlResolver extends GqlBaseResolver {
           req.model = this.model;
           req.gqlType = this.typeClass;
         },
-        mw.middleware
+        mw.middleware,
       ],
       {
         ...(customResolver?.additional?.[this.table] || {}),
@@ -269,9 +271,9 @@ export default class GqlResolver extends GqlBaseResolver {
                 this.generateResolverFromStringBody(
                   this.functions[`${name}DeleteBulk`]
                 ) ||
-                this.deleteb
+                this.deleteb,
             }
-          : {})
+          : {}),
       },
       [mw.postMiddleware]
     );

@@ -48,7 +48,7 @@ export default class KnexMigrator extends SqlMigrator {
     log.api(data);
     evt.evt.emit('UI', {
       status: 0,
-      data: `Migrator : ${data}`
+      data: `Migrator : ${data}`,
     });
   }
 
@@ -56,7 +56,7 @@ export default class KnexMigrator extends SqlMigrator {
     log.warn(data);
     evt.evt.emit('UI', {
       status: 1,
-      data
+      data,
     });
   }
 
@@ -64,7 +64,7 @@ export default class KnexMigrator extends SqlMigrator {
     log.error(data);
     evt.evt.emit('UI', {
       status: -1,
-      data
+      data,
     });
   }
 
@@ -94,7 +94,7 @@ export default class KnexMigrator extends SqlMigrator {
     for (let i = 0; i < envs[workingEnv].db.length; ++i) {
       const { dbAlias } = envs[workingEnv].db[i].meta;
       await this._initDbOnFs({
-        dbAlias
+        dbAlias,
       });
     }
   }
@@ -109,7 +109,7 @@ export default class KnexMigrator extends SqlMigrator {
       const { dbAlias } = envs[toCleanEnv].db[i].meta;
 
       await this._cleanFs({
-        dbAlias
+        dbAlias,
       });
     }
   }
@@ -387,21 +387,21 @@ export default class KnexMigrator extends SqlMigrator {
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.user}`
       );
       await sqlClient.createDatabaseIfNotExists({
-        database: connectionConfig.connection.user
+        database: connectionConfig.connection.user,
       });
     } else if (connectionConfig.client !== 'sqlite3') {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.database}`
       );
       await sqlClient.createDatabaseIfNotExists({
-        database: connectionConfig.connection.database
+        database: connectionConfig.connection.database,
       });
     } else {
       this.emit(
         `${connectionConfig.client}: Creating DB if not exists ${connectionConfig.connection.connection.filename}`
       );
       await sqlClient.createDatabaseIfNotExists({
-        database: connectionConfig.connection.connection.filename
+        database: connectionConfig.connection.connection.filename,
       });
     }
 
@@ -409,7 +409,7 @@ export default class KnexMigrator extends SqlMigrator {
 
     if (!('NC_MIGRATIONS_DISABLED' in process.env)) {
       await sqlClient.createTableIfNotExists({
-        tn: connectionConfig.meta.tn
+        tn: connectionConfig.meta.tn,
       });
     }
     // if (connectionConfig.client === "pg") {
@@ -431,19 +431,19 @@ export default class KnexMigrator extends SqlMigrator {
     if (connectionConfig.client === 'oracledb') {
       this.emit(`Dropping DB : ${connectionConfig.connection.user}`);
       await sqlClient.dropDatabase({
-        database: connectionConfig.connection.user
+        database: connectionConfig.connection.user,
       });
     } else if (connectionConfig.client === 'sqlite3') {
       this.emit(
         `Dropping DB : ${connectionConfig.connection.connection.filename}`
       );
       await sqlClient.dropDatabase({
-        database: connectionConfig.connection.connection.filename
+        database: connectionConfig.connection.connection.filename,
       });
     } else {
       this.emit(`Dropping DB : ${connectionConfig.connection.database}`);
       await sqlClient.dropDatabase({
-        database: connectionConfig.connection.database
+        database: connectionConfig.connection.database,
       });
     }
 
@@ -554,7 +554,7 @@ export default class KnexMigrator extends SqlMigrator {
         filesDown = files = await this.metaDb('nc_migrations')
           .where({
             project_id: this.project_id,
-            db_alias: args.dbAlias
+            db_alias: args.dbAlias,
           })
           .orderBy('id', 'asc');
       } else {
@@ -574,7 +574,7 @@ export default class KnexMigrator extends SqlMigrator {
       );
 
       if (this.suffix) {
-        migrations = migrations.filter(m => m.title.includes(this.suffix));
+        migrations = migrations.filter((m) => m.title.includes(this.suffix));
       }
 
       /** ************** END : get files and migrations *************** */
@@ -587,16 +587,16 @@ export default class KnexMigrator extends SqlMigrator {
           result.data.object.list.push({
             title: migrations[i].title,
             titleDown: migrations[i].titleDown,
-            status: false
+            status: false,
           });
         }
 
         result.data.object.pending = files.length - migrations.length;
       } else if (files.length > migrations.length || onlyList) {
         this.emit(
-          `Number of evolutions pending for '${args.env}:${
-            args.dbAlias
-          }': '${files.length - migrations.length}'`
+          `Number of evolutions pending for '${args.env}:${args.dbAlias}': '${
+            files.length - migrations.length
+          }'`
         );
         result.data.object.pending = files.length - migrations.length;
 
@@ -659,7 +659,7 @@ export default class KnexMigrator extends SqlMigrator {
                 result.data.object.list.push({
                   title: files[i].title,
                   titleDown: filesDown[i].title_down,
-                  status: false
+                  status: false,
                 });
               }
             } else {
@@ -669,7 +669,7 @@ export default class KnexMigrator extends SqlMigrator {
                 result.data.object.list.push({
                   title: fileParts[fileParts.length - 1],
                   titleDown: downFileParts[fileParts.length - 1],
-                  status: false
+                  status: false,
                 });
               }
             }
@@ -704,7 +704,7 @@ export default class KnexMigrator extends SqlMigrator {
               result.data.object.list.push({
                 title: fileName,
                 titleDown: fileNameDown,
-                status: true
+                status: true,
               });
             } else {
               let upStatement;
@@ -718,7 +718,7 @@ export default class KnexMigrator extends SqlMigrator {
                 upStatements.push(
                   ...upStatement
                     .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
-                    .filter(s => s.trim())
+                    .filter((s) => s.trim())
                 );
               }
 
@@ -726,7 +726,7 @@ export default class KnexMigrator extends SqlMigrator {
                 title: fileName,
                 titleDown: fileNameDown,
                 // description: files[i],
-                status: 0
+                status: 0,
                 // created: Date.now()
               });
             }
@@ -808,7 +808,7 @@ export default class KnexMigrator extends SqlMigrator {
         files = await this.metaDb('nc_migrations')
           .where({
             project_id: this.project_id,
-            db_alias: args.dbAlias
+            db_alias: args.dbAlias,
           })
           .orderBy('title', 'asc');
       } else {
@@ -879,11 +879,11 @@ export default class KnexMigrator extends SqlMigrator {
                 downStatements.push(
                   ...downStatement
                     .split(/\/\*\s*xc[\s\S]*?\s*\*\//)
-                    .filter(s => s.trim())
+                    .filter((s) => s.trim())
                 );
 
               metaDownDeletes.push({
-                titleDown: fileName
+                titleDown: fileName,
               });
             }
           }
@@ -1057,7 +1057,7 @@ export default class KnexMigrator extends SqlMigrator {
           up: '',
           down: '',
           title: upFileName,
-          title_down: downFileName
+          title_down: downFileName,
         });
       } else {
         // create files
@@ -1079,7 +1079,7 @@ export default class KnexMigrator extends SqlMigrator {
 
       return {
         up: upFileName,
-        down: downFileName
+        down: downFileName,
       };
     } catch (e) {
       log.debug(e);
@@ -1176,7 +1176,7 @@ export default class KnexMigrator extends SqlMigrator {
       ),
       tn: this._getEvolutionsTablename(args), //`${this.toolDir}`,
       sqlContentMigrate: args.sqlContentMigrate,
-      sqlClient: args.sqlClient
+      sqlClient: args.sqlClient,
     });
   }
 
@@ -1230,7 +1230,7 @@ export default class KnexMigrator extends SqlMigrator {
         '*.down.sql'
       ),
       tn: this._getEvolutionsTablename(args), //`_evolutions`,
-      sqlContentMigrate: args.sqlContentMigrate
+      sqlContentMigrate: args.sqlContentMigrate,
     });
   }
 
@@ -1281,19 +1281,19 @@ export default class KnexMigrator extends SqlMigrator {
             .where({
               project_id: this.project_id,
               db_alias: args.dbAlias,
-              title: args.up
+              title: args.up,
             })
             .first()
         ) {
           await this.metaDb('nc_migrations')
             .update({
               up: upStatement,
-              down: downStatement
+              down: downStatement,
             })
             .where({
               project_id: this.project_id,
               db_alias: args.dbAlias,
-              title: args.up
+              title: args.up,
             });
         } else {
           await this.metaDb('nc_migrations').insert({
@@ -1302,7 +1302,7 @@ export default class KnexMigrator extends SqlMigrator {
             up: upStatement,
             down: downStatement,
             title: args.up,
-            title_down: args.down
+            title_down: args.down,
           });
         }
       } else {
@@ -1365,7 +1365,7 @@ export default class KnexMigrator extends SqlMigrator {
     try {
       result.data.object = {
         up: '',
-        down: ''
+        down: '',
       };
 
       // if (!this.project) {
@@ -1380,7 +1380,7 @@ export default class KnexMigrator extends SqlMigrator {
           .where({
             db_alias: args.dbAlias,
             project_id: this.project.id,
-            title: args.title
+            title: args.title,
           })
           .first();
 

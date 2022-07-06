@@ -4,44 +4,35 @@
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
         <v-breadcrumbs
-          :items="[{
-                     text: nodes.env,
-                     disabled: true,
-                     href: '#'
-                   },
-                   {
-                     text: 'Global ACL',
-                     disabled: true,
-                     href: '#'
-                   }]"
+          :items="[
+            {
+              text: nodes.env,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: 'Global ACL',
+              disabled: true,
+              href: '#',
+            },
+          ]"
           divider=">"
           small
         >
           <template #divider>
-            <v-icon small color="grey lighten-2">
-              forward
-            </v-icon>
+            <v-icon small color="grey lighten-2"> forward </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
       <v-spacer />
-      <x-btn
-        v-ge="['acl','reload']"
-        outlined
-        tooltip="Reload ACL"
-        color="primary"
-        small
-        @click="loadAcls"
-      >
-        <v-icon small left>
-          refresh
-        </v-icon>
+      <x-btn v-ge="['acl', 'reload']" outlined tooltip="Reload ACL" color="primary" small @click="loadAcls">
+        <v-icon small left> refresh </v-icon>
         <!-- Reload -->
         {{ $t('general.reload') }}
       </x-btn>
 
       <x-btn
-        v-ge="['acl','save']"
+        v-ge="['acl', 'save']"
         outlined
         :tooltip="$t('tooltip.saveChanges')"
         color="primary"
@@ -49,9 +40,7 @@
         small
         :disabled="disableSaveButton"
       >
-        <v-icon small left>
-          save
-        </v-icon>
+        <v-icon small left> save </v-icon>
         <!-- Save -->
         {{ $t('general.save') }}
       </x-btn>
@@ -93,10 +82,7 @@
           <template v-for="role in roles">
             <template v-for="method in methods">
               <th :key="`${role}-${method}`" width="25">
-                <v-checkbox
-                  dense
-                  hide-details
-                />
+                <v-checkbox dense hide-details />
               </th>
             </template>
           </template>
@@ -105,7 +91,7 @@
         </tr>
       </thead>
       <tbody>
-        <template v-for="(acl,table) in groupedData">
+        <template v-for="(acl, table) in groupedData">
           <tr :key="table + 'row'">
             <td class="font-weight-bold">
               {{ table }}
@@ -113,23 +99,16 @@
             <template v-for="role in roles">
               <template v-for="method in methods">
                 <td :key="`${role}-${method}`" width="25">
-                  <v-checkbox
-                    dense
-                    hide-details
-                  />
+                  <v-checkbox dense hide-details />
                 </td>
               </template>
             </template>
             <td width="25">
-              <v-icon v-if="expandedRow !== table" small @click="expandedRow=table">
-                mdi-chevron-down
-              </v-icon>
-              <v-icon v-else small @click="expandedRow=null">
-                mdi-chevron-up
-              </v-icon>
+              <v-icon v-if="expandedRow !== table" small @click="expandedRow = table"> mdi-chevron-down </v-icon>
+              <v-icon v-else small @click="expandedRow = null"> mdi-chevron-up </v-icon>
             </td>
           </tr>
-          <template v-for="(item,i) in groupedData[table]" v-if="expandedRow === table">
+          <template v-for="(item, i) in groupedData[table]" v-if="expandedRow === table">
             <tr v-if="item.path" :key="`${table}-row-${i}`">
               <td class="caption">
                 {{ item.path }}
@@ -137,10 +116,7 @@
               <template v-for="role in roles">
                 <template v-for="method in methods">
                   <td :key="`${role}-${method}`" width="25">
-                    <v-checkbox
-                      dense
-                      hide-details
-                    />
+                    <v-checkbox dense hide-details />
                   </td>
                 </template>
               </template>
@@ -177,10 +153,7 @@
           <template v-for="role in roles">
             <template v-for="method in methods">
               <th :key="`${role}-${method}`" width="25">
-                <v-checkbox
-                  dense
-                  hide-details
-                />
+                <v-checkbox dense hide-details />
               </th>
             </template>
           </template>
@@ -189,26 +162,19 @@
         </tr>
       </thead>
       <tbody>
-        <template v-for="(acl,table) in groupedData">
+        <template v-for="(acl, table) in groupedData">
           <tr :key="table + 'row'">
             <td>{{ table }}</td>
             <template v-for="role in roles">
               <template v-for="method in methods">
                 <td :key="`${role}-${method}`" width="25">
-                  <v-checkbox
-                    dense
-                    hide-details
-                  />
+                  <v-checkbox dense hide-details />
                 </td>
               </template>
             </template>
             <td width="25">
-              <v-icon v-if="expandedRow !== table" small @click="expandedRow=table">
-                mdi-chevron-down
-              </v-icon>
-              <v-icon v-else small @click="expandedRow=null">
-                mdi-chevron-up
-              </v-icon>
+              <v-icon v-if="expandedRow !== table" small @click="expandedRow = table"> mdi-chevron-down </v-icon>
+              <v-icon v-else small @click="expandedRow = null"> mdi-chevron-up </v-icon>
             </td>
           </tr>
           <tr v-if="expandedRow === table" :key="table + 'exp'" class="expansion-row">
@@ -231,7 +197,7 @@
 <script>
 /* eslint-disable */
 
-import AclTsFileDbChild from '~/components/project/tableTabs/AclTsFileDbChild'
+import AclTsFileDbChild from '~/components/project/tableTabs/AclTsFileDbChild';
 
 export default {
   name: 'GlobalAcl',
@@ -245,62 +211,61 @@ export default {
     aclTabs: null,
     expandedRow: null,
     search: '',
-    roles: [
-      'creator',
-      'editor',
-      'guest'
-    ],
-    methods: [
-      'get', 'post', 'put', 'delete'
-    ]
+    roles: ['creator', 'editor', 'guest'],
+    methods: ['get', 'post', 'put', 'delete'],
   }),
   computed: {
-    tables () {
-      return this.groupedData ? Object.keys(this.groupedData) : []
+    tables() {
+      return this.groupedData ? Object.keys(this.groupedData) : [];
     },
-    acls () {
-      return this.groupedData ? Object.values(this.groupedData) : []
-    }
+    acls() {
+      return this.groupedData ? Object.values(this.groupedData) : [];
+    },
   },
-  async created () {
-    await this.loadAcls()
+  async created() {
+    await this.loadAcls();
   },
   methods: {
-    async loadAcls () {
+    async loadAcls() {
       try {
-        const data = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          env: this.nodes.env,
-          dbAlias: this.$store.state.project.authDbAlias
-        }, 'xcRoutesPolicyGet'])).data.list
+        const data = (
+          await this.$store.dispatch('sqlMgr/ActSqlOp', [
+            {
+              env: this.nodes.env,
+              dbAlias: this.$store.state.project.authDbAlias,
+            },
+            'xcRoutesPolicyGet',
+          ])
+        ).data.list;
 
-        const groupedData = {}
+        const groupedData = {};
 
         for (const item of data) {
-          groupedData[item.table_name] = groupedData[item.table_name] || []
-          groupedData[item.table_name].push(item)
+          groupedData[item.table_name] = groupedData[item.table_name] || [];
+          groupedData[item.table_name].push(item);
         }
 
-        this.groupedData = groupedData
+        this.groupedData = groupedData;
 
         // for()
 
-        this.data = data
+        this.data = data;
       } catch (e) {
-        this.$toast.error('Failed loading role list').goAway(3000)
+        this.$toast.error('Failed loading role list').goAway(3000);
       }
 
-      this.edited = false
-    }
-
-  }
-}
+      this.edited = false;
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
 ::v-deep {
   table {
     .expansion-row {
-      &, td {
+      &,
+      td {
         height: auto !important;
         background: transparent !important;
       }

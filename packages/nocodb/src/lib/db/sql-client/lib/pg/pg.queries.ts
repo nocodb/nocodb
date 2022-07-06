@@ -51,8 +51,8 @@ const pgQueries = {
     ORDER BY
       c.table_name,
       c.ordinal_position`,
-      paramsHints: ['databaseName', 'tn', 'databaseName', 'tn']
-    }
+      paramsHints: ['databaseName', 'tn', 'databaseName', 'tn'],
+    },
   },
   constraintList: {
     default: {
@@ -68,84 +68,84 @@ USING(constraint_name,table_schema,table_name)
 WHERE
 t.table_schema=?
 AND t.table_name=?;`,
-      paramsHints: ['database', 'tn']
-    }
+      paramsHints: ['database', 'tn'],
+    },
   },
   createDatabaseIfNotExists: {
     default: {
       sql: `create database if not exists ??`,
-      paramsHints: ['database']
-    }
+      paramsHints: ['database'],
+    },
   },
   createTableIfNotExists: {
     default: {
       sql: ``,
-      paramsHints: []
-    }
+      paramsHints: [],
+    },
   },
 
   dropDatabase: {
     default: {
       sql: `drop database ??`,
-      paramsHints: ['database']
-    }
+      paramsHints: ['database'],
+    },
   },
   databaseList: {
     default: {
       sql: `SHOW databases`,
-      paramsHints: []
-    }
+      paramsHints: [],
+    },
   },
 
   hasDatabase: {
     default: {
       sql: `SHOW DATABASES LIKE ??`,
-      paramsHints: ['databaseName']
-    }
+      paramsHints: ['databaseName'],
+    },
   },
   indexList: {
     default: {
       sql: `show index from ??`,
-      paramsHints: ['tn']
-    }
+      paramsHints: ['tn'],
+    },
   },
 
   functionList: {
     default: {
       sql: `show function status where db=?`,
-      paramsHints: ['databaseName']
-    }
+      paramsHints: ['databaseName'],
+    },
   },
   functionRead: {
     default: {
       sql: `SHOW CREATE FUNCTION ??`,
-      paramsHints: ['function_name']
-    }
+      paramsHints: ['function_name'],
+    },
   },
   functionDelete: {
     default: {
       sql: `DROP FUNCTION IF EXISTS ??`,
-      paramsHints: ['function_name']
-    }
+      paramsHints: ['function_name'],
+    },
   },
 
   procedureList: {
     default: {
       sql: `show procedure status where db=?`,
-      paramsHints: ['databaseName']
-    }
+      paramsHints: ['databaseName'],
+    },
   },
   procedureRead: {
     default: {
       sql: `show create procedure ??`,
-      paramsHints: ['procedure_name']
-    }
+      paramsHints: ['procedure_name'],
+    },
   },
   procedureDelete: {
     default: {
       sql: `DROP PROCEDURE IF EXISTS ??`,
-      paramsHints: ['procedure_name']
-    }
+      paramsHints: ['procedure_name'],
+    },
   },
 
   relationList: {
@@ -168,72 +168,72 @@ AND t.table_name=?;`,
       kcu.table_schema = ?
       AND kcu.referenced_column_name IS NOT NULL
       AND kcu.table_name=?`,
-      paramsHints: ['database', 'tn']
-    }
+      paramsHints: ['database', 'tn'],
+    },
   },
 
   schemaCreate: {
     default: {
       sql: `create database ??`,
-      paramsHints: ['database_name']
-    }
+      paramsHints: ['database_name'],
+    },
   },
   schemaDelete: {
     default: {
       sql: `drop database ??`,
-      paramsHints: ['database_name']
-    }
+      paramsHints: ['database_name'],
+    },
   },
   triggerList: {
     default: {
       sql: `SHOW TRIGGERS like ?`,
-      paramsHints: ['tn']
-    }
+      paramsHints: ['tn'],
+    },
   },
   tableList: {
     default: {
       sql: ``,
-      paramsHints: []
-    }
+      paramsHints: [],
+    },
   },
   testConnection: {
     default: {
       sql: ``,
-      paramsHints: []
-    }
+      paramsHints: [],
+    },
   },
   triggerRead: {
     default: {
       sql: `SHOW FULL TABLES IN ?? WHERE TABLE_TYPE LIKE 'VIEW';`,
-      paramsHints: ['databaseName']
-    }
+      paramsHints: ['databaseName'],
+    },
   },
   triggerDelete: {
     default: {
       sql: `DROP TRIGGER ??`,
-      paramsHints: ['trigger_name']
-    }
+      paramsHints: ['trigger_name'],
+    },
   },
   version: {
     default: {
       sql: ``,
-      paramsHints: []
-    }
+      paramsHints: [],
+    },
   },
   viewRead: {
     default: {
       sql: `select * FROM INFORMATION_SCHEMA.VIEWS WHERE
        TABLE_SCHEMA = ? AND TABLE_NAME = ?`,
-      paramsHints: ['databaseName', 'view_name']
-    }
+      paramsHints: ['databaseName', 'view_name'],
+    },
   },
   //
   viewList: {
     default: {
       sql: `SHOW FULL TABLES IN ?? WHERE TABLE_TYPE LIKE 'VIEW'`,
-      paramsHints: ['databaseName']
-    }
-  }
+      paramsHints: ['databaseName'],
+    },
+  },
 };
 
 export default pgQueries;

@@ -19,7 +19,7 @@ const oracleQueries = {
   'long varraw': {},
   char: {},
   charz: {},
-  rowiddescriptor: {}
+  rowiddescriptor: {},
 };
 
 export default oracleQueries;

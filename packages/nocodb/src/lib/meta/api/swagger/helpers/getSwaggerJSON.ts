@@ -20,8 +20,8 @@ export default async function getSwaggerJSON(
     paths: {},
     components: {
       ...swaggerBase.components,
-      schemas: { ...swaggerBase.components.schemas }
-    }
+      schemas: { ...swaggerBase.components.schemas },
+    },
   };
 
   // iterate and populate swagger schema and path for models and views
@@ -40,7 +40,7 @@ export default async function getSwaggerJSON(
       if (view.type !== ViewTypes.GRID) continue;
       views.push({
         view,
-        columns: await view.getColumns(ncMeta)
+        columns: await view.getColumns(ncMeta),
       });
     }
 

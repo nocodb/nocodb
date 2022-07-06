@@ -3,241 +3,241 @@ export default [
     name: 'zipCode',
     group: 'address',
     value: 'address.zipCode',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'city',
     group: 'address',
     value: 'address.city',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'cityPrefix',
     group: 'address',
     value: 'address.cityPrefix',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'citySuffix',
     group: 'address',
     value: 'address.citySuffix',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'streetName',
     group: 'address',
     value: 'address.streetName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'streetAddress',
     group: 'address',
     value: 'address.streetAddress',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'streetSuffix',
     group: 'address',
     value: 'address.streetSuffix',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'streetPrefix',
     group: 'address',
     value: 'address.streetPrefix',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'secondaryAddress',
     group: 'address',
     value: 'address.secondaryAddress',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'county',
     group: 'address',
     value: 'address.county',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'country',
     group: 'address',
     value: 'address.country',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'countryCode',
     group: 'address',
     value: 'address.countryCode',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'state',
     group: 'address',
     value: 'address.state',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'stateAbbr',
     group: 'address',
     value: 'address.stateAbbr',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'latitude',
     group: 'address',
     value: 'address.latitude',
-    type: 'number'
+    type: 'number',
   },
   {
     name: 'longitude',
     group: 'address',
     value: 'address.longitude',
-    type: 'number'
+    type: 'number',
   },
   {
     name: 'color',
     group: 'commerce',
     value: 'commerce.color',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'department',
     group: 'commerce',
     value: 'commerce.department',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'productName',
     group: 'commerce',
     value: 'commerce.productName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'price',
     group: 'commerce',
     value: 'commerce.price',
-    type: 'number'
+    type: 'number',
   },
   {
     name: 'productAdjective',
     group: 'commerce',
     value: 'commerce.productAdjective',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'productMaterial',
     group: 'commerce',
     value: 'commerce.productMaterial',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'product',
     group: 'commerce',
     value: 'commerce.product',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'suffixes',
     group: 'company',
     value: 'company.suffixes',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'companyName',
     group: 'company',
     value: 'company.companyName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'companySuffix',
     group: 'company',
     value: 'company.companySuffix',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'catchPhrase',
     group: 'company',
     value: 'company.catchPhrase',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'bs',
     group: 'company',
     value: 'company.bs',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'catchPhraseAdjective',
     group: 'company',
     value: 'company.catchPhraseAdjective',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'catchPhraseDescriptor',
     group: 'company',
     value: 'company.catchPhraseDescriptor',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'catchPhraseNoun',
     group: 'company',
     value: 'company.catchPhraseNoun',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'bsAdjective',
     group: 'company',
     value: 'company.bsAdjective',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'bsBuzz',
     group: 'company',
     value: 'company.bsBuzz',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'bsNoun',
     group: 'company',
     value: 'company.bsNoun',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'column',
     group: 'database',
     value: 'database.column',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'type',
     group: 'database',
     value: 'database.type',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'collation',
     group: 'database',
     value: 'database.collation',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'engine',
     group: 'database',
     value: 'database.engine',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'past',
     group: 'date',
     value: 'date.past',
-    type: 'date'
+    type: 'date',
   },
   {
     name: 'future',
     group: 'date',
     value: 'date.future',
-    type: 'date'
+    type: 'date',
   },
   // {
   //   name: 'between',
@@ -249,133 +249,133 @@ export default [
     name: 'recent',
     group: 'date',
     value: 'date.recent',
-    type: 'date'
+    type: 'date',
   },
   {
     name: 'soon',
     group: 'date',
     value: 'date.soon',
-    type: 'date'
+    type: 'date',
   },
   {
     name: 'month',
     group: 'date',
     value: 'date.month',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'weekday',
     group: 'date',
     value: 'date.weekday',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'account',
     group: 'finance',
     value: 'finance.account',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'accountName',
     group: 'finance',
     value: 'finance.accountName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'mask',
     group: 'finance',
     value: 'finance.mask',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'amount',
     group: 'finance',
     value: 'finance.amount',
-    type: 'number'
+    type: 'number',
   },
   {
     name: 'transactionType',
     group: 'finance',
     value: 'finance.transactionType',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'currencyCode',
     group: 'finance',
     value: 'finance.currencyCode',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'currencyName',
     group: 'finance',
     value: 'finance.currencyName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'currencySymbol',
     group: 'finance',
     value: 'finance.currencySymbol',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'bitcoinAddress',
     group: 'finance',
     value: 'finance.bitcoinAddress',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'ethereumAddress',
     group: 'finance',
     value: 'finance.ethereumAddress',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'iban',
     group: 'finance',
     value: 'finance.iban',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'bic',
     group: 'finance',
     value: 'finance.bic',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'abbreviation',
     group: 'hacker',
     value: 'hacker.abbreviation',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'adjective',
     group: 'hacker',
     value: 'hacker.adjective',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'noun',
     group: 'hacker',
     value: 'hacker.noun',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'verb',
     group: 'hacker',
     value: 'hacker.verb',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'ingverb',
     group: 'hacker',
     value: 'hacker.ingverb',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'phrase',
     group: 'hacker',
     value: 'hacker.phrase',
-    type: 'string'
+    type: 'string',
   },
   // {
   //   name: 'randomize',
@@ -417,361 +417,361 @@ export default [
     name: 'createCard',
     group: 'helpers',
     value: 'helpers.createCard',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'contextualCard',
     group: 'helpers',
     value: 'helpers.contextualCard',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'userCard',
     group: 'helpers',
     value: 'helpers.userCard',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'createTransaction',
     group: 'helpers',
     value: 'helpers.createTransaction',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'image',
     group: 'image',
     value: 'image.image',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'avatar',
     group: 'image',
     value: 'image.avatar',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'imageUrl',
     group: 'image',
     value: 'image.imageUrl',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'abstract',
     group: 'image',
     value: 'image.abstract',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'animals',
     group: 'image',
     value: 'image.animals',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'business',
     group: 'image',
     value: 'image.business',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'cats',
     group: 'image',
     value: 'image.cats',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'city',
     group: 'image',
     value: 'image.city',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'food',
     group: 'image',
     value: 'image.food',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'nightlife',
     group: 'image',
     value: 'image.nightlife',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'fashion',
     group: 'image',
     value: 'image.fashion',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'people',
     group: 'image',
     value: 'image.people',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'nature',
     group: 'image',
     value: 'image.nature',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'sports',
     group: 'image',
     value: 'image.sports',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'technics',
     group: 'image',
     value: 'image.technics',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'transport',
     group: 'image',
     value: 'image.transport',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'dataUri',
     group: 'image',
     value: 'image.dataUri',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'avatar',
     group: 'internet',
     value: 'internet.avatar',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'email',
     group: 'internet',
     value: 'internet.email',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'exampleEmail',
     group: 'internet',
     value: 'internet.exampleEmail',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'userName',
     group: 'internet',
     value: 'internet.userName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'protocol',
     group: 'internet',
     value: 'internet.protocol',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'url',
     group: 'internet',
     value: 'internet.url',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'domainName',
     group: 'internet',
     value: 'internet.domainName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'domainSuffix',
     group: 'internet',
     value: 'internet.domainSuffix',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'domainWord',
     group: 'internet',
     value: 'internet.domainWord',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'ip',
     group: 'internet',
     value: 'internet.ip',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'ipv6',
     group: 'internet',
     value: 'internet.ipv6',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'userAgent',
     group: 'internet',
     value: 'internet.userAgent',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'color',
     group: 'internet',
     value: 'internet.color',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'mac',
     group: 'internet',
     value: 'internet.mac',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'password',
     group: 'internet',
     value: 'internet.password',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'word',
     group: 'lorem',
     value: 'lorem.word',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'words',
     group: 'lorem',
     value: 'lorem.words',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'sentence',
     group: 'lorem',
     value: 'lorem.sentence',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'slug',
     group: 'lorem',
     value: 'lorem.slug',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'sentences',
     group: 'lorem',
     value: 'lorem.sentences',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'paragraph',
     group: 'lorem',
     value: 'lorem.paragraph',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'paragraphs',
     group: 'lorem',
     value: 'lorem.paragraphs',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'text',
     group: 'lorem',
     value: 'lorem.text',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'lines',
     group: 'lorem',
     value: 'lorem.lines',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'firstName',
     group: 'name',
     value: 'name.firstName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'lastName',
     group: 'name',
     value: 'name.lastName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'findName',
     group: 'name',
     value: 'name.findName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'jobTitle',
     group: 'name',
     value: 'name.jobTitle',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'prefix',
     group: 'name',
     value: 'name.prefix',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'suffix',
     group: 'name',
     value: 'name.suffix',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'title',
     group: 'name',
     value: 'name.title',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'jobDescriptor',
     group: 'name',
     value: 'name.jobDescriptor',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'jobArea',
     group: 'name',
     value: 'name.jobArea',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'jobType',
     group: 'name',
     value: 'name.jobType',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'phoneNumber',
     group: 'phone',
     value: 'phone.phoneNumber',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'phoneNumberFormat',
     group: 'phone',
     value: 'phone.phoneNumberFormat',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'phoneFormats',
     group: 'phone',
     value: 'phone.phoneFormats',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'number',
     group: 'random',
     value: 'random.number',
-    type: 'number'
+    type: 'number',
   },
   {
     name: 'float',
     group: 'random',
     value: 'random.float',
-    type: 'number'
+    type: 'number',
   },
   // Todo : use it for collection or enum
   // {
@@ -790,109 +790,109 @@ export default [
     name: 'uuid',
     group: 'random',
     value: 'random.uuid',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'boolean',
     group: 'random',
     value: 'random.boolean',
-    type: 'boolean'
+    type: 'boolean',
   },
   {
     name: 'word',
     group: 'random',
     value: 'random.word',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'words',
     group: 'random',
     value: 'random.words',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'image',
     group: 'random',
     value: 'random.image',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'locale',
     group: 'random',
     value: 'random.locale',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'alphaNumeric',
     group: 'random',
     value: 'random.alphaNumeric',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'hexaDecimal',
     group: 'random',
     value: 'random.hexaDecimal',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'fileName',
     group: 'system',
     value: 'system.fileName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'commonFileName',
     group: 'system',
     value: 'system.commonFileName',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'mimeType',
     group: 'system',
     value: 'system.mimeType',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'commonFileType',
     group: 'system',
     value: 'system.commonFileType',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'commonFileExt',
     group: 'system',
     value: 'system.commonFileExt',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'fileType',
     group: 'system',
     value: 'system.fileType',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'fileExt',
     group: 'system',
     value: 'system.fileExt',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'directoryPath',
     group: 'system',
     value: 'system.directoryPath',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'filePath',
     group: 'system',
     value: 'system.filePath',
-    type: 'string'
+    type: 'string',
   },
   {
     name: 'semver',
     group: 'system',
     value: 'system.semver',
-    type: 'string'
-  }
+    type: 'string',
+  },
 ];
 // export default functionList;

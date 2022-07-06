@@ -15,7 +15,7 @@ export async function syncCreate(req: Request, res: Response) {
   const sync = await SyncSource.insert({
     ...req.body,
     fk_user_id: (req as any).user.id,
-    project_id: req.params.projectId
+    project_id: req.params.projectId,
   });
   res.json(sync);
 }

@@ -6,7 +6,7 @@ import Project from '../../models/Project';
 import { NcError } from '../helpers/catchError';
 // todo: load from config
 const config = {
-  dashboardPath: '/nc'
+  dashboardPath: '/nc',
 };
 
 async function createSharedBaseLink(req, res): Promise<any> {
@@ -23,7 +23,7 @@ async function createSharedBaseLink(req, res): Promise<any> {
   const data: any = {
     uuid: uuidv4(),
     password: req.body?.password,
-    roles
+    roles,
   };
 
   await Project.update(project.id, data);
@@ -47,7 +47,7 @@ async function updateSharedBaseLink(req, res): Promise<any> {
   const data: any = {
     uuid: project.uuid || uuidv4(),
     password: req.body?.password,
-    roles
+    roles,
   };
 
   await Project.update(project.id, data);
@@ -65,7 +65,7 @@ async function disableSharedBaseLink(req, res): Promise<any> {
     NcError.badRequest('Invalid project id');
   }
   const data: any = {
-    uuid: null
+    uuid: null,
   };
 
   await Project.update(project.id, data);
@@ -81,7 +81,7 @@ async function getSharedBaseLink(req, res): Promise<any> {
   }
   const data: any = {
     uuid: project.uuid,
-    roles: project.roles
+    roles: project.roles,
   };
   if (data.uuid)
     data.url = `${req.ncSiteUrl}${config.dashboardPath}#/nc/base/${data.shared_base_id}`;

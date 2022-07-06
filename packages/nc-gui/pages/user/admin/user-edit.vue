@@ -4,27 +4,25 @@
       <div class="field">
         <div class="control">
           <label class="label">firstName</label>
-          <input id="firstName" v-model="user.firstName" class="input" type="text" placeholder="firstName">
+          <input id="firstName" v-model="user.firstName" class="input" type="text" placeholder="firstName" />
         </div>
       </div>
       <div class="field">
         <div class="control">
           <label class="label">lastName</label>
-          <input id="lastName" v-model="user.lastName" class="input" type="text" placeholder="lastName">
+          <input id="lastName" v-model="user.lastName" class="input" type="text" placeholder="lastName" />
         </div>
       </div>
       <div class="field">
         <div class="control">
           <label class="label">roles</label>
-          <input id="roles" v-model="user.roles" class="input" type="text" placeholder="roles">
+          <input id="roles" v-model="user.roles" class="input" type="text" placeholder="roles" />
         </div>
       </div>
 
       <div class="field is-grouped">
         <div class="control">
-          <button class="button is-link" @click="update()">
-            Submit
-          </button>
+          <button class="button is-link" @click="update()">Submit</button>
         </div>
       </div>
     </div>
@@ -36,7 +34,7 @@ export default {
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   props: {},
   data() {
@@ -49,41 +47,34 @@ export default {
         email: 'swethks@gmail.com',
         provider: 'facebook',
         created: '22-01-2018',
-        roles: ['editor', 'guest']
+        roles: ['editor', 'guest'],
       },
       authentication: {
         user: {
-          _id: 1
-        }
-      }
-    }
+          _id: 1,
+        },
+      },
+    };
   },
   head() {
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
-  created() {
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  mounted() {},
+  beforeDestroy() {},
   methods: {
     update() {
       // console.log('update user');
-    }
+    },
   },
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

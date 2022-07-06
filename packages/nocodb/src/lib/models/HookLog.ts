@@ -41,12 +41,12 @@ export default class HookLog implements HookLogType {
     // if (!hooks.length) {
     const hookLogs = await ncMeta.metaList(null, null, MetaTable.HOOK_LOGS, {
       condition: {
-        fk_hook_id: param.fk_hook_id
+        fk_hook_id: param.fk_hook_id,
         // ...(param.event ? { event: param.event?.toLowerCase?.() } : {}),
         // ...(param.operation
         //   ? { operation: param.operation?.toLowerCase?.() }
         //   : {})
-      }
+      },
     });
     //   await NocoCache.setList(CacheScope.HOOK, [param.fk_model_id], hooks);
     // }
@@ -61,7 +61,7 @@ export default class HookLog implements HookLogType {
     //     h => h.operation?.toLowerCase() === param.operation?.toLowerCase()
     //   );
     // }
-    return hookLogs?.map(h => new HookLog(h));
+    return hookLogs?.map((h) => new HookLog(h));
   }
 
   public static async insert(
@@ -89,7 +89,7 @@ export default class HookLog implements HookLogType {
       'error',
       'execution_time',
       'response',
-      'triggered_by'
+      'triggered_by',
     ]);
 
     if (!(hookLog.project_id && hookLog.base_id) && hookLog.fk_hook_id) {

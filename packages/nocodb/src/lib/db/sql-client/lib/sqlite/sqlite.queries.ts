@@ -28,7 +28,7 @@ const sqliteQueries = {
   decimal: {},
   boolean: {},
   date: {},
-  datetime: {}
+  datetime: {},
 };
 
 export default sqliteQueries;

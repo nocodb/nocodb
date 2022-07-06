@@ -1,22 +1,24 @@
 <template>
   <div class="d-flex flex-wrap wrapper">
     <template v-if="lookupColumnMeta">
-      <template
-        v-if="isVirtualCol(lookupColumnMeta)"
-      >
+      <template v-if="isVirtualCol(lookupColumnMeta)">
         <template
           :is="virtualCell"
-          v-if="lookupColumnMeta.uidt === UITypes.LinkToAnotherRecord &&lookupColumnMeta.colOptions.type === RelationTypes.BELONGS_TO && Array.isArray(value) "
+          v-if="
+            lookupColumnMeta.uidt === UITypes.LinkToAnotherRecord &&
+            lookupColumnMeta.colOptions.type === RelationTypes.BELONGS_TO &&
+            Array.isArray(value)
+          "
         >
           <div
             :is="virtualCell"
-            v-for="(v,i) in value"
+            v-for="(v, i) in value"
             :key="i"
             :is-public="true"
             :metas="metas"
             :is-locked="true"
             :column="lookupColumnMeta"
-            :row="{[lookupColumnMeta.title]:v}"
+            :row="{ [lookupColumnMeta.title]: v }"
             :nodes="nodes"
             :meta="lookupTableMeta"
             :sql-ui="sqlUi"
@@ -29,29 +31,40 @@
           :metas="metas"
           :is-locked="true"
           :column="lookupColumnMeta"
-          :row="{[lookupColumnMeta.title]:value}"
+          :row="{ [lookupColumnMeta.title]: value }"
           :nodes="nodes"
           :meta="lookupTableMeta"
           :sql-ui="sqlUi"
         />
       </template>
       <template v-else>
-        <template v-if="localValue">
+        <template v-if="lookupColumnMeta['uidt'] === UITypes.Attachment">
+          <table-cell
+            v-for="(v, i) in localValue"
+            :key="i"
+            :is-locked="true"
+            :column="lookupColumnMeta"
+            :meta="lookupTableMeta"
+            :db-alias="nodes.dbAlias"
+            :value="v"
+            :sql-ui="sqlUi"
+          />
+        </template>
+        <template v-else-if="localValue">
           <item-chip
-            v-for="(value,i) in localValue"
+            v-for="(v, i) in localValue"
             :key="i"
             style="margin: 1.5px"
             :active="active"
-            :value="value"
+            :value="v"
             :readonly="true"
           >
             <table-cell
-
               :is-locked="true"
               :column="lookupColumnMeta"
               :meta="lookupTableMeta"
               :db-alias="nodes.dbAlias"
-              :value="value"
+              :value="v"
               :sql-ui="sqlUi"
             />
           </item-chip>
@@ -62,15 +75,15 @@
 </template>
 
 <script>
-import { isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk'
-import TableCell from '../Cell'
-import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/ItemChip'
+import { isVirtualCol, RelationTypes, UITypes } from 'nocodb-sdk';
+import TableCell from '../Cell';
+import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/ItemChip';
 export default {
   name: 'LookupCell',
   components: {
     TableCell,
     // ListChildItemsModal,
-    ItemChip
+    ItemChip,
   },
   props: {
     meta: [Object],
@@ -83,7 +96,7 @@ export default {
     active: Boolean,
     isNew: Boolean,
     isForm: Boolean,
-    value: [Object, Array, String, Number]
+    value: [Object, Array, String, Number],
   },
   data: () => ({
     UITypes,
@@ -91,11 +104,13 @@ export default {
     lookupTableMeta: null,
     lookupColumnMeta: null,
     isVirtualCol,
-    RelationTypes
+    RelationTypes,
   }),
   computed: {
     virtualCell() {
-      return this.lookupColumnMeta && isVirtualCol(this.lookupColumnMeta) ? () => import('~/components/project/spreadsheet/components/VirtualCell') : 'div'
+      return this.lookupColumnMeta && isVirtualCol(this.lookupColumnMeta)
+        ? () => import('~/components/project/spreadsheet/components/VirtualCell')
+        : 'div';
     },
     // todo : optimize
     lookupApi() {
@@ -114,49 +129,49 @@ export default {
     },
     lookUpColumnAlias() {
       if (!this.lookUpMeta || !this.column.lk.lcn) {
-        return
+        return;
       }
-      return (this.lookUpMeta.columns.find(cl => cl.column_name === this.column.lk.lcn) || {}).title
+      return (this.lookUpMeta.columns.find(cl => cl.column_name === this.column.lk.lcn) || {}).title;
     },
     lookUpColumn() {
       if (!this.lookUpMeta || !this.column.lk.lcn) {
-        return
+        return;
       }
-      return (this.lookUpMeta.columns.find(cl => cl.column_name === this.column.lk.lcn) || {})
+      return this.lookUpMeta.columns.find(cl => cl.column_name === this.column.lk.lcn) || {};
     },
-    localValueObj() {
-    },
+    localValueObj() {},
     localValue() {
-      return this.value && (Array.isArray(this.value) ? this.value : [this.value])
+      return this.value && (Array.isArray(this.value) ? this.value : [this.value]);
     },
-    queryParams() {
-    }
+    queryParams() {},
   },
   created() {
-    this.loadLookupMeta()
-    this.loadLookupColumnMeta()
+    this.loadLookupMeta();
+    this.loadLookupColumnMeta();
   },
   methods: {
-
     async loadLookupColumnMeta() {
-      const relationColumn = this.meta.columns.find(c => c.id === this.column.colOptions.fk_relation_column_id)
-      this.lookupTableMeta = await this.$store.dispatch('meta/ActLoadMeta', { id: relationColumn.colOptions.fk_related_model_id })
-      this.lookupColumnMeta = this.lookupTableMeta.columns.find(c => c.id === this.column.colOptions.fk_lookup_column_id)
+      const relationColumn = this.meta.columns.find(c => c.id === this.column.colOptions.fk_relation_column_id);
+      this.lookupTableMeta = await this.$store.dispatch('meta/ActLoadMeta', {
+        id: relationColumn.colOptions.fk_related_model_id,
+      });
+      this.lookupColumnMeta = this.lookupTableMeta.columns.find(
+        c => c.id === this.column.colOptions.fk_lookup_column_id
+      );
     },
 
-    async loadLookupMeta() {
-    },
+    async loadLookupMeta() {},
     showLookupListModal() {
-      this.lookupListModal = true
-    }
-  }
-}
+      this.lookupListModal = true;
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
-.wrapper{
-      flex-wrap: wrap;
-  }
+.wrapper {
+  flex-wrap: wrap;
+}
 </style>
 <!--
 /**

@@ -26,7 +26,7 @@ export async function formViewCreate(req: Request<any, any>, res) {
     ...req.body,
     // todo: sanitize
     fk_model_id: req.params.tableId,
-    type: ViewTypes.FORM
+    type: ViewTypes.FORM,
   });
   res.json(view);
 }

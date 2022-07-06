@@ -617,8 +617,8 @@ export default class View implements ViewType {
     }
     if (!view.meta) {
       const defaultMeta = {
-        allowCSVDownload: true
-      }
+        allowCSVDownload: true,
+      };
       // get existing cache
       const key = `${CacheScope.VIEW}:${view.id}`;
       const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);

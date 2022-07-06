@@ -3,16 +3,8 @@
     <v-toolbar height="40" class="elevation-0">
       <v-spacer />
 
-      <x-btn
-        outlined
-        tooltip="Reload Project Info"
-        color="primary"
-        small
-        @click="loadProjectApiInfo"
-      >
-        <v-icon small left>
-          refresh
-        </v-icon>
+      <x-btn outlined tooltip="Reload Project Info" color="primary" small @click="loadProjectApiInfo">
+        <v-icon small left> refresh </v-icon>
         <!-- Reload -->
         {{ $t('general.reload') }}
       </x-btn>
@@ -71,120 +63,76 @@
 
     <v-container v-if="aggregatedInfo" fluid dark>
       <v-card class="pa-2 text-center elevation-10" dark>
-        <h3 class="title mb-3 mt-4">
-          Total APIs Generated
-        </h3>
+        <h3 class="title mb-3 mt-4">Total APIs Generated</h3>
         <p>
           <!--          <span class="display-3 font-weight-bold">{{ apisCount }}</span>-->
 
-          <IOdometer
-            class="iOdometer display-3 font-weight-bold"
-            :value="apisCount"
-          />
+          <IOdometer class="iOdometer display-3 font-weight-bold" :value="apisCount" />
 
-          <br>
+          <br />
           <span class="subtitle grey--text text--lighten-1">within {{ timeTaken }} seconds</span>
         </p>
       </v-card>
 
-      <v-row v-for="(item,i) in aggregatedInfo.list" :key="i" class="align-stretch">
+      <v-row v-for="(item, i) in aggregatedInfo.list" :key="i" class="align-stretch">
         <v-col>
           <v-row>
             <v-col cols="12">
-              <v-card dark class=" elevation-10 h-100">
-                <v-card-text class="pb-0 font-weight-bold">
-                  Database ({{ item.dbType }})
-                </v-card-text>
+              <v-card dark class="elevation-10 h-100">
+                <v-card-text class="pb-0 font-weight-bold"> Database ({{ item.dbType }}) </v-card-text>
                 <v-card-text class="display-1 white--text">
-                  <v-icon class="mr-1 mt-n1 " color="info">
-                    mdi-database
-                  </v-icon>
+                  <v-icon class="mr-1 mt-n1" color="info"> mdi-database </v-icon>
                   {{ item.databaseName }}
                 </v-card-text>
               </v-card>
             </v-col>
             <v-col cols="6">
-              <v-card dark class=" elevation-10 h-100">
-                <v-card-text class="pb-0 font-weight-bold">
-                  # Tables
-                </v-card-text>
+              <v-card dark class="elevation-10 h-100">
+                <v-card-text class="pb-0 font-weight-bold"> # Tables </v-card-text>
                 <v-card-text class="display-1 white--text">
-                  <v-icon class="mr-1 mt-n1 " color="info">
-                    mdi-table-large
-                  </v-icon>
+                  <v-icon class="mr-1 mt-n1" color="info"> mdi-table-large </v-icon>
                   <!--                  {{ item.tablesCount }}-->
-                  <IOdometer
-                    class="iOdometer"
-                    :value="item.tablesCount"
-                  />
+                  <IOdometer class="iOdometer" :value="item.tablesCount" />
                 </v-card-text>
               </v-card>
             </v-col>
             <v-col cols="6">
-              <v-card dark class=" elevation-10 h-100">
-                <v-card-text class="pb-0 font-weight-bold">
-                  # Relations
-                </v-card-text>
+              <v-card dark class="elevation-10 h-100">
+                <v-card-text class="pb-0 font-weight-bold"> # Relations </v-card-text>
                 <v-card-text class="display-1 white--text">
-                  <v-icon class="mr-1 mt-n1" color="secondary">
-                    mdi-link
-                  </v-icon>
+                  <v-icon class="mr-1 mt-n1" color="secondary"> mdi-link </v-icon>
                   <!--                  {{ item.relationsCount }}-->
-                  <IOdometer
-                    class="iOdometer"
-                    :value="item.relationsCount"
-                  />
+                  <IOdometer class="iOdometer" :value="item.relationsCount" />
                 </v-card-text>
               </v-card>
             </v-col>
             <v-col cols="4">
-              <v-card dark class=" elevation-10 h-100">
-                <v-card-text class="pb-0 font-weight-bold">
-                  # Views
-                </v-card-text>
+              <v-card dark class="elevation-10 h-100">
+                <v-card-text class="pb-0 font-weight-bold"> # Views </v-card-text>
                 <v-card-text class="display-1 white--text">
-                  <v-icon color="success" class="mt-n2 mr-1">
-                    mdi-table-border
-                  </v-icon>
+                  <v-icon color="success" class="mt-n2 mr-1"> mdi-table-border </v-icon>
                   <!--                  {{ item.viewsCount }}-->
-                  <IOdometer
-                    class="iOdometer"
-                    :value="item.viewsCount"
-                  />
+                  <IOdometer class="iOdometer" :value="item.viewsCount" />
                 </v-card-text>
               </v-card>
             </v-col>
             <v-col cols="4">
-              <v-card dark class=" elevation-10 h-100">
-                <v-card-text class="pb-0 font-weight-bold">
-                  # Functions
-                </v-card-text>
+              <v-card dark class="elevation-10 h-100">
+                <v-card-text class="pb-0 font-weight-bold"> # Functions </v-card-text>
                 <v-card-text class="display-1 white--text">
-                  <v-icon color="success" class="mt-n2 mr-1">
-                    mdi-function
-                  </v-icon>
+                  <v-icon color="success" class="mt-n2 mr-1"> mdi-function </v-icon>
                   <!--                  {{ item.functionsCount }}-->
-                  <IOdometer
-                    class="iOdometer"
-                    :value="item.functionsCount"
-                  />
+                  <IOdometer class="iOdometer" :value="item.functionsCount" />
                 </v-card-text>
               </v-card>
             </v-col>
             <v-col cols="4">
-              <v-card dark class=" elevation-10 h-100">
-                <v-card-text class="pb-0 font-weight-bold">
-                  # Procedures
-                </v-card-text>
+              <v-card dark class="elevation-10 h-100">
+                <v-card-text class="pb-0 font-weight-bold"> # Procedures </v-card-text>
                 <v-card-text class="display-1 white--text">
-                  <v-icon color="success" class="mt-n2 mr-1">
-                    mdi-code-braces
-                  </v-icon>
+                  <v-icon color="success" class="mt-n2 mr-1"> mdi-code-braces </v-icon>
                   <!--                  {{ item.proceduresCount }}-->
-                  <IOdometer
-                    class="iOdometer"
-                    :value="item.proceduresCount"
-                  />
+                  <IOdometer class="iOdometer" :value="item.proceduresCount" />
                 </v-card-text>
               </v-card>
             </v-col>
@@ -212,16 +160,14 @@
           <v-row class="h-100">
             <v-col cols="12" class="h-100">
               <v-card class="pa-2 elevation-10 h-100" dark>
-                <v-card-text v-if="item.type==='rest'" class="pb-0 font-weight-bold">
+                <v-card-text v-if="item.type === 'rest'" class="pb-0 font-weight-bold">
                   Swagger API specification
                 </v-card-text>
-                <v-card-text v-else-if="item.type==='graphql'" class="pb-0 font-weight-bold">
+                <v-card-text v-else-if="item.type === 'graphql'" class="pb-0 font-weight-bold">
                   Graphql Endpoint
                 </v-card-text>
-                <v-card-text class="title white--text ">
-                  <v-icon color="success" class=" mr-1">
-                    mdi-code-json
-                  </v-icon>
+                <v-card-text class="title white--text">
+                  <v-icon color="success" class="mr-1"> mdi-code-json </v-icon>
                   <a :href="`${origin}${item.apiEndpoint}`" target="_blank">{{ `${origin}${item.apiEndpoint}` }}</a>
                 </v-card-text>
               </v-card>
@@ -235,26 +181,20 @@
           {{ aggregatedInfo }}
         </pre>-->
 
-    <iframe
-      v-if="iframeUrl && showinfoIFrame"
-      style="background: white"
-      width="100%"
-      height="500px"
-      :src="iframeUrl"
-    />
+    <iframe v-if="iframeUrl && showinfoIFrame" style="background: white" width="100%" height="500px" :src="iframeUrl" />
   </v-card>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
-import IOdometer from 'vue-odometer'
-import 'odometer/themes/odometer-theme-default.css'
+import IOdometer from 'vue-odometer';
+import 'odometer/themes/odometer-theme-default.css';
 
 export default {
   name: 'XcInfo',
   components: {
-    IOdometer
+    IOdometer,
   },
   data: () => ({
     showinfoIFrame: false,
@@ -264,91 +204,98 @@ export default {
     apiTypeIcon: {
       rest: { icon: 'mdi-code-json', iconColor: 'green' },
       graphql: { icon: 'mdi-graphql', iconColor: 'pink' },
-      grpc: { src: 'grpc-icon-color.png', type: 'img' }
+      grpc: { src: 'grpc-icon-color.png', type: 'img' },
     },
-    apisCount: 0
+    apisCount: 0,
   }),
   computed: {
     ...mapGetters({
-      dbAliasList: 'project/GtrDbAliasList'
+      dbAliasList: 'project/GtrDbAliasList',
     }),
     origin() {
-      return location.origin
-    }
+      return location.origin;
+    },
   },
   async created() {
-    await this.loadProjectApiInfo()
+    await this.loadProjectApiInfo();
     try {
-      this.iframeUrl = `${this.$axios.defaults.baseURL}/dashboard/status`
-      await this.$axios.get(this.iframeUrl)
-      this.showinfoIFrame = true
+      this.iframeUrl = `${this.$axios.defaults.baseURL}/dashboard/status`;
+      await this.$axios.get(this.iframeUrl);
+      this.showinfoIFrame = true;
     } catch (e) {
-      this.showinfoIFrame = false
+      this.showinfoIFrame = false;
     }
   },
-  mounted() {
-  },
+  mounted() {},
   methods: {
     async loadProjectApiInfo() {
       try {
-        const { info, aggregatedInfo } = (await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          }
-        })).data
-        this.info = info
-        const { aggregated, list } = aggregatedInfo
+        const { info, aggregatedInfo } = (
+          await this.$axios.get(`/nc/${this.$route.params.project_id}/projectApiInfo`, {
+            headers: {
+              'xc-auth': this.$store.state.users.token,
+            },
+          })
+        ).data;
+        this.info = info;
+        const { aggregated, list } = aggregatedInfo;
 
         this.aggregatedInfo = {
           aggregated,
-          list: list.map((it) => {
+          list: list.map(it => {
             return {
               ...it,
               functionsCount: 0,
               proceduresCount: 0,
               relationsCount: 0,
               tablesCount: 0,
-              viewsCount: 0
-            }
-          })
-        }
-        const apisCount = aggregatedInfo.aggregated[4]// +((
+              viewsCount: 0,
+            };
+          }),
+        };
+        const apisCount = aggregatedInfo.aggregated[4]; // +((
         // aggregatedInfo.aggregated[4]
         // + '').replace(/\d(?=(?:\d{3})+$)/g, '$&,')) || 0;
-        this.apisCount = 0
+        this.apisCount = 0;
 
         this.$nextTick(() => {
-          this.apisCount = apisCount
-          this.$set(this.aggregatedInfo, 'list', list)
-        })
+          this.apisCount = apisCount;
+          this.$set(this.aggregatedInfo, 'list', list);
+        });
 
-        this.timeTaken = aggregatedInfo.aggregated[5]
+        this.timeTaken = aggregatedInfo.aggregated[5];
       } catch (e) {
         // this.$toast.error('Some error occurred').goAway(3000);
       }
     },
     async downloadProto() {
-      this.loading = true
-      let data
+      this.loading = true;
+      let data;
       try {
-        data = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'grpcProtoDownloadZip', {}, null, {
-          responseType: 'blob'
-        }])
-        const url = window.URL.createObjectURL(new Blob([data], { type: 'application/zip' }))
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', 'proto.zip') // or any other extension
-        document.body.appendChild(link)
-        link.click()
+        data = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          null,
+          'grpcProtoDownloadZip',
+          {},
+          null,
+          {
+            responseType: 'blob',
+          },
+        ]);
+        const url = window.URL.createObjectURL(new Blob([data], { type: 'application/zip' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'proto.zip'); // or any other extension
+        document.body.appendChild(link);
+        link.click();
         // this.$toast.success('Successfully exported metadata').goAway(3000)
-        this.$toast.success(`${this.$t('msg.toast.exportMetadata')}`).goAway(3000)
+        this.$toast.success(`${this.$t('msg.toast.exportMetadata')}`).goAway(3000);
       } catch (e) {
-        this.$toast.error('Some internal error occurred').goAway(3000)
+        this.$toast.error('Some internal error occurred').goAway(3000);
       }
-      this.loading = false
-    }
-  }
-}
+      this.loading = false;
+    },
+  },
+};
 </script>
 
 <style scoped>

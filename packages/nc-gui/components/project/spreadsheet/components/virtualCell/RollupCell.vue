@@ -5,7 +5,6 @@
 </template>
 
 <script>
-
 export default {
   name: 'RollupCell',
   components: {},
@@ -13,10 +12,9 @@ export default {
     meta: [Object],
     column: [Object],
     nodes: [Object],
-    row: [Object]
-  }
-
-}
+    row: [Object],
+  },
+};
 </script>
 
 <style scoped lang="scss">

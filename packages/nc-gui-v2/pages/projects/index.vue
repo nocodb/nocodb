@@ -25,7 +25,7 @@ const projects = ref(response.list)
       </div>
       <v-row>
         <v-col v-for="project of projects" :key="project.id" cols="4">
-          <v-card @click="navigateTo(`/dashboard/${project.id}`)">
+          <v-card @click="navigateTo(`/nc/${project.id}`)">
             <v-card-title>
               <div class="text-center">
                 <h3>{{ project.title }}</h3>

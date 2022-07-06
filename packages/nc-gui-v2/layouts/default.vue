@@ -1,21 +1,12 @@
 <script lang="ts" setup>
 import { navigateTo } from '#app'
-
 const route = useRoute()
-
 const openDiscord = () => {
   //   shell.openExternal('https://discord.gg/5RgZmkW')
 }
-
 const isDashboard = computed(() => {
   return route.path && (route.path === '/nc' || route.path === '/nc/' || route.path.startsWith('/nc/'))
 })
-</script>
-
-<script lang="ts">
-export default {
-  name: 'General',
-}
 </script>
 
 <template>

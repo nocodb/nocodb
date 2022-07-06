@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { useProject } from '~/composables/project'
-import { useTabs } from '~/composables/tabs'
+import useProject from '~/composables/useProject'
+import  useTabs from '~/composables/useTabs'
 
 const { tables } = useProject()
 const { addTab } = useTabs()
@@ -8,7 +8,7 @@ const { addTab } = useTabs()
 
 <template>
   <div>
-    <v-list density="medium">
+    <v-list>
       <v-list-item
         v-for="table in tables"
         :key="table.id"

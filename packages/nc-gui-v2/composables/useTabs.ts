@@ -1,12 +1,12 @@
 import { useState } from '#app'
 
-interface TabItem {
+export interface TabItem {
   type: 'table' | 'view'
   title: string
   id: string
 }
 
-export const useTabs = () => {
+export default () => {
   const tabs = useState<Array<TabItem>>('tabs', () => [])
   const activeTab = useState<number>('activeTab', () => 0)
 

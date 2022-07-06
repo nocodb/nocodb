@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useTabs } from '~/composables/tabs'
+import useTabs  from '~/composables/useTabs'
 
 const { tabs, activeTab } = useTabs()
 </script>

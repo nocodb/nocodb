@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg } from '~/helpers/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { navigateTo } from '#app'
 
 const { $api, $state } = useNuxtApp()
@@ -26,7 +26,7 @@ const signUp = async () => {
     <!-- Enter your work email -->
     <v-card class="pa-10 mx-auto mt-10" style="max-width: 500px">
       <v-card-text>
-        <v-alert v-if="error" density="medium" class="mb-4" type="error">
+        <v-alert v-if="error" class="mb-4" type="error">
           {{ error }}
         </v-alert>
 

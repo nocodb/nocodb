@@ -1,41 +1,42 @@
 <script setup lang="ts">
-import { watch } from 'vue'
-import { useProject } from '~/composables/project'
-import { useTabs } from '~/composables/tabs'
+import { watch } from "vue";
+import useProject from "~/composables/useProject";
+import useTabs from "~/composables/useTabs";
 
-const route = useRoute()
-const { user } = useUser()
-const { loadProject, loadTables } = useProject()
-const { clearTabs } = useTabs()
+
+const route = useRoute();
+const { loadProject, loadTables } = useProject();
+const { clearTabs } = useTabs();
 
 onMounted(async () => {
-  await loadProject(route.params.projectId as string)
-  await loadTables()
-})
+  await loadProject(route.params.projectId as string);
+  await loadTables();
+});
 
 watch(
   () => route.params.projectId,
   async (newVal, oldVal) => {
     if (newVal && newVal !== oldVal) {
-      clearTabs()
-      await loadProject(newVal as string)
-      await loadTables()
+      clearTabs();
+      await loadProject(newVal as string);
+      await loadTables();
     }
-  },
-)
+  }
+);
 </script>
 
 <template>
   <NuxtLayout>
-    <v-navigation-drawer color="" permanent>
-      <DashboardTreeView />
-    </v-navigation-drawer>
-    <v-main>
+    <template #sidebar>
+      <v-navigation-drawer permanent>
+        <DashboardTreeView />
+      </v-navigation-drawer>
+    </template>
+
       <v-container>
         <DashboardTabView />
       </v-container>
-    </v-main>
-  </NuxtLayout>
+    </NuxtLayout>
 </template>
 
 <style scoped lang="scss">

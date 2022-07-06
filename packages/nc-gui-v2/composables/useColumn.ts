@@ -21,7 +21,9 @@ export default (column: ColumnType) => {
   const isDateTime = abstractType === 'datetime' || uiDatatype === 'DateTime'
   const isJSON = uiDatatype === 'JSON'
   const isEnum = uiDatatype === 'SingleSelect'
+  const isSingleSelect = uiDatatype === 'SingleSelect'
   const isSet = uiDatatype === 'MultiSelect'
+  const isMultiSelect = uiDatatype === 'MultiSelect'
   const isURL = uiDatatype === 'URL'
   const isEmail = uiDatatype === UITypes.Email
   const isAttachment = uiDatatype === 'Attachment'
@@ -66,5 +68,7 @@ export default (column: ColumnType) => {
     isDuration,
     isAutoSaved,
     isManualSaved,
+    isSingleSelect,
+    isMultiSelect
   }
 }

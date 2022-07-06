@@ -1,5 +1,31 @@
-<script>
-import colors from '@/mixins/colors'
+<script lang="ts" setup>
+
+import { computed } from "@vue/reactivity";
+import { ColumnType } from "nocodb-sdk";
+import { inject, Ref } from "vue";
+import {enumColor}from "~/utils/colorsUtils";
+
+const column = inject<ColumnType>("column");
+const isForm = inject<boolean>("isForm");
+
+const { modelValue } = defineProps<{ modelValue: any }>();
+const emit = defineEmits(["update:modelValue"]);
+
+const localState = computed({
+  get() {
+    return modelValue?.replace(/\\'/g, "'").replace(/^'|'$/g, "");
+  },
+  set(val) {
+    emit("update:modelValue", val);
+  }
+});
+
+const options = computed<string[]>(() => {
+  return column?.dtxp?.split(",").map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, "")) || [];
+});
+
+
+/*import colors from '@/mixins/colors'
 
 export default {
   name: 'EnumListEditableCell',
@@ -11,20 +37,6 @@ export default {
     isForm: Boolean,
   },
   computed: {
-    localState: {
-      get() {
-        return this.value && this.value.replace(/\\'/g, "'").replace(/^'|'$/g, '')
-      },
-      set(val) {
-        this.$emit('input', val)
-      },
-    },
-    enumValues() {
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''))
-      }
-      return []
-    },
     parentListeners() {
       const $listeners = {}
 
@@ -38,28 +50,23 @@ export default {
       return $listeners
     },
   },
-  mounted() {
-    // this.$el.focus();
-    // let event;
-    // event = document.createEvent('MouseEvents');
-    // event.initMouseEvent('mousedown', true, true, window);
-    // this.$el.dispatchEvent(event);
-  },
-}
+}*/
 </script>
 
 <template>
+  {{options}}
   <v-select
     v-model="localState"
     solo
     dense
     flat
-    :items="enumValues"
+    :items="options"
     hide-details
     class="mt-0"
     :clearable="!column.rqd"
-    v-on="parentListeners"
   >
+
+<!--    v-on="parentListeners"
     <template #selection="{ item }">
       <div
         class="d-100"
@@ -67,31 +74,33 @@ export default {
           'text-center': !isForm,
         }"
       >
-        <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]" class="ma-1">
-          {{ item }}
+        <v-chip small :color="enumColor.light[options.indexOf(item) % enumColor.light.length]" class="ma-1">
+          {{ item.text }}
         </v-chip>
       </div>
     </template>
     <template #item="{ item }">
-      <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">
+      <v-chip small :color="enumColor.light[options.indexOf(item) % enumColor.light.length]">
         {{ item }}
       </v-chip>
     </template>
     <template #append>
-      <v-icon small class="mt-1"> mdi-menu-down </v-icon>
-    </template>
+      <v-icon small class="mt-1"> mdi-menu-down</v-icon>
+    </template>-->
   </v-select>
 </template>
 
 <style scoped lang="scss">
-::v-deep {
+:deep {
   .v-select {
     min-width: 150px;
   }
+
   .v-input__slot {
     padding-right: 0 !important;
     padding-left: 35px !important;
   }
+
   .v-input__icon.v-input__icon--clear {
     width: 15px !important;
     min-width: 13px !important;

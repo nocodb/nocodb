@@ -19,8 +19,6 @@ const localState = computed({
 })
 
 const {
-  isSet,
-  isEnum,
   isURL,
   isEmail,
   isJSON,
@@ -34,6 +32,8 @@ const {
   isAttachment,
   isTextArea,
   isString,
+  isSingleSelect,
+  isMultiSelect
 } = useColumn(column)
 </script>
 
@@ -164,6 +164,7 @@ const {
     <!--    />&ndash;&gt; -->
 
     <EditableCellAttachment v-if="isAttachment" v-model="localState" />
+    <EditableCellSingleSelect v-if="isSingleSelect" v-model="localState" />
     <!--      v-model="localState"
           :active="active"
           :db-alias="dbAlias"

@@ -2,30 +2,34 @@
   <v-dialog
     v-model="show"
     max-width="450"
-    @keydown.enter="$emit('ok');show = false;"
+    @keydown.enter="
+      $emit('ok');
+      show = false;
+    "
   >
     <template #activator="{ on }">
       <p class="hidden" v-on="on" />
     </template>
     <v-card class="elevation-20">
-      <v-card-title class="grey darken-1 subheading" style="height:30px">
+      <v-card-title class="grey darken-1 subheading" style="height: 30px">
         {{ title || '' }}
       </v-card-title>
 
       <v-card-text class="pt-4 pl-4">
-        <span class="headline ">{{ heading }}</span>
+        <span class="headline">{{ heading }}</span>
       </v-card-text>
 
       <v-card-actions class="pa-4">
         <v-spacer />
-        <v-btn
-          @click="show = false;"
-        >
+        <v-btn @click="show = false">
           {{ cancelLabel || $t('general.cancel') }}
         </v-btn>
         <v-btn
           :color="type"
-          @click="$emit('ok');show = false;"
+          @click="
+            $emit('ok');
+            show = false;
+          "
         >
           {{ okLabel || $t('general.ok') }}
         </v-btn>
@@ -35,7 +39,6 @@
 </template>
 
 <script>
-
 export default {
   name: 'DlgOkNew',
   props: {
@@ -44,26 +47,25 @@ export default {
     okLabel: String,
     type: String,
     title: String,
-    cancelLabel: String
+    cancelLabel: String,
   },
   data() {
-    return {}
+    return {};
   },
   computed: {
     show: {
       get() {
-        return this.value
+        return this.value;
       },
       set(show) {
-        this.$emit('input', show)
-      }
-    }
-  }
-}
+        this.$emit('input', show);
+      },
+    },
+  },
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

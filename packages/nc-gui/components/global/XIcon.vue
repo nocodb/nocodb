@@ -3,11 +3,11 @@
     <template #activator="{ on }">
       <v-hover v-slot="{ hover }">
         <v-icon
-          :class="[hover ? hclass : xclass,iconClass, $attrs['icon.class']]"
+          :class="[hover ? hclass : xclass, iconClass, $attrs['icon.class']]"
           :color="hover ? colors[0] : colors[1]"
           :style="hover ? hstyle : xstyle"
           v-bind="$attrs"
-          v-on="{...on, ...$listeners}"
+          v-on="{ ...on, ...$listeners }"
         >
           <slot />
         </v-icon>
@@ -17,7 +17,7 @@
   </v-tooltip>
   <v-hover v-else v-slot="{ hover }">
     <v-icon
-      :class="[hover ? hclass : xclass,iconClass,$attrs['icon.class']]"
+      :class="[hover ? hclass : xclass, iconClass, $attrs['icon.class']]"
       :color="hover ? colors[0] : colors[1]"
       :style="hover ? hstyle : xstyle"
       v-bind="$attrs"
@@ -35,8 +35,8 @@ export default {
     tooltipProp: {
       type: Object,
       default: () => ({
-        bottom: true
-      })
+        bottom: true,
+      }),
     },
     tooltip: String,
     icon: String,
@@ -46,24 +46,22 @@ export default {
     xstyle: String,
     hcolor: String,
     color: [String, Array],
-    iconClass: String
+    iconClass: String,
   },
   computed: {
     colors() {
-      return this.color ? (Array.isArray(this.color) ? this.color : this.color.split(' ')) : []
-    }
+      return this.color ? (Array.isArray(this.color) ? this.color : this.color.split(' ')) : [];
+    },
   },
   methods: {
     triggerClick(...args) {
-      this.$emit('click', ...args)
-    }
-  }
-}
+      this.$emit('click', ...args);
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

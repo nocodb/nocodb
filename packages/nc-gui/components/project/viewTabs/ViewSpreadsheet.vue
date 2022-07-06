@@ -9,46 +9,28 @@
       class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1"
       style="z-index: 7"
     >
-      <div class="d-flex xc-border align-center search-box" style="min-width:156px">
+      <div class="d-flex xc-border align-center search-box" style="min-width: 156px">
         <v-menu bottom offset-y>
-          <template #activator="{on}">
+          <template #activator="{ on }">
             <div style="min-width: 56px" v-on="on">
-              <v-icon
-                class="ml-2"
-                small
-                color="grey"
-              >
-                mdi-magnify
-              </v-icon>
+              <v-icon class="ml-2" small color="grey"> mdi-magnify </v-icon>
 
-              <v-icon
-                color="grey"
-                class="pl-0 pa-1"
-                small
-              >
-                mdi-menu-down
-              </v-icon>
+              <v-icon color="grey" class="pl-0 pa-1" small> mdi-menu-down </v-icon>
             </div>
           </template>
           <v-list v-if="meta" dense>
-            <v-list-item
-              v-for="col in meta.columns"
-              :key="col.column_name"
-              @click="searchField = col.column_name"
-            >
+            <v-list-item v-for="col in meta.columns" :key="col.column_name" @click="searchField = col.column_name">
               <span class="caption">{{ col.column_name }}</span>
             </v-list-item>
           </v-list>
         </v-menu>
 
-        <v-divider
-          vertical
-        />
+        <v-divider vertical />
 
         <v-text-field
           v-model="searchQuery"
           autocomplete="off"
-          style="min-width: 100px ; width: 150px"
+          style="min-width: 100px; width: 150px"
           flat
           dense
           solo
@@ -60,12 +42,10 @@
         />
       </div>
 
-      <span
-        v-if="relationType && false"
-        class="caption grey--text"
-      >{{ refTable }}({{
-        relationPrimaryValue
-      }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} -> {{ table }}</span>
+      <span v-if="relationType && false" class="caption grey--text"
+        >{{ refTable }}({{ relationPrimaryValue }}) -> {{ relationType === 'hm' ? ' Has Many ' : ' Belongs To ' }} ->
+        {{ table }}</span
+      >
 
       <div class="d-inline-flex">
         <fields-menu v-model="showFields" :field-list="fieldList" :is-locked="isLocked" />
@@ -84,7 +64,7 @@
             fieldsOrder,
             fieldFilter,
             sortList,
-            showFields
+            showFields,
           }"
           :selected-view="selectedView"
           :is-view="true"
@@ -92,20 +72,13 @@
           @webhook="showAdditionalFeatOverlay('webhooks')"
         />
       </div>
-      <v-spacer class="h-100" @dblclick="debug=true" />
+      <v-spacer class="h-100" @dblclick="debug = true" />
 
       <template>
         <debug-metas v-if="debug" class="mr-3" />
         <lock-menu v-if="_isUIAllowed('view-type')" v-model="viewStatus.type" />
-        <v-icon small class="mx-n1" color="grey lighten-1">
-          mdi-circle-small
-        </v-icon>
-        <x-icon
-          tooltip="Reload view data"
-          icon.class="nc-table-reload-btn mx-1"
-          small
-          @click="loadTableData"
-        >
+        <v-icon small class="mx-n1" color="grey lighten-1"> mdi-circle-small </v-icon>
+        <x-icon tooltip="Reload view data" icon.class="nc-table-reload-btn mx-1" small @click="loadTableData">
           mdi-reload
         </x-icon>
       </template>
@@ -115,28 +88,24 @@
         outlined
         small
         text
-        :btn-class="{ 'primary lighten-5 nc-toggle-nav-drawer' : !toggleDrawer}"
+        :btn-class="{ 'primary lighten-5 nc-toggle-nav-drawer': !toggleDrawer }"
         @click="toggleDrawer = !toggleDrawer"
       >
-        <v-icon
-          small
-          class="mx-0"
-          color="grey  darken-3"
-        >
+        <v-icon small class="mx-0" color="grey  darken-3">
           {{ toggleDrawer ? 'mdi-door-closed' : 'mdi-door-open' }}
         </v-icon>
       </x-btn>
     </v-toolbar>
     <div
       :class="`cell-height-${cellHeight}`"
-      style="overflow:auto;transition: width 500ms ;height : calc(100% - 36px)"
+      style="overflow: auto; transition: width 500ms; height: calc(100% - 36px)"
       class="d-flex backgroundColor"
     >
       <div class="flex-grow-1 h-100" style="overflow-y: auto">
-        <div ref="table" style="  overflow: auto;width:100%; height: calc(100% - 36px);">
+        <div ref="table" style="overflow: auto; width: 100%; height: calc(100% - 36px)">
           <v-skeleton-loader v-if="loadingData" type="table" />
 
-          <template v-else-if="selectedView && (selectedView.type === 'view' || selectedView.show_as === 'grid' )">
+          <template v-else-if="selectedView && (selectedView.type === 'view' || selectedView.show_as === 'grid')">
             <xc-grid-view
               :columns-width.sync="columnsWidth"
               :meta="meta"
@@ -146,11 +115,11 @@
               :belongs-to="[]"
               :has-many="[]"
               :is-public-view="true"
-              :nodes="{dbAlias:''}"
+              :nodes="{ dbAlias: '' }"
               :sql-ui="sqlUi"
             />
           </template>
-          <template v-else-if="selectedView && selectedView.show_as === 'gallery' ">
+          <template v-else-if="selectedView && selectedView.show_as === 'gallery'">
             <gallery-view
               :nodes="nodes"
               :table="table"
@@ -161,7 +130,7 @@
               :primary-value-column="primaryValueColumn"
             />
           </template>
-          <template v-else-if="selectedView && selectedView.show_as === 'kanban' ">
+          <template v-else-if="selectedView && selectedView.show_as === 'kanban'">
             <kanban-view
               :nodes="nodes"
               :table="table"
@@ -172,7 +141,7 @@
               :primary-value-column="primaryValueColumn"
             />
           </template>
-          <template v-else-if="selectedView && selectedView.show_as === 'calendar' ">
+          <template v-else-if="selectedView && selectedView.show_as === 'calendar'">
             <calendar-view
               :nodes="nodes"
               :table="table"
@@ -235,31 +204,26 @@
       </spreadsheet-nav-drawer>
     </div>
 
-    <additional-features
-      v-model="showAddFeatOverlay"
-      :nodes="nodes"
-      :type="featureType"
-    />
+    <additional-features v-model="showAddFeatOverlay" :nodes="nodes" :type="featureType" />
   </v-container>
 </template>
 
 <script>
-
-import debounce from 'debounce'
-import { SqlUI } from '@/helpers/sqlUi/SqlUiFactory'
-import FieldsMenu from '~/components/project/spreadsheet/components/FieldsMenu'
-import SortListMenu from '~/components/project/spreadsheet/components/SortListMenu'
-import ColumnFilterMenu from '~/components/project/spreadsheet/components/ColumnFilterMenu'
-import XcGridView from '~/components/project/spreadsheet/views/GridView'
-import SpreadsheetNavDrawer from '~/components/project/spreadsheet/components/SpreadsheetNavDrawer'
-import GalleryView from '~/components/project/spreadsheet/views/GalleryView'
-import KanbanView from '~/components/project/spreadsheet/views/KanbanView'
-import CalendarView from '~/components/project/spreadsheet/views/CalendarView'
-import AdditionalFeatures from '~/components/project/spreadsheet/overlay/AdditinalFeatures'
-import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet'
-import MoreActions from '~/components/project/spreadsheet/components/MoreActions'
-import ShareViewMenu from '~/components/project/spreadsheet/components/ShareViewMenu'
-import LockMenu from '~/components/project/spreadsheet/components/LockMenu'
+import debounce from 'debounce';
+import { SqlUI } from '@/helpers/sqlUi/SqlUiFactory';
+import FieldsMenu from '~/components/project/spreadsheet/components/FieldsMenu';
+import SortListMenu from '~/components/project/spreadsheet/components/SortListMenu';
+import ColumnFilterMenu from '~/components/project/spreadsheet/components/ColumnFilterMenu';
+import XcGridView from '~/components/project/spreadsheet/views/GridView';
+import SpreadsheetNavDrawer from '~/components/project/spreadsheet/components/SpreadsheetNavDrawer';
+import GalleryView from '~/components/project/spreadsheet/views/GalleryView';
+import KanbanView from '~/components/project/spreadsheet/views/KanbanView';
+import CalendarView from '~/components/project/spreadsheet/views/CalendarView';
+import AdditionalFeatures from '~/components/project/spreadsheet/overlay/AdditinalFeatures';
+import spreadsheet from '@/components/project/spreadsheet/mixins/spreadsheet';
+import MoreActions from '~/components/project/spreadsheet/components/MoreActions';
+import ShareViewMenu from '~/components/project/spreadsheet/components/ShareViewMenu';
+import LockMenu from '~/components/project/spreadsheet/components/LockMenu';
 
 export default {
   name: 'Spreadsheet',
@@ -275,7 +239,7 @@ export default {
     FieldsMenu,
     ShareViewMenu,
     MoreActions,
-    LockMenu
+    LockMenu,
   },
   mixins: [spreadsheet],
   props: {
@@ -286,12 +250,12 @@ export default {
     relation: Object,
     relationIdValue: [String, Number],
     refTable: String,
-    relationPrimaryValue: [String, Number]
+    relationPrimaryValue: [String, Number],
   },
   data: () => ({
     columnsWidth: null,
-    syncDataDebounce: debounce(async function(self) {
-      await self.syncData()
+    syncDataDebounce: debounce(async function (self) {
+      await self.syncData();
     }, 500),
     fieldsOrder: [],
     showAddFeatOverlay: false,
@@ -313,11 +277,11 @@ export default {
     navDrawer: true,
     selected: {
       row: null,
-      col: null
+      col: null,
     },
     editEnabled: {
       row: null,
-      col: null
+      col: null,
     },
     page: 1,
     count: 0,
@@ -328,83 +292,103 @@ export default {
     cellHeight: 'small',
 
     isAnyFieldHidden: false,
-    opList: ['is equal', 'is not equal', 'is like', 'is not like', 'is empty', 'is not empty', 'is null', 'is not null'],
+    opList: [
+      'is equal',
+      'is not equal',
+      'is like',
+      'is not like',
+      'is empty',
+      'is not empty',
+      'is null',
+      'is not null',
+    ],
     spreadsheet: null,
     options: {
       allowToolbar: true,
-      columnSorting: false
+      columnSorting: false,
     },
     filteredData: [],
     showFields: {},
     // fieldList: [],
 
-    cellHeights: [{
-      size: 'small',
-      icon: 'mdi-view-headline'
-    }, {
-      size: 'medium',
-      icon: 'mdi-view-sequential'
-    }, {
-      size: 'large',
-      icon: 'mdi-view-stream'
-    }, {
-      size: 'xlarge',
-      icon: 'mdi-card'
-    }],
+    cellHeights: [
+      {
+        size: 'small',
+        icon: 'mdi-view-headline',
+      },
+      {
+        size: 'medium',
+        icon: 'mdi-view-sequential',
+      },
+      {
+        size: 'large',
+        icon: 'mdi-view-stream',
+      },
+      {
+        size: 'xlarge',
+        icon: 'mdi-card',
+      },
+    ],
     rowContextMenu: null,
     modelName: null,
     viewStatus: {
-      type: null
-    }
+      type: null,
+    },
   }),
   computed: {
     meta() {
-      return this.$store.state.meta.metas[this.table]
+      return this.$store.state.meta.metas[this.table];
     },
     sqlUi() {
       // todo: replace with correct client
-      return SqlUI.create(this.nodes.dbConnection)
+      return SqlUI.create(this.nodes.dbConnection);
     },
     api() {
-      return this.meta && this.$ncApis.get({
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias,
-        table: this.meta.table_name
-      })
+      return (
+        this.meta &&
+        this.$ncApis.get({
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+          table: this.meta.table_name,
+        })
+      );
     },
     edited() {
-      return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
+      return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed));
     },
     table() {
-      return this.nodes.table_name || this.nodes.view_name
-    }
+      return this.nodes.table_name || this.nodes.view_name;
+    },
   },
   async mounted() {
     try {
-      await this.loadMeta()
-      await this.loadTableData()
+      await this.loadMeta();
+      await this.loadTableData();
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-    this.mapFieldsAndShowFields()
+    this.mapFieldsAndShowFields();
     if (this.data.length) {
       // eslint-disable-next-line no-unused-vars
       const options = {
         ...this.options,
-        columns: [...this.meta.columns.map((col) => {
-          return {
-            readOnly: col.ai,
-            type: typeof this.data[0][col.column_name],
-            title: col.column_name,
-            width: '150px'
-          }
-        }), {
-          type: 'hidden',
-          key: ''
-        }]
-      }
+        columns: [
+          ...this.meta.columns.map(col => {
+            return {
+              readOnly: col.ai,
+              type: typeof this.data[0][col.column_name],
+              title: col.column_name,
+              width: '150px',
+            };
+          }),
+          {
+            type: 'hidden',
+            key: '',
+          },
+        ],
+      };
     }
-    this.searchField = this.primaryValueColumn
+    this.searchField = this.primaryValueColumn;
   },
   created() {
     if (this.relationType === 'hm') {
@@ -412,20 +396,20 @@ export default {
         field: this.relation.column_name,
         op: 'is equal',
         value: this.relationIdValue,
-        readOnly: true
-      })
+        readOnly: true,
+      });
     } else if (this.relationType === 'bt') {
       this.filters.push({
         field: this.relation.rcn,
         op: 'is equal',
         value: this.relationIdValue,
-        readOnly: true
-      })
+        readOnly: true,
+      });
     }
-    document.addEventListener('keydown', this.onKeyDown)
+    document.addEventListener('keydown', this.onKeyDown);
   },
   beforeDestroy() {
-    document.removeEventListener('keydown', this.onKeyDown)
+    document.removeEventListener('keydown', this.onKeyDown);
   },
 
   methods: {
@@ -434,7 +418,7 @@ export default {
     // }, 500),
     async syncData() {
       if (this.relation) {
-        return
+        return;
       }
       try {
         const queryParams = {
@@ -445,74 +429,72 @@ export default {
           viewStatus: this.viewStatus,
           columnsWidth: this.columnsWidth,
           showSystemFields: this.showSystemFields,
-          extraViewParams: this.extraViewParams
-        }
+          extraViewParams: this.extraViewParams,
+        };
 
         if (this.isGallery) {
-          queryParams.coverImageField = this.coverImageField
+          queryParams.coverImageField = this.coverImageField;
         }
 
-        this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams))
+        this.$set(this.selectedView, 'query_params', JSON.stringify(queryParams));
 
         if (!this._isUIAllowed('xcVirtualTableUpdate')) {
-          return
+          return;
         }
         await this.sqlOp({ dbAlias: this.nodes.dbAlias }, 'xcVirtualTableUpdate', {
           id: this.selectedViewId,
           query_params: queryParams,
           table_name: this.meta.table_name,
-          view_name: this.$route.query.view
-        })
+          view_name: this.$route.query.view,
+        });
       } catch (e) {
         // this.$toast.error(e.message).goAway(3000);
       }
     },
     mapFieldsAndShowFields() {
-      this.fieldList = this.availableColumns.map(c => c.title)
+      this.fieldList = this.availableColumns.map(c => c.title);
       this.showFields = this.fieldList.reduce((obj, k) => {
-        obj[k] = true
-        return obj
-      }, {})
+        obj[k] = true;
+        return obj;
+      }, {});
     },
 
     comingSoon() {
-      this.$toast.info('Coming soon!').goAway(3000)
+      this.$toast.info('Coming soon!').goAway(3000);
     },
     makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
-        this.selected = { col, row }
-        this.editEnabled = {}
+        this.selected = { col, row };
+        this.editEnabled = {};
       }
     },
     makeEditable(col, row) {
       if (this.meta.columns[col].ai) {
-        return this.$toast.info('Auto Increment field is not editable').goAway(3000)
+        return this.$toast.info('Auto Increment field is not editable').goAway(3000);
       }
       if (this.meta.columns[col].pk && !this.data[row].rowMeta.new) {
-        return this.$toast.info('Editing primary key not supported').goAway(3000)
+        return this.$toast.info('Editing primary key not supported').goAway(3000);
       }
       if (this.editEnabled.col !== col || this.editEnabled.row !== row) {
-        this.editEnabled = { col, row }
+        this.editEnabled = { col, row };
       }
     },
 
     async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
-      console.log(metaKey, key, altKey, shiftKey, ctrlKey)
+      console.log(metaKey, key, altKey, shiftKey, ctrlKey);
       // ctrl + s -> save
       // ctrl + l -> reload
       // ctrl + n -> new
-      switch ([
-        this._isMac ? metaKey : ctrlKey,
-        key].join('_')) {
-        case 'true_s' :
-          this.edited && await this.save()
-          break
-        case 'true_l' :
-          await this.loadTableData()
-          break
-        case 'true_n' :
-          this.insertNewRow(true)
-          break
+      switch ([this._isMac ? metaKey : ctrlKey, key].join('_')) {
+        case 'true_s':
+          this.edited && (await this.save());
+          break;
+        case 'true_l':
+          await this.loadTableData();
+          break;
+        case 'true_n':
+          this.insertNewRow(true);
+          break;
       }
     },
 
@@ -521,46 +503,45 @@ export default {
         field: '',
         op: '',
         value: '',
-        logicOp: 'and'
-      })
-      this.filters = this.filters.slice()
+        logicOp: 'and',
+      });
+      this.filters = this.filters.slice();
     },
     showAdditionalFeatOverlay(feat) {
-      this.showAddFeatOverlay = true
-      this.featureType = feat
+      this.showAddFeatOverlay = true;
+      this.featureType = feat;
     },
     addSort() {
       this.sortList.push({
         field: '',
-        order: ''
-      })
-      this.filters = this.filters.slice()
+        order: '',
+      });
+      this.filters = this.filters.slice();
     },
     showRowContextMenu(e, row, rowMeta, index) {
-      e.preventDefault()
-      this.rowContextMenu = false
+      e.preventDefault();
+      this.rowContextMenu = false;
       this.$nextTick(() => {
         this.rowContextMenu = {
           x: e.clientX,
           y: e.clientY,
           row,
           index,
-          rowMeta
-        }
-      })
+          rowMeta,
+        };
+      });
     },
-    expandRow(row, rowMeta) {
-    },
+    expandRow(row, rowMeta) {},
 
     async loadMeta() {
-      this.loadingMeta = true
+      this.loadingMeta = true;
 
       await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
         table_name: this.table,
-        force: true
-      })
+        force: true,
+      });
 
       // const tableMeta = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   env: this.nodes.env,
@@ -569,36 +550,35 @@ export default {
       //   table_name: this.table
       // }])
       // this.meta = JSON.parse(tableMeta.meta)
-      this.loadingMeta = false
+      this.loadingMeta = false;
     },
     async loadTableData() {
-      this.loadingData = true
-      const { list, count } = await this.api.paginatedList(this.queryParams)
-      this.count = count
+      this.loadingData = true;
+      const { list, count } = await this.api.paginatedList(this.queryParams);
+      this.count = count;
       this.data = list.map(row => ({
         row,
         oldRow: { ...row },
-        rowMeta: {}
-      }))
-      this.loadingData = false
-    }
-  }
-}
+        rowMeta: {},
+      }));
+      this.loadingData = false;
+    },
+  },
+};
 </script>
 <style scoped>
-
 /deep/ .v-input__control .v-input__slot .v-input--selection-controls__input {
-  transform: scale(.85);
+  transform: scale(0.85);
   margin-right: 0;
-
 }
 
-/deep/ .xc-toolbar .v-input__slot, .navigation .v-input__slot {
+/deep/ .xc-toolbar .v-input__slot,
+.navigation .v-input__slot {
   box-shadow: none !important;
 }
 
 /deep/ .navigation .v-input__slot input::placeholder {
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
 
 /deep/ .v-btn {
@@ -607,7 +587,7 @@ export default {
 
 /deep/ .xc-bt-chip {
   margin-right: 12px;
-  transition: .4s margin-right, .4s padding-right;
+  transition: 0.4s margin-right, 0.4s padding-right;
 }
 
 /deep/ .xc-border.search-box {
@@ -616,7 +596,7 @@ export default {
 }
 
 /deep/ .xc-border.search-box .v-input {
-  transition: .4s border-color;
+  transition: 0.4s border-color;
 }
 
 /deep/ .xc-border.search-box .v-input--is-focused {
@@ -644,7 +624,6 @@ export default {
   align-items: center;
   justify-content: center;
 }
-
 </style>
 
 <!--

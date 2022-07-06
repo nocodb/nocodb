@@ -19,33 +19,34 @@ export default {
   name: 'TextAreaCell',
   props: {
     value: String,
-    inputDetails: Object
+    inputDetails: Object,
   },
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     parentListeners() {
-      const $listeners = {}
-      return $listeners
-    }
+      const $listeners = {};
+      return $listeners;
+    },
   },
   created() {
-    this.localState = this.value
+    this.localState = this.value;
   },
   mounted() {
-    this.$refs.textarea.focus()
-  }
-}
+    this.$refs.textarea.focus();
+  },
+};
 </script>
 
 <style scoped>
-input, textarea {
+input,
+textarea {
   color: var(--v-textColor-base);
 }
 </style>

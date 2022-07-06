@@ -23,58 +23,58 @@ export default {
   props: {
     width: {
       type: String,
-      required: true
+      required: true,
     },
     height: {
       type: String,
-      required: true
+      required: true,
     },
     onHover: {
       type: Boolean,
-      default: true
+      default: true,
     },
     onClick: {
       type: Boolean,
-      default: false
+      default: false,
     },
     onTime: {
       type: Number,
-      default: 0
-    }
+      default: 0,
+    },
   },
   data: () => ({
     flipped: false,
     hovered: false,
-    flipTimer: null
+    flipTimer: null,
   }),
   mounted() {
     if (this.onTime > 0) {
       this.flipTimer = setInterval(() => {
         if (!this.hovered) {
-          this.flipped = !this.flipped
+          this.flipped = !this.flipped;
         }
-      }, this.onTime)
+      }, this.onTime);
     }
   },
   unmounted() {
     if (this.flipTimer) {
-      clearInterval(this.flipTimer)
+      clearInterval(this.flipTimer);
     }
   },
   methods: {
     handleHover(val) {
-      this.hovered = val
+      this.hovered = val;
       if (this.onHover) {
-        this.flipped = val
+        this.flipped = val;
       }
     },
     handleClick() {
       if (this.onClick) {
-        this.flipped = !this.flipped
+        this.flipped = !this.flipped;
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style lang="scss" scoped>
@@ -92,7 +92,8 @@ export default {
   transform-style: preserve-3d;
 }
 
-.front, .back {
+.front,
+.back {
   position: absolute;
   width: 100%;
   height: 100%;

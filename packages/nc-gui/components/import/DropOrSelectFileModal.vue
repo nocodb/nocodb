@@ -34,18 +34,13 @@
                 @change="_change($event)"
               >
             </div>-->
-      <drop-or-select-file
-        :accept="accept"
-        :text="text"
-        v-on="$listeners"
-      />
+      <drop-or-select-file :accept="accept" :text="text" v-on="$listeners" />
     </v-card>
   </v-dialog>
 </template>
 
 <script>
-
-import DropOrSelectFile from '~/components/import/DropOrSelectFile'
+import DropOrSelectFile from '~/components/import/DropOrSelectFile';
 
 export default {
   name: 'DropOrSelectFileModal',
@@ -53,22 +48,22 @@ export default {
   props: {
     value: Boolean,
     accept: String,
-    text: String
+    text: String,
   },
   data() {
     return {
-      dragOver: false
-    }
+      dragOver: false,
+    };
   },
   computed: {
     dropOrUpload: {
       set(v) {
-        this.$emit('input', v)
+        this.$emit('input', v);
       },
       get() {
-        return this.value
-      }
-    }
+        return this.value;
+      },
+    },
   },
   methods: {
     /*    _change(event) {
@@ -102,12 +97,11 @@ export default {
       // Prevent default behavior (Prevent file from being opened)
       ev.preventDefault()
     } */
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
-
 /*.nc-droppable {
   width: 100%;
   min-height: 200px;

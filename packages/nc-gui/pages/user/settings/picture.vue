@@ -5,17 +5,14 @@
       <div class="col-xs-offset-1 col-xs-10 col-md-offset-3 col-md-4">
         <form class="signin form-horizontal">
           <fieldset>
-            <div class="form-group text-center">
-            </div>
+            <div class="form-group text-center"></div>
             <div class="text-center form-group">
               <span class="btn btn-primary btn-raised btn-file">
-                Select Image <input type="file" uploader="uploader">
+                Select Image <input type="file" uploader="uploader" />
               </span>
             </div>
             <div class="text-center form-group">
-              <button class="btn btn-primary btn-raised" @click="uploadProfilePicture()">
-                Upload
-              </button>
+              <button class="btn btn-primary btn-raised" @click="uploadProfilePicture()">Upload</button>
               <button class="btn btn-default btn-raised" @click="cancelUpload()">
                 <!-- Cancel -->
                 {{ $t('general.cancel') }}
@@ -30,21 +27,21 @@
 
 <script>
 export default {
-  directives: { },
-  components: { },
-  validate({ params }) { return true },
-  props: { },
+  directives: {},
+  components: {},
+  validate({ params }) {
+    return true;
+  },
+  props: {},
   data() {
-    return {
-
-    }
+    return {};
   },
-  head() { return {} },
-  computed: {
-
+  head() {
+    return {};
   },
-  watch: { },
-  created() { },
+  computed: {},
+  watch: {},
+  created() {},
   mounted() {},
   beforeDestroy() {},
   methods: {
@@ -53,17 +50,14 @@ export default {
     },
     cancelUpload() {
       // console.log('cancelUpload');
-    }
-
+    },
   },
   beforeCreated() {},
-  destroy() {}
-}
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

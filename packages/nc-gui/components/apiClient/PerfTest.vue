@@ -4,19 +4,13 @@
       <template #default>
         <thead>
           <tr>
-            <th class="text-left body-2 grey--text" width="40%">
-              Param Name
-            </th>
-            <th class="text-left body-2 grey--text" width="40%">
-              Value
-            </th>
+            <th class="text-left body-2 grey--text" width="40%">Param Name</th>
+            <th class="text-left body-2 grey--text" width="40%">Value</th>
           </tr>
         </thead>
         <tbody>
           <tr>
-            <td>
-              Connections
-            </td>
+            <td>Connections</td>
             <td>
               <v-text-field
                 v-model="perf.connections"
@@ -31,9 +25,7 @@
             </td>
           </tr>
           <tr>
-            <td>
-              Pipeline
-            </td>
+            <td>Pipeline</td>
             <td>
               <v-text-field
                 v-model="perf.pipelining"
@@ -48,9 +40,7 @@
             </td>
           </tr>
           <tr>
-            <td>
-              Duration
-            </td>
+            <td>Duration</td>
             <td>
               <v-text-field
                 v-model="perf.duration"
@@ -69,13 +59,13 @@
     </v-simple-table>
     <div class="pa-1 text-right">
       <p class="grey--text caption">
-        We are using <a
-          v-ge="['api-client-perf-test','autocannon-link']"
-          @click="open('https://github.com/mcollina/autocannon')"
-        >autocannon</a>
+        We are using
+        <a v-ge="['api-client-perf-test', 'autocannon-link']" @click="open('https://github.com/mcollina/autocannon')"
+          >autocannon</a
+        >
       </p>
 
-      <v-btn v-ge="['api-client-perf-test','clear']" outlined x-small color="warning" @click="$emit('input',{})">
+      <v-btn v-ge="['api-client-perf-test', 'clear']" outlined x-small color="warning" @click="$emit('input', {})">
         Clear All Fields
       </v-btn>
     </div>
@@ -83,36 +73,33 @@
 </template>
 
 <script>
-
 // const {shell} = require("electron").remote.require(
 //   "./libs"
 // );
 export default {
   name: 'PerfTest',
   props: {
-    value: Object
+    value: Object,
   },
   computed: {
     perf: {
       get() {
-        return { ...(this.value || {}) }
+        return { ...(this.value || {}) };
       },
       set(value) {
-        this.$emit('input', value)
-      }
-    }
+        this.$emit('input', value);
+      },
+    },
   },
   methods: {
     open(url) {
       // shell.openExternal(url)
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

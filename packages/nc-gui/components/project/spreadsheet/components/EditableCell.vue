@@ -5,8 +5,8 @@
     @keydown.stop.right
     @keydown.stop.up
     @keydown.stop.down
-    @keydown.stop.enter.exact="$emit('save'),$emit('navigateToNext')"
-    @keydown.stop.shift.enter.exact="$emit('save'),$emit('navigateToPrev')"
+    @keydown.stop.enter.exact="$emit('save'), $emit('navigateToNext')"
+    @keydown.stop.shift.enter.exact="$emit('save'), $emit('navigateToPrev')"
   >
     <editable-attachment-cell
       v-if="isAttachment"
@@ -53,52 +53,23 @@
       v-on="parentListeners"
     />
 
-    <integer-cell
-      v-else-if="isInt"
-      v-model="localState"
-      v-on="parentListeners"
-    />
+    <integer-cell v-else-if="isInt" v-model="localState" v-on="parentListeners" />
 
-    <float-cell
-      v-else-if="isFloat"
-      v-model="localState"
-      v-on="parentListeners"
-    />
+    <float-cell v-else-if="isFloat" v-model="localState" v-on="parentListeners" />
 
-    <date-picker-cell
-      v-else-if="isDate"
-      v-model="localState"
-      :column="column"
-      v-on="parentListeners"
-    />
+    <date-picker-cell v-else-if="isDate" v-model="localState" :column="column" v-on="parentListeners" />
 
-    <time-picker-cell
-      v-else-if="isTime"
-      v-model="localState"
-      v-on="parentListeners"
-      @save="$emit('save')"
-    />
+    <time-picker-cell v-else-if="isTime" v-model="localState" v-on="parentListeners" @save="$emit('save')" />
 
-    <date-time-picker-cell
-      v-else-if="isDateTime"
-      v-model="localState"
-      ignore-focus
-      v-on="parentListeners"
-    />
+    <date-time-picker-cell v-else-if="isDateTime" v-model="localState" ignore-focus v-on="parentListeners" />
 
     <enum-cell
-      v-else-if="isEnum && (( !isForm && !active) || isLocked || (isPublic && !isForm))"
+      v-else-if="isEnum && ((!isForm && !active) || isLocked || (isPublic && !isForm))"
       v-model="localState"
       :column="column"
       v-on="parentListeners"
     />
-    <enum-list-cell
-      v-else-if="isEnum"
-      v-model="localState"
-      :is-form="isForm"
-      :column="column"
-      v-on="parentListeners"
-    />
+    <enum-list-cell v-else-if="isEnum" v-model="localState" :is-form="isForm" :column="column" v-on="parentListeners" />
 
     <json-editable-cell
       v-else-if="isJSON"
@@ -114,23 +85,13 @@
       :column="column"
       v-on="parentListeners"
     />
-    <set-list-cell
-      v-else-if="isSet"
-      v-model="localState"
-      :column="column"
-      v-on="parentListeners"
-    />
+    <set-list-cell v-else-if="isSet" v-model="localState" :column="column" v-on="parentListeners" />
 
     <editable-url-cell v-else-if="isURL" v-model="localState" v-on="parentListeners" />
 
     <text-cell v-else-if="isString" v-model="localState" v-on="parentListeners" />
 
-    <text-area-cell
-      v-else-if="isTextArea"
-      v-model="localState"
-      :is-form="isForm"
-      v-on="parentListeners"
-    />
+    <text-area-cell v-else-if="isTextArea" v-model="localState" :is-form="isForm" v-on="parentListeners" />
 
     <text-cell v-else v-model="localState" v-on="$listeners" />
     <span v-if="hint" class="nc-hint">{{ hint }}</span>
@@ -140,25 +101,25 @@
 </template>
 
 <script>
-import debounce from 'debounce'
-import DatePickerCell from '~/components/project/spreadsheet/components/editableCell/DatePickerCell'
-import EditableUrlCell from '~/components/project/spreadsheet/components/editableCell/EditableUrlCell'
-import JsonEditableCell from '~/components/project/spreadsheet/components/editableCell/JsonEditableCell'
-import TextCell from '~/components/project/spreadsheet/components/editableCell/TextCell'
-import DateTimePickerCell from '~/components/project/spreadsheet/components/editableCell/DateTimePickerCell'
-import TextAreaCell from '~/components/project/spreadsheet/components/editableCell/TextAreaCell'
-import EnumListCell from '~/components/project/spreadsheet/components/editableCell/EnumListEditableCell'
-import IntegerCell from '~/components/project/spreadsheet/components/editableCell/IntegerCell'
-import FloatCell from '~/components/project/spreadsheet/components/editableCell/FloatCell'
-import TimePickerCell from '~/components/project/spreadsheet/components/editableCell/TimePickerCell'
-import BooleanCell from '~/components/project/spreadsheet/components/editableCell/BooleanCell'
-import cell from '@/components/project/spreadsheet/mixins/cell'
-import EditableAttachmentCell from '~/components/project/spreadsheet/components/editableCell/EditableAttachmentCell'
-import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell'
-import SetListEditableCell from '~/components/project/spreadsheet/components/editableCell/SetListEditableCell'
-import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell'
-import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell'
-import DurationCell from '~/components/project/spreadsheet/components/editableCell/DurationCell'
+import debounce from 'debounce';
+import DatePickerCell from '~/components/project/spreadsheet/components/editableCell/DatePickerCell';
+import EditableUrlCell from '~/components/project/spreadsheet/components/editableCell/EditableUrlCell';
+import JsonEditableCell from '~/components/project/spreadsheet/components/editableCell/JsonEditableCell';
+import TextCell from '~/components/project/spreadsheet/components/editableCell/TextCell';
+import DateTimePickerCell from '~/components/project/spreadsheet/components/editableCell/DateTimePickerCell';
+import TextAreaCell from '~/components/project/spreadsheet/components/editableCell/TextAreaCell';
+import EnumListCell from '~/components/project/spreadsheet/components/editableCell/EnumListEditableCell';
+import IntegerCell from '~/components/project/spreadsheet/components/editableCell/IntegerCell';
+import FloatCell from '~/components/project/spreadsheet/components/editableCell/FloatCell';
+import TimePickerCell from '~/components/project/spreadsheet/components/editableCell/TimePickerCell';
+import BooleanCell from '~/components/project/spreadsheet/components/editableCell/BooleanCell';
+import cell from '@/components/project/spreadsheet/mixins/cell';
+import EditableAttachmentCell from '~/components/project/spreadsheet/components/editableCell/EditableAttachmentCell';
+import EnumCell from '~/components/project/spreadsheet/components/cell/EnumCell';
+import SetListEditableCell from '~/components/project/spreadsheet/components/editableCell/SetListEditableCell';
+import SetListCell from '~/components/project/spreadsheet/components/cell/SetListCell';
+import RatingCell from '~/components/project/spreadsheet/components/editableCell/RatingCell';
+import DurationCell from '~/components/project/spreadsheet/components/editableCell/DurationCell';
 
 export default {
   name: 'EditableCell',
@@ -179,7 +140,7 @@ export default {
     DateTimePickerCell,
     TextCell,
     DatePickerCell,
-    DurationCell
+    DurationCell,
   },
   mixins: [cell],
   props: {
@@ -193,49 +154,48 @@ export default {
     hint: String,
     isLocked: Boolean,
     isPublic: Boolean,
-    viewId: String
+    viewId: String,
   },
   data: () => ({
     changed: false,
     destroyed: false,
-    syncDataDebounce: debounce(async function(self) {
-      await self.syncData()
-    }, 1000)
+    syncDataDebounce: debounce(async function (self) {
+      await self.syncData();
+    }, 1000),
   }),
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
         if (val !== this.value) {
-          this.changed = true
-          this.$emit('input', val)
+          this.changed = true;
+          this.$emit('input', val);
           if (this.isAutoSaved) {
-            this.syncDataDebounce(this)
+            this.syncDataDebounce(this);
           } else if (!this.isManualSaved) {
-            this.saveData()
+            this.saveData();
           }
         }
-      }
+      },
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
       if (this.$listeners.cancel) {
-        $listeners.cancel = this.$listeners.cancel
+        $listeners.cancel = this.$listeners.cancel;
       }
 
-      return $listeners
-    }
-
+      return $listeners;
+    },
   },
 
   mounted() {
@@ -243,26 +203,26 @@ export default {
   },
   beforeDestroy() {
     if (this.changed && this.isAutoSaved) {
-      this.changed = false
-      this.$emit('change')
+      this.changed = false;
+      this.$emit('change');
     }
-    this.destroyed = true
+    this.destroyed = true;
   },
   methods: {
     syncData() {
       if (this.changed && !this.destroyed) {
-        this.changed = false
-        this.$emit('update')
+        this.changed = false;
+        this.$emit('update');
       }
     },
     saveData() {
       if (this.changed && !this.destroyed) {
-        this.changed = false
-        this.$emit('save')
+        this.changed = false;
+        this.$emit('save');
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
@@ -273,7 +233,7 @@ div {
 }
 
 .nc-hint {
-  font-size: .61rem;
+  font-size: 0.61rem;
   color: grey;
 }
 

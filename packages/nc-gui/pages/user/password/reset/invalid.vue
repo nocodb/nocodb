@@ -1,23 +1,15 @@
 <template>
   <section class="section container">
     <div class="box">
-      <h3 class="title is-3">
-        Password reset is invalid
-      </h3>
-      <router-link to="/user/password/reset/form">
-        Ask for a new password reset
-      </router-link>
+      <h3 class="title is-3">Password reset is invalid</h3>
+      <router-link to="/user/password/reset/form"> Ask for a new password reset </router-link>
     </div>
 
     <v-row>
       <v-alert v-model="alert" type="warning" dismissible>
-        <h1 class="title is-2">
-          Password reset is invalid
-        </h1>
+        <h1 class="title is-2">Password reset is invalid</h1>
       </v-alert>
-      <router-link to="/user/password/reset/form">
-        Ask for a new password reset
-      </router-link>
+      <router-link to="/user/password/reset/form"> Ask for a new password reset </router-link>
     </v-row>
   </section>
 </template>
@@ -27,34 +19,27 @@ export default {
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   props: {},
   data() {
-    return {}
+    return {};
   },
   head() {
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
-  created() {
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  mounted() {},
+  beforeDestroy() {},
   methods: {},
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

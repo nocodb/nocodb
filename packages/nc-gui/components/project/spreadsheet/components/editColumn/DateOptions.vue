@@ -10,29 +10,29 @@
   />
 </template>
 <script>
-import { dateFormat, validateDateFormat } from '~/helpers/dateFormatHelper'
+import { dateFormat, validateDateFormat } from '~/helpers/dateFormatHelper';
 export default {
   name: 'DateOptions',
   props: ['column', 'meta', 'value'],
   data: () => ({
     colMeta: {
-      date_format: 'YYYY-MM-DD'
+      date_format: 'YYYY-MM-DD',
     },
     dateFormatList: dateFormat,
-    isValidDateFormat: (value) => {
-      return validateDateFormat(value) || 'Invalid Date Format'
-    }
+    isValidDateFormat: value => {
+      return validateDateFormat(value) || 'Invalid Date Format';
+    },
   }),
   watch: {
     value() {
-      this.colMeta = this.value || {}
+      this.colMeta = this.value || {};
     },
     colMeta(v) {
-      this.$emit('input', v)
-    }
+      this.$emit('input', v);
+    },
   },
   created() {
-    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta }
-  }
-}
+    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta };
+  },
+};
 </script>

@@ -25,21 +25,22 @@
       <v-spacer />
       <!-- tooltip="Reload roles" -->
       <x-btn
-        v-ge="['roles','reload']"
+        v-ge="['roles', 'reload']"
         outlined
         :tooltip="$t('activity.reloadRoles')"
         color="primary"
         small
         :disabled="loading"
-        @click="loadRoles(); loadAggrAcl();"
+        @click="
+          loadRoles();
+          loadAggrAcl();
+        "
       >
-        <v-icon small left>
-          refresh
-        </v-icon>
+        <v-icon small left> refresh </v-icon>
         {{ $t('general.reload') }}
       </x-btn>
       <x-btn
-        v-ge="['roles','add new']"
+        v-ge="['roles', 'add new']"
         outlined
         tooltip="Add new role"
         color="primary"
@@ -48,26 +49,21 @@
         @click="comingSoon"
         @click.prevent
       >
-        <v-icon small left>
-          mdi-plus
-        </v-icon>
+        <v-icon small left> mdi-plus </v-icon>
         <!--New Role-->
         {{ $t('activity.newRole') }}
       </x-btn>
       <x-btn
-        v-ge="['rows','save']"
+        v-ge="['rows', 'save']"
         outlined
         :tooltip="$t('tooltip.saveChanges')"
         color="primary"
         small
         :disabled="loading || !edited"
-
         @click="save"
         @click.prevent
       >
-        <v-icon small left>
-          save
-        </v-icon>
+        <v-icon small left> save </v-icon>
         <!-- Save -->
         {{ $t('general.save') }}
       </x-btn>
@@ -75,35 +71,29 @@
     <div class="" style="width: 100%">
       <div class="d-flex justify-center mx-auto">
         <v-card class="flex-shrink-1" style="">
-          <v-simple-table dense style="width: auto;min-width:500px">
+          <v-simple-table dense style="width: auto; min-width: 500px">
             <thead>
               <tr>
-                <th>
-                  Role Name
-                </th>
+                <th>Role Name</th>
 
-                <th>
-                  Role Description
-                </th>
+                <th>Role Description</th>
                 <th />
-              <!--           <th v-for="op in operations">
+                <!--           <th v-for="op in operations">
                            {{ op }}
                          </th>-->
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(role,i) in roles" :key="role.title">
+              <tr v-for="(role, i) in roles" :key="role.title">
                 <td>
-                  <v-edit-dialog
-                    lazy
-                  >
+                  <v-edit-dialog lazy>
                     <v-chip small :color="colors[i % colors.length]">
                       {{ role.title }}
                     </v-chip>
                     <template #input>
                       <v-text-field
                         v-model="role.title"
-                        v-ge="['roles','title']"
+                        v-ge="['roles', 'title']"
                         :disabled="role.type === 'SYSTEM'"
                         :label="$t('general.edit')"
                         single-line
@@ -113,14 +103,12 @@
                   </v-edit-dialog>
                 </td>
                 <td>
-                  <v-edit-dialog
-                    lazy
-                  >
+                  <v-edit-dialog lazy>
                     <span> {{ role.description }}</span>
                     <template #input>
                       <v-text-field
                         v-model="role.description"
-                        v-ge="['roles','title']"
+                        v-ge="['roles', 'title']"
                         :disabled="role.type === 'SYSTEM'"
                         :label="$t('general.edit')"
                         single-line
@@ -136,21 +124,16 @@
                     small
                     color="error"
                     tooltip="Delete role"
-                    @click="(deleteId = role.id,deleteIndex =i, showConfirmDlg =true)"
+                    @click="(deleteId = role.id), (deleteIndex = i), (showConfirmDlg = true)"
                   >
                     mdi-delete-forever
                   </x-icon>
-                  <x-icon
-                    v-else
-                    small
-                    tooltip="System defined role can't be edited"
-                    color="info"
-                  >
+                  <x-icon v-else small tooltip="System defined role can't be edited" color="info">
                     mdi-information-outline
                   </x-icon>
                 </td>
 
-              <!--  <td v-for="op in operations">
+                <!--  <td v-for="op in operations">
                   <v-tooltip
                     bottom
 
@@ -184,8 +167,8 @@
 </template>
 
 <script>
-import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel'
-import colors from '@/mixins/colors'
+import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel';
+import colors from '@/mixins/colors';
 
 export default {
   name: 'Roles',
@@ -199,42 +182,38 @@ export default {
     showConfirmDlg: false,
     deleteId: null,
     deleteIndex: null,
-    aggrAcl: null
-
+    aggrAcl: null,
   }),
   computed: {
     operations() {
-      return [
-        'create',
-        'read',
-        'update',
-        'delete'
-      ]
+      return ['create', 'read', 'update', 'delete'];
     },
     customRolesCount() {
-      return (this.roles && this.roles.filter(r => r.type !== 'SYSTEM').length) || 0
-    }
+      return (this.roles && this.roles.filter(r => r.type !== 'SYSTEM').length) || 0;
+    },
   },
   async created() {
-    await this.loadRoles()
-    await this.loadAggrAcl()
+    await this.loadRoles();
+    await this.loadAggrAcl();
   },
   methods: {
     async loadRoles() {
       try {
-        this.roles = (await this.$axios.get('/admin/roles', {
-          headers: {
-            'xc-auth': this.$store.state.users.token
-          },
-          params: {
-            project_id: this.$route.params.project_id
-          }
-        })).data
+        this.roles = (
+          await this.$axios.get('/admin/roles', {
+            headers: {
+              'xc-auth': this.$store.state.users.token,
+            },
+            params: {
+              project_id: this.$route.params.project_id,
+            },
+          })
+        ).data;
       } catch (e) {
-        this.$toast.error('Failed loading role list').goAway(3000)
+        this.$toast.error('Failed loading role list').goAway(3000);
       }
 
-      this.edited = false
+      this.edited = false;
     },
     async loadAggrAcl() {
       /*      try {
@@ -249,18 +228,22 @@ export default {
     addRole() {
       this.roles.push({
         title: ('role name ' + (this.customRolesCount || '')).trim(),
-        description: 'Role description'
-      })
-      this.edited = true
-      this.scrollAndFocusLastRow()
+        description: 'Role description',
+      });
+      this.edited = true;
+      this.scrollAndFocusLastRow();
     },
     async save() {
       try {
-        await this.$axios.put('/admin/roles', { roles: this.roles }, {
-          headers: {
-            'xc-auth': this.$store.state.users.token
+        await this.$axios.put(
+          '/admin/roles',
+          { roles: this.roles },
+          {
+            headers: {
+              'xc-auth': this.$store.state.users.token,
+            },
           }
-        })
+        );
 
         /*        await this.$store.dispatch('sqlMgr/ActSqlOp', [
                   // todo: manage dbAlias or get aggregated
@@ -276,55 +259,53 @@ export default {
         //   // todo: handle all dbs
         //   dbAlias: this.$store.state.project.authDbAlias
         // }, 'projectSaveOrUpdateRoles', ]);
-        this.$toast.success('Successfully saved all changes').goAway(3000)
+        this.$toast.success('Successfully saved all changes').goAway(3000);
       } catch (e) {
-        this.$toast.error(e.response.data.msg).goAway(3000)
+        this.$toast.error(e.response.data.msg).goAway(3000);
       }
-      await this.loadRoles()
-      await this.loadAggrAcl()
+      await this.loadRoles();
+      await this.loadAggrAcl();
     },
     async confirmDelete(hideDialog) {
       if (hideDialog) {
-        this.showConfirmDlg = false
-        return
+        this.showConfirmDlg = false;
+        return;
       }
       if (this.deleteId) {
         try {
           await this.$axios.delete('/admin/roles/' + this.deleteId, {
             headers: {
-              'xc-auth': this.$store.state.users.token
-            }
-          })
-          this.$toast.success('Successfully deleted role').goAway(3000)
+              'xc-auth': this.$store.state.users.token,
+            },
+          });
+          this.$toast.success('Successfully deleted role').goAway(3000);
         } catch (e) {
-          this.$toast.error('Failed deleting the role').goAway(3000)
+          this.$toast.error('Failed deleting the role').goAway(3000);
         }
-        await this.loadRoles()
+        await this.loadRoles();
       } else {
-        this.roles.splice(this.deleteIndex, 1)
+        this.roles.splice(this.deleteIndex, 1);
       }
-      this.showConfirmDlg = false
+      this.showConfirmDlg = false;
     },
     scrollAndFocusLastRow() {
       this.$nextTick(() => {
-        document.querySelector('.project-container').scrollTop = 9999
-        const menuActivator = this.$el && this.$el.querySelector('tr:last-child .v-small-dialog__activator__content')
+        document.querySelector('.project-container').scrollTop = 9999;
+        const menuActivator = this.$el && this.$el.querySelector('tr:last-child .v-small-dialog__activator__content');
         if (menuActivator) {
-          menuActivator.click()
+          menuActivator.click();
           this.$nextTick(() => {
-            const inputField = document.querySelector('.menuable__content__active input')
-            inputField && inputField.select()
-          })
+            const inputField = document.querySelector('.menuable__content__active input');
+            inputField && inputField.select();
+          });
         }
-      })
-    }
-  }
-}
+      });
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -1,5 +1,5 @@
 <template>
-  <v-container fluid class="h-100 d-100" style="overflow:auto ">
+  <v-container fluid class="h-100 d-100" style="overflow: auto">
     <kanban-board
       :stages="kanban.groupingColumnItems"
       :blocks="kanban.blocks"
@@ -9,18 +9,14 @@
       <div v-for="stage in kanban.groupingColumnItems" :slot="stage" :key="stage" class="mx-auto">
         <enum-cell :value="stage" :column="groupingFieldColumn" />
       </div>
-      <div v-for="(block) in kanban.blocks" :slot="block.id" :key="block.c_pk" class="caption">
-        <v-hover v-slot="{hover}">
-          <v-card
-            class="h-100"
-            :elevation="hover ? 4 : 1"
-            @click="$emit('expandKanbanForm', {rowIdx: block.c_pk})"
-          >
+      <div v-for="block in kanban.blocks" :slot="block.id" :key="block.c_pk" class="caption">
+        <v-hover v-slot="{ hover }">
+          <v-card class="h-100" :elevation="hover ? 4 : 1" @click="$emit('expandKanbanForm', { rowIdx: block.c_pk })">
             <v-card-text>
               <v-container>
                 <v-row class="">
                   <v-col
-                    v-for="(col) in fields"
+                    v-for="col in fields"
                     v-show="showFields[col.title]"
                     :key="col.title"
                     class="kanban-col col-12"
@@ -33,12 +29,7 @@
                         :is-form="true"
                         :meta="meta"
                       />
-                      <header-cell
-                        v-else
-                        :is-form="true"
-                        :value="col.title"
-                        :column="col"
-                      />
+                      <header-cell v-else :is-form="true" :value="col.title" :column="col" />
                     </label>
                     <virtual-cell
                       v-if="col.virtual"
@@ -72,11 +63,9 @@
           class="primary"
           x-small
           fab
-          @click="insertNewRow(true, true, {[groupingField]: stage})"
+          @click="insertNewRow(true, true, { [groupingField]: stage })"
         >
-          <v-icon small>
-            mdi-plus
-          </v-icon>
+          <v-icon small> mdi-plus </v-icon>
         </x-btn>
         <!-- <x-btn
           v-else
@@ -94,7 +83,7 @@
         </x-btn> -->
         <div class="record-cnt caption grey--text">
           {{ kanban.recordCnt[stage] }} / {{ kanban.recordTotalCnt[stage] }}
-          {{ kanban.recordTotalCnt[stage] > 1 ? "records" : "record" }}
+          {{ kanban.recordTotalCnt[stage] > 1 ? 'records' : 'record' }}
         </div>
       </div>
     </kanban-board>
@@ -102,11 +91,11 @@
 </template>
 
 <script>
-import VirtualHeaderCell from '../components/VirtualHeaderCell'
-import HeaderCell from '../components/HeaderCell'
-import VirtualCell from '../components/VirtualCell'
-import TableCell from '../components/Cell'
-import EnumCell from '../components/cell/EnumCell'
+import VirtualHeaderCell from '../components/VirtualHeaderCell';
+import HeaderCell from '../components/HeaderCell';
+import VirtualCell from '../components/VirtualCell';
+import TableCell from '../components/Cell';
+import EnumCell from '../components/cell/EnumCell';
 export default {
   name: 'KanbanView',
   components: { TableCell, VirtualCell, HeaderCell, VirtualHeaderCell, EnumCell },
@@ -121,99 +110,116 @@ export default {
     'showSystemFields',
     'sqlUi',
     'groupingField',
-    'api'
+    'api',
   ],
   computed: {
     fields() {
       if (this.availableColumns) {
-        return this.availableColumns
+        return this.availableColumns;
       }
       if (this.showSystemFields) {
-        return this.meta.columns || []
+        return this.meta.columns || [];
       }
-      const hideCols = ['created_at', 'updated_at']
-      return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.column_name) &&
-        !((this.meta.v || []).some(v => v.bt && v.bt.column_name === c.column_name))
-      ) || []
+      const hideCols = ['created_at', 'updated_at'];
+      return (
+        this.meta.columns.filter(
+          c =>
+            !(c.pk && c.ai) &&
+            !hideCols.includes(c.column_name) &&
+            !(this.meta.v || []).some(v => v.bt && v.bt.column_name === c.column_name)
+        ) || []
+      );
     },
     groupingFieldColumn() {
-      return this.fields.filter(f => f.title === this.groupingField)[0]
-    }
+      return this.fields.filter(f => f.title === this.groupingField)[0];
+    },
   },
   mounted() {
-    const kbListElements = document.querySelectorAll('.drag-inner-list')
-    kbListElements.forEach((kbListEle) => {
-      kbListEle.addEventListener('scroll', async(e) => {
+    const kbListElements = document.querySelectorAll('.drag-inner-list');
+    kbListElements.forEach(kbListEle => {
+      kbListEle.addEventListener('scroll', async e => {
         if (kbListEle.scrollTop + kbListEle.clientHeight >= kbListEle.scrollHeight) {
-          const groupingFieldVal = kbListEle.getAttribute('data-status')
-          this.$emit('loadMoreKanbanData', groupingFieldVal)
+          const groupingFieldVal = kbListEle.getAttribute('data-status');
+          this.$emit('loadMoreKanbanData', groupingFieldVal);
         }
-      })
-    })
+      });
+    });
   },
   methods: {
     async updateBlock(c_pk, status) {
       try {
         if (!this.api) {
-          this.$toast.error('API not found', {
-            position: 'bottom-center'
-          }).goAway(3000)
-          return
+          this.$toast
+            .error('API not found', {
+              position: 'bottom-center',
+            })
+            .goAway(3000);
+          return;
         }
 
         // update kanban block
-        const targetBlock = this.kanban.blocks.find(b => b.c_pk === c_pk)
+        const targetBlock = this.kanban.blocks.find(b => b.c_pk === c_pk);
         if (!targetBlock) {
-          this.$toast.error(`Block with ID ${c_pk} not found`, {
-            position: 'bottom-center'
-          }).goAway(3000)
-          return
+          this.$toast
+            .error(`Block with ID ${c_pk} not found`, {
+              position: 'bottom-center',
+            })
+            .goAway(3000);
+          return;
         }
 
         if (targetBlock.status === status) {
           // no change
-          return
+          return;
         }
 
-        const uncategorized = 'Uncategorized'
-        const prevStatus = targetBlock.status
-        await this.api.update(c_pk,
+        const uncategorized = 'Uncategorized';
+        const prevStatus = targetBlock.status;
+        await this.api.update(
+          c_pk,
           { [this.groupingField]: status === uncategorized ? null : status }, // new data
-          { [this.groupingField]: prevStatus }) // old data
+          { [this.groupingField]: prevStatus }
+        ); // old data
 
-        this.$set(targetBlock, 'status', status)
-        this.$set(targetBlock, this.groupingField, status === uncategorized ? null : status)
+        this.$set(targetBlock, 'status', status);
+        this.$set(targetBlock, this.groupingField, status === uncategorized ? null : status);
 
         // update kanban data
-        const kanbanRow = this.kanban.data.find(d => d.row.c_pk === c_pk)
+        const kanbanRow = this.kanban.data.find(d => d.row.c_pk === c_pk);
         if (kanbanRow) {
-          this.$set(kanbanRow.row, this.groupingField, status === uncategorized ? null : status)
+          this.$set(kanbanRow.row, this.groupingField, status === uncategorized ? null : status);
         }
-        this.$set(this.kanban.recordCnt, prevStatus, this.kanban.recordCnt[prevStatus] - 1)
-        this.$set(this.kanban.recordCnt, status, this.kanban.recordCnt[status] + 1)
-        this.$set(this.kanban.recordTotalCnt, prevStatus, this.kanban.recordTotalCnt[prevStatus] - 1)
-        this.$set(this.kanban.recordTotalCnt, status, this.kanban.recordTotalCnt[status] + 1)
-        this.$forceUpdate()
-        this.$toast.success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
-          position: 'bottom-center'
-        }).goAway(3000)
+        this.$set(this.kanban.recordCnt, prevStatus, this.kanban.recordCnt[prevStatus] - 1);
+        this.$set(this.kanban.recordCnt, status, this.kanban.recordCnt[status] + 1);
+        this.$set(this.kanban.recordTotalCnt, prevStatus, this.kanban.recordTotalCnt[prevStatus] - 1);
+        this.$set(this.kanban.recordTotalCnt, status, this.kanban.recordTotalCnt[status] + 1);
+        this.$forceUpdate();
+        this.$toast
+          .success(`Moved block from ${prevStatus} to ${status ?? uncategorized} successfully.`, {
+            position: 'bottom-center',
+          })
+          .goAway(3000);
       } catch (e) {
         if (e.response && e.response.data && e.response.data.msg) {
-          this.$toast.error(e.response.data.msg, {
-            position: 'bottom-center'
-          }).goAway(3000)
+          this.$toast
+            .error(e.response.data.msg, {
+              position: 'bottom-center',
+            })
+            .goAway(3000);
         } else {
-          this.$toast.error(`Failed to update block : ${e.message}`, {
-            position: 'bottom-center'
-          }).goAway(3000)
+          this.$toast
+            .error(`Failed to update block : ${e.message}`, {
+              position: 'bottom-center',
+            })
+            .goAway(3000);
         }
       }
     },
     insertNewRow(atEnd = false, expand = false, presetValues = {}) {
-      this.$emit('insertNewRow', atEnd, expand, presetValues)
-    }
-  }
-}
+      this.$emit('insertNewRow', atEnd, expand, presetValues);
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -226,7 +232,8 @@ export default {
     overflow-y: scroll;
   }
 
-  ul.drag-list, ul.drag-inner-list {
+  ul.drag-list,
+  ul.drag-inner-list {
     list-style-type: none;
     margin: 0;
     padding: 0;
@@ -262,7 +269,7 @@ export default {
     text-align: center;
   }
 
-/*  .drag-column-footer .v-btn {
+  /*  .drag-column-footer .v-btn {
     border-radius: 50%;
     border: 2px solid;
     padding: 0px 0px 0px 6px;
@@ -391,18 +398,17 @@ export default {
       .drag-column {
         display: flex;
         flex-direction: column;
-        max-height: max(400px,100%);
+        max-height: max(400px, 100%);
 
         .drag-inner-list {
           overflow-y: auto;
           overflow-x: hidden;
           min-height: 200px;
-          flex-grow: 1
+          flex-grow: 1;
         }
       }
     }
   }
-
 }
 </style>
 

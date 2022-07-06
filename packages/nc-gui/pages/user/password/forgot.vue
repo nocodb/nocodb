@@ -13,7 +13,7 @@
         <v-card v-else class="pa-5 elevation-10" color="">
           <h1>{{ $t('title.resetPassword') }}</h1>
 
-          <br>
+          <br />
           <p>{{ $t('msg.info.passwordRecovery.message_1') }}</p>
           <p>{{ $t('msg.info.passwordRecovery.message_2') }}</p>
 
@@ -24,19 +24,9 @@
           </div>
 
           <v-form ref="formType" v-model="valid" lazy-validation>
-            <v-text-field
-              v-model="form.email"
-              label="E-mail"
-              :rules="formRules.email"
-              required
-            />
+            <v-text-field v-model="form.email" label="E-mail" :rules="formRules.email" required />
 
-            <v-btn
-              color="primary"
-              large
-              :disabled="!valid"
-              @click="resetPasswordHandle"
-            >
+            <v-btn color="primary" large :disabled="!valid" @click="resetPasswordHandle">
               {{ $t('activity.sendEmail') }}
             </v-btn>
           </v-form>
@@ -48,7 +38,7 @@
 
 <script>
 // import VueRecaptcha from 'vue-recaptcha'
-import { isEmail } from '@/helpers'
+import { isEmail } from '@/helpers';
 
 export default {
   directives: {},
@@ -56,7 +46,7 @@ export default {
     // VueRecaptcha
   },
   validate({ params }) {
-    return true
+    return true;
   },
   props: {},
 
@@ -66,72 +56,61 @@ export default {
       showMsg: false,
 
       form: {
-        email: ''
+        email: '',
       },
 
       formRules: {
         email: [
           v => !!v || this.$t('msg.error.signUpRules.emailReqd'),
-          v => isEmail(v) || this.$t('msg.error.signUpRules.emailInvalid')
-        ]
+          v => isEmail(v) || this.$t('msg.error.signUpRules.emailInvalid'),
+        ],
       },
       formUtil: {
         formErr: false,
-        formErrMsg: ''
+        formErrMsg: '',
       },
 
       valid: true,
-      e3: false
-
-    }
+      e3: false,
+    };
   },
   head() {
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
-  created() {
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  mounted() {},
+  beforeDestroy() {},
   methods: {
     onNormalVerify() {
-      this.recpatcha = true
+      this.recpatcha = true;
     },
     async resetPasswordHandle(e) {
       if (this.$refs.formType.validate()) {
-        e.preventDefault()
+        e.preventDefault();
         // await this.$recaptchaLoaded()
         // const recaptchaToken = await this.$recaptcha('login')
         try {
-          await this.$api.auth.passwordForgot(
-            {
-              email: this.form.email
-            }
-          )
-          this.showMsg = true
+          await this.$api.auth.passwordForgot({
+            email: this.form.email,
+          });
+          this.showMsg = true;
         } catch (e) {
-          const err = await this._extractSdkResponseErrorMsg(e)
-          this.formUtil.formErr = true
-          this.formUtil.formErrMsg = err
+          const err = await this._extractSdkResponseErrorMsg(e);
+          this.formUtil.formErr = true;
+          this.formUtil.formErrMsg = err;
           return;
         }
       }
-    }
-
+    },
   },
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

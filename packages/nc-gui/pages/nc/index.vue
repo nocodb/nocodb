@@ -1,7 +1,7 @@
 <template>
   <v-container fluid class="pa-0 ma-0" style="overflow: auto">
     <!--    <trialExpired v-if="$store.getters['settings/GtrHasTrialPeriodExpired']"></trialExpired>-->
-    <splitpanes style="height:calc(100vh - 48px)" class="xc-theme">
+    <splitpanes style="height: calc(100vh - 48px)" class="xc-theme">
       <pane min-size="10" :size="paneSize" max-size="50" style="overflow: auto">
         <ProjectTreeView />
       </pane>
@@ -25,9 +25,9 @@
   </v-container>
 </template>
 <script>
-import { Splitpanes, Pane } from 'splitpanes'
-import ProjectTabs from '~/components/ProjectTabs'
-import ProjectTreeView from '@/components/ProjectTreeView'
+import { Splitpanes, Pane } from 'splitpanes';
+import ProjectTabs from '~/components/ProjectTabs';
+import ProjectTreeView from '@/components/ProjectTreeView';
 // import ProjectLogs from "~/components/ProjectLogs";
 // import ProjectOutput from "~/components/ProjectOutput";
 // import trialExpired from "../../components/trialExpired";
@@ -39,7 +39,7 @@ export default {
     // ProjectLogs,
     // ProjectOutput,
     Splitpanes,
-    Pane
+    Pane,
     // trialExpired
 
     //   Multipane,
@@ -48,8 +48,8 @@ export default {
   data() {
     return {
       paneSize: 20,
-      mainPanelSize: 80
-    }
+      mainPanelSize: 80,
+    };
   },
 
   computed: {},
@@ -63,8 +63,10 @@ export default {
     // this.$store.dispatch('users/ActSetUserAbility');
     this.$store.watch(
       state => state.panelSize.treeView && state.panelSize.treeView.size,
-      (newSize) => { this.paneSize = newSize }
-    )
+      newSize => {
+        this.paneSize = newSize;
+      }
+    );
     //
     // this.$store.watch(
     //   (state) => !state.settings.outputWindow && !state.settings.logWindow,
@@ -74,12 +76,9 @@ export default {
     // )
   },
 
-  mounted() {
-
-  },
-  methods: {}
-
-}
+  mounted() {},
+  methods: {},
+};
 </script>
 <style scoped>
 /deep/ .splitpanes__splitter {

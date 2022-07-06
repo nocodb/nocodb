@@ -1,48 +1,45 @@
 <template>
-  <input
-    v-model="localValue"
-    :placeholder="durationPlaceholder"
-    readonly
-  >
+  <input v-model="localValue" :placeholder="durationPlaceholder" readonly />
 </template>
 
 <script>
-import { durationOptions, convertMS2Duration } from '~/helpers/durationHelper'
+import { durationOptions, convertMS2Duration } from '~/helpers/durationHelper';
 
 export default {
   name: 'DurationCell',
   props: {
     column: Object,
-    value: [String, Number]
+    value: [String, Number],
   },
   data: () => ({
     showWarningMessage: false,
-    localValue: null
+    localValue: null,
   }),
   computed: {
     durationPlaceholder() {
-      return durationOptions[this.column?.meta?.duration || 0].title
-    }
+      return durationOptions[this.column?.meta?.duration || 0].title;
+    },
   },
   watch: {
     'column.meta.duration'(newValue, oldValue) {
       if (oldValue !== newValue) {
-        this.localValue = convertMS2Duration(this.value, newValue)
+        this.localValue = convertMS2Duration(this.value, newValue);
       }
     },
     value(val, oldVal) {
-      this.localValue = convertMS2Duration(val !== oldVal && (!val && val !== 0) ? oldVal : val, this.column?.meta?.duration || 0)
-    }
+      this.localValue = convertMS2Duration(
+        val !== oldVal && !val && val !== 0 ? oldVal : val,
+        this.column?.meta?.duration || 0
+      );
+    },
   },
   created() {
-    this.localValue = convertMS2Duration(this.value, this.column?.meta?.duration || 0)
-  }
-}
+    this.localValue = convertMS2Duration(this.value, this.column?.meta?.duration || 0);
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 
 <!--
 /**

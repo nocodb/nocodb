@@ -1,9 +1,7 @@
 <template>
   <section class="section container">
     <div class="box">
-      <h1 class="title is-1">
-        Unauthorized
-      </h1>
+      <h1 class="title is-1">Unauthorized</h1>
       <div class="notification is-danger">
         <button class="delete" />
         You are not authorized to access this resource
@@ -14,34 +12,30 @@
 
 <script>
 export default {
-  directives: { },
-  components: { },
-  validate({ params }) { return true },
-  props: { },
+  directives: {},
+  components: {},
+  validate({ params }) {
+    return true;
+  },
+  props: {},
   data() {
-    return {
-
-    }
+    return {};
   },
-  head() { return {} },
-  computed: {
-
+  head() {
+    return {};
   },
-  watch: { },
-  created() { },
+  computed: {},
+  watch: {},
+  created() {},
   mounted() {},
   beforeDestroy() {},
-  methods: {
-
-  },
+  methods: {},
   beforeCreated() {},
-  destroy() {}
-}
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

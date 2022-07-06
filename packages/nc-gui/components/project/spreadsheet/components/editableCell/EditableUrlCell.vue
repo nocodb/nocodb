@@ -1,54 +1,53 @@
 <template>
-  <input v-model="localState" v-on="parentListeners">
+  <input v-model="localState" v-on="parentListeners" />
 </template>
 
 <script>
-import { isValidURL } from '@/helpers'
+import { isValidURL } from '@/helpers';
 
 export default {
   name: 'EditableUrlCell',
   props: {
     value: String,
-    column: Object
+    column: Object,
   },
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        if (!(
-          this.column &&
-          this.column.meta &&
-          this.column.meta.validate
-        ) || isValidURL(val)) { this.$emit('input', val) }
-      }
+        if (!(this.column && this.column.meta && this.column.meta.validate) || isValidURL(val)) {
+          this.$emit('input', val);
+        }
+      },
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
       if (this.$listeners.cancel) {
-        $listeners.cancel = this.$listeners.cancel
+        $listeners.cancel = this.$listeners.cancel;
       }
 
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   mounted() {
-    this.$el.focus()
-  }
-}
+    this.$el.focus();
+  },
+};
 </script>
 
 <style scoped>
-input, textarea {
+input,
+textarea {
   width: 100%;
   height: 100%;
   color: var(--v-textColor-base);

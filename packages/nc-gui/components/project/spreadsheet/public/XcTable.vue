@@ -49,7 +49,7 @@
           />
 
           <more-actions
-            v-if="allowDownload"
+            v-if="allowCSVDownload"
             :is-view="isView"
             :query-params="{...queryParams, showFields, fieldsOrder}"
             :public-view-id="$route.params.id"
@@ -227,7 +227,7 @@ export default {
     rowContextMenu: null,
     modelName: null,
     tableMeta: null,
-    allowDownload: true,
+    allowCSVDownload: true,
   }),
   computed: {
     concatenatedXWhere() {
@@ -404,7 +404,7 @@ export default {
         this.sorts = this.viewMeta.sorts
         this.viewName = this.viewMeta.title
         this.client = this.viewMeta.client
-        this.allowDownload = this.viewMeta.download
+        this.allowCSVDownload = JSON.parse(this.viewMeta.meta).allowCSVDownload
       } catch (e) {
         if (e.response && e.response.status === 404) {
           this.notFound = true

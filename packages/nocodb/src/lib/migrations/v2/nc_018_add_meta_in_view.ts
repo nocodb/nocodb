@@ -3,13 +3,13 @@ import { MetaTable } from '../../utils/globals';
 
 const up = async (knex: Knex) => {
   await knex.schema.alterTable(MetaTable.VIEWS, (table) => {
-    table.boolean('download').defaultTo(true);
+    table.text('meta');
   });
 };
 
 const down = async (knex) => {
   await knex.schema.alterTable(MetaTable.VIEWS, (table) => {
-    table.dropColumns('download');
+    table.dropColumns('meta');
   });
 };
 

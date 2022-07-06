@@ -51,8 +51,8 @@
                 </template>
               </td>
               <td class="caption text-center">
-                <template v-if="'download' in currentView">
-                  <span>{{ ~~currentView.download === 1 ? '✔️' : '❌' }}</span>
+                <template v-if="'meta' in currentView">
+                  <span>{{ (~~(JSON.parse(currentView.meta).allowCSVDownload) === 1) ? '✔️' : '❌' }}</span>
                 </template>
               </td>
               <td class="caption">
@@ -94,8 +94,8 @@
                   </template>
                 </td>
                 <td class="caption text-center">
-                  <template v-if="'download' in link">
-                    <span>{{ ~~link.download === 1 ? '✔️' : '❌' }}</span>
+                  <template v-if="'meta' in link">
+                    <span>{{ ~~((JSON.parse(link.meta)).allowCSVDownload) === 1 ? '✔️' : '❌' }}</span>
                   </template>
                 </td>
                 <td class="caption">

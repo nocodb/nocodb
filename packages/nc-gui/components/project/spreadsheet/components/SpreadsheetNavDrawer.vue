@@ -443,12 +443,12 @@
                 </div>
                 <v-checkbox
                   v-if="selectedView && selectedView.type === viewTypes.GRID"
-                  v-model="allowDownload"
+                  v-model="allowCSVDownload"
                   class="caption"
                   label="Allow Download"
                   hide-details
                   dense
-                  @change="onAllowDownloadChange"
+                  @change="onAllowCSVDownloadChange"
                 />
               </v-expansion-panel-content>
             </v-expansion-panel>
@@ -525,7 +525,7 @@ export default {
     searchQueryVal: '',
     showShareLinkPassword: false,
     passwordProtect: false,
-    allowDownload: true,
+    allowCSVDownload: true,
     sharedViewPassword: '',
     overAdvShieldIcon: false,
     overShieldIcon: false,
@@ -724,8 +724,8 @@ export default {
         this.saveShareLinkPassword()
       }
     },
-    onAllowDownloadChange() {
-      this.saveAllowDownload()
+    onAllowCSVDownloadChange() {
+      this.saveAllowCSVDownload()
     },
     async saveShareLinkPassword() {
       try {
@@ -750,10 +750,12 @@ export default {
 
       this.$e('a:view:share:enable-pwd')
     },
-    async saveAllowDownload() {
+    async saveAllowCSVDownload() {
       try {
+        const meta = JSON.parse(this.shareLink.meta)
+        meta.allowCSVDownload = this.allowCSVDownload
         await this.$api.dbViewShare.update(this.shareLink.id, {
-          download: this.allowDownload
+          meta: JSON.stringify(meta)
         })
         this.$toast.success('Successfully updated').goAway(3000)
       } catch (e) {
@@ -761,10 +763,10 @@ export default {
           .error(await this._extractSdkResponseErrorMsg(e))
           .goAway(3000)
       }
-      if (this.allowDownload) {
-        this.$e('a:view:share:enable-download')
+      if (this.allowCSVDownload) {
+        this.$e('a:view:share:enable-csv-download')
       } else {
-        this.$e('a:view:share:disable-download')
+        this.$e('a:view:share:disable-csv-download')
       }
     },
     async loadViews() {
@@ -872,7 +874,7 @@ export default {
       // todo: url
       this.shareLink = shared
       this.passwordProtect = shared.password !== null
-      this.allowDownload = shared.download
+      this.allowCSVDownload = JSON.parse(shared.meta).allowCSVDownload
       this.showShareModel = true
     },
     copyView(view, i) {

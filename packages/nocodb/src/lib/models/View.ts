@@ -42,7 +42,7 @@ export default class View implements ViewType {
   project_id?: string;
   base_id?: string;
   show_system_fields?: boolean;
-  download?: boolean;
+  meta?: string;
 
   constructor(data: View) {
     Object.assign(this, data);
@@ -615,7 +615,30 @@ export default class View implements ViewType {
         viewId
       );
     }
-
+    if (!view.meta) {
+      const defaultMeta = {
+        allowCSVDownload: true
+      }
+      // get existing cache
+      const key = `${CacheScope.VIEW}:${view.id}`;
+      const o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
+      if (o) {
+        // update data
+        o.meta = JSON.stringify(defaultMeta);
+        // set cache
+        await NocoCache.set(key, o);
+      }
+      // set meta
+      await ncMeta.metaUpdate(
+        null,
+        null,
+        MetaTable.VIEWS,
+        {
+          meta: JSON.stringify(defaultMeta),
+        },
+        viewId
+      );
+    }
     return view;
   }
 
@@ -685,7 +708,7 @@ export default class View implements ViewType {
       'show_system_fields',
       'lock_type',
       'password',
-      'download',
+      'meta',
       'uuid',
     ]);
     // get existing cache

@@ -9,7 +9,15 @@ export default defineNuxtConfig({
 
   ssr: false,
 
-  css: ['virtual:windi.css', 'virtual:windi-devtools', 'vuetify/lib/styles/main.sass'],
+  css: [
+    'virtual:windi.css',
+    'virtual:windi-devtools',
+    'vuetify/lib/styles/main.sass',
+    '~/assets/style/fonts.css',
+    '~/assets/css/global.css',
+    '~/assets/style/style.css',
+    '~/assets/style.css',
+  ],
 
   build: {
     transpile: ['vuetify'],

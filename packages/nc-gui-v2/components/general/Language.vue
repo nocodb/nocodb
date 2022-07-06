@@ -33,40 +33,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-menu top offset-y>
+  <v-menu>
     <template #activator="{ props }">
-      <MaterialSymbolsTranslate style="cursor: pointer" @click="props.onClick" />
+      <MaterialSymbolsTranslate class="md:text-xl cursor-pointer" @click="props.onClick" />
     </template>
-    <v-list dense class="nc-language-list">
-      <v-list-item v-for="lang in languages" :key="lang.value" dense :value="lang" color="primary" @click="changeLanguage(lang)">
-        <v-list-item-subtitle class="text-capitalize">
+    <v-list class="min-w-50 max-h-90vh overflow-auto !py-0 scrollbar-thin-primary">
+      <v-list-item v-for="lang of languages" :key="lang.value" class="!min-h-8 group" :value="lang" @click="changeLanguage(lang)">
+        <v-list-item-subtitle class="capitalize md:(!leading-8) group-hover:(text-primary font-semibold)">
           {{ Languages[lang] || lang }}
         </v-list-item-subtitle>
       </v-list-item>
+
       <v-divider />
+
       <v-list-item>
         <a
           href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
           target="_blank"
-          class="caption"
+          class="caption py-2 text-primary underline hover:opacity-75"
         >
-          <!-- Help translate -->
           {{ $t('activity.translate') }}
         </a>
       </v-list-item>
     </v-list>
   </v-menu>
 </template>
-
-<style scoped lang="scss">
-::v-deep {
-  .nc-language-list {
-    min-width: 200px;
-    max-height: 90vh;
-    overflow: auto;
-    .v-list-item {
-      min-height: 30px !important;
-    }
-  }
-}
-</style>

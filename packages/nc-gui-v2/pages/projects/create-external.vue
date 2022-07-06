@@ -39,7 +39,7 @@ const createProject = async () => {
       external: true
     });
 
-    await $router.push(`/dashboard/${result.id}`);
+    await $router.push(`/nc/${result.id}`);
   } catch (e: any) {
     // todo: toast
     toast.error(await extractSdkResponseErrorMsg(e));

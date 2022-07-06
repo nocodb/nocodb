@@ -12,7 +12,7 @@ export const percentOptions = [
 
 export const renderPercent = (value, percentOption) => {
   if (!value) { return value }
-  return padPercentSymbol(Number(value).toFixed(percentOption))
+  return padPercentSymbol((Number(value) * 100).toFixed(percentOption))
 }
 
 export const isValidPercent = (val) => {

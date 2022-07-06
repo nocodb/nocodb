@@ -43,7 +43,7 @@ export default {
         if (val === null) { val = 0 }
         const p = val.replace(/%/g, '')
         if (isValidPercent(p)) {
-          this.percent = p
+          this.percent = p / 100
         }
       }
     },

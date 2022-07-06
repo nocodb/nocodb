@@ -289,7 +289,9 @@ export default {
         this.view = this.viewMeta.view
         this.meta = this.viewMeta.model
         this.metas = this.viewMeta.relatedMetas
-        this.columns = this.meta.columns.filter(c => c.show).filter(col => !isVirtualCol(col))
+        this.columns = this.meta.columns
+          .filter(c => c.show)
+          .filter(col => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord)
         this.client = this.viewMeta.client
       } catch (e) {
         if (e.response && e.response.status === 404) {

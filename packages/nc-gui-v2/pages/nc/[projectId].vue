@@ -15,10 +15,12 @@ onMounted(async () => {
 watch(
   () => route.params.projectId,
   async (newVal, oldVal) => {
-    if (newVal && newVal !== oldVal) {
+    if (newVal !== oldVal) {
       clearTabs()
-      await loadProject(newVal as string)
-      await loadTables()
+      if(newVal) {
+        await loadProject(newVal as string)
+        await loadTables()
+      }
     }
   },
 )

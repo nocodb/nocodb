@@ -6,7 +6,7 @@ body,
 }
 
 html, body {
-  @apply scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-green-500 scrollbar-track-black;
+  @apply scrollbar-thin-primary;
 }
 
 .shake-btn {

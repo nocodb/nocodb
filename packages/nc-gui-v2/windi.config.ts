@@ -19,6 +19,10 @@ export default defineConfig({
 
   plugins: [scrollbar, formsPlugin, typographyPlugin, aspectRatioPlugin, lineClampPlugin],
 
+  shortcuts: {
+    'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
+  },
+
   theme: {
     fontFamily: {
       sans: ['Vazirmatn', 'sans-serif'],

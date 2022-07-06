@@ -767,6 +767,10 @@ export default {
           // return this.$toast.info('Coming Soon...').goAway(3000)
         }
 
+        if (this.newColumn.uidt === UITypes.Percent && this.newColumn?.meta?.defaultNumber) {
+          this.newColumn.cdf = this.newColumn?.meta?.defaultNumber
+        }
+
         if (this.isLinkToAnotherRecord && this.$refs.relation) {
           await this.$refs.relation.saveRelation()
           return this.$emit('saved')

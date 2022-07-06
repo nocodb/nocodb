@@ -7,11 +7,7 @@ export class PagedResponseImpl<T> {
       limit = 25,
       offset = 0,
       count = null,
-    }: {
-      limit?: number;
-      offset?: number;
-      count?: number;
-    } = {}
+    }: { limit?: number; offset?: number; count?: number } = {}
   ) {
     this.list = list;
     if (count !== null) {

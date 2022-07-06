@@ -15,10 +15,8 @@
 
 <script>
 export default {
-  name: 'Discord'
-}
+  name: 'Discord',
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

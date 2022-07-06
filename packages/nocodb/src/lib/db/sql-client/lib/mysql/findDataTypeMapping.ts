@@ -1,4 +1,4 @@
-export const mapDataType = function(type) {
+export const mapDataType = function (type) {
   switch (type) {
     case 'int':
     case 'tinyint':

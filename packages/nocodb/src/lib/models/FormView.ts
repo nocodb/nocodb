@@ -40,7 +40,7 @@ export default class FormView implements FormType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.FORM_VIEW, {
-        fk_view_id: viewId
+        fk_view_id: viewId,
       });
       await NocoCache.set(`${CacheScope.FORM_VIEW}:${viewId}`, view);
     }
@@ -61,7 +61,7 @@ export default class FormView implements FormType {
       banner_image_url: view.banner_image_url,
       logo_url: view.logo_url,
       submit_another_form: view.submit_another_form,
-      show_blank_form: view.show_blank_form
+      show_blank_form: view.show_blank_form,
     };
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);
@@ -110,10 +110,10 @@ export default class FormView implements FormType {
         banner_image_url: body.banner_image_url,
         logo_url: body.logo_url,
         submit_another_form: body.submit_another_form,
-        show_blank_form: body.show_blank_form
+        show_blank_form: body.show_blank_form,
       },
       {
-        fk_view_id: formId
+        fk_view_id: formId,
       }
     );
   }

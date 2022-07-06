@@ -16,7 +16,7 @@ export default class GqlMiddleware {
 
     if (middleWareBody) {
       Object.defineProperty(this, 'middleware', {
-        value: this.generateResolverFromStringBody(middleWareBody)
+        value: this.generateResolverFromStringBody(middleWareBody),
       });
     }
   }
@@ -30,7 +30,7 @@ export default class GqlMiddleware {
       return;
     }
     // @ts-ignore
-    let handler = args => {
+    let handler = (args) => {
       return null;
     };
 
@@ -46,11 +46,11 @@ export default class GqlMiddleware {
 
   // @ts-ignore
   public async middleware(_args, { req, res, next }, info: any): Promise<any> {
-    const replaceEnvVarRec = obj => {
+    const replaceEnvVarRec = (obj) => {
       return JSON.parse(JSON.stringify(obj), (_key, value) => {
         return typeof value === 'string'
           ? Handlebars.compile(value, { noEscape: true })({
-              req
+              req,
               // : {
               //   user: {id: 1} // (req as any).user
               // }
@@ -107,7 +107,7 @@ export default class GqlMiddleware {
       const columns = this.acl[role][operation].columns;
       if (columns) {
         // todo: merge allowed columns if multiple roles
-        const allowedCols = Object.keys(columns).filter(col => columns[col]);
+        const allowedCols = Object.keys(columns).filter((col) => columns[col]);
         res.locals.xcAcl = { allowedCols, operation, columns };
 
         if (
@@ -150,7 +150,7 @@ export default class GqlMiddleware {
 
     const roles = (req as any)?.locals?.user?.roles ??
       (req as any)?.session?.passport?.user?.roles ?? {
-        guest: true
+        guest: true,
       };
 
     try {

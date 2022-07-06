@@ -4,7 +4,7 @@
       <v-spacer />
 
       <x-btn
-        v-ge="['roles','reload']"
+        v-ge="['roles', 'reload']"
         outlined
         tooltip="Reload log settings"
         color="primary"
@@ -13,20 +13,21 @@
         @click="load"
         @click.prevent
       >
-        <v-icon small left>
-          refresh
-        </v-icon>
+        <v-icon small left> refresh </v-icon>
         <!-- Reload -->
         {{ $t('general.reload') }}
       </x-btn>
       <x-btn
-        v-ge="['roles','add new']"
+        v-ge="['roles', 'add new']"
         outlined
         tooltip="Toggle all checkbox"
         color="primary"
         small
         :disabled="loading"
-        @click="toggleAll = !toggleAll; edited=true"
+        @click="
+          toggleAll = !toggleAll;
+          edited = true;
+        "
         @click.prevent
       >
         <v-icon small left>
@@ -35,25 +36,22 @@
         Toggle All
       </x-btn>
       <x-btn
-        v-ge="['rows','save']"
+        v-ge="['rows', 'save']"
         outlined
         :tooltip="$t('tooltip.saveChanges')"
         color="primary"
         small
         :disabled="!edited || loading"
-
         @click="save"
         @click.prevent
       >
-        <v-icon small left>
-          save
-        </v-icon>
+        <v-icon small left> save </v-icon>
         <!-- Save -->
         {{ $t('general.save') }}
       </x-btn>
     </v-toolbar>
     <div class="d-flex justify-center pa-2">
-      <v-simple-table dense style="min-width: 500px;margin:0 auto">
+      <v-simple-table dense style="min-width: 500px; margin: 0 auto">
         <thead>
           <tr>
             <th />
@@ -79,50 +77,47 @@ export default {
   data: () => ({
     names: null,
     loading: false,
-    edited: false
+    edited: false,
   }),
   computed: {
     toggleAll: {
       get() {
-        return this.names && Object.values(this.names).some(v => v)
+        return this.names && Object.values(this.names).some(v => v);
       },
       set(val) {
-        this.names && Object.keys(this.names).forEach(k => this.$set(this.names, k, val))
-      }
-    }
+        this.names && Object.keys(this.names).forEach(k => this.$set(this.names, k, val));
+      },
+    },
   },
   async created() {
-    await this.load()
+    await this.load();
   },
   methods: {
     async load() {
-      this.loading = true
+      this.loading = true;
       try {
-        const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcDebugGet'])
-        this.names = JSON.parse(res.value)
-      } catch (e) {
-      }
+        const res = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcDebugGet']);
+        this.names = JSON.parse(res.value);
+      } catch (e) {}
 
-      this.loading = false
+      this.loading = false;
     },
     async save() {
-      this.loading = true
+      this.loading = true;
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcDebugSet', this.names])
-        this.$toast.success('Updated debug log settings successfully').goAway(3000)
-        this.edited = false
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcDebugSet', this.names]);
+        this.$toast.success('Updated debug log settings successfully').goAway(3000);
+        this.edited = false;
       } catch (e) {
-        this.$toast.error('Some error occurred while updating debug log settings').goAway(3000)
+        this.$toast.error('Some error occurred while updating debug log settings').goAway(3000);
       }
-      this.loading = false
-    }
-  }
-}
+      this.loading = false;
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

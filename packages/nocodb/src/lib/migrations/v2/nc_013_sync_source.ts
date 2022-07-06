@@ -2,11 +2,8 @@ import Knex from 'knex';
 import { MetaTable } from '../../utils/globals';
 
 const up = async (knex: Knex) => {
-  await knex.schema.createTable(MetaTable.SYNC_SOURCE, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.SYNC_SOURCE, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('title');
     table.string('type');
@@ -23,11 +20,8 @@ const up = async (knex: Knex) => {
     table.timestamps(true, true);
   });
 
-  await knex.schema.createTable(MetaTable.SYNC_LOGS, table => {
-    table
-      .string('id', 20)
-      .primary()
-      .notNullable();
+  await knex.schema.createTable(MetaTable.SYNC_LOGS, (table) => {
+    table.string('id', 20).primary().notNullable();
 
     table.string('project_id', 128);
     table.string('fk_sync_source_id', 20);
@@ -43,7 +37,7 @@ const up = async (knex: Knex) => {
   });
 };
 
-const down = async knex => {
+const down = async (knex) => {
   await knex.schema.dropTable(MetaTable.SYNC_SOURCE);
 };
 

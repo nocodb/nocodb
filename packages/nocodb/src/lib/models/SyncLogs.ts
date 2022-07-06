@@ -16,13 +16,13 @@ export default class SyncLogs {
   static async list(projectId: string, ncMeta = Noco.ncMeta) {
     const syncLogs = await ncMeta.metaList(null, null, MetaTable.SYNC_LOGS, {
       condition: {
-        project_id: projectId
+        project_id: projectId,
       },
       orderBy: {
-        created_at: 'asc'
-      }
+        created_at: 'asc',
+      },
     });
-    return syncLogs?.map(h => new SyncLogs(h));
+    return syncLogs?.map((h) => new SyncLogs(h));
   }
 
   public static async insert(
@@ -39,7 +39,7 @@ export default class SyncLogs {
       fk_sync_source_id: syncLog?.fk_sync_source_id,
       time_taken: syncLog?.time_taken,
       status: syncLog?.status,
-      status_details: syncLog?.status_details
+      status_details: syncLog?.status_details,
     };
 
     const { id } = await ncMeta.metaInsert2(

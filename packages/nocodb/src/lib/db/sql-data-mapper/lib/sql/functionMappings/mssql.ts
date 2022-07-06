@@ -17,7 +17,8 @@ const mssql = {
             `\n\tWhen  ${args.pt.arguments
               .filter((_, j) => +i !== j)
               .map(
-                arg1 => `${args.fn(arg).toQuery()} < ${args.fn(arg1).toQuery()}`
+                (arg1) =>
+                  `${args.fn(arg).toQuery()} < ${args.fn(arg1).toQuery()}`
               )
               .join(' And ')} Then ${args.fn(arg).toQuery()}`
           )
@@ -40,7 +41,8 @@ const mssql = {
             `\nWhen  ${args.pt.arguments
               .filter((_, j) => +i !== j)
               .map(
-                arg1 => `${args.fn(arg).toQuery()} > ${args.fn(arg1).toQuery()}`
+                (arg1) =>
+                  `${args.fn(arg).toQuery()} > ${args.fn(arg1).toQuery()}`
               )
               .join(' And ')} Then ${args.fn(arg).toQuery()}`
           )
@@ -54,16 +56,16 @@ const mssql = {
     return args.knex.raw(
       `LOG(${args.pt.arguments
         .reverse()
-        .map(ar => args.fn(ar).toQuery())
+        .map((ar) => args.fn(ar).toQuery())
         .join(',')})${args.colAlias}`
     );
   },
-  MOD: pt => {
+  MOD: (pt) => {
     Object.assign(pt, {
       type: 'BinaryExpression',
       operator: '%',
       left: pt.arguments[0],
-      right: pt.arguments[1]
+      right: pt.arguments[1],
     });
   },
   REPEAT: 'REPLICATE',
@@ -95,13 +97,17 @@ const mssql = {
       `CASE
       WHEN ${fn(pt.arguments[0])} LIKE '%:%' THEN
         FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
-        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])}, ${fn(pt.arguments[0])}), 'yyyy-MM-dd HH:mm')
+        ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])}, ${fn(
+        pt.arguments[0]
+      )}), 'yyyy-MM-dd HH:mm')
       ELSE
        FORMAT(DATEADD(${String(fn(pt.arguments[2])).replace(/["']/g, '')}, 
-       ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])}, ${fn(pt.arguments[0])}), 'yyyy-MM-dd')
+       ${dateIN > 0 ? '+' : ''}${fn(pt.arguments[1])}, ${fn(
+        pt.arguments[0]
+      )}), 'yyyy-MM-dd')
       END${colAlias}`
     );
-  }
+  },
 };
 
 export default mssql;

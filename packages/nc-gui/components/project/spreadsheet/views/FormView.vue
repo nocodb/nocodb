@@ -5,33 +5,24 @@
         <v-col class="d-flex justify-center">
           <div v-if="view" style="min-width: 350px">
             <v-alert type="success" outlined>
-              <span class="title">{{
-                view.success_msg || "Successfully submitted form data"
-              }}</span>
+              <span class="title">{{ view.success_msg || 'Successfully submitted form data' }}</span>
             </v-alert>
-            <p
-              v-if="view.show_blank_form"
-              class="caption grey--text text-center"
-            >
+            <p v-if="view.show_blank_form" class="caption grey--text text-center">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
             <div v-if="view.submit_another_form" class="text-center">
-              <v-btn color="primary" @click="submitted = false">
-                Submit Another Form
-              </v-btn>
+              <v-btn color="primary" @click="submitted = false"> Submit Another Form </v-btn>
             </div>
           </div>
         </v-col>
       </template>
       <template v-else>
         <v-col v-if="isEditable" class="h-100 col-md-4 col-lg-3">
-          <v-card
-            class="h-100 overflow-auto pa-4 pa-md-6 backgroundColor elevation-0 nc-form-left-nav"
-          >
+          <v-card class="h-100 overflow-auto pa-4 pa-md-6 backgroundColor elevation-0 nc-form-left-nav">
             <div class="d-flex grey--text">
               <span class="">
                 <!--Fields-->
-                {{ $t("objects.fields") }}
+                {{ $t('objects.fields') }}
               </span>
               <v-spacer />
               <span
@@ -41,7 +32,7 @@
                 @click="addAllColumns()"
               >
                 <!--Add all-->
-                {{ $t("general.addAll") }}
+                {{ $t('general.addAll') }}
               </span>
               <span
                 v-if="columns.length"
@@ -50,7 +41,7 @@
                 @click="removeAllColumns"
               >
                 <!--Remove all-->
-                {{ $t("general.removeAll") }}
+                {{ $t('general.removeAll') }}
               </span>
             </div>
             <draggable
@@ -70,10 +61,7 @@
                 @mouseup="handleMouseUp(col)"
               >
                 <div class="d-flex">
-                  <label
-                    :for="`data-table-form-${col.title}`"
-                    class="body-2 text-capitalize flex-grow-1"
-                  >
+                  <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize flex-grow-1">
                     <virtual-header-cell
                       v-if="isVirtualCol(col)"
                       class="caption"
@@ -91,32 +79,21 @@
                       :sql-ui="sqlUi"
                     />
                   </label>
-                  <v-icon color="grey">
-                    mdi-drag
-                  </v-icon>
+                  <v-icon color="grey"> mdi-drag </v-icon>
                 </div>
               </v-card>
-              <div
-                class="mt-4 nc-drag-n-drop-to-hide py-3 text-center grey--text text--lighter-1"
-              >
+              <div class="mt-4 nc-drag-n-drop-to-hide py-3 text-center grey--text text--lighter-1">
                 <!--Drag and drop fields here to hide-->
-                {{ $t("msg.info.dragDropHide") }}
+                {{ $t('msg.info.dragDropHide') }}
               </div>
             </draggable>
 
-            <v-menu
-              v-model="addNewColMenu"
-              fixed
-              z-index="99"
-              content-class="elevation-0"
-            >
+            <v-menu v-model="addNewColMenu" fixed z-index="99" content-class="elevation-0">
               <template #activator="{ on }">
                 <div class="grey--text caption text-center mt-4" v-on="on">
-                  <v-icon size="20" color="grey">
-                    mdi-plus
-                  </v-icon>
+                  <v-icon size="20" color="grey"> mdi-plus </v-icon>
                   <!--Add new field to this table-->
-                  {{ $t("activity.addField") }}
+                  {{ $t('activity.addField') }}
                 </div>
               </template>
               <edit-column
@@ -142,9 +119,7 @@
           <!--        </div>-->
           <div class="nc-form-wrapper elevation-3 ma-3 pb-10">
             <div class="mt-10 d-flex align-center justify-center flex-column">
-              <div
-                class="nc-form-banner backgroundColor darken-1 flex-column justify-center d-flex"
-              >
+              <div class="nc-form-banner backgroundColor darken-1 flex-column justify-center d-flex">
                 <div class="d-flex align-center justify-center flex-grow-1">
                   <!--                  <v-chip small color="backgroundColorDefault caption grey&#45;&#45;text">
                     Add cover image
@@ -199,16 +174,9 @@
                     'pb-4': isActiveRow(col),
                   }"
                 >
-                  <div
-                    v-click-outside="() => onClickOutside(col)"
-                    @click="activeRow = col.title"
-                  >
+                  <div v-click-outside="() => onClickOutside(col)" @click="activeRow = col.title">
                     <template v-if="_isUIAllowed('editFormView')">
-                      <v-icon
-                        small
-                        class="nc-field-remove-icon"
-                        @click.stop="hideColumn(i)"
-                      >
+                      <v-icon small class="nc-field-remove-icon" @click.stop="hideColumn(i)">
                         mdi-eye-off-outline
                       </v-icon>
                     </template>
@@ -217,31 +185,19 @@
                       v-if="localParams.fields && localParams.fields[col.title]"
                       :class="{
                         'active-row': active === col.title,
-                        required: isRequired(
-                          col,
-                          localState,
-                          localParams.fields[col.title].required
-                        ),
+                        required: isRequired(col, localState, localParams.fields[col.title].required),
                       }"
                     >
-                      <div
-                        class="nc-field-editables"
-                        :class="{ 'nc-show': isActiveRow(col) }"
-                      >
+                      <div class="nc-field-editables" :class="{ 'nc-show': isActiveRow(col) }">
                         <div class="d-flex align-center pb-2 mt-2">
-                          <v-icon small color="grey">
-                            mdi-drag
-                          </v-icon>
+                          <v-icon small color="grey"> mdi-drag </v-icon>
 
                           <label
                             class="grey--text caption ml-2"
-                            @click="
-                              (col.required = !col.required),
-                              updateColMeta(col, i)
-                            "
+                            @click="(col.required = !col.required), updateColMeta(col, i)"
                           >
                             <!--Required-->
-                            {{ $t("general.required") }}
+                            {{ $t('general.required') }}
                           </label>
                           <v-switch
                             v-model="col.required"
@@ -285,13 +241,7 @@
                           :nodes="nodes"
                           :is-form="true"
                           :meta="meta"
-                          :required="
-                            isRequired(
-                              col,
-                              localState,
-                              localParams.fields[col.title].required
-                            )
-                          "
+                          :required="isRequired(col, localState, localParams.fields[col.title].required)"
                         />
                         <header-cell
                           v-else
@@ -300,13 +250,7 @@
                           :value="col.label || col.title"
                           :column="col"
                           :sql-ui="sqlUi"
-                          :required="
-                            isRequired(
-                              col,
-                              localState,
-                              localParams.fields[col.title].required
-                            )
-                          "
+                          :required="isRequired(col, localState, localParams.fields[col.title].required)"
                         />
                       </label>
                       <div v-if="isVirtualCol(col)" @click.stop>
@@ -324,18 +268,15 @@
                           :is-form="true"
                           :hint="col.description"
                           :required="col.required"
-                          @update:localState="
-                            (state) => $set(virtual, col.title, state)
-                          "
+                          @update:localState="state => $set(virtual, col.title, state)"
                           @updateCol="updateCol"
                         />
                         <div
                           v-if="
                             $v.virtual &&
-                              $v.virtual.$dirty &&
-                              $v.virtual[col.title] &&
-                              (!$v.virtual[col.title].required ||
-                                !$v.virtual[col.alias].minLength)
+                            $v.virtual.$dirty &&
+                            $v.virtual[col.title] &&
+                            (!$v.virtual[col.title].required || !$v.virtual[col.alias].minLength)
                           "
                           class="error--text caption"
                         >
@@ -346,22 +287,15 @@
                         <template
                           v-if="
                             col.bt &&
-                              $v.localState &&
-                              $v.localState.$dirty &&
-                              $v.localState[
-                                meta.columns.find(
-                                  (c) => c.column_name === col.bt.column_name
-                                ).title
-                              ]
+                            $v.localState &&
+                            $v.localState.$dirty &&
+                            $v.localState[meta.columns.find(c => c.column_name === col.bt.column_name).title]
                           "
                         >
                           <div
                             v-if="
-                              !$v.localState[
-                                meta.columns.find(
-                                  (c) => c.column_name === col.bt.column_name
-                                ).title
-                              ].required
+                              !$v.localState[meta.columns.find(c => c.column_name === col.bt.column_name).title]
+                                .required
                             "
                             class="error--text caption"
                           >
@@ -371,27 +305,13 @@
                       </div>
                       <template v-else>
                         <div
-                          v-if="
-                            col.ai ||
-                              (col.pk && !isNew) ||
-                              disabledColumns[col.title]
-                          "
+                          v-if="col.ai || (col.pk && !isNew) || disabledColumns[col.title]"
                           style="height: 100%; width: 100%"
                           class="caption xc-input"
                           @click.stop
-                          @click="
-                            col.ai &&
-                              $toast
-                                .info('Auto Increment field is not editable')
-                                .goAway(3000)
-                          "
+                          @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
                         >
-                          <input
-                            style="height: 100%; width: 100%"
-                            readonly
-                            disabled
-                            :value="localState[col.title]"
-                          >
+                          <input style="height: 100%; width: 100%" readonly disabled :value="localState[col.title]" />
                         </div>
 
                         <div v-else @click.stop>
@@ -409,17 +329,8 @@
                             @blur="active = ''"
                           />
                         </div>
-                        <template
-                          v-if="
-                            $v.localState &&
-                              $v.localState.$dirty &&
-                              $v.localState[col.title]
-                          "
-                        >
-                          <div
-                            v-if="!$v.localState[col.title].required"
-                            class="error--text caption"
-                          >
+                        <template v-if="$v.localState && $v.localState.$dirty && $v.localState[col.title]">
+                          <div v-if="!$v.localState[col.title].required" class="error--text caption">
                             Field is required.
                           </div>
                         </template>
@@ -436,22 +347,13 @@
                 </div>
               </draggable>
               <div class="my-10 text-center">
-                <v-btn
-                  color="primary"
-                  :loading="loading"
-                  :disabled="loading"
-                  @click="save"
-                >
+                <v-btn color="primary" :loading="loading" :disabled="loading" @click="save">
                   <!--Submit-->
-                  {{ $t("general.submit") }}
+                  {{ $t('general.submit') }}
                 </v-btn>
                 <!--            <span class="caption grey&#45;&#45;text pointer">Edit label</span>-->
               </div>
-              <div
-                v-if="isEditable && localParams.submit"
-                style="max-width: 700px"
-                class="mx-auto mt-4 px-4 mb-4"
-              >
+              <div v-if="isEditable && localParams.submit" style="max-width: 700px" class="mx-auto mt-4 px-4 mb-4">
                 <!--            <v-switch v-model="localParams.nocoBranding" dense inset hide-details>
                 <template #label>
                   <span class="caption">Show NocoDB branding</span>
@@ -465,20 +367,13 @@
 
                 <div class="caption grey--text mt-10 mb-2">
                   <!--After form is submitted:-->
-                  {{ $t("msg.info.afterFormSubmitted") }}
+                  {{ $t('msg.info.afterFormSubmitted') }}
                 </div>
                 <label class="caption grey--text font-weight-bold">
                   <!--Show this message:-->
-                  {{ $t("msg.info.showMessage") }}:
+                  {{ $t('msg.info.showMessage') }}:
                 </label>
-                <v-textarea
-                  v-model="view.success_msg"
-                  rows="3"
-                  hide-details
-                  solo
-                  class="caption"
-                  @input="updateView"
-                />
+                <v-textarea v-model="view.success_msg" rows="3" hide-details solo class="caption" @input="updateView" />
 
                 <v-switch
                   v-model="view.submit_another_form"
@@ -492,7 +387,7 @@
                   <template #label>
                     <span class="font-weight-bold grey--text caption">
                       <!--Show "Submit Another Form" button-->
-                      {{ $t("msg.info.submitAnotherForm") }}
+                      {{ $t('msg.info.submitAnotherForm') }}
                     </span>
                   </template>
                 </v-switch>
@@ -508,24 +403,15 @@
                   <template #label>
                     <span class="font-weight-bold grey--text caption">
                       <!--Show a blank form after 5 seconds-->
-                      {{ $t("msg.info.showBlankForm") }}
+                      {{ $t('msg.info.showBlankForm') }}
                     </span>
                   </template>
                 </v-switch>
-                <v-switch
-                  v-model="emailMe"
-                  v-t="[`a:form-view:email-me`]"
-                  dense
-                  inset
-                  hide-details
-                  class="nc-switch"
-                >
+                <v-switch v-model="emailMe" v-t="[`a:form-view:email-me`]" dense inset hide-details class="nc-switch">
                   <template #label>
                     <span class="caption font-weight-bold grey--text">
-                      {{ $t("msg.info.emailForm") }}
-                      <span class="font-eright-bold">{{
-                        $store.state.users.user.email
-                      }}</span>
+                      {{ $t('msg.info.emailForm') }}
+                      <span class="font-eright-bold">{{ $store.state.users.user.email }}</span>
                     </span>
                   </template>
                 </v-switch>
@@ -539,25 +425,20 @@
 </template>
 
 <script>
-import draggable from 'vuedraggable'
-import { validationMixin } from 'vuelidate'
-import { required, minLength } from 'vuelidate/lib/validators'
-import {
-  UITypes,
-  isVirtualCol,
-  RelationTypes,
-  getSystemColumns
-} from 'nocodb-sdk'
-import VirtualHeaderCell from '../components/VirtualHeaderCell'
-import HeaderCell from '../components/HeaderCell'
-import VirtualCell from '../components/VirtualCell'
-import EditableCell from '../components/EditableCell'
-import Editable from '../components/Editable'
-import EditColumn from '../components/EditColumn'
-import form from '../mixins/form'
+import draggable from 'vuedraggable';
+import { validationMixin } from 'vuelidate';
+import { required, minLength } from 'vuelidate/lib/validators';
+import { UITypes, isVirtualCol, RelationTypes, getSystemColumns } from 'nocodb-sdk';
+import VirtualHeaderCell from '../components/VirtualHeaderCell';
+import HeaderCell from '../components/HeaderCell';
+import VirtualCell from '../components/VirtualCell';
+import EditableCell from '../components/EditableCell';
+import Editable from '../components/Editable';
+import EditColumn from '../components/EditColumn';
+import form from '../mixins/form';
 
 // todo: generate hideCols based on default values
-const hiddenCols = ['created_at', 'updated_at']
+const hiddenCols = ['created_at', 'updated_at'];
 
 export default {
   name: 'FormView',
@@ -568,7 +449,7 @@ export default {
     VirtualCell,
     HeaderCell,
     VirtualHeaderCell,
-    draggable
+    draggable,
   },
   mixins: [form, validationMixin],
   props: [
@@ -584,7 +465,7 @@ export default {
     'api',
     'id',
     'viewId',
-    'viewTitle'
+    'viewTitle',
   ],
   data: () => ({
     isVirtualCol,
@@ -601,112 +482,118 @@ export default {
     virtual: {},
     formColumns: [],
     fields: [],
-    view: {}
+    view: {},
     // hiddenColumns: []
   }),
   validations() {
     const obj = {
       localState: {},
-      virtual: {}
-    }
+      virtual: {},
+    };
     for (const column of this.columns) {
-      if (
-        !this.localParams ||
-        !this.localParams.fields ||
-        !this.localParams.fields[column.title]
-      ) {
-        continue
+      if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.title]) {
+        continue;
       }
-      if (!isVirtualCol(column) && (((column.rqd || column.notnull) && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)) {
-        obj.localState[column.title] = { required }
-      } else if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions && column.colOptions.type === RelationTypes.BELONGS_TO) {
-        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
+      if (
+        !isVirtualCol(column) &&
+        (((column.rqd || column.notnull) && !column.cdf) ||
+          (column.pk && !(column.ai || column.cdf)) ||
+          column.required)
+      ) {
+        obj.localState[column.title] = { required };
+      } else if (
+        column.uidt === UITypes.LinkToAnotherRecord &&
+        column.colOptions &&
+        column.colOptions.type === RelationTypes.BELONGS_TO
+      ) {
+        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id);
 
         if ((col && col.rqd && !col.cdf) || column.required) {
-          if (col) { obj.virtual[column.title] = { required } }
+          if (col) {
+            obj.virtual[column.title] = { required };
+          }
         }
       } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title] = {
           minLength: minLength(1),
-          required
-        }
+          required,
+        };
       }
     }
-    return obj
+    return obj;
   },
   computed: {
     systemFieldsIds() {
-      return getSystemColumns(this.fields).map(c => c.fk_column_id)
+      return getSystemColumns(this.fields).map(c => c.fk_column_id);
     },
     emailMe: {
       get() {
         try {
-          const data = JSON.parse(this.view.email)
-          return data[this.$store.state.users.user.email]
+          const data = JSON.parse(this.view.email);
+          return data[this.$store.state.users.user.email];
         } catch (e) {}
-        return false
+        return false;
       },
       set(v) {
-        let data = {}
+        let data = {};
         try {
-          data = JSON.parse(this.view.email) || {}
+          data = JSON.parse(this.view.email) || {};
         } catch (e) {}
-        data[this.$store.state.users.user.email] = v
-        this.view.email = JSON.stringify(data)
-        this.updateView()
-        this.checkSMTPStatus()
-      }
+        data[this.$store.state.users.user.email] = v;
+        this.view.email = JSON.stringify(data);
+        this.updateView();
+        this.checkSMTPStatus();
+      },
     },
     allColumnsLoc() {
-      return this.fields // this.mets.columns.filter(c => !hiddenCols.includes(c.column_name) && !(c.pk && c.ai) && this.meta.belongsTo.every(bt => c.column_name !== bt.column_name))
+      return this.fields; // this.mets.columns.filter(c => !hiddenCols.includes(c.column_name) && !(c.pk && c.ai) && this.meta.belongsTo.every(bt => c.column_name !== bt.column_name))
     },
     isEditable() {
-      return this._isUIAllowed('editFormView')
+      return this._isUIAllowed('editFormView');
     },
     localParams: {
       get() {
-        return this.formParams || {}
+        return this.formParams || {};
       },
       set(params) {
-        this.$emit('update:formParams', params)
-      }
+        this.$emit('update:formParams', params);
+      },
     },
     hiddenColumns: {
       get() {
-        return this.fields.filter(
-          f => !f.show && !this.systemFieldsIds.includes(f.fk_column_id)
-        )
+        return this.fields.filter(f => !f.show && !this.systemFieldsIds.includes(f.fk_column_id));
       },
-      set(v) {}
+      set(v) {},
     },
     columns: {
       get() {
-        return this.fields.filter(f => f.show && f.uidt != UITypes.Rollup && f.uidt != UITypes.Lookup).sort((a, b) => a.order - b.order)
+        return this.fields
+          .filter(f => f.show && f.uidt != UITypes.Rollup && f.uidt != UITypes.Lookup)
+          .sort((a, b) => a.order - b.order);
       },
-      set(v) {}
-    }
+      set(v) {},
+    },
   },
   watch: {
     'meta.columns'() {
-      this.meta.columns.forEach((c) => {
-        this.localParams.fields[c.title] =
-          this.localParams.fields[c.title] || {}
-      })
+      this.meta.columns.forEach(c => {
+        this.localParams.fields[c.title] = this.localParams.fields[c.title] || {};
+      });
     },
     submitted(val) {
       if (val && this.view.show_blank_form) {
-        this.secondsRemain = 5
+        this.secondsRemain = 5;
         const intvl = setInterval(() => {
           if (--this.secondsRemain < 0) {
-            this.submitted = false
-            clearInterval(intvl)
+            this.submitted = false;
+            clearInterval(intvl);
           }
-        }, 1000)
+        }, 1000);
       }
-    }
+    },
   },
   created() {
-    this.loadView()
+    this.loadView();
   },
   mounted() {
     const localParams = Object.assign(
@@ -715,103 +602,96 @@ export default {
         description: 'Form view description',
         submit: {},
         emailMe: {},
-        fields: {}
+        fields: {},
       },
       this.localParams
-    )
-    this.availableColumns.forEach((c) => {
-      localParams.fields[c.title] = localParams.fields[c.title] || {}
-    })
-    this.localParams = localParams
+    );
+    this.availableColumns.forEach(c => {
+      localParams.fields[c.title] = localParams.fields[c.title] || {};
+    });
+    this.localParams = localParams;
     // this.columns = [...this.availableColumns]
     // this.hiddenColumns = this.meta.columns.filter(c => this.availableColumns.find(c1 => c.column_name === c1.column_name && c.title === c1.title))
   },
   methods: {
     onMove(event) {
-      const { newIndex, element, oldIndex } =
-        event.added || event.moved || event.removed
+      const { newIndex, element, oldIndex } = event.added || event.moved || event.removed;
 
       if (event.added) {
-        this.$set(element, 'show', true)
+        this.$set(element, 'show', true);
       }
 
       if (event.removed) {
-        this.$set(element, 'show', false)
-        this.saveOrUpdateOrderOrVisibility(element, oldIndex)
+        this.$set(element, 'show', false);
+        this.saveOrUpdateOrderOrVisibility(element, oldIndex);
       } else {
         if (!this.columns.length || this.columns.length === 1) {
-          this.$set(element, 'order', 1)
+          this.$set(element, 'order', 1);
         } else if (this.columns.length - 1 === newIndex) {
-          this.$set(element, 'order', this.columns[newIndex - 1].order + 1)
+          this.$set(element, 'order', this.columns[newIndex - 1].order + 1);
         } else if (newIndex === 0) {
-          this.$set(element, 'order', this.columns[1].order / 2)
+          this.$set(element, 'order', this.columns[1].order / 2);
         } else {
-          this.$set(
-            element,
-            'order',
-            (this.columns[newIndex - 1].order +
-              this.columns[newIndex + 1].order) /
-              2
-          )
+          this.$set(element, 'order', (this.columns[newIndex - 1].order + this.columns[newIndex + 1].order) / 2);
         }
-        this.saveOrUpdateOrderOrVisibility(element, newIndex)
+        this.saveOrUpdateOrderOrVisibility(element, newIndex);
       }
 
-      this.$e('a:form-view:reorder')
+      this.$e('a:form-view:reorder');
     },
 
     async saveOrUpdateOrderOrVisibility(field, i) {
-      const { fk_view_id, fk_column_id, order, show, id } = field
+      const { fk_view_id, fk_column_id, order, show, id } = field;
 
       if (id) {
         await this.$api.dbViewColumn.update(this.viewId, field.id, {
           fk_view_id,
           fk_column_id,
           order,
-          show
-        })
+          show,
+        });
       } else {
         field.id = (
           await this.$api.dbViewColumn.create(this.viewId, {
             fk_view_id,
             fk_column_id,
             order,
-            show
+            show,
           })
-        ).id
+        ).id;
       }
       this.$emit(
         'update:fieldsOrder',
         this.fields.map(c => c.title)
-      )
+      );
     },
     async updateColMeta(col, i) {
       // todo: introduce debounce to avoid consecutive api call
       if (col.id) {
-        await this.$api.dbView.formColumnUpdate(col.id, col)
+        await this.$api.dbView.formColumnUpdate(col.id, col);
       }
     },
     async updateView() {
       if (this.view.subheading?.length > 255) {
-        this.$toast.error('Data too long for Form Description').goAway(3000)
-        return
+        this.$toast.error('Data too long for Form Description').goAway(3000);
+        return;
       }
-      await this.$api.dbView.formUpdate(this.viewId, this.view)
+      await this.$api.dbView.formUpdate(this.viewId, this.view);
     },
     async loadView() {
-      const { columns, ...view } = await this.$api.dbView.formRead(this.viewId)
-      this.view = view
-      this.formColumns = columns
-      let order = 1
+      const { columns, ...view } = await this.$api.dbView.formRead(this.viewId);
+      this.view = view;
+      this.formColumns = columns;
+      let order = 1;
       const fieldById = this.formColumns.reduce(
         (o, f) => ({
           ...o,
-          [f.fk_column_id]: f
+          [f.fk_column_id]: f,
         }),
         {}
-      )
+      );
 
-      const meta = this.$store.state.meta.metas[this.meta.id]
+      const meta = this.$store.state.meta.metas[this.meta.id];
       this.fields = meta.columns
         .map(c => ({
           ...c,
@@ -819,57 +699,55 @@ export default {
           fk_view_id: this.viewId,
           ...(fieldById[c.id] ? fieldById[c.id] : {}),
           order: (fieldById[c.id] && fieldById[c.id].order) || order++,
-          id: fieldById[c.id] && fieldById[c.id].id
+          id: fieldById[c.id] && fieldById[c.id].id,
         }))
-        .sort((a, b) => a.order - b.order)
+        .sort((a, b) => a.order - b.order);
     },
     hideColumn(i) {
       if (this.isDbRequired(this.columns[i])) {
-        this.$toast.info("Required field can't be removed").goAway(3000)
-        return
+        this.$toast.info("Required field can't be removed").goAway(3000);
+        return;
       }
 
       this.saveOrUpdateOrderOrVisibility(
         {
           ...this.columns[i],
-          show: false
+          show: false,
         },
         i
-      )
-      this.$set(this.columns[i], 'show', false)
+      );
+      this.$set(this.columns[i], 'show', false);
 
-      this.$e('a:form-view:hide-columns')
+      this.$e('a:form-view:hide-columns');
       // this.columns = this.columns.filter((_, j) => i !== j)
     },
     async addAllColumns() {
       for (const col of this.fields) {
         if (!this.systemFieldsIds.includes(col.fk_column_id)) {
-          this.$set(col, 'show', true)
+          this.$set(col, 'show', true);
         }
       }
       await this.$api.dbView.showAllColumn(this.viewId, {
-        ignoreIds: this.systemFieldsIds
-      })
+        ignoreIds: this.systemFieldsIds,
+      });
       // this.columns = [...this.allColumnsLoc]
-      this.$e('a:form-view:add-all')
+      this.$e('a:form-view:add-all');
     },
     async removeAllColumns() {
       for (const col of this.fields) {
         if (this.isDbRequired(col)) {
-          continue
+          continue;
         }
-        this.$set(col, 'show', false)
+        this.$set(col, 'show', false);
       }
       await this.$api.dbView.hideAllColumn(this.viewId, {
-        ignoreIds: this.fields
-          .filter(this.isDbRequired)
-          .map(f => f.fk_column_id)
-      })
-      this.$e('a:form-view:remove-all')
+        ignoreIds: this.fields.filter(this.isDbRequired).map(f => f.fk_column_id),
+      });
+      this.$e('a:form-view:remove-all');
     },
     isDbRequired(column) {
       if (hiddenCols.includes(column.fk_column_id)) {
-        return false
+        return false;
       }
 
       let isRequired =
@@ -887,84 +765,70 @@ export default {
               column.fk_column_id === c.colOptions.fk_child_column_id
           )) ||
         // primary column
-        (column.pk && !column.ai && !column.cdf)
-      if (
-        column.uidt === UITypes.LinkToAnotherRecord &&
-        column.colOptions.type === RelationTypes.BELONGS_TO
-      ) {
-        const col = this.meta.columns.find(
-          c => c.id === column.colOptions.fk_child_column_id
-        )
-        if (
-          (col.rqd && !col.default) ||
-          this.localParams.fields[column.title].required
-        ) {
-          isRequired = true
+        (column.pk && !column.ai && !column.cdf);
+      if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions.type === RelationTypes.BELONGS_TO) {
+        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id);
+        if ((col.rqd && !col.default) || this.localParams.fields[column.title].required) {
+          isRequired = true;
         }
       }
 
-      return isRequired
+      return isRequired;
     },
     async checkSMTPStatus() {
       if (this.emailMe) {
-        const emailPluginActive = await this.$api.plugin.status('SMTP')
+        const emailPluginActive = await this.$api.plugin.status('SMTP');
         if (!emailPluginActive) {
-          this.emailMe = false
-          this.$toast
-            .info(
-              'Please activate SMTP plugin in App store for enabling email notification'
-            )
-            .goAway(5000)
+          this.emailMe = false;
+          this.$toast.info('Please activate SMTP plugin in App store for enabling email notification').goAway(5000);
         }
       }
     },
     updateCol(_, column, id) {
-      this.$set(this.localState, column, id)
+      this.$set(this.localState, column, id);
     },
     isActiveRow(col) {
-      return this.activeRow === col.title
+      return this.activeRow === col.title;
     },
     onClickOutside(col) {
-      this.activeRow = this.activeRow === col.title ? null : this.activeRow
+      this.activeRow = this.activeRow === col.title ? null : this.activeRow;
     },
     handleMouseUp(col) {
       if (!this.moved) {
-        const index = this.columns.length
+        const index = this.columns.length;
         // this.columns = [...this.columns, col]
-        col.order = (index ? this.columns[index - 1].order : 0) + 1
-        this.$set(col, 'show', true)
+        col.order = (index ? this.columns[index - 1].order : 0) + 1;
+        this.$set(col, 'show', true);
         this.$nextTick(() => {
-          this.saveOrUpdateOrderOrVisibility(col, index)
-        })
+          this.saveOrUpdateOrderOrVisibility(col, index);
+        });
       }
     },
     async onNewColCreation(col) {
-      this.addNewColMenu = false
-      this.addNewColModal = false
-      this.$emit('onNewColCreation', col)
+      this.addNewColMenu = false;
+      this.addNewColModal = false;
+      this.$emit('onNewColCreation', col);
       await this.$store.dispatch('meta/ActLoadMeta', {
         env: this.nodes.env,
         dbAlias: this.nodes.dbAlias,
         id: this.meta.id,
-        force: true
-      })
+        force: true,
+      });
 
-      await this.loadView()
+      await this.loadView();
 
-      this.$e('a:form-view:add-new-field')
+      this.$e('a:form-view:add-new-field');
     },
     async save() {
       try {
-        this.$v.$touch()
+        this.$v.$touch();
         if (this.$v.localState.$invalid) {
-          this.$toast
-            .error('Provide values of all required field')
-            .goAway(3000)
+          this.$toast.error('Provide values of all required field').goAway(3000);
 
-          return
+          return;
         }
 
-        this.loading = true
+        this.loading = true;
 
         let data = await this.$api.dbViewRow.create(
           'noco',
@@ -972,37 +836,37 @@ export default {
           this.meta.title,
           this.viewTitle,
           this.localState
-        )
+        );
 
-        data = { ...this.localState, ...data }
+        data = { ...this.localState, ...data };
 
         // save hasmany and manytomany relations from local state
         if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
           for (const vcell of this.$refs.virtual) {
             if (vcell.save) {
-              await vcell.save(data)
+              await vcell.save(data);
             }
           }
         }
 
-        this.virtual = {}
-        this.localState = {}
+        this.virtual = {};
+        this.localState = {};
 
-        this.submitted = true
+        this.submitted = true;
 
         this.$toast
           .success(this.localParams.submit.message || 'Saved successfully.', {
-            position: 'bottom-right'
+            position: 'bottom-right',
           })
-          .goAway(3000)
+          .goAway(3000);
       } catch (e) {
-        console.log(e)
-        this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
+        console.log(e);
+        this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000);
       }
-      this.loading = false
-    }
-  }
-}
+      this.loading = false;
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

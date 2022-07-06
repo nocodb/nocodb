@@ -8,15 +8,15 @@ const input: XcForm = {
       label: 'Maximum Size',
       placeholder: 'Maximum Size',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'maxAge',
       label: 'Maximum Age(in ms)',
       placeholder: 'Maximum Age(in ms)',
       type: XcType.SingleLineText,
-      required: true
-    }
+      required: true,
+    },
   ],
   actions: [
     {
@@ -24,18 +24,18 @@ const input: XcForm = {
       placeholder: 'Test',
       key: 'test',
       actionType: XcActionType.TEST,
-      type: XcType.Button
+      type: XcType.Button,
     },
     {
       label: 'Save',
       placeholder: 'Save',
       key: 'save',
       actionType: XcActionType.SUBMIT,
-      type: XcType.Button
-    }
+      type: XcType.Button,
+    },
   ],
   msgOnInstall: 'Successfully updated LRU cache options.',
-  msgOnUninstall: ''
+  msgOnUninstall: '',
 };
 
 export default {
@@ -49,7 +49,7 @@ export default {
   active: true,
   input: JSON.stringify({
     max: 500,
-    maxAge: 1000 * 60 * 60 * 24
+    maxAge: 1000 * 60 * 60 * 24,
   }),
-  input_schema: JSON.stringify(input)
+  input_schema: JSON.stringify(input),
 };

@@ -27,16 +27,17 @@ process.env.NC_DB = url;
           await app.ncMeta.projectStatusUpdate(project.id, 'started');
           await app.ncMeta.projectAddUser(project.id, 1, 'owner,creator');
         }
-      }
+      },
     })
   );
   server.listen(process.env.PORT || 8080, () => {
     console.log(
-      `App started successfully.\nVisit -> http://localhost:${process.env
-        .PORT || 8080}/xc`
+      `App started successfully.\nVisit -> http://localhost:${
+        process.env.PORT || 8080
+      }/xc`
     );
   });
-})().catch(e => console.log(e));
+})().catch((e) => console.log(e));
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

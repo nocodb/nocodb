@@ -99,13 +99,8 @@ export default class NcMetaMgr {
       try {
         // const type = mimetypes[path.extname(req.params.fileName).slice(1)] || 'text/plain';
         const type =
-          mimetypes[
-            path
-              .extname(req.params[2])
-              .split('/')
-              .pop()
-              .slice(1)
-          ] || 'text/plain';
+          mimetypes[path.extname(req.params[2]).split('/').pop().slice(1)] ||
+          'text/plain';
         // const img = await this.storageAdapter.fileRead(slash(path.join('nc', req.params.projectId, req.params.dbAlias, 'uploads', req.params.fileName)));
         const img = await this.storageAdapter.fileRead(
           slash(
@@ -127,7 +122,7 @@ export default class NcMetaMgr {
 
     router.use(
       bodyParser.json({
-        limit: process.env.NC_REQUEST_BODY_SIZE || 1024 * 1024
+        limit: process.env.NC_REQUEST_BODY_SIZE || 1024 * 1024,
       })
     );
 
@@ -136,7 +131,7 @@ export default class NcMetaMgr {
       const upload = multer({
         storage: multer.diskStorage({
           // dest: path.join(this.config.toolDir, 'uploads')
-        })
+        }),
       });
       // router.post(this.config.dashboardPath, upload.single('file'));
       router.post(this.config.dashboardPath, upload.any());
@@ -203,8 +198,7 @@ export default class NcMetaMgr {
               )
             ) {
               return res.status(401).json({
-                msg:
-                  'Unauthorized access : xc-auth does not have admin permission'
+                msg: 'Unauthorized access : xc-auth does not have admin permission',
               });
             }
           } else if (this.config?.auth?.masterKey) {
@@ -212,8 +206,7 @@ export default class NcMetaMgr {
               req.headers['xc-master-key'] !== this.config.auth.masterKey.secret
             ) {
               return res.status(401).json({
-                msg:
-                  'Unauthorized access : xc-admin header missing or not matching'
+                msg: 'Unauthorized access : xc-admin header missing or not matching',
               });
             }
           }
@@ -247,8 +240,8 @@ export default class NcMetaMgr {
               user: req.user,
               ctx: {
                 req,
-                res
-              }
+                res,
+              },
             });
           }
 
@@ -295,8 +288,8 @@ export default class NcMetaMgr {
                   process.env.NC_GITHUB_CLIENT_SECRET
                 ),
                 oneClick: !!process.env.NC_ONE_CLICK,
-                connectToExternalDB: !process.env
-                  .NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
+                connectToExternalDB:
+                  !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
                 version: packageVersion,
                 defaultLimit: Math.max(
                   Math.min(
@@ -306,7 +299,7 @@ export default class NcMetaMgr {
                   +process.env.DB_QUERY_LIMIT_MIN || 1
                 ),
                 timezone: defaultConnectionConfig.timezone,
-                ncMin: !!process.env.NC_MIN
+                ncMin: !!process.env.NC_MIN,
               };
               return res.json(result);
             }
@@ -316,7 +309,7 @@ export default class NcMetaMgr {
                 // projectHasDb: this.toolMgr.projectHasDb(),
                 type: this.config.type,
                 env: this.config.workingEnv,
-                oneClick: !!process.env.NC_ONE_CLICK
+                oneClick: !!process.env.NC_ONE_CLICK,
               });
             }
           }
@@ -325,7 +318,7 @@ export default class NcMetaMgr {
             projectHasDb,
             type: this.config.type,
             env: this.config.workingEnv,
-            oneClick: !!process.env.NC_ONE_CLICK
+            oneClick: !!process.env.NC_ONE_CLICK,
           });
         } catch (e) {
           console.log(e);
@@ -386,8 +379,8 @@ export default class NcMetaMgr {
         user: req.user,
         ctx: {
           req,
-          res
-        }
+          res,
+        },
       });
     }
 
@@ -399,7 +392,7 @@ export default class NcMetaMgr {
     if (!('dbAlias' in args)) {
       if (this.projectConfigs?.[args?.project_id]?.envs?.[args?.env]?.db) {
         for (const {
-          meta: { dbAlias }
+          meta: { dbAlias },
         } of this.projectConfigs[args.project_id].envs[args.env].db) {
           await this.xcMetaTablesReset({ ...args, dbAlias });
         }
@@ -418,7 +411,7 @@ export default class NcMetaMgr {
   public async xcMetaTablesImportLocalFsToDb(args, req) {
     if (!('dbAlias' in args)) {
       for (const {
-        meta: { dbAlias }
+        meta: { dbAlias },
       } of this.projectConfigs[args.project_id].envs[args.env].db) {
         await this.xcMetaTablesImportLocalFsToDb({ ...args, dbAlias }, req);
       }
@@ -453,7 +446,7 @@ export default class NcMetaMgr {
             await this.xcMeta.metaInsert(projectId, dbAlias, tn, {
               ...row,
               db_alias: dbAlias,
-              project_id: projectId
+              project_id: projectId,
             });
           }
         }
@@ -466,7 +459,7 @@ export default class NcMetaMgr {
         op_sub_type: 'IMPORT_FROM_FS',
         user: req.user.email,
         description: `imported ${projectId}(${dbAlias}) from local filesystem`,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
     } catch (e) {
       console.log(e);
@@ -488,7 +481,7 @@ export default class NcMetaMgr {
           if (entry.fileName?.endsWith('nc_project.json')) {
             projectConfigPath = entry.fileName;
           }
-        }
+        },
       });
       // delete temporary upload file
       fs.unlinkSync(file.path);
@@ -521,10 +514,11 @@ export default class NcMetaMgr {
         );
 
         if (projectConfig?.prefix) {
-          const metaProjConfig = NcConfigFactory.makeProjectConfigFromConnection(
-            this.config?.meta?.db,
-            args.args.projectType
-          );
+          const metaProjConfig =
+            NcConfigFactory.makeProjectConfigFromConnection(
+              this.config?.meta?.db,
+              args.args.projectType
+            );
           projectConfig.envs._noco = metaProjConfig.envs._noco;
         }
 
@@ -553,7 +547,7 @@ export default class NcMetaMgr {
         await this.projectMgr
           .getSqlMgr({
             ...projectConfig,
-            metaDb: this.xcMeta?.knex
+            metaDb: this.xcMeta?.knex,
           })
           .projectOpenByWeb(projectConfig);
         this.projectConfigs[projectId] = projectConfig;
@@ -592,7 +586,7 @@ export default class NcMetaMgr {
         op_sub_type: 'IMPORT_FROM_ZIP',
         user: req.user.email,
         description: `imported ${projectId} from zip file uploaded `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
     } catch (e) {
       throw e;
@@ -613,7 +607,7 @@ export default class NcMetaMgr {
           if (entry.fileName?.endsWith('nc_project.json')) {
             projectConfigPath = entry.fileName;
           }
-        }
+        },
       });
       // delete temporary upload file
       fs.unlinkSync(file.path);
@@ -661,7 +655,7 @@ export default class NcMetaMgr {
           await this.projectMgr
             .getSqlMgr({
               ...projectConfig,
-              metaDb: this.xcMeta?.knex
+              metaDb: this.xcMeta?.knex,
             })
             .projectOpenByWeb(projectConfig);
           this.projectConfigs[importProjectId] = projectConfig;
@@ -678,7 +672,7 @@ export default class NcMetaMgr {
         op_sub_type: 'IMPORT_FROM_ZIP',
         user: req.user.email,
         description: `imported ${projectId} from zip file uploaded `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
     } catch (e) {
       throw e;
@@ -689,7 +683,7 @@ export default class NcMetaMgr {
   public async xcMetaTablesExportDbToLocalFs(args, req) {
     if (!('dbAlias' in args)) {
       for (const {
-        meta: { dbAlias }
+        meta: { dbAlias },
       } of this.projectConfigs[args.project_id].envs[args.env].db) {
         await this.xcMetaTablesExportDbToLocalFs({ ...args, dbAlias }, req);
       }
@@ -732,7 +726,7 @@ export default class NcMetaMgr {
           op_sub_type: 'EXPORT_TO_FS',
           user: req.user.email,
           description: `exported ${projectId}(${dbAlias}) to local filesystem `,
-          ip: req.clientIp
+          ip: req.clientIp,
         });
       } catch (e) {
         console.log(e);
@@ -758,7 +752,7 @@ export default class NcMetaMgr {
           // console.log('archiver has been finalized and the output file descriptor has closed.');
         });
 
-        archive.on('error', err => {
+        archive.on('error', (err) => {
           reject(err);
         });
 
@@ -776,7 +770,7 @@ export default class NcMetaMgr {
         op_sub_type: 'EXPORT_TO_ZIP',
         user: req.user.email,
         description: `exported ${this.getProjectId(args)} to zip file `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
 
       return { download: true, filePath };
@@ -794,13 +788,13 @@ export default class NcMetaMgr {
       result.data.list = (
         await this.xcMeta.metaList(args.project_id, dbAlias, 'nc_routes', {
           condition: {
-            tn: args.args.tn
-          }
+            tn: args.args.tn,
+          },
         })
-      ).map(row => ({
+      ).map((row) => ({
         ...row,
         handler: JSON.parse(row.handler),
-        acl: JSON.parse(row.acl)
+        acl: JSON.parse(row.acl),
       }));
     } catch (e) {
       console.log(e);
@@ -814,11 +808,13 @@ export default class NcMetaMgr {
     result.data.list = [];
     try {
       const client = await this.projectGetSqlClient(args);
-      result.data.list = (await client.knex('nc_routes').select()).map(row => ({
-        ...row,
-        handler: JSON.parse(row.handler),
-        acl: JSON.parse(row.acl)
-      }));
+      result.data.list = (await client.knex('nc_routes').select()).map(
+        (row) => ({
+          ...row,
+          handler: JSON.parse(row.handler),
+          acl: JSON.parse(row.acl),
+        })
+      );
     } catch (e) {
       console.log(e);
     }
@@ -831,9 +827,9 @@ export default class NcMetaMgr {
     result.data.list = [];
     try {
       const client = await this.projectGetSqlClient(args);
-      result.data.list = (await client.knex('nc_resolvers')).map(row => ({
+      result.data.list = (await client.knex('nc_resolvers')).map((row) => ({
         ...row,
-        acl: JSON.parse(row.acl)
+        acl: JSON.parse(row.acl),
       }));
     } catch (e) {
       console.log(e);
@@ -847,9 +843,9 @@ export default class NcMetaMgr {
     result.data.list = [];
     try {
       const client = await this.projectGetSqlClient(args);
-      result.data.list = (await client.knex('nc_rpc')).map(row => ({
+      result.data.list = (await client.knex('nc_rpc')).map((row) => ({
         ...row,
-        acl: JSON.parse(row.acl)
+        acl: JSON.parse(row.acl),
       }));
     } catch (e) {
       console.log(e);
@@ -866,10 +862,10 @@ export default class NcMetaMgr {
       for (const row of args.data) {
         await trx('nc_routes')
           .update({
-            acl: JSON.stringify(row.acl)
+            acl: JSON.stringify(row.acl),
           })
           .where({
-            id: row.id
+            id: row.id,
           });
       }
       await trx.commit();
@@ -888,10 +884,10 @@ export default class NcMetaMgr {
       for (const row of args.data) {
         await trx('nc_resolvers')
           .update({
-            acl: JSON.stringify(row.acl)
+            acl: JSON.stringify(row.acl),
           })
           .where({
-            id: row.id
+            id: row.id,
           });
       }
       trx.commit();
@@ -910,10 +906,10 @@ export default class NcMetaMgr {
       for (const row of args.data) {
         await trx('nc_rpc')
           .update({
-            acl: JSON.stringify(row.acl)
+            acl: JSON.stringify(row.acl),
           })
           .where({
-            id: row.id
+            id: row.id,
           });
       }
       trx.commit();
@@ -944,9 +940,10 @@ export default class NcMetaMgr {
         op_type: 'WEBHOOKS',
         op_sub_type: 'DELETED',
         user: req.user.email,
-        description: `deleted webhook ${args.args.title ||
-          args.args.id} of table ${args.args.tn} `,
-        ip: req.clientIp
+        description: `deleted webhook ${
+          args.args.title || args.args.id
+        } of table ${args.args.tn} `,
+        ip: req.clientIp,
       });
 
       Tele.emit('evt', { evt_type: 'webhooks:deleted' });
@@ -972,7 +969,7 @@ export default class NcMetaMgr {
             ...args.args.data,
             active: true,
             notification: JSON.stringify(args.args.data.notification),
-            condition: JSON.stringify(args.args.data.condition)
+            condition: JSON.stringify(args.args.data.condition),
           },
           args.args.data.id
         );
@@ -981,7 +978,7 @@ export default class NcMetaMgr {
           op_sub_type: 'UPDATED',
           user: req.user.email,
           description: `updated webhook ${args.args.data.title} - ${args.args.data.event} ${args.args.data.operation} - ${args.args.data.notification?.type} - of table ${args.args.tn} `,
-          ip: req.clientIp
+          ip: req.clientIp,
         });
 
         Tele.emit('evt', { evt_type: 'webhooks:updated' });
@@ -995,7 +992,7 @@ export default class NcMetaMgr {
             active: true,
             tn: args.args.tn,
             notification: JSON.stringify(args.args.data.notification),
-            condition: JSON.stringify(args.args.data.condition)
+            condition: JSON.stringify(args.args.data.condition),
           }
         );
         this.xcMeta.audit(projectId, dbAlias, 'nc_audit', {
@@ -1003,7 +1000,7 @@ export default class NcMetaMgr {
           op_sub_type: 'INSERTED',
           user: req.user.email,
           description: `created webhook ${args.args.data.title} - ${args.args.data.event} ${args.args.data.operation} - ${args.args.data.notification?.type} - of table ${args.args.tn} `,
-          ip: req.clientIp
+          ip: req.clientIp,
         });
         Tele.emit('evt', { evt_type: 'webhooks:created' });
         return res;
@@ -1053,12 +1050,12 @@ export default class NcMetaMgr {
         dbAlias,
         'nc_routes',
         {
-          functions: JSON.stringify(args.args.functions)
+          functions: JSON.stringify(args.args.functions),
         },
         {
           tn: args.args.tn,
           path: args.args.path,
-          type: args.args.type
+          type: args.args.type,
         }
       );
     } catch (e) {
@@ -1074,12 +1071,12 @@ export default class NcMetaMgr {
       await client
         .knex('nc_routes')
         .update({
-          functions: JSON.stringify(args.args.functions)
+          functions: JSON.stringify(args.args.functions),
         })
         .where({
           tn: args.args.tn,
           title: args.args.title,
-          handler_type: 2
+          handler_type: 2,
         });
     } catch (e) {
       throw e;
@@ -1095,11 +1092,11 @@ export default class NcMetaMgr {
         dbAlias,
         'nc_rpc',
         {
-          functions: JSON.stringify(args.args.functions)
+          functions: JSON.stringify(args.args.functions),
         },
         {
           tn: args.args.tn,
-          service: args.args.service
+          service: args.args.service,
         }
       );
     } catch (e) {
@@ -1142,7 +1139,7 @@ export default class NcMetaMgr {
         if (role.id) {
           const oldRole = await trx('nc_roles')
             .where({
-              id: role.id
+              id: role.id,
             })
             .first();
           if (this.isProjectGraphql()) {
@@ -1155,10 +1152,10 @@ export default class NcMetaMgr {
                   delete acl[oldRole.title];
                   await trx(aclTable)
                     .update({
-                      acl: JSON.stringify(acl)
+                      acl: JSON.stringify(acl),
                     })
                     .where({
-                      id: aclRow.id
+                      id: aclRow.id,
                     });
                 }
               } catch (e) {
@@ -1172,10 +1169,10 @@ export default class NcMetaMgr {
           ) {
             await trx('nc_roles')
               .update({
-                ...role
+                ...role,
               })
               .where({
-                id: role.id
+                id: role.id,
               });
           }
         } else {
@@ -1192,10 +1189,10 @@ export default class NcMetaMgr {
                 acl[role.title] = true;
                 await trx(aclTable)
                   .update({
-                    acl: JSON.stringify(acl)
+                    acl: JSON.stringify(acl),
                   })
                   .where({
-                    id: aclRow.id
+                    id: aclRow.id,
                   });
               }
             } catch (e) {
@@ -1240,7 +1237,7 @@ export default class NcMetaMgr {
         title: file.originalname,
         mimetype: file.mimetype,
         size: file.size,
-        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
+        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
       };
     } catch (e) {
       throw e;
@@ -1260,7 +1257,7 @@ export default class NcMetaMgr {
         appendPath,
         req,
         dbAlias: this.getDbAlias(args),
-        projectId: this.getProjectId(args)
+        projectId: this.getProjectId(args),
       });
     } catch (e) {
       throw e;
@@ -1276,7 +1273,7 @@ export default class NcMetaMgr {
     appendPath = [],
     req,
     projectId,
-    dbAlias
+    dbAlias,
   }: {
     prependName?: string;
     file: any;
@@ -1313,7 +1310,7 @@ export default class NcMetaMgr {
       title: file.originalname,
       mimetype: file.mimetype,
       size: file.size,
-      icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
+      icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
     };
   }
 
@@ -1330,7 +1327,7 @@ export default class NcMetaMgr {
   protected async initCache(overwrite = false): Promise<void> {
     const activeCache = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
       active: true,
-      category: 'Cache'
+      category: 'Cache',
     });
 
     XcCache.init(activeCache, overwrite);
@@ -1576,7 +1573,7 @@ export default class NcMetaMgr {
             .getSqlMgr({
               ...result,
               config: args.args.projectJson,
-              metaDb: this.xcMeta?.knex
+              metaDb: this.xcMeta?.knex,
             })
             .projectOpenByWeb(args.args.projectJson);
           this.projectConfigs[result.id] = args.args.projectJson;
@@ -1586,7 +1583,7 @@ export default class NcMetaMgr {
             op_sub_type: 'CREATED',
             user: req.user.email,
             description: `created project ${args.args.projectJson.title}(${result.id}) `,
-            ip: req.clientIp
+            ip: req.clientIp,
           });
 
           Tele.emit('evt', { evt_type: 'project:created' });
@@ -1617,7 +1614,7 @@ export default class NcMetaMgr {
               .getSqlMgr({
                 ...result,
                 config,
-                metaDb: this.xcMeta?.knex
+                metaDb: this.xcMeta?.knex,
               })
               .projectOpenByWeb(config);
             this.projectConfigs[result.id] = config;
@@ -1627,7 +1624,7 @@ export default class NcMetaMgr {
               op_sub_type: 'CREATED',
               user: req.user.email,
               description: `created project ${config.title}(${result.id}) `,
-              ip: req.clientIp
+              ip: req.clientIp,
             });
             Tele.emit('evt', { evt_type: 'project:created', oneClick: true });
           }
@@ -1666,7 +1663,7 @@ export default class NcMetaMgr {
             .getSqlMgr({
               ...result,
               config,
-              metaDb: this.xcMeta?.knex
+              metaDb: this.xcMeta?.knex,
             })
             .projectOpenByWeb(config);
 
@@ -1680,7 +1677,7 @@ export default class NcMetaMgr {
             op_sub_type: 'CREATED',
             user: req.user.email,
             description: `created project ${config.title}(${result.id}) within xcdb `,
-            ip: req.clientIp
+            ip: req.clientIp,
           });
 
           Tele.emit('evt', { evt_type: 'project:created', xcdb: true });
@@ -1690,7 +1687,7 @@ export default class NcMetaMgr {
                 evt_type: args.args?.quickImport
                   ? 'project:created:fromExcel'
                   : 'project:created:fromTemplate',
-                xcdb: true
+                xcdb: true,
               });
               await this.xcModelsCreateFromTemplate(
                 {
@@ -1698,8 +1695,8 @@ export default class NcMetaMgr {
                   env: '_noco',
                   project_id: result?.id,
                   args: {
-                    template: args?.args?.template
-                  }
+                    template: args?.args?.template,
+                  },
                 },
                 req
               );
@@ -1712,7 +1709,7 @@ export default class NcMetaMgr {
           result = await this.xcMeta.userProjectList(
             req?.session?.passport?.user?.id
           );
-          result.forEach(p => {
+          result.forEach((p) => {
             const config = JSON.parse(p.config);
             p.projectType = config?.projectType;
             p.prefix = config?.prefix;
@@ -1971,8 +1968,8 @@ export default class NcMetaMgr {
           res: result,
           ctx: {
             req,
-            res
-          }
+            res,
+          },
         });
       }
 
@@ -1999,11 +1996,11 @@ export default class NcMetaMgr {
       console.log(e);
       if (e instanceof XCEeError) {
         res.status(402).json({
-          msg: e.message
+          msg: e.message,
         });
       } else {
         res.status(400).json({
-          msg: e.message
+          msg: e.message,
         });
       }
     }
@@ -2017,17 +2014,17 @@ export default class NcMetaMgr {
       '',
       'nc_store',
       {
-        value: JSON.stringify(args.args)
+        value: JSON.stringify(args.args),
       },
       {
-        key: 'NC_DEBUG'
+        key: 'NC_DEBUG',
       }
     );
   }
 
   protected async xcDebugGet(_args) {
     return this.xcMeta.metaGet('', '', 'nc_store', {
-      key: 'NC_DEBUG'
+      key: 'NC_DEBUG',
     });
   }
 
@@ -2040,7 +2037,7 @@ export default class NcMetaMgr {
       // }).first();
       const dbAlias = await this.getDbAlias(args);
       return await this.xcMeta.metaGet(args.project_id, dbAlias, 'nc_acl', {
-        tn: args.args.tn || args.args.name
+        tn: args.args.tn || args.args.name,
       });
     } catch (e) {
       throw e;
@@ -2056,7 +2053,7 @@ export default class NcMetaMgr {
 
       for (const { title } of roles) {
         res[title] = {};
-        ops.forEach(op => (res[title][op] = false));
+        ops.forEach((op) => (res[title][op] = false));
       }
 
       for (const dbAlias of this.getDbAliasList(args.project_id)) {
@@ -2079,7 +2076,7 @@ export default class NcMetaMgr {
                     acl[role][op].columns
                   ) {
                     res[role][op] = Object.values(acl[role][op].columns).some(
-                      v => v
+                      (v) => v
                     );
                   } else {
                     res[role][op] = acl[role][op];
@@ -2109,7 +2106,7 @@ export default class NcMetaMgr {
           continue;
         }
         const allowed = Object.values(colLevelAcl.columns);
-        if (!allowed.every(v => v === allowed[0])) {
+        if (!allowed.every((v) => v === allowed[0])) {
           throw new XCEeError('Please upgrade');
         }
       }
@@ -2124,10 +2121,10 @@ export default class NcMetaMgr {
         dbAlias,
         'nc_acl',
         {
-          acl: JSON.stringify(args.args.acl)
+          acl: JSON.stringify(args.args.acl),
         },
         {
-          tn: args.args.tn || args.args.name
+          tn: args.args.tn || args.args.name,
         }
       );
 
@@ -2136,7 +2133,7 @@ export default class NcMetaMgr {
         op_sub_type: 'UPDATED',
         user: req.user.email,
         description: `updated table ${args.args.tn || args.args.name} acl `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
 
       Tele.emit('evt', { evt_type: 'acl:updated' });
@@ -2173,12 +2170,12 @@ export default class NcMetaMgr {
       result.data.list = (
         await this.xcMeta.metaList(args.project_id, dbAlias, 'nc_resolvers', {
           condition: {
-            title: args.args.tn
-          }
+            title: args.args.tn,
+          },
         })
-      ).map(row => ({
+      ).map((row) => ({
         ...row,
-        acl: JSON.parse(row.acl)
+        acl: JSON.parse(row.acl),
       }));
     } catch (e) {
       console.log(e);
@@ -2196,12 +2193,12 @@ export default class NcMetaMgr {
       result.data.list = (
         await this.xcMeta.metaList(args.project_id, dbAlias, 'nc_rpc', {
           condition: {
-            tn: args.args.tn
-          }
+            tn: args.args.tn,
+          },
         })
-      ).map(row => ({
+      ).map((row) => ({
         ...row,
-        acl: JSON.parse(row.acl)
+        acl: JSON.parse(row.acl),
       }));
     } catch (e) {
       console.log(e);
@@ -2223,8 +2220,8 @@ export default class NcMetaMgr {
           condition: {
             tn: args.args.tn,
             operation: args.args.data.operation,
-            event: args.args.data.event
-          }
+            event: args.args.data.event,
+          },
         }
       );
     } catch (e) {
@@ -2245,8 +2242,8 @@ export default class NcMetaMgr {
         'nc_hooks',
         {
           condition: {
-            tn: args.args.tn
-          }
+            tn: args.args.tn,
+          },
         }
       );
     } catch (e) {
@@ -2273,7 +2270,7 @@ export default class NcMetaMgr {
         dbAlias,
         'nc_models',
         {
-          title: args.args.tn
+          title: args.args.tn,
           // type: 'table'
         },
         ['alias', 'meta', 'parent_model_title', 'title', 'query_params', 'id']
@@ -2294,22 +2291,22 @@ export default class NcMetaMgr {
           _or: [
             {
               relation_type: {
-                eq: 'hm'
+                eq: 'hm',
               },
               rtn: {
-                eq: args.args.tn
-              }
+                eq: args.args.tn,
+              },
             },
             {
               relation_type: {
-                eq: 'bt'
+                eq: 'bt',
               },
               tn: {
-                eq: args.args.tn
-              }
-            }
-          ]
-        }
+                eq: args.args.tn,
+              },
+            },
+          ],
+        },
       }
     );
 
@@ -2326,18 +2323,18 @@ export default class NcMetaMgr {
     const parsedTableMeta = JSON.parse(meta.meta);
 
     if (parsedTableMeta?.belongsTo) {
-      parsedTableMeta.belongsTo = parsedTableMeta.belongsTo.filter(bt => {
+      parsedTableMeta.belongsTo = parsedTableMeta.belongsTo.filter((bt) => {
         const key = [bt.tn, 'bt', bt.rtn, bt.cn, bt.rcn].join('||');
         return Object.keys(roles).some(
-          role => roles[role] && !groupedDisabledData[`${key}||${role}`]
+          (role) => roles[role] && !groupedDisabledData[`${key}||${role}`]
         );
       });
     }
     if (parsedTableMeta?.hasMany) {
-      parsedTableMeta.hasMany = parsedTableMeta.hasMany.filter(hm => {
+      parsedTableMeta.hasMany = parsedTableMeta.hasMany.filter((hm) => {
         const key = [hm.tn, 'hm', hm.rtn, hm.cn, hm.rcn].join('||');
         return Object.keys(roles).some(
-          role => roles[role] && !groupedDisabledData[`${key}||${role}`]
+          (role) => roles[role] && !groupedDisabledData[`${key}||${role}`]
         );
       });
     }
@@ -2356,10 +2353,10 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        meta: JSON.stringify(args.args.meta)
+        meta: JSON.stringify(args.args.meta),
       },
       {
-        title: args.args.tn
+        title: args.args.tn,
       }
     );
   }
@@ -2372,10 +2369,10 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        order: args.args.order
+        order: args.args.order,
       },
       {
-        title: args.args.tn
+        title: args.args.tn,
       }
     );
   }
@@ -2388,7 +2385,7 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        view_order: args.args.view_order
+        view_order: args.args.view_order,
       },
       args.args.id
     );
@@ -2401,11 +2398,11 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        title: args.args.tn
+        title: args.args.tn,
       }
     );
     const meta = JSON.parse(model.meta);
-    const vColumn = meta.v.find(v => v._cn === args.args.oldAlias);
+    const vColumn = meta.v.find((v) => v._cn === args.args.oldAlias);
     if (!vColumn) {
       return;
     }
@@ -2428,7 +2425,7 @@ export default class NcMetaMgr {
     }
 
     if (queryParams?.fieldsOrder) {
-      queryParams.fieldsOrder.map(v =>
+      queryParams.fieldsOrder.map((v) =>
         v === args.args.oldAlias ? args.args.newAlias : v
       );
     }
@@ -2439,10 +2436,10 @@ export default class NcMetaMgr {
       'nc_models',
       {
         meta: JSON.stringify(meta),
-        query_params: JSON.stringify(queryParams)
+        query_params: JSON.stringify(queryParams),
       },
       {
-        title: args.args.tn
+        title: args.args.tn,
       }
     );
 
@@ -2458,22 +2455,22 @@ export default class NcMetaMgr {
       'nc_models',
       {
         condition: {
-          type: 'table'
-        }
+          type: 'table',
+        },
       }
     );
     const list = [];
     for (const meta of metas) {
       const metaObj = JSON.parse(meta.meta);
       list.push(
-        ...metaObj.hasMany.map(rel => {
+        ...metaObj.hasMany.map((rel) => {
           rel.relationType = 'hm';
           rel.edited = false;
           return rel;
         })
       );
       list.push(
-        ...metaObj.belongsTo.map(rel => {
+        ...metaObj.belongsTo.map((rel) => {
           rel.relationType = 'bt';
           rel.edited = false;
           return rel;
@@ -2496,7 +2493,7 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: true
+        enabled: true,
       },
       null,
       { title: { in: args.args } }
@@ -2507,7 +2504,7 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: false
+        enabled: false,
       },
       null,
       { title: { nin: args.args } }
@@ -2522,16 +2519,16 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: true
+        enabled: true,
       },
       null,
       {
         title: {
-          in: args.args
+          in: args.args,
         },
         type: {
-          eq: 'view'
-        }
+          eq: 'view',
+        },
       }
     );
 
@@ -2540,16 +2537,16 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: false
+        enabled: false,
       },
       null,
       {
         title: {
-          nin: args.args
+          nin: args.args,
         },
         type: {
-          eq: 'view'
-        }
+          eq: 'view',
+        },
       }
     );
   }
@@ -2568,12 +2565,12 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: true
+        enabled: true,
       },
       null,
       {
         title: { in: args.args },
-        type: { eq: 'procedure' }
+        type: { eq: 'procedure' },
       }
     );
     await this.xcMeta.metaUpdate(
@@ -2581,12 +2578,12 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: false
+        enabled: false,
       },
       null,
       {
         title: { nin: args.args },
-        type: { eq: 'procedure' }
+        type: { eq: 'procedure' },
       }
     );
   }
@@ -2599,12 +2596,12 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: true
+        enabled: true,
       },
       null,
       {
         title: { in: args.args },
-        type: { eq: 'function' }
+        type: { eq: 'function' },
       }
     );
 
@@ -2613,12 +2610,12 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: false
+        enabled: false,
       },
       null,
       {
         title: { nin: args.args },
-        type: { eq: 'function' }
+        type: { eq: 'function' },
       }
     );
   }
@@ -2628,8 +2625,8 @@ export default class NcMetaMgr {
     const dbAlias = await this.getDbAlias(args);
     return this.xcMeta.metaList(args.project_id, dbAlias, 'nc_models', {
       condition: {
-        title: 'enabled'
-      }
+        title: 'enabled',
+      },
     });
   }
 
@@ -2638,8 +2635,8 @@ export default class NcMetaMgr {
     const dbAlias = this.getDbAlias(args);
     return this.xcMeta.metaList(args.project_id, dbAlias, 'nc_models', {
       condition: {
-        type: 'table'
-      }
+        type: 'table',
+      },
     });
   }
 
@@ -2648,8 +2645,8 @@ export default class NcMetaMgr {
     const dbAlias = this.getDbAlias(args);
     return this.xcMeta.metaList(args.project_id, dbAlias, 'nc_models', {
       condition: {
-        type: 'view'
-      }
+        type: 'view',
+      },
     });
   }
 
@@ -2657,7 +2654,7 @@ export default class NcMetaMgr {
   protected async xcProcedureModelsList(args): Promise<any> {
     const dbAlias = await this.getDbAlias(args);
     return this.xcMeta.metaList(args.project_id, dbAlias, 'nc_models', {
-      condition: { type: 'procedure' }
+      condition: { type: 'procedure' },
     });
   }
 
@@ -2665,7 +2662,7 @@ export default class NcMetaMgr {
   protected async xcFunctionModelsList(args): Promise<any> {
     const dbAlias = await this.getDbAlias(args);
     return this.xcMeta.metaList(args.project_id, dbAlias, 'nc_models', {
-      condition: { type: 'function' }
+      condition: { type: 'function' },
     });
   }
 
@@ -2683,7 +2680,7 @@ export default class NcMetaMgr {
     const dbAlias = await this.getDbAlias(args);
     if (id) {
       return this.xcMeta.metaUpdate(args.project_id, dbAlias, 'nc_cron', rest, {
-        id
+        id,
       });
     } else {
       return this.xcMeta.metaInsert(args.project_id, dbAlias, 'nc_cron', rest);
@@ -2709,10 +2706,10 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        schema: args.args.schema
+        schema: args.args.schema,
       },
       {
-        title: args.args.tn
+        title: args.args.tn,
       }
     );
   }
@@ -2725,10 +2722,10 @@ export default class NcMetaMgr {
       'nc_models',
       {
         messages: args.args.messages,
-        services: args.args.services
+        services: args.args.services,
       },
       {
-        title: args.args.tn
+        title: args.args.tn,
       }
     );
   }
@@ -2740,10 +2737,10 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        schema: JSON.stringify(args.args.swaggerDoc)
+        schema: JSON.stringify(args.args.swaggerDoc),
       },
       {
-        title: args.args.tn
+        title: args.args.tn,
       }
     );
   }
@@ -2765,9 +2762,7 @@ export default class NcMetaMgr {
     let trx;
     try {
       trx = await client.knex.transaction();
-      const role = await trx('nc_roles')
-        .where({ id: args.args.id })
-        .first();
+      const role = await trx('nc_roles').where({ id: args.args.id }).first();
       if (!role) {
         throw new Error(`Role with id '${args.args.id}' not found`);
       }
@@ -2781,10 +2776,10 @@ export default class NcMetaMgr {
             delete acl[deleteRoleName];
             await trx(aclTable)
               .update({
-                acl: JSON.stringify(acl)
+                acl: JSON.stringify(acl),
               })
               .where({
-                id: aclRow.id
+                id: aclRow.id,
               });
           }
         } catch (e) {
@@ -2792,9 +2787,7 @@ export default class NcMetaMgr {
         }
       }
 
-      await trx('nc_roles')
-        .where({ id: args.args.id })
-        .del();
+      await trx('nc_roles').where({ id: args.args.id }).del();
 
       await trx.commit();
     } catch (e) {
@@ -2816,11 +2809,11 @@ export default class NcMetaMgr {
         dbAlias,
         'nc_resolvers',
         {
-          functions: JSON.stringify(args.args.functions)
+          functions: JSON.stringify(args.args.functions),
         },
         {
           title: args.args.tn,
-          resolver: args.args.resolver
+          resolver: args.args.resolver,
         }
       );
     } catch (e) {
@@ -2836,11 +2829,11 @@ export default class NcMetaMgr {
       await client
         .knex('nc_resolvers')
         .update({
-          functions: JSON.stringify(args.args.functions)
+          functions: JSON.stringify(args.args.functions),
         })
         .where({
           title: args.args.tn,
-          handler_type: 2
+          handler_type: 2,
         });
     } catch (e) {
       throw e;
@@ -2862,7 +2855,7 @@ export default class NcMetaMgr {
       routeVersionLetter: this.getRouteVersionLetter(args),
       tn: args.args.tn,
       _tn: meta && meta._tn,
-      type: meta.type
+      type: meta.type,
     };
 
     let routes;
@@ -2878,7 +2871,7 @@ export default class NcMetaMgr {
       const meta = JSON.parse(modelMeta.meta);
       Object.assign(ctx, {
         tnc: args.args.tnc,
-        _ctn: meta && meta._tn
+        _ctn: meta && meta._tn,
       });
       routes = new ExpressXcTsRoutesHm({ ctx }).getObject();
     } else if (args.args.relation_type === 'belongsTo') {
@@ -2892,7 +2885,7 @@ export default class NcMetaMgr {
       const meta = JSON.parse(modelMeta.meta);
       Object.assign(ctx, {
         rtn: args.args.tnp,
-        _rtn: meta && meta._tn
+        _rtn: meta && meta._tn,
       });
       routes = new ExpressXcTsRoutesBt({ ctx }).getObject();
     } else {
@@ -2900,7 +2893,7 @@ export default class NcMetaMgr {
     }
 
     const route = routes.find(
-      route => route.path === args.args.path && route.type === args.args.type
+      (route) => route.path === args.args.path && route.type === args.args.type
     );
     if (route) {
       return route.functions;
@@ -2914,8 +2907,8 @@ export default class NcMetaMgr {
 
   protected getBuilder(args): RestApiBuilder | GqlApiBuilder {
     return this.app.projectBuilders
-      .find(pb => pb.id === args.project_id)
-      ?.apiBuilders?.find(builder => {
+      .find((pb) => pb.id === args.project_id)
+      ?.apiBuilders?.find((builder) => {
         return (args?.dbAlias || args?.args?.dbAlias) === builder.getDbAlias();
       });
   }
@@ -2960,7 +2953,7 @@ export default class NcMetaMgr {
       i
         .toString(26)
         .split('')
-        .map(v => l[parseInt(v, 26)])
+        .map((v) => l[parseInt(v, 26)])
         .join('') + '1'
     );
   }
@@ -2981,7 +2974,7 @@ export default class NcMetaMgr {
         type: 'virtual',
         db_type: this.getDbClientType(args.project_id, dbAlias),
         dr: '',
-        ur: ''
+        ur: '',
       }
     );
 
@@ -2990,7 +2983,7 @@ export default class NcMetaMgr {
       op_sub_type: 'CREATED',
       user: req.user.email,
       description: `created virtual relation between tables ${args.args.childTable} and ${args.args.parentTable} `,
-      ip: req.clientIp
+      ip: req.clientIp,
     });
 
     return res;
@@ -3007,17 +3000,17 @@ export default class NcMetaMgr {
         dbAlias,
         'nc_models',
         {
-          title: args.args.parentTable
+          title: args.args.parentTable,
         }
       );
       const child = await this.xcMeta.metaGet(projectId, dbAlias, 'nc_models', {
-        title: args.args.childTable
+        title: args.args.childTable,
       });
       const parentMeta = JSON.parse(parent.meta);
       const childMeta = JSON.parse(child.meta);
 
-      const parentPK = parentMeta.columns.find(c => c.pk);
-      const childPK = childMeta.columns.find(c => c.pk);
+      const parentPK = parentMeta.columns.find((c) => c.pk);
+      const childPK = childMeta.columns.find((c) => c.pk);
 
       const associateTableCols = [];
 
@@ -3036,7 +3029,7 @@ export default class NcMetaMgr {
           dtxp: childPK.dtxp,
           dtxs: childPK.dtxs,
           un: childPK.un,
-          altered: 1
+          altered: 1,
         },
         {
           cn: parentCn,
@@ -3049,13 +3042,14 @@ export default class NcMetaMgr {
           dtxp: parentPK.dtxp,
           dtxs: parentPK.dtxs,
           un: parentPK.un,
-          altered: 1
+          altered: 1,
         }
       );
 
       // todo: associative table naming
-      const aTn = `${this.projectConfigs[projectId]?.prefix ??
-        ''}_nc_m2m_${randomID()}`;
+      const aTn = `${
+        this.projectConfigs[projectId]?.prefix ?? ''
+      }_nc_m2m_${randomID()}`;
       const aTnAlias = `m2m${parentMeta._tn}_${childMeta._tn}`;
 
       const out = await this.projectMgr
@@ -3065,8 +3059,8 @@ export default class NcMetaMgr {
           args: {
             tn: aTn,
             _tn: aTnAlias,
-            columns: associateTableCols
-          }
+            columns: associateTableCols,
+          },
         });
 
       if (this.listener) {
@@ -3076,15 +3070,15 @@ export default class NcMetaMgr {
             args: {
               tn: aTn,
               _tn: aTnAlias,
-              columns: associateTableCols
+              columns: associateTableCols,
             },
-            api: 'tableCreate'
+            api: 'tableCreate',
           },
           res: out,
           user: req.user,
           ctx: {
-            req
-          }
+            req,
+          },
         });
       }
 
@@ -3094,7 +3088,7 @@ export default class NcMetaMgr {
         childColumn: parentCn,
         parentTable: parentMeta.tn,
         parentColumn: parentPK.cn,
-        type: 'real'
+        type: 'real',
       };
       const rel2Args = {
         ...args.args,
@@ -3102,47 +3096,47 @@ export default class NcMetaMgr {
         childColumn: childCn,
         parentTable: childMeta.tn,
         parentColumn: childPK.cn,
-        type: 'real'
+        type: 'real',
       };
       if (args.args.type === 'real') {
         const outrel = await this.projectMgr
           .getSqlMgr({ id: projectId })
           .handleRequest('relationCreate', {
             ...args,
-            args: rel1Args
+            args: rel1Args,
           });
         if (this.listener) {
           await this.listener({
             req: {
               ...args,
               args: rel1Args,
-              api: 'relationCreate'
+              api: 'relationCreate',
             },
             res: outrel,
             user: req.user,
             ctx: {
-              req
-            }
+              req,
+            },
           });
         }
         const outrel1 = await this.projectMgr
           .getSqlMgr({ id: projectId })
           .handleRequest('relationCreate', {
             ...args,
-            args: rel2Args
+            args: rel2Args,
           });
         if (this.listener) {
           await this.listener({
             req: {
               ...args,
               args: rel2Args,
-              api: 'relationCreate'
+              api: 'relationCreate',
             },
             res: outrel1,
             user: req.user,
             ctx: {
-              req
-            }
+              req,
+            },
           });
         }
       } else {
@@ -3155,13 +3149,13 @@ export default class NcMetaMgr {
             req: {
               ...args,
               args: rel1Args,
-              api: 'xcVirtualRelationCreate'
+              api: 'xcVirtualRelationCreate',
             },
             res: outrel,
             user: req.user,
             ctx: {
-              req
-            }
+              req,
+            },
           });
         }
         const outrel1 = await this.xcVirtualRelationCreate(
@@ -3172,13 +3166,13 @@ export default class NcMetaMgr {
           req: {
             ...args,
             args: rel2Args,
-            api: 'xcVirtualRelationCreate'
+            api: 'xcVirtualRelationCreate',
           },
           res: outrel1,
           user: req.user,
           ctx: {
-            req
-          }
+            req,
+          },
         });
       }
     } catch (e) {
@@ -3213,12 +3207,12 @@ export default class NcMetaMgr {
             dbAlias,
             'nc_models',
             {
-              title: args.args.childTable
+              title: args.args.childTable,
             }
           );
           const childMeta = JSON.parse(child.meta);
           const relation = childMeta.belongsTo.find(
-            bt => bt.rtn === args.args.parentTable
+            (bt) => bt.rtn === args.args.parentTable
           );
           // todo: virtual relation delete
           if (relation) {
@@ -3229,10 +3223,10 @@ export default class NcMetaMgr {
                 childTable: relation.tn,
                 parentTable: relation.rtn,
                 parentColumn: relation.rcn,
-                foreignKeyName: relation.fkn
+                foreignKeyName: relation.fkn,
               },
               api: 'relationDelete',
-              sqlOpPlus: true
+              sqlOpPlus: true,
             };
             let out;
             if (relation?.type === 'virtual') {
@@ -3248,30 +3242,30 @@ export default class NcMetaMgr {
                 req: opArgs,
                 res: out,
                 user: req.user,
-                ctx: { req }
+                ctx: { req },
               });
             }
           }
           if (deleteColumn) {
             const originalColumns = childMeta.columns;
-            const columns = childMeta.columns.map(c => ({
+            const columns = childMeta.columns.map((c) => ({
               ...c,
               ...(relation.cn === c.cn
                 ? {
                     altered: 4,
-                    cno: c.cn
+                    cno: c.cn,
                   }
-                : { cno: c.cn })
+                : { cno: c.cn }),
             }));
             const opArgs = {
               ...args,
               args: {
                 columns,
                 originalColumns,
-                tn: childMeta.tn
+                tn: childMeta.tn,
               },
               sqlOpPlus: true,
-              api: 'tableUpdate'
+              api: 'tableUpdate',
             };
             const out = await this.projectMgr
               .getSqlMgr({ id: projectId })
@@ -3282,7 +3276,7 @@ export default class NcMetaMgr {
                 req: opArgs,
                 res: out,
                 user: req.user,
-                ctx: { req }
+                ctx: { req },
               });
             }
           }
@@ -3295,15 +3289,15 @@ export default class NcMetaMgr {
             dbAlias,
             'nc_models',
             {
-              title: args.args.assocTable
+              title: args.args.assocTable,
             }
           );
           const assocMeta = JSON.parse(assoc.meta);
           const rel1 = assocMeta.belongsTo.find(
-            bt => bt.rtn === args.args.parentTable
+            (bt) => bt.rtn === args.args.parentTable
           );
           const rel2 = assocMeta.belongsTo.find(
-            bt => bt.rtn === args.args.childTable
+            (bt) => bt.rtn === args.args.childTable
           );
           if (rel1) {
             await this.xcRelationColumnDelete(
@@ -3315,8 +3309,8 @@ export default class NcMetaMgr {
                   childTable: rel1.tn,
                   childColumn: rel1.cn,
                   foreignKeyName: rel1.fkn,
-                  type: 'bt'
-                }
+                  type: 'bt',
+                },
               },
               req,
               false
@@ -3332,8 +3326,8 @@ export default class NcMetaMgr {
                   childTable: rel2.tn,
                   childColumn: rel2.cn,
                   foreignKeyName: rel2.fkn,
-                  type: 'bt'
-                }
+                  type: 'bt',
+                },
               },
               req,
               false
@@ -3346,7 +3340,7 @@ export default class NcMetaMgr {
               ...args,
               args: assocMeta,
               api: 'tableDelete',
-              sqlOpPlus: true
+              sqlOpPlus: true,
             };
 
             const out = await this.projectMgr
@@ -3358,7 +3352,7 @@ export default class NcMetaMgr {
                 req: opArgs,
                 res: out,
                 user: req.user,
-                ctx: { req }
+                ctx: { req },
               });
             }
           }
@@ -3385,7 +3379,7 @@ export default class NcMetaMgr {
         cn: args.args.childColumn,
         rtn: args.args.parentTable,
         rcn: args.args.parentColumn,
-        type: 'virtual'
+        type: 'virtual',
       }
     );
 
@@ -3394,7 +3388,7 @@ export default class NcMetaMgr {
       op_sub_type: 'DELETED',
       user: req.user.email,
       description: `deleted virtual relation between tables ${args.args.childTable} and ${args.args.parentTable} `,
-      ip: req.clientIp
+      ip: req.clientIp,
     });
 
     return res;
@@ -3414,8 +3408,8 @@ export default class NcMetaMgr {
       {
         condition: {
           // type: 'virtual',
-          tn: args.args.tn
-        }
+          tn: args.args.tn,
+        },
       }
     );
     return virtualRelation;
@@ -3427,24 +3421,25 @@ export default class NcMetaMgr {
   }
 
   protected getDbClientType(project_id: string, dbAlias: string) {
-    const config = this.app?.projectBuilders?.find(pb => pb?.id === project_id)
-      ?.config;
+    const config = this.app?.projectBuilders?.find(
+      (pb) => pb?.id === project_id
+    )?.config;
     return config?.envs?.[this.config?.workingEnv || '_noco']?.db?.find(
-      db => db?.meta?.dbAlias === dbAlias
+      (db) => db?.meta?.dbAlias === dbAlias
     )?.client;
   }
 
   protected getDbAliasList(project_id: string): string[] {
     return this.projectConfigs?.[project_id]?.envs?.[
       this.config?.workingEnv || '_noco'
-    ]?.db?.map(db => db?.meta?.dbAlias);
+    ]?.db?.map((db) => db?.meta?.dbAlias);
   }
 
   // @ts-ignore
   protected getSqlClient(project_id: string, dbAlias: string) {
     return this.app?.projectBuilders
-      ?.find(pb => pb?.id === project_id)
-      ?.apiBuilders?.find(builder => builder.dbAlias === dbAlias)
+      ?.find((pb) => pb?.id === project_id)
+      ?.apiBuilders?.find((builder) => builder.dbAlias === dbAlias)
       ?.getSqlClient();
   }
 
@@ -3463,7 +3458,7 @@ export default class NcMetaMgr {
         model_name: args.args.model_name,
         // meta: JSON.stringify(args.args.meta),
         query_params: JSON.stringify(args.args.query_params),
-        view_id: uuidv4()
+        view_id: uuidv4(),
         // password: args.args.password
       };
 
@@ -3495,7 +3490,7 @@ export default class NcMetaMgr {
         this.getDbAlias(args),
         'nc_shared_bases',
         {
-          project_id: this.getProjectId(args)
+          project_id: this.getProjectId(args),
         }
       );
 
@@ -3510,7 +3505,7 @@ export default class NcMetaMgr {
           db_alias: this.getDbAlias(args),
           shared_base_id: uuidv4(),
           password: args?.args?.password,
-          roles
+          roles,
         };
 
         await this.xcMeta.metaInsert(
@@ -3537,7 +3532,7 @@ export default class NcMetaMgr {
           'nc_shared_bases',
           { roles },
           {
-            project_id: this.getProjectId(args)
+            project_id: this.getProjectId(args),
           }
         );
         sharedBase.roles = roles;
@@ -3559,7 +3554,7 @@ export default class NcMetaMgr {
         this.getDbAlias(args),
         'nc_shared_bases',
         {
-          project_id: this.getProjectId(args)
+          project_id: this.getProjectId(args),
         }
       );
       if (!sharedBase) return;
@@ -3569,7 +3564,7 @@ export default class NcMetaMgr {
         this.getDbAlias(args),
         'nc_shared_bases',
         {
-          project_id: this.getProjectId(args)
+          project_id: this.getProjectId(args),
         }
       );
     } catch (e) {
@@ -3584,7 +3579,7 @@ export default class NcMetaMgr {
         this.getDbAlias(args),
         'nc_shared_bases',
         {
-          project_id: this.getProjectId(args)
+          project_id: this.getProjectId(args),
         }
       );
       if (sharedBase)
@@ -3633,8 +3628,8 @@ export default class NcMetaMgr {
       'nc_shared_views',
       {
         view_id: {
-          _eq: args.args.view_id
-        }
+          _eq: args.args.view_id,
+        },
       }
     );
   }
@@ -3646,7 +3641,7 @@ export default class NcMetaMgr {
       'nc_shared_views',
       {
         condition: {
-          model_name: args.args.model_name
+          model_name: args.args.model_name,
         },
         fields: [
           'id',
@@ -3654,8 +3649,8 @@ export default class NcMetaMgr {
           'password',
           'model_name',
           'view_type',
-          'view_name'
-        ]
+          'view_name',
+        ],
       }
     );
   }
@@ -3665,7 +3660,7 @@ export default class NcMetaMgr {
       const sharedViewMeta = await this.xcMeta
         .knex('nc_shared_views')
         .where({
-          view_id: args.args.view_id
+          view_id: args.args.view_id,
         })
         .first();
 
@@ -3678,7 +3673,7 @@ export default class NcMetaMgr {
         sharedViewMeta.base_id,
         'nc_models',
         {
-          title: sharedViewMeta.view_name
+          title: sharedViewMeta.view_name,
         }
       );
 
@@ -3695,8 +3690,8 @@ export default class NcMetaMgr {
       }
 
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
+        ?.find((pb) => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find((ab) => ab.dbAlias === sharedViewMeta.base_id);
       const model = apiBuilder?.xcModels?.[sharedViewMeta.model_name];
 
       if (model) {
@@ -3719,14 +3714,14 @@ export default class NcMetaMgr {
           data: await model.list({
             ...req.query,
             where,
-            fields
+            fields,
           }),
           ...(await model.countByPk({
             ...req.query,
             where,
-            fields
+            fields,
           })),
-          client: apiBuilder?.client
+          client: apiBuilder?.client,
         };
       }
     } catch (e) {
@@ -3739,7 +3734,7 @@ export default class NcMetaMgr {
       const sharedViewMeta = await this.xcMeta
         .knex('nc_shared_views')
         .where({
-          view_id: args.args.view_id
+          view_id: args.args.view_id,
         })
         .first();
 
@@ -3752,7 +3747,7 @@ export default class NcMetaMgr {
         sharedViewMeta.base_id,
         'nc_models',
         {
-          title: sharedViewMeta.view_name
+          title: sharedViewMeta.view_name,
         }
       );
 
@@ -3774,8 +3769,8 @@ export default class NcMetaMgr {
       // const queryParams = JSON.parse(viewMeta.query_params);
 
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
+        ?.find((pb) => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find((ab) => ab.dbAlias === sharedViewMeta.base_id);
 
       // todo: only allow related table
       // if(tn &&){
@@ -3784,16 +3779,18 @@ export default class NcMetaMgr {
 
       const model = apiBuilder.xcModels?.[tn];
 
-      const primaryCol = apiBuilder?.getMeta(tn)?.columns?.find(c => c.pv)?.cn;
+      const primaryCol = apiBuilder
+        ?.getMeta(tn)
+        ?.columns?.find((c) => c.pv)?.cn;
 
       const commonParams =
         primaryCol && args.args.query
           ? {
               condition: {
                 [primaryCol]: {
-                  like: `%${args.args.query}%`
-                }
-              }
+                  like: `%${args.args.query}%`,
+                },
+              },
             }
           : {};
 
@@ -3802,9 +3799,9 @@ export default class NcMetaMgr {
           fields: model.getTablePKandPVFields(),
           limit: args.args.limit,
           offset: args.args.offset,
-          ...commonParams
+          ...commonParams,
         }),
-        count: (await model?.countByPk(commonParams as any))?.count
+        count: (await model?.countByPk(commonParams as any))?.count,
       };
     } catch (e) {
       console.log(e);
@@ -3819,7 +3816,7 @@ export default class NcMetaMgr {
       const sharedViewMeta = await this.xcMeta
         .knex('nc_shared_views')
         .where({
-          view_id: args.args.view_id
+          view_id: args.args.view_id,
         })
         .first();
 
@@ -3832,7 +3829,7 @@ export default class NcMetaMgr {
         sharedViewMeta.base_id,
         'nc_models',
         {
-          title: sharedViewMeta.view_name
+          title: sharedViewMeta.view_name,
         }
       );
 
@@ -3859,55 +3856,59 @@ export default class NcMetaMgr {
       // const queryParams = JSON.parse(viewMeta.query_params);
 
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
+        ?.find((pb) => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find((ab) => ab.dbAlias === sharedViewMeta.base_id);
 
       const model = apiBuilder.xcModels?.[tn];
       const parentMeta = apiBuilder.getMeta(ptn);
       // const meta = apiBuilder.getMeta(tn);
 
-      const primaryCol = apiBuilder?.getMeta(tn)?.columns?.find(c => c.pv)?.cn;
+      const primaryCol = apiBuilder
+        ?.getMeta(tn)
+        ?.columns?.find((c) => c.pv)?.cn;
 
       const commonParams: any =
         primaryCol && args.args.query
           ? {
               condition: {
                 [primaryCol]: {
-                  like: `%${args.args.query}%`
-                }
-              }
+                  like: `%${args.args.query}%`,
+                },
+              },
             }
           : {};
 
       switch (args.args?.type) {
         case 'mm':
           {
-            const mm = parentMeta.v.find(v => v.mm && v._cn === args.args._cn)
-              ?.mm;
+            const mm = parentMeta.v.find(
+              (v) => v.mm && v._cn === args.args._cn
+            )?.mm;
             const assocMeta = apiBuilder.getMeta(mm.vtn);
 
             commonParams.conditionGraph = {
               condition: {
                 [assocMeta.tn]: {
                   relationType: 'hm',
-                  [assocMeta.columns.find(c => c.cn === mm.vcn).cn]: {
-                    eq: args.args.row_id
-                  }
-                }
+                  [assocMeta.columns.find((c) => c.cn === mm.vcn).cn]: {
+                    eq: args.args.row_id,
+                  },
+                },
               },
-              models: apiBuilder?.xcModels
+              models: apiBuilder?.xcModels,
             };
           }
           break;
         case 'hm':
           {
-            const hm = parentMeta.v.find(v => v.hm && v._cn === args.args._cn)
-              ?.hm;
+            const hm = parentMeta.v.find(
+              (v) => v.hm && v._cn === args.args._cn
+            )?.hm;
             // const childMeta = apiBuilder.getMeta(hm.rtn);
             commonParams.condition = {
               [hm.rcn]: {
-                eq: args.args.row_id
-              }
+                eq: args.args.row_id,
+              },
             };
           }
           break;
@@ -3918,9 +3919,9 @@ export default class NcMetaMgr {
           fields: model.getTablePKandPVFields(),
           limit: args.args.limit,
           offset: args.args.offset,
-          ...commonParams
+          ...commonParams,
         }),
-        count: (await model?.countByPk(commonParams as any))?.count
+        count: (await model?.countByPk(commonParams as any))?.count,
       };
     } catch (e) {
       console.log(e);
@@ -3932,7 +3933,7 @@ export default class NcMetaMgr {
     const sharedViewMeta = await this.xcMeta
       .knex('nc_shared_views')
       .where({
-        view_id: args.args.view_id
+        view_id: args.args.view_id,
       })
       .first();
 
@@ -3945,7 +3946,7 @@ export default class NcMetaMgr {
       sharedViewMeta.base_id,
       'nc_models',
       {
-        title: sharedViewMeta.view_name
+        title: sharedViewMeta.view_name,
       }
     );
     if (!viewMeta) {
@@ -3964,12 +3965,12 @@ export default class NcMetaMgr {
     // const meta = JSON.parse(viewMeta.meta);
 
     const fields: string[] = Object.keys(queryParams.showFields).filter(
-      k => queryParams.showFields[k]
+      (k) => queryParams.showFields[k]
     );
 
     const apiBuilder = this.app?.projectBuilders
-      ?.find(pb => pb.id === sharedViewMeta.project_id)
-      ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
+      ?.find((pb) => pb.id === sharedViewMeta.project_id)
+      ?.apiBuilders?.find((ab) => ab.dbAlias === sharedViewMeta.base_id);
 
     const tableMeta = (viewMeta.meta = apiBuilder?.getMeta(
       sharedViewMeta.model_name
@@ -3996,7 +3997,7 @@ export default class NcMetaMgr {
       if (
         fields.includes(file?.fieldname) &&
         tableMeta.columns.find(
-          c => c._cn === file?.fieldname && c.uidt === UITypes.Attachment
+          (c) => c._cn === file?.fieldname && c.uidt === UITypes.Attachment
         )
       ) {
         attachments[file.fieldname] = attachments[file.fieldname] || [];
@@ -4004,7 +4005,7 @@ export default class NcMetaMgr {
           await this._uploadFile({
             file,
             storeInPublicFolder: true,
-            req
+            req,
           })
         );
       }
@@ -4026,7 +4027,7 @@ export default class NcMetaMgr {
     const sharedViewMeta = await this.xcMeta
       .knex('nc_shared_views')
       .where({
-        view_id: args.args.view_id
+        view_id: args.args.view_id,
       })
       .first();
 
@@ -4039,7 +4040,7 @@ export default class NcMetaMgr {
       sharedViewMeta.base_id,
       'nc_models',
       {
-        title: sharedViewMeta.view_name
+        title: sharedViewMeta.view_name,
       }
     );
 
@@ -4058,8 +4059,8 @@ export default class NcMetaMgr {
     // todo : filter out columns of related table
     try {
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
+        ?.find((pb) => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find((ab) => ab.dbAlias === sharedViewMeta.base_id);
 
       const tableMeta = (viewMeta.meta = apiBuilder?.getMeta(
         sharedViewMeta.model_name
@@ -4095,16 +4096,16 @@ export default class NcMetaMgr {
     viewMeta.meta = {
       ...viewMeta.meta,
       columns: viewMeta.meta.columns.filter(
-        c =>
+        (c) =>
           !viewMeta.query_params?.showFields ||
           viewMeta.query_params?.showFields?.[c._cn] ||
           c.pk ||
-          viewMeta.meta.v?.some(v => v.bt?.cn === c.cn)
+          viewMeta.meta.v?.some((v) => v.bt?.cn === c.cn)
       ),
 
       v: viewMeta.meta.v?.filter(
-        c => viewMeta.query_params?.showFields?.[c._cn]
-      )
+        (c) => viewMeta.query_params?.showFields?.[c._cn]
+      ),
     };
 
     return { ...sharedViewMeta, ...viewMeta };
@@ -4116,7 +4117,7 @@ export default class NcMetaMgr {
       .select('project_id')
       .where({
         shared_base_id: args.args.shared_base_id,
-        enabled: true
+        enabled: true,
       })
       .first();
 
@@ -4131,7 +4132,7 @@ export default class NcMetaMgr {
     const sharedViewMeta = await this.xcMeta
       .knex('nc_shared_views')
       .where({
-        view_id: args.args.view_id
+        view_id: args.args.view_id,
       })
       .first();
 
@@ -4144,7 +4145,7 @@ export default class NcMetaMgr {
       sharedViewMeta.base_id,
       'nc_models',
       {
-        title: sharedViewMeta.view_name
+        title: sharedViewMeta.view_name,
       }
     );
 
@@ -4164,7 +4165,7 @@ export default class NcMetaMgr {
       {
         shared: true,
         ...sharedViewMeta,
-        args: { ...args.args, ...sharedViewMeta }
+        args: { ...args.args, ...sharedViewMeta },
       },
       _req,
       res
@@ -4174,7 +4175,7 @@ export default class NcMetaMgr {
   protected async xcAuthHookGet(args: any): Promise<any> {
     try {
       return await this.xcMeta.metaGet(args.project_id, 'db', 'nc_hooks', {
-        type: 'AUTH_MIDDLEWARE'
+        type: 'AUTH_MIDDLEWARE',
       });
     } catch (e) {
       console.log(e);
@@ -4185,7 +4186,7 @@ export default class NcMetaMgr {
     // todo: add all params
     if (
       await this.xcMeta.metaGet(args.project_id, 'db', 'nc_hooks', {
-        type: 'AUTH_MIDDLEWARE'
+        type: 'AUTH_MIDDLEWARE',
       })
     ) {
       return this.xcMeta.metaUpdate(
@@ -4193,17 +4194,17 @@ export default class NcMetaMgr {
         'db',
         'nc_hooks',
         {
-          url: args.args.url
+          url: args.args.url,
         },
         {
-          type: 'AUTH_MIDDLEWARE'
+          type: 'AUTH_MIDDLEWARE',
         }
       );
     }
 
     return this.xcMeta.metaInsert(args.project_id, 'db', 'nc_hooks', {
       url: args.args.url,
-      type: 'AUTH_MIDDLEWARE'
+      type: 'AUTH_MIDDLEWARE',
     });
   }
 
@@ -4212,7 +4213,7 @@ export default class NcMetaMgr {
 
     const tables = await this.xcVisibilityMetaGet({
       ...args,
-      args: { type: 'table', ...args.args }
+      args: { type: 'table', ...args.args },
     });
     // if (this.isEe) {
     //   tables = tables.filter((table: any) => {
@@ -4231,7 +4232,7 @@ export default class NcMetaMgr {
         'nc_models',
         {
           title: args.args.tn,
-          type: 'table'
+          type: 'table',
         }
       );
 
@@ -4258,7 +4259,7 @@ export default class NcMetaMgr {
       await this.xcVisibilityMetaGet({ ...args, args: { type: 'function' } })
     ).filter((functionObj: any) => {
       return Object.keys(roles).some(
-        role => roles[role] && !functionObj.disabled[role]
+        (role) => roles[role] && !functionObj.disabled[role]
       );
     });
 
@@ -4271,11 +4272,11 @@ export default class NcMetaMgr {
     const views = (
       await this.xcVisibilityMetaGet({
         ...args,
-        args: { type: 'view', ...args.args }
+        args: { type: 'view', ...args.args },
       })
     ).filter((view: any) => {
       return Object.keys(roles).some(
-        role => roles[role] && !view.disabled[role]
+        (role) => roles[role] && !view.disabled[role]
       );
     });
 
@@ -4289,7 +4290,7 @@ export default class NcMetaMgr {
       await this.xcVisibilityMetaGet({ ...args, args: { type: 'procedure' } })
     ).filter((procedure: any) => {
       return Object.keys(roles).some(
-        role => roles[role] && !procedure.disabled[role]
+        (role) => roles[role] && !procedure.disabled[role]
       );
     });
 
@@ -4305,28 +4306,30 @@ export default class NcMetaMgr {
 
     const projectConfig = this.projectConfigs[projectId];
     const connectionConfig = projectConfig.envs?.['_noco']?.db?.find(
-      d => d?.meta?.dbAlias === dbAlias
+      (d) => d?.meta?.dbAlias === dbAlias
     );
 
     const result = { tables: [], relations: [] };
 
     const apiBuilder = this.app?.projectBuilders
-      ?.find(pb => pb.id === projectId)
-      ?.apiBuilders?.find(ab => ab.dbAlias === dbAlias);
+      ?.find((pb) => pb.id === projectId)
+      ?.apiBuilders?.find((ab) => ab.dbAlias === dbAlias);
 
     const parser = new NcTemplateParser({
       client: connectionConfig?.client,
       template,
-      prefix: projectConfig?.prefix
+      prefix: projectConfig?.prefix,
     });
     parser.parse();
 
-    const existingTables = parser.tables.filter(t => apiBuilder.getMeta(t.tn));
+    const existingTables = parser.tables.filter((t) =>
+      apiBuilder.getMeta(t.tn)
+    );
 
     if (existingTables?.length) {
       throw new Error(
         `Import unsuccessful : following tables '${existingTables
-          .map(t => t._tn)
+          .map((t) => t._tn)
           .join(', ')}' already exists`
       );
     }
@@ -4338,7 +4341,7 @@ export default class NcMetaMgr {
         .getSqlMgr({ id: projectId })
         .handleRequest('tableCreate', {
           ...args,
-          args: table
+          args: table,
         });
 
       if (this.listener) {
@@ -4346,13 +4349,13 @@ export default class NcMetaMgr {
           req: {
             ...args,
             args: table,
-            api: 'tableCreate'
+            api: 'tableCreate',
           },
           res: out,
           user: req.user,
           ctx: {
-            req
-          }
+            req,
+          },
         });
       }
 
@@ -4367,20 +4370,20 @@ export default class NcMetaMgr {
           .getSqlMgr({ id: projectId })
           .handleRequest('relationCreate', {
             ...args,
-            args: relation
+            args: relation,
           });
         if (this.listener) {
           await this.listener({
             req: {
               ...args,
               args: relation,
-              api: 'relationCreate'
+              api: 'relationCreate',
             },
             res: outrel,
             user: req.user,
             ctx: {
-              req
-            }
+              req,
+            },
           });
         }
       } else {
@@ -4393,13 +4396,13 @@ export default class NcMetaMgr {
             req: {
               ...args,
               args: relation,
-              api: 'xcVirtualRelationCreate'
+              api: 'xcVirtualRelationCreate',
             },
             res: outrel,
             user: req.user,
             ctx: {
-              req
-            }
+              req,
+            },
           });
         }
       }
@@ -4413,7 +4416,7 @@ export default class NcMetaMgr {
       const outrel = await this.xcM2MRelationCreate(
         {
           ...args,
-          args: m2mRelation
+          args: m2mRelation,
         },
         req
       );
@@ -4422,13 +4425,13 @@ export default class NcMetaMgr {
           req: {
             ...args,
             args: m2mRelation,
-            api: 'xcM2MRelationCreate'
+            api: 'xcM2MRelationCreate',
           },
           res: outrel,
           user: req.user,
           ctx: {
-            req
-          }
+            req,
+          },
         });
       }
 
@@ -4445,23 +4448,23 @@ export default class NcMetaMgr {
         ...args,
         args: {
           meta,
-          tn
-        }
+          tn,
+        },
       });
       await this.listener({
         req: {
           ...args,
           args: {
             meta,
-            tn
+            tn,
           },
-          api: 'tableXcModelGet'
+          api: 'tableXcModelGet',
         },
         res,
         user: req.user,
         ctx: {
-          req
-        }
+          req,
+        },
       });
     }
 
@@ -4474,8 +4477,8 @@ export default class NcMetaMgr {
     const projectId = this.getProjectId(args);
     const dbAlias = this.getDbAlias(args);
     const apiBuilder = this.app?.projectBuilders
-      ?.find(pb => pb.id === projectId)
-      ?.apiBuilders?.find(ab => ab.dbAlias === dbAlias);
+      ?.find((pb) => pb.id === projectId)
+      ?.apiBuilders?.find((ab) => ab.dbAlias === dbAlias);
 
     const model = apiBuilder?.xcModels?.[args.args.model_name];
 
@@ -4486,7 +4489,7 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        title: args.args.view_name
+        title: args.args.view_name,
       }
     );
 
@@ -4523,21 +4526,21 @@ export default class NcMetaMgr {
         ...(args.args.query || {}),
         fields: meta.columns
           .filter(
-            c => !queryParams?.showFields && queryParams?.showFields?.[c._cn]
+            (c) => !queryParams?.showFields && queryParams?.showFields?.[c._cn]
           )
-          .map(c => c._cn)
+          .map((c) => c._cn)
           .join(','),
         sort,
         where,
-        ...this.serializeNestedParams(meta, queryParams)
+        ...this.serializeNestedParams(meta, queryParams),
       },
       // filter only visible columns
       localQuery?.showFields || queryParams?.showFields
         ? Object.entries(
             localQuery?.showFields || queryParams?.showFields || {}
           )
-            .filter(v => v[1])
-            .map(v => v[0])
+            .filter((v) => v[1])
+            .map((v) => v[0])
             .sort(
               (a, b) =>
                 (queryParams?.fieldsOrder?.indexOf(a) + 1 || Infinity) -
@@ -4554,10 +4557,10 @@ export default class NcMetaMgr {
           'nc-export-elapsed-time': csvData.elapsed,
           'Content-Disposition': `attachment; filename="${encodeURI(
             args.args.model_name
-          )}-export.csv"`
+          )}-export.csv"`,
         });
         res.send(csvData.data);
-      }
+      },
     };
   }
 
@@ -4566,7 +4569,7 @@ export default class NcMetaMgr {
     if (queryParams?.sortList) {
       sort.push(
         ...(queryParams.sortList
-          ?.map(sort => {
+          ?.map((sort) => {
             return sort.field ? `${sort.order}${sort.field}` : '';
           })
           .filter(Boolean) || [])
@@ -4580,8 +4583,8 @@ export default class NcMetaMgr {
   protected async xcVisibilityMetaGet(args) {
     try {
       const roles = (await this.xcMeta.metaList('', '', 'nc_roles'))
-        .map(r => r.title)
-        .filter(role => !['owner', 'guest', 'creator'].includes(role));
+        .map((r) => r.title)
+        .filter((role) => !['owner', 'guest', 'creator'].includes(role));
 
       const defaultDisabled = roles.reduce(
         (o, r) => ({ ...o, [r]: false }),
@@ -4600,23 +4603,25 @@ export default class NcMetaMgr {
               {
                 condition: {
                   type: 'table',
-                  ...(args?.args?.includeM2M ? {} : { mm: null })
-                }
+                  ...(args?.args?.includeM2M ? {} : { mm: null }),
+                },
               }
             );
 
             if (args.args.force) {
-              tables = (await sqlClient.tableList())?.data?.list?.map(table => {
-                return (
-                  tables.find(mod => mod.title === table.tn) ?? {
-                    title: table.tn,
-                    alias: table.tn
-                  }
-                );
-              });
+              tables = (await sqlClient.tableList())?.data?.list?.map(
+                (table) => {
+                  return (
+                    tables.find((mod) => mod.title === table.tn) ?? {
+                      title: table.tn,
+                      alias: table.tn,
+                    }
+                  );
+                }
+              );
               const config = this.projectConfigs[this.getProjectId(args)];
               tables = config?.prefix
-                ? tables.filter(t => {
+                ? tables.filter((t) => {
                     t.alias = t.title.replace(config?.prefix, '');
                     return t.title.startsWith(config?.prefix);
                   })
@@ -4628,7 +4633,7 @@ export default class NcMetaMgr {
                 tn: table.title,
                 _tn: table.alias,
                 order: table.order,
-                disabled: { ...defaultDisabled }
+                disabled: { ...defaultDisabled },
               };
               return obj;
             }, {});
@@ -4639,8 +4644,8 @@ export default class NcMetaMgr {
               'nc_disabled_models_for_role',
               {
                 condition: {
-                  type: 'table'
-                }
+                  type: 'table',
+                },
               }
             );
 
@@ -4665,23 +4670,23 @@ export default class NcMetaMgr {
               'nc_models',
               {
                 condition: {
-                  type: 'view'
-                }
+                  type: 'view',
+                },
               }
             );
 
             if (args.args.force) {
-              views = (await sqlClient.viewList())?.data?.list?.map(view => {
+              views = (await sqlClient.viewList())?.data?.list?.map((view) => {
                 return (
-                  views.find(mod => mod.title === view.view_name) ?? {
+                  views.find((mod) => mod.title === view.view_name) ?? {
                     title: view.view_name,
-                    alias: view.view_name
+                    alias: view.view_name,
                   }
                 );
               });
               const config = this.projectConfigs[this.getProjectId(args)];
               views = config?.prefix
-                ? views.filter(t => {
+                ? views.filter((t) => {
                     t.alias = t.title.replace(config?.prefix, '');
                     return t.title.startsWith(config?.prefix);
                   })
@@ -4692,7 +4697,7 @@ export default class NcMetaMgr {
               obj[view.view_name || view.title] = {
                 view_name: view.title,
                 _tn: view.alias,
-                disabled: { ...defaultDisabled }
+                disabled: { ...defaultDisabled },
               };
               return obj;
             }, {});
@@ -4703,8 +4708,8 @@ export default class NcMetaMgr {
               'nc_disabled_models_for_role',
               {
                 condition: {
-                  type: 'view'
-                }
+                  type: 'view',
+                },
               }
             );
 
@@ -4723,7 +4728,7 @@ export default class NcMetaMgr {
             const result = views.reduce((obj, view) => {
               obj[view.function_name] = {
                 function_name: view.function_name,
-                disabled: { ...defaultDisabled }
+                disabled: { ...defaultDisabled },
               };
               return obj;
             }, {});
@@ -4734,8 +4739,8 @@ export default class NcMetaMgr {
               'nc_disabled_models_for_role',
               {
                 condition: {
-                  type: 'function'
-                }
+                  type: 'function',
+                },
               }
             );
 
@@ -4754,7 +4759,7 @@ export default class NcMetaMgr {
             const result = procedures.reduce((obj, view) => {
               obj[view.procedure_name] = {
                 procedure_name: view.procedure_name,
-                disabled: { ...defaultDisabled }
+                disabled: { ...defaultDisabled },
               };
               return obj;
             }, {});
@@ -4765,8 +4770,8 @@ export default class NcMetaMgr {
               'nc_disabled_models_for_role',
               {
                 condition: {
-                  type: 'procedure'
-                }
+                  type: 'procedure',
+                },
               }
             );
 
@@ -4788,11 +4793,11 @@ export default class NcMetaMgr {
                   relation.relationType,
                   relation.rtn,
                   relation.cn,
-                  relation.rcn
+                  relation.rcn,
                 ].join('||')
               ] = {
                 ...relation,
-                disabled: { ...defaultDisabled }
+                disabled: { ...defaultDisabled },
               };
               return obj;
             }, {});
@@ -4803,8 +4808,8 @@ export default class NcMetaMgr {
               'nc_disabled_models_for_role',
               {
                 condition: {
-                  type: 'relation'
-                }
+                  type: 'relation',
+                },
               }
             );
 
@@ -4828,21 +4833,21 @@ export default class NcMetaMgr {
               'nc_models',
               {
                 condition: {
-                  ...(args?.args?.includeM2M ? {} : { mm: null })
+                  ...(args?.args?.includeM2M ? {} : { mm: null }),
                 },
                 xcCondition: {
                   _or: [
                     {
-                      type: { eq: 'table' }
+                      type: { eq: 'table' },
                     },
                     {
-                      type: { eq: 'view' }
+                      type: { eq: 'view' },
                     },
                     {
-                      type: { eq: 'vtable' }
-                    }
-                  ]
-                }
+                      type: { eq: 'vtable' },
+                    },
+                  ],
+                },
               }
             );
 
@@ -4854,7 +4859,7 @@ export default class NcMetaMgr {
                 disabled: { ...defaultDisabled },
                 type: table.type,
                 show_as: table.show_as,
-                ptn: table.parent_model_title
+                ptn: table.parent_model_title,
               };
               return obj;
             }, {});
@@ -4867,16 +4872,16 @@ export default class NcMetaMgr {
                 xcCondition: {
                   _or: [
                     {
-                      type: { eq: 'table' }
+                      type: { eq: 'table' },
                     },
                     {
-                      type: { eq: 'view' }
+                      type: { eq: 'view' },
                     },
                     {
-                      type: { eq: 'vtable' }
-                    }
-                  ]
-                }
+                      type: { eq: 'vtable' },
+                    },
+                  ],
+                },
               }
             );
 
@@ -4903,24 +4908,24 @@ export default class NcMetaMgr {
               'nc_models',
               {
                 condition: {
-                  ...(args?.args?.includeM2M ? {} : { mm: null })
+                  ...(args?.args?.includeM2M ? {} : { mm: null }),
                 },
                 xcCondition: {
                   _or: [
                     {
-                      type: { eq: 'table' }
+                      type: { eq: 'table' },
                     },
                     {
-                      type: { eq: 'view' }
+                      type: { eq: 'view' },
                     },
                     {
-                      type: { eq: 'vtable' }
-                    }
-                  ]
+                      type: { eq: 'vtable' },
+                    },
+                  ],
                 },
                 orderBy: {
-                  order: 'asc'
-                }
+                  order: 'asc',
+                },
               }
             );
 
@@ -4933,7 +4938,7 @@ export default class NcMetaMgr {
                   disabled: { ...defaultDisabled },
                   type: table.type,
                   show_as: table.show_as,
-                  ptn: table.parent_model_title
+                  ptn: table.parent_model_title,
                 };
               return obj;
             }, {});
@@ -4957,16 +4962,16 @@ export default class NcMetaMgr {
                 xcCondition: {
                   _or: [
                     {
-                      type: { eq: 'table' }
+                      type: { eq: 'table' },
                     },
                     {
-                      type: { eq: 'view' }
+                      type: { eq: 'view' },
                     },
                     {
-                      type: { eq: 'vtable' }
-                    }
-                  ]
-                }
+                      type: { eq: 'vtable' },
+                    },
+                  ],
+                },
               }
             );
 
@@ -4983,7 +4988,7 @@ export default class NcMetaMgr {
             for (const [title, aclObj] of Object.entries(viewsObj)) {
               for (const role in result[title]?.disabled || []) {
                 result[title].disabled[role] = Object.values(aclObj).every(
-                  v => v[role]
+                  (v) => v[role]
                 );
               }
             }
@@ -5015,7 +5020,7 @@ export default class NcMetaMgr {
 
   protected async xcPluginRead(args): Promise<any> {
     return this.xcMeta.metaGet(null, null, 'nc_plugins', {
-      title: args.args.title
+      title: args.args.title,
     });
   }
 
@@ -5040,7 +5045,7 @@ export default class NcMetaMgr {
         {
           input: args.args.input ? JSON.stringify(args.args.input) : null,
           status: args.args.uninstall ? '' : 'installed',
-          active: !args.args.uninstall
+          active: !args.args.uninstall,
         },
         { title: args.args.title, id: args.args.id }
       );
@@ -5059,7 +5064,7 @@ export default class NcMetaMgr {
     } finally {
       Tele.emit('evt', {
         evt_type: 'plugin:installed',
-        title: args.args.title
+        title: args.args.title,
       });
     }
   }
@@ -5082,13 +5087,13 @@ export default class NcMetaMgr {
       this.getDbAlias(args),
       'nc_models',
       {
-        title: args.args.parent_model_title
+        title: args.args.parent_model_title,
       },
       null,
       {
         type: {
-          in: ['table', 'view']
-        }
+          in: ['table', 'view'],
+        },
       }
     );
 
@@ -5098,9 +5103,9 @@ export default class NcMetaMgr {
           .knex('nc_models')
           .where({
             project_id: this.getProjectId(args),
-            db_alias: this.getDbAlias(args)
+            db_alias: this.getDbAlias(args),
           })
-          .andWhere(qb => {
+          .andWhere((qb) => {
             qb.where({ title: args.args.parent_model_title });
             qb.orWhere({ parent_model_title: args.args.parent_model_title });
           })
@@ -5119,7 +5124,7 @@ export default class NcMetaMgr {
       query_params: JSON.stringify(args.args.query_params),
       parent_model_title: args.args.parent_model_title,
       show_as: args.args.show_as,
-      view_order
+      view_order,
     };
     const projectId = this.getProjectId(args);
     const dbAlias = this.getDbAlias(args);
@@ -5136,12 +5141,12 @@ export default class NcMetaMgr {
       op_sub_type: 'CREATED',
       user: req.user.email,
       description: `created view(${args.args.title}) for table(${args.args.parent_model_title}) `,
-      ip: req.clientIp
+      ip: req.clientIp,
     });
 
     Tele.emit('evt', {
       evt_type: 'vtable:created',
-      show_as: args.args.show_as
+      show_as: args.args.show_as,
     });
     return data;
   }
@@ -5160,7 +5165,7 @@ export default class NcMetaMgr {
     }
     pluginDet = (
       await axios.post('https://nocodb.com/api/v1/pluginDemoDefaults', {
-        key: process.env.NC_DEMO
+        key: process.env.NC_DEMO,
       })
     )?.data;
 
@@ -5182,13 +5187,13 @@ export default class NcMetaMgr {
         offset: args.args.offset,
         sort: {
           field: 'created_at',
-          desc: false
+          desc: false,
         },
         condition: {
           model_id: args.args.model_id,
           model_name: args.args.model_name,
-          ...(args.args.comments ? { op_type: 'COMMENT' } : {})
-        }
+          ...(args.args.comments ? { op_type: 'COMMENT' } : {}),
+        },
       }
     );
 
@@ -5207,7 +5212,7 @@ export default class NcMetaMgr {
         op_type: 'COMMENT',
         op_sub_type: 'INSERT',
         user: req.user?.email,
-        ip: req.clientIp
+        ip: req.clientIp,
       }
     );
   }
@@ -5227,7 +5232,7 @@ export default class NcMetaMgr {
   : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${args.args.prevValue}</span>
   <span class="black--text green lighten-4 px-2">${args.args.value}</span>`,
         ip: req.clientIp,
-        user: req.user?.email
+        user: req.user?.email,
       }
     );
   }
@@ -5241,7 +5246,7 @@ export default class NcMetaMgr {
         project_id: this.getProjectId(args),
         db_alias: this.getDbAlias(args),
         model_name: args.args.model_name,
-        op_type: 'COMMENT'
+        op_type: 'COMMENT',
         // op_sub_type: 'COMMENT',
       })
       .whereIn('model_id', args.args.ids)
@@ -5252,14 +5257,14 @@ export default class NcMetaMgr {
     const token = nanoid(40);
     await this.xcMeta.metaInsert(null, null, 'nc_api_tokens', {
       description: args.args.description,
-      token
+      token,
     });
     await RestAuthCtrl.instance.loadLatestApiTokens();
 
     Tele.emit('evt', { evt_type: 'apiToken:created' });
     return {
       description: args.args.description,
-      token
+      token,
     };
   }
 
@@ -5287,7 +5292,7 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        title: args.args.title
+        title: args.args.title,
       },
       args.args.id
     );
@@ -5297,11 +5302,11 @@ export default class NcMetaMgr {
       dbAlias,
       'nc_shared_views',
       {
-        view_name: args.args.title
+        view_name: args.args.title,
       },
       {
         view_name: args.args.old_title,
-        model_name: args.args.parent_model_title
+        model_name: args.args.parent_model_title,
       }
     );
 
@@ -5310,12 +5315,12 @@ export default class NcMetaMgr {
       op_sub_type: 'RENAMED',
       user: req.user.email,
       description: `renamed view(${args.args.title}, ${args.args.id}) for table(${args.args.parent_model_title}) `,
-      ip: req.clientIp
+      ip: req.clientIp,
     });
 
     Tele.emit('evt', {
       evt_type: 'vtable:renamed',
-      show_as: args.args.show_as
+      show_as: args.args.show_as,
     });
     return result;
   }
@@ -5327,7 +5332,7 @@ export default class NcMetaMgr {
       this.getDbAlias(args),
       'nc_models',
       {
-        query_params: JSON.stringify(args.args.query_params)
+        query_params: JSON.stringify(args.args.query_params),
       },
       args.args.id
     );
@@ -5343,7 +5348,7 @@ export default class NcMetaMgr {
       Database: config.envs?.[process.env.NODE_ENV || '_noco']?.db?.[0]?.client,
       ProjectOnRootDB: !!config?.prefix,
       RootDB: this.config?.meta?.db?.client,
-      PackageVersion: packageVersion
+      PackageVersion: packageVersion,
     };
   }
 
@@ -5351,12 +5356,12 @@ export default class NcMetaMgr {
     const roles = req.session?.passport?.user?.roles;
     let tables = await this.xcVisibilityMetaGet({
       ...args,
-      args: { type: 'table_view', ...args.args }
+      args: { type: 'table_view', ...args.args },
     });
 
     tables = tables.filter((table: any) => {
       return Object.keys(roles).some(
-        role => roles[role] && !table.disabled[role]
+        (role) => roles[role] && !table.disabled[role]
       );
     });
 
@@ -5365,8 +5370,8 @@ export default class NcMetaMgr {
 
   protected async xcVirtualTableList(args, req): Promise<any> {
     const roles = (await this.xcMeta.metaList('', '', 'nc_roles'))
-      .map(r => r.title)
-      .filter(role => !['owner', 'guest', 'creator'].includes(role));
+      .map((r) => r.title)
+      .filter((role) => !['owner', 'guest', 'creator'].includes(role));
 
     const defaultDisabled = roles.reduce((o, r) => ({ ...o, [r]: false }), {});
     const list = await this.xcMeta.metaList(
@@ -5378,15 +5383,15 @@ export default class NcMetaMgr {
           _or: [
             {
               parent_model_title: {
-                eq: args.args.tn
-              }
+                eq: args.args.tn,
+              },
             },
             {
               title: {
-                eq: args.args.tn
-              }
-            }
-          ]
+                eq: args.args.tn,
+              },
+            },
+          ],
         },
         fields: [
           'id',
@@ -5397,11 +5402,11 @@ export default class NcMetaMgr {
           'show_as',
           'title',
           'type',
-          'view_order'
+          'view_order',
         ],
         orderBy: {
-          view_order: 'asc'
-        }
+          view_order: 'asc',
+        },
         // todo: handle sort
       }
     );
@@ -5409,7 +5414,7 @@ export default class NcMetaMgr {
     const result = list.reduce((obj, table) => {
       obj[table.title] = {
         ...table,
-        disabled: { ...defaultDisabled }
+        disabled: { ...defaultDisabled },
       };
       return obj;
     }, {});
@@ -5422,13 +5427,13 @@ export default class NcMetaMgr {
         xcCondition: {
           _or: [
             {
-              type: 'table'
+              type: 'table',
             },
             {
-              type: 'vtable'
-            }
-          ]
-        }
+              type: 'vtable',
+            },
+          ],
+        },
       }
     );
 
@@ -5439,7 +5444,7 @@ export default class NcMetaMgr {
 
     const models = Object.values(result).filter((table: any) => {
       return Object.keys(req.session?.passport?.user?.roles).some(
-        role =>
+        (role) =>
           req.session?.passport?.user?.roles[role] && !table.disabled[role]
       );
     });
@@ -5452,12 +5457,12 @@ export default class NcMetaMgr {
     const res = await this.xcMeta.metaDelete(projectId, dbAlias, 'nc_models', {
       type: 'vtable',
       parent_model_title: args.args.parent_model_title,
-      id: args.args.id
+      id: args.args.id,
     });
 
     await this.xcMeta.metaDelete(projectId, dbAlias, 'nc_shared_views', {
       model_name: args.args.parent_model_title,
-      view_name: args.args.view_name
+      view_name: args.args.view_name,
     });
 
     this.xcMeta.audit(projectId, dbAlias, 'nc_audit', {
@@ -5465,7 +5470,7 @@ export default class NcMetaMgr {
       op_sub_type: 'DELETED',
       user: req.user.email,
       description: `deleted view(${args.args.title}, ${args.args.id}) of parent table(${args.args.parent_model_title}) `,
-      ip: req.clientIp
+      ip: req.clientIp,
     });
 
     Tele.emit('evt', { evt_type: 'vtable:deleted' });
@@ -5480,7 +5485,7 @@ export default class NcMetaMgr {
   protected async eeVerify() {
     try {
       const eeDetails = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
-        category: 'Enterprise'
+        category: 'Enterprise',
       });
 
       if (eeDetails?.input) {
@@ -5491,7 +5496,7 @@ export default class NcMetaMgr {
         await axios.post(
           'http://localhost:3000/api/v1/subscription/e62a4252-748a-4474-861e-ca291359130e',
           {
-            key: eeConfig.key
+            key: eeConfig.key,
           }
         );
 
@@ -5554,13 +5559,12 @@ export default class NcMetaMgr {
 
     const result: any = {
       current: packageVersion,
-      isDocker: isDocker()
+      isDocker: isDocker(),
     };
     try {
       const dockerTags = (
         await axios({
-          url:
-            'https://registry.hub.docker.com/v1/repositories/nocodb/nocodb/tags'
+          url: 'https://registry.hub.docker.com/v1/repositories/nocodb/nocodb/tags',
         })
       ).data;
       const verPattern = /^(\d+)\.(\d+)\.(\d+)$/;
@@ -5636,7 +5640,7 @@ export default class NcMetaMgr {
     const nestedParams: any = {
       hm: [],
       mm: [],
-      bt: []
+      bt: [],
     };
 
     for (const v of meta.v) {
@@ -5680,13 +5684,13 @@ export default class NcMetaMgr {
     const roles = await this.xcMeta.metaList(null, null, 'nc_projects_users', {
       condition: { user_id: user?.id },
       xcCondition: {
-        _or: [{ roles: { like: '%creator%' } }, { roles: { like: '%owner%' } }]
+        _or: [{ roles: { like: '%creator%' } }, { roles: { like: '%owner%' } }],
       },
-      fields: ['roles']
+      fields: ['roles'],
     });
 
     if (
-      !roles.some(r => /\b(?:owner|creator)\b/.test(r?.roles)) &&
+      !roles.some((r) => /\b(?:owner|creator)\b/.test(r?.roles)) &&
       (await this.xcMeta.metaList(null, null, 'nc_projects'))?.length
     ) {
       throw new Error("You don't have permission to create project");

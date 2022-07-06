@@ -1,9 +1,5 @@
 <template>
-  <v-container
-    fluid
-    class="ph-no-capture project-container ma-0 pa-0"
-    style="position: relative"
-  >
+  <v-container fluid class="ph-no-capture project-container ma-0 pa-0" style="position: relative">
     <v-tabs
       ref="projectTabs"
       v-model="activeTab"
@@ -21,14 +17,12 @@
 
       <v-tab
         v-for="(tab, index) in tabs"
-        :key="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${
-          (tab._nodes && tab._nodes.dbAlias) || ''
-        }||${tab.name}`"
+        :key="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${
+          tab.name
+        }`"
         class="divider project-tab xc-border-right"
         :title="tab.name"
-        :href="`#${(tab._nodes && tab._nodes).type || ''}||${
-          (tab._nodes && tab._nodes.dbAlias) || ''
-        }||${tab.name}`"
+        :href="`#${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`"
         @change="tabActivated(tab)"
       >
         <v-icon v-if="treeViewIcons[tab._nodes.type]" icon :small="true">
@@ -36,28 +30,20 @@
         </v-icon>
         <span
           class="flex-grow-1 caption font-weight-bold text-capitalize mx-2"
-          style="
-            white-space: nowrap;
-            overflow: hidden;
-            max-width: 140px;
-            text-overflow: ellipsis;
-          "
-        >{{ tab.name }}</span>
-        <v-icon icon :small="true" @click="removeTab(index)">
-          mdi-close
-        </v-icon>
+          style="white-space: nowrap; overflow: hidden; max-width: 140px; text-overflow: ellipsis"
+          >{{ tab.name }}</span
+        >
+        <v-icon icon :small="true" @click="removeTab(index)"> mdi-close </v-icon>
       </v-tab>
 
       <v-tabs-items :value="activeTab">
         <v-tab-item
           v-for="(tab, index) in tabs"
-          :key="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${
-            (tab._nodes && tab._nodes.dbAlias) || ''
-          }||${tab.name}`"
+          :key="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${
+            tab.name
+          }`"
           class="nc-main-tab-item"
-          :value="`${(tab._nodes && tab._nodes.type) || ''}||${
-            (tab._nodes && tab._nodes.dbAlias) || ''
-          }||${tab.name}`"
+          :value="`${(tab._nodes && tab._nodes.type) || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`"
           :transition="false"
           style="height: 100%"
           :reverse-transition="false"
@@ -67,9 +53,7 @@
               :ref="'tabs' + index"
               :is-active="
                 activeTab ===
-                  `${(tab._nodes && tab._nodes).type || ''}||${
-                    (tab._nodes && tab._nodes.dbAlias) || ''
-                  }||${tab.name}`
+                `${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`
               "
               :tab-id="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${
                 (tab._nodes && tab._nodes.dbAlias) || ''
@@ -83,9 +67,7 @@
               :ref="'tabs' + index"
               :is-active="
                 activeTab ===
-                  `${(tab._nodes && tab._nodes).type || ''}||${
-                    (tab._nodes && tab._nodes.dbAlias) || ''
-                  }||${tab.name}`
+                `${(tab._nodes && tab._nodes).type || ''}||${(tab._nodes && tab._nodes.dbAlias) || ''}||${tab.name}`
               "
               :tab-id="`${pid}||${(tab._nodes && tab._nodes).type || ''}||${
                 (tab._nodes && tab._nodes.dbAlias) || ''
@@ -112,53 +94,26 @@
             </sqlLogAndOutput>
           </div>
           <div v-else-if="tab._nodes.type === 'db'" style="height: 100%">
-            <audit-tab
-              :ref="'tabs' + index"
-              class="backgroundColor"
-              :nodes="tab._nodes"
-            />
+            <audit-tab :ref="'tabs' + index" class="backgroundColor" :nodes="tab._nodes" />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'seedParserDir'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'seedParserDir'" style="height: 100%">
             <sqlLogAndOutput>
               <SeedTab :ref="'tabs' + index" :nodes="tab._nodes" />
             </sqlLogAndOutput>
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'migrationsDir'"
-            style="height: 100%"
-          >
-            <audit-tab
-              :ref="'tabs' + index"
-              class="backgroundColor"
-              :nodes="tab._nodes"
-            />
+          <div v-else-if="tab._nodes.type === 'migrationsDir'" style="height: 100%">
+            <audit-tab :ref="'tabs' + index" class="backgroundColor" :nodes="tab._nodes" />
           </div>
           <div v-else-if="tab._nodes.type === 'apisDir'" style="height: 100%">
-            <ApisTab
-              :ref="'tabs' + index"
-              class="backgroundColor"
-              :nodes="tab._nodes"
-            />
+            <ApisTab :ref="'tabs' + index" class="backgroundColor" :nodes="tab._nodes" />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'apiClientDir'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'apiClientDir'" style="height: 100%">
             <ApiClientTab :ref="'tabs' + index" :nodes="tab._nodes" />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'apiClientSwaggerDir'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'apiClientSwaggerDir'" style="height: 100%">
             <ApiClientSwaggerTab :ref="'tabs' + index" :nodes="tab._nodes" />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'sqlClientDir'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'sqlClientDir'" style="height: 100%">
             <sqlLogAndOutput>
               <SqlClientTab :ref="'tabs' + index" :nodes="tab._nodes" />
             </sqlLogAndOutput>
@@ -166,22 +121,13 @@
           <div v-else-if="tab._nodes.type === 'terminal'" style="height: 100%">
             <x-term :ref="'tabs' + index" style="height: 100%" />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'graphqlClientDir'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'graphqlClientDir'" style="height: 100%">
             <graphql-client class="backgroundColor" style="height: 100%" />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'swaggerClientDir'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'swaggerClientDir'" style="height: 100%">
             <swagger-client style="height: 100%" />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'grpcClient'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'grpcClient'" style="height: 100%">
             <grpc-client style="height: 100%" />
           </div>
           <div v-else-if="tab._nodes.type === 'meta'" style="height: 100%">
@@ -196,27 +142,17 @@
             />
           </div>
           <div v-else-if="tab._nodes.type === 'acl'" style="height: 100%">
-            <global-acl
-              class="backgroundColor"
-              :nodes="tab._nodes"
-              style="height: 100%"
-            />
+            <global-acl class="backgroundColor" :nodes="tab._nodes" style="height: 100%" />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'projectSettings'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'projectSettings'" style="height: 100%">
             <project-settings
-              v-if="_isUIAllowed('settings')"
+              v-if="_isUIAllowed('projectSettings')"
               class="backgroundColor"
               :nodes="tab._nodes"
               style="height: 100%"
             />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'disableOrEnableModel'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'disableOrEnableModel'" style="height: 100%">
             <disable-or-enable-models
               v-if="_isUIAllowed('project-metadata')"
               class="backgroundColor"
@@ -227,10 +163,7 @@
           <div v-else-if="tab._nodes.type === 'cronJobs'" style="height: 100%">
             <cron-jobs :nodes="tab._nodes" style="height: 100%" />
           </div>
-          <div
-            v-else-if="tab._nodes.type === 'projectInfo'"
-            style="height: 100%"
-          >
+          <div v-else-if="tab._nodes.type === 'projectInfo'" style="height: 100%">
             <xc-info :nodes="tab._nodes" class="h-100" />
           </div>
           <div v-else-if="tab._nodes.type === 'appStore'" style="height: 100%">
@@ -246,17 +179,8 @@
       <!-- Add / Import -->
       <v-menu v-if="_isUIAllowed('addOrImport')" offset-y>
         <template #activator="{ on }">
-          <v-btn
-            color="primary"
-            style="height: 100%; padding: 5px;"
-            v-on="on"
-          >
-            <x-icon
-              icon-class="add-btn"
-              :color="['white', 'grey lighten-2']"
-            >
-              mdi-plus-box
-            </x-icon>
+          <v-btn color="primary" style="height: 100%; padding: 5px" v-on="on">
+            <x-icon icon-class="add-btn" :color="['white', 'grey lighten-2']"> mdi-plus-box </x-icon>
             <span class="flex-grow-1 caption font-weight-bold text-capitalize mx-2">
               <!-- TODO: i18n -->
               Add / Import
@@ -271,9 +195,7 @@
             @click="dialogCreateTableShowMethod"
           >
             <v-list-item-title>
-              <v-icon small>
-                mdi-table
-              </v-icon>
+              <v-icon small> mdi-table </v-icon>
               <span class="caption">
                 <!-- Add new table -->
                 {{ $t('tooltip.addTable') }}
@@ -281,9 +203,7 @@
             </v-list-item-title>
           </v-list-item>
           <v-divider class="my-1" />
-          <v-subheader class="caption" style="height:35px">
-            QUICK IMPORT FROM
-          </v-subheader>
+          <v-subheader class="caption" style="height: 35px"> QUICK IMPORT FROM </v-subheader>
 
           <v-list-item
             v-if="_isUIAllowed('airtableImport')"
@@ -291,9 +211,7 @@
             @click="airtableImportModal = true"
           >
             <v-list-item-title>
-              <v-icon small>
-                mdi-table-large
-              </v-icon>
+              <v-icon small> mdi-table-large </v-icon>
               <span class="caption">
                 <!-- TODO: i18n -->
                 Airtable
@@ -306,9 +224,7 @@
             @click="onImportFromExcelOrCSV('csv')"
           >
             <v-list-item-title>
-              <v-icon small>
-                mdi-file-document-outline
-              </v-icon>
+              <v-icon small> mdi-file-document-outline </v-icon>
               <span class="caption">
                 <!-- TODO: i18n -->
                 CSV file
@@ -321,9 +237,7 @@
             @click="jsonImportModal = true"
           >
             <v-list-item-title>
-              <v-icon small>
-                mdi-code-json
-              </v-icon>
+              <v-icon small> mdi-code-json </v-icon>
               <span class="caption">
                 <!-- TODO: i18n -->
                 JSON file
@@ -336,9 +250,7 @@
             @click="onImportFromExcelOrCSV('excel')"
           >
             <v-list-item-title>
-              <v-icon small>
-                mdi-file-excel
-              </v-icon>
+              <v-icon small> mdi-file-excel </v-icon>
               <span class="caption">
                 <!-- TODO: i18n -->
                 Microsoft Excel
@@ -355,9 +267,7 @@
             target="_blank"
           >
             <v-list-item-title>
-              <v-icon small>
-                mdi-open-in-new
-              </v-icon>
+              <v-icon small> mdi-open-in-new </v-icon>
               <span class="caption">
                 <!-- TODO: i18n -->
                 Request a data source you need ?
@@ -386,47 +296,43 @@
     />
 
     <!-- Import From JSON string / file -->
-    <json-import
-      v-model="jsonImportModal"
-      hide-label
-      @closeModal="jsonImportModal = false"
-    />
+    <json-import v-model="jsonImportModal" hide-label @closeModal="jsonImportModal = false" />
 
     <import-from-airtable v-if="airtableImportModal" v-model="airtableImportModal" />
   </v-container>
 </template>
 
 <script>
-import { mapGetters, mapMutations } from 'vuex'
-import treeViewIcons from '../helpers/treeViewIcons'
-import TableView from './project/Table'
-import FunctionTab from './project/Function'
-import ProcedureTab from './project/Procedure'
-import SequenceTab from './project/Sequence'
-import SeedTab from './project/Seed'
-import SqlClientTab from './project/SqlClient'
-import ApisTab from './project/Apis'
-import ApiClientTab from './project/ApiClientOld'
-import sqlLogAndOutput from './project/SqlLogAndOutput'
-import graphqlClient from './project/GraphqlClient'
-import xTerm from './XTerm'
+import { mapGetters, mapMutations } from 'vuex';
+import treeViewIcons from '../helpers/treeViewIcons';
+import TableView from './project/Table';
+import FunctionTab from './project/Function';
+import ProcedureTab from './project/Procedure';
+import SequenceTab from './project/Sequence';
+import SeedTab from './project/Seed';
+import SqlClientTab from './project/SqlClient';
+import ApisTab from './project/Apis';
+import ApiClientTab from './project/ApiClientOld';
+import sqlLogAndOutput from './project/SqlLogAndOutput';
+import graphqlClient from './project/GraphqlClient';
+import xTerm from './XTerm';
 
-import ApiClientSwaggerTab from './project/ApiClientSwagger'
-import XcMeta from './project/settings/XcMeta'
-import XcInfo from './project/XcInfo'
-import SwaggerClient from '~/components/project/SwaggerClient'
-import DlgTableCreate from '~/components/utils/DlgTableCreate'
-import AppStore from '~/components/project/AppStore'
-import AuthTab from '~/components/AuthTab'
-import CronJobs from '~/components/project/CronJobs'
-import DisableOrEnableModels from '~/components/project/projectMetadata/DisableOrEnableModels'
-import ProjectSettings from '~/components/project/ProjectSettings'
-import GrpcClient from '~/components/project/GrpcClient'
-import GlobalAcl from '~/components/GlobalAcl'
-import AuditTab from '~/components/project/AuditTab'
-import QuickImport from '~/components/import/QuickImport'
-import ImportFromAirtable from '~/components/import/ImportFromAirtable'
-import JsonImport from '~/components/import/JSONImport'
+import ApiClientSwaggerTab from './project/ApiClientSwagger';
+import XcMeta from './project/settings/XcMeta';
+import XcInfo from './project/XcInfo';
+import SwaggerClient from '~/components/project/SwaggerClient';
+import DlgTableCreate from '~/components/utils/DlgTableCreate';
+import AppStore from '~/components/project/AppStore';
+import AuthTab from '~/components/AuthTab';
+import CronJobs from '~/components/project/CronJobs';
+import DisableOrEnableModels from '~/components/project/projectMetadata/DisableOrEnableModels';
+import ProjectSettings from '~/components/project/ProjectSettings';
+import GrpcClient from '~/components/project/GrpcClient';
+import GlobalAcl from '~/components/GlobalAcl';
+import AuditTab from '~/components/project/AuditTab';
+import QuickImport from '~/components/import/QuickImport';
+import ImportFromAirtable from '~/components/import/ImportFromAirtable';
+import JsonImport from '~/components/import/JSONImport';
 
 export default {
   components: {
@@ -459,7 +365,7 @@ export default {
     sqlLogAndOutput,
     xTerm,
     graphqlClient,
-    QuickImport
+    QuickImport,
   },
   data() {
     return {
@@ -472,155 +378,148 @@ export default {
       quickImportModal: false,
       quickImportType: '',
       airtableImportModal: false,
-      jsonImportModal: false
-    }
+      jsonImportModal: false,
+    };
   },
   methods: {
     dialogCreateTableShowMethod() {
-      this.dialogCreateTableShow = true
-      this.$e('c:table:create:navbar')
+      this.dialogCreateTableShow = true;
+      this.$e('c:table:create:navbar');
     },
     checkInactiveState() {
-      let position = 0
-      let idleTime = 0
+      let position = 0;
+      let idleTime = 0;
       // Increment the idle time counter every minute.
-      let idleInterval = setInterval(timerIncrement, 1000)
+      let idleInterval = setInterval(timerIncrement, 1000);
 
-      const self = this
+      const self = this;
       // Zero the idle timer on mouse movement.
-      document.addEventListener('mousemove', (e) => {
-        self.showScreensaver = false
-        idleTime = 0
-        clearInterval(idleInterval)
-        idleInterval = setInterval(timerIncrement, 1000)
-      })
-      document.addEventListener('keypress', (e) => {
-        self.showScreensaver = false
-        idleTime = 0
-        clearInterval(idleInterval)
-        idleInterval = setInterval(timerIncrement, 1000)
-      })
+      document.addEventListener('mousemove', e => {
+        self.showScreensaver = false;
+        idleTime = 0;
+        clearInterval(idleInterval);
+        idleInterval = setInterval(timerIncrement, 1000);
+      });
+      document.addEventListener('keypress', e => {
+        self.showScreensaver = false;
+        idleTime = 0;
+        clearInterval(idleInterval);
+        idleInterval = setInterval(timerIncrement, 1000);
+      });
 
       function timerIncrement() {
-        idleTime = idleTime + 1
+        idleTime = idleTime + 1;
         if (idleTime > 120) {
-          const title = document.title
+          const title = document.title;
 
           function scrolltitle() {
-            document.title = title + Array(position).fill(' .').join('')
-            position = ++position % 3
+            document.title = title + Array(position).fill(' .').join('');
+            position = ++position % 3;
             if (self.showScreensaver) {
-              window.setTimeout(scrolltitle, 400)
+              window.setTimeout(scrolltitle, 400);
             } else {
-              document.title = title
+              document.title = title;
             }
           }
 
-          self.showScreensaver = self.$store.state.settings.screensaver
-          scrolltitle()
-          clearInterval(idleInterval)
+          self.showScreensaver = self.$store.state.settings.screensaver;
+          scrolltitle();
+          clearInterval(idleInterval);
         }
       }
     },
     async handleKeyDown(event) {
-      const activeTabEleKey = `tabs${this.activeTab}`
-      let isHandled = false
+      const activeTabEleKey = `tabs${this.activeTab}`;
+      let isHandled = false;
 
       if (
         this.$refs[activeTabEleKey] &&
         this.$refs[activeTabEleKey][0] &&
         this.$refs[activeTabEleKey][0].handleKeyDown
       ) {
-        isHandled = await this.$refs[activeTabEleKey][0].handleKeyDown(event)
+        isHandled = await this.$refs[activeTabEleKey][0].handleKeyDown(event);
       }
       if (!isHandled) {
-        switch (
-          [this._isMac ? event.metaKey : event.ctrlKey, event.key].join('_')
-        ) {
+        switch ([this._isMac ? event.metaKey : event.ctrlKey, event.key].join('_')) {
           case 'true_w':
-            this.removeTab(this.activeTab)
-            event.preventDefault()
-            event.stopPropagation()
-            break
+            this.removeTab(this.activeTab);
+            event.preventDefault();
+            event.stopPropagation();
+            break;
         }
       }
     },
     ...mapMutations({
       setActiveTab: 'tabs/active',
       removeTab: 'tabs/remove',
-      updateActiveTabx: 'tabs/activeTabCtx'
+      updateActiveTabx: 'tabs/activeTabCtx',
     }),
     tabActivated(tab) {},
     onImportFromExcelOrCSV(quickImportType) {
-      this.quickImportModal = true
-      this.quickImportType = quickImportType
+      this.quickImportModal = true;
+      this.quickImportType = quickImportType;
     },
     onAirtableImport() {
-      this.airtableImportModal = true
-    }
+      this.airtableImportModal = true;
+    },
   },
   computed: {
     ...mapGetters({ tabs: 'tabs/list', activeTabCtx: 'tabs/activeTabCtx' }),
     pid() {
-      return this.$route.params.project_id
+      return this.$route.params.project_id;
     },
     activeTab: {
       set(tab) {
         if (!tab) {
           return this.$router.push({
-            query: {}
-          })
+            query: {},
+          });
         }
-        const [type, dbalias, name] = tab.split('||')
+        const [type, dbalias, name] = tab.split('||');
         this.$router.push({
           query: {
             ...this.$route.query,
             type,
             dbalias,
-            name
-          }
-        })
+            name,
+          },
+        });
       },
       get() {
-        return [
-          this.$route.query.type,
-          this.$route.query.dbalias,
-          this.$route.query.name
-        ].join('||')
-      }
-    }
+        return [this.$route.query.type, this.$route.query.dbalias, this.$route.query.name].join('||');
+      },
+    },
   },
 
   beforeCreated() {},
   watch: {},
   created() {
-    document.addEventListener('keydown', this.handleKeyDown)
+    document.addEventListener('keydown', this.handleKeyDown);
     /**
      * Listening for tab change so that we can hide/show projectlogs based on tab
      */
   },
   mounted() {
     if (this.$route && this.$route.query && this.$route.query.excelUrl) {
-      this.quickImportModal = true
+      this.quickImportModal = true;
     }
   },
   beforeDestroy() {},
   destroyed() {
-    document.removeEventListener('keydown', this.handleKeyDown)
+    document.removeEventListener('keydown', this.handleKeyDown);
   },
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: {}
-}
+  props: {},
+};
 </script>
 
 <style scoped>
-
 /deep/ .project-tabs .v-tabs-bar {
   max-height: 30px;
 }
@@ -696,8 +595,8 @@ export default {
   margin-left: 0 !important;
 }
 
-/deep/ .nc-main-tab-item:not(.v-window-item--active){
-  display:none;
+/deep/ .nc-main-tab-item:not(.v-window-item--active) {
+  display: none;
 }
 </style>
 <!--

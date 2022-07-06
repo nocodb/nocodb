@@ -1,39 +1,39 @@
 <template>
-  <input v-model="localState" type="number" v-on="parentListeners">
+  <input v-model="localState" type="number" v-on="parentListeners" />
 </template>
 
 <script>
 export default {
   name: 'FloatCell',
   props: {
-    value: [String, Number]
+    value: [String, Number],
   },
   computed: {
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', +val)
-      }
+        this.$emit('input', +val);
+      },
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   mounted() {
-    this.$el.focus()
-  }
-}
+    this.$el.focus();
+  },
+};
 </script>
 
 <style scoped>

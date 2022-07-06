@@ -32,7 +32,7 @@ export default class Local implements IStorageAdapterV2 {
       const sendReq = request.get(url);
 
       // verify response code
-      sendReq.on('response', response => {
+      sendReq.on('response', (response) => {
         if (response.statusCode !== 200) {
           return reject('Response status was ' + response.statusCode);
         }
@@ -42,7 +42,7 @@ export default class Local implements IStorageAdapterV2 {
 
       // close() is async, call cb after close completes
       file.on('finish', () => {
-        file.close(err => {
+        file.close((err) => {
           if (err) {
             return reject(err);
           }
@@ -51,11 +51,11 @@ export default class Local implements IStorageAdapterV2 {
       });
 
       // check for request errors
-      sendReq.on('error', err => {
+      sendReq.on('error', (err) => {
         fs.unlink(destPath, () => reject(err.message)); // delete the (partial) file and then return the error
       });
 
-      file.on('error', err => {
+      file.on('error', (err) => {
         // Handle errors
         fs.unlink(destPath, () => reject(err.message)); // delete the (partial) file and then return the error
       });

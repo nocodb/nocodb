@@ -68,7 +68,7 @@
                   <template #activator="{ on }">
                     <v-checkbox
                       v-model="allToggle"
-                      v-ge="['acl','toggle-checkbox']"
+                      v-ge="['acl', 'toggle-checkbox']"
                       class="mt-1 flex-shrink-1"
                       dense
                       v-on="on"
@@ -83,7 +83,7 @@
               v-for="role in roles"
               :key="role"
               :colspan="methods.length"
-              style="border-left: 1px solid grey;border-bottom: 1px solid grey"
+              style="border-left: 1px solid grey; border-bottom: 1px solid grey"
             >
               <div class="d-flex align-center justify-center">
                 <span>{{ role }}</span>
@@ -93,7 +93,7 @@
           <tr>
             <!--          <th colspan="2"></th>-->
             <template v-for="role in roles">
-              <template v-for="(method,i) in methods">
+              <template v-for="(method, i) in methods">
                 <th
                   :key="`${method}_${role}`"
                   width="25"
@@ -107,7 +107,7 @@
           </tr>
           <tr>
             <template v-for="role in roles">
-              <template v-for="(method,i) in methods">
+              <template v-for="(method, i) in methods">
                 <th
                   :key="`${method}_${role}`"
                   width="25"
@@ -118,15 +118,18 @@
                     <template #activator="{ on }">
                       <v-checkbox
                         v-model="columnToggle[`${method}_${role}`]"
-                        v-ge="['acl','toggle-checkbox']"
+                        v-ge="['acl', 'toggle-checkbox']"
                         class="mt-0"
                         dense
                         v-on="on"
-                        @change="toggleColumn(role,method,columnToggle[`${method}_${role}`])"
+                        @change="toggleColumn(role, method, columnToggle[`${method}_${role}`])"
                       />
                     </template>
 
-                    <span>{{ columnToggle[`${method}_${role}`] ? 'Disable' : 'Enable' }} all {{ method }} routes for {{ role }}</span>
+                    <span
+                      >{{ columnToggle[`${method}_${role}`] ? 'Disable' : 'Enable' }} all {{ method }} routes for
+                      {{ role }}</span
+                    >
                   </v-tooltip>
                 </th>
               </template>
@@ -134,20 +137,17 @@
           </tr>
         </thead>
         <tbody>
-          <tr
-            v-for="([path,route], i) in filteredGroupedData"
-            :key="i"
-          >
+          <tr v-for="([path, route], i) in filteredGroupedData" :key="i">
             <td width="20" class="px-0">
               <v-tooltip bottom>
                 <template #activator="{ on }">
                   <v-checkbox
                     v-model="rowToggle[path]"
-                    v-ge="['acl','toggle-checkbox']"
+                    v-ge="['acl', 'toggle-checkbox']"
                     class="mt-0 ml-3"
                     dense
                     v-on="on"
-                    @change="toggleRow(path,rowToggle[path])"
+                    @change="toggleRow(path, rowToggle[path])"
                   />
                 </template>
 
@@ -163,28 +163,22 @@
               </v-tooltip>
             </td>
             <template v-for="role in roles">
-              <template v-for="(method,i) in methods">
+              <template v-for="(method, i) in methods">
                 <td :key="`${path}_${method}_${role}`" :style="i ? '' : 'border-left: 1px solid grey'" class="pa-1">
                   <v-checkbox
                     v-if="route[method]"
                     v-model="route[method].acl[role]"
-                    v-ge="['acl','toggle-checkbox']"
+                    v-ge="['acl', 'toggle-checkbox']"
                     class="mt-0"
                     dense
                     :color="methodColor[method]"
                     :input-value="route[method].acl[role]"
-                    @change="toggleCell(path,method,role,route[method].acl[role])"
+                    @change="toggleCell(path, method, role, route[method].acl[role])"
                   />
-                  <span
-                    v-else
-                  >
+                  <span v-else>
                     <!--          todo:        @dblclick="$set(data1[path],method , {})"-->
-                    <v-checkbox
-                      v-ge="['acl','toggle-checkbox']"
-                      class="mt-0"
-                      dense
-                      :disabled="true"
-                    /></span>
+                    <v-checkbox v-ge="['acl', 'toggle-checkbox']" class="mt-0" dense :disabled="true"
+                  /></span>
                 </td>
               </template>
             </template>
@@ -192,15 +186,13 @@
         </tbody>
       </v-simple-table>
 
-      <v-alert v-else outlined type="info">
-        Permission file not found
-      </v-alert>
+      <v-alert v-else outlined type="info"> Permission file not found </v-alert>
     </v-card>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 // const {fs, importFresh, shell, path} = require("electron").remote.require('./libs');
 
@@ -221,156 +213,176 @@ export default {
         post: 'orange',
         put: 'deep-orange',
         patch: 'pink lighten-1',
-        delete: 'red darken-3'
+        delete: 'red darken-3',
       },
-      roles: [
-        'creator',
-        'editor',
-        'guest'
-      ],
-      methods: [
-        'get', 'post', 'put', 'delete'
-      ],
-      data1: null
-    }
+      roles: ['creator', 'editor', 'guest'],
+      methods: ['get', 'post', 'put', 'delete'],
+      data1: null,
+    };
   },
   methods: {
-
     async aclInit() {
-      this.disableSaveButton = true
+      this.disableSaveButton = true;
 
       try {
         // this.data1 = JSON.parse(JSON.stringify(await this.sqlMgr.importFresh({path: this.policyPath})));
-        this.data1 = JSON.parse(JSON.stringify(await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'importFresh', { path: this.policyPath }])))
-        this.groupRoutes()
-        this.initColumnCheckBox()
-        this.initRowCheckBox()
+        this.data1 = JSON.parse(
+          JSON.stringify(
+            await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'importFresh', { path: this.policyPath }])
+          )
+        );
+        this.groupRoutes();
+        this.initColumnCheckBox();
+        this.initRowCheckBox();
       } catch (e) {
-        console.log(e)
+        console.log(e);
       }
     },
     groupRoutes() {
-      const groupedData = {}
+      const groupedData = {};
       for (const route of this.data1) {
-        groupedData[route.path] = groupedData[route.path] || {}
-        groupedData[route.path][route.type] = route
+        groupedData[route.path] = groupedData[route.path] || {};
+        groupedData[route.path][route.type] = route;
       }
-      this.groupedData = groupedData
+      this.groupedData = groupedData;
     },
     toggleColumn(role, method, checked) {
       for (const [path, methods] of Object.entries(this.groupedData)) {
         if (methods[method]) {
-          this.$set(methods[method].acl, role, checked)
-          this.toggleCell(path, method, role, checked)
+          this.$set(methods[method].acl, role, checked);
+          this.toggleCell(path, method, role, checked);
         }
       }
     },
     toggleRow(path, checked) {
       for (const [method, route] of Object.entries(this.groupedData[path])) {
         for (const role in route.acl) {
-          this.$set(route.acl, role, checked)
-          this.toggleCell(path, method, role, checked)
+          this.$set(route.acl, role, checked);
+          this.toggleCell(path, method, role, checked);
         }
       }
     },
     toggleAll(checked) {
-      this.disableSaveButton = false
+      this.disableSaveButton = false;
       for (const path in this.groupedData) {
-        this.rowToggle[path] = checked
+        this.rowToggle[path] = checked;
       }
       for (const role of this.roles) {
         for (const method of this.methods) {
-          this.columnToggle[`${method}_${role}`] = checked
+          this.columnToggle[`${method}_${role}`] = checked;
         }
       }
 
       for (const methods of Object.values(this.groupedData)) {
         for (const router of Object.values(methods)) {
           for (const role of this.roles) {
-            this.$set(router.acl, role, checked)
+            this.$set(router.acl, role, checked);
           }
         }
       }
     },
     toggleCell(path, method, role, checked) {
-      this.disableSaveButton = false
-      this.$set(this.columnToggle, `${method}_${role}`, Object.values(this.groupedData).some(methods => methods[method] && methods[method].acl[role]))
-      this.$set(this.rowToggle, path, Object.values(this.groupedData[path]).some(route => Object.values(route.acl).some(v => v)))
+      this.disableSaveButton = false;
+      this.$set(
+        this.columnToggle,
+        `${method}_${role}`,
+        Object.values(this.groupedData).some(methods => methods[method] && methods[method].acl[role])
+      );
+      this.$set(
+        this.rowToggle,
+        path,
+        Object.values(this.groupedData[path]).some(route => Object.values(route.acl).some(v => v))
+      );
     },
     initColumnCheckBox() {
       for (const role of this.roles) {
         for (const method of this.methods) {
-          this.columnToggle[`${method}_${role}`] = Object.values(this.groupedData).some(methods => methods[method] && methods[method].acl[role])
+          this.columnToggle[`${method}_${role}`] = Object.values(this.groupedData).some(
+            methods => methods[method] && methods[method].acl[role]
+          );
         }
       }
     },
     initRowCheckBox() {
       for (const path in this.groupedData) {
-        this.rowToggle[path] = Object.values(this.groupedData[path])
-          .filter(route =>
+        this.rowToggle[path] = Object.values(this.groupedData[path]).filter(
+          route =>
             Object.entries(route.acl).filter(([role, v]) => {
-              if (!this.roles.includes(role)) { this.roles = [...this.roles, role] }
-              return v
+              if (!this.roles.includes(role)) {
+                this.roles = [...this.roles, role];
+              }
+              return v;
             }).length
-          ).length
+        ).length;
       }
     },
     async save() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'writeFile', {
-          path: this.policyPath,
-          data: `module.exports = ${JSON.stringify(this.data1, null, 2)}`
-        }])
-        this.disableSaveButton = true
-        this.$toast.success(`${this.policyPath} updated successfully`).goAway(3000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          null,
+          'writeFile',
+          {
+            path: this.policyPath,
+            data: `module.exports = ${JSON.stringify(this.data1, null, 2)}`,
+          },
+        ]);
+        this.disableSaveButton = true;
+        this.$toast.success(`${this.policyPath} updated successfully`).goAway(3000);
       } catch (e) {
-        console.log(e)
-        this.$toast.error(`${this.policyPath} updating failed`).goAway(3000)
+        console.log(e);
+        this.$toast.error(`${this.policyPath} updating failed`).goAway(3000);
       }
-    }
+    },
   },
   computed: {
     ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
     allToggle: {
       get() {
-        return this.groupedData && Object.values(this.groupedData)
-          .some(methods => Object.values(methods)
-            .some(route => Object.values(route.acl)
-              .some(v => v)
-            )
+        return (
+          this.groupedData &&
+          Object.values(this.groupedData).some(methods =>
+            Object.values(methods).some(route => Object.values(route.acl).some(v => v))
           )
+        );
       },
       set(checked) {
-        this.toggleAll(checked)
-      }
+        this.toggleAll(checked);
+      },
     },
     routesName() {
-      return this.policyPath && this.policyPath
-        .split('/').pop()
-        .replace(/\.routes.js$/, '')
-        .replace(/(?:^|\.)(\w+)/g, (_, m) => {
-          if (m === 'bt') { return ' BelongsTo' }
-          if (m === 'hm') { return ' HasMany' }
-          return ' ' + m[0].toUpperCase() + m.slice(1)
-        })
+      return (
+        this.policyPath &&
+        this.policyPath
+          .split('/')
+          .pop()
+          .replace(/\.routes.js$/, '')
+          .replace(/(?:^|\.)(\w+)/g, (_, m) => {
+            if (m === 'bt') {
+              return ' BelongsTo';
+            }
+            if (m === 'hm') {
+              return ' HasMany';
+            }
+            return ' ' + m[0].toUpperCase() + m.slice(1);
+          })
+      );
     },
     filteredGroupedData() {
       return this.groupedData
-        ? Object.entries(this.groupedData)
-          .filter(([path]) => !this.search || path.toLowerCase().includes(this.search.toLowerCase()))
-        : []
-    }
+        ? Object.entries(this.groupedData).filter(
+            ([path]) => !this.search || path.toLowerCase().includes(this.search.toLowerCase())
+          )
+        : [];
+    },
   },
   watch: {},
   async created() {
-    await this.aclInit()
-  }
-}
+    await this.aclInit();
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -9,58 +9,29 @@
     :open-on-hover="nested"
   >
     <!--   nested menu activator    -->
-    <template
-      v-if="nested"
-      #activator="{on}"
-    >
-      <v-list-item
-        dense
-        class=""
-        v-on="on"
-      >
+    <template v-if="nested" #activator="{ on }">
+      <v-list-item dense class="" v-on="on">
         <v-list-item-title class="">
           <slot name="activator">
             {{ parent }}
           </slot>
         </v-list-item-title>
-        <v-list-item-action
-          class="my-0 py-0"
-        >
+        <v-list-item-action class="my-0 py-0">
           <v-icon>mdi-menu-right</v-icon>
         </v-list-item-action>
       </v-list-item>
     </template>
     <v-list dense>
-      <div
-        v-for="(item, index) in items"
-        :key="index"
-        class=""
-      >
+      <div v-for="(item, index) in items" :key="index" class="">
         <template v-if="item">
-          <v-list-item
-            v-if="typeof item !== 'object'"
-            dense
-            @click="$emit('click', {value :item})"
-          >
-            <v-list-item-title
-              class=""
-            >
+          <v-list-item v-if="typeof item !== 'object'" dense @click="$emit('click', { value: item })">
+            <v-list-item-title class="">
               {{ index }}
             </v-list-item-title>
           </v-list-item>
           <!--     if value is a nested object then populating nested menu recursively     -->
-          <v-list-item
-            v-else
-            dense
-            class="px-0"
-          >
-            <recursiveMenu
-              offset-x
-              nested
-              :items="item"
-              :parent="index"
-              @click="onSubMenuClick"
-            />
+          <v-list-item v-else dense class="px-0">
+            <recursiveMenu offset-x nested :items="item" :parent="index" @click="onSubMenuClick" />
           </v-list-item>
         </template>
         <v-divider v-else />
@@ -80,35 +51,34 @@ export default {
     offsetX: Boolean,
     parent: String, // for activator slot label
     positionX: Number,
-    positionY: Number
+    positionY: Number,
   },
   data() {
     return {
-      active: false
-    }
+      active: false,
+    };
   },
   watch: {
     // two way binding of v-model
     value(v) {
-      this.active = v
+      this.active = v;
     },
     active(v) {
-      this.$emit('input', v)
-    }
+      this.$emit('input', v);
+    },
   },
   methods: {
     // event propagating to parent v-menu(click event)
     onSubMenuClick(event) {
-      this.$emit('click', event)
+      this.$emit('click', event);
       // hiding parent menu
-      this.active = false
-    }
-  }
-}
+      this.active = false;
+    },
+  },
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

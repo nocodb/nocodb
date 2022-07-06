@@ -29,8 +29,8 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
       args: {
         tn: this.ctx.tn,
         columns: this.ctx.columns,
-        relations: this.ctx.relations
-      }
+        relations: this.ctx.relations,
+      },
     };
 
     /* for complex code provide a func and args - do derivation within the func cbk */
@@ -39,8 +39,8 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
       args: {
         tn: this.ctx.tn,
         columns: this.ctx.columns,
-        hasMany: this.ctx.hasMany
-      }
+        hasMany: this.ctx.hasMany,
+      },
     };
 
     /* for complex code provide a func and args - do derivation within the func cbk */
@@ -50,8 +50,8 @@ class ModelXcMetaMysql extends BaseModelXcMeta {
         dbType: this.ctx.dbType,
         tn: this.ctx.tn,
         columns: this.ctx.columns,
-        belongsTo: this.ctx.belongsTo
-      }
+        belongsTo: this.ctx.belongsTo,
+      },
     };
 
     return data;

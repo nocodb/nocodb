@@ -98,7 +98,7 @@ export class RestCtrl extends RestBaseCtrl {
   public async groupby(req: Request | any, res: Response): Promise<void> {
     const data = await req.model.groupBy({
       ...req.params,
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
@@ -106,7 +106,7 @@ export class RestCtrl extends RestBaseCtrl {
   public async aggregate(req: Request | any, res: Response): Promise<void> {
     const data = await req.model.aggregate({
       ...req.params,
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
@@ -118,25 +118,25 @@ export class RestCtrl extends RestBaseCtrl {
     ) {
       req.query.conditionGraph = {
         models: this.models,
-        condition: JSON.parse(req.query.conditionGraph)
+        condition: JSON.parse(req.query.conditionGraph),
       };
     }
     const data = await req.model.countByPk({
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
 
   public async distinct(req: Request | any, res): Promise<void> {
     const data = await req.model.distinct({
-      ...req.query
+      ...req.query,
     } as any);
     res.xcJson(data);
   }
 
   public async distribute(req: Request | any, res: Response): Promise<void> {
     const data = await req.model.distribution({
-      ...req.query
+      ...req.query,
     } as any);
     res.json(data);
   }
@@ -166,7 +166,7 @@ export class RestCtrl extends RestBaseCtrl {
       ) {
         req.query.conditionGraph = {
           models: this.models,
-          condition: JSON.parse(req.query.conditionGraph)
+          condition: JSON.parse(req.query.conditionGraph),
         };
       }
       if (req.query.condition && typeof req.query.condition === 'string') {
@@ -177,7 +177,7 @@ export class RestCtrl extends RestBaseCtrl {
     }
 
     const data = await req.model.nestedList({
-      ...req.query
+      ...req.query,
     } as any);
     const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -194,7 +194,7 @@ export class RestCtrl extends RestBaseCtrl {
       ) {
         req.query.conditionGraph = {
           models: this.models,
-          condition: JSON.parse(req.query.conditionGraph)
+          condition: JSON.parse(req.query.conditionGraph),
         };
       }
       if (req.query.condition && typeof req.query.condition === 'string') {
@@ -205,7 +205,7 @@ export class RestCtrl extends RestBaseCtrl {
     }
 
     const data = await req.model.nestedList({
-      ...req.query
+      ...req.query,
     } as any);
     const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
     res.setHeader('xc-db-response', elapsedSeconds);
@@ -221,17 +221,17 @@ export class RestCtrl extends RestBaseCtrl {
     ) {
       req.query.conditionGraph = {
         models: this.models,
-        condition: JSON.parse(req.query.conditionGraph)
+        condition: JSON.parse(req.query.conditionGraph),
       };
     }
 
     const list = await req.model.m2mNotChildren({
       ...req.query,
-      ...req.params
+      ...req.params,
     } as any);
     const count = await req.model.m2mNotChildrenCount({
       ...req.query,
-      ...req.params
+      ...req.params,
     } as any);
 
     const elapsedSeconds = parseHrtimeToSeconds(process.hrtime(startTime));
@@ -252,7 +252,7 @@ export class RestCtrl extends RestBaseCtrl {
       get: 'read',
       post: 'create',
       put: 'update',
-      delete: 'delete'
+      delete: 'delete',
     };
 
     const roleOperationPossible = (roles, operation, object) => {
@@ -267,7 +267,7 @@ export class RestCtrl extends RestBaseCtrl {
           );
           (req as any).query.conditionGraph = {
             condition,
-            models: this.models
+            models: this.models,
           };
         }
 
@@ -302,7 +302,7 @@ export class RestCtrl extends RestBaseCtrl {
       const columns = this.acl[role][operation].columns;
       if (columns) {
         // todo: merge allowed columns if multiple roles
-        const allowedCols = Object.keys(columns).filter(col => columns[col]);
+        const allowedCols = Object.keys(columns).filter((col) => columns[col]);
         res.locals.xcAcl = { allowedCols, operation, columns };
 
         if (operation === 'update' || operation === 'create') {
@@ -334,7 +334,7 @@ export class RestCtrl extends RestBaseCtrl {
 
     const roles = (req as any)?.locals?.user?.roles ??
       (req as any)?.session?.passport?.user?.roles ?? {
-        guest: true
+        guest: true,
       };
 
     try {
@@ -352,12 +352,12 @@ export class RestCtrl extends RestBaseCtrl {
           ? `Access Denied : Please Login or Signup for a new account`
           : `Access Denied for this account`;
         return res.status(403).json({
-          msg
+          msg,
         });
       }
     } catch (e) {
       return res.status(403).json({
-        msg: e.message
+        msg: e.message,
       });
     }
   }

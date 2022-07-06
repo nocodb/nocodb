@@ -15,12 +15,12 @@ export default class S3 implements IStorageAdapterV2 {
 
   async fileCreate(key: string, file: XcFile): Promise<any> {
     const uploadParams: any = {
-      ACL: 'public-read'
+      ACL: 'public-read',
     };
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
       const fileStream = fs.createReadStream(file.path);
-      fileStream.on('error', err => {
+      fileStream.on('error', (err) => {
         console.log('File Error', err);
         reject(err);
       });
@@ -42,14 +42,14 @@ export default class S3 implements IStorageAdapterV2 {
   }
   async fileCreateByUrl(key: string, url: string): Promise<any> {
     const uploadParams: any = {
-      ACL: 'public-read'
+      ACL: 'public-read',
     };
     return new Promise((resolve, reject) => {
       // Configure the file stream and obtain the upload parameters
       request(
         {
           url: url,
-          encoding: null
+          encoding: null,
         },
         (err, _, body) => {
           if (err) return reject(err);
@@ -101,7 +101,7 @@ export default class S3 implements IStorageAdapterV2 {
 
     const s3Options: any = {
       params: { Bucket: this.input.bucket },
-      region: this.input.region
+      region: this.input.region,
     };
 
     s3Options.accessKeyId = this.input.access_key;
@@ -119,7 +119,7 @@ export default class S3 implements IStorageAdapterV2 {
         path: tempFile,
         mimetype: '',
         originalname: 'temp.txt',
-        size: ''
+        size: '',
       });
       fs.unlinkSync(tempFile);
       return true;

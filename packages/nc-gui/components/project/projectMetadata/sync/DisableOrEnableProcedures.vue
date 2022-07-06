@@ -16,7 +16,7 @@
                 class="my-2 mx-auto"
                 :placeholder="`Search '${db.connection.database}' models`"
                 prepend-inner-icon="search"
-                style="max-width:500px"
+                style="max-width: 500px"
                 outlined
               />
 
@@ -27,7 +27,10 @@
                 small
                 color="primary"
                 icon="refresh"
-                @click="loadModels();loadTableList()"
+                @click="
+                  loadModels();
+                  loadTableList();
+                "
               >
                 Reload
               </x-btn>
@@ -51,9 +54,8 @@
                 <thead>
                   <tr>
                     <th>
-                      Models <span v-show="!isNewOrDeletedModelFound" class="caption ml-1">({{
-                        enableCountText
-                      }})</span>
+                      Models
+                      <span v-show="!isNewOrDeletedModelFound" class="caption ml-1">({{ enableCountText }})</span>
                     </th>
                     <th>APIs</th>
                     <th>Actions</th>
@@ -61,13 +63,8 @@
                   </tr>
                 </thead>
                 <tbody>
-                  <template
-                    v-for="model in comparedModelList"
-                  >
-                    <tr
-                      v-if="model.title.toLowerCase().indexOf(filter.toLowerCase()) > -1"
-                      :key="model.title"
-                    >
+                  <template v-for="model in comparedModelList">
+                    <tr v-if="model.title.toLowerCase().indexOf(filter.toLowerCase()) > -1" :key="model.title">
                       <td>{{ model.title }}</td>
                       <td>
                         <v-checkbox
@@ -79,14 +76,14 @@
                       </td>
                       <td>
                         <template v-if="model.new">
-                        <!--                  <x-icon small color="success success" tooltip="Add and sync meta information"-->
-                        <!--                          @click="addTableMeta([model.title])">mdi-plus-circle-outline-->
-                        <!--                  </x-icon>-->
+                          <!--                  <x-icon small color="success success" tooltip="Add and sync meta information"-->
+                          <!--                          @click="addTableMeta([model.title])">mdi-plus-circle-outline-->
+                          <!--                  </x-icon>-->
                         </template>
                         <template v-else-if="model.deleted">
-                        <!--                  <x-icon small v-else-if="model.deleted" color="error error" tooltip="Delete meta information"-->
-                        <!--                          @click="deleteTableMeta([model.title])">mdi-delete-outline-->
-                        <!--                  </x-icon>-->
+                          <!--                  <x-icon small v-else-if="model.deleted" color="error error" tooltip="Delete meta information"-->
+                          <!--                          @click="deleteTableMeta([model.title])">mdi-delete-outline-->
+                          <!--                  </x-icon>-->
                         </template>
                         <x-icon
                           v-else
@@ -100,12 +97,13 @@
                       </td>
 
                       <td>
-                        <span
-                          v-if="model.new"
-                          class="caption success--text"
-                        >New table found in DB. Yet to be synced.</span>
-                        <span v-else-if="model.deleted" class="caption error--text">This table doesn't exist in DB. Yet to be synced.</span>
-                      <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
+                        <span v-if="model.new" class="caption success--text"
+                          >New table found in DB. Yet to be synced.</span
+                        >
+                        <span v-else-if="model.deleted" class="caption error--text"
+                          >This table doesn't exist in DB. Yet to be synced.</span
+                        >
+                        <!--                  <span v-else class="caption grey&#45;&#45;text">Recreate metadata.</span>-->
                       </td>
                     </tr>
                   </template>
@@ -114,12 +112,12 @@
             </div>
           </v-card>
         </v-col>
-        <v-col cols="4" style="padding-top:100px">
+        <v-col cols="4" style="padding-top: 100px">
           <div class="d-flex">
             <v-spacer />
 
             <v-tooltip bottom>
-              <template #activator="{on}">
+              <template #activator="{ on }">
                 <v-alert
                   v-if="isNewOrDeletedModelFound"
                   dense
@@ -130,39 +128,22 @@
                   type="warning"
                   v-on="on"
                 >
-                  Procedures metadata <br>is out of sync
+                  Procedures metadata <br />is out of sync
                 </v-alert>
-                <v-alert
-                  v-else
-                  dense
-                  outlined
-                  type="success"
-                  v-on="on"
-                >
-                  Procedures metadata is in sync
-                </v-alert>
+                <v-alert v-else dense outlined type="success" v-on="on"> Procedures metadata is in sync </v-alert>
               </template>
               <template v-if="!isNewOrDeletedModelFound">
-                Metadata for API creation & management is in sync with
-                '{{ db.connection.database }}' Database.
+                Metadata for API creation & management is in sync with '{{ db.connection.database }}' Database.
               </template>
               <template v-else>
-                Metadata for API creation & management isn't sync with
-                '{{ db.connection.database }}' Database.
+                Metadata for API creation & management isn't sync with '{{ db.connection.database }}' Database.
               </template>
             </v-tooltip>
             <v-spacer />
           </div>
           <div v-if="isNewOrDeletedModelFound" class="d-flex justify-center">
-            <x-btn
-              x-large
-              btn.class="mx-auto primary"
-              tooltip="Sync metadata"
-              @click="syncMetadata"
-            >
-              <v-icon color="white" class="mr-2 mt-n1">
-                mdi-database-sync
-              </v-icon>
+            <x-btn x-large btn.class="mx-auto primary" tooltip="Sync metadata" @click="syncMetadata">
+              <v-icon color="white" class="mr-2 mt-n1"> mdi-database-sync </v-icon>
               Sync Now
             </x-btn>
           </div>
@@ -173,8 +154,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import { isMetaTable } from '@/helpers/xutils'
+import { mapGetters } from 'vuex';
+import { isMetaTable } from '@/helpers/xutils';
 
 export default {
   name: 'DisableOrEnableProcedures',
@@ -185,154 +166,178 @@ export default {
     updating: false,
     dbsTab: 0,
     filter: '',
-    procedures: null
+    procedures: null,
   }),
   async mounted() {
-    await this.loadModels()
-    await this.loadTableList()
+    await this.loadModels();
+    await this.loadTableList();
   },
   methods: {
     async addTableMeta(tables) {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'procedureMetaCreate', {
-          tableNames: tables// this.comparedModelList.filter(t => t.new).map(t=>t.title)
-        }])
-        setTimeout(async() => {
-          await this.loadModels()
-          this.$toast.success('Table metadata added successfully').goAway(3000)
-        }, 1000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'procedureMetaCreate',
+          {
+            tableNames: tables, // this.comparedModelList.filter(t => t.new).map(t=>t.title)
+          },
+        ]);
+        setTimeout(async () => {
+          await this.loadModels();
+          this.$toast.success('Table metadata added successfully').goAway(3000);
+        }, 1000);
       } catch (e) {
-        this.$toast.error('Some error occurred').goAway(5000)
+        this.$toast.error('Some error occurred').goAway(5000);
       }
     },
     async deleteTableMeta(tables) {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'procedureMetaDelete', {
-          tableNames: tables
-        }])
-        setTimeout(async() => {
-          await this.loadModels()
-          this.$toast.success('Table metadata deleted successfully').goAway(3000)
-        }, 1000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'procedureMetaDelete',
+          {
+            tableNames: tables,
+          },
+        ]);
+        setTimeout(async () => {
+          await this.loadModels();
+          this.$toast.success('Table metadata deleted successfully').goAway(3000);
+        }, 1000);
       } catch (e) {
-        this.$toast.error('Some error occurred').goAway(5000)
+        this.$toast.error('Some error occurred').goAway(5000);
       }
     },
     async syncMetadata() {
-      const addTables = this.comparedModelList.filter(t => t.new).map(t => t.title)
-      const deleteTables = this.comparedModelList.filter(t => t.deleted).map(t => t.title)
+      const addTables = this.comparedModelList.filter(t => t.new).map(t => t.title);
+      const deleteTables = this.comparedModelList.filter(t => t.deleted).map(t => t.title);
       if (addTables.length) {
-        await this.addTableMeta(addTables)
+        await this.addTableMeta(addTables);
       }
       if (deleteTables.length) {
-        await this.deleteTableMeta(deleteTables)
+        await this.deleteTableMeta(deleteTables);
       }
     },
 
     async recreateTableMeta(table) {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'procedureMetaRecreate', {
-          tn: table
-        }])
-        setTimeout(async() => {
-          await this.loadModels()
-          this.$toast.success('Table metadata recreated successfully').goAway(3000)
-        }, 1000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'procedureMetaRecreate',
+          {
+            tn: table,
+          },
+        ]);
+        setTimeout(async () => {
+          await this.loadModels();
+          this.$toast.success('Table metadata recreated successfully').goAway(3000);
+        }, 1000);
       } catch (e) {
-        this.$toast.error('Some error occurred').goAway(5000)
+        this.$toast.error('Some error occurred').goAway(5000);
       }
     },
     async loadModels() {
       if (this.dbAliasList[this.dbsTab]) {
-        this.models = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcProcedureModelsList'])
-        this.edited = false
+        this.models = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'xcProcedureModelsList',
+        ]);
+        this.edited = false;
       }
     },
     async loadTableList() {
-      this.procedures = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        dbAlias: this.db.meta.dbAlias,
-        env: this.$store.getters['project/GtrEnv']
-      }, 'procedureList'])).data.list
+      this.procedures = (
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'procedureList',
+        ])
+      ).data.list;
     },
 
     async saveModels() {
-      this.updating = true
+      this.updating = true;
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcProcedureModelsEnable', this.models.filter(m => m.enabled).map(m => m.title)])
-        this.$toast.success('Models changes are updated successfully').goAway(3000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'xcProcedureModelsEnable',
+          this.models.filter(m => m.enabled).map(m => m.title),
+        ]);
+        this.$toast.success('Models changes are updated successfully').goAway(3000);
       } catch (e) {
-        this.$toast.error('Some error occurred').goAway(3000)
-        console.log(e.message)
+        this.$toast.error('Some error occurred').goAway(3000);
+        console.log(e.message);
       }
-      this.updating = false
-      this.edited = false
-    }
+      this.updating = false;
+      this.edited = false;
+    },
   },
   computed: {
     ...mapGetters({
-      dbAliasList: 'project/GtrDbAliasList'
+      dbAliasList: 'project/GtrDbAliasList',
     }),
     enableCountText() {
-      return this.models
-        ? `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled`
-        : ''
+      return this.models ? `${this.models.filter(m => m.enabled).length}/${this.models.length} enabled` : '';
     },
 
     isNewOrDeletedModelFound() {
-      return this.comparedModelList.some(m => m.new || m.deleted)
+      return this.comparedModelList.some(m => m.new || m.deleted);
     },
     comparedModelList() {
-      const res = []
-      const getPriority = (item) => {
+      const res = [];
+      const getPriority = item => {
         if (item.new) {
-          return 2
+          return 2;
         }
         if (item.deleted) {
-          return 1
+          return 1;
         }
-        return 0
-      }
+        return 0;
+      };
       if (this.procedures && this.models) {
-        const tables = this.procedures.filter(t => !isMetaTable(t.procedure_name)).map(t => t.procedure_name)
-        res.push(...this.models.map((m) => {
-          const i = tables.indexOf(m.title)
-          if (i === -1) {
-            m.deleted = true
-          } else {
-            tables.splice(i, 1)
-          }
-          return m
-        }))
-        res.push(...tables.map(t => ({
-          title: t, new: true
-        })))
+        const tables = this.procedures.filter(t => !isMetaTable(t.procedure_name)).map(t => t.procedure_name);
+        res.push(
+          ...this.models.map(m => {
+            const i = tables.indexOf(m.title);
+            if (i === -1) {
+              m.deleted = true;
+            } else {
+              tables.splice(i, 1);
+            }
+            return m;
+          })
+        );
+        res.push(
+          ...tables.map(t => ({
+            title: t,
+            new: true,
+          }))
+        );
       }
-      res.sort((a, b) => getPriority(b) - getPriority(a))
-      return res
-    }
-  }
-
-}
+      res.sort((a, b) => getPriority(b) - getPriority(a));
+      return res;
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

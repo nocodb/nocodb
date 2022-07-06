@@ -1,59 +1,60 @@
 <template>
   <div class="d-flex align-center">
     <div>
-      <div v-for="(val,i) of enumValues" :key="val" class="item">
-        <input :id="`key-radio-${val}`" v-model="localState" type="radio" class="orange--text" :value="val">
+      <div v-for="(val, i) of enumValues" :key="val" class="item">
+        <input :id="`key-radio-${val}`" v-model="localState" type="radio" class="orange--text" :value="val" />
         <label
           class="py-1 px-3 d-inline-block my-1 label"
           :for="`key-radio-${val}`"
           :style="{
-            background:colors[i % colors.length ]
+            background: colors[i % colors.length],
           }"
-        >{{ val }}</label>
+          >{{ val }}</label
+        >
       </div>
     </div>
   </div>
 </template>
 
 <script>
-import { enumColor as colors } from '@/components/project/spreadsheet/helpers/colors'
+import { enumColor as colors } from '@/components/project/spreadsheet/helpers/colors';
 
 export default {
   name: 'EnumRadioEditableCell',
   props: {
     value: String,
-    column: Object
+    column: Object,
   },
   computed: {
     colors() {
-      return this.$store.state.settings.darkTheme ? colors.dark : colors.light
+      return this.$store.state.settings.darkTheme ? colors.dark : colors.light;
     },
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-        this.$emit('update')
-      }
+        this.$emit('input', val);
+        this.$emit('update');
+      },
     },
     enumValues() {
       if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''))
+        return this.column.dtxp.split(',').map(v => v.replace(/^'|'$/g, ''));
       }
-      return []
+      return [];
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   mounted() {
     // this.$el.focus();
@@ -61,12 +62,11 @@ export default {
     // event = document.createEvent('MouseEvents');
     // event.initMouseEvent('mousedown', true, true, window);
     // this.$el.dispatchEvent(event);
-  }
-}
+  },
+};
 </script>
 
 <style scoped>
-
 .label {
   border-radius: 25px;
 }

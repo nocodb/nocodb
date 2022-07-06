@@ -29,7 +29,7 @@ export class RestCtrlv2 {
     models,
     baseModels2,
     rootResolver,
-    table
+    table,
   }: {
     app: any;
     models: { [key: string]: BaseModelSql };

@@ -1,12 +1,12 @@
 <template>
-  <div style="height:100%">
+  <div style="height: 100%">
     <v-tabs v-model="dbsTab" height="30" @change="loadCrons()">
       <template v-for="db in dbAliasList">
         <v-tab :key="db.meta.dbAlias" class="text-capitalize caption">
           {{ db.connection.database }}
           ({{ db.meta.dbAlias }})
         </v-tab>
-        <v-tab-item :key="db.meta.dbAlias" style="height:100%">
+        <v-tab-item :key="db.meta.dbAlias" style="height: 100%">
           <!-- <v-toolbar flat height="42" class="toolbar-border-bottom">
              <v-toolbar-title>
                <v-breadcrumbs :items="[ ]" divider=">" dark large light class="title">
@@ -27,23 +27,23 @@
              </x-btn>
 
            </v-toolbar>-->
-          <v-card style="height:calc(100% - 42px)">
+          <v-card style="height: calc(100% - 42px)">
             <v-container style="height: 100%" fluid>
               <!--          <div class="d-flex d-100 justify-center">-->
-              <v-row style="height:100%">
+              <v-row style="height: 100%">
                 <v-col cols="6">
                   <v-card class="pt-5 h-100">
-                    <div style="position: relative; " class="mb-4">
+                    <div style="position: relative" class="mb-4">
                       <h4
                         class="text-center"
                         :class="{
-                          'grey--text text--darken-2' : !$store.state.settings.darkTheme
+                          'grey--text text--darken-2': !$store.state.settings.darkTheme,
                         }"
                       >
                         Cron Job List
                       </h4>
 
-                      <div style="position: absolute; right:5px;bottom:0">
+                      <div style="position: absolute; right: 5px; bottom: 0">
                         <x-btn
                           outlined
                           :tooltip="$t('tooltip.reloadList')"
@@ -63,8 +63,7 @@
                           icon="mdi-plus"
                           @click="addNewCron()"
                         >
-                          New
-                          Cron
+                          New Cron
                         </x-btn>
                       </div>
                     </div>
@@ -77,40 +76,34 @@
                       class="my-2 mx-auto"
                       :placeholder="`Filter '${dbAliasList[dbsTab].connection.database}' scheduled cron jobs`"
                       prepend-inner-icon="search"
-                      style="max-width:500px"
+                      style="max-width: 500px"
                       outlined
                     />
 
                     <v-simple-table dense style="min-width: 400px">
                       <thead>
                         <tr>
-                          <th class="text-center">
-                            #
-                          </th>
+                          <th class="text-center">#</th>
                           <th>Cron Title</th>
                           <th>Actions</th>
                         </tr>
                       </thead>
                       <tbody>
                         <tr v-if="crons && !crons.length">
-                          <td class="caption text-center" colspan="3">
-                            No cron jobs are found
-                          </td>
+                          <td class="caption text-center" colspan="3">No cron jobs are found</td>
                         </tr>
-                        <template
-                          v-for="(cron,i) in crons"
-                        >
+                        <template v-for="(cron, i) in crons">
                           <tr
-                            v-if="!filter || (cron.title && cron.title.toLowerCase().indexOf(filter.toLowerCase()) > -1)"
+                            v-if="
+                              !filter || (cron.title && cron.title.toLowerCase().indexOf(filter.toLowerCase()) > -1)
+                            "
                             :key="`${cron.title}-${cron.id}`"
                             class="pointer"
                             @click="editCronHandler(cron)"
                           >
                             <td>
                               <v-radio-group v-model="selectedItemIndex" dense hide-details class="mt-n2">
-                                <v-radio
-                                  :value="i"
-                                />
+                                <v-radio :value="i" />
                               </v-radio-group>
                             </td>
                             <td>{{ cron.title }}</td>
@@ -132,14 +125,14 @@
                     </v-simple-table>
                   </v-card>
                 </v-col>
-                <v-col v-if="selectedItem" cols="6" style="height:100%; overflow: auto">
+                <v-col v-if="selectedItem" cols="6" style="height: 100%; overflow: auto">
                   <v-card class="px-4 py-2" style="min-height: 100%">
                     <v-row class="mt-3">
                       <v-col cols="12" class="edit-header">
                         <h4
                           class="text-center text-capitalize mt-2 d-100"
                           :class="{
-                            'grey--text text--darken-2' : !$store.state.settings.darkTheme
+                            'grey--text text--darken-2': !$store.state.settings.darkTheme,
                           }"
                         >
                           {{ selectedItem.title }}
@@ -165,7 +158,7 @@
                           inset
                           dense
                           hide-details
-                          :label="selectedItem.active ? 'Enabled' : 'Disabled' "
+                          :label="selectedItem.active ? 'Enabled' : 'Disabled'"
                         />
                       </v-col>
                       <!--                      <v-col cols="12">-->
@@ -178,41 +171,21 @@
                       <!--                        ></v-switch>-->
                       <!--                      </v-col>-->
                       <v-col cols="12">
-                        <v-text-field
-                          v-model="selectedItem.title"
-                          auto
-                          dense
-                          hide-details
-                          outlined
-                          label="Title"
-                        />
+                        <v-text-field v-model="selectedItem.title" auto dense hide-details outlined label="Title" />
                       </v-col>
                       <v-col cols="6">
-                        <v-text-field
-                          v-model="selectedItem.pattern"
-                          dense
-                          hide-details
-                          outlined
-                          label="Pattern"
-                        />
-                        <span class="caption grey--text">Generate pattern from <a
-                          target="_blank"
-                          href="http://corntab.com/"
-                          class="grey--text"
-                        >http://corntab.com/</a></span>
+                        <v-text-field v-model="selectedItem.pattern" dense hide-details outlined label="Pattern" />
+                        <span class="caption grey--text"
+                          >Generate pattern from
+                          <a target="_blank" href="http://corntab.com/" class="grey--text">http://corntab.com/</a></span
+                        >
                       </v-col>
                       <v-col cols="6">
-                        <v-text-field
-                          v-model="selectedItem.timezone"
-                          dense
-                          hide-details
-                          outlined
-                          label="Timezone"
-                        />
-                        <span class="caption grey--text" target="_blank">All timezones available at <a
-                          href="https://momentjs.com/timezone/"
-                          class="grey--text"
-                        >Moment Timezone Website</a>.</span>
+                        <v-text-field v-model="selectedItem.timezone" dense hide-details outlined label="Timezone" />
+                        <span class="caption grey--text" target="_blank"
+                          >All timezones available at
+                          <a href="https://momentjs.com/timezone/" class="grey--text">Moment Timezone Website</a>.</span
+                        >
                       </v-col>
 
                       <v-col cols="12">
@@ -220,19 +193,14 @@
                           <v-tab><span class="caption text-capitalize">Handler</span></v-tab>
                           <v-tab-item class="pt-2">
                             <label class="caption grey--text">Cron handler</label>
-                            <monaco-ts-editor
-                              v-model="selectedItem.cron_handler"
-                              style="height : 400px"
-                            />
+                            <monaco-ts-editor v-model="selectedItem.cron_handler" style="height: 400px" />
                           </v-tab-item>
 
                           <v-tab><span class="caption text-capitalize">Webhook</span></v-tab>
 
                           <v-tab-item class="pt-3">
                             <v-overlay absolute>
-                              <div class="text-center">
-                                Coming Soon...
-                              </div>
+                              <div class="text-center">Coming Soon...</div>
                             </v-overlay>
                             <v-text-field
                               v-model="selectedItem.webhook"
@@ -290,8 +258,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import MonacoTsEditor from '@/components/monaco/MonacoTsEditor'
+import { mapGetters } from 'vuex';
+import MonacoTsEditor from '@/components/monaco/MonacoTsEditor';
 
 export default {
   name: 'CronJobs',
@@ -303,104 +271,119 @@ export default {
     updating: false,
     dbsTab: 0,
     filter: '',
-    selectedItem: null
+    selectedItem: null,
   }),
   async mounted() {
-    await this.loadCrons()
+    await this.loadCrons();
   },
   methods: {
     async editCronHandler(cron) {
-      this.selectedItem = cron
+      this.selectedItem = cron;
     },
     async deleteCron(cron) {
       if (cron.id) {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'cronDelete', {
-          id: cron.id
-        }])
-        await this.loadCrons()
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'cronDelete',
+          {
+            id: cron.id,
+          },
+        ]);
+        await this.loadCrons();
       } else {
-        this.crons.splice(this.crons.indexOf(cron), 1)
+        this.crons.splice(this.crons.indexOf(cron), 1);
       }
       if (cron === this.selectedItem) {
-        this.selectedItem = null
+        this.selectedItem = null;
       }
     },
     async addNewCron() {
-      this.crons = this.crons || []
-      this.crons.push(this.selectedItem = {
-        title: 'cron_job' + this.crons.length,
-        pattern: '* * * * * *',
-        timezone: 'America/Los_Angeles',
-        active: true,
-        cron_handler: ''
-      })
+      this.crons = this.crons || [];
+      this.crons.push(
+        (this.selectedItem = {
+          title: 'cron_job' + this.crons.length,
+          pattern: '* * * * * *',
+          timezone: 'America/Los_Angeles',
+          active: true,
+          cron_handler: '',
+        })
+      );
     },
     async loadCrons() {
-      this.crons = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
-        env: this.$store.getters['project/GtrEnv']
-      }, 'xcCronList'])
+      this.crons = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
+          env: this.$store.getters['project/GtrEnv'],
+        },
+        'xcCronList',
+      ]);
       if (this.selectedItem) {
-        this.selectedItem = this.crons.find(c => c.title === this.selectedItem.title)
+        this.selectedItem = this.crons.find(c => c.title === this.selectedItem.title);
       }
-      this.edited = false
+      this.edited = false;
     },
     async saveCron() {
-      this.updating = true
-      const errorCrons = []
+      this.updating = true;
+      const errorCrons = [];
       try {
-        const saveList = this.crons.filter((cron) => {
+        const saveList = this.crons.filter(cron => {
           if (cron === this.selectedItem || !cron.id) {
             if (cron.cron_handler.trim() && cron.webhook) {
-              errorCrons.push(`'${cron.title}'`)
+              errorCrons.push(`'${cron.title}'`);
             }
-            return true
+            return true;
           }
-          return false
-        })
+          return false;
+        });
 
         if (!errorCrons.length) {
           for (const cron of saveList) {
-            await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-              dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
-              env: this.$store.getters['project/GtrEnv']
-            }, 'xcCronSave', cron])
+            await this.$store.dispatch('sqlMgr/ActSqlOp', [
+              {
+                dbAlias: this.dbAliasList[this.dbsTab].meta.dbAlias,
+                env: this.$store.getters['project/GtrEnv'],
+              },
+              'xcCronSave',
+              cron,
+            ]);
           }
 
-          await this.loadCrons()
+          await this.loadCrons();
 
-          this.$toast.success('Cron job saved successfully').goAway(3000)
+          this.$toast.success('Cron job saved successfully').goAway(3000);
         } else {
-          this.$toast.error(`${errorCrons.join(', ')} cron jobs<br> have both webhook and handler, please remove one of them.`).goAway(10000)
+          this.$toast
+            .error(`${errorCrons.join(', ')} cron jobs<br> have both webhook and handler, please remove one of them.`)
+            .goAway(10000);
         }
       } catch (e) {
-        this.$toast.error('Some error occurred').goAway(3000)
-        console.log(e, e.message)
+        this.$toast.error('Some error occurred').goAway(3000);
+        console.log(e, e.message);
       }
-      this.updating = false
-      this.edited = false
-    }
+      this.updating = false;
+      this.edited = false;
+    },
   },
   computed: {
     ...mapGetters({
-      dbAliasList: 'project/GtrDbAliasList'
+      dbAliasList: 'project/GtrDbAliasList',
     }),
     enableCountText() {
-      return ''
+      return '';
     },
     selectedItemIndex: {
       get() {
-        return this.crons ? this.crons.indexOf(this.selectedItem) : -1
+        return this.crons ? this.crons.indexOf(this.selectedItem) : -1;
       },
       set(i) {
-        this.selectedItem = this.crons[i]
-      }
-    }
-  }
-}
+        this.selectedItem = this.crons[i];
+      },
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -439,7 +422,6 @@ export default {
     left: 12px;
     top: 0;
   }
-
 }
 
 .save-btn {

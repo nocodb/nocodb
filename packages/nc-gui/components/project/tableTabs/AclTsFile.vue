@@ -5,47 +5,39 @@
       <v-toolbar flat height="42" class="toolbar-border-bottom">
         <v-toolbar-title>
           <v-breadcrumbs
-            :items="[{
-                       text: nodes.env,
-                       disabled: true,
-                       href: '#'
-                     },{
-                       text: nodes.dbAlias,
-                       disabled: true,
-                       href: '#'
-                     },
-                     {
-                       text: nodes.table_name + ' (ACL)',
-                       disabled: true,
-                       href: '#'
-                     }]"
+            :items="[
+              {
+                text: nodes.env,
+                disabled: true,
+                href: '#',
+              },
+              {
+                text: nodes.dbAlias,
+                disabled: true,
+                href: '#',
+              },
+              {
+                text: nodes.table_name + ' (ACL)',
+                disabled: true,
+                href: '#',
+              },
+            ]"
             divider=">"
             small
           >
             <template #divider>
-              <v-icon small color="grey lighten-2">
-                forward
-              </v-icon>
+              <v-icon small color="grey lighten-2"> forward </v-icon>
             </template>
           </v-breadcrumbs>
         </v-toolbar-title>
         <v-spacer />
-        <x-btn
-          v-ge="['acl','reload']"
-          outlined
-          tooltip="Reload ACL"
-          color="primary"
-          small
-          @click="reload"
-        >
-          <v-icon small left>
-            refresh
-          </v-icon>
+        <x-btn v-ge="['acl', 'reload']" outlined tooltip="Reload ACL" color="primary" small @click="reload">
+          <v-icon small left> refresh </v-icon>
           <!-- Reload -->
           {{ $t('general.reload') }}
         </x-btn>
         <x-btn
-          v-ge="['acl','open-folder']"
+          v-ge="['acl', 'open-folder']"
           tooltip="Open Corresponding Folder"
           icon="mdi-folder-open"
           outlined
@@ -57,7 +49,7 @@
           Open Folder
         </x-btn>
         <x-btn
-          v-ge="['acl','save']"
+          v-ge="['acl', 'save']"
           outlined
           :tooltip="$t('tooltip.saveChanges')"
           color="primary"
@@ -66,9 +58,7 @@
           :disabled="disableSaveButton"
           @click="save"
         >
-          <v-icon small left>
-            save
-          </v-icon>
+          <v-icon small left> save </v-icon>
           <!-- Save -->
           {{ $t('general.save') }}
         </x-btn>
@@ -85,7 +75,7 @@
       />
 
       <acl-ts-file-child
-        v-for="(policyPath,k) in policyPaths"
+        v-for="(policyPath, k) in policyPaths"
         :key="k"
         ref="acl"
         style="border-bottom: 1px solid grey"
@@ -94,16 +84,14 @@
         :policy-path="policyPath"
       />
 
-      <v-alert v-if="policyPaths && !policyPaths.length" outlined type="info">
-        Permission file not found
-      </v-alert>
+      <v-alert v-if="policyPaths && !policyPaths.length" outlined type="info"> Permission file not found </v-alert>
     </v-card>
   </div>
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import aclTsFileChild from './AclTsFileChild'
+import { mapGetters } from 'vuex';
+import aclTsFileChild from './AclTsFileChild';
 
 // const {shell, path} = require("electron").remote.require('./libs');
 
@@ -114,11 +102,10 @@ export default {
   data() {
     return {
       policyPaths: null,
-      search: ''
-    }
+      search: '',
+    };
   },
   methods: {
-
     async aclInit() {
       // this.disableSaveButton = true;
       // this.policyPaths = await this.sqlMgr.projectGetTsPolicyPath({
@@ -127,40 +114,42 @@ export default {
       //   tn: this.nodes.table_name
       // });
 
-      this.policyPaths = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'projectGetTsPolicyPath', {
-        table_name: this.nodes.table_name
-      }])
+      this.policyPaths = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+        },
+        'projectGetTsPolicyPath',
+        {
+          table_name: this.nodes.table_name,
+        },
+      ]);
     },
     reload() {
       for (const $acl of this.$refs.acl) {
-        $acl.aclInit()
+        $acl.aclInit();
       }
     },
     save() {
       for (const $acl of this.$refs.acl) {
-        $acl.save()
+        $acl.save();
       }
     },
     openFolder() {
       // shell.openItem(path.dirname(this.policyPaths[0]));
-    }
+    },
   },
   computed: {
-    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
   },
   watch: {},
   async created() {
-    await this.aclInit()
-  }
-}
+    await this.aclInit();
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

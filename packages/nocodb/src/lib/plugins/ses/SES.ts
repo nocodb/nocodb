@@ -16,23 +16,26 @@ export default class SES implements IEmailAdapter {
     const sesOptions: any = {
       accessKeyId: this.input.access_key,
       secretAccessKey: this.input.access_secret,
-      region: this.input.region
+      region: this.input.region,
     };
 
     this.transporter = nodemailer.createTransport({
-      SES: new AWS.SES(sesOptions)
+      SES: new AWS.SES(sesOptions),
     });
   }
 
   public async mailSend(mail: XcEmail): Promise<any> {
     if (this.transporter) {
-        this.transporter.sendMail({ ...mail, from: this.input.from }, (err, info) => {
-            if (err) {
-                console.log(err);
-              } else {
-                console.log('Message sent: ' + info.response);
-              }
-        });
+      this.transporter.sendMail(
+        { ...mail, from: this.input.from },
+        (err, info) => {
+          if (err) {
+            console.log(err);
+          } else {
+            console.log('Message sent: ' + info.response);
+          }
+        }
+      );
     }
   }
 
@@ -41,9 +44,9 @@ export default class SES implements IEmailAdapter {
       await this.mailSend({
         to: this.input.from,
         subject: 'Test email',
-        html: 'Test email'
+        html: 'Test email',
       } as any);
-      return true
+      return true;
     } catch (e) {
       throw e;
     }

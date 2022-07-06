@@ -32,7 +32,7 @@ import axios from 'axios';
 import IEmailAdapter from '../../../interface/IEmailAdapter';
 import XcCache from '../plugins/adapters/cache/XcCache';
 
-passport.serializeUser(function(
+passport.serializeUser(function (
   {
     id,
     email,
@@ -43,7 +43,7 @@ passport.serializeUser(function(
     lastname,
     isAuthorized,
     isPublicBase,
-    token_version
+    token_version,
   },
   done
 ) {
@@ -63,11 +63,11 @@ passport.serializeUser(function(
     firstname,
     lastname,
     roles,
-    token_version
+    token_version,
   });
 });
 
-passport.deserializeUser(function(user, done) {
+passport.deserializeUser(function (user, done) {
   done(null, user);
 });
 
@@ -111,7 +111,7 @@ export default class RestAuthCtrl {
     this.config.auth.jwt.secret = this.config?.auth?.jwt?.secret ?? 'secret';
     this.jwtOptions = {
       secretOrKey: this.config.auth.jwt.secret,
-      expiresIn: process.env.NC_JWT_EXPIRES_IN ?? '10h'
+      expiresIn: process.env.NC_JWT_EXPIRES_IN ?? '10h',
     };
     this.jwtOptions.jwtFromRequest = ExtractJwt.fromHeader('xc-auth');
     if (this.config?.auth?.jwt?.options) {
@@ -135,11 +135,11 @@ export default class RestAuthCtrl {
 
     const jwtMiddleware = passport.authenticate('jwt', { session: false });
 
-    this.app.router.get('/password/reset/:token', async function(req, res) {
+    this.app.router.get('/password/reset/:token', async function (req, res) {
       res.send(
         ejs.render((await import('./ui/auth/resetPassword')).default, {
           token: JSON.stringify(req.params?.token),
-          baseUrl: `/`
+          baseUrl: `/`,
         })
       );
     });
@@ -147,7 +147,7 @@ export default class RestAuthCtrl {
       res.send(
         ejs.render((await import('./ui/auth/emailVerify')).default, {
           token: JSON.stringify(req.params?.token),
-          baseUrl: `/`
+          baseUrl: `/`,
         })
       );
     });
@@ -155,7 +155,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/signin', async (_req, res) => {
       res.send(
         ejs.render((await import('./ui/auth/signin')).default, {
-          baseUrl: `/`
+          baseUrl: `/`,
         })
       );
     });
@@ -163,7 +163,7 @@ export default class RestAuthCtrl {
     this.app.router.get('/signup', async (_req, res) => {
       res.render(
         ejs.render((await import('./ui/auth/signup')).default, {
-          baseUrl: `/`
+          baseUrl: `/`,
         })
       );
     });
@@ -181,7 +181,7 @@ export default class RestAuthCtrl {
       passport.authenticate('google', {
         scope: ['profile', 'email'],
         state: req.query.state,
-        callbackURL: req.ncSiteUrl + this.config.dashboardPath
+        callbackURL: req.ncSiteUrl + this.config.dashboardPath,
       })(req, res, next)
     );
     /* Github auth apis */
@@ -192,7 +192,7 @@ export default class RestAuthCtrl {
       passport.authenticate('github', {
         scope: ['profile', 'email'],
         state: `github|${req.query.state || ''}`,
-        callbackURL: req.ncSiteUrl + this.config.dashboardPath
+        callbackURL: req.ncSiteUrl + this.config.dashboardPath,
       })(req, res, next)
     );
 
@@ -224,7 +224,7 @@ export default class RestAuthCtrl {
 
     // middleware for setting passport user( for treating non-authenticated user as guest)
     this.app.router.use(async (req, res, next) => {
-      const user = await new Promise(resolve => {
+      const user = await new Promise((resolve) => {
         passport.authenticate(
           'jwt',
           { session: false },
@@ -238,7 +238,7 @@ export default class RestAuthCtrl {
                 return resolve({
                   ...user,
                   isAuthorized: true,
-                  roles: req.header('xc-preview')
+                  roles: req.header('xc-preview'),
                 });
               }
 
@@ -250,7 +250,7 @@ export default class RestAuthCtrl {
                 'authtoken',
                 {
                   session: false,
-                  optional: false
+                  optional: false,
                 },
                 (_err, user, _info) => {
                   if (user) {
@@ -258,7 +258,7 @@ export default class RestAuthCtrl {
                       ...user,
                       isAuthorized: true,
                       roles:
-                        user.roles === 'owner' ? 'owner,creator' : user.roles
+                        user.roles === 'owner' ? 'owner,creator' : user.roles,
                     });
                   } else {
                     resolve({ roles: 'guest' });
@@ -271,7 +271,7 @@ export default class RestAuthCtrl {
                   return resolve({
                     ...user,
                     isAuthorized: true,
-                    isPublicBase: true
+                    isPublicBase: true,
                   });
                 } else {
                   resolve({ roles: 'guest' });
@@ -311,7 +311,7 @@ export default class RestAuthCtrl {
     passport.use(
       'authtoken',
       new AuthTokenStrategy({ headerFields: ['xc-token'] }, (token, done) => {
-        const apiToken = this.apiTokens?.find(t => t.token === token);
+        const apiToken = this.apiTokens?.find((t) => t.token === token);
         if (apiToken) {
           done(null, { roles: 'editor' });
         } else {
@@ -326,7 +326,7 @@ export default class RestAuthCtrl {
       new PassportLocalStrategy(
         {
           usernameField: 'email',
-          session: false
+          session: false,
         },
         async (email, password, done) => {
           try {
@@ -351,7 +351,7 @@ export default class RestAuthCtrl {
     );
 
     const googlePlugin = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
-      title: 'Google'
+      title: 'Google',
     });
 
     if (googlePlugin && googlePlugin.input) {
@@ -380,7 +380,7 @@ export default class RestAuthCtrl {
         clientSecret: process.env.NC_GOOGLE_CLIENT_SECRET,
         // todo: update url
         callbackURL: 'http://localhost:3000',
-        passReqToCallback: true
+        passReqToCallback: true,
       };
 
       const googleStrategy = new GoogleStrategy(
@@ -391,7 +391,7 @@ export default class RestAuthCtrl {
 
             let user = await this.users
               .where({
-                email
+                email,
               })
               .first();
             const token = req.query.state;
@@ -404,11 +404,11 @@ export default class RestAuthCtrl {
                   // email_verification_token,
                   invite_token: null,
                   invite_token_expires: null,
-                  email_verified: true
+                  email_verified: true,
                 })
                 .where({
                   email,
-                  invite_token: token
+                  invite_token: token,
                 });
             } else {
               let roles = 'editor';
@@ -429,20 +429,20 @@ export default class RestAuthCtrl {
                   password: '',
                   salt,
                   roles,
-                  email_verified: true
+                  email_verified: true,
                 });
               } else {
                 await this.users
                   .update({
-                    email_verified: true
+                    email_verified: true,
                   })
                   .where({
-                    email
+                    email,
                   });
               }
               user = await this.users
                 .where({
-                  email
+                  email,
                 })
                 .first();
             }
@@ -457,7 +457,7 @@ export default class RestAuthCtrl {
     }
 
     const githubPlugin = await this.xcMeta.metaGet(null, null, 'nc_plugins', {
-      title: 'Github'
+      title: 'Github',
     });
     if (githubPlugin && githubPlugin.input) {
       const settings = JSON.parse(githubPlugin.input);
@@ -474,7 +474,7 @@ export default class RestAuthCtrl {
           clientID: process.env.NC_GITHUB_CLIENT_ID,
           clientSecret: process.env.NC_GITHUB_CLIENT_SECRET,
           // callbackURL: app.$config.auth.github.callbackUrl,
-          passReqToCallback: true
+          passReqToCallback: true,
         },
         async (req, accessToken, _refreshToken, profile, cb) => {
           try {
@@ -483,22 +483,22 @@ export default class RestAuthCtrl {
             if (!email) {
               const res = await axios.get('https://api.github.com/user', {
                 headers: {
-                  Authorization: 'token ' + accessToken
-                }
+                  Authorization: 'token ' + accessToken,
+                },
               });
               if (res.data && res.data.length) {
                 email = res.data[0].email;
               } else {
                 return cb(null, false, {
                   message:
-                    'There is no email id associated to your github account.'
+                    'There is no email id associated to your github account.',
                 });
               }
             }
 
             let user = await this.users
               .where({
-                email
+                email,
               })
               .first();
             const token = req.query?.state?.replace('github|', '');
@@ -511,11 +511,11 @@ export default class RestAuthCtrl {
                   // email_verification_token,
                   invite_token: null,
                   invite_token_expires: null,
-                  email_verified: true
+                  email_verified: true,
                 })
                 .where({
                   email,
-                  invite_token: token
+                  invite_token: token,
                 });
             } else {
               let roles = 'editor';
@@ -536,20 +536,20 @@ export default class RestAuthCtrl {
                   password: '',
                   salt,
                   roles,
-                  email_verified: true
+                  email_verified: true,
                 });
               } else {
                 await this.users
                   .update({
-                    email_verified: true
+                    email_verified: true,
                   })
                   .where({
-                    email
+                    email,
                   });
               }
               user = await this.users
                 .where({
-                  email
+                  email,
                 })
                 .first();
             }
@@ -581,10 +581,10 @@ export default class RestAuthCtrl {
       new Strategy(this.jwtOptions, (jwtPayload, done) => {
         this.users
           .where({
-            email: jwtPayload?.email
+            email: jwtPayload?.email,
           })
           .first()
-          .then(user => {
+          .then((user) => {
             if (user) {
               user.roles = 'owner';
               return done(null, user);
@@ -592,7 +592,7 @@ export default class RestAuthCtrl {
               return done(new Error('User not found'));
             }
           })
-          .catch(err => {
+          .catch((err) => {
             return done(err);
           });
       })
@@ -614,13 +614,13 @@ export default class RestAuthCtrl {
               .knex('nc_shared_bases')
               .where({
                 enabled: true,
-                shared_base_id: req.headers['xc-shared-base-id']
+                shared_base_id: req.headers['xc-shared-base-id'],
               })
               .first();
             XcCache.set(cacheKey, sharedBase);
           }
           user = {
-            roles: sharedBase?.roles
+            roles: sharedBase?.roles,
           };
         }
 
@@ -654,7 +654,7 @@ export default class RestAuthCtrl {
 
           await this.users
             .update({
-              refresh_token: refreshToken
+              refresh_token: refreshToken,
             })
             .where({ id: user.id });
 
@@ -665,7 +665,7 @@ export default class RestAuthCtrl {
             op_sub_type: 'SIGNIN',
             user: user.email,
             ip: req.clientIp,
-            description: `signed in`
+            description: `signed in`,
           });
 
           res.json({
@@ -675,11 +675,11 @@ export default class RestAuthCtrl {
                 firstname: user.firstname,
                 lastname: user.lastname,
                 id: user.id,
-                roles: user.roles
+                roles: user.roles,
               },
               this.config.auth.jwt.secret,
               this.config.auth.jwt.options
-            )
+            ),
           } as any);
         } catch (e) {
           console.log(e);
@@ -694,7 +694,7 @@ export default class RestAuthCtrl {
       'google',
       {
         session: false,
-        callbackURL: req.ncSiteUrl + this.config.dashboardPath
+        callbackURL: req.ncSiteUrl + this.config.dashboardPath,
       },
       async (err, user, info): Promise<any> => {
         try {
@@ -713,7 +713,7 @@ export default class RestAuthCtrl {
 
           await this.users
             .update({
-              refresh_token: refreshToken
+              refresh_token: refreshToken,
             })
             .where({ id: user.id });
 
@@ -724,7 +724,7 @@ export default class RestAuthCtrl {
             op_sub_type: 'SIGNIN',
             user: user.email,
             ip: req.clientIp,
-            description: `signed in using Google Auth`
+            description: `signed in using Google Auth`,
           });
 
           res.json({
@@ -734,11 +734,11 @@ export default class RestAuthCtrl {
                 firstname: user.firstname,
                 lastname: user.lastname,
                 id: user.id,
-                roles: user.roles
+                roles: user.roles,
               },
               this.config.auth.jwt.secret,
               this.config.auth.jwt.options
-            )
+            ),
           } as any);
         } catch (e) {
           console.log(e);
@@ -753,7 +753,7 @@ export default class RestAuthCtrl {
       'github',
       {
         session: false,
-        callbackURL: req.ncSiteUrl + this.config.dashboardPath
+        callbackURL: req.ncSiteUrl + this.config.dashboardPath,
       },
       async (err, user, info): Promise<any> => {
         try {
@@ -772,7 +772,7 @@ export default class RestAuthCtrl {
 
           await this.users
             .update({
-              refresh_token: refreshToken
+              refresh_token: refreshToken,
             })
             .where({ id: user.id });
 
@@ -785,11 +785,11 @@ export default class RestAuthCtrl {
                 firstname: user.firstname,
                 lastname: user.lastname,
                 id: user.id,
-                roles: user.roles
+                roles: user.roles,
               },
               this.config.auth.jwt.secret,
               this.config.auth.jwt.options
-            )
+            ),
           } as any);
         } catch (e) {
           console.log(e);
@@ -808,7 +808,7 @@ export default class RestAuthCtrl {
 
       const user = await this.users
         .where({
-          refresh_token: req.cookies.refresh_token
+          refresh_token: req.cookies.refresh_token,
         })
         .first();
 
@@ -820,10 +820,10 @@ export default class RestAuthCtrl {
 
       await this.users
         .update({
-          refresh_token: refreshToken
+          refresh_token: refreshToken,
         })
         .where({
-          id: user.id
+          id: user.id,
         });
 
       this.setTokenCookie(res, refreshToken);
@@ -835,11 +835,11 @@ export default class RestAuthCtrl {
             firstname: user.firstname,
             lastname: user.lastname,
             id: user.id,
-            roles: user.roles
+            roles: user.roles,
           },
           this.config.auth.jwt.secret,
           this.config.auth.jwt.options
-        )
+        ),
       } as any);
     } catch (e) {
       return res.status(400).json({ msg: e.message });
@@ -853,7 +853,7 @@ export default class RestAuthCtrl {
         firstname,
         lastname,
         token,
-        ignore_subscribe
+        ignore_subscribe,
       } = req.body;
       let { password } = req.body;
 
@@ -865,7 +865,7 @@ export default class RestAuthCtrl {
 
       let user = await this.users
         .where({
-          email
+          email,
         })
         .first();
 
@@ -904,11 +904,11 @@ export default class RestAuthCtrl {
               password,
               email_verification_token,
               invite_token: null,
-              invite_token_expires: null
+              invite_token_expires: null,
             })
             .where({
               email,
-              invite_token: token
+              invite_token: token,
             });
         } else {
           return next(new Error('User already exist'));
@@ -937,12 +937,12 @@ export default class RestAuthCtrl {
           salt,
           password,
           email_verification_token,
-          roles
+          roles,
         });
       }
       user = await this.users
         .where({
-          email
+          email,
         })
         .first();
 
@@ -953,8 +953,8 @@ export default class RestAuthCtrl {
           subject: 'Verify email',
           html: ejs.render(template, {
             verifyLink:
-              req.ncSiteUrl + `/email/verify/${user.email_verification_token}`
-          })
+              req.ncSiteUrl + `/email/verify/${user.email_verification_token}`,
+          }),
         });
       } catch (e) {
         console.log(
@@ -965,10 +965,10 @@ export default class RestAuthCtrl {
       const refreshToken = this.randomTokenString();
       await this.users
         .update({
-          refresh_token: refreshToken
+          refresh_token: refreshToken,
         })
         .where({
-          id: user.id
+          id: user.id,
         });
 
       this.setTokenCookie(res, refreshToken);
@@ -980,7 +980,7 @@ export default class RestAuthCtrl {
         op_sub_type: 'SIGNUP',
         user: user.email,
         description: `signed up `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
 
       res.json({
@@ -990,10 +990,10 @@ export default class RestAuthCtrl {
             firstname: user.firstname,
             lastname: user.lastname,
             id: user.id,
-            roles: user.roles
+            roles: user.roles,
           },
           this.config.auth.jwt.secret
-        )
+        ),
       } as any);
     } catch (e) {
       console.log(e);
@@ -1009,10 +1009,10 @@ export default class RestAuthCtrl {
       if (email) {
         await this.users
           .update({
-            refresh_token: null
+            refresh_token: null,
           })
           .where({
-            email
+            email,
           });
       }
 
@@ -1037,7 +1037,7 @@ export default class RestAuthCtrl {
       await this.users
         .update({
           reset_password_token: token,
-          reset_password_expires: new Date(Date.now() + 60 * 60 * 1000)
+          reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
         })
         .where({ id: user.id });
 
@@ -1049,8 +1049,8 @@ export default class RestAuthCtrl {
           subject: 'Password Reset Link',
           text: `Visit following link to update your password : ${req.ncSiteUrl}/password/reset/${token}.`,
           html: ejs.render(template, {
-            resetLink: req.ncSiteUrl + `/password/reset/${token}`
-          })
+            resetLink: req.ncSiteUrl + `/password/reset/${token}`,
+          }),
         });
       } catch (e) {
         console.log(
@@ -1064,7 +1064,7 @@ export default class RestAuthCtrl {
         op_sub_type: 'PASSWORD_FORGOT',
         user: user.email,
         description: `requested for password reset `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
     }
     res.json({ msg: 'Check your email if you are registered with us.' });
@@ -1107,10 +1107,10 @@ export default class RestAuthCtrl {
         salt,
         password,
         reset_password_expires: null,
-        reset_password_token: ''
+        reset_password_token: '',
       })
       .where({
-        id: user.id
+        id: user.id,
       });
 
     this.xcMeta.audit(null, null, 'nc_audit', {
@@ -1118,7 +1118,7 @@ export default class RestAuthCtrl {
       op_sub_type: 'PASSWORD_RESET',
       user: user.email,
       description: `did reset password `,
-      ip: req.clientIp
+      ip: req.clientIp,
     });
 
     res.json({ msg: 'Password reset successful' });
@@ -1145,7 +1145,7 @@ export default class RestAuthCtrl {
       await this.users
         .update({
           salt,
-          password
+          password,
         })
         .where({ id: user.id });
 
@@ -1154,7 +1154,7 @@ export default class RestAuthCtrl {
         op_sub_type: 'PASSWORD_CHANGE',
         user: user.email,
         description: `changed password `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
 
       res.json({ msg: 'Password updated successfully' });
@@ -1173,7 +1173,7 @@ export default class RestAuthCtrl {
     await this.users
       .update({
         email_verification_token: '',
-        email_verified: true
+        email_verified: true,
       })
       .where({ id: user.id });
 
@@ -1182,7 +1182,7 @@ export default class RestAuthCtrl {
       op_sub_type: 'EMAIL_VERIFICATION',
       user: user.email,
       description: `verified email `,
-      ip: req.clientIp
+      ip: req.clientIp,
     });
 
     res.json({ msg: 'Email verified successfully' });
@@ -1196,10 +1196,10 @@ export default class RestAuthCtrl {
     await this.users
       .update({
         firstname: req.body.firstname,
-        lastname: req.body.lastname
+        lastname: req.body.lastname,
       })
       .where({
-        id: req.user.id
+        id: req.user.id,
       });
     res.json({ msg: 'Updated successfully' });
   }
@@ -1265,7 +1265,7 @@ export default class RestAuthCtrl {
         await this.users.insert({
           invite_token,
           invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
-          email
+          email,
         });
         count = await this.users.count('id as count').first();
 
@@ -1286,11 +1286,11 @@ export default class RestAuthCtrl {
       op_sub_type: 'INVITE',
       user: req.user.email,
       description: `invited ${email} to ${req.body.project_id} project `,
-      ip: req.clientIp
+      ip: req.clientIp,
     });
 
     res.json({
-      msg: 'success'
+      msg: 'success',
     });
   }
 
@@ -1308,7 +1308,7 @@ export default class RestAuthCtrl {
     try {
       const user = await this.users
         .where({
-          id: req.params.id
+          id: req.params.id,
         })
         .first();
 
@@ -1336,10 +1336,10 @@ export default class RestAuthCtrl {
         null,
         'nc_projects_users',
         {
-          roles: 'creator'
+          roles: 'creator',
         },
         {
-          user_id: req.params.id
+          user_id: req.params.id,
         }
       );
 
@@ -1348,11 +1348,11 @@ export default class RestAuthCtrl {
         op_sub_type: 'ROLES_MANAGEMENT',
         user: req.user.email,
         description: `updated roles for ${user.email} with ${req.body.roles} `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
 
       res.json({
-        msg: 'User details updated successfully'
+        msg: 'User details updated successfully',
       });
     } catch (e) {
       next(e);
@@ -1392,7 +1392,7 @@ export default class RestAuthCtrl {
       return next(e);
     }
     res.json({
-      msg: 'success'
+      msg: 'success',
     });
   }
 
@@ -1414,7 +1414,7 @@ export default class RestAuthCtrl {
         queryBuilder.where('email', 'like', `%${query}%`);
       }
       const self = this;
-      queryBuilder.leftJoin('nc_projects_users', function() {
+      queryBuilder.leftJoin('nc_projects_users', function () {
         this.on('nc_projects_users.user_id', '=', 'xc_users.id').andOn(
           'nc_projects_users.project_id',
           '=',
@@ -1446,7 +1446,7 @@ export default class RestAuthCtrl {
         list,
         count,
         offset,
-        limit
+        limit,
       });
     } catch (e) {
       next(e);
@@ -1467,10 +1467,10 @@ export default class RestAuthCtrl {
       await this.users
         .update({
           invite_token,
-          invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000)
+          invite_token_expires: new Date(Date.now() + 24 * 60 * 60 * 1000),
         })
         .where({
-          id: user.id
+          id: user.id,
         });
       await this.sendInviteEmail(user.email, invite_token, req);
 
@@ -1479,7 +1479,7 @@ export default class RestAuthCtrl {
         op_sub_type: 'RESEND_INVITE',
         user: user.email,
         description: `resent a invite to ${user.email} `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
 
       res.json({ msg: 'success' });
@@ -1501,10 +1501,10 @@ export default class RestAuthCtrl {
             projectName: req.body?.projectName,
             roles: (req.body?.roles || '')
               .split(',')
-              .map(r => r.replace(/^./, m => m.toUpperCase()))
+              .map((r) => r.replace(/^./, (m) => m.toUpperCase()))
               .join(', '),
-            adminEmail: req.session?.passport?.user?.email
-          })
+            adminEmail: req.session?.passport?.user?.email,
+          }),
         });
         return true;
       }
@@ -1532,7 +1532,7 @@ export default class RestAuthCtrl {
       for (const role of req.body.roles) {
         if (role.id) {
           const oldRole = await this.xcMeta.metaGet('', '', NC_ROLES, {
-            id: role.id
+            id: role.id,
           });
 
           if (
@@ -1544,10 +1544,10 @@ export default class RestAuthCtrl {
               '',
               NC_ROLES,
               {
-                ...role
+                ...role,
               },
               {
-                id: role.id
+                id: role.id,
               }
             );
           }
@@ -1570,7 +1570,7 @@ export default class RestAuthCtrl {
                       builder.getDbAlias(),
                       NC_ACL,
                       {
-                        acl: JSON.stringify(acl)
+                        acl: JSON.stringify(acl),
                       },
                       aclRow.id
                     );
@@ -1608,10 +1608,10 @@ export default class RestAuthCtrl {
                     builder.getDbAlias(),
                     NC_ACL,
                     {
-                      acl: JSON.stringify(acl)
+                      acl: JSON.stringify(acl),
                     },
                     {
-                      id: aclRow.id
+                      id: aclRow.id,
                     }
                   );
                 }
@@ -1629,7 +1629,7 @@ export default class RestAuthCtrl {
         op_sub_type: 'ROLES_MANAGEMENT',
         user: req.user.email,
         description: `updated roles `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
 
       res.json({ msg: 'success' });
@@ -1642,7 +1642,7 @@ export default class RestAuthCtrl {
   protected async deleteRole(req, res, next): Promise<any> {
     try {
       const role = await this.xcMeta.metaGet('', '', NC_ROLES, {
-        id: req.params.id
+        id: req.params.id,
       });
       if (!role) {
         return next(new Error(`Role with id '${req.params.id}' not found`));
@@ -1667,10 +1667,10 @@ export default class RestAuthCtrl {
                 builder.getDbAlias(),
                 NC_ACL,
                 {
-                  acl: JSON.stringify(acl)
+                  acl: JSON.stringify(acl),
                 },
                 {
-                  id: aclRow.id
+                  id: aclRow.id,
                 }
               );
             }
@@ -1699,7 +1699,7 @@ export default class RestAuthCtrl {
   /* Admin apis */
   protected async createAuthTableIfNotExists(): Promise<any> {
     if (!(await this.dbDriver.schema.hasTable('xc_users'))) {
-      await this.dbDriver.schema.createTable('xc_users', function(table) {
+      await this.dbDriver.schema.createTable('xc_users', function (table) {
         table.increments();
         table.string('email');
         table.string('password', 255);
@@ -1724,7 +1724,7 @@ export default class RestAuthCtrl {
     // create http only cookie with refresh token that expires in 7 days
     const cookieOptions = {
       httpOnly: true,
-      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+      expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
     };
     res.cookie('refresh_token', token, cookieOptions);
   }

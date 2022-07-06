@@ -1,37 +1,43 @@
 <template>
   <v-container
-    class="h-100 j-excel-container "
+    class="h-100 j-excel-container"
     :class="{
-      'pa-0 ma-0': ! notFound
+      'pa-0 ma-0': !notFound,
     }"
     fluid
   >
-    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300">
-      Not found
-    </v-alert>
+    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300"> Not found </v-alert>
     <template v-else>
       <div v-if="viewName" class="model-name">
         <span class="font-weight-bold"> {{ viewName }}</span> <span class="font-weight-regular ml-1" />
       </div>
-      <v-toolbar v-if="meta" height="40" dense class="elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7;border-radius: 4px">
+      <v-toolbar
+        v-if="meta"
+        height="40"
+        dense
+        class="elevation-0 xc-toolbar xc-border-bottom"
+        style="z-index: 7; border-radius: 4px"
+      >
         <v-spacer />
         <v-btn outlined small text @click="reload">
-          <v-icon small class="mr-1" color="grey  darken-3">
-            mdi-reload
-          </v-icon>
+          <v-icon small class="mr-1" color="grey  darken-3"> mdi-reload </v-icon>
           <!-- Reload -->
           {{ $t('general.reload') }}
         </v-btn>
         <fields-menu v-model="showFields" :field-list="fieldList" is-public />
         <sort-list-menu v-model="sortList" :field-list="realFieldList" />
         <column-filter-menu v-model="filters" :field-list="realFieldList" />
-        <csv-export-import :query-params="{...queryParams, showFields}" :public-view-id="$route.params.id" :meta="meta" />
+        <csv-export-import
+          :query-params="{ ...queryParams, showFields }"
+          :public-view-id="$route.params.id"
+          :meta="meta"
+        />
       </v-toolbar>
       <div
         v-if="meta"
         class="nc-grid-wrapper d-flex"
         :class="`cell-height-${cellHeight}`"
-        style="overflow:auto;transition: width 500ms "
+        style="overflow: auto; transition: width 500ms"
       >
         <v-container v-if="loadingData" fluid>
           <v-row>
@@ -52,7 +58,7 @@
           :primary-value-column="primaryValueColumn"
           :grouping-field.sync="groupingField"
           :api="api"
-          @loadMoreKanbanData="(groupingFieldVal) => loadMoreKanbanData(groupingFieldVal)"
+          @loadMoreKanbanData="groupingFieldVal => loadMoreKanbanData(groupingFieldVal)"
         />
       </div>
     </template>
@@ -61,12 +67,12 @@
 
 <script>
 /* eslint-disable camelcase */
-import spreadsheet from '../mixins/spreadsheet'
-import FieldsMenu from '../components/FieldsMenu'
-import SortListMenu from '../components/SortListMenu'
-import ColumnFilterMenu from '../components/ColumnFilterMenu'
-import CsvExportImport from '~/components/project/spreadsheet/components/MoreActions'
-import KanbanView from '~/components/project/spreadsheet/views/KanbanView'
+import spreadsheet from '../mixins/spreadsheet';
+import FieldsMenu from '../components/FieldsMenu';
+import SortListMenu from '../components/SortListMenu';
+import ColumnFilterMenu from '../components/ColumnFilterMenu';
+import CsvExportImport from '~/components/project/spreadsheet/components/MoreActions';
+import KanbanView from '~/components/project/spreadsheet/views/KanbanView';
 export default {
   name: 'XcKanban',
   components: { CsvExportImport, ColumnFilterMenu, SortListMenu, FieldsMenu, KanbanView },
@@ -78,7 +84,7 @@ export default {
     relation: Object,
     relationIdValue: [String, Number],
     refTable: String,
-    relationPrimaryValue: [String, Number]
+    relationPrimaryValue: [String, Number],
   },
   data: () => ({
     notFound: false,
@@ -106,11 +112,11 @@ export default {
     navDrawer: true,
     selected: {
       row: null,
-      col: null
+      col: null,
     },
     editEnabled: {
       row: null,
-      col: null
+      col: null,
     },
     page: 1,
     count: 0,
@@ -119,7 +125,16 @@ export default {
     sort: '',
     cellHeight: 'small',
     isAnyFieldHidden: false,
-    opList: ['is equal', 'is not equal', 'is like', 'is not like', 'is empty', 'is not empty', 'is null', 'is not null'],
+    opList: [
+      'is equal',
+      'is not equal',
+      'is like',
+      'is not like',
+      'is empty',
+      'is not empty',
+      'is null',
+      'is not null',
+    ],
     fieldFilter: '',
     filters: [],
     sortList: [],
@@ -127,24 +142,29 @@ export default {
     spreadsheet: null,
     options: {
       allowToolbar: true,
-      columnSorting: false
+      columnSorting: false,
     },
     filteredData: [],
     showFields: {},
     // fieldList: [],
-    cellHeights: [{
-      size: 'small',
-      icon: 'mdi-view-headline'
-    }, {
-      size: 'medium',
-      icon: 'mdi-view-sequential'
-    }, {
-      size: 'large',
-      icon: 'mdi-view-stream'
-    }, {
-      size: 'xlarge',
-      icon: 'mdi-card'
-    }],
+    cellHeights: [
+      {
+        size: 'small',
+        icon: 'mdi-view-headline',
+      },
+      {
+        size: 'medium',
+        icon: 'mdi-view-sequential',
+      },
+      {
+        size: 'large',
+        icon: 'mdi-view-stream',
+      },
+      {
+        size: 'xlarge',
+        icon: 'mdi-card',
+      },
+    ],
     rowContextMenu: null,
     modelName: null,
     kanban: {
@@ -157,26 +177,24 @@ export default {
       loadingData: true,
       selectedExpandRow: null,
       selectedExpandOldRow: null,
-      selectedExpandRowMeta: null
-    }
+      selectedExpandRowMeta: null,
+    },
   }),
-  computed: {
-
-  },
+  computed: {},
   async mounted() {
     try {
-      await this.loadMetaData()
+      await this.loadMetaData();
       if (!this.showPasswordModal && !this.notFound) {
-        await this.loadKanbanData()
+        await this.loadKanbanData();
       }
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-    this.searchField = this.primaryValueColumn
+    this.searchField = this.primaryValueColumn;
   },
   methods: {
     async loadMetaData() {
-      this.loading = true
+      this.loading = true;
       try {
         // eslint-disable-next-line camelcase
         const {
@@ -187,107 +205,112 @@ export default {
           client,
           query_params: qp = {},
           db_alias: dbAlias = '_noco',
-          relatedTableMetas = {}
-        } = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'sharedViewGet', {
-          view_id: this.$route.params.id,
-          password: this.password
-        }])
+          relatedTableMetas = {},
+        } = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          null,
+          'sharedViewGet',
+          {
+            view_id: this.$route.params.id,
+            password: this.password,
+          },
+        ]);
 
-        this.fieldsOrder = qp.fieldsOrder || []
-        this.viewName = view_name
-        this.viewType = view_type
+        this.fieldsOrder = qp.fieldsOrder || [];
+        this.viewName = view_name;
+        this.viewType = view_type;
 
-        this.columnsWidth = qp.columnsWidth || {}
+        this.columnsWidth = qp.columnsWidth || {};
 
-        this.client = client
-        this.meta = meta
-        this.query_params = qp
-        this.dbAlias = dbAlias
-        this.metas = relatedTableMetas
-        this.sortList = qp.sortList || []
+        this.client = client;
+        this.meta = meta;
+        this.query_params = qp;
+        this.dbAlias = dbAlias;
+        this.metas = relatedTableMetas;
+        this.sortList = qp.sortList || [];
 
-        this.showFields = this.query_params.showFields || {}
+        this.showFields = this.query_params.showFields || {};
 
         // this.fieldList = Object.keys(this.showFields)
 
-        let fields = this.query_params.fieldsOrder || []
-        if (!fields.length) { fields = Object.keys(this.showFields) }
+        let fields = this.query_params.fieldsOrder || [];
+        if (!fields.length) {
+          fields = Object.keys(this.showFields);
+        }
         // eslint-disable-next-line camelcase
 
-        let columns = this.meta.columns
+        let columns = this.meta.columns;
         if (this.meta && this.meta.v) {
-          columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))]
+          columns = [...columns, ...this.meta.v.map(v => ({ ...v, virtual: 1 }))];
         }
 
         {
-          const _ref = {}
-          columns.forEach((c) => {
+          const _ref = {};
+          columns.forEach(c => {
             if (c.virtual && c.bt) {
-              c.prop = `${c.bt.rtn}Read`
+              c.prop = `${c.bt.rtn}Read`;
             }
             if (c.virtual && c.mm) {
-              c.prop = `${c.mm.rtn}MMList`
+              c.prop = `${c.mm.rtn}MMList`;
             }
             if (c.virtual && c.hm) {
-              c.prop = `${c.hm.table_name}List`
+              c.prop = `${c.hm.table_name}List`;
             }
 
-            c.alias = c.title
+            c.alias = c.title;
             if (c.alias in _ref) {
-              c.alias += _ref[c.alias]++
+              c.alias += _ref[c.alias]++;
             } else {
-              _ref[c.alias] = 1
+              _ref[c.alias] = 1;
             }
-          })
+          });
         }
       } catch (e) {
         if (e.message === 'Not found' || e.message === 'Meta not found') {
-          this.notFound = true
+          this.notFound = true;
         } else if (e.message === 'Invalid password') {
-          this.showPasswordModal = true
+          this.showPasswordModal = true;
         } else {
-          console.log(e)
+          console.log(e);
         }
       }
 
-      this.loadingData = false
+      this.loadingData = false;
     },
     async loadKanbanData() {
-      this.loadingData = true
+      this.loadingData = true;
       try {
         // TODO
       } catch (e) {
-        this.showPasswordModal = true
+        this.showPasswordModal = true;
       }
 
-      this.loadingData = false
+      this.loadingData = false;
     },
     async unlock() {
-      this.showPasswordModal = false
-      await this.reload()
+      this.showPasswordModal = false;
+      await this.reload();
     },
     async reload() {
-      await this.loadMetaData()
-      await this.loadKanbanData()
-    }
-  }
-}
+      await this.loadMetaData();
+      await this.loadKanbanData();
+    },
+  },
+};
 </script>
 
 <style scoped>
-
 /deep/ .v-input__control .v-input__slot .v-input--selection-controls__input {
-  transform: scale(.85);
+  transform: scale(0.85);
   margin-right: 0;
-
 }
 
-/deep/ .xc-toolbar .v-input__slot, .navigation .v-input__slot {
+/deep/ .xc-toolbar .v-input__slot,
+.navigation .v-input__slot {
   box-shadow: none !important;
 }
 
 /deep/ .navigation .v-input__slot input::placeholder {
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
 
 /deep/ .v-btn {
@@ -296,7 +319,7 @@ export default {
 
 /deep/ .xc-bt-chip {
   margin-right: 12px;
-  transition: .4s margin-right, .4s padding-right;
+  transition: 0.4s margin-right, 0.4s padding-right;
 }
 
 /deep/ .xc-border.search-box {
@@ -305,7 +328,7 @@ export default {
 }
 
 /deep/ .xc-border.search-box .v-input {
-  transition: .4s border-color;
+  transition: 0.4s border-color;
 }
 
 /deep/ .xc-border.search-box .v-input--is-focused {
@@ -334,14 +357,13 @@ export default {
   justify-content: center;
 }
 
-.nc-grid-wrapper{
-  height:calc(100vh - 120px)
+.nc-grid-wrapper {
+  height: calc(100vh - 120px);
 }
 
-.nc-grid{
-  height: calc(100% - 34px)
+.nc-grid {
+  height: calc(100% - 34px);
 }
-
 </style>
 <!--
 /**

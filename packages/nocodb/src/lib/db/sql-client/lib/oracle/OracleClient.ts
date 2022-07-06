@@ -85,7 +85,7 @@ class OracleClient extends KnexClient {
       'varchar',
       'varchar2',
       'varray',
-      'varying array'
+      'varying array',
     ];
 
     return result;
@@ -213,7 +213,8 @@ class OracleClient extends KnexClient {
       await this.sqlClient.destroy();
       log.debug('dropping database:', this.connectionConfig.connection.user);
       // await tempSqlClient.raw(`ALTER SYSTEM enable restricted session`);
-      const sessions = await tempSqlClient.raw(`select SID,SERIAL# from v$session where username =  '${this.connectionConfig.connection.user}'
+      const sessions =
+        await tempSqlClient.raw(`select SID,SERIAL# from v$session where username =  '${this.connectionConfig.connection.user}'
       `);
       log.debug(
         `Active Sessions for ${this.connectionConfig.connection.user}: `,
@@ -255,7 +256,7 @@ class OracleClient extends KnexClient {
       const exists = await this.hasTable({ tn: args.tn });
 
       if (!exists.data.value) {
-        await this.sqlClient.schema.createTable(args.tn, function(table) {
+        await this.sqlClient.schema.createTable(args.tn, function (table) {
           // table.increments();
           table.string('title').notNullable();
           table.string('titleDown').nullable();
@@ -1386,7 +1387,7 @@ class OracleClient extends KnexClient {
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: query,
-        downStatement: `DROP TRIGGER ${args.trigger_name}`
+        downStatement: `DROP TRIGGER ${args.trigger_name}`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1419,7 +1420,7 @@ class OracleClient extends KnexClient {
 
       result.data.object = {
         upStatement: `DROP TRIGGER ${args.trigger_name};\nCREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.statement}`,
-        downStatement: `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.oldStatement}`
+        downStatement: `CREATE TRIGGER \`${args.trigger_name}\` \n${args.timing} ${args.event}\nON ${args.tn} FOR EACH ROW\n${args.oldStatement}`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1447,7 +1448,7 @@ class OracleClient extends KnexClient {
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: query,
-        downStatement: `DROP VIEW ${args.view_name}`
+        downStatement: `DROP VIEW ${args.view_name}`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1476,7 +1477,7 @@ class OracleClient extends KnexClient {
       await this.sqlClient.raw(query);
       result.data.object = {
         upStatement: query,
-        downStatement: `CREATE VIEW ${args.view_name} AS \n${args.oldViewDefination}`
+        downStatement: `CREATE VIEW ${args.view_name} AS \n${args.oldViewDefination}`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1507,7 +1508,7 @@ class OracleClient extends KnexClient {
 
       result.data.object = {
         upStatement: query,
-        downStatement: `CREATE VIEW ${args.view_name} AS \n${args.oldViewDefination}`
+        downStatement: `CREATE VIEW ${args.view_name} AS \n${args.oldViewDefination}`,
       };
     } catch (e) {
       log.ppe(e, func);
@@ -1569,7 +1570,7 @@ class OracleClient extends KnexClient {
       /**************** return files *************** */
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement
+        downStatement,
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1622,7 +1623,7 @@ class OracleClient extends KnexClient {
 
       for (let i = 0; i < args.columns.length; ++i) {
         const oldColumn = lodash.find(originalColumns, {
-          cn: args.columns[i].cno
+          cn: args.columns[i].cno,
         });
 
         if (args.columns[i].altered & 4) {
@@ -1684,7 +1685,7 @@ class OracleClient extends KnexClient {
 
       result.data.object = {
         upStatement: [{ sql: upQuery }],
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, _func);
@@ -1720,7 +1721,7 @@ class OracleClient extends KnexClient {
       /** ************** return files *************** */
       result.data.object = {
         upStatement,
-        downStatement: [{ sql: downQuery }]
+        downStatement: [{ sql: downQuery }],
       };
     } catch (e) {
       log.ppe(e, _func);

@@ -8,8 +8,8 @@ const input: XcForm = {
       label: 'Key',
       placeholder: 'Key',
       type: XcType.Password,
-      required: true
-    }
+      required: true,
+    },
     // {
     // key: 'callback_url',
     // label: 'Callback URL',
@@ -24,18 +24,18 @@ const input: XcForm = {
       placeholder: 'Test',
       key: 'test',
       actionType: XcActionType.TEST,
-      type: XcType.Button
+      type: XcType.Button,
     },
     {
       label: 'Save',
       placeholder: 'Save',
       key: 'save',
       actionType: XcActionType.SUBMIT,
-      type: XcType.Button
-    }
+      type: XcType.Button,
+    },
   ],
   msgOnInstall: 'Successfully installed and enabled Enterprise Edition.',
-  msgOnUninstall: ''
+  msgOnUninstall: '',
 };
 
 export default {
@@ -46,5 +46,5 @@ export default {
   price: 'Free',
   tags: 'Enterprise',
   category: 'Enterprise',
-  input_schema: JSON.stringify(input)
+  input_schema: JSON.stringify(input),
 };

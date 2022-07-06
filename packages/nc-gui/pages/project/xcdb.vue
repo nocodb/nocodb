@@ -1,35 +1,32 @@
 <template>
-  <div class="main  justify-center d-flex" style="min-height: 600px;overflow: auto">
+  <div class="main justify-center d-flex" style="min-height: 600px; overflow: auto">
     <!--    <v-toolbar>-->
     <!--      <v-spacer></v-spacer>-->
     <!--      <v-spacer></v-spacer>-->
     <!--    </v-toolbar>-->
 
     <v-form ref="form" v-model="valid" @submit.prevent="createProject">
-      <v-card style="width:530px;margin-top: 100px" class="mx-auto">
+      <v-card style="width: 530px; margin-top: 100px" class="mx-auto">
         <div
-          style="position: absolute;top:-33px;
-                  left:-moz-calc(50% - 33px);
-                  left:-webkit-calc(50% - 33px);
-                  left:calc(50% - 33px);
-                  border-radius: 15px;
-                  "
+          style="
+            position: absolute;
+            top: -33px;
+            left: -moz-calc(50% - 33px);
+            left: -webkit-calc(50% - 33px);
+            left: calc(50% - 33px);
+            border-radius: 15px;
+          "
           class="primary"
         >
-          <v-img
-            class="mx-auto"
-            width="66"
-            height="66"
-            :src="require('~/assets/img/icons/512x512-trans.png')"
-          />
+          <v-img class="mx-auto" width="66" height="66" :src="require('~/assets/img/icons/512x512-trans.png')" />
         </div>
 
         <!-- Create Project -->
-        <v-container fluid class="pb-10 px-12" style="padding-top: 43px !important;">
+        <v-container fluid class="pb-10 px-12" style="padding-top: 43px !important">
           <h1 class="mt-4 mb-4 text-center">
             {{ $t('activity.createProject') }}
           </h1>
-          <div class="mx-auto" style="width:350px">
+          <div class="mx-auto" style="width: 350px">
             <!-- label="Enter Project Name" -->
             <!-- rule text: Required -->
             <v-text-field
@@ -76,9 +73,7 @@
               color="primary"
               @click="createProject"
             >
-              <v-icon class="mr-1 mt-n1">
-                mdi-rocket-launch-outline
-              </v-icon>
+              <v-icon class="mr-1 mt-n1"> mdi-rocket-launch-outline </v-icon>
               <!-- Create -->
               <span class="mr-1">{{ $t('general.create') }}</span>
             </v-btn>
@@ -90,7 +85,7 @@
 </template>
 
 <script>
-import colors from '@/mixins/colors'
+import colors from '@/mixins/colors';
 
 export default {
   name: 'Name',
@@ -102,7 +97,7 @@ export default {
     projectType: 'rest',
     projectTypes: [
       { text: 'REST APIs', value: 'rest', icon: 'mdi-code-json', iconColor: 'green' },
-      { text: 'GRAPHQL APIs', value: 'graphql', icon: 'mdi-graphql', iconColor: 'pink' }
+      { text: 'GRAPHQL APIs', value: 'graphql', icon: 'mdi-graphql', iconColor: 'pink' },
       /*   {
            text: 'Automatic gRPC APIs on database',
            value: 'grpc',
@@ -120,62 +115,65 @@ export default {
   computed: {
     typeIcon() {
       if (this.projectType) {
-        return this.projectTypes.find(({ value }) => value === this.projectType)
+        return this.projectTypes.find(({ value }) => value === this.projectType);
       } else {
-        return { icon: 'mdi-server', iconColor: 'primary' }
+        return { icon: 'mdi-server', iconColor: 'primary' };
       }
-    }
+    },
   },
   mounted() {
     setTimeout(() => {
-      this.$refs.name.$el.querySelector('input').focus()
-    }, 100)
+      this.$refs.name.$el.querySelector('input').focus();
+    }, 100);
   },
   methods: {
     async createProject() {
       if (this.$refs.form.validate()) {
-        this.loading = true
+        this.loading = true;
         try {
           // const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectCreateByWebWithXCDB', {
           //   title: this.name,
           //   projectType: this.projectType
           // }])
 
-          const result = (await this.$api.project.create({
-            title: this.name
-          }))
+          const result = await this.$api.project.create({
+            title: this.name,
+          });
 
-          await this.$store.dispatch('project/ActLoadProjectInfo')
+          await this.$store.dispatch('project/ActLoadProjectInfo');
 
-          this.projectReloading = false
+          this.projectReloading = false;
 
-          if (this.$store.state.project.appInfo.firstUser || this.$store.state.project.appInfo.authType === 'masterKey') {
+          if (
+            this.$store.state.project.appInfo.firstUser ||
+            this.$store.state.project.appInfo.authType === 'masterKey'
+          ) {
             return this.$router.push({
-              path: '/user/authentication/signup'
-            })
+              path: '/user/authentication/signup',
+            });
           }
 
           this.$router.push({
             path: `/nc/${result.id}`,
             query: {
-              new: 1
-            }
-          })
+              new: 1,
+            },
+          });
         } catch (e) {
-          this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000)
+          this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);
         }
-        this.loading = false
+        this.loading = false;
       } else {
         // this.$toast.
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped>
 /deep/ label {
-  font-size: .75rem;
+  font-size: 0.75rem;
 }
 
 .wrapper {
@@ -184,6 +182,6 @@ export default {
 }
 
 .main {
-  height: calc(100vh - 48px)
+  height: calc(100vh - 48px);
 }
 </style>

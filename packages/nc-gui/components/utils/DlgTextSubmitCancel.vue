@@ -1,17 +1,11 @@
 <template>
   <v-row justify="center">
-    <v-dialog
-      :value="dialogShow"
-      persistent
-      max-width="600px"
-      @keydown.esc="mtdDialogCancel()"
-      @keydown.enter.prevent
-    >
+    <v-dialog :value="dialogShow" persistent max-width="600px" @keydown.esc="mtdDialogCancel()" @keydown.enter.prevent>
       <template #activator="{ on }">
         <p class="hidden" v-on="on" />
       </template>
       <v-card class="elevation-20">
-        <v-card-title class="grey darken-2 subheading" style="height:30px">
+        <v-card-title class="grey darken-2 subheading" style="height: 30px">
           <!-- {{ this.heading }} -->
         </v-card-title>
         <v-form ref="form" v-model="valid">
@@ -24,7 +18,7 @@
               v-model="fieldValue"
               validate-on-blur
               :label="field || ''"
-              :rules="[v=> !!v || 'Value required',...(rules || [])]"
+              :rules="[v => !!v || 'Value required', ...(rules || [])]"
               autofocus
               @keydown.enter.prevent="submitForm"
             />
@@ -37,11 +31,7 @@
           <v-btn small class="" @click="mtdDialogCancel()">
             {{ $t('general.cancel') }}
           </v-btn>
-          <v-btn
-            small
-            class="primary"
-            @click="submitForm"
-          >
+          <v-btn small class="primary" @click="submitForm">
             {{ submitText || $t('general.submit') }}
           </v-btn>
         </v-card-actions>
@@ -51,12 +41,11 @@
 </template>
 
 <script>
-
 export default {
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   props: [
     'heading',
@@ -68,43 +57,41 @@ export default {
     'cookie',
     'defaultValue',
     'submitText',
-    'rules'
+    'rules',
   ],
   data() {
-    return { fieldValue: '', valid: null }
+    return { fieldValue: '', valid: null };
   },
   head() {
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
   created() {
-    if (this.defaultValue) { this.fieldValue = this.defaultValue }
+    if (this.defaultValue) {
+      this.fieldValue = this.defaultValue;
+    }
   },
   mounted() {
     requestAnimationFrame(() => {
-      this.$refs.focus.focus()
-    })
+      this.$refs.focus.focus();
+    });
   },
-  beforeDestroy() {
-  },
+  beforeDestroy() {},
   methods: {
     submitForm() {
       if (this.$refs.form.validate()) {
-        this.mtdDialogSubmit(this.fieldValue, this.cookie)
+        this.mtdDialogSubmit(this.fieldValue, this.cookie);
       }
-    }
+    },
   },
 
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

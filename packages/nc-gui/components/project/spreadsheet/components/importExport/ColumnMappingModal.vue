@@ -3,23 +3,21 @@
     <!-- Import CSV to existing Table -->
     <v-card v-if="meta">
       <v-card-actions>
-        <v-card-title>
-          Table : {{ meta.title }}
-        </v-card-title>
+        <v-card-title> Table : {{ meta.title }} </v-card-title>
         <v-spacer />
         <v-btn
           :disabled="
             !valid ||
-              (typeof requiredColumnValidationError === 'string' || requiredColumnValidationError) ||
-              (typeof noSelectedColumnError === 'string' || noSelectedColumnError)
+            typeof requiredColumnValidationError === 'string' ||
+            requiredColumnValidationError ||
+            typeof noSelectedColumnError === 'string' ||
+            noSelectedColumnError
           "
           color="primary"
           large
-          @click="$emit('import',mappings)"
+          @click="$emit('import', mappings)"
         >
-          <v-icon small class="mr-1">
-            mdi-database-import-outline
-          </v-icon>
+          <v-icon small class="mr-1"> mdi-database-import-outline </v-icon>
           Import
         </v-btn>
       </v-card-actions>
@@ -32,29 +30,25 @@
       <v-divider />
       <v-container fluid>
         <v-form ref="form" v-model="valid">
-          <v-simple-table dense style="position:relative;">
+          <v-simple-table dense style="position: relative">
             <thead>
               <tr>
                 <th />
-                <th style="width:45%" class="grey--text">
-                  Source column
-                </th>
-                <th style="width:45%" class="grey--text">
-                  Destination column
-                </th>
+                <th style="width: 45%" class="grey--text">Source column</th>
+                <th style="width: 45%" class="grey--text">Destination column</th>
               </tr>
             </thead>
             <tbody>
-              <tr v-for="(r,i) in mappings" :key="i">
+              <tr v-for="(r, i) in mappings" :key="i">
                 <td>
                   <v-checkbox v-model="r.enabled" class="mt-0" dense hide-details @change="$refs.form.validate()" />
                 </td>
-                <td class="caption" style="width:45%">
+                <td class="caption" style="width: 45%">
                   <div :title="r.sourceCn" style="">
                     {{ r.sourceCn }}
                   </div>
                 </td>
-                <td style="width:45%">
+                <td style="width: 45%">
                   <v-select
                     v-model="r.destCn"
                     class="caption"
@@ -63,18 +57,16 @@
                     :items="meta.columns"
                     item-text="title"
                     :item-value="v => v && v.title"
-                    :rules="[
-                      v => validateField(v,r)
-                    ]"
+                    :rules="[v => validateField(v, r)]"
                     @change="$refs.form.validate()"
                   >
-                    <template #selection="{item}">
+                    <template #selection="{ item }">
                       <v-icon small class="mr-1">
                         {{ getIcon(item.uidt) }}
                       </v-icon>
                       {{ item.title }}
                     </template>
-                    <template #item="{item}">
+                    <template #item="{ item }">
                       <v-icon small class="mr-1">
                         {{ getIcon(item.uidt) }}
                       </v-icon>
@@ -92,7 +84,7 @@
 </template>
 
 <script>
-import { getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
+import { getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes';
 
 export default {
   name: 'ColumnMappingModal',
@@ -106,112 +98,130 @@ export default {
     return {
       mappings: [],
       valid: false,
-    }
+    };
   },
   computed: {
     visible: {
       get() {
-        return this.value
+        return this.value;
       },
       set(v) {
-        this.$emit('input', v)
-      }
+        this.$emit('input', v);
+      },
     },
     requiredColumnValidationError() {
-      const missingRequiredColumns = this.meta.columns.filter(c => (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) &&
-        !this.mappings.some(r => r.destCn === c.title))
+      const missingRequiredColumns = this.meta.columns.filter(
+        c => (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) && !this.mappings.some(r => r.destCn === c.title)
+      );
 
       if (missingRequiredColumns.length) {
-        return `Following columns are required : ${missingRequiredColumns.map(c => c.title).join(', ')}`
+        return `Following columns are required : ${missingRequiredColumns.map(c => c.title).join(', ')}`;
       }
-      return false
+      return false;
     },
     noSelectedColumnError() {
       if ((this.mappings || []).filter(v => v.enabled === true).length == 0) {
-        return 'At least one column has to be selected'
+        return 'At least one column has to be selected';
       }
-      return false
-    }
+      return false;
+    },
   },
   mounted() {
-    this.mapDefaultColumns()
+    this.mapDefaultColumns();
   },
 
   methods: {
     validateField(_cn, row) {
       if (!_cn) {
-        return true
+        return true;
       }
 
       // if it is not selected, then pass validation
       if (!row.enabled) {
-        return true
+        return true;
       }
 
-      const v = this.meta && this.meta.columns.find(c => c.title === _cn)
+      const v = this.meta && this.meta.columns.find(c => c.title === _cn);
 
-      if ((this.mappings || []).filter(v => v.destCn === _cn).length > 1) { return 'Duplicate mapping found, please remove one of the mapping' }
+      if ((this.mappings || []).filter(v => v.destCn === _cn).length > 1) {
+        return 'Duplicate mapping found, please remove one of the mapping';
+      }
 
       // check if the input contains null value for a required column
       if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
-        if (this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)
-          .some(r => r[row.sourceCn] === null || r[row.sourceCn] === undefined || r[row.sourceCn] === '')) {
-          return 'null value violates not-null constraint'
+        if (
+          this.parsedCsv &&
+          this.parsedCsv.data &&
+          this.parsedCsv.data
+            .slice(0, 500)
+            .some(r => r[row.sourceCn] === null || r[row.sourceCn] === undefined || r[row.sourceCn] === '')
+        ) {
+          return 'null value violates not-null constraint';
         }
       }
 
       switch (v.uidt) {
         case UITypes.Number:
-          if (this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)
-            .some(r => r[row.sourceCn] !== null && r[row.sourceCn] !== undefined && isNaN(+r[row.sourceCn]))) {
-            return 'Source data contains some invalid numbers'
+          if (
+            this.parsedCsv &&
+            this.parsedCsv.data &&
+            this.parsedCsv.data
+              .slice(0, 500)
+              .some(r => r[row.sourceCn] !== null && r[row.sourceCn] !== undefined && isNaN(+r[row.sourceCn]))
+          ) {
+            return 'Source data contains some invalid numbers';
           }
-          break
+          break;
         case UITypes.Checkbox:
           if (
-            this.parsedCsv && this.parsedCsv.data && this.parsedCsv.data.slice(0, 500)
-              .some((r) => {
-                if (r => r[row.sourceCn] !== null && r[row.sourceCn] !== undefined) {
-                  let input = r[row.sourceCn]
-                  if (typeof input === 'string') {
-                    input = input.replace(/["']/g, '').toLowerCase().trim()
-                    return !((
-                      input == 'false' || input == 'no' || input == 'n' || input == '0' ||
-                    input == 'true' || input == 'yes' || input == 'y' || input == '1'
-                    ))
-                  }
-                  return input != 1 && input != 0 && input != true && input != false
+            this.parsedCsv &&
+            this.parsedCsv.data &&
+            this.parsedCsv.data.slice(0, 500).some(r => {
+              if (r => r[row.sourceCn] !== null && r[row.sourceCn] !== undefined) {
+                let input = r[row.sourceCn];
+                if (typeof input === 'string') {
+                  input = input.replace(/["']/g, '').toLowerCase().trim();
+                  return !(
+                    input == 'false' ||
+                    input == 'no' ||
+                    input == 'n' ||
+                    input == '0' ||
+                    input == 'true' ||
+                    input == 'yes' ||
+                    input == 'y' ||
+                    input == '1'
+                  );
                 }
-                return false
-              })
+                return input != 1 && input != 0 && input != true && input != false;
+              }
+              return false;
+            })
           ) {
-            return 'Source data contains some invalid boolean values'
+            return 'Source data contains some invalid boolean values';
           }
-          break
+          break;
       }
-      return true
+      return true;
     },
     mapDefaultColumns() {
-      this.mappings = []
+      this.mappings = [];
       for (const col of this.importDataColumns) {
-        const o = { sourceCn: col, enabled: true }
+        const o = { sourceCn: col, enabled: true };
         if (this.meta) {
-          const tableColumn = this.meta.columns.find(c => c.title === col)
+          const tableColumn = this.meta.columns.find(c => c.title === col);
           if (tableColumn) {
-            o.destCn = tableColumn.title
+            o.destCn = tableColumn.title;
           }
         }
-        this.mappings.push(o)
+        this.mappings.push(o);
       }
-      this.$nextTick(() => this.$refs.form.validate())
+      this.$nextTick(() => this.$refs.form.validate());
     },
     getIcon(uidt) {
-      return getUIDTIcon(uidt) || 'mdi-alpha-v-circle-outline'
+      return getUIDTIcon(uidt) || 'mdi-alpha-v-circle-outline';
     },
-  }
-}
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -9,24 +9,20 @@
 </template>
 
 <script>
-
 export default {
   components: {},
   data: () => ({}),
   computed: {},
   watch: {},
-  mounted() {
-  },
+  mounted() {},
   async created() {
     // this.$vuetify.theme.dark = false;
   },
 
-  methods: {}
-}
+  methods: {},
+};
 </script>
-<style scoped>
-
-</style>
+<style scoped></style>
 
 <!--
 /**

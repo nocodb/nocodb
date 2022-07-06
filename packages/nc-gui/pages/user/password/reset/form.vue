@@ -10,7 +10,7 @@
             class="input"
             type="password"
             placeholder="newPassword"
-          >
+          />
         </div>
       </div>
 
@@ -23,15 +23,13 @@
             class="input"
             type="password"
             placeholder="verifyPassword"
-          >
+          />
         </div>
       </div>
 
       <div class="field is-grouped">
         <div class="control">
-          <button class="button is-link" @click="resetUserPassword">
-            Submit
-          </button>
+          <button class="button is-link" @click="resetUserPassword">Submit</button>
         </div>
       </div>
     </div>
@@ -60,12 +58,7 @@
               :type="e3 ? 'password' : 'text'"
             />
 
-            <v-btn
-              :disabled="!valid"
-              @click="resetUserPassword"
-            >
-              submit
-            </v-btn>
+            <v-btn :disabled="!valid" @click="resetUserPassword"> submit </v-btn>
           </v-form>
         </v-card>
       </v-col>
@@ -74,62 +67,50 @@
 </template>
 
 <script>
-import { isEmail } from '@/helpers'
+import { isEmail } from '@/helpers';
 
 export default {
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   props: {},
   data() {
     return {
-
       passwordDetails: {
         newPassword: null,
-        verifyPassword: null
+        verifyPassword: null,
       },
 
       formRules: {
-        email: [
-          v => !!v || 'E-mail is required',
-          v => isEmail(v) || 'E-mail must be valid'
-        ]
+        email: [v => !!v || 'E-mail is required', v => isEmail(v) || 'E-mail must be valid'],
       },
 
       valid: true,
       e3: true,
-      alert: true
-
-    }
+      alert: true,
+    };
   },
   head() {
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
-  created() {
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  mounted() {},
+  beforeDestroy() {},
   methods: {
     resetUserPassword() {
       // console.log('resetuserpassword');
-    }
+    },
   },
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

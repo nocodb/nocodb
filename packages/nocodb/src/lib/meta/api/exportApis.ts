@@ -13,7 +13,7 @@ async function exportCsv(req: Request, res: Response) {
     'nc-export-elapsed-time': elapsed,
     'Content-Disposition': `attachment; filename="${encodeURI(
       view.title
-    )}-export.csv"`
+    )}-export.csv"`,
   });
   res.send(data);
 }

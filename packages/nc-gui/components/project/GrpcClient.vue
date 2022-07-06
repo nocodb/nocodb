@@ -1,13 +1,9 @@
 <template>
   <v-container fluid style="height: 100%" class="py-0">
     <v-row class="justify-center align-center">
-      <v-col class=" text-center pt-5">
-        <v-btn :loading="loading" color="primary" outlined @click="download">
-          Download Proto File
-        </v-btn>
-        <p class="caption mt-3">
-          Use BloomRPC or similar tool for testing
-        </p>
+      <v-col class="text-center pt-5">
+        <v-btn :loading="loading" color="primary" outlined @click="download"> Download Proto File </v-btn>
+        <p class="caption mt-3">Use BloomRPC or similar tool for testing</p>
       </v-col>
     </v-row>
   </v-container>
@@ -17,36 +13,40 @@
 export default {
   name: 'GrpcClient',
   data: () => ({
-    loading: false
+    loading: false,
   }),
   methods: {
     async download() {
-      this.loading = true
-      let data
+      this.loading = true;
+      let data;
       try {
-        data = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'grpcProtoDownloadZip', {}, null, {
-          responseType: 'blob'
-        }])
-        const url = window.URL.createObjectURL(new Blob([data], { type: 'application/zip' }))
-        const link = document.createElement('a')
-        link.href = url
-        link.setAttribute('download', 'proto.zip') // or any other extension
-        document.body.appendChild(link)
-        link.click()
+        data = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          null,
+          'grpcProtoDownloadZip',
+          {},
+          null,
+          {
+            responseType: 'blob',
+          },
+        ]);
+        const url = window.URL.createObjectURL(new Blob([data], { type: 'application/zip' }));
+        const link = document.createElement('a');
+        link.href = url;
+        link.setAttribute('download', 'proto.zip'); // or any other extension
+        document.body.appendChild(link);
+        link.click();
         // this.$toast.success('Successfully exported metadata').goAway(3000)
-        this.$toast.success(`${this.$t('msg.toast.exportMetadata')}`).goAway(3000)
+        this.$toast.success(`${this.$t('msg.toast.exportMetadata')}`).goAway(3000);
       } catch (e) {
-        this.$toast.error('Some internal error occurred').goAway(3000)
+        this.$toast.error('Some internal error occurred').goAway(3000);
       }
-      this.loading = false
-    }
-  }
-}
+      this.loading = false;
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

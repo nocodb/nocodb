@@ -98,12 +98,12 @@ export default class NcConnectionMgrv2 {
             const res = next();
             if (res instanceof Buffer) {
               return [...res]
-                .map(v => ('00' + v.toString(16)).slice(-2))
+                .map((v) => ('00' + v.toString(16)).slice(-2))
                 .join('');
             }
             return res;
-          }
-        }
+          },
+        },
       } as any
     );
     // if (isSqlite) {
@@ -127,7 +127,7 @@ export default class NcConnectionMgrv2 {
     const knex = _knex || this.get(base);
     return SqlClientFactory.create({
       knex,
-      ...base.getConnectionConfig()
+      ...base.getConnectionConfig(),
     });
   }
 }

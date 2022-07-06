@@ -4,72 +4,44 @@
     <v-toolbar flat height="42" class="toolbar-border-bottom">
       <v-toolbar-title>
         <v-breadcrumbs
-          :items="[{
-                     text: nodes.env,
-                     disabled: true,
-                     href: '#'
-                   },{
-                     text: nodes.dbAlias,
-                     disabled: true,
-                     href: '#'
-                   },
-                   {
-                     text: nodes.table_name + ' (table)',
-                     disabled: true,
-                     href: '#'
-                   }]"
+          :items="[
+            {
+              text: nodes.env,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.dbAlias,
+              disabled: true,
+              href: '#',
+            },
+            {
+              text: nodes.table_name + ' (table)',
+              disabled: true,
+              href: '#',
+            },
+          ]"
           divider=">"
           small
         >
           <template #divider>
-            <v-icon small color="grey lighten-2">
-              forward
-            </v-icon>
+            <v-icon small color="grey lighten-2"> forward </v-icon>
           </template>
         </v-breadcrumbs>
       </v-toolbar-title>
       <v-spacer />
-      <v-btn
-        color="primary"
-        small
-        @click="loadColumnList"
-      >
-        <v-icon left>
-          refresh
-        </v-icon>
+      <v-btn color="primary" small @click="loadColumnList">
+        <v-icon left> refresh </v-icon>
         Refresh
       </v-btn>
-      <v-btn
-        color="primary"
-        class="primary"
-        small
-        @click="addColumn"
-      >
-        New Column
-      </v-btn>
+      <v-btn color="primary" class="primary" small @click="addColumn"> New Column </v-btn>
 
-      <v-btn
-        color="primary"
-        class="primary"
-        small
-        :disabled="!edited && !newTable"
-        @click="applyChanges"
-      >
+      <v-btn color="primary" class="primary" small :disabled="!edited && !newTable" @click="applyChanges">
         <!-- Save &nbsp; -->
         {{ $t('general.save') }}
-        <v-progress-circular
-          v-if="progress.save"
-          :indeterminate="progress.save"
-          :size="20"
-          color="secondary"
-        />
+        <v-progress-circular v-if="progress.save" :indeterminate="progress.save" :size="20" color="secondary" />
       </v-btn>
-      <v-btn
-        small
-        color="error "
-        class="error text-right"
-        @click="deleteTable('showDialog')"
-      >
+      <v-btn small color="error " class="error text-right" @click="deleteTable('showDialog')">
         {{ $t('activity.deleteTable') }} &nbsp;
 
         <v-progress-circular
@@ -79,10 +51,7 @@
           color="secondary"
         />
       </v-btn>
-      <v-btn
-        icon
-        class="text-right"
-      >
+      <v-btn icon class="text-right">
         <v-icon>mdi-help-circle-outline</v-icon>
       </v-btn>
     </v-toolbar>
@@ -95,7 +64,7 @@
         footer-props.items-per-page-options="30"
         class="elevation-20 column-table"
       >
-        <template #header="{props:{headers}}">
+        <template #header="{ props: { headers } }">
           <th v-for="header in headers" :key="header.title" class="pt-2 pb-0">
             <v-tooltip bottom>
               <template #activator="{ on }">
@@ -107,7 +76,7 @@
         </template>
 
         <template #item="props">
-          <tr :disabled="nodes.table_name==='_evolutions' || nodes.table_name==='nc_evolutions'">
+          <tr :disabled="nodes.table_name === '_evolutions' || nodes.table_name === 'nc_evolutions'">
             <td>
               <v-edit-dialog
                 :return-value.sync="props.item.column_name"
@@ -141,7 +110,7 @@
                 :full-width="false"
                 :items="dataTypes"
                 dense
-                @change="onDataTypeChange(props.item,props.index)"
+                @change="onDataTypeChange(props.item, props.index)"
               />
             </td>
             <!--            <td>-->
@@ -208,21 +177,10 @@
               </v-edit-dialog>
             </td>
             <td>
-              <v-checkbox
-                v-model="props.item.pk"
-                solo
-                height="44"
-                color=""
-                @change="onCheckboxChangePk(props.item)"
-              />
+              <v-checkbox v-model="props.item.pk" solo height="44" color="" @change="onCheckboxChangePk(props.item)" />
             </td>
             <td>
-              <v-checkbox
-                v-model="props.item.rqd"
-                solo
-                color=""
-                @change="onCheckboxChangeNN(props.item)"
-              />
+              <v-checkbox v-model="props.item.rqd" solo color="" @change="onCheckboxChangeNN(props.item)" />
             </td>
             <td>
               <v-checkbox
@@ -246,36 +204,15 @@
             <td>
               <p v-if="props.item.rtn" row wrap>
                 {{ props.item.rtn }}
-                <v-icon
-                  small
-                  @click="createNewOrEditRelation(props.item)"
-                >
-                  mdi-table-edit
-                </v-icon>
-                <v-icon
-                  small
-                  color="error"
-                  @click="deleteRelation('showDialog', props.item)"
-                >
+                <v-icon small @click="createNewOrEditRelation(props.item)"> mdi-table-edit </v-icon>
+                <v-icon small color="error" @click="deleteRelation('showDialog', props.item)">
                   mdi-delete-forever
                 </v-icon>
               </p>
 
-              <v-icon
-                v-else-if="!props.item.pk"
-                color=""
-                @click="createNewOrEditRelation(props.item)"
-              >
-                add
-              </v-icon>
+              <v-icon v-else-if="!props.item.pk" color="" @click="createNewOrEditRelation(props.item)"> add </v-icon>
 
-              <v-icon
-                v-else
-                disabled
-                color="grey"
-              >
-                add
-              </v-icon>
+              <v-icon v-else disabled color="grey"> add </v-icon>
             </td>
             <td>
               <v-edit-dialog
@@ -290,9 +227,7 @@
               >
                 <!--                <div v-if="props.item.rqd">{{ props.item.cdf }}</div>-->
                 <div v-if="props.item.pk" />
-                <div v-else-if="!props.item.cdf && !props.item.rqd">
-                  NULL
-                </div>
+                <div v-else-if="!props.item.cdf && !props.item.rqd">NULL</div>
                 <div v-else>
                   {{ props.item.cdf }}
                 </div>
@@ -302,22 +237,12 @@
                 <!--                  </div>-->
                 <!--                </template>-->
                 <template #input>
-                  <v-text-field
-                    v-model="props.item.cdf"
-                    :label="$t('general.edit')"
-                    single-line
-                    counter
-                    autofocus
-                  />
+                  <v-text-field v-model="props.item.cdf" :label="$t('general.edit')" single-line counter autofocus />
                 </template>
               </v-edit-dialog>
             </td>
             <td>
-              <v-icon
-                color="error"
-                icon
-                @click="deleteColumn('showDialog', props.index, props.item)"
-              >
+              <v-icon color="error" icon @click="deleteColumn('showDialog', props.index, props.item)">
                 mdi-delete-forever
               </v-icon>
             </td>
@@ -353,9 +278,9 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
-import addRelationDlg from '../dlgs/DlgAddRelation.vue'
-import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel.vue'
+import { mapGetters, mapActions } from 'vuex';
+import addRelationDlg from '../dlgs/DlgAddRelation.vue';
+import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel.vue';
 
 export default {
   components: { addRelationDlg, dlgLabelSubmitCancel },
@@ -364,7 +289,7 @@ export default {
       progress: {
         save: false,
         deleteTable: false,
-        refresh: false
+        refresh: false,
       },
       edited: false,
       columnDeleteDlg: false,
@@ -379,7 +304,7 @@ export default {
           title: 'Column name',
           value: 'cn',
           sortable: false,
-          width: '1%'
+          width: '1%',
         },
         { text: 'Data Type', title: 'Data Type', value: 'dt', sortable: false, width: '10%' },
         // {text: "Type",title:', value: "dt", sortable: false, width: "10%"},
@@ -395,96 +320,92 @@ export default {
           title: 'Default Value',
           value: 'cdf',
           sortable: false,
-          width: '10%'
+          width: '10%',
         },
-        { text: '', title: 'Action', value: '', sortable: false, width: '1%' }
+        { text: '', title: 'Action', value: '', sortable: false, width: '1%' },
       ],
       max25chars: v => v.length <= 150 || 'Input too long!',
       dialogShow: false,
-      selectedColForNewRelation: null
-    }
+      selectedColForNewRelation: null,
+    };
   },
   methods: {
     ...mapActions({
-      loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode'
+      loadTablesFromChildTreeNode: 'project/loadTablesFromChildTreeNode',
     }),
     async onCheckboxChange() {
-      this.edited = true
+      this.edited = true;
     },
 
     async onCheckboxChangePk(col) {
-      this.edited = true
-      col.altered = col.altered || 2
+      this.edited = true;
+      col.altered = col.altered || 2;
 
-      col.cdf = null
-      col.rqd = true
+      col.cdf = null;
+      col.rqd = true;
     },
     colPropAIDisabled(col) {
-      if (col.dtx === 'integer' ||
-          col.dtx === 'bigInteger' ||
-          col.dtx === 'specificType') {
+      if (col.dtx === 'integer' || col.dtx === 'bigInteger' || col.dtx === 'specificType') {
         for (let i = 0; i < this.columns.length; ++i) {
           if (this.columns[i].column_name !== col.column_name && this.columns[i].ai) {
-            return true
+            return true;
           }
         }
-        return false
+        return false;
       } else {
-        return true
+        return true;
       }
     },
 
     colPropUNDisabled(col) {
-      if (col.dtx === 'integer' ||
-          col.dtx === 'bigInteger' ||
-          col.dt.includes('int')) {
-        return false
+      if (col.dtx === 'integer' || col.dtx === 'bigInteger' || col.dt.includes('int')) {
+        return false;
       } else {
-        return true
+        return true;
       }
     },
 
     onCheckboxChangeAI(col) {
-      console.log(col)
+      console.log(col);
       if (col.dt === 'int' || col.dt === 'bigint' || col.dt === 'smallint' || col.dt === 'tinyint') {
-        col.altered = col.altered || 2
+        col.altered = col.altered || 2;
       }
 
       if (!col.ai) {
-        col.dtx = 'specificType'
+        col.dtx = 'specificType';
       } else {
-        col.dtx = ''
+        col.dtx = '';
       }
 
-      this.edited = true
+      this.edited = true;
     },
 
     onCheckboxChangeNN(col) {
-      col.altered = col.altered || 2
-      this.edited = true
+      col.altered = col.altered || 2;
+      this.edited = true;
     },
 
     onCheckboxChangeUN(col) {
-      col.altered = col.altered || 2
-      this.edited = true
+      col.altered = col.altered || 2;
+      this.edited = true;
     },
 
     async onDataTypeChange(column, index) {
-      this.edited = true
-      column.altered = column.altered || 2
-      column.rqd = false
-      column.pk = false
-      column.ai = false
-      column.cdf = null
-      column.dtxp = ' '
-      column.dtxs = ' '
+      this.edited = true;
+      column.altered = column.altered || 2;
+      column.rqd = false;
+      column.pk = false;
+      column.ai = false;
+      column.cdf = null;
+      column.dtxp = ' ';
+      column.dtxs = ' ';
 
-      column.dtx = 'specificType'
+      column.dtx = 'specificType';
 
-      console.log('data type changed', index, column)
+      console.log('data type changed', index, column);
     },
     async loadColumnList() {
-      this.edited = false
+      this.edited = false;
       if (this.newTable) {
         this.columns = [
           {
@@ -505,7 +426,7 @@ export default {
             // dp: null,
             // data_type_x_specific: '',
             dtxp: '10',
-            dtxs: ''
+            dtxs: '',
           },
           {
             cn: 'title',
@@ -525,10 +446,10 @@ export default {
             // dp: null
             // data_type_x_specific: 'specificType',
             dtxp: '45',
-            dtxs: ''
-          }
-        ]
-        return
+            dtxs: '',
+          },
+        ];
+        return;
       }
       // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
       // const client = await this.sqlMgr.projectGetSqlClient({
@@ -539,151 +460,159 @@ export default {
       //     tn: this.nodes.table_name
       // });
 
-      const result = await this.sqlMgr.sqlOp({
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'columnList', {
-        tn: this.nodes.table_name
-      })
+      const result = await this.sqlMgr.sqlOp(
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+        },
+        'columnList',
+        {
+          tn: this.nodes.table_name,
+        }
+      );
 
-      console.log('table ', result.data.list)
-      const columns = result.data.list
+      console.log('table ', result.data.list);
+      const columns = result.data.list;
 
       // const relationsResult = await client.relationList({
       //     tn: this.nodes.table_name
       // });
 
-      const relationsResult = await this.sqlMgr.sqlOp({
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'relationList', {
-        tn: this.nodes.table_name
-      })
+      const relationsResult = await this.sqlMgr.sqlOp(
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+        },
+        'relationList',
+        {
+          tn: this.nodes.table_name,
+        }
+      );
 
-      const relations = relationsResult.data.list
-      console.log('relations: ', relations)
+      const relations = relationsResult.data.list;
+      console.log('relations: ', relations);
 
       for (let i = 0; i < relations.length; i++) {
-        const relation = relations[i]
+        const relation = relations[i];
         for (let i = 0; i < columns.length; i++) {
-          const column = columns[i]
+          const column = columns[i];
 
           if (column.column_name === relation.column_name) {
             // column.rcn = relation.rcn;
             // column.rtn = relation.rtn;
-            columns[i] = { ...column, ...relation }
+            columns[i] = { ...column, ...relation };
           }
         }
       }
 
-      this.columns = JSON.parse(JSON.stringify(columns))
-      this.originalColumns = [...columns]
-      console.log(this.columns)
+      this.columns = JSON.parse(JSON.stringify(columns));
+      this.originalColumns = [...columns];
+      console.log(this.columns);
     },
     async loadDataTypes() {
       const client = await this.sqlMgr.projectGetSqlClient({
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      })
-      const result = client.getKnexDataTypes()
-      this.dataTypes = result.data.list
+        dbAlias: this.nodes.dbAlias,
+      });
+      const result = client.getKnexDataTypes();
+      this.dataTypes = result.data.list;
     },
     saveColumnName(col) {
-      this.edited = true
-      col.altered = col.altered || 8
+      this.edited = true;
+      col.altered = col.altered || 8;
 
-      this.snack = true
-      this.snackColor = 'success'
-      this.snackText = 'Data saved'
+      this.snack = true;
+      this.snackColor = 'success';
+      this.snackText = 'Data saved';
     },
     save(col) {
-      this.edited = true
-      col.altered = col.altered || 2
+      this.edited = true;
+      col.altered = col.altered || 2;
 
-      this.snack = true
-      this.snackColor = 'success'
-      this.snackText = 'Data saved'
+      this.snack = true;
+      this.snackColor = 'success';
+      this.snackText = 'Data saved';
     },
     cancel() {
-      this.snack = true
-      this.snackColor = 'error'
-      this.snackText = 'Canceled'
+      this.snack = true;
+      this.snackColor = 'error';
+      this.snackText = 'Canceled';
     },
     open() {
-      this.snack = true
-      this.snackColor = 'info'
-      this.snackText = 'Dialog opened'
+      this.snack = true;
+      this.snackColor = 'info';
+      this.snackText = 'Dialog opened';
     },
     close() {
-      console.log('Dialog closed')
+      console.log('Dialog closed');
     },
 
     saveDefaultValue(col) {
-      this.edited = true
-      col.altered = col.altered || 2
+      this.edited = true;
+      col.altered = col.altered || 2;
       // col.rqd = false;
 
-      this.snack = true
-      this.snackColor = 'success'
-      this.snackText = 'Data saved'
+      this.snack = true;
+      this.snackColor = 'success';
+      this.snackText = 'Data saved';
     },
 
     savePrecision(col) {
-      console.log(col)
-      col.altered = col.altered || 2
-      this.edited = true
-      this.snack = true
-      this.snackColor = 'success'
-      this.snackText = 'Data saved'
+      console.log(col);
+      col.altered = col.altered || 2;
+      this.edited = true;
+      this.snack = true;
+      this.snackColor = 'success';
+      this.snackText = 'Data saved';
     },
     cancelPrecision() {
-      this.snack = true
-      this.snackColor = 'error'
-      this.snackText = 'Canceled'
+      this.snack = true;
+      this.snackColor = 'error';
+      this.snackText = 'Canceled';
     },
     openPrecision() {
-      this.snack = true
-      this.snackColor = 'info'
-      this.snackText = 'Dialog opened'
+      this.snack = true;
+      this.snackColor = 'info';
+      this.snackText = 'Dialog opened';
     },
     closePrecision() {
-      console.log('Dialog closed')
+      console.log('Dialog closed');
     },
 
     saveScale(col) {
       if (col.dtx === 'float' || col.dtx === 'decimal' || col.dtx === 'specifcType') {
-        col.altered = col.altered || 2
-        this.edited = true
-        this.snack = true
-        this.snackColor = 'success'
-        this.snackText = 'Data saved'
+        col.altered = col.altered || 2;
+        this.edited = true;
+        this.snack = true;
+        this.snackColor = 'success';
+        this.snackText = 'Data saved';
       }
     },
     cancelScale() {
-      this.snack = true
-      this.snackColor = 'error'
-      this.snackText = 'Canceled'
+      this.snack = true;
+      this.snackColor = 'error';
+      this.snackText = 'Canceled';
     },
     openScale() {
-      this.snack = true
-      this.snackColor = 'info'
-      this.snackText = 'Dialog opened'
+      this.snack = true;
+      this.snackColor = 'info';
+      this.snackText = 'Dialog opened';
     },
     closeScale() {
-      console.log('Dialog closed')
+      console.log('Dialog closed');
     },
 
     removeUnsigned(columns) {
       for (let i = 0; i < columns.length; ++i) {
-        if (columns[i].altered === 1 && (!(columns[i].dt === 'int' || columns[i].dt === 'bigint'))) {
-          columns[i].un = false
-          console.log('>> resetting unsigned value', columns[i].column_name)
+        if (columns[i].altered === 1 && !(columns[i].dt === 'int' || columns[i].dt === 'bigint')) {
+          columns[i].un = false;
+          console.log('>> resetting unsigned value', columns[i].column_name);
         }
-        console.log(columns[i].column_name)
+        console.log(columns[i].column_name);
       }
     },
     addColumn() {
-      this.edited = true
+      this.edited = true;
       this.columns.push({
         cn: 'title' + this.columns.length,
         dt: 'int',
@@ -702,48 +631,48 @@ export default {
         // data_type_x_specific: ' ',
         dtxp: '10',
         dtxs: ' ',
-        altered: 1
-      })
+        altered: 1,
+      });
     },
     async deleteColumn(action = '', index, column) {
       if (action === 'showDialog') {
-        this.columnDeleteDlg = true
-        this.selectedColForDelete = { index, column }
+        this.columnDeleteDlg = true;
+        this.selectedColForDelete = { index, column };
       } else if (action === 'hideDialog') {
-        this.columnDeleteDlg = false
+        this.columnDeleteDlg = false;
       } else {
         if (this.columns[this.selectedColForDelete.index].altered === 1) {
           // newly added column no need to remove fromd db
-          this.columns.splice(this.selectedColForDelete.index, 1)
+          this.columns.splice(this.selectedColForDelete.index, 1);
         } else {
-          const columns = JSON.parse(JSON.stringify(this.columns))
-          columns[this.selectedColForDelete.index].altered = 4
+          const columns = JSON.parse(JSON.stringify(this.columns));
+          columns[this.selectedColForDelete.index].altered = 4;
           await this.sqlMgr.sqlOpPlus(
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'tableUpdate',
             {
               tn: this.nodes.table_name,
               originalColumns: this.originalColumns,
-              columns
+              columns,
             }
-          )
-          this.columns.splice(this.selectedColForDelete.index, 1)
+          );
+          this.columns.splice(this.selectedColForDelete.index, 1);
         }
-        this.columnDeleteDlg = false
-        this.selectedColForDelete = null
+        this.columnDeleteDlg = false;
+        this.selectedColForDelete = null;
       }
     },
     async applyChanges() {
-      this.progress.save = true
+      this.progress.save = true;
       await this.sqlMgr.projectGetSqlClient({
         env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      })
+        dbAlias: this.nodes.dbAlias,
+      });
       if (this.newTable) {
-        this.removeUnsigned(this.columns)
+        this.removeUnsigned(this.columns);
         // let result = await this.sqlMgr.sqlOpPlus(
         //   {
         //     env: this.nodes.env,
@@ -756,33 +685,36 @@ export default {
         //   }
         // );
 
-        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [{
-          env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        }, 'tableCreate',
-        {
-          tn: this.nodes.table_name,
-          columns: this.columns
-        }])
+        await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+          },
+          'tableCreate',
+          {
+            tn: this.nodes.table_name,
+            columns: this.columns,
+          },
+        ]);
         // const result = await client.tableCreate({
         //   tn: this.nodes.table_name,
         //   columns: this.columns
         // });
-        this.mtdNewTableUpdate(false)
+        this.mtdNewTableUpdate(false);
         // console.log("result", result, this.nodes);
         await this.loadTablesFromChildTreeNode({
           _nodes: {
-            ...this.nodes
-          }
-        })
+            ...this.nodes,
+          },
+        });
       } else {
-        console.log('this.columns[index].altered before', this.columns)
+        console.log('this.columns[index].altered before', this.columns);
         // const result = await client.tableUpdate({
         //   tn: this.nodes.table_name,
         //   originalColumns: this.originalColumns,
         //   columns: this.columns
         // });
-        this.removeUnsigned(this.columns)
+        this.removeUnsigned(this.columns);
         // let result = await this.sqlMgr.sqlOpPlus(
         //     {
         //         env: this.nodes.env,
@@ -799,71 +731,72 @@ export default {
         const result = await this.$store.dispatch('sqlMgr/ActSqlOpPlus', [
           {
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
+            dbAlias: this.nodes.dbAlias,
           },
           'tableUpdate',
           {
             tn: this.nodes.table_name,
             originalColumns: this.originalColumns,
-            columns: this.columns
-          }])
-        console.log('update table result', result)
+            columns: this.columns,
+          },
+        ]);
+        console.log('update table result', result);
       }
-      this.progress.save = false
-      await this.loadColumnList()
+      this.progress.save = false;
+      await this.loadColumnList();
     },
     createNewOrEditRelation(column) {
-      console.log(column)
-      this.selectedColForNewRelation = { ...column }
-      this.dialogShow = true
+      console.log(column);
+      this.selectedColForNewRelation = { ...column };
+      this.dialogShow = true;
     },
     async mtdNewRelationDlgSubmit(relationObject) {
       try {
         await this.sqlMgr.projectGetSqlClient({
           env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        })
+          dbAlias: this.nodes.dbAlias,
+        });
 
         if (relationObject.updateRelation) {
           // update existing relation
-          alert('Not Implemented yet')
+          alert('Not Implemented yet');
         } else {
           // const result = await client.relationCreate(relationObject);
 
           const result = await this.sqlMgr.sqlOpPlus(
             {
               env: this.nodes.env,
-              dbAlias: this.nodes.dbAlias
+              dbAlias: this.nodes.dbAlias,
             },
             'relationCreate',
             relationObject
-          )
-          console.log('relationCreate result: ', result)
+          );
+          console.log('relationCreate result: ', result);
         }
 
-        await this.loadColumnList()
-        this.selectedColForNewRelation = null
-        this.dialogShow = false
+        await this.loadColumnList();
+        this.selectedColForNewRelation = null;
+        this.dialogShow = false;
       } catch (error) {
-        console.error('relationCreate error: ', error)
+        console.error('relationCreate error: ', error);
       }
     },
     mtdNewRelationDlgCancel() {
-      this.dialogShow = false
-      this.selectedColNameForNewRelation = ''
+      this.dialogShow = false;
+      this.selectedColNameForNewRelation = '';
     },
     async deleteRelation(action = '', column) {
       if (action === 'showDialog') {
-        this.relationDeleteDlg = true
-        this.selectedColForRelationDelete = column
+        this.relationDeleteDlg = true;
+        this.selectedColForRelationDelete = column;
       } else if (action === 'hideDialog') {
-        this.relationDeleteDlg = false
-        this.selectedColForRelationDelete = null
+        this.relationDeleteDlg = false;
+        this.selectedColForRelationDelete = null;
       } else {
         await this.sqlMgr.projectGetSqlClient({
           env: this.nodes.env,
-          dbAlias: this.nodes.dbAlias
-        })
+          dbAlias: this.nodes.dbAlias,
+        });
 
         // const result = await client.relationDelete({
         //   childColumn: column.column_name,
@@ -875,54 +808,47 @@ export default {
         const result = await this.sqlMgr.sqlOpPlus(
           {
             env: this.nodes.env,
-            dbAlias: this.nodes.dbAlias
+            dbAlias: this.nodes.dbAlias,
           },
           'relationDelete',
           {
             childColumn: this.selectedColForRelationDelete.column_name,
             childTable: this.nodes.table_name,
-            parentTable: this.selectedColForRelationDelete
-              .rtn,
-            parentColumn: this.selectedColForRelationDelete
-              .rcn,
-            foreignKeyName: this.selectedColForRelationDelete.cstn
+            parentTable: this.selectedColForRelationDelete.rtn,
+            parentColumn: this.selectedColForRelationDelete.rcn,
+            foreignKeyName: this.selectedColForRelationDelete.cstn,
           }
-        )
-        console.log('relationDelete result ', result)
-        await this.loadColumnList()
-        this.relationDeleteDlg = false
-        this.selectedColForRelationDelete = null
+        );
+        console.log('relationDelete result ', result);
+        await this.loadColumnList();
+        this.relationDeleteDlg = false;
+        this.selectedColForRelationDelete = null;
       }
-    }
+    },
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {},
   async created() {
-    await this.loadColumnList()
-    this.loadDataTypes()
+    await this.loadColumnList();
+    this.loadDataTypes();
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes', 'newTable', 'mtdNewTableUpdate', 'deleteTable']
-}
+  props: ['nodes', 'newTable', 'mtdNewTableUpdate', 'deleteTable'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -20,7 +20,7 @@ export default class XcMigrationSourcev2 {
       'nc_014_alter_column_data_types',
       'nc_015_add_meta_col_in_column_table',
       'nc_016_alter_hooklog_payload_types',
-      'nc_017_add_user_token_version_column'
+      'nc_017_add_user_token_version_column',
     ]);
   }
 

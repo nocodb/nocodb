@@ -34,7 +34,7 @@ export async function viewList(
   //await View.list(req.params.tableId)
   const filteredViewList = viewList.filter((view: any) => {
     return Object.keys((req as any).session?.passport?.user?.roles).some(
-      role =>
+      (role) =>
         (req as any)?.session?.passport?.user?.roles[role] &&
         !view.disabled[role]
     );

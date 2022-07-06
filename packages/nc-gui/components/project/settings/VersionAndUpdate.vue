@@ -1,16 +1,12 @@
 <template>
   <div>
-    <h3 class="text-center mb-5">
-      Version And Update
-    </h3>
+    <h3 class="text-center mb-5">Version And Update</h3>
 
     <v-simple-table dense>
       <template #default>
         <tbody>
           <tr>
-            <td>
-              Version
-            </td>
+            <td>Version</td>
             <td>
               <span @contextmenu="rightClick">{{ $store.state.settings.version }}</span>
             </td>
@@ -28,25 +24,15 @@
           <!--                  </td>-->
           <!--                </tr>-->
           <tr @dblclick="enableAppRefresh = true">
+            <td>Auto update</td>
             <td>
-              Auto update
-            </td>
-            <td>
-              <v-switch
-                v-model="autoUpdate"
-                flat
-                color="grey "
-              />
+              <v-switch v-model="autoUpdate" flat color="grey " />
             </td>
           </tr>
           <tr v-if="enableAppRefresh">
+            <td>Application refresh</td>
             <td>
-              Application refresh
-            </td>
-            <td>
-              <v-btn @click="applicationRefresh">
-                Refresh
-              </v-btn>
+              <v-btn @click="applicationRefresh"> Refresh </v-btn>
             </td>
           </tr>
         </tbody>
@@ -71,8 +57,7 @@
   </div>
 </template>
 <script>
-
-import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel'
+import dlgLabelSubmitCancel from '../../utils/DlgLabelSubmitCancel';
 
 export default {
   components: { dlgLabelSubmitCancel },
@@ -84,120 +69,124 @@ export default {
       gaDialogShow: false,
       logReportDialogShow: false,
       languages: [
-        { label: 'English', value: 'en' }
+        { label: 'English', value: 'en' },
         // {label: 'Japanese', value: 'ja'},
         // {label: 'Chinese', value: 'zh'}
       ],
-      item: 'default'
-
-    }
+      item: 'default',
+    };
   },
   computed: {
     checkForUpdate: {
       get() {
-        return this.$store.state.settings.checkForUpdate
+        return this.$store.state.settings.checkForUpdate;
       },
       set(value) {
-        this.$store.commit('settings/MutCheckForUpdate', value)
-      }
+        this.$store.commit('settings/MutCheckForUpdate', value);
+      },
     },
     autoUpdate: {
       get() {
-        return this.$store.state.settings.downloadAndUpdateRelease
+        return this.$store.state.settings.downloadAndUpdateRelease;
       },
       set(value) {
-        this.$store.commit('settings/MutDownloadAndUpdateRelease', value)
-      }
+        this.$store.commit('settings/MutDownloadAndUpdateRelease', value);
+      },
     },
     isGaEnabled: {
       get() {
-        return this.$store.state.settings.isGaEnabled
+        return this.$store.state.settings.isGaEnabled;
       },
       set(value) {
-        this.$store.commit('settings/MutToggleGaEnabled', value)
-      }
+        this.$store.commit('settings/MutToggleGaEnabled', value);
+      },
     },
     isErrorReportingEnabled: {
       get() {
-        return this.$store.state.settings.isErrorReportingEnabled
+        return this.$store.state.settings.isErrorReportingEnabled;
       },
       set(value) {
-        this.$store.commit('settings/MutToggleErrorReportingEnabled', value)
-      }
+        this.$store.commit('settings/MutToggleErrorReportingEnabled', value);
+      },
     },
     isTelemetryEnabled: {
       get() {
-        return this.$store.state.settings.isErrorReportingEnabled
+        return this.$store.state.settings.isErrorReportingEnabled;
       },
       set(value) {
-        this.$store.commit('settings/MutToggleTelemetryEnabled', value)
-      }
+        this.$store.commit('settings/MutToggleTelemetryEnabled', value);
+      },
     },
     dialogShow: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     language: {
       get() {
-        return this.$store.state.settings.language
+        return this.$store.state.settings.language;
       },
       set(val) {
-        this.$store.commit('settings/MutSetLanguage', val)
-      }
-    }
+        this.$store.commit('settings/MutSetLanguage', val);
+      },
+    },
   },
   methods: {
     rightClick() {
-      this.rightClickCount++
+      this.rightClickCount++;
       if (this.rightClickCount > 5) {
         // require('electron').remote.getCurrentWindow().toggleDevTools();
-        this.rightClickCount = 0
+        this.rightClickCount = 0;
       }
     },
     async applicationRefresh() {
-      localStorage.removeItem('vuex')
-      location.reload()
+      localStorage.removeItem('vuex');
+      location.reload();
     },
     toggleGa(event) {
       if (this.isGaEnabled) {
-        this.gaDialogShow = true
-      } else { this.isGaEnabled = true }
+        this.gaDialogShow = true;
+      } else {
+        this.isGaEnabled = true;
+      }
     },
     toggleLogReport(event) {
       if (this.isErrorReportingEnabled) {
-        this.logReportDialogShow = true
-      } else { this.isErrorReportingEnabled = true }
+        this.logReportDialogShow = true;
+      } else {
+        this.isErrorReportingEnabled = true;
+      }
     },
     logReportDialogFunction(action) {
       if (action !== 'hideDialog' && this.$store.state.users.user && this.$store.state.users.user.email) {
-        this.isErrorReportingEnabled = false
+        this.isErrorReportingEnabled = false;
       } else {
-        this.$toast.error('Only a registered user can disable Error Reporting, Please Login then disable.').goAway(5000)
+        this.$toast
+          .error('Only a registered user can disable Error Reporting, Please Login then disable.')
+          .goAway(5000);
       }
-      this.logReportDialogShow = false
+      this.logReportDialogShow = false;
     },
     gaDialogFunction(action) {
       if (action !== 'hideDialog') {
         if (this.$store.state.users.user && this.$store.state.users.user.email) {
-          this.isGaEnabled = false
+          this.isGaEnabled = false;
         } else {
-          this.$toast.error('Only a registered user can disable Google Analytics, Please Login then disable.').goAway(5000)
+          this.$toast
+            .error('Only a registered user can disable Google Analytics, Please Login then disable.')
+            .goAway(5000);
         }
       }
-      this.gaDialogShow = false
-    }
-
-  }
-}
+      this.gaDialogShow = false;
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -43,13 +43,15 @@ export default {
     }
     return args.knex.raw(`CASE ${query}\n END${args.colAlias}`);
   },
-  TRUE: _args => 1,
-  FALSE: _args => 0,
+  TRUE: (_args) => 1,
+  FALSE: (_args) => 0,
   AND: (args: MapFnArgs) => {
     return args.knex.raw(
       `${args.knex
         .raw(
-          `${args.pt.arguments.map(ar => args.fn(ar).toQuery()).join(' AND ')}`
+          `${args.pt.arguments
+            .map((ar) => args.fn(ar).toQuery())
+            .join(' AND ')}`
         )
         .wrap('(', ')')
         .toQuery()}${args.colAlias}`
@@ -59,7 +61,7 @@ export default {
     return args.knex.raw(
       `${args.knex
         .raw(
-          `${args.pt.arguments.map(ar => args.fn(ar).toQuery()).join(' OR ')}`
+          `${args.pt.arguments.map((ar) => args.fn(ar).toQuery()).join(' OR ')}`
         )
         .wrap('(', ')')
         .toQuery()}${args.colAlias}`
@@ -72,7 +74,7 @@ export default {
           type: 'BinaryExpression',
           operator: '/',
           left: { ...args.pt, callee: { name: 'SUM' } },
-          right: { type: 'Literal', value: args.pt.arguments.length }
+          right: { type: 'Literal', value: args.pt.arguments.length },
         },
         args.a,
         args.prevBinaryOp
@@ -83,5 +85,5 @@ export default {
   },
   FLOAT: (args: MapFnArgs) => {
     return args.fn(args.pt?.arguments?.[0]).wrap('(', ')');
-  }
+  },
 };

@@ -1,6 +1,6 @@
 import { NcBuilderUpgraderCtx } from '../BaseApiBuilder';
 
-export default async function(ctx: NcBuilderUpgraderCtx) {
+export default async function (ctx: NcBuilderUpgraderCtx) {
   try {
     const relations = await ctx.xcMeta.metaList(
       ctx.projectId,
@@ -13,7 +13,7 @@ export default async function(ctx: NcBuilderUpgraderCtx) {
     for (const relation of relations) {
       if (relation.type !== 'real' || duplicates.includes(relation)) continue;
       const duplicateRelIndex = relations.findIndex(
-        rel =>
+        (rel) =>
           rel !== relation &&
           rel.tn === relation.tn &&
           rel.rtn === relation.rtn &&
@@ -40,14 +40,14 @@ export default async function(ctx: NcBuilderUpgraderCtx) {
           'nc_models',
           {
             type: 'table',
-            title: dupRelation.tn
+            title: dupRelation.tn,
           }
         );
 
         const meta = JSON.parse(tnModel.meta);
 
         const duplicateBts = meta.belongsTo.filter(
-          bt =>
+          (bt) =>
             bt.tn === dupRelation.tn &&
             bt.rtn === dupRelation.rtn &&
             bt.cn === dupRelation.cn &&
@@ -66,7 +66,7 @@ export default async function(ctx: NcBuilderUpgraderCtx) {
           { meta: JSON.stringify(meta) },
           {
             type: 'table',
-            title: dupRelation.tn
+            title: dupRelation.tn,
           }
         );
       }
@@ -77,14 +77,14 @@ export default async function(ctx: NcBuilderUpgraderCtx) {
           'nc_models',
           {
             type: 'table',
-            title: dupRelation.rtn
+            title: dupRelation.rtn,
           }
         );
 
         const meta = JSON.parse(rtnModel.meta);
 
         const duplicateHms = meta.hasMany.filter(
-          bt =>
+          (bt) =>
             bt.tn === dupRelation.tn &&
             bt.rtn === dupRelation.rtn &&
             bt.cn === dupRelation.cn &&
@@ -102,7 +102,7 @@ export default async function(ctx: NcBuilderUpgraderCtx) {
           { meta: JSON.stringify(meta) },
           {
             type: 'table',
-            title: dupRelation.rtn
+            title: dupRelation.rtn,
           }
         );
       }

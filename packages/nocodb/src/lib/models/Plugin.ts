@@ -61,7 +61,7 @@ export default class Plugin implements PluginType {
         plugin.input && typeof plugin.input === 'object'
           ? JSON.stringify(plugin.input)
           : plugin.input,
-      active: plugin.active
+      active: plugin.active,
     };
     // get existing cache
     const key = `${CacheScope.PLUGIN}:${pluginId}`;
@@ -100,7 +100,7 @@ export default class Plugin implements PluginType {
       ));
     if (!plugin) {
       plugin = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
-        title
+        title,
       });
       await NocoCache.set(`${CacheScope.PLUGIN}:${title}`, plugin);
     }

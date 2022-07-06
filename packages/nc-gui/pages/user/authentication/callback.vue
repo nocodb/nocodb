@@ -1,20 +1,16 @@
 <template>
   <div class="h-100 w-100 d-flex align-center justify-center">
-    <v-icon size="60">
-      mdi-spin mdi-loading
-    </v-icon>
+    <v-icon size="60"> mdi-spin mdi-loading </v-icon>
   </div>
 </template>
 
 <script>
 export default {
-  name: 'Callback'
-}
+  name: 'Callback',
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

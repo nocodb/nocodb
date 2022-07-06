@@ -4,20 +4,17 @@
 </template>
 
 <script>
-
-import { isValidURL } from '~/helpers'
+import { isValidURL } from '~/helpers';
 
 export default {
   name: 'UrlCell',
   props: ['value'],
   computed: {
     isValid() {
-      return this.value && isValidURL(this.value)
-    }
-  }
-}
+      return this.value && isValidURL(this.value);
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

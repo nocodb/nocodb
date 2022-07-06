@@ -1,33 +1,18 @@
 <template>
   <v-container>
     <h1>Relation List</h1>
-    <v-btn
-      color="primary"
-      @click="loadRelationList"
-    >
-      <v-icon left>
-        refresh
-      </v-icon>
+    <v-btn color="primary" @click="loadRelationList">
+      <v-icon left> refresh </v-icon>
       <!-- Reload -->
       {{ $t('general.reload') }}
     </v-btn>
-    <v-btn
-      small
-      class=" text-right"
-      @click="deleteTable('showDialog')"
-    >
+    <v-btn small class="text-right" @click="deleteTable('showDialog')">
       {{ $t('activity.deleteTable') }}
     </v-btn>
-    <v-btn @click="throwError()">
-      error
-    </v-btn>
+    <v-btn @click="throwError()"> error </v-btn>
     <v-row>
       <v-col cols="6">
-        <v-data-table
-          :headers="relationHeaders"
-          :items="relations"
-          footer-props.items-per-page-options="30"
-        >
+        <v-data-table :headers="relationHeaders" :items="relations" footer-props.items-per-page-options="30">
           <template #item="props">
             <td>{{ props.item.cstn }}</td>
             <td>{{ props.item.rtn }}</td>
@@ -35,11 +20,7 @@
         </v-data-table>
       </v-col>
       <v-col cols="6">
-        <v-data-table
-          :headers="columnHeaders"
-          :items="columns"
-          footer-props.items-per-page-options="30"
-        >
+        <v-data-table :headers="columnHeaders" :items="columns" footer-props.items-per-page-options="30">
           <template #items="props">
             <td>{{ props.item.column_name }}</td>
           </template>
@@ -50,7 +31,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
   data() {
@@ -60,28 +41,30 @@ export default {
       relationHeaders: [
         {
           text: 'Relation',
-          sortable: false
+          sortable: false,
         },
         {
           text: 'Referenced Table',
-          sortable: false
-        }
+          sortable: false,
+        },
       ],
       columnHeaders: [
         {
           text: 'Column',
-          sortable: false
-        }
+          sortable: false,
+        },
       ],
-      max25chars: v => v.length <= 25 || 'Input too long!'
-    }
+      max25chars: v => v.length <= 25 || 'Input too long!',
+    };
   },
   methods: {
     throwError() {
-      throw new Error('new erroror ')
+      throw new Error('new erroror ');
     },
     async loadRelationList() {
-      if (this.newTable) { return }
+      if (this.newTable) {
+        return;
+      }
 
       // console.log("env: this.nodes.env", this.nodes.env, this.nodes.dbAlias);
       // const client = await this.sqlMgr.projectGetSqlClient({
@@ -98,13 +81,17 @@ export default {
       //   dbAlias: this.nodes.dbAlias
       // }, 'relationList', {   table_name: this.nodes.table_name})
 
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'relationList', { table_name: this.nodes.table_name }])
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+        },
+        'relationList',
+        { table_name: this.nodes.table_name },
+      ]);
 
       // console.log(result, "relations");
-      this.relations = result.data.list
+      this.relations = result.data.list;
       // this.loadColumnList(result.data.list[0].rtn);
     },
     async loadColumnList(table_name = '') {
@@ -124,44 +111,43 @@ export default {
       //   table_name
       // });
 
-      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias
-      }, 'columnList', {
-        table_name
-      }])
+      const result = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          env: this.nodes.env,
+          dbAlias: this.nodes.dbAlias,
+        },
+        'columnList',
+        {
+          table_name,
+        },
+      ]);
 
-      this.columns = result.data.list
-    }
+      this.columns = result.data.list;
+    },
   },
   computed: { ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }) },
 
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {},
   created() {
-    this.loadRelationList()
+    this.loadRelationList();
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes', 'newTable', 'deleteTable']
-}
+  props: ['nodes', 'newTable', 'deleteTable'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

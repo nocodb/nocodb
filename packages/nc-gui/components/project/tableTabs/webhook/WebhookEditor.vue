@@ -9,7 +9,7 @@
       {{ meta.title }} : {{ hook.title || 'Webhook' }}
       <v-spacer />
 
-      <div class="d-flex ">
+      <div class="d-flex">
         <v-spacer />
         <v-btn
           outlined
@@ -29,11 +29,9 @@
           :disabled="loading || !valid || !hook.event"
           @click.prevent="saveHooks"
         >
-          <v-icon small left>
-            save
-          </v-icon>
+          <v-icon small left> save </v-icon>
           <!-- Save -->
-          {{ $t("general.save") }}
+          {{ $t('general.save') }}
         </v-btn>
       </div>
     </v-card-title>
@@ -46,7 +44,7 @@
         dense
         :label="$t('general.title')"
         required
-        :rules="[(v) => !!v || `${$t('general.required')}`]"
+        :rules="[v => !!v || `${$t('general.required')}`]"
       />
       <v-row>
         <v-col>
@@ -54,8 +52,8 @@
             class="nc-text-field-hook-event"
             :event.sync="hook.event"
             :operation.sync="hook.operation"
-          />
-        </v-col><v-col>
+          /> </v-col
+        ><v-col>
           <v-select
             v-model="hook.notification.type"
             outlined
@@ -63,7 +61,7 @@
             :label="$t('general.notification')"
             required
             :items="notificationList"
-            :rules="[(v) => !!v || `${$t('general.required')}`]"
+            :rules="[v => !!v || `${$t('general.required')}`]"
             class="caption nc-text-field-hook-notification-type"
             :prepend-inner-icon="notificationIcon[hook.notification.type]"
             @change="onNotTypeChange"
@@ -89,7 +87,7 @@
         <v-combobox
           v-if="slackChannels"
           v-model="notification.channels"
-          :rules="[(v) => !!v || `${$t('general.required')}`]"
+          :rules="[v => !!v || `${$t('general.required')}`]"
           :items="slackChannels"
           item-text="channel"
           label="Select Slack channels"
@@ -103,7 +101,7 @@
         <v-combobox
           v-if="teamsChannels"
           v-model="notification.channels"
-          :rules="[(v) => !!v || `${$t('general.required')}`]"
+          :rules="[v => !!v || `${$t('general.required')}`]"
           :items="teamsChannels"
           item-text="channel"
           label="Select Teams channels"
@@ -117,7 +115,7 @@
         <v-combobox
           v-if="discordChannels"
           v-model="notification.channels"
-          :rules="[(v) => !!v || `${$t('general.required')}`]"
+          :rules="[v => !!v || `${$t('general.required')}`]"
           :items="discordChannels"
           item-text="channel"
           label="Select Discord channels"
@@ -131,7 +129,7 @@
         <v-combobox
           v-if="mattermostChannels"
           v-model="notification.channels"
-          :rules="[(v) => !!v || `${$t('general.required')}`]"
+          :rules="[v => !!v || `${$t('general.required')}`]"
           :items="mattermostChannels"
           item-text="channel"
           label="Select Mattermost channels"
@@ -152,10 +150,7 @@
             dense
             outlined
             :label="input.label"
-            :rules="[
-              (v) =>
-                !input.required || !!v || `${$t('general.required')}`,
-            ]"
+            :rules="[v => !input.required || !!v || `${$t('general.required')}`]"
           />
           <v-text-field
             v-else
@@ -165,17 +160,14 @@
             dense
             outlined
             :label="input.label"
-            :rules="[
-              (v) =>
-                !input.required || !!v || `${$t('general.required')}`,
-            ]"
+            :rules="[v => !input.required || !!v || `${$t('general.required')}`]"
           />
         </template>
       </template>
     </v-card-text>
 
     <v-card-text>
-      <v-card class=" nc-filter-wrapper ">
+      <v-card class="nc-filter-wrapper">
         <v-card-text>
           <v-checkbox
             v-model="hook.condition"
@@ -202,28 +194,20 @@
     </v-card-text>
     <v-card-text>
       <span class="caption grey--text">
-        <em>Available context variables are
-          <strong>data and user</strong></em>
+        <em>Available context variables are <strong>data and user</strong></em>
         <v-tooltip top>
           <template #activator="{ on }">
-            <v-icon
-              small
-              color="grey"
-              class="ml-2"
-              v-on="on"
-            >mdi-information</v-icon>
+            <v-icon small color="grey" class="ml-2" v-on="on">mdi-information</v-icon>
           </template>
           <span class="caption">
-            <strong>data</strong> : Row data <br>
-            <strong>user</strong> : User information<br>
+            <strong>data</strong> : Row data <br />
+            <strong>user</strong> : User information<br />
           </span>
         </v-tooltip>
-        <br>
-        <a
-          href="https://docs.nocodb.com/developer-resources/webhooks/"
-        >
+        <br />
+        <a href="https://docs.nocodb.com/developer-resources/webhooks/">
           <!--Document Reference-->
-          {{ $t("labels.docReference") }}
+          {{ $t('labels.docReference') }}
         </a>
       </span>
 
@@ -233,12 +217,12 @@
         :model-id="meta.id"
         hide-test-btn
         :hook="{
-                ...hook,
-                filters,
-                notification: {
-                  ...hook.notification,
-                  payload: notification,
-                },
+          ...hook,
+          filters,
+          notification: {
+            ...hook.notification,
+            payload: notification,
+          },
         }"
       />
     </v-card-text>
@@ -247,27 +231,27 @@
 </template>
 
 <script>
-import WebhooksTest from '~/components/project/tableTabs/webhook/WebhooksTest'
-import WebhookEvent from '~/components/project/tableTabs/webhook/WebhookEvent'
-import HttpWebhook from '~/components/project/tableTabs/webhook/HttpWebhook'
-import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter'
+import WebhooksTest from '~/components/project/tableTabs/webhook/WebhooksTest';
+import WebhookEvent from '~/components/project/tableTabs/webhook/WebhookEvent';
+import HttpWebhook from '~/components/project/tableTabs/webhook/HttpWebhook';
+import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter';
 export default {
   name: 'WebhookEditor',
   components: { ColumnFilter, HttpWebhook, WebhookEvent, WebhooksTest },
   props: {
-    meta: Object
+    meta: Object,
   },
   data: () => ({
     loading: false,
     notification: {
       method: 'POST',
-      body: '{{ json data }}'
+      body: '{{ json data }}',
     },
     hook: {
       title: 'Webhook',
       notification: {
-        type: 'URL'
-      }
+        type: 'URL',
+      },
     },
     valid: false,
     apps: {},
@@ -284,7 +268,7 @@ export default {
       'Discord',
       'Mattermost',
       'Twilio',
-      'Whatsapp Twilio'
+      'Whatsapp Twilio',
     ],
     filters: [],
     notificationIcon: {
@@ -295,7 +279,7 @@ export default {
       Discord: 'mdi-discord',
       Mattermost: 'mdi-chat',
       'Whatsapp Twilio': 'mdi-whatsapp',
-      Twilio: 'mdi-cellphone-message'
+      Twilio: 'mdi-cellphone-message',
     },
     inputs: {
       Email: [
@@ -304,22 +288,22 @@ export default {
           label: 'To Address',
           placeholder: 'To Address',
           type: 'SingleLineText',
-          required: true
+          required: true,
         },
         {
           key: 'subject',
           label: 'Subject',
           placeholder: 'Subject',
           type: 'SingleLineText',
-          required: true
+          required: true,
         },
         {
           key: 'body',
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       Slack: [
         {
@@ -327,8 +311,8 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       'Microsoft Teams': [
         {
@@ -336,8 +320,8 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       Discord: [
         {
@@ -345,8 +329,8 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       Mattermost: [
         {
@@ -354,8 +338,8 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       Twilio: [
         {
@@ -363,15 +347,15 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
+          required: true,
         },
         {
           key: 'to',
           label: 'Comma separated Mobile #',
           placeholder: 'Comma separated Mobile #',
           type: 'LongText',
-          required: true
-        }
+          required: true,
+        },
       ],
       'Whatsapp Twilio': [
         {
@@ -379,166 +363,145 @@ export default {
           label: 'Body',
           placeholder: 'Body',
           type: 'LongText',
-          required: true
+          required: true,
         },
         {
           key: 'to',
           label: 'Comma separated Mobile #',
           placeholder: 'Comma separated Mobile #',
           type: 'LongText',
-          required: true
-        }
-      ]
-    }
-
+          required: true,
+        },
+      ],
+    },
   }),
   created() {
-    this.loadPluginList()
+    this.loadPluginList();
   },
   methods: {
     async loadPluginList() {
       try {
         // const plugins = await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcPluginList'])
-        const plugins = (await this.$api.plugin.list()).list
+        const plugins = (await this.$api.plugin.list()).list;
         // plugins.push(...plugins.splice(0, 3))
         this.apps = plugins.reduce((o, p) => {
-          p.tags = p.tags ? p.tags.split(',') : []
-          p.parsedInput = p.input && JSON.parse(p.input)
-          o[p.title] = p
-          return o
-        }, {})
+          p.tags = p.tags ? p.tags.split(',') : [];
+          p.parsedInput = p.input && JSON.parse(p.input);
+          o[p.title] = p;
+          return o;
+        }, {});
       } catch (e) {}
     },
     addNewHook() {
-      this.onEventChange()
-      this.$refs.form.resetValidation()
+      this.onEventChange();
+      this.$refs.form.resetValidation();
     },
     async onNotTypeChange() {
-      this.notification = {}
+      this.notification = {};
       if (this.hook.notification.type === 'Slack') {
-        this.slackChannels =
-          (this.apps && this.apps.Slack && this.apps.Slack.parsedInput) || []
+        this.slackChannels = (this.apps && this.apps.Slack && this.apps.Slack.parsedInput) || [];
       }
       if (this.hook.notification.type === 'Microsoft Teams') {
         this.teamsChannels =
-          (this.apps &&
-            this.apps['Microsoft Teams'] &&
-            this.apps['Microsoft Teams'].parsedInput) ||
-          []
+          (this.apps && this.apps['Microsoft Teams'] && this.apps['Microsoft Teams'].parsedInput) || [];
       }
       if (this.hook.notification.type === 'Discord') {
-        this.discordChannels =
-          (this.apps && this.apps.Discord && this.apps.Discord.parsedInput) ||
-          []
+        this.discordChannels = (this.apps && this.apps.Discord && this.apps.Discord.parsedInput) || [];
       }
       if (this.hook.notification.type === 'Mattermost') {
-        this.mattermostChannels =
-          (this.apps &&
-            this.apps.Mattermost &&
-            this.apps.Mattermost.parsedInput) ||
-          []
+        this.mattermostChannels = (this.apps && this.apps.Mattermost && this.apps.Mattermost.parsedInput) || [];
       }
       if (this.hook.notification.type === 'URL') {
-        this.notification = this.notification || {}
-        this.$set(this.notification, 'body', '{{ json data }}')
+        this.notification = this.notification || {};
+        this.$set(this.notification, 'body', '{{ json data }}');
       }
-      this.$nextTick(() => this.$refs.form.validate())
+      this.$nextTick(() => this.$refs.form.validate());
     },
     async onEventChange() {
-      const { notification: { payload, type } = {}, ...hook } = this.hook
+      const { notification: { payload, type } = {}, ...hook } = this.hook;
 
       this.hook = {
         ...hook,
         notification: {
-          type
-        }
-      }
+          type,
+        },
+      };
       // this.enableCondition = !!(this.hook && this.hook.condition && Object.keys(this.hook.condition).length)
-      await this.onNotTypeChange()
-      this.notification = payload
+      await this.onNotTypeChange();
+      this.notification = payload;
       if (this.hook.notification.type === 'Slack') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map(v =>
-            this.slackChannels.find(s => v.webhook_url === s.webhook_url)
-          )
+          this.notification.webhook_url.map(v => this.slackChannels.find(s => v.webhook_url === s.webhook_url));
       }
       if (this.hook.notification.type === 'Microsoft Teams') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map(v =>
-            this.teamsChannels.find(s => v.webhook_url === s.webhook_url)
-          )
+          this.notification.webhook_url.map(v => this.teamsChannels.find(s => v.webhook_url === s.webhook_url));
       }
       if (this.hook.notification.type === 'Discord') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map(v =>
-            this.discordChannels.find(s => v.webhook_url === s.webhook_url)
-          )
+          this.notification.webhook_url.map(v => this.discordChannels.find(s => v.webhook_url === s.webhook_url));
       }
       if (this.hook.notification.type === 'Mattermost') {
         this.notification.webhook_url =
           this.notification.webhook_url &&
-          this.notification.webhook_url.map(v =>
-            this.mattermostChannels.find(s => v.webhook_url === s.webhook_url)
-          )
+          this.notification.webhook_url.map(v => this.mattermostChannels.find(s => v.webhook_url === s.webhook_url));
       }
       if (this.hook.notification.type === 'URL') {
-        this.notification = this.notification || {}
-        this.$set(this.notification, 'body', this.notification.body || '{{ json data }}')
+        this.notification = this.notification || {};
+        this.$set(this.notification, 'body', this.notification.body || '{{ json data }}');
       }
     },
     async saveHooks() {
       if (!this.$refs.form.validate() || !this.valid || !this.hook.event) {
-        return
+        return;
       }
-      this.loading = true
+      this.loading = true;
       try {
-        let res
+        let res;
         if (this.hook.id) {
           res = await this.$api.dbTableWebhook.update(this.hook.id, {
             ...this.hook,
             notification: {
               ...this.hook.notification,
-              payload: this.notification
-            }
-          })
+              payload: this.notification,
+            },
+          });
         } else {
           res = await this.$api.dbTableWebhook.create(this.meta.id, {
             ...this.hook,
             notification: {
               ...this.hook.notification,
-              payload: this.notification
-            }
-          })
+              payload: this.notification,
+            },
+          });
         }
 
         if (!this.hook.id && res) {
-          this.hook.id = res.id
+          this.hook.id = res.id;
         }
         if (this.$refs.filter) {
           await this.$refs.filter.applyChanges(false, {
-            hookId: this.hook.id
-          })
+            hookId: this.hook.id,
+          });
         }
 
-        this.$toast
-          .success('Webhook details updated successfully')
-          .goAway(3000)
+        this.$toast.success('Webhook details updated successfully').goAway(3000);
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(e.message).goAway(3000);
       }
-      this.loading = false
+      this.loading = false;
 
       this.$e('a:webhook:add', {
         operation: this.hook.operation,
         condition: this.hook.condition,
-        notification: this.hook.notification.type
-      })
-    }
-  }
-}
+        notification: this.hook.notification.type,
+      });
+    },
+  },
+};
 </script>
 
 <style scoped>

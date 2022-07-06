@@ -6,20 +6,17 @@
           <v-col md="4" offset-md="4">
             <v-card class="pa-10 elevation-10 mt-10" color="">
               <div
-                style="position: absolute;top:-45px;
-                  left:-moz-calc(50% - 45px);
-                  left:-webkit-calc(50% - 45px);
-                  left:calc(50% - 45px);
+                style="
+                  position: absolute;
+                  top: -45px;
+                  left: -moz-calc(50% - 45px);
+                  left: -webkit-calc(50% - 45px);
+                  left: calc(50% - 45px);
                   border-radius: 15px;
-                  "
+                "
                 class="primary"
               >
-                <v-img
-                  class="mx-auto"
-                  width="90"
-                  height="90"
-                  :src="require('~/assets/img/icons/512x512-trans.png')"
-                />
+                <v-img class="mx-auto" width="90" height="90" :src="require('~/assets/img/icons/512x512-trans.png')" />
               </div>
 
               <h1 class="mt-4">
@@ -32,7 +29,7 @@
                   {{ formUtil.formErrMsg }}
                 </v-alert>
               </div>
-              <v-form v-if=" type === 'jwt'" ref="formType" v-model="formUtil.valid" elevation-20 @submit="MtdOnSignup">
+              <v-form v-if="type === 'jwt'" ref="formType" v-model="formUtil.valid" elevation-20 @submit="MtdOnSignup">
                 <p v-if="firstUser" class="success--text">
                   <!-- You will be the 'Super Admin' -->
                   {{ $t('msg.info.signUp.superAdmin') }}
@@ -68,7 +65,7 @@
                 <!--                </vue-recaptcha>-->
 
                 <v-btn
-                  v-ge="['Sign Up ','']"
+                  v-ge="['Sign Up ', '']"
                   color="primary"
                   class="btn--large"
                   :loading="signUpButtonLoading"
@@ -78,13 +75,13 @@
                   &nbsp; {{ $t('general.signUp') }} &nbsp;
                 </v-btn>
 
-                <br>
-                <br>
+                <br />
+                <br />
                 <div class="d-flex align-center justify-center mb-2">
-                  <v-switch v-model="subscribe" dense hide-details class="mt-0  pt-0" />
+                  <v-switch v-model="subscribe" dense hide-details class="mt-0 pt-0" />
                   <label class="caption font-weight-light">Subscribe to our weekly newsletter</label>
                 </div>
-                <p v-ge="['Already have an account ?','']" class="font-weight-light caption grey--text mb-0">
+                <p v-ge="['Already have an account ?', '']" class="font-weight-light caption grey--text mb-0">
                   {{ $t('msg.info.signUp.alreadyHaveAccount') }}
                   <router-link to="/user/authentication/signin">
                     {{ $t('general.signIn') }}
@@ -96,7 +93,7 @@
               <!--              </p>-->
 
               <v-form
-                v-else-if=" type === 'masterKey'"
+                v-else-if="type === 'masterKey'"
                 ref="formType1"
                 v-model="formUtil.valid1"
                 elevation-20
@@ -106,7 +103,6 @@
                   v-model="form.secret"
                   label="Admin Secret"
                   :rules="formRules.secret"
-
                   min="8"
                   :append-icon="formUtil.e4 ? 'visibility' : 'visibility_off'"
                   :type="formUtil.e4 ? 'password' : 'text'"
@@ -122,7 +118,7 @@
                 <!--                </vue-recaptcha>-->
 
                 <v-btn
-                  v-ge="['Authenticate','']"
+                  v-ge="['Authenticate', '']"
                   color="primary"
                   class="btn--large"
                   :disabled="!formUtil.recpatcha || !formUtil.valid1"
@@ -132,11 +128,10 @@
                 </v-btn>
               </v-form>
 
-              <br>
+              <br />
 
               <div>
                 <v-btn
-
                   v-if="googleAuthEnabled"
                   :href="`${$axios.defaults.baseURL}/auth/google`"
                   outlined
@@ -145,12 +140,7 @@
                   block
                   color="blue"
                 >
-                  <img
-                    :src="require('~/assets/img/gmail.png')"
-                    class="img-responsive"
-                    alt="google"
-                    width="24px"
-                  >
+                  <img :src="require('~/assets/img/gmail.png')" class="img-responsive" alt="google" width="24px" />
                   <b>&nbsp; &nbsp;Sign In with Google</b>
                 </v-btn>
 
@@ -165,8 +155,8 @@
                 <!--                  <b>&nbsp; &nbsp;Sign In with Github</b>-->
                 <!--                </v-btn>-->
               </div>
-              <template v-if="type==='none'">
-                <br>
+              <template v-if="type === 'none'">
+                <br />
                 <v-alert type="warning" outlined icon="mdi-alert">
                   <!--                <v-icon color="warning">mdi-alert</v-icon>-->
                   Authentication not configured in configuration
@@ -174,12 +164,14 @@
               </template>
             </v-card>
 
-            <br>
+            <br />
 
             <div class="text-center">
               <p class="grey--text font-weight-light caption">
                 By signing up, you agree to
-                <span class="grey--text pointer" @click="openUrl('https://nocodb.com/policy-nocodb')"><u>Terms of service</u></span>
+                <span class="grey--text pointer" @click="openUrl('https://nocodb.com/policy-nocodb')"
+                  ><u>Terms of service</u></span
+                >
               </p>
               <!--              <div class="d-flex align-center mb-4 justify-center">
                 <v-checkbox v-model="subscribe" color="grey" dense hide-details class="mt-0  pt-0" />
@@ -194,9 +186,8 @@
 </template>
 
 <script>
-
-import { isEmail } from '@/helpers'
-import passwordValidateMixin from '@/pages/user/authentication/passwordValidateMixin'
+import { isEmail } from '@/helpers';
+import passwordValidateMixin from '@/pages/user/authentication/passwordValidateMixin';
 // import VueRecaptcha from 'vue-recaptcha';
 
 export default {
@@ -207,33 +198,29 @@ export default {
   mixins: [passwordValidateMixin],
   layout: 'empty',
   validate({ params }) {
-    return true
+    return true;
   },
   props: {},
 
   data() {
     return {
       subscribe: false,
-      isDev: (process.env.NODE_ENV === 'dev'),
+      isDev: process.env.NODE_ENV === 'dev',
 
       dialog: false,
       form: {
         email: null,
-        password: null
+        password: null,
       },
 
       formRules: {
         email: [
           v => !!v || 'E-mail is required',
           // ref : https://stackoverflow.com/a/46181
-          v => isEmail(v) || 'E-mail must be valid'
+          v => isEmail(v) || 'E-mail must be valid',
         ],
-        password: [
-          v => (this.PasswordValidate(v)) || this.passwordValidateMsg
-        ],
-        secret: [
-          v => !!v || 'Required'
-        ]
+        password: [v => this.PasswordValidate(v) || this.passwordValidateMsg],
+        secret: [v => !!v || 'Required'],
       },
       formUtil: {
         formErr: false,
@@ -244,43 +231,46 @@ export default {
         e3: true,
         e4: true,
         passwordProgress: 0,
-        progressColorValue: 'red'
+        progressColorValue: 'red',
       },
 
       googleAuthUrl: '/api/auth/google',
       facebookAuthUrl: '/api/auth/facebook',
 
-      signUpButtonLoading: false
-    }
+      signUpButtonLoading: false,
+    };
   },
   head() {
     return {
       title: 'Sign Up | Noco',
-      meta: [
-        { hid: 'Sign Up To Noco', name: 'Sign Up To Noco', content: 'Sign Up To Noco' }
-      ]
-    }
+      meta: [{ hid: 'Sign Up To Noco', name: 'Sign Up To Noco', content: 'Sign Up To Noco' }],
+    };
   },
   computed: {
     counter() {
-      return this.$store.getters['users/GtrCounter']
+      return this.$store.getters['users/GtrCounter'];
     },
     displayName() {
-      return this.$store.getters['users/GtrUser']
+      return this.$store.getters['users/GtrUser'];
     },
     type() {
-      return 'jwt'// this.$store.state.project && this.$store.state.project.appInfo && this.$store.state.project.appInfo.authType
+      return 'jwt'; // this.$store.state.project && this.$store.state.project.appInfo && this.$store.state.project.appInfo.authType
     },
     firstUser() {
-      return this.$store.state.project && this.$store.state.project.appInfo && this.$store.state.project.appInfo.firstUser
+      return (
+        this.$store.state.project && this.$store.state.project.appInfo && this.$store.state.project.appInfo.firstUser
+      );
     },
     googleAuthEnabled() {
-      return this.$store.state.project && this.$store.state.project.appInfo && this.$store.state.project.appInfo.googleAuthEnabled
-    }
+      return (
+        this.$store.state.project &&
+        this.$store.state.project.appInfo &&
+        this.$store.state.project.appInfo.googleAuthEnabled
+      );
+    },
   },
   watch: {},
   async created() {
-
     // const type = await this.$store.dispatch('users/ActGetAuthType');
     // this.type = type.type;
     // this.firstUser = type.firstUser;
@@ -292,21 +282,20 @@ export default {
     // console.log(this.$route.query);
 
     if ('buy' in this.$route.query) {
-      this.googleAuthUrl += '?redirect_to=/'
-      this.facebookAuthUrl += '?redirect_to=/'
+      this.googleAuthUrl += '?redirect_to=/';
+      this.facebookAuthUrl += '?redirect_to=/';
     } else {
-      this.googleAuthUrl += '?redirect_to=/'
-      this.facebookAuthUrl += '?redirect_to=/'
+      this.googleAuthUrl += '?redirect_to=/';
+      this.facebookAuthUrl += '?redirect_to=/';
     }
   },
-  beforeDestroy() {
-  },
+  beforeDestroy() {},
   methods: {
     openUrl(url) {
-      window.open(url, '_blank')
+      window.open(url, '_blank');
     },
     openGoogleSiginInBrowser(e) {
-      e.preventDefault()
+      e.preventDefault();
       // if(this._isMac) {
       // shell.openExternal(process.env.auth.google.url)
       // }else{
@@ -314,71 +303,74 @@ export default {
       // }
     },
     openGithubSiginInBrowser(e) {
-      e.preventDefault()
+      e.preventDefault();
       // shell.openExternal(process.env.auth.github.url)
     },
     onNormalVerify() {
-      this.formUtil.recpatcha = true
+      this.formUtil.recpatcha = true;
       // this.formUtil.recpatcha = false;
     },
 
     progressColor(num) {
-      this.formUtil.progressColorValue = ['error', 'warning', 'info', 'success'][Math.floor(num / 25)]
-      return this.formUtil.progressColorValue
+      this.formUtil.progressColorValue = ['error', 'warning', 'info', 'success'][Math.floor(num / 25)];
+      return this.formUtil.progressColorValue;
     },
 
     PlusCounter() {
-      this.$store.dispatch('ActPlusCounter')
+      this.$store.dispatch('ActPlusCounter');
     },
 
     async MtdOnSignup(e) {
-      e.preventDefault()
+      e.preventDefault();
 
-      this.signUpButtonLoading = true
+      this.signUpButtonLoading = true;
 
       if (this.type === 'jwt') {
         if (this.$refs.formType.validate()) {
           // this.$nuxt.$loading.start()
           // console.log('hello', this.form);
-          this.form.firstName = this.form.username
-          this.form.lastName = this.form.username
+          this.form.firstName = this.form.username;
+          this.form.lastName = this.form.username;
           //
           // await this.$recaptchaLoaded()
           // const recaptchaToken = await this.$recaptcha('login')
 
-          const err = await this.$store.dispatch('users/ActSignUp', { ...this.form, ignore_subscribe: !this.subscribe })// recaptchaToken});
+          const err = await this.$store.dispatch('users/ActSignUp', {
+            ...this.form,
+            ignore_subscribe: !this.subscribe,
+          }); // recaptchaToken});
 
           // console.log('in method signup', err);
 
-          await this.$store.dispatch('project/ActLoadProjectInfo')
+          await this.$store.dispatch('project/ActLoadProjectInfo');
 
           if (err) {
-            this.formUtil.formErr = true
-            this.formUtil.formErrMsg = err.data.msg
-            this.signUpButtonLoading = false
-            return
+            this.formUtil.formErr = true;
+            this.formUtil.formErrMsg = err.data.msg;
+            this.signUpButtonLoading = false;
+            return;
           }
 
           // this.$nuxt.$loading.finish()
         }
       } else if (this.type === 'masterKey') {
-        const valid = await this.$store.dispatch('users/ActVerifyMasterKey', this.form.secret)
+        const valid = await this.$store.dispatch('users/ActVerifyMasterKey', this.form.secret);
         if (!valid) {
-          this.formUtil.formErr = true
-          this.formUtil.formErrMsg = 'Invalid admin secret'
-          this.signUpButtonLoading = false
-          return
+          this.formUtil.formErr = true;
+          this.formUtil.formErrMsg = 'Invalid admin secret';
+          this.signUpButtonLoading = false;
+          return;
         }
-        this.$store.commit('users/MutMasterKey', this.form.secret)
+        this.$store.commit('users/MutMasterKey', this.form.secret);
       }
 
       if ('redirect_to' in this.$route.query) {
-        this.$router.push(this.$route.query.redirect_to)
+        this.$router.push(this.$route.query.redirect_to);
       } else {
-        this.$router.push('/projects?toast')
+        this.$router.push('/projects?toast');
       }
-      this.signUpButtonLoading = false
-      this.$e('a:auth:sign-up')
+      this.signUpButtonLoading = false;
+      this.$e('a:auth:sign-up');
     },
 
     MtdOnReset() {
@@ -386,23 +378,19 @@ export default {
     },
 
     async MtdOnSignupGoogle(e) {
-      await this.$store.dispatch('users/ActAuthGoogle')
+      await this.$store.dispatch('users/ActAuthGoogle');
       // console.log('MtdOnSignupGoogle', err);
-    }
-
+    },
   },
 
-  beforeCreated() {
-  },
-  destroy() {
-  }
-
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
 <style scoped>
 /deep/ .v-input__control .v-input__slot .v-input--selection-controls__input {
-  transform: scale(.6);
+  transform: scale(0.6);
   margin-right: 0;
 }
 </style>

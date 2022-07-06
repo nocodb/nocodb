@@ -38,7 +38,7 @@ const {
   <!--  <CellDuration v-else-if="isDuration" /> -->
   <!--  <CellRating v-else-if="isRating" /> -->
   <!--  <CellCurrency v-else-if="isCurrency" /> -->
-  <span v-else :title="title">{{ value }}</span>
+  <span v-else :title="value">{{ value }}</span>
 </template>
 
 <style scoped></style>

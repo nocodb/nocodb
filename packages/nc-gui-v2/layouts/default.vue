@@ -13,7 +13,7 @@ const isDashboard = computed(() => {
   <v-app>
     <slot name="header">
       <v-app-bar class="elevation-1" color="primary" app clipped-left dense dark height="48">
-        <div class="d-flex align-center pt-1" style="flex: 1">
+        <div class="d-flex align-center" style="flex: 1">
           <v-toolbar-title>
             <v-tooltip bottom>
               {{ $t('general.home') }}

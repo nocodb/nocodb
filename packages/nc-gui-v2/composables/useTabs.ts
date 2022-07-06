@@ -11,8 +11,17 @@ export default () => {
   const activeTab = useState<number>('activeTab', () => 0)
 
   const addTab = (tabMeta: TabItem) => {
-    tabs.value = [...(tabs.value || []), tabMeta]
-    activeTab.value = tabs.value.length - 1
+
+    const tabIndex = tabs.value.findIndex(tab => tab.id === tabMeta.id)
+    // if tab already found make it active
+    if(tabIndex>-1){
+      activeTab.value = tabIndex
+    }
+    // if tab not found add it
+    else {
+      tabs.value = [...(tabs.value || []), tabMeta]
+      activeTab.value = tabs.value.length - 1
+    }
   }
   const clearTabs = () => {
     tabs.value = []

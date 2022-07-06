@@ -41,11 +41,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: 'password',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   mysql2: {
     host: 'localhost',
@@ -53,11 +53,11 @@ const sampleConnectionData = {
     user: 'root',
     password: 'password',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   vitess: {
     host: 'localhost',
@@ -65,11 +65,11 @@ const sampleConnectionData = {
     user: 'root',
     password: 'password',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   tidb: {
     host: 'localhost',
@@ -77,11 +77,11 @@ const sampleConnectionData = {
     user: 'root',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   yugabyte: {
     host: 'localhost',
@@ -89,11 +89,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   citusdb: {
     host: 'localhost',
@@ -101,11 +101,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   cockroachdb: {
     host: 'localhost',
@@ -113,11 +113,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   greenplum: {
     host: 'localhost',
@@ -125,11 +125,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   mssql: {
     host: 'localhost',
@@ -137,11 +137,11 @@ const sampleConnectionData = {
     user: 'sa',
     password: 'Password123.',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   oracledb: {
     host: 'localhost',
@@ -149,11 +149,11 @@ const sampleConnectionData = {
     user: 'system',
     password: 'Oracle18',
     database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
+    // ssl: {
+    //   ca: '',
+    //   key: '',
+    //   cert: '',
+    // },
   },
   sqlite3: {
     client: 'sqlite3',

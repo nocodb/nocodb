@@ -1,4 +1,4 @@
-import { defineNuxtPlugin } from 'nuxt3/app'
+import { defineNuxtPlugin } from '#app'
 import { useGlobalState } from '~/composables/useGlobalState'
 
 export default defineNuxtPlugin((nuxtApp) => {

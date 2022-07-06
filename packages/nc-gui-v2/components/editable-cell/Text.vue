@@ -1,14 +1,40 @@
-<script>
-export default {
-  name: 'TextAreaCell',
-  props: {
-    value: String,
-    isForm: Boolean,
+<script setup lang="ts">
+import { computed } from '@vue/reactivity'
+import { onMounted } from 'vue'
+
+const { modelValue: value } = defineProps<{ modelValue: any }>()
+
+const emit = defineEmits(['update:modelValue'])
+
+const root = ref<HTMLInputElement>()
+
+const localState = computed({
+  get() {
+    return value
   },
-  data: () => ({
-    localState: '',
-  }),
+  set(val) {
+    emit('update:modelValue', val)
+  },
+})
+
+onMounted(() => {
+  root.value?.focus()
+})
+
+/* export default {
+  name: 'TextCell',
+  props: {
+    value: [String, Object, Number, Boolean, Array],
+  },
   computed: {
+    localState: {
+      get() {
+        return this.value
+      },
+      set(val) {
+        this.$emit('input', val)
+      },
+    },
     parentListeners() {
       const $listeners = {}
 
@@ -19,57 +45,31 @@ export default {
         $listeners.focus = this.$listeners.focus
       }
 
+      if (this.$listeners.cancel) {
+        $listeners.cancel = this.$listeners.cancel
+      }
+
       return $listeners
     },
   },
-  watch: {
-    value(val) {
-      this.localState = val
-    },
-    localState(val) {
-      if (this.isForm) {
-        this.$emit('input', val)
-      }
-    },
-  },
-  created() {
-    this.localState = this.value
-  },
   mounted() {
-    this.$refs.textarea && this.$refs.textarea.focus()
+    this.$el.focus()
   },
-  methods: {
-    save() {
-      this.$emit('input', this.localState)
-    },
-  },
-}
+} */
 </script>
 
 <template>
-  <div>
-    <div v-if="!isForm" class="d-flex ma-1">
-      <v-spacer />
-      <v-btn v-if="!isForm" outlined x-small class="mr-1" @click="$emit('cancel')">
-        <!-- Cancel -->
-        {{ $t('general.cancel') }}
-      </v-btn>
-      <v-btn v-if="!isForm" x-small color="primary" @click="save">
-        <!-- Save -->
-        {{ $t('general.save') }}
-      </v-btn>
-    </div>
-    <textarea ref="textarea" v-model="localState" rows="3" v-on="parentListeners" @input="isForm && save()" @keydown.stop.enter />
-  </div>
+  <input ref="root" v-model="localState" />
+  <!--  v-on="parentListeners" /> -->
 </template>
 
 <style scoped>
 input,
 textarea {
   width: 100%;
-  min-height: 60px;
-  height: calc(100% - 28px);
+  height: 100%;
   color: var(--v-textColor-base);
+  outline: none;
 }
 </style>
 <!--

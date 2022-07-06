@@ -1,15 +1,34 @@
 <script lang="ts" setup>
-import type { ComputedRef } from 'vue'
 import { inject, onMounted } from 'vue'
 import { isVirtualCol } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
 import useViewData from '~/composables/useViewData'
 
-const meta = inject<ComputedRef<TableType>>('meta')
+const meta = inject<TableType>('meta')
+
+// todo: get from parent ( inject or use prop )
+const isPublicView = false
+
+const selected = reactive<{ row?: number | null; col?: number | null }>({})
+const editEnabled = ref(false)
+
+provide('isForm', false)
+provide('isGrid', true)
 
 const { loadData, paginationData, formattedData: data } = useViewData(meta)
 
 onMounted(() => loadData({}))
+
+const selectCell = (row: number, col: number) => {
+  selected.row = row
+  selected.col = col
+}
+
+onKeyStroke(['Enter'], (e) => {
+  if (selected.row !== null && selected.col !== null) {
+    editEnabled.value = true
+  }
+})
 </script>
 
 <template>
@@ -30,23 +49,19 @@ onMounted(() => loadData({}))
           </div>
         </td>
         <td
-          v-for="columnObj in meta.columns"
+          v-for="(columnObj, colIndex) in meta.columns"
           :key="rowIndex + columnObj.title"
           class="cell pointer nc-grid-cell"
           :class="{
-            // 'active':
-            //   !isPublicView
-            //   && selected.col === col
-            //   && selected.row === row
-            //   && isEditable,
+            active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
             // 'primary-column': primaryValueColumn === columnObj.title,
             // 'text-center': isCentrallyAligned(columnObj),
             // 'required': isRequired(columnObj, rowObj),
           }"
           :data-col="columnObj.title"
+          @click="selectCell(rowIndex, colIndex)"
+          @dblclick="editEnabled = true"
         >
-          <!--          @dblclick="makeEditable(col, row, columnObj.ai, rowMeta)" -->
-          <!--          @click="makeSelected(col, row)" -->
           <!--          @contextmenu=" -->
           <!--            showRowContextMenu($event, rowObj, rowMeta, row, col, columnObj) -->
           <!--          " -->
@@ -111,14 +126,13 @@ onMounted(() => loadData({}))
 
           <span v-if="isVirtualCol(columnObj)" />
 
-          <SmartsheetCell
-            v-else
-            :class="{
-              // 'primary--text': primaryValueColumn === columnObj.title,
-            }"
+          <SmartsheetEditableCell
+            v-else-if="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+            v-model="row[columnObj.title]"
             :column="columnObj"
-            :value="row[columnObj.title]"
           />
+
+          <SmartsheetCell v-else :column="columnObj" :value="row[columnObj.title]" />
           <!-- :selected="selected.col === col && selected.row === row" -->
           <!--        :is-locked="isLocked" -->
           <!--            :column="columnObj" -->
@@ -161,5 +175,27 @@ th {
 td {
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+td.active::after,
+td.active::before {
+  content: '';
+  position: absolute;
+  z-index: 3;
+  height: calc(100% + 2px);
+  width: calc(100% + 2px);
+  left: -1px;
+  top: -1px;
+  pointer-events: none;
+}
+
+// todo: replace with css variable
+td.active::after {
+  border: 2px solid #0040bc; /*var(--v-primary-lighten1);*/
+}
+
+td.active::before {
+  background: #0040bc /*var(--v-primary-base)*/;
+  opacity: 0.1;
 }
 </style>

@@ -1,5 +1,43 @@
-<script>
-export default {
+<script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
+import { computed } from 'vue'
+
+const { modelValue: value } = defineProps<{ modelValue: any }>()
+const emit = defineEmits(['update:modelValue'])
+const column = inject<ColumnType & { meta?: any }>('column')
+const isForm = inject<boolean>('isForm')
+
+const checkboxMeta = computed(() => {
+  return {
+    icon: {
+      checked: 'mdi-check-circle-outline',
+      unchecked: 'mdi-checkbox-blank-circle-outline',
+    },
+    color: 'primary',
+    ...(column?.meta || {}),
+  }
+})
+const localState = computed({
+  get() {
+    return value
+  },
+  set(val) {
+    emit('update:modelValue', val)
+  },
+})
+
+const toggle = () => {
+  localState.value = !localState.value
+}
+
+// const checkedIcon = computed(() => {
+//   return defineAsyncComponent( ()=>import('~icons/material-symbols/'+checkboxMeta?.value?.icon?.checked))
+// });
+// const uncheckedIcon = computed(() => {
+//   return defineAsyncComponent(()=>import('~icons/material-symbols/'+checkboxMeta?.value?.icon?.unchecked))
+// });
+
+/* export default {
   name: 'BooleanCell',
   props: {
     column: Object,
@@ -42,39 +80,15 @@ export default {
       this.localState = !this.localState
     },
   },
-}
+} */
 </script>
 
 <template>
   <div class="d-flex align-center" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !localState }">
-    <v-icon small :color="checkboxMeta.color" @click="toggle">
-      {{ localState ? checkedIcon : uncheckedIcon }}
-    </v-icon>
+    <!--    <span :is="localState ? checkedIcon : uncheckedIcon" small :color="checkboxMeta.color" @click="toggle"> -->
+    <!--      {{ localState ? checkedIcon : uncheckedIcon }} -->
+    <!--    </span> -->
+
+    <input v-model="localState" type="checkbox" />
   </div>
 </template>
-
-<style scoped></style>
-<!--
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
--->

@@ -10,12 +10,15 @@ export const percentOptions = [
   { id: 8, title: '1.00000000' }
 ]
 
-export const renderPercent = (value, percentOption) => {
+export const renderPercent = (value, percentOption, withPercentSymbol = true) => {
   if (!value) { return value }
-  return padPercentSymbol((Number(value) * 100).toFixed(percentOption))
+  value = (Number(value) * 100).toFixed(percentOption)
+  if (withPercentSymbol) { return padPercentSymbol(value) }
+  return value
 }
 
-export const isValidPercent = (val) => {
+export const isValidPercent = (val, allowNegativeNumber) => {
+  if (allowNegativeNumber) { return /^-?\d{1,20}(\.\d+)?$/.test(val) }
   return /^\d{1,20}(\.\d+)?$/.test(val)
 }
 

@@ -3,6 +3,7 @@
     <input
       ref="percentInput"
       v-model="localState"
+      type="number"
       @blur="onBlur"
       @keypress="checkPercentFormat($event)"
       @keydown.enter="isEdited && $emit('input', percent)"
@@ -36,14 +37,13 @@ export default {
   computed: {
     localState: {
       get() {
-        return renderPercent(this.value, this.percentType)
+        return renderPercent(this.value, this.percentType, false)
       },
       set(val) {
         this.isEdited = true
         if (val === null) { val = 0 }
-        const p = val.replace(/%/g, '')
-        if (isValidPercent(p)) {
-          this.percent = p / 100
+        if (isValidPercent(val, this.column?.meta?.allowNegativeNumber)) {
+          this.percent = val / 100
         }
       }
     },

@@ -1,50 +1,50 @@
 <script setup lang="ts">
-import { useNuxtApp } from "#app";
-import { useNuxt } from "@nuxt/kit";
-import { inject, watchEffect } from "@vue/runtime-core";
-import { ColumnType, TableType } from "nocodb-sdk";
-import { Ref } from "vue";
-import { useToast } from "vue-toastification";
-import useProject from "~/composables/useProject";
+import { useNuxt } from '@nuxt/kit'
+import { inject, watchEffect } from '@vue/runtime-core'
+import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import { useToast } from 'vue-toastification'
+import { useNuxtApp } from '#app'
+import useProject from '~/composables/useProject'
 // import FileSaver from "file-saver";
-import { isImage } from "~/utils/fileUtils";
-import MaterialPlusIcon from "~icons/mdi/plus";
-import MaterialArrowExpandIcon from "~icons/mdi/arrow-expand";
+import { isImage } from '~/utils/fileUtils'
+import MaterialPlusIcon from '~icons/mdi/plus'
+import MaterialArrowExpandIcon from '~icons/mdi/arrow-expand'
 
-const { modelValue } = defineProps<{ modelValue: string | Array<any> }>();
-const emit = defineEmits(["update:modelValue"]);
+const { modelValue } = defineProps<{ modelValue: string | Array<any> }>()
+const emit = defineEmits(['update:modelValue'])
 
-const isPublicForm = inject<boolean>("isPublicForm", false);
-const isForm = inject<boolean>("isForm", false);
-const meta = inject<Ref<TableType>>("meta");
-const column = inject<ColumnType>("column");
+const isPublicForm = inject<boolean>('isPublicForm', false)
+const isForm = inject<boolean>('isForm', false)
+const meta = inject<Ref<TableType>>('meta')
+const column = inject<ColumnType>('column')
 
-const localFilesState = reactive([]);
-const attachments = ref([]);
-const uploading = ref(false);
-const fileInput = ref<HTMLInputElement>();
+const localFilesState = reactive([])
+const attachments = ref([])
+const uploading = ref(false)
+const fileInput = ref<HTMLInputElement>()
 
-const { $api } = useNuxtApp();
-const { project } = useProject();
-const toast = useToast();
+const { $api } = useNuxtApp()
+const { project } = useProject()
+const toast = useToast()
 
 watchEffect(() => {
   if (modelValue) {
-    attachments.value = ((typeof modelValue === "string" ? JSON.parse(modelValue) : modelValue) || []).filter(Boolean);
+    attachments.value = ((typeof modelValue === 'string' ? JSON.parse(modelValue) : modelValue) || []).filter(Boolean)
   }
-});
+})
 
 const selectImage = (file: any, i) => {
   // todo: implement
-};
+}
 
-const openUrl = (url: string, target = "_blank") => {
-  window.open(url, target);
-};
+const openUrl = (url: string, target = '_blank') => {
+  window.open(url, target)
+}
 
 const addFile = () => {
-  fileInput.value?.click();
-};
+  fileInput.value?.click()
+}
 
 const onFileSelection = async (e) => {
   // if (this.isPublicGrid) {
@@ -72,31 +72,32 @@ const onFileSelection = async (e) => {
   // }
 
   // todo : move to com
-  uploading.value = true;
-  const newAttachments = [];
+  uploading.value = true
+  const newAttachments = []
   for (const file of fileInput.value?.files ?? []) {
     try {
       const data = await $api.storage.upload(
         {
-          path: ["noco", project.value.title, meta?.value?.title, column?.title].join("/")
-        }, {
+          path: ['noco', project.value.title, meta?.value?.title, column?.title].join('/'),
+        },
+        {
           files: file,
-          json: "{}"
-        }
-      );
-      newAttachments.push(...data);
+          json: '{}',
+        },
+      )
+      newAttachments.push(...data)
     } catch (e: any) {
-      toast.error((e.message) || "Some internal error occurred");
-      uploading.value = false;
-      return;
+      toast.error(e.message || 'Some internal error occurred')
+      uploading.value = false
+      return
     }
   }
-  uploading.value = false;
-  emit("update:modelValue", JSON.stringify([...attachments.value, ...newAttachments]));
+  uploading.value = false
+  emit('update:modelValue', JSON.stringify([...attachments.value, ...newAttachments]))
 
   // this.$emit('input', JSON.stringify(this.localState))
   // this.$emit('update')
-};
+}
 </script>
 
 <template>
@@ -130,13 +131,10 @@ const onFileSelection = async (e) => {
           <!--                <template #placeholder> -->
           <!--                  <v-skeleton-loader type="image" :height="active ? 33 : 22" :width="active ? 33 : 22" /> -->
           <!--                </template> -->
-          <v-icon v-else-if="item.icon" :size="active ? 33 : 22" v-on="on"
-                  @click="openUrl(item.url || item.data, '_blank')">
+          <v-icon v-else-if="item.icon" :size="active ? 33 : 22" v-on="on" @click="openUrl(item.url || item.data, '_blank')">
             {{ item.icon }}
           </v-icon>
-          <v-icon v-else :size="active ? 33 : 22" v-on="on" @click="openUrl(item.url || item.data, '_blank')">
-            mdi-file
-          </v-icon>
+          <v-icon v-else :size="active ? 33 : 22" v-on="on" @click="openUrl(item.url || item.data, '_blank')"> mdi-file </v-icon>
           <!--            </template> -->
           <!--            <span>{{ item.title }}</span> -->
           <!--          </v-tooltip> -->

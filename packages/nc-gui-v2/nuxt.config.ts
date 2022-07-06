@@ -17,6 +17,7 @@ export default defineNuxtConfig({
     '~/assets/css/global.css',
     '~/assets/style/style.css',
     '~/assets/style.css',
+    '~/assets/style-v2.css',
   ],
 
   build: {

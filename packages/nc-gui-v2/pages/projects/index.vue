@@ -19,7 +19,7 @@ const projects = ref(response.list)
         <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="navigateTo('/projects/create')">
           {{ $t('activity.createProject') }}
         </v-btn>
-        <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="navigateTo('/projects/create')">
+        <v-btn size="small" class="caption text-capitalize mr-2" color="primary" @click="navigateTo('/projects/create-external')">
           {{ $t('activity.createProjectExtended.extDB') }}
         </v-btn>
       </div>

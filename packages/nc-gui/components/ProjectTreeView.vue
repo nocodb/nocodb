@@ -1097,7 +1097,7 @@ export default {
       window.open(link, "_blank");
     },
     async checkAndDeleteTable(table, action = 'showDialog') {
-      this.dialogDeleteTable.tableName = table.table_name
+      this.dialogDeleteTable.tableName = table.title
       this.dialogDeleteTable.nodes = table._nodes
       this.dialogDeleteTable.id = table.id
       await this.deleteTable(action)
@@ -1150,8 +1150,7 @@ export default {
             key: id,
             value: null
           })
-
-         this.$toast.info(`Deleted table ${nodes.table_name} successfully`).goAway(3000)
+         this.$toast.info(`Deleted table ${nodes.title} successfully`).goAway(3000)
         } catch (e) {
           const msg = await this._extractSdkResponseErrorMsg(e)
           this.$toast.error(msg).goAway(3000)

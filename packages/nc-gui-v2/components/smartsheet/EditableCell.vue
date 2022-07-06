@@ -1,22 +1,22 @@
 <script setup lang="ts">
-import { computed } from "@vue/reactivity";
-import type { ColumnType } from "nocodb-sdk";
-import useColumn from "~/composables/useColumn";
+import { computed } from '@vue/reactivity'
+import type { ColumnType } from 'nocodb-sdk'
+import useColumn from '~/composables/useColumn'
 
-const { column, modelValue: value } = defineProps<{ column: ColumnType; modelValue: any }>();
+const { column, modelValue: value } = defineProps<{ column: ColumnType; modelValue: any }>()
 
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(['update:modelValue'])
 
-provide("column", column);
+provide('column', column)
 
 const localState = computed({
   get() {
-    return value;
+    return value
   },
   set(val) {
-    emit("update:modelValue", val);
-  }
-});
+    emit('update:modelValue', val)
+  },
+})
 
 const {
   isSet,
@@ -33,28 +33,12 @@ const {
   isCurrency,
   isAttachment,
   isTextArea,
-  isString
-} = useColumn(column);
+  isString,
+} = useColumn(column)
 </script>
 
 <template>
   <div class="nc-cell" @keydown.stop.left @keydown.stop.right @keydown.stop.up @keydown.stop.down>
-    <!--    <EditableAttachmentCell -->
-    <!--      v-if="isAttachment" -->
-    <!--      /> -->
-    <!--      v-model="localState"
-          :active="active"
-          :db-alias="dbAlias"
-          :meta="meta"
-          :is-form="isForm"
-          :column="column"
-          :is-public-grid="isPublic && !isForm"
-          :is-public-form="isPublic && isForm"
-          :view-id="viewId"
-          :is-locked="isLocked"
-          v-on="$listeners"
-        /> -->
-
     <!--    <RatingCell -->
     <!--      v-if="isRating" -->
     <!--      /> -->
@@ -78,8 +62,6 @@ const {
     <!--      :is-locked="isLocked" -->
     <!--      v-on="parentListeners" -->
     <!--    />&ndash;&gt; -->
-
-
 
     <!--    <IntegerCell -->
     <!--      v-else-if="isInt" -->
@@ -174,17 +156,26 @@ const {
           v-on="parentListeners"
         /> -->
 
-
-    <EditableCellBoolean
-      v-else-if="isBoolean"
-      v-model="localState"
-    />
+    <EditableCellBoolean v-else-if="isBoolean" v-model="localState" />
     <!-- &lt;!&ndash;      v-model="localState" -->
     <!--      :column="column" -->
     <!--      :is-form="isForm" -->
     <!--      v-on="parentListeners" -->
     <!--    />&ndash;&gt; -->
 
+    <EditableCellAttachment v-if="isAttachment" v-model="localState" />
+    <!--      v-model="localState"
+          :active="active"
+          :db-alias="dbAlias"
+          :meta="meta"
+          :is-form="isForm"
+          :column="column"
+          :is-public-grid="isPublic && !isForm"
+          :is-public-form="isPublic && isForm"
+          :view-id="viewId"
+          :is-locked="isLocked"
+          v-on="$listeners"
+        /> -->
 
     <EditableCellText v-else v-model="localState" />
     <!--  v-on="$listeners"   <span v-if="hint" class="nc-hint">{{ hint }}</span> -->

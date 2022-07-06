@@ -1,27 +1,26 @@
 <script setup lang="ts">
+import { computed } from '@vue/reactivity'
+import { onMounted } from 'vue'
 
+const { modelValue: value } = defineProps<{ modelValue: any }>()
 
-import { computed } from "@vue/reactivity";
-import { onMounted } from "vue";
+const emit = defineEmits(['update:modelValue'])
 
-const root = ref<HTMLInputElement>();
-
-const { modelValue:value } = defineProps<{ modelValue: any }>()
-const emit = defineEmits(["update:modelValue"]);
+const root = ref<HTMLInputElement>()
 
 const localState = computed({
   get() {
-    return value;
-  }, set(val) {
-    emit("update:modelValue", val);
-  }
-});
-
+    return value
+  },
+  set(val) {
+    emit('update:modelValue', val)
+  },
+})
 
 onMounted(() => {
   root.value?.focus()
-});
-/*export default {
+})
+/* export default {
   name: 'TextAreaCell',
   props: {
     value: String,
@@ -54,17 +53,11 @@ onMounted(() => {
   mounted() {
     this.$refs.textarea && this.$refs.textarea.focus()
   },
-}*/
+} */
 </script>
 
 <template>
-  <textarea
-    v-model="localState" ref="root"
-    rows="4"
-    v-on="parentListeners"
-    @keydown.alt.enter.stop
-    @keydown.shift.enter.stop
-  />
+  <textarea ref="root" v-model="localState" rows="4" v-on="parentListeners" @keydown.alt.enter.stop @keydown.shift.enter.stop />
 </template>
 
 <style scoped>

@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import { ref } from 'vue'
-import { useNuxtApp, useRouter } from '#app'
+import { navigateTo, useNuxtApp } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
 
 const name = ref('')
 const loading = ref(false)
 const valid = ref(false)
 
 const { $api, $toast } = useNuxtApp()
-const $router = useRouter()
 
 const titleValidationRule = [
   (v: string) => !!v || 'Title is required',
@@ -22,9 +22,8 @@ const createProject = async () => {
       title: name.value,
     })
 
-    await $router.push(`/nc/${result.id}`)
+    await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
-    // todo: toast
     $toast.error(await extractSdkResponseErrorMsg(e)).goAway(3000)
   }
   loading.value = false
@@ -32,33 +31,26 @@ const createProject = async () => {
 </script>
 
 <template>
-  <div class="main justify-center d-flex mx-auto" style="min-height: 600px; overflow: auto">
-    <v-form ref="form" v-model="valid" @submit.prevent="createProject">
-      <v-card style="width: 530px; margin-top: 100px" class="mx-auto">
-        <!-- Create Project -->
-        <v-container class="pb-10 px-12" style="padding-top: 43px !important">
-          <h1 class="mt-4 mb-4 text-center">
-            <!--            {{ $t('activity.createProject') }} -->
-            Create Project
-          </h1>
-          <div class="mx-auto" style="width: 350px">
-            <!-- label="Enter Project Name" -->
-            <!-- rule text: Required -->
-            <v-text-field v-model="name" class="nc-metadb-project-name" label="Project name" />
-            <!--                :rules="titleValidationRule" -->
-          </div>
-          <div class="text-center">
-            <v-btn class="mt-3 mx-auto" large :loading="loading" color="primary" @click="createProject">
-              <v-icon class="mr-1 mt-n1"> mdi-rocket-launch-outline </v-icon>
-              <!-- Create -->
-              <!--                <span class="mr-1">{{ // $t("general.create") }}</span> -->
-              <span class="mr-1"> Create project </span>
+  <NuxtLayout>
+    <v-container fluid class="d-flex justify-center align-center h-75">
+      <v-form ref="form" v-model="valid" @submit.prevent="createProject">
+        <v-card max-width="500">
+          <v-container class="pb-10 px-12">
+            <h1 class="mt-4 mb-4 text-center">
+              {{ $t('activity.createProject') }}
+            </h1>
+            <div class="mx-auto" style="width: 350px">
+              <v-text-field v-model="name" class="nc-metadb-project-name" :label="$t('labels.projName')" />
+            </div>
+            <v-btn class="mx-auto" large :loading="loading" color="primary" @click="createProject">
+              <MaterialSymbolsRocketLaunchOutline class="mr-1" />
+              <span> {{ $t('general.create') }} </span>
             </v-btn>
-          </div>
-        </v-container>
-      </v-card>
-    </v-form>
-  </div>
+          </v-container>
+        </v-card>
+      </v-form>
+    </v-container>
+  </NuxtLayout>
 </template>
 
 <style scoped>

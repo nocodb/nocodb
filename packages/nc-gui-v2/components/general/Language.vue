@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
+import MaterialSymbolsTranslate from '~icons/material-symbols/translate'
 import { Languages } from '~/lib/enums'
 
 const { $e, $state } = useNuxtApp()
@@ -32,43 +33,35 @@ onMounted(() => {
 </script>
 
 <template>
-  <div>
-    <v-menu top offset-y>
-      <template #activator="{ props }">
-        <div style="cursor: pointer" @click="props.onClick">Switch language</div>
-      </template>
-      <v-list dense class="nc-language-list">
-        <v-list-item
-          v-for="lang in languages"
-          :key="lang.value"
-          dense
-          :value="lang"
-          color="primary"
-          @click="changeLanguage(lang)"
+  <v-menu top offset-y>
+    <template #activator="{ props }">
+      <MaterialSymbolsTranslate style="cursor: pointer" @click="props.onClick" />
+    </template>
+    <v-list dense class="nc-language-list">
+      <v-list-item v-for="lang in languages" :key="lang.value" dense :value="lang" color="primary" @click="changeLanguage(lang)">
+        <v-list-item-subtitle class="text-capitalize">
+          {{ Languages[lang] || lang }}
+        </v-list-item-subtitle>
+      </v-list-item>
+      <v-divider />
+      <v-list-item>
+        <a
+          href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
+          target="_blank"
+          class="caption"
         >
-          <v-list-item-subtitle class="text-capitalize">
-            {{ Languages[lang] || lang }}
-          </v-list-item-subtitle>
-        </v-list-item>
-        <v-divider />
-        <v-list-item>
-          <a
-            href="https://docs.nocodb.com/engineering/translation/#how-to-contribute--for-community-members"
-            target="_blank"
-            class="caption"
-          >
-            <!-- Help translate -->
-            {{ $t('activity.translate') }}
-          </a>
-        </v-list-item>
-      </v-list>
-    </v-menu>
-  </div>
+          <!-- Help translate -->
+          {{ $t('activity.translate') }}
+        </a>
+      </v-list-item>
+    </v-list>
+  </v-menu>
 </template>
 
 <style scoped lang="scss">
 ::v-deep {
   .nc-language-list {
+    min-width: 200px;
     max-height: 90vh;
     overflow: auto;
     .v-list-item {

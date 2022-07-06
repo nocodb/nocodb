@@ -1,6 +1,6 @@
 import type { TableType } from 'nocodb-sdk'
 import { useNuxtApp, useState } from '#app'
-import useProject from "~/composables/useProject";
+import useProject from '~/composables/useProject'
 
 export default () => {
   const { $api } = useNuxtApp()

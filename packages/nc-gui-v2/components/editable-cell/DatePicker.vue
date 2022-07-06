@@ -1,29 +1,17 @@
-<template>
-  <v-menu>
-    <template #activator="{on}">
-      <input :value="date" class="value" v-on="on">
-    </template>
-    <v-date-picker
-      v-model="localState"
-      flat
-      @click.native.stop
-      v-on="parentListeners"
-    />
-  </v-menu>
-</template>
-
 <script>
 import dayjs from 'dayjs'
 
 export default {
   name: 'DatePickerCell',
   props: {
-    value: [String, Date]
+    value: [String, Date],
   },
   computed: {
     localState: {
       get() {
-        if (!this.value || !dayjs(this.value).isValid()) { return undefined }
+        if (!this.value || !dayjs(this.value).isValid()) {
+          return undefined
+        }
 
         return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD')
       },
@@ -31,7 +19,7 @@ export default {
         if (dayjs(val).isValid()) {
           this.$emit('input', val && dayjs(val).format('YYYY-MM-DD'))
         }
-      }
+      },
     },
     date() {
       if (!this.value || this.localState) {
@@ -50,15 +38,24 @@ export default {
       }
 
       return $listeners
-    }
+    },
   },
   mounted() {
     if (this.$el && this.$el.$el) {
       this.$el.$el.focus()
     }
-  }
+  },
 }
 </script>
+
+<template>
+  <v-menu>
+    <template #activator="{ on }">
+      <input :value="date" class="value" v-on="on" />
+    </template>
+    <v-date-picker v-model="localState" flat @click.native.stop v-on="parentListeners" />
+  </v-menu>
+</template>
 
 <style scoped>
 .value {

@@ -1,10 +1,4 @@
-<template>
-  <a v-if="isValid" :href="value" target="_blank">{{ value }}</a>
-  <span v-else>{{ value }}</span>
-</template>
-
 <script>
-
 import { isValidURL } from '~/helpers'
 
 export default {
@@ -13,11 +7,14 @@ export default {
   computed: {
     isValid() {
       return this.value && isValidURL(this.value)
-    }
-  }
+    },
+  },
 }
 </script>
 
-<style scoped>
+<template>
+  <a v-if="isValid" :href="value" target="_blank">{{ value }}</a>
+  <span v-else>{{ value }}</span>
+</template>
 
-</style>
+<style scoped></style>

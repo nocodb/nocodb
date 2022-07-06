@@ -1,48 +1,42 @@
-<template>
-  <input
-    v-model="localValue"
-    :placeholder="durationPlaceholder"
-    readonly
-  >
-</template>
-
 <script>
-import { durationOptions, convertMS2Duration } from '~/helpers/durationHelper'
+import { convertMS2Duration, durationOptions } from '~/helpers/durationHelper'
 
 export default {
   name: 'DurationCell',
   props: {
     column: Object,
-    value: [String, Number]
+    value: [String, Number],
   },
   data: () => ({
     showWarningMessage: false,
-    localValue: null
+    localValue: null,
   }),
   computed: {
     durationPlaceholder() {
       return durationOptions[this.column?.meta?.duration || 0].title
-    }
+    },
   },
   watch: {
-    'column.meta.duration'(newValue, oldValue) {
+    'column.meta.duration': function (newValue, oldValue) {
       if (oldValue !== newValue) {
         this.localValue = convertMS2Duration(this.value, newValue)
       }
     },
-    value(val, oldVal) {
-      this.localValue = convertMS2Duration(val !== oldVal && (!val && val !== 0) ? oldVal : val, this.column?.meta?.duration || 0)
-    }
+    'value': function (val, oldVal) {
+      this.localValue = convertMS2Duration(val !== oldVal && !val && val !== 0 ? oldVal : val, this.column?.meta?.duration || 0)
+    },
   },
   created() {
     this.localValue = convertMS2Duration(this.value, this.column?.meta?.duration || 0)
-  }
+  },
 }
 </script>
 
-<style scoped>
+<template>
+  <input v-model="localValue" :placeholder="durationPlaceholder" readonly />
+</template>
 
-</style>
+<style scoped></style>
 
 <!--
 /**

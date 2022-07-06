@@ -1,12 +1,8 @@
-<template>
-  <input v-model="localState" type="number" v-on="parentListeners">
-</template>
-
 <script>
 export default {
   name: 'FloatCell',
   props: {
-    value: [String, Number]
+    value: [String, Number],
   },
   computed: {
     localState: {
@@ -15,7 +11,7 @@ export default {
       },
       set(val) {
         this.$emit('input', +val)
-      }
+      },
     },
     parentListeners() {
       const $listeners = {}
@@ -28,13 +24,17 @@ export default {
       }
 
       return $listeners
-    }
+    },
   },
   mounted() {
     this.$el.focus()
-  }
+  },
 }
 </script>
+
+<template>
+  <input v-model="localState" type="number" v-on="parentListeners" />
+</template>
 
 <style scoped>
 input {

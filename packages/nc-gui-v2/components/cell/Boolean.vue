@@ -6,6 +6,6 @@ const value = inject<boolean | number>('value')
 
 <template>
   <div class="d-flex align-center">
-    <input v-model="value" type="checkbox" :disabled="true">
+    <input v-model="value" type="checkbox" :disabled="true" />
   </div>
 </template>

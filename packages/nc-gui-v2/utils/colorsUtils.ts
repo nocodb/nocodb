@@ -1,17 +1,5 @@
 export default {
-  light: [
-
-    '#ffdce5',
-    '#fee2d5',
-    '#ffeab6',
-    '#d1f7c4',
-    '#ede2fe',
-    '#eee',
-    '#cfdffe',
-    '#d0f1fd',
-    '#c2f5e8',
-    '#ffdaf6',
-  ],
+  light: ['#ffdce5', '#fee2d5', '#ffeab6', '#d1f7c4', '#ede2fe', '#eee', '#cfdffe', '#d0f1fd', '#c2f5e8', '#ffdaf6'],
   dark: [
     '#f82b6099',
     '#ff6f2c99',
@@ -27,18 +15,7 @@ export default {
 }
 
 const enumColor = {
-  light: [
-    '#cfdffe',
-    '#d0f1fd',
-    '#c2f5e8',
-    '#ffdaf6',
-    '#ffdce5',
-    '#fee2d5',
-    '#ffeab6',
-    '#d1f7c4',
-    '#ede2fe',
-    '#eeeeee',
-  ],
+  light: ['#cfdffe', '#d0f1fd', '#c2f5e8', '#ffdaf6', '#ffdce5', '#fee2d5', '#ffeab6', '#d1f7c4', '#ede2fe', '#eeeeee'],
   dark: [
     '#2d7ff999',
     '#18bfff99',
@@ -53,6 +30,4 @@ const enumColor = {
   ],
 }
 
-export {
-  enumColor,
-}
+export { enumColor }

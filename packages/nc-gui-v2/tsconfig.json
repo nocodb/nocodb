@@ -12,7 +12,7 @@
     "forceConsistentCasingInFileNames": true,
     "types": ["@intlify/vite-plugin-vue-i18n/client", "vue-i18n", "unplugin-icons/types/vue"]
   },
-  "files": ["nuxt-shim.d.ts"],
+  "files": ["nuxt-shim.d.ts", "windi.config.ts"],
   "exclude": [
     "node_modules",
     "dist"

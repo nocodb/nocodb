@@ -1,5 +1,5 @@
 import { Api } from 'nocodb-sdk'
-import { defineNuxtPlugin } from 'nuxt3/app'
+import { defineNuxtPlugin } from '#app'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const api = new Api({

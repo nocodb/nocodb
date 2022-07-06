@@ -399,6 +399,18 @@ export default async (
           .join(',');
         return { type: 'select', data: csvOpt };
       }
+
+      case 'number':
+        if (col.typeOptions?.format === 'percentV2')
+          return {
+            type: UITypes.Percent,
+            data: {
+              percentOption: col.typeOptions?.precision,
+              allowNegativeNumber: col.typeOptions?.negative,
+            },
+          };
+        return { type: undefined };
+
       default:
         return { type: undefined };
     }
@@ -508,6 +520,10 @@ export default async (
         switch (colOptions.type) {
           case 'select':
             ncCol.dtxp = colOptions.data;
+            break;
+
+          case UITypes.Percent:
+            ncCol.meta = colOptions.data;
             break;
 
           case undefined:

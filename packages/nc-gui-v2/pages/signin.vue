@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { extractSdkResponseErrorMsg } from '~/helpers/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { navigateTo, useNuxtApp } from '#app'
 
 const { $api, $state } = useNuxtApp()

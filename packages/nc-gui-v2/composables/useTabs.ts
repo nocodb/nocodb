@@ -6,7 +6,7 @@ export interface TabItem {
   id: string
 }
 
-export const useTabs = () => {
+export default () => {
   const tabs = useState<Array<TabItem>>('tabs', () => [])
   const activeTab = useState<number>('activeTab', () => 0)
 

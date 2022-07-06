@@ -1,7 +1,7 @@
 import type { ProjectType, TableType } from "nocodb-sdk";
 import { useNuxtApp } from "#app";
 
-export const useProject = () => {
+export default () => {
   const { $api } = useNuxtApp();
 
   const project = useState<ProjectType>("project");

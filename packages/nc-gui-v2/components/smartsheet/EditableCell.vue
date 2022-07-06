@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { useColumn } from '~/composables/column'
+import useColumn  from '~/composables/useColumn'
 
 const { column, value } = defineProps<{ column: ColumnType; value: any }>()
 provide('column', column)

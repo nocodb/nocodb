@@ -108,6 +108,7 @@
               class="flex-shrink-1 flex-grow-0 caption nc-filter-operation-select"
               :items="filterComparisonOp(filter)"
               :placeholder="$t('labels.operation')"
+              v-show="filter && filter.fk_column_id"
               solo
               flat
               style="max-width: 120px"
@@ -142,6 +143,7 @@
               v-else
               :key="i + '_7'"
               v-model="filter.value"
+              v-show="filter && filter.fk_column_id"
               solo
               flat
               hide-details
@@ -324,13 +326,23 @@ export default {
         if (
           f &&
           f.fk_column_id &&
-          this.columnsById[f.fk_column_id] &&
-          this.columnsById[f.fk_column_id].uidt ===
-            UITypes.LinkToAnotherRecord &&
-          this.columnsById[f.fk_column_id].uidt === UITypes.Lookup
+          this.columnsById[f.fk_column_id]
         ) {
-          return !['notempty', 'empty', 'notnull', 'null'].includes(op.value)
-        }
+            const uidt = this.columnsById[f.fk_column_id].uidt
+            if (uidt === UITypes.Lookup) {
+              // TODO: handle it later
+              return !['notempty', 'empty', 'notnull', 'null'].includes(op.value)
+            } else if (uidt === UITypes.LinkToAnotherRecord) {
+              const type = this.columnsById[f.fk_column_id].colOptions.type
+              if (type === 'hm' || type === 'mm') {
+                // exclude notnull & null
+                return !['notnull', 'null'].includes(op.value)
+              } else if (type === 'bt') {
+                // exclude notempty & empty
+                return !['notempty', 'empty'].includes(op.value)
+              } 
+            }
+          }
         return true
       })
     },

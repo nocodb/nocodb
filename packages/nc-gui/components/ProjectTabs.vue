@@ -207,7 +207,7 @@
             style="height: 100%"
           >
             <project-settings
-              v-if="_isUIAllowed('settings')"
+              v-if="_isUIAllowed('projectSettings')"
               class="backgroundColor"
               :nodes="tab._nodes"
               style="height: 100%"

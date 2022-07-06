@@ -1,6 +1,6 @@
 <template>
   <div
-    class="main h-100"
+    class="main d-100 h-100"
     @dragover.prevent="dragOver = true"
     @dragenter.prevent="dragOver = true"
     @dragexit="dragOver = false"

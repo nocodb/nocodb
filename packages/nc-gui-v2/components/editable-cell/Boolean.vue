@@ -1,33 +1,32 @@
 <script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
+import { computed } from 'vue'
 
-import { ColumnType } from "nocodb-sdk";
-import { computed } from "vue";
-
-const column = inject<ColumnType & { meta?: any }>("column");
-const isForm =inject<boolean>('isForm')
-
-const { modelValue:value } = defineProps<{ modelValue: any }>()
-const emit = defineEmits(["update:modelValue"]);
+const { modelValue: value } = defineProps<{ modelValue: any }>()
+const emit = defineEmits(['update:modelValue'])
+const column = inject<ColumnType & { meta?: any }>('column')
+const isForm = inject<boolean>('isForm')
 
 const checkboxMeta = computed(() => {
   return {
     icon: {
-      checked: "mdi-check-circle-outline",
-      unchecked: "mdi-checkbox-blank-circle-outline"
+      checked: 'mdi-check-circle-outline',
+      unchecked: 'mdi-checkbox-blank-circle-outline',
     },
-    color: "primary",
-    ...(column?.meta || {})
-  };
-});
+    color: 'primary',
+    ...(column?.meta || {}),
+  }
+})
 const localState = computed({
   get() {
-    return value;
-  }, set(val) {
-    emit("update:modelValue", val);
-  }
-});
+    return value
+  },
+  set(val) {
+    emit('update:modelValue', val)
+  },
+})
 
-const toggle = () =>  {
+const toggle = () => {
   localState.value = !localState.value
 }
 
@@ -38,8 +37,7 @@ const toggle = () =>  {
 //   return defineAsyncComponent(()=>import('~icons/material-symbols/'+checkboxMeta?.value?.icon?.unchecked))
 // });
 
-
-/*export default {
+/* export default {
   name: 'BooleanCell',
   props: {
     column: Object,
@@ -82,17 +80,15 @@ const toggle = () =>  {
       this.localState = !this.localState
     },
   },
-}*/
+} */
 </script>
 
 <template>
-  <div
-    class="d-flex align-center" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !localState }">
-<!--    <span :is="localState ? checkedIcon : uncheckedIcon" small :color="checkboxMeta.color" @click="toggle">-->
-<!--      {{ localState ? checkedIcon : uncheckedIcon }}-->
-<!--    </span>-->
+  <div class="d-flex align-center" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !localState }">
+    <!--    <span :is="localState ? checkedIcon : uncheckedIcon" small :color="checkboxMeta.color" @click="toggle"> -->
+    <!--      {{ localState ? checkedIcon : uncheckedIcon }} -->
+    <!--    </span> -->
 
-    <input type="checkbox"
-      v-model="localState">
+    <input v-model="localState" type="checkbox" />
   </div>
 </template>

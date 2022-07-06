@@ -17,7 +17,7 @@ watch(
   async (newVal, oldVal) => {
     if (newVal !== oldVal) {
       clearTabs()
-      if(newVal) {
+      if (newVal) {
         await loadProject(newVal as string)
         await loadTables()
       }

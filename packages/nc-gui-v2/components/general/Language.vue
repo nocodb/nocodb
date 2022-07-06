@@ -35,7 +35,7 @@ onMounted(() => {
 <template>
   <v-menu>
     <template #activator="{ props }">
-      <MaterialSymbolsTranslate class="cursor-pointer" @click="props.onClick" />
+      <MaterialSymbolsTranslate class="md:text-xl cursor-pointer" @click="props.onClick" />
     </template>
     <v-list class="min-w-50 max-h-90vh overflow-auto !py-0 scrollbar-thin-primary">
       <v-list-item v-for="lang of languages" :key="lang.value" class="!min-h-8 group" :value="lang" @click="changeLanguage(lang)">

@@ -9,9 +9,8 @@
       @keydown.enter="isEdited && $emit('input', percent)"
       v-on="parentListeners"
     >
-    <div v-if="showWarningMessage == true" class="percent-warning">
-      <!-- TODO: i18n -->
-      Please enter a number
+    <div v-if="warningMessage" class="percent-warning">
+      {{ warningMessage }}
     </div>
   </div>
 </template>
@@ -28,7 +27,7 @@ export default {
   },
   data: () => ({
     // flag to determine to show warning message or not
-    showWarningMessage: false,
+    warningMessage: '',
     // percent in decimal format
     percent: null,
     // check if the cell is edited or not
@@ -78,12 +77,22 @@ export default {
       const PRINTABLE_CTL_RANGE = charCode > 31
       const NON_DIGIT = charCode < 48 || charCode > 57
       const NON_PERIOD = charCode !== 46
-      if (PRINTABLE_CTL_RANGE && NON_DIGIT && NON_PERIOD) {
-        this.showWarningMessage = true
+      const CAPTIAL_LETTER_E = charCode === 69
+      const SMALL_LETTER_E = charCode === 101
+      const NEGATIVE_SIGN = charCode === 45
+      const NEGATIVE_SIGN_INVALID = !this.column?.meta?.allowNegativeNumber && NEGATIVE_SIGN
+      if (NEGATIVE_SIGN_INVALID) {
+        this.warningMessage = 'Negative Number is not allowed. Please configure it in Column setting.'
+        evt.preventDefault()
+      } else if ((PRINTABLE_CTL_RANGE && (NON_DIGIT && NEGATIVE_SIGN_INVALID) && NON_PERIOD) || (CAPTIAL_LETTER_E || SMALL_LETTER_E)) {
+        this.warningMessage = 'Please enter a number'
         evt.preventDefault()
       } else {
-        this.showWarningMessage = false
-        // only allow digits and '.'
+        this.warningMessage = null
+        // only allow:
+        // 1. digits
+        // 2. '.'
+        // 3. '-' if this.column?.meta?.allowNegativeNumber is true
         return true
       }
     },

@@ -10,7 +10,7 @@ import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-l
 const name = ref('')
 const loading = ref(false)
 const valid = ref(false)
-const testSuccess = ref(false)
+const testSuccess = ref(true)
 const projectDatasource = ref(getDefaultConnectionConfig('mysql2'))
 const inflection = reactive({
   tableName: 'camelize',
@@ -140,24 +140,23 @@ const testConnection = async () => {
                 <v-text-field v-model="projectDatasource.connection.database" density="compact" label="Database name" />
               </v-col>
 
-              <!-- todo: reimplement?
-              <v-col cols="6">
-                <v-text-field
-                  v-model="inflection.tableName"
-                  density="compact"
-                  type="password"
-                  label="Password"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="inflection.columnName"
-                  density="compact"
-                  label="Database name"
-                />
-              </v-col>
-              -->
-            </v-row>
+                <!--                <v-col cols="6">
+                  <v-text-field
+                    v-model="inflection.tableName"
+                    density="compact"
+                    type="password"
+                    label="Password"
+                  />
+                </v-col>
+                <v-col cols="6">
+                  <v-text-field
+                    v-model="inflection.columnName"
+                    density="compact"
+                    label="Database name"
+                  />
+                </v-col> -->
+              </v-row>
+            </v-container>
 
             <div class="d-flex justify-center" style="gap: 4px">
               <v-btn :disabled="!testSuccess" large :loading="loading" color="primary" @click="createProject">

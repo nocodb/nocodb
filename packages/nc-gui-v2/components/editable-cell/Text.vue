@@ -1,25 +1,27 @@
 <script setup lang="ts">
-import { computed } from "@vue/reactivity";
-import { onMounted } from "vue";
+import { computed } from '@vue/reactivity'
+import { onMounted } from 'vue'
 
-const root = ref<HTMLInputElement>();
+const { modelValue: value } = defineProps<{ modelValue: any }>()
 
-const { modelValue:value } = defineProps<{ modelValue: any }>()
-const emit = defineEmits(["update:modelValue"]);
+const emit = defineEmits(['update:modelValue'])
+
+const root = ref<HTMLInputElement>()
 
 const localState = computed({
   get() {
-    return value;
-  }, set(val) {
-    emit("update:modelValue", val);
-  }
-});
+    return value
+  },
+  set(val) {
+    emit('update:modelValue', val)
+  },
+})
 
 onMounted(() => {
   root.value?.focus()
-});
+})
 
-/*export default {
+/* export default {
   name: 'TextCell',
   props: {
     value: [String, Object, Number, Boolean, Array],
@@ -53,12 +55,12 @@ onMounted(() => {
   mounted() {
     this.$el.focus()
   },
-}*/
+} */
 </script>
 
 <template>
-  <input v-model="localState" ref="root"/>
-<!--  v-on="parentListeners" />-->
+  <input ref="root" v-model="localState" />
+  <!--  v-on="parentListeners" /> -->
 </template>
 
 <style scoped>

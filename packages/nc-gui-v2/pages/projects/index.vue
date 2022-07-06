@@ -52,29 +52,7 @@ const formatTitle = (title: string) =>
     <template #sidebar>
       <v-navigation-drawer :permanent="true" width="300">
         <div class="flex flex-column h-100">
-          <div class="advance-menu flex-1 pt-8">
-            <!--
-              <v-list v-if="_isUIAllowed('treeViewProjectSettings')" shaped dense :class="{ 'advanced-border': overShieldIcon }">
-              <v-list-item-group v-model="activePage" color="x-active" mandatory>
-                <v-list-item v-for="item in navDrawerOptions" :key="item.title" :value="item.title" dense class="body-2">
-                  <v-list-item-title>
-                    <v-icon small class="ml-5">
-                      {{ item.icon }}
-                    </v-icon>
-                    <span
-                      class="font-weight-medium ml-3"
-                      :class="{
-                        'textColor--text text--lighten-2': item.title !== activePage,
-                      }"
-                    >
-                      {{ item.title }}
-                    </span>
-                  </v-list-item-title>
-                </v-list-item>
-              </v-list-item-group>
-            </v-list>
-            -->
-          </div>
+          <div class="advance-menu flex-1 pt-8" />
           <v-divider />
           <!-- todo: implement extras component
             <Extras class="pl-6" />

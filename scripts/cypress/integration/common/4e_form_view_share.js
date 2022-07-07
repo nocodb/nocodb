@@ -99,6 +99,8 @@ export const genTest = (apiType, dbType) => {
                 //   .click();
                 mainPage.shareView().click();
 
+                cy.wait(5000);
+
                 cy.snipActiveModal("Modal_ShareView");
 
                 // copy link text, visit URL

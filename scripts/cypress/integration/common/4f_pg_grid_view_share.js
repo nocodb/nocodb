@@ -21,7 +21,9 @@ export const genTest = (apiType, dbType) => {
         //   .contains("Share View")
         //   .click();
         mainPage.shareView().click();
-
+        
+        cy.wait(5000);
+        
         // wait, as URL initially will be /undefined
         cy.getActiveModal()
             .find(".share-link-box")

@@ -68,6 +68,8 @@ export const genTest = (apiType, dbType) => {
             //   .click();
             mainPage.shareView().click();
 
+            cy.wait(5000);
+
             // copy link text, visit URL
             cy.getActiveModal()
                 .find(".share-link-box")

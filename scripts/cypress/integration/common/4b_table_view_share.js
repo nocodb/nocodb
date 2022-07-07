@@ -11,6 +11,8 @@ const generateLinkWithPwd = () => {
     //   .click();
     mainPage.shareView().click();
 
+    cy.wait(5000);
+
     cy.snipActiveModal("Modal_ShareView");
 
     // enable checkbox & feed pwd, save

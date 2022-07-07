@@ -1,5 +1,5 @@
 <template>
-  <input v-model="localValue" :placeholder="durationPlaceholder" readonly />
+  <span>{{ localValue }}</span>
 </template>
 
 <script>

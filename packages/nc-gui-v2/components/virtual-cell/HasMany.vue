@@ -2,9 +2,9 @@
 import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
+import { ColumnInj } from '~/components'
 import useHasMany from '~/composables/useHasMany'
-
-const column = inject<ColumnType>('column')
+const column = inject(ColumnInj)
 const value = inject('value')
 
 const { childMeta, loadChildMeta, primaryValueProp } = useHasMany(column as ColumnType)

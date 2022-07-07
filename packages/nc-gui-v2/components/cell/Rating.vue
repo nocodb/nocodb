@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { computed, inject } from 'vue'
+import { ColumnInj } from '~/components'
 import MdiStarIcon from '~icons/mdi/star'
 import MdiStarOutlineIcon from '~icons/mdi/star-outline'
 
 const { modelValue: value } = defineProps<{ modelValue: any }>()
 const emit = defineEmits(['update:modelValue'])
-const column = inject<ColumnType & { meta?: any }>('column')
+const column = inject(ColumnInj)
 const isForm = inject<boolean>('isForm')
 
 const ratingMeta = computed(() => {

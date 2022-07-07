@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { ColumnType } from 'nocodb-sdk'
 import { computed } from 'vue'
+import { ColumnInj } from '~/components'
 import { handleTZ } from '~/utils/dateTimeUtils'
 import { replaceUrlsWithLink } from '~/utils/urlUtils'
-
-const column = inject<ColumnType>('column')
+const column = inject(ColumnInj)
 const value = inject('value')
 
 const { isPg } = useProject()

@@ -1127,7 +1127,26 @@ export default {
           if (!id) {
             return this.$toast.info("Delete not allowed for table which doesn't have primary Key").goAway(3000);
           }
-          await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.id, this.selectedView.id, id);
+
+          const res = await this.$api.dbViewRow.delete(
+            'noco',
+            this.projectName,
+            this.meta.id,
+            this.selectedView.id,
+            id
+          );
+
+          if (res?.message) {
+            this.$toast
+              .info(
+                `<div style="padding:10px 4px">Unable to delete tables because of the following.
+                <br><br>${res.message.join('<br>')}<br><br>
+                Clear the data first & try again</div>
+            `
+              )
+              .goAway(5000);
+            return;
+          }
         }
         this.data.splice(this.rowContextMenu.index, 1);
         this.syncCount();

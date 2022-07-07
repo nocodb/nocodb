@@ -1,4 +1,41 @@
-<script>
+<script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
+import { computed, inject } from 'vue'
+import MdiStarIcon from '~icons/mdi/star'
+import MdiStarOutlineIcon from '~icons/mdi/star-outline'
+
+const { modelValue: value } = defineProps<{ modelValue: any }>()
+const emit = defineEmits(['update:modelValue'])
+const column = inject<ColumnType & { meta?: any }>('column')
+const isForm = inject<boolean>('isForm')
+
+const ratingMeta = computed(() => {
+  return {
+    icon: {
+      full: 'mdi-star',
+      empty: 'mdi-star-outline',
+    },
+    color: '#fcb401',
+    max: 5,
+    // ...(column?.meta || {})
+  }
+})
+const localState = computed({
+  get() {
+    return value
+  },
+  set(val) {
+    emit('update:modelValue', val)
+  },
+})
+
+const toggle = () => {
+  localState.value = !localState.value
+}
+/* import { inject } from "vue";
+
+const editEnabled = inject<boolean>("editEnabled");
+
 export default {
   name: 'RatingCell',
   props: {
@@ -33,7 +70,7 @@ export default {
       }
     },
   },
-}
+} */
 </script>
 
 <template>
@@ -41,10 +78,12 @@ export default {
     <v-rating v-model="localState" :length="ratingMeta.max" dense x-small :readonly="readOnly" clearable>
       <template #item="{ isFilled, click }">
         <v-icon v-if="isFilled" :size="15" :color="ratingMeta.color" @click="click">
-          {{ fullIcon }}
+          <MdiStarIcon />
+          <!--          {{ fullIcon }} -->
         </v-icon>
         <v-icon v-else :color="ratingMeta.color" :size="15" class="nc-cell-hover-show" @click="click">
-          {{ emptyIcon }}
+          <!--          {{ emptyIcon }} -->
+          <MdiStarOutlineIcon />
         </v-icon>
       </template>
     </v-rating>

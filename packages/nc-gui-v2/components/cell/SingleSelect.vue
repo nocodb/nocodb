@@ -1,31 +1,29 @@
 <script lang="ts" setup>
+import { computed } from '@vue/reactivity'
+import type { ColumnType } from 'nocodb-sdk'
+import { Ref, inject } from 'vue'
+const { modelValue } = defineProps<{ modelValue: any }>()
+const emit = defineEmits(['update:modelValue'])
+// import {enumColor}from "~/utils/colorsUtils";
 
-import { computed } from "@vue/reactivity";
-import { ColumnType } from "nocodb-sdk";
-import { inject, Ref } from "vue";
-import {enumColor}from "~/utils/colorsUtils";
-
-const column = inject<ColumnType>("column");
-const isForm = inject<boolean>("isForm");
-
-const { modelValue } = defineProps<{ modelValue: any }>();
-const emit = defineEmits(["update:modelValue"]);
+const column = inject<ColumnType>('column')
+const isForm = inject<boolean>('isForm')
+const editEnabled = inject<boolean>('editEnabled')
 
 const localState = computed({
   get() {
-    return modelValue?.replace(/\\'/g, "'").replace(/^'|'$/g, "");
+    return modelValue?.replace(/\\'/g, "'").replace(/^'|'$/g, '')
   },
   set(val) {
-    emit("update:modelValue", val);
-  }
-});
+    emit('update:modelValue', val)
+  },
+})
 
 const options = computed<string[]>(() => {
-  return column?.dtxp?.split(",").map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, "")) || [];
-});
+  return column?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || []
+})
 
-
-/*import colors from '@/mixins/colors'
+/* import colors from '@/mixins/colors'
 
 export default {
   name: 'EnumListEditableCell',
@@ -50,23 +48,12 @@ export default {
       return $listeners
     },
   },
-}*/
+} */
 </script>
 
 <template>
-  {{options}}
-  <v-select
-    v-model="localState"
-    solo
-    dense
-    flat
-    :items="options"
-    hide-details
-    class="mt-0"
-    :clearable="!column.rqd"
-  >
-
-<!--    v-on="parentListeners"
+  <v-select v-model="localState" :items="options" hide-details :clearable="!column.rqd" variation="outlined">
+    <!--    v-on="parentListeners"
     <template #selection="{ item }">
       <div
         class="d-100"
@@ -86,12 +73,12 @@ export default {
     </template>
     <template #append>
       <v-icon small class="mt-1"> mdi-menu-down</v-icon>
-    </template>-->
+    </template> -->
   </v-select>
 </template>
 
 <style scoped lang="scss">
-:deep {
+/*:deep {
   .v-select {
     min-width: 150px;
   }
@@ -109,7 +96,7 @@ export default {
       font-size: 13px !important;
     }
   }
-}
+}*/
 </style>
 <!--
 /**

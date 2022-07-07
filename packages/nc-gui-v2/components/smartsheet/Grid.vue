@@ -124,15 +124,16 @@ onKeyStroke(['Enter'], (e) => {
           <!--            @navigateToPrev="navigateToPrev" -->
           <!--          /> -->
 
-          <span v-if="isVirtualCol(columnObj)" />
+          <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row[columnObj.title]" :column="columnObj" />
 
-          <SmartsheetEditableCell
-            v-else-if="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+          <SmartsheetCell
+            v-else
             v-model="row[columnObj.title]"
             :column="columnObj"
+            :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
           />
 
-          <SmartsheetCell v-else :column="columnObj" :value="row[columnObj.title]" />
+          <!--          <SmartsheetCell v-else :column="columnObj" :value="row[columnObj.title]" /> -->
           <!-- :selected="selected.col === col && selected.row === row" -->
           <!--        :is-locked="isLocked" -->
           <!--            :column="columnObj" -->

@@ -9,6 +9,7 @@
   },
   "dependencies": {
     "@vueuse/core": "^8.7.5",
+    "dayjs": "^1.11.3",
     "nocodb-sdk": "file:../nocodb-sdk",
     "socket.io-client": "^4.5.1",
     "vue-i18n": "^9.1.10",

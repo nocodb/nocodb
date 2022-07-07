@@ -1,14 +1,29 @@
 <script setup lang="ts">
+import { computed } from '@vue/reactivity'
+import { watchEffect } from '@vue/runtime-core'
 import type { ColumnType } from 'nocodb-sdk'
 import useColumn from '~/composables/useColumn'
 
-const { column, value } = defineProps<{ column: ColumnType; value: any }>()
+const { column, modelValue: value, editEnabled } = defineProps<{ column: ColumnType; modelValue: any; editEnabled: boolean }>()
+
+const emit = defineEmits(['update:modelValue'])
+
 provide('column', column)
-provide('value', value)
+provide(
+  'editEnabled',
+  computed(() => editEnabled),
+)
+
+const localState = computed({
+  get() {
+    return value
+  },
+  set(val) {
+    emit('update:modelValue', val)
+  },
+})
 
 const {
-  isSet,
-  isEnum,
   isURL,
   isEmail,
   isJSON,
@@ -21,24 +36,200 @@ const {
   isCurrency,
   isAttachment,
   isTextArea,
+  isString,
+  isSingleSelect,
+  isMultiSelect,
 } = useColumn(column)
 </script>
 
 <template>
-  <!--  <CellEditableAttachment v-if="isAttachment" /> -->
-  <CellSetList v-if="isSet" />
-  <CellEnum v-else-if="isEnum" />
-  <!--  <CellUrl v-else-if="isURL" /> -->
-  <!--  <CellEmail v-else-if="isEmail" /> -->
-  <!--  <CellJson v-else-if="isJSON" /> -->
-  <!--  <CellDate v-else-if="isDate" /> -->
-  <!--  <CellDateTime v-else-if="isDateTime" /> -->
-  <!--  <CellTime v-else-if="isTime" /> -->
-  <CellBoolean v-else-if="isBoolean" />
-  <!--  <CellDuration v-else-if="isDuration" /> -->
-  <!--  <CellRating v-else-if="isRating" /> -->
-  <!--  <CellCurrency v-else-if="isCurrency" /> -->
-  <span v-else :title="value">{{ value }}</span>
+  <div class="nc-cell" @keydown.stop.left @keydown.stop.right @keydown.stop.up @keydown.stop.down>
+    <!--
+todo :
+ JSONCell
+ DurationCell
+ Currency
+ Url
+ Email
+-->
+
+    <!--    <RatingCell -->
+    <!--      v-if="isRating" -->
+    <!--      /> -->
+    <!--      v-model="localState"
+          :active="active"
+          :is-form="isForm"
+          :column="column"
+          :is-public-grid="isPublic && !isForm"
+          :is-public-form="isPublic && isForm"
+          :is-locked="isLocked"
+          v-on="$listeners"
+        /> -->
+
+    <!--    <DurationCell -->
+    <!--      v-else-if="isDuration" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      :active="active" -->
+    <!--      :is-form="isForm" -->
+    <!--      :column="column" -->
+    <!--      :is-locked="isLocked" -->
+    <!--      v-on="parentListeners" -->
+    <!--    />&ndash;&gt; -->
+
+    <!--    <IntegerCell -->
+    <!--      v-else-if="isInt" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      v-on="parentListeners" -->
+    <!--    />&ndash;&gt; -->
+
+    <!--    <FloatCell -->
+    <!--      v-else-if="isFloat" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      v-on="parentListeners" -->
+    <!--    />&ndash;&gt; -->
+
+    <!--    <DatePickerCell -->
+    <!--      v-else-if="isDate" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      v-on="parentListeners" -->
+    <!--    />&ndash;&gt; -->
+
+    <!--    <TimePickerCell -->
+    <!--      v-else-if="isTime" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      v-on="parentListeners" -->
+    <!--      @save="$emit('save')" -->
+    <!--    />&ndash;&gt; -->
+
+    <!--    <DateTimePickerCell -->
+    <!--      v-else-if="isDateTime" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      ignore-focus -->
+    <!--      v-on="parentListeners" -->
+    <!--    />&ndash;&gt; -->
+
+    <!--    <EnumCell -->
+    <!--      v-else-if="isEnum && ((!isForm && !active) || isLocked || (isPublic && !isForm))" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      :column="column" -->
+    <!--      v-on="parentListeners" -->
+    <!--    />&ndash;&gt; -->
+    <!--    <EnumListCell -->
+    <!--      v-else-if="isEnum" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState"&ndash;&gt; -->
+    <!-- &lt;!&ndash;      :is-form="isForm"&ndash;&gt; -->
+    <!-- &lt;!&ndash;      :column="column"&ndash;&gt; -->
+    <!-- &lt;!&ndash;      v-on="parentListeners"&ndash;&gt; -->
+    <!-- &lt;!&ndash;    />&ndash;&gt; -->
+
+    <!--    <JsonEditableCell -->
+    <!--      v-else-if="isJSON" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      :is-form="isForm" -->
+    <!--      v-on="parentListeners" -->
+    <!--      @input="$emit('save')" -->
+    <!--    />&ndash;&gt; -->
+
+    <!--    <SetListEditableCell -->
+    <!--      v-else-if="isSet && (active || isForm) && !isLocked && !(isPublic && !isForm)" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      :column="column" -->
+    <!--      v-on="parentListeners" -->
+    <!--    />&ndash;&gt; -->
+    <!--    <SetListCell -->
+    <!--      v-else-if="isSet" -->
+    <!--      /> -->
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      :column="column" -->
+    <!--      v-on="parentListeners" -->
+    <!--    />&ndash;&gt; -->
+
+    <!--    <UrlCell v-else-if="isURL" -->
+    <!--                     /> -->
+    <!-- &lt;!&ndash;                     v-model="localState" v-on="parentListeners" &ndash;&gt; -->
+    <!-- &lt;!&ndash;    />&ndash;&gt; -->
+
+    <CellText v-if="isString" v-model="localState" />
+    <!-- v-on="parentListeners"
+        />
+    -->
+
+    <CellTextArea v-else-if="isTextArea" v-model="localState" />
+    <!--      v-model="localState"
+          :is-form="isForm"
+          v-on="parentListeners"
+        /> -->
+
+    <CellBoolean v-else-if="isBoolean" v-model="localState" />
+    <!-- &lt;!&ndash;      v-model="localState" -->
+    <!--      :column="column" -->
+    <!--      :is-form="isForm" -->
+    <!--      v-on="parentListeners" -->
+    <!--    />&ndash;&gt; -->
+
+    <CellAttachment v-else-if="isAttachment" v-model="localState" />
+    <CellSingleSelect v-else-if="isSingleSelect" v-model="localState" />
+    <CellMultiSelect v-else-if="isMultiSelect" v-model="localState" />
+    <CellDatePicker v-else-if="isDate" v-model="localState" />
+    <CellDateTimePicker v-else-if="isDateTime" v-model="localState" />
+    <CellDateTimePicker v-else-if="isTime" v-model="localState" />
+    <CellRating v-else-if="isRating" v-model="localState" />
+    <!--      v-model="localState"
+          :active="active"
+          :db-alias="dbAlias"
+          :meta="meta"
+          :is-form="isForm"
+          :column="column"
+          :is-public-grid="isPublic && !isForm"
+          :is-public-form="isPublic && isForm"
+          :view-id="viewId"
+          :is-locked="isLocked"
+          v-on="$listeners"
+        /> -->
+
+    <CellText v-else v-model="localState" />
+    <!--  v-on="$listeners"   <span v-if="hint" class="nc-hint">{{ hint }}</span> -->
+
+    <!--    <div v-if="(isLocked || (isPublic && !isForm)) && !isAttachment" class="nc-locked-overlay" /> -->
+  </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+textarea {
+  outline: none;
+}
+
+div {
+  width: 100%;
+  height: 100%;
+  color: var(--v-textColor-base);
+}
+
+.nc-hint {
+  font-size: 0.61rem;
+  color: grey;
+}
+
+.nc-cell {
+  position: relative;
+}
+
+.nc-locked-overlay {
+  position: absolute;
+  z-index: 2;
+  height: 100%;
+  width: 100%;
+  top: 0;
+  left: 0;
+}
+</style>

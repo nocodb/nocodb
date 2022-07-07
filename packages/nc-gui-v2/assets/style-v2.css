@@ -1,0 +1,24 @@
+html,
+body,
+#__nuxt {
+    margin: 0;
+    height: 100%;
+}
+
+html, body {
+    @apply scrollbar-thin-primary;
+}
+
+.page-enter-active,
+.page-leave-active,
+.layout-enter-active,
+.layout-leave-active {
+    transition: opacity .5s
+}
+
+.page-enter,
+.page-leave-active,
+.layout-enter,
+.layout-leave-active {
+    opacity: 0
+}

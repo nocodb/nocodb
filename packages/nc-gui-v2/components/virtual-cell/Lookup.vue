@@ -1,5 +1,5 @@
 <script>
-/*import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+/* import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import TableCell from '../Cell'
 import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/ItemChip'
 export default {
@@ -85,12 +85,12 @@ export default {
       this.lookupListModal = true
     },
   },
-}*/
+} */
 </script>
 
 <template>
   <div class="d-flex flex-wrap wrapper">
-<!--    <template v-if="lookupColumnMeta">
+    <!--    <template v-if="lookupColumnMeta">
       <template v-if="isVirtualCol(lookupColumnMeta)">
         <template
           :is="virtualCell"
@@ -148,7 +148,7 @@ export default {
           </ItemChip>
         </template>
       </template>
-    </template>-->
+    </template> -->
   </div>
 </template>
 

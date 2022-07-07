@@ -1,13 +1,13 @@
 <script setup lang="ts">
-import type { ColumnType } from "nocodb-sdk";
-import ItemChip from "./components/ItemChip.vue";
-import useManyToMany from "~/composables/useManyToMany";
+import type { ColumnType } from 'nocodb-sdk'
+import ItemChip from './components/ItemChip.vue'
+import useManyToMany from '~/composables/useManyToMany'
 
-const column = inject<ColumnType>("column");
-const value = inject("value");
+const column = inject<ColumnType>('column')
+const value = inject('value')
 
-const { childMeta, loadChildMeta, primaryValueProp } = useManyToMany(column as ColumnType);
-await loadChildMeta();
+const { childMeta, loadChildMeta, primaryValueProp } = useManyToMany(column as ColumnType)
+await loadChildMeta()
 
 /* import { RelationTypes, UITypes, isSystemColumn } from 'nocodb-sdk'
 import DlgLabelSubmitCancel from '~/components/utils/DlgLabelSubmitCancel'
@@ -395,43 +395,38 @@ export default {
 
 <template>
   <div class="d-flex d-100 chips-wrapper" :class="{ active }">
-<!--    <template v-if="!isForm"> -->
-      <div class="chips d-flex align-center img-container flex-grow-1 hm-items flex-nowrap">
-        <template v-if="value || localState">
-          <ItemChip
-            v-for="(v, j) in value || localState"
-            :key="j"
-            :item="v"
-            :value="v[primaryValueProp]"
-          />
+    <!--    <template v-if="!isForm"> -->
+    <div class="chips d-flex align-center img-container flex-grow-1 hm-items flex-nowrap">
+      <template v-if="value || localState">
+        <ItemChip v-for="(v, j) in value || localState" :key="j" :item="v" :value="v[primaryValueProp]" />
 
-<!--                           :active="active"
+        <!--                           :active="active"
        :readonly="isLocked || isPublic"
             @edit="editChild"
             @unlink="unlinkChild" -->
-        </template>
-        <span v-if="!isLocked && value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal"
-          >more...</span
-        >
-      </div>
-<!--      <div -->
-<!--        v-if="!isLocked" -->
-<!--        class="actions align-center justify-center px-1 flex-shrink-1" -->
-<!--        :class="{ 'd-none': !active, 'd-flex': active }" -->
-<!--      > -->
-<!--        <x-icon -->
-<!--          v-if="_isUIAllowed('xcDatatableEditable') && (isForm || !isPublic)" -->
-<!--          small -->
-<!--          :color="['primary', 'grey']" -->
-<!--          @click="showNewRecordModal" -->
-<!--        > -->
-<!--          mdi-plus -->
-<!--        </x-icon> -->
-<!--        <x-icon x-small :color="['primary', 'grey']" class="ml-2" @click="showChildListModal"> mdi-arrow-expand </x-icon> -->
-<!--      </div> -->
-<!--    </template>-->
+      </template>
+      <span v-if="!isLocked && value && value.length === 10" class="caption pointer ml-1 grey--text" @click="showChildListModal"
+        >more...</span
+      >
+    </div>
+    <!--      <div -->
+    <!--        v-if="!isLocked" -->
+    <!--        class="actions align-center justify-center px-1 flex-shrink-1" -->
+    <!--        :class="{ 'd-none': !active, 'd-flex': active }" -->
+    <!--      > -->
+    <!--        <x-icon -->
+    <!--          v-if="_isUIAllowed('xcDatatableEditable') && (isForm || !isPublic)" -->
+    <!--          small -->
+    <!--          :color="['primary', 'grey']" -->
+    <!--          @click="showNewRecordModal" -->
+    <!--        > -->
+    <!--          mdi-plus -->
+    <!--        </x-icon> -->
+    <!--        <x-icon x-small :color="['primary', 'grey']" class="ml-2" @click="showChildListModal"> mdi-arrow-expand </x-icon> -->
+    <!--      </div> -->
+    <!--    </template> -->
 
-<!--    <ListItems
+    <!--    <ListItems
       v-if="newRecordModal"
       v-model="newRecordModal"
       :hm="true"

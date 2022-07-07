@@ -11,12 +11,12 @@ export const useGlobalState = (): GlobalState => {
   const preferredLanguages = $(usePreferredLanguages())
   const darkMode = $(usePreferredDark())
 
-  const initialState = { token: null, user: null, lang: preferredLanguages[0] || 'en', darkMode }
+  const initialState: State = { token: null, user: null, lang: preferredLanguages[0] || 'en', darkMode }
 
   const storage = useStorage<State>(storageKey, initialState)
 
   // getters
-  const signedIn = computed(() => storage.value.token !== undefined && storage.value.user !== undefined)
+  const signedIn = computed(() => storage.value.token !== null && storage.value.token !== '' && storage.value.user !== null)
 
   // actions
   function signOut() {

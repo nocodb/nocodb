@@ -26,6 +26,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     } catch {}
   }
 
+  if (nuxtApp.$state.signedIn.value) {
+    await init(nuxtApp.$state.token.value)
+  }
+
   router.afterEach((to, from) => {
     if (!socket || (to.path === from.path && (to.query && to.query.type) === (from.query && from.query.type))) return
 
@@ -76,8 +80,6 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       })
     }
   }
-
-  if (nuxtApp.$state.signedIn.value) await init(nuxtApp.$state.token.value)
 
   watch((nuxtApp.$state as GlobalState).token, (newToken, oldToken) => {
     if (newToken && newToken !== oldToken) init(newToken)

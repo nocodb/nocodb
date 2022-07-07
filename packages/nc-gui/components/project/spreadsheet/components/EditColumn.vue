@@ -71,7 +71,7 @@
                     item-value="name"
                     item-text="name"
                     class="caption ui-type nc-ui-dt-dropdown"
-                    :class="{ 'primary lighten-5': newColumn.uidt }"
+                    :class="{ 'primary lighten-5': newColumn.uidt && !isDark }"
                     :label="$t('labels.columnType')"
                     dense
                     outlined
@@ -80,10 +80,12 @@
                   >
                     <template #selection="{ item }">
                       <div>
-                        <v-icon color="grey darken-4" small class="mr-1">
+                        <v-icon color="isDark? 'white'? 'grey darken-4'" small class="mr-1">
                           {{ item.icon }}
                         </v-icon>
-                        <span class="caption grey--text text--darken-4"> {{ item.name }}</span>
+                        <span class="caption" :class="{ 'grey--text text--darken-4': !isDark }">
+                          {{ item.name }}
+                        </span>
                       </div>
                     </template>
 

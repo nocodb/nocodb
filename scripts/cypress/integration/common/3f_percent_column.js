@@ -48,13 +48,13 @@ export const genTest = (apiType, dbType) => {
             // Configure Default Number
             fetchParentFromLabel("Default Number (%)");
             if (defaultNumber) {
-                cy.getActiveMenu().contains(defaultNumber).click();
+                cy.getActiveMenu().find('input[type="number"]').type(defaultNumber);
             }
 
             // Configure Negative
+            
             if (negative) {
-                cy.getActiveModal()
-                .find('[role="switch"][type="checkbox"]')
+                cy.get('[role="switch"][type="checkbox"]')
                 .click({ force: true });
             }
 

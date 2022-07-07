@@ -32,11 +32,11 @@ const createProject = async () => {
 
 <template>
   <NuxtLayout>
-    <v-form ref="form" v-model="valid" @submit.prevent="createProject">
-      <v-container fluid class="d-flex justify-center align-center h-75">
+    <v-form ref="formValidator" v-model="valid" class="h-full" @submit.prevent="createProject">
+      <v-container fluid class="flex justify-center items-center h-3/4">
         <v-card max-width="500">
           <v-container class="pb-10 px-12">
-            <h1 class="mt-4 mb-4 text-center">
+            <h1 class="my-4 prose-lg text-center">
               {{ $t('activity.createProject') }}
             </h1>
             <div class="mx-auto" style="width: 350px">

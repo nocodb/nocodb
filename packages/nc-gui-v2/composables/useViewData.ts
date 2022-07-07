@@ -13,7 +13,7 @@ const formatData = (list: Array<Record<string, any>>) =>
 export default (meta: Ref<TableType> | ComputedRef<TableType> | undefined) => {
   const data = ref<Array<Record<string, any>>>()
   const formattedData = ref<Array<{ row: Record<string, any>; oldRow: Record<string, any>; rowMeta?: any }>>()
-  const paginationData = ref<PaginatedType>()
+  const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
@@ -23,6 +23,7 @@ export default (meta: Ref<TableType> | ComputedRef<TableType> | undefined) => {
     const response = await $api.dbTableRow.list('noco', project.value.id, meta.value.id, params)
     data.value = response.list
     formattedData.value = formatData(response.list)
+    paginationData.value = response.pageInfo
   }
 
   const updateRowProperty = async (row: Record<string, any>, property: string) => {
@@ -80,5 +81,10 @@ export default (meta: Ref<TableType> | ComputedRef<TableType> | undefined) => {
     })
   }
 
-  return { data, loadData, paginationData, formattedData, insertRow, updateRowProperty }
+  const changePage = async (page: number) => {
+    paginationData.value.page = page
+    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25) } as any)
+  }
+
+  return { data, loadData, paginationData, formattedData, insertRow, updateRowProperty, changePage }
 }

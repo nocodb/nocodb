@@ -131,7 +131,7 @@ onKeyStroke(['Enter'], (e) => {
             v-model="row[columnObj.title]"
             :column="columnObj"
             :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
-            @update:modelValue="updateRowProperty(row,columnObj.title)"
+            @update:model-value="updateRowProperty(row, columnObj.title)"
           />
 
           <!--          <SmartsheetCell v-else :column="columnObj" :value="row[columnObj.title]" /> -->

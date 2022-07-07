@@ -51,8 +51,8 @@ const signIn = async () => {
   try {
     const { token } = await $api.auth.signin(form)
 
-    $state.token = token
-    $state.user = { email: form.email }
+    $state.token.value = token!
+    $state.user.value = { email: form.email }
 
     await navigateTo('/projects')
   } catch (e: any) {

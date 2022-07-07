@@ -15,7 +15,7 @@ const editEnabled = ref(false)
 provide('isForm', false)
 provide('isGrid', true)
 
-const { loadData, paginationData, formattedData: data } = useViewData(meta)
+const { loadData, paginationData, formattedData: data, updateRowProperty } = useViewData(meta)
 
 onMounted(() => loadData({}))
 
@@ -131,6 +131,7 @@ onKeyStroke(['Enter'], (e) => {
             v-model="row[columnObj.title]"
             :column="columnObj"
             :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+            @update:modelValue="updateRowProperty(row,columnObj.title)"
           />
 
           <!--          <SmartsheetCell v-else :column="columnObj" :value="row[columnObj.title]" /> -->

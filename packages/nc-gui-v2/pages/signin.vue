@@ -121,7 +121,7 @@ const resetError = () => {
           />
 
           <div class="self-end">
-            <nuxt-link class="prose-sm text-primary underline" to="/forgot-password">
+            <nuxt-link class="prose-sm text-primary underline hover:opacity-75" to="/forgot-password">
               {{ $t('msg.info.signUp.forgotPassword') }}
             </nuxt-link>
           </div>

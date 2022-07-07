@@ -2,6 +2,16 @@
 import MdiAt from '~icons/mdi/at'
 import MdiLogout from '~icons/mdi/logout'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
+import { navigateTo } from '#app'
+
+const { $state } = useNuxtApp()
+const email = computed(() => $state.value.user?.email ?? '---')
+
+const signOut = () => {
+  $state.value.token = undefined
+  $state.value.user = undefined
+  navigateTo('/signin')
+}
 </script>
 
 <template>
@@ -29,7 +39,7 @@ import MdiDotsVertical from '~icons/mdi/dots-vertical'
       </div>
 
       <div class="flex justify-end">
-        <v-toolbar-items class="flex gap-4 hidden-sm-and-down nc-topright-menu">
+        <v-toolbar-items class="flex gap-4 nc-topright-menu">
           <!-- todo: implement components
           <release-info />
           -->
@@ -47,7 +57,7 @@ import MdiDotsVertical from '~icons/mdi/dots-vertical'
                 to="/user/settings"
               >
                 <MdiAt />&nbsp;
-                <span class="font-bold">{{ $state.user }}</span>
+                <span class="font-bold">{{ email }}</span>
               </nuxt-link>
 
               <v-divider />
@@ -55,7 +65,7 @@ import MdiDotsVertical from '~icons/mdi/dots-vertical'
               <div
                 v-t="['a:navbar:user:sign-out']"
                 class="group flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                @click.stop
+                @click="signOut"
               >
                 <MdiLogout class="transition-colors duration-150 ease-in group-hover:text-red-500" />&nbsp;
                 <span class="text-sm font-semibold text-gray-500">{{ $t('general.signOut') }}</span>

@@ -2,13 +2,15 @@
 import { computed } from '@vue/reactivity'
 import { watchEffect } from '@vue/runtime-core'
 import type { ColumnType } from 'nocodb-sdk'
+import { provide } from 'vue'
+import { ColumnInj } from '~/components'
 import useColumn from '~/composables/useColumn'
 
 const { column, modelValue: value, editEnabled } = defineProps<{ column: ColumnType; modelValue: any; editEnabled: boolean }>()
 
 const emit = defineEmits(['update:modelValue'])
 
-provide('column', column)
+provide(ColumnInj, column)
 provide(
   'editEnabled',
   computed(() => editEnabled),

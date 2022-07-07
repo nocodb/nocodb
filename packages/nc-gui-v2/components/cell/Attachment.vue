@@ -4,6 +4,7 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useNuxtApp } from '#app'
+import { ColumnInj, MetaInj } from '~/components'
 import useProject from '~/composables/useProject'
 // import FileSaver from "file-saver";
 import { isImage } from '~/utils/fileUtils'
@@ -15,8 +16,8 @@ const emit = defineEmits(['update:modelValue'])
 
 const isPublicForm = inject<boolean>('isPublicForm', false)
 const isForm = inject<boolean>('isForm', false)
-const meta = inject<Ref<TableType>>('meta')
-const column = inject<ColumnType>('column')
+const meta = inject(MetaInj)
+const column = inject<ColumnType>(ColumnInj)
 const editEnabled = inject<boolean>('editEnabled')
 
 const localFilesState = reactive([])

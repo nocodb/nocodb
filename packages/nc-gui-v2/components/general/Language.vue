@@ -11,7 +11,7 @@ const languages = $computed(() => {
   return availableLocales.sort()
 })
 
-const isRtlLang = $computed(() => ['fa'].includes($state.value.lang))
+const isRtlLang = $computed(() => ['fa'].includes($state.lang.value))
 
 function applyDirection() {
   const targetDirection = isRtlLang ? 'rtl' : 'ltr'
@@ -22,8 +22,9 @@ function applyDirection() {
 }
 
 function changeLanguage(lang: string) {
-  $state.value.lang = lang
+  $state.lang.value = lang
   locale.value = lang
+  applyDirection()
   $e('c:navbar:lang', { lang })
 }
 

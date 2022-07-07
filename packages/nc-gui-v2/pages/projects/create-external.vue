@@ -84,12 +84,12 @@ const testConnection = async () => {
 
 <template>
   <NuxtLayout>
-    <v-container fluid class="d-flex justify-center align-center h-75">
-      <v-form ref="form" v-model="valid" @submit.prevent="createProject">
+    <v-form ref="formValidator" v-model="valid" class="h-full" @submit.prevent="createProject">
+      <v-container fluid class="flex justify-center items-center h-5/6">
         <v-card max-width="600">
           <!-- Create Project -->
           <v-container class="pb-10 px-12">
-            <h1 class="mb-4 text-center">
+            <h1 class="my-4 prose-lg text-center">
               {{ $t('activity.createProject') }}
             </h1>
 
@@ -139,41 +139,25 @@ const testConnection = async () => {
               <v-col cols="6">
                 <v-text-field v-model="projectDatasource.connection.database" density="compact" label="Database name" />
               </v-col>
-
-              <!--                <v-col cols="6">
-                  <v-text-field
-                    v-model="inflection.tableName"
-                    density="compact"
-                    type="password"
-                    label="Password"
-                  />
-                </v-col>
-                <v-col cols="6">
-                  <v-text-field
-                    v-model="inflection.columnName"
-                    density="compact"
-                    label="Database name"
-                  />
-                </v-col> -->
             </v-row>
+
+            <div class="d-flex justify-center" style="gap: 4px">
+              <v-btn :disabled="!testSuccess" large :loading="loading" color="primary" @click="createProject">
+                <MaterialSymbolsRocketLaunchOutline class="mr-1" />
+                <span> {{ $t('general.create') }} </span>
+              </v-btn>
+
+              <!--              <v-btn small class="px-2"> -->
+              <!--     todo:implement test connection -->
+              <!--         <v-btn size="sm" class="text-sm text-capitalize">
+                  &lt;!&ndash; Test Database Connection &ndash;&gt;
+                  {{ $t('activity.testDbConn') }}
+                </v-btn> -->
+            </div>
           </v-container>
-
-          <div class="d-flex justify-center" style="gap: 4px">
-            <v-btn :disabled="!testSuccess" large :loading="loading" color="primary" @click="createProject">
-              <MaterialSymbolsRocketLaunchOutline class="mr-1" />
-              <span> {{ $t('general.create') }} </span>
-            </v-btn>
-
-            <!--              <v-btn small class="px-2"> -->
-            <!--     todo:implement test connection -->
-            <!--         <v-btn size="sm" class="text-sm text-capitalize">
-                &lt;!&ndash; Test Database Connection &ndash;&gt;
-                {{ $t('activity.testDbConn') }}
-              </v-btn> -->
-          </div>
         </v-card>
-      </v-form>
-    </v-container>
+      </v-container>
+    </v-form>
   </NuxtLayout>
 </template>
 

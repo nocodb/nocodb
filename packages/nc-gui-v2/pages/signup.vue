@@ -4,16 +4,22 @@ import { navigateTo } from '#app'
 
 const { $api, $state } = useNuxtApp()
 
+definePageMeta({
+  requiresAuth: false,
+})
+
 const error = ref()
+
 const form = reactive({
   email: '',
   password: '',
 })
+
 const signUp = async () => {
   error.value = null
   try {
     const { token } = await $api.auth.signup(form)
-    $state.value.token = token
+    $state.token.value = token!
     navigateTo('/projects')
   } catch (e: any) {
     error.value = await extractSdkResponseErrorMsg(e)

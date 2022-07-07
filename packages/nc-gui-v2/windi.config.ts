@@ -23,7 +23,24 @@ export default defineConfig({
 
   darkMode: 'class',
 
-  plugins: [scrollbar, animations, questionMark, formsPlugin, typographyPlugin, aspectRatioPlugin, lineClampPlugin],
+  plugins: [
+    scrollbar,
+    animations,
+    questionMark,
+    formsPlugin,
+    typographyPlugin({
+      dark: true,
+    }),
+    aspectRatioPlugin,
+    lineClampPlugin,
+  ],
+
+  preflight: {
+    alias: {
+      'nuxt-link': 'a',
+      'nuxt-img': 'img',
+    },
+  },
 
   shortcuts: {
     'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
@@ -36,6 +53,24 @@ export default defineConfig({
       mono: ['Roboto', 'mono'],
     },
     extend: {
+      typography: {
+        DEFAULT: {
+          css: {
+            'a': {
+              'color': '#1348ba',
+              '&:hover': {
+                color: 'rgba(19,72,186,0.75)',
+              },
+            },
+            'nuxt-link': {
+              'color': '#1348ba',
+              '&:hover': {
+                color: 'rgba(19,72,186,0.75)',
+              },
+            },
+          },
+        },
+      },
       colors: {
         ...windiColors,
         ...themeColors,

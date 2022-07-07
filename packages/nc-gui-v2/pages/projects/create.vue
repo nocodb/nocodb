@@ -10,7 +10,7 @@ const valid = ref(false)
 
 const { $api, $toast } = useNuxtApp()
 
-const titleValidationRule = [
+const nameValidationRules = [
   (v: string) => !!v || 'Title is required',
   (v: string) => v.length <= 50 || 'Project name exceeds 50 characters',
 ]
@@ -32,15 +32,20 @@ const createProject = async () => {
 
 <template>
   <NuxtLayout>
-    <v-container fluid class="d-flex justify-center align-center h-75">
-      <v-form ref="form" v-model="valid" @submit.prevent="createProject">
+    <v-form ref="formValidator" v-model="valid" class="h-full" @submit.prevent="createProject">
+      <v-container fluid class="flex justify-center items-center h-3/4">
         <v-card max-width="500">
           <v-container class="pb-10 px-12">
-            <h1 class="mt-4 mb-4 text-center">
+            <h1 class="my-4 prose-lg text-center">
               {{ $t('activity.createProject') }}
             </h1>
             <div class="mx-auto" style="width: 350px">
-              <v-text-field v-model="name" class="nc-metadb-project-name" :label="$t('labels.projName')" />
+              <v-text-field
+                v-model="name"
+                class="nc-metadb-project-name"
+                :rules="nameValidationRules"
+                :label="$t('labels.projName')"
+              />
             </div>
             <v-btn class="mx-auto" large :loading="loading" color="primary" @click="createProject">
               <MaterialSymbolsRocketLaunchOutline class="mr-1" />
@@ -48,8 +53,8 @@ const createProject = async () => {
             </v-btn>
           </v-container>
         </v-card>
-      </v-form>
-    </v-container>
+      </v-container>
+    </v-form>
   </NuxtLayout>
 </template>
 

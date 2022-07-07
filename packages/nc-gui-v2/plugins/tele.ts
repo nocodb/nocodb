@@ -1,6 +1,7 @@
 import { defineNuxtPlugin } from 'nuxt/app'
 import type { Socket } from 'socket.io-client'
 import io from 'socket.io-client'
+import type { GlobalState } from '~/lib/types'
 
 // todo: ignore init if tele disabled
 export default defineNuxtPlugin(async (nuxtApp) => {
@@ -23,6 +24,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
         socket.disconnect()
       })
     } catch {}
+  }
+
+  if (nuxtApp.$state.signedIn.value) {
+    await init(nuxtApp.$state.token.value)
   }
 
   router.afterEach((to, from) => {
@@ -76,15 +81,10 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     }
   }
 
-  if (nuxtApp.$state.user && nuxtApp.$state.token) await init(nuxtApp.$state.token)
-
-  watch(
-    () => nuxtApp.$state.token,
-    (newToken, oldToken) => {
-      if (newToken !== oldToken) init(newToken)
-      else if (!newToken) socket.disconnect()
-    },
-  )
+  watch((nuxtApp.$state as GlobalState).token, (newToken, oldToken) => {
+    if (newToken && newToken !== oldToken) init(newToken)
+    else if (!newToken) socket.disconnect()
+  })
 
   nuxtApp.provide('tele', tele)
   nuxtApp.provide('e', tele.emit)

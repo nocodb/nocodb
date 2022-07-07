@@ -10,7 +10,7 @@ declare module '#app/nuxt' {
       emit: (event: string, data: any) => void
     }
     // tele.emit
-    $e: (event: string, data: any) => void
-    $state: RemovableRef<GlobalState>
+    $e: (event: string, data?: any) => void
+    $state: GlobalState
   }
 }

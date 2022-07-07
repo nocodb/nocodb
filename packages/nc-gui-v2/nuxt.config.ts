@@ -22,11 +22,25 @@ export default defineNuxtConfig({
 
   meta: {
     title: 'NocoDB',
-    description: 'NocoDB GUI V2',
-    titleTemplate: (titleChunk: string) => {
-      // If undefined or blank then we don't need the hyphen
-      return titleChunk ? `${titleChunk} - NocoDB` : 'NocoDB'
-    },
+    link: [
+      {
+        rel: 'icon',
+        type: 'image/x-icon',
+        href: './favicon-32.png',
+      },
+    ],
+    meta: [
+      { charset: 'utf-8' },
+      {
+        name: 'viewport',
+        content: 'width=device-width, initial-scale=1',
+      },
+      {
+        hid: 'description',
+        name: 'description',
+        content: process.env.npm_package_description || '',
+      },
+    ],
   },
 
   vite: {

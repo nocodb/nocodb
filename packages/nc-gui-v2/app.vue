@@ -2,6 +2,15 @@
 import MdiAt from '~icons/mdi/at'
 import MdiLogout from '~icons/mdi/logout'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
+import { navigateTo } from '#app'
+
+const { $state } = useNuxtApp()
+const email = computed(() => $state.user?.value?.email ?? '---')
+
+const signOut = async () => {
+  $state.signOut()
+  await navigateTo('/signin')
+}
 </script>
 
 <template>
@@ -29,39 +38,41 @@ import MdiDotsVertical from '~icons/mdi/dots-vertical'
       </div>
 
       <div class="flex justify-end">
-        <v-toolbar-items class="flex gap-4 hidden-sm-and-down nc-topright-menu">
+        <v-toolbar-items class="flex gap-4 nc-topright-menu">
           <!-- todo: implement components
           <release-info />
           -->
 
           <general-language class="mr-3" />
 
-          <v-menu>
-            <template #activator="{ props }">
-              <MdiDotsVertical class="md:text-xl cursor-pointer" @click="props.onClick" />
-            </template>
-            <v-list class="!py-0 nc-user-menu min-w-32">
-              <nuxt-link
-                v-t="['c:navbar:user:email']"
-                class="flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                to="/user/settings"
-              >
-                <MdiAt />&nbsp;
-                <span class="font-bold">{{ $state.user }}</span>
-              </nuxt-link>
+          <template v-if="$state.signedIn.value">
+            <v-menu>
+              <template #activator="{ props }">
+                <MdiDotsVertical class="md:text-xl cursor-pointer" @click="props.onClick" />
+              </template>
+              <v-list class="!py-0 nc-user-menu min-w-32">
+                <nuxt-link
+                  v-t="['c:navbar:user:email']"
+                  class="flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                  to="/user/settings"
+                >
+                  <MdiAt />&nbsp;
+                  <span class="font-bold">{{ email }}</span>
+                </nuxt-link>
 
-              <v-divider />
+                <v-divider />
 
-              <div
-                v-t="['a:navbar:user:sign-out']"
-                class="group flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                @click.stop
-              >
-                <MdiLogout class="transition-colors duration-150 ease-in group-hover:text-red-500" />&nbsp;
-                <span class="text-sm font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
-              </div>
-            </v-list>
-          </v-menu>
+                <div
+                  v-t="['a:navbar:user:sign-out']"
+                  class="group flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                  @click="signOut"
+                >
+                  <MdiLogout class="transition-colors duration-150 ease-in group-hover:text-red-500" />&nbsp;
+                  <span class="text-sm font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
+                </div>
+              </v-list>
+            </v-menu>
+          </template>
         </v-toolbar-items>
       </div>
     </v-app-bar>

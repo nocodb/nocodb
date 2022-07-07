@@ -7,7 +7,8 @@ import { isEmail } from '~/utils/validation'
 import MdiLogin from '~icons/mdi/login'
 import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 
-const { $api, $state } = useNuxtApp()
+const { $api, $state } = $(useNuxtApp())
+
 const { t } = useI18n()
 
 useHead({
@@ -21,9 +22,11 @@ useHead({
   ],
 })
 
-const error = ref()
+let error = $ref<string | null>(null)
 
 const valid = ref()
+
+const formValidator = ref()
 
 const form = reactive({
   email: '',
@@ -44,16 +47,23 @@ const formRules = {
 }
 
 const signIn = async () => {
-  error.value = null
+  error = null
   try {
     const { token } = await $api.auth.signin(form)
-    $state.value.token = token
-    $state.value.user = { email: form.email }
+
+    $state.token = token
+    $state.user = { email: form.email }
+
     await navigateTo('/projects')
   } catch (e: any) {
     // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
-    error.value = await extractSdkResponseErrorMsg(e)
+    error = await extractSdkResponseErrorMsg(e)
   }
+}
+
+const resetError = () => {
+  formValidator.value.reset()
+  error = null
 }
 </script>
 
@@ -71,7 +81,7 @@ const signIn = async () => {
         >
           <div
             style="left: -moz-calc(50% - 45px); left: -webkit-calc(50% - 45px); left: calc(50% - 45px)"
-            class="absolute top-24 md:top-[-65px] rounded-lg bg-primary"
+            class="absolute top-12 md:top-[-65px] rounded-lg bg-primary"
           >
             <img width="90" height="90" src="~/assets/img/icons/512x512-trans.png" />
           </div>
@@ -80,11 +90,20 @@ const signIn = async () => {
 
           <v-divider class="mb-4" />
 
-          <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
-            <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
-          </div>
+          <Transition name="layout">
+            <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
+              <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
+            </div>
+          </Transition>
 
-          <v-text-field id="email" v-model="form.email" :rules="formRules.email" :label="$t('labels.email')" type="text" />
+          <v-text-field
+            id="email"
+            v-model="form.email"
+            :rules="formRules.email"
+            :label="$t('labels.email')"
+            type="text"
+            @focus="resetError"
+          />
 
           <v-text-field
             id="password"
@@ -92,16 +111,25 @@ const signIn = async () => {
             :rules="formRules.password"
             :label="$t('labels.password')"
             type="password"
+            @focus="resetError"
           />
 
-          <div class="self-center flex items-center gap-8">
+          <div class="self-end">
+            <nuxt-link class="prose-sm text-primary underline" to="/forgot-password">
+              {{ $t('msg.info.signUp.forgotPassword') }}
+            </nuxt-link>
+          </div>
+
+          <div class="self-center flex items-center justify-between w-100">
             <button
-              class="border-1 border-solid border-gray-300 transition-color duration-100 ease-in rounded-lg shadow-md p-4 bg-gray-100/50 hover:(text-primary bg-primary/25)"
+              :disabled="!valid"
+              :class="[!valid ? '!opacity-50 !cursor-default' : 'shadow-md hover:(text-primary bg-primary/25)']"
+              class="ml-1 border-1 border-solid border-gray-300 transition-color duration-100 ease-in rounded-lg p-4 bg-gray-100/50"
               type="submit"
             >
               <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
             </button>
-            <div>
+            <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
               <nuxt-link class="text-primary underline hover:opacity-75" to="/signup">{{ $t('general.signUp') }}</nuxt-link>
             </div>

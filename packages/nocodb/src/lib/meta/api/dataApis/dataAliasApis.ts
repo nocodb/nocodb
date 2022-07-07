@@ -76,12 +76,17 @@ async function dataUpdate(req: Request, res: Response) {
 async function dataDelete(req: Request, res: Response) {
   const { model, view } = await getViewAndModelFromRequestByAliasOrId(req);
   const base = await Base.get(model.base_id);
+  const dbDriver = NcConnectionMgrv2.get(base);
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base),
+    dbDriver: dbDriver,
   });
-
+  const message = await baseModel.hasLTARData(req.params.rowId, model);
+  if (message.length) {
+    res.json({ message });
+    return;
+  }
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
 }
 async function getDataList(model, view: View, req) {

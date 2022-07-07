@@ -1,6 +1,8 @@
 export interface GlobalState {
   token?: string
-  user?: Record<string, any>
+  user?: {
+    email?: string
+  }
   lang: string
   darkMode: boolean
 }

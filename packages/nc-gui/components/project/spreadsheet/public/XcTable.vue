@@ -122,14 +122,14 @@
 <script>
 /* eslint-disable camelcase */
 
-import { ErrorMessages, SqlUiFactory } from 'nocodb-sdk'
-import spreadsheet from '../mixins/spreadsheet'
-import ApiFactory from '../apis/apiFactory'
-import FieldsMenu from '../components/FieldsMenu'
-import SortListMenu from '../components/SortListMenu'
-import ColumnFilterMenu from '../components/ColumnFilterMenu'
-import XcGridView from '../views/GridView'
-import MoreActions from '~/components/project/spreadsheet/components/MoreActions'
+import { ErrorMessages, SqlUiFactory } from 'nocodb-sdk';
+import spreadsheet from '../mixins/spreadsheet';
+import ApiFactory from '../apis/apiFactory';
+import FieldsMenu from '../components/FieldsMenu';
+import SortListMenu from '../components/SortListMenu';
+import ColumnFilterMenu from '../components/ColumnFilterMenu';
+import XcGridView from '../views/GridView';
+import MoreActions from '~/components/project/spreadsheet/components/MoreActions';
 
 export default {
   name: 'XcTable',
@@ -404,19 +404,19 @@ export default {
       try {
         this.viewMeta = await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
           headers: {
-            'xc-password': this.password
-          }
-        }))
-        this.tableMeta = this.viewMeta.model
-        this.meta = { ...this.viewMeta.model }
-        this.meta.columns = this.meta.columns.filter(c => c.show)
-        this.metas = this.viewMeta.relatedMetas
-        this.showSystemFields = this.viewMeta.show_system_fields
+            'xc-password': this.password,
+          },
+        });
+        this.tableMeta = this.viewMeta.model;
+        this.meta = { ...this.viewMeta.model };
+        this.meta.columns = this.meta.columns.filter(c => c.show);
+        this.metas = this.viewMeta.relatedMetas;
+        this.showSystemFields = this.viewMeta.show_system_fields;
 
-        this.sorts = this.viewMeta.sorts
-        this.viewName = this.viewMeta.title
-        this.client = this.viewMeta.client
-        this.allowCSVDownload = JSON.parse(this.viewMeta.meta).allowCSVDownload
+        this.sorts = this.viewMeta.sorts;
+        this.viewName = this.viewMeta.title;
+        this.client = this.viewMeta.client;
+        this.allowCSVDownload = JSON.parse(this.viewMeta.meta).allowCSVDownload;
       } catch (e) {
         if (e.response && e.response.status === 404) {
           this.notFound = true;

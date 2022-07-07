@@ -1,26 +1,27 @@
 import { Api } from 'nocodb-sdk'
 import { defineNuxtPlugin } from '#app'
+import type { GlobalState } from '~/lib/types'
 
 export default defineNuxtPlugin((nuxtApp) => {
   const api = new Api({
     baseURL: 'http://localhost:8080',
   })
 
-  addAxiosInterceptors(api, nuxtApp)
+  addAxiosInterceptors(api, nuxtApp as any)
 
   nuxtApp.provide('api', api)
 })
 
 const DbNotFoundMsg = 'Database config not found'
 
-function addAxiosInterceptors(api: Api<any>, app: any) {
+function addAxiosInterceptors(api: Api<any>, app: { $state: GlobalState }) {
   const router = useRouter()
   const route = useRoute()
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
-    if (app.$state.value.token) config.headers['xc-auth'] = app.$state.value.token
+    if (app.$state.token.value) config.headers['xc-auth'] = app.$state.token.value
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       // config.headers['xc-preview'] = store.state.users.previewAs
@@ -49,7 +50,7 @@ function addAxiosInterceptors(api: Api<any>, app: any) {
 
       // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/refresh-token') {
-        app.$state.value.token = undefined
+        app.$state.token.value = null
 
         return new Promise((resolve, reject) => {
           reject(error)
@@ -65,7 +66,7 @@ function addAxiosInterceptors(api: Api<any>, app: any) {
           // New request with new token
           const config = error.config
           config.headers['xc-auth'] = token.data.token
-          if (app.$state.value.token) app.$state.value.token = token.data.token
+          if (app.$state.token.value) app.$state.token.value = token.data.token
 
           return new Promise((resolve, reject) => {
             api.instance
@@ -79,7 +80,7 @@ function addAxiosInterceptors(api: Api<any>, app: any) {
           })
         })
         .catch(async (error) => {
-          app.$state.value.token = undefined
+          app.$state.token.value = null
           // todo: handle new user
 
           router.replace('/signin')

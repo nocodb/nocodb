@@ -62,8 +62,10 @@ const signIn = async () => {
 }
 
 const resetError = () => {
-  formValidator.value.reset()
-  error = null
+  if (error) {
+    formValidator.value.resetValidation()
+    error = null
+  }
 }
 </script>
 

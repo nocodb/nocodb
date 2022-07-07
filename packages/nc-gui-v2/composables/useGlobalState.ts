@@ -11,7 +11,9 @@ export const useGlobalState = (): GlobalState => {
   const preferredLanguages = $(usePreferredLanguages())
   const darkMode = $(usePreferredDark())
 
-  const initialState: State = { token: null, user: null, lang: preferredLanguages[0] || 'en', darkMode }
+  const preferredLanguage = preferredLanguages[0]?.split('_')[0] || 'en'
+
+  const initialState: State = { token: null, user: null, lang: preferredLanguage, darkMode }
 
   const storage = useStorage<State>(storageKey, initialState)
 

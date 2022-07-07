@@ -1,16 +1,15 @@
 <script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
+import ItemChip from './components/ItemChip.vue'
+import useBelongsTo from '~/composables/useBelongsTo'
 
-import { ColumnType } from "nocodb-sdk";
-import useBelongsTo from "~/composables/useBelongsTo";
-import ItemChip from "./components/ItemChip.vue";
+const column = inject<ColumnType>('column')
+const value = inject('value')
 
-const column = inject<ColumnType>("column");
-const value = inject("value");
-
-const { parentMeta, loadParentMeta, primaryValueProp } = useBelongsTo(column as ColumnType);
-await loadParentMeta();
+const { parentMeta, loadParentMeta, primaryValueProp } = useBelongsTo(column as ColumnType)
+await loadParentMeta()
 // import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
-/*import { RelationTypes, UITypes, isSystemColumn } from 'nocodb-sdk'
+/* import { RelationTypes, UITypes, isSystemColumn } from 'nocodb-sdk'
 import ListItems from '~/components/project/spreadsheet/components/virtualCell/components/ListItems'
 import ListChildItems from '~/components/project/spreadsheet/components/virtualCell/components/ListChildItems'
 import ItemChip from '~/components/project/spreadsheet/components/virtualCell/components/ItemChip'
@@ -306,23 +305,18 @@ export default {
       }, 500)
     },
   },
-}*/
+} */
 </script>
 
 <template>
   <div class="d-flex d-100 chips-wrapper" :class="{ active }">
-    <!--    <template v-if="!isForm">-->
+    <!--    <template v-if="!isForm"> -->
     <div class="chips d-flex align-center img-container flex-grow-1 hm-items">
       <template v-if="value || localState">
-        <ItemChip
-          :active="active"
-          :item="value"
-          :value="value[primaryValueProp]"
-
-        />
+        <ItemChip :active="active" :item="value" :value="value[primaryValueProp]" />
         <!--                      :readonly="isLocked || (isPublic && !isForm)"
                     @edit="editParent"
-                    @unlink="unlink"-->
+                    @unlink="unlink" -->
       </template>
     </div>
     <!--      <div
@@ -333,8 +327,8 @@ export default {
             <x-icon small :color="['primary', 'grey']" @click="showNewRecordModal">
               {{ value ? 'mdi-arrow-expand' : 'mdi-plus' }}
             </x-icon>
-          </div>-->
-    <!--    </template>-->
+          </div> -->
+    <!--    </template> -->
     <!--    <ListItems
           v-if="newRecordModal"
           :key="parentId"
@@ -416,7 +410,7 @@ export default {
             "
             @input="onParentSave"
           />
-        </v-dialog>-->
+        </v-dialog> -->
   </div>
 </template>
 

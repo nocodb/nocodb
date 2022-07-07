@@ -18,7 +18,7 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(colum
     <VirtualCellManyToMany v-else-if="isMm" />
     <VirtualCellBelongsTo v-else-if="isBt" />
     <VirtualCellRollup v-else-if="isRollup" />
-    <VirtualCellRollup v-else-if="isRollup" />
+    <VirtualCellFormula v-else-if="isFormula" />
 
     <!--    <v-lazy> -->
     <!--      <has-many-cell

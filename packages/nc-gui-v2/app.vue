@@ -5,12 +5,11 @@ import MdiDotsVertical from '~icons/mdi/dots-vertical'
 import { navigateTo } from '#app'
 
 const { $state } = useNuxtApp()
-const email = computed(() => $state.value.user?.email ?? '---')
+const email = computed(() => $state.user?.value?.email ?? '---')
 
-const signOut = () => {
-  $state.value.token = undefined
-  $state.value.user = undefined
-  navigateTo('/signin')
+const signOut = async () => {
+  $state.signOut()
+  await navigateTo('/signin')
 }
 </script>
 
@@ -46,7 +45,7 @@ const signOut = () => {
 
           <general-language class="mr-3" />
 
-          <template v-if="$state.token && $state.user">
+          <template v-if="$state.signedIn.value">
             <v-menu>
               <template #activator="{ props }">
                 <MdiDotsVertical class="md:text-xl cursor-pointer" @click="props.onClick" />

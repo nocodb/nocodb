@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useNuxt } from '@nuxt/kit'
 import { inject, watchEffect } from '@vue/runtime-core'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'

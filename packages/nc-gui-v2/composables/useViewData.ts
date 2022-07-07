@@ -31,7 +31,7 @@ export default (meta: Ref<TableType> | ComputedRef<TableType> | undefined) => {
       .map((c) => row[c.title as string])
       .join('___') as string
 
-    const newData = await $api.dbTableRow.update(
+    return $api.dbTableRow.update(
       'noco',
       project?.value.id as string,
       meta?.value.id as string,

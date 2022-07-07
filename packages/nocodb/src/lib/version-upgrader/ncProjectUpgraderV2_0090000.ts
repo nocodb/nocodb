@@ -387,6 +387,12 @@ async function migrateProjectModels(
       // parse meta
 
       const project = await Project.getWithInfo(modelData.project_id, ncMeta);
+
+      // skip if associated project is not found
+      if (!project) {
+        continue;
+      }
+
       const baseId = project.bases[0].id;
 
       const meta = JSON.parse(modelData.meta);

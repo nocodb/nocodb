@@ -11,7 +11,7 @@ export const useGlobalState = (): GlobalState => {
   const preferredLanguages = $(usePreferredLanguages())
   const darkMode = $(usePreferredDark())
 
-  const initialState = { token: undefined, user: undefined, lang: preferredLanguages[0] || 'en', darkMode }
+  const initialState = { token: null, user: null, lang: preferredLanguages[0] || 'en', darkMode }
 
   const storage = useStorage<State>(storageKey, initialState)
 
@@ -20,8 +20,8 @@ export const useGlobalState = (): GlobalState => {
 
   // actions
   function signOut() {
-    storage.value.token = undefined
-    storage.value.user = undefined
+    storage.value.token = null
+    storage.value.user = null
   }
 
   return { ...toRefs(storage.value), signedIn, signOut }

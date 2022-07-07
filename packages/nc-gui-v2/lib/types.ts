@@ -1,10 +1,12 @@
 import type { ComputedRef, ToRefs } from 'vue'
 
+export interface User {
+  email: string
+}
+
 export interface State {
-  token?: string
-  user?: {
-    email?: string
-  }
+  token: string | null
+  user: User | null
   lang: string
   darkMode: boolean
 }

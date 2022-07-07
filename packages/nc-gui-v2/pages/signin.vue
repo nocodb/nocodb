@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { useHead } from '#imports'
+import { definePageMeta, useHead } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { navigateTo, useNuxtApp } from '#app'
 import { isEmail } from '~/utils/validation'
@@ -10,6 +10,10 @@ import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 const { $api, $state } = $(useNuxtApp())
 
 const { t } = useI18n()
+
+definePageMeta({
+  requiresAuth: false,
+})
 
 useHead({
   title: t('title.headLogin'),

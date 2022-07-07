@@ -4,11 +4,17 @@ import { navigateTo } from '#app'
 
 const { $api, $state } = useNuxtApp()
 
+definePageMeta({
+  requiresAuth: false,
+})
+
 const error = ref()
+
 const form = reactive({
   email: '',
   password: '',
 })
+
 const signUp = async () => {
   error.value = null
   try {

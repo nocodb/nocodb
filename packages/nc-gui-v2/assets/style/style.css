@@ -27,10 +27,6 @@ table .v-input__control {
   border-bottom: 1px solid orange;
 }
 
-table .v-text-field > .v-input__control {
-  width: 25px;
-}
-
 table .v-text-field > .v-input__control > .v-input__slot:before {
   border-style: none;
 }

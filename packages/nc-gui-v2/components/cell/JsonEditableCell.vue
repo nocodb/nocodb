@@ -1,5 +1,6 @@
 <script>
 import MonacoJsonObjectEditor from '@/components/monaco/MonacoJsonObjectEditor'
+const editEnabled = inject < boolean > 'editEnabled'
 
 export default {
   name: 'JsonEditableCell',

@@ -69,6 +69,6 @@ export default (column: ColumnType) => {
     isAutoSaved,
     isManualSaved,
     isSingleSelect,
-    isMultiSelect
+    isMultiSelect,
   }
 }

@@ -1,42 +1,52 @@
-<script>
+<script setup lang="ts">
 import dayjs from 'dayjs'
+import { computed } from '@vue/reactivity'
+
+const { modelValue } = defineProps<{ modelValue: any }>()
+const emit = defineEmits(['update:modelValue'])
+
+const localState = computed({
+  get() {
+    if (!modelValue || !dayjs(modelValue).isValid()) {
+      return undefined
+    }
+
+    return (/^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)).format('YYYY-MM-DD')
+  },
+  set(val) {
+    if (dayjs(val).isValid()) {
+      emit('update:modelValue', val && dayjs(val).format('YYYY-MM-DD'))
+    }
+  },
+})
+
+/*
 
 export default {
-  name: 'TimePickerCell',
+  name: 'DatePickerCell',
   props: {
     value: [String, Date],
   },
   computed: {
-    isMysql() {
-      return ['mysql', 'mysql2'].indexOf(this.$store.getters['project/GtrClientType'])
-    },
     localState: {
       get() {
-        if (!this.value) {
-          return this.value
+        if (!this.value || !dayjs(this.value).isValid()) {
+          return undefined
         }
-        let dateTime = dayjs(this.value)
-        if (!dateTime.isValid()) {
-          dateTime = dayjs(this.value, 'HH:mm:ss')
-        }
-        if (!dateTime.isValid()) {
-          dateTime = dayjs(`1999-01-01 ${this.value}`)
-        }
-        if (!dateTime.isValid()) {
-          return this.value
-        }
-        return dateTime.format('HH:mm:ss')
+
+        return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD')
       },
       set(val) {
-        const dateTime = dayjs(`1999-01-01 ${val}:00`)
-        if (dateTime.isValid()) {
-          if (this.isMysql) {
-            this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ss'))
-          } else {
-            this.$emit('input', dateTime.format('YYYY-MM-DD HH:mm:ssZ'))
-          }
+        if (dayjs(val).isValid()) {
+          this.$emit('input', val && dayjs(val).format('YYYY-MM-DD'))
         }
       },
+    },
+    date() {
+      if (!this.value || this.localState) {
+        return this.localState
+      }
+      return 'Invalid Date'
     },
     parentListeners() {
       const $listeners = {}
@@ -48,10 +58,6 @@ export default {
         $listeners.focus = this.$listeners.focus
       }
 
-      if (this.$listeners.cancel) {
-        $listeners.cancel = this.$listeners.cancel
-      }
-
       return $listeners
     },
   },
@@ -60,22 +66,16 @@ export default {
       this.$el.$el.focus()
     }
   },
-}
+} */
 </script>
 
 <template>
-  <v-menu>
-    <template #activator="{ on }">
-      <input v-model="localState" class="value" v-on="on" />
-    </template>
-    <div class="d-flex flex-column justify-center" @click.stop>
-      <v-time-picker v-model="localState" v-on="parentListeners" />
-      <v-btn small color="primary" @click="$emit('save')">
-        <!-- Save -->
-        {{ $t('general.save') }}
-      </v-btn>
-    </div>
-  </v-menu>
+  <!--  <v-menu> -->
+  <!--    <template #activator="{ on }"> -->
+  <input v-model="localState" type="date" class="value" />
+  <!--    </template> -->
+  <!--    <v-date-picker v-model="localState" flat @click.native.stop v-on="parentListeners" /> -->
+  <!--  </v-menu> -->
 </template>
 
 <style scoped>

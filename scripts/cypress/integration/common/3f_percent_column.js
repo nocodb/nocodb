@@ -47,7 +47,9 @@ export const genTest = (apiType, dbType) => {
 
             // Configure Default Number
             fetchParentFromLabel("Default Number (%)");
-            cy.getActiveMenu().contains(defaultNumber).click();
+            if (defaultNumber) {
+                cy.getActiveMenu().contains(defaultNumber).click();
+            }
 
             // Configure Negative
             if (negative) {
@@ -134,7 +136,7 @@ export const genTest = (apiType, dbType) => {
             } else {
                 mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });
             }
-            cy.get(".duration-cell-wrapper > input").first().should('exist').type(cellValue);
+            cy.get(".percent-cell-wrapper > input").first().should('exist').type(cellValue);
             cy.getActiveModal().find("button").contains("Save row").click({ force: true });
             cy.toastWait("Row updated successfully");
             mainPage.getCell(colName, index).find('input').then(($e) => {

@@ -1,17 +1,22 @@
 <script setup lang="ts">
-import type { PaginatedType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import { computed, inject } from 'vue'
+import { ChangePageInj, PaginationDataInj } from '~/components'
 
-const paginatedData = inject<Ref<PaginatedType>>('paginatedData')
+const paginatedData = inject(PaginationDataInj)
+const changePage = inject(ChangePageInj)
 const count = computed<number>(() => {
   return paginatedData?.value?.totalRows ?? Infinity
 })
 const size = computed<number>(() => {
   return paginatedData?.value?.pageSize ?? 25
 })
-const page = computed<number>(() => {
-  return paginatedData?.value?.page ?? 1
+const page = computed<number>({
+  get() {
+    return paginatedData?.value?.page ?? 1
+  },
+  set(p) {
+    changePage?.(p)
+  },
 })
 /*
 export default {
@@ -43,8 +48,6 @@ export default {
 </script>
 
 <template>
-  {{ paginatedData }}
-
   <div class="d-flex align-center">
     <span v-if="count !== null && count !== Infinity" class="caption ml-2"> {{ count }} record{{ count !== 1 ? 's' : '' }} </span>
     <v-spacer />
@@ -56,22 +59,21 @@ export default {
       :total-visible="8"
       color="primary lighten-2"
       class="nc-pagination"
-      @input="$emit('input', page)"
     />
     <div v-else class="mx-auto d-flex align-center mt-n1" style="max-width: 250px">
       <span class="caption" style="white-space: nowrap"> Change page:</span>
       <v-text-field
-        v-model="page"
+        :value="page"
         class="ml-1 caption"
         :full-width="false"
         outlined
         dense
         hide-details
         type="number"
-        @keydown.enter="$emit('input', page)"
+        @keydown.enter="changePage(page)"
       >
         <template #append>
-          <x-icon tooltip="Change page" small icon.class="mt-1" @click="$emit('input', page)"> mdi-keyboard-return </x-icon>
+          <x-icon tooltip="Change page" small icon.class="mt-1" @click="changePage(page)"> mdi-keyboard-return </x-icon>
         </template>
       </v-text-field>
     </div>

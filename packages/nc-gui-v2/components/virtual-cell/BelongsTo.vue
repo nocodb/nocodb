@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
+import { ColumnInj } from '~/components'
 import useBelongsTo from '~/composables/useBelongsTo'
 
-const column = inject<ColumnType>('column')
+const column = inject(ColumnInj)
 const value = inject('value')
 
 const { parentMeta, loadParentMeta, primaryValueProp } = useBelongsTo(column as ColumnType)

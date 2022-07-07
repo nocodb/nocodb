@@ -2,11 +2,12 @@
 import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import { Ref, inject } from 'vue'
+import { ColumnInj } from '~/components'
 const { modelValue } = defineProps<{ modelValue: any }>()
 const emit = defineEmits(['update:modelValue'])
 // import {enumColor}from "~/utils/colorsUtils";
 
-const column = inject<ColumnType>('column')
+const column = inject(ColumnInj)
 const isForm = inject<boolean>('isForm')
 const editEnabled = inject<boolean>('editEnabled')
 

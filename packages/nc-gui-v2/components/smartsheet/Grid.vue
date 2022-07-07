@@ -1,10 +1,13 @@
 <script lang="ts" setup>
+import type { Ref } from 'vue'
 import { inject, onMounted } from 'vue'
 import { isVirtualCol } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
+import { MetaInj } from '~/components'
+import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import useViewData from '~/composables/useViewData'
 
-const meta = inject<TableType>('meta')
+const meta = inject(MetaInj)
 
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
@@ -12,10 +15,11 @@ const isPublicView = false
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
 
+const { loadData, paginationData, formattedData: data, updateRowProperty } = useViewData(meta)
+
 provide('isForm', false)
 provide('isGrid', true)
-
-const { loadData, paginationData, formattedData: data, updateRowProperty } = useViewData(meta)
+provide('paginationData', paginationData)
 
 onMounted(() => loadData({}))
 
@@ -151,6 +155,8 @@ onKeyStroke(['Enter'], (e) => {
       </tr>
     </tbody>
   </table>
+
+  <!--  <SmartsheetPagination /> -->
 </template>
 
 <style scoped lang="scss">

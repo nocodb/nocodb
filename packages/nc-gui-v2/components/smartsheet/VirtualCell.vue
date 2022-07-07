@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { ColumnInj } from '~/components'
 import useVirtualCell from '~/composables/useVirtualCell'
 
 const { column, modelValue: value } = defineProps<{ column: ColumnType; modelValue: any; editEnabled: boolean }>()
 
 const emit = defineEmits(['update:modelValue'])
 
-provide('column', column)
+provide(ColumnInj, column)
 provide('value', value)
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(column)

@@ -46,32 +46,34 @@ const signOut = () => {
 
           <general-language class="mr-3" />
 
-          <v-menu>
-            <template #activator="{ props }">
-              <MdiDotsVertical class="md:text-xl cursor-pointer" @click="props.onClick" />
-            </template>
-            <v-list class="!py-0 nc-user-menu min-w-32">
-              <nuxt-link
-                v-t="['c:navbar:user:email']"
-                class="flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                to="/user/settings"
-              >
-                <MdiAt />&nbsp;
-                <span class="font-bold">{{ email }}</span>
-              </nuxt-link>
+          <template v-if="$state.token && $state.user">
+            <v-menu>
+              <template #activator="{ props }">
+                <MdiDotsVertical class="md:text-xl cursor-pointer" @click="props.onClick" />
+              </template>
+              <v-list class="!py-0 nc-user-menu min-w-32">
+                <nuxt-link
+                  v-t="['c:navbar:user:email']"
+                  class="flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                  to="/user/settings"
+                >
+                  <MdiAt />&nbsp;
+                  <span class="font-bold">{{ email }}</span>
+                </nuxt-link>
 
-              <v-divider />
+                <v-divider />
 
-              <div
-                v-t="['a:navbar:user:sign-out']"
-                class="group flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                @click="signOut"
-              >
-                <MdiLogout class="transition-colors duration-150 ease-in group-hover:text-red-500" />&nbsp;
-                <span class="text-sm font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
-              </div>
-            </v-list>
-          </v-menu>
+                <div
+                  v-t="['a:navbar:user:sign-out']"
+                  class="group flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                  @click="signOut"
+                >
+                  <MdiLogout class="transition-colors duration-150 ease-in group-hover:text-red-500" />&nbsp;
+                  <span class="text-sm font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
+                </div>
+              </v-list>
+            </v-menu>
+          </template>
         </v-toolbar-items>
       </div>
     </v-app-bar>

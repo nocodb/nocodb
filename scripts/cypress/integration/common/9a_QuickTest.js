@@ -16,12 +16,12 @@ let records = {
     URL: "www.a.com",
     Number: "1",
     Value: "$1.00",
-    Percent: "1%", // 0.01 in AT
 };
 
 // links/ computed fields
 let records2 = {
     Duration: "00:01",
+    Percent: "1%", // 0.01 in AT
     Done: true,
     Date: "2022-05-31",
     Rating: "1",
@@ -117,6 +117,11 @@ export const genTest = (apiType, dbType, testMode) => {
                 .should(records2.Done ? "exist" : "not.exist");
 
             // date
+
+            // percent
+            mainPage.getCell("Percent", cellIdx).find('input').then(($e) => {
+              expect($e[0].value).to.equal(records2.Percent)
+          })
 
             // duration
             mainPage.getCell("Duration", cellIdx).find('input').then(($e) => {

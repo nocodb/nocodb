@@ -13,10 +13,10 @@ const { t } = useI18n()
 
 definePageMeta({
   requiresAuth: false,
+  title: 'title.headLogin',
 })
 
 useHead({
-  title: t('title.headLogin'),
   meta: [
     {
       hid: t('msg.info.loginMsg'),

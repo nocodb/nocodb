@@ -1,17 +1,47 @@
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
+import { useHead } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { navigateTo, useNuxtApp } from '#app'
+import { isEmail } from '~/utils/validation'
 import MdiLogin from '~icons/mdi/login'
 import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 
 const { $api, $state } = useNuxtApp()
+const { t } = useI18n()
+
+useHead({
+  title: t('title.headLogin'),
+  meta: [
+    {
+      hid: t('msg.info.loginMsg'),
+      name: t('msg.info.loginMsg'),
+      content: t('msg.info.loginMsg'),
+    },
+  ],
+})
 
 const error = ref()
+
 const valid = ref()
+
 const form = reactive({
   email: '',
   password: '',
 })
+
+const formRules = {
+  email: [
+    // E-mail is required
+    (v: string) => !!v || t('msg.error.signUpRules.emailReqd'),
+    // E-mail must be valid format
+    (v: string) => isEmail(v) || t('msg.error.signUpRules.emailInvalid'),
+  ],
+  password: [
+    // Password is required
+    (v: string) => !!v || t('msg.error.signUpRules.passwdRequired'),
+  ],
+}
 
 const signIn = async () => {
   error.value = null
@@ -37,9 +67,16 @@ const signIn = async () => {
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div
-          class="flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-lg)"
+          class="md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-lg)"
         >
-          <h1 class="prose-xl self-center">Sign-in to your account</h1>
+          <div
+            style="left: -moz-calc(50% - 45px); left: -webkit-calc(50% - 45px); left: calc(50% - 45px)"
+            class="absolute top-24 md:top-[-65px] rounded-lg bg-primary"
+          >
+            <img width="90" height="90" src="~/assets/img/icons/512x512-trans.png" />
+          </div>
+
+          <h1 class="prose-xl self-center">{{ $t('general.signIn') }}</h1>
 
           <v-divider class="mb-4" />
 
@@ -47,17 +84,27 @@ const signIn = async () => {
             <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
           </div>
 
-          <v-text-field id="email" v-model="form.email" :label="$t('labels.email')" type="text" />
+          <v-text-field id="email" v-model="form.email" :rules="formRules.email" :label="$t('labels.email')" type="text" />
 
-          <v-text-field id="password" v-model="form.password" :label="$t('labels.password')" type="password" />
+          <v-text-field
+            id="password"
+            v-model="form.password"
+            :rules="formRules.password"
+            :label="$t('labels.password')"
+            type="password"
+          />
 
-          <div class="self-center">
+          <div class="self-center flex items-center gap-8">
             <button
               class="border-1 border-solid border-gray-300 transition-color duration-100 ease-in rounded-lg shadow-md p-4 bg-gray-100/50 hover:(text-primary bg-primary/25)"
               type="submit"
             >
               <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
             </button>
+            <div>
+              {{ $t('msg.info.signUp.dontHaveAccount') }}
+              <nuxt-link class="text-primary underline hover:opacity-75" to="/signup">{{ $t('general.signUp') }}</nuxt-link>
+            </div>
           </div>
         </div>
       </div>

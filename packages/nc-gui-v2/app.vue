@@ -41,18 +41,18 @@ const email = computed(() => $state.user?.value?.email ?? '---')
           <general-language class="mr-3" />
 
           <template v-if="$state.signedIn.value">
-            <v-menu>
+            <v-menu class="leading-8">
               <template #activator="{ props }">
                 <MdiDotsVertical class="md:text-xl cursor-pointer" @click="props.onClick" />
               </template>
               <v-list class="!py-0 nc-user-menu min-w-32">
                 <nuxt-link
                   v-t="['c:navbar:user:email']"
-                  class="flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                  class="group hover:bg-gray-200 flex items-center p-2"
                   to="/user/settings"
                 >
-                  <MdiAt />&nbsp;
-                  <span class="font-bold">{{ email }}</span>
+                  <MdiAt class="mt-1 transition-colors duration-150 ease-in group-hover:text-success" />&nbsp;
+                  <span class="prose">{{ email }}</span>
                 </nuxt-link>
 
                 <v-divider />
@@ -63,7 +63,7 @@ const email = computed(() => $state.user?.value?.email ?? '---')
                   @click="$state.signOut"
                 >
                   <MdiLogout class="transition-colors duration-150 ease-in group-hover:text-red-500" />&nbsp;
-                  <span class="text-sm font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
+                  <span class="prose font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
                 </div>
               </v-list>
             </v-menu>

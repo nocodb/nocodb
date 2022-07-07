@@ -6,6 +6,11 @@ import lineClampPlugin from 'windicss/plugin/line-clamp'
 import windiColors from 'windicss/colors'
 // @ts-expect-error no types for plugin-scrollbar
 import scrollbar from '@windicss/plugin-scrollbar'
+// @ts-expect-error no types for plugin-animation
+import animations from '@windicss/plugin-animations'
+// @ts-expect-error no types for plugin-question-mark
+import questionMark from '@windicss/plugin-question-mark'
+
 import colors, { themeColors } from './utils/colorsUtils'
 
 export default defineConfig({
@@ -15,9 +20,10 @@ export default defineConfig({
   },
 
   attributify: true,
+
   darkMode: 'class',
 
-  plugins: [scrollbar, formsPlugin, typographyPlugin, aspectRatioPlugin, lineClampPlugin],
+  plugins: [scrollbar, animations, questionMark, formsPlugin, typographyPlugin, aspectRatioPlugin, lineClampPlugin],
 
   shortcuts: {
     'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',

@@ -22,6 +22,8 @@
     "@intlify/vite-plugin-vue-i18n": "^4.0.0",
     "@vue/compiler-sfc": "^3.2.37",
     "@vueuse/nuxt": "^8.6.0",
+    "@windicss/plugin-animations": "^1.0.9",
+    "@windicss/plugin-question-mark": "^0.1.1",
     "@windicss/plugin-scrollbar": "^1.2.3",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",

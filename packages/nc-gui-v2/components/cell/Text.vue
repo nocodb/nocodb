@@ -1,10 +1,12 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity'
-import { onMounted } from 'vue'
+import { watchEffect } from '@vue/runtime-core'
+import { inject, onMounted } from 'vue'
 
 const { modelValue: value } = defineProps<{ modelValue: any }>()
 
 const emit = defineEmits(['update:modelValue'])
+const editEnabled = inject<boolean>('editEnabled')
 
 const root = ref<HTMLInputElement>()
 
@@ -17,7 +19,7 @@ const localState = computed({
   },
 })
 
-onMounted(() => {
+watchEffect(() => {
   root.value?.focus()
 })
 
@@ -59,7 +61,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <input ref="root" v-model="localState" />
+  <input v-if="editEnabled" ref="root" v-model="localState" />
+  <span v-else>{{ localState }}</span>
   <!--  v-on="parentListeners" /> -->
 </template>
 

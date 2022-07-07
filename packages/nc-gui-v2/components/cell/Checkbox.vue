@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { computed } from 'vue'
+import { computed, inject } from 'vue'
 
 const { modelValue: value } = defineProps<{ modelValue: any }>()
 const emit = defineEmits(['update:modelValue'])

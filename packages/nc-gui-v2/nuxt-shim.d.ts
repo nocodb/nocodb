@@ -11,6 +11,6 @@ declare module '#app/nuxt' {
     }
     // tele.emit
     $e: (event: string, data?: any) => void
-    $state: RemovableRef<GlobalState>
+    $state: GlobalState
   }
 }

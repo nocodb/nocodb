@@ -1407,9 +1407,6 @@ class BaseModelSqlv2 {
             } is a LinkToAnotherRecord of ${childModel.title}`
           );
         }
-      } else if (colOptions.type === RelationTypes.BELONGS_TO) {
-        // TODO:
-        continue;
       } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
         const mmModel = await colOptions.getMMModel();
         const mmChildColumn = await colOptions.getMMChildColumn();

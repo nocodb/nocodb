@@ -52,7 +52,6 @@ export const genTest = (apiType, dbType) => {
             }
 
             // Configure Negative
-            
             if (negative) {
                 cy.get('[role="switch"][type="checkbox"]')
                 .click({ force: true });
@@ -98,7 +97,7 @@ export const genTest = (apiType, dbType) => {
 
             // edit / save on pop-up
             cy.get(".nc-column-edit").click();
-            cy.get(".nc-column-name-input input").clear().type(newName);
+            cy.get(".nc-column-name-input input").first().clear().type(newName);
 
             // Configure Precision
             fetchParentFromLabel("Precision");
@@ -106,7 +105,7 @@ export const genTest = (apiType, dbType) => {
 
             // Configure Default Number
             fetchParentFromLabel("Default Number (%)");
-            cy.getActiveMenu().contains(defaultNumber).click();
+            cy.getActiveMenu().find('input[type="number"]').type(defaultNumber);
 
             // Configure Negative
             cy.getActiveModal().find('[role="switch"][type="checkbox"]').invoke('val').then(($val) => {
@@ -128,6 +127,12 @@ export const genTest = (apiType, dbType) => {
             cy.get(`th:contains(${newName})`).should("exist");
         };
 
+        const isMatchedWithTargetValue = (colName, index, expectedValue) => {
+            mainPage.getCell(colName, index).find('input').then(($e) => {
+                expect($e[0].value).to.equal(expectedValue)
+            })
+        }
+
         const addPercentData = (colName, index, cellValue, expectedValue, isNewRow = false) => {
             if (isNewRow) {
                 cy.get(".nc-add-new-row-btn:visible").should("exist");
@@ -136,12 +141,15 @@ export const genTest = (apiType, dbType) => {
             } else {
                 mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });
             }
-            cy.get(".percent-cell-wrapper > input").first().should('exist').type(cellValue);
+            const targetPercentInput = cy.getActiveModal().get('.percent-cell-wrapper > input[type="number"]').eq(parseInt(colName.slice(-1)))
+            targetPercentInput.should('exist');
+            if (cellValue) {
+                targetPercentInput.focus().invoke('val', '').clear().type(cellValue).blur();
+                cy.wait(1000);
+            }
             cy.getActiveModal().find("button").contains("Save row").click({ force: true });
             cy.toastWait("Row updated successfully");
-            mainPage.getCell(colName, index).find('input').then(($e) => {
-                expect($e[0].value).to.equal(expectedValue)
-            })
+            isMatchedWithTargetValue(colName, index, expectedValue);
         }
 
         ///////////////////////////////////////////////////
@@ -153,66 +161,65 @@ export const genTest = (apiType, dbType) => {
                 addPercentColumn("NC_PERCENT_1", '1.0', 1, true);
                 addPercentColumn("NC_PERCENT_2", '1.00', 10, false);
                 addPercentColumn("NC_PERCENT_3", '1.000', 100, true);
-                addPercentColumn("NC_PERCENT_4", '1.0000', 1000, false);
-                addPercentColumn("NC_PERCENT_5", '1.00000', 2, true);
-                addPercentColumn("NC_PERCENT_6", '1.000000', 20, false);
-                addPercentColumn("NC_PERCENT_7", '1.0000000', 200, true);
-                addPercentColumn("NC_PERCENT_8", '1.00000000', 2000, false);
+                // addPercentColumn("NC_PERCENT_4", '1.0000', 1000, false);
+                // addPercentColumn("NC_PERCENT_5", '1.00000', 2, true);
+                // addPercentColumn("NC_PERCENT_6", '1.000000', 20, false);
+                // addPercentColumn("NC_PERCENT_7", '1.0000000', 200, true);
+                // addPercentColumn("NC_PERCENT_8", '1.00000000', 2000, false);
             });
 
             it("Percent: Test base case", () => {
-                // ( colName, index, cellValue, expectedValue )
-                addPercentData("NC_PERCENT_0", '1', 1, '1%');
-                addPercentData("NC_PERCENT_1", '1', 1, '1.0%');
-                addPercentData("NC_PERCENT_2", '1', 1, '1.00%');
-                addPercentData("NC_PERCENT_3", '1', 1, '1.000%');
-                addPercentData("NC_PERCENT_4", '1', 1, '1.0000%');
-                addPercentData("NC_PERCENT_5", '1', 1, '1.00000%');
-                addPercentData("NC_PERCENT_6", '1', 1, '1.000000%');
-                addPercentData("NC_PERCENT_7", '1', 1, '1.0000000%');
-                addPercentData("NC_PERCENT_8", '1', 1, '1.00000000%');
-                addPercentData("NC_PERCENT_9", '1', 1, '1.000000000%');
+                // ( colName, index, cellValue, expectedValue, isNew )
+                addPercentData("NC_PERCENT_0", 1, 1, '1%', true);
+                addPercentData("NC_PERCENT_1", 1, 1, '1.0%');
+                addPercentData("NC_PERCENT_2", 1, 1, '1.00%');
+                addPercentData("NC_PERCENT_3", 1, 1, '1.000%');
+                // addPercentData("NC_PERCENT_4", 1, 1, '1.0000%');
+                // addPercentData("NC_PERCENT_5", 1, 1, '1.00000%');
+                // addPercentData("NC_PERCENT_6", 1, 1, '1.000000%');
+                // addPercentData("NC_PERCENT_7", 1, 1, '1.0000000%');
+                // addPercentData("NC_PERCENT_8", 1, 1, '1.00000000%');
             });
 
             it("Percent: Test default value", () => {
                 // ( colName, index, cellValue, expectedValue )
-                addPercentData("NC_PERCENT_0", '2', 1, '1%');
-                addPercentData("NC_PERCENT_1", '2', null, '1.0%');
-                addPercentData("NC_PERCENT_2", '2', null, '10.00%');
-                addPercentData("NC_PERCENT_3", '2', null, '100.000%');
-                addPercentData("NC_PERCENT_4", '2', null, '1000.0000%');
-                addPercentData("NC_PERCENT_5", '2', null, '2.00000%');
-                addPercentData("NC_PERCENT_6", '2', null, '20.000000%');
-                addPercentData("NC_PERCENT_7", '2', null, '200.0000000%');
-                addPercentData("NC_PERCENT_8", '2', null, '2000.00000000%');
+                addPercentData("NC_PERCENT_0", 2, 1, '1%', true);
+                isMatchedWithTargetValue("NC_PERCENT_1", 2, '1.0%');
+                isMatchedWithTargetValue("NC_PERCENT_2", 2, '10.00%');
+                isMatchedWithTargetValue("NC_PERCENT_3", 2, '100.000%');
+                // isMatchedWithTargetValue("NC_PERCENT_4", 2, '1000.0000%');
+                // isMatchedWithTargetValue("NC_PERCENT_5", 2, '2.00000%');
+                // isMatchedWithTargetValue("NC_PERCENT_6", 2, '20.000000%');
+                // isMatchedWithTargetValue("NC_PERCENT_7", 2, '200.0000000%');
+                // isMatchedWithTargetValue("NC_PERCENT_8", 2, '2000.00000000%');
             });
 
 
             it("Percent: Test percision", () => {
-                // ( colName, index, cellValue, expectedValue )
-                addPercentData("NC_PERCENT_0", '3', 1.123456789, '1%');
-                addPercentData("NC_PERCENT_1", '3', 1.123456789, '1.1%');
-                addPercentData("NC_PERCENT_2", '3', 1.123456789, '1.12%');
-                addPercentData("NC_PERCENT_3", '3', 1.123456789, '1.123%');
-                addPercentData("NC_PERCENT_4", '3', 1.123456789, '1.1235%');
-                addPercentData("NC_PERCENT_5", '3', 1.123456789, '1.12346%');
-                addPercentData("NC_PERCENT_6", '3', 1.123456789, '1.123457%');
-                addPercentData("NC_PERCENT_7", '3', 1.123456789, '1.1234568%');
-                addPercentData("NC_PERCENT_7", '3', 1.123456789, '1.12345679%');
+                // ( colName, index, cellValue, expectedValue, isNew )
+                addPercentData("NC_PERCENT_0", 3, '2', '2%', true);
+                addPercentData("NC_PERCENT_1", 3, '2.1', '2.1%', false);    
+                addPercentData("NC_PERCENT_2", 3, '2.12', '2.12%', false);
+                addPercentData("NC_PERCENT_3", 3, '2.13', '2.123%', false);
+                // addPercentData("NC_PERCENT_4", 3, 1.123456789, '1.1235%', false);
+                // addPercentData("NC_PERCENT_5", 3, 1.123456789, '1.12346%', false);
+                // addPercentData("NC_PERCENT_6", 3, 1.123456789, '1.123457%', false);
+                // addPercentData("NC_PERCENT_7", 3, 1.123456789, '1.1234568%', false);
+                // addPercentData("NC_PERCENT_8", 3, 1.123456789, '1.12345679%', false);
             });
 
 
             it("Percent: Edit Columns", () => {
                 // ( column name, new column name, precision, default value, negative )
-                editColumnByName("NC_PERCENT_0", "NC_PERCENT_EDITED_0", '1.000000000', 300000, true);
-                editColumnByName("NC_PERCENT_1", "NC_PERCENT_EDITED_1", '1.00000000', 2000, false);
-                editColumnByName("NC_PERCENT_2", "NC_PERCENT_EDITED_2", '1.0000000', 200, true);
-                editColumnByName("NC_PERCENT_3", "NC_PERCENT_EDITED_3", '1.000000', 20, false);
-                editColumnByName("NC_PERCENT_4", "NC_PERCENT_EDITED_4", '1.00000', 2, true);
-                editColumnByName("NC_PERCENT_5", "NC_PERCENT_EDITED_5", '1.0000', 2, false);
-                editColumnByName("NC_PERCENT_6", "NC_PERCENT_EDITED_6", '1.000', 20, true);
-                editColumnByName("NC_PERCENT_7", "NC_PERCENT_EDITED_7", '1.00', 200, false);
-                editColumnByName("NC_PERCENT_8", "NC_PERCENT_EDITED_8", '1.0', 2000, true);
+                editColumnByName("NC_PERCENT_0", "NC_PERCENT_EDITED_0", '1.00000000', 300000, true);
+                editColumnByName("NC_PERCENT_1", "NC_PERCENT_EDITED_1", '1.0000000', 2000, false);
+                editColumnByName("NC_PERCENT_2", "NC_PERCENT_EDITED_2", '1.000000', 200, true);
+                editColumnByName("NC_PERCENT_3", "NC_PERCENT_EDITED_3", '1.00000', 20, false);
+                // editColumnByName("NC_PERCENT_4", "NC_PERCENT_EDITED_4", '1.0000', 2, true);
+                // editColumnByName("NC_PERCENT_5", "NC_PERCENT_EDITED_5", '1.000', 2, false);
+                // editColumnByName("NC_PERCENT_6", "NC_PERCENT_EDITED_6", '1.00', 20, true);
+                // editColumnByName("NC_PERCENT_7", "NC_PERCENT_EDITED_7", '1.0', 200, false);
+                // editColumnByName("NC_PERCENT_8", "NC_PERCENT_EDITED_8", '1', 2000, true);
             });
 
             it("Percent: Delete Columns", () => {
@@ -220,11 +227,11 @@ export const genTest = (apiType, dbType) => {
                 deleteColumnByName("NC_PERCENT_EDITED_1");
                 deleteColumnByName("NC_PERCENT_EDITED_2");
                 deleteColumnByName("NC_PERCENT_EDITED_3");
-                deleteColumnByName("NC_PERCENT_EDITED_4");
-                deleteColumnByName("NC_PERCENT_EDITED_5");
-                deleteColumnByName("NC_PERCENT_EDITED_6");
-                deleteColumnByName("NC_PERCENT_EDITED_7");
-                deleteColumnByName("NC_PERCENT_EDITED_8");
+                // deleteColumnByName("NC_PERCENT_EDITED_4");
+                // deleteColumnByName("NC_PERCENT_EDITED_5");
+                // deleteColumnByName("NC_PERCENT_EDITED_6");
+                // deleteColumnByName("NC_PERCENT_EDITED_7");
+                // deleteColumnByName("NC_PERCENT_EDITED_8");
             });
         }
     });

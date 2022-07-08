@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
 import MaterialSymbolsTranslate from '~icons/material-symbols/translate'
-import { Languages } from '~/lib/enums'
+import { Language } from '~/lib/enums'
 
 const { $e, $state } = useNuxtApp()
 
@@ -41,7 +41,7 @@ onMounted(() => {
     <v-list class="min-w-50 max-h-90vh overflow-auto !py-0 scrollbar-thin-primary">
       <v-list-item v-for="lang of languages" :key="lang.value" class="!min-h-8 group" :value="lang" @click="changeLanguage(lang)">
         <v-list-item-subtitle class="capitalize md:(!leading-8) group-hover:(text-primary font-semibold)">
-          {{ Languages[lang] || lang }}
+          {{ Language[lang] || lang }}
         </v-list-item-subtitle>
       </v-list-item>
 

@@ -10,6 +10,10 @@ export default defineNuxtRouteMiddleware((to, from) => {
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !$state.signedIn.value) {
     return navigateTo('/signin')
   } else if (to.meta.requiresAuth === false && $state.signedIn.value) {
-    return navigateTo(from.path)
+    if (from.meta.requiresAuth === false) {
+      return navigateTo('/')
+    } else {
+      return navigateTo(from.path)
+    }
   }
 })

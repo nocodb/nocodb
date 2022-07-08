@@ -17,6 +17,7 @@ export interface Getters {
 
 export interface Actions {
   signOut: () => void
+  signIn: (user: User, token: string) => void
 }
 
 export type GlobalState = Getters & Actions & ToRefs<State>

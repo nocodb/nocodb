@@ -54,7 +54,7 @@ const signIn = async () => {
   error = null
   try {
     const { token } = await $api.auth.signin(form)
-    $state.signIn({ email: form.email }, token!)
+    $state.signIn(token!)
   } catch (e: any) {
     // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
     error = await extractSdkResponseErrorMsg(e)

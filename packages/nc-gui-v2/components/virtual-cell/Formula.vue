@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
-import { computed } from 'vue'
+import { computed } from '#imports'
 import { ColumnInj } from '~/components'
 import { handleTZ } from '~/utils/dateTimeUtils'
 import { replaceUrlsWithLink } from '~/utils/urlUtils'

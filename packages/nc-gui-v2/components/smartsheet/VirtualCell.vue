@@ -1,9 +1,16 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { provide } from '#imports'
 import { ColumnInj } from '~/components'
 import useVirtualCell from '~/composables/useVirtualCell'
 
-const { column, modelValue: value } = defineProps<{ column: ColumnType; modelValue: any; editEnabled: boolean }>()
+interface Props {
+  column: ColumnType
+  modelValue: any
+  editEnabled: boolean
+}
+
+const { column, modelValue: value } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 

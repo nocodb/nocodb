@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, onMounted, provide, watch } from 'vue'
+import { computed, onMounted, provide, watch } from '#imports'
 import { MetaInj, TabMetaInj } from '~/components'
 import useMetas from '~/composables/useMetas'
 
@@ -9,9 +9,7 @@ const { tabMeta } = defineProps({
 
 const { getMeta, metas } = useMetas()
 
-const meta = computed(() => {
-  return metas.value?.[tabMeta?.id]
-})
+const meta = computed(() => metas.value?.[tabMeta?.id])
 
 onMounted(async () => {
   await getMeta(tabMeta?.id)
@@ -30,11 +28,9 @@ watch(
 
 <template>
   <div class="overflow-auto">
-    <v-toolbar dense class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1" style="z-index: 7"> </v-toolbar>
+    <v-toolbar dense class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1 z-7" />
     <template v-if="meta && tabMeta">
       <SmartsheetGrid />
     </template>
   </div>
 </template>
-
-<style scoped></style>

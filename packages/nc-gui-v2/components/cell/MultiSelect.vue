@@ -1,25 +1,27 @@
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity'
-import type { ColumnType } from 'nocodb-sdk'
-import { Ref, inject } from 'vue'
-import { enumColor } from '~/utils/colorsUtils'
+import { computed, inject } from '#imports'
+import { ColumnInj } from '~/components'
 
-const { modelValue } = defineProps<{ modelValue: any }>()
+interface Props {
+  modelValue: string
+}
+
+const { modelValue } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
-const column = inject<ColumnType>('column')
-const isForm = inject<boolean>('isForm')
-const editEnabled = inject<boolean>('editEnabled')
 
-const options = computed<string[]>(() => {
-  return column?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || []
-})
+const column = inject(ColumnInj)
+const isForm = inject<boolean>('isForm', false)
+const editEnabled = inject<boolean>('editEnabled', false)
+
+const options = computed(() => column?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
 
 const localState = computed({
   get() {
-    return modelValue?.match(/(?:[^',]|\\')+(?='?(?:,|$))/g).map((v: string) => v.replace(/\\'/g, "'"))
+    return modelValue?.match(/(?:[^',]|\\')+(?='?(?:,|$))/g)?.map((v: string) => v.replace(/\\'/g, "'"))
   },
-  set(val) {
-    emit('update:modelValue', val.filter((v: string) => options.value.includes(v)).join(','))
+  set(val?: string[]) {
+    emit('update:modelValue', val?.filter((v) => options.value.includes(v)).join(','))
   },
 })
 

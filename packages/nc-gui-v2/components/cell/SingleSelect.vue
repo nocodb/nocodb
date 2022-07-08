@@ -1,28 +1,25 @@
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity'
-import type { ColumnType } from 'nocodb-sdk'
-import { Ref, inject } from 'vue'
+import { computed, inject } from '#imports'
 import { ColumnInj } from '~/components'
-const { modelValue } = defineProps<{ modelValue: any }>()
+
+interface Props {
+  modelValue: string
+}
+
+const { modelValue } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
-// import {enumColor}from "~/utils/colorsUtils";
 
 const column = inject(ColumnInj)
-const isForm = inject<boolean>('isForm')
-const editEnabled = inject<boolean>('editEnabled')
+const isForm = inject<boolean>('isForm', false)
+const editEnabled = inject<boolean>('editEnabled', false)
 
 const localState = computed({
-  get() {
-    return modelValue?.replace(/\\'/g, "'").replace(/^'|'$/g, '')
-  },
-  set(val) {
-    emit('update:modelValue', val)
-  },
+  get: () => modelValue?.replace(/\\'/g, "'").replace(/^'|'$/g, ''),
+  set: (val) => emit('update:modelValue', val),
 })
 
-const options = computed<string[]>(() => {
-  return column?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || []
-})
+const options = computed(() => column?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
 
 /* import colors from '@/mixins/colors'
 

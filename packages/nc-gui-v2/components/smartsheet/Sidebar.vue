@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { inject } from '@vue/runtime-core'
 import type { TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { onMounted } from 'vue'
+import { inject, onMounted, ref } from '#imports'
 import { MetaInj } from '~/components'
 import useViews from '~/composables/useViews'
 import { viewIcons } from '~/utils/viewUtils'
@@ -14,6 +13,7 @@ const _isUIAllowed = (view: string) => {}
 onMounted(loadViews)
 
 const selectedViewIdLocal = ref('')
+const toggleDrawer = ref(false)
 </script>
 
 <template>

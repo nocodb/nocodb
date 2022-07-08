@@ -282,7 +282,7 @@ export default {
 <template>
   <v-menu>
     <template #activator="{ on }">
-      <v-badge :value="isAnyFieldHidden" color="primary" dot overlap>
+      <v-badge :value="isAnyFieldHidden" color="primary" dot overlap v-on="on">
         <v-btn
           v-t="['c:fields']"
           class="nc-fields-menu-btn px-2 nc-remove-border"

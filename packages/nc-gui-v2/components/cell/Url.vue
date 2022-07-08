@@ -1,5 +1,5 @@
-<script>
-const editEnabled = inject < boolean > 'editEnabled'
+<script lang="ts">
+const editEnabled = inject<boolean>('editEnabled')
 
 /*
 import { isValidURL } from '@/helpers'

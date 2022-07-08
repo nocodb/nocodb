@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { computed } from '@vue/reactivity'
 import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
 import { ColumnInj } from '~/components'

@@ -1,6 +1,6 @@
 <script lang="ts" setup>
-import { inject, onMounted } from 'vue'
 import { isVirtualCol } from 'nocodb-sdk'
+import { inject, onKeyStroke, onMounted, provide } from '#imports'
 import { ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj } from '~/components'
 import useViewData from '~/composables/useViewData'
 

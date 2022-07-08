@@ -34,7 +34,6 @@ export const state = () => ({
   isComp: false,
   metatables: false,
   nc: true,
-  miniSponsorCard: 0,
   screensaver: true,
   autoApplyFilter: true,
   apiLoading: false,
@@ -152,9 +151,6 @@ export const mutations = {
   },
   MutNc(state, nc) {
     state.nc = nc
-  },
-  MutMiniSponsorCard(state, miniSponsorCard) {
-    state.miniSponsorCard = miniSponsorCard
   },
   MutIncludeM2M(state, includeM2M) {
     state.includeM2M = includeM2M

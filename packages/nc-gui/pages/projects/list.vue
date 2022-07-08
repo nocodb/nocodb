@@ -36,10 +36,6 @@
           </v-list>
         </div>
         <v-divider />
-        <extras class="pl-6" />
-        <div class="sponsor ml-2 mb-2 mr-2">
-          <sponsor-mini nav />
-        </div>
       </div>
     </v-navigation-drawer>
     <v-container class="flex-grow-1 py-9 px-15 h-100" style="overflow-y: auto">
@@ -151,12 +147,10 @@
 <script>
 import colors from '~/mixins/colors'
 import CreateNewProjectBtn from '~/components/projectList/CreateNewProjectBtn'
-import Extras from '~/components/project/spreadsheet/components/Extras'
-import SponsorMini from '~/components/SponsorMini'
 
 export default {
   name: 'List',
-  components: { SponsorMini, Extras, CreateNewProjectBtn },
+  components: { CreateNewProjectBtn },
   mixins: [colors],
   data: () => ({
     projectList: null,

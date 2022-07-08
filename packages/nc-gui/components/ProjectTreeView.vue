@@ -722,9 +722,6 @@
             </settings-modal>
           </div>
         </template>
-
-        <!--        <v-divider/>-->
-        <!--        <extras class="pl-1"/>-->
       </div>
     </v-navigation-drawer>
 
@@ -810,7 +807,6 @@ import dlgLabelSubmitCancel from "./utils/DlgLabelSubmitCancel";
 import {copyTextToClipboard} from "../helpers/xutils";
 import DlgTableCreate from "~/components/utils/DlgTableCreate";
 import DlgViewCreate from "~/components/utils/DlgViewCreate";
-import SponsorMini from "~/components/SponsorMini";
 import {validateTableName} from "~/helpers";
 import QuickImport from "~/components/import/QuickImport";
 
@@ -818,17 +814,14 @@ import draggable from "vuedraggable";
 import GithubStarBtn from "~/components/GithubStarBtn";
 import SettingsModal from "~/components/settings/SettingsModal";
 import Language from "~/components/utils/Language";
-import Extras from "~/components/project/spreadsheet/components/Extras";
 
 export default {
   components: {
-    Extras,
     Language,
     SettingsModal,
     GithubStarBtn,
     draggable,
     QuickImport,
-    SponsorMini,
     DlgViewCreate,
     DlgTableCreate,
     textDlgSubmitCancel,

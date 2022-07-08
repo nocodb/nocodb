@@ -384,12 +384,6 @@
           </v-col>
         </v-row>
       </v-col>
-      <v-col
-        v-if="loaded"
-        class="col-sm-12 col-lg-3 d-sm-none d-md-flex justify-center justify-lg-end align-start"
-      >
-        <sponsor-mini />
-      </v-col>
     </v-row>
 
     <div v-if="projects && projects.length" class="d-flex justify-end">
@@ -520,21 +514,6 @@
             </v-list-item-title>
           </v-list-item>
         </template>
-
-        <v-divider />
-        <v-list-item
-          v-t="['e:hiring']"
-          dense
-          target="_blank"
-          href="http://careers.nocodb.com"
-        >
-          <v-list-item-icon>
-            <span class="ml-2" style="font-size:20px">🚀</span>
-          </v-list-item-icon>
-          <v-list-item-title>
-            We are Hiring!!!
-          </v-list-item-title>
-        </v-list-item>
       </v-list>
     </div>
 
@@ -560,7 +539,6 @@
 <script>
 import dlgLabelSubmitCancel from '../../components/utils/DlgLabelSubmitCancel.vue'
 import ShareIcons from '../../components/ShareIcons'
-import SponsorMini from '~/components/SponsorMini'
 import colors from '~/mixins/colors'
 import TemplatesModal from '~/components/templates/TemplatesModal'
 
@@ -568,9 +546,7 @@ export default {
   components: {
     TemplatesModal,
     ShareIcons,
-    SponsorMini,
     dlgLabelSubmitCancel
-    // howItWorks,
   },
   mixins: [colors],
   $_veeValidate: {

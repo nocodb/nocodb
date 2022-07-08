@@ -75,7 +75,8 @@ export default {
           col: c.colOptions,
           column: c,
           ...this.tables.find(t => t.id === c.colOptions.fk_related_model_id),
-        }));
+        }))
+        .filter(table => table.col.fk_related_model_id === table.id && !table.mm);
 
       return refTables;
     },

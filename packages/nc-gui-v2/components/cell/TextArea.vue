@@ -1,10 +1,11 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity'
-import { onMounted } from 'vue'
+import { inject, onMounted } from 'vue'
 
 const { modelValue: value } = defineProps<{ modelValue: any }>()
 
 const emit = defineEmits(['update:modelValue'])
+const editEnabled = inject<boolean>('editEnabled')
 
 const root = ref<HTMLInputElement>()
 
@@ -57,7 +58,16 @@ onMounted(() => {
 </script>
 
 <template>
-  <textarea ref="root" v-model="localState" rows="4" v-on="parentListeners" @keydown.alt.enter.stop @keydown.shift.enter.stop />
+  <textarea
+    v-if="editEnabled"
+    ref="root"
+    v-model="localState"
+    rows="4"
+    v-on="parentListeners"
+    @keydown.alt.enter.stop
+    @keydown.shift.enter.stop
+  />
+  <span v-else>{{ localState }}</span>
 </template>
 
 <style scoped>

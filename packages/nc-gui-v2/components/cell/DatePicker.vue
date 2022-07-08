@@ -1,39 +1,52 @@
 <script setup lang="ts">
+import dayjs from 'dayjs'
 import { computed } from '@vue/reactivity'
-import { onMounted } from 'vue'
 
-const { modelValue: value } = defineProps<{ modelValue: any }>()
-
+const { modelValue } = defineProps<{ modelValue: any }>()
 const emit = defineEmits(['update:modelValue'])
-
-const root = ref<HTMLInputElement>()
 
 const localState = computed({
   get() {
-    return value
+    if (!modelValue || !dayjs(modelValue).isValid()) {
+      return undefined
+    }
+
+    return (/^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)).format('YYYY-MM-DD')
   },
   set(val) {
-    emit('update:modelValue', val)
+    if (dayjs(val).isValid()) {
+      emit('update:modelValue', val && dayjs(val).format('YYYY-MM-DD'))
+    }
   },
 })
 
-onMounted(() => {
-  root.value?.focus()
-})
+/*
 
-/* export default {
-  name: 'TextCell',
+export default {
+  name: 'DatePickerCell',
   props: {
-    value: [String, Object, Number, Boolean, Array],
+    value: [String, Date],
   },
   computed: {
     localState: {
       get() {
-        return this.value
+        if (!this.value || !dayjs(this.value).isValid()) {
+          return undefined
+        }
+
+        return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD')
       },
       set(val) {
-        this.$emit('input', val)
+        if (dayjs(val).isValid()) {
+          this.$emit('input', val && dayjs(val).format('YYYY-MM-DD'))
+        }
       },
+    },
+    date() {
+      if (!this.value || this.localState) {
+        return this.localState
+      }
+      return 'Invalid Date'
     },
     parentListeners() {
       const $listeners = {}
@@ -45,31 +58,30 @@ onMounted(() => {
         $listeners.focus = this.$listeners.focus
       }
 
-      if (this.$listeners.cancel) {
-        $listeners.cancel = this.$listeners.cancel
-      }
-
       return $listeners
     },
   },
   mounted() {
-    this.$el.focus()
+    if (this.$el && this.$el.$el) {
+      this.$el.$el.focus()
+    }
   },
 } */
 </script>
 
 <template>
-  <input ref="root" v-model="localState" />
-  <!--  v-on="parentListeners" /> -->
+  <!--  <v-menu> -->
+  <!--    <template #activator="{ on }"> -->
+  <input v-model="localState" type="date" class="value" />
+  <!--    </template> -->
+  <!--    <v-date-picker v-model="localState" flat @click.native.stop v-on="parentListeners" /> -->
+  <!--  </v-menu> -->
 </template>
 
 <style scoped>
-input,
-textarea {
+.value {
   width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
-  outline: none;
+  min-height: 20px;
 }
 </style>
 <!--

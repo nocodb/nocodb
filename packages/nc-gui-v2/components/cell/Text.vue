@@ -1,8 +1,32 @@
-<script>
-export default {
-  name: 'IntegerCell',
+<script setup lang="ts">
+import { computed } from '@vue/reactivity'
+import { watchEffect } from '@vue/runtime-core'
+import { inject, onMounted } from 'vue'
+
+const { modelValue: value } = defineProps<{ modelValue: any }>()
+
+const emit = defineEmits(['update:modelValue'])
+const editEnabled = inject<boolean>('editEnabled')
+
+const root = ref<HTMLInputElement>()
+
+const localState = computed({
+  get() {
+    return value
+  },
+  set(val) {
+    emit('update:modelValue', val)
+  },
+})
+
+watchEffect(() => {
+  root.value?.focus()
+})
+
+/* export default {
+  name: 'TextCell',
   props: {
-    value: [String, Number],
+    value: [String, Object, Number, Boolean, Array],
   },
   computed: {
     localState: {
@@ -10,7 +34,7 @@ export default {
         return this.value
       },
       set(val) {
-        this.$emit('input', parseInt(val, 10))
+        this.$emit('input', val)
       },
     },
     parentListeners() {
@@ -23,24 +47,32 @@ export default {
         $listeners.focus = this.$listeners.focus
       }
 
+      if (this.$listeners.cancel) {
+        $listeners.cancel = this.$listeners.cancel
+      }
+
       return $listeners
     },
   },
   mounted() {
     this.$el.focus()
   },
-}
+} */
 </script>
 
 <template>
-  <input v-model="localState" type="number" v-on="parentListeners" />
+  <input v-if="editEnabled" ref="root" v-model="localState" />
+  <span v-else>{{ localState }}</span>
+  <!--  v-on="parentListeners" /> -->
 </template>
 
 <style scoped>
-input {
+input,
+textarea {
   width: 100%;
   height: 100%;
   color: var(--v-textColor-base);
+  outline: none;
 }
 </style>
 <!--

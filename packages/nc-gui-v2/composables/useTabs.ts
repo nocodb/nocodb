@@ -25,6 +25,9 @@ export default () => {
   const clearTabs = () => {
     tabs.value = []
   }
+  const closeTab = (index: number) => {
+    tabs.value.splice(index, 1)
+  }
 
-  return { tabs, addTab, activeTab, clearTabs }
+  return { tabs, addTab, activeTab, clearTabs, closeTab }
 }

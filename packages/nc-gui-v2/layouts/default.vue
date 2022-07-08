@@ -3,10 +3,11 @@ import { useI18n } from 'vue-i18n'
 import { useHead, useRoute } from '#imports'
 
 const route = useRoute()
-const { t } = useI18n()
+
+const { te, t } = useI18n()
 
 useHead({
-  title: `${t(route.meta.title as string)} | NocoDB`,
+  title: route.meta?.title && te(route.meta.title as string) ? `${t(route.meta.title as string)} | NocoDB` : 'NocoDB',
 })
 </script>
 

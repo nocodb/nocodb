@@ -19,5 +19,8 @@ export default () => {
     project.value = await $api.project.read(projectId)
   }
 
-  return { project, tables, loadProject, loadTables }
+  const isMysql = computed(() => ['mysql', 'mysql2'].includes(project.value?.bases?.[0]?.type || ''))
+  const isPg = computed(() => project.value?.bases?.[0]?.type === 'pg')
+
+  return { project, tables, loadProject, loadTables, isMysql, isPg }
 }

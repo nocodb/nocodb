@@ -1,8 +1,9 @@
 import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
-import { navigateTo } from '#app'
 import { useJwt } from '@vueuse/integrations/useJwt'
-import { computed, toRefs } from '#build/imports'
-import type { Actions, Getters, GlobalState, State } from '~/lib/types'
+import type { JwtPayload } from 'jwt-decode'
+import { navigateTo } from '#app'
+import { computed, nextTick, toRefs } from '#build/imports'
+import type { Actions, Getters, GlobalState, State, User } from '~/lib/types'
 
 const storageKey = 'nocodb-gui-v2'
 
@@ -19,24 +20,42 @@ export const useGlobalState = (): GlobalState => {
 
   const storage = useStorage<State>(storageKey, initialState)
 
-  const token = $ref(storage.value.token)
+  let token = $computed({
+    get: () => storage.value.token || '',
+    set: (val) => (storage.value.token = val),
+  })
 
-  const { payload } = useJwt(token!)
+  const { payload } = $(useJwt<JwtPayload & User>($$(token!)))
 
   // getters
-  const signedIn: Getters['signedIn'] = computed(() => !!(!!token && payload.value && payload.value.exp && payload.value.exp > Date.now() / 1000))
+  const signedIn: Getters['signedIn'] = computed(
+    () => !!(!!token && token !== '' && payload && payload.exp && payload.exp > Date.now() / 1000),
+  )
 
   // actions
   const signOut: Actions['signOut'] = () => {
     storage.value.token = null
     storage.value.user = null
+
     navigateTo('/signin')
   }
 
-  const signIn: Actions['signIn'] = (user, token) => {
-    storage.value.token = token
-    storage.value.user = user
-    navigateTo('/')
+  const signIn: Actions['signIn'] = async (newToken) => {
+    token = newToken
+
+    if (payload) {
+      storage.value.user = {
+        id: payload.id,
+        email: payload.email,
+        firstname: payload.firstname,
+        lastname: payload.lastname,
+        roles: payload.roles,
+      }
+    }
+
+    await nextTick(() => {
+      navigateTo('/')
+    })
   }
 
   return { ...toRefs(storage.value), signedIn, signOut, signIn }

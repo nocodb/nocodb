@@ -315,7 +315,7 @@ export default {
     <!--    <template v-if="!isForm"> -->
     <div class="chips d-flex align-center img-container flex-grow-1 hm-items">
       <template v-if="value || localState">
-        <ItemChip :active="active" :item="value" :value="value[primaryValueProp]" />
+        <ItemChip :active="active" :item="value" :modelValue="value[primaryValueProp]" />
         <!--                      :readonly="isLocked || (isPublic && !isForm)"
                     @edit="editParent"
                     @unlink="unlink" -->

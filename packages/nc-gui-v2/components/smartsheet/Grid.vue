@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, onKeyStroke, onMounted, provide } from '#imports'
-import { ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj } from '~/components'
+import { ActiveViewInj, ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj } from '~/components'
 import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)
+const view = inject(ActiveViewInj)
 
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
@@ -12,14 +13,12 @@ const isPublicView = false
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
 
-const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta)
+const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
 
 provide(IsFormInj, false)
 provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
-
-onMounted(() => loadData({}))
 
 const selectCell = (row: number, col: number) => {
   selected.row = row
@@ -31,6 +30,16 @@ onKeyStroke(['Enter'], (e) => {
     editEnabled.value = true
   }
 })
+
+watch(
+  [meta, view],
+  async () => {
+    if (meta?.value && view?.value) {
+      await loadData()
+    }
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
@@ -164,6 +173,7 @@ onKeyStroke(['Enter'], (e) => {
   // todo : proper height calculation
   height: calc(100vh - 250px);
   overflow: auto;
+
   td,
   tr {
     min-height: 31px !important;

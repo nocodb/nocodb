@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { computed, inject } from '#imports'
-import { ColumnInj, IsFormInj } from "~/components";
+import { ColumnInj, IsFormInj } from '~/components'
 
 interface Props {
-  modelValue: boolean
+  modelValue?: boolean | undefined | number
 }
 
 const { modelValue: value } = defineProps<Props>()

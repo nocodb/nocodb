@@ -28,7 +28,7 @@ watch(
 
 <template>
   <div class="overflow-auto">
-    <v-toolbar dense class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom mx-1 z-7" />
+    <SmartsheetToolbar />
     <template v-if="meta && tabMeta">
       <SmartsheetGrid />
     </template>

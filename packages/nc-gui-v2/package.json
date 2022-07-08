@@ -14,6 +14,7 @@
     "jwt-decode": "^3.1.2",
     "nocodb-sdk": "file:../nocodb-sdk",
     "socket.io-client": "^4.5.1",
+    "vite-plugin-vuetify": "^1.0.0-alpha.12",
     "vue-i18n": "^9.1.10",
     "vue-toastification": "^2.0.0-rc.5",
     "vuetify": "^3.0.0-alpha.13"

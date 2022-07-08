@@ -11,3 +11,4 @@ export const ChangePageInj: InjectionKey<ReturnType<typeof useViewData>['changeP
 export const IsFormInj: InjectionKey<boolean> = Symbol('is-form-injection')
 export const IsGridInj: InjectionKey<boolean> = Symbol('is-grid-injection')
 export const ValueInj: InjectionKey<any> = Symbol('value-injection')
+export const ActiveViewInj: InjectionKey<any> = Symbol('active-view-injection')

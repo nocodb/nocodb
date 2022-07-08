@@ -1385,6 +1385,7 @@ class BaseModelSqlv2 {
       (c) => c.uidt === UITypes.LinkToAnotherRecord
     );
     const res = [];
+    let i = 0;
     for (const column of LTARColumns) {
       const colOptions =
         (await column.getColOptions()) as LinkToAnotherRecordColumn;
@@ -1394,10 +1395,18 @@ class BaseModelSqlv2 {
       await childModel.getColumns();
       const parentModel = await parentColumn.getModel();
       await parentModel.getColumns();
-      let i = 0;
       if (colOptions.type === RelationTypes.HAS_MANY) {
-        // TODO:
-        continue;
+        const selectHmCount = await this.dbDriver(childModel.table_name)
+          .count(childColumn.column_name, { as: 'cnt' })
+          .where(childColumn.column_name, rowId);
+        const cnt = (await selectHmCount)[0].cnt;
+        if (cnt) {
+          res.push(
+            `${i++ + 1}. ${model.title}.${
+              column.title
+            } is a LinkToAnotherRecord of ${childModel.title}`
+          );
+        }
       } else if (colOptions.type === RelationTypes.BELONGS_TO) {
         // TODO:
         continue;

@@ -55,6 +55,27 @@ const mysql2 = {
       END${colAlias}`
     );
   },
+  WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
+    const m = {
+      monday: 0,
+      tuesday: 1,
+      wednesday: 2,
+      thursday: 3,
+      friday: 4,
+      saturday: 5,
+      sunday: 6,
+    };
+    const offset = m[pt?.arguments[1]?.value] || 0;
+    return knex.raw(
+      `CASE
+      WHEN WEEKDAY(${fn(pt.arguments[0])}) >= ${offset} THEN
+        WEEKDAY(${fn(pt.arguments[0])}) - ${offset}
+      ELSE
+       7 - ${offset} + WEEKDAY(${fn(pt.arguments[0])})
+      END${colAlias}`
+    );
+  },
 };
 
 export default mysql2;

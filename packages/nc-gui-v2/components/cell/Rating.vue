@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import { computed, inject } from '#imports'
-import { ColumnInj, IsFormInj } from "~/components";
+import { ColumnInj, IsFormInj } from '~/components'
 import MdiStarIcon from '~icons/mdi/star'
 import MdiStarOutlineIcon from '~icons/mdi/star-outline'
 
 interface Props {
-  modelValue: string | number
+  modelValue?: string | number
   readOnly?: boolean
 }
 

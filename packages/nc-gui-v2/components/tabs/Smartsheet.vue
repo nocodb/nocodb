@@ -1,6 +1,8 @@
 <script setup lang="ts">
+import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
 import { computed, onMounted, provide, watch } from '#imports'
-import { MetaInj, TabMetaInj } from '~/components'
+import { ActiveViewInj, MetaInj, TabMetaInj } from '~/components'
 import useMetas from '~/composables/useMetas'
 
 const { tabMeta } = defineProps({
@@ -9,6 +11,7 @@ const { tabMeta } = defineProps({
 
 const { getMeta, metas } = useMetas()
 
+const activeView = ref<GridType | FormType | KanbanType | GalleryType>()
 const meta = computed(() => metas.value?.[tabMeta?.id])
 
 onMounted(async () => {
@@ -17,6 +20,7 @@ onMounted(async () => {
 
 provide(MetaInj, meta)
 provide(TabMetaInj, tabMeta)
+provide(ActiveViewInj, activeView)
 
 watch(
   () => tabMeta && tabMeta?.id,
@@ -29,10 +33,10 @@ watch(
 <template>
   <div class="overflow-auto">
     <SmartsheetToolbar />
-    <template v-if="meta && tabMeta">
+    <template v-if="meta">
       <div class="d-flex">
-        <div class="flex-grow-1 min-w-0">
-          <SmartsheetGrid />
+        <div v-if="activeView" class="flex-grow-1 min-w-0">
+          <SmartsheetGrid v-if="activeView.type === ViewTypes.GRID" />
         </div>
         <SmartsheetSidebar />
       </div>

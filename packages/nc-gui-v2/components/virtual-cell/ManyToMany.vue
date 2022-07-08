@@ -399,7 +399,7 @@ export default {
     <!--    <template v-if="!isForm"> -->
     <div class="chips d-flex align-center img-container flex-grow-1 hm-items flex-nowrap">
       <template v-if="value || localState">
-        <ItemChip v-for="(v, j) in value || localState" :key="j" :item="v" :modelValue="v[primaryValueProp]" />
+        <ItemChip v-for="(v, j) in value || localState" :key="j" :item="v" :model-value="v[primaryValueProp]" />
 
         <!--                           :active="active"
        :readonly="isLocked || isPublic"

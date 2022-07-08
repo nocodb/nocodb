@@ -7,7 +7,6 @@ import MdiGalleryIcon from '~icons/mdi/camera-image'
 import MdiKanbanIcon from '~icons/mdi/tablet-dashboard'
 import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
 
-
 export const viewIcons = {
   [ViewTypes.GRID]: { icon: MdiGridIcon, color: 'blue' },
   // [ViewTypes.GRID]: { icon: "mdi-grid-large", color: "blue" },

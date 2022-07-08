@@ -141,7 +141,7 @@ export default {
     },
     localValueObj() {},
     localValue() {
-      return this.value && (Array.isArray(this.value) ? this.value : [this.value]);
+      return this.value && (Array.isArray(this.value) ? this.value : [this.value]).filter(v => v !== null);
     },
     queryParams() {},
   },

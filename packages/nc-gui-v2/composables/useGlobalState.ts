@@ -1,7 +1,7 @@
 import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
-import { computed, toRefs } from '#build/imports'
+import { computed, toRefs, useNuxtApp, watch } from '#imports'
 import type { Actions, Getters, GlobalState, State, User } from '~/lib/types'
 
 const storageKey = 'nocodb-gui-v2'
@@ -27,6 +27,8 @@ export const useGlobalState = (): GlobalState => {
   const preferredLanguages = $(usePreferredLanguages())
   /** get the preferred dark mode setting, according to browser settings */
   const darkMode = $(usePreferredDark())
+
+  const { $api } = useNuxtApp()
 
   /**
    * Split language string and only use the first part, e.g. 'en-GB' -> 'en'
@@ -76,6 +78,35 @@ export const useGlobalState = (): GlobalState => {
       }
     }
   }
+
+  /** manually try to refresh token */
+  const refreshToken = async () => {
+    $api.instance
+      .post('/auth/refresh-token', null, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        if (response.data?.token) {
+          signIn(response.data.token)
+        }
+      })
+      .catch((err) => {
+        console.error(err)
+
+        signOut()
+      })
+  }
+
+  /** try to refresh token before expiry (5 min before expiry) */
+  watch(
+    () => !!(payload && payload.exp && payload.exp > Date.now() / 1000 - 5 * 60),
+    (expiring) => {
+      if (payload && expiring) {
+        refreshToken()
+      }
+    },
+    { immediate: true },
+  )
 
   return { ...toRefs(storage), signedIn, signOut, signIn }
 }

@@ -76,6 +76,7 @@ const toggleDrawer = ref(false)
                 </v-icon>
                 <v-icon v-else color="primary" small> mdi-table </v-icon>
               </v-list-item-icon> -->
+            <component :is="viewIcons[view.type].icon" :class="`text-${viewIcons[view.type].color} mr-1`" />
             <span>{{ view.alias || view.title }}</span>
 
             <!--              <v-list-item-title>

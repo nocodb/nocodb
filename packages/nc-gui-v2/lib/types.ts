@@ -25,4 +25,6 @@ export interface Actions {
   signIn: (token: string) => void
 }
 
-export type GlobalState = Getters & Actions & ToRefs<State>
+export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>
+
+export type GlobalState = Getters & Actions & ToRefs<ReadonlyState>

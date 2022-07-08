@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { inject, onMounted } from 'vue'
 import { isVirtualCol } from 'nocodb-sdk'
-import { ChangePageInj, MetaInj, PaginationDataInj } from '~/components'
+import { ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj } from '~/components'
 import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)
@@ -14,8 +14,8 @@ const editEnabled = ref(false)
 
 const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta)
 
-provide('isForm', false)
-provide('isGrid', true)
+provide(IsFormInj, false)
+provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 

@@ -171,7 +171,7 @@ watch(
 .nc-grid-wrapper {
   width: 100%;
   // todo : proper height calculation
-  height: calc(100vh - 250px);
+  height: calc(100vh - 215px);
   overflow: auto;
 
   td,

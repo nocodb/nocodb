@@ -1,21 +1,19 @@
 <script setup lang="ts">
-import { computed } from '@vue/reactivity'
-import { inject, onMounted } from 'vue'
+interface Props {
+  modelValue: number
+}
 
-const { modelValue: value } = defineProps<{ modelValue: any }>()
+const { modelValue: value } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
+
 const editEnabled = inject<boolean>('editEnabled')
 
 const root = ref<HTMLInputElement>()
 
 const localState = computed({
-  get() {
-    return value
-  },
-  set(val) {
-    emit('update:modelValue', val)
-  },
+  get: () => value,
+  set: (val) => emit('update:modelValue', val),
 })
 
 onMounted(() => {

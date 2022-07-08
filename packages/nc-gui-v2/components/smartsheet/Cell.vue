@@ -1,28 +1,30 @@
 <script setup lang="ts">
-import { computed } from '@vue/reactivity'
-import { watchEffect } from '@vue/runtime-core'
 import type { ColumnType } from 'nocodb-sdk'
 import { provide } from 'vue'
+import { computed } from '#imports'
 import { ColumnInj } from '~/components'
 import useColumn from '~/composables/useColumn'
 
-const { column, modelValue: value, editEnabled } = defineProps<{ column: ColumnType; modelValue: any; editEnabled: boolean }>()
+interface Props {
+  column: ColumnType
+  modelValue: any
+  editEnabled: boolean
+}
+
+const { column, modelValue: value, editEnabled } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
 provide(ColumnInj, column)
+
 provide(
   'editEnabled',
   computed(() => editEnabled),
 )
 
 const localState = computed({
-  get() {
-    return value
-  },
-  set(val) {
-    emit('update:modelValue', val)
-  },
+  get: () => value,
+  set: (val) => emit('update:modelValue', val),
 })
 
 const {

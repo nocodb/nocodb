@@ -1,8 +1,12 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed, inject } from '#imports'
 import { ColumnInj } from '~/components'
 
-const { modelValue: value } = defineProps<{ modelValue: any }>()
+interface Props {
+  modelValue: boolean
+}
+
+const { modelValue: value } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 const column = inject(ColumnInj)
 const isForm = inject<boolean>('isForm')
@@ -17,18 +21,11 @@ const checkboxMeta = computed(() => {
     ...(column?.meta || {}),
   }
 })
-const localState = computed({
-  get() {
-    return value
-  },
-  set(val) {
-    emit('update:modelValue', val)
-  },
-})
 
-const toggle = () => {
-  localState.value = !localState.value
-}
+const localState = computed({
+  get: () => value,
+  set: (val) => emit('update:modelValue', val),
+})
 
 // const checkedIcon = computed(() => {
 //   return defineAsyncComponent( ()=>import('~icons/material-symbols/'+checkboxMeta?.value?.icon?.checked))

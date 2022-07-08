@@ -1,20 +1,24 @@
-<script>
-import { isEmail } from '~/helpers'
+<script lang="ts" setup>
+import { computed } from '#imports'
 
+import { isEmail } from '~/utils/validation'
+
+interface Props {
+  modelValue: string
+}
+
+const { modelValue } = defineProps<Props>()
+
+const validEmail = computed(() => isEmail(modelValue))
+</script>
+
+<script lang="ts">
 export default {
   name: 'EmailCell',
-  props: ['value'],
-  computed: {
-    isEmail() {
-      return isEmail(this.value || '')
-    },
-  },
 }
 </script>
 
 <template>
-  <a v-if="isEmail" :href="`mailto:${value}`" target="_blank">{{ value }}</a>
-  <span v-else>{{ value }}</span>
+  <a v-if="validEmail" :href="`mailto:${modelValue}`" target="_blank">{{ modelValue }}</a>
+  <span v-else>{{ modelValue }}</span>
 </template>
-
-<style scoped></style>

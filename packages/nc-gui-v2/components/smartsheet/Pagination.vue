@@ -4,20 +4,16 @@ import { ChangePageInj, PaginationDataInj } from '~/components'
 import MdiKeyboardIcon from '~icons/mdi/keyboard-return'
 
 const paginatedData = inject(PaginationDataInj)
+
 const changePage = inject(ChangePageInj)
-const count = computed<number>(() => {
-  return paginatedData?.value?.totalRows ?? Infinity
-})
-const size = computed<number>(() => {
-  return paginatedData?.value?.pageSize ?? 25
-})
-const page = computed<number>({
-  get() {
-    return paginatedData?.value?.page ?? 1
-  },
-  set(p) {
-    changePage?.(p)
-  },
+
+const count = computed(() => paginatedData?.value?.totalRows ?? Infinity)
+
+const size = computed(() => paginatedData?.value?.pageSize ?? 25)
+
+const page = computed({
+  get: () => paginatedData?.value?.page ?? 1,
+  set: (p) => changePage?.(p),
 })
 /*
 export default {
@@ -75,7 +71,6 @@ export default {
       >
         <template #append>
           <MdiKeyboardIcon small icon.class="mt-1" @click="changePage(page)" />
-          <!--          <x-icon tooltip="Change page" small icon.class="mt-1" @click="changePage(page)"> mdi-keyboard-return </x-icon> -->
         </template>
       </v-text-field>
     </div>
@@ -84,5 +79,3 @@ export default {
     <v-spacer />
   </div>
 </template>
-
-<style scoped></style>

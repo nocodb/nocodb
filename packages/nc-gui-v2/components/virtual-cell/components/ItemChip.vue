@@ -1,21 +1,14 @@
 <script setup lang="ts">
 import MdiCloseThickIcon from '~icons/mdi/close-thick'
-/* export default {
-  name: 'ItemChip',
-  props: {
-    value: [String, Number, Boolean],
-    active: Boolean,
-    item: Object,
-    readonly: Boolean,
-  },
-} */
 
-const { value, active, item, readonly } = defineProps({
-  value: [String, Number, Boolean],
-  active: Boolean,
-  item: Object,
-  readonly: Boolean,
-})
+interface Props {
+  modelValue: string | number | boolean
+  active: boolean
+  item: any
+  readonly: boolean
+}
+
+const { modelValue, active, item, readonly } = defineProps<Props>()
 </script>
 
 <template>
@@ -23,7 +16,7 @@ const { value, active, item, readonly } = defineProps({
     <!--
     :color="isDark ? '' : 'primary lighten-5'"
     @click="!readonly && active && $emit('edit', item)" -->
-    <span class="name" :title="value">{{ value }}</span>
+    <span class="name" :title="modelValue">{{ modelValue }}</span>
 
     <!--    && _isUIAllowed('xcDatatableEditable') -->
     <div v-show="active" v-if="!readonly" class="mr-n1 ml-2">

@@ -471,6 +471,21 @@ const formulas = {
       'URL("https://github.com/nocodb/nocodb")',
       'URL({column1})'
     ]
+  },
+  WEEKDAY: {
+    type: formulaTypes.NUMERIC,
+    validation: {
+      args: {
+        min: 1,
+        max: 2,
+      }
+    },
+    description: 'Convert to a hyperlink if it is a valid URL',
+    syntax: 'WEEKDAY(date, [startDayOfWeek])',
+    examples: [
+      'WEEKDAY("2021-06-09")',
+      'WEEKDAY(CURDATE(), "Monday")'
+    ]
   }
 }
 

@@ -1,24 +1,19 @@
 <script setup lang="ts">
-import { inject } from "@vue/runtime-core";
-import type { TableType } from "nocodb-sdk";
-import type { Ref } from "vue";
-import { onMounted } from "vue";
-import { MetaInj } from "~/components";
-import useViews from "~/composables/useViews";
-import { viewIcons } from "~/utils/viewUtils";
+import { inject } from '@vue/runtime-core'
+import type { TableType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import { onMounted } from 'vue'
+import { MetaInj } from '~/components'
+import useViews from '~/composables/useViews'
+import { viewIcons } from '~/utils/viewUtils'
 
-const meta = inject(MetaInj);
-const { views, loadViews } = useViews(meta as Ref<TableType>);
-const _isUIAllowed = (view: string) => {
+const meta = inject(MetaInj)
+const { views, loadViews } = useViews(meta as Ref<TableType>)
+const _isUIAllowed = (view: string) => {}
 
-};
+onMounted(loadViews)
 
-onMounted(loadViews);
-
-const selectedViewIdLocal = ref("");
-
-
-
+const selectedViewIdLocal = ref('')
 </script>
 
 <template>
@@ -34,15 +29,9 @@ const selectedViewIdLocal = ref("");
         <v-list v-if="views && views.length" dense>
           <v-list-item dense>
             <!-- Views -->
-            <span class="body-2 font-weight-medium">{{
-                $t("objects.views")
-              }}</span>
+            <span class="body-2 font-weight-medium">{{ $t('objects.views') }}</span>
           </v-list-item>
-          <v-list-group
-            v-model="selectedViewIdLocal"
-            mandatory
-            color="primary"
-          >
+          <v-list-group v-model="selectedViewIdLocal" mandatory color="primary">
             <!--
                todo: add sortable
                <draggable
@@ -62,8 +51,8 @@ const selectedViewIdLocal = ref("");
               v-t="['a:view:open', { view: view.type }]"
               dense
               :value="view.id"
-              active-class="x-active--text">
-
+              active-class="x-active--text"
+            >
               <!--                :class="`body-2  view nc-view-item nc-draggable-child nc-${
                       viewTypeAlias[view.type]
                     }-view-item`"
@@ -77,36 +66,22 @@ const selectedViewIdLocal = ref("");
                 mdi-drag-vertical
               </v-icon>
               <v-list-item-icon class="mr-n1">
-                <v-icon
-                  v-if="viewIcons[view.type]"
-                  x-small
-                  :color="viewIcons[view.type].color"
-                >
+                <v-icon v-if="viewIcons[view.type]" x-small :color="viewIcons[view.type].color">
                   {{ viewIcons[view.type].icon }}
                 </v-icon>
-                <v-icon v-else color="primary" small>
-                  mdi-table
-                </v-icon>
+                <v-icon v-else color="primary" small> mdi-table </v-icon>
               </v-list-item-icon>
               <v-list-item-title>
                 <v-tooltip bottom>
                   <template #activator="{ on }">
-                    <div
-                      class="font-weight-regular"
-                      style="overflow: hidden; text-overflow: ellipsis"
-                    >
-                      <input
-                        v-if="view.edit"
-                        :ref="`input${i}`"
-                        v-model="view.title_temp">
+                    <div class="font-weight-regular" style="overflow: hidden; text-overflow: ellipsis">
+                      <input v-if="view.edit" :ref="`input${i}`" v-model="view.title_temp" />
 
                       <!--                        @click.stop
                                               @keydown.enter.stop="updateViewName(view, i)"
                                               @blur="updateViewName(view, i)" -->
                       <template v-else>
-                              <span v-on="on">{{
-                                  view.alias || view.title
-                                }}</span>
+                        <span v-on="on">{{ view.alias || view.title }}</span>
                       </template>
                     </div>
                   </template>
@@ -114,8 +89,8 @@ const selectedViewIdLocal = ref("");
                 </v-tooltip>
               </v-list-item-title>
               <v-spacer />
-              <template v-if="_isUIAllowed('virtualViewsCreateOrEdit')">
-                <!-- Copy view -->
+              <!--              <template v-if="_isUIAllowed('virtualViewsCreateOrEdit')">
+                &lt;!&ndash; Copy view &ndash;&gt;
                 <x-icon
                   v-if="!view.edit"
                   :tooltip="$t('activity.copyView')"
@@ -126,7 +101,7 @@ const selectedViewIdLocal = ref("");
                 >
                   mdi-content-copy
                 </x-icon>
-                <!-- Rename view -->
+                &lt;!&ndash; Rename view &ndash;&gt;
                 <x-icon
                   v-if="!view.edit"
                   :tooltip="$t('activity.renameView')"
@@ -137,7 +112,7 @@ const selectedViewIdLocal = ref("");
                 >
                   mdi-pencil
                 </x-icon>
-                <!-- Delete view" -->
+                &lt;!&ndash; Delete view" &ndash;&gt;
                 <x-icon
                   v-if="!view.is_default"
                   :tooltip="$t('activity.deleteView')"
@@ -155,16 +130,14 @@ const selectedViewIdLocal = ref("");
                 class="check-icon"
               >
                 mdi-check-bold
-              </v-icon>
+              </v-icon> -->
             </v-list-item>
-            </transition-group>
-            </draggable>
+            <!--            </transition-group> -->
+            <!--            </draggable> -->
           </v-list-group>
         </v-list>
-
       </div>
     </div>
-
   </div>
 </template>
 

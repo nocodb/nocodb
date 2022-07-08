@@ -30,12 +30,7 @@ watch(
   <div class="overflow-auto">
     <SmartsheetToolbar />
     <template v-if="meta && tabMeta">
-      <div class="d-flex">
-        <div class="flex-grow-1" style="min-width: 0">
-          <SmartsheetGrid />
-        </div>
-        <SmartsheetSidebar />
-      </div>
+      <SmartsheetGrid />
     </template>
   </div>
 </template>

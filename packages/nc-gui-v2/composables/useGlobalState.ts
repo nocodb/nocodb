@@ -20,8 +20,6 @@ const storageKey = 'nocodb-gui-v2'
  *
  * const token = $state.token.value
  * const user = $state.user.value
- *
- * $state.value.token = null // unsets token - change is also written to localStorage
  * ```
  */
 export const useGlobalState = (): GlobalState => {

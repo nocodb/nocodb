@@ -1,4 +1,3 @@
-import { TableType } from 'nocodb-sdk'
 import useMetas from '~/composables/useMetas'
 
 export default function (metaIdOrTitle: string) {

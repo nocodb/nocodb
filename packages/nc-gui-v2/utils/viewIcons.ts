@@ -1,6 +1,6 @@
 import { ViewTypes } from 'nocodb-sdk'
 
-export default {
+export const viewIcons =  {
   [ViewTypes.GRID]: { icon: 'mdi-grid-large', color: 'blue' },
   // [ViewTypes.GRID]: { icon: "mdi-grid-large", color: "blue" },
   [ViewTypes.FORM]: { icon: 'mdi-form-select', color: 'pink' },

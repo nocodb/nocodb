@@ -34,7 +34,7 @@ watch(
       </v-navigation-drawer>
     </template>
 
-    <v-container>
+    <v-container fluid>
       <DashboardTabView />
     </v-container>
   </NuxtLayout>

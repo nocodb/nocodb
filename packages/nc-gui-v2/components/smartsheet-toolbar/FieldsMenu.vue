@@ -303,7 +303,7 @@ export default {
         </v-btn>
       </v-badge>
     </template>
-
+    <!--
     <v-list dense class="pt-0" min-width="280" @click.stop>
       <template v-if="isGallery && _isUIAllowed('updateCoverImage')">
         <div class="pa-2">
@@ -360,15 +360,15 @@ export default {
           hide-details
           @click.stop
         >
-          <!--          <template v-slot:prepend-inner>
+          &lt;!&ndash;          <template v-slot:prepend-inner>
           <v-icon small color="grey" class="mt-2">
             mdi-magnify
           </v-icon>
-        </template> -->
+        </template> &ndash;&gt;
         </v-text-field>
       </v-list-item>
       <div class="nc-fields-list py-1">
-        <!--        <Draggable v-model="fields" @start="drag = true" @end="drag = false" @change="onMove($event)"> -->
+        &lt;!&ndash;        <Draggable v-model="fields" @start="drag = true" @end="drag = false" @change="onMove($event)"> &ndash;&gt;
         <template v-for="(field, i) in fields">
           <v-list-item
             v-show="
@@ -390,7 +390,7 @@ export default {
             <v-icon small color="grey" :class="`align-self-center drag-icon nc-child-draggable-icon-${field}`"> mdi-drag </v-icon>
           </v-list-item>
         </template>
-        <!--        </Draggable> -->
+        &lt;!&ndash;        </Draggable> &ndash;&gt;
       </div>
       <v-divider class="my-2" />
 
@@ -398,7 +398,7 @@ export default {
         <v-checkbox v-model="showSystemFieldsLoc" class="mt-0 pt-0" dense hide-details @click.stop>
           <template #label>
             <span class="caption">
-              <!-- Show System Fields -->
+              &lt;!&ndash; Show System Fields &ndash;&gt;
               {{ $t('activity.showSystemFields') }}
             </span>
           </template>
@@ -406,15 +406,15 @@ export default {
       </v-list-item>
       <v-list-item dense class="mt-2 list-btn mb-3">
         <v-btn small class="elevation-0 grey&#45;&#45;text" @click.stop="showAll">
-          <!-- Show All -->
+          &lt;!&ndash; Show All &ndash;&gt;
           {{ $t('general.showAll') }}
         </v-btn>
         <v-btn small class="elevation-0 grey&#45;&#45;text" @click.stop="hideAll">
-          <!-- Hide All -->
+          &lt;!&ndash; Hide All &ndash;&gt;
           {{ $t('general.hideAll') }}
         </v-btn>
       </v-list-item>
-    </v-list>
+    </v-list> -->
   </v-menu>
   <!--  <v-menu offset-y transition="slide-y-transition">
     <template #activator="{ on }">

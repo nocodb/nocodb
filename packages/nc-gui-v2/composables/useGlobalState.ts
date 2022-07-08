@@ -1,8 +1,7 @@
 import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
-import { navigateTo } from '#app'
-import { computed, nextTick, toRefs } from '#build/imports'
+import { computed, toRefs } from '#build/imports'
 import type { Actions, Getters, GlobalState, State, User } from '~/lib/types'
 
 const storageKey = 'nocodb-gui-v2'

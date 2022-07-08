@@ -64,13 +64,7 @@ export default {
       return $listeners;
     },
   },
-  mounted() {
-    window.addEventListener('keypress', _ => {
-      if (this.$refs.percentInput) {
-        this.$refs.percentInput.focus();
-      }
-    });
-  },
+  mounted() {},
   methods: {
     checkPercentFormat(evt) {
       evt = evt || window.event;

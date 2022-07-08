@@ -1,7 +1,8 @@
 <script setup lang="ts">
 import { inject } from "@vue/runtime-core";
-import { TableType } from "nocodb-sdk";
-import { onMounted, Ref } from "vue";
+import type { TableType } from "nocodb-sdk";
+import type { Ref } from "vue";
+import { onMounted } from "vue";
 import { MetaInj } from "~/components";
 import useViews from "~/composables/useViews";
 import { viewIcons } from "~/utils/viewUtils";
@@ -50,11 +51,11 @@ const selectedViewIdLocal = ref("");
                           draggable="div"
                           v-bind="dragOptions"
                           @change="onMove($event)"
-                        >-->
+                        > -->
             <!--            <transition-group
                           type="transition"
                           :name="!drag ? 'flip-list' : null"
-                        >-->
+                        > -->
             <v-list-item
               v-for="(view, i) in views"
               :key="view.id"
@@ -66,7 +67,7 @@ const selectedViewIdLocal = ref("");
               <!--                :class="`body-2  view nc-view-item nc-draggable-child nc-${
                       viewTypeAlias[view.type]
                     }-view-item`"
-                @click="$emit('rerender')"-->
+                @click="$emit('rerender')" -->
               <v-icon
                 v-if="_isUIAllowed('viewlist-drag-n-drop')"
                 small
@@ -101,7 +102,7 @@ const selectedViewIdLocal = ref("");
 
                       <!--                        @click.stop
                                               @keydown.enter.stop="updateViewName(view, i)"
-                                              @blur="updateViewName(view, i)"-->
+                                              @blur="updateViewName(view, i)" -->
                       <template v-else>
                               <span v-on="on">{{
                                   view.alias || view.title

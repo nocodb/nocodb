@@ -1,5 +1,6 @@
 import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { navigateTo } from '#app'
+import { useJwt } from '@vueuse/integrations/useJwt'
 import { computed, toRefs } from '#build/imports'
 import type { Actions, Getters, GlobalState, State } from '~/lib/types'
 
@@ -18,10 +19,12 @@ export const useGlobalState = (): GlobalState => {
 
   const storage = useStorage<State>(storageKey, initialState)
 
+  const token = $ref(storage.value.token)
+
+  const { payload } = useJwt(token!)
+
   // getters
-  const signedIn: Getters['signedIn'] = computed(
-    () => storage.value.token !== null && storage.value.token !== '' && storage.value.user !== null,
-  )
+  const signedIn: Getters['signedIn'] = computed(() => !!(!!token && payload.value && payload.value.exp && payload.value.exp > Date.now() / 1000))
 
   // actions
   const signOut: Actions['signOut'] = () => {

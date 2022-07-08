@@ -1,7 +1,11 @@
 import type { ComputedRef, ToRefs } from 'vue'
 
 export interface User {
+  id: string
   email: string
+  firstname: string | null
+  lastname: string | null
+  roles: string[]
 }
 
 export interface State {

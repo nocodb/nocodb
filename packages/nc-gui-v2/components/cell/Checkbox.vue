@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from '#imports'
-import { ColumnInj } from '~/components'
+import { ColumnInj, IsFormInj } from "~/components";
 
 interface Props {
   modelValue: boolean
@@ -9,7 +9,7 @@ interface Props {
 const { modelValue: value } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 const column = inject(ColumnInj)
-const isForm = inject<boolean>('isForm')
+const isForm = inject(IsFormInj)
 
 const checkboxMeta = computed(() => {
   return {

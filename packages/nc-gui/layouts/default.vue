@@ -340,7 +340,6 @@ import Language from '~/components/utils/Language'
 import Loader from '~/components/Loader'
 import PreviewAs from '~/components/PreviewAs'
 import ShareOrInviteModal from '~/components/auth/ShareOrInviteModal'
-import weAreHiring from '~/helpers/weAreHiring'
 
 export default {
   components: {
@@ -445,9 +444,6 @@ export default {
   mounted() {
     this.selectedEnv = this.$store.getters['project/GtrActiveEnv']
     this.loadProjectInfo()
-  },
-  created() {
-    weAreHiring()
   },
   methods: {
     ...mapActions({ changeActiveTab: 'tabs/changeActiveTab' }),

@@ -1,7 +1,7 @@
 import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
-import { computed, toRefs, useNuxtApp, watch } from '#imports'
+import { computed, toRefs, useNuxtApp, useTimestamp, watch } from '#imports'
 import type { Actions, Getters, GlobalState, State, User } from '~/lib/types'
 
 const storageKey = 'nocodb-gui-v2'
@@ -27,6 +27,8 @@ export const useGlobalState = (): GlobalState => {
   const preferredLanguages = $(usePreferredLanguages())
   /** get the preferred dark mode setting, according to browser settings */
   const darkMode = $(usePreferredDark())
+  /** reactive timestamp to check token expiry against */
+  const timestamp = $(useTimestamp({ immediate: true, interval: 100 }))
 
   const { $api } = useNuxtApp()
 
@@ -54,7 +56,7 @@ export const useGlobalState = (): GlobalState => {
   /** Getters */
   /** Verify that a user is signed in by checking if token exists and is not expired */
   const signedIn: Getters['signedIn'] = computed(
-    () => !!(!!token && token !== '' && payload && payload.exp && payload.exp > Date.now() / 1000),
+    () => !!(!!token && token !== '' && payload && payload.exp && payload.exp > timestamp / 1000),
   )
 
   /** Actions */
@@ -99,10 +101,10 @@ export const useGlobalState = (): GlobalState => {
 
   /** try to refresh token before expiry (5 min before expiry) */
   watch(
-    () => !!(payload && payload.exp && payload.exp > Date.now() / 1000 - 5 * 60),
-    (expiring) => {
+    () => !!(payload && payload.exp && payload.exp - 5 * 60 < timestamp / 1000),
+    async (expiring) => {
       if (payload && expiring) {
-        refreshToken()
+        await refreshToken()
       }
     },
     { immediate: true },

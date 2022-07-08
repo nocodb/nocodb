@@ -36,8 +36,6 @@ export const useGlobalState = (): GlobalState => {
   const signOut: Actions['signOut'] = () => {
     storage.value.token = null
     storage.value.user = null
-
-    navigateTo('/signin')
   }
 
   const signIn: Actions['signIn'] = async (newToken) => {
@@ -52,10 +50,6 @@ export const useGlobalState = (): GlobalState => {
         roles: payload.roles,
       }
     }
-
-    await nextTick(() => {
-      navigateTo('/')
-    })
   }
 
   return { ...toRefs(storage.value), signedIn, signOut, signIn }

@@ -6,6 +6,11 @@ import { navigateTo } from '#app'
 
 const { $state } = useNuxtApp()
 const email = computed(() => $state.user?.value?.email ?? '---')
+
+const signOut = () => {
+  $state.signOut()
+  navigateTo('/signin')
+}
 </script>
 
 <template>
@@ -60,7 +65,7 @@ const email = computed(() => $state.user?.value?.email ?? '---')
                 <div
                   v-t="['a:navbar:user:sign-out']"
                   class="group flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                  @click="$state.signOut"
+                  @click="signOut"
                 >
                   <MdiLogout class="transition-colors duration-150 ease-in group-hover:text-red-500" />&nbsp;
                   <span class="prose font-semibold text-gray-500">{{ $t('general.signOut') }}</span>

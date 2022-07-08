@@ -174,7 +174,7 @@ todo :
           v-on="parentListeners"
         /> -->
 
-    <CellBoolean v-else-if="isBoolean" v-model="localState" />
+    <CellCheckbox v-else-if="isBoolean" v-model="localState" />
     <!-- &lt;!&ndash;      v-model="localState" -->
     <!--      :column="column" -->
     <!--      :is-form="isForm" -->

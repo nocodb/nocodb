@@ -2,7 +2,7 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { InjectionKey, Ref } from 'vue'
 import type useViewData from '~/composables/useViewData'
 
-export const ColumnInj: InjectionKey<ColumnType> = Symbol('column-injection')
+export const ColumnInj: InjectionKey<ColumnType & { meta: any }> = Symbol('column-injection')
 export const MetaInj: InjectionKey<Ref<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<any> = Symbol('tab-meta-injection')
 export const PaginationDataInj: InjectionKey<ReturnType<typeof useViewData>['paginationData']> =

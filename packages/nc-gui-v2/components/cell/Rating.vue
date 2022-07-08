@@ -1,18 +1,18 @@
 <script setup lang="ts">
 import { computed, inject } from '#imports'
-import { ColumnInj } from '~/components'
+import { ColumnInj, IsFormInj } from "~/components";
 import MdiStarIcon from '~icons/mdi/star'
 import MdiStarOutlineIcon from '~icons/mdi/star-outline'
 
 interface Props {
   modelValue: string | number
-  readOnly: boolean
+  readOnly?: boolean
 }
 
 const { modelValue: value, readOnly } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 const column = inject(ColumnInj)
-const isForm = inject<boolean>('isForm')
+const isForm = inject(IsFormInj)
 
 const ratingMeta = computed(() => {
   return {

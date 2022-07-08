@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { computed } from '@vue/reactivity'
-import { watchEffect } from '@vue/runtime-core'
-import { inject, onMounted } from 'vue'
+import { computed, inject, onMounted, ref } from '#imports'
 
-const { modelValue: value } = defineProps<{ modelValue: any }>()
+interface Props {
+  modelValue: any
+}
+
+const { modelValue: value } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
-const editEnabled = inject<boolean>('editEnabled')
+
+const editEnabled = inject<boolean>('editEnabled', false)
 
 const root = ref<HTMLInputElement>()
 
 const localState = computed({
-  get() {
-    return value
-  },
-  set(val) {
-    emit('update:modelValue', val)
-  },
+  get: () => value,
+  set: (val) => emit('update:modelValue', val),
 })
 
-watchEffect(() => {
+onMounted(() => {
   root.value?.focus()
 })
 

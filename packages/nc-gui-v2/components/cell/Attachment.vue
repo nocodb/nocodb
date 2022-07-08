@@ -1,24 +1,26 @@
 <script setup lang="ts">
-import { inject, watchEffect } from '@vue/runtime-core'
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import { useToast } from 'vue-toastification'
+import { inject, ref, watchEffect } from '#imports'
 import { useNuxtApp } from '#app'
 import { ColumnInj, MetaInj } from '~/components'
 import useProject from '~/composables/useProject'
-// import FileSaver from "file-saver";
 import { isImage } from '~/utils/fileUtils'
 import MaterialPlusIcon from '~icons/mdi/plus'
 import MaterialArrowExpandIcon from '~icons/mdi/arrow-expand'
 
-const { modelValue } = defineProps<{ modelValue: string | Array<any> | null }>()
+interface Props {
+  modelValue: string | any[] | null
+}
+
+const { modelValue } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
 
 const isPublicForm = inject<boolean>('isPublicForm', false)
 const isForm = inject<boolean>('isForm', false)
 const meta = inject(MetaInj)
-const column = inject<ColumnType>(ColumnInj)
-const editEnabled = inject<boolean>('editEnabled')
+const column = inject(ColumnInj)
+const editEnabled = inject<boolean>('editEnabled', false)
 
 const localFilesState = reactive([])
 const attachments = ref([])

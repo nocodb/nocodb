@@ -2,7 +2,7 @@
 import { useI18n } from 'vue-i18n'
 import { definePageMeta, useHead } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { useNuxtApp } from '#app'
+import { navigateTo, useNuxtApp } from '#app'
 import { isEmail } from '~/utils/validation'
 import MdiLogin from '~icons/mdi/login'
 import MaterialSymbolsWarning from '~icons/material-symbols/warning'
@@ -54,7 +54,8 @@ const signIn = async () => {
   error = null
   try {
     const { token } = await $api.auth.signin(form)
-    $state.signIn({ email: form.email }, token!)
+    $state.signIn(token!)
+    await navigateTo('/projects')
   } catch (e: any) {
     // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
     error = await extractSdkResponseErrorMsg(e)

@@ -1,7 +1,12 @@
 import type { ComputedRef, ToRefs } from 'vue'
+import type { Role } from '~/lib/enums'
 
 export interface User {
+  id: string
   email: string
+  firstname: string | null
+  lastname: string | null
+  roles: (Role | string)[]
 }
 
 export interface State {
@@ -17,7 +22,9 @@ export interface Getters {
 
 export interface Actions {
   signOut: () => void
-  signIn: (user: User, token: string) => void
+  signIn: (token: string) => void
 }
 
-export type GlobalState = Getters & Actions & ToRefs<State>
+export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>
+
+export type GlobalState = Getters & Actions & ToRefs<ReadonlyState>

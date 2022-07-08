@@ -1,5 +1,5 @@
 import { Api } from 'nocodb-sdk'
-import { defineNuxtPlugin } from '#app'
+import { defineNuxtPlugin, navigateTo } from '#app'
 import type { GlobalState } from '~/lib/types'
 
 export default defineNuxtPlugin((nuxtApp) => {
@@ -43,18 +43,14 @@ function addAxiosInterceptors(api: Api<any>, app: { $state: GlobalState }) {
 
       // Return any error which is not due to authentication back to the calling service
       if (!error.response || error.response.status !== 401) {
-        return new Promise((resolve, reject) => {
-          reject(error)
-        })
+        return error
       }
 
       // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/refresh-token') {
-        app.$state.token.value = null
+        app.$state.signOut()
 
-        return new Promise((resolve, reject) => {
-          reject(error)
-        })
+        return error
       }
 
       // Try request again with new token
@@ -66,7 +62,7 @@ function addAxiosInterceptors(api: Api<any>, app: { $state: GlobalState }) {
           // New request with new token
           const config = error.config
           config.headers['xc-auth'] = token.data.token
-          if (app.$state.token.value) app.$state.token.value = token.data.token
+          app.$state.signIn(token.data.token)
 
           return new Promise((resolve, reject) => {
             api.instance
@@ -80,10 +76,10 @@ function addAxiosInterceptors(api: Api<any>, app: { $state: GlobalState }) {
           })
         })
         .catch(async (error) => {
-          app.$state.token.value = null
+          app.$state.signOut()
           // todo: handle new user
 
-          router.replace('/signin')
+          navigateTo('/signIn')
 
           return Promise.reject(error)
         })

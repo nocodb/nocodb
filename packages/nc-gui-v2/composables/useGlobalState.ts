@@ -1,40 +1,114 @@
 import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
-import { navigateTo } from '#app'
-import { computed, toRefs } from '#build/imports'
-import type { Actions, Getters, GlobalState, State } from '~/lib/types'
+import { useJwt } from '@vueuse/integrations/useJwt'
+import type { JwtPayload } from 'jwt-decode'
+import { computed, toRefs, useNuxtApp, useTimestamp, watch } from '#imports'
+import type { Actions, Getters, GlobalState, State, User } from '~/lib/types'
 
 const storageKey = 'nocodb-gui-v2'
 
 /**
- * Global State is injected by state plugin, so manual initialization is unnecessary and should be avoided
+ * Global state is injected by {@link import('~/plugins/state') state} plugin into our nuxt app (available as `$state`).
+ * Manual initialization is unnecessary and should be avoided.
+ *
+ * The state is stored in {@link WindowLocalStorage localStorage}, so it will be available even if the user closes the browser tab.
+ *
+ * @example
+ * ```js
+ * import { useNuxtApp } from '#app'
+ *
+ * const { $state } = useNuxtApp()
+ *
+ * const token = $state.token.value
+ * const user = $state.user.value
+ * ```
  */
 export const useGlobalState = (): GlobalState => {
+  /** get the preferred languages of a user, according to browser settings */
   const preferredLanguages = $(usePreferredLanguages())
+  /** get the preferred dark mode setting, according to browser settings */
   const darkMode = $(usePreferredDark())
+  /** reactive timestamp to check token expiry against */
+  const timestamp = $(useTimestamp({ immediate: true, interval: 100 }))
 
+  const { $api } = useNuxtApp()
+
+  /**
+   * Split language string and only use the first part, e.g. 'en-GB' -> 'en'
+   * todo: use the full language string, e.g. 'en-GB-x-whatever' -> 'en-GB' and confirm if language exists against our list of languages (hint: vite plugin i18n provides a list)
+   */
   const preferredLanguage = preferredLanguages[0]?.split('_')[0] || 'en'
 
+  /** State */
   const initialState: State = { token: null, user: null, lang: preferredLanguage, darkMode }
 
-  const storage = useStorage<State>(storageKey, initialState)
+  /** saves a reactive state, any change to these values will write/delete to localStorage */
+  const storage = $(useStorage<State>(storageKey, initialState))
 
-  // getters
+  /** current token ref, used by `useJwt` to reactively parse our token payload */
+  let token = $computed({
+    get: () => storage.token || '',
+    set: (val) => (storage.token = val),
+  })
+
+  /** reactive token payload */
+  const { payload } = $(useJwt<JwtPayload & User>($$(token!)))
+
+  /** Getters */
+  /** Verify that a user is signed in by checking if token exists and is not expired */
   const signedIn: Getters['signedIn'] = computed(
-    () => storage.value.token !== null && storage.value.token !== '' && storage.value.user !== null,
+    () => !!(!!token && token !== '' && payload && payload.exp && payload.exp > timestamp / 1000),
   )
 
-  // actions
+  /** Actions */
+  /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = () => {
-    storage.value.token = null
-    storage.value.user = null
-    navigateTo('/signin')
+    storage.token = null
+    storage.user = null
   }
 
-  const signIn: Actions['signIn'] = (user, token) => {
-    storage.value.token = token
-    storage.value.user = user
-    navigateTo('/')
+  /** Sign in by setting the token in localStorage */
+  const signIn: Actions['signIn'] = async (newToken) => {
+    token = newToken
+
+    if (payload) {
+      storage.user = {
+        id: payload.id,
+        email: payload.email,
+        firstname: payload.firstname,
+        lastname: payload.lastname,
+        roles: payload.roles,
+      }
+    }
   }
 
-  return { ...toRefs(storage.value), signedIn, signOut, signIn }
+  /** manually try to refresh token */
+  const refreshToken = async () => {
+    $api.instance
+      .post('/auth/refresh-token', null, {
+        withCredentials: true,
+      })
+      .then((response) => {
+        if (response.data?.token) {
+          signIn(response.data.token)
+        }
+      })
+      .catch((err) => {
+        console.error(err)
+
+        signOut()
+      })
+  }
+
+  /** try to refresh token before expiry (5 min before expiry) */
+  watch(
+    () => !!(payload && payload.exp && payload.exp - 5 * 60 < timestamp / 1000),
+    async (expiring) => {
+      if (payload && expiring) {
+        await refreshToken()
+      }
+    },
+    { immediate: true },
+  )
+
+  return { ...toRefs(storage), signedIn, signOut, signIn }
 }

@@ -1,4 +1,10 @@
-export enum Languages {
+export enum Role {
+  Super = 'super',
+  Admin = 'admin',
+  User = 'user',
+}
+
+export enum Language {
   de = 'Deutsch',
   en = 'English',
   es = 'Español',

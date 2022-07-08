@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
 import { ChangePageInj, PaginationDataInj } from '~/components'
+import MdiKeyboardIcon from '~icons/mdi/keyboard-return'
 
 const paginatedData = inject(PaginationDataInj)
 const changePage = inject(ChangePageInj)
@@ -73,7 +74,8 @@ export default {
         @keydown.enter="changePage(page)"
       >
         <template #append>
-          <x-icon tooltip="Change page" small icon.class="mt-1" @click="changePage(page)"> mdi-keyboard-return </x-icon>
+          <MdiKeyboardIcon small icon.class="mt-1" @click="changePage(page)" />
+          <!--          <x-icon tooltip="Change page" small icon.class="mt-1" @click="changePage(page)"> mdi-keyboard-return </x-icon> -->
         </template>
       </v-text-field>
     </div>

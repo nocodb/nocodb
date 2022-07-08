@@ -6,6 +6,7 @@ import { ColumnInj } from '~/components'
 import useHasMany from '~/composables/useHasMany'
 const column = inject(ColumnInj)
 const value = inject('value')
+const active = false
 
 const { childMeta, loadChildMeta, primaryValueProp } = useHasMany(column as ColumnType)
 await loadChildMeta()

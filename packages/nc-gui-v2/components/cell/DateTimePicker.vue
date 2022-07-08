@@ -98,7 +98,7 @@ export default {
 </script>
 
 <template>
-  <input type="datetime-local" />
+  <input v-model="localState" type="datetime-local" />
   <!--  <div> -->
   <!--    <div v-show="!showMessage"> -->
   <!--      <v-datetime-picker -->

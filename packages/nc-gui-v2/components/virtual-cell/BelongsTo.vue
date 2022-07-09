@@ -212,7 +212,7 @@ export default {
 
       // todo: audit
       await this.$api.dbTableRow.nestedRemove(
-        'noco',
+        NOCO,
         this.projectName,
         this.meta.title,
         id,
@@ -286,7 +286,7 @@ export default {
         this.newRecordModal = false
         return
       }
-      await this.$api.dbTableRow.nestedAdd('noco', this.projectName, this.meta.title, id, 'bt', this.column.title, pid)
+      await this.$api.dbTableRow.nestedAdd(NOCO, this.projectName, this.meta.title, id, 'bt', this.column.title, pid)
 
       this.pid = pid
 

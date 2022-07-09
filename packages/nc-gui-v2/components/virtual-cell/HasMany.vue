@@ -252,7 +252,7 @@ export default {
         .map((c) => child[c.title])
         .join('___')
       await this.$api.dbTableRow.nestedRemove(
-        'noco',
+        NOCO,
         this.projectName,
         this.meta.title,
         this.parentId,
@@ -296,7 +296,7 @@ export default {
         .map((c) => child[c.title])
         .join('___')
       this.newRecordModal = false
-      await this.$api.dbTableRow.nestedAdd('noco', this.projectName, this.meta.title, this.parentId, 'hm', this.column.title, id)
+      await this.$api.dbTableRow.nestedAdd(NOCO, this.projectName, this.meta.title, this.parentId, 'hm', this.column.title, id)
 
       this.$emit('loadTableData')
       if ((this.childListModal || this.isForm) && this.$refs.childList) {
@@ -360,7 +360,7 @@ export default {
             .map((c) => child[c.title])
             .join('___')
 
-          await this.$api.dbTableRow.nestedAdd('noco', this.projectName, this.meta.title, pid, 'hm', this.column.title, id)
+          await this.$api.dbTableRow.nestedAdd(NOCO, this.projectName, this.meta.title, pid, 'hm', this.column.title, id)
         } else {
           await this.addChildToParent(child)
         }

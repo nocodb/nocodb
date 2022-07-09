@@ -1,5 +1,6 @@
 <script>
 import Pagination from '~/components/project/spreadsheet/components/Pagination'
+import { NOCO } from '~/lib/constants'
 
 export default {
   name: 'ListItems',
@@ -75,7 +76,7 @@ export default {
 
         if (this.column && this.column.colOptions && this.rowId) {
           this.data = await this.$api.dbTableRow.nestedChildrenExcludedList(
-            'noco',
+            NOCO,
             this.projectName,
             this.parentMeta.title,
             this.rowId,
@@ -88,7 +89,7 @@ export default {
             },
           )
         } else {
-          this.data = await this.$api.dbTableRow.list('noco', this.projectName, this.meta.title, {
+          this.data = await this.$api.dbTableRow.list(NOCO, this.projectName, this.meta.title, {
             limit: this.size,
             offset: this.size * (this.page - 1),
             ...this.queryParams,

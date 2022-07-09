@@ -376,7 +376,7 @@ export default {
     <!--    <template v-if="!isForm"> -->
     <div class="chips d-flex align-center img-container flex-grow-1 hm-items flex-nowrap">
       <template v-if="value || localState">
-        <ItemChip v-for="(ch, i) in value || localState" :key="i" :model-value="ch[primaryValueProp]" />
+        <ItemChip v-for="(ch, i) in value || localState" :key="i" :value="ch[primaryValueProp]" />
 
         <!--
                     :active="active"     :item="ch"

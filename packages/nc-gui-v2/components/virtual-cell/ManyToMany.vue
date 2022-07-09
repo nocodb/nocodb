@@ -234,7 +234,7 @@ export default {
         .map((c) => this.row[c.title])
         .join('___')
 
-      await this.$api.dbTableRow.nestedRemove('noco', this.projectName, this.meta.title, pid, 'mm', this.column.title, cid)
+      await this.$api.dbTableRow.nestedRemove(NOCO, this.projectName, this.meta.title, pid, 'mm', this.column.title, cid)
 
       this.$emit('loadTableData')
       if ((this.childListModal || this.isForm) && this.$refs.childList) {
@@ -321,7 +321,7 @@ export default {
       // const vcidCol = this.assocMeta.columns.find(c => c.id === this.column.colOptions.fk_mm_parent_column_id).title
       // const vpidCol = this.assocMeta.columns.find(c => c.id === this.column.colOptions.fk_mm_child_column_id).title
 
-      await this.$api.dbTableRow.nestedAdd('noco', this.projectName, this.meta.title, pid, 'mm', this.column.title, cid)
+      await this.$api.dbTableRow.nestedAdd(NOCO, this.projectName, this.meta.title, pid, 'mm', this.column.title, cid)
 
       try {
         this.$emit('loadTableData')
@@ -383,7 +383,7 @@ export default {
             .map((c) => row[c.title])
             .join('___')
 
-          await this.$api.dbTableRow.nestedAdd('noco', this.projectName, this.meta.title, pid, 'mm', this.column.title, cid)
+          await this.$api.dbTableRow.nestedAdd(NOCO, this.projectName, this.meta.title, pid, 'mm', this.column.title, cid)
         } else {
           await this.addChildToParent(child)
         }

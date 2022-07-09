@@ -2,6 +2,7 @@ import type { Api, PaginatedType, TableType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 import useProject from '~/composables/useProject'
+import { NOCO } from '~/lib/constants'
 
 const formatData = (list: Array<Record<string, any>>) =>
   list.map((row) => ({
@@ -36,7 +37,7 @@ export default (
       .join('___') as string
 
     return $api.dbViewRow.update(
-      'noco',
+      NOCO,
       project?.value.id as string,
       meta?.value.id as string,
       viewMeta?.value?.id as string,
@@ -77,7 +78,7 @@ export default (
     }, {})
 
     const insertedData = await $api.dbViewRow.create(
-      'noco',
+      NOCO,
       project?.value.id as string,
       meta?.value.id as string,
       viewMeta?.value?.id as string,

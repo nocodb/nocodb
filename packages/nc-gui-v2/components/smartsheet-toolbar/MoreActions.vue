@@ -1,6 +1,7 @@
 <script>
 import FileSaver from 'file-saver'
 import { ExportTypes } from 'nocodb-sdk'
+import { NOCO } from '~/lib/constants'
 import DropOrSelectFileModal from '~/components/import/DropOrSelectFileModal'
 import ColumnMappingModal from '~/components/project/spreadsheet/components/importExport/ColumnMappingModal'
 import CSVTemplateAdapter from '~/components/import/templateParsers/CSVTemplateAdapter'
@@ -165,7 +166,7 @@ export default {
             })
           } else {
             res = await this.$api.dbViewRow.export(
-              'noco',
+              NOCO,
               this.projectName,
               this.meta.title,
               this.selectedView.title,
@@ -226,7 +227,7 @@ export default {
               return res
             }, {}),
           )
-          await this.$api.dbTableRow.bulkCreate('noco', this.projectName, this.meta.title, batchData)
+          await this.$api.dbTableRow.bulkCreate(NOCO, this.projectName, this.meta.title, batchData)
           progress += batchData.length
           this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${data.length}`)
           this.$store.commit('loader/MutProgress', Math.round((100 * progress) / data.length))

@@ -5,7 +5,7 @@ export default () => {
   const { $api } = useNuxtApp()
 
   const project = useState<ProjectType>('project')
-  const tables = useState<Array<TableType>>('tables')
+  const tables = useState<TableType[]>('tables')
 
   const loadTables = async () => {
     if (project.value.id) {

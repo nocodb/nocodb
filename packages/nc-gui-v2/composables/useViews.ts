@@ -3,12 +3,12 @@ import type { Ref } from 'vue'
 import { useNuxtApp } from '#app'
 
 export default function (meta: Ref<TableType>) {
-  const views = ref<Array<GridType | FormType | KanbanType | GalleryType>>()
+  const views = ref<(GridType | FormType | KanbanType | GalleryType)[]>()
   const { $api } = useNuxtApp()
 
   const loadViews = async () => {
     if (meta.value?.id)
-      views.value = (await $api.dbView.list(meta.value?.id)).list as Array<GridType | FormType | KanbanType | GalleryType>
+      views.value = (await $api.dbView.list(meta.value?.id)).list as (GridType | FormType | KanbanType | GalleryType)[]
   }
 
   return { views, loadViews }

@@ -7,7 +7,7 @@ export interface TabItem {
 }
 
 export default () => {
-  const tabs = useState<Array<TabItem>>('tabs', () => [])
+  const tabs = useState<TabItem[]>('tabs', () => [])
   const activeTab = useState<number>('activeTab', () => 0)
 
   const addTab = (tabMeta: TabItem) => {

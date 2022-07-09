@@ -1,5 +1,6 @@
 <script>
 import { RelationTypes } from 'nocodb-sdk'
+import { NOCO } from '~/lib/constants'
 import Pagination from '~/components/project/spreadsheet/components/Pagination'
 
 export default {
@@ -86,7 +87,7 @@ export default {
       }
       if (this.column && this.column.colOptions) {
         this.data = await this.$api.dbTableRow.nestedList(
-          'noco',
+          NOCO,
           this.projectName,
           this.parentMeta.title,
           this.rowId,
@@ -98,7 +99,7 @@ export default {
           },
         )
       } else {
-        this.data = await this.$api.dbTableRow.list('noco', this.projectName, this.meta.title, {
+        this.data = await this.$api.dbTableRow.list(NOCO, this.projectName, this.meta.title, {
           limit: this.size,
           offset: this.size * (this.page - 1),
           ...this.queryParams,

@@ -4,6 +4,7 @@ import { inject, ref, watchEffect } from '#imports'
 import { useNuxtApp } from '#app'
 import { ColumnInj, MetaInj } from '~/components'
 import useProject from '~/composables/useProject'
+import { NOCO } from '~/lib/constants'
 import { isImage } from '~/utils/fileUtils'
 import MaterialPlusIcon from '~icons/mdi/plus'
 import MaterialArrowExpandIcon from '~icons/mdi/arrow-expand'
@@ -81,7 +82,7 @@ const onFileSelection = async (e) => {
     try {
       const data = await $api.storage.upload(
         {
-          path: ['noco', project.value.title, meta?.value?.title, column?.title].join('/'),
+          path: [NOCO, project.value.title, meta?.value?.title, column?.title].join('/'),
         },
         {
           files: file,

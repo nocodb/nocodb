@@ -42,7 +42,6 @@ import { NcError } from '../../../../meta/helpers/catchError';
 import { customAlphabet } from 'nanoid';
 import DOMPurify from 'isomorphic-dompurify';
 import { sanitize, unsanitize } from './helpers/sanitize';
-import { fisherYatesShuffle } from '../../../../meta/helpers/shuffleHelper';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -179,6 +178,9 @@ class BaseModelSqlv2 {
 
     const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ qb });
+    if (+rest?.shuffle) {
+      await this.shuffle({ qb });
+    }
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
     let sorts = extractSortsObject(args?.sort, aliasColObjMap);
@@ -249,9 +251,7 @@ class BaseModelSqlv2 {
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
     let data = await this.extractRawQueryAndExec(qb);
-    if (+rest?.shuffle) {
-      data = fisherYatesShuffle(data);
-    }
+
     return data?.map((d) => {
       d.__proto__ = proto;
       return d;
@@ -338,6 +338,10 @@ class BaseModelSqlv2 {
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
     qb.select(args.column_name);
 
+    if (+rest?.shuffle) {
+      await this.shuffle({ qb });
+    }
+
     const aliasColObjMap = await this.model.getAliasColObjMap();
 
     const sorts = extractSortsObject(args?.sort, aliasColObjMap);
@@ -358,9 +362,6 @@ class BaseModelSqlv2 {
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
     let data = await qb;
-    if (+rest?.shuffle) {
-      data = fisherYatesShuffle(data);
-    }
     return data;
   }
 
@@ -858,6 +859,10 @@ class BaseModelSqlv2 {
         .orWhereNull(rcn)
     );
 
+    if (+args?.shuffle) {
+      qb.orderByRaw('RAND()');
+    }
+
     await childModel.selectObject({ qb });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
@@ -868,9 +873,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
     let data = await qb;
-    if (+args?.shuffle) {
-      data = fisherYatesShuffle(data);
-    }
+
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -954,6 +957,10 @@ class BaseModelSqlv2 {
       ).orWhereNull(cn);
     });
 
+    if (+args?.shuffle) {
+      await this.shuffle({ qb });
+    }
+
     await childModel.selectObject({ qb });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
@@ -964,9 +971,7 @@ class BaseModelSqlv2 {
 
     const proto = await childModel.getProto();
     let data = await this.extractRawQueryAndExec(qb);
-    if (+args?.shuffle) {
-      data = fisherYatesShuffle(data);
-    }
+
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -1050,6 +1055,10 @@ class BaseModelSqlv2 {
       ).orWhereNull(rcn);
     });
 
+    if (+args?.shuffle) {
+      await this.shuffle({ qb });
+    }
+
     await parentModel.selectObject({ qb });
 
     const aliasColObjMap = await parentTable.getAliasColObjMap();
@@ -1060,9 +1069,7 @@ class BaseModelSqlv2 {
 
     const proto = await parentModel.getProto();
     let data = await this.extractRawQueryAndExec(qb);
-    if (+args?.shuffle) {
-      data = fisherYatesShuffle(data);
-    }
+
     return data.map((c) => {
       c.__proto__ = proto;
       return c;
@@ -1257,6 +1264,16 @@ class BaseModelSqlv2 {
     obj.fields = args.fields || args.f || '*';
     obj.sort = args.sort || args.s || this.model.primaryKey?.[0]?.tn;
     return obj;
+  }
+
+  public async shuffle({ qb }: { qb: QueryBuilder }): Promise<void> {
+    if (this.isMySQL) {
+      qb.orderByRaw('RAND()');
+    } else if (this.isPg || this.isSqlite) {
+      qb.orderByRaw('RANDOM()');
+    } else if (this.isMssql) {
+      qb.orderByRaw('NEWID()');
+    }
   }
 
   public async selectObject({ qb }: { qb: QueryBuilder }): Promise<void> {
@@ -2234,7 +2251,6 @@ function applyPaginate(
 ) {
   query.offset(offset);
   if (!ignoreLimit) query.limit(limit);
-
   return query;
 }
 

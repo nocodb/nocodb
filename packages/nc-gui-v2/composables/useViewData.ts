@@ -4,7 +4,7 @@ import { useNuxtApp } from '#app'
 import useProject from '~/composables/useProject'
 import { NOCO } from '~/lib/constants'
 
-const formatData = (list: Array<Record<string, any>>) =>
+const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
     row: { ...row },
     oldRow: { ...row },
@@ -15,8 +15,8 @@ export default (
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
   viewMeta: Ref<TableType> | ComputedRef<TableType> | undefined,
 ) => {
-  const data = ref<Array<Record<string, any>>>()
-  const formattedData = ref<Array<{ row: Record<string, any>; oldRow: Record<string, any>; rowMeta?: any }>>()
+  const data = ref<Record<string, any>[]>()
+  const formattedData = ref<{ row: Record<string, any>; oldRow: Record<string, any>; rowMeta?: any }[]>()
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
 
   const { project } = useProject()

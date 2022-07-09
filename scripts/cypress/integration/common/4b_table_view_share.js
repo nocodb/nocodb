@@ -17,15 +17,16 @@ const generateLinkWithPwd = () => {
 
     // enable checkbox & feed pwd, save
     cy.getActiveModal().find('button:contains("More Options")').click({ force: true });
-    const passwordCheckbox = cy.getActiveModal().find('[role="checkbox"][type="checkbox"]').first()
-    if (passwordCheckbox.eq(0)) {
-        passwordCheckbox.click({ force: true });
-        cy.getActiveModal().find('input[type="password"]').type("1");
-        cy.snipActiveModal("Modal_ShareView_Password");
-        cy.getActiveModal().find('button:contains("Save password")').click();
-        cy.toastWait("Successfully updated");
-    }
-
+    cy.getActiveModal().find('[role="checkbox"][type="checkbox"]').first().then(($el) => {
+        if (!$el.prop("checked")) {
+            cy.wrap($el).click({ force: true });
+            cy.getActiveModal().find('input[type="password"]').type("1");
+            cy.snipActiveModal("Modal_ShareView_Password");
+            cy.getActiveModal().find('button:contains("Save password")').click();
+            cy.toastWait("Successfully updated");
+        }
+    });
+    
     // copy link text, visit URL
     cy.getActiveModal()
         .find(".share-link-box")

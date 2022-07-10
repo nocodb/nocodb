@@ -1,15 +1,7 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, onKeyStroke, onMounted, provide } from '#imports'
-import {
-  ActiveViewInj,
-  ChangePageInj,
-  IsFormInj,
-  IsGridInj,
-  MetaInj,
-  PaginationDataInj,
-  ReloadViewDataInj
-} from "~/components";
+import { ActiveViewInj, ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReloadViewDataInj } from '~/components'
 import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import useViewData from '~/composables/useViewData'
 

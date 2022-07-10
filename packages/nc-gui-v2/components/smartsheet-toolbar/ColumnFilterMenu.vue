@@ -1,5 +1,19 @@
-<script>
-import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter'
+<script setup lang="ts">
+// todo: move to persisted state
+import { useState } from '#app'
+import { IsLockedInj } from '~/components'
+import Smartsheet from '~/components/tabs/Smartsheet.vue'
+
+const autoApplyFilter = useState('autoApplyFilter', () => false)
+const isLocked = inject(IsLockedInj)
+
+// todo: emit from child
+const filters = []
+
+// todo: implement
+const applyChanges = () => {}
+
+/* import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter'
 
 export default {
   name: 'ColumnFilterMenu',
@@ -49,12 +63,12 @@ export default {
       this.$e('a:filter:apply')
     },
   },
-}
+} */
 </script>
 
 <template>
   <v-menu offset-y eager transition="slide-y-transition">
-    <template #activator="{ on }">
+    <template #activator="props">
       <v-badge :value="filters.length" color="primary" dot overlap>
         <v-btn
           v-t="['c:filter']"
@@ -66,28 +80,28 @@ export default {
           :class="{
             'primary lighten-5 grey--text text--darken-3': filters.length,
           }"
-          v-on="on"
+          v-bind="props"
         >
-          <v-icon small class="mr-1" color="grey  darken-3"> mdi-filter-outline </v-icon>
+          <v-icon small class="mr-1" color="grey  darken-3"> mdi-filter-outline</v-icon>
           <!-- Filter -->
           {{ $t('activity.filter') }}
-          <v-icon small color="#777"> mdi-menu-down </v-icon>
+          <v-icon small color="#777"> mdi-menu-down</v-icon>
         </v-btn>
       </v-badge>
     </template>
-    <ColumnFilter
-      ref="filter"
+    <SmartsheetToolbarColumnFilter ref="filter">
+      <!--
       v-model="filters"
       :shared="shared"
       :view-id="viewId"
       :field-list="fieldList"
-      :meta="meta"
-      v-on="$listeners"
-    >
+      :meta="meta" -->
+      <!--      v-on="$listeners" -->
+
       <div class="d-flex align-center mx-2" @click.stop>
         <v-checkbox
           id="col-filter-checkbox"
-          v-model="autosave"
+          v-model="autoApplyFilter"
           class="col-filter-checkbox"
           hide-details
           dense
@@ -103,14 +117,14 @@ export default {
         </v-checkbox>
 
         <v-spacer />
-        <v-btn v-show="!autosave" color="primary" small class="caption ml-2" @click="applyChanges"> Apply changes </v-btn>
+        <v-btn v-show="!autoApplyFilter" color="primary" small class="caption ml-2" @click="applyChanges"> Apply changes </v-btn>
       </div>
-    </ColumnFilter>
+    </SmartsheetToolbarColumnFilter>
   </v-menu>
 </template>
 
 <style scoped>
-/deep/ .col-filter-checkbox .v-input--selection-controls__input {
+/*/deep/ .col-filter-checkbox .v-input--selection-controls__input {
   transform: scale(0.7);
-}
+}*/
 </style>

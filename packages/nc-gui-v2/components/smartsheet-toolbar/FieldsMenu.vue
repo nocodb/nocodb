@@ -13,9 +13,8 @@ const { showSystemFields, fieldsOrder, coverImageField, modelValue } = definePro
 }>()
 
 const meta = inject(MetaInj)
-const isLocked = false
-
 const activeView = inject(ActiveViewInj)
+const isLocked = false
 
 const isAnyFieldHidden = computed(() => {
   return false
@@ -23,13 +22,13 @@ const isAnyFieldHidden = computed(() => {
   // return meta?.fields?.some(field => field.hidden)
 })
 
-const { fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, sync } = useViewColumns()
+const { fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, sync } = useViewColumns(activeView, meta)
 
 watch(
   () => activeView?.value?.id,
   async (newVal, oldVal) => {
     if (newVal !== oldVal && meta?.value) {
-      await loadViewColumns(meta, newVal)
+      await loadViewColumns()
     }
   },
   { immediate: true },
@@ -300,7 +299,7 @@ export default {
       <v-badge :value="isAnyFieldHidden" color="primary" dot overlap v-bind="props">
         <v-btn
           v-t="['c:fields']"
-          class="nc-fields-menu-btn px-2 nc-remove-border "
+          class="nc-fields-menu-btn px-2 nc-remove-border"
           :disabled="isLocked"
           outlined
           small

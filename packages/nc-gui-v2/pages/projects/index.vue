@@ -54,9 +54,9 @@ const navDrawerOptions = [
           {{ activePage }}
         </h2>
 
-        <div class="self-end">
-          <MaterialSymbolsFormatListBulletedRounded />
-          <MaterialSymbolsGridView />
+        <div class="self-end flex text-xl">
+          <MaterialSymbolsFormatListBulletedRounded class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full" />
+          <MaterialSymbolsGridView class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full" />
         </div>
       </div>
       <v-divider class="mb-3" />

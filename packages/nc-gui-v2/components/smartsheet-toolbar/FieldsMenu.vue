@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { MetaInj } from '~/components'
+import { ActiveViewInj, MetaInj } from '~/components'
+import useViewColumns from '~/composables/useViewColumns'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiEyeIcon from '~icons/mdi/eye-off-outline'
 
@@ -12,13 +13,27 @@ const { showSystemFields, fieldsOrder, coverImageField, modelValue } = definePro
 }>()
 
 const meta = inject(MetaInj)
-const isLocked = false // inject(IsLockedInj)
+const isLocked = false
+
+const activeView = inject(ActiveViewInj)
 
 const isAnyFieldHidden = computed(() => {
   return false
   // todo: implement
   // return meta?.fields?.some(field => field.hidden)
 })
+
+const { fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, sync } = useViewColumns()
+
+watch(
+  () => activeView?.value?.id,
+  async (newVal, oldVal) => {
+    if (newVal !== oldVal && meta?.value) {
+      await loadViewColumns(meta, newVal)
+    }
+  },
+  { immediate: true },
+)
 
 /* import draggable from 'vuedraggable'
 import { getSystemColumnsIds } from 'nocodb-sdk'
@@ -281,28 +296,80 @@ export default {
 
 <template>
   <v-menu>
-    <template #activator="{ on }">
-      <v-badge :value="isAnyFieldHidden" color="primary" dot overlap v-on="on">
+    <template #activator="{ props }">
+      <v-badge :value="isAnyFieldHidden" color="primary" dot overlap v-bind="props">
         <v-btn
           v-t="['c:fields']"
-          class="nc-fields-menu-btn px-2 nc-remove-border"
+          class="nc-fields-menu-btn px-2 nc-remove-border "
           :disabled="isLocked"
           outlined
           small
           text
           :class="{
-            'primary lighten-5 grey&#45;&#45;text text&#45;&#45;darken-3': isAnyFieldHidden,
+            'primary lighten-5 grey--text text--darken-3': isAnyFieldHidden,
           }"
           v-on="on"
         >
           <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
           <MdiEyeIcon class="mr-1 text-grey"></MdiEyeIcon>
           <!-- Fields -->
-          {{ $t('objects.fields') }}
+          <span class="text-sm text-capitalize">{{ $t('objects.fields') }}</span>
           <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
         </v-btn>
       </v-badge>
     </template>
+
+    <v-list density="compact" class="pt-0" min-width="280" @click.stop>
+      <div class="nc-fields-list py-1">
+        <!--        <Draggable v-model="fields" @start="drag = true" @end="drag = false" @change="onMove($event)"> -->
+        <v-list-item v-for="(field, i) in filteredFieldList" :key="field.id" dense>
+          <input
+            :id="`show-field-${field.id}`"
+            v-model="field.show"
+            type="checkbox"
+            class="mt-0 pt-0"
+            @click.stop
+            @change="sync(field, i)"
+          />
+          <!--                        @change="saveOrUpdate(field, i)"> -->
+          <!--            <template #label>
+                        &lt;!&ndash;                <v-icon small class="mr-1">
+                          {{ field.icon }}
+                        </v-icon> &ndash;&gt;
+                        <span class="caption">{{ field.title }}</span>
+                      </template> -->
+          <!--          </input> -->
+          <label :for="`show-field-${field.id}`" class="ml-2 text-sm">{{ field.title }}</label>
+          <v-spacer />
+
+          <!--          <v-icon small color="grey" :class="`align-self-center drag-icon nc-child-draggable-icon-${field}`"> mdi-drag </v-icon> -->
+        </v-list-item>
+        <!--        </Draggable> -->
+      </div>
+      <v-divider class="my-2" />
+
+      <!--      <v-list-item v-if="!isPublic" dense>
+        <v-checkbox v-model="showSystemFieldsLoc" class="mt-0 pt-0" dense hide-details @click.stop>
+          <template #label>
+            <span class="caption">
+              &lt;!&ndash; Show System Fields &ndash;&gt;
+              {{ $t('activity.showSystemFields') }}
+            </span>
+          </template>
+        </v-checkbox>
+      </v-list-item> -->
+      <v-list-item dense class="mt-2 list-btn mb-3">
+        <v-btn small class="elevation-0 grey--text" @click.stop="showAll">
+          <!-- Show All -->
+          {{ $t('general.showAll') }}
+        </v-btn>
+        <v-btn small class="elevation-0 grey--text" @click.stop="hideAll">
+          <!-- Hide All -->
+          {{ $t('general.hideAll') }}
+        </v-btn>
+      </v-list-item>
+    </v-list>
+
     <!--
     <v-list dense class="pt-0" min-width="280" @click.stop>
       <template v-if="isGallery && _isUIAllowed('updateCoverImage')">

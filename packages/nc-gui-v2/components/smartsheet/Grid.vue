@@ -1,7 +1,15 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, onKeyStroke, onMounted, provide } from '#imports'
-import { ActiveViewInj, ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj } from '~/components'
+import {
+  ActiveViewInj,
+  ChangePageInj,
+  IsFormInj,
+  IsGridInj,
+  MetaInj,
+  PaginationDataInj,
+  ReloadViewDataInj
+} from "~/components";
 import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import useViewData from '~/composables/useViewData'
 
@@ -20,6 +28,7 @@ provide(IsFormInj, false)
 provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
+provide(ReloadViewDataInj, loadData)
 
 const selectCell = (row: number, col: number) => {
   selected.row = row
@@ -33,8 +42,8 @@ onKeyStroke(['Enter'], (e) => {
 })
 
 watch(
-  [meta, view],
-  async () => {
+  [() => meta?.value?.id, () => view?.value?.id],
+  async (n: any, o: any) => {
     if (meta?.value && view?.value) {
       await loadData()
     }

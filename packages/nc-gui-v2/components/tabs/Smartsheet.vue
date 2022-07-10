@@ -38,6 +38,7 @@ watch(
         <div v-if="activeView" class="flex-grow-1 min-w-0">
           <SmartsheetGrid v-if="activeView.type === ViewTypes.GRID" />
           <SmartsheetGallery v-else-if="activeView.type === ViewTypes.GALLERY" />
+          <SmartsheetForm v-else-if="activeView.type === ViewTypes.FORM" />
         </div>
         <SmartsheetSidebar />
       </div>

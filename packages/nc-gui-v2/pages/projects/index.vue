@@ -3,6 +3,8 @@ import { navigateTo } from '#app'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
 import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 
+const route = useRoute()
+
 const { $api } = useNuxtApp()
 
 const response = await $api.project.list({})
@@ -55,14 +57,16 @@ const navDrawerOptions = [
           {{ activePage }}
         </h2>
 
-        <div class="self-end flex text-xl">
+        <div class="self-end flex text-2xl">
           <MaterialSymbolsFormatListBulletedRounded
-            class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full"
-            @click="navigateTo('/projects')"
-          />
-          <MaterialSymbolsGridView
+            :class="route.name === 'projects-list' ? 'text-primary' : ''"
             class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/projects/list')"
+          />
+          <MaterialSymbolsGridView
+            :class="route.name === 'projects-index' ? 'text-primary' : ''"
+            class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full"
+            @click="navigateTo('/projects')"
           />
         </div>
       </div>

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { navigateTo } from '#app'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
 import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 
@@ -55,8 +56,14 @@ const navDrawerOptions = [
         </h2>
 
         <div class="self-end flex text-xl">
-          <MaterialSymbolsFormatListBulletedRounded class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full" />
-          <MaterialSymbolsGridView class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full" />
+          <MaterialSymbolsFormatListBulletedRounded
+            class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full"
+            @click="navigateTo('/projects')"
+          />
+          <MaterialSymbolsGridView
+            class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full"
+            @click="navigateTo('/projects/list')"
+          />
         </div>
       </div>
       <v-divider class="mb-3" />
@@ -65,4 +72,3 @@ const navDrawerOptions = [
     </v-container>
   </NuxtLayout>
 </template>
-

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { inject } from 'vue'
 import { ColumnInj } from '../index'
 
 const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
@@ -97,7 +96,7 @@ export default {
     <!--    <span v-if="(column.rqd && !column.cdf) || required" class="error&#45;&#45;text text&#45;&#45;lighten-1">&nbsp;*</span> -->
 
     <v-spacer />
-    <!--
+    <!--  todo: implement delete or edit column
     <v-menu
       v-if="!isLocked && !isPublicView && _isUIAllowed('edit-column') && !isForm"
       open-on-hover

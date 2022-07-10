@@ -50,8 +50,7 @@ watch(
         <tr>
           <th>#</th>
           <th v-for="col in meta.columns" :key="col.title">
-            <span v-if="isVirtualCol(col)"> {{ col.title }}</span>
-
+            <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
             <SmartsheetHeaderCell v-else :column="col" />
           </th>
         </tr>

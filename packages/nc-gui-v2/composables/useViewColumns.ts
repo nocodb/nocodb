@@ -1,8 +1,12 @@
-import type { TableType } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#app'
 
-export default function () {
+export default function (
+  view: Ref<(GridType | FormType | GalleryType) & { id?: string }> | undefined,
+  meta: Ref<TableType> | undefined,
+  isPublic = false,
+) {
   const fields = ref<
     {
       order?: number
@@ -11,7 +15,6 @@ export default function () {
       fk_column_id?: string
     }[]
   >()
-  let viewId: string
 
   const filterQuery = ref('')
   const filteredFieldList = computed(() => {
@@ -22,11 +25,12 @@ export default function () {
 
   const { $api } = useNuxtApp()
 
-  const loadViewColumns = async (meta: Ref<TableType>, _viewId: string, isPublic = false) => {
-    viewId = _viewId
+  const loadViewColumns = async () => {
+    if (!meta || !view) return
+
     let order = 1
-    if (viewId) {
-      const data = await $api.dbViewColumn.list(viewId)
+    if (view?.value?.id) {
+      const data = await $api.dbViewColumn.list(view?.value?.id as string)
       const fieldById: Record<string, any> = data.reduce((o: Record<string, any>, f: any) => {
         f.show = !!f.show
         return {
@@ -52,9 +56,9 @@ export default function () {
 
   const sync = async (field: any, index: number) => {
     if (field.id) {
-      await $api.dbViewColumn.update(viewId, field.id, field)
+      await $api.dbViewColumn.update(view?.value?.id as string, field.id, field)
     } else {
-      if (fields.value) fields.value[index] = (await $api.dbViewColumn.create(viewId, field)) as any
+      if (fields.value) fields.value[index] = (await $api.dbViewColumn.create(view?.value?.id as string, field)) as any
     }
   }
 

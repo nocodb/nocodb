@@ -1,5 +1,5 @@
 <script>
-import { RelationTypes, UITypes } from 'nocodb-sdk'
+/* import { RelationTypes, UITypes } from 'nocodb-sdk'
 import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
 import FieldListAutoCompleteDropdown from '~/components/project/spreadsheet/components/FieldListAutoCompleteDropdown'
 
@@ -92,11 +92,11 @@ export default {
       this.$e('a:sort:delete')
     },
   },
-}
+} */
 </script>
 
 <template>
-  <v-menu offset-y transition="slide-y-transition">
+  <!--  <v-menu offset-y transition="slide-y-transition">
     <template #activator="{ on }">
       <v-badge :value="sortList && sortList.length" color="primary" dot overlap>
         <v-btn
@@ -107,12 +107,12 @@ export default {
           text
           outlined
           :class="{
-            'primary lighten-5 grey--text text--darken-3': sortList && sortList.length,
+            'primary lighten-5 grey&#45;&#45;text text&#45;&#45;darken-3': sortList && sortList.length,
           }"
           v-on="on"
         >
           <v-icon small class="mr-1" color="#777"> mdi-sort </v-icon>
-          <!-- Sort -->
+          &lt;!&ndash; Sort &ndash;&gt;
           {{ $t('activity.sort') }}
           <v-icon small color="#777"> mdi-menu-down </v-icon>
         </v-btn>
@@ -153,20 +153,20 @@ export default {
           </v-select>
         </template>
       </div>
-      <v-btn small class="elevation-0 grey--text my-3" @click.stop="addSort">
+      <v-btn small class="elevation-0 grey&#45;&#45;text my-3" @click.stop="addSort">
         <v-icon small color="grey"> mdi-plus </v-icon>
-        <!-- Add Sort Option -->
+        &lt;!&ndash; Add Sort Option &ndash;&gt;
         {{ $t('activity.addSort') }}
       </v-btn>
     </div>
-  </v-menu>
+  </v-menu> -->
 </template>
 
 <style scoped>
-.sort-grid {
+/*.sort-grid {
   display: grid;
   grid-template-columns: 22px auto 100px;
   column-gap: 6px;
   row-gap: 6px;
-}
+}*/
 </style>

@@ -2,6 +2,7 @@
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, onKeyStroke, onMounted, provide } from '#imports'
 import { ActiveViewInj, ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj } from '~/components'
+import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)
@@ -49,7 +50,9 @@ watch(
         <tr>
           <th>#</th>
           <th v-for="col in meta.columns" :key="col.title">
-            {{ col.title }}
+            <span v-if="isVirtualCol(col)"> {{ col.title }}</span>
+
+            <SmartsheetHeaderCell v-else :column="col" />
           </th>
         </tr>
       </thead>

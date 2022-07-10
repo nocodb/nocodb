@@ -7,7 +7,6 @@ import useVirtualCell from '~/composables/useVirtualCell'
 interface Props {
   column: ColumnType
   modelValue: any
-  editEnabled: boolean
 }
 
 const { column, modelValue: value } = defineProps<Props>()

@@ -1,14 +1,15 @@
 <script setup lang="ts">
+import { ReadonlyInj } from '~/components'
 import MdiCloseThickIcon from '~icons/mdi/close-thick'
 
 interface Props {
-  value: string | number | boolean
-  active: boolean
-  item: any
-  readonly: boolean
+  value?: string | number | boolean
+  active?: boolean
+  item?: any
 }
 
-const { value, active, item, readonly } = defineProps<Props>()
+const { value, active, item } = defineProps<Props>()
+const readonly = inject(ReadonlyInj, false)
 </script>
 
 <template>

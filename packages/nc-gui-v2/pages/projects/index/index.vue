@@ -32,7 +32,7 @@ const formatTitle = (title: string) =>
 </script>
 
 <template>
-  <div class="nc-project-item-container flex flex-wrap relative d-100">
+  <div class="nc-project-item-container flex flex-wrap relative w-full">
     <div
       v-for="(project, i) of projects"
       :key="project.id"

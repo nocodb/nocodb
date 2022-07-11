@@ -6,8 +6,8 @@ import type en from '~/lang/en.json'
 // Type-define 'en' as the master schema for the resource
 type MessageSchema = typeof en
 
-export default defineNuxtPlugin(async (nuxtApp) => {
-  const i18n = createI18n({
+export const createI18nPlugin = async () =>
+  createI18n({
     locale: 'en', // Set the initial locale
 
     fallbackLocale: 'en', // Set the fallback locale in case the current locale can't be found
@@ -47,6 +47,9 @@ export default defineNuxtPlugin(async (nuxtApp) => {
       tr: await import('~/lang/tr.json'),
     },
   })
+
+export default defineNuxtPlugin(async (nuxtApp) => {
+  const i18n = await createI18nPlugin()
 
   nuxtApp.vueApp.i18n = i18n.global
 

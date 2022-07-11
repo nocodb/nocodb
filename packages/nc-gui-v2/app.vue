@@ -2,6 +2,7 @@
 import MdiAt from '~icons/mdi/at'
 import MdiLogout from '~icons/mdi/logout'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
+import MaterialSymbolsMenu from '~icons/material-symbols/menu'
 import { navigateTo } from '#app'
 
 const { $state } = useNuxtApp()
@@ -15,8 +16,8 @@ const signOut = () => {
 
 <template>
   <v-app>
-    <v-app-bar class="elevation-1" color="primary" app clipped-left dense dark height="48">
-      <div class="d-flex align-center" style="flex: 1">
+    <v-app-bar class="shadow-md bg-primary" height="48">
+      <div class="flex items-center flex-1">
         <v-toolbar-title>
           <v-tooltip bottom>
             {{ $t('general.home') }}
@@ -46,6 +47,12 @@ const signOut = () => {
           <general-color-mode-switcher v-model="$state.darkMode.value" />
 
           <general-language class="mr-3" />
+
+          <MaterialSymbolsMenu
+            v-if="$state.signedIn.value"
+            class="block text-xl cursor-pointer xl:(hidden)"
+            @click="$state.sidebarOpen.value = !$state.sidebarOpen.value"
+          />
 
           <template v-if="$state.signedIn.value">
             <v-menu class="leading-8">

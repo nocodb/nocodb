@@ -9,11 +9,15 @@ export interface User {
   roles: (Role | string)[]
 }
 
-export interface State {
+export interface StoredState {
   token: string | null
   user: User | null
   lang: string
   darkMode: boolean
+}
+
+export interface State extends StoredState {
+  sidebarOpen: boolean
 }
 
 export interface Getters {

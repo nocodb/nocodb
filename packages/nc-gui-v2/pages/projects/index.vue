@@ -33,14 +33,14 @@ const route = useRoute()
 const { $api, $state } = useNuxtApp()
 
 const response = await $api.project.list({})
-const projects = $ref(response.list)
+const projects = $ref(Array(100).fill(...response.list))
 const activePage = $ref(navDrawerOptions[0].title)
 </script>
 
 <template>
   <NuxtLayout>
     <template #sidebar>
-      <v-navigation-drawer :border="0">
+      <v-navigation-drawer v-model="$state.sidebarOpen.value" :border="0">
         <div class="flex flex-col h-full">
           <div class="flex p-4">
             <v-menu class="select-none">
@@ -106,7 +106,7 @@ const activePage = $ref(navDrawerOptions[0].title)
 
     <v-container class="flex-1 mb-12">
       <div class="flex">
-        <div class="flex-1 prose-xl p-2">
+        <div class="flex-1 text-2xl md:text-4xl font-bold text-gray-500 dark:text-white p-4">
           {{ activePage }}
         </div>
 

@@ -16,7 +16,7 @@ const { projects } = defineProps<Props>()
 
 const { $e } = useNuxtApp()
 
-const { getColorByIndex } = useColors()
+const { getColorByIndex } = useColors(true)
 
 const openProject = async (project: ProjectType) => {
   await navigateTo(`/nc/${project.id}`)
@@ -32,12 +32,13 @@ const formatTitle = (title: string) =>
 </script>
 
 <template>
-  <div class="grid grid-cols-2 md:grid-cols-4 3xl:grid-cols-6 gap-6 md:gap-12">
+  <div class="grid grid-cols-2 md:grid-cols-5 3xl:grid-cols-6 gap-6 md:(gap-y-16)">
     <div class="group flex flex-col items-center gap-2">
       <v-menu>
         <template #activator="{ props }">
           <div
-            class="thumbnail !bg-gradient-to-br from-primary to-gray-500 !opacity-25 hover:(!opacity-100 shadow-lg to-primary/50) bg-gray-400"
+            class="thumbnail hover:(after:!opacity-100 shadow-lg to-primary/50)"
+            :style="{ '--thumbnail-color': '#1348ba' }"
             @click="props.onClick"
           >
             <MdiPlus />
@@ -66,14 +67,14 @@ const formatTitle = (title: string) =>
     </div>
 
     <div v-for="(project, i) of projects" :key="project.id" class="group flex flex-col items-center gap-2">
-      <div class="thumbnail" :style="{ backgroundColor: getColorByIndex(i) }" @click="openProject(project)">
+      <div class="thumbnail" :style="{ '--thumbnail-color': getColorByIndex(i) }" @click="openProject(project)">
         {{ formatTitle(project.title) }}
 
-        <MdiStarOutline class="star-icon group-hover:opacity-100" @click.stop />
+        <MdiStarOutline class="star-icon" @click.stop />
 
         <v-menu>
           <template #activator="{ props }">
-            <MdiMenuDown class="menu-icon group-hover:opacity-100" @click.stop="props.onClick" />
+            <MdiMenuDown class="menu-icon" @click.stop="props.onClick" />
           </template>
 
           <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300">
@@ -94,13 +95,22 @@ const formatTitle = (title: string) =>
 
 <style scoped>
 .thumbnail {
-  @apply relative rounded-md opacity-75 font-bold text-white text-[75px] h-[150px] w-full max-w-[150px] md:w-1/2 min-w-[150px] shadow-md cursor-pointer uppercase flex items-center justify-center transition-color ease-in duration-300 hover:(shadow-lg opacity-100);
-  background-image: linear-gradient(#0002, #0002);
+  @apply relative rounded-md opacity-75 font-bold text-white text-[75px] h-[150px] w-full max-w-[150px] shadow-md cursor-pointer uppercase flex items-center justify-center transition-color ease-in duration-100 hover:(after:opacity-100 shadow-none);
+}
+
+.thumbnail::after {
+  @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out opacity-75;
+  background-color: var(--thumbnail-color);
+  content: '';
+  z-index: -1;
+}
+.thumbnail:hover::after {
+  @apply shadow-2xl transform scale-110;
 }
 
 .menu-icon,
 .star-icon {
-  @apply w-auto opacity-0 absolute h-[1.75rem] transition-opacity duration-300;
+  @apply w-auto opacity-0 absolute h-[1.75rem] transition-opacity !duration-200 group-hover:opacity-100;
 }
 
 .star-icon {

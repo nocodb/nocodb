@@ -21,7 +21,7 @@ const { modelValue } = defineProps<Props>()
 // ------------
 // emit
 // ------------
-const emit = defineEmits(['update:input'])
+const emit = defineEmits(['update:modelValue'])
 
 // ------------
 // data
@@ -67,9 +67,9 @@ const checkDurationFormat = (evt: any) => {
   }
 }
 
-const onBlur = () => {
+const submitDuration = () => {
   if (isEdited.value) {
-    emit('update:input', durationInMS.value)
+    emit('update:modelValue', durationInMS.value)
   }
   isEdited.value = false
 }
@@ -81,9 +81,9 @@ const onBlur = () => {
       ref="durationInput"
       v-model="localState"
       :placeholder="durationPlaceholder"
-      @blur="onBlur"
+      @blur="submitDuration"
       @keypress="checkDurationFormat($event)"
-      @keydown.enter="isEdited && emit('update:input', durationInMS.value)"
+      @keydown.enter="submitDuration"
     />
     <div v-if="showWarningMessage == true" class="duration-warning">
       <!-- TODO: i18n -->

@@ -30,7 +30,10 @@ export const useGlobalState = (): GlobalState => {
   /** reactive timestamp to check token expiry against */
   const timestamp = $(useTimestamp({ immediate: true, interval: 100 }))
 
-  const { $api, vueApp } = useNuxtApp()
+  const {
+    $api,
+    vueApp: { i18n },
+  } = useNuxtApp()
 
   /**
    * Set initial language based on browser settings.
@@ -42,7 +45,7 @@ export const useGlobalState = (): GlobalState => {
     const [lang, code] = language.split(/[_-]/)
 
     /** find all locales that match the language */
-    let availableLocales = vueApp.i18n.availableLocales.filter((locale) => locale.startsWith(lang))
+    let availableLocales = i18n.availableLocales.filter((locale) => locale.startsWith(lang))
 
     /** If we can match more than one locale, we check if the code of the language matches as well */
     if (availableLocales.length > 1) {

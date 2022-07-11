@@ -39,34 +39,23 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
         <v-list width="100%" class="py-0 flex-shrink-1 text-left elevation-0 rounded-sm community-card item active" dense>
           <v-list-item>
             <div class="flex justify-space-between d-100 pr-2">
-              <MdiDiscord
-                v-t="['e:community:discord']"
-                class="icon"
-                :color="colors[0]"
-                @click="open('https://discord.gg/5RgZmkW')"
-              />
-              <BxBxlDiscourse
+              <MdiDiscord v-t="['e:community:discord']" class="icon text-[#7289DA]" @click="open('https://discord.gg/5RgZmkW')" />
+              <div
                 v-t="['e:community:discourse']"
-                class="icon"
-                :color="colors[0]"
+                class="icon flex items-center justify-center min-w-[43px]"
                 @click="open('https://community.nocodb.com/')"
-              />
+              >
+                <div class="discourse" />
+              </div>
               <MdiReddit
                 v-t="['e:community:reddit']"
-                class="icon"
-                color="#ff4600"
+                class="icon text-[#FF4600]"
                 @click="open('https://www.reddit.com/r/NocoDB/')"
               />
-              <MdiTwitter
-                v-t="['e:community:twitter']"
-                class="icon"
-                :color="colors[1]"
-                @click="open('https://twitter.com/NocoDB')"
-              />
+              <MdiTwitter v-t="['e:community:twitter']" class="icon text-[#1DA1F2]" @click="open('https://twitter.com/NocoDB')" />
               <MdiCalendarMonth
                 v-t="['e:community:book-demo']"
-                class="icon"
-                :color="colors[3]"
+                class="icon text-green-500"
                 @click="open('https://calendly.com/nocodb-meeting')"
               />
             </div>
@@ -80,5 +69,18 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
 <style scoped>
 .icon {
   @apply cursor-pointer text-4xl rounded-full p-2 bg-gray-100 shadow-md hover:(shadow-lg bg-gray-200) transition-color ease-in duration-100;
+}
+
+.discourse {
+  height: 22px;
+  width: 22px;
+  background-image: url('~/assets/img/discourse-icon.png');
+  background-size: contain;
+  background-repeat: no-repeat;
+}
+
+.discourse::before {
+  visibility: hidden;
+  content: '';
 }
 </style>

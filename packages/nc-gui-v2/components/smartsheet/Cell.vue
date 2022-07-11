@@ -51,7 +51,6 @@ const {
     <!--
 todo :
  JSONCell
- DurationCell
  Currency
  Url
  Email
@@ -200,7 +199,7 @@ todo :
           :is-locked="isLocked"
           v-on="$listeners"
         /> -->
-
+    <CellDuration v-else-if="isDuration" v-model="localState" />
     <CellText v-else v-model="localState" />
     <!--  v-on="$listeners"   <span v-if="hint" class="nc-hint">{{ hint }}</span> -->
 

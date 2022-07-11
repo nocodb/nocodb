@@ -32,14 +32,10 @@ const formatTitle = (title: string) =>
 </script>
 
 <template>
-  <div class="nc-project-item-container flex flex-wrap relative w-full">
-    <div
-      v-for="(project, i) of projects"
-      :key="project.id"
-      class="group nc-project-item elevation-0 flex items-center justify-center flex-column py-5"
-    >
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 3xl:grid-cols-8">
+    <div v-for="(project, i) of projects" :key="project.id" class="group flex flex-col items-center gap-2">
       <div
-        class="nc-project-thumbnail cursor-pointer uppercase flex items-center justify-center transition-color ease duration-300"
+        class="nc-project-thumbnail shadow-md cursor-pointer uppercase flex items-center justify-center transition-color ease duration-300 hover:shadow-lg"
         :style="{ backgroundColor: getColorByIndex(i) }"
         @click="openProject(project)"
       >
@@ -52,7 +48,7 @@ const formatTitle = (title: string) =>
             <MdiMenuDown class="nc-project-option-menu-icon group-hover:opacity-100" @click.stop="props.onClick" />
           </template>
 
-          <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2">
+          <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300">
             <div class="grid grid-cols-6 cursor-pointer hover:bg-gray-200 flex items-center p-2" @click.stop>
               <MdiDeleteOutline class="col-span-2 mr-1 mt-[1px] text-red text-lg" />
               <div class="col-span-4 text-sm xl:text-md">{{ $t('general.delete') }}</div>
@@ -61,21 +57,21 @@ const formatTitle = (title: string) =>
         </v-menu>
       </div>
 
-      <div class="text-center pa-2 nc-project-title body-2 font-weight-medium">
-        {{ project.title }}
+      <div class="prose-lg font-semibold">
+        {{ project.title || 'Untitled' }}
       </div>
     </div>
 
-    <div class="w-[150px] flex items-center justify-center flex-column">
+    <div class="group flex flex-col items-center gap-2">
       <v-menu>
         <template #activator="{ props }">
           <div
-            class="cursor-pointer nc-project-thumbnail opacity-50 hover:opacity-100 bg-gray-400 uppercase flex items-center justify-center transition-color ease duration-300"
+            class="cursor-pointer shadow-md nc-project-thumbnail opacity-50 hover:(opacity-100 shadow-lg) bg-gray-400 uppercase flex items-center justify-center transition-color ease duration-300"
             @click="props.onClick"
           >
             <MdiPlus />
           </div>
-          <div class="text-center p-2">
+          <div class="prose-lg font-semibold">
             {{ $t('title.newProj') }}
           </div>
         </template>
@@ -101,10 +97,6 @@ const formatTitle = (title: string) =>
 </template>
 
 <style scoped>
-.nc-project-item {
-  @apply w-[150px] items-center;
-}
-
 .nc-project-thumbnail {
   height: 100px;
   width: 100px;
@@ -126,11 +118,11 @@ const formatTitle = (title: string) =>
 }
 
 .nc-project-star-icon {
-  @apply top-1 right-1 transform hover:(scale-120 text-primary/75) transition-all duration-100 ease;
+  @apply top-1 right-1 transform hover:(scale-120 text-yellow-300/75) transition-all duration-100 ease;
 }
 
 .nc-project-option-menu-icon {
-  @apply bottom-1 right-1 transform hover:(scale-150 text-gray-500) transition-all duration-100 ease;
+  @apply bottom-1 right-1 transform hover:(scale-150 text-gray-200) transition-all duration-100 ease;
 }
 
 .nc-project-title {

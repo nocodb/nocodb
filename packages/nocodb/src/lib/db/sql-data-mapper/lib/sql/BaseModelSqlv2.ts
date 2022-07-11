@@ -776,6 +776,7 @@ class BaseModelSqlv2 {
     { colId, pid = null },
     args
   ): Promise<any> {
+    const { where } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -810,7 +811,7 @@ class BaseModelSqlv2 {
       });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
     return (await qb.first())?.count;
@@ -821,6 +822,7 @@ class BaseModelSqlv2 {
     { colId, pid = null },
     args
   ): Promise<any> {
+    const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -859,17 +861,17 @@ class BaseModelSqlv2 {
         .orWhereNull(rcn)
     );
 
-    if (+args?.shuffle) {
+    if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
 
     await childModel.selectObject({ qb });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(filterObj, qb, this.dbDriver);
 
-    applyPaginate(qb, args);
+    applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
     let data = await qb;
@@ -885,6 +887,7 @@ class BaseModelSqlv2 {
     { colId, pid = null },
     args
   ): Promise<any> {
+    const { where } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -914,7 +917,7 @@ class BaseModelSqlv2 {
       });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
 
@@ -926,6 +929,7 @@ class BaseModelSqlv2 {
     { colId, pid = null },
     args
   ): Promise<any> {
+    const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -957,17 +961,17 @@ class BaseModelSqlv2 {
       ).orWhereNull(cn);
     });
 
-    if (+args?.shuffle) {
+    if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
 
     await childModel.selectObject({ qb });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(filterObj, qb, this.dbDriver);
 
-    applyPaginate(qb, args);
+    applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
     let data = await this.extractRawQueryAndExec(qb);
@@ -983,6 +987,7 @@ class BaseModelSqlv2 {
     { colId, cid = null },
     args
   ): Promise<any> {
+    const { where } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -1013,7 +1018,7 @@ class BaseModelSqlv2 {
       .count(`*`, { as: 'count' });
 
     const aliasColObjMap = await parentTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
     return (await qb.first())?.count;
@@ -1024,6 +1029,7 @@ class BaseModelSqlv2 {
     { colId, cid = null },
     args
   ): Promise<any> {
+    const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -1055,17 +1061,17 @@ class BaseModelSqlv2 {
       ).orWhereNull(rcn);
     });
 
-    if (+args?.shuffle) {
+    if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
 
     await parentModel.selectObject({ qb });
 
     const aliasColObjMap = await parentTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(filterObj, qb, this.dbDriver);
 
-    applyPaginate(qb, args);
+    applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
     let data = await this.extractRawQueryAndExec(qb);

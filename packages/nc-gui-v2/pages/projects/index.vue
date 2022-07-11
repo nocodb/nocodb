@@ -59,7 +59,7 @@ const navDrawerOptions = [
 
         <div class="self-end flex text-2xl">
           <MaterialSymbolsFormatListBulletedRounded
-            :class="route.name === 'projects-list' ? 'text-primary' : ''"
+            :class="route.name === 'projects-index-list' ? 'text-primary' : ''"
             class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/projects/list')"
           />
@@ -71,7 +71,7 @@ const navDrawerOptions = [
         </div>
       </div>
 
-      <v-divider class="lg:(!mb-8)" />
+      <v-divider class="!mb-4 lg:(!mb-8)" />
 
       <NuxtPage :projects="projects" />
     </v-container>

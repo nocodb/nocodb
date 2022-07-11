@@ -178,6 +178,9 @@ class BaseModelSqlv2 {
 
     const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ qb });
+    if (+rest?.shuffle) {
+      await this.shuffle({ qb });
+    }
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
     let sorts = extractSortsObject(args?.sort, aliasColObjMap);
@@ -247,7 +250,7 @@ class BaseModelSqlv2 {
 
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    const data = await this.extractRawQueryAndExec(qb);
+    let data = await this.extractRawQueryAndExec(qb);
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -335,6 +338,10 @@ class BaseModelSqlv2 {
     qb.count(`${this.model.primaryKey?.column_name || '*'} as count`);
     qb.select(args.column_name);
 
+    if (+rest?.shuffle) {
+      await this.shuffle({ qb });
+    }
+
     const aliasColObjMap = await this.model.getAliasColObjMap();
 
     const sorts = extractSortsObject(args?.sort, aliasColObjMap);
@@ -354,8 +361,8 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-
-    return await qb;
+    let data = await qb;
+    return data;
   }
 
   async multipleHmList({ colId, ids }, args?: { limit?; offset? }) {
@@ -852,6 +859,10 @@ class BaseModelSqlv2 {
         .orWhereNull(rcn)
     );
 
+    if (+args?.shuffle) {
+      await this.shuffle({ qb });
+    }
+
     await childModel.selectObject({ qb });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
@@ -861,8 +872,9 @@ class BaseModelSqlv2 {
     applyPaginate(qb, args);
 
     const proto = await childModel.getProto();
+    let data = await qb;
 
-    return (await qb).map((c) => {
+    return data.map((c) => {
       c.__proto__ = proto;
       return c;
     });
@@ -945,6 +957,10 @@ class BaseModelSqlv2 {
       ).orWhereNull(cn);
     });
 
+    if (+args?.shuffle) {
+      await this.shuffle({ qb });
+    }
+
     await childModel.selectObject({ qb });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
@@ -954,8 +970,9 @@ class BaseModelSqlv2 {
     applyPaginate(qb, args);
 
     const proto = await childModel.getProto();
+    let data = await this.extractRawQueryAndExec(qb);
 
-    return (await this.extractRawQueryAndExec(qb)).map((c) => {
+    return data.map((c) => {
       c.__proto__ = proto;
       return c;
     });
@@ -1038,6 +1055,10 @@ class BaseModelSqlv2 {
       ).orWhereNull(rcn);
     });
 
+    if (+args?.shuffle) {
+      await this.shuffle({ qb });
+    }
+
     await parentModel.selectObject({ qb });
 
     const aliasColObjMap = await parentTable.getAliasColObjMap();
@@ -1047,7 +1068,9 @@ class BaseModelSqlv2 {
     applyPaginate(qb, args);
 
     const proto = await parentModel.getProto();
-    return (await this.extractRawQueryAndExec(qb)).map((c) => {
+    let data = await this.extractRawQueryAndExec(qb);
+
+    return data.map((c) => {
       c.__proto__ = proto;
       return c;
     });
@@ -1227,6 +1250,7 @@ class BaseModelSqlv2 {
     const obj: XcFilter = {};
     obj.where = args.where || args.w || '';
     obj.having = args.having || args.h || '';
+    obj.shuffle = args.shuffle || args.r || '';
     obj.condition = args.condition || args.c || {};
     obj.conditionGraph = args.conditionGraph || {};
     obj.limit = Math.max(
@@ -1240,6 +1264,16 @@ class BaseModelSqlv2 {
     obj.fields = args.fields || args.f || '*';
     obj.sort = args.sort || args.s || this.model.primaryKey?.[0]?.tn;
     return obj;
+  }
+
+  public async shuffle({ qb }: { qb: QueryBuilder }): Promise<void> {
+    if (this.isMySQL) {
+      qb.orderByRaw('RAND()');
+    } else if (this.isPg || this.isSqlite) {
+      qb.orderByRaw('RANDOM()');
+    } else if (this.isMssql) {
+      qb.orderByRaw('NEWID()');
+    }
   }
 
   public async selectObject({ qb }: { qb: QueryBuilder }): Promise<void> {
@@ -2259,7 +2293,6 @@ function applyPaginate(
 ) {
   query.offset(offset);
   if (!ignoreLimit) query.limit(limit);
-
   return query;
 }
 

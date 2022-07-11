@@ -8,6 +8,7 @@ import {
   getNestedParams,
   limitParam,
   offsetParam,
+  shuffleParam,
   referencedRowIdParam,
   relationTypeParam,
   rowIdParam,
@@ -35,6 +36,7 @@ export const getModelPaths = async (ctx: {
         sortParam,
         whereParam,
         limitParam,
+        shuffleParam,
         offsetParam,
         ...(await getNestedParams(ctx.columns)),
       ],
@@ -200,6 +202,7 @@ export const getModelPaths = async (ctx: {
         whereParam,
         limitParam,
         offsetParam,
+        shuffleParam,
       ],
       responses: {
         '200': {
@@ -404,7 +407,7 @@ export const getModelPaths = async (ctx: {
                       },
                     },
                     tags: [ctx.tableName],
-                    parameters: [limitParam, offsetParam],
+                    parameters: [limitParam, shuffleParam, offsetParam],
                     description: '',
                   },
                   delete: {
@@ -445,7 +448,7 @@ export const getModelPaths = async (ctx: {
                       },
                     },
                     tags: [ctx.tableName],
-                    parameters: [limitParam, offsetParam],
+                    parameters: [limitParam, shuffleParam, offsetParam],
                   },
                 },
             }

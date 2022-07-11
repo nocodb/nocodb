@@ -74,6 +74,19 @@ export const offsetParam = {
   example: 0,
 };
 
+export const shuffleParam = {
+  schema: {
+    type: 'number',
+    minimum: 0,
+    maximum: 1,
+  },
+  in: 'query',
+  name: 'shuffle',
+  description:
+    'The `shuffle` parameter used for pagination, the response will be shuffled if it is set to 1.',
+  example: 0,
+};
+
 export const columnNameQueryParam = {
   schema: {
     type: 'string',

@@ -1,14 +1,11 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
-import { useColors } from '#imports'
 import MdiDiscord from '~icons/mdi/discord'
 import MdiReddit from '~icons/mdi/reddit'
 import MdiTwitter from '~icons/mdi/twitter'
 import MdiCalendarMonth from '~icons/mdi/calendar-month'
-import BxBxlDiscourse from '~icons/bx/bxl-discourse'
 
 const { locale } = useI18n()
-const { colors } = useColors()
 
 const open = (url: string) => {
   window.open(url, '_blank')
@@ -18,42 +15,32 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
 </script>
 
 <template>
-  <div v-if="isZhLang">
-    <p class="caption grey--text block mb-3 text-center pt-2">Please share a word about us</p>
+  <v-list>
     <general-share
-      class="flex justify-center mb-2"
+      v-if="isZhLang"
+      class="flex justify-center"
       url="https://github.com/nocodb/nocodb"
       :social-medias="['renren', 'douban', 'weibo', 'wechat']"
     />
 
-    <v-divider />
-
-    <div class="text-center caption grey--text mt-3 mb-1">
-      Built with Vue JS<br /><img src="vue.svg" class="vue-icon mt-1 mb-n1" alt="vue.js" width="30" />
-    </div>
-  </div>
-
-  <template v-else>
-    <v-list>
-      <div class="flex justify-between gap-1 w-full px-2">
-        <MdiDiscord v-t="['e:community:discord']" class="icon text-[#7289DA]" @click="open('https://discord.gg/5RgZmkW')" />
-        <div
-          v-t="['e:community:discourse']"
-          class="icon flex items-center justify-center min-w-[43px]"
-          @click="open('https://community.nocodb.com/')"
-        >
-          <div class="discourse" />
-        </div>
-        <MdiReddit v-t="['e:community:reddit']" class="icon text-[#FF4600]" @click="open('https://www.reddit.com/r/NocoDB/')" />
-        <MdiTwitter v-t="['e:community:twitter']" class="icon text-[#1DA1F2]" @click="open('https://twitter.com/NocoDB')" />
-        <MdiCalendarMonth
-          v-t="['e:community:book-demo']"
-          class="icon text-green-500"
-          @click="open('https://calendly.com/nocodb-meeting')"
-        />
+    <div v-else class="flex justify-between gap-1 w-full px-2">
+      <MdiDiscord v-t="['e:community:discord']" class="icon text-[#7289DA]" @click="open('https://discord.gg/5RgZmkW')" />
+      <div
+        v-t="['e:community:discourse']"
+        class="icon flex items-center justify-center min-w-[43px]"
+        @click="open('https://community.nocodb.com/')"
+      >
+        <div class="discourse" />
       </div>
-    </v-list>
-  </template>
+      <MdiReddit v-t="['e:community:reddit']" class="icon text-[#FF4600]" @click="open('https://www.reddit.com/r/NocoDB/')" />
+      <MdiTwitter v-t="['e:community:twitter']" class="icon text-[#1DA1F2]" @click="open('https://twitter.com/NocoDB')" />
+      <MdiCalendarMonth
+        v-t="['e:community:book-demo']"
+        class="icon text-green-500"
+        @click="open('https://calendly.com/nocodb-meeting')"
+      />
+    </div>
+  </v-list>
 </template>
 
 <style scoped>

@@ -127,11 +127,6 @@ const formatTitle = (title: string) =>
   @apply bottom-1 right-1 transform hover:(scale-150 text-gray-200) transition-all duration-100 ease;
 }
 
-.nc-project-title {
-  text-transform: capitalize;
-  text-align: center;
-}
-
 .nc-project-thumbnail {
   background-image: linear-gradient(#0002, #0002);
   opacity: 0.5;

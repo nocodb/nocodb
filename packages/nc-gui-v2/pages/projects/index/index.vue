@@ -32,7 +32,7 @@ const formatTitle = (title: string) =>
 </script>
 
 <template>
-  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 3xl:grid-cols-8">
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 3xl:grid-cols-8 gap-4">
     <div v-for="(project, i) of projects" :key="project.id" class="group flex flex-col items-center gap-2">
       <div
         class="nc-project-thumbnail shadow-md cursor-pointer uppercase flex items-center justify-center transition-color ease duration-300 hover:shadow-lg"
@@ -62,36 +62,38 @@ const formatTitle = (title: string) =>
       </div>
     </div>
 
-    <div class="group flex flex-col items-center gap-2">
-      <v-menu>
-        <template #activator="{ props }">
-          <div
-            class="cursor-pointer shadow-md nc-project-thumbnail opacity-50 hover:(opacity-100 shadow-lg) bg-gray-400 uppercase flex items-center justify-center transition-color ease duration-300"
-            @click="props.onClick"
-          >
-            <MdiPlus />
-          </div>
-          <div class="prose-lg font-semibold">
-            {{ $t('title.newProj') }}
-          </div>
-        </template>
-        <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
-          <div
-            class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-            @click="navigateTo('/projects/create')"
-          >
-            <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
-            <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
-          </div>
-          <div
-            class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-            @click="navigateTo('/projects/create-external')"
-          >
-            <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
-            <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
-          </div>
-        </v-list>
-      </v-menu>
+    <div class="col-span-2 md:col-span-1">
+      <div class="group flex flex-col items-center gap-2">
+        <v-menu>
+          <template #activator="{ props }">
+            <div
+              class="cursor-pointer shadow-md nc-project-thumbnail opacity-50 hover:(opacity-100 shadow-lg) bg-gray-400 uppercase flex items-center justify-center transition-color ease duration-300"
+              @click="props.onClick"
+            >
+              <MdiPlus />
+            </div>
+            <div class="prose-lg font-semibold">
+              {{ $t('title.newProj') }}
+            </div>
+          </template>
+          <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
+            <div
+              class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
+              @click="navigateTo('/projects/create')"
+            >
+              <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+              <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
+            </div>
+            <div
+              class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
+              @click="navigateTo('/projects/create-external')"
+            >
+              <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
+              <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
+            </div>
+          </v-list>
+        </v-menu>
+      </div>
     </div>
   </div>
 </template>

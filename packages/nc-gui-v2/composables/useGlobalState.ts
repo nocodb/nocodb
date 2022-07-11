@@ -30,13 +30,33 @@ export const useGlobalState = (): GlobalState => {
   /** reactive timestamp to check token expiry against */
   const timestamp = $(useTimestamp({ immediate: true, interval: 100 }))
 
-  const { $api } = useNuxtApp()
+  const { $api, vueApp } = useNuxtApp()
 
   /**
-   * Split language string and only use the first part, e.g. 'en-GB' -> 'en'
-   * todo: use the full language string, e.g. 'en-GB-x-whatever' -> 'en-GB' and confirm if language exists against our list of languages (hint: vite plugin i18n provides a list)
+   * Set initial language based on browser settings.
+   * If the user has not set a preferred language, we fallback to 'en'.
+   * If the user has set a preferred language, we try to find a matching locale in the available locales.
    */
-  const preferredLanguage = preferredLanguages[0]?.split('_')[0] || 'en'
+  const preferredLanguage = preferredLanguages.reduce<string>((locale, language) => {
+    /** split language to language and code, e.g. en-GB -> [en, GB] */
+    const [lang, code] = language.split(/[_-]/)
+
+    /** find all locales that match the language */
+    let availableLocales = vueApp.i18n.availableLocales.filter((locale) => locale.startsWith(lang))
+
+    /** If we can match more than one locale, we check if the code of the language matches as well */
+    if (availableLocales.length > 1) {
+      availableLocales = availableLocales.filter((locale) => locale.endsWith(code))
+    }
+
+    /** if there are still multiple locales, pick the first one */
+    const availableLocale = availableLocales[0]
+
+    /** if we found a matching locale, return it */
+    if (availableLocale) locale = availableLocale
+
+    return locale
+  }, 'en' /** fallback locale */)
 
   /** State */
   const initialState: State = { token: null, user: null, lang: preferredLanguage, darkMode }

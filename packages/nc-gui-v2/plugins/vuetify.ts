@@ -13,8 +13,8 @@ const ncLightTheme: ThemeDefinition = {
   colors: themeColors,
 }
 
-export default defineNuxtPlugin((nuxtApp) => {
-  const vuetify = createVuetify({
+export const createVuetifyPlugin = () =>
+  createVuetify({
     components,
     theme: {
       defaultTheme: 'ncLightTheme',
@@ -23,5 +23,7 @@ export default defineNuxtPlugin((nuxtApp) => {
       },
     },
   })
-  nuxtApp.vueApp.use(vuetify)
+
+export default defineNuxtPlugin((nuxtApp) => {
+  nuxtApp.vueApp.use(createVuetifyPlugin())
 })

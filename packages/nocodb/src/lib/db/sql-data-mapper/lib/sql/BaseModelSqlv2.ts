@@ -860,7 +860,7 @@ class BaseModelSqlv2 {
     );
 
     if (+args?.shuffle) {
-      qb.orderByRaw('RAND()');
+      await this.shuffle({ qb });
     }
 
     await childModel.selectObject({ qb });

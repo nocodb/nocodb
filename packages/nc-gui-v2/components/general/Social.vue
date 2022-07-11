@@ -18,49 +18,47 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
 </script>
 
 <template>
-  <div class="wrapper">
-    <div v-if="isZhLang">
-      <p class="caption grey--text block mb-3 text-center pt-2">Please share a word about us</p>
-      <general-share
-        class="flex justify-center mb-2"
-        url="https://github.com/nocodb/nocodb"
-        :social-medias="['renren', 'douban', 'weibo', 'wechat']"
-      />
+  <div v-if="isZhLang">
+    <p class="caption grey--text block mb-3 text-center pt-2">Please share a word about us</p>
+    <general-share
+      class="flex justify-center mb-2"
+      url="https://github.com/nocodb/nocodb"
+      :social-medias="['renren', 'douban', 'weibo', 'wechat']"
+    />
 
-      <v-divider />
+    <v-divider />
 
-      <div class="text-center caption grey--text mt-3 mb-1">
-        Built with Vue JS<br /><img src="vue.svg" class="vue-icon mt-1 mb-n1" alt="vue.js" width="30" />
-      </div>
+    <div class="text-center caption grey--text mt-3 mb-1">
+      Built with Vue JS<br /><img src="vue.svg" class="vue-icon mt-1 mb-n1" alt="vue.js" width="30" />
     </div>
-
-    <template v-else>
-      <v-list density="compact">
-        <div class="flex justify-between gap-1 w-full px-2">
-          <MdiDiscord v-t="['e:community:discord']" class="icon text-[#7289DA]" @click="open('https://discord.gg/5RgZmkW')" />
-          <div
-            v-t="['e:community:discourse']"
-            class="icon flex items-center justify-center min-w-[43px]"
-            @click="open('https://community.nocodb.com/')"
-          >
-            <div class="discourse" />
-          </div>
-          <MdiReddit v-t="['e:community:reddit']" class="icon text-[#FF4600]" @click="open('https://www.reddit.com/r/NocoDB/')" />
-          <MdiTwitter v-t="['e:community:twitter']" class="icon text-[#1DA1F2]" @click="open('https://twitter.com/NocoDB')" />
-          <MdiCalendarMonth
-            v-t="['e:community:book-demo']"
-            class="icon text-green-500"
-            @click="open('https://calendly.com/nocodb-meeting')"
-          />
-        </div>
-      </v-list>
-    </template>
   </div>
+
+  <template v-else>
+    <v-list>
+      <div class="flex justify-between gap-1 w-full px-2">
+        <MdiDiscord v-t="['e:community:discord']" class="icon text-[#7289DA]" @click="open('https://discord.gg/5RgZmkW')" />
+        <div
+          v-t="['e:community:discourse']"
+          class="icon flex items-center justify-center min-w-[43px]"
+          @click="open('https://community.nocodb.com/')"
+        >
+          <div class="discourse" />
+        </div>
+        <MdiReddit v-t="['e:community:reddit']" class="icon text-[#FF4600]" @click="open('https://www.reddit.com/r/NocoDB/')" />
+        <MdiTwitter v-t="['e:community:twitter']" class="icon text-[#1DA1F2]" @click="open('https://twitter.com/NocoDB')" />
+        <MdiCalendarMonth
+          v-t="['e:community:book-demo']"
+          class="icon text-green-500"
+          @click="open('https://calendly.com/nocodb-meeting')"
+        />
+      </div>
+    </v-list>
+  </template>
 </template>
 
 <style scoped>
 .icon {
-  @apply cursor-pointer text-4xl rounded-full p-2 bg-gray-100 shadow-md hover:(shadow-lg bg-gray-200) transition-color ease-in duration-100;
+  @apply cursor-pointer text-3xl rounded-full p-2 bg-gray-100 shadow-md hover:(shadow-lg bg-gray-200) transition-color ease-in duration-100;
 }
 
 .discourse {

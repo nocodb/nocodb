@@ -4,6 +4,29 @@ import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/fo
 import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
+import MdiFolderOutline from '~icons/mdi/folder-outline'
+import MdiAccountGroup from '~icons/mdi/account-group'
+import MdiClockOutline from '~icons/mdi/clock-outline'
+import MdiStar from '~icons/mdi/star'
+
+const navDrawerOptions = [
+  {
+    title: 'My NocoDB',
+    icon: MdiFolderOutline,
+  },
+  {
+    title: 'Shared With Me',
+    icon: MdiAccountGroup,
+  },
+  {
+    title: 'Recent',
+    icon: MdiClockOutline,
+  },
+  {
+    title: 'Starred',
+    icon: MdiStar,
+  },
+]
 
 const route = useRoute()
 
@@ -11,26 +34,7 @@ const { $api } = useNuxtApp()
 
 const response = await $api.project.list({})
 const projects = $ref(response.list)
-const activePage = $ref()
-
-const navDrawerOptions = [
-  {
-    title: 'My NocoDB',
-    icon: 'mdi-folder-outline',
-  },
-  {
-    title: 'Shared With Me',
-    icon: 'mdi-account-group',
-  },
-  {
-    title: 'Recent',
-    icon: 'mdi-clock-outline',
-  },
-  {
-    title: 'Starred',
-    icon: 'mdi-star',
-  },
-]
+const activePage = $ref(navDrawerOptions[0].title)
 </script>
 
 <template>
@@ -38,7 +42,7 @@ const navDrawerOptions = [
     <template #sidebar>
       <v-navigation-drawer :border="0">
         <div class="flex flex-col h-full">
-          <div class="flex-1 flex flex-col gap-2 p-4">
+          <div class="flex p-4">
             <v-menu class="select-none">
               <template #activator="{ props }">
                 <div
@@ -66,10 +70,29 @@ const navDrawerOptions = [
                 </div>
               </v-list>
             </v-menu>
+          </div>
 
-            <div>
+          <div class="advance-menu flex-1">
+            <v-list class="flex flex-col gap-1" color="primary">
+              <!-- todo: v-list-item-group doesn't seem to work with vuetify 3 yet ... -->
+              <v-list-item
+                v-for="item in navDrawerOptions"
+                :key="item.title"
+                class="flex items-center gap-4 !rounded-r-lg"
+                :value="item.title"
+              >
+                <component :is="item.icon" />
 
-            </div>
+                <span
+                  class="font-semibold"
+                  :class="{
+                    'textColor--text text--lighten-2': item.title !== activePage,
+                  }"
+                >
+                  {{ item.title }}
+                </span>
+              </v-list-item>
+            </v-list>
           </div>
 
           <v-divider />
@@ -83,13 +106,9 @@ const navDrawerOptions = [
 
     <v-container class="flex-1 h-full">
       <div class="flex">
-        <div class="prose-xl p-2">
-          {{ $t('title.myProject') }}
-        </div>
-
-        <h2 class="display-1 ml-5 mb-7 font-weight-medium textColor--text text--lighten-2 flex-grow-1">
+        <div class="flex-1 prose-xl p-2">
           {{ activePage }}
-        </h2>
+        </div>
 
         <div class="self-end flex text-4xl mb-1">
           <MaterialSymbolsFormatListBulletedRounded

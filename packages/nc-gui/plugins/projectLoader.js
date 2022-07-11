@@ -80,6 +80,40 @@ export default async({ store, redirect, $axios, $toast, $api, route }) => {
   fetchReleaseInfo().then(() => {
   })
   setInterval(fetchReleaseInfo, 10 * 60 * 1000)
+  handleFeedbackForm({ store, $axios })
+}
+
+const handleFeedbackForm = async({ store, $axios }) => {
+  const fetchFeedbackForm = async() => {
+    try {
+      const { data: feedbackForm } = await $axios.get('/api/v1/feedback_form')
+      const currentFeedbackForm = store.state.settings.feedbackForm
+
+      if (
+        feedbackForm.url !== currentFeedbackForm.url ||
+        feedbackForm.valid_till !== currentFeedbackForm.validTill
+      ) {
+        store.commit('settings/MutFeedbackForm', {
+          url: feedbackForm.url,
+          validTill: feedbackForm.valid_till,
+          createdAt: feedbackForm.created_at,
+          isShown: false
+        })
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  const lastFeedbackFormExpirationDate = new Date(store.state.settings.feedbackForm.validTill)
+  const isDateValid = date => date instanceof Date && !isNaN(date.getTime())
+
+  if (
+    !isDateValid(lastFeedbackFormExpirationDate) ||
+    Date.now() > lastFeedbackFormExpirationDate.getTime()
+  ) {
+    fetchFeedbackForm()
+  }
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

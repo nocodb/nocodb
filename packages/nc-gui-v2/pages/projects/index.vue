@@ -87,15 +87,15 @@ const navDrawerOptions = [
           {{ activePage }}
         </h2>
 
-        <div class="self-end flex text-2xl">
+        <div class="self-end flex text-4xl mb-1">
           <MaterialSymbolsFormatListBulletedRounded
             :class="route.name === 'projects-index-list' ? 'text-primary' : ''"
-            class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full"
+            class="transition-color ease-in duration-100 cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/projects/list')"
           />
           <MaterialSymbolsGridView
             :class="route.name === 'projects-index' ? 'text-primary' : ''"
-            class="cursor-pointer p-1 hover:bg-gray-300/50 rounded-full"
+            class="transition-color ease-in duration-100 cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/projects')"
           />
         </div>

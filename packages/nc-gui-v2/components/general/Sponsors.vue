@@ -21,7 +21,7 @@ const { nav = false } = defineProps<Props>()
     </v-card-text>
 
     <v-card-actions class="justify-center">
-      <v-btn color="primary" class="mt-2">
+      <v-btn color="primary">
         <MdiHeartsCard class="text-red-500 mr-2" />
         {{ $t('activity.sponsorUs') }}
       </v-btn>

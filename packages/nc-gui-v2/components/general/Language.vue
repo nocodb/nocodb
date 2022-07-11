@@ -34,7 +34,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-menu>
+  <v-menu class="select-none">
     <template #activator="{ props }">
       <MaterialSymbolsTranslate class="md:text-xl cursor-pointer" @click="props.onClick" />
     </template>

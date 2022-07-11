@@ -2,25 +2,28 @@ html,
 body,
 #__nuxt,
 .v-application__wrap {
-    margin: 0 !important;
-    height: 100vh;
-    width: 100vw;
+    @apply m-0 h-[100vh] w-[100vw] bg-white dark:(bg-black text-white);
 }
 
-html, body {
-    @apply scrollbar-thin-primary;
+nav,
+nav .v-list {
+    @apply dark:(bg-gray-900 text-white)
+}
+
+.v-divider {
+    @apply dark:bg-white
 }
 
 .page-enter-active,
 .page-leave-active,
 .layout-enter-active,
 .layout-leave-active {
-    transition: opacity .5s
+    @apply transition-opacity duration-300 ease-in-out;
 }
 
 .page-enter,
 .page-leave-active,
 .layout-enter,
 .layout-leave-active {
-    opacity: 0
+    @apply opacity-0;
 }

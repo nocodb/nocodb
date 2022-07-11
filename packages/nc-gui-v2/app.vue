@@ -43,6 +43,8 @@ const signOut = () => {
           <release-info />
           -->
 
+          <general-color-mode-switcher v-model="$state.darkMode.value" />
+
           <general-language class="mr-3" />
 
           <template v-if="$state.signedIn.value">

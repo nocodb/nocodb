@@ -48,7 +48,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     },
   })
 
-  ;(nuxtApp.vueApp as any).i18n = i18n
+  ;(nuxtApp.vueApp as any).i18n = i18n.global
 
   nuxtApp.vueApp.use(i18n)
 })

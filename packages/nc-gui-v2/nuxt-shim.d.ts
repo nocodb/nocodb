@@ -1,6 +1,7 @@
-import type { NuxtApp as BaseApp } from '#app/nuxt'
-import type { Api } from 'nocodb-sdk'
 import type { RemovableRef } from '@vueuse/core'
+import type { Api } from 'nocodb-sdk'
+import type { VueI18n } from 'vue-i18n'
+import type { NuxtApp as BaseApp } from '#app/nuxt'
 import type { GlobalState } from '~/lib/types'
 
 declare module '#app/nuxt' {
@@ -12,5 +13,11 @@ declare module '#app/nuxt' {
     // tele.emit
     $e: (event: string, data?: any) => void
     $state: GlobalState
+  }
+}
+
+declare module 'vue' {
+  interface App {
+    i18n: VueI18n
   }
 }

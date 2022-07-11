@@ -1124,10 +1124,10 @@ export default {
               .map(c => rowObj[c.title])
               .join('___');
 
-          if (!id) {
-            return this.$toast.info("Delete not allowed for table which doesn't have primary Key").goAway(3000);
+          const successfulDeletion = await this.deleteRowById(id);
+          if (!successfulDeletion) {
+            return;
           }
-          await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.id, this.selectedView.id, id);
         }
         this.data.splice(this.rowContextMenu.index, 1);
         this.syncCount();
@@ -1138,7 +1138,6 @@ export default {
     },
     async deleteSelectedRows() {
       let row = this.rowLength;
-      // let success = 0
       while (row--) {
         try {
           const { row: rowObj, rowMeta } = this.data[row];
@@ -1151,10 +1150,10 @@ export default {
               .map(c => rowObj[c.title])
               .join('___');
 
-            if (!id) {
-              return this.$toast.info("Delete not allowed for table which doesn't have primary Key").goAway(3000);
+            const successfulDeletion = await this.deleteRowById(id);
+            if (!successfulDeletion) {
+              continue;
             }
-            await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.id, this.selectedView.id, id);
           }
           this.data.splice(row, 1);
         } catch (e) {
@@ -1162,6 +1161,32 @@ export default {
         }
       }
       this.syncCount();
+    },
+
+    async deleteRowById(id) {
+      try {
+        if (!id) {
+          this.$toast.info("Delete not allowed for table which doesn't have primary Key").goAway(3000);
+          return false;
+        }
+
+        const res = await this.$api.dbViewRow.delete('noco', this.projectName, this.meta.id, this.selectedView.id, id);
+
+        if (res?.message) {
+          this.$toast
+            .info(
+              `<div style="padding:10px 4px">Unable to delete row with ID ${id} because of the following:
+                <br><br>${res.message.join('<br>')}<br><br>
+                Clear the data first & try again</div>`
+            )
+            .goAway(5000);
+          return false;
+        }
+      } catch (e) {
+        this.$toast.error(`Failed to delete row : ${e.message}`).goAway(3000);
+        return false;
+      }
+      return true;
     },
 
     async clearCellValue() {

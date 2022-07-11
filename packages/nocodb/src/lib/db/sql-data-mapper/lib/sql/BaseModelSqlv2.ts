@@ -1380,6 +1380,48 @@ class BaseModelSqlv2 {
     }
   }
 
+  async hasLTARData(rowId, model: Model): Promise<any> {
+    const res = [];
+    const LTARColumns = (await model.getColumns()).filter(
+      (c) => c.uidt === UITypes.LinkToAnotherRecord
+    );
+    let i = 0;
+    for (const column of LTARColumns) {
+      const colOptions =
+        (await column.getColOptions()) as LinkToAnotherRecordColumn;
+      const childColumn = await colOptions.getChildColumn();
+      const parentColumn = await colOptions.getParentColumn();
+      const childModel = await childColumn.getModel();
+      await childModel.getColumns();
+      const parentModel = await parentColumn.getModel();
+      await parentModel.getColumns();
+      let cnt = 0;
+      if (colOptions.type === RelationTypes.HAS_MANY) {
+        cnt = +(
+          await this.dbDriver(childModel.table_name)
+            .count(childColumn.column_name, { as: 'cnt' })
+            .where(childColumn.column_name, rowId)
+        )[0].cnt;
+      } else if (colOptions.type === RelationTypes.MANY_TO_MANY) {
+        const mmModel = await colOptions.getMMModel();
+        const mmChildColumn = await colOptions.getMMChildColumn();
+        cnt = +(
+          await this.dbDriver(mmModel.table_name)
+            .where(`${mmModel.table_name}.${mmChildColumn.column_name}`, rowId)
+            .count(mmChildColumn.column_name, { as: 'cnt' })
+        )[0].cnt;
+      }
+      if (cnt) {
+        res.push(
+          `${i++ + 1}. ${model.title}.${
+            column.title
+          } is a LinkToAnotherRecord of ${childModel.title}`
+        );
+      }
+    }
+    return res;
+  }
+
   async updateByPk(id, data, trx?, cookie?) {
     try {
       const updateObj = await this.model.mapAliasToColumn(data);

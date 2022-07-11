@@ -17,7 +17,7 @@ export default defineNuxtPlugin((nuxtApp) => {
   const storage = useGlobalState()
 
   /** set i18n locale to stored language */
-  nuxtApp.vueApp.i18n.locale = storage.lang.value
+  nuxtApp.vueApp.i18n.locale.value = storage.lang.value
 
   nuxtApp.provide('state', storage)
 })

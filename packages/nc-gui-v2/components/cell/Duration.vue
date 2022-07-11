@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { ref, watch } from 'vue'
-import { computed, inject } from '#imports'
+import { ref, computed, inject } from '#imports'
 import { ColumnInj } from '~/components'
 import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils/durationHelper'
-const editEnabled = inject<boolean>('editEnabled')
 
 // ------------
 // inject

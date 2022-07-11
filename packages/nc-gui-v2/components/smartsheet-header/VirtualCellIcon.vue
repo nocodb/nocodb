@@ -31,35 +31,6 @@ const icon = computed(() => {
   }
   return GenericIcon
 })
-
-/*
-*
-        <v-icon v-else-if="type === 'formula'" x-small class="mr-1" v-on="on">
-          mdi-math-integral
-        </v-icon>
-        <template v-else-if="type === 'lk'">
-          <v-icon v-if="relationType === 'hm'" color="warning" x-small class="mr-1" v-on="on">
-            mdi-table-column-plus-before
-          </v-icon>
-          <v-icon v-else-if="relationType === 'bt'" color="info" x-small class="mr-1" v-on="on">
-            mdi-table-column-plus-before
-          </v-icon>
-          <v-icon v-else-if="relationType === 'mm'" color="pink" x-small class="mr-1" v-on="on">
-            mdi-table-column-plus-before
-          </v-icon>
-        </template>
-        <template v-else-if="type === 'rl'">
-          <v-icon v-if="relationType === 'hm'" color="warning" x-small class="mr-1" v-on="on">
-            {{ rollupIcon }}
-          </v-icon>
-          <v-icon v-else-if="relationType === 'bt'" color="info" x-small class="mr-1" v-on="on">
-            {{ rollupIcon }}
-          </v-icon>
-          <v-icon v-else-if="relationType === 'mm'" color="pink" x-small class="mr-1" v-on="on">
-            {{ rollupIcon }}
-          </v-icon>
-        </template>
-* */
 </script>
 
 <template>

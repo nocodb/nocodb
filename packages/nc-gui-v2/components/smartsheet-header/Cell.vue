@@ -71,25 +71,6 @@ export default {
 
 <template>
   <div class="d-flex align-center d-100">
-    <!--
-    <v-icon v-if="column.pk" color="warning" x-small class="mr-1"> mdi-key-variant</v-icon>
-    <v-icon v-else-if="uiDatatypeIcon" small class="mr-1">
-      {{ uiDatatypeIcon }}
-    </v-icon>
-
-    <v-icon v-else-if="isForeignKey" color="purple" small class="mr-1"> mdi-link-variant</v-icon>
-    <v-icon v-else-if="isJSON" color="purple" small class="mr-1"> mdi-code-json</v-icon>
-
-    <span v-else-if="isInt" class="font-weight-bold mr-1" style="font-size: 15px">#</span>
-    <v-icon v-else-if="isFloat" color="grey" class="mr-1 mt-n1"> mdi-decimal</v-icon>
-    <v-icon v-else-if="isDate" color="grey" small class="mr-1"> mdi-calendar</v-icon>
-    <v-icon v-else-if="isDateTime" color="grey" small class="mr-1"> mdi-calendar-clock</v-icon>
-    <v-icon v-else-if="isSet" color="grey" small class="mr-1"> mdi-checkbox-multiple-marked</v-icon>
-    <v-icon v-else-if="isEnum" color="grey" small class="mr-1"> mdi-radiobox-marked</v-icon>
-    <v-icon v-else-if="isBoolean" color="grey" small class="mr-1"> mdi-check-box-outline</v-icon>
-    <v-icon v-else-if="isString" color="grey" class=""> mdi-alpha-a</v-icon>
-    <v-icon v-else-if="isTextArea" color="grey" small class="mr-1"> mdi-card-text-outline</v-icon>
--->
     <SmartsheetHeaderCellIcon v-if="column" />
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
 

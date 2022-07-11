@@ -36,7 +36,7 @@ const navDrawerOptions = [
 <template>
   <NuxtLayout>
     <template #sidebar>
-      <v-navigation-drawer width="300">
+      <v-navigation-drawer :border="0">
         <div class="flex flex-col h-full">
           <div class="flex-1 flex flex-col gap-2 p-4">
             <v-menu class="select-none">
@@ -67,10 +67,12 @@ const navDrawerOptions = [
               </v-list>
             </v-menu>
 
-            <div></div>
+            <div>
+
+            </div>
           </div>
 
-          <v-divider class="my-1" />
+          <v-divider />
 
           <general-social />
 

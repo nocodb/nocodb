@@ -35,33 +35,25 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
     </div>
 
     <template v-else>
-      <div class="flex justify-end">
-        <v-list width="100%" class="py-0 flex-shrink-1 text-left elevation-0 rounded-sm community-card item active" dense>
-          <v-list-item>
-            <div class="flex justify-space-between d-100 pr-2">
-              <MdiDiscord v-t="['e:community:discord']" class="icon text-[#7289DA]" @click="open('https://discord.gg/5RgZmkW')" />
-              <div
-                v-t="['e:community:discourse']"
-                class="icon flex items-center justify-center min-w-[43px]"
-                @click="open('https://community.nocodb.com/')"
-              >
-                <div class="discourse" />
-              </div>
-              <MdiReddit
-                v-t="['e:community:reddit']"
-                class="icon text-[#FF4600]"
-                @click="open('https://www.reddit.com/r/NocoDB/')"
-              />
-              <MdiTwitter v-t="['e:community:twitter']" class="icon text-[#1DA1F2]" @click="open('https://twitter.com/NocoDB')" />
-              <MdiCalendarMonth
-                v-t="['e:community:book-demo']"
-                class="icon text-green-500"
-                @click="open('https://calendly.com/nocodb-meeting')"
-              />
-            </div>
-          </v-list-item>
-        </v-list>
-      </div>
+      <v-list density="compact">
+        <div class="flex justify-between gap-1 w-full px-2">
+          <MdiDiscord v-t="['e:community:discord']" class="icon text-[#7289DA]" @click="open('https://discord.gg/5RgZmkW')" />
+          <div
+            v-t="['e:community:discourse']"
+            class="icon flex items-center justify-center min-w-[43px]"
+            @click="open('https://community.nocodb.com/')"
+          >
+            <div class="discourse" />
+          </div>
+          <MdiReddit v-t="['e:community:reddit']" class="icon text-[#FF4600]" @click="open('https://www.reddit.com/r/NocoDB/')" />
+          <MdiTwitter v-t="['e:community:twitter']" class="icon text-[#1DA1F2]" @click="open('https://twitter.com/NocoDB')" />
+          <MdiCalendarMonth
+            v-t="['e:community:book-demo']"
+            class="icon text-green-500"
+            @click="open('https://calendly.com/nocodb-meeting')"
+          />
+        </div>
+      </v-list>
     </template>
   </div>
 </template>

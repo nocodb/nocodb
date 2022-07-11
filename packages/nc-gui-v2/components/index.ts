@@ -1,5 +1,6 @@
 import type { ColumnType, FormType, GalleryType, GridType, KanbanType, TableType } from 'nocodb-sdk'
 import type { InjectionKey, Ref } from 'vue'
+import type { EventHook } from '@vueuse/core'
 import type useViewData from '~/composables/useViewData'
 
 export const ColumnInj: InjectionKey<ColumnType & { meta: any }> = Symbol('column-injection')
@@ -15,4 +16,4 @@ export const ValueInj: InjectionKey<any> = Symbol('value-injection')
 export const ActiveViewInj: InjectionKey<Ref<(GridType | GalleryType | FormType | KanbanType) & { id?: string }>> =
   Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<any> = Symbol('readonly-injection')
-export const ReloadViewDataInj: InjectionKey<any> = Symbol('reload-view-data-injection')
+export const ReloadViewDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-view-data-injection')

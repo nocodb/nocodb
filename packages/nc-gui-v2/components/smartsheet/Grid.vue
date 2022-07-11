@@ -1,7 +1,16 @@
 <script lang="ts" setup>
+import { computed } from '@vue/reactivity'
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, onKeyStroke, onMounted, provide } from '#imports'
-import { ActiveViewInj, ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReloadViewDataInj } from '~/components'
+import {
+  ActiveViewInj,
+  ChangePageInj,
+  IsFormInj,
+  IsGridInj,
+  MetaInj,
+  PaginationDataInj,
+  ReloadViewDataHookInj,
+} from '~/components'
 import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import useViewData from '~/composables/useViewData'
 
@@ -20,7 +29,11 @@ provide(IsFormInj, false)
 provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
-provide(ReloadViewDataInj, loadData)
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
+reloadViewDataHook?.on(() => {
+  loadData()
+})
 
 const selectCell = (row: number, col: number) => {
   selected.row = row
@@ -42,6 +55,10 @@ watch(
   },
   { immediate: true },
 )
+
+defineExpose({
+  loadData,
+})
 </script>
 
 <template>
@@ -178,7 +195,7 @@ watch(
   overflow: auto;
 
   td,
-  tr {
+  th {
     min-height: 31px !important;
     position: relative;
     padding: 0 5px !important;

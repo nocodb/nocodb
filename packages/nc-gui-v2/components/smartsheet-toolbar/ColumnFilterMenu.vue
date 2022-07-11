@@ -3,6 +3,8 @@
 import { useState } from '#app'
 import { IsLockedInj } from '~/components'
 import Smartsheet from '~/components/tabs/Smartsheet.vue'
+import MdiFilterIcon from '~icons/mdi/filter-outline'
+import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const autoApplyFilter = useState('autoApplyFilter', () => false)
 const isLocked = inject(IsLockedInj)
@@ -68,7 +70,7 @@ export default {
 
 <template>
   <v-menu offset-y eager transition="slide-y-transition">
-    <template #activator="props">
+    <template #activator="{ props }">
       <v-badge :value="filters.length" color="primary" dot overlap>
         <v-btn
           v-t="['c:filter']"
@@ -82,14 +84,14 @@ export default {
           }"
           v-bind="props"
         >
-          <v-icon small class="mr-1" color="grey  darken-3"> mdi-filter-outline</v-icon>
+          <MdiFilterIcon class="mr-1 text-grey" />
           <!-- Filter -->
-          {{ $t('activity.filter') }}
-          <v-icon small color="#777"> mdi-menu-down</v-icon>
+          <span class="text-capitalize">{{ $t('activity.filter') }}</span>
+          <MdiMenuDownIcon class="text-grey" />
         </v-btn>
       </v-badge>
     </template>
-    <SmartsheetToolbarColumnFilter ref="filter">
+    <SmartsheetToolbarColumnFilter>
       <!--
       v-model="filters"
       :shared="shared"

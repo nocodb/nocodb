@@ -1,16 +1,74 @@
 <script setup lang="ts">
-import { inject } from 'vue'
-import { ActiveViewInj, MetaInj } from '~/components'
+import { UITypes } from 'nocodb-sdk'
+import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
+import { useNuxtApp } from '#app'
+import { inject } from '#imports'
+import { comparisonOp } from '~/utils/filterUtils'
+import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/components'
 import useViewFilters from '~/composables/useViewFilters'
-import { comparisonOp } from '~/utils/comparisonOp'
+import MdiDeleteIcon from '~icons/mdi/close-box'
+
+const { nested = false, parentId } = defineProps<{ nested?: boolean; parentId?: string }>()
 
 const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
+const reloadDataHook = inject(ReloadViewDataHookInj)
 
-const { filters, deleteFilter, saveOrUpdate } = useViewFilters(activeView)
+const { $e } = useNuxtApp()
 
-const filterUpdateCondition = (filter, i) => {}
-const filterComparisonOp = (filter) => {}
+const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter } = useViewFilters(activeView, parentId, () => {
+  reloadDataHook?.trigger()
+})
+
+const filterUpdateCondition = (filter, i) => {
+  saveOrUpdate(filter, i)
+  $e('a:filter:update', {
+    logical: filter.logical_op,
+    comparison: filter.comparison_op,
+  })
+}
+
+// todo
+// const filterComparisonOp = (f) =>
+//   comparisonOp.filter((op) => {
+//     // if (
+//     //   f &&
+//     //   f.fk_column_id &&
+//     //   this.columnsById[f.fk_column_id] &&
+//     //   this.columnsById[f.fk_column_id].uidt === UITypes.LinkToAnotherRecord &&
+//     //   this.columnsById[f.fk_column_id].uidt === UITypes.Lookup
+//     // ) {
+//     //   return !['notempty', 'empty', 'notnull', 'null'].includes(op.value)
+//     // }
+//     return true
+//   })
+
+const columns = computed(() => meta?.value?.columns)
+const types = computed(() => {
+  if (!meta?.value?.columns?.length) {
+    return {}
+  }
+  return meta?.value?.columns?.reduce((obj: any, col: any) => {
+    switch (col.uidt) {
+      case UITypes.Number:
+      case UITypes.Decimal:
+        obj[col.title] = obj[col.column_name] = 'number'
+        break
+      case UITypes.Checkbox:
+        obj[col.title] = obj[col.column_name] = 'boolean'
+        break
+    }
+    return obj
+  }, {})
+})
+
+watch(
+  () => activeView?.value?.id,
+  (n, o) => {
+    if (n !== o) loadFilters()
+  },
+  { immediate: true },
+)
 
 /* import { UITypes, getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes'
 import FieldListAutoCompleteDropdown from '~/components/project/spreadsheet/components/FieldListAutoCompleteDropdown'
@@ -319,9 +377,9 @@ export default {
 </script>
 
 <template>
-  <div class="backgroundColor pa-2 menu-filter-dropdown" :style="{ width: nested ? '100%' : '530px' }">
-    <div class="grid" @click.stop>
-      <template v-for="(filter, i) in filters">
+  <div class="backgroundColor pa-2 menu-filter-dropdown bg-background" :style="{ width: nested ? '100%' : '630px' }">
+    <div v-if="filters && filters.length" class="grid" @click.stop>
+      <template v-for="(filter, i) in filters" :key="filter.id || i">
         <template v-if="filter.status !== 'delete'">
           <div v-if="filter.is_group" :key="i" style="grid-column: span 4; padding: 6px" class="elevation-4">
             <div class="d-flex" style="gap: 6px; padding: 0 6px">
@@ -339,17 +397,16 @@ export default {
                 v-model="filter.logical_op"
                 class="flex-shrink-1 flex-grow-0 elevation-0 caption"
                 :items="['and', 'or']"
-                solo
-                flat
-                dense
+                density="compact"
+                variant="solo"
                 hide-details
                 placeholder="Group op"
                 @click.stop
                 @change="saveOrUpdate(filter, i)"
               >
-                <template #item="{ item }">
-                  <span class="caption font-weight-regular">{{ item }}</span>
-                </template>
+                <!--                <template #item="{ item }"> -->
+                <!--                  <span class="caption font-weight-regular">{{ item }}</span> -->
+                <!--                </template> -->
               </v-select>
             </div>
             <!--            <column-filter
@@ -368,41 +425,47 @@ export default {
             /> -->
           </div>
           <template v-else>
-            <v-icon
+            <!--                        <v-icon
+                                      v-if="!filter.readOnly"
+                                      :key="`${i}_3`"
+                                      small
+                                      class="nc-filter-item-remove-btn"
+                                      @click.stop="deleteFilter(filter, i)"
+                                    >
+                                      mdi-close-box
+                                    </v-icon> -->
+
+            <MdiDeleteIcon
               v-if="!filter.readOnly"
-              :key="`${i}_3`"
-              small
-              class="nc-filter-item-remove-btn"
+              class="nc-filter-item-remove-btn text-grey"
               @click.stop="deleteFilter(filter, i)"
-            >
-              mdi-close-box
-            </v-icon>
-            <span v-else :key="`${i}_1`" />
-            <span v-if="!i" :key="`${i}_2`" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
+            ></MdiDeleteIcon>
+            <span v-else />
+
+            <span v-if="!i" :key="`${i}_2`" class="text-xs d-flex align-center">{{ $t('labels.where') }}</span>
 
             <v-select
               v-else
               :key="`${i}_4`"
               v-model="filter.logical_op"
-              class="flex-shrink-1 flex-grow-0 elevation-0 caption"
+              class="w-full elevation-0 caption"
               :items="['and', 'or']"
-              solo
-              flat
-              dense
+              density="compact"
+              variant="solo"
               hide-details
               :disabled="filter.readOnly"
               @click.stop
               @change="filterUpdateCondition(filter, i)"
-            >
-              <template #item="{ item }">
+            />
+            <!--              <template #item="{ item }">
                 <span class="caption font-weight-regular">{{ item }}</span>
               </template>
-            </v-select>
+            </v-select> -->
 
             <FieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="caption nc-filter-field-select"
+              class="caption text-sm nc-filter-field-select"
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
@@ -410,25 +473,26 @@ export default {
             />
 
             <v-select
-              :key="`k${i}`"
               v-model="filter.comparison_op"
-              class="flex-shrink-1 flex-grow-0 caption nc-filter-operation-select"
-              :items="filterComparisonOp(filter)"
+              class="caption nc-filter-operation-select text-sm"
+              :items="comparisonOp.map((it) => it.value)"
               :placeholder="$t('labels.operation')"
-              solo
-              flat
-              style="max-width: 120px"
-              dense
+              density="compact"
+              variant="solo"
               :disabled="filter.readOnly"
               hide-details
-              item-value="value"
-              @click.stop
               @change="filterUpdateCondition(filter, i)"
-            >
-              <template #item="{ item }">
-                <span class="caption font-weight-regular">{{ item.text }}</span>
-              </template>
-            </v-select>
+            /><!--
+            todo: filter based on column type
+
+            item-value="value"
+            item-text="text"
+            :items="filterComparisonOp(filter)" -->
+
+            <!--              <template #item="{ item }"> -->
+            <!--                <span class="caption font-weight-regular">{{ item.text }}</span> -->
+            <!--              </template> -->
+            <!--            </v-select> -->
             <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="`span${i}`" />
             <v-checkbox
               v-else-if="types[filter.field] === 'boolean'"
@@ -442,11 +506,10 @@ export default {
               v-else
               :key="`${i}_7`"
               v-model="filter.value"
-              solo
-              flat
+              density="compact"
+              variant="solo"
               hide-details
-              dense
-              class="caption nc-filter-value-select"
+              class="caption text-sm nc-filter-value-select"
               :disabled="filter.readOnly"
               @click.stop
               @input="saveOrUpdate(filter, i)"
@@ -455,6 +518,13 @@ export default {
         </template>
       </template>
     </div>
+
+    <v-btn small class="elevation-0 text-sm text-capitalize my-3" @click.stop="addFilter">
+      <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
+      <!-- Add Filter -->
+      {{ $t('activity.addFilter') }}
+    </v-btn>
+    <slot />
   </div>
 
   <!--  <div class="backgroundColor pa-2 menu-filter-dropdown" :style="{ width: nested ? '100%' : '530px' }">
@@ -604,10 +674,10 @@ export default {
 </template>
 
 <style scoped>
-/*.grid {
+.grid {
   display: grid;
-  grid-template-columns: 22px 80px auto auto auto;
+  grid-template-columns: 30px 130px auto auto auto;
   column-gap: 6px;
   row-gap: 6px;
-}*/
+}
 </style>

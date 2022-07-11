@@ -437,7 +437,7 @@ export default {
 
             <MdiDeleteIcon
               v-if="!filter.readOnly"
-              class="nc-filter-item-remove-btn text-grey"
+              class="nc-filter-item-remove-btn text-grey align-self-center"
               @click.stop="deleteFilter(filter, i)"
             ></MdiDeleteIcon>
             <span v-else />
@@ -519,7 +519,7 @@ export default {
       </template>
     </div>
 
-    <v-btn small class="elevation-0 text-sm text-capitalize my-3" @click.stop="addFilter">
+    <v-btn small class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilter">
       <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
       <!-- Add Filter -->
       {{ $t('activity.addFilter') }}

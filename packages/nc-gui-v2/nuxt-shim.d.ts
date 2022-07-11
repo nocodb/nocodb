@@ -1,11 +1,12 @@
 import type { RemovableRef } from '@vueuse/core'
 import type { Api } from 'nocodb-sdk'
-import type { VueI18n } from 'vue-i18n'
-import type { NuxtApp as BaseApp } from '#app/nuxt'
+import type { I18n } from 'vue-i18n'
 import type { GlobalState } from '~/lib/types'
 
+import type messages from '@intlify/vite-plugin-vue-i18n/messages'
+
 declare module '#app/nuxt' {
-  interface NuxtApp extends BaseApp {
+  interface NuxtApp {
     $api: Api<any>;
     $tele: {
       emit: (event: string, data: any) => void
@@ -16,8 +17,8 @@ declare module '#app/nuxt' {
   }
 }
 
-declare module 'vue' {
+declare module '@vue/runtime-core' {
   interface App {
-    i18n: VueI18n
+    i18n: I18n<messages, unknown, unknown, false>['global']
   }
 }

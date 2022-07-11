@@ -42,7 +42,7 @@ const navDrawerOptions = [
             <v-menu class="select-none">
               <template #activator="{ props }">
                 <div
-                  class="mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow-md prose-lg font-semibold hover:bg-gray-200/20"
+                  class="mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold hover:bg-gray-200/20"
                   @click="props.onClick"
                 >
                   <MdiPlus class="text-primary text-2xl" />

@@ -6,6 +6,7 @@ export default function (
   view: Ref<(GridType | FormType | GalleryType) & { id?: string }> | undefined,
   meta: Ref<TableType> | undefined,
   isPublic = false,
+  reloadData?: () => void,
 ) {
   const fields = ref<
     {
@@ -51,16 +52,25 @@ export default function (
     }
   }
 
-  const showAll = () => {}
-  const hideAll = () => {}
+  const showAll = async () => {
+    await $api.dbView.showAllColumn(view?.value?.id as string)
+    await loadViewColumns()
+    reloadData?.()
+  }
+  const hideAll = async () => {
+    await $api.dbView.hideAllColumn(view?.value?.id as string)
+    await loadViewColumns()
+    reloadData?.()
+  }
 
-  const sync = async (field: any, index: number) => {
+  const saveOrUpdate = async (field: any, index: number) => {
     if (field.id) {
       await $api.dbViewColumn.update(view?.value?.id as string, field.id, field)
     } else {
       if (fields.value) fields.value[index] = (await $api.dbViewColumn.create(view?.value?.id as string, field)) as any
     }
+    reloadData?.()
   }
 
-  return { fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, sync }
+  return { fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, saveOrUpdate }
 }

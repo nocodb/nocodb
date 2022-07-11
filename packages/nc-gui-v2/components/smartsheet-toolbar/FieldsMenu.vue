@@ -23,7 +23,12 @@ const isAnyFieldHidden = computed(() => {
   // return meta?.fields?.some(field => field.hidden)
 })
 
-const { fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, sync } = useViewColumns(activeView, meta)
+const { fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, saveOrUpdate } = useViewColumns(
+  activeView,
+  meta,
+  false,
+  () => reloadDataHook?.trigger(),
+)
 
 watch(
   () => activeView?.value?.id,
@@ -328,7 +333,7 @@ export default {
             type="checkbox"
             class="mt-0 pt-0"
             @click.stop
-            @change="sync(field, i)"
+            @change="saveOrUpdate(field, i)"
           />
           <!--                        @change="saveOrUpdate(field, i)"> -->
           <!--            <template #label>
@@ -358,11 +363,11 @@ export default {
         </v-checkbox>
       </v-list-item> -->
       <v-list-item dense class="mt-2 list-btn mb-3">
-        <v-btn small class="elevation-0 grey--text" @click.stop="showAll">
+        <v-btn small class="elevation-0 grey--text text-sm text-capitalize" @click.stop="showAll">
           <!-- Show All -->
           {{ $t('general.showAll') }}
         </v-btn>
-        <v-btn small class="elevation-0 grey--text" @click.stop="hideAll">
+        <v-btn small class="elevation-0 grey--text text-sm text-capitalize" @click.stop="hideAll">
           <!-- Hide All -->
           {{ $t('general.hideAll') }}
         </v-btn>

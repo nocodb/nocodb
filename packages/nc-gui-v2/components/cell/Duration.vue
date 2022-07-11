@@ -1,88 +1,78 @@
 <script setup lang="ts">
-import { inject } from 'vue'
-import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/helpers/durationHelper'
+import { ref, watch } from 'vue'
+import { computed, inject } from '#imports'
+import { ColumnInj } from '~/components'
+import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils/durationHelper'
 const editEnabled = inject<boolean>('editEnabled')
-/*
-export default {
-  name: 'DurationCell',
-  props: {
-    column: Object,
-    value: [Number, String],
-    readOnly: Boolean,
-  },
-  data: () => ({
-    // flag to determine to show warning message or not
-    showWarningMessage: false,
-    // duration in milliseconds
-    durationInMS: null,
-    // check if the cell is edited or not
-    isEdited: false,
-  }),
-  computed: {
-    localState: {
-      get() {
-        return convertMS2Duration(this.value, this.durationType)
-      },
-      set(val) {
-        this.isEdited = true
-        const res = convertDurationToSeconds(val, this.durationType)
-        if (res._isValid) {
-          this.durationInMS = res._sec
-        }
-      },
-    },
-    durationPlaceholder() {
-      return durationOptions[this.durationType].title
-    },
-    durationType() {
-      return this.column?.meta?.duration || 0
-    },
-    parentListeners() {
-      const $listeners = {}
 
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
+// ------------
+// inject
+// ------------
+const column = inject(ColumnInj)
 
-      return $listeners
-    },
+// ------------
+// props
+// ------------
+interface Props {
+  modelValue: [Number, String]
+}
+const { modelValue } = defineProps<Props>()
+
+// ------------
+// emit
+// ------------
+const emit = defineEmits(['update:input'])
+
+// ------------
+// data
+// ------------
+const showWarningMessage = ref(false)
+const durationInMS = ref(0)
+const isEdited = ref(false)
+const durationType = ref(column?.meta?.duration || 0)
+
+// ------------
+// computed
+// ------------
+const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
+const localState = computed({
+  get: () => convertMS2Duration(modelValue, durationType.value),
+  set: (val) => {
+    isEdited.value = true
+    const res = convertDurationToSeconds(val, durationType.value)
+    if (res._isValid) {
+      durationInMS.value = res._sec
+    }
   },
-  mounted() {
-    window.addEventListener('keypress', (_) => {
-      if (this.$refs.durationInput) {
-        this.$refs.durationInput.focus()
-      }
-    })
-  },
-  methods: {
-    checkDurationFormat(evt) {
-      evt = evt || window.event
-      const charCode = evt.which ? evt.which : evt.keyCode
-      // ref: http://www.columbia.edu/kermit/ascii.html
-      const PRINTABLE_CTL_RANGE = charCode > 31
-      const NON_DIGIT = charCode < 48 || charCode > 57
-      const NON_COLON = charCode !== 58
-      const NON_PERIOD = charCode !== 46
-      if (PRINTABLE_CTL_RANGE && NON_DIGIT && NON_COLON && NON_PERIOD) {
-        this.showWarningMessage = true
-        evt.preventDefault()
-      } else {
-        this.showWarningMessage = false
-        // only allow digits, '.' and ':' (without quotes)
-        return true
-      }
-    },
-    onBlur() {
-      if (this.isEdited) {
-        this.$emit('input', this.durationInMS)
-      }
-      this.isEdited = false
-    },
-  },
-} */
+})
+
+// ------------
+// methods
+// ------------
+const checkDurationFormat = (evt: any) => {
+  evt = evt || window.event
+  const charCode = evt.which ? evt.which : evt.keyCode
+  // ref: http://www.columbia.edu/kermit/ascii.html
+  const PRINTABLE_CTL_RANGE = charCode > 31
+  const NON_DIGIT = charCode < 48 || charCode > 57
+  const NON_COLON = charCode !== 58
+  const NON_PERIOD = charCode !== 46
+  if (PRINTABLE_CTL_RANGE && NON_DIGIT && NON_COLON && NON_PERIOD) {
+    showWarningMessage.value = true
+    evt.preventDefault()
+  } else {
+    showWarningMessage.value = false
+    // only allow digits, '.' and ':' (without quotes)
+    return true
+  }
+}
+
+const onBlur = () => {
+  if (isEdited.value) {
+    emit('update:input', durationInMS.value)
+  }
+  isEdited.value = false
+}
 </script>
 
 <template>
@@ -93,8 +83,7 @@ export default {
       :placeholder="durationPlaceholder"
       @blur="onBlur"
       @keypress="checkDurationFormat($event)"
-      @keydown.enter="isEdited && $emit('input', durationInMS)"
-      v-on="parentListeners"
+      @keydown.enter="isEdited && emit('update:input', durationInMS.value)"
     />
     <div v-if="showWarningMessage == true" class="duration-warning">
       <!-- TODO: i18n -->

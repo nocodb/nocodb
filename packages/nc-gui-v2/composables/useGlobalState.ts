@@ -26,7 +26,8 @@ export const useGlobalState = (): GlobalState => {
   /** get the preferred languages of a user, according to browser settings */
   const preferredLanguages = $(usePreferredLanguages())
   /** get the preferred dark mode setting, according to browser settings */
-  const darkMode = $(usePreferredDark())
+  const prefersDarkMode = $(usePreferredDark())
+
   /** reactive timestamp to check token expiry against */
   const timestamp = $(useTimestamp({ immediate: true, interval: 100 }))
 
@@ -62,7 +63,7 @@ export const useGlobalState = (): GlobalState => {
   }, 'en' /** fallback locale */)
 
   /** State */
-  const initialState: State = { token: null, user: null, lang: preferredLanguage, darkMode }
+  const initialState: State = { token: null, user: null, lang: preferredLanguage, darkMode: prefersDarkMode }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
   const storage = $(useStorage<State>(storageKey, initialState))

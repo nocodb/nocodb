@@ -67,10 +67,12 @@ const navDrawerOptions = [
               </v-list>
             </v-menu>
 
-            <!-- todo: implement extras component
-              <Extras class="pl-6" />
-            -->
+            <div></div>
           </div>
+
+          <v-divider class="my-1" />
+
+          <general-social />
 
           <general-sponsors :nav="true" />
         </div>

@@ -15,6 +15,7 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
 </script>
 
 <template>
+  <!-- todo: add missing google analytics directive events -->
   <v-list>
     <general-share
       v-if="isZhLang"

@@ -32,7 +32,7 @@ const formatTitle = (title: string) =>
 </script>
 
 <template>
-  <div class="grid grid-cols-2 md:grid-cols-5 3xl:grid-cols-6 gap-6 md:(gap-y-16)">
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 3xl:grid-cols-6 gap-6 md:(gap-y-16)">
     <div class="group flex flex-col items-center gap-2">
       <v-menu>
         <template #activator="{ props }">

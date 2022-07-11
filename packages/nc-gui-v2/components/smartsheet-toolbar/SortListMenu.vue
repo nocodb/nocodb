@@ -1,17 +1,20 @@
 <script setup lang="ts">
-import { inject } from '@vue/runtime-core'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
-import { ActiveViewInj, IsLockedInj, ReloadViewDataHookInj } from '~/components'
+import { computed, inject } from '#imports'
+import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/components'
 import useViewSorts from '~/composables/useViewSorts'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiSortIcon from '~icons/mdi/sort'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 
+const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
 const isLocked = inject(IsLockedInj)
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
+
+const columns = computed(() => meta?.value?.columns || [])
 
 watch(
   () => view?.value?.id,
@@ -144,37 +147,36 @@ export default {
       <div class="sort-grid" @click.stop>
         <template v-for="(sort, i) in sorts || []" :key="i">
           <!--          <v-icon :key="`${i}icon`" class="nc-sort-item-remove-btn" small @click.stop="deleteSort(sort)"> mdi-close-box </v-icon> -->
-          <MdiDeleteIcon class="nc-sort-item-remove-btn text-grey" small @click.stop="deleteSort(sort, i)"></MdiDeleteIcon>
+          <MdiDeleteIcon
+            class="nc-sort-item-remove-btn text-grey align-self-center"
+            small
+            @click.stop="deleteSort(sort, i)"
+          ></MdiDeleteIcon>
           <FieldListAutoCompleteDropdown
             v-model="sort.fk_column_id"
             class="caption nc-sort-field-select"
             :columns="columns"
             @click.stop
-            @change="sync(sort, i)"
+            @update:modelValue="saveOrUpdate(sort, i)"
           />
           <v-select
             v-model="sort.direction"
             class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
-            :items="[
-              // { text: 'A -> Z', value: 'asc' },
-              'asc',
-              // { text: 'Z -> A', value: 'desc' },
-              'desc',
-            ]"
+            :items="['asc', 'desc']"
             :label="$t('labels.operation')"
             density="compact"
             variant="solo"
             hide-details
             @click.stop
-            @change="saveOrUpdate(sort, i)"
-          >
-            <template #item="{ item }">
-              <span class="caption font-weight-regular">{{ item.text }}</span>
-            </template>
-          </v-select>
+            @update:modelValue="saveOrUpdate(sort, i)"
+          />
+          <!--            <template #item="{ item }"> -->
+          <!--              <span class="caption font-weight-regular">{{ item.text }}</span> -->
+          <!--            </template> -->
+          <!--          </v-select> -->
         </template>
       </div>
-      <v-btn small class="elevation-0 grey&#45;&#45;text my-3" @click.stop="addSort">
+      <v-btn small class="elevation-0 text-grey text-capitalize text-sm my-3" @click.stop="addSort">
         <!-- todo:        <v-icon small color="grey"> mdi-plus </v-icon> -->
         <!-- Add Sort Option -->
         {{ $t('activity.addSort') }}

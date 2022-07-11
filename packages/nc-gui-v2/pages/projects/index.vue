@@ -47,7 +47,7 @@ const navDrawerOptions = [
       </v-navigation-drawer>
     </template>
 
-    <v-container class="flex-1 py-9 px-15 h-full">
+    <v-container class="flex-1 h-full">
       <div class="flex">
         <div class="prose-xl p-2">
           {{ $t('title.myProject') }}
@@ -70,7 +70,8 @@ const navDrawerOptions = [
           />
         </div>
       </div>
-      <v-divider class="mb-3" />
+
+      <v-divider class="lg:(!mb-8)" />
 
       <NuxtPage :projects="projects" />
     </v-container>

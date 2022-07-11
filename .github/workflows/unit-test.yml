@@ -10,26 +10,23 @@ on:
     branches: [ "master" ]
 
 jobs:
-  build:
-
+  unit-test:
     runs-on: ubuntu-latest
-
-    strategy:
-      matrix:
-        node-version: [12.x, 14.x, 16.x]
         # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
     steps:
     - uses: actions/checkout@v3
-    - name: Use Node.js ${{ matrix.node-version }}
+    - run: echo ::set-output name=NODE_VERSION::$(cat .nvmrc)
+      working-directory: ./packages/nocodb
+      id: nvm
+    - name: Use Node.js ${{ steps.nvm.outputs.NODE_VERSION }}
       uses: actions/setup-node@v3
       with:
-        node-version: ${{ matrix.node-version }}
+        node-version: ${{ steps.nvm.outputs.NODE_VERSION }}
         cache: 'npm'
     - name: install dependencies
       working-directory: ./packages/nocodb
-      run: |
-        npm ci
+      run: npm ci
     - name: run unit tests
       working-directory: ./packages/nocodb
       run: npm run unit-test

@@ -39,8 +39,18 @@ onMounted(() => {
       <MaterialSymbolsTranslate class="md:text-xl cursor-pointer" @click="props.onClick" />
     </template>
     <v-list class="min-w-50 max-h-90vh overflow-auto !py-0 scrollbar-thin-primary">
-      <v-list-item v-for="lang of languages" :key="lang.value" class="!min-h-8 group" :value="lang" @click="changeLanguage(lang)">
-        <v-list-item-subtitle class="capitalize md:(!leading-8) group-hover:(text-primary font-semibold)">
+      <v-list-item
+        v-for="lang of languages"
+        :key="lang.value"
+        :class="lang === locale ? '!bg-primary/10 text-primary' : ''"
+        class="!min-h-8 group"
+        :value="lang"
+        @click="changeLanguage(lang)"
+      >
+        <v-list-item-subtitle
+          :class="lang === locale ? '!font-semibold' : ''"
+          class="capitalize md:(!leading-8) group-hover:(text-primary font-semibold)"
+        >
           {{ Language[lang] || lang }}
         </v-list-item-subtitle>
       </v-list-item>

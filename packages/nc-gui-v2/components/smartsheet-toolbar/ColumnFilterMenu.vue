@@ -2,7 +2,6 @@
 // todo: move to persisted state
 import { useState } from '#app'
 import { IsLockedInj } from '~/components'
-import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import MdiFilterIcon from '~icons/mdi/filter-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
@@ -14,58 +13,6 @@ const filters = []
 
 // todo: implement
 const applyChanges = () => {}
-
-/* import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter'
-
-export default {
-  name: 'ColumnFilterMenu',
-  components: { ColumnFilter },
-  props: ['fieldList', 'isLocked', 'value', 'meta', 'viewId', 'shared'],
-  data: () => ({
-    filters: [],
-  }),
-  computed: {
-    autosave: {
-      set(v) {
-        this.$store.commit('settings/MutAutoApplyFilter', v)
-        this.$e('a:filter:auto-apply', { flag: v })
-      },
-      get() {
-        return this.$store.state.settings.autoApplyFilter
-      },
-    },
-  },
-  watch: {
-    filters: {
-      handler(v) {
-        if (this.autosave) {
-          this.$emit('input', v)
-        }
-      },
-      deep: true,
-    },
-    autosave(v) {
-      if (!v) {
-        this.filters = JSON.parse(JSON.stringify(this.value || []))
-      }
-    },
-    value(v) {
-      this.filters = this.autosave ? v || [] : JSON.parse(JSON.stringify(v || []))
-    },
-  },
-  created() {
-    this.filters = this.autosave ? this.value || [] : JSON.parse(JSON.stringify(this.value || []))
-  },
-  methods: {
-    applyChanges() {
-      this.$emit('input', this.filters)
-      if (this.$refs.filter) {
-        this.$refs.filter.applyChanges()
-      }
-      this.$e('a:filter:apply')
-    },
-  },
-} */
 </script>
 
 <template>
@@ -92,15 +39,7 @@ export default {
       </v-badge>
     </template>
     <SmartsheetToolbarColumnFilter>
-      <!--
-      v-model="filters"
-      :shared="shared"
-      :view-id="viewId"
-      :field-list="fieldList"
-      :meta="meta" -->
-      <!--      v-on="$listeners" -->
-
-      <div class="d-flex align-center mx-2" @click.stop>
+      <!--      <div class="d-flex align-center mx-2" @click.stop>
         <v-checkbox
           id="col-filter-checkbox"
           v-model="autoApplyFilter"
@@ -111,22 +50,16 @@ export default {
           color="grey"
         >
           <template #label>
-            <span class="grey--text caption">
+            <span class="grey&#45;&#45;text caption">
               {{ $t('msg.info.filterAutoApply') }}
-              <!-- Auto apply -->
+              &lt;!&ndash; Auto apply &ndash;&gt;
             </span>
           </template>
         </v-checkbox>
 
         <v-spacer />
         <v-btn v-show="!autoApplyFilter" color="primary" small class="caption ml-2" @click="applyChanges"> Apply changes </v-btn>
-      </div>
+      </div> -->
     </SmartsheetToolbarColumnFilter>
   </v-menu>
 </template>
-
-<style scoped>
-/*/deep/ .col-filter-checkbox .v-input--selection-controls__input {
-  transform: scale(0.7);
-}*/
-</style>

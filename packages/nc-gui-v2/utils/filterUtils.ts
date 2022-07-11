@@ -1,4 +1,4 @@
-export const comparisonOp = [
+export const comparisonOpList = [
   {
     text: 'is equal',
     value: 'eq',

@@ -1,4 +1,4 @@
-import type { Api, PaginatedType, TableType } from 'nocodb-sdk'
+import type { Api, FormType, GalleryType, GridType, PaginatedType, TableType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 import useProject from '~/composables/useProject'
@@ -13,7 +13,10 @@ const formatData = (list: Record<string, any>[]) =>
 
 export default (
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
-  viewMeta: Ref<TableType> | ComputedRef<TableType> | undefined,
+  viewMeta:
+    | Ref<(GridType | GalleryType | FormType) & { id: string }>
+    | ComputedRef<(GridType | GalleryType | FormType) & { id: string }>
+    | undefined,
 ) => {
   const data = ref<Record<string, any>[]>()
   const formattedData = ref<{ row: Record<string, any>; oldRow: Record<string, any>; rowMeta?: any }[]>()

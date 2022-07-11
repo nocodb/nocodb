@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { ActiveViewInj, MetaInj } from '~/components'
+import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/components'
 import useViewColumns from '~/composables/useViewColumns'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiEyeIcon from '~icons/mdi/eye-off-outline'
@@ -14,7 +14,8 @@ const { showSystemFields, fieldsOrder, coverImageField, modelValue } = definePro
 
 const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
-const isLocked = false
+const reloadDataHook = inject(ReloadViewDataHookInj)
+const isLocked = inject(IsLockedInj)
 
 const isAnyFieldHidden = computed(() => {
   return false
@@ -307,7 +308,6 @@ export default {
           :class="{
             'primary lighten-5 grey--text text--darken-3': isAnyFieldHidden,
           }"
-          v-on="on"
         >
           <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
           <MdiEyeIcon class="mr-1 text-grey"></MdiEyeIcon>

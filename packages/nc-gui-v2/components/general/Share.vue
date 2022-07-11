@@ -43,7 +43,7 @@ const openUrl = (url: string) => {
 </script>
 
 <template>
-  <div>
+  <div class="flex gap-2">
     <a
       v-if="!socialMedias || !socialMedias.length || socialMedias.includes('twitter')"
       href="#"
@@ -289,5 +289,9 @@ const openUrl = (url: string) => {
 }
 .small .img-responsive {
   width: 25px;
+}
+
+a {
+  @apply cursor-pointer text-3xl rounded-full p-2 bg-gray-100 shadow-md hover:(shadow-lg bg-gray-200) transition-color ease-in duration-100;
 }
 </style>

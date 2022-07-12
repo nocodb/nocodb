@@ -1,9 +1,11 @@
+import { UITypes } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
 export default (onTableCreate?: (tableMeta: any) => void) => {
-  const table = reactive<{ title: string; table_name: string }>({
+  const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
+    columns: ['id', 'title', 'created_at', 'updated_at'],
   })
 
   const { sqlUi, project, tables } = useProject()
@@ -12,17 +14,15 @@ export default (onTableCreate?: (tableMeta: any) => void) => {
   const createTable = async () => {
     if (!sqlUi?.value) return
     const columns = sqlUi?.value?.getNewTableColumns().filter((col) => {
-      // if (col.column_name === "id" && newTable.columns.includes("id_ag")) {
-      //   Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, "AG"));
-      //
-      //   col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt);
-      //   col.dtxs = sqlUi?.value?.getDefaultScaleForDatatype(col.dt);
-      //
-      //   return true;
-      // }
-      // return this.nodes.newTable.columns.includes(col.column_name);
-      return true
+      if (col.column_name === 'id' && table.columns.includes('id_ag')) {
+        Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+        col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt)
+        col.dtxs = sqlUi?.value?.getDefaultScaleForDatatype(col.dt)
+        return true
+      }
+      return table.columns.includes(col.column_name)
     })
+
     await $api.dbTable.create(project?.value?.id as string, {
       ...table,
       columns,

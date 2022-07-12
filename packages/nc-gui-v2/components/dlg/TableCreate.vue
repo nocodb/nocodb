@@ -7,6 +7,11 @@ const { modelValue } = defineProps<{ modelValue?: boolean }>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const idTypes = [
+  { value: 'AI', text: 'Auto increment number' },
+  { value: 'AG', text: 'Auto generated string' },
+]
+
 const dialogShow = computed({
   get() {
     return modelValue
@@ -32,91 +37,11 @@ const validateDuplicate = (v: string) => {
   return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
 }
 
+const inputEl = ref<HTMLInputElement>()
+
 onMounted(() => {
   generateUniqueTitle()
 })
-
-/* import { validateTableName } from '~/helpers'
-
-export default {
-  name: 'DlgTableCreate',
-  props: ['value'],
-  data() {
-    return {
-      isAdvanceOptVisible: false,
-      table: {
-        name: '',
-        columns: ['id', 'title', 'created_at', 'updated_at'],
-      },
-      isIdToggleAllowed: false,
-      valid: false,
-      idType: 'AI',
-      idTypes: [
-        { value: 'AI', text: 'Auto increment number' },
-        { value: 'AG', text: 'Auto generated string' },
-      ],
-    }
-  },
-  computed: {
-    dialogShow: {
-      get() {
-        return this.value
-      },
-      set(v) {
-        this.$emit('input', v)
-      },
-    },
-    projectPrefix() {
-      return this.$store.getters['project/GtrProjectPrefix']
-    },
-    tables() {
-      return this.$store.state.project.tables || []
-    },
-  },
-  watch: {
-    'table.alias': function (alias) {
-      this.$set(this.table, 'name', `${this.projectPrefix || ''}${alias}`)
-    },
-  },
-  created() {
-    this.populateDefaultTitle()
-  },
-  mounted() {
-    setTimeout(() => {
-      const el = this.$refs.input.$el
-      el.querySelector('input').focus()
-      el.querySelector('input').select()
-    }, 100)
-  },
-
-  methods: {
-    populateDefaultTitle() {
-      let c = 1
-      while (this.tables.some((t) => t.title === `Sheet${c}`)) {
-        c++
-      }
-      this.$set(this.table, 'alias', `Sheet${c}`)
-    },
-    validateTableName(v) {
-      return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql'])
-    },
-    validateDuplicateAlias(v) {
-      return (this.tables || []).every((t) => t.title !== (v || '')) || 'Duplicate table alias'
-    },
-    validateLedingOrTrailingWhiteSpace(v) {
-      return !/^\s+|\s+$/.test(v) || 'Leading or trailing whitespace not allowed in table name'
-    },
-    validateDuplicate(v) {
-      return (this.tables || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
-    },
-    onCreateBtnClick() {
-      this.$emit('create', {
-        ...this.table,
-        columns: this.table.columns.map((c) => (c === 'id' && this.idType === 'AG' ? 'id_ag' : c)),
-      })
-    },
-  },
-} */
 </script>
 
 <template>
@@ -137,7 +62,7 @@ export default {
         <v-card-text class="py-6 px-10">
           <!-- hint="Enter table name" -->
           <v-text-field
-            ref="input"
+            :ref="inputEl"
             v-model="table.title"
             solo
             flat
@@ -161,7 +86,7 @@ export default {
           <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
             <!-- hint="Table name as saved in database" -->
             <v-text-field
-              v-if="!projectPrefix"
+              v-if="!project.prefix"
               v-model="table.table_name"
               solo
               flat

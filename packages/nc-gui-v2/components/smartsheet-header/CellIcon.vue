@@ -15,6 +15,7 @@ import DateIcon from '~icons/mdi/calendar'
 import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
+import URLIcon from '~icons/mdi/link'
 
 const column = inject(ColumnInj)
 
@@ -35,10 +36,6 @@ const icon = computed(() => {
     return SingleSelectIcon
   } else if (additionalColMeta.isBoolean) {
     return BooleanIcon
-  } else if (additionalColMeta.isString) {
-    return h(StringIcon, {
-      class: 'text-[1.5rem]',
-    })
   } else if (additionalColMeta.isTextArea) {
     return TextAreaIcon
   } else if (additionalColMeta.isRating) {
@@ -49,7 +46,13 @@ const icon = computed(() => {
   // else if(additionalColMeta.isForeignKey) {
   //   return FKIcon
   // }
-  else {
+  else if (additionalColMeta.isURL) {
+    return URLIcon
+  } else if (additionalColMeta.isString) {
+    return h(StringIcon, {
+      class: 'text-[1.5rem]',
+    })
+  } else {
     return GenericIcon
   }
 })

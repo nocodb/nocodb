@@ -9,11 +9,11 @@ export default function useColors(darkMode?: MaybeRef<boolean>) {
   let mode = $ref(unref(darkMode))
   const { $state } = useNuxtApp()
 
-  if (!mode) mode = $state.darkMode.value
+  if (typeof mode === 'undefined') mode = $state.darkMode.value
 
   scope.run(() => {
     watch($state.darkMode, (newMode) => {
-      mode = newMode
+      if (typeof mode === 'undefined') mode = newMode
     })
 
     watchEffect(() => {

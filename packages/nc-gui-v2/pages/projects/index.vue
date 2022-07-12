@@ -30,7 +30,7 @@ const navDrawerOptions = [
 
 const route = useRoute()
 
-const { $api } = useNuxtApp()
+const { $api, $state } = useNuxtApp()
 
 const response = await $api.project.list({})
 const projects = $ref(response.list)
@@ -46,7 +46,7 @@ const activePage = $ref(navDrawerOptions[0].title)
             <v-menu class="select-none">
               <template #activator="{ props }">
                 <div
-                  class="mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold hover:bg-gray-200/20"
+                  class="bg-white mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold hover:(!bg-gray-100)"
                   @click="props.onClick"
                 >
                   <MdiPlus class="text-primary text-2xl" />
@@ -73,7 +73,7 @@ const activePage = $ref(navDrawerOptions[0].title)
           </div>
 
           <div class="advance-menu flex-1">
-            <v-list class="flex flex-col gap-1" color="primary">
+            <v-list class="flex flex-col gap-1" :color="$state.darkMode.value ? 'default' : 'primary'">
               <!-- todo: v-list-item-group doesn't seem to work with vuetify 3 yet ... -->
               <v-list-item
                 v-for="item in navDrawerOptions"

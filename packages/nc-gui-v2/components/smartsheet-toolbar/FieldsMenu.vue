@@ -5,8 +5,7 @@ import useViewColumns from '~/composables/useViewColumns'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiEyeIcon from '~icons/mdi/eye-off-outline'
 
-const { showSystemFields, fieldsOrder, coverImageField, modelValue } = defineProps<{
-  showSystemFields?: boolean
+const { fieldsOrder, coverImageField, modelValue } = defineProps<{
   coverImageField?: string
   fieldsOrder?: string[]
   modelValue?: Record<string, boolean>
@@ -24,8 +23,17 @@ const isAnyFieldHidden = computed(() => {
   // return meta?.fields?.some(field => field.hidden)
 })
 
-const { sortedAndFilteredFields, fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, saveOrUpdate } =
-  useViewColumns(activeView, meta, false, () => reloadDataHook?.trigger())
+const {
+  showSystemFields,
+  sortedAndFilteredFields,
+  fields,
+  loadViewColumns,
+  filteredFieldList,
+  filterQuery,
+  showAll,
+  hideAll,
+  saveOrUpdate,
+} = useViewColumns(activeView, meta, false, () => reloadDataHook?.trigger())
 
 watch(
   () => activeView?.value?.id,
@@ -356,16 +364,20 @@ export default {
       </div>
       <v-divider class="my-2" />
 
-      <!--      <v-list-item v-if="!isPublic" dense>
-        <v-checkbox v-model="showSystemFieldsLoc" class="mt-0 pt-0" dense hide-details @click.stop>
+            <v-list-item v-if="!isPublic" dense>
+<!--
+show_system_fields
+<v-checkbox v-model="showSystemFields" class="mt-0 pt-0" dense hide-details @click.stop>
           <template #label>
-            <span class="caption">
+            <span class="caption text-sm">
               &lt;!&ndash; Show System Fields &ndash;&gt;
               {{ $t('activity.showSystemFields') }}
             </span>
           </template>
-        </v-checkbox>
-      </v-list-item> -->
+        </v-checkbox>-->
+              <input type="checkbox" v-model="showSystemFields" :id="`${activeView?.id}-show-system-fields`"/>
+              <label :for="`${activeView.id}-show-system-fields`" class="caption text-sm ml-2">{{ $t('activity.showSystemFields') }}</label>
+      </v-list-item>
       <v-list-item dense class="mt-2 list-btn mb-3">
         <v-btn small class="elevation-0 grey--text text-sm text-capitalize" @click.stop="showAll">
           <!-- Show All -->

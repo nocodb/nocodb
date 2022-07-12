@@ -61,7 +61,7 @@ export async function releaseVersion(_req: Request, res: Response) {
 }
 
 export async function getFeedbackForm(_req: Request, res: Response) {
-  await axios
+  axios
     .get('https://nocodb.com/api/v1/feedback_form')
     .then((response) => {
       res.json(response.data);

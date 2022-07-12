@@ -1,17 +1,9 @@
 <template>
   <div v-if="!feedbackFormHidden" class="nc-feedback-form-wrapper">
-    <v-icon class="nc-close-icon" large @click="feedbackFormHidden = true">
-      mdi-close-circle-outline
-    </v-icon>
+    <v-icon class="nc-close-icon" large @click="feedbackFormHidden = true"> mdi-close-circle-outline </v-icon>
 
-    <iframe
-      :src="feedbackFormUrl"
-      width="100%"
-      height="500"
-      frameborder="0"
-      marginheight="0"
-      marginwidth="0"
-    >Loading…
+    <iframe :src="feedbackFormUrl" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"
+      >Loading…
     </iframe>
   </div>
   <div v-else />
@@ -23,18 +15,17 @@ export default {
   computed: {
     feedbackFormHidden: {
       get() {
-        return this.$store.state.settings.feedbackForm.isShown
+        return this.$store.state.settings.feedbackForm.isShown;
       },
       set(isShown) {
-        this.$store.commit(
-          'settings/MutFeedbackForm', { ...this.$store.state.settings.feedbackForm, isShown })
-      }
+        this.$store.commit('settings/MutFeedbackForm', { ...this.$store.state.settings.feedbackForm, isShown });
+      },
     },
     feedbackFormUrl() {
-      return this.$store.state.settings.feedbackForm.url
-    }
-  }
-}
+      return this.$store.state.settings.feedbackForm.url;
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

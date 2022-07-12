@@ -18,3 +18,4 @@ export const ActiveViewInj: InjectionKey<Ref<(GridType | GalleryType | FormType 
 export const ReadonlyInj: InjectionKey<any> = Symbol('readonly-injection')
 export const ReloadViewDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-view-data-injection')
 export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')
+export const ViewListInj: InjectionKey<Ref<any[]>> = Symbol('view-list-injection')

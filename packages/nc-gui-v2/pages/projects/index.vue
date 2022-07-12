@@ -33,7 +33,7 @@ const route = useRoute()
 const { $api, $state } = useNuxtApp()
 
 const response = await $api.project.list({})
-const projects = $ref(Array(100).fill(...response.list))
+const projects = $ref(response.list)
 const activePage = $ref(navDrawerOptions[0].title)
 </script>
 

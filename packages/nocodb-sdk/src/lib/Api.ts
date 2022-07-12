@@ -2917,7 +2917,7 @@ export class Api<
       projectName: string,
       tableName: string,
       viewName: string,
-      type: 'csv' | 'excel',
+      type: 'csv' | 'excel' | 'xlsx',
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

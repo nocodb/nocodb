@@ -26,6 +26,7 @@ export default {
     dataGroupBy: true,
     commentsCount: true,
     exportCsv: true,
+    exportCsvData: true,
 
     viewList: true,
     columnList: true,
@@ -141,6 +142,7 @@ export default {
     // project
     projectGet: true,
     exportCsv: true,
+    exportCsvData: true,
 
     //table
     tableGet: true,
@@ -203,6 +205,7 @@ export default {
     dataGroupBy: true,
     commentsCount: true,
     exportCsv: true,
+    exportCsvData: true,
 
     // sort & filter
     sortList: true,

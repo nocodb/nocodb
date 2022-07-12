@@ -28,6 +28,23 @@
             </span>
           </v-list-item-title>
         </v-list-item>
+
+        <v-list-item
+          v-t="['a:actions:download-xlsx']"
+          dense
+          @click="exportXlsx"
+        >
+          <v-list-item-title>
+            <v-icon small class="mr-1">
+              mdi-download-outline
+            </v-icon>
+            <span class="caption">
+              <!-- Download as XLSX -->
+              {{ $t('activity.downloadToto') }} XSLX
+            </span>
+          </v-list-item-title>
+        </v-list-item>
+
         <v-list-item
           v-if="_isUIAllowed('csvImport') && !isView"
           v-t="['a:actions:upload-csv']"
@@ -136,7 +153,6 @@ export default {
 
       reader.readAsText(file);
     },
-
     async extractCsvData() {
       return Promise.all(
         this.data.map(async r => {
@@ -220,6 +236,13 @@ export default {
         })
       );
     },
+    async exportXlsx() {
+      console.log('export')
+      console.log({title: this.meta.title, otherTitle: this.selectedView.title})
+      console.log({meta: this.meta.title, selectedview: this.selectedView})
+      const res = await this.$api.dbViewRow.export('noco', this.projectName, this.meta.title, this.selectedView.title, 'xlsx')
+      return Promise.resolve('Success').then(() => console.log('res', res))
+    },
     async exportCsv() {
       let offset = 0;
       let c = 1;
@@ -228,6 +251,8 @@ export default {
         while (!isNaN(offset) && offset > -1) {
           let res;
           if (this.publicViewId) {
+            console.log('publicViewId')
+            console.log(publicViewId)
             res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.CSV, {
               responseType: 'blob',
               query: {
@@ -251,6 +276,7 @@ export default {
               },
             });
           } else {
+            console.log('else')
             res = await this.$api.dbViewRow.export(
               'noco',
               this.projectName,

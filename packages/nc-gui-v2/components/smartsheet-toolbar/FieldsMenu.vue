@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/components'
+import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/components'
 import useViewColumns from '~/composables/useViewColumns'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiEyeIcon from '~icons/mdi/eye-off-outline'
@@ -16,6 +16,7 @@ const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
 const reloadDataHook = inject(ReloadViewDataHookInj)
 const isLocked = inject(IsLockedInj)
+const rootFields = inject(FieldsInj)
 
 const isAnyFieldHidden = computed(() => {
   return false
@@ -23,12 +24,8 @@ const isAnyFieldHidden = computed(() => {
   // return meta?.fields?.some(field => field.hidden)
 })
 
-const { fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, saveOrUpdate } = useViewColumns(
-  activeView,
-  meta,
-  false,
-  () => reloadDataHook?.trigger(),
-)
+const { sortedAndFilteredFields, fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, saveOrUpdate } =
+  useViewColumns(activeView, meta, false, () => reloadDataHook?.trigger())
 
 watch(
   () => activeView?.value?.id,
@@ -36,6 +33,13 @@ watch(
     if (newVal !== oldVal && meta?.value) {
       await loadViewColumns()
     }
+  },
+  { immediate: true },
+)
+watch(
+  () => sortedAndFilteredFields.value,
+  (v) => {
+    if (rootFields) rootFields.value = v || []
   },
   { immediate: true },
 )

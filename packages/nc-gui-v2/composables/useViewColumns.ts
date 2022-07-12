@@ -1,4 +1,4 @@
-import type { FormType, GalleryType, GridType, TableType } from 'nocodb-sdk'
+import type { ColumnType, FormType, GalleryType, GridType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#app'
 
@@ -10,8 +10,8 @@ export default function (
 ) {
   const fields = ref<
     {
-      order?: number
-      show?: number
+      order: number
+      show: number | boolean
       title: string
       fk_column_id?: string
     }[]
@@ -72,5 +72,30 @@ export default function (
     reloadData?.()
   }
 
-  return { fields, loadViewColumns, filteredFieldList, filterQuery, showAll, hideAll, saveOrUpdate }
+  const metaColumnById = computed(() => {
+    return meta?.value?.columns?.reduce<Record<string, ColumnType>>((o: Record<string, any>, c: any) => {
+      return {
+        ...o,
+        [c.id]: c,
+      }
+    }, {})
+  })
+
+  const sortedAndFilteredFields = computed<ColumnType[]>(() => {
+    return (fields?.value
+      ?.filter((c) => c.show)
+      ?.sort((c1, c2) => c1.order - c2.order)
+      ?.map((c) => metaColumnById?.value?.[c.fk_column_id as string]) || []) as ColumnType[]
+  })
+
+  return {
+    fields,
+    loadViewColumns,
+    filteredFieldList,
+    filterQuery,
+    showAll,
+    hideAll,
+    saveOrUpdate,
+    sortedAndFilteredFields,
+  }
 }

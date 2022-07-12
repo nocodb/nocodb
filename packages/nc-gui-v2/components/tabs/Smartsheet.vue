@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useEventBus } from '@vueuse/core'
-import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
+import type { ColumnType, FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { computed, onMounted, provide, watch } from '#imports'
-import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/components'
+import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/components'
 import useMetas from '~/composables/useMetas'
 
 const { tabMeta } = defineProps({
@@ -14,6 +14,8 @@ const { getMeta, metas } = useMetas()
 
 const activeView = ref<GridType | FormType | KanbanType | GalleryType>()
 const el = ref<any>()
+const fields = ref<ColumnType[]>([])
+
 const meta = computed(() => metas.value?.[tabMeta?.id])
 
 onMounted(async () => {
@@ -27,6 +29,7 @@ provide(TabMetaInj, tabMeta)
 provide(ActiveViewInj, activeView)
 provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
+provide(FieldsInj, fields)
 
 watch(
   () => tabMeta && tabMeta?.id,

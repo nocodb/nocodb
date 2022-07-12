@@ -1,4 +1,4 @@
-import { isSystemColumn } from "nocodb-sdk";
+import { isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, FormType, GalleryType, GridType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#app'
@@ -19,7 +19,6 @@ export default function (
   >()
 
   const filterQuery = ref('')
-
 
   const { $api } = useNuxtApp()
 
@@ -99,9 +98,8 @@ export default function (
 
   const filteredFieldList = computed(() => {
     return fields.value?.filter((field) => {
-
       // hide system columns if not enabled
-      if(!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id as string])) {
+      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id as string])) {
         return false
       }
 
@@ -109,12 +107,11 @@ export default function (
     })
   })
 
-
   const sortedAndFilteredFields = computed<ColumnType[]>(() => {
     return (fields?.value
       ?.filter((c) => {
         // hide system columns if not enabled
-        if(!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.fk_column_id as string])) {
+        if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.fk_column_id as string])) {
           return false
         }
         return c.show
@@ -122,7 +119,6 @@ export default function (
       ?.sort((c1, c2) => c1.order - c2.order)
       ?.map((c) => metaColumnById?.value?.[c.fk_column_id as string]) || []) as ColumnType[]
   })
-
 
   return {
     fields,

@@ -1,8 +1,8 @@
-import { usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
+import { breakpointsTailwind, usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
-import { computed, toRefs, useNuxtApp, useTimestamp, watch } from '#imports'
-import type { Actions, Getters, GlobalState, State, User } from '~/lib/types'
+import { computed, ref, toRefs, useBreakpoints, useNuxtApp, useTimestamp, watch } from '#imports'
+import type { Actions, Getters, GlobalState, StoredState, User } from '~/lib/types'
 
 const storageKey = 'nocodb-gui-v2'
 
@@ -27,6 +27,8 @@ export const useGlobalState = (): GlobalState => {
   const preferredLanguages = $(usePreferredLanguages())
   /** get the preferred dark mode setting, according to browser settings */
   const prefersDarkMode = $(usePreferredDark())
+  /** get current breakpoints (for enabling sidebar) */
+  const breakpoints = useBreakpoints(breakpointsTailwind)
 
   /** reactive timestamp to check token expiry against */
   const timestamp = $(useTimestamp({ immediate: true, interval: 100 }))
@@ -63,10 +65,13 @@ export const useGlobalState = (): GlobalState => {
   }, 'en' /** fallback locale */)
 
   /** State */
-  const initialState: State = { token: null, user: null, lang: preferredLanguage, darkMode: prefersDarkMode }
+  const initialState: StoredState = { token: null, user: null, lang: preferredLanguage, darkMode: prefersDarkMode }
+
+  /** is sidebar open */
+  const sidebarOpen = ref(breakpoints.greater('md').value)
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
-  const storage = $(useStorage<State>(storageKey, initialState))
+  const storage = $(useStorage<StoredState>(storageKey, initialState))
 
   /** current token ref, used by `useJwt` to reactively parse our token payload */
   let token = $computed({
@@ -134,5 +139,5 @@ export const useGlobalState = (): GlobalState => {
     { immediate: true },
   )
 
-  return { ...toRefs(storage), signedIn, signOut, signIn }
+  return { ...toRefs(storage), signedIn, signOut, signIn, sidebarOpen }
 }

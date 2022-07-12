@@ -108,9 +108,9 @@ export const genTest = (apiType, dbType) => {
             cy.getActiveMenu().find('input[type="number"]').type(defaultNumber);
 
             // Configure Negative
-            cy.getActiveModal().find('[role="switch"][type="checkbox"]').invoke('val').then(($val) => {
+            cy.getActiveMenu().find('[role="switch"][type="checkbox"]').invoke('val').then(($val) => {
                 if ($val ^ negative) {
-                    cy.getActiveModal()
+                    cy.getActiveMenu()
                     .find('[role="switch"][type="checkbox"]')
                     .click({ force: true });
                 }
@@ -141,12 +141,17 @@ export const genTest = (apiType, dbType) => {
             } else {
                 mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });
             }
-            const targetPercentInput = cy.getActiveModal().get('.percent-cell-wrapper > input[type="number"]').eq(parseInt(colName.slice(-1)))
-            targetPercentInput.should('exist');
-            if (cellValue) {
-                targetPercentInput.focus().invoke('val', '').clear().type(cellValue).blur();
-                cy.wait(1000);
+
+            if(cellValue) {
+                cy.getActiveModal().find('input[type="number"]').eq(parseInt(colName.slice(-1)))
+                  .should("exist")
+                  .click()
+                  .clear()
+                  .type(cellValue)
+                  .blur();
+                cy.getActiveModal().find('input[type="number"]').eq(parseInt(colName.slice(-1))).should('have.value', expectedValue.slice(0, -1));
             }
+
             cy.getActiveModal().find("button").contains("Save row").click({ force: true });
             cy.toastWait("Row updated successfully");
             isMatchedWithTargetValue(colName, index, expectedValue);
@@ -170,10 +175,10 @@ export const genTest = (apiType, dbType) => {
 
             it("Percent: Test base case", () => {
                 // ( colName, index, cellValue, expectedValue, isNew )
-                addPercentData("NC_PERCENT_0", 1, 1, '1%', true);
-                addPercentData("NC_PERCENT_1", 1, 1, '1.0%');
-                addPercentData("NC_PERCENT_2", 1, 1, '1.00%');
-                addPercentData("NC_PERCENT_3", 1, 1, '1.000%');
+                addPercentData("NC_PERCENT_0", 1, 2, '2%', true);
+                addPercentData("NC_PERCENT_1", 1, 2, '2.0%');
+                addPercentData("NC_PERCENT_2", 1, 2, '2.00%');
+                addPercentData("NC_PERCENT_3", 1, 2, '2.000%');
                 // addPercentData("NC_PERCENT_4", 1, 1, '1.0000%');
                 // addPercentData("NC_PERCENT_5", 1, 1, '1.00000%');
                 // addPercentData("NC_PERCENT_6", 1, 1, '1.000000%');
@@ -198,9 +203,9 @@ export const genTest = (apiType, dbType) => {
             it("Percent: Test percision", () => {
                 // ( colName, index, cellValue, expectedValue, isNew )
                 addPercentData("NC_PERCENT_0", 3, '2', '2%', true);
-                addPercentData("NC_PERCENT_1", 3, '2.1', '2.1%', false);    
+                addPercentData("NC_PERCENT_1", 3, '2.1', '2.1%', false);
                 addPercentData("NC_PERCENT_2", 3, '2.12', '2.12%', false);
-                addPercentData("NC_PERCENT_3", 3, '2.13', '2.123%', false);
+                addPercentData("NC_PERCENT_3", 3, '2.123', '2.123%', false);
                 // addPercentData("NC_PERCENT_4", 3, 1.123456789, '1.1235%', false);
                 // addPercentData("NC_PERCENT_5", 3, 1.123456789, '1.12346%', false);
                 // addPercentData("NC_PERCENT_6", 3, 1.123456789, '1.123457%', false);

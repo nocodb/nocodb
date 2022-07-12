@@ -13,7 +13,7 @@ export enum RelationTypes {
 
 export enum ExportTypes {
   CSV = 'csv',
-  XLSX = 'xlsx',
+  CSV_DATA = 'csvData',
 }
 
 export enum ErrorMessages {

@@ -2554,7 +2554,7 @@ export class Api<
       orgs: string,
       projectName: string,
       tableName: string,
-      type: 'csv' | 'excel',
+      type: 'csv' | 'excel' | 'csvData',
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -3005,7 +3005,7 @@ export class Api<
      */
     csvExport: (
       sharedViewUuid: string,
-      type: 'csv' | 'excel',
+      type: 'csv' | 'excel' | 'csvData',
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

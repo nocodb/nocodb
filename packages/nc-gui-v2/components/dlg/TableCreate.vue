@@ -3,7 +3,7 @@ import { onMounted } from '@vue/runtime-core'
 import useTableCreate from '../../composables/useTableCreate'
 import { validateTableName } from '~/utils/validation'
 
-const { modelValue } = defineProps<{ modelValue?: boolean }>()
+const { modelValue = false } = defineProps<{ modelValue?: boolean }>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -22,6 +22,7 @@ const dialogShow = computed({
 })
 
 const valid = ref(false)
+const isIdToggleAllowed = ref(false)
 const isAdvanceOptVisible = ref(false)
 const { table, createTable, generateUniqueTitle, tables, project } = useTableCreate()
 
@@ -37,10 +38,15 @@ const validateDuplicate = (v: string) => {
   return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
 }
 
-const inputEl = ref<HTMLInputElement>()
+const inputEl = ref<any>()
 
 onMounted(() => {
   generateUniqueTitle()
+  nextTick(() => {
+    const el = inputEl?.value?.$el
+    el?.querySelector('input')?.focus()
+    el?.querySelector('input')?.select()
+  })
 })
 </script>
 
@@ -62,7 +68,7 @@ onMounted(() => {
         <v-card-text class="py-6 px-10">
           <!-- hint="Enter table name" -->
           <v-text-field
-            :ref="inputEl"
+            ref="inputEl"
             v-model="table.title"
             solo
             flat

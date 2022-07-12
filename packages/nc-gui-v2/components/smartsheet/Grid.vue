@@ -1,21 +1,24 @@
 <script lang="ts" setup>
 import { computed } from '@vue/reactivity'
-import { isVirtualCol } from 'nocodb-sdk'
+import { ColumnType, isVirtualCol } from 'nocodb-sdk'
 import { inject, onKeyStroke, onMounted, provide } from '#imports'
 import {
   ActiveViewInj,
   ChangePageInj,
+  FieldsInj,
   IsFormInj,
   IsGridInj,
   MetaInj,
   PaginationDataInj,
   ReloadViewDataHookInj,
 } from '~/components'
-import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
+// keep a root fields variable and will get modified from
+// fields menu and get used in grid and gallery
+const fields = inject(FieldsInj)
 
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
@@ -67,7 +70,7 @@ defineExpose({
       <thead>
         <tr>
           <th>#</th>
-          <th v-for="col in meta.columns" :key="col.title">
+          <th v-for="col in fields" :key="col.title">
             <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
             <SmartsheetHeaderCell v-else :column="col" />
           </th>
@@ -81,7 +84,7 @@ defineExpose({
             </div>
           </td>
           <td
-            v-for="(columnObj, colIndex) in meta.columns"
+            v-for="(columnObj, colIndex) in fields"
             :key="rowIndex + columnObj.title"
             class="cell pointer nc-grid-cell"
             :class="{

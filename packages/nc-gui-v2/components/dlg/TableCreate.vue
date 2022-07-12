@@ -1,7 +1,7 @@
 <script setup lang="ts">
+import { onMounted } from '@vue/runtime-core'
 import useTableCreate from '../../composables/useTableCreate'
 import { validateTableName } from '~/utils/validation'
-import useProject from '~/composables/useProject'
 
 const { modelValue } = defineProps<{ modelValue?: boolean }>()
 
@@ -18,8 +18,7 @@ const dialogShow = computed({
 
 const valid = ref(false)
 const isAdvanceOptVisible = ref(false)
-const { table, createTable } = useTableCreate()
-const { tables, project } = useProject()
+const { table, createTable, generateUniqueTitle, tables, project } = useTableCreate()
 
 const prefix = computed(() => project?.value?.prefix || '')
 
@@ -32,6 +31,10 @@ const validateLeadingOrTrailingWhiteSpace = (v: string) => {
 const validateDuplicate = (v: string) => {
   return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
 }
+
+onMounted(() => {
+  generateUniqueTitle()
+})
 
 /* import { validateTableName } from '~/helpers'
 

@@ -18,7 +18,7 @@ export class PagedResponseImpl<T> {
       config.limitMin
     );
     const offset = Math.max(+(args.offset || args.o) || 0, 0);
-    const count = args.count || null;
+    const count = args.count ?? null;
     this.list = list;
     if (count !== null) {
       this.pageInfo = { totalRows: +count };

@@ -123,12 +123,13 @@ class BaseModelSqlv2 {
       sort?: string | string[];
     } = {}
   ): Promise<any> {
+    const { where, ...rest } = this._getListArgs(args as any);
     const qb = this.dbDriver(this.tnPath);
     await this.selectObject({ qb });
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
-    const sorts = extractSortsObject(args?.sort, aliasColObjMap);
-    const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
+    const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(
       [
@@ -183,8 +184,8 @@ class BaseModelSqlv2 {
     }
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
-    let sorts = extractSortsObject(args?.sort, aliasColObjMap);
-    const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
+    let sorts = extractSortsObject(rest?.sort, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     // todo: replace with view id
     if (!ignoreFilterSort && this.viewId) {
       await conditionV2(
@@ -344,9 +345,9 @@ class BaseModelSqlv2 {
 
     const aliasColObjMap = await this.model.getAliasColObjMap();
 
-    const sorts = extractSortsObject(args?.sort, aliasColObjMap);
+    const sorts = extractSortsObject(rest?.sort, aliasColObjMap);
 
-    const filterObj = extractFilterFromXwhere(args?.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(
       [
         new Filter({
@@ -365,8 +366,9 @@ class BaseModelSqlv2 {
     return data;
   }
 
-  async multipleHmList({ colId, ids }, args?: { limit?; offset? }) {
+  async multipleHmList({ colId, ids }, args: { limit?; offset? } = {}) {
     try {
+      const { where, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
 
       // const { cn } = this.hasManyRelations.find(({ tn }) => tn === child) || {};
@@ -406,8 +408,8 @@ class BaseModelSqlv2 {
                     .where(_wherePk(parentTable.primaryKeys, p))
                 );
               // todo: sanitize
-              query.limit(args?.limit || 20);
-              query.offset(args?.offset || 0);
+              query.limit(+rest?.limit || 20);
+              query.offset(+rest?.offset || 0);
 
               return this.isSqlite ? this.dbDriver.select().from(query) : query;
             }),
@@ -478,8 +480,9 @@ class BaseModelSqlv2 {
     }
   }
 
-  async hmList({ colId, id }, args?: { limit?; offset? }) {
+  async hmList({ colId, id }, args: { limit?; offset? } = {}) {
     try {
+      const { where, ...rest } = this._getListArgs(args as any);
       // todo: get only required fields
 
       const relColumn = (await this.model.getColumns()).find(
@@ -510,8 +513,8 @@ class BaseModelSqlv2 {
           .where(_wherePk(parentTable.primaryKeys, id))
       );
       // todo: sanitize
-      qb.limit(args?.limit || 20);
-      qb.offset(args?.offset || 0);
+      qb.limit(+rest?.limit || 20);
+      qb.offset(+rest?.offset || 0);
 
       await childModel.selectObject({ qb });
 
@@ -568,7 +571,8 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async multipleMmList({ colId, parentIds }, args?: { limit; offset }) {
+  public async multipleMmList({ colId, parentIds }, args: { limit?; offset? } = {}) {
+    const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -609,8 +613,8 @@ class BaseModelSqlv2 {
           .select(this.dbDriver.raw('? as ??', [id, GROUP_COL]));
 
         // todo: sanitize
-        query.limit(args?.limit || 20);
-        query.offset(args?.offset || 0);
+        query.limit(+rest?.limit || 20);
+        query.offset(+rest?.offset || 0);
 
         return this.isSqlite ? this.dbDriver.select().from(query) : query;
       }),
@@ -637,7 +641,8 @@ class BaseModelSqlv2 {
     return parentIds.map((id) => gs[id] || []);
   }
 
-  public async mmList({ colId, parentId }, args?: { limit; offset }) {
+  public async mmList({ colId, parentId }, args: { limit?; offset? } = {}) {
+    const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -673,8 +678,8 @@ class BaseModelSqlv2 {
 
     await childModel.selectObject({ qb });
     // todo: sanitize
-    qb.limit(args?.limit || 20);
-    qb.offset(args?.offset || 0);
+    qb.limit(+rest?.limit || 20);
+    qb.offset(+rest?.offset || 0);
 
     const children = await this.extractRawQueryAndExec(qb);
     const proto = await (
@@ -776,6 +781,7 @@ class BaseModelSqlv2 {
     { colId, pid = null },
     args
   ): Promise<any> {
+    const { where } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -810,7 +816,7 @@ class BaseModelSqlv2 {
       });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
     return (await qb.first())?.count;
@@ -821,6 +827,7 @@ class BaseModelSqlv2 {
     { colId, pid = null },
     args
   ): Promise<any> {
+    const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -859,17 +866,17 @@ class BaseModelSqlv2 {
         .orWhereNull(rcn)
     );
 
-    if (+args?.shuffle) {
+    if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
 
     await childModel.selectObject({ qb });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(filterObj, qb, this.dbDriver);
 
-    applyPaginate(qb, args);
+    applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
     let data = await qb;
@@ -885,6 +892,7 @@ class BaseModelSqlv2 {
     { colId, pid = null },
     args
   ): Promise<any> {
+    const { where } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -914,7 +922,7 @@ class BaseModelSqlv2 {
       });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
 
@@ -926,6 +934,7 @@ class BaseModelSqlv2 {
     { colId, pid = null },
     args
   ): Promise<any> {
+    const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -957,17 +966,17 @@ class BaseModelSqlv2 {
       ).orWhereNull(cn);
     });
 
-    if (+args?.shuffle) {
+    if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
 
     await childModel.selectObject({ qb });
 
     const aliasColObjMap = await childTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(filterObj, qb, this.dbDriver);
 
-    applyPaginate(qb, args);
+    applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
     let data = await this.extractRawQueryAndExec(qb);
@@ -983,6 +992,7 @@ class BaseModelSqlv2 {
     { colId, cid = null },
     args
   ): Promise<any> {
+    const { where } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -1013,7 +1023,7 @@ class BaseModelSqlv2 {
       .count(`*`, { as: 'count' });
 
     const aliasColObjMap = await parentTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
 
     await conditionV2(filterObj, qb, this.dbDriver);
     return (await qb.first())?.count;
@@ -1024,6 +1034,7 @@ class BaseModelSqlv2 {
     { colId, cid = null },
     args
   ): Promise<any> {
+    const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
     );
@@ -1055,17 +1066,17 @@ class BaseModelSqlv2 {
       ).orWhereNull(rcn);
     });
 
-    if (+args?.shuffle) {
+    if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
 
     await parentModel.selectObject({ qb });
 
     const aliasColObjMap = await parentTable.getAliasColObjMap();
-    const filterObj = extractFilterFromXwhere(args.where, aliasColObjMap);
+    const filterObj = extractFilterFromXwhere(where, aliasColObjMap);
     await conditionV2(filterObj, qb, this.dbDriver);
 
-    applyPaginate(qb, args);
+    applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
     let data = await this.extractRawQueryAndExec(qb);

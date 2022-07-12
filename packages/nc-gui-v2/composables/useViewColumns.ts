@@ -1,3 +1,4 @@
+import { isSystemColumn } from "nocodb-sdk";
 import type { ColumnType, FormType, GalleryType, GridType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#app'
@@ -18,11 +19,7 @@ export default function (
   >()
 
   const filterQuery = ref('')
-  const filteredFieldList = computed(() => {
-    return fields.value?.filter((field) => {
-      return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value)
-    })
-  })
+
 
   const { $api } = useNuxtApp()
 
@@ -81,12 +78,51 @@ export default function (
     }, {})
   })
 
+  const showSystemFields = computed({
+    get() {
+      // todo: update swagger
+      return (view?.value as any)?.show_system_fields || false
+    },
+    set(v) {
+      if (view?.value) {
+        $api.dbView.update(
+          view?.value?.id as string,
+          {
+            // todo: update swagger
+            show_system_fields: v,
+          } as any,
+        )
+        ;(view.value as any).show_system_fields = v
+      }
+    },
+  })
+
+  const filteredFieldList = computed(() => {
+    return fields.value?.filter((field) => {
+
+      // hide system columns if not enabled
+      if(!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id as string])) {
+        return false
+      }
+
+      return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value)
+    })
+  })
+
+
   const sortedAndFilteredFields = computed<ColumnType[]>(() => {
     return (fields?.value
-      ?.filter((c) => c.show)
+      ?.filter((c) => {
+        // hide system columns if not enabled
+        if(!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.fk_column_id as string])) {
+          return false
+        }
+        return c.show
+      })
       ?.sort((c1, c2) => c1.order - c2.order)
       ?.map((c) => metaColumnById?.value?.[c.fk_column_id as string]) || []) as ColumnType[]
   })
+
 
   return {
     fields,
@@ -97,5 +133,6 @@ export default function (
     hideAll,
     saveOrUpdate,
     sortedAndFilteredFields,
+    showSystemFields,
   }
 }

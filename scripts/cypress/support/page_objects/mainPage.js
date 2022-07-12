@@ -245,6 +245,7 @@ export class _mainPage {
     };
 
     shareView = () => {
+        cy.wait(3000);
         return cy.get(".nc-btn-share-view");
     };
 

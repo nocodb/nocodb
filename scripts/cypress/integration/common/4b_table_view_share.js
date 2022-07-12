@@ -5,13 +5,9 @@ let storedURL = "";
 let linkText = "";
 
 const generateLinkWithPwd = () => {
-    // cy.get(".v-navigation-drawer__content > .container")
-    //   .find(".v-list > .v-list-item")
-    //   .contains("Share View")
-    //   .click();
     mainPage.shareView().click({ force: true });
 
-    cy.wait(5000);
+    cy.wait(3000);
 
     cy.snipActiveModal("Modal_ShareView");
 

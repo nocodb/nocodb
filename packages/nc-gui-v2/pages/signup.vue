@@ -19,8 +19,8 @@ const signUp = async () => {
   error.value = null
   try {
     const { token } = await $api.auth.signup(form)
-    $state.token.value = token!
-    navigateTo('/projects')
+    $state.signIn(token!)
+    await navigateTo('/projects')
   } catch (e: any) {
     error.value = await extractSdkResponseErrorMsg(e)
   }
@@ -52,7 +52,7 @@ const signUp = async () => {
         </div>
 
         <div class="text-center">
-          <v-btn class="" @click="signUp">
+          <v-btn @click="signUp">
             <b>{{ $t('general.signUp') }}</b>
           </v-btn>
         </div>

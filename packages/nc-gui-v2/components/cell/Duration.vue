@@ -3,35 +3,20 @@ import { ref, computed, inject } from '#imports'
 import { ColumnInj } from '~/components'
 import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils/durationHelper'
 
-// ------------
-// inject
-// ------------
 const column = inject(ColumnInj)
 
-// ------------
-// props
-// ------------
 interface Props {
-  modelValue: [Number, String]
+  modelValue: number | string
 }
 const { modelValue } = defineProps<Props>()
 
-// ------------
-// emit
-// ------------
 const emit = defineEmits(['update:modelValue'])
 
-// ------------
-// data
-// ------------
 const showWarningMessage = ref(false)
 const durationInMS = ref(0)
 const isEdited = ref(false)
 const durationType = ref(column?.meta?.duration || 0)
 
-// ------------
-// computed
-// ------------
 const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
 const localState = computed({
   get: () => convertMS2Duration(modelValue, durationType.value),
@@ -44,10 +29,7 @@ const localState = computed({
   },
 })
 
-// ------------
-// methods
-// ------------
-const checkDurationFormat = (evt: any) => {
+const checkDurationFormat = (evt: KeyboardEvent) => {
   evt = evt || window.event
   const charCode = evt.which ? evt.which : evt.keyCode
   // ref: http://www.columbia.edu/kermit/ascii.html

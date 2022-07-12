@@ -308,6 +308,7 @@
     "importExcel": "Импорт из Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Скачать как CSV.",
+    "downloadXLSX": "Скачать как XLSX.",
     "uploadCSV": "Загрузить CSV.",
     "import": "Импортировать",
     "importMetadata": "Импорт метаданных",

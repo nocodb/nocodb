@@ -309,6 +309,7 @@
     "importExcel": "Import excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Hämta som CSV",
+    "downloadXLSX": "Hämta som XLSX",
     "uploadCSV": "Ladda upp CSV",
     "import": "Importera",
     "importMetadata": "Importera metadata",

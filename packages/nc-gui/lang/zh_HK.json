@@ -309,6 +309,7 @@
     "importExcel": "導入Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "下載為CSV.",
+    "downloadXLSX": "下載為XLSX.",
     "uploadCSV": "上傳CSV.",
     "import": "導出去file",
     "importMetadata": "import metadata",

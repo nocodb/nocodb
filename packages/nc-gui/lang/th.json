@@ -309,6 +309,7 @@
     "importExcel": "นำเข้า Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "ดาวน์โหลดเป็น CSV",
+    "downloadXLSX": "ดาวน์โหลดเป็น XLSX",
     "uploadCSV": "อัปโหลด CSV",
     "import": "นำเข้า",
     "importMetadata": "เมทาดานำเข้า",

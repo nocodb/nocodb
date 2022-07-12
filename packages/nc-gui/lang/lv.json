@@ -309,6 +309,7 @@
     "importExcel": "Importēt Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Lejupielādēt kā CSV",
+    "downloadXLSX": "Lejupielādēt kā XLSX",
     "uploadCSV": "Augšupielādēt CSV",
     "import": "Importēt",
     "importMetadata": "Importēt metadatus",

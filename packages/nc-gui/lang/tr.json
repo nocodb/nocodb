@@ -309,6 +309,7 @@
     "importExcel": "Excel'i içe aktar",
     "importCSV": "Import CSV",
     "downloadCSV": "CSV olarak indir",
+    "downloadXLSX": "XLSX olarak indir",
     "uploadCSV": "CSV yükle",
     "import": "İçe aktar",
     "importMetadata": "Meta verilerini içe aktar",

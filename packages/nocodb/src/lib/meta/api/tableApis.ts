@@ -141,6 +141,20 @@ export async function tableCreate(req: Request<any, any, TableReqType>, res) {
   const sqlMgr = await ProjectMgrv2.getSqlMgr(project);
   const sqlClient = NcConnectionMgrv2.getSqlClient(base);
 
+  let tableNameLengthLimit = 255;
+  const sqlClientType = sqlClient.clientType;
+  if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+    tableNameLengthLimit = 64;
+  } else if (sqlClientType === 'pg') {
+    tableNameLengthLimit = 63;
+  } else if (sqlClientType === 'mssql') {
+    tableNameLengthLimit = 128;
+  }
+
+  if (req.body.table_name.length > tableNameLengthLimit) {
+    NcError.badRequest(`Table name exceeds ${tableNameLengthLimit} characters`);
+  }
+
   req.body.columns = req.body.columns?.map((c) => ({
     ...getColumnPropsFromUIDT(c as any, base),
     cn: c.column_name,

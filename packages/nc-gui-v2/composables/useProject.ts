@@ -1,3 +1,4 @@
+import { SqlUiFactory } from 'nocodb-sdk'
 import type { ProjectType, TableType } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
@@ -22,5 +23,7 @@ export default () => {
   const isMysql = computed(() => ['mysql', 'mysql2'].includes(project.value?.bases?.[0]?.type || ''))
   const isPg = computed(() => project.value?.bases?.[0]?.type === 'pg')
 
-  return { project, tables, loadProject, loadTables, isMysql, isPg }
+  const sqlUi = computed(() => SqlUiFactory.create({ client: project.value?.bases?.[0]?.type || '' }))
+
+  return { project, tables, loadProject, loadTables, isMysql, isPg, sqlUi }
 }

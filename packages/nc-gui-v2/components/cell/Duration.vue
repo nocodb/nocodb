@@ -1,17 +1,17 @@
 <script setup lang="ts">
-import { ref, computed, inject } from '#imports'
+import { computed, inject, ref } from '#imports'
 import { ColumnInj } from '~/components'
 import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils/durationHelper'
+
+const { modelValue } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
 interface Props {
   modelValue: number | string
 }
-const { modelValue } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue'])
-
 const showWarningMessage = ref(false)
 const durationInMS = ref(0)
 const isEdited = ref(false)

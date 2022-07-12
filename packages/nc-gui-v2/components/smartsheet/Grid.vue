@@ -12,6 +12,7 @@ import {
   PaginationDataInj,
   ReloadViewDataHookInj,
 } from '~/components'
+import useViewColumnWidth from '~/composables/useViewColumnWidth'
 import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)
@@ -32,6 +33,10 @@ provide(IsFormInj, false)
 provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
+
+const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useViewColumnWidth(view)
+
+onMounted(loadGridViewColumns)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 reloadViewDataHook?.on(() => {
@@ -62,6 +67,14 @@ watch(
 defineExpose({
   loadData,
 })
+
+const onresize = (colID: string, event: any) => {
+  updateWidth(colID, event.detail)
+}
+const onXcResizing = (cn: string, event: any) => {
+  resizingCol.value = cn
+  resizingColWidth.value = event.detail
+}
 </script>
 
 <template>
@@ -70,7 +83,15 @@ defineExpose({
       <thead>
         <tr>
           <th>#</th>
-          <th v-for="col in fields" :key="col.title">
+          <th
+            v-for="col in fields"
+            :key="col.title"
+            v-xc-ver-resize
+            :data-col="col.title"
+            @xcresize="onresize(col.id, $event)"
+            @xcresizing="onXcResizing(col.title, $event)"
+            @xcresized="resizingCol = null"
+          >
             <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
             <SmartsheetHeaderCell v-else :column="col" />
           </th>
@@ -191,6 +212,16 @@ defineExpose({
 </template>
 
 <style scoped lang="scss">
+:deep {
+  .resizer:hover,
+  .resizer:active,
+  .resizer:focus {
+    // todo: replace with primary color
+    @apply bg-blue-500/50;
+    cursor: col-resize;
+  }
+}
+
 .nc-grid-wrapper {
   width: 100%;
   // todo : proper height calculation
@@ -202,7 +233,6 @@ defineExpose({
     min-height: 31px !important;
     position: relative;
     padding: 0 5px !important;
-    min-width: 200px;
   }
 
   table,

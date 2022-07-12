@@ -1,68 +1,54 @@
-<script lang="ts">
+<script setup lang="ts">
+import { ref, computed } from '#imports'
+import { ColumnInj } from '~/components'
+import { isValidURL } from '~/utils/urlUtils'
+
+const column = inject(ColumnInj)
 const editEnabled = inject<boolean>('editEnabled')
 
-/*
-import { isValidURL } from '@/helpers'
-import { inject } from "vue";
+interface Props {
+  modelValue: string
+}
 
-export default {
-  name: 'EditableUrlCell',
-  props: {
-    value: String,
-    column: Object,
+const { modelValue: value } = defineProps<Props>()
+const emit = defineEmits(['update:modelValue'])
+
+const localState = computed({
+  get: () => value,
+  set: (val) => {
+    if (!(column && column.meta && column.meta.validate) || isValidURL(val)) {
+      emit('update:modelValue', val)
+    }
   },
-  computed: {
-    localState: {
-      get() {
-        return this.value
-      },
-      set(val) {
-        if (!(this.column && this.column.meta && this.column.meta.validate) || isValidURL(val)) {
-          this.$emit('input', val)
-        }
-      },
-    },
-    parentListeners() {
-      const $listeners = {}
+})
 
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
+const isValid = computed(() => value && isValidURL(value))
 
-      if (this.$listeners.cancel) {
-        $listeners.cancel = this.$listeners.cancel
-      }
-
-      return $listeners
-    },
-  },
-  mounted() {
-    this.$el.focus()
-  },
-} */
+const root = ref<HTMLInputElement>()
+onMounted(() => {
+  root.value?.focus()
+})
 </script>
 
 <template>
-  <input v-model="localState" v-on="parentListeners" />
+  <span v-if="editEnabled">
+    <input ref="root" v-model="localState" />
+  </span>
+  <span v-else>
+    <a class="caption py-2 text-primary underline hover:opacity-75" v-if="isValid" :href="value" target="_blank">{{ value }}</a>
+    <span v-else>{{ value }}</span>
+  </span>
 </template>
 
-<style scoped>
-input,
-textarea {
-  width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
-}
-</style>
+<style scoped></style>
+
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
  * @author Naveen MR <oof1lab@gmail.com>
  * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

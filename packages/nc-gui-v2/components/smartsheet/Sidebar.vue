@@ -1,15 +1,20 @@
 <script setup lang="ts">
+import { ViewTypes } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { inject, onMounted, ref } from '#imports'
+import { inject, ref } from '#imports'
 import { ActiveViewInj, MetaInj } from '~/components'
 import useViews from '~/composables/useViews'
 import { viewIcons } from '~/utils/viewUtils'
+import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
 
 const { views, loadViews } = useViews(meta as Ref<TableType>)
+
+provide(ViewListInj, views)
+
 const _isUIAllowed = (view: string) => {}
 
 loadViews().then(() => {
@@ -17,6 +22,15 @@ loadViews().then(() => {
 })
 
 const toggleDrawer = ref(false)
+// todo: identify based on meta
+const isView = ref(false)
+const viewCreateType = ref<ViewTypes>()
+const viewCreateDlg = ref<boolean>()
+
+const openCreateViewDlg = (type: ViewTypes) => {
+  viewCreateDlg.value = true
+  viewCreateType.value = type
+}
 </script>
 
 <template>
@@ -144,8 +158,111 @@ const toggleDrawer = ref(false)
           <!--            </draggable> -->
           <!--          </v-list-group> -->
         </v-list>
+
+        <v-divider class="advance-menu-divider" />
+
+        <v-list dense>
+          <v-list-item dense>
+            <!-- Create a View -->
+            <span class="body-2 font-weight-medium" @dblclick="enableDummyFeat = true">
+              {{ $t('activity.createView') }}
+            </span>
+            <v-tooltip top>
+              <template #activator="{ on }">
+                <!--                <x-icon -->
+                <!--                  color="pink textColor" -->
+                <!--                  icon-class="ml-2" -->
+                <!--                  small -->
+                <!--                  v-on="on" -->
+                <!--                  @mouseenter="overShieldIcon = true" -->
+                <!--                  @mouseleave="overShieldIcon = false" -->
+                <!--                > -->
+                <!--                  mdi-shield-lock-outline -->
+                <!--                </x-icon> -->
+              </template>
+              <!-- Only visible to Creator -->
+              <span class="caption">
+                {{ $t('msg.info.onlyCreator') }}
+              </span>
+            </v-tooltip>
+          </v-list-item>
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-list-item dense class="body-2 nc-create-grid-view" v-on="on" @click="openCreateViewDlg(viewTypes.GRID)">
+                <!--                <v-list-item-icon class="mr-n1"> -->
+                <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color} mr-1`" />
+                <!--                </v-list-item-icon> -->
+                <v-list-item-title>
+                  <span class="font-weight-regular">
+                    <!-- Grid -->
+                    {{ $t('objects.viewType.grid') }}
+                  </span>
+                </v-list-item-title>
+                <v-spacer />
+                <MdiPlusIcon class="mr-1" />
+                <!--                <v-icon class="mr-1" small> mdi-plus</v-icon> -->
+              </v-list-item>
+            </template>
+            <!-- Add Grid View -->
+            {{ $t('msg.info.addView.grid') }}
+          </v-tooltip>
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-list-item dense class="body-2 nc-create-gallery-view" v-on="on" @click="openCreateViewDlg(viewTypes.GALLERY)">
+                <!--                <v-list-item-icon class="mr-n1"> -->
+                <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color} mr-1`" />
+                <!--                </v-list-item-icon> -->
+                <v-list-item-title>
+                  <span class="font-weight-regular">
+                    <!-- Gallery -->
+                    {{ $t('objects.viewType.gallery') }}
+                  </span>
+                </v-list-item-title>
+
+                <v-spacer />
+
+                <MdiPlusIcon class="mr-1" />
+                <!--                <v-icon class="mr-1" small> mdi-plus</v-icon> -->
+              </v-list-item>
+            </template>
+            <!-- Add Gallery View -->
+            {{ $t('msg.info.addView.gallery') }}
+          </v-tooltip>
+
+          <v-tooltip bottom>
+            <template #activator="{ on }">
+              <v-list-item
+                v-if="!isView"
+                dense
+                class="body-2 nc-create-form-view"
+                v-on="on"
+                @click="openCreateViewDlg(viewTypes.FORM)"
+              >
+                <!--                <v-list-item-icon class="mr-n1"> -->
+                <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color} mr-1`" />
+                <!--                </v-list-item-icon> -->
+                <v-list-item-title>
+                  <span class="font-weight-regular">
+                    <!-- Form -->
+
+                    {{ $t('objects.viewType.form') }}
+                  </span>
+                </v-list-item-title>
+
+                <v-spacer />
+
+                <MdiPlusIcon class="mr-1" />
+                <!--                <v-icon class="mr-1" small> mdi-plus</v-icon> -->
+              </v-list-item>
+            </template>
+            <!-- Add Form View -->
+            {{ $t('msg.info.addView.form') }}
+          </v-tooltip>
+        </v-list>
       </div>
     </div>
+
+    <DlgViewCreate v-model="viewCreateDlg" :type="viewCreateType" />
   </div>
 </template>
 

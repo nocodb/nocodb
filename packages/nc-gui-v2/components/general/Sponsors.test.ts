@@ -10,10 +10,7 @@ const mountComponent = async (nav: boolean) => {
 
   const wrapper = mount(Sponsors, {
     global: {
-      plugins: [vuetify],
-      mocks: {
-        $t: i18n.global.t,
-      },
+      plugins: [vuetify, i18n],
     },
     props: {
       nav,

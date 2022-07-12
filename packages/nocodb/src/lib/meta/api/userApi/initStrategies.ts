@@ -2,17 +2,17 @@ import User from '../../../models/User';
 import ProjectUser from '../../../models/ProjectUser';
 import { promisify } from 'util';
 import { Strategy as CustomStrategy } from 'passport-custom';
+
+import { Strategy } from 'passport-jwt';
 import passport from 'passport';
-import passportJWT from 'passport-jwt';
+import { ExtractJwt } from 'passport-jwt';
 import { Strategy as AuthTokenStrategy } from 'passport-auth-token';
 import { Strategy as GoogleStrategy } from 'passport-google-oauth20';
-import { randomTokenString } from '../../helpers/stringHelpers';
 
 const PassportLocalStrategy = require('passport-local').Strategy;
-const ExtractJwt = passportJWT.ExtractJwt;
-const JwtStrategy = passportJWT.Strategy;
 
 const jwtOptions = {
+  expiresIn: process.env.NC_JWT_EXPIRES_IN ?? '10h',
   jwtFromRequest: ExtractJwt.fromHeader('xc-auth')
 };
 
@@ -83,7 +83,7 @@ export function initStrategies(router): void {
   });
 
   passport.use(
-    new JwtStrategy(
+    new Strategy(
       {
         secretOrKey: Noco.getConfig().auth.jwt.secret,
         ...jwtOptions,
@@ -102,11 +102,7 @@ export function initStrategies(router): void {
         );
 
         if (cachedVal) {
-          if (
-            !cachedVal.token_version ||
-            !jwtPayload.token_version ||
-            cachedVal.token_version !== jwtPayload.token_version
-          ) {
+          if (cachedVal.token_version !== jwtPayload.token_version) {
             return done(new Error('Token Expired. Please login again.'));
           }
           return done(null, cachedVal);
@@ -114,11 +110,7 @@ export function initStrategies(router): void {
 
         User.getByEmail(jwtPayload?.email)
           .then(async user => {
-            if (
-              !user.token_version ||
-              !jwtPayload.token_version ||
-              user.token_version !== jwtPayload.token_version
-            ) {
+            if (user.token_version !== jwtPayload.token_version) {
               return done(new Error('Token Expired. Please login again.'));
             }
             if (req.ncProjectId) {
@@ -274,8 +266,7 @@ export function initStrategies(router): void {
                     password: '',
                     salt,
                     roles,
-                    email_verified: true,
-                    token_version: randomTokenString()
+                    email_verified: true
                   });
                   return done(null, user);
                 }

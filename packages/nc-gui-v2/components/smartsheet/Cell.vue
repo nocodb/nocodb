@@ -52,7 +52,6 @@ const {
 todo :
  JSONCell
  Currency
- Url
  Email
 -->
 
@@ -162,17 +161,11 @@ todo :
     <!-- &lt;!&ndash;                     v-model="localState" v-on="parentListeners" &ndash;&gt; -->
     <!-- &lt;!&ndash;    />&ndash;&gt; -->
 
-    <CellText v-if="isString" v-model="localState" />
-    <!-- v-on="parentListeners"
-        />
-    -->
-
-    <CellTextArea v-else-if="isTextArea" v-model="localState" />
+    <CellTextArea v-if="isTextArea" v-model="localState" />
     <!--      v-model="localState"
           :is-form="isForm"
           v-on="parentListeners"
         /> -->
-
     <CellCheckbox v-else-if="isBoolean" v-model="localState" />
     <!-- &lt;!&ndash;      v-model="localState" -->
     <!--      :column="column" -->
@@ -200,6 +193,14 @@ todo :
           v-on="$listeners"
         /> -->
     <CellDuration v-else-if="isDuration" v-model="localState" />
+    <CellUrl v-else-if="isURL" v-model="localState" />
+    <!-- v-on="parentListeners"
+        />
+    -->
+    <CellText v-else-if="isString" v-model="localState" />
+    <!-- v-on="parentListeners"
+        />
+    -->
     <CellText v-else v-model="localState" />
     <!--  v-on="$listeners"   <span v-if="hint" class="nc-hint">{{ hint }}</span> -->
 

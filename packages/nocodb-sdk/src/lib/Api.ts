@@ -724,6 +724,7 @@ export class HttpClient<SecurityDataType = unknown> {
         formData.append(key, property);
       } else if (typeof property === 'object' && property !== null) {
         if (Array.isArray(property)) {
+          // eslint-disable-next-line functional/no-loop-statement
           for (const prop of property) {
             formData.append(`${key}[]`, prop);
           }
@@ -2095,12 +2096,13 @@ export class Api<
      * @tags DB table filter
      * @name Read
      * @request GET:/api/v1/db/meta/views/{viewId}/filters
-     * @response `200` `FilterListType`
+     * @response `200` `(FilterType)[]` OK
      */
     read: (viewId: string, params: RequestParams = {}) =>
-      this.request<FilterListType, any>({
+      this.request<FilterType[], any>({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'GET',
+        format: 'json',
         ...params,
       }),
 
@@ -2175,10 +2177,10 @@ export class Api<
      * @tags DB table filter
      * @name ChildrenRead
      * @request GET:/api/v1/db/meta/filters/{filterGroupId}/children
-     * @response `200` `FilterType` OK
+     * @response `200` `(FilterType)[]` OK
      */
     childrenRead: (filterGroupId: string, params: RequestParams = {}) =>
-      this.request<FilterType, any>({
+      this.request<FilterType[], any>({
         path: `/api/v1/db/meta/filters/${filterGroupId}/children`,
         method: 'GET',
         format: 'json',

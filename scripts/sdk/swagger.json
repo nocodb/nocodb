@@ -854,7 +854,7 @@
         "tags": [
           "Project"
         ]
-      },      
+      },
       "patch": {
         "summary": "Project update",
         "operationId": "project-update",
@@ -1946,7 +1946,17 @@
         "operationId": "db-table-filter-read",
         "responses": {
           "200": {
-            "$ref": "#/components/responses/FilterList"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Filter"
+                  }
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -2104,7 +2114,10 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/Filter"
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/Filter"
+                  }
                 }
               }
             }

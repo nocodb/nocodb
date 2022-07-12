@@ -1,7 +1,17 @@
 <script lang="ts" setup>
+import { computed } from '@vue/reactivity'
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, onKeyStroke, onMounted, provide } from '#imports'
-import { ActiveViewInj, ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj } from '~/components'
+import {
+  ActiveViewInj,
+  ChangePageInj,
+  IsFormInj,
+  IsGridInj,
+  MetaInj,
+  PaginationDataInj,
+  ReloadViewDataHookInj,
+} from '~/components'
+import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)
@@ -20,6 +30,11 @@ provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
+reloadViewDataHook?.on(() => {
+  loadData()
+})
+
 const selectCell = (row: number, col: number) => {
   selected.row = row
   selected.col = col
@@ -32,14 +47,18 @@ onKeyStroke(['Enter'], (e) => {
 })
 
 watch(
-  [meta, view],
-  async () => {
+  [() => meta?.value?.id, () => view?.value?.id],
+  async (n: any, o: any) => {
     if (meta?.value && view?.value) {
       await loadData()
     }
   },
   { immediate: true },
 )
+
+defineExpose({
+  loadData,
+})
 </script>
 
 <template>
@@ -49,7 +68,8 @@ watch(
         <tr>
           <th>#</th>
           <th v-for="col in meta.columns" :key="col.title">
-            {{ col.title }}
+            <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+            <SmartsheetHeaderCell v-else :column="col" />
           </th>
         </tr>
       </thead>
@@ -175,7 +195,7 @@ watch(
   overflow: auto;
 
   td,
-  tr {
+  th {
     min-height: 31px !important;
     position: relative;
     padding: 0 5px !important;

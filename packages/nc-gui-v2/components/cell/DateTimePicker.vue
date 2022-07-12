@@ -4,7 +4,7 @@ import { computed, ref } from '#imports'
 import useProject from '~/composables/useProject'
 
 interface Props {
-  modelValue: string
+  modelValue?: string
 }
 
 const { modelValue } = defineProps<Props>()

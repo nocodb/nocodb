@@ -33,65 +33,76 @@ watch(
 </script>
 
 <template>
-  <v-container fluid>
-    <v-row class="align-stretch">
-      <v-col v-for="({ row }, rowIndex) in data" :key="rowIndex" class="col-md-4 col-lg-3 col-sm-6 col-12">
-        <!--        <v-hover v-slot="{hover}"> -->
+  <v-container fluid class="nc-gallery-container">
+    <!--    <v-row class="align-stretch">
+      <v-col v-for="({ row }, rowIndex) in data" :key="rowIndex"
+             md="4"
+             lg="3"
+             sm="6"
+             xs="12"> -->
+
+    <!--        <v-hover v-slot="{hover}"> -->
+
+    <div class="flex flex-wrap gap-4 justify-center">
+      <div v-for="({ row }, rowIndex) in data" :key="rowIndex" class="md:w-[300px] lg:w-[400px] xl:w-[500px]">
         <v-card class="h-100">
           <!--     :elevation="hover ? 4 : 1"
-             :ripple="!isLocked"
-             @click="!isLocked && $emit('expandForm', {row,rowIndex,rowMeta})"
-           > -->
+                 :ripple="!isLocked"
+                 @click="!isLocked && $emit('expandForm', {row,rowIndex,rowMeta})"
+               > -->
           <!--          <v-carousel
-            v-if="attachmentColumn"
-            :continuous="false"
-            :cycle="true"
-            :show-arrows="false"
-            hide-delimiter-background
-            delimiter-icon="mdi-minus"
-            height="200"
-          >
-            <v-carousel-item
-              v-for="(cover, i) in getCovers(row)"
-              :key="i"
-            >
-              <v-img
+                v-if="attachmentColumn"
+                :continuous="false"
+                :cycle="true"
+                :show-arrows="false"
+                hide-delimiter-background
+                delimiter-icon="mdi-minus"
                 height="200"
-                :src="cover.url"
-                :alt="cover.title"
-              />
-            </v-carousel-item>
-          </v-carousel> -->
+              >
+                <v-carousel-item
+                  v-for="(cover, i) in getCovers(row)"
+                  :key="i"
+                >
+                  <v-img
+                    height="200"
+                    :src="cover.url"
+                    :alt="cover.title"
+                  />
+                </v-carousel-item>
+              </v-carousel> -->
 
           <!--            <v-card-title -->
           <!--              class="text-capitalize" -->
           <!--              v-text="row[primaryValueColumn]" -->
           <!--            /> -->
           <v-card-text>
-            <v-container>
-              <v-row class="">
-                <v-col v-for="col in meta.columns" :key="col.title" cols="3" class="col-12 mt-1 mb-2">
-                  <!--                <v-col v-for="col in fields" v-show="showFields[col.title]" :key="col.title" class="col-12 mt-1 mb-2"> -->
-                  <!--
-todo:header cell
-
-                  <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize caption grey&#45;&#45;text">
-                    <virtual-header-cell
-                      v-if="isVirtualCol(col)"
-                      :column="col"
-                      :nodes="nodes"
-                      :is-form="true"
-                      :meta="meta"
-                    />
-                    <header-cell
-                      v-else
-                      :is-form="true"
-                      :value="col.title"
-                      :column="col"
-                    />
-
-                  </label>
--->
+            <v-container fluid>
+              <!--              <v-row class="">
+                    <v-col v-for="col in meta.columns" :key="col.title"
+                           class="col-12"> -->
+              <div v-for="col in meta.columns" :key="col.title" class="my-8">
+                <!--                <v-col v-for="col in fields" v-show="showFields[col.title]" :key="col.title" class="col-12 mt-1 mb-2"> -->
+                <!--
+    todo:header cell
+    -->
+                <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize caption grey--text">
+                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+                  <SmartsheetHeaderCell v-else :column="col" />
+                  <!--                    <virtual-header-cell
+                          v-if="isVirtualCol(col)"
+                          :column="col"
+                          :nodes="nodes"
+                          :is-form="true"
+                          :meta="meta"
+                        />
+                        <header-cell
+                          v-else
+                          :is-form="true"
+                          :value="col.title"
+                          :column="col"
+                        /> -->
+                </label>
+                <div class="mt-2">
                   <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row[col.title]" :edit-enabled="false" :column="col" />
 
                   <SmartsheetCell
@@ -101,31 +112,36 @@ todo:header cell
                     :column="col"
                     @update:model-value="updateRowProperty(row, col.title)"
                   />
-                  <!--                  <virtual-cell
-                    v-if="isVirtualCol(col)"
-                    ref="virtual"
-                    :column="col"
-                    :row="row"
-                    :nodes="nodes"
-                    :meta="meta"
-                  />
-                  <table-cell
-                    v-else
-                    :value="row[col.title]"
-                    :column="col"
-                    :sql-ui="sqlUi"
-                    :is-locked="isLocked"
-                    class="xc-input body-2"
-                    :meta="meta"
-                  /> -->
-                </v-col>
-              </v-row>
+                </div>
+                <!--                  <virtual-cell
+                        v-if="isVirtualCol(col)"
+                        ref="virtual"
+                        :column="col"
+                        :row="row"
+                        :nodes="nodes"
+                        :meta="meta"
+                      />
+                      <table-cell
+                        v-else
+                        :value="row[col.title]"
+                        :column="col"
+                        :sql-ui="sqlUi"
+                        :is-locked="isLocked"
+                        class="xc-input body-2"
+                        :meta="meta"
+                      /> -->
+                <!--                </v-col> -->
+                <!--              </v-row> -->
+              </div>
             </v-container>
           </v-card-text>
         </v-card>
-        <!--        </v-hover> -->
-      </v-col>
-    </v-row>
+      </div>
+    </div>
+
+    <!--        </v-hover> -->
+    <!--      </v-col>
+    </v-row> -->
   </v-container>
 </template>
 
@@ -223,3 +239,9 @@ export default {
 
 </style>
 -->
+<style scoped>
+.nc-gallery-container {
+  height: calc(100vh - 160px);
+  overflow: auto;
+}
+</style>

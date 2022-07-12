@@ -1,60 +1,23 @@
-<script>
-import ColumnFilter from '~/components/project/spreadsheet/components/ColumnFilter'
+<script setup lang="ts">
+// todo: move to persisted state
+import { useState } from '#app'
+import { IsLockedInj } from '~/components'
+import MdiFilterIcon from '~icons/mdi/filter-outline'
+import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
-export default {
-  name: 'ColumnFilterMenu',
-  components: { ColumnFilter },
-  props: ['fieldList', 'isLocked', 'value', 'meta', 'viewId', 'shared'],
-  data: () => ({
-    filters: [],
-  }),
-  computed: {
-    autosave: {
-      set(v) {
-        this.$store.commit('settings/MutAutoApplyFilter', v)
-        this.$e('a:filter:auto-apply', { flag: v })
-      },
-      get() {
-        return this.$store.state.settings.autoApplyFilter
-      },
-    },
-  },
-  watch: {
-    filters: {
-      handler(v) {
-        if (this.autosave) {
-          this.$emit('input', v)
-        }
-      },
-      deep: true,
-    },
-    autosave(v) {
-      if (!v) {
-        this.filters = JSON.parse(JSON.stringify(this.value || []))
-      }
-    },
-    value(v) {
-      this.filters = this.autosave ? v || [] : JSON.parse(JSON.stringify(v || []))
-    },
-  },
-  created() {
-    this.filters = this.autosave ? this.value || [] : JSON.parse(JSON.stringify(this.value || []))
-  },
-  methods: {
-    applyChanges() {
-      this.$emit('input', this.filters)
-      if (this.$refs.filter) {
-        this.$refs.filter.applyChanges()
-      }
-      this.$e('a:filter:apply')
-    },
-  },
-}
+const autoApplyFilter = useState('autoApplyFilter', () => false)
+const isLocked = inject(IsLockedInj)
+
+// todo: emit from child
+const filters = []
+
+// todo: implement
+const applyChanges = () => {}
 </script>
 
 <template>
   <v-menu offset-y eager transition="slide-y-transition">
-    <template #activator="{ on }">
+    <template #activator="{ props }">
       <v-badge :value="filters.length" color="primary" dot overlap>
         <v-btn
           v-t="['c:filter']"
@@ -66,28 +29,20 @@ export default {
           :class="{
             'primary lighten-5 grey--text text--darken-3': filters.length,
           }"
-          v-on="on"
+          v-bind="props"
         >
-          <v-icon small class="mr-1" color="grey  darken-3"> mdi-filter-outline </v-icon>
+          <MdiFilterIcon class="mr-1 text-grey" />
           <!-- Filter -->
-          {{ $t('activity.filter') }}
-          <v-icon small color="#777"> mdi-menu-down </v-icon>
+          <span class="text-capitalize">{{ $t('activity.filter') }}</span>
+          <MdiMenuDownIcon class="text-grey" />
         </v-btn>
       </v-badge>
     </template>
-    <ColumnFilter
-      ref="filter"
-      v-model="filters"
-      :shared="shared"
-      :view-id="viewId"
-      :field-list="fieldList"
-      :meta="meta"
-      v-on="$listeners"
-    >
-      <div class="d-flex align-center mx-2" @click.stop>
+    <SmartsheetToolbarColumnFilter>
+      <!--      <div class="d-flex align-center mx-2" @click.stop>
         <v-checkbox
           id="col-filter-checkbox"
-          v-model="autosave"
+          v-model="autoApplyFilter"
           class="col-filter-checkbox"
           hide-details
           dense
@@ -95,22 +50,16 @@ export default {
           color="grey"
         >
           <template #label>
-            <span class="grey--text caption">
+            <span class="grey&#45;&#45;text caption">
               {{ $t('msg.info.filterAutoApply') }}
-              <!-- Auto apply -->
+              &lt;!&ndash; Auto apply &ndash;&gt;
             </span>
           </template>
         </v-checkbox>
 
         <v-spacer />
-        <v-btn v-show="!autosave" color="primary" small class="caption ml-2" @click="applyChanges"> Apply changes </v-btn>
-      </div>
-    </ColumnFilter>
+        <v-btn v-show="!autoApplyFilter" color="primary" small class="caption ml-2" @click="applyChanges"> Apply changes </v-btn>
+      </div> -->
+    </SmartsheetToolbarColumnFilter>
   </v-menu>
 </template>
-
-<style scoped>
-/deep/ .col-filter-checkbox .v-input--selection-controls__input {
-  transform: scale(0.7);
-}
-</style>

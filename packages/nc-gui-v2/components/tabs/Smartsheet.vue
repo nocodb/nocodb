@@ -1,8 +1,9 @@
 <script setup lang="ts">
+import { useEventBus } from '@vueuse/core'
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { computed, onMounted, provide, watch } from '#imports'
-import { ActiveViewInj, MetaInj, TabMetaInj } from '~/components'
+import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/components'
 import useMetas from '~/composables/useMetas'
 
 const { tabMeta } = defineProps({
@@ -12,15 +13,20 @@ const { tabMeta } = defineProps({
 const { getMeta, metas } = useMetas()
 
 const activeView = ref<GridType | FormType | KanbanType | GalleryType>()
+const el = ref<any>()
 const meta = computed(() => metas.value?.[tabMeta?.id])
 
 onMounted(async () => {
   await getMeta(tabMeta?.id)
 })
 
+const reloadEventHook = createEventHook<void>()
+
 provide(MetaInj, meta)
 provide(TabMetaInj, tabMeta)
 provide(ActiveViewInj, activeView)
+provide(IsLockedInj, false)
+provide(ReloadViewDataHookInj, reloadEventHook)
 
 watch(
   () => tabMeta && tabMeta?.id,
@@ -36,8 +42,9 @@ watch(
     <template v-if="meta">
       <div class="d-flex">
         <div v-if="activeView" class="flex-grow-1 min-w-0">
-          <SmartsheetGrid v-if="activeView.type === ViewTypes.GRID" />
+          <SmartsheetGrid v-if="activeView.type === ViewTypes.GRID" :ref="el" />
           <SmartsheetGallery v-else-if="activeView.type === ViewTypes.GALLERY" />
+          <SmartsheetForm v-else-if="activeView.type === ViewTypes.FORM" />
         </div>
         <SmartsheetSidebar />
       </div>

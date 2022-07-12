@@ -11,6 +11,7 @@ import { Tele } from 'nc-help';
 
 const { v4: uuidv4 } = require('uuid');
 import Audit from '../../../models/Audit';
+import crypto from 'crypto';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
 
 import passport from 'passport';
@@ -20,7 +21,6 @@ import { MetaTable } from '../../../utils/globals';
 import Noco from '../../../Noco';
 import * as _ from 'lodash';
 import { genJwt } from './helpers';
-import { randomTokenString } from '../../helpers/stringHelpers';
 
 export async function signup(req: Request, res: Response<TableType>) {
   const {
@@ -256,6 +256,10 @@ async function googleSignin(req, res, next) {
         auditDescription: 'signed in using Google Auth'
       })
   )(req, res, next);
+}
+
+function randomTokenString(): string {
+  return crypto.randomBytes(40).toString('hex');
 }
 
 function setTokenCookie(res, token): void {

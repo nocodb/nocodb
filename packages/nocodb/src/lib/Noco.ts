@@ -187,7 +187,7 @@ export default class Noco {
     }
 
     await Noco._ncMeta.metaInit();
-    await this.initJwt();
+    await this.readOrGenJwtSecret();
     await initAdminFromEnv();
 
     await NcUpgrader.upgrade({ ncMeta: Noco._ncMeta });
@@ -489,28 +489,20 @@ export default class Noco {
     }
   }
 
-  private async initJwt(): Promise<any> {
-    if (this.config?.auth?.jwt) {
-      if (!this.config.auth.jwt.secret) {
-        let secret = (
-          await Noco._ncMeta.metaGet('', '', 'nc_store', {
-            key: 'nc_auth_jwt_secret'
-          })
-        )?.value;
-        if (!secret) {
-          await Noco._ncMeta.metaInsert('', '', 'nc_store', {
-            key: 'nc_auth_jwt_secret',
-            value: secret = uuidv4()
-          });
-        }
-        this.config.auth.jwt.secret = secret;
+  private async readOrGenJwtSecret(): Promise<any> {
+    if (this.config?.auth?.jwt && !this.config.auth.jwt.secret) {
+      let secret = (
+        await Noco._ncMeta.metaGet('', '', 'nc_store', {
+          key: 'nc_auth_jwt_secret'
+        })
+      )?.value;
+      if (!secret) {
+        await Noco._ncMeta.metaInsert('', '', 'nc_store', {
+          key: 'nc_auth_jwt_secret',
+          value: secret = uuidv4()
+        });
       }
-
-      this.config.auth.jwt.options = this.config.auth.jwt.options || {};
-      if (!this.config.auth.jwt.options?.expiresIn) {
-        this.config.auth.jwt.options.expiresIn =
-          process.env.NC_JWT_EXPIRES_IN ?? '10h';
-      }
+      this.config.auth.jwt.secret = secret;
     }
     let serverId = (
       await Noco._ncMeta.metaGet('', '', 'nc_store', {

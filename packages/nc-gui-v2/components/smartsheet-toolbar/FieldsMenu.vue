@@ -364,8 +364,8 @@ export default {
       </div>
       <v-divider class="my-2" />
 
-            <v-list-item v-if="!isPublic" dense>
-<!--
+      <v-list-item v-if="!isPublic" dense>
+        <!--
 show_system_fields
 <v-checkbox v-model="showSystemFields" class="mt-0 pt-0" dense hide-details @click.stop>
           <template #label>
@@ -374,9 +374,11 @@ show_system_fields
               {{ $t('activity.showSystemFields') }}
             </span>
           </template>
-        </v-checkbox>-->
-              <input type="checkbox" v-model="showSystemFields" :id="`${activeView?.id}-show-system-fields`"/>
-              <label :for="`${activeView.id}-show-system-fields`" class="caption text-sm ml-2">{{ $t('activity.showSystemFields') }}</label>
+        </v-checkbox> -->
+        <input :id="`${activeView?.id}-show-system-fields`" v-model="showSystemFields" type="checkbox" />
+        <label :for="`${activeView.id}-show-system-fields`" class="caption text-sm ml-2">{{
+          $t('activity.showSystemFields')
+        }}</label>
       </v-list-item>
       <v-list-item dense class="mt-2 list-btn mb-3">
         <v-btn small class="elevation-0 grey--text text-sm text-capitalize" @click.stop="showAll">

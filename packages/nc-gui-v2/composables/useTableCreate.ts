@@ -6,7 +6,7 @@ export default (onTableCreate?: (tableMeta: any) => void) => {
     table_name: '',
   })
 
-  const { sqlUi, project } = useProject()
+  const { sqlUi, project, tables } = useProject()
   const { $api } = useNuxtApp()
 
   const createTable = async () => {
@@ -39,8 +39,12 @@ export default (onTableCreate?: (tableMeta: any) => void) => {
   )
 
   const generateUniqueTitle = () => {
-
+    let c = 1
+    while (tables?.value?.some((t) => t.title === `Sheet${c}`)) {
+      c++
+    }
+    table.title = `Sheet${c}`
   }
 
-  return { table, createTable }
+  return { table, createTable, generateUniqueTitle, tables, project }
 }

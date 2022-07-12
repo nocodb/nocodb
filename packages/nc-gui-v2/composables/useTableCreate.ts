@@ -1,7 +1,8 @@
+import type { TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
-export default (onTableCreate?: (tableMeta: any) => void) => {
+export default (onTableCreate?: (tableMeta: TableType) => void) => {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
@@ -23,12 +24,12 @@ export default (onTableCreate?: (tableMeta: any) => void) => {
       return table.columns.includes(col.column_name)
     })
 
-    await $api.dbTable.create(project?.value?.id as string, {
+    const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
       ...table,
       columns,
     })
 
-    onTableCreate?.({})
+    onTableCreate?.(tableMeta)
   }
 
   watch(

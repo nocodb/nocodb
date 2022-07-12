@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import useTableCreate from '../../composables/useTableCreate'
+import useProject from '~/composables/useProject'
+import useTabs from '~/composables/useTabs'
 import { validateTableName } from '~/utils/validation'
 
 const { modelValue = false } = defineProps<{ modelValue?: boolean }>()
@@ -24,7 +26,18 @@ const dialogShow = computed({
 const valid = ref(false)
 const isIdToggleAllowed = ref(false)
 const isAdvanceOptVisible = ref(false)
-const { table, createTable, generateUniqueTitle, tables, project } = useTableCreate()
+
+const { addTab } = useTabs()
+const { loadTables } = useProject()
+const { table, createTable, generateUniqueTitle, tables, project } = useTableCreate(async (table) => {
+  await loadTables()
+  addTab({
+    id: table.id as string,
+    title: table.title,
+    type: 'table',
+  })
+  dialogShow.value = false
+})
 
 const prefix = computed(() => project?.value?.prefix || '')
 

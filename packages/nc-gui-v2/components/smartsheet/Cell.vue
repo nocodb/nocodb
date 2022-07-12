@@ -161,7 +161,12 @@ todo :
     <!-- &lt;!&ndash;                     v-model="localState" v-on="parentListeners" &ndash;&gt; -->
     <!-- &lt;!&ndash;    />&ndash;&gt; -->
 
-    <CellCheckbox v-if="isBoolean" v-model="localState" />
+    <CellTextArea v-if="isTextArea" v-model="localState" />
+    <!--      v-model="localState"
+          :is-form="isForm"
+          v-on="parentListeners"
+        /> -->
+    <CellCheckbox v-else-if="isBoolean" v-model="localState" />
     <!-- &lt;!&ndash;      v-model="localState" -->
     <!--      :column="column" -->
     <!--      :is-form="isForm" -->
@@ -196,12 +201,6 @@ todo :
     <!-- v-on="parentListeners"
         />
     -->
-
-    <CellTextArea v-else-if="isTextArea" v-model="localState" />
-    <!--      v-model="localState"
-          :is-form="isForm"
-          v-on="parentListeners"
-        /> -->
     <CellText v-else v-model="localState" />
     <!--  v-on="$listeners"   <span v-if="hint" class="nc-hint">{{ hint }}</span> -->
 

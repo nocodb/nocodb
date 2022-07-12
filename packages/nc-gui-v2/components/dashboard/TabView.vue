@@ -15,7 +15,7 @@ const tableCreateDialog = ref(false)
         <MdiCloseIcon class="ml-2 text-gray-500/50" @click.stop="closeTab(i)"></MdiCloseIcon>
       </v-tab>
       <MdiPlusIcon @click="tableCreateDialog = true" />
-      <DlgTableCreate v-model="tableCreateDialog" />
+      <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
     </v-tabs>
 
     <v-window v-model="activeTab">

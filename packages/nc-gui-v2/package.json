@@ -5,7 +5,10 @@
     "dev": "nuxi dev",
     "generate": "nuxi generate",
     "start": "node .output/server/index.mjs",
-    "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore ."
+    "lint": "eslint --ext \".js,.jsx,.ts,.tsx,.vue\" --fix --ignore-path .gitignore .",
+    "test": "vitest -c test/vite.config.ts",
+    "test:ui": "vitest -c test/vite.config.ts --ui",
+    "coverage": "vitest -c test/vite.config.ts run --coverage"
   },
   "dependencies": {
     "@vueuse/core": "^8.7.5",
@@ -23,18 +26,23 @@
     "@iconify-json/material-symbols": "^1.1.8",
     "@iconify-json/mdi": "^1.1.25",
     "@intlify/vite-plugin-vue-i18n": "^4.0.0",
+    "@vitejs/plugin-vue": "^2.3.3",
+    "@vitest/ui": "^0.18.0",
     "@vue/compiler-sfc": "^3.2.37",
+    "@vue/test-utils": "^2.0.2",
     "@vueuse/nuxt": "^8.6.0",
     "@windicss/plugin-animations": "^1.0.9",
     "@windicss/plugin-question-mark": "^0.1.1",
     "@windicss/plugin-scrollbar": "^1.2.3",
     "eslint-config-prettier": "^8.5.0",
     "eslint-plugin-prettier": "^4.0.0",
+    "happy-dom": "^6.0.3",
     "nuxt": "3.0.0-rc.4",
     "nuxt-windicss": "^2.4.2",
     "prettier": "^2.7.1",
     "sass": "^1.53.0",
     "unplugin-icons": "^0.14.7",
+    "vitest": "^0.18.0",
     "windicss": "^3.5.6"
   }
 }

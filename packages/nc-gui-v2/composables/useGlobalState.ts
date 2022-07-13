@@ -132,7 +132,7 @@ export const useGlobalState = (): GlobalState => {
   watch(
     () => !!(payload && payload.exp && payload.exp - 5 * 60 < timestamp / 1000),
     async (expiring) => {
-      if (payload && expiring) {
+      if (signedIn.value && payload && expiring) {
         await refreshToken()
       }
     },

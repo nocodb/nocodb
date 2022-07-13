@@ -103,7 +103,7 @@ const resetError = () => {
             :rules="formRules.email"
             :label="$t('labels.email')"
             :placeholder="$t('labels.email')"
-            :persistent-placeholder="$t('labels.email')"
+            :persistent-placeholder="true"
             type="text"
             @focus="resetError"
           />
@@ -115,7 +115,7 @@ const resetError = () => {
             :rules="formRules.password"
             :label="$t('labels.password')"
             :placeholder="$t('labels.password')"
-            :persistent-placeholder="$t('labels.password')"
+            :persistent-placeholder="true"
             type="password"
             @focus="resetError"
           />

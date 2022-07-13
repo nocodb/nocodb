@@ -45,12 +45,12 @@ jobs:
 
       - name: move-gui-package-to-nocodb
         run: |
-          mv ./packages/nc-lib-gui/nc-lib-gui-${{ steps.package-version.outputs.version }}.tgz ./packages/nocodb/
+          mv ./packages/nc-lib-gui/nc-lib-gui-${{ steps.package-version.outputs.current-version }}.tgz ./packages/nocodb/
 
       - name: add-gui-package
         working-directory: ./packages/nocodb
         run: |
-          npm install nc-lib-gui-${{ steps.package-version.outputs.current-version}}.tgz
+          npm install nc-lib-gui-${{ steps.package-version.outputs.current-version }}.tgz
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with: 

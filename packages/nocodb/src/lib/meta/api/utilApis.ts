@@ -60,16 +60,16 @@ export async function releaseVersion(_req: Request, res: Response) {
   res.json(result);
 }
 
-export async function getFeedbackForm(_req: Request, res: Response) {
+export async function feedbackFormGet(_req: Request, res: Response) {
   axios
     .get('https://nocodb.com/api/v1/feedback_form')
     .then((response) => {
       res.json(response.data);
-    }).catch((e) => {
+    })
+    .catch((e) => {
       res.status(500).json({ error: e.message });
     });
 }
-
 
 export async function appHealth(_: Request, res: Response) {
   res.json({
@@ -155,5 +155,5 @@ export default (router) => {
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
   router.get('/api/v1/version', catchError(releaseVersion));
   router.get('/api/v1/health', catchError(appHealth));
-  router.get('/api/v1/feedback_form', catchError(getFeedbackForm));
+  router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
 };

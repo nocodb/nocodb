@@ -1,6 +1,6 @@
 <template>
-  <div v-if="!feedbackFormHidden" class="nc-feedback-form-wrapper">
-    <v-icon class="nc-close-icon" large @click="feedbackFormHidden = true"> mdi-close-circle-outline </v-icon>
+  <div v-if="!feedbackIsShown" class="nc-feedback-form-wrapper">
+    <v-icon class="nc-close-icon" large @click="feedbackIsShown = true"> mdi-close-circle-outline </v-icon>
 
     <iframe :src="feedbackFormUrl" width="100%" height="500" frameborder="0" marginheight="0" marginwidth="0"
       >Loading…
@@ -13,7 +13,7 @@
 export default {
   name: 'FeedbackForm',
   computed: {
-    feedbackFormHidden: {
+    feedbackIsShown: {
       get() {
         return this.$store.state.settings.feedbackForm.isShown;
       },

@@ -97,7 +97,7 @@ const handleFeedbackForm = async({ store, $axios }) => {
           url: feedbackForm.url,
           validTill: feedbackForm.valid_till,
           createdAt: feedbackForm.created_at,
-          isShown: false
+          isHidden: false
         })
       }
     } catch (e) {

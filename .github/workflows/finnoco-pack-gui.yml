@@ -2,7 +2,7 @@ name: Pack latest GUI
 
 on:
   push:
-    branches: [ "test-workflow" ]
+    branches: [ "master" ]
 
 
 jobs:
@@ -30,7 +30,7 @@ jobs:
       - name: remove old nc-lib-gui package
         working-directory: ./packages/nocodb
         run: |
-          rm *.tgz
+          rm nc-lib-gui-*.tgz
 
       - name: pack nc-lib-gui package
         working-directory: ./packages/nc-lib-gui

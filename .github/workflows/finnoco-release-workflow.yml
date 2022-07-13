@@ -2,7 +2,7 @@ name: Pack latest GUI
 
 on:
   push:
-    branches: [ "master" ]
+    branches: [ "test-workflow" ]
 
 
 jobs:
@@ -33,16 +33,19 @@ jobs:
           rm *.tgz
 
       - name: pack nc-lib-gui package
-        id: npm_pack
         working-directory: ./packages/nc-lib-gui
         run: |
-          npm pack --pack-destination ../nocodb
+          npm pack
 
       - name: get-npm-version
         id: package-version
         uses: martinbeentjes/npm-get-version-action@main
         with:
           path: ./packages/nc-lib-gui
+
+      - name: move-gui-package-to-nocodb
+        run: |
+          mv ./packages/nc-lib-gui/nc-lib-gui-${{ steps.package-version.outputs.version }}.tgz ./packages/nocodb/
 
       - name: add-gui-package
         working-directory: ./packages/nocodb
@@ -51,5 +54,5 @@ jobs:
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with: 
-          commit_message: "Auto commit update nc-lib-gui@${{ steps.package-version.outputs.current-version}}"
+          commit_message: "Auto-commit: update nc-lib-gui@${{ steps.package-version.outputs.current-version}}"
         name: commit changes

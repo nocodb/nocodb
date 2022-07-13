@@ -27,7 +27,7 @@ WORKDIR /usr/src/app
 COPY ./package*.json ./
 COPY ./docker/main.js ./docker/main.js
 # copy all tgz files to the container image
-COPY *.tgz ./ 
+COPY nc-lib-gui-*.tgz ./ 
 #COPY ./docker/start.sh /usr/src/appEntry/start.s
 COPY ./docker/start-litestream.sh /usr/src/appEntry/start.sh
 

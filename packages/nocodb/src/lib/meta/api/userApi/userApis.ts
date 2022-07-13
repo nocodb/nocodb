@@ -328,10 +328,9 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
           subject: 'Password Reset Link',
           text: `Visit following link to update your password : ${
             (req as any).ncSiteUrl
-          }/api/v1/auth/password/reset/${token}.`,
+          }/auth/password/reset/${token}.`,
           html: ejs.render(template, {
-            resetLink:
-              (req as any).ncSiteUrl + `/api/v1/auth/password/reset/${token}`,
+            resetLink: (req as any).ncSiteUrl + `/auth/password/reset/${token}`,
           }),
         })
       );
@@ -577,9 +576,7 @@ const mapRoutes = (router) => {
     '/api/v1/auth/token/refresh',
     ncMetaAclMw(refreshToken, 'refreshToken')
   );
-  router.get(
-    '/api/v1/auth/password/reset/:tokenId',
-    catchError(renderPasswordReset)
-  );
+  // respond with password reset page
+  router.get('/auth/password/reset/:tokenId', catchError(renderPasswordReset));
 };
 export { mapRoutes as userApis };

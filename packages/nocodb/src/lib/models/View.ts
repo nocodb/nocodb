@@ -42,7 +42,7 @@ export default class View implements ViewType {
   project_id?: string;
   base_id?: string;
   show_system_fields?: boolean;
-  meta?: string;
+  meta?: any;
 
   constructor(data: View) {
     Object.assign(this, data);
@@ -638,7 +638,7 @@ export default class View implements ViewType {
         },
         viewId
       );
-      view.meta = JSON.stringify(defaultMeta);
+      view.meta = defaultMeta;
     }
     return view;
   }
@@ -700,6 +700,7 @@ export default class View implements ViewType {
       lock_type?: string;
       password?: string;
       uuid?: string;
+      meta?: any;
     },
     ncMeta = Noco.ncMeta
   ) {
@@ -712,12 +713,16 @@ export default class View implements ViewType {
       'meta',
       'uuid',
     ]);
+    updateObj.meta = JSON.stringify(updateObj.meta);
     // get existing cache
     const key = `${CacheScope.VIEW}:${viewId}`;
     let o = await NocoCache.get(key, CacheGetType.TYPE_OBJECT);
     if (o) {
       // update data
-      o = { ...o, ...updateObj };
+      o = {
+        ...o,
+        ...updateObj,
+      };
       if (o.is_default) {
         await NocoCache.set(`${CacheScope.VIEW}:${o.fk_model_id}:default`, o);
       }

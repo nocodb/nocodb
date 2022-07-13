@@ -52,7 +52,7 @@
               </td>
               <td class="caption text-center">
                 <template v-if="'meta' in currentView">
-                  <span>{{ ~~JSON.parse(currentView.meta).allowCSVDownload === 1 ? '✔️' : '❌' }}</span>
+                  <span>{{ renderAllowCSVDownload(currentView) }}</span>
                 </template>
               </td>
               <td class="caption">
@@ -91,7 +91,7 @@
                 </td>
                 <td class="caption text-center">
                   <template v-if="'meta' in link">
-                    <span>{{ ~~JSON.parse(link.meta).allowCSVDownload === 1 ? '✔️' : '❌' }}</span>
+                    <span>{{ renderAllowCSVDownload(link) }}</span>
                   </template>
                 </td>
                 <td class="caption">
@@ -186,6 +186,14 @@ export default {
           viewType = 'view';
       }
       return `/nc/${viewType}/${view.uuid}`;
+    },
+    renderAllowCSVDownload(view) {
+      if (view.type === ViewTypes.GRID) {
+        view.meta = view.meta && typeof view.meta === 'string' ? JSON.parse(view.meta) : view.meta;
+        return view.meta.allowCSVDownload ? '✔️' : '❌';
+      } else {
+        return 'N/A';
+      }
     },
   },
 };

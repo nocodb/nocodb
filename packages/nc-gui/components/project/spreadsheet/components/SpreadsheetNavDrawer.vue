@@ -658,10 +658,14 @@ export default {
     },
     async saveAllowCSVDownload() {
       try {
-        const meta = JSON.parse(this.shareLink.meta);
+        const meta =
+          this.shareLink.meta && typeof this.shareLink.meta === 'string'
+            ? JSON.parse(this.shareLink.meta)
+            : this.shareLink.meta;
+
         meta.allowCSVDownload = this.allowCSVDownload;
         await this.$api.dbViewShare.update(this.shareLink.id, {
-          meta: JSON.stringify(meta),
+          meta,
         });
         this.$toast.success('Successfully updated').goAway(3000);
       } catch (e) {
@@ -767,10 +771,11 @@ export default {
     },
     async genShareLink() {
       const shared = await this.$api.dbViewShare.create(this.selectedViewId);
+      shared.meta = shared.meta && typeof shared.meta === 'string' ? JSON.parse(shared.meta) : shared.meta;
       // todo: url
       this.shareLink = shared;
       this.passwordProtect = shared.password !== null;
-      this.allowCSVDownload = JSON.parse(shared.meta).allowCSVDownload;
+      this.allowCSVDownload = shared.meta.allowCSVDownload;
       this.showShareModel = true;
     },
     copyView(view, i) {

@@ -2,15 +2,16 @@
 import { computed } from '#imports'
 import { isEmail } from '~/utils/validation'
 
+const { modelValue: value } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue'])
+
 const editEnabled = inject<boolean>('editEnabled')
 
 interface Props {
   modelValue: string
 }
 
-const { modelValue: value } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue'])
 const root = ref<HTMLInputElement>()
 const localState = computed({
   get: () => value,

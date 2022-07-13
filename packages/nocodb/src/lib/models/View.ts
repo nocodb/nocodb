@@ -638,6 +638,7 @@ export default class View implements ViewType {
         },
         viewId
       );
+      view.meta = JSON.stringify(defaultMeta);
     }
     return view;
   }

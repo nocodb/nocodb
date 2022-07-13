@@ -12,6 +12,7 @@ import SingleSelectIcon from '~icons/mdi/radiobox-marked'
 import MultiSelectIcon from '~icons/mdi/checkbox-multiple-marked'
 import DatetimeIcon from '~icons/mdi/calendar-clock'
 import DateIcon from '~icons/mdi/calendar'
+import EmailIcon from '~icons/mdi/email'
 import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
@@ -38,6 +39,8 @@ const icon = computed(() => {
     return BooleanIcon
   } else if (additionalColMeta.isTextArea) {
     return TextAreaIcon
+  } else if (additionalColMeta.isEmail) {
+    return EmailIcon
   } else if (additionalColMeta.isRating) {
     return RatingIcon
   } else if (additionalColMeta.isAttachment) {

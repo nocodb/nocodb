@@ -1,9 +1,7 @@
-import type { ColumnType, FormType, GalleryType, GridType, KanbanType, TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import type { InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type useViewData from '~/composables/useViewData'
-
-export type ViewType = (GridType | GalleryType | FormType | KanbanType) & { id?: string }
 
 export const ColumnInj: InjectionKey<ColumnType & { meta: any }> = Symbol('column-injection')
 export const MetaInj: InjectionKey<Ref<TableType>> = Symbol('meta-injection')

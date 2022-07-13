@@ -16,6 +16,7 @@ import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
 import URLIcon from '~icons/mdi/link'
+import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
 
 const column = inject(ColumnInj)
 
@@ -48,6 +49,8 @@ const icon = computed(() => {
   // }
   else if (additionalColMeta.isURL) {
     return URLIcon
+  } else if (additionalColMeta.isCurrency) {
+    return CurrencyIcon
   } else if (additionalColMeta.isString) {
     return h(StringIcon, {
       class: 'text-[1.5rem]',

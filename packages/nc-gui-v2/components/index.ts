@@ -3,6 +3,8 @@ import type { InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type useViewData from '~/composables/useViewData'
 
+export type ViewType = (GridType | GalleryType | FormType | KanbanType) & { id?: string }
+
 export const ColumnInj: InjectionKey<ColumnType & { meta: any }> = Symbol('column-injection')
 export const MetaInj: InjectionKey<Ref<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<any> = Symbol('tab-meta-injection')
@@ -13,9 +15,8 @@ export const IsFormInj: InjectionKey<boolean> = Symbol('is-form-injection')
 export const IsGridInj: InjectionKey<boolean> = Symbol('is-grid-injection')
 export const IsLockedInj: InjectionKey<boolean> = Symbol('is-locked-injection')
 export const ValueInj: InjectionKey<any> = Symbol('value-injection')
-export const ActiveViewInj: InjectionKey<Ref<(GridType | GalleryType | FormType | KanbanType) & { id?: string }>> =
-  Symbol('active-view-injection')
+export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<any> = Symbol('readonly-injection')
 export const ReloadViewDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-view-data-injection')
 export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')
-export const ViewListInj: InjectionKey<Ref<any[]>> = Symbol('view-list-injection')
+export const ViewListInj: InjectionKey<Ref<ViewType[]>> = Symbol('view-list-injection')

@@ -1,32 +1,63 @@
-import type { ViewTypes } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { useNuxtApp } from '#app'
+import useMetas from '~/composables/useMetas'
 
-export default (onViewCreate?: (viewMeta: any) => void) => {
+export default (meta: Ref<TableType>, onViewCreate?: (viewMeta: any) => void) => {
   const view = reactive<{ title: string; type?: ViewTypes }>({
     title: '',
   })
 
+  const loading = ref(false)
+
   const { $api } = useNuxtApp()
+  const toast = useToast()
+  const { metas } = useMetas()
 
-  const createView = async () => {
-    if (!sqlUi?.value) return
-    const columns = sqlUi?.value?.getNewTableColumns().filter((col) => {
-      if (col.column_name === 'id' && table.columns.includes('id_ag')) {
-        Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
-        col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt)
-        col.dtxs = sqlUi?.value?.getDefaultScaleForDatatype(col.dt)
-        return true
+  const createView = async (viewType: ViewTypes, selectedViewId = null) => {
+    loading.value = true
+
+    try {
+      let data
+      switch (viewType) {
+        case ViewTypes.GRID:
+          // todo: update swagger
+          data = await $api.dbView.gridCreate(
+            meta?.value?.id as string,
+            {
+              title: view?.title,
+              copy_from_id: selectedViewId,
+            } as any,
+          )
+          break
+        case ViewTypes.GALLERY:
+          data = await $api.dbView.galleryCreate(
+            meta?.value?.id as string,
+            {
+              title: view?.title,
+              copy_from_id: selectedViewId,
+            } as any,
+          )
+          break
+        case ViewTypes.FORM:
+          data = await $api.dbView.formCreate(
+            meta?.value?.id as string,
+            {
+              title: view?.title,
+              copy_from_id: selectedViewId,
+            } as any,
+          )
+          break
       }
-      return table.columns.includes(col.column_name)
-    })
+      toast.success('View created successfully')
+      onViewCreate?.(data)
+    } catch (e) {
+      toast.error(e.message)
+    }
 
-    const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
-      ...table,
-      columns,
-    })
-
-    onViewCreate?.(tableMeta)
+    loading.value = false
   }
 
   const generateUniqueTitle = () => {
@@ -37,5 +68,5 @@ export default (onViewCreate?: (viewMeta: any) => void) => {
     // table.title = `Sheet${c}`
   }
 
-  return { view, createView, generateUniqueTitle }
+  return { view, createView, generateUniqueTitle, loading }
 }

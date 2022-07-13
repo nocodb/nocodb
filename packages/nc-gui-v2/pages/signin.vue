@@ -74,7 +74,7 @@ const resetError = () => {
     <v-form
       ref="formValidator"
       v-model="valid"
-      class="h-full md:h-3/4 min-h-[600px] flex justify-center items-center"
+      class="h-full min-h-[600px] flex justify-center items-center"
       @submit.prevent="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">

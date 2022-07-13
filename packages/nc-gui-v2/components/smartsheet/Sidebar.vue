@@ -19,7 +19,7 @@ const _isUIAllowed = (view: string) => {}
 
 // todo decide based on route param
 loadViews().then(() => {
-  activeView.value = views.value?.[0]
+  if (activeView) activeView.value = views.value?.[0]
 })
 
 const toggleDrawer = ref(false)
@@ -33,12 +33,11 @@ const openCreateViewDlg = (type: ViewTypes) => {
   viewCreateType.value = type
 }
 
-const onViewCreate = (view)=>{
+const onViewCreate = (view) => {
   views.value?.push(view)
   activeView.value = view
   viewCreateDlg.value = false
 }
-
 </script>
 
 <template>
@@ -270,7 +269,7 @@ const onViewCreate = (view)=>{
       </div>
     </div>
 
-    <DlgViewCreate v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate"/>
+    <DlgViewCreate v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate" />
   </div>
 </template>
 

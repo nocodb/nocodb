@@ -1,9 +1,8 @@
-import type { TableType } from 'nocodb-sdk'
+import type { TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useNuxtApp } from '#app'
-import type { ViewType } from '~/components'
 import useMetas from '~/composables/useMetas'
 
 export default (meta: Ref<TableType>, onViewCreate?: (viewMeta: any) => void) => {

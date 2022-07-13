@@ -38,6 +38,23 @@ const typeAlias = computed(
     }[type]),
 )
 
+const inputEl = ref<any>()
+const form = ref<any>()
+watch(
+  () => modelValue,
+  (v) => {
+    if (v) {
+      generateUniqueTitle(viewList?.value || [])
+      nextTick(() => {
+        const el = inputEl?.value?.$el
+        el?.querySelector('input')?.focus()
+        el?.querySelector('input')?.select()
+        form?.value?.validate()
+      })
+    }
+  },
+)
+
 /*  name: 'CreateViewDialog',
   props: [
     'value',
@@ -103,7 +120,7 @@ const typeAlias = computed(
         <v-form ref="form" v-model="valid" @submit.prevent="createView">
           <!-- label="View Name" -->
           <v-text-field
-            ref="name"
+            ref="inputEl"
             v-model="view.title"
             :label="$t('labels.viewName')"
             :rules="[

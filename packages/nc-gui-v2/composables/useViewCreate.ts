@@ -3,6 +3,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useNuxtApp } from '#app'
+import type { ViewType } from '~/components'
 import useMetas from '~/composables/useMetas'
 
 export default (meta: Ref<TableType>, onViewCreate?: (viewMeta: any) => void) => {
@@ -60,12 +61,12 @@ export default (meta: Ref<TableType>, onViewCreate?: (viewMeta: any) => void) =>
     loading.value = false
   }
 
-  const generateUniqueTitle = () => {
-    // let c = 1
-    // while (tables?.value?.some((t) => t.title === `Sheet${c}`)) {
-    //   c++
-    // }
-    // table.title = `Sheet${c}`
+  const generateUniqueTitle = (views: ViewType[]) => {
+    let c = 1
+    while (views?.some((t) => t.title === `${meta?.value?.title}${c}`)) {
+      c++
+    }
+    view.title = `${meta?.value?.title}${c}`
   }
 
   return { view, createView, generateUniqueTitle, loading }

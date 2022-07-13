@@ -174,28 +174,28 @@ const onViewCreate = (view) => {
             <span class="body-2 font-weight-medium" @dblclick="enableDummyFeat = true">
               {{ $t('activity.createView') }}
             </span>
-            <v-tooltip top>
-              <template #activator="{ on }">
-                <!--                <x-icon -->
-                <!--                  color="pink textColor" -->
-                <!--                  icon-class="ml-2" -->
-                <!--                  small -->
-                <!--                  v-on="on" -->
-                <!--                  @mouseenter="overShieldIcon = true" -->
-                <!--                  @mouseleave="overShieldIcon = false" -->
-                <!--                > -->
-                <!--                  mdi-shield-lock-outline -->
-                <!--                </x-icon> -->
+            <!--            <v-tooltip top>
+              <template #activator="{ props }">
+                &lt;!&ndash;                <x-icon &ndash;&gt;
+                &lt;!&ndash;                  color="pink textColor" &ndash;&gt;
+                &lt;!&ndash;                  icon-class="ml-2" &ndash;&gt;
+                &lt;!&ndash;                  small &ndash;&gt;
+                &lt;!&ndash;                  v-on="on" &ndash;&gt;
+                &lt;!&ndash;                  @mouseenter="overShieldIcon = true" &ndash;&gt;
+                &lt;!&ndash;                  @mouseleave="overShieldIcon = false" &ndash;&gt;
+                &lt;!&ndash;                > &ndash;&gt;
+                &lt;!&ndash;                  mdi-shield-lock-outline &ndash;&gt;
+                &lt;!&ndash;                </x-icon> &ndash;&gt;
               </template>
-              <!-- Only visible to Creator -->
+              &lt;!&ndash; Only visible to Creator &ndash;&gt;
               <span class="caption">
                 {{ $t('msg.info.onlyCreator') }}
               </span>
-            </v-tooltip>
+            </v-tooltip> -->
           </v-list-item>
           <v-tooltip bottom>
-            <template #activator="{ on }">
-              <v-list-item dense class="body-2 nc-create-grid-view" v-on="on" @click="openCreateViewDlg(ViewTypes.GRID)">
+            <template #activator="{ props }">
+              <v-list-item dense class="body-2 nc-create-grid-view" v-bind="props" @click="openCreateViewDlg(ViewTypes.GRID)">
                 <!--                <v-list-item-icon class="mr-n1"> -->
                 <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color} mr-1`" />
                 <!--                </v-list-item-icon> -->
@@ -214,8 +214,13 @@ const onViewCreate = (view) => {
             {{ $t('msg.info.addView.grid') }}
           </v-tooltip>
           <v-tooltip bottom>
-            <template #activator="{ on }">
-              <v-list-item dense class="body-2 nc-create-gallery-view" v-on="on" @click="openCreateViewDlg(ViewTypes.GALLERY)">
+            <template #activator="{ props }">
+              <v-list-item
+                dense
+                class="body-2 nc-create-gallery-view"
+                v-bind="props"
+                @click="openCreateViewDlg(ViewTypes.GALLERY)"
+              >
                 <!--                <v-list-item-icon class="mr-n1"> -->
                 <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color} mr-1`" />
                 <!--                </v-list-item-icon> -->
@@ -237,12 +242,12 @@ const onViewCreate = (view) => {
           </v-tooltip>
 
           <v-tooltip bottom>
-            <template #activator="{ on }">
+            <template #activator="{ props }">
               <v-list-item
                 v-if="!isView"
                 dense
                 class="body-2 nc-create-form-view"
-                v-on="on"
+                v-bind="props"
                 @click="openCreateViewDlg(ViewTypes.FORM)"
               >
                 <!--                <v-list-item-icon class="mr-n1"> -->
@@ -269,7 +274,7 @@ const onViewCreate = (view) => {
       </div>
     </div>
 
-    <DlgViewCreate v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate" />
+    <DlgViewCreate v-if="views" v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate" />
   </div>
 </template>
 

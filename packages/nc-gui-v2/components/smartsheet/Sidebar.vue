@@ -3,7 +3,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import type { TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { inject, ref } from '#imports'
-import { ActiveViewInj, MetaInj } from '~/components'
+import { ActiveViewInj, MetaInj, ViewListInj } from '~/components'
 import useViews from '~/composables/useViews'
 import { viewIcons } from '~/utils/viewUtils'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -17,6 +17,7 @@ provide(ViewListInj, views)
 
 const _isUIAllowed = (view: string) => {}
 
+// todo decide based on route param
 loadViews().then(() => {
   activeView.value = views.value?.[0]
 })
@@ -25,12 +26,19 @@ const toggleDrawer = ref(false)
 // todo: identify based on meta
 const isView = ref(false)
 const viewCreateType = ref<ViewTypes>()
-const viewCreateDlg = ref<boolean>()
+const viewCreateDlg = ref<boolean>(false)
 
 const openCreateViewDlg = (type: ViewTypes) => {
   viewCreateDlg.value = true
   viewCreateType.value = type
 }
+
+const onViewCreate = (view)=>{
+  views.value?.push(view)
+  activeView.value = view
+  viewCreateDlg.value = false
+}
+
 </script>
 
 <template>
@@ -188,7 +196,7 @@ const openCreateViewDlg = (type: ViewTypes) => {
           </v-list-item>
           <v-tooltip bottom>
             <template #activator="{ on }">
-              <v-list-item dense class="body-2 nc-create-grid-view" v-on="on" @click="openCreateViewDlg(viewTypes.GRID)">
+              <v-list-item dense class="body-2 nc-create-grid-view" v-on="on" @click="openCreateViewDlg(ViewTypes.GRID)">
                 <!--                <v-list-item-icon class="mr-n1"> -->
                 <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color} mr-1`" />
                 <!--                </v-list-item-icon> -->
@@ -208,7 +216,7 @@ const openCreateViewDlg = (type: ViewTypes) => {
           </v-tooltip>
           <v-tooltip bottom>
             <template #activator="{ on }">
-              <v-list-item dense class="body-2 nc-create-gallery-view" v-on="on" @click="openCreateViewDlg(viewTypes.GALLERY)">
+              <v-list-item dense class="body-2 nc-create-gallery-view" v-on="on" @click="openCreateViewDlg(ViewTypes.GALLERY)">
                 <!--                <v-list-item-icon class="mr-n1"> -->
                 <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color} mr-1`" />
                 <!--                </v-list-item-icon> -->
@@ -236,7 +244,7 @@ const openCreateViewDlg = (type: ViewTypes) => {
                 dense
                 class="body-2 nc-create-form-view"
                 v-on="on"
-                @click="openCreateViewDlg(viewTypes.FORM)"
+                @click="openCreateViewDlg(ViewTypes.FORM)"
               >
                 <!--                <v-list-item-icon class="mr-n1"> -->
                 <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color} mr-1`" />
@@ -262,7 +270,7 @@ const openCreateViewDlg = (type: ViewTypes) => {
       </div>
     </div>
 
-    <DlgViewCreate v-model="viewCreateDlg" :type="viewCreateType" />
+    <DlgViewCreate v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate"/>
   </div>
 </template>
 

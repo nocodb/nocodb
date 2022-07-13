@@ -28,7 +28,7 @@ jobs:
           npm run build:copy
 
       - name: remove old nc-lib-gui package
-        working-directory: ./packages/nc-lib-gui
+        working-directory: ./packages/nocodb
         run: |
           rm *.tgz
 
@@ -36,7 +36,7 @@ jobs:
         id: npm_pack
         working-directory: ./packages/nc-lib-gui
         run: |
-          npm pack
+          npm pack --pack-destination ../nocodb
 
       - name: get-npm-version
         id: package-version
@@ -47,7 +47,7 @@ jobs:
       - name: add-gui-package
         working-directory: ./packages/nocodb
         run: |
-          npm install ../nc-lib-gui/nc-lib-gui-${{ steps.package-version.outputs.current-version}}.tgz
+          npm install nc-lib-gui-${{ steps.package-version.outputs.current-version}}.tgz
 
       - uses: stefanzweifel/git-auto-commit-action@v4
         with: 

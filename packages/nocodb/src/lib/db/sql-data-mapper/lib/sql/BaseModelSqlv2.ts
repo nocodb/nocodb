@@ -59,9 +59,15 @@ async function populatePk(model: Model, insertObj: any) {
   }
 }
 
-function checkColumnRequired(column: Column<any>, fields: string[]) {
+function checkColumnRequired(
+  column: Column<any>,
+  fields: string[],
+  extractPkAndPv?: boolean
+) {
   // if primary key or foreign key included in fields, it's required
   if (column.pk || column.uidt === UITypes.ForeignKey) return true;
+
+  if (extractPkAndPv && column.pv) return true;
 
   // check fields defined and if not, then select all
   // if defined check if it is in the fields
@@ -189,7 +195,7 @@ class BaseModelSqlv2 {
     const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb, fields });
+    await this.selectObject({ qb, fields, viewId: this.viewId });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
@@ -264,7 +270,7 @@ class BaseModelSqlv2 {
     const proto = await this.getProto();
     const data = await this.extractRawQueryAndExec(qb);
 
-    console.log(qb.toQuery());
+    // console.log(qb.toQuery());
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -404,7 +410,7 @@ class BaseModelSqlv2 {
       await parentTable.getColumns();
 
       const qb = this.dbDriver(childTable.table_name);
-      await childModel.selectObject({ qb });
+      await childModel.selectObject({ qb, extractPkAndPv: true });
 
       const childQb = this.dbDriver.queryBuilder().from(
         this.dbDriver
@@ -431,6 +437,9 @@ class BaseModelSqlv2 {
           .as('list')
       );
 
+
+      // console.log(childQb.toQuery())
+
       const children = await this.extractRawQueryAndExec(childQb);
       const proto = await (
         await Model.getBaseModelSQL({
@@ -438,6 +447,7 @@ class BaseModelSqlv2 {
           dbDriver: this.dbDriver,
         })
       ).getProto();
+
 
       return _.groupBy(
         children.map((c) => {
@@ -1303,15 +1313,22 @@ class BaseModelSqlv2 {
     }
   }
 
+  // todo:
+  //  pass view id as argument
+  //  add option to get only pk and pv
   public async selectObject({
     qb,
     fields: _fields,
+    extractPkAndPv,
+    viewId,
   }: {
     qb: QueryBuilder;
     fields?: string[] | string;
+    extractPkAndPv?: boolean;
+    viewId?: string;
   }): Promise<void> {
-    const view = await View.get(this.viewId);
-    const viewColumns = this.viewId && (await View.getColumns(this.viewId));
+    const view = await View.get(viewId);
+    const viewColumns = viewId && (await View.getColumns(viewId));
     const fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
     const res = {};
     const viewOrTableColumns = viewColumns || (await this.model.getColumns());
@@ -1325,14 +1342,17 @@ class BaseModelSqlv2 {
       // hide if column marked as hidden in view
       // of if column is system field and system field is hidden
       if (
+        !extractPkAndPv &&
         !(viewOrTableColumn instanceof Column) &&
         (!(viewOrTableColumn as GridViewColumn)?.show ||
           (!view?.show_system_fields &&
             column.uidt !== UITypes.ForeignKey &&
+            !column.pk &&
             isSystemColumn(column)))
       )
         continue;
-      if (!checkColumnRequired(column, fields)) continue;
+
+      if (!checkColumnRequired(column, fields, extractPkAndPv)) continue;
 
       switch (column.uidt) {
         case 'LinkToAnotherRecord':

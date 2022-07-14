@@ -97,7 +97,11 @@ async function getDataList(model, view: View, req) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
-  const requestObj = await getAst({ model, query: req.query, view });
+  const { ast, dependencyFields } = await getAst({
+    model,
+    query: req.query,
+    view,
+  });
 
   const listArgs: any = { ...req.query };
   try {
@@ -107,8 +111,21 @@ async function getDataList(model, view: View, req) {
     listArgs.sortArr = JSON.parse(listArgs.sortArrJson);
   } catch (e) {}
 
+  console.log(
+    JSON.stringify(
+      dependencyFields,
+      (_v, o) => {
+        if (o instanceof Set) {
+          return [...o];
+        }
+        return o;
+      },
+      2
+    )
+  );
+  console.log(JSON.stringify(ast, null, 2));
   const data = await nocoExecute(
-    requestObj,
+    ast,
     await baseModel.list(listArgs),
     {},
     listArgs

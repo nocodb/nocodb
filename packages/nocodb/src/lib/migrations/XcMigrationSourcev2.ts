@@ -5,6 +5,8 @@ import * as nc_013_sync_source from './v2/nc_013_sync_source';
 import * as nc_014_alter_column_data_types from './v2/nc_014_alter_column_data_types';
 import * as nc_015_add_meta_col_in_column_table from './v2/nc_015_add_meta_col_in_column_table';
 import * as nc_016_alter_hooklog_payload_types from './v2/nc_016_alter_hooklog_payload_types';
+import * as nc_017_add_user_token_version_column from './v2/nc_017_add_user_token_version_column'
+import * as nc_018_remove_user_token_version_column from './v2/nc_018_remove_user_token_version_column'
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -21,6 +23,8 @@ export default class XcMigrationSourcev2 {
       'nc_015_add_meta_col_in_column_table',
       'nc_013',
       'nc_016_alter_hooklog_payload_types',
+      'nc_017_add_user_token_version_column',
+      'nc_018_remove_user_token_version_column',
     ]);
   }
 
@@ -44,6 +48,10 @@ export default class XcMigrationSourcev2 {
         return nc_013;
       case 'nc_016_alter_hooklog_payload_types':
         return nc_016_alter_hooklog_payload_types;
+      case 'nc_017_add_user_token_version_column':
+        return nc_017_add_user_token_version_column;
+      case 'nc_018_remove_user_token_version_column':
+        return nc_018_remove_user_token_version_column;
     }
   }
 }

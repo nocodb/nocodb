@@ -10,6 +10,7 @@ import User from '../../../models/User';
 import { Tele } from 'nc-help';
 
 const { v4: uuidv4 } = require('uuid');
+import * as jwt from 'jsonwebtoken';
 import Audit from '../../../models/Audit';
 import crypto from 'crypto';
 import NcPluginMgrv2 from '../../helpers/NcPluginMgrv2';
@@ -19,8 +20,6 @@ import extractProjectIdAndAuthenticate from '../../helpers/extractProjectIdAndAu
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import { MetaTable } from '../../../utils/globals';
 import Noco from '../../../Noco';
-import * as _ from 'lodash';
-import { genJwt } from './helpers';
 
 export async function signup(req: Request, res: Response<TableType>) {
   const {
@@ -106,7 +105,6 @@ export async function signup(req: Request, res: Response<TableType>) {
       }
     }
 
-    const token_version = randomTokenString();
 
     await User.insert({
       firstname,
@@ -116,7 +114,6 @@ export async function signup(req: Request, res: Response<TableType>) {
       password,
       email_verification_token,
       roles,
-      token_version
     });
   }
   user = await User.getByEmail(email);
@@ -157,7 +154,17 @@ export async function signup(req: Request, res: Response<TableType>) {
   });
 
   res.json({
-    token: genJwt(user, Noco.getConfig())
+    token: jwt.sign(
+      {
+        email: user.email,
+        firstname: user.firstname,
+        lastname: user.lastname,
+        id: user.id,
+        roles: user.roles,
+      },
+      Noco.getConfig().auth.jwt.secret,
+      Noco.getConfig().auth.jwt.options
+    )
   } as any);
 }
 
@@ -195,14 +202,9 @@ async function successfulSignIn({
     await promisify((req as any).login.bind(req))(user);
     const refreshToken = randomTokenString();
 
-    if (!user.token_version) {
-      user.token_version = randomTokenString();
-    }
-
     await User.update(user.id, {
       refresh_token: refreshToken,
       email: user.email,
-      token_version: user.token_version
     });
     setTokenCookie(res, refreshToken);
 
@@ -215,7 +217,18 @@ async function successfulSignIn({
     });
 
     res.json({
-      token: genJwt(user, Noco.getConfig())
+      token: jwt.sign(
+        {
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          id: user.id,
+          roles: user.roles,
+        },
+
+        Noco.getConfig().auth.jwt.secret,
+        Noco.getConfig().auth.jwt.options
+      )
     } as any);
   } catch (e) {
     console.log(e);
@@ -306,7 +319,6 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
     salt,
     password,
     email: user.email,
-    token_version: null
   });
 
   Audit.insert({
@@ -335,7 +347,6 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
       email: user.email,
       reset_password_token: token,
       reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
-      token_version: null
     });
     try {
       const template = (await import('./ui/emailTemplates/forgotPassword'))
@@ -386,9 +397,6 @@ async function tokenValidate(req, res): Promise<any> {
   if (user.reset_password_expires < new Date()) {
     NcError.badRequest('Password reset url expired');
   }
-  if (!user.token_version) {
-    NcError.badRequest('Token Expired. Please login again.');
-  }
   res.json(true);
 }
 
@@ -424,7 +432,6 @@ async function passwordReset(req, res): Promise<any> {
     email: user.email,
     reset_password_expires: null,
     reset_password_token: '',
-    token_version: null
   });
 
   Audit.insert({
@@ -488,7 +495,17 @@ async function refreshToken(req, res): Promise<any> {
     setTokenCookie(res, refreshToken);
 
     res.json({
-      token: genJwt(user, Noco.getConfig())
+      token: jwt.sign(
+        {
+          email: user.email,
+          firstname: user.firstname,
+          lastname: user.lastname,
+          id: user.id,
+          roles: user.roles
+        },
+        Noco.getConfig().auth.jwt.secret,
+        Noco.getConfig().auth.jwt.options
+      )
     } as any);
   } catch (e) {
     return res.status(400).json({ msg: e.message });

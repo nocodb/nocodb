@@ -13,7 +13,9 @@
               >
                 mdi-close-box
               </v-icon>
+              <span v-if="!i" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
               <v-select
+                v-else
                 v-model="filter.logical_op"
                 class="flex-shrink-1 flex-grow-0 elevation-0 caption"
                 :items="['and', 'or']"

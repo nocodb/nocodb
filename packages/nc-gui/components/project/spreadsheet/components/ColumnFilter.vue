@@ -58,7 +58,7 @@
               mdi-close-box
             </v-icon>
             <span v-else :key="i + '_1'" />
-            <span v-if="!i" :key="i + '_2'" class="caption d-flex align-center">{{ $t("labels.where") }}</span>
+            <span v-if="!i" :key="i + '_2'" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
 
             <v-select
               v-else
@@ -142,7 +142,7 @@
     <v-btn small class="elevation-0 grey--text my-3" @click.stop="addFilter">
       <v-icon small color="grey"> mdi-plus</v-icon>
       <!-- Add Filter -->
-      {{ $t("activity.addFilter") }}
+      {{ $t('activity.addFilter') }}
     </v-btn>
     <v-btn small class="elevation-0 grey--text my-3" @click.stop="addFilterGroup">
       <v-icon small color="grey"> mdi-plus</v-icon>
@@ -154,13 +154,13 @@
 </template>
 
 <script>
-import { getUIDTIcon, UITypes } from "~/components/project/spreadsheet/helpers/uiTypes";
-import FieldListAutoCompleteDropdown from "~/components/project/spreadsheet/components/FieldListAutoCompleteDropdown";
+import { getUIDTIcon, UITypes } from '~/components/project/spreadsheet/helpers/uiTypes';
+import FieldListAutoCompleteDropdown from '~/components/project/spreadsheet/components/FieldListAutoCompleteDropdown';
 
 export default {
-  name: "ColumnFilter",
+  name: 'ColumnFilter',
   components: {
-    FieldListAutoCompleteDropdown
+    FieldListAutoCompleteDropdown,
   },
   props: {
     fieldList: [Array],
@@ -170,77 +170,77 @@ export default {
     viewId: String,
     shared: Boolean,
     webHook: Boolean,
-    hookId: String
+    hookId: String,
   },
   data: () => ({
     filters: [],
     opList: [
-      "is equal",
-      "is not equal",
-      "is like",
-      "is not like",
+      'is equal',
+      'is not equal',
+      'is like',
+      'is not like',
       // 'is empty', 'is not empty',
-      "is null",
-      "is not null",
-      ">",
-      "<",
-      ">=",
-      "<="
+      'is null',
+      'is not null',
+      '>',
+      '<',
+      '>=',
+      '<=',
     ],
     comparisonOp: [
       {
-        text: "is equal",
-        value: "eq"
+        text: 'is equal',
+        value: 'eq',
       },
       {
-        text: "is not equal",
-        value: "neq"
+        text: 'is not equal',
+        value: 'neq',
       },
       {
-        text: "is like",
-        value: "like"
+        text: 'is like',
+        value: 'like',
       },
       {
-        text: "is not like",
-        value: "nlike"
+        text: 'is not like',
+        value: 'nlike',
       },
       {
-        text: "is empty",
-        value: "empty",
-        ignoreVal: true
+        text: 'is empty',
+        value: 'empty',
+        ignoreVal: true,
       },
       {
-        text: "is not empty",
-        value: "notempty",
-        ignoreVal: true
+        text: 'is not empty',
+        value: 'notempty',
+        ignoreVal: true,
       },
       {
-        text: "is null",
-        value: "null",
-        ignoreVal: true
+        text: 'is null',
+        value: 'null',
+        ignoreVal: true,
       },
       {
-        text: "is not null",
-        value: "notnull",
-        ignoreVal: true
+        text: 'is not null',
+        value: 'notnull',
+        ignoreVal: true,
       },
       {
-        text: ">",
-        value: "gt"
+        text: '>',
+        value: 'gt',
       },
       {
-        text: "<",
-        value: "lt"
+        text: '<',
+        value: 'lt',
       },
       {
-        text: ">=",
-        value: "gte"
+        text: '>=',
+        value: 'gte',
       },
       {
-        text: "<=",
-        value: "lte"
-      }
-    ]
+        text: '<=',
+        value: 'lte',
+      },
+    ],
   }),
   computed: {
     columnIcon() {
@@ -261,7 +261,7 @@ export default {
           .filter(c => c && (!c.colOptions || !c.system))
           .map(c => ({
             ...c,
-            icon: getUIDTIcon(c.uidt)
+            icon: getUIDTIcon(c.uidt),
           }))
       );
     },
@@ -274,17 +274,17 @@ export default {
         switch (col.uidt) {
           case UITypes.Number:
           case UITypes.Decimal:
-            obj[col.title] = obj[col.column_name] = "number";
+            obj[col.title] = obj[col.column_name] = 'number';
             break;
           case UITypes.Checkbox:
-            obj[col.title] = obj[col.column_name] = "boolean";
+            obj[col.title] = obj[col.column_name] = 'boolean';
             break;
           default:
             break;
         }
         return obj;
       }, {});
-    }
+    },
   },
   watch: {
     async viewId(v) {
@@ -294,10 +294,10 @@ export default {
     },
     filters: {
       handler(v) {
-        this.$emit("input", v && v.filter(f => (f.fk_column_id && f.comparison_op) || f.is_group));
+        this.$emit('input', v && v.filter(f => (f.fk_column_id && f.comparison_op) || f.is_group));
       },
-      deep: true
-    }
+      deep: true,
+    },
   },
   created() {
     this.loadFilter();
@@ -309,15 +309,15 @@ export default {
           const uidt = this.columnsById[f.fk_column_id].uidt;
           if (uidt === UITypes.Lookup) {
             // TODO: handle it later
-            return !["notempty", "empty", "notnull", "null"].includes(op.value);
+            return !['notempty', 'empty', 'notnull', 'null'].includes(op.value);
           } else if (uidt === UITypes.LinkToAnotherRecord) {
             const type = this.columnsById[f.fk_column_id].colOptions.type;
-            if (type === "hm" || type === "mm") {
+            if (type === 'hm' || type === 'mm') {
               // exclude notnull & null
-              return !["notnull", "null"].includes(op.value);
-            } else if (type === "bt") {
+              return !['notnull', 'null'].includes(op.value);
+            } else if (type === 'bt') {
               // exclude notempty & empty
-              return !["notempty", "empty"].includes(op.value);
+              return !['notempty', 'empty'].includes(op.value);
             }
           }
         }
@@ -326,23 +326,23 @@ export default {
     },
     async applyChanges(nested = false, { hookId } = {}) {
       for (const [i, filter] of Object.entries(this.filters)) {
-        if (filter.status === "delete") {
+        if (filter.status === 'delete') {
           if (this.hookId || hookId) {
             await this.$api.dbTableFilter.delete(filter.id);
           } else {
             await this.$api.dbTableFilter.delete(filter.id);
           }
-        } else if (filter.status === "update") {
+        } else if (filter.status === 'update') {
           if (filter.id) {
             if (this.hookId || hookId) {
               await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
-                fk_parent_id: this.parentId
+                fk_parent_id: this.parentId,
               });
             } else {
               await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
-                fk_parent_id: this.parentId
+                fk_parent_id: this.parentId,
               });
             }
           } else if (this.hookId || hookId) {
@@ -351,7 +351,7 @@ export default {
               i,
               await this.$api.dbTableWebhookFilter.create(this.hookId || hookId, {
                 ...filter,
-                fk_parent_id: this.parentId
+                fk_parent_id: this.parentId,
               })
             );
           } else {
@@ -360,7 +360,7 @@ export default {
               i,
               await this.$api.dbTableFilter.create(this.viewId, {
                 ...filter,
-                fk_parent_id: this.parentId
+                fk_parent_id: this.parentId,
               })
             );
           }
@@ -373,17 +373,17 @@ export default {
       }
       this.loadFilter();
       if (!nested) {
-        this.$emit("updated");
+        this.$emit('updated');
       }
     },
     async loadFilter() {
       let filters = [];
-      if (this.viewId && this._isUIAllowed("filterSync")) {
+      if (this.viewId && this._isUIAllowed('filterSync')) {
         filters = this.parentId
           ? await this.$api.dbTableFilter.childrenRead(this.parentId)
           : await this.$api.dbTableFilter.read(this.viewId);
       }
-      if (this.hookId && this._isUIAllowed("filterSync")) {
+      if (this.hookId && this._isUIAllowed('filterSync')) {
         filters = this.parentId
           ? await this.$api.dbTableFilter.childrenRead(this.parentId)
           : await this.$api.dbTableWebhookFilter.read(this.hookId);
@@ -394,19 +394,19 @@ export default {
     addFilter() {
       this.filters.push({
         fk_column_id: null,
-        comparison_op: "eq",
-        value: "",
-        status: "update",
-        logical_op: "and"
+        comparison_op: 'eq',
+        value: '',
+        status: 'update',
+        logical_op: 'and',
       });
       this.filters = this.filters.slice();
-      this.$e("a:filter:add", { length: this.filters.length });
+      this.$e('a:filter:add', { length: this.filters.length });
     },
     addFilterGroup() {
       this.filters.push({
         parentId: this.parentId,
         is_group: true,
-        status: "update"
+        status: 'update',
       });
       this.filters = this.filters.slice();
       const index = this.filters.length - 1;
@@ -414,56 +414,56 @@ export default {
     },
     filterUpdateCondition(filter, i) {
       this.saveOrUpdate(filter, i);
-      this.$e("a:filter:update", {
+      this.$e('a:filter:update', {
         logical: filter.logical_op,
-        comparison: filter.comparison_op
+        comparison: filter.comparison_op,
       });
     },
     async saveOrUpdate(filter, i) {
-      if (this.shared || !this._isUIAllowed("filterSync")) {
+      if (this.shared || !this._isUIAllowed('filterSync')) {
         // this.$emit('input', this.filters.filter(f => f.fk_column_id && f.comparison_op))
-        this.$emit("updated");
+        this.$emit('updated');
       } else if (!this.autoApply) {
-        filter.status = "update";
+        filter.status = 'update';
       } else if (filter.id) {
         await this.$api.dbTableFilter.update(filter.id, {
           ...filter,
-          fk_parent_id: this.parentId
+          fk_parent_id: this.parentId,
         });
 
-        this.$emit("updated");
+        this.$emit('updated');
       } else {
         this.$set(
           this.filters,
           i,
           await this.$api.dbTableFilter.create(this.viewId, {
             ...filter,
-            fk_parent_id: this.parentId
+            fk_parent_id: this.parentId,
           })
         );
 
-        this.$emit("updated");
+        this.$emit('updated');
       }
     },
     async deleteFilter(filter, i) {
-      if (this.shared || !this._isUIAllowed("filterSync")) {
+      if (this.shared || !this._isUIAllowed('filterSync')) {
         this.filters.splice(i, 1);
-        this.$emit("updated");
+        this.$emit('updated');
       } else if (filter.id) {
         if (!this.autoApply) {
-          this.$set(filter, "status", "delete");
+          this.$set(filter, 'status', 'delete');
         } else {
           await this.$api.dbTableFilter.delete(filter.id);
           await this.loadFilter();
-          this.$emit("updated");
+          this.$emit('updated');
         }
       } else {
         this.filters.splice(i, 1);
-        this.$emit("updated");
+        this.$emit('updated');
       }
-      this.$e("a:filter:delete");
-    }
-  }
+      this.$e('a:filter:delete');
+    },
+  },
 };
 </script>
 

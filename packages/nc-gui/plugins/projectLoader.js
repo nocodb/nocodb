@@ -1,3 +1,8 @@
+import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+
+dayjs.extend(duration)
+
 export default async({ store, redirect, $axios, $toast, $api, route }) => {
   // if (!route.path || !route.path.startsWith('/nc/')) { await store.dispatch('plugins/pluginPostInstall', 'Branding') }
   if (window.location.search &&
@@ -84,35 +89,31 @@ export default async({ store, redirect, $axios, $toast, $api, route }) => {
 }
 
 const handleFeedbackForm = async({ store, $axios }) => {
-  const fetchFeedbackForm = async() => {
+  const fetchFeedbackForm = async(now) => {
     try {
       const { data: feedbackForm } = await $axios.get('/api/v1/feedback_form')
       const currentFeedbackForm = store.state.settings.feedbackForm
 
-      if (
-        feedbackForm.url !== currentFeedbackForm.url ||
-        feedbackForm.valid_till !== currentFeedbackForm.validTill
-      ) {
-        store.commit('settings/MutFeedbackForm', {
-          url: feedbackForm.url,
-          validTill: feedbackForm.valid_till,
-          createdAt: feedbackForm.created_at,
-          isHidden: false
-        })
-      }
+      const isFetchedFormDuplicate = currentFeedbackForm.url === feedbackForm.url
+
+      store.commit('settings/MutFeedbackForm', {
+        url: feedbackForm.url,
+        lastFormPollDate: now.toISOString(),
+        createdAt: feedbackForm.created_at,
+        isHidden: isFetchedFormDuplicate ? currentFeedbackForm.isHidden : false
+      })
     } catch (e) {
       // ignore
     }
   }
 
-  const lastFeedbackFormExpirationDate = new Date(store.state.settings.feedbackForm.validTill)
-  const isDateValid = date => date instanceof Date && !isNaN(date.getTime())
+  const isFirstTimePolling = !store.state.settings.feedbackForm.lastFormPollDate
 
-  if (
-    !isDateValid(lastFeedbackFormExpirationDate) ||
-    Date.now() > lastFeedbackFormExpirationDate.getTime()
-  ) {
-    fetchFeedbackForm()
+  const now = dayjs()
+  const lastFormPolledDate = dayjs(store.state.settings.feedbackForm.lastFormPollDate)
+
+  if (isFirstTimePolling || (dayjs.duration(now.diff(lastFormPolledDate)).days() > 0)) {
+    fetchFeedbackForm(now)
   }
 }
 /**

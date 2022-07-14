@@ -5,14 +5,11 @@
       v-model="localState"
       type="number"
       :step="percentStep"
+      @keydown="onKeyDown"
       @blur="onBlur"
-      @keypress="checkPercentFormat($event)"
       @keydown.enter="isEdited && $emit('input', percent)"
       v-on="parentListeners"
     />
-    <div v-if="warningMessage" class="percent-warning">
-      {{ warningMessage }}
-    </div>
   </div>
 </template>
 
@@ -74,35 +71,8 @@ export default {
     }
   },
   methods: {
-    checkPercentFormat(evt) {
-      evt = evt || window.event;
-      const charCode = evt.which ? evt.which : evt.keyCode;
-      // ref: http://www.columbia.edu/kermit/ascii.html
-      const PRINTABLE_CTL_RANGE = charCode > 31;
-      const NON_DIGIT = charCode < 48 || charCode > 57;
-      const NON_PERIOD = charCode !== 46;
-      const CAPTIAL_LETTER_E = charCode === 69;
-      const SMALL_LETTER_E = charCode === 101;
-      const NEGATIVE_SIGN = charCode === 45;
-      const NEGATIVE_SIGN_INVALID = !this.column?.meta?.negative && NEGATIVE_SIGN;
-      if (NEGATIVE_SIGN_INVALID) {
-        this.warningMessage = 'Negative Number is not allowed. Please configure it in Column setting.';
-        evt.preventDefault();
-      } else if (
-        (PRINTABLE_CTL_RANGE && NON_DIGIT && NEGATIVE_SIGN_INVALID && NON_PERIOD) ||
-        CAPTIAL_LETTER_E ||
-        SMALL_LETTER_E
-      ) {
-        this.warningMessage = 'Please enter a number';
-        evt.preventDefault();
-      } else {
-        this.warningMessage = null;
-        // only allow:
-        // 1. digits
-        // 2. '.'
-        // 3. '-' if this.column?.meta?.negative is true
-        return true;
-      }
+    onKeyDown(evt) {
+      return ['e', 'E', '+', '-'].includes(evt.key) && evt.preventDefault();
     },
     onBlur() {
       if (this.isEdited) {
@@ -117,12 +87,6 @@ export default {
 <style scoped>
 .nc-grid-cell .percent-cell-wrapper {
   padding: 10px;
-}
-
-.nc-grid-cell .percent-warning {
-  text-align: left;
-  margin-top: 10px;
-  color: #e65100;
 }
 </style>
 

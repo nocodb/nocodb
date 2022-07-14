@@ -1777,7 +1777,9 @@ export default {
         tableNameLengthLimit = 128;
       }
       const projectPrefix = this.$store.getters['project/GtrProjectPrefix'] || '';
-      return (projectPrefix + v).length <= tableNameLengthLimit || `Table name exceeds ${tableNameLengthLimit} characters`;
+      return (
+        (projectPrefix + v).length <= tableNameLengthLimit || `Table name exceeds ${tableNameLengthLimit} characters`
+      );
     },
   },
   async created() {

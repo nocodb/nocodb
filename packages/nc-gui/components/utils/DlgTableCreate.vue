@@ -241,7 +241,10 @@ export default {
       } else if (sqlClientType === 'mssql') {
         tableNameLengthLimit = 128;
       }
-      return v.length <= tableNameLengthLimit || `Table name exceeds ${tableNameLengthLimit} characters`;
+      const projectPrefix = this.$store.getters['project/GtrProjectPrefix'] || '';
+      return (
+        (projectPrefix + v).length <= tableNameLengthLimit || `Table name exceeds ${tableNameLengthLimit} characters`
+      );
     },
     onCreateBtnClick() {
       this.$emit('create', {

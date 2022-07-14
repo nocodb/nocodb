@@ -1438,30 +1438,37 @@ export default {
         this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);
         return;
       }
-      await this.removeTabsByName(item);
-      await this.loadTablesFromParentTreeNode({
-        _nodes: {
-          ...item._nodes,
-        },
-      });
-      this.$store.dispatch('tabs/ActAddTab', {
-        _nodes: {
-          env: this.menuItem._nodes.env,
-          dbAlias: this.menuItem._nodes.dbAlias,
-          table_name: this.menuItem._nodes.table_name,
-          title: title,
-          dbConnection: this.menuItem._nodes.dbConnection,
-          type: 'table',
-          dbKey: this.menuItem._nodes.dbKey,
-          key: this.menuItem._nodes.key,
-          tableDirKey: this.menuItem._nodes.tableDirKey,
-        },
-        name: title,
-      });
-      this.dialogRenameTable.dialogShow = false;
-      this.dialogRenameTable.defaultValue = null;
-      this.$toast.success('Table renamed successfully').goAway(3000);
-      this.$e('a:table:rename');
+      try {
+        await this.removeTabsByName(item);
+        await this.loadTablesFromParentTreeNode({
+          _nodes: {
+            ...item._nodes,
+          },
+        });
+        const projectPrefix = this.$store.getters['project/GtrProjectPrefix'] || '';
+        this.$store.dispatch('tabs/ActAddTab', {
+          _nodes: {
+            env: this.menuItem._nodes.env,
+            dbAlias: this.menuItem._nodes.dbAlias,
+            table_name: `${projectPrefix}${title}`,
+            title: title,
+            dbConnection: this.menuItem._nodes.dbConnection,
+            type: 'table',
+            dbKey: this.menuItem._nodes.dbKey,
+            key: this.menuItem._nodes.key,
+            tableDirKey: this.menuItem._nodes.tableDirKey,
+          },
+          name: title,
+        });
+        this.dialogRenameTable.dialogShow = false;
+        this.dialogRenameTable.defaultValue = null;
+        this.$toast.success('Table renamed successfully').goAway(3000);
+        this.$e('a:table:rename');
+      } catch (e) {
+        console.log(e);
+        this.$toast.error(e.message);
+        return;
+      }
     },
     mtdDialogRenameTableCancel() {
       this.dialogRenameTable.dialogShow = false;

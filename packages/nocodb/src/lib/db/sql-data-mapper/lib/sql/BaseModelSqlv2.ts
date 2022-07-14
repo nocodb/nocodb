@@ -1314,18 +1314,22 @@ class BaseModelSqlv2 {
     const viewColumns = this.viewId && (await View.getColumns(this.viewId));
     const fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
     const res = {};
-    const columns = viewColumns || (await this.model.getColumns());
-    for (const _column of columns) {
+    const viewOrTableColumns = viewColumns || (await this.model.getColumns());
+    for (const viewOrTableColumn of viewOrTableColumns) {
       const column =
-        _column instanceof Column
-          ? _column
+        viewOrTableColumn instanceof Column
+          ? viewOrTableColumn
           : await Column.get({
-              colId: (_column as GridViewColumn).fk_column_id,
+              colId: (viewOrTableColumn as GridViewColumn).fk_column_id,
             });
+      // hide if column marked as hidden in view
+      // of if column is system field and system field is hidden
       if (
-        !(column instanceof Column) &&
-        !(column as GridViewColumn)?.show &&
-        (!view?.show_system_fields || isSystemColumn(column))
+        !(viewOrTableColumn instanceof Column) &&
+        (!(viewOrTableColumn as GridViewColumn)?.show ||
+          (!view?.show_system_fields &&
+            column.uidt !== UITypes.ForeignKey &&
+            isSystemColumn(column)))
       )
         continue;
       if (!checkColumnRequired(column, fields)) continue;

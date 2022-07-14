@@ -542,13 +542,6 @@ export default {
           viewType = 'view'
       }
       return `${this.dashboardUrl}#/nc/${viewType}/${this.shareLink.uuid}`
-    },
-    supportCost() {
-      const cost = parseInt(this.$store.getters['project/GtrProjectCost'])
-      if (cost > 0) {
-        return `This costs ~$${cost}/year in non-open source products.`
-      }
-      return 'Your donations will help us to make this product better.'
     }
   },
   watch: {

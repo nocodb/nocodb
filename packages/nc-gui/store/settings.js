@@ -38,7 +38,7 @@ export const state = () => ({
   autoApplyFilter: true,
   apiLoading: false,
   includeM2M: false,
-  feedbackFormHidden: false
+  feedbackFormHidden: true
 })
 
 export const mutations = {

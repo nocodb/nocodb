@@ -17,7 +17,6 @@
       >
         {{ $store.getters["project/GtrProjectName"] }}
       </h3>
-      <github-star-btn v-else />
     </div>
     <v-navigation-drawer
       ref="drawer"
@@ -811,7 +810,6 @@ import {validateTableName} from "~/helpers";
 import QuickImport from "~/components/import/QuickImport";
 
 import draggable from "vuedraggable";
-import GithubStarBtn from "~/components/GithubStarBtn";
 import SettingsModal from "~/components/settings/SettingsModal";
 import Language from "~/components/utils/Language";
 
@@ -819,7 +817,6 @@ export default {
   components: {
     Language,
     SettingsModal,
-    GithubStarBtn,
     draggable,
     QuickImport,
     DlgViewCreate,

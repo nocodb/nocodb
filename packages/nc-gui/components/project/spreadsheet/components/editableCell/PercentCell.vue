@@ -64,7 +64,11 @@ export default {
       return $listeners;
     },
   },
-  mounted() {},
+  mounted() {
+    if (this.$refs.percentInput) {
+      this.$refs.percentInput.focus();
+    }
+  },
   methods: {
     checkPercentFormat(evt) {
       evt = evt || window.event;
@@ -107,11 +111,11 @@ export default {
 </script>
 
 <style scoped>
-.percent-cell-wrapper {
+.nc-grid-cell .percent-cell-wrapper {
   padding: 10px;
 }
 
-.percent-warning {
+.nc-grid-cell .percent-warning {
   text-align: left;
   margin-top: 10px;
   color: #e65100;

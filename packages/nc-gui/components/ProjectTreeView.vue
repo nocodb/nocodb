@@ -572,7 +572,7 @@
 
     <textDlgSubmitCancel
       v-if="dialogRenameTable.dialogShow"
-      :rules="[validateTableName, validateUniqueAlias]"
+      :rules="[validateTableName, validateUniqueAlias, validateLength]"
       :dialog-show="dialogRenameTable.dialogShow"
       :heading="dialogRenameTable.heading"
       :cookie="dialogRenameTable.cookie"
@@ -1431,6 +1431,7 @@ export default {
       let item = cookie;
       try {
         await this.$api.dbTable.update(item.id, {
+          projectId: this.projectId,
           title,
         });
       } catch (e) {
@@ -1764,6 +1765,19 @@ export default {
     },
     validateTableName(v) {
       return validateTableName(v, this.$store.getters['project/GtrProjectIsGraphql']);
+    },
+    validateLength(v) {
+      let tableNameLengthLimit = 255;
+      const sqlClientType = this.$store.getters['project/GtrClientType'];
+      if (sqlClientType === 'mysql2' || sqlClientType === 'mysql') {
+        tableNameLengthLimit = 64;
+      } else if (sqlClientType === 'pg') {
+        tableNameLengthLimit = 63;
+      } else if (sqlClientType === 'mssql') {
+        tableNameLengthLimit = 128;
+      }
+      const projectPrefix = this.$store.getters['project/GtrProjectPrefix'] || '';
+      return (projectPrefix + v).length <= tableNameLengthLimit || `Table name exceeds ${tableNameLengthLimit} characters`;
     },
   },
   async created() {

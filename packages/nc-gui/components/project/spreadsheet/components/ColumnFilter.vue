@@ -2,40 +2,46 @@
   <div
     class="backgroundColor pa-2 menu-filter-dropdown"
     :class="{ nested }"
-    :style="{ width: nested ? '100%' : '530px' }"
+    :style="{ width: nested ? '100%' : '630px' }"
   >
     <div class="grid" @click.stop>
       <template v-for="(filter, i) in filters" dense>
         <template v-if="filter.status !== 'delete'">
-          <div v-if="filter.is_group" :key="i" style="grid-column: span 5; padding: 6px" class="elevation-4">
-            <div class="d-flex" style="gap: 6px; padding: 0 6px">
-              <v-icon
-                v-if="!filter.readOnly"
-                small
-                class="nc-filter-item-remove-btn"
-                @click.stop="deleteFilter(filter, i)"
-              >
-                mdi-close-box
-              </v-icon>
-              <span v-if="!i" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
-              <v-select
-                v-else
-                v-model="filter.logical_op"
-                class="flex-shrink-1 flex-grow-0 elevation-0 caption"
-                :items="['and', 'or']"
-                solo
-                flat
-                dense
-                hide-details
-                placeholder="Group op"
-                @click.stop
-                @change="saveOrUpdate(filter, i)"
-              >
-                <template #item="{ item }">
-                  <span class="caption font-weight-regular">{{ item }}</span>
-                </template>
-              </v-select>
-            </div>
+          <template v-if="filter.is_group">
+            <v-icon
+              v-if="!filter.readOnly"
+              small
+              class="nc-filter-item-remove-btn"
+              @click.stop="deleteFilter(filter, i)"
+              :key="i + '_1'"
+            >
+              mdi-close-box
+            </v-icon>
+            <span v-else :key="i + '_1'" />
+
+            <span :key="i + '_2'" v-if="!i" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
+            <v-select
+              v-else
+              :key="i + '_2'"
+              v-model="filter.logical_op"
+              class="flex-shrink-1 flex-grow-0 elevation-0 caption"
+              :items="['and', 'or']"
+              solo
+              flat
+              dense
+              hide-details
+              placeholder="Group op"
+              @click.stop
+              @change="saveOrUpdate(filter, i)"
+            >
+              <template #item="{ item }">
+                <span class="caption font-weight-regular">{{ item }}</span>
+              </template>
+            </v-select>
+            <span :key="i + '_3'" style="grid-column: span 3"></span>
+          </template>
+
+          <div v-if="filter.is_group" :key="i + '_4'" style="grid-column: span 5; padding: 6px" class="elevation-4">
             <column-filter
               v-if="filter.id || shared"
               ref="nestedFilter"
@@ -54,19 +60,19 @@
           <template v-else>
             <v-icon
               v-if="!filter.readOnly"
-              :key="i + '_1'"
+              :key="i + '_5'"
               small
               class="nc-filter-item-remove-btn"
               @click.stop="deleteFilter(filter, i)"
             >
               mdi-close-box
             </v-icon>
-            <span v-else :key="i + '_1'" />
-            <span v-if="!i" :key="i + '_2'" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
+            <span v-else :key="i + '_5'" />
+            <span v-if="!i" :key="i + '_6'" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
 
             <v-select
               v-else
-              :key="i + '_2'"
+              :key="i + '_6'"
               v-model="filter.logical_op"
               class="flex-shrink-1 flex-grow-0 elevation-0 caption"
               :items="['and', 'or']"
@@ -84,7 +90,7 @@
             </v-select>
 
             <field-list-auto-complete-dropdown
-              :key="i + '_3'"
+              :key="i + '_7'"
               v-model="filter.fk_column_id"
               class="caption nc-filter-field-select"
               :columns="columns"
@@ -94,7 +100,7 @@
             />
 
             <v-select
-              :key="i + '_4'"
+              :key="i + '_8'"
               v-model="filter.comparison_op"
               class="flex-shrink-1 flex-grow-0 caption nc-filter-operation-select"
               :items="filterComparisonOp(filter)"
@@ -114,11 +120,11 @@
                 <span class="caption font-weight-regular">{{ item.text }}</span>
               </template>
             </v-select>
-            <span v-else :key="i + '_4'"></span>
+            <span v-else :key="i + '_8'"></span>
             <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="i + '_5'" />
             <v-checkbox
               v-else-if="types[filter.field] === 'boolean'"
-              :key="i + '_5'"
+              :key="i + '_9'"
               v-model="filter.value"
               dense
               :disabled="filter.readOnly"
@@ -126,7 +132,7 @@
             />
             <v-text-field
               v-else-if="filter && filter.fk_column_id"
-              :key="i + '_5'"
+              :key="i + '_9'"
               v-model="filter.value"
               solo
               flat
@@ -137,7 +143,7 @@
               @click.stop
               @input="saveOrUpdate(filter, i)"
             />
-            <span v-else :key="i + '_5'"></span>
+            <span v-else :key="i + '_9'"></span>
           </template>
         </template>
       </template>
@@ -411,6 +417,7 @@ export default {
         parentId: this.parentId,
         is_group: true,
         status: 'update',
+        logical_op: 'and',
       });
       this.filters = this.filters.slice();
       const index = this.filters.length - 1;
@@ -477,5 +484,9 @@ export default {
   grid-template-columns: 22px 80px auto auto auto;
   column-gap: 6px;
   row-gap: 6px;
+}
+
+.nc-filter-value-select {
+  min-width: 100px;
 }
 </style>

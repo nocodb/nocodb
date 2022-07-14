@@ -1,47 +1,49 @@
 import autoBind from 'auto-bind';
-import _ from 'lodash';
-
-import Model from '../../../../models/Model';
-import { XKnex } from '../../index';
-import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
-import RollupColumn from '../../../../models/RollupColumn';
-import LookupColumn from '../../../../models/LookupColumn';
 import DataLoader from 'dataloader';
-import Column from '../../../../models/Column';
-import { XcFilter, XcFilterWithAlias } from '../BaseModel';
-import conditionV2 from './conditionV2';
-import Filter from '../../../../models/Filter';
-import sortV2 from './sortV2';
-import Sort from '../../../../models/Sort';
-import FormulaColumn from '../../../../models/FormulaColumn';
-import genRollupSelectv2 from './genRollupSelectv2';
-import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import ejs from 'ejs';
+import DOMPurify from 'isomorphic-dompurify';
 import { QueryBuilder } from 'knex';
-import View from '../../../../models/View';
+import _ from 'lodash';
+import { customAlphabet } from 'nanoid';
 import {
   AuditOperationSubTypes,
   AuditOperationTypes,
+  isSystemColumn,
   RelationTypes,
   SortType,
   UITypes,
   ViewTypes,
 } from 'nocodb-sdk';
-import formSubmissionEmailTemplate from '../../../../utils/common/formSubmissionEmailTemplate';
-import ejs from 'ejs';
-import Audit from '../../../../models/Audit';
-import FormView from '../../../../models/FormView';
-import Hook from '../../../../models/Hook';
+import Validator from 'validator';
+import { NcError } from '../../../../meta/helpers/catchError';
 import NcPluginMgrv2 from '../../../../meta/helpers/NcPluginMgrv2';
 import {
   _transformSubmittedFormDataForEmail,
   invokeWebhook,
 } from '../../../../meta/helpers/webhookHelpers';
-import Validator from 'validator';
+import Audit from '../../../../models/Audit';
+import Column from '../../../../models/Column';
+import Filter from '../../../../models/Filter';
+import FormulaColumn from '../../../../models/FormulaColumn';
+import FormView from '../../../../models/FormView';
+import GridViewColumn from '../../../../models/GridViewColumn';
+import Hook from '../../../../models/Hook';
+import LinkToAnotherRecordColumn from '../../../../models/LinkToAnotherRecordColumn';
+import LookupColumn from '../../../../models/LookupColumn';
+
+import Model from '../../../../models/Model';
+import RollupColumn from '../../../../models/RollupColumn';
+import Sort from '../../../../models/Sort';
+import View from '../../../../models/View';
+import formSubmissionEmailTemplate from '../../../../utils/common/formSubmissionEmailTemplate';
+import { XKnex } from '../../index';
+import { XcFilter, XcFilterWithAlias } from '../BaseModel';
+import conditionV2 from './conditionV2';
 import { customValidators } from './customValidators';
-import { NcError } from '../../../../meta/helpers/catchError';
-import { customAlphabet } from 'nanoid';
-import DOMPurify from 'isomorphic-dompurify';
+import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
+import genRollupSelectv2 from './genRollupSelectv2';
 import { sanitize, unsanitize } from './helpers/sanitize';
+import sortV2 from './sortV2';
 
 const GROUP_COL = '__nc_group_id';
 
@@ -55,6 +57,15 @@ async function populatePk(model: Model, insertObj: any) {
     insertObj[pkCol.title] =
       pkCol.meta?.ag === 'nc' ? `rc_${nanoidv2()}` : uuidv4();
   }
+}
+
+function checkColumnRequired(column: Column<any>, fields: string[]) {
+  // if primary key or foreign key included in fields, it's required
+  if (column.pk || column.uidt === UITypes.ForeignKey) return true;
+
+  // check fields defined and if not, then select all
+  // if defined check if it is in the fields
+  return !fields || fields.includes(column.title);
 }
 
 /**
@@ -175,10 +186,10 @@ class BaseModelSqlv2 {
     } = {},
     ignoreFilterSort = false
   ): Promise<any> {
-    const { where, ...rest } = this._getListArgs(args as any);
+    const { where, fields, ...rest } = this._getListArgs(args as any);
 
     const qb = this.dbDriver(this.tnPath);
-    await this.selectObject({ qb });
+    await this.selectObject({ qb, fields });
     if (+rest?.shuffle) {
       await this.shuffle({ qb });
     }
@@ -251,7 +262,9 @@ class BaseModelSqlv2 {
 
     if (!ignoreFilterSort) applyPaginate(qb, rest);
     const proto = await this.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
+
+    console.log(qb.toQuery());
 
     return data?.map((d) => {
       d.__proto__ = proto;
@@ -362,7 +375,7 @@ class BaseModelSqlv2 {
     qb.groupBy(args.column_name);
     if (sorts) await sortV2(sorts, qb, this.dbDriver);
     applyPaginate(qb, rest);
-    let data = await qb;
+    const data = await qb;
     return data;
   }
 
@@ -571,7 +584,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async multipleMmList({ colId, parentIds }, args: { limit?; offset? } = {}) {
+  public async multipleMmList(
+    { colId, parentIds },
+    args: { limit?; offset? } = {}
+  ) {
     const { where, ...rest } = this._getListArgs(args as any);
     const relColumn = (await this.model.getColumns()).find(
       (c) => c.id === colId
@@ -879,7 +895,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await qb;
+    const data = await qb;
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -979,7 +995,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await childModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1079,7 +1095,7 @@ class BaseModelSqlv2 {
     applyPaginate(qb, rest);
 
     const proto = await parentModel.getProto();
-    let data = await this.extractRawQueryAndExec(qb);
+    const data = await this.extractRawQueryAndExec(qb);
 
     return data.map((c) => {
       c.__proto__ = proto;
@@ -1272,7 +1288,7 @@ class BaseModelSqlv2 {
       this.config.limitMin
     );
     obj.offset = Math.max(+(args.offset || args.o) || 0, 0);
-    obj.fields = args.fields || args.f || '*';
+    obj.fields = args.fields || args.f;
     obj.sort = args.sort || args.s || this.model.primaryKey?.[0]?.tn;
     return obj;
   }
@@ -1287,10 +1303,33 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async selectObject({ qb }: { qb: QueryBuilder }): Promise<void> {
+  public async selectObject({
+    qb,
+    fields: _fields,
+  }: {
+    qb: QueryBuilder;
+    fields?: string[] | string;
+  }): Promise<void> {
+    const view = await View.get(this.viewId);
+    const viewColumns = this.viewId && (await View.getColumns(this.viewId));
+    const fields = Array.isArray(_fields) ? _fields : _fields?.split(',');
     const res = {};
-    const columns = await this.model.getColumns();
-    for (const column of columns) {
+    const columns = viewColumns || (await this.model.getColumns());
+    for (const _column of columns) {
+      const column =
+        _column instanceof Column
+          ? _column
+          : await Column.get({
+              colId: (_column as GridViewColumn).fk_column_id,
+            });
+      if (
+        !(column instanceof Column) &&
+        !(column as GridViewColumn)?.show &&
+        (!view?.show_system_fields || isSystemColumn(column))
+      )
+        continue;
+      if (!checkColumnRequired(column, fields)) continue;
+
       switch (column.uidt) {
         case 'LinkToAnotherRecord':
         case 'Lookup':

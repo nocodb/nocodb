@@ -22,6 +22,10 @@ export const isValidPercent = (val, negative) => {
   return /^\d{1,20}(\.\d+)?$/.test(val)
 }
 
+export const getPercentStep = (precision) => {
+  return (1 / Math.pow(10, precision)).toString();
+}
+
 const padPercentSymbol = (value) => {
   return value ? value + '%' : value
 }

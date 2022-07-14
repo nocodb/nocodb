@@ -4,6 +4,7 @@
       ref="percentInput"
       v-model="localState"
       type="number"
+      :step="percentStep"
       @blur="onBlur"
       @keypress="checkPercentFormat($event)"
       @keydown.enter="isEdited && $emit('input', percent)"
@@ -16,7 +17,7 @@
 </template>
 
 <script>
-import { isValidPercent, renderPercent } from '~/helpers/percentHelper';
+import { isValidPercent, renderPercent, getPercentStep } from '~/helpers/percentHelper';
 
 export default {
   name: 'PercentCell',
@@ -62,6 +63,9 @@ export default {
       }
 
       return $listeners;
+    },
+    percentStep() {
+      return getPercentStep(this.percentType);
     },
   },
   mounted() {

@@ -1432,7 +1432,7 @@ export default {
       try {
         await this.$api.dbTable.update(item.id, {
           projectId: this.projectId,
-          title,
+          table_name: title,
         });
       } catch (e) {
         this.$toast.error(await this._extractSdkResponseErrorMsg(e)).goAway(3000);

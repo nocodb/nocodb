@@ -144,7 +144,7 @@
       <!-- Add Filter -->
       {{ $t('activity.addFilter') }}
     </v-btn>
-    <v-btn small class="elevation-0 grey--text my-3" @click.stop="addFilterGroup">
+    <v-btn v-if="!webHook" small class="elevation-0 grey--text my-3" @click.stop="addFilterGroup">
       <v-icon small color="grey"> mdi-plus</v-icon>
       Add Filter Group
       <!--     todo: add i18n {{ $t('activity.addFilterGroup') }}-->

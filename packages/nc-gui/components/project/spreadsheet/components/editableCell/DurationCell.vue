@@ -67,11 +67,9 @@ export default {
     },
   },
   mounted() {
-    window.addEventListener('keypress', _ => {
-      if (this.$refs.durationInput) {
-        this.$refs.durationInput.focus();
-      }
-    });
+    if (this.$refs.durationInput) {
+      this.$refs.durationInput.focus();
+    }
   },
   methods: {
     checkDurationFormat(evt) {
@@ -102,11 +100,11 @@ export default {
 </script>
 
 <style scoped>
-.duration-cell-wrapper {
+.nc-grid-cell .duration-cell-wrapper {
   padding: 10px;
 }
 
-.duration-warning {
+.nc-grid-cell .duration-warning {
   text-align: left;
   margin-top: 10px;
   color: #e65100;

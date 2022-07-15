@@ -270,6 +270,13 @@ const parseConditionV2 = async (
       );
       let val = customWhereClause ? customWhereClause : filter.value;
 
+      if (column.uidt === UITypes.Percent) {
+        if (typeof val === 'string') {
+          val = val.replace(/[^\d.]/g, '');
+          val = +val / 100;
+        }
+      }
+
       return (qb) => {
         switch (filter.comparison_op) {
           case 'eq':

@@ -110,7 +110,7 @@ export const genTest = (apiType, dbType) => {
             } else {
                 mainPage.getRow(index).find(".nc-row-expand-icon").click({ force: true });
             }
-            cy.get(".duration-cell-wrapper > input").first().should('exist').type(cellValue);
+            cy.get(".duration-cell-wrapper > input").first().focus().invoke('val', '').clear().type(cellValue).blur();
             cy.getActiveModal().find("button").contains("Save row").click({ force: true });
             cy.toastWait("Row updated successfully");
             mainPage.getCell(colName, index).find('input').then(($e) => {

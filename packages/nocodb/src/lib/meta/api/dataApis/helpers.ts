@@ -171,6 +171,12 @@ export async function serializeCellValue({
           .join(', ');
       }
       break;
+    case UITypes.Percent:
+      {
+        value = `${(Number(value) * 100).toFixed(column.meta.precision)}%`;
+        return value;
+      }
+      break;
     default:
       if (value && typeof value === 'object') {
         return JSON.stringify(value);

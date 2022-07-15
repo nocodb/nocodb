@@ -421,7 +421,7 @@ export default class Filter {
       });
       await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
     }
-    return filterObjs?.map((f) => new Filter(f));
+    return filterObjs?.filter(f => !f.fk_parent_id)?.map((f) => new Filter(f));
   }
 
   static async rootFilterListByHook(

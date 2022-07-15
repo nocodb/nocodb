@@ -261,16 +261,17 @@ const parseConditionV2 = async (
         filter.comparison_op === 'notempty'
       )
         filter.value = '';
-      let field = sanitize(
+      const _field = sanitize(
         customWhereClause
           ? filter.value
           : alias
           ? `${alias}.${column.column_name}`
           : column.column_name
       );
-      let val = customWhereClause ? customWhereClause : filter.value;
+      const _val = customWhereClause ? customWhereClause : filter.value;
 
       return (qb) => {
+        let [field, val] = [_field, _val];
         switch (filter.comparison_op) {
           case 'eq':
             qb = qb.where(field, val);

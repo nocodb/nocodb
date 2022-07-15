@@ -3,19 +3,19 @@
     <div class="grid" @click.stop>
       <template v-for="(filter, i) in filters" dense>
         <template v-if="filter.status !== 'delete'">
-          <div v-if="filter.is_group" :key="i" style="grid-column: span 4; padding: 6px" class="elevation-4">
+          <div v-if="filter.is_group" :key="i" style="grid-column: span 5; padding: 6px" class="elevation-4">
             <div class="d-flex" style="gap: 6px; padding: 0 6px">
               <v-icon
                 v-if="!filter.readOnly"
-                :key="i + '_3'"
                 small
                 class="nc-filter-item-remove-btn"
                 @click.stop="deleteFilter(filter, i)"
               >
                 mdi-close-box
               </v-icon>
-              <span v-else :key="i + '_1'" />
+              <span v-if="!i" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
               <v-select
+                v-else
                 v-model="filter.logical_op"
                 class="flex-shrink-1 flex-grow-0 elevation-0 caption"
                 :items="['and', 'or']"
@@ -50,7 +50,7 @@
           <template v-else>
             <v-icon
               v-if="!filter.readOnly"
-              :key="i + '_3'"
+              :key="i + '_1'"
               small
               class="nc-filter-item-remove-btn"
               @click.stop="deleteFilter(filter, i)"
@@ -62,7 +62,7 @@
 
             <v-select
               v-else
-              :key="i + '_4'"
+              :key="i + '_2'"
               v-model="filter.logical_op"
               class="flex-shrink-1 flex-grow-0 elevation-0 caption"
               :items="['and', 'or']"
@@ -80,7 +80,7 @@
             </v-select>
 
             <field-list-auto-complete-dropdown
-              :key="i + '_6'"
+              :key="i + '_3'"
               v-model="filter.fk_column_id"
               class="caption nc-filter-field-select"
               :columns="columns"
@@ -90,12 +90,12 @@
             />
 
             <v-select
-              :key="'k' + i"
+              :key="i + '_4'"
               v-model="filter.comparison_op"
               class="flex-shrink-1 flex-grow-0 caption nc-filter-operation-select"
               :items="filterComparisonOp(filter)"
               :placeholder="$t('labels.operation')"
-              v-show="filter && filter.fk_column_id"
+              v-if="filter && filter.fk_column_id"
               solo
               flat
               style="max-width: 120px"
@@ -110,20 +110,20 @@
                 <span class="caption font-weight-regular">{{ item.text }}</span>
               </template>
             </v-select>
-            <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="'span' + i" />
+            <span v-else :key="i + '_4'"></span>
+            <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="i + '_5'" />
             <v-checkbox
               v-else-if="types[filter.field] === 'boolean'"
-              :key="i + '_7'"
+              :key="i + '_5'"
               v-model="filter.value"
               dense
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
             />
             <v-text-field
-              v-else
-              :key="i + '_7'"
+              v-else-if="filter && filter.fk_column_id"
+              :key="i + '_5'"
               v-model="filter.value"
-              v-show="filter && filter.fk_column_id"
               solo
               flat
               hide-details
@@ -133,15 +133,21 @@
               @click.stop
               @input="saveOrUpdate(filter, i)"
             />
+            <span v-else :key="i + '_5'"></span>
           </template>
         </template>
       </template>
     </div>
 
     <v-btn small class="elevation-0 grey--text my-3" @click.stop="addFilter">
-      <v-icon small color="grey"> mdi-plus </v-icon>
+      <v-icon small color="grey"> mdi-plus</v-icon>
       <!-- Add Filter -->
       {{ $t('activity.addFilter') }}
+    </v-btn>
+    <v-btn v-if="!webHook" small class="elevation-0 grey--text my-3" @click.stop="addFilterGroup">
+      <v-icon small color="grey"> mdi-plus</v-icon>
+      Add Filter Group
+      <!--     todo: add i18n {{ $t('activity.addFilterGroup') }}-->
     </v-btn>
     <slot />
   </div>

@@ -49,7 +49,6 @@ export async function filterChildrenRead(
 ) {
   try {
     const filter = await Filter.parentFilterList({
-      viewId: req.params.viewId,
       parentId: req.params.filterParentId,
     });
 

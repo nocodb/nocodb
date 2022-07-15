@@ -63,13 +63,12 @@ export default async({ store, redirect, $axios, $toast, $api, route }) => {
   // fetch latest release info
   const fetchReleaseInfo = async() => {
     try {
-      const releaseInfo = await $api.utils.appInfo()
-      const latestRelease = await $api.utils.appVersion()
-      if (releaseInfo && latestRelease && releaseInfo.version) {
-        store.commit('app/MutReleaseVersion', releaseInfo.version)
-        store.commit('app/MutLatestRelease', latestRelease.releaseVersion || null)
+      const versionInfo = await $api.utils.appVersion()
+      if (versionInfo && versionInfo.releaseVersion && versionInfo.currentVersion) {
+        store.commit('app/MutCurrentVersion', versionInfo.currentVersion)
+        store.commit('app/MutLatestRelease', versionInfo.releaseVersion || null)
       } else {
-        store.commit('app/MutReleaseVersion', null)
+        store.commit('app/MutCurrentVersion', null)
         store.commit('app/MutLatestRelease', null)
       }
     } catch (e) {
@@ -77,8 +76,7 @@ export default async({ store, redirect, $axios, $toast, $api, route }) => {
     }
   }
 
-  fetchReleaseInfo().then(() => {
-  })
+  fetchReleaseInfo()
   setInterval(fetchReleaseInfo, 10 * 60 * 1000)
 }
 /**

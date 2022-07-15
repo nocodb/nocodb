@@ -15,7 +15,7 @@
     >
       <template #selection="{ item }">
         <div>
-          <span class="caption grey--text text--darken-4">
+          <span class="caption" color="text">
             {{ item.title }}
           </span>
         </div>

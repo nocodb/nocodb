@@ -443,33 +443,24 @@ export default class Filter {
 
   static async parentFilterList(
     {
-      viewId,
       parentId,
     }: {
-      viewId: any;
       parentId: any;
     },
     ncMeta = Noco.ncMeta
   ) {
-    let filterObjs = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      viewId,
-      parentId,
-    ]);
+    let filterObjs = await NocoCache.getList(CacheScope.FILTER_EXP, [parentId]);
     if (!filterObjs.length) {
       filterObjs = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
         condition: {
           fk_parent_id: parentId,
-          fk_view_id: viewId,
+          // fk_view_id: viewId,
         },
         orderBy: {
           order: 'asc',
         },
       });
-      await NocoCache.setList(
-        CacheScope.FILTER_EXP,
-        [viewId, parentId],
-        filterObjs
-      );
+      await NocoCache.setList(CacheScope.FILTER_EXP, [parentId], filterObjs);
     }
     return filterObjs?.map((f) => new Filter(f));
   }

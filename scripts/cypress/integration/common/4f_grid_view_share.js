@@ -20,7 +20,9 @@ export const genTest = (apiType, dbType) => {
         //   .find(".v-list > .v-list-item")
         //   .contains("Share View")
         //   .click();
-        mainPage.shareView().click();
+        mainPage.shareView().click({ force: true });
+
+        cy.wait(5000);
 
         // wait, as URL initially will be /undefined
         cy.getActiveModal()

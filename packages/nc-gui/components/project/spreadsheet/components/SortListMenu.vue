@@ -1,7 +1,7 @@
 <template>
   <v-menu offset-y transition="slide-y-transition">
     <template #activator="{ on }">
-      <v-badge :value="sortList && sortList.length" color="primary" dot overlap>
+      <v-badge :value="validSortsExist" color="primary" dot overlap>
         <v-btn
           v-t="['c:sort']"
           class="nc-sort-menu-btn px-2 nc-remove-border"
@@ -10,7 +10,7 @@
           text
           outlined
           :class="{
-            'primary lighten-5 grey--text text--darken-3': sortList && sortList.length,
+            'primary lighten-5 grey--text text--darken-3': validSortsExist,
           }"
           v-on="on"
         >
@@ -97,6 +97,9 @@ export default {
           ...c,
           icon: getUIDTIcon(c.uidt),
         }));
+    },
+    validSortsExist() {
+      return this.sortList && this.sortList.filter(sort => sort.fk_column_id !== null).length > 0;
     },
   },
   watch: {

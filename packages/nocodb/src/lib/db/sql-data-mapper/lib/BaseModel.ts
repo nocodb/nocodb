@@ -1511,6 +1511,7 @@ export interface XcFilter {
   condition?: any;
   conditionGraph?: any;
   limit?: string | number;
+  shuffle?: string | number;
   offset?: string | number;
   sort?: string;
   fields?: string;
@@ -1521,6 +1522,7 @@ export interface XcFilterWithAlias extends XcFilter {
   h?: string;
   c?: any;
   l?: string | number;
+  r?: string | number;
   o?: string | number;
   s?: string;
   f?: string;

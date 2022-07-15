@@ -75,6 +75,9 @@ export const genTest = (apiType, dbType) => {
                 .should("exist");
 
             cy.closeTableTab("CityX");
+            
+            // revert re-name operation to not impact rest of test suite
+            cy.renameTable("CityX", "City");
 
             // 4. verify linked contents in other table
             // 4a. Address table, has many field
@@ -97,9 +100,6 @@ export const genTest = (apiType, dbType) => {
                 .contains("Kabul")
                 .should("exist");
             cy.closeTableTab("Country");
-
-            // revert re-name operation to not impact rest of test suite
-            cy.renameTable("CityX", "City");
         });
     });
 };

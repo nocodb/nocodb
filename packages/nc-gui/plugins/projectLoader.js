@@ -69,7 +69,7 @@ export default async({ store, redirect, $axios, $toast, $api, route }) => {
           versionInfo.currentVersion &&
           !(/[^0-9.]/.test(versionInfo.currentVersion))) {
         store.commit('app/MutCurrentVersion', versionInfo.currentVersion)
-        store.commit('app/MutLatestRelease', versionInfo.releaseVersion || null)
+        store.commit('app/MutLatestRelease', versionInfo.releaseVersion)
       } else {
         store.commit('app/MutCurrentVersion', null)
         store.commit('app/MutLatestRelease', null)

@@ -1,3 +1,8 @@
+import dayjs from 'dayjs'
+import duration from 'dayjs/plugin/duration'
+
+dayjs.extend(duration)
+
 export default async({ store, redirect, $axios, $toast, $api, route }) => {
   // if (!route.path || !route.path.startsWith('/nc/')) { await store.dispatch('plugins/pluginPostInstall', 'Branding') }
   if (window.location.search &&
@@ -80,6 +85,36 @@ export default async({ store, redirect, $axios, $toast, $api, route }) => {
   fetchReleaseInfo().then(() => {
   })
   setInterval(fetchReleaseInfo, 10 * 60 * 1000)
+  handleFeedbackForm({ store, $axios })
+}
+
+const handleFeedbackForm = async({ store, $axios }) => {
+  const fetchFeedbackForm = async(now) => {
+    try {
+      const { data: feedbackForm } = await $axios.get('/api/v1/feedback_form')
+      const currentFeedbackForm = store.state.settings.feedbackForm
+
+      const isFetchedFormDuplicate = currentFeedbackForm.url === feedbackForm.url
+
+      store.commit('settings/MutFeedbackForm', {
+        url: feedbackForm.url,
+        lastFormPollDate: now.toISOString(),
+        createdAt: feedbackForm.created_at,
+        isHidden: isFetchedFormDuplicate ? currentFeedbackForm.isHidden : false
+      })
+    } catch (e) {
+      // ignore
+    }
+  }
+
+  const isFirstTimePolling = !store.state.settings.feedbackForm.lastFormPollDate
+
+  const now = dayjs()
+  const lastFormPolledDate = dayjs(store.state.settings.feedbackForm.lastFormPollDate)
+
+  if (isFirstTimePolling || (dayjs.duration(now.diff(lastFormPolledDate)).days() > 0)) {
+    fetchFeedbackForm(now)
+  }
 }
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

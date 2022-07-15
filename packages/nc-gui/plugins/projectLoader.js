@@ -64,7 +64,10 @@ export default async({ store, redirect, $axios, $toast, $api, route }) => {
   const fetchReleaseInfo = async() => {
     try {
       const versionInfo = await $api.utils.appVersion()
-      if (versionInfo && versionInfo.releaseVersion && versionInfo.currentVersion) {
+      if (versionInfo &&
+          versionInfo.releaseVersion &&
+          versionInfo.currentVersion &&
+          !(/[^0-9.]/.test(versionInfo.currentVersion))) {
         store.commit('app/MutCurrentVersion', versionInfo.currentVersion)
         store.commit('app/MutLatestRelease', versionInfo.releaseVersion || null)
       } else {

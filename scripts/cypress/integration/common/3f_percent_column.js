@@ -107,15 +107,6 @@ export const genTest = (apiType, dbType) => {
                 // Configure Default Number
                 fetchParentFromLabel("Default Number (%)");
                 cy.getActiveMenu().find('input[type="number"]').type(defaultNumber);
-
-                // Configure Negative
-                cy.getActiveModal().find('[role="switch"][type="checkbox"]').invoke('val').then(($val) => {
-                    if ($val ^ negative) {
-                        cy.getActiveModal()
-                        .find('[role="switch"][type="checkbox"]')
-                        .click({ force: true });
-                    }
-                });
             }
 
             cy.get(".nc-col-create-or-edit-card")

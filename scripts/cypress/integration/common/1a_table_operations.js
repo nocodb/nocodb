@@ -11,9 +11,9 @@ export const genTest = (apiType, dbType) => {
             cy.get(".mdi-close").click({ multiple: true });
         });
 
-        after(() => {
-            cy.get(".mdi-close").click({ multiple: true, force: true });
-        });
+        // after(() => {
+        //     cy.get(".mdi-close").click({ multiple: true, force: true });
+        // });
 
         const name = "tablex";
 
@@ -78,6 +78,7 @@ export const genTest = (apiType, dbType) => {
             
             // revert re-name operation to not impact rest of test suite
             cy.renameTable("CityX", "City");
+            cy.closeTableTab("City");
 
             // 4. verify linked contents in other table
             // 4a. Address table, has many field

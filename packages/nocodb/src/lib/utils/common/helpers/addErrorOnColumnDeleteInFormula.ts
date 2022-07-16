@@ -1,4 +1,4 @@
-export default function(args: {
+export default function (args: {
   virtualColumns;
   columnName: string;
 }): void | boolean {
@@ -6,7 +6,7 @@ export default function(args: {
 
   const fn = (pt, virtualColumn) => {
     if (pt.type === 'CallExpression') {
-      pt.arguments.map(arg => fn(arg, virtualColumn));
+      pt.arguments.map((arg) => fn(arg, virtualColumn));
     } else if (pt.type === 'Literal') {
     } else if (pt.type === 'Identifier') {
       if (pt.name === args.columnName) {

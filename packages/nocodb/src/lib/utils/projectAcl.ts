@@ -133,7 +133,7 @@ export default {
     relationDataAdd: true,
     dataCount: true,
     upload: true,
-    uploadViaURL: true
+    uploadViaURL: true,
   },
   commenter: {
     formViewGet: true,
@@ -186,7 +186,7 @@ export default {
     xcAuditCommentInsert: true,
     xcAuditModelCommentsCount: true,
     xcExportAsCsv: true,
-    dataCount: true
+    dataCount: true,
   },
   viewer: {
     formViewGet: true,
@@ -234,11 +234,11 @@ export default {
     indexList: true,
     list: true,
     xcExportAsCsv: true,
-    dataCount: true
+    dataCount: true,
   },
   user_new: {
     passwordChange: true,
-    projectList: true
+    projectList: true,
   },
   super: '*',
   user: {
@@ -259,8 +259,8 @@ export default {
     xcPluginRead: true,
     xcMetaTablesImportZipToLocalFsAndDb: true,
     xcMetaTablesExportDbToZip: true,
-    auditRowUpdate: true
-  }
+    auditRowUpdate: true,
+  },
 };
 
 /**

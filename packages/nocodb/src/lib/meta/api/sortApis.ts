@@ -23,7 +23,7 @@ export async function sortList(
 ) {
   const sortList = await Sort.list({ viewId: req.params.viewId });
   res.json({
-    sorts: new PagedResponseImpl(sortList)
+    sorts: new PagedResponseImpl(sortList),
   });
 }
 
@@ -31,7 +31,7 @@ export async function sortList(
 export async function sortCreate(req: Request<any, any, TableReqType>, res) {
   const sort = await Sort.insert({
     ...req.body,
-    fk_view_id: req.params.viewId
+    fk_view_id: req.params.viewId,
   });
   Tele.emit('evt', { evt_type: 'sort:created' });
   res.json(sort);

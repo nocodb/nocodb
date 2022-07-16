@@ -21,29 +21,29 @@ const config: XcPluginConfig = {
         label: 'Bucket Name',
         placeholder: 'Bucket Name',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'client_email',
         label: 'Client Email',
         placeholder: 'Client Email',
         type: XcType.SingleLineText,
-        required: true
+        required: true,
       },
       {
         key: 'private_key',
         label: 'Private Key',
         placeholder: 'Private Key',
         type: XcType.Password,
-        required: true
+        required: true,
       },
       {
         key: 'project_id',
         label: 'Project ID',
         placeholder: 'Project ID',
         type: XcType.SingleLineText,
-        required: false
-      }
+        required: false,
+      },
     ],
     actions: [
       {
@@ -51,20 +51,20 @@ const config: XcPluginConfig = {
         placeholder: 'Test',
         key: 'test',
         actionType: XcActionType.TEST,
-        type: XcType.Button
+        type: XcType.Button,
       },
       {
         label: 'Save',
         placeholder: 'Save',
         key: 'save',
         actionType: XcActionType.SUBMIT,
-        type: XcType.Button
-      }
+        type: XcType.Button,
+      },
     ],
     msgOnInstall:
       'Successfully installed and attachment will be stored in Google Cloud Storage',
-    msgOnUninstall: ''
-  }
+    msgOnUninstall: '',
+  },
 };
 
 export default config;

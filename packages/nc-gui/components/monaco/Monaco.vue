@@ -4,9 +4,7 @@
       <v-toolbar text height="42" class="grey--text">
         {{ heading }}
         <v-spacer />
-        <x-btn tooltip="Prettify SQL" small outlined btn.class="grey--text" @click="pretify">
-          Prettify
-        </x-btn>
+        <x-btn tooltip="Prettify SQL" small outlined btn.class="grey--text" @click="pretify"> Prettify </x-btn>
       </v-toolbar>
       <monaco-editor
         ref="editor"
@@ -24,13 +22,13 @@
 </template>
 
 <script>
-import sqlFormatter from 'sql-formatter'
-import MonacoEditor from './index.js'
+import sqlFormatter from 'sql-formatter';
+import MonacoEditor from './index.js';
 
 export default {
   ssr: false,
   components: {
-    MonacoEditor
+    MonacoEditor,
     // sqlFormatter
   },
   props: ['code', 'cssStyle', 'readOnly', 'heading'],
@@ -39,19 +37,19 @@ export default {
       codeLocal: `${this.code || ''}`,
       selection: null,
       minimap: {
-        enabled: true
-      }
-    }
+        enabled: true,
+      },
+    };
   },
   computed: {},
   watch: {
     codeLocal(newValue) {
       // INFO: for updating value of prop `code` in parent comp
-      this.$emit('update:code', newValue)
+      this.$emit('update:code', newValue);
     },
     code(newValue) {
-      this.codeLocal = newValue
-    }
+      this.codeLocal = newValue;
+    },
   },
   beforeCreate() {
     // console.log(MonacoEditor)
@@ -61,55 +59,55 @@ export default {
   },
   methods: {
     selectionFn() {
-      const editor = this.$refs.editor.getMonaco()
-      const range = editor.getSelection()
-      const selectedText = editor.getModel().getValueInRange(range)
-      this.selection = selectedText
-      this.selectionRange = range
+      const editor = this.$refs.editor.getMonaco();
+      const range = editor.getSelection();
+      const selectedText = editor.getModel().getValueInRange(range);
+      this.selection = selectedText;
+      this.selectionRange = range;
     },
     pretify() {
       // console.log("this.code", this.code);
-      const editor = this.$refs.editor.getMonaco()
+      const editor = this.$refs.editor.getMonaco();
 
       if (this.selection && this.selectionRange) {
         const op = {
           identifier: 'prettifySelection',
           range: this.selectionRange,
           text: sqlFormatter.format(this.selection),
-          forceMoveMarkers: true
-        }
-        editor.executeEdits('sqlFormatter', [op])
-        this.selection = null
-        this.selectionRange = null
+          forceMoveMarkers: true,
+        };
+        editor.executeEdits('sqlFormatter', [op]);
+        this.selection = null;
+        this.selectionRange = null;
       } else {
         // console.log("selected format before:: ", this.codeLocal);
         const op = {
           identifier: 'prettifyDoc',
           range: editor.getModel().getFullModelRange(),
           text: sqlFormatter.format(this.codeLocal || ''),
-          forceMoveMarkers: true
-        }
-        editor.executeEdits('sqlFormatter', [op])
+          forceMoveMarkers: true,
+        };
+        editor.executeEdits('sqlFormatter', [op]);
       }
     },
     toggleMiniMap() {
-      const editor = this.$refs.editor.getMonaco()
-      this.minimap.enabled = !this.minimap.enabled
+      const editor = this.$refs.editor.getMonaco();
+      this.minimap.enabled = !this.minimap.enabled;
       editor.updateOptions({
         minimap: {
-          enabled: this.minimap.enabled
-        }
-      })
-    }
-  }
-}
+          enabled: this.minimap.enabled,
+        },
+      });
+    },
+  },
+};
 </script>
 
 <style>
-  .editor {
-    /* width: 100%;
+.editor {
+  /* width: 100%;
     height: 800px; */
-  }
+}
 </style>
 <!--
 /**

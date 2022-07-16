@@ -4,35 +4,15 @@
       <v-col cols="12">
         <v-card class="pa-5">
           <v-form ref="formType" v-model="valid" lazy-validation>
-            <v-text-field
-              v-model="user.username"
-              label="username"
-              disabled
-            />
+            <v-text-field v-model="user.username" label="username" disabled />
 
-            <v-text-field
-              v-model="user.firstName"
-              label="firstName"
-              disabled
-            />
+            <v-text-field v-model="user.firstName" label="firstName" disabled />
 
-            <v-text-field
-              v-model="user.lastName"
-              label="lastName"
-              disabled
-            />
+            <v-text-field v-model="user.lastName" label="lastName" disabled />
 
-            <v-text-field
-              v-model="user.provider"
-              label="provider"
-              disabled
-            />
+            <v-text-field v-model="user.provider" label="provider" disabled />
 
-            <v-text-field
-              v-model="user.roles"
-              label="roles"
-              disabled
-            />
+            <v-text-field v-model="user.roles" label="roles" disabled />
 
             <v-btn color="primary" @click="editUser">
               {{ $t('general.edit') }}
@@ -50,10 +30,12 @@
 
 <script>
 export default {
-  directives: { },
-  components: { },
-  validate({ params }) { return true },
-  props: { },
+  directives: {},
+  components: {},
+  validate({ params }) {
+    return true;
+  },
+  props: {},
   data() {
     return {
       user: {
@@ -64,24 +46,23 @@ export default {
         email: '',
         provider: '',
         created: '',
-        roles: []
+        roles: [],
       },
-      valid: true
-
-    }
+      valid: true,
+    };
   },
-  head() { return {} },
-  computed: {
-
+  head() {
+    return {};
   },
-  watch: { },
-  created() { },
+  computed: {},
+  watch: {},
+  created() {},
   async mounted() {
     // console.log('routeparams',this.$route.params);
-    const user = await this.$store.dispatch('users/ActGetUser', this.$route.params.userId)
+    const user = await this.$store.dispatch('users/ActGetUser', this.$route.params.userId);
 
     if ('username' in user) {
-      this.user = user
+      this.user = user;
     }
 
     // console.log(this.user);
@@ -93,17 +74,14 @@ export default {
     },
     editUser(args) {
       // console.log('edit user');
-    }
-
+    },
   },
   beforeCreated() {},
-  destroy() {}
-}
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -367,7 +367,7 @@ aws ecs create-service \
 </alert>
 
 ## Development Setup
-Please refer to [Development Setup](https://github.com/nocodb/nocodb#development-setup).
+Please refer to [Development Setup](https://docs-dev.nocodb.com/engineering/development-setup).
 
 ## Sample Demos
 

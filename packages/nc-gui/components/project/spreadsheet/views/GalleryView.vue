@@ -1,17 +1,13 @@
 <template>
   <v-container fluid>
     <v-row class="align-stretch">
-      <v-col
-        v-for="({row, rowMeta},rowIndex) in data"
-        :key="rowIndex"
-        class="col-md-4 col-lg-3 col-sm-6 col-12"
-      >
-        <v-hover v-slot="{hover}">
+      <v-col v-for="({ row, rowMeta }, rowIndex) in data" :key="rowIndex" class="col-md-4 col-lg-3 col-sm-6 col-12">
+        <v-hover v-slot="{ hover }">
           <v-card
             class="h-100"
             :elevation="hover ? 4 : 1"
             :ripple="!isLocked"
-            @click="!isLocked && $emit('expandForm', {row,rowIndex,rowMeta})"
+            @click="!isLocked && $emit('expandForm', { row, rowIndex, rowMeta })"
           >
             <v-carousel
               v-if="attachmentColumn"
@@ -22,15 +18,8 @@
               delimiter-icon="mdi-minus"
               height="200"
             >
-              <v-carousel-item
-                v-for="(cover, i) in getCovers(row)"
-                :key="i"
-              >
-                <v-img
-                  height="200"
-                  :src="cover.url"
-                  :alt="cover.title"
-                />
+              <v-carousel-item v-for="(cover, i) in getCovers(row)" :key="i">
+                <v-img height="200" :src="cover.url" :alt="cover.title" />
               </v-carousel-item>
             </v-carousel>
 
@@ -41,12 +30,7 @@
             <v-card-text>
               <v-container>
                 <v-row class="">
-                  <v-col
-                    v-for="(col) in fields"
-                    v-show="showFields[ col.title]"
-                    :key="col.title"
-                    class="col-12 mt-1 mb-2 "
-                  >
+                  <v-col v-for="col in fields" v-show="showFields[col.title]" :key="col.title" class="col-12 mt-1 mb-2">
                     <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize caption grey--text">
                       <virtual-header-cell
                         v-if="isVirtualCol(col)"
@@ -55,13 +39,7 @@
                         :is-form="true"
                         :meta="meta"
                       />
-                      <header-cell
-                        v-else
-                        :is-form="true"
-                        :value="col.title"
-                        :column="col"
-                      />
-
+                      <header-cell v-else :is-form="true" :value="col.title" :column="col" />
                     </label>
 
                     <virtual-cell
@@ -93,18 +71,18 @@
 </template>
 
 <script>
-import { isVirtualCol } from 'nocodb-sdk'
-import VirtualHeaderCell from '../components/VirtualHeaderCell'
-import HeaderCell from '../components/HeaderCell'
-import VirtualCell from '../components/VirtualCell'
-import TableCell from '../components/Cell'
+import { isVirtualCol } from 'nocodb-sdk';
+import VirtualHeaderCell from '../components/VirtualHeaderCell';
+import HeaderCell from '../components/HeaderCell';
+import VirtualCell from '../components/VirtualCell';
+import TableCell from '../components/Cell';
 export default {
   name: 'GalleryView',
   components: {
     TableCell,
     VirtualCell,
     HeaderCell,
-    VirtualHeaderCell
+    VirtualHeaderCell,
   },
   props: [
     'nodes',
@@ -118,68 +96,77 @@ export default {
     'sqlUi',
     'coverImageField',
     'viewId',
-    'isLocked'
+    'isLocked',
   ],
   data() {
     return {
-      galleryView: {}
-    }
+      galleryView: {},
+    };
   },
   computed: {
     attachmentColumn() {
-      return this.coverImageField && this.meta && this.meta.columns && this.meta.columns.find(c => c.id === this.coverImageField)
+      return (
+        this.coverImageField &&
+        this.meta &&
+        this.meta.columns &&
+        this.meta.columns.find(c => c.id === this.coverImageField)
+      );
     },
     fields() {
       if (this.availableColumns) {
-        return this.availableColumns
+        return this.availableColumns;
       }
 
-      const hideCols = ['created_at', 'updated_at']
+      const hideCols = ['created_at', 'updated_at'];
 
       if (this.showSystemFields) {
-        return this.meta.columns || []
+        return this.meta.columns || [];
       } else {
-        return this.meta.columns.filter(c => !(c.pk && c.ai) && !hideCols.includes(c.title) &&
-          !((this.meta.v || []).some(v => v.bt && v.bt.title === c.title))
-        ) || []
+        return (
+          this.meta.columns.filter(
+            c =>
+              !(c.pk && c.ai) &&
+              !hideCols.includes(c.title) &&
+              !(this.meta.v || []).some(v => v.bt && v.bt.title === c.title)
+          ) || []
+        );
       }
-    }
+    },
   },
   watch: {
     async coverImageField(v) {
       if (this.galleryView && v !== this.galleryView.fk_cover_image_col_id) {
-        (await this.$api.dbView.galleryUpdate(this.viewId, {
+        await this.$api.dbView.galleryUpdate(this.viewId, {
           ...this.galleryView,
-          fk_cover_image_col_id: v
-        }))
+          fk_cover_image_col_id: v,
+        });
       }
-    }
+    },
   },
   created() {
-    this.loadView()
+    this.loadView();
   },
   methods: {
     isVirtualCol,
     async loadView() {
-      this.galleryView = (await this.$api.dbView.galleryRead(this.viewId))
-      this.$emit('update:coverImageField', this.galleryView.fk_cover_image_col_id)
+      this.galleryView = await this.$api.dbView.galleryRead(this.viewId);
+      this.$emit('update:coverImageField', this.galleryView.fk_cover_image_col_id);
     },
     getCovers(row) {
-      if (this.attachmentColumn &&
-        row[this.attachmentColumn.title] && row[this.attachmentColumn.title][0] &&
-        row[this.attachmentColumn.title]) {
+      if (
+        this.attachmentColumn &&
+        row[this.attachmentColumn.title] &&
+        row[this.attachmentColumn.title][0] &&
+        row[this.attachmentColumn.title]
+      ) {
         try {
-          return JSON.parse(row[this.attachmentColumn.title])
-        } catch (e) {
-
-        }
+          return JSON.parse(row[this.attachmentColumn.title]);
+        } catch (e) {}
       }
-      return [{ url: 'https://via.placeholder.com/700?text=No%20image%20found' }]
-    }
-  }
-}
+      return [{ url: 'https://via.placeholder.com/700?text=No%20image%20found' }];
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

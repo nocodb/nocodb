@@ -14,9 +14,7 @@
             outlined
           >
             <template #prepend-inner>
-              <v-icon small>
-                search
-              </v-icon>
+              <v-icon small> search </v-icon>
             </template>
           </v-text-field>
           <v-spacer />
@@ -43,7 +41,7 @@
             @click="save()"
           >
             <!-- Save -->
-            {{ $t("general.save") }}
+            {{ $t('general.save') }}
           </x-btn>
         </v-toolbar>
 
@@ -53,18 +51,13 @@
               <tr>
                 <th class="caption" width="100px">
                   <!--TableName-->
-                  {{ $t("labels.tableName") }}
+                  {{ $t('labels.tableName') }}
                 </th>
                 <th class="caption" width="150px">
                   <!--ViewName-->
-                  {{ $t("labels.viewName") }}
+                  {{ $t('labels.viewName') }}
                 </th>
-                <th
-                  v-for="role in roles"
-                  :key="role"
-                  class="caption"
-                  width="100px"
-                >
+                <th v-for="role in roles" :key="role" class="caption" width="100px">
                   {{ role.charAt(0).toUpperCase() + role.slice(1) }}
                 </th>
               </tr>
@@ -72,9 +65,7 @@
             <tbody>
               <template v-for="table in tables">
                 <tr
-                  v-if="
-                    table.title.toLowerCase().indexOf(filter.toLowerCase()) > -1
-                  "
+                  v-if="table.title.toLowerCase().indexOf(filter.toLowerCase()) > -1"
                   :key="table.table_name"
                   :class="`nc-acl-table-row nc-acl-table-row-${table.title}`"
                 >
@@ -82,44 +73,27 @@
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <span class="caption ml-2" v-on="on">{{
-                          table.ptype === "table"
-                            ? table._ptn
-                            : table.ptype === "view"
-                              ? table._ptn
-                              : table._ptn
+                          table.ptype === 'table' ? table._ptn : table.ptype === 'view' ? table._ptn : table._ptn
                         }}</span>
                       </template>
                       <span class="caption">{{ table.ptn || table._ptn }}</span>
                     </v-tooltip>
                   </td>
                   <td>
-                    <v-icon
-                      small
-                      :color="viewIcons[table.type].color"
-                      v-on="on"
-                    >
+                    <v-icon small :color="viewIcons[table.type].color" v-on="on">
                       {{ viewIcons[table.type].icon }}
                     </v-icon>
-                    <span v-if="table.ptn" class="caption">{{
-                      table.title
-                    }}</span>
-                    <span v-else class="caption">{{
-                      $t("general.default")
-                    }}</span>
+                    <span v-if="table.ptn" class="caption">{{ table.title }}</span>
+                    <span v-else class="caption">{{ $t('general.default') }}</span>
                     <!--                    {{ table.show_as || table.type }}-->
                   </td>
-                  <td
-                    v-for="role in roles"
-                    :key="`${table.table_name}-${role}`"
-                  >
+                  <td v-for="role in roles" :key="`${table.table_name}-${role}`">
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <div v-on="on">
                           <v-checkbox
                             v-model="table.disabled[role]"
-                            :class="`pt-0 mt-0 nc-acl-${table.title
-                              .toLowerCase()
-                              .replace('_', '')}-${role}-chkbox`"
+                            :class="`pt-0 mt-0 nc-acl-${table.title.toLowerCase().replace('_', '')}-${role}-chkbox`"
                             dense
                             hide-details
                             :true-value="false"
@@ -129,12 +103,10 @@
                         </div>
                       </template>
 
-                      <span v-if="table.disabled[role]">Click to make '{{ table.table_name }}' visible for
-                        Role:{{ role }} in UI dashboard</span>
-                      <span v-else>Click to hide '{{ table.table_name }}' for Role:{{
-                        role
-                      }}
-                        in UI dashboard</span>
+                      <span v-if="table.disabled[role]"
+                        >Click to make '{{ table.table_name }}' visible for Role:{{ role }} in UI dashboard</span
+                      >
+                      <span v-else>Click to hide '{{ table.table_name }}' for Role:{{ role }} in UI dashboard</span>
                     </v-tooltip>
                   </td>
                 </tr>
@@ -149,8 +121,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import viewIcons from '~/helpers/viewIcons'
+import { mapGetters } from 'vuex';
+import viewIcons from '~/helpers/viewIcons';
 
 export default {
   name: 'ToggleTableUiAcl',
@@ -162,19 +134,16 @@ export default {
     updating: false,
     dbsTab: 0,
     filter: '',
-    tables: null
+    tables: null,
   }),
   async mounted() {
-    await this.loadTableList()
+    await this.loadTableList();
   },
   methods: {
     async loadTableList() {
-      this.tables = await this.$api.project.modelVisibilityList(
-        this.db.project_id,
-        {
-          includeM2M: this.$store.state.settings.includeM2M || ''
-        }
-      )
+      this.tables = await this.$api.project.modelVisibilityList(this.db.project_id, {
+        includeM2M: this.$store.state.settings.includeM2M || '',
+      });
       // this.tables = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
       //   dbAlias: this.db.meta.dbAlias,
       //   env: this.$store.getters['project/GtrEnv']
@@ -187,31 +156,27 @@ export default {
         await this.$api.project.modelVisibilitySet(
           this.db.project_id,
           this.tables.filter(t => t.edited)
-        )
-        this.$toast
-          .success('Updated UI ACL for tables successfully')
-          .goAway(3000)
+        );
+        this.$toast.success('Updated UI ACL for tables successfully').goAway(3000);
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(e.message).goAway(3000);
       }
 
-      this.$e('a:proj-meta:ui-acl')
-    }
+      this.$e('a:proj-meta:ui-acl');
+    },
   },
   computed: {
     ...mapGetters({
-      dbAliasList: 'project/GtrDbAliasList'
+      dbAliasList: 'project/GtrDbAliasList',
     }),
     edited() {
-      return (
-        this.tables && this.tables.length && this.tables.some(t => t.edited)
-      )
+      return this.tables && this.tables.length && this.tables.some(t => t.edited);
     },
     roles() {
-      return ['editor', 'commenter', 'viewer'] // this.tables && this.tables.length ? Object.keys(this.tables[0].disabled) : []
-    }
-  }
-}
+      return ['editor', 'commenter', 'viewer']; // this.tables && this.tables.length ? Object.keys(this.tables[0].disabled) : []
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">

@@ -74,7 +74,7 @@ async function getSampleColumnValue(column: Column): Promise<any> {
         const colOpt = await column.getColOptions<LookupColumn>();
         const relColOpt = await colOpt
           .getRelationColumn()
-          .then(r => r.getColOptions<LinkToAnotherRecordColumn>());
+          .then((r) => r.getColOptions<LinkToAnotherRecordColumn>());
         const sampleVal = await getSampleColumnValue(
           await colOpt.getLookupColumn()
         );

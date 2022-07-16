@@ -5,19 +5,15 @@
       ref="input"
       v-model="autocomplete"
       :style="styles"
-      :class="[classNames,{'env-valid' : isEnvFound && isEnvUsageValid, 'env-invalid' : isEnvFound && !isEnvUsageValid}]"
+      :class="[
+        classNames,
+        { 'env-valid': isEnvFound && isEnvUsageValid, 'env-invalid': isEnvFound && !isEnvUsageValid },
+      ]"
       @input="onInput"
       @keydown.native="onKeyup"
     />
 
-    <v-menu
-      ref="autoMenu"
-      v-model="show"
-      :position-x="x"
-      :position-y="y"
-      dense
-      :min-width="width"
-    >
+    <v-menu ref="autoMenu" v-model="show" :position-x="x" :position-y="y" dense :min-width="width">
       <v-list dense>
         <v-list-item
           v-for="(item, index) in envValues"
@@ -33,7 +29,6 @@
 </template>
 
 <script>
-
 // http://jsfiddle.net/pranavcbalan/qg5xyko6/
 
 export default {
@@ -41,7 +36,7 @@ export default {
   props: {
     value: String,
     env: String,
-    styles: [Array, Object, String]
+    styles: [Array, Object, String],
   },
   data() {
     return {
@@ -51,112 +46,116 @@ export default {
       activeValue: '',
       curPos: 0,
       input: null,
-      el: null
-    }
+      el: null,
+    };
   },
   computed: {
     // filtered list based on input
     items() {
-      return this.envValues.filter(s => s.includes(this.activeValue))
+      return this.envValues.filter(s => s.includes(this.activeValue));
     },
     // for setting menu width to textfield width
     width() {
-      return this.input && this.input.clientWidth
+      return this.input && this.input.clientWidth;
     },
     // extracting class names from root element
     classNames() {
-      return this.el && this.el.className
+      return this.el && this.el.className;
     },
     // v-model for the text filed
     autocomplete: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     //  extracting current env keys
     envValues() {
-      const envObj = this.isDashboard ? this.$store.getters['project/GtrApiEnvironment'] : this.$store.getters['project/GtrDefaultApiEnvironment']
-      return envObj && envObj[this.env] ? Object.keys(envObj[this.env]) : []
+      const envObj = this.isDashboard
+        ? this.$store.getters['project/GtrApiEnvironment']
+        : this.$store.getters['project/GtrDefaultApiEnvironment'];
+      return envObj && envObj[this.env] ? Object.keys(envObj[this.env]) : [];
     },
     isEnvFound() {
-      return /{{\s*\w+\s*}}/.test(this.value)
+      return /{{\s*\w+\s*}}/.test(this.value);
     },
     isEnvUsageValid() {
-      const re = /{{\s*(\w+)\s*}}/g
-      let m
+      const re = /{{\s*(\w+)\s*}}/g;
+      let m;
       // eslint-disable-next-line no-cond-assign
-      while (m = re.exec(this.value)) {
-        if (!this.envValues.includes(m[1])) { return false }
+      while ((m = re.exec(this.value))) {
+        if (!this.envValues.includes(m[1])) {
+          return false;
+        }
       }
-      return true
-    }
+      return true;
+    },
   },
   mounted() {
-    this.el = this.$el
+    this.el = this.$el;
     // getting input element reference
-    this.input = this.$refs.input && this.$refs.input.$el.querySelector('input')
+    this.input = this.$refs.input && this.$refs.input.$el.querySelector('input');
   },
-  created() {
-  },
+  created() {},
   methods: {
     // handling input event
     onInput(v) {
-      this.curPos = this.input.selectionStart || 0
+      this.curPos = this.input.selectionStart || 0;
       // extracting string from beginning to caret position
       // then using regex to check and extract certain pattern like
       // eg: {{ , {{ someWord,...
-      const m = v.slice(0, this.curPos).match(/{{\s?(\w*)$/)
+      const m = v.slice(0, this.curPos).match(/{{\s?(\w*)$/);
       if (m) {
-        this.activeValue = m[1] || ''
-        this.show = true
+        this.activeValue = m[1] || '';
+        this.show = true;
         // calculate menu position relative to input element
-        this.x = this.input.getBoundingClientRect().left// + (this.curPos * 8) % this.$refs.input.$el.clientWidth;
-        this.y = this.input.getBoundingClientRect().top + this.input.clientHeight
+        this.x = this.input.getBoundingClientRect().left; // + (this.curPos * 8) % this.$refs.input.$el.clientWidth;
+        this.y = this.input.getBoundingClientRect().top + this.input.clientHeight;
       } else {
-        this.show = false
+        this.show = false;
       }
     },
     onKeyup(e) {
-      const menu = this.$refs.autoMenu
+      const menu = this.$refs.autoMenu;
       // handlig up and down keys
       if (this.show && (e.which === 40 || e.which === 38)) {
-        e.preventDefault()
-        menu.onKeyDown(e)
-        return
+        e.preventDefault();
+        menu.onKeyDown(e);
+        return;
       }
       // handling enter and space
       if (this.show && (e.which === 13 || e.which === 32)) {
-        menu.onKeyDown(e)
+        menu.onKeyDown(e);
       }
     },
     onSelect(item) {
       // appending menu value to the input
       this.input.setRangeText(
         // add closing only when its necessary
-        item.slice(this.activeValue.length) + (this.autocomplete.substr(this.input.selectionEnd, 2) === '}}' ? '' : '}}'),
+        item.slice(this.activeValue.length) +
+          (this.autocomplete.substr(this.input.selectionEnd, 2) === '}}' ? '' : '}}'),
         this.input.selectionStart,
         this.input.selectionEnd,
         'end'
-      )
+      );
       // trigger input event to sync with vue model
-      this.input.dispatchEvent(new Event('input'))
-      this.show = false
-    }
-  }
-}
+      this.input.dispatchEvent(new Event('input'));
+      this.show = false;
+    },
+  },
+};
 </script>
 
 <style scoped>
-  /deep/ .env-valid input {
-    color: var(--v-success-base) !important;
-  }
+/deep/ .env-valid input {
+  color: var(--v-success-base) !important;
+}
 
-  /deep/ .env-invalid input {
-    color: var(--v-error-base) !important;
-  }
+/deep/ .env-invalid input {
+  color: var(--v-error-base) !important;
+}
 </style>
 <!--
 /**

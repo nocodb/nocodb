@@ -18,7 +18,7 @@ export default function getColumnPropsFromUIDT(
     cdf: null,
     un: false,
     dtx: 'specificType',
-    ...colProp
+    ...colProp,
   };
 
   newColumn.dtxp = sqlUi.getDefaultLengthForDatatype(newColumn.dt);

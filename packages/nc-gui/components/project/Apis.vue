@@ -5,22 +5,23 @@
         <div style="border: 1px solid grey">
           <v-toolbar height="42" flat class="toolbar-border-bottom">
             <v-breadcrumbs
-              :items="[{
-                text: nodes.env,
-                disabled: true,
-                href: '#'
-              },{
-                text: nodes.dbAlias,
-                disabled: true,
-                href: '#'
-              }]"
+              :items="[
+                {
+                  text: nodes.env,
+                  disabled: true,
+                  href: '#',
+                },
+                {
+                  text: nodes.dbAlias,
+                  disabled: true,
+                  href: '#',
+                },
+              ]"
               divider=">"
               small
             >
               <template #divider>
-                <v-icon small color="grey lighten-2">
-                  forward
-                </v-icon>
+                <v-icon small color="grey lighten-2"> forward </v-icon>
               </template>
             </v-breadcrumbs>
 
@@ -37,20 +38,13 @@
           </v-toolbar>
           <v-card class="elevation-1 pa-8 text-left">
             <v-col cols="4" offset="4">
-              <v-text-field
-                v-model="portNumber"
-                :height="20"
-                label="Port for webserver"
-                autofocus
-              />
+              <v-text-field v-model="portNumber" :height="20" label="Port for webserver" autofocus />
             </v-col>
 
             <v-card v-if="server1" class="elevation-1 pa-4">
-              <p class="text-center display-1 pt-2">
-                Generating APIs at the speed of your thought
-              </p>
+              <p class="text-center display-1 pt-2">Generating APIs at the speed of your thought</p>
               <!--            <v-divider></v-divider>-->
-              <br>
+              <br />
 
               <v-simple-table class="text-center">
                 <template #default>
@@ -70,11 +64,7 @@
                     <tr>
                       <td>Local URL</td>
                       <td class="text-left">
-                        <a
-                          class="title"
-                          @click.prevent="openUrl(server1.localUrl)"
-                        >
-                          {{ server1.localUrl }}</a>
+                        <a class="title" @click.prevent="openUrl(server1.localUrl)"> {{ server1.localUrl }}</a>
                         <v-btn
                           v-clipboard="`${server1.localUrl}/pwa`"
                           v-clipboard:success="clipboardSuccessHandler"
@@ -94,8 +84,7 @@
                           &nbsp;Get Cloud URL
                         </v-btn>
                         <span v-else style="" class="title">
-                          <a @click.prevent="openUrl(server1.cloudUrl)">
-                            {{ server1.cloudUrl }}</a>
+                          <a @click.prevent="openUrl(server1.cloudUrl)"> {{ server1.cloudUrl }}</a>
 
                           <v-btn
                             v-clipboard="server1.cloudUrl"
@@ -103,7 +92,8 @@
                             v-clipboard:error="clipboardErrorHandler"
                             small
                             text
-                          ><v-icon>mdi-content-copy</v-icon></v-btn>
+                            ><v-icon>mdi-content-copy</v-icon></v-btn
+                          >
                         </span>
                       </td>
                     </tr>
@@ -111,8 +101,8 @@
                     <tr v-if="server1.cloudUrl">
                       <td>Web App Url</td>
                       <td class="text-left">
-                        <br>
-                        <a class="title" @click.prevent="openWebUrl(server1.cloudUrl+'/pwa')">
+                        <br />
+                        <a class="title" @click.prevent="openWebUrl(server1.cloudUrl + '/pwa')">
                           {{ server1.cloudUrl }}/pwa
                         </a>
                         <v-btn
@@ -124,12 +114,11 @@
                         >
                           <v-icon>mdi-content-copy</v-icon>
                         </v-btn>
-                        <br>
-                        <br>
+                        <br />
+                        <br />
 
-                        <v-btn outlined color="primary" class="mb-4 " @click.prevent="sendNotification()">
-                          <v-icon>mdi-send</v-icon> &nbsp;
-                          Send Push Notification
+                        <v-btn outlined color="primary" class="mb-4" @click.prevent="sendNotification()">
+                          <v-icon>mdi-send</v-icon> &nbsp; Send Push Notification
                         </v-btn>
                       </td>
                     </tr>
@@ -162,36 +151,32 @@
 </template>
 
 <script>
-import { mapGetters, mapActions } from 'vuex'
+import { mapGetters, mapActions } from 'vuex';
 
 export default {
   components: {},
   data() {
     return {
-
       // portNumber: 3000,
-
-    }
+    };
   },
   computed: {
     ...mapGetters({
       sqlMgr: 'sqlMgr/sqlMgr',
-      tabs: 'tabs/list'
+      tabs: 'tabs/list',
     }),
 
     server1() {
-      return this.$store.state.apiServer.servers[this.nodes.key]
+      return this.$store.state.apiServer.servers[this.nodes.key];
     },
 
     portNumber() {
-      return this.server1 ? this.server1.portNumber : 3000
-    }
-
+      return this.server1 ? this.server1.portNumber : 3000;
+    },
   },
   methods: {
-
     ...mapActions({
-      changeActiveTab: 'tabs/changeActiveTab'
+      changeActiveTab: 'tabs/changeActiveTab',
     }),
 
     openWebUrl(url) {
@@ -199,109 +184,103 @@ export default {
     },
 
     openUrl(url) {
-      const _nodes = { ...this.nodes }
-      _nodes.key = _nodes.dbKey + '.apiClient'
-      _nodes.type = 'apiClientDir'
-      _nodes.url = url
-      const tabIndex = this.tabs.findIndex(el => el.key === _nodes.key)
+      const _nodes = { ...this.nodes };
+      _nodes.key = _nodes.dbKey + '.apiClient';
+      _nodes.type = 'apiClientDir';
+      _nodes.url = url;
+      const tabIndex = this.tabs.findIndex(el => el.key === _nodes.key);
       if (tabIndex !== -1) {
-        this.changeActiveTab(tabIndex)
+        this.changeActiveTab(tabIndex);
       } else {
         this.$store.dispatch('tabs/ActAddTab', {
           name: 'API Client',
           key: _nodes.key,
-          _nodes
-        })
+          _nodes,
+        });
       }
     },
 
     async startServer() {
       try {
-        const args = { ...this.nodes }
-        args.portNumber = this.server1 ? this.server1.portNumber : 3000
+        const args = { ...this.nodes };
+        args.portNumber = this.server1 ? this.server1.portNumber : 3000;
 
-        await this.$store.dispatch('apiServer/start', args)
+        await this.$store.dispatch('apiServer/start', args);
 
-        this.$toast.success('API server started successfully', { duration: 1000 })
+        this.$toast.success('API server started successfully', { duration: 1000 });
       } catch (e) {
-        console.log(e)
-        throw e
+        console.log(e);
+        throw e;
       }
     },
 
     async stopServer() {
       try {
-        const args = { ...this.nodes }
-        args.portNumber = parseInt(this.server1.portNumber)
+        const args = { ...this.nodes };
+        args.portNumber = parseInt(this.server1.portNumber);
 
-        await this.$store.dispatch('apiServer/stop', args)
+        await this.$store.dispatch('apiServer/stop', args);
 
-        this.$toast.success('API server stopped successfully', { duration: 1000 })
+        this.$toast.success('API server stopped successfully', { duration: 1000 });
       } catch (e) {
-        console.log(e)
-        throw e
+        console.log(e);
+        throw e;
       }
     },
 
     async getCloudUrl() {
       try {
-        const args = { ...this.nodes }
-        args.portNumber = parseInt(this.server1.portNumber)
+        const args = { ...this.nodes };
+        args.portNumber = parseInt(this.server1.portNumber);
 
-        await this.$store.dispatch('apiServer/getCloudUrl', args)
+        await this.$store.dispatch('apiServer/getCloudUrl', args);
 
-        this.$toast.success('Cloud URL received successfully', { duration: 1000 })
+        this.$toast.success('Cloud URL received successfully', { duration: 1000 });
       } catch (e) {
-        console.log(e)
-        throw e
+        console.log(e);
+        throw e;
       }
     },
 
     async sendNotification() {
       try {
-        const args = { ...this.nodes }
-        await this.$store.dispatch('apiServer/cloudSendNotification', args)
+        const args = { ...this.nodes };
+        await this.$store.dispatch('apiServer/cloudSendNotification', args);
         // this.$toast.success('Cloud URL received successfully', {duration: 1000})
       } catch (e) {
-        console.log(e)
-        throw e
+        console.log(e);
+        throw e;
       }
     },
     clipboardSuccessHandler({ value, event }) {
-      this.$toast.info('Copied to clipboard.').goAway(1000)
+      this.$toast.info('Copied to clipboard.').goAway(1000);
     },
 
     clipboardErrorHandler({ value, event }) {
-      this.$toast.info('Clipboard copying failed.').goAway(1000)
-    }
-
+      this.$toast.info('Clipboard copying failed.').goAway(1000);
+    },
   },
 
-  beforeCreated() {
-  },
+  beforeCreated() {},
   watch: {},
   async created() {
     // this.server.serverLive = await this.sqlMgr.projectAPIServerIsLive();
   },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
-  destroy() {
-  },
+  mounted() {},
+  beforeDestroy() {},
+  destroy() {},
   directives: {},
   validate({ params }) {
-    return true
+    return true;
   },
   head() {
-    return {}
+    return {};
   },
-  props: ['nodes']
-}
+  props: ['nodes'],
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -5,16 +5,16 @@ import template from './template';
 
 describe('Template parser', () => {
   // Called once before any of the tests in this block begin.
-  before(function(done) {
+  before(function (done) {
     done();
   });
 
-  after(done => {
+  after((done) => {
     done();
   });
 
-  describe('Parse blog templates', function() {
-    it('Simple formula', function() {
+  describe('Parse blog templates', function () {
+    it('Simple formula', function () {
       const parser = new NcTemplateParser({ client: 'mysql', template });
 
       const { tables } = parser.parse();

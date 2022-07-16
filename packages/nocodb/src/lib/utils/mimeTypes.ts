@@ -344,18 +344,14 @@ export default {
   lrm: 'application/vnd.ms-lrm',
   mvb: 'application/x-msmediaview',
   mny: 'application/x-msmoney',
-  pptx:
-    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+  pptx: 'application/vnd.openxmlformats-officedocument.presentationml.presentation',
   sldx: 'application/vnd.openxmlformats-officedocument.presentationml.slide',
-  ppsx:
-    'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
+  ppsx: 'application/vnd.openxmlformats-officedocument.presentationml.slideshow',
   potx: 'application/vnd.openxmlformats-officedocument.presentationml.template',
   xlsx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
   xltx: 'application/vnd.openxmlformats-officedocument.spreadsheetml.template',
-  docx:
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
-  dotx:
-    'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
+  docx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+  dotx: 'application/vnd.openxmlformats-officedocument.wordprocessingml.template',
   obd: 'application/x-msbinder',
   thmx: 'application/vnd.ms-officetheme',
   onetoc: 'application/onenote',
@@ -690,7 +686,7 @@ export default {
   zir: 'application/vnd.zul',
   zip: 'application/zip',
   zmm: 'application/vnd.handheld-entertainment+xml',
-  zaz: 'application/vnd.zzazz.deck+xml'
+  zaz: 'application/vnd.zzazz.deck+xml',
 };
 
 const mimeIcons = {
@@ -712,7 +708,7 @@ const mimeIcons = {
   xlam: 'mdi-file-excel-outline',
   xlsb: 'mdi-file-excel-outline',
   xltm: 'mdi-file-excel-outline',
-  xlsm: 'mdi-file-excel-outline'
+  xlsm: 'mdi-file-excel-outline',
 };
 
 export { mimeIcons };

@@ -3,20 +3,18 @@
 </template>
 
 <script>
-import XcKanban from '../../../components/project/spreadsheet/public/XcKanban'
+import XcKanban from '../../../components/project/spreadsheet/public/XcKanban';
 
 export default {
   components: { XcKanban },
   layout: 'public',
   data: () => ({
-    data: null
-  })
-}
+    data: null,
+  }),
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

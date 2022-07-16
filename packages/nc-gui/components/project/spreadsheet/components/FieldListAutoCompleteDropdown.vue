@@ -14,15 +14,14 @@
     @click.stop
     @change="$emit('change')"
   >
-    <template #selection="{item}">
+    <template #selection="{ item }">
       <v-icon small class="mr-1">
         {{ item.icon }}
-      </v-icon> {{ item.title }}
+      </v-icon>
+      {{ item.title }}
     </template>
     <template #item="{ item }">
-      <span
-        :class="`caption font-weight-regular nc-fld-${item.title}`"
-      >
+      <span :class="`caption font-weight-regular nc-fld-${item.title}`">
         <v-icon color="grey" small class="mr-1">
           {{ item.icon }}
         </v-icon>
@@ -37,30 +36,28 @@ export default {
   name: 'FieldListAutoCompleteDropdown',
   props: {
     columns: Array,
-    value: String
+    value: String,
   },
   computed: {
     localValue: {
       set(v) {
-        this.$emit('input', v)
+        this.$emit('input', v);
       },
       get() {
-        return this.value
-      }
-    }
+        return this.value;
+      },
+    },
   },
   mounted() {
-    const autocompleteInput = this.$refs.field.$refs.input
-    autocompleteInput.addEventListener('focus', this.onFocus, true)
+    const autocompleteInput = this.$refs.field.$refs.input;
+    autocompleteInput.addEventListener('focus', this.onFocus, true);
   },
   methods: {
     onFocus(e) {
-      this.$refs.field.isMenuActive = true // open item list
-    }
-  }
-}
+      this.$refs.field.isMenuActive = true; // open item list
+    },
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

@@ -19,7 +19,7 @@ export default class Twilio implements IWebhookNotificationAdapter {
         await this.client.messages.create({
           body: content,
           from: this.input.from,
-          to: num
+          to: num,
         });
       } catch (e) {
         console.log(e);

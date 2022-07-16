@@ -11,5 +11,5 @@ export {
   dataAliasApis,
   bulkDataAliasApis,
   dataAliasNestedApis,
-  dataAliasExportApis
+  dataAliasExportApis,
 };

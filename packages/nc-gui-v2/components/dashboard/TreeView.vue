@@ -1,11 +1,12 @@
 <template>
   <div>
 
-    <div v-for="table in tables" class="p-2 text-sm pointer"
+    <v-list density="medium">
+    <v-list-item v-for="table in tables" class="p-2 text-sm pointer"
          @click="addTab({type:'table',title:table.title, id:table.id})">
       {{ table.title }}
-    </div>
-
+    </v-list-item>
+    </v-list>
   </div>
 </template>
 

@@ -260,11 +260,6 @@ Access Dashboard using : [http://localhost:8080/dashboard](http://localhost:8080
 - [Production Setup](#production-setup)
   * [Environment variables](#environment-variables)
 - [Development Setup](#development-setup)
-  * [Cloning the Project](#cloning-the-project)
-  * [Build SDK](#build-sdk)
-  * [Running Backend locally](#running-backend-locally)
-  * [Running Frontend locally](#running-frontend-locally)
-  * [Running Cypress tests locally](#running-cypress-tests-locally)
 - [Contributing](#contributing)
 - [Why are we building this?](#why-are-we-building-this)
 - [Our Mission](#our-mission)
@@ -316,65 +311,7 @@ Please refer to [Environment variables](https://docs.nocodb.com/getting-started/
 
 # Development Setup 
 
-## Cloning the Project
-
-```shell
-git clone https://github.com/nocodb/nocodb
-cd nocodb
-```
-
-## Build SDK
-
-```shell
-cd packages/nocodb-sdk
-npm install
-npm run build
-```
-
-## Running Backend locally
-
-```shell
-cd packages/nocodb
-npm install
-npm run watch:run
-# open localhost:8080/dashboard in browser
-```
-
-## Running Frontend locally 
-
-```shell
-cd packages/nc-gui
-npm install
-npm run dev
-# open localhost:3000/dashboard in browser
-```
-
-Changes made to code automatically restart.
-
-> nocodb/packages/nocodb includes nc-lib-gui which is the built version of nc-gui hosted in npm registry. You can visit localhost:8000/dashboard in browser after starting the backend locally if you just want to modify the backend only.
-
-## Running Cypress tests locally
-
-```shell
-# install dependencies(cypress)
-npm install
-
-# run mysql database with required database using docker compose
-docker-compose -f ./scripts/docker-compose-cypress.yml up
-
-# Run backend api using following command
-npm run start:api
-
-# Run frontend web UI using following command
-npm run start:web
-
-# wait until both 3000 and 8080 ports are available
-# and run cypress test using following command
-npm run cypress:run
-
-# or run following command to run it with GUI
-npm run cypress:open
-```
+Please refer to [Development Setup](https://docs-dev.nocodb.com/engineering/development-setup)
 
 # Contributing
 
@@ -506,6 +443,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/RK311y"><img src="https://avatars.githubusercontent.com/u/65210753?v=4?s=100" width="100px;" alt=""/><br /><sub><b>River Kelly</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=RK311y" title="Code">💻</a></td>
     <td align="center"><a href="https://github.com/LepkoQQ"><img src="https://avatars.githubusercontent.com/u/2662937?v=4?s=100" width="100px;" alt=""/><br /><sub><b>LepkoQQ</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=LepkoQQ" title="Code">💻</a></td>
     <td align="center"><a href="https://cornernewclub.fr"><img src="https://avatars.githubusercontent.com/u/56829191?v=4?s=100" width="100px;" alt=""/><br /><sub><b>quentin</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=QuentinDstl" title="Code">💻</a></td>
+    <td align="center"><a href="http://cande.me"><img src="https://avatars.githubusercontent.com/u/5407915?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Cande</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=cande1gut" title="Code">💻</a></td>
   </tr>
 </table>
 

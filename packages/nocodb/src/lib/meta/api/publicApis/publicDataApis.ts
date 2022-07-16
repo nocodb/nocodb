@@ -30,7 +30,7 @@ export async function dataList(req: Request, res: Response) {
     }
 
     const model = await Model.getByIdOrName({
-      id: view?.fk_model_id
+      id: view?.fk_model_id,
     });
 
     const base = await Base.get(model.base_id);
@@ -38,7 +38,7 @@ export async function dataList(req: Request, res: Response) {
     const baseModel = await Model.getBaseModelSQL({
       id: model.id,
       viewId: view?.id,
-      dbDriver: NcConnectionMgrv2.get(base)
+      dbDriver: NcConnectionMgrv2.get(base),
     });
 
     const listArgs: any = { ...req.query };
@@ -53,7 +53,7 @@ export async function dataList(req: Request, res: Response) {
       await getAst({
         query: req.query,
         model,
-        view
+        view,
       }),
       await baseModel.list(listArgs),
       {},
@@ -63,7 +63,7 @@ export async function dataList(req: Request, res: Response) {
     const count = await baseModel.count(listArgs);
 
     res.json({
-      data: new PagedResponseImpl(data, { ...req.query, count })
+      data: new PagedResponseImpl(data, { ...req.query, count }),
     });
   } catch (e) {
     console.log(e);
@@ -86,7 +86,7 @@ async function dataInsert(
   }
 
   const model = await Model.getByIdOrName({
-    id: view?.fk_model_id
+    id: view?.fk_model_id,
   });
   const base = await Base.get(model.base_id);
   const project = await base.getProject();
@@ -94,7 +94,7 @@ async function dataInsert(
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   await view.getViewWithInfo();
@@ -103,11 +103,11 @@ async function dataInsert(
   await view.model.getColumns();
 
   const fields = (view.model.columns = view.columns
-    .filter(c => c.show)
+    .filter((c) => c.show)
     .reduce((o, c) => {
       o[view.model.columnsById[c.fk_column_id].title] = new Column({
         ...c,
-        ...view.model.columnsById[c.fk_column_id]
+        ...view.model.columnsById[c.fk_column_id],
       } as any);
       return o;
     }, {}) as any);
@@ -134,7 +134,7 @@ async function dataInsert(
       'v1',
       project.title,
       model.title,
-      fieldName
+      fieldName,
     ]);
 
     if (fieldName in fields && fields[fieldName].uidt === UITypes.Attachment) {
@@ -156,7 +156,7 @@ async function dataInsert(
         title: file.originalname,
         mimetype: file.mimetype,
         size: file.size,
-        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined
+        icon: mimeIcons[path.extname(file.originalname).slice(1)] || undefined,
       });
     }
   }
@@ -188,13 +188,13 @@ async function relDataList(req, res) {
   const baseModel = await Model.getBaseModelSQL({
     id: model.id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const requestObj = await getAst({
     query: req.query,
     model,
-    extractOnlyPrimaries: true
+    extractOnlyPrimaries: true,
   });
 
   const data = await nocoExecute(
@@ -229,27 +229,27 @@ export async function publicMmList(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: view.fk_model_id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const key = `List`;
   const requestObj: any = {
-    [key]: 1
+    [key]: 1,
   };
 
   const data = (
     await nocoExecute(
       requestObj,
       {
-        [key]: async args => {
+        [key]: async (args) => {
           return await baseModel.mmList(
             {
               colId: req.params.colId,
-              parentId: req.params.rowId
+              parentId: req.params.rowId,
             },
             args
           );
-        }
+        },
       },
       {},
 
@@ -259,7 +259,7 @@ export async function publicMmList(req: Request, res: Response) {
 
   const count: any = await baseModel.mmListCount({
     colId: req.params.colId,
-    parentId: req.params.rowId
+    parentId: req.params.rowId,
   });
 
   res.json(new PagedResponseImpl(data, { ...req.query, count }));
@@ -285,27 +285,27 @@ export async function publicHmList(req: Request, res: Response) {
   const baseModel = await Model.getBaseModelSQL({
     id: view.fk_model_id,
     viewId: view?.id,
-    dbDriver: NcConnectionMgrv2.get(base)
+    dbDriver: NcConnectionMgrv2.get(base),
   });
 
   const key = `List`;
   const requestObj: any = {
-    [key]: 1
+    [key]: 1,
   };
 
   const data = (
     await nocoExecute(
       requestObj,
       {
-        [key]: async args => {
+        [key]: async (args) => {
           return await baseModel.hmList(
             {
               colId: req.params.colId,
-              id: req.params.rowId
+              id: req.params.rowId,
             },
             args
           );
-        }
+        },
       },
       {},
       { nested: { [key]: req.query } }
@@ -314,12 +314,12 @@ export async function publicHmList(req: Request, res: Response) {
 
   const count = await baseModel.hmListCount({
     colId: req.params.colId,
-    id: req.params.rowId
+    id: req.params.rowId,
   });
 
   res.json(
     new PagedResponseImpl(data, {
-      totalRows: count
+      totalRows: count,
     } as any)
   );
 }
@@ -336,7 +336,7 @@ router.get(
 router.post(
   '/api/v1/db/public/shared-view/:sharedViewUuid/rows',
   multer({
-    storage: multer.diskStorage({})
+    storage: multer.diskStorage({}),
   }).any(),
   catchError(dataInsert)
 );

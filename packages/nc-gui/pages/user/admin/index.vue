@@ -14,7 +14,7 @@
               {{ $t('general.delete') }}
             </v-btn>
           </v-card-title>
-          <hr>
+          <hr />
         </v-card>
       </v-col>
     </v-row>
@@ -26,44 +26,36 @@ export default {
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   props: {},
   data() {
     return {
-      users: this.$store.state.users
-    }
+      users: this.$store.state.users,
+    };
   },
   head() {
-    return {}
+    return {};
   },
   computed: {
-
     users1() {
       // console.log(this.$store.state);
-      return this.$store.state.creator.users
-    }
-
+      return this.$store.state.creator.users;
+    },
   },
   watch: {},
-  created() {
-  },
+  created() {},
   mounted() {
-    this.$store.dispatch('admin/ActGetUsers')
+    this.$store.dispatch('admin/ActGetUsers');
   },
-  beforeDestroy() {
-  },
+  beforeDestroy() {},
   methods: {},
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

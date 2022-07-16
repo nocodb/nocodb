@@ -1,8 +1,6 @@
 <template>
   <v-row class="duration-wrapper">
-    <div class="caption">
-      A duration of time in minutes or seconds (e.g. 1:23).
-    </div>
+    <div class="caption">A duration of time in minutes or seconds (e.g. 1:23).</div>
     <!-- TODO: i18n -->
     <v-autocomplete
       v-model="colMeta.duration"
@@ -17,7 +15,7 @@
     >
       <template #selection="{ item }">
         <div>
-          <span class="caption grey--text text--darken-4">
+          <span class="caption" color="text">
             {{ item.title }}
           </span>
         </div>
@@ -32,33 +30,33 @@
 </template>
 
 <script>
-import { durationOptions } from '~/helpers/durationHelper'
+import { durationOptions } from '~/helpers/durationHelper';
 
 export default {
-  name: 'DuractionOptions',
+  name: 'DurationOptions',
   props: ['column', 'meta', 'value'],
   data: () => ({
     durationOptionList: durationOptions.map(o => ({
-        ...o,
-        // h:mm:ss (e.g. 3:45, 1:23:40)
-        title: `${o.title} ${o.example}`
+      ...o,
+      // h:mm:ss (e.g. 3:45, 1:23:40)
+      title: `${o.title} ${o.example}`,
     })),
     colMeta: {
-        duration: 0
-    }
+      duration: 0,
+    },
   }),
   watch: {
     value() {
-      this.colMeta = this.value || {}
+      this.colMeta = this.value || {};
     },
     colMeta(v) {
-      this.$emit('input', v)
-    }
+      this.$emit('input', v);
+    },
   },
   created() {
-    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta }
-  }
-}
+    this.colMeta = this.value ? { ...this.value } : { ...this.colMeta };
+  },
+};
 </script>
 
 <style scoped>
@@ -67,6 +65,6 @@ export default {
 }
 
 .duration-wrapper .caption:first-child {
-    margin: -10px 0px 10px 5px;
+  margin: -10px 0px 10px 5px;
 }
 </style>

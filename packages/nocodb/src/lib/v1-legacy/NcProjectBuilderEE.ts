@@ -2,7 +2,7 @@ import NcProjectBuilder from './NcProjectBuilder';
 
 export default class NcProjectBuilderEE extends NcProjectBuilder {
   public async handleRunTimeChanges(data: any): Promise<any> {
-    const curBuilder = this.apiBuilders.find(builder => {
+    const curBuilder = this.apiBuilders.find((builder) => {
       return (
         (data.req?.dbAlias || data.req?.args?.dbAlias) === builder.getDbAlias()
       );
@@ -35,16 +35,16 @@ export default class NcProjectBuilderEE extends NcProjectBuilder {
       case 'tableMetaCreate':
         // await curBuilder.onTableCreate(data.req.args.tn)
         await curBuilder.xcTablesPopulate({
-          tableNames: data.req.args.tableNames.map(tn => ({ tn })),
-          type: 'table'
+          tableNames: data.req.args.tableNames.map((tn) => ({ tn })),
+          type: 'table',
         });
         break;
 
       case 'viewMetaCreate':
         // await curBuilder.onTableCreate(data.req.args.tn)
         await curBuilder.xcTablesPopulate({
-          tableNames: data.req.args.viewNames.map(tn => ({ tn })),
-          type: 'view'
+          tableNames: data.req.args.viewNames.map((tn) => ({ tn })),
+          type: 'view',
         });
         break;
 

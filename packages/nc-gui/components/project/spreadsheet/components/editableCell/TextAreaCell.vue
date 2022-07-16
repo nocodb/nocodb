@@ -13,42 +13,42 @@
 export default {
   name: 'TextAreaCell',
   props: {
-    value: String
+    value: String,
   },
   computed: {
-
     localState: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
+        this.$emit('input', val);
+      },
     },
     parentListeners() {
-      const $listeners = {}
+      const $listeners = {};
 
       if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
+        $listeners.blur = this.$listeners.blur;
       }
       if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
+        $listeners.focus = this.$listeners.focus;
       }
 
-      return $listeners
-    }
+      return $listeners;
+    },
   },
   created() {
-    this.localState = this.value
+    this.localState = this.value;
   },
   mounted() {
-    this.$refs.textarea && this.$refs.textarea.focus()
-  }
-}
+    this.$refs.textarea && this.$refs.textarea.focus();
+  },
+};
 </script>
 
 <style scoped>
-input, textarea {
+input,
+textarea {
   width: 100%;
   min-height: 60px;
   height: 100%;

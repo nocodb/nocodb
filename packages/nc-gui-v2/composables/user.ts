@@ -11,7 +11,7 @@ export  const useUser = () =>{
     version: '1.0.0'
   })
 
-  const {$api}: { $api: Api<any> } = useNuxtApp() as any
+  const {$api} = useNuxtApp()
 
 
   const getUser =async (args = {}) => {

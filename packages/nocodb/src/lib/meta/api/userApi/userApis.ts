@@ -27,7 +27,7 @@ export async function signup(req: Request, res: Response<TableType>) {
     firstname,
     lastname,
     token,
-    ignore_subscribe
+    ignore_subscribe,
   } = req.body;
   let { password } = req.body;
 
@@ -78,7 +78,7 @@ export async function signup(req: Request, res: Response<TableType>) {
         email_verification_token,
         invite_token: null,
         invite_token_expires: null,
-        email: user.email
+        email: user.email,
       });
     } else {
       NcError.badRequest('User already exist');
@@ -92,7 +92,7 @@ export async function signup(req: Request, res: Response<TableType>) {
       // roles = 'owner,creator,editor'
       Tele.emit('evt', {
         evt_type: 'project:invite',
-        count: 1
+        count: 1,
       });
     } else {
       if (process.env.NC_INVITE_ONLY_SIGNUP) {
@@ -112,21 +112,23 @@ export async function signup(req: Request, res: Response<TableType>) {
       password,
       email_verification_token,
       roles,
-      token_version
+      token_version,
     });
   }
   user = await User.getByEmail(email);
 
   try {
     const template = (await import('./ui/emailTemplates/verify')).default;
-    await (await NcPluginMgrv2.emailAdapter()).mailSend({
+    await (
+      await NcPluginMgrv2.emailAdapter()
+    ).mailSend({
       to: email,
       subject: 'Verify email',
       html: ejs.render(template, {
         verifyLink:
           (req as any).ncSiteUrl +
-          `/email/verify/${user.email_verification_token}`
-      })
+          `/email/verify/${user.email_verification_token}`,
+      }),
     });
   } catch (e) {
     console.log(
@@ -137,7 +139,7 @@ export async function signup(req: Request, res: Response<TableType>) {
   const refreshToken = randomTokenString();
   await User.update(user.id, {
     refresh_token: refreshToken,
-    email: user.email
+    email: user.email,
   });
 
   setTokenCookie(res, refreshToken);
@@ -149,11 +151,11 @@ export async function signup(req: Request, res: Response<TableType>) {
     op_sub_type: 'SIGNUP',
     user: user.email,
     description: `signed up `,
-    ip: (req as any).clientIp
+    ip: (req as any).clientIp,
   });
 
   res.json({
-    token: genJwt(user, Noco.getConfig())
+    token: genJwt(user, Noco.getConfig()),
   } as any);
 }
 
@@ -163,7 +165,7 @@ async function successfulSignIn({
   info,
   req,
   res,
-  auditDescription
+  auditDescription,
 }) {
   try {
     if (!user || !user.email) {
@@ -186,7 +188,7 @@ async function successfulSignIn({
     await User.update(user.id, {
       refresh_token: refreshToken,
       email: user.email,
-      token_version: user.token_version
+      token_version: user.token_version,
     });
     setTokenCookie(res, refreshToken);
 
@@ -195,11 +197,11 @@ async function successfulSignIn({
       op_sub_type: 'SIGNIN',
       user: user.email,
       ip: req.clientIp,
-      description: auditDescription
+      description: auditDescription,
     });
 
     res.json({
-      token: genJwt(user, Noco.getConfig())
+      token: genJwt(user, Noco.getConfig()),
     } as any);
   } catch (e) {
     console.log(e);
@@ -218,7 +220,7 @@ async function signin(req, res, next) {
         info,
         req,
         res,
-        auditDescription: 'signed in'
+        auditDescription: 'signed in',
       })
   )(req, res, next);
 }
@@ -228,7 +230,7 @@ async function googleSignin(req, res, next) {
     'google',
     {
       session: false,
-      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath
+      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
     },
     async (err, user, info): Promise<any> =>
       await successfulSignIn({
@@ -237,7 +239,7 @@ async function googleSignin(req, res, next) {
         info,
         req,
         res,
-        auditDescription: 'signed in using Google Auth'
+        auditDescription: 'signed in using Google Auth',
       })
   )(req, res, next);
 }
@@ -246,7 +248,7 @@ function setTokenCookie(res, token): void {
   // create http only cookie with refresh token that expires in 7 days
   const cookieOptions = {
     httpOnly: true,
-    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000)
+    expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
   };
   res.cookie('refresh_token', token, cookieOptions);
 }
@@ -286,7 +288,7 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
     salt,
     password,
     email: user.email,
-    token_version: null
+    token_version: null,
   });
 
   Audit.insert({
@@ -294,7 +296,7 @@ async function passwordChange(req: Request<any, any>, res): Promise<any> {
     op_sub_type: 'PASSWORD_CHANGE',
     user: user.email,
     description: `changed password `,
-    ip: (req as any).clientIp
+    ip: (req as any).clientIp,
   });
 
   res.json({ msg: 'Password updated successfully' });
@@ -315,22 +317,21 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
       email: user.email,
       reset_password_token: token,
       reset_password_expires: new Date(Date.now() + 60 * 60 * 1000),
-      token_version: null
+      token_version: null,
     });
     try {
       const template = (await import('./ui/emailTemplates/forgotPassword'))
         .default;
-      await NcPluginMgrv2.emailAdapter().then(adapter =>
+      await NcPluginMgrv2.emailAdapter().then((adapter) =>
         adapter.mailSend({
           to: user.email,
           subject: 'Password Reset Link',
           text: `Visit following link to update your password : ${
             (req as any).ncSiteUrl
-          }/api/v1/auth/password/reset/${token}.`,
+          }/auth/password/reset/${token}.`,
           html: ejs.render(template, {
-            resetLink:
-              (req as any).ncSiteUrl + `/api/v1/auth/password/reset/${token}`
-          })
+            resetLink: (req as any).ncSiteUrl + `/auth/password/reset/${token}`,
+          }),
         })
       );
     } catch (e) {
@@ -345,7 +346,7 @@ async function passwordForgot(req: Request<any, any>, res): Promise<any> {
       op_sub_type: 'PASSWORD_FORGOT',
       user: user.email,
       description: `requested for password reset `,
-      ip: (req as any).clientIp
+      ip: (req as any).clientIp,
     });
   } else {
     return NcError.badRequest('Your email has not been registered.');
@@ -357,17 +358,14 @@ async function tokenValidate(req, res): Promise<any> {
   const token = req.params.tokenId;
 
   const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
-    reset_password_token: token
+    reset_password_token: token,
   });
 
   if (!user || !user.email) {
     NcError.badRequest('Invalid reset url');
   }
-  if (user.reset_password_expires < new Date()) {
+  if (new Date(user.reset_password_expires) < new Date()) {
     NcError.badRequest('Password reset url expired');
-  }
-  if (!user.token_version) {
-    NcError.badRequest('Token Expired. Please login again.');
   }
   res.json(true);
 }
@@ -376,7 +374,7 @@ async function passwordReset(req, res): Promise<any> {
   const token = req.params.tokenId;
 
   const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
-    reset_password_token: token
+    reset_password_token: token,
   });
 
   if (!user) {
@@ -404,7 +402,7 @@ async function passwordReset(req, res): Promise<any> {
     email: user.email,
     reset_password_expires: null,
     reset_password_token: '',
-    token_version: null
+    token_version: null,
   });
 
   Audit.insert({
@@ -412,7 +410,7 @@ async function passwordReset(req, res): Promise<any> {
     op_sub_type: 'PASSWORD_RESET',
     user: user.email,
     description: `did reset password `,
-    ip: req.clientIp
+    ip: req.clientIp,
   });
 
   res.json({ msg: 'Password reset successful' });
@@ -422,7 +420,7 @@ async function emailVerification(req, res): Promise<any> {
   const token = req.params.tokenId;
 
   const user = await Noco.ncMeta.metaGet(null, null, MetaTable.USERS, {
-    email_verification_token: token
+    email_verification_token: token,
   });
 
   if (!user) {
@@ -432,7 +430,7 @@ async function emailVerification(req, res): Promise<any> {
   await User.update(user.id, {
     email: user.email,
     email_verification_token: '',
-    email_verified: true
+    email_verified: true,
   });
 
   Audit.insert({
@@ -440,7 +438,7 @@ async function emailVerification(req, res): Promise<any> {
     op_sub_type: 'EMAIL_VERIFICATION',
     user: user.email,
     description: `verified email `,
-    ip: req.clientIp
+    ip: req.clientIp,
   });
 
   res.json({ msg: 'Email verified successfully' });
@@ -462,13 +460,13 @@ async function refreshToken(req, res): Promise<any> {
 
     await User.update(user.id, {
       email: user.email,
-      refresh_token: refreshToken
+      refresh_token: refreshToken,
     });
 
     setTokenCookie(res, refreshToken);
 
     res.json({
-      token: genJwt(user, Noco.getConfig())
+      token: genJwt(user, Noco.getConfig()),
     } as any);
   } catch (e) {
     return res.status(400).json({ msg: e.message });
@@ -480,7 +478,7 @@ async function renderPasswordReset(req, res): Promise<any> {
     res.send(
       ejs.render((await import('./ui/auth/resetPassword')).default, {
         token: JSON.stringify(req.params.tokenId),
-        baseUrl: `/`
+        baseUrl: `/`,
       })
     );
   } catch (e) {
@@ -488,7 +486,7 @@ async function renderPasswordReset(req, res): Promise<any> {
   }
 }
 
-const mapRoutes = router => {
+const mapRoutes = (router) => {
   // todo: old api - /auth/signup?tool=1
   router.post('/auth/user/signup', catchError(signup));
   router.post('/auth/user/signin', catchError(signin));
@@ -511,7 +509,7 @@ const mapRoutes = router => {
     passport.authenticate('google', {
       scope: ['profile', 'email'],
       state: req.query.state,
-      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath
+      callbackURL: req.ncSiteUrl + Noco.getConfig().dashboardPath,
     })(req, res, next)
   );
 
@@ -578,9 +576,7 @@ const mapRoutes = router => {
     '/api/v1/auth/token/refresh',
     ncMetaAclMw(refreshToken, 'refreshToken')
   );
-  router.get(
-    '/api/v1/auth/password/reset/:tokenId',
-    catchError(renderPasswordReset)
-  );
+  // respond with password reset page
+  router.get('/auth/password/reset/:tokenId', catchError(renderPasswordReset));
 };
 export { mapRoutes as userApis };

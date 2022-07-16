@@ -9,16 +9,16 @@ export default class MetaAPILogger {
     this.knex = XKnex({
       client: 'sqlite3',
       connection: {
-        filename: 'noco_log.db'
+        filename: 'noco_log.db',
       },
-      useNullAsDefault: true
+      useNullAsDefault: true,
     });
   }
 
   async init() {
     await this.knex.migrate.latest({
       migrationSource: new XcLoggerMigrationSource(),
-      tableName: 'xc_knex_migrations'
+      tableName: 'xc_knex_migrations',
     });
   }
 
@@ -29,14 +29,14 @@ export default class MetaAPILogger {
 
       const chunks = [];
 
-      res.write = function(chunk) {
+      res.write = function (chunk) {
         chunks.push(chunk);
 
         // eslint-disable-next-line prefer-rest-params
         oldWrite.apply(res, arguments);
       };
 
-      res.end = function(chunk) {
+      res.end = function (chunk) {
         if (chunk) chunks.push(chunk);
 
         const body = Buffer.concat(chunks).toString('utf8');
@@ -64,7 +64,7 @@ export default class MetaAPILogger {
       headers: JSON.stringify(req.headers),
       method: req.method,
       operation: req.body?.api,
-      response: typeof res === 'string' ? res : JSON.stringify(res)
+      response: typeof res === 'string' ? res : JSON.stringify(res),
     });
   }
 }
@@ -87,7 +87,7 @@ class XcLoggerMigrationSource {
       case 'logger':
         return {
           async up(knex: XKnex) {
-            await knex.schema.createTable('nc_log', table => {
+            await knex.schema.createTable('nc_log', (table) => {
               table.increments();
               table.string('path');
               table.string('method');
@@ -102,7 +102,7 @@ class XcLoggerMigrationSource {
           },
           async down(knex) {
             await knex.schema.dropTable('nc_log');
-          }
+          },
         };
     }
   }

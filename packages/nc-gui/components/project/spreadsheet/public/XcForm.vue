@@ -1,10 +1,8 @@
 <template>
   <v-container class="h-100 j-excel-container">
-    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300">
-      Not found
-    </v-alert>
+    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300"> Not found </v-alert>
 
-    <v-row v-else :class="{'d-flex justify-center': submitted}">
+    <v-row v-else :class="{ 'd-flex justify-center': submitted }">
       <template v-if="submitted">
         <v-col class="d-flex justify-center">
           <div v-if="view" style="min-width: 350px">
@@ -14,25 +12,20 @@
             <p v-if="view.show_blank_form" class="caption grey--text text-center">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
-            <div v-if="view.submit_another_form" class=" text-center">
-              <v-btn color="primary" @click="submitted = false">
-                Submit Another Form
-              </v-btn>
+            <div v-if="view.submit_another_form" class="text-center">
+              <v-btn color="primary" @click="submitted = false"> Submit Another Form </v-btn>
             </div>
           </div>
         </v-col>
       </template>
       <template v-else>
-        <v-col
-          class="h-100 px-sm-1 px-md-10 "
-          style="overflow-y: auto;"
-        >
+        <v-col class="h-100 px-sm-1 px-md-10" style="overflow-y: auto">
           <!--        <div class="my-14 d-flex align-center justify-center">-->
           <!--          <v-chip>Add cover image</v-chip>-->
           <!--        </div>-->
-          <div class="nc-form-wrapper elevation-3 pb-10 ">
+          <div class="nc-form-wrapper elevation-3 pb-10">
             <div class="mt-10 d-flex align-center justify-center flex-column">
-              <div class="nc-form-banner backgroundColor darken-1 flex-column justify-center  d-flex">
+              <div class="nc-form-banner backgroundColor darken-1 flex-column justify-center d-flex">
                 <div class="d-flex align-center justify-center flex-grow-1">
                   <!--                  <v-chip small color="backgroundColorDefault caption grey--text">
                   Add cover image
@@ -42,46 +35,34 @@
                 </div>
               </div>
             </div>
-            <div class="mx-auto nc-form elevation-3 pa-2  mb-10">
+            <div class="mx-auto nc-form elevation-3 pa-2 mb-10">
               <div class="nc-form-logo py-8" style="display: none">
                 <!--                <div v-ripple class="nc-form-add-logo text-center caption pointer" @click.stop>-->
                 <!--                  Add a logo-->
                 <!--                </div>-->
               </div>
-              <h2
-                class="mt-4 display-1 font-weight-bold text-left mx-4 mb-3 px-1 text--text  text--lighten-1"
-              >
+              <h2 class="mt-4 display-1 font-weight-bold text-left mx-4 mb-3 px-1 text--text text--lighten-1">
                 {{ view.heading }}
               </h2>
 
-              <div
-                class="body-1  text-left mx-4 py-2 px-1 text--text text--lighten-2"
-              >
+              <div class="body-1 text-left mx-4 py-2 px-1 text--text text--lighten-2">
                 {{ view.subheading }}
               </div>
               <div class="h-100">
-                <div
-
-                  v-for="(col) in columns"
-                  :key="col.alias"
-                  class="nc-field-wrapper item px-4 my-3 pointer"
-                >
+                <div v-for="col in columns" :key="col.alias" class="nc-field-wrapper item px-4 my-3 pointer">
                   <div>
                     <div
                       :class="{
-                        'active-row' : active === col.title,
-                        required: isRequired(col, localState, col.required)
+                        'active-row': active === col.title,
+                        required: isRequired(col, localState, col.required),
                       }"
                     >
                       <div class="nc-field-editables">
-                        <label
-                          :for="`data-table-form-${col.title}`"
-                          class="body-2 text-capitalize nc-field-labels"
-                        >
+                        <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize nc-field-labels">
                           <virtual-header-cell
                             v-if="isVirtualCol(col)"
                             class="caption"
-                            :column="{...col, _cn: col.label || col.title}"
+                            :column="{ ...col, _cn: col.label || col.title }"
                             :nodes="{}"
                             :is-form="true"
                             :meta="meta"
@@ -94,14 +75,10 @@
                             :value="col.label || col.title"
                             :column="col"
                             :sql-ui="sqlUiLoc"
-                            :required="isRequired(col, localState,col.required)"
+                            :required="isRequired(col, localState, col.required)"
                           />
-
                         </label>
-                        <div
-                          v-if="isVirtualCol(col)"
-                          @click.stop
-                        >
+                        <div v-if="isVirtualCol(col)" @click.stop>
                           <virtual-cell
                             ref="virtual"
                             :disabled-columns="{}"
@@ -119,11 +96,16 @@
                             :required="col.description"
                             :metas="metas"
                             :password="password"
-                            @update:localState="state => $set(virtual,col.title, state)"
+                            @update:localState="state => $set(virtual, col.title, state)"
                             @updateCol="updateCol"
                           />
                           <div
-                            v-if="$v.virtual && $v.virtual.$dirty && $v.virtual[col.title] && (!$v.virtual[col.title].required || !$v.virtual[col.title].minLength)"
+                            v-if="
+                              $v.virtual &&
+                              $v.virtual.$dirty &&
+                              $v.virtual[col.title] &&
+                              (!$v.virtual[col.title].required || !$v.virtual[col.title].minLength)
+                            "
                             class="error--text caption"
                           >
                             Field is required.
@@ -132,23 +114,15 @@
                         <template v-else>
                           <div
                             v-if="col.ai || disabledColumns[col.title]"
-                            style="height:100%; width:100%"
+                            style="height: 100%; width: 100%"
                             class="caption xc-input"
                             @click.stop
                             @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
                           >
-                            <input
-                              style="height:100%; width: 100%"
-                              readonly
-                              disabled
-                              :value="localState[col.title]"
-                            >
+                            <input style="height: 100%; width: 100%" readonly disabled :value="localState[col.title]" />
                           </div>
 
-                          <div
-                            v-else
-                            @click.stop
-                          >
+                          <div v-else @click.stop>
                             <editable-cell
                               :id="`data-table-form-${col.title}`"
                               v-model="localState[col.title]"
@@ -164,7 +138,7 @@
                               @blur="active = ''"
                             />
                           </div>
-                          <template v-if="$v.localState&& $v.localState.$dirty && $v.localState[col.title] ">
+                          <template v-if="$v.localState && $v.localState.$dirty && $v.localState[col.title]">
                             <div v-if="!$v.localState[col.title].required" class="error--text caption">
                               Field is required.
                             </div>
@@ -176,9 +150,7 @@
                   </div>
                 </div>
                 <div class="my-10 text-center">
-                  <v-btn color="primary" :loading="submitting" :disabled="submitting" @click="save">
-                    Submit
-                  </v-btn>
+                  <v-btn color="primary" :loading="submitting" :disabled="submitting" @click="save"> Submit </v-btn>
                 </div>
               </div>
             </div>
@@ -203,7 +175,14 @@
           />
 
           <div class="text-center">
-            <v-btn small color="primary" @click="loadMetaData(); showPasswordModal =false">
+            <v-btn
+              small
+              color="primary"
+              @click="
+                loadMetaData();
+                showPasswordModal = false;
+              "
+            >
               Unlock
             </v-btn>
           </div>
@@ -214,15 +193,14 @@
 </template>
 
 <script>
-
-import { validationMixin } from 'vuelidate'
-import { required, minLength } from 'vuelidate/lib/validators'
-import { ErrorMessages, isVirtualCol, RelationTypes, UITypes, SqlUiFactory } from 'nocodb-sdk'
-import form from '../mixins/form'
-import VirtualHeaderCell from '../components/VirtualHeaderCell'
-import HeaderCell from '../components/HeaderCell'
-import VirtualCell from '../components/VirtualCell'
-import EditableCell from '../components/EditableCell'
+import { validationMixin } from 'vuelidate';
+import { required, minLength } from 'vuelidate/lib/validators';
+import { ErrorMessages, isVirtualCol, RelationTypes, UITypes, SqlUiFactory } from 'nocodb-sdk';
+import form from '../mixins/form';
+import VirtualHeaderCell from '../components/VirtualHeaderCell';
+import HeaderCell from '../components/HeaderCell';
+import VirtualCell from '../components/VirtualCell';
+import EditableCell from '../components/EditableCell';
 
 export default {
   name: 'XcForm',
@@ -230,7 +208,7 @@ export default {
     EditableCell,
     VirtualCell,
     HeaderCell,
-    VirtualHeaderCell
+    VirtualHeaderCell,
   },
   mixins: [form, validationMixin],
   data() {
@@ -253,140 +231,161 @@ export default {
       virtual: {},
       metas: {},
       secondsRemain: null,
-      notFound: false
-    }
+      notFound: false,
+    };
   },
   computed: {
-
     btColumnsRefs() {
       return (this.columns || []).reduce((aggObj, column) => {
-        if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions && column.colOptions.type === RelationTypes.BELONGS_TO) {
-          const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
+        if (
+          column.uidt === UITypes.LinkToAnotherRecord &&
+          column.colOptions &&
+          column.colOptions.type === RelationTypes.BELONGS_TO
+        ) {
+          const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id);
 
-          aggObj[column.title] = col
+          aggObj[column.title] = col;
         }
-        return aggObj
-      }, {})
+        return aggObj;
+      }, {});
     },
 
     sqlUiLoc() {
       // todo: replace with correct client
-      return this.client && SqlUiFactory.create({ client: this.client })
-    }
+      return this.client && SqlUiFactory.create({ client: this.client });
+    },
   },
   watch: {
     submitted(val) {
       if (val && this.view.show_blank_form) {
-        this.secondsRemain = 5
+        this.secondsRemain = 5;
         const intvl = setInterval(() => {
           if (--this.secondsRemain < 0) {
-            this.submitted = false
-            clearInterval(intvl)
+            this.submitted = false;
+            clearInterval(intvl);
           }
-        }, 1000)
+        }, 1000);
       }
-    }
+    },
   },
   async mounted() {
-    await this.loadMetaData()
+    await this.loadMetaData();
   },
   methods: {
     isVirtualCol,
     async loadMetaData() {
-      this.loading = true
+      this.loading = true;
       try {
-        this.viewMeta = (await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
-          headers: { 'xc-password': this.password }
-        }))
+        this.viewMeta = await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
+          headers: { 'xc-password': this.password },
+        });
 
-        this.view = this.viewMeta.view
-        this.meta = this.viewMeta.model
-        this.metas = this.viewMeta.relatedMetas
-        this.columns = this.meta.columns.filter(c => c.show)
-        this.client = this.viewMeta.client
+        this.view = this.viewMeta.view;
+        this.meta = this.viewMeta.model;
+        this.metas = this.viewMeta.relatedMetas;
+        this.columns = this.meta.columns
+          .filter(c => c.show)
+          .filter(col => !isVirtualCol(col) || col.uidt === UITypes.LinkToAnotherRecord);
+        this.client = this.viewMeta.client;
       } catch (e) {
         if (e.response && e.response.status === 404) {
-          this.notFound = true
-        } else if (await this._extractSdkResponseErrorMsg(e) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
-          this.showPasswordModal = true
+          this.notFound = true;
+        } else if ((await this._extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
+          this.showPasswordModal = true;
         }
       }
 
-      this.loadingData = false
+      this.loadingData = false;
     },
     async save() {
       try {
-        this.$v.$touch()
+        this.$v.$touch();
         if (this.$v.localState.$invalid || this.$v.virtual.$invalid) {
-          this.$toast.error('Provide values of all required field').goAway(3000)
-          return
+          this.$toast.error('Provide values of all required field').goAway(3000);
+          return;
         }
 
-        this.submitting = true
-        const data = { ...this.localState, ...this.virtual }
-        const attachment = {}
+        this.submitting = true;
+        const data = { ...this.localState, ...this.virtual };
+        const attachment = {};
 
         for (const col of this.meta.columns) {
           if (col.uidt === UITypes.Attachment) {
-            attachment[`_${col.title}`] = data[col.title]
-            delete data[col.title]
+            attachment[`_${col.title}`] = data[col.title];
+            delete data[col.title];
           }
         }
 
-        await this.$api.public.dataCreate(this.$route.params.id, {
-          data,
-          ...attachment
-        }, {
-          headers: { 'xc-password': this.password }
-        })
+        await this.$api.public.dataCreate(
+          this.$route.params.id,
+          {
+            data,
+            ...attachment,
+          },
+          {
+            headers: { 'xc-password': this.password },
+          }
+        );
 
-        this.virtual = {}
-        this.localState = {}
+        this.virtual = {};
+        this.localState = {};
 
-        this.submitted = true
+        this.submitted = true;
 
-        this.$toast.success(this.view.success_msg || 'Saved successfully.', {
-          position: 'bottom-right'
-        }).goAway(3000)
-      } catch
-      (e) {
-        console.log(e)
-        this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
+        this.$toast
+          .success(this.view.success_msg || 'Saved successfully.', {
+            position: 'bottom-right',
+          })
+          .goAway(3000);
+      } catch (e) {
+        console.log(e);
+        this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000);
       }
-      this.submitting = false
+      this.submitting = false;
     },
     updateCol(_, column, id) {
-      this.$set(this.localState, column, id)
-    }
+      this.$set(this.localState, column, id);
+    },
   },
 
   validations() {
     const obj = {
       localState: {},
-      virtual: {}
-    }
+      virtual: {},
+    };
     for (const column of this.columns) {
       // if (!this.localParams || !this.localParams.fields || !this.localParams.fields[column.alias]) {
       //   continue
       // }
-      if (!isVirtualCol(column) && (((column.rqd || column.notnull) && !column.cdf) || (column.pk && !(column.ai || column.cdf)) || column.required)) {
-        obj.localState[column.title] = { required }
-      } else if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions && column.colOptions.type === RelationTypes.BELONGS_TO) {
-        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id)
+      if (
+        !isVirtualCol(column) &&
+        (((column.rqd || column.notnull) && !column.cdf) ||
+          (column.pk && !(column.ai || column.cdf)) ||
+          column.required)
+      ) {
+        obj.localState[column.title] = { required };
+      } else if (
+        column.uidt === UITypes.LinkToAnotherRecord &&
+        column.colOptions &&
+        column.colOptions.type === RelationTypes.BELONGS_TO
+      ) {
+        const col = this.meta.columns.find(c => c.id === column.colOptions.fk_child_column_id);
 
         if ((col && col.rqd && !col.cdf) || column.required) {
-          if (col) { obj.virtual[column.title] = { required } }
+          if (col) {
+            obj.virtual[column.title] = { required };
+          }
         }
       } else if (isVirtualCol(column) && column.required) {
         obj.virtual[column.title] = {
           minLength: minLength(1),
-          required
-        }
+          required,
+        };
       }
     }
-    return obj
-  }
-}
+    return obj;
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -411,7 +410,6 @@ export default {
 }
 
 .nc-field-wrapper {
-
   &.active-row {
     border-radius: 4px;
     border: 1px solid var(--v-backgroundColor-darken1);
@@ -425,7 +423,7 @@ export default {
     right: 10px;
     top: 10px;
     transition: 200ms opacity;
-    z-index: 9
+    z-index: 9;
   }
 
   &.nc-editable:hover {
@@ -442,7 +440,8 @@ export default {
   font-weight: 700;
 }
 
-.row-col:focus > label, .active-row > label {
+.row-col:focus > label,
+.active-row > label {
   color: var(--v-primary-base);
 }
 
@@ -453,25 +452,25 @@ export default {
 }
 
 ::v-deep {
-
   .nc-hint {
     padding-left: 3px;
   }
 
-  .nc-required-switch, .nc-switch {
+  .nc-required-switch,
+  .nc-switch {
     .v-input--selection-controls__input {
       transform: scale(0.65) !important;
     }
   }
 
   .v-breadcrumbs__item:nth-child(odd) {
-    font-size: .72rem;
+    font-size: 0.72rem;
     color: grey;
   }
 
   .v-breadcrumbs li:nth-child(even) {
     padding: 0 6px;
-    font-size: .72rem;
+    font-size: 0.72rem;
     color: var(--v-textColor-base);
   }
 
@@ -482,7 +481,6 @@ export default {
   }
 
   .nc-field-wrapper {
-
     //.required {
     //  & > input,
     //  .xc-input > input,
@@ -505,7 +503,7 @@ export default {
     div textarea:not(.inputarea) {
       border: 1px solid #7f828b33;
       padding: 1px 5px;
-      font-size: .8rem;
+      font-size: 0.8rem;
       border-radius: 4px;
       min-height: 44px;
 
@@ -538,17 +536,19 @@ export default {
     background: var(--v-backgroundColor-base);
   }
 
-  &:active, &:focus {
+  &:active,
+  &:focus {
     border: 1px solid #7f828b33;
   }
 }
 
-.nc-drag-n-drop-to-hide, .nc-drag-n-drop-to-show {
+.nc-drag-n-drop-to-hide,
+.nc-drag-n-drop-to-show {
   border: 2px dashed #c4c4c4;
   border-radius: 4px;
-  font-size: .62rem;
+  font-size: 0.62rem;
 
-  color: grey
+  color: grey;
 }
 
 .nc-form-left-nav {

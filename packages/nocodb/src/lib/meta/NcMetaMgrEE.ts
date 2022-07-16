@@ -67,12 +67,12 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
     let tables = await this.xcVisibilityMetaGet({
       ...args,
-      args: { type: 'table', ...args.args }
+      args: { type: 'table', ...args.args },
     });
 
     tables = tables.filter((table: any) => {
       return Object.keys(roles).some(
-        role => roles[role] && !table.disabled[role]
+        (role) => roles[role] && !table.disabled[role]
       );
     });
 
@@ -89,10 +89,10 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         dbAlias,
         'nc_acl',
         {
-          acl: JSON.stringify(args.args.acl)
+          acl: JSON.stringify(args.args.acl),
         },
         {
-          tn: args.args.tn || args.args.name
+          tn: args.args.tn || args.args.name,
         }
       );
 
@@ -101,7 +101,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         op_sub_type: 'UPDATED',
         user: req.user.email,
         description: `updated table ${args.args.tn || args.args.name} acl `,
-        ip: req.clientIp
+        ip: req.clientIp,
       });
 
       Tele.emit('evt', { evt_type: 'acl:updated' });
@@ -117,7 +117,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       const sharedViewMeta = await this.xcMeta
         .knex('nc_shared_views')
         .where({
-          view_id: args.args.view_id
+          view_id: args.args.view_id,
         })
         .first();
 
@@ -130,7 +130,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         sharedViewMeta.base_id,
         'nc_models',
         {
-          title: sharedViewMeta.view_name
+          title: sharedViewMeta.view_name,
         }
       );
 
@@ -143,8 +143,8 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       }
 
       const apiBuilder = this.app?.projectBuilders
-        ?.find(pb => pb.id === sharedViewMeta.project_id)
-        ?.apiBuilders?.find(ab => ab.dbAlias === sharedViewMeta.base_id);
+        ?.find((pb) => pb.id === sharedViewMeta.project_id)
+        ?.apiBuilders?.find((ab) => ab.dbAlias === sharedViewMeta.base_id);
       const model = apiBuilder?.xcModels?.[sharedViewMeta.model_name];
 
       let meta = apiBuilder?.getMeta(sharedViewMeta.model_name);
@@ -160,7 +160,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
 
       meta = {
         ...meta,
-        columns: meta.columns.filter(c => queryParams?.showFields?.[c._cn])
+        columns: meta.columns.filter((c) => queryParams?.showFields?.[c._cn]),
       };
 
       let where = '';
@@ -188,7 +188,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         sort.push(...req.query.sort.split(','));
       }
 
-      const fields = meta.columns.map(c => c._cn).join(',');
+      const fields = meta.columns.map((c) => c._cn).join(',');
       const nestedParams = this.serializeNestedParams(meta, queryParams);
 
       return {
@@ -200,14 +200,14 @@ export default class NcMetaMgrEE extends NcMetaMgr {
           where,
           fields,
           sort: sort.join(','),
-          ...nestedParams
+          ...nestedParams,
         }),
         ...(await model.countByPk({
           ...req.query,
           where,
-          fields
+          fields,
         })),
-        client: apiBuilder?.client
+        client: apiBuilder?.client,
       };
     } catch (e) {
       console.log(e);
@@ -234,7 +234,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         {
           model_name: args.args.model_name,
           view_name: args.args.view_name,
-          view_type: args.args.show_as
+          view_type: args.args.show_as,
         },
         ['id', 'view_id', 'view_type']
       );
@@ -249,7 +249,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
           // query_params: JSON.stringify(args.args.query_params),
           view_id: uuidv4(),
           password: args.args.password,
-          view_type: args.args.show_as
+          view_type: args.args.show_as,
         };
 
         await this.xcMeta.metaInsert(
@@ -291,7 +291,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         this.getDbAlias(args),
         'nc_shared_views',
         {
-          password: args.args?.password
+          password: args.args?.password,
         },
         args.args.id
       );
@@ -331,7 +331,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
             rtn: d.rtn,
             cn: d.cn,
             rcn: d.rcn,
-            relation_type: d.relationType
+            relation_type: d.relationType,
           });
         }
         for (const role of Object.keys(d.disabled)) {
@@ -343,7 +343,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
               type: args.args.type,
               title: d[field],
               role,
-              ...props
+              ...props,
             }
           );
           if (dataInDb) {
@@ -354,13 +354,13 @@ export default class NcMetaMgrEE extends NcMetaMgr {
                   this.getDbAlias(args),
                   'nc_disabled_models_for_role',
                   {
-                    disabled: d.disabled[role]
+                    disabled: d.disabled[role],
                   },
                   {
                     type: args.args.type,
                     title: d[field],
                     role,
-                    ...props
+                    ...props,
                   }
                 );
               }
@@ -373,7 +373,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
                   type: args.args.type,
                   title: d[field],
                   role,
-                  ...props
+                  ...props,
                 }
               );
             }
@@ -387,7 +387,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
                 type: args.args.type,
                 title: d[field],
                 role,
-                ...props
+                ...props,
               }
             );
           }
@@ -414,7 +414,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
               title: d[field],
               role,
               parent_model_title: d.ptn,
-              ...props
+              ...props,
             }
           );
           if (dataInDb) {
@@ -425,14 +425,14 @@ export default class NcMetaMgrEE extends NcMetaMgr {
                   this.getDbAlias(args),
                   'nc_disabled_models_for_role',
                   {
-                    disabled: d.disabled[role]
+                    disabled: d.disabled[role],
                   },
                   {
                     parent_model_title: d.ptn,
                     type: d.type,
                     title: d[field],
                     role,
-                    ...props
+                    ...props,
                   }
                 );
               }
@@ -446,7 +446,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
                   type: d.type,
                   title: d[field],
                   role,
-                  ...props
+                  ...props,
                 }
               );
             }
@@ -461,7 +461,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
                 type: d.type,
                 title: d[field],
                 role,
-                ...props
+                ...props,
               }
             );
           }
@@ -482,8 +482,8 @@ export default class NcMetaMgrEE extends NcMetaMgr {
         offset: args.args.offset,
         sort: {
           field: 'created_at',
-          desc: true
-        }
+          desc: true,
+        },
       }
     );
   }
@@ -496,16 +496,16 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: true
+        enabled: true,
       },
       null,
       {
         title: {
-          in: args.args
+          in: args.args,
         },
         type: {
-          eq: 'table'
-        }
+          eq: 'table',
+        },
       }
     );
 
@@ -514,16 +514,16 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       dbAlias,
       'nc_models',
       {
-        enabled: false
+        enabled: false,
       },
       null,
       {
         title: {
-          nin: args.args
+          nin: args.args,
         },
         type: {
-          eq: 'table'
-        }
+          eq: 'table',
+        },
       }
     );
   }
@@ -536,10 +536,10 @@ export default class NcMetaMgrEE extends NcMetaMgr {
     // filter out model names which toggled
     const metaTableNames = [
       ...new Set(
-        args.args.map(rel => {
+        args.args.map((rel) => {
           return rel.relationType === 'hm' ? rel.rtn : rel.tn;
         })
-      )
+      ),
     ];
 
     // get current meta from db
@@ -551,9 +551,9 @@ export default class NcMetaMgrEE extends NcMetaMgr {
       {
         xcCondition: {
           title: {
-            in: metaTableNames
-          }
-        }
+            in: metaTableNames,
+          },
+        },
       }
     );
 
@@ -564,7 +564,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
     for (const { meta, id, title } of metas) {
       metaMap[title] = {
         id,
-        meta: JSON.parse(meta)
+        meta: JSON.parse(meta),
       };
     }
 
@@ -572,12 +572,12 @@ export default class NcMetaMgrEE extends NcMetaMgr {
     for (const rel of args.args) {
       if (rel.relationType === 'hm') {
         const relation = metaMap[rel.rtn].meta.hasMany.find(
-          hmRel => hmRel.tn === rel.tn
+          (hmRel) => hmRel.tn === rel.tn
         );
         relation.enabled = rel.enabled;
       } else {
         const relation = metaMap[rel.tn].meta.belongsTo.find(
-          btRel => btRel.rtn === rel.rtn
+          (btRel) => btRel.rtn === rel.rtn
         );
         relation.enabled = rel.enabled;
       }
@@ -591,7 +591,7 @@ export default class NcMetaMgrEE extends NcMetaMgr {
           dbAlias,
           'nc_models',
           {
-            meta: JSON.stringify(meta)
+            meta: JSON.stringify(meta),
           },
           id
         );

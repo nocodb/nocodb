@@ -38,7 +38,7 @@ export default class GalleryView implements GalleryType {
       ));
     if (!view) {
       view = await ncMeta.metaGet2(null, null, MetaTable.GALLERY_VIEW, {
-        fk_view_id: viewId
+        fk_view_id: viewId,
       });
       await NocoCache.set(`${CacheScope.GALLERY_VIEW}:${viewId}`, view);
     }
@@ -48,8 +48,8 @@ export default class GalleryView implements GalleryType {
 
   static async insert(view: Partial<GalleryView>, ncMeta = Noco.ncMeta) {
     const columns = await View.get(view.fk_view_id, ncMeta)
-      .then(v => v?.getModel(ncMeta))
-      .then(m => m.getColumns(ncMeta));
+      .then((v) => v?.getModel(ncMeta))
+      .then((m) => m.getColumns(ncMeta));
 
     const insertObj = {
       project_id: view.project_id,
@@ -57,14 +57,14 @@ export default class GalleryView implements GalleryType {
       fk_view_id: view.fk_view_id,
       fk_cover_image_col_id:
         view?.fk_cover_image_col_id ||
-        columns?.find(c => c.uidt === UITypes.Attachment)?.id,
+        columns?.find((c) => c.uidt === UITypes.Attachment)?.id,
       next_enabled: view.next_enabled,
       prev_enabled: view.prev_enabled,
       cover_image_idx: view.cover_image_idx,
       cover_image: view.cover_image,
       restrict_types: view.restrict_types,
       restrict_size: view.restrict_size,
-      restrict_number: view.restrict_number
+      restrict_number: view.restrict_number,
     };
     if (!(view.project_id && view.base_id)) {
       const viewRef = await View.get(view.fk_view_id);
@@ -116,10 +116,10 @@ export default class GalleryView implements GalleryType {
         restrict_types: body.restrict_types,
         restrict_size: body.restrict_size,
         restrict_number: body.restrict_number,
-        fk_cover_image_col_id: body.fk_cover_image_col_id
+        fk_cover_image_col_id: body.fk_cover_image_col_id,
       },
       {
-        fk_view_id: galleryId
+        fk_view_id: galleryId,
       }
     );
   }

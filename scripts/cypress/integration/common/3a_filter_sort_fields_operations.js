@@ -140,7 +140,7 @@ export const genTest = (apiType, dbType) => {
 
         describe(`Sort operations`, () => {
             it("Enable sort", () => {
-                mainPage.sortField("Country", "Z -> A");
+                mainPage.sortField("Country", "Z → A");
 
                 // Sort menu operations (Country Column, Z->A)
                 // cy.get(".nc-sort-menu-btn").click();
@@ -151,7 +151,7 @@ export const genTest = (apiType, dbType) => {
                 // ).click();
                 // cy.get(".nc-sort-dir-select div").first().click();
                 // cy.get(
-                //   '.menuable__content__active .v-list-item:contains("Z -> A")'
+                //   '.menuable__content__active .v-list-item:contains("Z → A")'
                 // ).click();
 
                 cy.contains("Zambia").should("exist");

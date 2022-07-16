@@ -1,18 +1,16 @@
 <template>
-  <api-client-swagger style="height:calc(100vh - 40px)" />
+  <api-client-swagger style="height: calc(100vh - 40px)" />
 </template>
 
 <script>
-import ApiClientSwagger from '../components/project/ApiClientSwagger'
+import ApiClientSwagger from '../components/project/ApiClientSwagger';
 export default {
   name: 'ApiClient',
-  components: { ApiClientSwagger }
-}
+  components: { ApiClientSwagger },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

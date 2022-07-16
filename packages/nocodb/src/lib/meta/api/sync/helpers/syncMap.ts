@@ -11,7 +11,7 @@ export const addToMappingTbl = function addToMappingTbl(
     ncId: ncId,
     ncParent: parent,
     // name added to assist in quick debug
-    ncName: ncName
+    ncName: ncName,
   };
 };
 

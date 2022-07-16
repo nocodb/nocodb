@@ -6,16 +6,18 @@ import { Tele } from 'nc-help';
 import fsExtra from 'fs-extra';
 import importFresh from 'import-fresh';
 import inflection from 'inflection';
-import { Debug, Result, SqlClientFactory } from 'nc-help';
 import slash from 'slash';
+import SqlClientFactory from '../sql-client/lib/SqlClientFactory';
 // import debug from 'debug';
 
-const log = new Debug('SqlMgr');
 import KnexMigrator from '../sql-migrator/lib/KnexMigrator';
 // import {XKnex} from "../sql-data-mapper";
 import NcConnectionMgr from '../../utils/common/NcConnectionMgr';
 import { customAlphabet } from 'nanoid';
+import Debug from '../util/Debug';
+import Result from '../util/Result';
 const randomID = customAlphabet('1234567890abcdefghijklmnopqrstuvwxyz_', 20);
+const log = new Debug('SqlMgr');
 
 const ToolOps = {
   DB_TABLE_LIST: 'tableList',
@@ -88,7 +90,7 @@ const ToolOps = {
   PROJECT_CREATE_BY_WEB: 'projectCreateByWeb',
   PROJECT_CHANGE_ENV: 'projectChangeEnv',
 
-  PROJECT_UPDATE_BY_WEB: 'projectUpdateByWeb'
+  PROJECT_UPDATE_BY_WEB: 'projectUpdateByWeb',
 };
 
 export default class SqlMgr {
@@ -171,21 +173,21 @@ export default class SqlMgr {
     args.folder = slash(this.currentProjectFolder);
     const projectJson = {
       ...this.currentProjectJson,
-      envs: { ...this.currentProjectJson.envs }
+      envs: { ...this.currentProjectJson.envs },
     };
 
     // delete db credentials
     for (const env of Object.keys(projectJson.envs)) {
       projectJson.envs[env] = {
         ...projectJson.envs[env],
-        db: [...projectJson.envs[env].db]
+        db: [...projectJson.envs[env].db],
       };
       for (let i = 0; i < projectJson.envs[env].db.length; i++) {
         projectJson.envs[env].db[i] = {
           ...projectJson.envs[env].db[i],
           connection: {
-            database: projectJson.envs[env].db[i].connection.database
-          }
+            database: projectJson.envs[env].db[i].connection.database,
+          },
         };
       }
     }
@@ -217,8 +219,8 @@ export default class SqlMgr {
     // }
     result.data.list = [
       {
-        folder: args.folder
-      }
+        folder: args.folder,
+      },
     ];
     log.api(`${_func}: result`, result);
     return result;
@@ -253,7 +255,7 @@ export default class SqlMgr {
       i
         .toString(26)
         .split('')
-        .map(v => l[parseInt(v, 26)])
+        .map((v) => l[parseInt(v, 26)])
         .join('') + '1'
     );
   }
@@ -294,22 +296,21 @@ export default class SqlMgr {
 
           const connectionKey = `${env}_${this.currentProjectJson.envs[env].db[i].meta.dbAlias}`;
 
-          this.currentProjectConnections[
-            connectionKey
-          ] = SqlClientFactory.create({
-            ...connectionConfig,
-            knex: NcConnectionMgr.get({
-              dbAlias: this.currentProjectJson.envs[env].db[i].meta.dbAlias,
-              env: env,
-              config: args,
-              projectId: args.id
-            })
-          });
+          this.currentProjectConnections[connectionKey] =
+            SqlClientFactory.create({
+              ...connectionConfig,
+              knex: NcConnectionMgr.get({
+                dbAlias: this.currentProjectJson.envs[env].db[i].meta.dbAlias,
+                env: env,
+                config: args,
+                projectId: args.id,
+              }),
+            });
 
           this.currentProjectServers[connectionKey] = {
             xserver: null,
             input: {},
-            output: {}
+            output: {},
           };
         }
       }
@@ -522,8 +523,8 @@ export default class SqlMgr {
         client: 'sqlite3',
         connection: {
           // filename: "./db/sakila-sqlite"
-          filename: sqlConfig.database
-        }
+          filename: sqlConfig.database,
+        },
       };
     } else if (sqlConfig.typeOfDatabase === 'oracledb') {
       return {
@@ -534,26 +535,26 @@ export default class SqlMgr {
           password: sqlConfig.password,
           database: sqlConfig.database,
           port: sqlConfig.port,
-          connectString: `localhost:${ORACLE_PORT}/xe`
+          connectString: `localhost:${ORACLE_PORT}/xe`,
           // connectString: `${sqlConfig.host}:${sqlConfig.port}/${sqlConfig.database}`,
-        }
+        },
       };
     } else if (sqlConfig.typeOfDatabase === 'mariadb') {
       sqlConfig.typeOfDatabase = 'mysql2';
       return {
         client: sqlConfig.typeOfDatabase,
-        connection: sqlConfig
+        connection: sqlConfig,
       };
     } else if (sqlConfig.typeOfDatabase === 'cockroachdb') {
       sqlConfig.typeOfDatabase = 'pg';
       return {
         client: sqlConfig.typeOfDatabase,
-        connection: sqlConfig
+        connection: sqlConfig,
       };
     } else {
       return {
         client: sqlConfig.typeOfDatabase,
-        connection: { ...sqlConfig }
+        connection: { ...sqlConfig },
       };
     }
   }
@@ -588,7 +589,7 @@ export default class SqlMgr {
       config.connection = {};
       config.meta = {
         tn: 'nc_evolutions',
-        dbAlias: 'db'
+        dbAlias: 'db',
       };
 
       const urlParts = url.parse(dbUrl, true);
@@ -628,9 +629,9 @@ export default class SqlMgr {
           _noco: {
             db: [],
             apiClient: {
-              data: []
-            }
-          }
+              data: [],
+            },
+          },
         },
         workingEnv: '_noco',
         meta: {
@@ -640,7 +641,7 @@ export default class SqlMgr {
           apisFolder: 'apis',
           projectType: args.projectType || 'rest',
           type: args.type || 'mvc',
-          language: args.language || 'ts'
+          language: args.language || 'ts',
         },
         version: '0.5',
         seedsFolder: 'seeds',
@@ -650,8 +651,8 @@ export default class SqlMgr {
         type: args.type || 'mvc',
         language: args.language || 'ts',
         apiClient: {
-          data: []
-        }
+          data: [],
+        },
       };
 
       for (let i = 0; i < args.url.length; ++i) {
@@ -688,7 +689,7 @@ export default class SqlMgr {
       args.project = {
         title: path.basename(path.dirname(args.folder)),
         folder: args.folder,
-        type: 'mysql'
+        type: 'mysql',
       };
 
       args.projectJson = this._createProjectJsonFromDbUrls(args);
@@ -803,7 +804,7 @@ export default class SqlMgr {
         ...sqlMigrationStatements.data.object,
         folder: this.currentProjectFolder,
         up: sqlMigrationFiles.up,
-        down: sqlMigrationFiles.down
+        down: sqlMigrationFiles.down,
       });
 
       // mark as migration done in nc_evolutions table
@@ -816,7 +817,7 @@ export default class SqlMgr {
         sqlContentMigrate: 0,
         migrationSteps: 9999,
         folder: this.currentProjectFolder,
-        sqlClient
+        sqlClient,
       };
       // console.log(`Migration up args for '${op}'`, migrationArgs);
       await this.migrator().migrationsUp(migrationArgs);
@@ -838,7 +839,7 @@ export default class SqlMgr {
         url: `/api/v1/${tables[i].tn}`,
         routeFunction: 'list',
         tn: tables[i].tn,
-        enabled: true
+        enabled: true,
       });
 
       routes.push({
@@ -846,7 +847,7 @@ export default class SqlMgr {
         url: `/api/v1/${tables[i].tn}`,
         routeFunction: 'create',
         tn: tables[i].tn,
-        enabled: true
+        enabled: true,
       });
 
       routes.push({
@@ -854,7 +855,7 @@ export default class SqlMgr {
         url: `/api/v1/${tables[i].tn}/${id}`,
         routeFunction: 'read',
         tn: tables[i].tn,
-        enabled: true
+        enabled: true,
       });
 
       routes.push({
@@ -862,7 +863,7 @@ export default class SqlMgr {
         url: `/api/v1/${tables[i].tn}/${id}`,
         routeFunction: 'update',
         tn: tables[i].tn,
-        enabled: true
+        enabled: true,
       });
 
       routes.push({
@@ -870,10 +871,10 @@ export default class SqlMgr {
         url: `/api/v1/${tables[i].tn}/${id}`,
         routeFunction: 'delete',
         tn: tables[i].tn,
-        enabled: true
+        enabled: true,
       });
 
-      const hasManyRelations = relations.filter(r => r.tn === tables[i].tn);
+      const hasManyRelations = relations.filter((r) => r.tn === tables[i].tn);
 
       for (let j = 0; j < hasManyRelations.length; ++j) {
         routes.push({
@@ -882,7 +883,7 @@ export default class SqlMgr {
           routeFunction: `${hasManyRelations[j].rtn}_has_many_${tables[i].tn}`,
           tn: tables[i].tn,
           relation: hasManyRelations[j].rtn,
-          enabled: true
+          enabled: true,
         });
       }
 
@@ -894,7 +895,7 @@ export default class SqlMgr {
 
   public getDbType({ env, dbAlias }) {
     const db = this.currentProjectJson.envs[env].db.find(
-      db => db.meta.dbAlias === dbAlias
+      (db) => db.meta.dbAlias === dbAlias
     );
     return db.client;
   }
@@ -908,7 +909,7 @@ export default class SqlMgr {
 
       const sqlClient = await this.projectGetSqlClient({
         env: '_noco',
-        dbAlias: 'db'
+        dbAlias: 'db',
       });
       const usersTableExists = await sqlClient.hasTable({ tn: 'xc_users' });
 
@@ -1017,8 +1018,8 @@ export default class SqlMgr {
       response: {
         ...apiMeta.response,
         // timeTaken: t2,
-        createdAt: Date.now()
-      }
+        createdAt: Date.now(),
+      },
     };
   }
 
@@ -1068,7 +1069,7 @@ export default class SqlMgr {
             return headersObj;
           }, {})
         : {},
-      withCredentials: true
+      withCredentials: true,
     };
     return req;
   }
@@ -1133,11 +1134,12 @@ export default class SqlMgr {
     let result;
 
     try {
-      const op = (args.sqlOpPlus &&
-      !process.env.NC_TRY &&
-      !('NC_MIGRATIONS_DISABLED' in process.env)
-        ? this.sqlOpPlus
-        : this.sqlOp
+      const op = (
+        args.sqlOpPlus &&
+        !process.env.NC_TRY &&
+        !('NC_MIGRATIONS_DISABLED' in process.env)
+          ? this.sqlOpPlus
+          : this.sqlOp
       ).bind(this);
 
       switch (operation) {

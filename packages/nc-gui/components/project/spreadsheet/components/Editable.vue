@@ -1,9 +1,5 @@
 <template>
-  <div
-    ref="editable"
-    contenteditable
-    v-on="listeners"
-  />
+  <div ref="editable" contenteditable v-on="listeners" />
 </template>
 
 <script>
@@ -11,30 +7,30 @@ export default {
   props: {
     value: {
       type: String,
-      default: ''
-    }
+      default: '',
+    },
   },
   computed: {
     listeners() {
-      return { ...this.$listeners, input: this.onInput }
-    }
+      return { ...this.$listeners, input: this.onInput };
+    },
   },
   watch: {
     value(v) {
       if (this.$refs.editable.innerText !== v) {
-        this.$refs.editable.innerText = v
+        this.$refs.editable.innerText = v;
       }
-    }
+    },
   },
   mounted() {
-    this.$refs.editable.innerText = this.value
+    this.$refs.editable.innerText = this.value;
   },
   methods: {
     onInput(e) {
-      this.$emit('input', e.target.innerText)
-    }
-  }
-}
+      this.$emit('input', e.target.innerText);
+    },
+  },
+};
 </script>
 <style scoped>
 [contentEditable] {

@@ -1,50 +1,43 @@
-<!-- eslint-disable --><template>
+<!-- eslint-disable -->
+<template>
   <div>
     <v-card style="">
       <v-toolbar flat height="42" class="toolbar-border-bottom">
         <v-toolbar-title>
           <v-breadcrumbs
-            :items="[{
-                       text: nodes.env,
-                       disabled: true,
-                       href: '#'
-                     },{
-                       text: nodes.dbAlias,
-                       disabled: true,
-                       href: '#'
-                     },
-                     {
-                       text: nodes.table_name + ' (ACL)',
-                       disabled: true,
-                       href: '#'
-                     }]"
+            :items="[
+              {
+                text: nodes.env,
+                disabled: true,
+                href: '#',
+              },
+              {
+                text: nodes.dbAlias,
+                disabled: true,
+                href: '#',
+              },
+              {
+                text: nodes.table_name + ' (ACL)',
+                disabled: true,
+                href: '#',
+              },
+            ]"
             divider=">"
             small
           >
             <template #divider>
-              <v-icon small color="grey lighten-2">
-                forward
-              </v-icon>
+              <v-icon small color="grey lighten-2"> forward </v-icon>
             </template>
           </v-breadcrumbs>
         </v-toolbar-title>
         <v-spacer />
-        <x-btn
-          v-ge="['acl','reload']"
-          outlined
-          tooltip="Reload ACL"
-          color="primary"
-          small
-          @click="reload"
-        >
-          <v-icon small left>
-            refresh
-          </v-icon>
+        <x-btn v-ge="['acl', 'reload']" outlined tooltip="Reload ACL" color="primary" small @click="reload">
+          <v-icon small left> refresh </v-icon>
           <!-- Reload -->
           {{ $t('general.reload') }}
         </x-btn>
         <x-btn
-          v-ge="['acl','open-folder']"
+          v-ge="['acl', 'open-folder']"
           tooltip="Open Corresponding Folder"
           icon="mdi-folder-open"
           outlined
@@ -56,7 +49,7 @@
           Open Folder
         </x-btn>
         <x-btn
-          v-ge="['acl','save']"
+          v-ge="['acl', 'save']"
           outlined
           :tooltip="$t('tooltip.saveChanges')"
           color="primary"
@@ -65,19 +58,14 @@
           :disabled="disableSaveButton"
           @click="save"
         >
-          <v-icon small left>
-            save
-          </v-icon>
+          <v-icon small left> save </v-icon>
           <!-- Save -->
           {{ $t('general.save') }}
         </x-btn>
       </v-toolbar>
 
       <template v-if="loading">
-        <v-skeleton-loader
-          type="table"
-          width="100%"
-        />
+        <v-skeleton-loader type="table" width="100%" />
       </template>
 
       <template v-else>
@@ -108,8 +96,8 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
-import AclTypeormDbChild from './AclTsFileDbChild'
+import { mapGetters } from 'vuex';
+import AclTypeormDbChild from './AclTsFileDbChild';
 
 // const {shell, path} = require("electron").remote.require('./libs');
 
@@ -122,11 +110,10 @@ export default {
       disableSaveButton: false,
       policies: [],
       search: '',
-      loading: false
-    }
+      loading: false,
+    };
   },
   methods: {
-
     async aclInit() {
       // // this.disableSaveButton = true;
       // this.policies = (await this.sqlMgr.xcRoutesPolicyGet({
@@ -135,42 +122,45 @@ export default {
       //   tn: this.nodes.table_name
       // })).data.list;
       // this.disableSaveButton = true;
-      this.policies = (await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'xcRoutesPolicyGet', {
-        env: this.nodes.env,
-        dbAlias: this.nodes.dbAlias,
-        tn: this.nodes.table_name
-      }])).data.list
+      this.policies = (
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          null,
+          'xcRoutesPolicyGet',
+          {
+            env: this.nodes.env,
+            dbAlias: this.nodes.dbAlias,
+            tn: this.nodes.table_name,
+          },
+        ])
+      ).data.list;
     },
     reload() {
-      this.$refs.acl.aclInit()
+      this.$refs.acl.aclInit();
     },
     save() {
-      this.$refs.acl.save()
+      this.$refs.acl.save();
     },
-    openFolder() {
-    }
+    openFolder() {},
   },
   computed: {
-    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' })
+    ...mapGetters({ sqlMgr: 'sqlMgr/sqlMgr' }),
   },
   watch: {},
   mounted() {
-    this.$nuxt.$loading.start()
-    setTimeout(async() => {
-      await this.aclInit()
-      this.$nuxt.$loading.finish()
-      this.loading = false
-    }, 500)
+    this.$nuxt.$loading.start();
+    setTimeout(async () => {
+      await this.aclInit();
+      this.$nuxt.$loading.finish();
+      this.loading = false;
+    }, 500);
   },
   created() {
-    this.loading = true
-  }
-}
+    this.loading = true;
+  },
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

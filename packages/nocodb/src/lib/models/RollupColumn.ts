@@ -24,7 +24,7 @@ export default class RollupColumn {
       fk_column_id: data.fk_column_id,
       fk_relation_column_id: data.fk_relation_column_id,
       fk_rollup_column_id: data.fk_rollup_column_id,
-      rollup_function: data.rollup_function
+      rollup_function: data.rollup_function,
     });
 
     await NocoCache.appendToList(

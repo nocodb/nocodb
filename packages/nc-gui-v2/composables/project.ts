@@ -3,7 +3,7 @@ import {Api, TableType} from "nocodb-sdk";
 import {useUser} from "~/composables/user";
 
 export const useProject = () => {
-  const {$api}: { $api: Api<any> } = useNuxtApp() as any
+  const {$api} = useNuxtApp()
   const {user} = useUser()
 
   const project = useState<{ id?: string, title?: string }>('project', null)

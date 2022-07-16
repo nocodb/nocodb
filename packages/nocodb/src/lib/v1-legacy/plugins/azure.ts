@@ -8,22 +8,22 @@ const input: XcForm = {
       label: 'Azure Account Name',
       placeholder: 'Azure Account Name',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'container',
       label: 'Storage Container',
       placeholder: 'Storage Container',
       type: XcType.SingleLineText,
-      required: true
+      required: true,
     },
     {
       key: 'access_key',
       label: 'Access Key',
       placeholder: 'Access Key',
       type: XcType.Password,
-      required: true
-    }
+      required: true,
+    },
   ],
   actions: [
     {
@@ -31,18 +31,18 @@ const input: XcForm = {
       placeholder: 'Test',
       key: 'test',
       actionType: XcActionType.TEST,
-      type: XcType.Button
+      type: XcType.Button,
     },
     {
       label: 'Save',
       placeholder: 'Save',
       key: 'save',
       actionType: XcActionType.SUBMIT,
-      type: XcType.Button
-    }
+      type: XcType.Button,
+    },
   ],
   msgOnInstall: 'Successfully installed and attachment will be stored in Azure',
-  msgOnUninstall: ''
+  msgOnUninstall: '',
 };
 
 export default {
@@ -54,5 +54,5 @@ export default {
   price: 'Free',
   tags: 'Storage',
   category: 'Storage',
-  input_schema: JSON.stringify(input)
+  input_schema: JSON.stringify(input),
 };

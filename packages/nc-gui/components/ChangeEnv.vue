@@ -1,25 +1,12 @@
 <template>
   <v-dialog v-model="dialogShow" persistent max-width="500">
     <v-card>
-      <v-progress-linear
-        v-if="progressbar"
-        indeterminate
-        color="green"
-      />
+      <v-progress-linear v-if="progressbar" indeterminate color="green" />
       <div class="px-2">
-        <v-card-title class=" headline">
-          Change environment
-        </v-card-title>
+        <v-card-title class="headline"> Change environment </v-card-title>
         <v-card-text>
           <div class="">
-            <v-select
-              v-model="selectedEnv"
-              hide-details
-              dense
-              :items="envList"
-              label="Solo field"
-              solo
-            />
+            <v-select v-model="selectedEnv" hide-details dense :items="envList" label="Solo field" solo />
           </div>
         </v-card-text>
         <v-card-actions>
@@ -28,9 +15,7 @@
             <!-- Close -->
             {{ $t('general.close') }}
           </v-btn>
-          <v-btn color="primary" small :disabled="progressbar" @click="ChangeEnv">
-            Change
-          </v-btn>
+          <v-btn color="primary" small :disabled="progressbar" @click="ChangeEnv"> Change </v-btn>
         </v-card-actions>
       </div>
     </v-card>
@@ -38,73 +23,79 @@
 </template>
 
 <script>
-
-import { mapGetters } from 'vuex'
-import axios from 'axios'
+import { mapGetters } from 'vuex';
+import axios from 'axios';
 
 export default {
   name: 'ChangeEnv',
   data: () => ({
     selectedEnv: '_noco',
-    progressbar: false
+    progressbar: false,
   }),
   computed: {
     ...mapGetters({
-      envList: 'project/GtrEnvList'
+      envList: 'project/GtrEnvList',
     }),
     dialogShow: {
       get() {
-        return this.value
+        return this.value;
       },
       set(val) {
-        this.$emit('input', val)
-      }
-    }
+        this.$emit('input', val);
+      },
+    },
   },
   mounted() {
-    const unserializedList = this.$store.state.project.unserializedList
-    this.selectedEnv = (unserializedList[0] &&
-        unserializedList[0].projectJson &&
-        unserializedList[0].projectJson.workingEnv) || '_noco'
-    this.$store.watch((state) => {
-      const unserializedList = state.project.unserializedList
-      return (unserializedList[0] &&
-          unserializedList[0].projectJson &&
-          unserializedList[0].projectJson.workingEnv) || '_noco'
-    }, (value) => { this.selectedEnv = value })
+    const unserializedList = this.$store.state.project.unserializedList;
+    this.selectedEnv =
+      (unserializedList[0] && unserializedList[0].projectJson && unserializedList[0].projectJson.workingEnv) || '_noco';
+    this.$store.watch(
+      state => {
+        const unserializedList = state.project.unserializedList;
+        return (
+          (unserializedList[0] && unserializedList[0].projectJson && unserializedList[0].projectJson.workingEnv) ||
+          '_noco'
+        );
+      },
+      value => {
+        this.selectedEnv = value;
+      }
+    );
   },
   methods: {
     async changeEnv() {
-      this.progressbar = true
-      await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectChangeEnv', { env: this.selectedEnv }])
-      await new Promise((resolve) => {
+      this.progressbar = true;
+      await this.$store.dispatch('sqlMgr/ActSqlOp', [null, 'projectChangeEnv', { env: this.selectedEnv }]);
+      await new Promise(resolve => {
         const interv = setInterval(() => {
-          axios.create({
-            baseURL: `${this.$axios.defaults.baseURL}/dashboard`
-          }).get('').then(() => {
-            this.projectReloading = false
-            clearInterval(interv)
-            resolve()
-          }).catch(() => {
-          })
-        }, 1000)
-      })
-      this.progressbar = false
-      await this.$store.dispatch('users/ActSignOut')
+          axios
+            .create({
+              baseURL: `${this.$axios.defaults.baseURL}/dashboard`,
+            })
+            .get('')
+            .then(() => {
+              this.projectReloading = false;
+              clearInterval(interv);
+              resolve();
+            })
+            .catch(() => {});
+        }, 1000);
+      });
+      this.progressbar = false;
+      await this.$store.dispatch('users/ActSignOut');
 
-      await this.$store.dispatch('project/ActLoadProjectInfo')
+      await this.$store.dispatch('project/ActLoadProjectInfo');
       if (this.$store.state.project.appInfo.projectHasAdmin === false) {
-        return this.$router.push('/start')
+        return this.$router.push('/start');
       }
-      location.reload()
-    }
+      location.reload();
+    },
   },
-  props: { value: Boolean }
-}
+  props: { value: Boolean },
+};
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>
 
 <!--
 /**

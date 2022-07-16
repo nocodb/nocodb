@@ -5,7 +5,7 @@ import {useProject} from "~/composables/project";
 
 
 export const useMetas = () => {
-  const {$api}: { $api: Api<any> } = useNuxtApp() as any
+  const {$api} = useNuxtApp()
   const {user} = useUser()
   const {tables} = useProject()
 

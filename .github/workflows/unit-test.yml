@@ -6,8 +6,12 @@ name: Backend Unit Tests
 on:
   push:
     branches: [ "develop" ]
+    paths:
+      - "packages/nocodb/**"
   pull_request:
     branches: [ "develop" ]
+    paths:
+      - "packages/nocodb/**"
 
 jobs:
   unit-tests:

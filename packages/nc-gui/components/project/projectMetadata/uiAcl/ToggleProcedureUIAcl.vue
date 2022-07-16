@@ -4,19 +4,17 @@
       <v-card class="pb-2">
         <v-toolbar flat height="50" class="toolbar-border-bottom">
           <v-text-field
-            v-if=" db"
+            v-if="db"
             v-model="filter"
             dense
             hide-details
             class="my-2 mx-auto search-field"
             :placeholder="`Search '${db.connection.database}' models`"
-            style="max-width:300px"
+            style="max-width: 300px"
             outlined
           >
             <template #prepend-inner>
-              <v-icon small>
-                search
-              </v-icon>
+              <v-icon small> search </v-icon>
             </template>
           </v-text-field>
 
@@ -51,18 +49,14 @@
           <v-simple-table dense style="min-width: 400px">
             <thead>
               <tr>
-                <th>
-                  Models
-                </th>
+                <th>Models</th>
                 <th v-for="role in roles" :key="role">
                   {{ role }}
                 </th>
               </tr>
             </thead>
             <tbody>
-              <template
-                v-for="procedureObj in procedures"
-              >
+              <template v-for="procedureObj in procedures">
                 <tr
                   v-if="procedureObj.procedure_name.toLowerCase().indexOf(filter.toLowerCase()) > -1"
                   :key="procedureObj.procedure_name"
@@ -70,24 +64,25 @@
                   <td>{{ procedureObj.procedure_name }}</td>
                   <td v-for="role in roles" :key="`${procedureObj.procedure_name}-${role}`">
                     <v-tooltip bottom>
-                      <template #activator="{on}">
-                        <div
-                          v-on="on"
-                        >
+                      <template #activator="{ on }">
+                        <div v-on="on">
                           <v-checkbox
                             v-model="procedureObj.disabled[role]"
                             dense
                             :true-value="false"
                             :false-value="true"
-                            @change="$set(procedureObj,'edited',true)"
+                            @change="$set(procedureObj, 'edited', true)"
                           />
                         </div>
                       </template>
 
-                      <span v-if="procedureObj.disabled[role]">Click to hide '{{ procedureObj.procedure_name }}' for Role:{{
-                        role
-                      }} in UI dashboard</span>
-                      <span v-else>Click to make '{{ procedureObj.procedure_name }}' visible for Role:{{ role }} in UI dashboard</span>
+                      <span v-if="procedureObj.disabled[role]"
+                        >Click to hide '{{ procedureObj.procedure_name }}' for Role:{{ role }} in UI dashboard</span
+                      >
+                      <span v-else
+                        >Click to make '{{ procedureObj.procedure_name }}' visible for Role:{{ role }} in UI
+                        dashboard</span
+                      >
                     </v-tooltip>
                   </td>
                 </tr>
@@ -101,7 +96,7 @@
 </template>
 
 <script>
-import { mapGetters } from 'vuex'
+import { mapGetters } from 'vuex';
 
 export default {
   name: 'ToggleProcedureUiAcl',
@@ -112,47 +107,55 @@ export default {
     updating: false,
     dbsTab: 0,
     filter: '',
-    procedures: null
+    procedures: null,
   }),
   async mounted() {
-    await this.loadFunctionList()
+    await this.loadFunctionList();
   },
   methods: {
     async loadFunctionList() {
-      this.procedures = (await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-        dbAlias: this.db.meta.dbAlias,
-        env: this.$store.getters['project/GtrEnv']
-      }, 'xcVisibilityMetaGet', {
-        type: 'procedure'
-      }]))
+      this.procedures = await this.$store.dispatch('sqlMgr/ActSqlOp', [
+        {
+          dbAlias: this.db.meta.dbAlias,
+          env: this.$store.getters['project/GtrEnv'],
+        },
+        'xcVisibilityMetaGet',
+        {
+          type: 'procedure',
+        },
+      ]);
     },
     async save() {
       try {
-        await this.$store.dispatch('sqlMgr/ActSqlOp', [{
-          dbAlias: this.db.meta.dbAlias,
-          env: this.$store.getters['project/GtrEnv']
-        }, 'xcVisibilityMetaSet', {
-          type: 'procedure',
-          disableList: this.procedures.filter(t => t.edited)
-        }])
-        this.$toast.success('Updated UI ACL for tables successfully').goAway(3000)
+        await this.$store.dispatch('sqlMgr/ActSqlOp', [
+          {
+            dbAlias: this.db.meta.dbAlias,
+            env: this.$store.getters['project/GtrEnv'],
+          },
+          'xcVisibilityMetaSet',
+          {
+            type: 'procedure',
+            disableList: this.procedures.filter(t => t.edited),
+          },
+        ]);
+        this.$toast.success('Updated UI ACL for tables successfully').goAway(3000);
       } catch (e) {
-        this.$toast.error('Some error occurred').goAway(3000)
+        this.$toast.error('Some error occurred').goAway(3000);
       }
-    }
+    },
   },
   computed: {
     ...mapGetters({
-      dbAliasList: 'project/GtrDbAliasList'
+      dbAliasList: 'project/GtrDbAliasList',
     }),
     edited() {
-      return this.procedures && this.procedures.length && this.procedures.some(t => t.edited)
+      return this.procedures && this.procedures.length && this.procedures.some(t => t.edited);
     },
     roles() {
-      return this.procedures && this.procedures.length ? Object.keys(this.procedures[0].disabled) : []
-    }
-  }
-}
+      return this.procedures && this.procedures.length ? Object.keys(this.procedures[0].disabled) : [];
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -165,12 +168,11 @@ export default {
     border-right: 1px solid #7f828b33;
   }
 
-  .search-field.v-text-field > .v-input__control, .search-field.v-text-field > .v-input__control > .v-input__slot {
+  .search-field.v-text-field > .v-input__control,
+  .search-field.v-text-field > .v-input__control > .v-input__slot {
     min-height: auto;
-
   }
 }
-
 </style>
 <!--
 /**

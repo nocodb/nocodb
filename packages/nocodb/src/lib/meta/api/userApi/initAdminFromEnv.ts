@@ -26,7 +26,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             padding: 1,
             borderStyle: 'double',
             titleAlignment: 'center',
-            borderColor: 'red'
+            borderColor: 'red',
           }
         ),
         '\n'
@@ -45,7 +45,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
           padding: 1,
           borderStyle: 'double',
           titleAlignment: 'center',
-          borderColor: 'red'
+          borderColor: 'red',
         }),
         '\n'
       );
@@ -71,7 +71,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         // roles = 'owner,creator,editor'
         Tele.emit('evt', {
           evt_type: 'project:invite',
-          count: 1
+          count: 1,
         });
 
         await User.insert(
@@ -82,7 +82,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             salt,
             password,
             email_verification_token,
-            roles
+            roles,
           },
           ncMeta
         );
@@ -94,7 +94,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
         );
         const email_verification_token = uuidv4();
         const superUser = await ncMeta.metaGet2(null, null, MetaTable.USERS, {
-          roles: 'user,super'
+          roles: 'user,super',
         });
 
         if (email !== superUser.email) {
@@ -112,7 +112,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
               null,
               MetaTable.PROJECT_USERS,
               {
-                condition: { fk_user_id: existingUserWithNewEmail.id }
+                condition: { fk_user_id: existingUserWithNewEmail.id },
               }
             );
 
@@ -142,7 +142,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 await ProjectUser.insert(
                   {
                     ...existingUserProject,
-                    fk_user_id: superUser.id
+                    fk_user_id: superUser.id,
                   },
                   ncMeta
                 );
@@ -174,7 +174,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
             await NocoCache.del(
               `${CacheScope.USER}:${existingUserWithNewEmail.email}`
             );
-            
+
             // Update email and password of super admin account
             await User.update(
               superUser.id,
@@ -184,7 +184,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 password,
                 email_verification_token,
                 token_version: null,
-                refresh_token: null
+                refresh_token: null,
               },
               ncMeta
             );
@@ -198,7 +198,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 password,
                 email_verification_token,
                 token_version: null,
-                refresh_token: null
+                refresh_token: null,
               },
               ncMeta
             );
@@ -219,7 +219,7 @@ export default async function initAdminFromEnv(_ncMeta = Noco.ncMeta) {
                 password,
                 email_verification_token,
                 token_version: null,
-                refresh_token: null
+                refresh_token: null,
               },
               ncMeta
             );

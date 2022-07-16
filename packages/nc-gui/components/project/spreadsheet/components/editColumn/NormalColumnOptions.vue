@@ -2,10 +2,8 @@
 
 <script>
 export default {
-  name: 'NormalColumnOptions'
-}
+  name: 'NormalColumnOptions',
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

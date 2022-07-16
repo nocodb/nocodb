@@ -2,7 +2,7 @@ import { NcContextV2 } from '../NcMetaMgrv2';
 import Column from '../../models/Column';
 import { UITypes } from 'nocodb-sdk';
 
-export default async function(this: NcContextV2, { args }: any) {
+export default async function (this: NcContextV2, { args }: any) {
   if (
     !(
       args?._cn &&
@@ -18,6 +18,6 @@ export default async function(this: NcContextV2, { args }: any) {
     ...args,
     project_id: this.projectId,
     db_alias: this.dbAlias,
-    uidt: UITypes.Lookup
+    uidt: UITypes.Lookup,
   });
 }

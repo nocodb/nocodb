@@ -330,7 +330,7 @@ export const genTest = (apiType, dbType, testMode) => {
               .contains('Name')
               .should("exist");
             cy.get(".nc-sort-dir-select").eq(0)
-              .contains('A -> Z')
+              .contains('A → Z')
               .should("exist");
             cy.get(".nc-sort-menu-btn").click();
 

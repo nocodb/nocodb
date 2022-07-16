@@ -1,7 +1,7 @@
 import {
   IEmailAdapter,
   IStorageAdapterV2,
-  IWebhookNotificationAdapter
+  IWebhookNotificationAdapter,
   // XcEmailPlugin,
   // XcPlugin,
   // XcStoragePlugin,
@@ -52,7 +52,7 @@ const defaultPlugins = [
   SMTPPluginConfig,
   MailerSendConfig,
   ScalewayPluginConfig,
-  SESPluginConfig
+  SESPluginConfig,
 ];
 
 class NcPluginMgrv2 {
@@ -68,7 +68,7 @@ class NcPluginMgrv2 {
     /* Populate rows into nc_plugins table if not present */
     for (const plugin of defaultPlugins) {
       const pluginConfig = await ncMeta.metaGet(null, null, MetaTable.PLUGIN, {
-        title: plugin.title
+        title: plugin.title,
       });
 
       if (!pluginConfig) {
@@ -79,7 +79,7 @@ class NcPluginMgrv2 {
           description: plugin.description,
           tags: plugin.tags,
           category: plugin.category,
-          input_schema: JSON.stringify(plugin.inputs)
+          input_schema: JSON.stringify(plugin.inputs),
         });
       } else if (pluginConfig.version !== plugin.version) {
         await ncMeta.metaUpdate(
@@ -93,7 +93,7 @@ class NcPluginMgrv2 {
             description: plugin.description,
             tags: plugin.tags,
             category: plugin.category,
-            input_schema: JSON.stringify(plugin.inputs)
+            input_schema: JSON.stringify(plugin.inputs),
           },
           pluginConfig.id
         );
@@ -123,8 +123,8 @@ class NcPluginMgrv2 {
           bucket: process.env.NC_S3_BUCKET_NAME,
           region: process.env.NC_S3_REGION,
           access_key: process.env.NC_S3_ACCESS_KEY,
-          access_secret: process.env.NC_S3_ACCESS_SECRET
-        })
+          access_secret: process.env.NC_S3_ACCESS_SECRET,
+        }),
       });
     }
 
@@ -143,8 +143,8 @@ class NcPluginMgrv2 {
           username: process.env.NC_SMTP_USERNAME,
           password: process.env.NC_SMTP_PASSWORD,
           secure: process.env.NC_SMTP_SECURE,
-          ignoreTLS: process.env.NC_SMTP_IGNORE_TLS
-        })
+          ignoreTLS: process.env.NC_SMTP_IGNORE_TLS,
+        }),
       });
     }
   }
@@ -154,13 +154,14 @@ class NcPluginMgrv2 {
   ): Promise<IStorageAdapterV2> {
     const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
       category: PluginCategory.STORAGE,
-      active: true
+      active: true,
     });
 
     if (!pluginData) return new Local();
 
     const pluginConfig = defaultPlugins.find(
-      c => c.title === pluginData.title && c.category === PluginCategory.STORAGE
+      (c) =>
+        c.title === pluginData.title && c.category === PluginCategory.STORAGE
     );
     const plugin = new pluginConfig.builder(ncMeta, pluginData);
 
@@ -177,13 +178,13 @@ class NcPluginMgrv2 {
   ): Promise<IEmailAdapter> {
     const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
       category: PluginCategory.EMAIL,
-      active: true
+      active: true,
     });
 
     if (!pluginData) return null;
 
     const pluginConfig = defaultPlugins.find(
-      c => c.title === pluginData.title && c.category === PluginCategory.EMAIL
+      (c) => c.title === pluginData.title && c.category === PluginCategory.EMAIL
     );
     const plugin = new pluginConfig.builder(ncMeta, pluginData);
 
@@ -201,12 +202,14 @@ class NcPluginMgrv2 {
   ): Promise<IWebhookNotificationAdapter> {
     const pluginData = await ncMeta.metaGet2(null, null, MetaTable.PLUGIN, {
       title,
-      active: true
+      active: true,
     });
 
     if (!pluginData) throw new Error('Plugin not configured/active');
 
-    const pluginConfig = defaultPlugins.find(c => c.title === pluginData.title);
+    const pluginConfig = defaultPlugins.find(
+      (c) => c.title === pluginData.title
+    );
     const plugin = new pluginConfig.builder(ncMeta, pluginData);
 
     if (pluginData?.input) {
@@ -233,7 +236,7 @@ class NcPluginMgrv2 {
       case 'Storage':
         {
           const plugin = defaultPlugins.find(
-            pluginConfig => pluginConfig?.title === args.title
+            (pluginConfig) => pluginConfig?.title === args.title
           );
           const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
           await tempPlugin.init(args?.input);
@@ -243,7 +246,7 @@ class NcPluginMgrv2 {
       case 'Email':
         {
           const plugin = defaultPlugins.find(
-            pluginConfig => pluginConfig?.title === args.title
+            (pluginConfig) => pluginConfig?.title === args.title
           );
           const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
           await tempPlugin.init(args?.input);
@@ -252,7 +255,7 @@ class NcPluginMgrv2 {
         break;
       default: {
         const plugin = defaultPlugins.find(
-          pluginConfig => pluginConfig?.title === args.title
+          (pluginConfig) => pluginConfig?.title === args.title
         );
         const tempPlugin = new plugin.builder(Noco.ncMeta, plugin);
         await tempPlugin.init(args?.input);

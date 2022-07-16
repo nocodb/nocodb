@@ -2,7 +2,7 @@ import { Request, Response, Router } from 'express';
 import ncMetaAclMw from '../../helpers/ncMetaAclMw';
 import {
   extractCsvData,
-  getViewAndModelFromRequestByAliasOrId
+  getViewAndModelFromRequestByAliasOrId,
 } from './helpers';
 import apiMetrics from '../../helpers/apiMetrics';
 import View from '../../../models/View';
@@ -21,7 +21,7 @@ async function csvDataExport(req: Request, res: Response) {
     'nc-export-elapsed-time': elapsed,
     'Content-Disposition': `attachment; filename="${encodeURI(
       targetView.title
-    )}-export.csv"`
+    )}-export.csv"`,
   });
   res.send(data);
 }

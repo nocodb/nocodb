@@ -1,11 +1,9 @@
 <template>
   <v-card width="1000" max-width="100%">
     <v-toolbar height="55" class="elevation-1">
-      <div class="d-100 d-flex">
+      <div class="header d-100 d-flex">
         <h5 class="title text-center">
-          <v-icon :color="iconColor">
-            mdi-table-arrow-right
-          </v-icon>
+          <v-icon :color="iconColor"> mdi-table-arrow-right </v-icon>
 
           <template v-if="meta">
             {{ meta.title }}
@@ -17,34 +15,26 @@
         </h5>
         <v-spacer />
         <v-btn small text @click="reload">
-          <v-icon small>
-            mdi-reload
-          </v-icon>
+          <v-icon small> mdi-reload </v-icon>
         </v-btn>
-
         <x-icon
           v-if="!isNew && _isUIAllowed('rowComments')"
-          icon-class="mr-2"
+          icon-class="ml-1 mr-2 px-1 py-1"
           tooltip="Toggle comments"
           small
           text
           @click="toggleDrawer = !toggleDrawer"
         >
-          {{ toggleDrawer ? "mdi-door-open" : "mdi-door-closed" }}
+          {{ toggleDrawer ? 'mdi-door-open' : 'mdi-door-closed' }}
         </x-icon>
 
         <v-btn small @click="$emit('cancel')">
           <!-- Cancel -->
-          {{ $t("general.cancel") }}
+          {{ $t('general.cancel') }}
         </v-btn>
-        <v-btn
-          :disabled="!_isUIAllowed('tableRowUpdate')"
-          small
-          color="primary"
-          @click="save"
-        >
+        <v-btn :disabled="!_isUIAllowed('tableRowUpdate')" small color="primary" @click="save">
           <!--Save Row-->
-          {{ $t("activity.saveRow") }}
+          {{ $t('activity.saveRow') }}
         </v-btn>
       </div>
     </v-toolbar>
@@ -58,33 +48,18 @@
         <v-breadcrumbs
           v-if="localBreadcrumbs && localBreadcrumbs.length"
           class="caption pt-0 pb-2 justify-center d-100"
-          :items="localBreadcrumbs.map((text) => ({ text }))"
+          :items="localBreadcrumbs.map(text => ({ text }))"
         />
 
         <v-container fluid style="height: 70vh" class="py-0">
           <v-row class="h-100">
-            <v-col
-              class="h-100 px-10"
-              style="overflow-y: auto"
-              cols="8"
-              :offset="isNew || !toggleDrawer ? 2 : 0"
-            >
+            <v-col class="h-100 px-10" style="overflow-y: auto" cols="8" :offset="isNew || !toggleDrawer ? 2 : 0">
               <div v-if="showNextPrev" class="d-flex my-4">
-                <x-icon
-                  tooltip="Previous record"
-                  small
-                  outlined
-                  @click="$emit('prev', localState)"
-                >
+                <x-icon tooltip="Previous record" small outlined @click="$emit('prev', localState)">
                   mdi-arrow-left-bold-outline
                 </x-icon>
                 <span class="flex-grow-1" />
-                <x-icon
-                  tooltip="Next record"
-                  small
-                  outlined
-                  @click="$emit('next', localState)"
-                >
+                <x-icon tooltip="Next record" small outlined @click="$emit('next', localState)">
                   mdi-arrow-right-bold-outline
                 </x-icon>
               </div>
@@ -100,10 +75,7 @@
                   class="row-col my-4"
                 >
                   <div>
-                    <label
-                      :for="`data-table-form-${col.title}`"
-                      class="body-2 text-capitalize"
-                    >
+                    <label :for="`data-table-form-${col.title}`" class="body-2 text-capitalize">
                       <virtual-header-cell
                         v-if="col.colOptions"
                         :column="col"
@@ -138,26 +110,12 @@
                     />
 
                     <div
-                      v-else-if="
-                        col.ai ||
-                          (col.pk && !isNew) ||
-                          disabledColumns[col.title]
-                      "
+                      v-else-if="col.ai || (col.pk && !isNew) || disabledColumns[col.title]"
                       style="height: 100%; width: 100%"
                       class="caption xc-input"
-                      @click="
-                        col.ai &&
-                          $toast
-                            .info('Auto Increment field is not editable')
-                            .goAway(3000)
-                      "
+                      @click="col.ai && $toast.info('Auto Increment field is not editable').goAway(3000)"
                     >
-                      <input
-                        style="height: 100%; width: 100%"
-                        readonly
-                        disabled
-                        :value="localState[col.title]"
-                      >
+                      <input style="height: 100%; width: 100%" readonly disabled :value="localState[col.title]" />
                     </div>
 
                     <editable-cell
@@ -188,10 +146,7 @@
                 'darken-4': $vuetify.theme.dark,
               }"
             >
-              <v-skeleton-loader
-                v-if="loadingLogs && !logs"
-                type="list-item-avatar-two-line@8"
-              />
+              <v-skeleton-loader v-if="loadingLogs && !logs" type="list-item-avatar-two-line@8" />
 
               <v-list
                 v-else
@@ -207,29 +162,15 @@
                 <div>
                   <v-list-item v-for="log in logs" :key="log.id" class="d-flex">
                     <v-list-item-icon class="ma-0 mr-2">
-                      <v-icon
-                        :color="
-                          isYou(log.user) ? 'pink lighten-2' : 'blue lighten-2'
-                        "
-                      >
+                      <v-icon :color="isYou(log.user) ? 'pink lighten-2' : 'blue lighten-2'">
                         mdi-account-circle
                       </v-icon>
                     </v-list-item-icon>
                     <div class="flex-grow-1" style="min-width: 0">
                       <p class="mb-1 caption edited-text">
+                        {{ isYou(log.user) ? 'You' : log.user == null ? 'Shared base' : log.user }}
                         {{
-                          isYou(log.user)
-                            ? "You"
-                            : log.user == null
-                              ? "Shared base"
-                              : log.user
-                        }}
-                        {{
-                          log.op_type === "COMMENT"
-                            ? "commented"
-                            : log.op_sub_type === "INSERT"
-                              ? "created"
-                              : "edited"
+                          log.op_type === 'COMMENT' ? 'commented' : log.op_sub_type === 'INSERT' ? 'created' : 'edited'
                         }}
                       </p>
                       <p
@@ -240,12 +181,7 @@
                         {{ log.description }}
                       </p>
 
-                      <p
-                        v-else
-                        v-dompurify-html="log.details"
-                        class="caption mb-0"
-                        style="word-break: break-all"
-                      />
+                      <p v-else v-dompurify-html="log.details" class="caption mb-0" style="word-break: break-all" />
 
                       <p class="time text-right mb-0">
                         {{ calculateDiff(log.created_at) }}
@@ -272,9 +208,7 @@
                 </v-switch>
               </div>
               <div class="flex-shrink-1 mt-2 d-flex pl-4">
-                <v-icon color="pink lighten-2" class="mr-2">
-                  mdi-account-circle
-                </v-icon>
+                <v-icon color="pink lighten-2" class="mr-2"> mdi-account-circle </v-icon>
                 <v-text-field
                   v-model="comment"
                   dense
@@ -289,9 +223,7 @@
                   @keyup.enter.prevent="saveComment"
                 >
                   <template v-if="comment" #append>
-                    <x-icon tooltip="Save" small @click="saveComment">
-                      mdi-keyboard-return
-                    </x-icon>
+                    <x-icon tooltip="Save" small @click="saveComment"> mdi-keyboard-return </x-icon>
                   </template>
                 </v-text-field>
               </div>
@@ -316,45 +248,40 @@
 </template>
 
 <script>
-import dayjs from 'dayjs'
-import {
-  AuditOperationSubTypes,
-  AuditOperationTypes, isSystemColumn,
-  isVirtualCol,
-  UITypes
-} from 'nocodb-sdk'
-import form from '../mixins/form'
-import HeaderCell from '~/components/project/spreadsheet/components/HeaderCell'
-import EditableCell from '~/components/project/spreadsheet/components/EditableCell'
-import colors from '@/mixins/colors'
-import VirtualCell from '~/components/project/spreadsheet/components/VirtualCell'
-import VirtualHeaderCell from '~/components/project/spreadsheet/components/VirtualHeaderCell'
-import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText'
+import dayjs from 'dayjs';
+import { AuditOperationSubTypes, AuditOperationTypes, isSystemColumn, isVirtualCol, UITypes } from 'nocodb-sdk';
+import form from '../mixins/form';
+import HeaderCell from '~/components/project/spreadsheet/components/HeaderCell';
+import EditableCell from '~/components/project/spreadsheet/components/EditableCell';
+import colors from '@/mixins/colors';
+import VirtualCell from '~/components/project/spreadsheet/components/VirtualCell';
+import VirtualHeaderCell from '~/components/project/spreadsheet/components/VirtualHeaderCell';
+import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText';
 
-const relativeTime = require('dayjs/plugin/relativeTime')
-const utc = require('dayjs/plugin/utc')
-dayjs.extend(utc)
-dayjs.extend(relativeTime)
+const relativeTime = require('dayjs/plugin/relativeTime');
+const utc = require('dayjs/plugin/utc');
+dayjs.extend(utc);
+dayjs.extend(relativeTime);
 export default {
   name: 'ExpandedForm',
   components: {
     VirtualHeaderCell,
     VirtualCell,
     EditableCell,
-    HeaderCell
+    HeaderCell,
   },
   mixins: [colors, form],
   props: {
     showFields: Object,
     showNextPrev: {
       type: Boolean,
-      default: false
+      default: false,
     },
     breadcrumbs: {
       type: Array,
       default() {
-        return []
-      }
+        return [];
+      },
     },
     dbAlias: String,
     value: Object,
@@ -366,13 +293,13 @@ export default {
     oldRow: Object,
     iconColor: {
       type: String,
-      default: 'primary'
+      default: 'primary',
     },
     availableColumns: [Object, Array],
     queryParams: Object,
     meta: Object,
     presetValues: Object,
-    isLocked: Boolean
+    isLocked: Boolean,
   },
   data: () => ({
     isVirtualCol,
@@ -386,89 +313,82 @@ export default {
     changedColumns: {},
     comment: null,
     showSystemFields: false,
-    commentsOnly: false
+    commentsOnly: false,
   }),
   computed: {
     primaryKey() {
       return this.isNew
         ? ''
         : this.meta.columns
-          .filter(c => c.pk)
-          .map(c => this.localState[c.title])
-          .join('___')
+            .filter(c => c.pk)
+            .map(c => this.localState[c.title])
+            .join('___');
     },
     edited() {
-      return !!Object.keys(this.changedColumns).length
+      return !!Object.keys(this.changedColumns).length;
     },
     fields() {
-      let fields
+      let fields;
       if (this.availableColumns) {
-        fields = this.availableColumns
+        fields = this.availableColumns;
       } else if (this.showSystemFields) {
-        fields = this.meta.columns || []
+        fields = this.meta.columns || [];
       } else {
-        fields = (
-          this.meta.columns.filter(
-            c => !isSystemColumn(c)
-          ) || []
-        )
+        fields = this.meta.columns.filter(c => !isSystemColumn(c)) || [];
       }
-      return this.isNew ? fields.filter(f => ![UITypes.Formula, UITypes.Rollup, UITypes.Lookup].includes(f.uidt)) : fields
+      return this.isNew
+        ? fields.filter(f => ![UITypes.Formula, UITypes.Rollup, UITypes.Lookup].includes(f.uidt))
+        : fields;
     },
     isChanged() {
-      return Object.values(this.changedColumns).some(Boolean)
+      return Object.values(this.changedColumns).some(Boolean);
     },
     localBreadcrumbs() {
       return [
         ...this.breadcrumbs,
-        `${this.meta ? this.meta.title : this.table} ${
-          this.primaryValue() ? `(${this.primaryValue()})` : ''
-        }`
-      ]
-    }
+        `${this.meta ? this.meta.title : this.table} ${this.primaryValue() ? `(${this.primaryValue()})` : ''}`,
+      ];
+    },
   },
   watch: {
     value(obj) {
-      this.localState = { ...obj }
+      this.localState = { ...obj };
       if (!this.isNew && this.toggleDrawer) {
-        this.getAuditsAndComments()
+        this.getAuditsAndComments();
       }
     },
     isNew(n) {
       if (!n && this.toggleDrawer) {
-        this.getAuditsAndComments()
+        this.getAuditsAndComments();
       }
     },
     meta() {
       if (!this.isNew && this.toggleDrawer) {
-        this.getAuditsAndComments()
+        this.getAuditsAndComments();
       }
     },
     toggleDrawer(td) {
       if (td) {
-        this.getAuditsAndComments()
+        this.getAuditsAndComments();
       }
-    }
+    },
   },
   created() {
-    this.localState = { ...this.value }
+    this.localState = { ...this.value };
     if (!this.isNew && this.toggleDrawer) {
-      this.getAuditsAndComments()
+      this.getAuditsAndComments();
     }
   },
   methods: {
     updateCol(_row, _cn, pid) {
-      this.$set(this.localState, _cn, pid)
-      this.$set(this.changedColumns, _cn, true)
+      this.$set(this.localState, _cn, pid);
+      this.$set(this.changedColumns, _cn, true);
     },
     isYou(email) {
-      return (
-        this.$store.state.users.user &&
-        this.$store.state.users.user.email === email
-      )
+      return this.$store.state.users.user && this.$store.state.users.user.email === email;
     },
     async getAuditsAndComments() {
-      this.loadingLogs = true
+      this.loadingLogs = true;
 
       const data = await this.$api.utils.commentList({
         row_id: this.meta.columns
@@ -476,79 +396,56 @@ export default {
           .map(c => this.localState[c.title])
           .join('___'),
         fk_model_id: this.meta.id,
-        comments_only: this.commentsOnly
-      })
+        comments_only: this.commentsOnly,
+      });
 
-      this.logs = data.reverse()
-      this.loadingLogs = false
+      this.logs = data.reverse();
+      this.loadingLogs = false;
 
       this.$nextTick(() => {
-        if (
-          this.$refs.commentsList &&
-          this.$refs.commentsList.$el &&
-          this.$refs.commentsList.$el.firstElementChild
-        ) {
-          this.$refs.commentsList.$el.scrollTop =
-            this.$refs.commentsList.$el.firstElementChild.offsetHeight
+        if (this.$refs.commentsList && this.$refs.commentsList.$el && this.$refs.commentsList.$el.firstElementChild) {
+          this.$refs.commentsList.$el.scrollTop = this.$refs.commentsList.$el.firstElementChild.offsetHeight;
         }
-      })
+      });
     },
     async save() {
       try {
         const id = this.meta.columns
           .filter(c => c.pk)
           .map(c => this.localState[c.title])
-          .join('___')
+          .join('___');
 
         if (this.presetValues) {
           // cater presetValues
           for (const k in this.presetValues) {
-            this.$set(this.changedColumns, k, true)
+            this.$set(this.changedColumns, k, true);
           }
         }
 
-        const updatedObj = Object.keys(this.changedColumns).reduce(
-          (obj, col) => {
-            obj[col] = this.localState[col]
-            return obj
-          },
-          {}
-        )
+        const updatedObj = Object.keys(this.changedColumns).reduce((obj, col) => {
+          obj[col] = this.localState[col];
+          return obj;
+        }, {});
 
         if (this.isNew) {
-          const data = await this.$api.dbTableRow.create(
-            'noco',
-            this.projectName,
-            this.meta.title,
-            updatedObj
-          )
-          this.localState = { ...this.localState, ...data }
+          const data = await this.$api.dbTableRow.create('noco', this.projectName, this.meta.title, updatedObj);
+          this.localState = { ...this.localState, ...data };
 
           // save hasmany and manytomany relations from local state
           if (this.$refs.virtual && Array.isArray(this.$refs.virtual)) {
             for (const vcell of this.$refs.virtual) {
               if (vcell.save) {
-                await vcell.save(this.localState)
+                await vcell.save(this.localState);
               }
             }
           }
 
-          await this.reload()
+          await this.reload();
         } else if (Object.keys(updatedObj).length) {
           if (!id) {
-            return this.$toast
-              .info(
-                "Update not allowed for table which doesn't have primary Key"
-              )
-              .goAway(3000)
+            return this.$toast.info("Update not allowed for table which doesn't have primary Key").goAway(3000);
           }
-          await this.$api.dbTableRow.update(
-            'noco',
-            this.projectName,
-            this.meta.title,
-            id,
-            updatedObj
-          )
+          await this.$api.dbTableRow.update('noco', this.projectName, this.meta.title, id, updatedObj);
           for (const key of Object.keys(updatedObj)) {
             // audit
             this.$api.utils
@@ -557,46 +454,41 @@ export default {
                 column_name: key,
                 row_id: id,
                 value: getPlainText(updatedObj[key]),
-                prev_value: getPlainText(this.oldRow[key])
+                prev_value: getPlainText(this.oldRow[key]),
               })
-              .then(() => {
-              })
+              .then(() => {});
           }
         } else {
-          return this.$toast.info('No columns to update').goAway(3000)
+          return this.$toast.info('No columns to update').goAway(3000);
         }
 
-        this.$emit('update:oldRow', { ...this.localState })
-        this.changedColumns = {}
-        this.$emit('input', this.localState)
-        this.$emit('update:isNew', false)
+        this.$emit('update:oldRow', { ...this.localState });
+        this.changedColumns = {};
+        this.$emit('input', this.localState);
+        this.$emit('update:isNew', false);
 
         this.$toast
           .success(`${this.primaryValue() || 'Row'} updated successfully.`, {
-            position: 'bottom-right'
+            position: 'bottom-right',
           })
-          .goAway(3000)
+          .goAway(3000);
       } catch (e) {
-        this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000)
+        this.$toast.error(`Failed to update row : ${e.message}`).goAway(3000);
       }
-      this.$e('a:row-expand:add')
+      this.$e('a:row-expand:add');
     },
     async reload() {
       const id = this.meta.columns
         .filter(c => c.pk)
         .map(c => this.localState[c.title])
-        .join('___')
-      this.$set(this, 'changedColumns', {})
-      this.localState = await this.$api.dbTableRow.read(
-        'noco',
-        this.projectName,
-        this.meta.title,
-        id,
-        { query: this.queryParams || {} }
-      )
+        .join('___');
+      this.$set(this, 'changedColumns', {});
+      this.localState = await this.$api.dbTableRow.read('noco', this.projectName, this.meta.title, id, {
+        query: this.queryParams || {},
+      });
     },
     calculateDiff(date) {
-      return dayjs.utc(date).fromNow()
+      return dayjs.utc(date).fromNow();
     },
     async saveComment() {
       try {
@@ -606,55 +498,49 @@ export default {
             .filter(c => c.pk)
             .map(c => this.localState[c.title])
             .join('___'),
-          description: this.comment
-        })
+          description: this.comment,
+        });
 
-        this.comment = ''
-        this.$toast.success('Comment added successfully').goAway(3000)
-        this.$emit('commented')
-        await this.getAuditsAndComments()
+        this.comment = '';
+        this.$toast.success('Comment added successfully').goAway(3000);
+        this.$emit('commented');
+        await this.getAuditsAndComments();
       } catch (e) {
-        this.$toast.error(e.message).goAway(3000)
+        this.$toast.error(e.message).goAway(3000);
       }
 
-      this.$e('a:row-expand:comment')
+      this.$e('a:row-expand:comment');
     },
     primaryValue() {
       if (this.localState) {
-        const value = this.localState[this.primaryValueColumn]
-        const col = this.meta.columns.find(
-          c => c.title == this.primaryValueColumn
-        )
+        const value = this.localState[this.primaryValueColumn];
+        const col = this.meta.columns.find(c => c.title == this.primaryValueColumn);
         if (!col) {
-          return
+          return;
         }
-        const uidt = col.uidt
+        const uidt = col.uidt;
         if (uidt == UITypes.Date) {
-          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format(
-            'YYYY-MM-DD'
-          )
+          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD');
         } else if (uidt == UITypes.DateTime) {
-          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format(
-            'YYYY-MM-DD HH:mm'
-          )
+          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD HH:mm');
         } else if (uidt == UITypes.Time) {
-          let dateTime = dayjs(value)
+          let dateTime = dayjs(value);
           if (!dateTime.isValid()) {
-            dateTime = dayjs(value, 'HH:mm:ss')
+            dateTime = dayjs(value, 'HH:mm:ss');
           }
           if (!dateTime.isValid()) {
-            dateTime = dayjs(`1999-01-01 ${value}`)
+            dateTime = dayjs(`1999-01-01 ${value}`);
           }
           if (!dateTime.isValid()) {
-            return value
+            return value;
           }
-          return dateTime.format('HH:mm:ss')
+          return dateTime.format('HH:mm:ss');
         }
-        return value
+        return value;
       }
-    }
-  }
-}
+    },
+  },
+};
 </script>
 
 <style scoped lang="scss">
@@ -784,6 +670,10 @@ h5 {
   background: var(--v-backgroundColorDefault-base);
 }
 
+.header {
+  display: flex;
+  align-items: center;
+}
 .nc-chip {
   padding: 8px;
   border-radius: 8px;

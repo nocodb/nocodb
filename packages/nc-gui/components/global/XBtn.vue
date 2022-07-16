@@ -3,15 +3,13 @@
     <template #activator="{ on }">
       <v-hover v-slot="{ hover }">
         <v-btn
-          :style="{backgroundColor : hover ? colors[0] : colors[1]}"
-          :class="[btnClass,$attrs['btn.class']]"
+          :style="{ backgroundColor: hover ? colors[0] : colors[1] }"
+          :class="[btnClass, $attrs['btn.class']]"
           v-bind="$attrs"
-          v-on="{...$listeners,...on}"
+          v-on="{ ...$listeners, ...on }"
         >
           <template v-if="icon">
-            <v-icon small>
-              {{ icon }}
-            </v-icon>&nbsp;
+            <v-icon small> {{ icon }} </v-icon>&nbsp;
           </template>
           <slot />
         </v-btn>
@@ -25,8 +23,8 @@
     <v-btn
       ref="btn"
       v-bind="$attrs"
-      :class="[btnClass,$attrs['btn.class']]"
-      :style="{backgroundColor : hover ? colors[0] : colors[1]}"
+      :class="[btnClass, $attrs['btn.class']]"
+      :style="{ backgroundColor: hover ? colors[0] : colors[1] }"
       v-on="$listeners"
     >
       <v-icon v-if="icon">
@@ -45,26 +43,23 @@ export default {
     tooltipProp: {
       type: Object,
       default: () => ({
-        bottom: true
-      })
+        bottom: true,
+      }),
     },
     btnClass: [Object, String, Array],
     tooltip: String,
-    icon: String
+    icon: String,
   },
   computed: {
     colors() {
-      return this.color ? (Array.isArray(this.color) ? this.color : this.color.split(' ')) : []
-    }
+      return this.color ? (Array.isArray(this.color) ? this.color : this.color.split(' ')) : [];
+    },
   },
-  methods: {
-  }
-}
+  methods: {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

@@ -1,6 +1,6 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Run GUI" type="js.build_tools.npm">
-    <package-json value="$PROJECT_DIR$/packages/nc-gui/package.json" />
+  <configuration default="false" name="Run GUI v2" type="js.build_tools.npm">
+    <package-json value="$PROJECT_DIR$/packages/nc-gui-v2/package.json" />
     <command value="run" />
     <scripts>
       <script value="dev" />

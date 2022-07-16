@@ -2,73 +2,45 @@
   <section class="section container">
     <div class="box">
       <div class="box">
-        <h3 class="title is-3">
-          Connected social accounts (work in progress)
-        </h3>
+        <h3 class="title is-3">Connected social accounts (work in progress)</h3>
         <section v-if="isConnectedSocialAccount('facebook')" class="">
-          <button class="button">
-            facebook
-          </button>
+          <button class="button">facebook</button>
         </section>
         <section v-if="isConnectedSocialAccount('google')" class="">
-          <button class="button">
-            google
-          </button>
+          <button class="button">google</button>
         </section>
         <section v-if="isConnectedSocialAccount('twitter')" class="">
-          <button class="button">
-            twitter
-          </button>
+          <button class="button">twitter</button>
         </section>
         <section v-if="isConnectedSocialAccount('linkedin')" class="">
-          <button class="button">
-            linkedin
-          </button>
+          <button class="button">linkedin</button>
         </section>
         <section v-if="isConnectedSocialAccount('paypal')" class="">
-          <button class="button">
-            paypal
-          </button>
+          <button class="button">paypal</button>
         </section>
         <section v-if="isConnectedSocialAccount('github')" class="">
-          <button class="button">
-            github
-          </button>
+          <button class="button">github</button>
         </section>
       </div>
       <div class="box">
-        <h3 class="title is-3">
-          Unconnected social accounts (work in progress)
-        </h3>
+        <h3 class="title is-3">Unconnected social accounts (work in progress)</h3>
         <section v-if="isConnectedSocialAccount('facebook')" class="">
-          <button class="button">
-            facebook
-          </button>
+          <button class="button">facebook</button>
         </section>
         <section v-if="isConnectedSocialAccount('google')" class="">
-          <button class="button">
-            google
-          </button>
+          <button class="button">google</button>
         </section>
         <section v-if="isConnectedSocialAccount('twitter')" class="">
-          <button class="button">
-            twitter
-          </button>
+          <button class="button">twitter</button>
         </section>
         <section v-if="isConnectedSocialAccount('linkedin')" class="">
-          <button class="button">
-            linkedin
-          </button>
+          <button class="button">linkedin</button>
         </section>
         <section v-if="isConnectedSocialAccount('paypal')" class="">
-          <button class="button">
-            paypal
-          </button>
+          <button class="button">paypal</button>
         </section>
         <section v-if="isConnectedSocialAccount('github')" class="">
-          <button class="button">
-            github
-          </button>
+          <button class="button">github</button>
         </section>
       </div>
     </div>
@@ -80,44 +52,33 @@ export default {
   directives: {},
   components: {},
   validate({ params }) {
-    return true
+    return true;
   },
   props: {},
   data() {
-    return {}
+    return {};
   },
   head() {
-    return {}
+    return {};
   },
   computed: {},
   watch: {},
-  created() {
-  },
-  mounted() {
-  },
-  beforeDestroy() {
-  },
+  created() {},
+  mounted() {},
+  beforeDestroy() {},
   methods: {
-    hasConnectedAdditionalSocialAccounts() {
-
-    },
-    removeUserSocialAccount() {
-
-    },
+    hasConnectedAdditionalSocialAccounts() {},
+    removeUserSocialAccount() {},
     isConnectedSocialAccount(social) {
-      return true
-    }
+      return true;
+    },
   },
-  beforeCreated() {
-  },
-  destroy() {
-  }
-}
+  beforeCreated() {},
+  destroy() {},
+};
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

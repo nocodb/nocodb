@@ -1,14 +1,12 @@
 <template>
   <v-container
-    class="h-100 j-excel-container "
+    class="h-100 j-excel-container"
     :class="{
-      'pa-0 ma-0': ! notFound
+      'pa-0 ma-0': !notFound,
     }"
     fluid
   >
-    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300">
-      Not found
-    </v-alert>
+    <v-alert v-if="notFound" type="warning" class="mx-auto mt-10" outlined max-width="300"> Not found </v-alert>
 
     <template v-else>
       <div v-if="viewName" class="model-name">
@@ -20,7 +18,7 @@
         height="40"
         dense
         class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom"
-        style="z-index: 7;border-radius: 4px"
+        style="z-index: 7; border-radius: 4px"
       >
         <div class="d-inline-flex">
           <fields-menu
@@ -48,25 +46,26 @@
             @input="loadTableData"
           />
 
-          <csv-export-import
+          <more-actions
+            v-if="allowCSVDownload"
             :is-view="isView"
-            :query-params="{...queryParams, showFields, fieldsOrder}"
+            :query-params="{ ...queryParams, showFields, fieldsOrder }"
             :public-view-id="$route.params.id"
             :meta="meta"
-            :req-payload="{filters, sorts, password}"
+            :req-payload="{ filters, sorts, password }"
           />
         </div>
-        <v-spacer class="h-100" @dblclick="debug=true" />
+        <v-spacer class="h-100" @dblclick="debug = true" />
       </v-toolbar>
 
       <div
         v-if="meta"
         class="nc-grid-wrapper d-flex"
         :class="`cell-height-${cellHeight}`"
-        style="overflow:auto;transition: width 500ms "
+        style="overflow: auto; transition: width 500ms"
       >
         <div class="flex-grow-1 h-100" style="overflow-y: auto">
-          <div ref="table" class="nc-grid" style=" overflow: auto;width:100%">
+          <div ref="table" class="nc-grid" style="overflow: auto; width: 100%">
             <v-skeleton-loader v-if="loadingData" type="table" />
 
             <xc-grid-view
@@ -77,7 +76,7 @@
               :data="data"
               :available-columns="availableColumns"
               :show-fields="showFields"
-              :nodes="{...nodes, dbConnection:{client}}"
+              :nodes="{ ...nodes, dbConnection: { client } }"
               :sql-ui="sqlUi"
               :columns-width="columnsWidth"
               :password="password"
@@ -112,9 +111,7 @@
           />
 
           <div class="text-center">
-            <v-btn small color="primary" @click="unlock">
-              Unlock
-            </v-btn>
+            <v-btn small color="primary" @click="unlock"> Unlock </v-btn>
           </div>
         </v-container>
       </v-card>
@@ -125,23 +122,23 @@
 <script>
 /* eslint-disable camelcase */
 
-import { ErrorMessages, SqlUiFactory } from 'nocodb-sdk'
-import spreadsheet from '../mixins/spreadsheet'
-import ApiFactory from '../apis/apiFactory'
-import FieldsMenu from '../components/FieldsMenu'
-import SortListMenu from '../components/SortListMenu'
-import ColumnFilterMenu from '../components/ColumnFilterMenu'
-import XcGridView from '../views/GridView'
-import CsvExportImport from '~/components/project/spreadsheet/components/MoreActions'
+import { ErrorMessages, SqlUiFactory } from 'nocodb-sdk';
+import spreadsheet from '../mixins/spreadsheet';
+import ApiFactory from '../apis/apiFactory';
+import FieldsMenu from '../components/FieldsMenu';
+import SortListMenu from '../components/SortListMenu';
+import ColumnFilterMenu from '../components/ColumnFilterMenu';
+import XcGridView from '../views/GridView';
+import MoreActions from '~/components/project/spreadsheet/components/MoreActions';
 
 export default {
   name: 'XcTable',
   components: {
-    CsvExportImport,
+    MoreActions,
     XcGridView,
     ColumnFilterMenu,
     SortListMenu,
-    FieldsMenu
+    FieldsMenu,
   },
   mixins: [spreadsheet],
   props: {
@@ -152,7 +149,7 @@ export default {
     relationIdValue: [String, Number],
     refTable: String,
     relationPrimaryValue: [String, Number],
-    isView: Boolean
+    isView: Boolean,
   },
   data: () => ({
     notFound: false,
@@ -179,11 +176,11 @@ export default {
     navDrawer: true,
     selected: {
       row: null,
-      col: null
+      col: null,
     },
     editEnabled: {
       row: null,
-      col: null
+      col: null,
     },
     page: 1,
     count: 0,
@@ -194,7 +191,16 @@ export default {
     cellHeight: 'small',
 
     isAnyFieldHidden: false,
-    opList: ['is equal', 'is not equal', 'is like', 'is not like', 'is empty', 'is not empty', 'is null', 'is not null'],
+    opList: [
+      'is equal',
+      'is not equal',
+      'is like',
+      'is not like',
+      'is empty',
+      'is not empty',
+      'is null',
+      'is not null',
+    ],
     fieldFilter: '',
 
     filters: [],
@@ -204,168 +210,176 @@ export default {
     spreadsheet: null,
     options: {
       allowToolbar: true,
-      columnSorting: false
+      columnSorting: false,
     },
     filteredData: [],
     showFields: {},
     // fieldList: [],
 
-    cellHeights: [{
-      size: 'small',
-      icon: 'mdi-view-headline'
-    }, {
-      size: 'medium',
-      icon: 'mdi-view-sequential'
-    }, {
-      size: 'large',
-      icon: 'mdi-view-stream'
-    }, {
-      size: 'xlarge',
-      icon: 'mdi-card'
-    }],
+    cellHeights: [
+      {
+        size: 'small',
+        icon: 'mdi-view-headline',
+      },
+      {
+        size: 'medium',
+        icon: 'mdi-view-sequential',
+      },
+      {
+        size: 'large',
+        icon: 'mdi-view-stream',
+      },
+      {
+        size: 'xlarge',
+        icon: 'mdi-card',
+      },
+    ],
     rowContextMenu: null,
     modelName: null,
-    tableMeta: null
+    tableMeta: null,
+    allowCSVDownload: true,
   }),
   computed: {
     concatenatedXWhere() {
-      let where = ''
+      let where = '';
       if (this.searchField && this.searchQuery.trim()) {
-        if (['text', 'string'].includes(this.sqlUi.getAbstractType(this.meta.columns.find(({ _cn }) => _cn === this.searchField)))) {
-          where = `(${this.searchField},like,%${this.searchQuery.trim()}%)`
+        if (
+          ['text', 'string'].includes(
+            this.sqlUi.getAbstractType(this.meta.columns.find(({ _cn }) => _cn === this.searchField))
+          )
+        ) {
+          where = `(${this.searchField},like,%${this.searchQuery.trim()}%)`;
         } else {
-          where = `(${this.searchField},eq,${this.searchQuery.trim()})`
+          where = `(${this.searchField},eq,${this.searchQuery.trim()})`;
         }
       }
 
       if (!where) {
-        return this.xWhere
+        return this.xWhere;
       }
 
-      return this.xWhere ? where + `~and(${this.xWhere})` : where
+      return this.xWhere ? where + `~and(${this.xWhere})` : where;
     },
     sqlUi() {
       // todo: replace with correct client
-      return SqlUiFactory.create({ client: this.client })
+      return SqlUiFactory.create({ client: this.client });
     },
     queryParams() {
       return {
         limit: this.size,
         offset: this.size * (this.page - 1),
         where: this.concatenatedXWhere,
-        sort: this.sort
-      }
+        sort: this.sort,
+      };
     },
     api() {
-      return ApiFactory.create(this.$store.getters['project/GtrProjectType'], this.table, this.meta && this.meta.columns, this, this.meta)
+      return ApiFactory.create(
+        this.$store.getters['project/GtrProjectType'],
+        this.table,
+        this.meta && this.meta.columns,
+        this,
+        this.meta
+      );
     },
     colLength() {
-      return (this.meta && this.meta.columns && this.meta.columns.length) || 0
+      return (this.meta && this.meta.columns && this.meta.columns.length) || 0;
     },
     visibleColLength() {
-      return (this.meta && this.meta.columns && this.meta.columns.length) || 0
+      return (this.meta && this.meta.columns && this.meta.columns.length) || 0;
     },
     rowLength() {
-      return (this.data && this.data.length) || 0
+      return (this.data && this.data.length) || 0;
     },
     edited() {
-      return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed))
+      return this.data && this.data.some(r => r.rowMeta && (r.rowMeta.new || r.rowMeta.changed));
     },
     table() {
       if (this.relationType === 'hm') {
-        return this.relation.table_name
+        return this.relation.table_name;
       } else if (this.relationType === 'bt') {
-        return this.relation.rtn
+        return this.relation.rtn;
       }
 
-      return this.nodes.table_name || this.nodes.view_name
+      return this.nodes.table_name || this.nodes.view_name;
     },
     primaryValueColumn() {
       if (!this.meta || !this.meta.columns) {
-        return ''
+        return '';
       }
 
-      const pvIndex = this.meta.columns.findIndex(c => c.pv)
+      const pvIndex = this.meta.columns.findIndex(c => c.pv);
 
       if (pvIndex > -1 && pvIndex <= this.colLength - 1) {
-        return this.meta.columns[pvIndex].title
+        return this.meta.columns[pvIndex].title;
       }
 
-      const pkIndex = this.meta.columns.findIndex(c => c.pv)
+      const pkIndex = this.meta.columns.findIndex(c => c.pv);
 
       if (pkIndex > -1 && pkIndex < this.colLength - 1) {
-        return this.meta.columns[pkIndex + 1].title
+        return this.meta.columns[pkIndex + 1].title;
       }
-      return this.meta.columns[0].title
-    }
+      return this.meta.columns[0].title;
+    },
   },
   async mounted() {
     try {
-      await this.loadMetaData()
+      await this.loadMetaData();
       if (!this.showPasswordModal && !this.notFound) {
-        await this.loadTableData()
+        await this.loadTableData();
       }
     } catch (e) {
-      console.log(e)
+      console.log(e);
     }
-    this.searchField = this.primaryValueColumn
+    this.searchField = this.primaryValueColumn;
   },
   created() {
-    document.addEventListener('keydown', this.onKeyDown)
+    document.addEventListener('keydown', this.onKeyDown);
   },
   beforeDestroy() {
-    document.removeEventListener('keydown', this.onKeyDown)
+    document.removeEventListener('keydown', this.onKeyDown);
   },
   methods: {
     comingSoon() {
-      this.$toast.info('Coming soon!').goAway(3000)
+      this.$toast.info('Coming soon!').goAway(3000);
     },
     makeSelected(col, row) {
       if (this.selected.col !== col || this.selected.row !== row) {
         this.selected = {
           col,
-          row
-        }
-        this.editEnabled = {}
+          row,
+        };
+        this.editEnabled = {};
       }
     },
     makeEditable(col, row) {
       if (this.meta.columns[col].ai) {
-        return this.$toast.info('Auto Increment field is not editable').goAway(3000)
+        return this.$toast.info('Auto Increment field is not editable').goAway(3000);
       }
       if (this.meta.columns[col].pk && !this.data[row].rowMeta.new) {
-        return this.$toast.info('Editing primary key not supported').goAway(3000)
+        return this.$toast.info('Editing primary key not supported').goAway(3000);
       }
       if (this.editEnabled.col !== col || this.editEnabled.row !== row) {
         this.editEnabled = {
           col,
-          row
-        }
+          row,
+        };
       }
     },
 
-    async handleKeyDown({
-      metaKey,
-      key,
-      altKey,
-      shiftKey,
-      ctrlKey
-    }) {
+    async handleKeyDown({ metaKey, key, altKey, shiftKey, ctrlKey }) {
       // ctrl + s -> save
       // ctrl + l -> reload
       // ctrl + n -> new
-      switch ([
-        this._isMac ? metaKey : ctrlKey,
-        key].join('_')) {
-        case 'true_s' :
-          this.edited && await this.save()
-          break
-        case 'true_l' :
-          await this.loadTableData()
-          break
-        case 'true_n' :
-          this.insertNewRow(true)
-          break
+      switch ([this._isMac ? metaKey : ctrlKey, key].join('_')) {
+        case 'true_s':
+          this.edited && (await this.save());
+          break;
+        case 'true_l':
+          await this.loadTableData();
+          break;
+        case 'true_n':
+          this.insertNewRow(true);
+          break;
       }
     },
 
@@ -374,168 +388,169 @@ export default {
         field: '',
         op: '',
         value: '',
-        logicOp: 'and'
-      })
-      this.filters = this.filters.slice()
+        logicOp: 'and',
+      });
+      this.filters = this.filters.slice();
     },
     addSort() {
       this.sorts.push({
         field: '',
-        order: ''
-      })
-      this.filters = this.filters.slice()
+        order: '',
+      });
+      this.filters = this.filters.slice();
     },
     async loadMetaData() {
-      this.loading = true
+      this.loading = true;
       try {
-        this.viewMeta = (await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
+        this.viewMeta = await this.$api.public.sharedViewMetaGet(this.$route.params.id, {
           headers: {
-            'xc-password': this.password
-          }
-        }))
-        this.tableMeta = this.viewMeta.model
-        this.meta = { ...this.viewMeta.model }
-        this.meta.columns = this.meta.columns.filter(c => c.show)
-        this.metas = this.viewMeta.relatedMetas
-        this.showSystemFields = this.viewMeta.show_system_fields
+            'xc-password': this.password,
+          },
+        });
+        this.tableMeta = this.viewMeta.model;
+        this.meta = { ...this.viewMeta.model };
+        this.meta.columns = this.meta.columns.filter(c => c.show);
+        this.metas = this.viewMeta.relatedMetas;
+        this.showSystemFields = this.viewMeta.show_system_fields;
 
-        this.sorts = this.viewMeta.sorts
-        this.viewName = this.viewMeta.title
-        this.client = this.viewMeta.client
+        this.sorts = this.viewMeta.sorts;
+        this.viewName = this.viewMeta.title;
+        this.client = this.viewMeta.client;
+        this.allowCSVDownload = JSON.parse(this.viewMeta.meta).allowCSVDownload;
       } catch (e) {
         if (e.response && e.response.status === 404) {
-          this.notFound = true
-        } else if (await this._extractSdkResponseErrorMsg(e) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
-          this.showPasswordModal = true
+          this.notFound = true;
+        } else if ((await this._extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
+          this.showPasswordModal = true;
         } else {
-          console.log(e)
+          console.log(e);
         }
       }
 
-      this.loadingData = false
+      this.loadingData = false;
     },
 
     async loadTableData() {
-      this.loadingData = true
+      this.loadingData = true;
       try {
         const {
           data: {
             list,
-            pageInfo: { totalRows: count }
-          }
-        } = (await this.$api.public.dataList(
+            pageInfo: { totalRows: count },
+          },
+        } = await this.$api.public.dataList(
           this.$route.params.id,
           {
-            sortArrJson: JSON.stringify(this.sorts && this.sorts.map(({
-              fk_column_id,
-              direction
-            }) => ({
-              direction,
-              fk_column_id
-            }))),
+            sortArrJson: JSON.stringify(
+              this.sorts &&
+                this.sorts.map(({ fk_column_id, direction }) => ({
+                  direction,
+                  fk_column_id,
+                }))
+            ),
             filterArrJson: JSON.stringify(this.filters),
-            ...this.queryParams
-          }, {
-            headers: { 'xc-password': this.password }
+            ...this.queryParams,
+          },
+          {
+            headers: { 'xc-password': this.password },
           }
-        ))
+        );
 
-        this.count = count
+        this.count = count;
         this.data = list.map(row => ({
           row,
           oldRow: { ...row },
-          rowMeta: {}
-        }))
+          rowMeta: {},
+        }));
       } catch (e) {
         if (e.response && e.response.status === 404) {
-          this.notFound = true
-        } else if (await this._extractSdkResponseErrorMsg(e) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
-          this.showPasswordModal = true
+          this.notFound = true;
+        } else if ((await this._extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
+          this.showPasswordModal = true;
         } else {
-          console.log(e)
+          console.log(e);
         }
       }
 
-      this.loadingData = false
+      this.loadingData = false;
     },
     onKeyDown(e) {
       if (this.selected.col === null || this.selected.row === null) {
-        return
+        return;
       }
       switch (e.keyCode) {
         // left
         case 37:
           if (this.selected.col > 0) {
-            this.selected.col--
+            this.selected.col--;
           }
-          break
+          break;
         // right
         case 39:
           if (this.selected.col < this.colLength - 1) {
-            this.selected.col++
+            this.selected.col++;
           }
-          break
+          break;
         // up
         case 38:
           if (this.selected.row > 0) {
-            this.selected.row--
+            this.selected.row--;
           }
-          break
+          break;
         // down
         case 40:
           if (this.selected.row < this.rowLength - 1) {
-            this.selected.row++
+            this.selected.row++;
           }
-          break
+          break;
         // enter
         case 13:
-          this.makeEditable(this.selected.col, this.selected.row)
-          break
+          this.makeEditable(this.selected.col, this.selected.row);
+          break;
       }
     },
     showRowContextMenu(e, row, rowMeta, index) {
-      e.preventDefault()
-      this.rowContextMenu = false
+      e.preventDefault();
+      this.rowContextMenu = false;
       this.$nextTick(() => {
         this.rowContextMenu = {
           x: e.clientX,
           y: e.clientY,
           row,
           index,
-          rowMeta
-        }
-      })
+          rowMeta,
+        };
+      });
     },
     expandRow(row, rowMeta) {
-      this.showExpandModal = true
-      this.selectedExpandRowIndex = row
-      this.selectedExpandRowMeta = rowMeta
+      this.showExpandModal = true;
+      this.selectedExpandRowIndex = row;
+      this.selectedExpandRowMeta = rowMeta;
     },
     async unlock() {
-      this.showPasswordModal = false
-      await this.reload()
+      this.showPasswordModal = false;
+      await this.reload();
     },
     async reload() {
-      await this.loadMetaData()
-      await this.loadTableData()
-    }
-  }
-}
+      await this.loadMetaData();
+      await this.loadTableData();
+    },
+  },
+};
 </script>
 <style scoped>
-
 /deep/ .v-input__control .v-input__slot .v-input--selection-controls__input {
-  transform: scale(.85);
+  transform: scale(0.85);
   margin-right: 0;
-
 }
 
-/deep/ .xc-toolbar .v-input__slot, .navigation .v-input__slot {
+/deep/ .xc-toolbar .v-input__slot,
+.navigation .v-input__slot {
   box-shadow: none !important;
 }
 
 /deep/ .navigation .v-input__slot input::placeholder {
-  font-size: .8rem;
+  font-size: 0.8rem;
 }
 
 /deep/ .v-btn {
@@ -544,7 +559,7 @@ export default {
 
 /deep/ .xc-bt-chip {
   margin-right: 12px;
-  transition: .4s margin-right, .4s padding-right;
+  transition: 0.4s margin-right, 0.4s padding-right;
 }
 
 /deep/ .xc-border.search-box {
@@ -553,7 +568,7 @@ export default {
 }
 
 /deep/ .xc-border.search-box .v-input {
-  transition: .4s border-color;
+  transition: 0.4s border-color;
 }
 
 /deep/ .xc-border.search-box .v-input--is-focused {
@@ -583,13 +598,12 @@ export default {
 }
 
 .nc-grid-wrapper {
-  height: calc(100vh - 120px)
+  height: calc(100vh - 120px);
 }
 
 .nc-grid {
-  height: calc(100% - 34px)
+  height: calc(100% - 34px);
 }
-
 </style>
 
 <!--

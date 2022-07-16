@@ -10,13 +10,7 @@
             :class="{ 'advanced-border': overShieldIcon }"
           >
             <v-list-item-group v-model="activePage" color="x-active" mandatory>
-              <v-list-item
-                v-for="item in navDrawerOptions"
-                :key="item.title"
-                :value="item.title"
-                dense
-                class="body-2"
-              >
+              <v-list-item v-for="item in navDrawerOptions" :key="item.title" :value="item.title" dense class="body-2">
                 <v-list-item-title>
                   <v-icon small class="ml-5">
                     {{ item.icon }}
@@ -24,8 +18,7 @@
                   <span
                     class="font-weight-medium ml-3"
                     :class="{
-                      'textColor--text text--lighten-2':
-                        item.title !== activePage,
+                      'textColor--text text--lighten-2': item.title !== activePage,
                     }"
                   >
                     {{ item.title }}
@@ -44,9 +37,7 @@
     </v-navigation-drawer>
     <v-container class="flex-grow-1 py-9 px-15 h-100" style="overflow-y: auto">
       <div class="d-flex">
-        <h2
-          class="display-1 ml-5 mb-7 font-weight-medium textColor--text text--lighten-2 flex-grow-1"
-        >
+        <h2 class="display-1 ml-5 mb-7 font-weight-medium textColor--text text--lighten-2 flex-grow-1">
           {{ activePage }}
         </h2>
 
@@ -55,10 +46,7 @@
         </div>
       </div>
       <v-divider class="mb-3" />
-      <div
-        v-if="projectList && projectList.length"
-        class="nc-project-item-container d-flex d-100"
-      >
+      <div v-if="projectList && projectList.length" class="nc-project-item-container d-flex d-100">
         <div
           v-for="(project, i) in projectList"
           :key="project.id"
@@ -71,39 +59,22 @@
           >
             {{
               project.title
-                .split(" ")
-                .map((w) => w[0])
+                .split(' ')
+                .map(w => w[0])
                 .slice(0, 2)
-                .join("")
+                .join('')
             }}
 
-            <v-icon
-              class="nc-project-star-icon"
-              small
-              color="white"
-              v-on="on"
-              @click.stop
-            >
-              mdi-star-outline
-            </v-icon>
+            <v-icon class="nc-project-star-icon" small color="white" v-on="on" @click.stop> mdi-star-outline </v-icon>
 
             <v-menu bottom offset-y>
               <template #activator="{ on }">
-                <v-icon
-                  class="nc-project-option-menu-icon"
-                  color="white"
-                  v-on="on"
-                  @click.stop
-                >
-                  mdi-menu-down
-                </v-icon>
+                <v-icon class="nc-project-option-menu-icon" color="white" v-on="on" @click.stop> mdi-menu-down </v-icon>
               </template>
               <v-list dense>
                 <v-list-item>
                   <v-list-item-title>
-                    <v-icon small color="red">
-                      mdi-delete-outline
-                    </v-icon>
+                    <v-icon small color="red"> mdi-delete-outline </v-icon>
                     Delete
                   </v-list-item-title>
                 </v-list-item>
@@ -111,16 +82,12 @@
             </v-menu>
           </div>
 
-          <div
-            class="text-center pa-2 nc-project-title body-2 font-weight-medium"
-          >
+          <div class="text-center pa-2 nc-project-title body-2 font-weight-medium">
             {{ project.title }}
           </div>
         </div>
 
-        <div
-          class="pointer nc-project-item nc-project-item elevation-0 d-flex align-center justify-center flex-column"
-        >
+        <div class="pointer nc-project-item nc-project-item elevation-0 d-flex align-center justify-center flex-column">
           <create-new-project-btn>
             <template #default="{ on }">
               <div
@@ -131,17 +98,10 @@
               </div>
             </template>
           </create-new-project-btn>
-          <div
-            class="text-center pa-2 nc-project-title body-2 font-weight-medium"
-          >
-            Add project
-          </div>
+          <div class="text-center pa-2 nc-project-title body-2 font-weight-medium">Add project</div>
         </div>
       </div>
-      <div
-        v-else
-        class="px-4 py-10 text-center textColor--text text--lighten-3 caption backgroundColor"
-      >
+      <div v-else class="px-4 py-10 text-center textColor--text text--lighten-3 caption backgroundColor">
         Please create a project
       </div>
     </v-container>
@@ -149,10 +109,10 @@
 </template>
 
 <script>
-import colors from '~/mixins/colors'
-import CreateNewProjectBtn from '~/components/projectList/CreateNewProjectBtn'
-import Extras from '~/components/project/spreadsheet/components/Extras'
-import SponsorMini from '~/components/SponsorMini'
+import colors from '~/mixins/colors';
+import CreateNewProjectBtn from '~/components/projectList/CreateNewProjectBtn';
+import Extras from '~/components/project/spreadsheet/components/Extras';
+import SponsorMini from '~/components/SponsorMini';
 
 export default {
   name: 'List',
@@ -164,38 +124,38 @@ export default {
     navDrawerOptions: [
       {
         title: 'My NocoDB',
-        icon: 'mdi-folder-outline'
+        icon: 'mdi-folder-outline',
       },
       {
         title: 'Shared With Me',
-        icon: 'mdi-account-group'
+        icon: 'mdi-account-group',
       },
       {
         title: 'Recent',
-        icon: 'mdi-clock-outline'
+        icon: 'mdi-clock-outline',
       },
       {
         title: 'Starred',
-        icon: 'mdi-star'
-      }
-    ]
+        icon: 'mdi-star',
+      },
+    ],
   }),
   mounted() {
-    this.loadProjectList()
+    this.loadProjectList();
   },
   methods: {
     async loadProjectList() {
-      const { list, pageInfo } = await this.$api.project.list()
-      this.projectList = list
+      const { list, pageInfo } = await this.$api.project.list();
+      this.projectList = list;
     },
     async openProject(project) {
       await this.$router.push({
-        path: `/nc/${project.id}`
-      })
-      this.$e('a:project:open', { count: this.projects.length })
-    }
-  }
-}
+        path: `/nc/${project.id}`,
+      });
+      this.$e('a:project:open', { count: this.projects.length });
+    },
+  },
+};
 </script>
 
 <style scoped>

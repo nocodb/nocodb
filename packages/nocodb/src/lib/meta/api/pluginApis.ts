@@ -26,7 +26,7 @@ export async function pluginUpdate(
   const plugin = await Plugin.update(req.params.pluginId, req.body);
   Tele.emit('evt', {
     evt_type: plugin.active ? 'plugin:installed' : 'plugin:uninstalled',
-    title: plugin.title
+    title: plugin.title,
   });
   res.json(plugin);
 }

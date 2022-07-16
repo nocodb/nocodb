@@ -12,7 +12,7 @@ export async function commentRow(req: Request<any, any>, res) {
     await Audit.insert({
       ...req.body,
       user: (req as any).user?.email,
-      op_type: AuditOperationTypes.COMMENT
+      op_type: AuditOperationTypes.COMMENT,
     })
   );
 }
@@ -32,7 +32,7 @@ export async function auditRowUpdate(req: Request<any, any>, res) {
   : <span class="text-decoration-line-through red px-2 lighten-4 black--text">${req.body.prev_value}</span>
   <span class="black--text green lighten-4 px-2">${req.body.value}</span>`),
       ip: (req as any).clientIp,
-      user: (req as any).user?.email
+      user: (req as any).user?.email,
     })
   );
 }
@@ -47,7 +47,7 @@ export async function auditList(req: Request, res: Response) {
       await Audit.projectAuditList(req.params.projectId, req.query),
       {
         count: await Audit.projectAuditCount(req.params.projectId),
-        ...req.query
+        ...req.query,
       }
     )
   );
@@ -57,7 +57,7 @@ export async function commentsCount(req: Request<any, any, any>, res) {
   res.json(
     await Audit.commentsCount({
       fk_model_id: req.query.fk_model_id as string,
-      ids: req.query.ids as string[]
+      ids: req.query.ids as string[],
     })
   );
 }

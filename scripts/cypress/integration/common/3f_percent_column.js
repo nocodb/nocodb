@@ -137,7 +137,8 @@ export const genTest = (apiType, dbType) => {
             const targetPercentInput = cy.getActiveModal().get('.percent-cell-wrapper > input[type="number"]').eq(parseInt(colName.slice(-1)))
             targetPercentInput.should('exist');
             if (cellValue) {
-                targetPercentInput.focus().invoke('val', '').clear().type(cellValue).blur();
+                // kludge: SQLite test failed because of precision issue. Hence introducing additional clear()
+                targetPercentInput.focus().invoke('val', '').clear().clear().type(cellValue).blur();
                 cy.wait(1000);
             }
             cy.getActiveModal().find("button").contains("Save row").click({ force: true });

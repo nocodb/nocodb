@@ -19,6 +19,10 @@
                 {{ $t('labels.password') }}
               </th>
               <th class="caption grey--text">
+                <!-- TODO: i18n -->
+                Download Allowed
+              </th>
+              <th class="caption grey--text">
                 <!--Actions-->
                 {{ $t('labels.actions') }}
               </th>
@@ -44,6 +48,11 @@
                   <v-icon small @click="$set(currentView, 'showPassword', !currentView.showPassword)">
                     {{ currentView.showPassword ? 'visibility_off' : 'visibility' }}
                   </v-icon>
+                </template>
+              </td>
+              <td class="caption text-center">
+                <template v-if="'meta' in currentView">
+                  <span>{{ renderAllowCSVDownload(currentView) }}</span>
                 </template>
               </td>
               <td class="caption">
@@ -78,6 +87,11 @@
                     <v-icon small @click="$set(link, 'showPassword', !link.showPassword)">
                       {{ link.showPassword ? 'visibility_off' : 'visibility' }}
                     </v-icon>
+                  </template>
+                </td>
+                <td class="caption text-center">
+                  <template v-if="'meta' in link">
+                    <span>{{ renderAllowCSVDownload(link) }}</span>
                   </template>
                 </td>
                 <td class="caption">
@@ -172,6 +186,14 @@ export default {
           viewType = 'view';
       }
       return `/nc/${viewType}/${view.uuid}`;
+    },
+    renderAllowCSVDownload(view) {
+      if (view.type === ViewTypes.GRID) {
+        view.meta = view.meta && typeof view.meta === 'string' ? JSON.parse(view.meta) : view.meta;
+        return view.meta.allowCSVDownload ? '✔️' : '❌';
+      } else {
+        return 'N/A';
+      }
     },
   },
 };

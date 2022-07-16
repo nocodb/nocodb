@@ -148,7 +148,7 @@ export const genTest = (apiType, dbType) => {
 
             cy.openTableTab("Table1", 9);
             mainPage.hideField("Col1");
-            mainPage.sortField("Col1", "Z -> A");
+            mainPage.sortField("Col1", "9 → 1");
             mainPage.filterField(`Col1`, ">=", "5");
             cy.get(".nc-grid-row").should("have.length", 5);
             cy.closeTableTab("Table1");

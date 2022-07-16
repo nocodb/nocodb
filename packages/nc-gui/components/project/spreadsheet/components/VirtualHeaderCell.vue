@@ -101,7 +101,7 @@
   </div>
 </template>
 <script>
-import { UITypes } from 'nocodb-sdk';
+import { UITypes, substituteColumnIdWithAliasInFormula } from 'nocodb-sdk';
 import { getUIDTIcon } from '../helpers/uiTypes';
 import EditVirtualColumn from '~/components/project/spreadsheet/components/EditVirtualColumn';
 
@@ -198,7 +198,12 @@ export default {
       } else if (this.type === 'lk') {
         return `'${this.childColumn.title}' from '${this.childTable}' (${this.childColumn.uidt})`;
       } else if (this.type === 'formula') {
-        return `Formula - ${this.column.colOptions.formula}`;
+        const formula = substituteColumnIdWithAliasInFormula(
+          this.column.colOptions.formula,
+          this.meta.columns,
+          this.column.colOptions.formula_raw
+        );
+        return `Formula - ${formula}`;
       } else if (this.type === 'rl') {
         return `'${this.childColumn.title}' of '${this.childTable}' (${this.childColumn.uidt})`;
       }

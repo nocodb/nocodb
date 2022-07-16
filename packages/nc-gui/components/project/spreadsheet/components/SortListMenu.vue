@@ -1,7 +1,7 @@
 <template>
   <v-menu offset-y transition="slide-y-transition">
     <template #activator="{ on }">
-      <v-badge :value="sortList && sortList.length" color="primary" dot overlap>
+      <v-badge :value="validSortsExist" color="primary" dot overlap>
         <v-btn
           v-t="['c:sort']"
           class="nc-sort-menu-btn px-2 nc-remove-border"
@@ -10,7 +10,7 @@
           text
           outlined
           :class="{
-            'primary lighten-5 grey--text text--darken-3': sortList && sortList.length,
+            'primary lighten-5 grey--text text--darken-3': validSortsExist,
           }"
           v-on="on"
         >
@@ -37,13 +37,11 @@
             @change="saveOrUpdate(sort, i)"
           />
           <v-select
+            v-if="sort && sort.fk_column_id"
             :key="i + 'sel2'"
             v-model="sort.direction"
             class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
-            :items="[
-              { text: 'A -> Z', value: 'asc' },
-              { text: 'Z -> A', value: 'desc' },
-            ]"
+            :items="renderSortDirection(sort)"
             :label="$t('labels.operation')"
             solo
             flat
@@ -97,6 +95,12 @@ export default {
           ...c,
           icon: getUIDTIcon(c.uidt),
         }));
+    },
+    validSortsExist() {
+      return this.sortList && this.sortList.filter(sort => sort.fk_column_id !== null).length > 0;
+    },
+    columnsById() {
+      return (this.columns || []).reduce((o, c) => ({ ...o, [c.id]: c }), {});
     },
   },
   watch: {
@@ -160,6 +164,44 @@ export default {
       this.$emit('updated');
       this.$e('a:sort:delete');
     },
+    renderSortDirection(sort) {
+      // TODO: handle single / multiple select when reordering is available
+      // [
+      //     { text: 'First → Last', value: 'asc' },
+      //     { text: 'Last → First', value: 'desc' },
+      // ]
+      switch (this.columnsById[sort.fk_column_id].uidt) {
+        case UITypes.Year:
+        case UITypes.Number:
+        case UITypes.Decimal:
+        case UITypes.Rating:
+        case UITypes.Count:
+        case UITypes.AutoNumber:
+        case UITypes.Time:
+        case UITypes.Currency:
+        case UITypes.Percent:
+        case UITypes.Duration:
+        case UITypes.PhoneNumber:
+        case UITypes.Date:
+        case UITypes.DateTime:
+        case UITypes.CreateTime:
+        case UITypes.LastModifiedTime:
+          return [
+            { text: '1 → 9', value: 'asc' },
+            { text: '9 → 1', value: 'desc' },
+          ];
+        case UITypes.Checkbox:
+          return [
+            { text: '▢ → ✓', value: 'asc' },
+            { text: '✓ → ▢', value: 'desc' },
+          ];
+        default:
+          return [
+            { text: 'A → Z', value: 'asc' },
+            { text: 'Z → A', value: 'desc' },
+          ];
+      }
+    },
   },
 };
 </script>
@@ -167,7 +209,7 @@ export default {
 <style scoped>
 .sort-grid {
   display: grid;
-  grid-template-columns: 22px auto 100px;
+  grid-template-columns: 22px auto 120px;
   column-gap: 6px;
   row-gap: 6px;
 }

@@ -1,39 +1,49 @@
 <template>
-  <div class="backgroundColor pa-2 menu-filter-dropdown" :style="{ width: nested ? '100%' : '530px' }">
+  <div
+    class="backgroundColor pa-2 menu-filter-dropdown"
+    :class="{ nested }"
+    :style="{ width: nested ? '100%' : '630px' }"
+  >
     <div class="grid" @click.stop>
       <template v-for="(filter, i) in filters" dense>
         <template v-if="filter.status !== 'delete'">
-          <div v-if="filter.is_group" :key="i" style="grid-column: span 4; padding: 6px" class="elevation-4">
-            <div class="d-flex" style="gap: 6px; padding: 0 6px">
-              <v-icon
-                v-if="!filter.readOnly"
-                :key="i + '_3'"
-                small
-                class="nc-filter-item-remove-btn"
-                @click.stop="deleteFilter(filter, i)"
-              >
-                mdi-close-box
-              </v-icon>
-              <span v-else :key="i + '_1'" />
-              <v-select
-                v-model="filter.logical_op"
-                class="flex-shrink-1 flex-grow-0 elevation-0 caption"
-                :items="['and', 'or']"
-                solo
-                flat
-                dense
-                hide-details
-                placeholder="Group op"
-                @click.stop
-                @change="saveOrUpdate(filter, i)"
-              >
-                <template #item="{ item }">
-                  <span class="caption font-weight-regular">{{ item }}</span>
-                </template>
-              </v-select>
-            </div>
+          <template v-if="filter.is_group">
+            <v-icon
+              v-if="!filter.readOnly"
+              :key="i + '_1'"
+              small
+              class="nc-filter-item-remove-btn"
+              @click.stop="deleteFilter(filter, i)"
+            >
+              mdi-close-box
+            </v-icon>
+            <span v-else :key="i + '_1'" />
+
+            <span v-if="!i" :key="i + '_2'" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
+            <v-select
+              v-else
+              :key="i + '_2'"
+              v-model="filter.logical_op"
+              class="flex-shrink-1 flex-grow-0 elevation-0 caption"
+              :items="['and', 'or']"
+              solo
+              flat
+              dense
+              hide-details
+              placeholder="Group op"
+              @click.stop
+              @change="saveOrUpdate(filter, i)"
+            >
+              <template #item="{ item }">
+                <span class="caption font-weight-regular">{{ item }}</span>
+              </template>
+            </v-select>
+            <span :key="i + '_3'" style="grid-column: span 3" />
+          </template>
+
+          <div v-if="filter.is_group" :key="i + '_4'" style="grid-column: span 5; padding: 6px" class="elevation-4">
             <column-filter
-              v-if="filter.id || shared"
+              v-if="filter.id || shared || !autoApply"
               ref="nestedFilter"
               v-model="filter.children"
               :parent-id="filter.id"
@@ -50,19 +60,19 @@
           <template v-else>
             <v-icon
               v-if="!filter.readOnly"
-              :key="i + '_3'"
+              :key="i + '_5'"
               small
               class="nc-filter-item-remove-btn"
               @click.stop="deleteFilter(filter, i)"
             >
               mdi-close-box
             </v-icon>
-            <span v-else :key="i + '_1'" />
-            <span v-if="!i" :key="i + '_2'" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
+            <span v-else :key="i + '_5'" />
+            <span v-if="!i" :key="i + '_6'" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
 
             <v-select
               v-else
-              :key="i + '_4'"
+              :key="i + '_6'"
               v-model="filter.logical_op"
               class="flex-shrink-1 flex-grow-0 elevation-0 caption"
               :items="['and', 'or']"
@@ -80,7 +90,7 @@
             </v-select>
 
             <field-list-auto-complete-dropdown
-              :key="i + '_6'"
+              :key="i + '_7'"
               v-model="filter.fk_column_id"
               class="caption nc-filter-field-select"
               :columns="columns"
@@ -90,12 +100,12 @@
             />
 
             <v-select
-              :key="'k' + i"
+              v-if="filter && filter.fk_column_id"
+              :key="i + '_8'"
               v-model="filter.comparison_op"
               class="flex-shrink-1 flex-grow-0 caption nc-filter-operation-select"
               :items="filterComparisonOp(filter)"
               :placeholder="$t('labels.operation')"
-              v-show="filter && filter.fk_column_id"
               solo
               flat
               style="max-width: 120px"
@@ -110,20 +120,20 @@
                 <span class="caption font-weight-regular">{{ item.text }}</span>
               </template>
             </v-select>
-            <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="'span' + i" />
+            <span v-else :key="i + '_8'" />
+            <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="i + '_5'" />
             <v-checkbox
               v-else-if="types[filter.field] === 'boolean'"
-              :key="i + '_7'"
+              :key="i + '_9'"
               v-model="filter.value"
               dense
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
             />
             <v-text-field
-              v-else
-              :key="i + '_7'"
+              v-else-if="filter && filter.fk_column_id"
+              :key="i + '_9'"
               v-model="filter.value"
-              v-show="filter && filter.fk_column_id"
               solo
               flat
               hide-details
@@ -133,6 +143,7 @@
               @click.stop
               @input="saveOrUpdate(filter, i)"
             />
+            <span v-else :key="i + '_9'" />
           </template>
         </template>
       </template>
@@ -142,6 +153,11 @@
       <v-icon small color="grey"> mdi-plus </v-icon>
       <!-- Add Filter -->
       {{ $t('activity.addFilter') }}
+    </v-btn>
+    <v-btn v-if="!webHook" small class="elevation-0 grey--text my-3" @click.stop="addFilterGroup">
+      <v-icon small color="grey"> mdi-plus </v-icon>
+      Add Filter Group
+      <!--     todo: add i18n {{ $t('activity.addFilterGroup') }}-->
     </v-btn>
     <slot />
   </div>
@@ -281,10 +297,21 @@ export default {
     },
   },
   watch: {
-    async viewId(v) {
-      if (v) {
-        await this.loadFilter();
-      }
+    viewId: {
+      async handler(v) {
+        if (v) {
+          await this.loadFilter();
+        }
+      },
+      immediate: true,
+    },
+    hookId: {
+      async handler(v) {
+        if (v) {
+          await this.loadFilter();
+        }
+      },
+      immediate: true,
     },
     filters: {
       handler(v) {
@@ -292,9 +319,6 @@ export default {
       },
       deep: true,
     },
-  },
-  created() {
-    this.loadFilter();
   },
   methods: {
     filterComparisonOp(f) {
@@ -332,11 +356,15 @@ export default {
               await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
                 fk_parent_id: this.parentId,
+                children: undefined,
+                status: undefined,
               });
             } else {
               await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
                 fk_parent_id: this.parentId,
+                children: undefined,
+                status: undefined,
               });
             }
           } else if (this.hookId || hookId) {
@@ -346,6 +374,7 @@ export default {
               await this.$api.dbTableWebhookFilter.create(this.hookId || hookId, {
                 ...filter,
                 fk_parent_id: this.parentId,
+                status: undefined,
               })
             );
           } else {
@@ -355,6 +384,7 @@ export default {
               await this.$api.dbTableFilter.create(this.viewId, {
                 ...filter,
                 fk_parent_id: this.parentId,
+                status: undefined,
               })
             );
           }
@@ -362,7 +392,9 @@ export default {
       }
       if (this.$refs.nestedFilter) {
         for (const nestedFilter of this.$refs.nestedFilter) {
-          await nestedFilter.applyChanges(true);
+          if (nestedFilter.parentId) {
+            await nestedFilter.applyChanges(true);
+          }
         }
       }
       this.loadFilter();
@@ -373,12 +405,12 @@ export default {
     async loadFilter() {
       let filters = [];
       if (this.viewId && this._isUIAllowed('filterSync')) {
-        filters = this.parentId
+        filters = this.nested
           ? await this.$api.dbTableFilter.childrenRead(this.parentId)
           : await this.$api.dbTableFilter.read(this.viewId);
       }
       if (this.hookId && this._isUIAllowed('filterSync')) {
-        filters = this.parentId
+        filters = this.nested
           ? await this.$api.dbTableFilter.childrenRead(this.parentId)
           : await this.$api.dbTableWebhookFilter.read(this.hookId);
       }
@@ -401,6 +433,7 @@ export default {
         parentId: this.parentId,
         is_group: true,
         status: 'update',
+        logical_op: 'and',
       });
       this.filters = this.filters.slice();
       const index = this.filters.length - 1;
@@ -467,5 +500,9 @@ export default {
   grid-template-columns: 22px 80px auto auto auto;
   column-gap: 6px;
   row-gap: 6px;
+}
+
+.nc-filter-value-select {
+  min-width: 100px;
 }
 </style>

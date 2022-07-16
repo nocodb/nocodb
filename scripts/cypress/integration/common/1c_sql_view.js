@@ -54,7 +54,7 @@ export const genTest = (apiType, dbType) => {
                 mainPage.unhideField(`ZipCode`);
 
                 // Column operations: Sort
-                mainPage.sortField("Name", "Z -> A");
+                mainPage.sortField("Name", "Z → A");
                 mainPage
                     .getCell(`Name`, 1)
                     .contains("ZACHARY HITE")
@@ -114,7 +114,7 @@ export const genTest = (apiType, dbType) => {
                 mainPage.unhideField("FilmInfo");
 
                 // Column operations: Sort
-                mainPage.sortField("FirstName", "Z -> A");
+                mainPage.sortField("FirstName", "Z → A");
                 mainPage
                     .getCell(`FirstName`, 1)
                     .contains("ZERO")

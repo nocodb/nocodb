@@ -42,9 +42,9 @@ export default {
       get() {
         return (
           !this.loading &&
-          this.$store.state.app.releaseVersion &&
+          this.$store.state.app.currentVersion &&
           this.$store.state.app.latestRelease &&
-          this.$store.state.app.releaseVersion !== this.$store.state.app.latestRelease &&
+          this.$store.state.app.currentVersion !== this.$store.state.app.latestRelease &&
           this.$store.state.app.latestRelease !== this.$store.state.app.hiddenRelease
         );
       },
@@ -53,7 +53,7 @@ export default {
       },
     },
     releaseVersion() {
-      return this.$store.state.app.releaseVersion;
+      return this.$store.state.app.latestRelease;
     },
   },
   mounted() {

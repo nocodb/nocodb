@@ -45,11 +45,12 @@ export async function appInfo(req: Request, res: Response) {
   res.json(result);
 }
 
-export async function releaseVersion(_req: Request, res: Response) {
+export async function versionInfo(_req: Request, res: Response) {
   const result = await axios
     .get('https://github.com/nocodb/nocodb/releases/latest')
     .then((response) => {
       return {
+        currentVersion: packageVersion,
         releaseVersion: response.request.res.responseUrl.replace(
           'https://github.com/nocodb/nocodb/releases/tag/',
           ''
@@ -58,6 +59,17 @@ export async function releaseVersion(_req: Request, res: Response) {
     });
 
   res.json(result);
+}
+
+export async function feedbackFormGet(_req: Request, res: Response) {
+  axios
+    .get('https://nocodb.com/api/v1/feedback_form')
+    .then((response) => {
+      res.json(response.data);
+    })
+    .catch((e) => {
+      res.status(500).json({ error: e.message });
+    });
 }
 
 export async function appHealth(_: Request, res: Response) {
@@ -142,6 +154,7 @@ export default (router) => {
   );
   router.get('/api/v1/db/meta/nocodb/info', catchError(appInfo));
   router.post('/api/v1/db/meta/axiosRequestMake', catchError(axiosRequestMake));
-  router.get('/api/v1/version', catchError(releaseVersion));
+  router.get('/api/v1/version', catchError(versionInfo));
   router.get('/api/v1/health', catchError(appHealth));
+  router.get('/api/v1/feedback_form', catchError(feedbackFormGet));
 };

@@ -135,7 +135,10 @@ export default {
             examples: formulas[fn].examples,
           })),
         ...this.meta.columns
-          .filter(c => !this.column || this.column.id !== c.id)
+          .filter(
+            c =>
+              !this.column || (this.column.id !== c.id && !(c.uidt === UITypes.LinkToAnotherRecord && c.system === 1))
+          )
           .map(c => ({
             text: c.title,
             type: 'column',

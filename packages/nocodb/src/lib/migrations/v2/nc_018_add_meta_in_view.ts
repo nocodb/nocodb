@@ -1,26 +1,24 @@
-export const state = () => ({
-  currentVersion: null,
-  hiddenRelease: null,
-  latestRelease: null
-})
+import Knex from 'knex';
+import { MetaTable } from '../../utils/globals';
 
-export const mutations = {
-  MutCurrentVersion(state, currentVersion) {
-    state.currentVersion = currentVersion
-  },
-  MutHiddenRelease(state, hiddenRelease) {
-    state.hiddenRelease = hiddenRelease
-  },
-  MutLatestRelease(state, latestRelease) {
-    state.latestRelease = latestRelease
-  }
-}
+const up = async (knex: Knex) => {
+  await knex.schema.alterTable(MetaTable.VIEWS, (table) => {
+    table.text('meta');
+  });
+};
+
+const down = async (knex) => {
+  await knex.schema.alterTable(MetaTable.VIEWS, (table) => {
+    table.dropColumns('meta');
+  });
+};
+
+export { up, down };
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd
  *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
+ * @author Wing-Kam Wong <wingkwong.code@gmail.com>
  *
  * @license GNU AGPL version 3 or any later version
  *

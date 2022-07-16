@@ -84,7 +84,7 @@ jobs:
       - uses: peter-evans/commit-comment@v2
         with:
           body: |
-            The PR changes have been deployed. Pleae run the following command to verify:
+            The PR changes have been deployed. Please run the following command to verify:
             ```
             docker run -d -p 8888:8080 nocodb/nocodb-timely:${{ needs.set-tag.outputs.current_version }}-${{ needs.set-tag.outputs.target_tag }}
             ```

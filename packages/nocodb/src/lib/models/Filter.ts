@@ -104,7 +104,15 @@ export default class Filter {
     if (filter?.children?.length) {
       await Promise.all(
         filter.children.map((f) =>
-          this.insert({ ...f, fk_parent_id: row.id }, ncMeta)
+          this.insert(
+            {
+              ...f,
+              fk_parent_id: row.id,
+              [filter.fk_hook_id ? 'fk_hook_id' : 'fk_view_id']:
+                filter.fk_hook_id ? filter.fk_hook_id : filter.fk_view_id,
+            },
+            ncMeta
+          )
         )
       );
     }
@@ -373,6 +381,7 @@ export default class Filter {
     };
     await deleteRecursively(filter);
   }
+
   static async deleteAllByHook(hookId: string, ncMeta = Noco.ncMeta) {
     const filter = await this.getFilterObject({ hookId }, ncMeta);
 
@@ -421,7 +430,9 @@ export default class Filter {
       });
       await NocoCache.setList(CacheScope.FILTER_EXP, [viewId], filterObjs);
     }
-    return filterObjs?.map((f) => new Filter(f));
+    return filterObjs
+      ?.filter((f) => !f.fk_parent_id)
+      ?.map((f) => new Filter(f));
   }
 
   static async rootFilterListByHook(
@@ -443,36 +454,28 @@ export default class Filter {
 
   static async parentFilterList(
     {
-      viewId,
       parentId,
     }: {
-      viewId: any;
       parentId: any;
     },
     ncMeta = Noco.ncMeta
   ) {
-    let filterObjs = await NocoCache.getList(CacheScope.FILTER_EXP, [
-      viewId,
-      parentId,
-    ]);
+    let filterObjs = await NocoCache.getList(CacheScope.FILTER_EXP, [parentId]);
     if (!filterObjs.length) {
       filterObjs = await ncMeta.metaList2(null, null, MetaTable.FILTER_EXP, {
         condition: {
           fk_parent_id: parentId,
-          fk_view_id: viewId,
+          // fk_view_id: viewId,
         },
         orderBy: {
           order: 'asc',
         },
       });
-      await NocoCache.setList(
-        CacheScope.FILTER_EXP,
-        [viewId, parentId],
-        filterObjs
-      );
+      await NocoCache.setList(CacheScope.FILTER_EXP, [parentId], filterObjs);
     }
     return filterObjs?.map((f) => new Filter(f));
   }
+
   static async parentFilterListByHook(
     {
       hookId,

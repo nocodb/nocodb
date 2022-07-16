@@ -81,7 +81,11 @@ async function dataDelete(req: Request, res: Response) {
     viewId: view?.id,
     dbDriver: NcConnectionMgrv2.get(base),
   });
-
+  const message = await baseModel.hasLTARData(req.params.rowId, model);
+  if (message.length) {
+    res.json({ message });
+    return;
+  }
   res.json(await baseModel.delByPk(req.params.rowId, null, req));
 }
 async function getDataList(model, view: View, req) {

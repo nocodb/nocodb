@@ -305,6 +305,14 @@ export default {
       },
       immediate: true,
     },
+    hookId: {
+      async handler(v) {
+        if (v) {
+          await this.loadFilter();
+        }
+      },
+      immediate: true,
+    },
     filters: {
       handler(v) {
         this.$emit('input', v && v.filter(f => (f.fk_column_id && f.comparison_op) || f.is_group));

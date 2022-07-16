@@ -10,16 +10,16 @@
           <template v-if="filter.is_group">
             <v-icon
               v-if="!filter.readOnly"
+              :key="i + '_1'"
               small
               class="nc-filter-item-remove-btn"
               @click.stop="deleteFilter(filter, i)"
-              :key="i + '_1'"
             >
               mdi-close-box
             </v-icon>
             <span v-else :key="i + '_1'" />
 
-            <span :key="i + '_2'" v-if="!i" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
+            <span v-if="!i" :key="i + '_2'" class="caption d-flex align-center">{{ $t('labels.where') }}</span>
             <v-select
               v-else
               :key="i + '_2'"
@@ -38,12 +38,12 @@
                 <span class="caption font-weight-regular">{{ item }}</span>
               </template>
             </v-select>
-            <span :key="i + '_3'" style="grid-column: span 3"></span>
+            <span :key="i + '_3'" style="grid-column: span 3" />
           </template>
 
           <div v-if="filter.is_group" :key="i + '_4'" style="grid-column: span 5; padding: 6px" class="elevation-4">
             <column-filter
-              v-if="filter.id || shared"
+              v-if="filter.id || shared || !autoApply"
               ref="nestedFilter"
               v-model="filter.children"
               :parent-id="filter.id"
@@ -100,12 +100,12 @@
             />
 
             <v-select
+              v-if="filter && filter.fk_column_id"
               :key="i + '_8'"
               v-model="filter.comparison_op"
               class="flex-shrink-1 flex-grow-0 caption nc-filter-operation-select"
               :items="filterComparisonOp(filter)"
               :placeholder="$t('labels.operation')"
-              v-if="filter && filter.fk_column_id"
               solo
               flat
               style="max-width: 120px"
@@ -120,7 +120,7 @@
                 <span class="caption font-weight-regular">{{ item.text }}</span>
               </template>
             </v-select>
-            <span v-else :key="i + '_8'"></span>
+            <span v-else :key="i + '_8'" />
             <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="i + '_5'" />
             <v-checkbox
               v-else-if="types[filter.field] === 'boolean'"
@@ -143,19 +143,19 @@
               @click.stop
               @input="saveOrUpdate(filter, i)"
             />
-            <span v-else :key="i + '_9'"></span>
+            <span v-else :key="i + '_9'" />
           </template>
         </template>
       </template>
     </div>
 
     <v-btn small class="elevation-0 grey--text my-3" @click.stop="addFilter">
-      <v-icon small color="grey"> mdi-plus</v-icon>
+      <v-icon small color="grey"> mdi-plus </v-icon>
       <!-- Add Filter -->
       {{ $t('activity.addFilter') }}
     </v-btn>
     <v-btn v-if="!webHook" small class="elevation-0 grey--text my-3" @click.stop="addFilterGroup">
-      <v-icon small color="grey"> mdi-plus</v-icon>
+      <v-icon small color="grey"> mdi-plus </v-icon>
       Add Filter Group
       <!--     todo: add i18n {{ $t('activity.addFilterGroup') }}-->
     </v-btn>
@@ -297,10 +297,13 @@ export default {
     },
   },
   watch: {
-    async viewId(v) {
-      if (v) {
-        await this.loadFilter();
-      }
+    viewId: {
+      async handler(v) {
+        if (v) {
+          await this.loadFilter();
+        }
+      },
+      immediate: true,
     },
     filters: {
       handler(v) {
@@ -308,9 +311,6 @@ export default {
       },
       deep: true,
     },
-  },
-  created() {
-    this.loadFilter();
   },
   methods: {
     filterComparisonOp(f) {
@@ -348,11 +348,15 @@ export default {
               await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
                 fk_parent_id: this.parentId,
+                children: undefined,
+                status: undefined,
               });
             } else {
               await this.$api.dbTableFilter.update(filter.id, {
                 ...filter,
                 fk_parent_id: this.parentId,
+                children: undefined,
+                status: undefined,
               });
             }
           } else if (this.hookId || hookId) {
@@ -362,6 +366,7 @@ export default {
               await this.$api.dbTableWebhookFilter.create(this.hookId || hookId, {
                 ...filter,
                 fk_parent_id: this.parentId,
+                status: undefined,
               })
             );
           } else {
@@ -371,6 +376,7 @@ export default {
               await this.$api.dbTableFilter.create(this.viewId, {
                 ...filter,
                 fk_parent_id: this.parentId,
+                status: undefined,
               })
             );
           }
@@ -378,7 +384,9 @@ export default {
       }
       if (this.$refs.nestedFilter) {
         for (const nestedFilter of this.$refs.nestedFilter) {
-          await nestedFilter.applyChanges(true);
+          if (nestedFilter.parentId) {
+            await nestedFilter.applyChanges(true);
+          }
         }
       }
       this.loadFilter();
@@ -389,12 +397,12 @@ export default {
     async loadFilter() {
       let filters = [];
       if (this.viewId && this._isUIAllowed('filterSync')) {
-        filters = this.parentId
+        filters = this.nested
           ? await this.$api.dbTableFilter.childrenRead(this.parentId)
           : await this.$api.dbTableFilter.read(this.viewId);
       }
       if (this.hookId && this._isUIAllowed('filterSync')) {
-        filters = this.parentId
+        filters = this.nested
           ? await this.$api.dbTableFilter.childrenRead(this.parentId)
           : await this.$api.dbTableWebhookFilter.read(this.hookId);
       }

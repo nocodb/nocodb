@@ -88,7 +88,7 @@ export const genTest = (apiType, dbType) => {
                     .contains("Address1")
                     .click();
                 mainPage.hideField("Address2");
-                mainPage.sortField("District", "Z -> A");
+                mainPage.sortField("District", "Z → A");
                 mainPage.filterField("Address", "is like", "Ab");
                 generateViewLink("combined");
                 cy.log(viewURL["combined"]);
@@ -209,8 +209,8 @@ export const genTest = (apiType, dbType) => {
             });
 
             it(`Share ${viewType.toUpperCase()} view : Enable sort`, () => {
-                // Sort menu operations (Country Column, Z->A)
-                mainPage.sortField("District", "Z -> A");
+                // Sort menu operations (Country Column, Z → A)
+                mainPage.sortField("District", "Z → A");
                 mainPage
                     .getCell("District", 1)
                     .contains("West Bengali")

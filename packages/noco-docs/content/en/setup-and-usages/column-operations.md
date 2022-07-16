@@ -38,7 +38,7 @@ Tip: You can create different grid views with different fields shown in each vie
 
 ## Sort 
 
-Sorting allows you to order contents alphabetically (A -> Z) / (Z -> A)  (OR) in ascending / descending order. NocoDB allows nested sorting. You can choose column fields & order in which to apply nested sorting. Lookup, Formula, Nested Data are also supported in Sorting.
+Sorting allows you to order contents alphabetically (A → Z) / (Z → A)  (OR) in ascending / descending order. NocoDB allows nested sorting. You can choose column fields & order in which to apply nested sorting. Lookup, Formula, Nested Data are also supported in Sorting.
   
   
 <img src="https://user-images.githubusercontent.com/86527202/144435903-84ed8e81-64ec-45e5-a045-9a993238c78c.png" width="75%"/>  

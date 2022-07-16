@@ -165,7 +165,6 @@ export default {
       this.$e('a:sort:delete');
     },
     renderSortDirection(sort) {
-      console.log(this.sortList);
       // TODO: handle single / multiple select when reordering is available
       // [
       //     { text: 'First → Last', value: 'asc' },

@@ -40,7 +40,7 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-          ref: 'master'
+          ref: ${{ github.ref }}
       - name: NPM Setup and Publish with 16.15.0
         # Setup .npmrc file to publish to npm
         uses: actions/setup-node@v2

@@ -509,6 +509,23 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           // Duration column needs more that that
           colBody.dtxs = '4';
         }
+
+        if (colBody.uidt === UITypes.SingleSelect) {
+          colBody.dtxp = (colBody?.options.length)
+            ? `${colBody.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+            : '';
+        } else if (colBody.uidt === UITypes.MultiSelect){
+          colBody.dtxp = (colBody?.options.length)
+            ? `${colBody.options.map((o) => {
+                if(o.title.includes(',')) {
+                  NcError.badRequest('Illegal char(\',\') for MultiSelect');
+                  throw new Error('');
+                }
+                return `'${o.title.replace(/'/gi, '\'\'')}'`;
+              }).join(',')}`
+            : '';
+        }
+
         const tableUpdateBody = {
           ...table,
           tn: table.table_name,
@@ -539,13 +556,6 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
 
         const insertedColumnMeta =
           columns.find((c) => c.cn === colBody.column_name) || ({} as any);
-
-        if (
-          colBody.uidt === UITypes.SingleSelect ||
-          colBody.uidt === UITypes.MultiSelect
-        ) {
-          insertedColumnMeta.dtxp = colBody.dtxp;
-        }
 
         await Column.insert({
           ...colBody,
@@ -655,6 +665,23 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
     );
   } else {
     colBody = getColumnPropsFromUIDT(colBody, base);
+
+    if (colBody.uidt === UITypes.SingleSelect) {
+      colBody.dtxp = (colBody?.options.length)
+        ? `${colBody.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+        : '';
+    } else if (colBody.uidt === UITypes.MultiSelect){
+      colBody.dtxp = (colBody?.options.length)
+        ? `${colBody.options.map((o) => {
+            if(o.title.includes(',')) {
+              NcError.badRequest('Illegal char(\',\') for MultiSelect');
+              throw new Error('');
+            }
+            return `'${o.title.replace(/'/gi, '\'\'')}'`;
+          }).join(',')}`
+        : '';
+    }
+
     const tableUpdateBody = {
       ...table,
       tn: table.table_name,
@@ -706,12 +733,12 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       ),
     };
 
-    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
-    await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
-
-    await Column.update(req.params.columnId, {
+      const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+      await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+    
+      await Column.update(req.params.columnId, {
       ...colBody,
-    });
+      });
   }
   Audit.insert({
     project_id: base.project_id,

@@ -132,7 +132,12 @@
                   <date-options v-model="newColumn.meta" :column="newColumn" :meta="meta" />
                 </v-col>
                 <v-col v-if="isSelect" cols="12">
-                  <custom-select-options v-model="newColumn.dtxp" @input="newColumn.altered = newColumn.altered || 2" />
+                  <custom-select-options
+                    ref="customselect"
+                    :column="newColumn"
+                    :meta="meta"
+                    v-on="$listeners"
+                  />
                 </v-col>
                 <v-col v-else-if="isRating" cols="12">
                   <rating-options v-model="newColumn.meta" :column="newColumn" :meta="meta" />
@@ -644,9 +649,18 @@ export default {
         if (this.newColumn.uidt === 'Formula' && this.$refs.formula) {
           return await this.$refs.formula.save();
         }
+        this.newColumn.table_name = this.nodes.table_name
+        this.newColumn.title = this.newColumn.column_name
 
-        this.newColumn.table_name = this.nodes.table_name;
-        this.newColumn.title = this.newColumn.column_name;
+        if (this.isSelect && this.$refs.customselect) {
+          if (this.column) {
+            await this.$refs.customselect.update()
+          } else {
+            await this.$refs.customselect.save()
+          }
+          await this.$emit('saved')
+          return this.$emit('close')
+        }
 
         if (this.editColumn) {
           await this.$api.dbTableColumn.update(this.column.id, this.newColumn);
@@ -678,18 +692,17 @@ export default {
       if (this.newColumn.uidt !== UITypes.ID) {
         this.newColumn.primaryKey = false;
       }
-      this.newColumn.ai = false;
-      this.newColumn.cdf = null;
-      this.newColumn.un = false;
-      this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(this.newColumn.dt);
-      this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(this.newColumn.dt);
+      this.newColumn.ai = false
+      this.newColumn.cdf = null
+      this.newColumn.un = false
+      this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(
+        this.newColumn.dt
+      )
+      this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(
+        this.newColumn.dt
+      )
 
-      this.newColumn.dtx = 'specificType';
-
-      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect];
-      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
-        this.newColumn.dtxp = this.column.dtxp;
-      }
+      this.newColumn.dtx = 'specificType'
 
       if (this.isCurrency) {
         if (this.column?.uidt === UITypes.Currency) {
@@ -721,11 +734,6 @@ export default {
 
       this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(this.newColumn.dt);
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(this.newColumn.dt);
-
-      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect];
-      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
-        this.newColumn.dtxp = this.column.dtxp;
-      }
 
       if (columnToValidate.includes(this.newColumn.uidt)) {
         this.newColumn.meta = {

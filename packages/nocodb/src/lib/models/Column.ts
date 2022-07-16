@@ -2,7 +2,7 @@ import FormulaColumn from './FormulaColumn';
 import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
 import RollupColumn from './RollupColumn';
-import SingleSelectColumn from './SingleSelectColumn';
+import SelectOption from './SelectOption';
 import MultiSelectColumn from './MultiSelectColumn';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
@@ -232,26 +232,54 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
       case UITypes.MultiSelect: {
-        for (const option of column.dtxp?.split(',') || []) {
-          await MultiSelectColumn.insert(
-            {
-              fk_column_id: colId,
-              title: option,
-            },
-            ncMeta
-          );
+        if (column.dt === 'set' && !column.altered) {
+          for (const [i, option] of column.dtxp?.split(',').entries() || [].entries()) {
+            await SelectOption.insert(
+              {
+                fk_column_id: colId,
+                title: option,
+                order: i + 1
+              },
+              ncMeta
+            );
+          }
+        } else {
+          for (const [i, option] of column.options.entries() || [].entries()) {
+            await SelectOption.insert(
+              {
+                ...option,
+                fk_column_id: colId,
+                order: i + 1
+              },
+              ncMeta
+            );
+          }
         }
         break;
       }
       case UITypes.SingleSelect: {
-        for (const option of column.dtxp?.split(',') || []) {
-          await SingleSelectColumn.insert(
-            {
-              fk_column_id: colId,
-              title: option,
-            },
-            ncMeta
-          );
+        if (column.dt === 'enum' && !column.altered) {
+          for (const [i, option] of column.dtxp?.split(',').entries() || [].entries()) {
+            await SelectOption.insert(
+              {
+                fk_column_id: colId,
+                title: option,
+                order: i + 1
+              },
+              ncMeta
+            );
+          }
+        } else {
+          for (const [i, option] of column.options.entries() || [].entries()) {
+            await SelectOption.insert(
+              {
+                ...option,
+                fk_column_id: colId,
+                order: i + 1
+              },
+              ncMeta
+            );
+          }
         }
         break;
       }
@@ -322,10 +350,10 @@ export default class Column<T = any> implements ColumnType {
         res = await LinkToAnotherRecordColumn.read(this.id, ncMeta);
         break;
       case UITypes.MultiSelect:
-        res = await MultiSelectColumn.get(this.id, ncMeta);
+        res = await SelectOption.read(this.id, ncMeta);
         break;
       case UITypes.SingleSelect:
-        res = await SingleSelectColumn.get(this.id, ncMeta);
+        res = await SelectOption.read(this.id, ncMeta);
         break;
       case UITypes.Formula:
         res = await FormulaColumn.read(this.id, ncMeta);
@@ -772,10 +800,11 @@ export default class Column<T = any> implements ColumnType {
         await ncMeta.metaDelete(null, null, MetaTable.COL_SELECT_OPTIONS, {
           fk_column_id: colId,
         });
+
         await NocoCache.deepDel(
           CacheScope.COL_SELECT_OPTION,
-          `${CacheScope.COL_SELECT_OPTION}:${colId}`,
-          CacheDelDirection.CHILD_TO_PARENT
+          `${CacheScope.COL_SELECT_OPTION}:${colId}:list`,
+          CacheDelDirection.PARENT_TO_CHILD
         );
         break;
       }

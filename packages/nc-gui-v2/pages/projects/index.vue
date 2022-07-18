@@ -46,13 +46,14 @@ const activePage = $ref(navDrawerOptions[0].title)
             <v-menu class="select-none">
               <template #activator="{ props }">
                 <div
-                  class="bg-white hover:(!bg-gray-100) dark:(!bg-primary !text-white hover:!bg-primary/75) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
+                  class="bg-white hover:(!bg-gray-100) dark:(!bg-primary !text-white shadow-gray-600 hover:!bg-primary/75) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
                   @click="props.onClick"
                 >
                   <MdiPlus class="text-primary dark:(!text-white) text-2xl" />
                   {{ $t('title.newProj') }}
                 </div>
               </template>
+
               <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
                 <div
                   class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
@@ -73,7 +74,7 @@ const activePage = $ref(navDrawerOptions[0].title)
           </div>
 
           <div class="advance-menu flex-1">
-            <v-list class="flex flex-col gap-1" :color="$state.darkMode.value ? 'default' : 'primary'">
+            <v-list class="flex flex-col gap-1" :color="$state.darkMode.value ? 'secondary' : 'primary'">
               <!-- todo: v-list-item-group doesn't seem to work with vuetify 3 yet ... -->
               <v-list-item
                 v-for="item in navDrawerOptions"

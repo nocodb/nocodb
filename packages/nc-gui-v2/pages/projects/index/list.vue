@@ -17,7 +17,7 @@ const openProject = async (project: ProjectType) => {
 </script>
 
 <template>
-  <div>
+  <div class="mx-8">
     <div class="grid grid-cols-3 gap-2 prose-md p-2 font-semibold">
       <div>{{ $t('general.title') }}</div>
       <div>Status</div>

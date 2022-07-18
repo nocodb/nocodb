@@ -128,14 +128,14 @@ const visible = ref(true)
 
         <div class="self-end flex text-4xl mb-1">
           <MaterialSymbolsGridView
-            :class="route.name === 'index-index' ? 'text-primary dark:(!text-secondary/75)' : ''"
-            class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
-            @click="navigateTo('/')"
+            :class="route.name === 'projects-index' ? 'text-primary dark:(!text-secondary/75)' : ''"
+            class="color-transition cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
+            @click="navigateTo('/projects')"
           />
           <MaterialSymbolsFormatListBulletedRounded
-            :class="route.name === 'index-index-list' ? 'text-primary dark:(!text-secondary/75)' : ''"
-            class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
-            @click="navigateTo('/list')"
+            :class="route.name === 'projects-index-list' ? 'text-primary dark:(!text-secondary/75)' : ''"
+            class="color-transition cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
+            @click="navigateTo('/projects/list')"
           />
         </div>
       </div>

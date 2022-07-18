@@ -73,7 +73,7 @@ const resetError = () => {
         >
           <div
             style="left: -moz-calc(50% - 45px); left: -webkit-calc(50% - 45px); left: calc(50% - 45px)"
-            class="absolute top-12 md:top-[-10%] rounded-lg bg-primary"
+            class="absolute top-12 md:top-[-10%] rounded-lg !bg-primary"
           >
             <img width="90" height="90" src="~/assets/img/icons/512x512-trans.png" />
           </div>

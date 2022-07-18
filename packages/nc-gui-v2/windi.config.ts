@@ -15,11 +15,9 @@ import colors, { themeColors } from './utils/colorsUtils'
 
 export default defineConfig({
   extract: {
-    include: ['**/*.{vue,html,jsx,tsx}'],
+    include: ['**/*.{vue,html,jsx,tsx,css,scss}'],
     exclude: ['node_modules', '.git'],
   },
-
-  attributify: true,
 
   darkMode: 'class',
 

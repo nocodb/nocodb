@@ -1,17 +1,12 @@
 html,
 body,
 #__nuxt,
-.v-application__wrap {
+.ant-layout,
+main {
     @apply m-0 h-full w-full bg-white dark:(bg-black text-white);
 }
 
-.v-main {
-    @apply w-full h-full;
-    overflow: hidden;
-    flex: unset !important;
-}
-
-.v-main .v-main__wrap {
+main {
     @apply flex-0 w-full relative scrollbar-thin-primary;
     overflow-x: hidden;
 }
@@ -41,4 +36,8 @@ nav .v-list {
 
 a {
     @apply prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
+}
+
+h1, h2, h3, h4, h5, h6 {
+    @apply text-black dark:(text-white);
 }

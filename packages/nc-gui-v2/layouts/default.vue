@@ -18,11 +18,11 @@ export default {
 </script>
 
 <template>
-  <v-main>
+  <a-layout-content>
     <slot name="sidebar">
       <div id="sidebar" />
     </slot>
 
     <slot />
-  </v-main>
+  </a-layout-content>
 </template>

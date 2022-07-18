@@ -55,7 +55,7 @@ const signIn = async () => {
   try {
     const { token } = await $api.auth.signin(form)
     $state.signIn(token!)
-    await navigateTo('/projects')
+    await navigateTo('/')
   } catch (e: any) {
     // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
     error = await extractSdkResponseErrorMsg(e)

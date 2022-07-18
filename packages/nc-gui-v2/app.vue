@@ -26,7 +26,7 @@ const signOut = () => {
 
           <div class="flex items-center gap-2">
             <img width="35" src="~/assets/img/icons/512x512-trans.png" />
-            <span class="prose-xl" @click="navigateTo('/projects')">NocoDB</span>
+            <span class="prose-xl" @click="navigateTo('/')">NocoDB</span>
           </div>
         </v-toolbar-title>
 
@@ -67,7 +67,7 @@ const signOut = () => {
                 <nuxt-link
                   v-t="['c:navbar:user:email']"
                   class="group hover:(bg-gray-200) dark:(hover:bg-gray-600) flex items-center p-2 no-underline"
-                  to="/user/settings"
+                  to="/user"
                 >
                   <MdiAt class="mt-1 group-hover:text-success" />&nbsp;
                   <span class="prose">{{ email }}</span>

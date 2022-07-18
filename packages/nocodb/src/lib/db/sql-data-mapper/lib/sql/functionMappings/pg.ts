@@ -42,6 +42,25 @@ const pg = {
       )}')::interval${colAlias}`
     );
   },
+  WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    // isodow: the day of the week as Monday (1) to Sunday (7)
+    // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
+    const m = {
+      monday: 0,
+      tuesday: 1,
+      wednesday: 2,
+      thursday: 3,
+      friday: 4,
+      saturday: 5,
+      sunday: 6,
+    };
+    const offset = m[pt?.arguments[1]?.value.toLowerCase()] || 0;
+    return knex.raw(
+      `(EXTRACT(ISODOW FROM ${fn(
+        pt.arguments[0]
+      )}) - 1 - ${offset} % 7 + 7) % 7 ${colAlias}`
+    );
+  },
 };
 
 export default pg;

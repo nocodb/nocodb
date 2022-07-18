@@ -226,7 +226,13 @@ docker-compose up -d
 git clone https://github.com/nocodb/nocodb
 cd nocodb
 ```
+## 构建SDK
 
+```shell
+cd packages/nocodb-sdk
+npm install
+npm run build
+```
 ## 本地运行后端
 
 ```shell

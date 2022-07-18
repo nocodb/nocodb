@@ -17,14 +17,17 @@ const signOut = () => {
 <template>
   <v-app>
     <v-app-bar class="shadow-md bg-primary" height="48">
-      <div class="flex items-center flex-1">
+      <div class="flex items-center flex-1 md:ml-4">
         <v-toolbar-title>
           <v-tooltip bottom>
             {{ $t('general.home') }}
             <span class="caption font-weight-light pointer">(version)</span>
           </v-tooltip>
 
-          <span class="body-1" @click="navigateTo('/projects')">NocoDB</span>
+          <div class="flex items-center gap-2">
+            <img width="35" src="~/assets/img/icons/512x512-trans.png" />
+            <span class="prose-xl" @click="navigateTo('/projects')">NocoDB</span>
+          </div>
         </v-toolbar-title>
 
         <!-- todo: loading is not yet supported by nuxt 3 - see https://v3.nuxtjs.org/migration/component-options#loading

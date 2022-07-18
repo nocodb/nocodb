@@ -15,7 +15,7 @@ import colors, { themeColors } from './utils/colorsUtils'
 
 export default defineConfig({
   extract: {
-    include: ['**/*.{vue,html,jsx,tsx,css}'],
+    include: ['**/*.{vue,html,jsx,tsx,css,scss}'],
     exclude: ['node_modules', '.git'],
   },
 
@@ -42,7 +42,8 @@ export default defineConfig({
 
   shortcuts: {
     'color-transition': 'transition-color duration-100 ease-in',
-    'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
+    'scrollbar-thin-primary':
+      'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white dark:(!scrollbar-track-black)',
   },
 
   theme: {

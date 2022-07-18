@@ -1,28 +1,19 @@
 html,
 body,
 #__nuxt,
-.v-application__wrap {
-  @apply color-transition m-0 h-full w-full bg-white dark:(bg-black text-white);
+.ant-layout,
+main {
+  @apply m-0 h-full w-full bg-white dark:(bg-black text-white);
 }
 
-a, button {
-  @apply color-transition;
-}
-
-.v-main {
-  @apply w-full h-full;
-  overflow: hidden;
-  flex: unset !important;
-}
-
-.v-main .v-main__wrap {
+main {
   @apply flex-0 w-full relative scrollbar-thin-primary;
   overflow-x: hidden;
 }
 
 nav,
 nav .v-list {
-  @apply color-transition dark:(bg-gray-900 text-white)
+  @apply dark:(!bg-gray-900 text-white)
 }
 
 .v-divider {
@@ -43,8 +34,23 @@ nav .v-list {
   @apply opacity-0;
 }
 
+.slide-enter-active,
+.slide-leave-active {
+  @apply transition-all duration-200 ease-in-out;
+  transform: translate(100%, 0);
+}
+
+.slide-enter,
+.slide-leave-active {
+  transform: translate(-100%, 0);
+}
+
 a {
-  @apply cursor-pointer prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
+  @apply prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
+}
+
+h1, h2, h3, h4, h5, h6 {
+  @apply text-black dark:(text-white);
 }
 
 .v-field__field {

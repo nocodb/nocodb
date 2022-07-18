@@ -18,11 +18,11 @@ export default {
 </script>
 
 <template>
-  <v-main>
-    <slot name="sidebar">
-      <div id="sidebar" />
-    </slot>
+  <a-layout-content>
+    <teleport v-if="$slots.sidebar" to="#sidebar">
+      <slot name="sidebar" />
+    </teleport>
 
     <slot />
-  </v-main>
+  </a-layout-content>
 </template>

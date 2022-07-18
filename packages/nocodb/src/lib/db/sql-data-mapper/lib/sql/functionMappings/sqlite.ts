@@ -75,6 +75,25 @@ const sqlite3 = {
       END${colAlias}`
     );
   },
+
+  WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
+    // strftime('%w', date) - day of week 0 - 6 with Sunday == 0
+    // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
+    const m = {
+      monday: 0,
+      tuesday: 1,
+      wednesday: 2,
+      thursday: 3,
+      friday: 4,
+      saturday: 5,
+      sunday: 6,
+    };
+    return knex.raw(
+      `strftime('%w', ${fn(pt.arguments[0])}, 'weekday ${
+        m[pt?.arguments[1]?.value.toLowerCase()] || 0
+      }')${colAlias}`
+    );
+  },
 };
 
 export default sqlite3;

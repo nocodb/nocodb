@@ -74,23 +74,21 @@ const resetError = () => {
     <v-form
       ref="formValidator"
       v-model="valid"
-      class="h-full md:h-3/4 min-h-[600px] flex justify-center items-center"
+      class="h-full min-h-[600px] flex justify-center items-center"
       @submit.prevent="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div
-          class="md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-lg)"
+          class="bg-white dark:(!bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
           <div
             style="left: -moz-calc(50% - 45px); left: -webkit-calc(50% - 45px); left: calc(50% - 45px)"
-            class="absolute top-12 md:top-[-65px] rounded-lg bg-primary"
+            class="absolute top-12 md:top-[-10%] rounded-lg bg-primary"
           >
             <img width="90" height="90" src="~/assets/img/icons/512x512-trans.png" />
           </div>
 
-          <h1 class="prose-xl self-center">{{ $t('general.signIn') }}</h1>
-
-          <v-divider class="mb-4" />
+          <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
@@ -101,8 +99,11 @@ const resetError = () => {
           <v-text-field
             id="email"
             v-model="form.email"
+            class="bg-white dark:!bg-gray-900"
             :rules="formRules.email"
             :label="$t('labels.email')"
+            :placeholder="$t('labels.email')"
+            :persistent-placeholder="true"
             type="text"
             @focus="resetError"
           />
@@ -110,8 +111,11 @@ const resetError = () => {
           <v-text-field
             id="password"
             v-model="form.password"
+            class="bg-white dark:!bg-gray-900"
             :rules="formRules.password"
             :label="$t('labels.password')"
+            :placeholder="$t('labels.password')"
+            :persistent-placeholder="true"
             type="password"
             @focus="resetError"
           />
@@ -125,7 +129,11 @@ const resetError = () => {
           <div class="self-center flex items-center justify-between w-100">
             <button
               :disabled="!valid"
-              :class="[!valid ? '!opacity-50 !cursor-default' : 'shadow-md hover:(text-primary bg-primary/25)']"
+              :class="[
+                !valid
+                  ? '!opacity-50 !cursor-default'
+                  : 'shadow-md hover:(text-primary bg-primary/10 dark:text-white dark:!bg-primary/50)',
+              ]"
               class="ml-1 border-1 border-solid border-gray-300 transition-color duration-100 ease-in rounded-lg p-4 bg-gray-100/50"
               type="submit"
             >
@@ -141,3 +149,13 @@ const resetError = () => {
     </v-form>
   </NuxtLayout>
 </template>
+
+<style lang="scss">
+.v-field__field {
+  @apply bg-white dark:(!bg-gray-900 text-white);
+
+  input {
+    @apply bg-white dark:(!bg-gray-700) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+  }
+}
+</style>

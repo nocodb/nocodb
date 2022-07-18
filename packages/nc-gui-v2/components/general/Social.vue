@@ -46,7 +46,7 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
 
 <style scoped>
 .icon {
-  @apply cursor-pointer text-3xl rounded-full p-2 bg-gray-100 shadow-md hover:(shadow-lg bg-gray-200) color-transition;
+  @apply cursor-pointer text-3xl rounded-full p-2 bg-gray-100 shadow-md hover:(shadow-lg bg-gray-200);
 }
 
 .discourse {

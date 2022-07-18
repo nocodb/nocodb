@@ -1,0 +1,60 @@
+html,
+body,
+#__nuxt,
+.v-application__wrap {
+  @apply color-transition m-0 h-full w-full bg-white dark:(bg-black text-white);
+}
+
+a, button {
+  @apply color-transition;
+}
+
+.v-main {
+  @apply w-full h-full;
+  overflow: hidden;
+  flex: unset !important;
+}
+
+.v-main .v-main__wrap {
+  @apply flex-0 w-full relative scrollbar-thin-primary;
+  overflow-x: hidden;
+}
+
+nav,
+nav .v-list {
+  @apply color-transition dark:(bg-gray-900 text-white)
+}
+
+.v-divider {
+  @apply dark:bg-white
+}
+
+.page-enter-active,
+.page-leave-active,
+.layout-enter-active,
+.layout-leave-active {
+  @apply transition-opacity duration-300 ease-in-out;
+}
+
+.page-enter,
+.page-leave-active,
+.layout-enter,
+.layout-leave-active {
+  @apply opacity-0;
+}
+
+a {
+  @apply cursor-pointer prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
+}
+
+.v-field__field {
+  @apply bg-white dark:(!bg-gray-900 text-white);
+
+  input {
+    @apply bg-white dark:(!bg-gray-700) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+  }
+}
+
+.nc-icon {
+  @apply color-transition;
+}

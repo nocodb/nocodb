@@ -84,12 +84,7 @@ const activePage = $ref(navDrawerOptions[0].title)
               >
                 <component :is="item.icon" />
 
-                <span
-                  class="font-semibold"
-                  :class="{
-                    'textColor--text text--lighten-2': item.title !== activePage,
-                  }"
-                >
+                <span class="font-semibold">
                   {{ item.title }}
                 </span>
               </v-list-item>

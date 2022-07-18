@@ -64,7 +64,7 @@ const resetError = () => {
     <v-form
       ref="formValidator"
       v-model="valid"
-      class="h-full min-h-[600px] flex justify-center items-center"
+      class="h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
       @submit.prevent="signUp"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
@@ -112,7 +112,7 @@ const resetError = () => {
 
           <v-text-field
             id="password_repeat"
-            v-model="form.password"
+            v-model="form.passwordRepeat"
             class="bg-white dark:!bg-gray-900"
             :rules="formRules.passwordRepeat"
             :label="`Repeat ${$t('labels.password')}`"

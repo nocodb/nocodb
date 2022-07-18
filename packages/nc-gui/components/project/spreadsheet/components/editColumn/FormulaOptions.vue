@@ -100,6 +100,7 @@ import jsep from 'jsep';
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk';
 import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes';
 import formulaList, { formulas, formulaTypes } from '@/helpers/formulaList';
+import { validateDateWithUnknownFormat } from '@/helpers/dateFormatHelper';
 import { getWordUntilCaret, insertAtCursor } from '@/helpers';
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree';
 
@@ -265,7 +266,7 @@ export default {
                 parsedTree.arguments[0],
                 formulaTypes.DATE,
                 v => {
-                  if (!(v instanceof Date)) {
+                  if (!validateDateWithUnknownFormat(v)) {
                     typeErrors.add('The first parameter of WEEKDAY() should have date value');
                   }
                 },
@@ -299,7 +300,7 @@ export default {
                 parsedTree.arguments[0],
                 formulaTypes.DATE,
                 v => {
-                  if (!(v instanceof Date)) {
+                  if (!validateDateWithUnknownFormat(v)) {
                     typeErrors.add('The first parameter of DATEADD() should have date value');
                   }
                 },

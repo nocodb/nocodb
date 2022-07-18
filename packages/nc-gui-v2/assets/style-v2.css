@@ -13,7 +13,7 @@ main {
 
 nav,
 nav .v-list {
-    @apply dark:(bg-gray-900 text-white)
+    @apply dark:(!bg-gray-900 text-white)
 }
 
 .v-divider {
@@ -32,6 +32,17 @@ nav .v-list {
 .layout-enter,
 .layout-leave-active {
     @apply opacity-0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+    @apply transition-all duration-200 ease-in-out;
+    transform: translate(100%, 0);
+}
+
+.slide-enter,
+.slide-leave-active {
+    transform: translate(-100%, 0);
 }
 
 a {

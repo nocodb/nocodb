@@ -14,38 +14,47 @@ const signOut = () => {
 }
 
 const toggleSidebar = useToggle($state.sidebarOpen)
+
+const sidebarOpen = computed({
+  get: () => $state.sidebarOpen.value ?? true,
+  set: (val) => toggleSidebar(val),
+})
 </script>
 
 <template>
   <a-layout>
-    <a-layout-header class="flex !bg-primary items-center text-white">
-      <div class="flex items-center flex-1">
+    <a-layout-header class="flex !bg-primary items-center text-white !px-4">
+      <MaterialSymbolsMenu
+        v-if="$state.signedIn.value"
+        class="text-xl cursor-pointer"
+        @click="toggleSidebar(!$state.sidebarOpen.value)"
+      />
+
+      <div class="flex-1" />
+
+      <div class="ml-4 flex items-center flex-1">
         <div class="flex items-center gap-2">
           <img width="35" src="~/assets/img/icons/512x512-trans.png" />
           <span class="prose-xl" @click="navigateTo('/')">NocoDB</span>
         </div>
 
         <!-- todo: loading is not yet supported by nuxt 3 - see https://v3.nuxtjs.org/migration/component-options#loading
-        <span v-show="$nuxt.$loading.show" class="caption grey--text ml-3">
-          {{ $t('general.loading') }} <v-icon small color="grey">mdi-spin mdi-loading</v-icon>
-        </span>
+          <span v-show="$nuxt.$loading.show" class="caption grey--text ml-3">
+            {{ $t('general.loading') }} <v-icon small color="grey">mdi-spin mdi-loading</v-icon>
+          </span>
 
 
-        todo: replace shortkey?
-        <span v-shortkey="['ctrl', 'shift', 'd']" @shortkey="openDiscord" />
-         -->
+          todo: replace shortkey?
+          <span v-shortkey="['ctrl', 'shift', 'd']" @shortkey="openDiscord" />
+           -->
       </div>
+
+      <div class="flex-1" />
 
       <div class="flex justify-end gap-4">
         <general-color-mode-switcher v-model="$state.darkMode.value" />
 
         <general-language class="mr-3" />
-
-        <MaterialSymbolsMenu
-          v-if="$state.signedIn.value"
-          class="block text-xl cursor-pointer xl:(hidden)"
-          @click="toggleSidebar"
-        />
 
         <template v-if="$state.signedIn.value">
           <a-dropdown :trigger="['click']">
@@ -62,7 +71,7 @@ const toggleSidebar = useToggle($state.sidebarOpen)
 
                 <a-menu-divider class="!m-0" />
 
-                <a-menu-item class="!rounded" key="1">
+                <a-menu-item key="1" class="!rounded">
                   <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="signOut">
                     <MdiLogout class="color-transition dark:text-white group-hover:(!text-red-500)" />&nbsp;
                     <span class="prose font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
@@ -75,6 +84,20 @@ const toggleSidebar = useToggle($state.sidebarOpen)
       </div>
     </a-layout-header>
 
-    <NuxtPage />
+    <a-layout>
+      <a-layout-sider
+        v-model:collapsed="sidebarOpen"
+        width="300"
+        breakpoint="md"
+        collapsed-width="0"
+        class="bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"
+        :trigger="null"
+        collapsible
+      >
+        <div id="sidebar" class="w-full h-full" />
+      </a-layout-sider>
+
+      <NuxtPage />
+    </a-layout>
   </a-layout>
 </template>

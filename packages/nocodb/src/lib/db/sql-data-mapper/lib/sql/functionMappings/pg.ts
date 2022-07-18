@@ -1,3 +1,4 @@
+import dayjs from 'dayjs';
 import { MapFnArgs } from '../mapFunctionName';
 import commonFns from './commonFns';
 import { getWeekdayByText } from '../helpers/formulaFnHelper';
@@ -47,7 +48,11 @@ const pg = {
     // isodow: the day of the week as Monday (1) to Sunday (7)
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
     return knex.raw(
-      `(EXTRACT(ISODOW FROM ${fn(pt.arguments[0])}) - 1 - ${getWeekdayByText(
+      `(EXTRACT(ISODOW FROM ${
+        pt.arguments[0].type === 'Literal'
+          ? `date '${dayjs(fn(pt.arguments[0])).format('YYYY-MM-DD')}'`
+          : fn(pt.arguments[0])
+      }) - 1 - ${getWeekdayByText(
         pt?.arguments[1]?.value
       )} % 7 + 7) % 7 ${colAlias}`
     );

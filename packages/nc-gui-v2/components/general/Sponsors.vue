@@ -28,3 +28,9 @@ const { nav = false } = defineProps<Props>()
     </v-card-actions>
   </v-card>
 </template>
+
+<style>
+a img {
+  margin: 0 !important;
+}
+</style>

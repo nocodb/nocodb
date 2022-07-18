@@ -46,10 +46,10 @@ const activePage = $ref(navDrawerOptions[0].title)
             <v-menu class="select-none">
               <template #activator="{ props }">
                 <div
-                  class="bg-white mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold hover:(!bg-gray-100)"
+                  class="bg-white hover:(!bg-gray-100) dark:(!bg-primary !text-white hover:!bg-primary/75) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
                   @click="props.onClick"
                 >
-                  <MdiPlus class="text-primary text-2xl" />
+                  <MdiPlus class="text-primary dark:(!text-white) text-2xl" />
                   {{ $t('title.newProj') }}
                 </div>
               </template>

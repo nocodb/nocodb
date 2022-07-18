@@ -1,5 +1,8 @@
 <script lang="ts" setup>
+import type { ProjectType } from 'nocodb-sdk'
+import { useToast } from 'vue-toastification'
 import { navigateTo } from '#app'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
 import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 import MdiPlus from '~icons/mdi/plus'
@@ -32,10 +35,19 @@ const navDrawerOptions = [
 const route = useRoute()
 
 const { $api, $state } = useNuxtApp()
+const toast = useToast()
 
 const response = await $api.project.list({})
 const projects = $ref(response.list)
 const activePage = $ref(navDrawerOptions[0].title)
+const deleteProject = async (project: ProjectType) => {
+  try {
+    await $api.project.delete(project.id as string)
+    projects.splice(projects.indexOf(project), 1)
+  } catch (e) {
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
@@ -119,7 +131,7 @@ const activePage = $ref(navDrawerOptions[0].title)
 
       <a-divider class="!mb-4 lg:(!mb-8)" />
 
-      <NuxtPage :projects="projects" />
+      <NuxtPage :projects="projects" @delete-project="deleteProject" />
     </v-container>
   </NuxtLayout>
 </template>

@@ -3,14 +3,14 @@ import { computed, ref } from '#imports'
 import { ColumnInj } from '~/components'
 import { isValidURL } from '~/utils/urlUtils'
 
+interface Props {
+  modelValue: string
+}
+
 const { modelValue: value } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 const column = inject(ColumnInj)
 const editEnabled = inject<boolean>('editEnabled')
-
-interface Props {
-  modelValue: string
-}
 
 const localState = computed({
   get: () => value,

@@ -14,6 +14,8 @@ interface Props {
 
 const { projects } = defineProps<Props>()
 
+const emit = defineEmits(['delete-project'])
+
 const { $e } = useNuxtApp()
 
 const { getColorByIndex } = useColors(true)
@@ -72,18 +74,18 @@ const formatTitle = (title: string) =>
 
         <MdiStarOutline class="star-icon" @click.stop />
 
-        <v-menu>
-          <template #activator="{ props }">
-            <MdiMenuDown class="menu-icon" @click.stop="props.onClick" />
-          </template>
-
-          <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300">
-            <div class="grid grid-cols-6 cursor-pointer hover:bg-gray-200 flex items-center p-2" @click.stop>
+        <a-dropdown @click.stop>
+          <MdiMenuDown class="menu-icon" />
+          <template #overlay>
+            <div
+              class="grid grid-cols-6 cursor-pointer flex items-center p-2 border-1 bg-white dark:bg-slate-800 hover:bg-gray-200"
+              @click.stop="emit('delete-project', project)"
+            >
               <MdiDeleteOutline class="col-span-2 mr-1 mt-[1px] text-red text-lg" />
               <div class="col-span-4 text-sm xl:text-md">{{ $t('general.delete') }}</div>
             </div>
-          </v-list>
-        </v-menu>
+          </template>
+        </a-dropdown>
       </div>
 
       <div class="prose-lg font-semibold">
@@ -104,6 +106,7 @@ const formatTitle = (title: string) =>
   content: '';
   z-index: -1;
 }
+
 .thumbnail:hover::after {
   @apply shadow-2xl transform scale-110;
 }

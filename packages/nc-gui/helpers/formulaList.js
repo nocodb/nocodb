@@ -480,11 +480,11 @@ const formulas = {
         max: 2,
       }
     },
-    description: 'Convert to a hyperlink if it is a valid URL',
+    description: 'Returns the day of the week as an integer between 0 and 6 inclusive starting from Monday by default',
     syntax: 'WEEKDAY(date, [startDayOfWeek])',
     examples: [
       'WEEKDAY("2021-06-09")',
-      'WEEKDAY(CURDATE(), "Monday")'
+      'WEEKDAY(NOW(), "sunday")'
     ]
   }
 }

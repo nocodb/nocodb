@@ -1,40 +1,65 @@
 <script lang="ts" setup>
+import { createVNode } from '@vue/runtime-core'
+import { Modal } from 'ant-design-vue'
+import type { ProjectType } from 'nocodb-sdk'
+import { useToast } from 'vue-toastification'
 import { navigateTo } from '#app'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
 import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 import MdiFolderOutline from '~icons/mdi/folder-outline'
-import MdiAccountGroup from '~icons/mdi/account-group'
-import MdiClockOutline from '~icons/mdi/clock-outline'
-import MdiStar from '~icons/mdi/star'
+import ExclamationCircleOutlined from '~icons/mdi/information-outline'
 
 const navDrawerOptions = [
   {
     title: 'My NocoDB',
     icon: MdiFolderOutline,
   },
-  {
-    title: 'Shared With Me',
-    icon: MdiAccountGroup,
+  /* todo: implement the api and bring back the options below
+   {
+    title: "Shared With Me",
+    icon: MdiAccountGroup
   },
   {
-    title: 'Recent',
-    icon: MdiClockOutline,
+    title: "Recent",
+    icon: MdiClockOutline
   },
   {
-    title: 'Starred',
-    icon: MdiStar,
-  },
+    title: "Starred",
+    icon: MdiStar
+  } */
 ]
 
 const route = useRoute()
 
 const { $api, $state } = useNuxtApp()
+const toast = useToast()
 
 const response = await $api.project.list({})
 const projects = $ref(response.list)
 const activePage = $ref(navDrawerOptions[0].title)
+const deleteProject = (project: ProjectType) => {
+  Modal.confirm({
+    title: 'Do you want to delete the project?',
+    // icon: createVNode(ExclamationCircleOutlined),
+    content: 'Some descriptions',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    async onOk() {
+      try {
+        await $api.project.delete(project.id as string)
+        projects.splice(projects.indexOf(project), 1)
+      } catch (e) {
+        toast.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
+}
+
+const visible = ref(true)
 </script>
 
 <template>
@@ -115,9 +140,11 @@ const activePage = $ref(navDrawerOptions[0].title)
         </div>
       </div>
 
-      <v-divider class="!mb-4 lg:(!mb-8)" />
+      <a-divider class="!mb-4 lg:(!mb-8)" />
 
-      <NuxtPage :projects="projects" />
+      <NuxtPage :projects="projects" @delete-project="deleteProject" />
     </v-container>
+
+    <a-modal></a-modal>
   </NuxtLayout>
 </template>

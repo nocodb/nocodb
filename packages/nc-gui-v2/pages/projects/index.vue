@@ -14,18 +14,19 @@ const navDrawerOptions = [
     title: 'My NocoDB',
     icon: MdiFolderOutline,
   },
-  {
-    title: 'Shared With Me',
-    icon: MdiAccountGroup,
+  /* todo: implement the api and bring back the options below
+   {
+    title: "Shared With Me",
+    icon: MdiAccountGroup
   },
   {
-    title: 'Recent',
-    icon: MdiClockOutline,
+    title: "Recent",
+    icon: MdiClockOutline
   },
   {
-    title: 'Starred',
-    icon: MdiStar,
-  },
+    title: "Starred",
+    icon: MdiStar
+  } */
 ]
 
 const route = useRoute()
@@ -73,25 +74,17 @@ const activePage = $ref(navDrawerOptions[0].title)
           </div>
 
           <div class="advance-menu flex-1">
-            <div class="flex flex-col gap-1" :color="$state.darkMode.value ? 'default' : 'primary'">
-              <!-- todo: v-list-item-group doesn't seem to work with vuetify 3 yet ... -->
-              <v-list-item
-                v-for="item in navDrawerOptions"
-                :key="item.title"
-                class="flex items-center gap-4 !rounded-r-lg"
-                :value="item.title"
-              >
-                <component :is="item.icon" />
-
-                <span
-                  class="font-semibold"
-                  :class="{
-                    'textColor--text text--lighten-2': item.title !== activePage,
-                  }"
-                >
-                  {{ item.title }}
-                </span>
-              </v-list-item>
+            <div :color="$state.darkMode.value ? 'default' : 'primary'">
+              <a-menu class="flex flex-col gap-1" mode="inline" :open-keys="[activePage]">
+                <a-menu-item v-for="item in navDrawerOptions" :key="item.title" class="flex items-center gap-4 !rounded-r-lg">
+                  <template #icon>
+                    <component :is="item.icon" />
+                  </template>
+                  <span class="font-semibold">
+                    {{ item.title }}
+                  </span>
+                </a-menu-item>
+              </a-menu>
             </div>
           </div>
 
@@ -124,7 +117,7 @@ const activePage = $ref(navDrawerOptions[0].title)
         </div>
       </div>
 
-      <v-divider class="!mb-4 lg:(!mb-8)" />
+      <a-divider class="!mb-4 lg:(!mb-8)" />
 
       <NuxtPage :projects="projects" />
     </v-container>

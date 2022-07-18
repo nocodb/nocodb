@@ -16,7 +16,7 @@ const signOut = () => {
 const toggleSidebar = useToggle($state.sidebarOpen)
 
 const sidebarOpen = computed({
-  get: () => $state.sidebarOpen.value ?? true,
+  get: () => !($state.sidebarOpen.value ?? true),
   set: (val) => toggleSidebar(val),
 })
 </script>
@@ -88,7 +88,6 @@ const sidebarOpen = computed({
       <a-layout-sider
         v-model:collapsed="sidebarOpen"
         width="300"
-        breakpoint="md"
         collapsed-width="0"
         class="bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"
         :trigger="null"

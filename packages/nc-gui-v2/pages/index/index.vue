@@ -34,7 +34,7 @@ const navDrawerOptions = [
 
 const route = useRoute()
 
-const { $api, $state } = useNuxtApp()
+const { $api } = useNuxtApp()
 const toast = useToast()
 
 const response = await $api.project.list({})

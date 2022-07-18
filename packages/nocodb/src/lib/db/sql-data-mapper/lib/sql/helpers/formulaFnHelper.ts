@@ -1,5 +1,5 @@
 export function getWeekdayByText(v: string) {
-  const m = {
+  return {
     monday: 0,
     tuesday: 1,
     wednesday: 2,
@@ -7,12 +7,11 @@ export function getWeekdayByText(v: string) {
     friday: 4,
     saturday: 5,
     sunday: 6,
-  };
-  return m[v?.toLowerCase() || 'monday'];
+  }[v?.toLowerCase() || 'monday'];
 }
 
 export function getWeekdayByIndex(idx: number): string {
-  const m = {
+  return {
     0: 'monday',
     1: 'tuesday',
     2: 'wednesday',
@@ -20,6 +19,5 @@ export function getWeekdayByIndex(idx: number): string {
     4: 'friday',
     5: 'saturday',
     6: 'sunday',
-  };
-  return m[idx || 0];
+  }[idx || 0];
 }

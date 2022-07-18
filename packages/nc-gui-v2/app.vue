@@ -66,7 +66,7 @@ const signOut = () => {
                   class="group hover:(bg-gray-200) dark:(hover:bg-gray-600) flex items-center p-2 no-underline"
                   to="/user/settings"
                 >
-                  <MdiAt class="mt-1 color-transition group-hover:text-success" />&nbsp;
+                  <MdiAt class="mt-1 group-hover:text-success" />&nbsp;
                   <span class="prose">{{ email }}</span>
                 </nuxt-link>
 
@@ -77,7 +77,7 @@ const signOut = () => {
                   class="group flex flex-row cursor-pointer hover:bg-gray-200 dark:(hover:bg-gray-600) flex items-center p-2"
                   @click="signOut"
                 >
-                  <MdiLogout class="color-transition dark:text-white group-hover:(!text-red-500)" />&nbsp;
+                  <MdiLogout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
                   <span class="prose font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
                 </div>
               </v-list>

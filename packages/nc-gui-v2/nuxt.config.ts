@@ -19,7 +19,7 @@ export default defineNuxtConfig({
     '~/assets/css/global.css',
     '~/assets/style/style.css',
     '~/assets/style.css',
-    '~/assets/style-v2.css',
+    '~/assets/style-v2.scss',
   ],
 
   meta: {
@@ -53,6 +53,7 @@ export default defineNuxtConfig({
       Icons({
         autoInstall: true,
         compiler: 'vue3',
+        defaultClass: 'nc-icon',
       }),
       Components({
         resolvers: [AntDesignVueResolver()],

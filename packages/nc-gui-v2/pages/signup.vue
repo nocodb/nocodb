@@ -71,12 +71,7 @@ const resetError = () => {
         <div
           class="bg-white dark:(!bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
-          <div
-            style="left: -moz-calc(50% - 45px); left: -webkit-calc(50% - 45px); left: calc(50% - 45px)"
-            class="absolute top-12 md:top-[-10%] rounded-lg bg-primary"
-          >
-            <img width="90" height="90" src="~/assets/img/icons/512x512-trans.png" />
-          </div>
+          <general-noco-icon />
 
           <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signUp') }}</h1>
 
@@ -128,9 +123,9 @@ const resetError = () => {
               :class="[
                 !valid
                   ? '!opacity-50 !cursor-default'
-                  : 'shadow-md hover:(text-primary bg-primary/10 dark:text-white dark:!bg-primary/50)',
+                  : 'text-white bg-primary hover:(text-primary !bg-primary/75) dark:(!bg-secondary/75 hover:!bg-secondary/50)',
               ]"
-              class="ml-1 border-1 border-solid border-gray-300 color-transition rounded-lg p-4 bg-gray-100/50"
+              class="ml-1 border-1 border-solid border-gray-300 rounded-lg p-4 bg-gray-100/50"
               type="submit"
             >
               <span class="flex items-center gap-2"><MaterialSymbolsRocketLaunchOutline /> {{ $t('general.signUp') }}</span>

@@ -444,6 +444,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/LepkoQQ"><img src="https://avatars.githubusercontent.com/u/2662937?v=4?s=100" width="100px;" alt=""/><br /><sub><b>LepkoQQ</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=LepkoQQ" title="Code">💻</a></td>
     <td align="center"><a href="https://cornernewclub.fr"><img src="https://avatars.githubusercontent.com/u/56829191?v=4?s=100" width="100px;" alt=""/><br /><sub><b>quentin</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=QuentinDstl" title="Code">💻</a></td>
     <td align="center"><a href="http://cande.me"><img src="https://avatars.githubusercontent.com/u/5407915?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Cande</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=cande1gut" title="Code">💻</a></td>
+    <td align="center"><a href="https://github.com/seokjunjin"><img src="https://avatars.githubusercontent.com/u/46950889?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Seokjun Jin</b></sub></a><br /><a href="#translation-seokjunjin" title="Translation">🌍</a></td>
   </tr>
 </table>
 

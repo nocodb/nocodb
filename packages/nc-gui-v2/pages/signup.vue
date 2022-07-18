@@ -122,7 +122,7 @@ const resetError = () => {
             @focus="resetError"
           />
 
-          <div class="self-center flex items-center justify-between w-full">
+          <div class="self-center flex flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
             <button
               :disabled="!valid"
               :class="[
@@ -137,7 +137,7 @@ const resetError = () => {
             </button>
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}
-              <nuxt-link class="text-primary underline hover:opacity-75" to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
             </div>
           </div>
         </div>

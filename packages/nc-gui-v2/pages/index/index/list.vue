@@ -13,7 +13,7 @@ const { projects = [] } = defineProps<Props>()
 
 const emit = defineEmits(['delete-project'])
 
-const { $e } = useNuxtApp()
+const { $e } = useNxuxtApp()
 
 const openProject = async (project: ProjectType) => {
   await navigateTo(`/nc/${project.id}`)

@@ -81,14 +81,14 @@ const visible = ref(true)
             <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
               <div
                 class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                @click="navigateTo('/create')"
+                @click="navigateTo('/project/create')"
               >
                 <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
                 <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
               </div>
               <div
                 class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                @click="navigateTo('/create-external')"
+                @click="navigateTo('/project/create-external')"
               >
                 <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
                 <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />

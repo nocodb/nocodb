@@ -511,12 +511,12 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         }
 
         if (colBody.uidt === UITypes.SingleSelect) {
-          colBody.dtxp = (colBody?.options.length)
-            ? `${colBody.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+          colBody.dtxp = (colBody.colOptions?.options.length)
+            ? `${colBody.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
             : '';
         } else if (colBody.uidt === UITypes.MultiSelect){
-          colBody.dtxp = (colBody?.options.length)
-            ? `${colBody.options.map((o) => {
+          colBody.dtxp = (colBody.colOptions?.options.length)
+            ? `${colBody.colOptions.options.map((o) => {
                 if(o.title.includes(',')) {
                   NcError.badRequest('Illegal char(\',\') for MultiSelect');
                   throw new Error('');
@@ -663,16 +663,21 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
     NcError.notImplemented(
       `Updating ${colBody.uidt} => ${colBody.uidt} is not implemented`
     );
-  } else {
+  } if(
+    [
+      UITypes.SingleSelect,
+      UITypes.MultiSelect
+    ].includes(colBody.uidt)
+  ) {
     colBody = getColumnPropsFromUIDT(colBody, base);
-
+    
     if (colBody.uidt === UITypes.SingleSelect) {
-      colBody.dtxp = (colBody?.options.length)
-        ? `${colBody.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+      colBody.dtxp = (colBody.colOptions?.options.length)
+        ? `${colBody.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
         : '';
     } else if (colBody.uidt === UITypes.MultiSelect){
-      colBody.dtxp = (colBody?.options.length)
-        ? `${colBody.options.map((o) => {
+      colBody.dtxp = (colBody.colOptions?.options.length)
+        ? `${colBody.colOptions.options.map((o) => {
             if(o.title.includes(',')) {
               NcError.badRequest('Illegal char(\',\') for MultiSelect');
               throw new Error('');
@@ -680,6 +685,95 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
             return `'${o.title.replace(/'/gi, '\'\'')}'`;
           }).join(',')}`
         : '';
+    }
+
+    const baseModel = await Model.getBaseModelSQL({
+      id: table.id,
+      dbDriver: NcConnectionMgrv2.get(base)
+    });
+
+    if (column.colOptions?.options) {
+      // Handle migrations
+      for (const op of column.colOptions.options.filter(el => el.order === null)) {
+        op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+      }
+
+      // Handle option delete
+      for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id) ? false : true)) {
+        if (column.uidt === UITypes.SingleSelect) { 
+          await baseModel.bulkUpdateAll({ where: `(${column.title},eq,${option.title})` }, { [column.title]: null });
+        } else if (column.uidt === UITypes.MultiSelect) {
+          const dbDriver = NcConnectionMgrv2.get(base);
+          // TODO find_in_set for MySQL optimization
+          await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ','))`, [table.table_name, column.title, column.title, option.title]);
+        }
+      }
+
+      // Handle option update
+      for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id && newOp.title !== oldOp.title))) {
+        let newOp = colBody.colOptions.options.find(el => option.id === el.id);
+        column.colOptions.options.push({ title: newOp.title });
+
+        let temp_dtxp = '';
+        if (column.uidt === UITypes.SingleSelect) {
+          temp_dtxp = (column.colOptions?.options.length)
+            ? `${column.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+            : '';
+        } else if (column.uidt === UITypes.MultiSelect){
+          temp_dtxp = (column.colOptions?.options.length)
+            ? `${column.colOptions.options.map((o) => {
+                if(o.title.includes(',')) {
+                  NcError.badRequest('Illegal char(\',\') for MultiSelect');
+                  throw new Error('');
+                }
+                return `'${o.title.replace(/'/gi, '\'\'')}'`;
+              }).join(',')}`
+            : '';
+        }
+
+        const tableUpdateBody = {
+          ...table,
+          tn: table.table_name,
+          originalColumns: table.columns.map((c) => ({
+            ...c,
+            cn: c.column_name,
+            cno: c.column_name,
+          })),
+          columns: await Promise.all(
+            table.columns.map(async (c) => {
+              if (c.id === req.params.columnId) {
+                const res = {
+                  ...c,
+                  ...column,
+                  cn: column.column_name,
+                  cno: c.column_name,
+                  dtxp: temp_dtxp,
+                  altered: Altered.UPDATE_COLUMN,
+                };
+                return Promise.resolve(res);
+              } else {
+                (c as any).cn = c.column_name;
+              }
+              return Promise.resolve(c);
+            })
+          ),
+        };
+
+        const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+        await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+      
+        await Column.update(req.params.columnId, {
+          ...column,
+        });
+
+        if (column.uidt === UITypes.SingleSelect) { 
+          await baseModel.bulkUpdateAll({ where: `(${column.title},eq,${option.title})` }, { [column.title]: newOp.title });
+        } else if (column.uidt === UITypes.MultiSelect) {
+          const dbDriver = NcConnectionMgrv2.get(base);
+          // TODO find_in_set for MySQL optimization
+          await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ',')))`, [table.table_name, column.title, column.title, option.title, newOp.title]);
+        }
+      }
     }
 
     const tableUpdateBody = {
@@ -733,12 +827,72 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       ),
     };
 
-      const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
-      await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
-    
-      await Column.update(req.params.columnId, {
+    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+    await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+  
+    await Column.update(req.params.columnId, {
       ...colBody,
-      });
+    });
+  } else {
+    colBody = getColumnPropsFromUIDT(colBody, base);
+    
+    const tableUpdateBody = {
+      ...table,
+      tn: table.table_name,
+      originalColumns: table.columns.map((c) => ({
+        ...c,
+        cn: c.column_name,
+        cno: c.column_name,
+      })),
+      columns: await Promise.all(
+        table.columns.map(async (c) => {
+          if (c.id === req.params.columnId) {
+            const res = {
+              ...c,
+              ...colBody,
+              cn: colBody.column_name,
+              cno: c.column_name,
+              altered: Altered.UPDATE_COLUMN,
+            };
+
+            // update formula with new column name
+            if (c.column_name != colBody.column_name) {
+              const formulas = await Noco.ncMeta
+                .knex(MetaTable.COL_FORMULA)
+                .where('formula', 'like', `%${c.id}%`);
+              if (formulas) {
+                const new_column = c;
+                new_column.column_name = colBody.column_name;
+                new_column.title = colBody.title;
+                for (const f of formulas) {
+                  // the formula with column IDs only
+                  const formula = f.formula;
+                  // replace column IDs with alias to get the new formula_raw
+                  const new_formula_raw = substituteColumnIdWithAliasInFormula(
+                    formula,
+                    [new_column]
+                  );
+                  await FormulaColumn.update(c.id, {
+                    formula_raw: new_formula_raw,
+                  });
+                }
+              }
+            }
+            return Promise.resolve(res);
+          } else {
+            (c as any).cn = c.column_name;
+          }
+          return Promise.resolve(c);
+        })
+      ),
+    };
+
+    const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+    await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+  
+    await Column.update(req.params.columnId, {
+      ...colBody,
+    });
   }
   Audit.insert({
     project_id: base.project_id,

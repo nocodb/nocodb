@@ -3,7 +3,6 @@ import LinkToAnotherRecordColumn from './LinkToAnotherRecordColumn';
 import LookupColumn from './LookupColumn';
 import RollupColumn from './RollupColumn';
 import SelectOption from './SelectOption';
-import MultiSelectColumn from './MultiSelectColumn';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
 import { ColumnType, UITypes } from 'nocodb-sdk';
@@ -244,7 +243,7 @@ export default class Column<T = any> implements ColumnType {
             );
           }
         } else {
-          for (const [i, option] of column.options.entries() || [].entries()) {
+          for (const [i, option] of column.colOptions.options.entries() || [].entries()) {
             await SelectOption.insert(
               {
                 ...option,
@@ -270,7 +269,7 @@ export default class Column<T = any> implements ColumnType {
             );
           }
         } else {
-          for (const [i, option] of column.options.entries() || [].entries()) {
+          for (const [i, option] of column.colOptions.options.entries() || [].entries()) {
             await SelectOption.insert(
               {
                 ...option,
@@ -850,7 +849,7 @@ export default class Column<T = any> implements ColumnType {
       o = { ...o, ...updateObj };
       // set cache
       await NocoCache.set(key, o);
-    }
+    }    
     // set meta
     await ncMeta.metaUpdate(
       null,

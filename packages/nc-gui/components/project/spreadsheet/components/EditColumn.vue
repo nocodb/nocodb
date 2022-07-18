@@ -132,12 +132,7 @@
                   <date-options v-model="newColumn.meta" :column="newColumn" :meta="meta" />
                 </v-col>
                 <v-col v-if="isSelect" cols="12">
-                  <custom-select-options
-                    ref="customselect"
-                    :column="newColumn"
-                    :meta="meta"
-                    v-on="$listeners"
-                  />
+                  <custom-select-options ref="customselect" :column="newColumn" :meta="meta" v-on="$listeners" />
                 </v-col>
                 <v-col v-else-if="isRating" cols="12">
                   <rating-options v-model="newColumn.meta" :column="newColumn" :meta="meta" />
@@ -649,17 +644,20 @@ export default {
         if (this.newColumn.uidt === 'Formula' && this.$refs.formula) {
           return await this.$refs.formula.save();
         }
-        this.newColumn.table_name = this.nodes.table_name
-        this.newColumn.title = this.newColumn.column_name
+        this.newColumn.table_name = this.nodes.table_name;
+        this.newColumn.title = this.newColumn.column_name;
 
         if (this.isSelect && this.$refs.customselect) {
           if (this.column) {
-            await this.$refs.customselect.update()
-          } else {
-            await this.$refs.customselect.save()
+            if (await this.$refs.customselect.update()) {
+              await this.$emit('saved');
+              return this.$emit('close');
+            }
+          } else if (await this.$refs.customselect.save()) {
+            await this.$emit('saved');
+            return this.$emit('close');
           }
-          await this.$emit('saved')
-          return this.$emit('close')
+          return;
         }
 
         if (this.editColumn) {
@@ -692,17 +690,13 @@ export default {
       if (this.newColumn.uidt !== UITypes.ID) {
         this.newColumn.primaryKey = false;
       }
-      this.newColumn.ai = false
-      this.newColumn.cdf = null
-      this.newColumn.un = false
-      this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(
-        this.newColumn.dt
-      )
-      this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(
-        this.newColumn.dt
-      )
+      this.newColumn.ai = false;
+      this.newColumn.cdf = null;
+      this.newColumn.un = false;
+      this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(this.newColumn.dt);
+      this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(this.newColumn.dt);
 
-      this.newColumn.dtx = 'specificType'
+      this.newColumn.dtx = 'specificType';
 
       if (this.isCurrency) {
         if (this.column?.uidt === UITypes.Currency) {

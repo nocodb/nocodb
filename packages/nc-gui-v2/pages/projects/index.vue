@@ -46,7 +46,7 @@ const activePage = $ref(navDrawerOptions[0].title)
             <v-menu class="select-none">
               <template #activator="{ props }">
                 <div
-                  class="bg-white hover:(!bg-gray-100) dark:(!bg-primary !text-white shadow-gray-600 hover:!bg-primary/75) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
+                  class="color-transition hover:(bg-gray-100 dark:bg-secondary/25) dark:(bg-secondary/50 !text-white shadow-gray-600) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
                   @click="props.onClick"
                 >
                   <MdiPlus class="text-primary dark:(!text-white) text-2xl" />
@@ -112,15 +112,15 @@ const activePage = $ref(navDrawerOptions[0].title)
         </div>
 
         <div class="self-end flex text-4xl mb-1">
-          <MaterialSymbolsFormatListBulletedRounded
-            :class="route.name === 'projects-index-list' ? 'text-primary' : ''"
-            class="transition-color ease-in duration-100 cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
-            @click="navigateTo('/projects/list')"
-          />
           <MaterialSymbolsGridView
-            :class="route.name === 'projects-index' ? 'text-primary' : ''"
-            class="transition-color ease-in duration-100 cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
+            :class="route.name === 'projects-index' ? 'text-primary dark:(!text-secondary/75)' : ''"
+            class="color-transition cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/projects')"
+          />
+          <MaterialSymbolsFormatListBulletedRounded
+            :class="route.name === 'projects-index-list' ? 'text-primary dark:(!text-secondary/75)' : ''"
+            class="color-transition cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
+            @click="navigateTo('/projects/list')"
           />
         </div>
       </div>

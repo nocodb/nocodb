@@ -95,7 +95,7 @@ const formatTitle = (title: string) =>
 
 <style scoped>
 .thumbnail {
-  @apply relative rounded-md opacity-75 font-bold text-white text-[75px] h-[150px] w-full max-w-[150px] shadow-md cursor-pointer uppercase flex items-center justify-center transition-color ease-in duration-100 hover:(after:opacity-100 shadow-none);
+  @apply relative rounded-md opacity-75 font-bold text-white text-[75px] h-[150px] w-full max-w-[150px] shadow-md cursor-pointer uppercase flex items-center justify-center color-transition hover:(after:opacity-100 shadow-none);
 }
 
 .thumbnail::after {

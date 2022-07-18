@@ -130,7 +130,7 @@ const resetError = () => {
                   ? '!opacity-50 !cursor-default'
                   : 'shadow-md hover:(text-primary bg-primary/10 dark:text-white dark:!bg-primary/50)',
               ]"
-              class="ml-1 border-1 border-solid border-gray-300 transition-color duration-100 ease-in rounded-lg p-4 bg-gray-100/50"
+              class="ml-1 border-1 border-solid border-gray-300 color-transition rounded-lg p-4 bg-gray-100/50"
               type="submit"
             >
               <span class="flex items-center gap-2"><MaterialSymbolsRocketLaunchOutline /> {{ $t('general.signUp') }}</span>

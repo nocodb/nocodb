@@ -116,7 +116,7 @@ const resetError = () => {
           />
 
           <div class="hidden md:block self-end mx-8">
-            <nuxt-link class="prose-sm" to="/reset-password">
+            <nuxt-link class="prose-sm" to="/forgot-password">
               {{ $t('msg.info.signUp.forgotPassword') }}
             </nuxt-link>
           </div>
@@ -140,7 +140,7 @@ const resetError = () => {
             </div>
 
             <div class="md:hidden">
-              <nuxt-link class="prose-sm" to="/reset-password">
+              <nuxt-link class="prose-sm" to="/forgot-password">
                 {{ $t('msg.info.signUp.forgotPassword') }}
               </nuxt-link>
             </div>

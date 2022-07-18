@@ -59,13 +59,14 @@ const signOut = () => {
               <template #activator="{ props }">
                 <MdiDotsVertical class="md:text-xl cursor-pointer" @click="props.onClick" />
               </template>
-              <v-list class="!py-0 nc-user-menu min-w-32">
+
+              <v-list class="!py-0 nc-user-menu min-w-32 dark:(!bg-gray-800)">
                 <nuxt-link
                   v-t="['c:navbar:user:email']"
-                  class="group hover:bg-gray-200 flex items-center p-2"
+                  class="group hover:(bg-gray-200) dark:(hover:bg-gray-600) flex items-center p-2 no-underline"
                   to="/user/settings"
                 >
-                  <MdiAt class="mt-1 transition-colors duration-150 ease-in group-hover:text-success" />&nbsp;
+                  <MdiAt class="mt-1 color-transition group-hover:text-success" />&nbsp;
                   <span class="prose">{{ email }}</span>
                 </nuxt-link>
 
@@ -73,10 +74,10 @@ const signOut = () => {
 
                 <div
                   v-t="['a:navbar:user:sign-out']"
-                  class="group flex flex-row cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                  class="group flex flex-row cursor-pointer hover:bg-gray-200 dark:(hover:bg-gray-600) flex items-center p-2"
                   @click="signOut"
                 >
-                  <MdiLogout class="transition-colors duration-150 ease-in group-hover:text-red-500" />&nbsp;
+                  <MdiLogout class="color-transition dark:text-white group-hover:(!text-red-500)" />&nbsp;
                   <span class="prose font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
                 </div>
               </v-list>

@@ -46,13 +46,14 @@ const activePage = $ref(navDrawerOptions[0].title)
             <v-menu class="select-none">
               <template #activator="{ props }">
                 <div
-                  class="bg-white mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold hover:(!bg-gray-100)"
+                  class="color-transition hover:(bg-gray-100 dark:bg-secondary/25) dark:(bg-secondary/50 !text-white shadow-gray-600) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
                   @click="props.onClick"
                 >
-                  <MdiPlus class="text-primary text-2xl" />
+                  <MdiPlus class="text-primary dark:(!text-white) text-2xl" />
                   {{ $t('title.newProj') }}
                 </div>
               </template>
+
               <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
                 <div
                   class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
@@ -73,7 +74,7 @@ const activePage = $ref(navDrawerOptions[0].title)
           </div>
 
           <div class="advance-menu flex-1">
-            <v-list class="flex flex-col gap-1" :color="$state.darkMode.value ? 'default' : 'primary'">
+            <v-list class="flex flex-col gap-1" :color="$state.darkMode.value ? 'secondary' : 'primary'">
               <!-- todo: v-list-item-group doesn't seem to work with vuetify 3 yet ... -->
               <v-list-item
                 v-for="item in navDrawerOptions"
@@ -111,15 +112,15 @@ const activePage = $ref(navDrawerOptions[0].title)
         </div>
 
         <div class="self-end flex text-4xl mb-1">
-          <MaterialSymbolsFormatListBulletedRounded
-            :class="route.name === 'projects-index-list' ? 'text-primary' : ''"
-            class="transition-color ease-in duration-100 cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
-            @click="navigateTo('/projects/list')"
-          />
           <MaterialSymbolsGridView
-            :class="route.name === 'projects-index' ? 'text-primary' : ''"
-            class="transition-color ease-in duration-100 cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
+            :class="route.name === 'projects-index' ? 'text-primary dark:(!text-secondary/75)' : ''"
+            class="color-transition cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/projects')"
+          />
+          <MaterialSymbolsFormatListBulletedRounded
+            :class="route.name === 'projects-index-list' ? 'text-primary dark:(!text-secondary/75)' : ''"
+            class="color-transition cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
+            @click="navigateTo('/projects/list')"
           />
         </div>
       </div>

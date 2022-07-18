@@ -122,7 +122,7 @@ const resetError = () => {
             @focus="resetError"
           />
 
-          <div class="self-center flex items-center justify-between w-full">
+          <div class="self-center flex flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
             <button
               :disabled="!valid"
               :class="[
@@ -130,14 +130,14 @@ const resetError = () => {
                   ? '!opacity-50 !cursor-default'
                   : 'shadow-md hover:(text-primary bg-primary/10 dark:text-white dark:!bg-primary/50)',
               ]"
-              class="ml-1 border-1 border-solid border-gray-300 transition-color duration-100 ease-in rounded-lg p-4 bg-gray-100/50"
+              class="ml-1 border-1 border-solid border-gray-300 color-transition rounded-lg p-4 bg-gray-100/50"
               type="submit"
             >
               <span class="flex items-center gap-2"><MaterialSymbolsRocketLaunchOutline /> {{ $t('general.signUp') }}</span>
             </button>
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}
-              <nuxt-link class="text-primary underline hover:opacity-75" to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
             </div>
           </div>
         </div>

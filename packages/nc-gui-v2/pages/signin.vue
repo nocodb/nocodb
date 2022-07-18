@@ -74,7 +74,7 @@ const resetError = () => {
     <v-form
       ref="formValidator"
       v-model="valid"
-      class="h-full min-h-[600px] flex justify-center items-center"
+      class="h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
       @submit.prevent="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
@@ -121,7 +121,7 @@ const resetError = () => {
           />
 
           <div class="hidden md:block self-end mx-8">
-            <nuxt-link class="prose-sm text-primary underline hover:opacity-75" to="/forgot-password">
+            <nuxt-link class="prose-sm" to="/forgot-password">
               {{ $t('msg.info.signUp.forgotPassword') }}
             </nuxt-link>
           </div>
@@ -134,14 +134,14 @@ const resetError = () => {
                   ? '!opacity-50 !cursor-default'
                   : 'shadow-md hover:(text-primary bg-primary/10 dark:text-white dark:!bg-primary/50)',
               ]"
-              class="ml-1 border-1 border-solid border-gray-300 transition-color duration-100 ease-in rounded-lg p-4 bg-gray-100/50"
+              class="ml-1 border-1 border-solid border-gray-300 color-transition rounded-lg p-4 bg-gray-100/50"
               type="submit"
             >
               <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
             </button>
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
-              <nuxt-link class="text-primary underline hover:opacity-75" to="/signup">{{ $t('general.signUp') }}</nuxt-link>
+              <nuxt-link to="/signup">{{ $t('general.signUp') }}</nuxt-link>
             </div>
 
             <div class="prose-sm md:hidden">

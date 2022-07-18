@@ -38,3 +38,7 @@ nav .v-list {
 .layout-leave-active {
     @apply opacity-0;
 }
+
+a {
+    @apply prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
+}

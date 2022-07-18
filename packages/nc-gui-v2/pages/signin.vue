@@ -120,13 +120,13 @@ const resetError = () => {
             @focus="resetError"
           />
 
-          <div class="self-end">
+          <div class="hidden md:block self-end mx-8">
             <nuxt-link class="prose-sm text-primary underline hover:opacity-75" to="/forgot-password">
               {{ $t('msg.info.signUp.forgotPassword') }}
             </nuxt-link>
           </div>
 
-          <div class="self-center flex items-center justify-between w-100">
+          <div class="self-center flex flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
             <button
               :disabled="!valid"
               :class="[
@@ -142,6 +142,12 @@ const resetError = () => {
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
               <nuxt-link class="text-primary underline hover:opacity-75" to="/signup">{{ $t('general.signUp') }}</nuxt-link>
+            </div>
+
+            <div class="prose-sm md:hidden">
+              <nuxt-link class="prose-sm text-primary underline hover:opacity-75" to="/forgot-password">
+                {{ $t('msg.info.signUp.forgotPassword') }}
+              </nuxt-link>
             </div>
           </div>
         </div>

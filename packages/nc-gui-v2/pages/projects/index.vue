@@ -130,16 +130,3 @@ const activePage = $ref(navDrawerOptions[0].title)
     </v-container>
   </NuxtLayout>
 </template>
-
-<style scoped>
-.v-main {
-  @apply w-full;
-  overflow: hidden;
-  flex: unset !important;
-}
-
-:deep(.v-main__wrap) {
-  @apply flex-0 w-full relative scrollbar-thin-primary;
-  overflow-x: hidden;
-}
-</style>

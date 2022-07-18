@@ -55,7 +55,7 @@ const signIn = async () => {
   try {
     const { token } = await $api.auth.signin(form)
     $state.signIn(token!)
-    await navigateTo('/projects')
+    await navigateTo('/')
   } catch (e: any) {
     // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
     error = await extractSdkResponseErrorMsg(e)
@@ -158,10 +158,10 @@ const resetError = () => {
 
 <style lang="scss">
 .v-field__field {
-  @apply bg-white dark:(!bg-gray-900 text-white);
+  @apply bg-white dark:md:(!bg-gray-900) dark:(!bg-black text-white);
 
   input {
-    @apply bg-white dark:(!bg-gray-700) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+    @apply bg-white dark:md:(!bg-gray-800) dark:(!bg-black) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
   }
 }
 </style>

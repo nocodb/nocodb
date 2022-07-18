@@ -46,7 +46,7 @@ const signUp = async () => {
   try {
     const { token } = await $api.auth.signup(form)
     $state.signIn(token!)
-    await navigateTo('/projects')
+    await navigateTo('/')
   } catch (e: any) {
     error = await extractSdkResponseErrorMsg(e)
   }

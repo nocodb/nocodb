@@ -44,7 +44,8 @@ export default defineConfig({
 
   shortcuts: {
     'color-transition': 'transition-color duration-100 ease-in',
-    'scrollbar-thin-primary': 'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white',
+    'scrollbar-thin-primary':
+      'scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white dark:(!scrollbar-track-black)',
   },
 
   theme: {

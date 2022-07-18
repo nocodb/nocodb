@@ -38,18 +38,18 @@ onMounted(() => {
     <template #activator="{ props }">
       <MaterialSymbolsTranslate class="md:text-xl cursor-pointer" @click="props.onClick" />
     </template>
-    <v-list class="min-w-50 max-h-90vh overflow-auto !py-0 scrollbar-thin-primary">
+    <v-list class="scrollbar min-w-50 max-h-90vh overflow-auto !py-0 dark:(!bg-gray-800 !text-white)">
       <v-list-item
         v-for="lang of languages"
         :key="lang.value"
-        :class="lang === locale ? '!bg-primary/10 text-primary' : ''"
+        :class="lang === locale ? '!bg-primary/10 text-primary dark:(!bg-gray-700 !text-secondary)' : ''"
         class="!min-h-8 group"
         :value="lang"
         @click="changeLanguage(lang)"
       >
         <v-list-item-subtitle
           :class="lang === locale ? '!font-semibold' : ''"
-          class="capitalize md:(!leading-8) group-hover:(text-primary font-semibold)"
+          class="capitalize md:(!leading-8) group-hover:(text-primary font-semibold) dark:(group-hover:text-secondary)"
         >
           {{ Language[lang] || lang }}
         </v-list-item-subtitle>
@@ -69,3 +69,9 @@ onMounted(() => {
     </v-list>
   </v-menu>
 </template>
+
+<style scoped>
+.scrollbar {
+  @apply scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white dark:(!scrollbar-track-gray-900);
+}
+</style>

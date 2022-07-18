@@ -194,9 +194,25 @@ export const genTest = (apiType, dbType) => {
             rowValidation("NC_MATH_0", RESULT_MATH_0);
         });
 
-        it("Formula: CONCAT, LOWER, UPPER, TRIM", () => {
+        it("Formula: WEEKDAY", () => {
             editColumnByName(
                 "NC_MATH_0",
+                "NC_WEEKDAY_0",
+                `WEEKDAY("2022-07-19")`
+            );
+            rowValidation("NC_WEEKDAY_0", 1);
+
+            editColumnByName(
+                "NC_WEEKDAY_0",
+                "NC_WEEKDAY_1",
+                `WEEKDAY("2022-07-19", "sunday")`
+            );
+            rowValidation("NC_WEEKDAY_1", 2);
+        });
+
+        it("Formula: CONCAT, LOWER, UPPER, TRIM", () => {
+            editColumnByName(
+                "NC_WEEKDAY_1",
                 "NC_STR_1",
                 `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`
             );

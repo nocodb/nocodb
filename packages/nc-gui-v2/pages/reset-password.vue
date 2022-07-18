@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { definePageMeta, useHead } from '#imports'
+import { definePageMeta } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { navigateTo, useNuxtApp } from '#app'
+import { useNuxtApp } from '#app'
 import { isEmail } from '~/utils/validation'
 import MdiLogin from '~icons/mdi/login'
 import MaterialSymbolsWarning from '~icons/material-symbols/warning'
+import ClaritySuccessLine from '~icons/clarity/success-line'
 
 const { $api } = $(useNuxtApp())
 
@@ -13,20 +14,11 @@ const { t } = useI18n()
 
 definePageMeta({
   requiresAuth: false,
-  title: 'title.headLogin',
-})
-
-useHead({
-  meta: [
-    {
-      hid: t('msg.info.loginMsg'),
-      name: t('msg.info.loginMsg'),
-      content: t('msg.info.loginMsg'),
-    },
-  ],
+  title: 'title.resetPassword',
 })
 
 let error = $ref<string | null>(null)
+let success = $ref(false)
 
 const valid = ref()
 
@@ -49,6 +41,7 @@ const resetPassword = async () => {
   error = null
   try {
     await $api.auth.passwordForgot(form)
+    success = true
   } catch (e: any) {
     // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
     error = await extractSdkResponseErrorMsg(e)
@@ -72,16 +65,25 @@ const resetError = () => {
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div
-          class="bg-white dark:(!bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+          class="color-transition bg-white dark:(!bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
-          <div
-            style="left: -moz-calc(50% - 45px); left: -webkit-calc(50% - 45px); left: calc(50% - 45px)"
-            class="absolute top-12 md:top-[-17%] rounded-lg bg-primary"
-          >
-            <img width="90" height="90" src="~/assets/img/icons/512x512-trans.png" />
-          </div>
+          <general-noco-icon />
 
-          <h1 class="prose-2xl font-bold self-center my-4">Reset Password</h1>
+          <div class="self-center flex flex-col justify-center items-center text-center gap-4">
+            <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>
+
+            <template v-if="!success">
+              <p class="prose-sm">{{ $t('msg.info.passwordRecovery.message_1') }}</p>
+              <p class="prose-sm mb-4">{{ $t('msg.info.passwordRecovery.message_2') }}</p>
+            </template>
+            <template v-else>
+              <p class="prose-sm text-success flex items-center leading-8 gap-2">
+                {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
+              </p>
+
+              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+            </template>
+          </div>
 
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
@@ -107,16 +109,16 @@ const resetError = () => {
               :class="[
                 !valid
                   ? '!opacity-50 !cursor-default'
-                  : 'shadow-md hover:(text-primary bg-primary/10 dark:text-white dark:!bg-primary/50)',
+                  : 'text-white bg-primary hover:(text-primary !bg-primary/75) dark:(!bg-secondary/75 hover:!bg-secondary/50)',
               ]"
-              class="ml-1 border-1 border-solid border-gray-300 transition-color duration-100 ease-in rounded-lg p-4 bg-gray-100/50"
+              class="ml-1 border-1 border-solid border-gray-300 color-transition rounded-lg p-4 bg-gray-100/50"
               type="submit"
             >
               <span class="flex items-center gap-2"><MdiLogin /> Reset Password</span>
             </button>
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}
-              <nuxt-link class="text-primary underline hover:opacity-75" to="/signin">{{ $t('general.signIn') }}</nuxt-link>
+              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
             </div>
           </div>
         </div>
@@ -124,13 +126,3 @@ const resetError = () => {
     </v-form>
   </NuxtLayout>
 </template>
-
-<style lang="scss">
-.v-field__field {
-  @apply bg-white dark:(!bg-gray-900 text-white);
-
-  input {
-    @apply bg-white dark:(!bg-gray-700) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
-  }
-}
-</style>

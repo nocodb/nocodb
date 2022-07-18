@@ -22,10 +22,9 @@ const openProject = async (project: ProjectType) => {
 </script>
 
 <template>
-  <div class="mx-8">
+  <div class="mx-auto max-w-[700px]">
     <div class="grid grid-cols-4 gap-2 prose-md p-2 font-semibold">
       <div>{{ $t('general.title') }}</div>
-      <div>Status</div>
       <div>Updated At</div>
       <div></div>
     </div>
@@ -38,7 +37,6 @@ const openProject = async (project: ProjectType) => {
         @click="openProject(project)"
       >
         <div class="font-semibold">{{ project.title || 'Untitled' }}</div>
-        <div>{{ project.status }}</div>
         <div>{{ project.updated_at }}</div>
         <div>
           <MdiDeleteOutline class="text-gray-500 hover:text-red-500 mr-2" @click.stop @click="emit('delete-project', project)" />

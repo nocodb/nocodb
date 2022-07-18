@@ -65,60 +65,59 @@ const visible = ref(true)
 <template>
   <NuxtLayout>
     <template #sidebar>
-      <v-navigation-drawer v-model="$state.sidebarOpen.value" :border="0">
-        <div class="flex flex-col h-full">
-          <div class="flex p-4">
-            <a-dropdown class="select-none" trigger="click">
-              <a
-                class="ant-dropdown-link bg-white mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold hover:(!bg-gray-100)"
-                @click.prevent
+      <div class="flex flex-col h-full">
+        <div class="flex p-4">
+          <v-menu class="select-none">
+            <template #activator="{ props }">
+              <div
+                class="color-transition hover:(bg-gray-100 dark:bg-secondary/25) dark:(bg-secondary/50 !text-white shadow-gray-600) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
+                @click="props.onClick"
               >
-                <MdiPlus class="text-primary text-2xl" />
+                <MdiPlus class="text-primary dark:(!text-white) text-2xl" />
                 {{ $t('title.newProj') }}
-              </a>
-              <template #overlay>
-                <div class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
-                  <div
-                    class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                    @click="navigateTo('/projects/create')"
-                  >
-                    <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
-                    <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
-                  </div>
-                  <div
-                    class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                    @click="navigateTo('/projects/create-external')"
-                  >
-                    <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
-                    <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
-                  </div>
-                </div>
-              </template>
-            </a-dropdown>
-          </div>
+              </div>
+            </template>
 
-          <div class="advance-menu flex-1">
-            <div :color="$state.darkMode.value ? 'default' : 'primary'">
-              <a-menu class="flex flex-col gap-1" mode="inline" :open-keys="[activePage]">
-                <a-menu-item v-for="item in navDrawerOptions" :key="item.title" class="flex items-center gap-4 !rounded-r-lg">
-                  <template #icon>
-                    <component :is="item.icon" />
-                  </template>
-                  <span class="font-semibold">
-                    {{ item.title }}
-                  </span>
-                </a-menu-item>
-              </a-menu>
-            </div>
-          </div>
-
-          <v-divider />
-
-          <general-social />
-
-          <general-sponsors :nav="true" />
+            <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
+              <div
+                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                @click="navigateTo('/create')"
+              >
+                <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+                <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
+              </div>
+              <div
+                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                @click="navigateTo('/create-external')"
+              >
+                <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
+                <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
+              </div>
+            </v-list>
+          </v-menu>
         </div>
-      </v-navigation-drawer>
+
+        <a-menu class="mx-4 dark:bg-gray-800 dark:text-white flex-1 border-0">
+          <a-menu-item
+            v-for="(option, index) in navDrawerOptions"
+            :key="index"
+            class="f!rounded-r-lg"
+            @click="activePage = option.title"
+          >
+            <div class="flex items-center gap-4">
+              <component :is="option.icon" />
+
+              <span class="font-semibold">
+                {{ option.title }}
+              </span>
+            </div>
+          </a-menu-item>
+        </a-menu>
+
+        <general-social />
+
+        <general-sponsors :nav="true" />
+      </div>
     </template>
 
     <v-container class="flex-1 mb-12">

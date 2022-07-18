@@ -1,5 +1,6 @@
 import { MapFnArgs } from '../mapFunctionName';
 import commonFns from './commonFns';
+import { getWeekdayByText } from '../helpers/formulaFnHelper';
 
 const sqlite3 = {
   ...commonFns,
@@ -79,19 +80,10 @@ const sqlite3 = {
   WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // strftime('%w', date) - day of week 0 - 6 with Sunday == 0
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
-    const m = {
-      monday: 0,
-      tuesday: 1,
-      wednesday: 2,
-      thursday: 3,
-      friday: 4,
-      saturday: 5,
-      sunday: 6,
-    };
     return knex.raw(
-      `strftime('%w', ${fn(pt.arguments[0])}, 'weekday ${
-        m[pt?.arguments[1]?.value.toLowerCase()] || 0
-      }')${colAlias}`
+      `strftime('%w', ${fn(pt.arguments[0])}, 'weekday ${getWeekdayByText(
+        pt?.arguments[1]?.value
+      )}')${colAlias}`
     );
   },
 };

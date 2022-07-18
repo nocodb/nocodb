@@ -1,5 +1,6 @@
 import { MapFnArgs } from '../mapFunctionName';
 import commonFns from './commonFns';
+import { getWeekdayByText } from '../helpers/formulaFnHelper';
 
 const mssql = {
   ...commonFns,
@@ -111,19 +112,10 @@ const mssql = {
   WEEKDAY: ({ fn, knex, pt, colAlias }: MapFnArgs) => {
     // DATEPART(WEEKDAY, DATE): sunday = 1, monday = 2, ..., saturday = 7
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
-    const m = {
-      monday: 0,
-      tuesday: 1,
-      wednesday: 2,
-      thursday: 3,
-      friday: 4,
-      saturday: 5,
-      sunday: 6,
-    };
     return knex.raw(
-      `(DATEPART(WEEKDAY, ${fn(pt.arguments[0])}) - 2 - ${
-        m[pt?.arguments[1]?.value.toLowerCase()] || 0
-      } % 7 + 7) % 7 ${colAlias}`
+      `(DATEPART(WEEKDAY, ${fn(pt.arguments[0])}) - 2 - ${getWeekdayByText(
+        pt?.arguments[1]?.value
+      )} % 7 + 7) % 7 ${colAlias}`
     );
   },
 };

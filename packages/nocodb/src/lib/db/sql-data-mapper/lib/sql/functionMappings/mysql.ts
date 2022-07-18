@@ -68,12 +68,7 @@ const mysql2 = {
     };
     const offset = m[pt?.arguments[1]?.value.toLowerCase()] || 0;
     return knex.raw(
-      `CASE
-      WHEN WEEKDAY(${fn(pt.arguments[0])}) >= ${offset} THEN
-        WEEKDAY(${fn(pt.arguments[0])}) - ${offset}
-      ELSE
-       7 - ${offset} + WEEKDAY(${fn(pt.arguments[0])})
-      END${colAlias}`
+      `(WEEKDAY(${fn(pt.arguments[0])}) - ${offset} % 7 + 7) % 7 ${colAlias}`
     );
   },
 };

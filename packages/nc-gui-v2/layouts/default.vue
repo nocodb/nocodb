@@ -19,9 +19,9 @@ export default {
 
 <template>
   <a-layout-content>
-    <slot name="sidebar">
-      <div id="sidebar" />
-    </slot>
+    <teleport v-if="$slots.sidebar" to="#sidebar">
+      <slot name="sidebar" />
+    </teleport>
 
     <slot />
   </a-layout-content>

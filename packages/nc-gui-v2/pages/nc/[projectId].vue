@@ -1,29 +1,29 @@
 <script setup lang="ts">
-import { watch } from "vue";
-import useProject from "~/composables/useProject";
-import useTabs from "~/composables/useTabs";
+import { watch } from 'vue'
+import useProject from '~/composables/useProject'
+import useTabs from '~/composables/useTabs'
 
-const route = useRoute();
-const { loadProject, loadTables } = useProject();
-const { clearTabs } = useTabs();
+const route = useRoute()
+const { loadProject, loadTables } = useProject()
+const { clearTabs } = useTabs()
 
 onMounted(async () => {
-  await loadProject(route.params.projectId as string);
-  await loadTables();
-});
+  await loadProject(route.params.projectId as string)
+  await loadTables()
+})
 
 watch(
   () => route.params.projectId,
   async (newVal, oldVal) => {
     if (newVal !== oldVal) {
-      clearTabs();
+      clearTabs()
       if (newVal) {
-        await loadProject(newVal as string);
-        await loadTables();
+        await loadProject(newVal as string)
+        await loadTables()
       }
     }
-  }
-);
+  },
+)
 </script>
 
 <template>

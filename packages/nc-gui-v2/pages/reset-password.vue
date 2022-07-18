@@ -114,7 +114,7 @@ const resetError = () => {
               class="ml-1 border-1 border-solid border-gray-300 color-transition rounded-lg p-4 bg-gray-100/50"
               type="submit"
             >
-              <span class="flex items-center gap-2"><MdiLogin /> Reset Password</span>
+              <span class="flex items-center gap-2"><MdiLogin /> {{ $t('activity.sendEmail') }}</span>
             </button>
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}

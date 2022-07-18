@@ -66,7 +66,7 @@ const mysql2 = {
       saturday: 5,
       sunday: 6,
     };
-    const offset = m[pt?.arguments[1]?.value] || 0;
+    const offset = m[pt?.arguments[1]?.value.toLowerCase()] || 0;
     return knex.raw(
       `CASE
       WHEN WEEKDAY(${fn(pt.arguments[0])}) >= ${offset} THEN

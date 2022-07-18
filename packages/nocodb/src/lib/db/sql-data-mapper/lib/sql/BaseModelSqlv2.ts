@@ -1297,6 +1297,15 @@ class BaseModelSqlv2 {
         } else {
           response = data;
         }
+      } else if (
+        this.model.primaryKey?.title &&
+        (response?.[0]?.[this.model.primaryKey.title] ||
+          response?.[this.model.primaryKey.title])
+      ) {
+        response = await this.readByPk(
+          response?.[0]?.[this.model.primaryKey.title] ||
+            response?.[this.model.primaryKey.title]
+        );
       } else if (ai) {
         response = await this.readByPk(
           Array.isArray(response)

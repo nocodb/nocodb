@@ -819,6 +819,15 @@
       "contributions": [
         "translation"
       ]
+    },
+    {
+      "login": "systemctls",
+      "name": "jinxm",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37177191?v=4",
+      "profile": "https://github.com/systemctls",
+      "contributions": [
+        "code"
+      ]
     }
   ],
   "contributorsPerLine": 7,

@@ -810,6 +810,15 @@
       "contributions": [
         "code"
       ]
+    },
+    {
+      "login": "seokjunjin",
+      "name": "Seokjun Jin",
+      "avatar_url": "https://avatars.githubusercontent.com/u/46950889?v=4",
+      "profile": "https://github.com/seokjunjin",
+      "contributions": [
+        "translation"
+      ]
     }
   ],
   "contributorsPerLine": 7,

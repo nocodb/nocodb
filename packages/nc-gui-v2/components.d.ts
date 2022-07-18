@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    '(feat(gui-v2)': add project delete and edit options)
     ADivider: typeof import('ant-design-vue/es')['Divider']
     ADropdown: typeof import('ant-design-vue/es')['Dropdown']
     ALayout: typeof import('ant-design-vue/es')['Layout']
@@ -16,6 +17,7 @@ declare module '@vue/runtime-core' {
     AMenu: typeof import('ant-design-vue/es')['Menu']
     AMenuDivider: typeof import('ant-design-vue/es')['MenuDivider']
     AMenuItem: typeof import('ant-design-vue/es')['MenuItem']
+    AModal: typeof import('ant-design-vue/es')['Modal']
     ASubMenu: typeof import('ant-design-vue/es')['SubMenu']
     ATable: typeof import('ant-design-vue/es')['Table']
     RouterLink: typeof import('vue-router')['RouterLink']

@@ -2,11 +2,11 @@
 import type { ProjectType } from 'nocodb-sdk'
 import { navigateTo } from '#app'
 import useColors from '~/composables/useColors'
-import MdiStarOutline from '~icons/mdi/star-outline'
 import MdiMenuDown from '~icons/mdi/menu-down'
 import MdiDeleteOutline from '~icons/mdi/delete-outline'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
+import MdiEditOutline from '~icons/mdi/edit-outline'
 
 interface Props {
   projects: ProjectType[]
@@ -72,18 +72,25 @@ const formatTitle = (title: string) =>
       <div class="thumbnail" :style="{ '--thumbnail-color': getColorByIndex(i) }" @click="openProject(project)">
         {{ formatTitle(project.title) }}
 
-        <MdiStarOutline class="star-icon" @click.stop />
+        <!--        <MdiStarOutline class="star-icon" @click.stop /> -->
 
         <a-dropdown @click.stop>
           <MdiMenuDown class="menu-icon" />
           <template #overlay>
-            <div
-              class="grid grid-cols-6 cursor-pointer flex items-center p-2 border-1 bg-white dark:bg-slate-800 hover:bg-gray-200"
-              @click.stop="emit('delete-project', project)"
-            >
-              <MdiDeleteOutline class="col-span-2 mr-1 mt-[1px] text-red text-lg" />
-              <div class="col-span-4 text-sm xl:text-md">{{ $t('general.delete') }}</div>
-            </div>
+            <a-menu>
+              <a-menu-item @click.stop="emit('delete-project', project)">
+                <div class="grid grid-cols-6 cursor-pointer flex items-center p-2">
+                  <MdiDeleteOutline class="col-span-2 mr-1 mt-[1px] text-red text-lg" />
+                  <div class="col-span-4 text-sm xl:text-md">{{ $t('general.delete') }}</div>
+                </div>
+              </a-menu-item>
+              <a-menu-item>
+                <div class="grid grid-cols-6 cursor-pointer flex items-center p-2">
+                  <MdiEditOutline class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+                  <div class="col-span-4 text-sm xl:text-md">{{ $t('general.edit') }}</div>
+                </div>
+              </a-menu-item>
+            </a-menu>
           </template>
         </a-dropdown>
       </div>

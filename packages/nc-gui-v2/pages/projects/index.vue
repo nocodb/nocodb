@@ -1,4 +1,6 @@
 <script lang="ts" setup>
+import { createVNode } from '@vue/runtime-core'
+import { Modal } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import { navigateTo } from '#app'
@@ -8,9 +10,7 @@ import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 import MdiFolderOutline from '~icons/mdi/folder-outline'
-import MdiAccountGroup from '~icons/mdi/account-group'
-import MdiClockOutline from '~icons/mdi/clock-outline'
-import MdiStar from '~icons/mdi/star'
+import ExclamationCircleOutlined from '~icons/mdi/information-outline'
 
 const navDrawerOptions = [
   {
@@ -40,14 +40,26 @@ const toast = useToast()
 const response = await $api.project.list({})
 const projects = $ref(response.list)
 const activePage = $ref(navDrawerOptions[0].title)
-const deleteProject = async (project: ProjectType) => {
-  try {
-    await $api.project.delete(project.id as string)
-    projects.splice(projects.indexOf(project), 1)
-  } catch (e) {
-    toast.error(await extractSdkResponseErrorMsg(e))
-  }
+const deleteProject = (project: ProjectType) => {
+  Modal.confirm({
+    title: 'Do you want to delete the project?',
+    // icon: createVNode(ExclamationCircleOutlined),
+    content: 'Some descriptions',
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    async onOk() {
+      try {
+        await $api.project.delete(project.id as string)
+        projects.splice(projects.indexOf(project), 1)
+      } catch (e) {
+        toast.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
 }
+
+const visible = ref(true)
 </script>
 
 <template>
@@ -133,5 +145,7 @@ const deleteProject = async (project: ProjectType) => {
 
       <NuxtPage :projects="projects" @delete-project="deleteProject" />
     </v-container>
+
+    <a-modal></a-modal>
   </NuxtLayout>
 </template>

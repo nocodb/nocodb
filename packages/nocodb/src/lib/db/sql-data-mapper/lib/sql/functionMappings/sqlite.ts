@@ -81,9 +81,9 @@ const sqlite3 = {
     // strftime('%w', date) - day of week 0 - 6 with Sunday == 0
     // WEEKDAY() returns an index from 0 to 6 for Monday to Sunday
     return knex.raw(
-      `strftime('%w', ${fn(pt.arguments[0])}, 'weekday ${getWeekdayByText(
+      `(strftime('%w', ${fn(pt.arguments[0])}) - 1 - ${getWeekdayByText(
         pt?.arguments[1]?.value
-      )}')${colAlias}`
+      )} % 7 + 7) % 7 ${colAlias}`
     );
   },
 };

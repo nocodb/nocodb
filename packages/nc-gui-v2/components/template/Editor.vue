@@ -1,22 +1,97 @@
 <script setup lang="ts">
-import { useEventBus } from '@vueuse/core'
+// import { useEventBus } from '@vueuse/core'
 import type { ColumnType, FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
-import { ViewTypes } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk';
+// import { ViewTypes } from 'nocodb-sdk'
 import { computed, onMounted, provide, watch } from '#imports'
-import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/components'
-import useMetas from '~/composables/useMetas'
+// import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/components'
+// import useMetas from '~/composables/useMetas'
 
 interface Props {
-  quickimportType: string
+  quickImportType: string
+  projectTemplate: object
 }
-const { quickimportType } = defineProps<Props>()
 
-const expansionPanel = ref(0)
+const { quickImportType, projectTemplate } = defineProps<Props>()
+
+const valid = ref(false)
+const expansionPanel = ref(<number[]>[])
 const editableTn = ref({})
-const project = ref({
-  name: 'Project name',
+const LinkToAnotherRecord = 'LinkToAnotherRecord'
+const Lookup = 'Lookup'
+const Rollup = 'Rollup'
+
+const project = reactive(<any>{
+  name: 'Project Name',
   tables: [],
 })
+
+onMounted(() => {
+  parseAndLoadTemplate()
+})
+
+const parseAndLoadTemplate = () => {
+  if (projectTemplate) {
+    parseTemplate(projectTemplate)
+    expansionPanel.value = Array.from({ length: project.value?.tables.length || 0 }, (_, i) => i)
+  }
+}
+
+const parseTemplate = ({ tables = [], ...rest }: Record<string, any>) => {
+  const parsedTemplate = {
+    ...rest,
+    tables: tables.map(
+      ({ manyToMany = [], hasMany = [], belongsTo = [], v = [], columns = [], ...rest }: Record<string, any>) => ({
+        ...rest,
+        columns: [
+          ...columns,
+          ...manyToMany.map((mm: any) => ({
+            column_name: mm.title || `${rest.table_name} <=> ${mm.ref_table_name}`,
+            uidt: LinkToAnotherRecord,
+            type: 'mm',
+            ...mm,
+          })),
+          ...hasMany.map((hm: any) => ({
+            column_name: hm.title || `${rest.table_name} => ${hm.table_name}`,
+            uidt: LinkToAnotherRecord,
+            type: 'hm',
+            ref_table_name: hm.table_name,
+            ...hm,
+          })),
+          ...belongsTo.map((bt: any) => ({
+            column_name: bt.title || `${rest.table_name} => ${bt.ref_table_name}`,
+            uidt: UITypes.ForeignKey,
+            ref_table_name: bt.table_name,
+            ...bt,
+          })),
+          ...v.map((v: any) => {
+            const res : any = {
+              column_name: v.title,
+              ref_table_name: {
+                ...v,
+              },
+            }
+            if (v.lk) {
+              res.uidt = Lookup
+              res.ref_table_name.table_name = v.lk.ltn
+              res.ref_column_name = v.lk.lcn
+              res.ref_table_name.type = v.lk.type
+            } else if (v.rl) {
+              res.uidt = Rollup
+              res.ref_table_name.table_name = v.rl.rltn
+              res.ref_column_name = v.rl.rlcn
+              res.ref_table_name.type = v.rl.type
+              res.fn = v.rl.fn
+            }
+            return res
+          }),
+        ],
+      }),
+    ),
+  }
+  console.log(parsedTemplate)
+  project.value = parsedTemplate
+}
 
 const onTableNameUpdate = (oldTable: string, newVal: string) => {
   // TODO:
@@ -80,6 +155,7 @@ const addNewColumnRow = (table: string, uidt?: string) => {
           <v-col cols="12">
             <v-card class="elevation-0">
               <v-card-text>
+                {{ project }}
                 <p v-if="project.tables && quickImportType === 'excel'" class="caption grey--text mt-4">
                   {{ project.tables.length }} sheet{{ project.tables.length > 1 ? 's' : '' }}
                   available for import

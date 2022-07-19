@@ -48,7 +48,7 @@ const createProject = async () => {
   <a-card class="w-[500px] mx-auto !mt-100px">
     <h3 class="text-3xl text-center font-semibold mb-2">{{ $t('activity.createProject') }}</h3>
 
-    <a-form :model="formState" name="basic" layout="vertical" autocomplete="off">
+    <a-form :model="formState" name="basic" layout="vertical" autocomplete="off" @submit="createProject">
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="my-10">
         <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>

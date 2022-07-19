@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
+import { useToast } from 'vue-toastification'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { SizeType } from 'ant-design-vue/es/config-provider'
 import { computed, onMounted, provide, watch } from '#imports'
@@ -12,20 +13,24 @@ import MdiKeyStarIcon from '~icons/mdi/key-star'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 
 interface Props {
-  quickImportType: string
+  quickImportType: 'csv' | 'excel' | 'json'
   projectTemplate: object
+  importData: any[]
 }
 
-const { quickImportType, projectTemplate } = defineProps<Props>()
+const { quickImportType, projectTemplate, importData } = defineProps<Props>()
 
+const { $api } = useNuxtApp()
 const valid = ref(false)
 const expansionPanel = ref(<number[]>[])
 const editableTn = ref(<boolean[]>{})
 const inputRefs = ref(<HTMLInputElement[]>[])
-const LinkToAnotherRecord = 'LinkToAnotherRecord'
-const Lookup = 'Lookup'
-const Rollup = 'Rollup'
-const iconSize = ref<SizeType>('middle')
+const { addTab } = useTabs()
+const { sqlUi, project, loadTables } = useProject()
+const loading = ref(false)
+const buttonSize = ref<SizeType>('middle')
+const toast = useToast()
+
 const tableColumns = [
   {
     name: 'Column Name',
@@ -49,9 +54,13 @@ const tableColumns = [
   },
 ]
 
-const project = reactive(<any>{
+const data = reactive(<any>{
   name: 'Project Name',
   tables: [],
+})
+
+const editorTitle = computed(() => {
+  return `${quickImportType.toUpperCase()} Import`
 })
 
 onMounted(() => {
@@ -61,7 +70,7 @@ onMounted(() => {
 const parseAndLoadTemplate = () => {
   if (projectTemplate) {
     parseTemplate(projectTemplate)
-    expansionPanel.value = Array.from({ length: project.value?.tables.length || 0 }, (_, i) => i)
+    expansionPanel.value = Array.from({ length: data.value?.tables.length || 0 }, (_, i) => i)
   }
 }
 
@@ -87,18 +96,18 @@ const parseTemplate = ({ tables = [], ...rest }: Record<string, any>) => {
       ],
     })),
   }
-  project.value = parsedTemplate
+  data.value = parsedTemplate
 }
 
 const deleteTable = (tableIdx: number) => {
-  const deleteTable = project.value.tables[tableIdx]
-  for (const table of project.value.tables) {
+  const deleteTable = data.value.tables[tableIdx]
+  for (const table of data.value.tables) {
     if (table === deleteTable) {
       continue
     }
     table.columns = table.columns.filter((c: Record<string, any>) => c.ref_table_name !== deleteTable.table_name)
   }
-  project.value.tables.splice(tableIdx, 1)
+  data.value.tables.splice(tableIdx, 1)
 }
 
 const isSelect = (col: ColumnType) => {
@@ -106,9 +115,9 @@ const isSelect = (col: ColumnType) => {
 }
 
 const deleteTableColumn = (i: number, j: number, col: Record<string, any>, table: Record<string, any>) => {
-  const deleteTable = project.value.tables[i]
+  const deleteTable = data.value.tables[i]
   const deleteColumn = deleteTable.columns[j]
-  for (const table of project.value.tables) {
+  for (const table of data.value.tables) {
     if (table === deleteTable) {
       continue
     }
@@ -135,20 +144,114 @@ const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
 const setEditableTn = (idx: number, val: boolean) => {
   editableTn.value[idx] = val
 }
+
+const remapColNames = (batchData: any[], columns: ColumnType[]) => {
+  return batchData.map((data) =>
+    (columns || []).reduce(
+      (aggObj, col: Record<string, any>) => ({
+        ...aggObj,
+        [col.column_name]: data[col.ref_column_name || col.column_name],
+      }),
+      {},
+    ),
+  )
+}
+
+const importTemplate = async () => {
+  let firstTable = null
+  try {
+    loading.value = true
+    for (const t of data.value.tables) {
+      // enrich system fields if not provided
+      // e.g. id, created_at, updated_at
+      const systemColumns = sqlUi?.value.getNewTableColumns().filter((c: ColumnType) => c.column_name !== 'title')
+      for (const systemColumn of systemColumns) {
+        if (!t.columns.some((c: Record<string, any>) => c.column_name.toLowerCase() === systemColumn.column_name.toLowerCase())) {
+          t.columns.push(systemColumn)
+        }
+      }
+
+      // set pk & rqd if ID is provided
+      for (const column of t.columns) {
+        if (column.column_name.toLowerCase() === 'id' && !('pk' in column)) {
+          column.pk = true
+          column.rqd = true
+          break
+        }
+      }
+
+      // create table
+      const table = await $api.dbTable.create(project?.value?.id as string, {
+        table_name: t.table_name,
+        title: '',
+        columns: t.columns,
+      })
+      t.table_title = table.title
+
+      // open the first table after import
+      if (firstTable === null) {
+        firstTable = table
+      }
+
+      // set primary value
+      // TODO: handle it later
+      // await $api.dbTableColumn.primaryColumnSet(table?.columns[0]?.id as string)
+    }
+  } catch (e: any) {
+    toast.error(e.message)
+    return
+  }
+
+  if (importData) {
+    try {
+      let total = 0
+      let progress = 0
+      const projectName = project.value.title as string
+      await Promise.all(
+        data.tables.map((v: Record<string, any>) =>
+          (async (tableMeta) => {
+            const tableName = tableMeta.table_title
+            const data = importData[tableMeta.ref_table_name]
+            total += data.length
+            for (let i = 0; i < data.length; i += 500) {
+              const batchData = remapColNames(data.slice(i, i + 500), tableMeta.columns)
+              await $api.dbTableRow.bulkCreate('noco', projectName, tableName, batchData)
+              progress += batchData.length
+            }
+          })(v),
+        ),
+      )
+    } catch (e: any) {
+      toast.error(e.message)
+      return
+    }
+  }
+
+  // reload table list
+  await loadTables()
+  addTab({
+    id: firstTable?.id as string,
+    title: firstTable?.title as string,
+    type: 'table',
+  })
+  loading.value = false
+}
 </script>
 
 <template>
-  <a-card>
-    <template #title>
-      <slot name="toolbar" />
+  <a-card :title="editorTitle">
+    <template #extra>
+      <a-button type="primary" :loading="loading" @click="importTemplate">
+        {{ $t('activity.import') }}
+      </a-button>
     </template>
     <v-form ref="form" v-model="valid">
-      <p v-if="project.tables && quickImportType === 'excel'" class="caption grey--text mt-4">
-        {{ project.tables.length }} sheet{{ project.tables.length > 1 ? 's' : '' }}
+      <p v-if="data.tables && quickImportType === 'excel'" class="caption grey--text mt-4">
+        {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
         available for import
       </p>
-      <a-collapse v-if="project.value?.tables && project.value?.tables.length" v-model:activeKey="expansionPanel">
-        <a-collapse-panel v-for="(table, i) in project.value?.tables" :key="i">
+      <a-collapse v-if="data.value?.tables && data.value?.tables.length" v-model:activeKey="expansionPanel">
+        <a-collapse-panel v-for="(table, i) in data.value?.tables" :key="i">
           <template #header>
             <a-input
               v-if="editableTn[i]"
@@ -170,7 +273,7 @@ const setEditableTn = (idx: number, val: boolean) => {
                 <!-- TODO: i18n -->
                 <span>Delete Table</span>
               </template>
-              <MdiDeleteOutlineIcon v-if="project.value.tables.length > 1" @click.stop="deleteTable(i)" />
+              <MdiDeleteOutlineIcon v-if="data.value.tables.length > 1" @click.stop="deleteTable(i)" />
             </a-tooltip>
           </template>
           <a-table v-if="table.columns.length" :dataSource="table.columns" :columns="tableColumns" :pagination="false">
@@ -219,7 +322,7 @@ const setEditableTn = (idx: number, val: boolean) => {
                     <!-- TODO: i18n -->
                     <span>Delete Column</span>
                   </template>
-                  <a-button type="link" @click="deleteTableColumn(i, record.key, record, table)" :size="iconSize">
+                  <a-button type="link" @click="deleteTableColumn(i, record.key, record, table)" :size="buttonSize">
                     <template #icon>
                       <MdiDeleteOutlineIcon />
                     </template>
@@ -235,7 +338,7 @@ const setEditableTn = (idx: number, val: boolean) => {
                 <!-- TODO: i18n -->
                 <span>Add Number Column</span>
               </template>
-              <a-button @click="addNewColumnRow(table, 'Number')" :size="iconSize">
+              <a-button @click="addNewColumnRow(table, 'Number')" :size="buttonSize">
                 <template #icon>
                   <MdiNumericIcon />
                 </template>
@@ -247,7 +350,7 @@ const setEditableTn = (idx: number, val: boolean) => {
                 <!-- TODO: i18n -->
                 <span>Add SingleLineText Column</span>
               </template>
-              <a-button @click="addNewColumnRow(table, 'SingleLineText')" :size="iconSize">
+              <a-button @click="addNewColumnRow(table, 'SingleLineText')" :size="buttonSize">
                 <template #icon>
                   <MdiStringIcon />
                 </template>
@@ -259,7 +362,7 @@ const setEditableTn = (idx: number, val: boolean) => {
                 <!-- TODO: i18n -->
                 <span>Add LongText Column</span>
               </template>
-              <a-button @click="addNewColumnRow(table, 'LongText')" :size="iconSize">
+              <a-button @click="addNewColumnRow(table, 'LongText')" :size="buttonSize">
                 <template #icon>
                   <MdiLongTextIcon />
                 </template>
@@ -271,7 +374,7 @@ const setEditableTn = (idx: number, val: boolean) => {
                 <!-- TODO: i18n -->
                 <span>Add Other Column</span>
               </template>
-              <a-button @click="addNewColumnRow(table)" :size="iconSize">
+              <a-button @click="addNewColumnRow(table)" :size="buttonSize">
                 <template #icon>
                   <MdiPlusIcon />
                 </template>

@@ -4,7 +4,6 @@ import { UITypes } from 'nocodb-sdk'
 import type { SizeType } from 'ant-design-vue/es/config-provider'
 import { computed, onMounted, provide, watch } from '#imports'
 import MdiTableIcon from '~icons/mdi/table'
-import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiStringIcon from '~icons/mdi/alpha-a'
 import MdiLongTextIcon from '~icons/mdi/text'
 import MdiNumericIcon from '~icons/mdi/numeric'
@@ -96,7 +95,14 @@ const onTableNameUpdate = (oldTable: string, newVal: string) => {
 }
 
 const deleteTable = (tableIdx: number) => {
-  // TODO:
+  const deleteTable = project.value.tables[tableIdx]
+  for (const table of project.value.tables) {
+    if (table === deleteTable) {
+      continue
+    }
+    table.columns = table.columns.filter((c: Record<string, any>) => c.ref_table_name !== deleteTable.table_name)
+  }
+  project.value.tables.splice(tableIdx, 1)
 }
 
 const isSelect = (col: ColumnType) => {
@@ -145,41 +151,37 @@ const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
         {{ project.tables.length }} sheet{{ project.tables.length > 1 ? 's' : '' }}
         available for import
       </p>
-      <a-collapse
-        v-if="project.value?.tables && project.value?.tables.length"
-        v-model:activeKey="expansionPanel"
-        v-for="(table, i) in project.value?.tables"
-        :key="i"
-      >
-        <template #expandIcon="{ isActive }">
-          <v-text-field
-            v-if="editableTn[i]"
-            :value="table.table_name"
-            class="font-weight-bold"
-            style="max-width: 300px"
-            outlinedk
-            autofocus
-            density="compact"
-            hide-details
-            @input="(e) => onTableNameUpdate(table, e)"
-            @click="(e) => e.stopPropagation()"
-            @blur="$set(editableTn, i, false)"
-            @keydown.enter="$set(editableTn, i, false)"
-          />
-          <span v-else class="font-weight-bold">
-            <MdiTableIcon />
-            {{ table.table_name }}
-          </span>
-          <v-spacer />
-          <a-tooltip bottom>
-            <template #title>
-              <!-- TODO: i18n -->
-              <span>Delete Table</span>
-            </template>
-            <MdiDeleteIcon v-if="project.value.tables.length > 1" @click.stop="deleteTable(i)" />
-          </a-tooltip>
-        </template>
-        <a-collapse-panel>
+      <a-collapse v-if="project.value?.tables && project.value?.tables.length" v-model:activeKey="expansionPanel">
+        <a-collapse-panel v-for="(table, i) in project.value?.tables" :key="i">
+          <template #header>
+            <v-text-field
+              v-if="editableTn[i]"
+              :value="table.table_name"
+              class="font-weight-bold"
+              style="max-width: 300px"
+              outlinedk
+              autofocus
+              density="compact"
+              hide-details
+              @input="(e) => onTableNameUpdate(table, e)"
+              @click="(e) => e.stopPropagation()"
+              @blur="$set(editableTn, i, false)"
+              @keydown.enter="$set(editableTn, i, false)"
+            />
+            <span v-else class="font-weight-bold">
+              <MdiTableIcon />
+              {{ table.table_name }}
+            </span>
+          </template>
+          <template #extra>
+            <a-tooltip bottom>
+              <template #title>
+                <!-- TODO: i18n -->
+                <span>Delete Table</span>
+              </template>
+              <MdiDeleteOutlineIcon v-if="project.value.tables.length > 1" @click.stop="deleteTable(i)" />
+            </a-tooltip>
+          </template>
           <a-table v-if="table.columns.length" :dataSource="table.columns" :columns="tableColumns" :pagination="false">
             <template #headerCell="{ column }">
               <template v-if="column.key === 'column_name'">

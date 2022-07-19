@@ -69,57 +69,24 @@ const parseAndLoadTemplate = () => {
 const parseTemplate = ({ tables = [], ...rest }: Record<string, any>) => {
   const parsedTemplate = {
     ...rest,
-    tables: tables.map(
-      ({ manyToMany = [], hasMany = [], belongsTo = [], v = [], columns = [], ...rest }: Record<string, any>) => ({
-        ...rest,
-        columns: [
-          ...columns.map((c: any, idx: number) => {
-            c.key = idx
-            return c
-          }),
-          ...manyToMany.map((mm: any) => ({
-            column_name: mm.title || `${rest.table_name} <=> ${mm.ref_table_name}`,
-            uidt: LinkToAnotherRecord,
-            type: 'mm',
-            ...mm,
-          })),
-          ...hasMany.map((hm: any) => ({
-            column_name: hm.title || `${rest.table_name} => ${hm.table_name}`,
-            uidt: LinkToAnotherRecord,
-            type: 'hm',
-            ref_table_name: hm.table_name,
-            ...hm,
-          })),
-          ...belongsTo.map((bt: any) => ({
-            column_name: bt.title || `${rest.table_name} => ${bt.ref_table_name}`,
-            uidt: UITypes.ForeignKey,
-            ref_table_name: bt.table_name,
-            ...bt,
-          })),
-          ...v.map((v: any) => {
-            const res: any = {
-              column_name: v.title,
-              ref_table_name: {
-                ...v,
-              },
-            }
-            if (v.lk) {
-              res.uidt = Lookup
-              res.ref_table_name.table_name = v.lk.ltn
-              res.ref_column_name = v.lk.lcn
-              res.ref_table_name.type = v.lk.type
-            } else if (v.rl) {
-              res.uidt = Rollup
-              res.ref_table_name.table_name = v.rl.rltn
-              res.ref_column_name = v.rl.rlcn
-              res.ref_table_name.type = v.rl.type
-              res.fn = v.rl.fn
-            }
-            return res
-          }),
-        ],
-      }),
-    ),
+    tables: tables.map(({ v = [], columns = [], ...rest }: Record<string, any>) => ({
+      ...rest,
+      columns: [
+        ...columns.map((c: any, idx: number) => {
+          c.key = idx
+          return c
+        }),
+        ...v.map((v: any) => {
+          const res: any = {
+            column_name: v.title,
+            ref_table_name: {
+              ...v,
+            },
+          }
+          return res
+        }),
+      ],
+    })),
   }
   project.value = parsedTemplate
 }
@@ -132,36 +99,11 @@ const deleteTable = (tableIdx: number) => {
   // TODO:
 }
 
-const isRelation = (col: ColumnType) => {
-  return col.uidt === 'LinkToAnotherRecord' || col.uidt === 'ForeignKey'
-}
-
-const isLookup = (col: ColumnType) => {
-  return col.uidt === 'Lookup'
-}
-
-const isRollup = (col: ColumnType) => {
-  return col.uidt === 'Rollup'
-}
-
-const isVirtual = (col: ColumnType) => {
-  // TODO: uiTypes
-  // return col && uiTypes.some(ut => ut.name === col.uidt && ut.virtual);
-}
-
-const isLookupOrRollup = (col: ColumnType) => {
-  return isLookup(col) || isRollup(col)
-}
-
 const isSelect = (col: ColumnType) => {
   return col.uidt === 'MultiSelect' || col.uidt === 'SingleSelect'
 }
 
 const onColumnNameUpdate = (oldCol: ColumnType, newVal: string, tn: string) => {
-  // TODO
-}
-
-const onRTypeChange = (oldType: string, newType: string, col: ColumnType, table: string) => {
   // TODO
 }
 
@@ -190,14 +132,6 @@ const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
     input.focus()
     input.select()
   })
-}
-
-const getIcon = (type: string) => {
-  // TODO
-  return {
-    name: 'CreateTime',
-    icon: 'mdi-calendar-clock',
-  }
 }
 </script>
 

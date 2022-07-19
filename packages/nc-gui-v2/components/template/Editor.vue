@@ -31,11 +31,17 @@ const tableColumns = [
     name: 'Column Name',
     dataIndex: 'column_name',
     key: 'column_name',
+    width: 250,
   },
   {
     name: 'Column Type',
     dataIndex: 'column_type',
     key: 'column_type',
+    width: 250,
+  },
+  {
+    name: 'Select Option',
+    key: 'select_option',
   },
   {
     name: 'Action',
@@ -114,7 +120,6 @@ const parseTemplate = ({ tables = [], ...rest }: Record<string, any>) => {
       }),
     ),
   }
-  console.log(parsedTemplate)
   project.value = parsedTemplate
 }
 
@@ -221,12 +226,7 @@ const getIcon = (type: string) => {
           </a-tooltip>
         </template>
         <a-collapse-panel>
-          <a-table
-            v-if="table.columns.length"
-            :dataSource="table.columns"
-            :columns="tableColumns"
-            :pagination="false"
-          >
+          <a-table v-if="table.columns.length" :dataSource="table.columns" :columns="tableColumns" :pagination="false">
             <template #headerCell="{ column }">
               <template v-if="column.key === 'column_name'">
                 <span>
@@ -241,14 +241,18 @@ const getIcon = (type: string) => {
             </template>
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'column_name'">
-                <!--                        TODO: make it editable -->
-                <span> {{ record.column_name }} </span>
+                <a-input v-model:value="record.column_name" />
               </template>
               <template v-else-if="column.key === 'column_type'">
                 <!--                        TODO: render uidt dropdown-->
                 {{ record.uidt }}
               </template>
-              <template v-else-if="column.key === 'action'">
+
+              <template v-else-if="column.key === 'select_option'">
+                <a-input v-model:value="record.dtxp" v-if="isSelect(record)" />
+              </template>
+
+              <template v-if="column.key === 'action'">
                 <a-tooltip v-if="record.key == 0" bottom>
                   <template #title>
                     <!-- TODO: i18n -->

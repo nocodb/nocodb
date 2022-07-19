@@ -11,6 +11,7 @@ process.env.NC_DB = url;
 
 (async () => {
   const server = express();
+  server.enable('trust proxy');
   server.use(cors());
   server.set('view engine', 'ejs');
   const app = new Noco();

@@ -81,7 +81,7 @@ describe('{Auth, CRUD, HasMany, Belongs} Tests', () => {
 
     (async () => {
       const server = express();
-
+      server.enable('trust proxy');
       server.use(await Noco.init());
       app = server;
       // await knex(config.envs[process.env.NODE_ENV || 'dev'].db[0])('xc_users').del();

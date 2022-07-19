@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
+import { isVirtualCol, UITypes } from 'nocodb-sdk'
 import type { SizeType } from 'ant-design-vue/es/config-provider'
-import { computed, onMounted, provide, watch } from '#imports'
+import { computed, onMounted } from '#imports'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiStringIcon from '~icons/mdi/alpha-a'
 import MdiLongTextIcon from '~icons/mdi/text'
@@ -18,6 +18,10 @@ interface Props {
   importData: any[]
 }
 
+interface Option {
+  value: string
+}
+
 const { quickImportType, projectTemplate, importData } = defineProps<Props>()
 
 const { $api } = useNuxtApp()
@@ -30,6 +34,24 @@ const { sqlUi, project, loadTables } = useProject()
 const loading = ref(false)
 const buttonSize = ref<SizeType>('middle')
 const toast = useToast()
+
+const uiTypeOptions = ref<Option[]>(
+  (Object.keys(UITypes) as Array<keyof typeof UITypes>)
+    .filter(
+      (x: any) =>
+        !isVirtualCol(x) &&
+        ![UITypes.ForeignKey, UITypes.ID, UITypes.CreateTime, UITypes.LastModifiedTime, UITypes.Barcode, UITypes.Button].includes(
+          x,
+        ),
+    )
+    .map((x: string) => ({
+      value: x,
+    })),
+)
+
+const filterOption = (input: string, option: Option) => {
+  return option.value.toUpperCase().indexOf(input.toUpperCase()) >= 0
+}
 
 const tableColumns = [
   {
@@ -301,8 +323,12 @@ const importTemplate = async () => {
                 />
               </template>
               <template v-else-if="column.key === 'column_type'">
-                <!--                        TODO: render uidt dropdown-->
-                {{ record.uidt }}
+                <a-auto-complete
+                  v-model:value="record.uidt"
+                  :options="uiTypeOptions"
+                  :filter-option="filterOption"
+                  style="width: 200px"
+                />
               </template>
 
               <template v-else-if="column.key === 'select_option'">

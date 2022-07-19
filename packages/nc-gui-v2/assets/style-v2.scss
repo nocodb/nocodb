@@ -53,14 +53,6 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   @apply dark:(!text-white);
 }
 
-.v-field__field {
-  @apply bg-white dark:(!bg-gray-900 text-white);
-
-  input {
-    @apply bg-white dark:(!bg-gray-700) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
-  }
-}
-
 .nc-icon {
   @apply color-transition;
 }

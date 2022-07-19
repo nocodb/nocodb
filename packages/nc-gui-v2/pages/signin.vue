@@ -16,19 +16,8 @@ definePageMeta({
   title: 'title.headLogin',
 })
 
-useHead({
-  meta: [
-    {
-      hid: t('msg.info.loginMsg'),
-      name: t('msg.info.loginMsg'),
-      content: t('msg.info.loginMsg'),
-    },
-  ],
-})
-
 let error = $ref<string | null>(null)
-
-const valid = ref()
+const valid = $ref(false)
 
 const form = reactive({
   email: '',
@@ -38,17 +27,27 @@ const form = reactive({
 const formRules = {
   email: [
     // E-mail is required
-    (v: string) => !!v || t('msg.error.signUpRules.emailReqd'),
+    { required: true, message: t('msg.error.signUpRules.emailReqd') },
     // E-mail must be valid format
-    (v: string) => isEmail(v) || t('msg.error.signUpRules.emailInvalid'),
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (isEmail(v)) return resolve(true)
+          reject(new Error(t('msg.error.signUpRules.emailInvalid')))
+        })
+      },
+      message: t('msg.error.signUpRules.emailInvalid'),
+    },
   ],
   password: [
     // Password is required
-    (v: string) => !!v || t('msg.error.signUpRules.passwdRequired'),
+    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
   ],
 }
 
 const signIn = async () => {
+  if (!valid) return
+
   error = null
   try {
     const { token } = await $api.auth.signin(form)
@@ -70,10 +69,13 @@ const resetError = () => {
 <template>
   <NuxtLayout>
     <a-form
-      v-model="form"
+      ref="formValidator"
+      :model="form"
       layout="vertical"
-      class="h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
-      @finish="signIn"
+      class="signin h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
+      @finish="valid = true"
+      @finish-failed="valid = false"
+      @submit.prevent="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div
@@ -90,20 +92,14 @@ const resetError = () => {
           </Transition>
 
           <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
-            <a-input
-              v-model="form.email"
-              size="large"
-              class="bg-white dark:!bg-gray-900"
-              :placeholder="$t('labels.email')"
-              @focus="resetError"
-            />
+            <a-input v-model:value="form.email" size="large" :placeholder="$t('labels.email')" @focus="resetError" />
           </a-form-item>
 
           <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
-            <a-input
-              v-model="form.password"
+            <a-input-password
+              v-model:value="form.password"
               size="large"
-              class="bg-white dark:!bg-gray-900"
+              class="password"
               :placeholder="$t('labels.password')"
               @focus="resetError"
             />
@@ -116,16 +112,7 @@ const resetError = () => {
           </div>
 
           <div class="self-center flex flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
-            <button
-              :disabled="!valid"
-              :class="[
-                !valid
-                  ? '!opacity-50 !cursor-default'
-                  : 'text-white bg-primary hover:(text-primary !bg-primary/75) dark:(!bg-secondary/75 hover:!bg-secondary/50)',
-              ]"
-              class="ml-1 border-1 border-solid border-gray-300 rounded-lg p-4 bg-gray-100/50"
-              type="submit"
-            >
+            <button class="submit" type="submit">
               <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
             </button>
             <div class="text-end prose-sm">
@@ -144,3 +131,26 @@ const resetError = () => {
     </a-form>
   </NuxtLayout>
 </template>
+
+<style lang="scss">
+.signin {
+  .ant-input-affix-wrapper,
+  .ant-input {
+    @apply dark:(bg-gray-700 !text-white) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+  }
+
+  .password {
+    input {
+      @apply !border-none;
+    }
+
+    .ant-input-password-icon {
+      @apply dark:!text-white;
+    }
+  }
+}
+
+.submit {
+  @apply ml-1 bordered border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+}
+</style>

@@ -8,7 +8,7 @@
         {{ $t('general.reload') }}
       </v-btn>
     </v-toolbar>
-    <v-container class="h-100 d-flex flex-column">
+    <v-container class="d-flex flex-column tableScroll">
       <v-simple-table v-if="audits" dense style="max-width: 1000px; overflow: auto" class="mx-auto flex-grow-1">
         <thead>
           <tr>
@@ -101,4 +101,8 @@ export default {
 };
 </script>
 
-<style scoped></style>
+<style scoped lang="scss">
+.tableScroll {
+  height: calc(90vh - 150px);
+}
+</style>

@@ -29,7 +29,7 @@ export const clientTypes = [
   },
   {
     text: 'SQLite',
-    value: 'sqlite',
+    value: 'sqlite3',
   },
 ]
 
@@ -42,11 +42,11 @@ const sampleConnectionData = {
     password: 'password',
     database: '_test',
     searchPath: ['public'],
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   mysql2: {
     host: 'localhost',
@@ -54,11 +54,11 @@ const sampleConnectionData = {
     user: 'root',
     password: 'password',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   vitess: {
     host: 'localhost',
@@ -66,11 +66,11 @@ const sampleConnectionData = {
     user: 'root',
     password: 'password',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   tidb: {
     host: 'localhost',
@@ -78,11 +78,11 @@ const sampleConnectionData = {
     user: 'root',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   yugabyte: {
     host: 'localhost',
@@ -90,11 +90,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   citusdb: {
     host: 'localhost',
@@ -102,11 +102,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   cockroachdb: {
     host: 'localhost',
@@ -114,11 +114,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   greenplum: {
     host: 'localhost',
@@ -126,11 +126,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   mssql: {
     host: 'localhost',
@@ -139,11 +139,11 @@ const sampleConnectionData = {
     password: 'Password123.',
     database: '_test',
     searchPath: ['dbo'],
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   oracledb: {
     host: 'localhost',
@@ -151,11 +151,11 @@ const sampleConnectionData = {
     user: 'system',
     password: 'Oracle18',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   sqlite3: {
     client: 'sqlite3',
@@ -187,10 +187,4 @@ export const fieldRequiredValidator = {
   message: 'Field is required',
 }
 
-export const sslUsage = {
-  'No': 'No',
-  'Preferred': 'Preferred',
-  'Required': 'pg',
-  'Required-CA': 'Required-CA',
-  'Required-IDENTITY': 'Required-IDENTITY',
-}
+export const sslUsage = ['No', 'Preferred', 'Required', 'Required-CA', 'Required-IDENTITY']

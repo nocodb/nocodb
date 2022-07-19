@@ -171,3 +171,16 @@ export const getDefaultConnectionConfig = (client: ClientType): { client: Client
     connection: sampleConnectionData[client],
   }
 }
+
+export const projectTitleValidator = {
+  validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
+    if (value?.length > 50) {
+      callback('Project name exceeds 50 characters')
+    }
+    callback()
+  },
+}
+export const fieldRequiredValidator = {
+  required: true,
+  message: 'Field is required',
+}

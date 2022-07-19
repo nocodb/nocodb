@@ -2,6 +2,7 @@
 import { ref } from 'vue'
 import { navigateTo, useNuxtApp } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { projectTitleValidator } from '~/utils/projectCreateUtils'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
 
 const name = ref('')
@@ -15,14 +16,7 @@ const nameValidationRules = [
     required: true,
     message: 'Title is required',
   },
-  {
-    validator(rule: any, value: any, callback: (errMsg?: string) => void) {
-      if (value?.length > 50) {
-        callback('Project name exceeds 50 characters')
-      }
-      callback()
-    },
-  },
+  projectTitleValidator,
 ]
 
 const formState = reactive({

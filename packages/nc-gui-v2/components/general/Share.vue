@@ -292,6 +292,6 @@ const openUrl = (url: string) => {
 }
 
 a {
-  @apply cursor-pointer text-3xl rounded-full p-2 bg-gray-100 shadow-md hover:(shadow-lg bg-gray-200) transition-color ease-in duration-100;
+  @apply cursor-pointer text-3xl rounded-full p-2 bg-gray-100 shadow-md hover:(shadow-lg bg-gray-200);
 }
 </style>

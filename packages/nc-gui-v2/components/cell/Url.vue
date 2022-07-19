@@ -1,10 +1,7 @@
 <script setup lang="ts">
-import { ref, computed } from '#imports'
+import { computed, ref } from '#imports'
 import { ColumnInj } from '~/components'
 import { isValidURL } from '~/utils/urlUtils'
-
-const column = inject(ColumnInj)
-const editEnabled = inject<boolean>('editEnabled')
 
 interface Props {
   modelValue: string
@@ -12,6 +9,8 @@ interface Props {
 
 const { modelValue: value } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
+const column = inject(ColumnInj)
+const editEnabled = inject<boolean>('editEnabled')
 
 const localState = computed({
   get: () => value,
@@ -35,7 +34,7 @@ onMounted(() => {
     <input ref="root" v-model="localState" />
   </span>
   <span v-else>
-    <a class="caption py-2 text-primary underline hover:opacity-75" v-if="isValid" :href="value" target="_blank">{{ value }}</a>
+    <a v-if="isValid" class="caption py-2 text-primary underline hover:opacity-75" :href="value" target="_blank">{{ value }}</a>
     <span v-else>{{ value }}</span>
   </span>
 </template>

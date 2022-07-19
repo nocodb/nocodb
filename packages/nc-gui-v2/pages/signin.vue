@@ -55,7 +55,7 @@ const signIn = async () => {
   try {
     const { token } = await $api.auth.signin(form)
     $state.signIn(token!)
-    await navigateTo('/projects')
+    await navigateTo('/')
   } catch (e: any) {
     // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
     error = await extractSdkResponseErrorMsg(e)
@@ -74,19 +74,14 @@ const resetError = () => {
     <v-form
       ref="formValidator"
       v-model="valid"
-      class="h-full min-h-[600px] flex justify-center items-center"
+      class="h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
       @submit.prevent="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div
           class="bg-white dark:(!bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
-          <div
-            style="left: -moz-calc(50% - 45px); left: -webkit-calc(50% - 45px); left: calc(50% - 45px)"
-            class="absolute top-12 md:top-[-10%] rounded-lg bg-primary"
-          >
-            <img width="90" height="90" src="~/assets/img/icons/512x512-trans.png" />
-          </div>
+          <general-noco-icon />
 
           <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
@@ -121,7 +116,7 @@ const resetError = () => {
           />
 
           <div class="hidden md:block self-end mx-8">
-            <nuxt-link class="prose-sm text-primary underline hover:opacity-75" to="/forgot-password">
+            <nuxt-link class="prose-sm" to="/forgot-password">
               {{ $t('msg.info.signUp.forgotPassword') }}
             </nuxt-link>
           </div>
@@ -132,20 +127,20 @@ const resetError = () => {
               :class="[
                 !valid
                   ? '!opacity-50 !cursor-default'
-                  : 'shadow-md hover:(text-primary bg-primary/10 dark:text-white dark:!bg-primary/50)',
+                  : 'text-white bg-primary hover:(text-primary !bg-primary/75) dark:(!bg-secondary/75 hover:!bg-secondary/50)',
               ]"
-              class="ml-1 border-1 border-solid border-gray-300 transition-color duration-100 ease-in rounded-lg p-4 bg-gray-100/50"
+              class="ml-1 border-1 border-solid border-gray-300 rounded-lg p-4 bg-gray-100/50"
               type="submit"
             >
               <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
             </button>
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
-              <nuxt-link class="text-primary underline hover:opacity-75" to="/signup">{{ $t('general.signUp') }}</nuxt-link>
+              <nuxt-link to="/signup">{{ $t('general.signUp') }}</nuxt-link>
             </div>
 
-            <div class="prose-sm md:hidden">
-              <nuxt-link class="prose-sm text-primary underline hover:opacity-75" to="/forgot-password">
+            <div class="md:hidden">
+              <nuxt-link class="prose-sm" to="/forgot-password">
                 {{ $t('msg.info.signUp.forgotPassword') }}
               </nuxt-link>
             </div>
@@ -155,13 +150,3 @@ const resetError = () => {
     </v-form>
   </NuxtLayout>
 </template>
-
-<style lang="scss">
-.v-field__field {
-  @apply bg-white dark:(!bg-gray-900 text-white);
-
-  input {
-    @apply bg-white dark:(!bg-gray-700) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
-  }
-}
-</style>

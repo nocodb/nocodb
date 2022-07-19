@@ -29,9 +29,7 @@ watch(
 <template>
   <NuxtLayout>
     <template #sidebar>
-      <v-navigation-drawer permanent>
-        <DashboardTreeView />
-      </v-navigation-drawer>
+      <DashboardTreeView />
     </template>
 
     <v-container fluid>

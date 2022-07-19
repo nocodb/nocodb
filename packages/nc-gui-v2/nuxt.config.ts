@@ -46,6 +46,14 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    css: {
+      preprocessorOptions: {
+        less: {
+          modifyVars: { 'primary-color': '#1348ba' },
+          javascriptEnabled: true,
+        },
+      },
+    },
     plugins: [
       vueI18n({
         include: path.resolve(__dirname, './lang'),
@@ -56,7 +64,11 @@ export default defineNuxtConfig({
         defaultClass: 'nc-icon',
       }),
       Components({
-        resolvers: [AntDesignVueResolver()],
+        resolvers: [
+          AntDesignVueResolver({
+            importStyle: 'less',
+          }),
+        ],
       }),
     ],
     define: {

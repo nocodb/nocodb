@@ -20,7 +20,7 @@ const { quickImportType, projectTemplate } = defineProps<Props>()
 
 const valid = ref(false)
 const expansionPanel = ref(<number[]>[])
-const editableTn = ref({})
+const editableTn = ref(<boolean[]>{})
 const inputRefs = ref(<HTMLInputElement[]>[])
 const LinkToAnotherRecord = 'LinkToAnotherRecord'
 const Lookup = 'Lookup'
@@ -90,10 +90,6 @@ const parseTemplate = ({ tables = [], ...rest }: Record<string, any>) => {
   project.value = parsedTemplate
 }
 
-const onTableNameUpdate = (oldTable: string, newVal: string) => {
-  // TODO:
-}
-
 const deleteTable = (tableIdx: number) => {
   const deleteTable = project.value.tables[tableIdx]
   for (const table of project.value.tables) {
@@ -107,10 +103,6 @@ const deleteTable = (tableIdx: number) => {
 
 const isSelect = (col: ColumnType) => {
   return col.uidt === 'MultiSelect' || col.uidt === 'SingleSelect'
-}
-
-const onColumnNameUpdate = (oldCol: ColumnType, newVal: string, tn: string) => {
-  // TODO
 }
 
 const deleteTableColumn = (i: number, j: number, col: Record<string, any>, table: Record<string, any>) => {
@@ -139,6 +131,10 @@ const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
     input.select()
   })
 }
+
+const setEditableTn = (idx: number, val: boolean) => {
+  editableTn.value[idx] = val
+}
 </script>
 
 <template>
@@ -154,21 +150,16 @@ const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
       <a-collapse v-if="project.value?.tables && project.value?.tables.length" v-model:activeKey="expansionPanel">
         <a-collapse-panel v-for="(table, i) in project.value?.tables" :key="i">
           <template #header>
-            <v-text-field
+            <a-input
               v-if="editableTn[i]"
-              :value="table.table_name"
-              class="font-weight-bold"
+              v-model:value="table.table_name"
               style="max-width: 300px"
-              outlinedk
-              autofocus
-              density="compact"
               hide-details
-              @input="(e) => onTableNameUpdate(table, e)"
               @click="(e) => e.stopPropagation()"
-              @blur="$set(editableTn, i, false)"
-              @keydown.enter="$set(editableTn, i, false)"
+              @blur="setEditableTn(i, false)"
+              @keydown.enter="setEditableTn(i, false)"
             />
-            <span v-else class="font-weight-bold">
+            <span v-else class="font-weight-bold" @click="(e) => (e.stopPropagation(), setEditableTn(i, true))">
               <MdiTableIcon />
               {{ table.table_name }}
             </span>

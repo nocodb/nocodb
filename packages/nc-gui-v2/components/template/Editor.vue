@@ -22,6 +22,7 @@ const { quickImportType, projectTemplate } = defineProps<Props>()
 const valid = ref(false)
 const expansionPanel = ref(<number[]>[])
 const editableTn = ref({})
+const inputRefs = ref(<HTMLInputElement[]>[])
 const LinkToAnotherRecord = 'LinkToAnotherRecord'
 const Lookup = 'Lookup'
 const Rollup = 'Rollup'
@@ -168,8 +169,17 @@ const deleteTableColumn = (i: number, j: number, col: ColumnType, table: string)
   // TODO
 }
 
-const addNewColumnRow = (table: string, uidt?: string) => {
-  // TODO
+const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
+  table.columns.push({
+    key: table.columns.length + 1,
+    column_name: `title${table.columns.length + 1}`,
+    uidt,
+  })
+  nextTick(() => {
+    const input = inputRefs.value[table.columns.length]
+    input.focus()
+    input.select()
+  })
 }
 
 const getIcon = (type: string) => {
@@ -241,7 +251,14 @@ const getIcon = (type: string) => {
             </template>
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'column_name'">
-                <a-input v-model:value="record.column_name" />
+                <a-input
+                  v-model:value="record.column_name"
+                  :ref="
+                    (el) => {
+                      inputRefs[record.key] = el
+                    }
+                  "
+                />
               </template>
               <template v-else-if="column.key === 'column_type'">
                 <!--                        TODO: render uidt dropdown-->

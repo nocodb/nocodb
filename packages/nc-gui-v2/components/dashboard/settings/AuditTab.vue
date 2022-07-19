@@ -2,7 +2,7 @@
 import { Tooltip as ATooltip } from 'ant-design-vue'
 import { h, ref } from 'vue'
 import type { AuditType } from 'nocodb-sdk'
-import { calculateDiff } from '~/helpers'
+import { calculateDiff } from '~/utils/dateTimeUtils'
 
 const { $api } = useNuxtApp()
 const { project } = useProject()

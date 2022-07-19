@@ -30,8 +30,6 @@ let error = $ref<string | null>(null)
 
 const valid = ref()
 
-const formValidator = ref()
-
 const form = reactive({
   email: '',
   password: '',
@@ -71,11 +69,11 @@ const resetError = () => {
 
 <template>
   <NuxtLayout>
-    <v-form
-      ref="formValidator"
-      v-model="valid"
+    <a-form
+      v-model="form"
+      layout="vertical"
       class="h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
-      @submit.prevent="signIn"
+      @finish="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div
@@ -91,29 +89,25 @@ const resetError = () => {
             </div>
           </Transition>
 
-          <v-text-field
-            id="email"
-            v-model="form.email"
-            class="bg-white dark:!bg-gray-900"
-            :rules="formRules.email"
-            :label="$t('labels.email')"
-            :placeholder="$t('labels.email')"
-            :persistent-placeholder="true"
-            type="text"
-            @focus="resetError"
-          />
+          <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
+            <a-input
+              v-model="form.email"
+              size="large"
+              class="bg-white dark:!bg-gray-900"
+              :placeholder="$t('labels.email')"
+              @focus="resetError"
+            />
+          </a-form-item>
 
-          <v-text-field
-            id="password"
-            v-model="form.password"
-            class="bg-white dark:!bg-gray-900"
-            :rules="formRules.password"
-            :label="$t('labels.password')"
-            :placeholder="$t('labels.password')"
-            :persistent-placeholder="true"
-            type="password"
-            @focus="resetError"
-          />
+          <a-form-item :label="$t('labels.password')" name="password" :rules="formRules.password">
+            <a-input
+              v-model="form.password"
+              size="large"
+              class="bg-white dark:!bg-gray-900"
+              :placeholder="$t('labels.password')"
+              @focus="resetError"
+            />
+          </a-form-item>
 
           <div class="hidden md:block self-end mx-8">
             <nuxt-link class="prose-sm" to="/forgot-password">
@@ -147,6 +141,6 @@ const resetError = () => {
           </div>
         </div>
       </div>
-    </v-form>
+    </a-form>
   </NuxtLayout>
 </template>

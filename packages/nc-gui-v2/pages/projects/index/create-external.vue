@@ -19,13 +19,11 @@ const name = ref('')
 const loading = ref(false)
 const valid = ref(false)
 const testSuccess = ref(true)
-const projectDatasource = ref(getDefaultConnectionConfig('mysql2'))
+const projectDatasource = ref()
 const inflection = reactive({
   tableName: 'camelize',
   columnName: 'camelize',
 })
-
-const formState = reactive<Record<string, any>>({ dataSource: {} })
 
 const { $api, $e } = useNuxtApp()
 const toast = useToast()
@@ -86,6 +84,8 @@ const testConnection = async () => {
   }
 }
 
+const formState = reactive<Record<string, any>>({ dataSource: { ...getDefaultConnectionConfig('mysql2') } })
+
 const validators = reactive({
   'title': [
     {
@@ -95,13 +95,17 @@ const validators = reactive({
     projectTitleValidator,
   ],
   'dataSource.client': [fieldRequiredValidator],
-  'dataSource.port': [fieldRequiredValidator],
-  'dataSource.host': [fieldRequiredValidator],
-  'dataSource.user': [fieldRequiredValidator],
-  'dataSource.database': [fieldRequiredValidator],
+  'dataSource.connection.port': [fieldRequiredValidator],
+  'dataSource.connection.host': [fieldRequiredValidator],
+  'dataSource.connection.user': [fieldRequiredValidator],
+  'dataSource.connection.database': [fieldRequiredValidator],
 })
 
 const { resetFields, validate, validateInfos } = useForm(formState, validators)
+
+const onClientChange = () => {
+  formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
+}
 </script>
 
 <template>
@@ -119,7 +123,7 @@ const { resetFields, validate, validateInfos } = useForm(formState, validators)
         </a-col>
         <a-col :span="8">
           <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
-            <a-select v-model:value="formState.dataSource.client">
+            <a-select v-model:value="formState.dataSource.client" @change="onClientChange">
               <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
                 >{{ client.text }}
               </a-select-option>
@@ -127,28 +131,28 @@ const { resetFields, validate, validateInfos } = useForm(formState, validators)
           </a-form-item>
         </a-col>
         <a-col :span="8">
-          <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.host']">
-            <a-input v-model:value="formState.dataSource.host" />
+          <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
+            <a-input v-model:value="formState.dataSource.connection.host" />
           </a-form-item>
         </a-col>
         <a-col :span="8">
-          <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.port']">
-            <a-input-number v-model:value="formState.dataSource.port" class="!w-full" />
+          <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
+            <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full" />
           </a-form-item>
         </a-col>
         <a-col :span="8">
-          <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.user']">
-            <a-input v-model:value="formState.dataSource.user" />
+          <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
+            <a-input v-model:value="formState.dataSource.connection.user" />
           </a-form-item>
         </a-col>
         <a-col :span="8">
           <a-form-item :label="$t('labels.password')">
-            <a-input-password v-model:value="formState.dataSource.password" />
+            <a-input-password v-model:value="formState.dataSource.connection.password" />
           </a-form-item>
         </a-col>
         <a-col :span="8">
-          <a-form-item :label="$t('labels.dbCreateIfNotExists')" v-bind="validateInfos['dataSource.database']">
-            <a-input v-model:value="formState.dataSource.database" />
+          <a-form-item :label="$t('labels.dbCreateIfNotExists')" v-bind="validateInfos['dataSource.connection.database']">
+            <a-input v-model:value="formState.dataSource.connection.database" />
           </a-form-item>
         </a-col>
       </a-row>

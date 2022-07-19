@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
 import { Form } from 'ant-design-vue'
+import form from '../../../../nc-gui/components/project/spreadsheet/mixins/form'
 import { navigateTo, useNuxtApp } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import {
@@ -106,56 +107,59 @@ const { resetFields, validate, validateInfos } = useForm(formState, validators)
 const onClientChange = () => {
   formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
 }
+
+// populate database name based on title
+// watch(()=>formStat)
 </script>
 
 <template>
-  <a-card class="max-w-[800px] mx-auto !mt-100px" :title="$t('activity.createProject')">
-    <a-form :model="formState" name="validate_other" layout="vertical">
-      <a-row :gutter="24">
-        <a-col span="24">
-          <!-- Enter Project Name -->
-          <a-form-item :label="$t('placeholder.projName')" v-bind="validateInfos.title">
-            <a-input v-model:value="formState.title" size="large" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="24" class="text-center text-md font-medium mb-3 mt-1">
-          {{ $t('title.dbCredentials') }}
-        </a-col>
-        <a-col :span="8">
-          <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
-            <a-select v-model:value="formState.dataSource.client" @change="onClientChange">
-              <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
-                >{{ client.text }}
-              </a-select-option>
-            </a-select>
-          </a-form-item>
-        </a-col>
-        <a-col :span="8">
-          <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-            <a-input v-model:value="formState.dataSource.connection.host" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="8">
-          <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-            <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="8">
-          <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-            <a-input v-model:value="formState.dataSource.connection.user" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="8">
-          <a-form-item :label="$t('labels.password')">
-            <a-input-password v-model:value="formState.dataSource.connection.password" />
-          </a-form-item>
-        </a-col>
-        <a-col :span="8">
-          <a-form-item :label="$t('labels.dbCreateIfNotExists')" v-bind="validateInfos['dataSource.connection.database']">
-            <a-input v-model:value="formState.dataSource.connection.database" />
-          </a-form-item>
-        </a-col>
-      </a-row>
+  <a-card class="max-w-[600px] mx-auto !mt-100px" :title="$t('activity.createProject')">
+    <a-form :model="formState" name="validate_other" layout="horizontal" :label-col="{ span: 8 }" :wrapper-col="{ span: 18 }">
+      <!--      <a-row :gutter="24"> -->
+      <!--        <a-col span="24"> -->
+      <!-- Enter Project Name -->
+      <a-form-item :label="$t('placeholder.projName')" v-bind="validateInfos.title">
+        <a-input v-model:value="formState.title" size="small" />
+      </a-form-item>
+      <!--        </a-col> -->
+      <!--        <a-col :span="24" class="text-center text-md font-medium mb-3 mt-1"> -->
+      <!--          {{ $t('title.dbCredentials') }} -->
+      <!--        </a-col> -->
+      <!--        <a-col :span="8"> -->
+      <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
+        <a-select v-model:value="formState.dataSource.client" size="small" @change="onClientChange">
+          <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
+            >{{ client.text }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+      <!--        </a-col> -->
+      <!--        <a-col :span="8"> -->
+      <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
+        <a-input v-model:value="formState.dataSource.connection.host" size="small" />
+      </a-form-item>
+      <!--        </a-col> -->
+      <!--        <a-col :span="8"> -->
+      <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
+        <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full" size="small" />
+      </a-form-item>
+      <!--        </a-col> -->
+      <!--        <a-col :span="8"> -->
+      <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
+        <a-input v-model:value="formState.dataSource.connection.user" size="small" />
+      </a-form-item>
+      <!--        </a-col> -->
+      <!--        <a-col :span="8"> -->
+      <a-form-item :label="$t('labels.password')">
+        <a-input-password v-model:value="formState.dataSource.connection.password" size="small" />
+      </a-form-item>
+      <!--        </a-col> -->
+      <!--        <a-col :span="8"> -->
+      <a-form-item :label="$t('labels.dbCreateIfNotExists')" v-bind="validateInfos['dataSource.connection.database']">
+        <a-input v-model:value="formState.dataSource.connection.database" size="small" />
+      </a-form-item>
+      <!--        </a-col> -->
+      <!--      </a-row> -->
       <!--
     <a-form-item label="InputNumber">
       <a-form-item name="input-number" no-style>

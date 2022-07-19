@@ -19,11 +19,9 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 </div>
 
 <p align="center">
-    <a href="http://www.nocodb.com"><b>Website</b></a> •
-    <a href="https://discord.gg/5RgZmkW"><b>Discord</b></a> •
-    <a href="https://community.nocodb.com/"><b>Community</b></a> •
-    <a href="https://twitter.com/nocodb"><b>Twitter</b></a> •
-    <a href="https://www.reddit.com/r/NocoDB/"><b>Reddit</b></a> •
+    <a href="https://www.finn.auto/"><b>Website</b></a> •
+    <a href="https://www.linkedin.com/company/finn-auto"><b>LinkedIn</b></a> •
+    <a href="https://dev.to/finnauto"><b>DEV Community</b></a> •
     <a href="https://docs.nocodb.com/"><b>Documentation</b></a>
 </p>  
 
@@ -58,19 +56,7 @@ Turns any MySQL, PostgreSQL, SQL Server, SQLite & MariaDB into a smart-spreadshe
 <img src="https://static.scarf.sh/a.png?x-pxid=c12a77cc-855e-4602-8a0f-614b2d0da56a" />
 
 # Join Our Team
-<p align=""><a href="http://careers.nocodb.com" target="_blank"><img src="https://user-images.githubusercontent.com/61551451/169663818-45643495-e95b-48e2-be13-01d6a77dc2fd.png" width="250"/></a></p>
-
-# Join Our Community
-
-<a href="https://discord.gg/5RgZmkW" target="_blank">
-<img src="https://discordapp.com/api/guilds/661905455894888490/widget.png?style=banner3" alt="">
-</a>
-
-<!-- <a href="https://community.nocodb.com/" target="_blank">
-<img src="https://i2.wp.com/www.feverbee.com/wp-content/uploads/2018/07/logo-discourse.png" alt="">
-</a>
- -->
-[![Stargazers repo roster for @nocodb/nocodb](https://reporoster.com/stars/nocodb/nocodb)](https://github.com/nocodb/nocodb/stargazers)
+<p align=""><a href="https://www.finn.auto/careers" target="_blank"><img src="https://user-images.githubusercontent.com/61551451/169663818-45643495-e95b-48e2-be13-01d6a77dc2fd.png" width="250"/></a></p>
 
 
 # Quick try

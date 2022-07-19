@@ -1,12 +1,12 @@
 import type { ComputedRef, ToRefs } from 'vue'
-import type { Role } from '~/lib/enums'
+import type { Roles } from '~/lib/enums'
 
 export interface User {
   id: string
   email: string
   firstname: string | null
   lastname: string | null
-  roles: (Role | string)[]
+  roles: Roles
 }
 
 export interface StoredState {

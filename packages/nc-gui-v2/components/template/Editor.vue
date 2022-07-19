@@ -165,18 +165,28 @@ const onRTypeChange = (oldType: string, newType: string, col: ColumnType, table:
   // TODO
 }
 
-const deleteTableColumn = (i: number, j: number, col: ColumnType, table: string) => {
-  // TODO
+const deleteTableColumn = (i: number, j: number, col: Record<string, any>, table: Record<string, any>) => {
+  const deleteTable = project.value.tables[i]
+  const deleteColumn = deleteTable.columns[j]
+  for (const table of project.value.tables) {
+    if (table === deleteTable) {
+      continue
+    }
+    table.columns = table.columns.filter(
+      (c: Record<string, any>) => c.ref_table_name !== deleteTable.table_name || c.ref_column_name !== deleteColumn.column_name,
+    )
+  }
+  deleteTable.columns.splice(j, 1)
 }
 
 const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
   table.columns.push({
-    key: table.columns.length + 1,
+    key: table.columns.length,
     column_name: `title${table.columns.length + 1}`,
     uidt,
   })
   nextTick(() => {
-    const input = inputRefs.value[table.columns.length]
+    const input = inputRefs.value[table.columns.length - 1]
     input.focus()
     input.select()
   })

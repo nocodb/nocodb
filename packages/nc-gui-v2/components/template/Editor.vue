@@ -9,6 +9,8 @@ import MdiStringIcon from '~icons/mdi/alpha-a'
 import MdiLongTextIcon from '~icons/mdi/text'
 import MdiNumericIcon from '~icons/mdi/numeric'
 import MdiPlusIcon from '~icons/mdi/plus'
+import MdiKeyStarIcon from '~icons/mdi/key-star'
+import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 
 interface Props {
   quickImportType: string
@@ -35,6 +37,10 @@ const tableColumns = [
     dataIndex: 'column_type',
     key: 'column_type',
   },
+  {
+    name: 'Action',
+    key: 'action',
+  },
 ]
 
 const project = reactive(<any>{
@@ -60,7 +66,10 @@ const parseTemplate = ({ tables = [], ...rest }: Record<string, any>) => {
       ({ manyToMany = [], hasMany = [], belongsTo = [], v = [], columns = [], ...rest }: Record<string, any>) => ({
         ...rest,
         columns: [
-          ...columns,
+          ...columns.map((c: any, idx: number) => {
+            c.key = idx
+            return c
+          }),
           ...manyToMany.map((mm: any) => ({
             column_name: mm.title || `${rest.table_name} <=> ${mm.ref_table_name}`,
             uidt: LinkToAnotherRecord,
@@ -212,7 +221,12 @@ const getIcon = (type: string) => {
           </a-tooltip>
         </template>
         <a-collapse-panel>
-          <a-table v-if="table.columns.length" :dataSource="table.columns" :columns="tableColumns" class="my-4">
+          <a-table
+            v-if="table.columns.length"
+            :dataSource="table.columns"
+            :columns="tableColumns"
+            :pagination="false"
+          >
             <template #headerCell="{ column }">
               <template v-if="column.key === 'column_name'">
                 <span>
@@ -234,10 +248,30 @@ const getIcon = (type: string) => {
                 <!--                        TODO: render uidt dropdown-->
                 {{ record.uidt }}
               </template>
+              <template v-else-if="column.key === 'action'">
+                <a-tooltip v-if="record.key == 0" bottom>
+                  <template #title>
+                    <!-- TODO: i18n -->
+                    <span>Primary Value</span>
+                  </template>
+                  <MdiKeyStarIcon />
+                </a-tooltip>
+                <a-tooltip v-else bottom>
+                  <template #title>
+                    <!-- TODO: i18n -->
+                    <span>Delete Column</span>
+                  </template>
+                  <a-button type="link" @click="deleteTableColumn(i, record.key, record, table)" :size="iconSize">
+                    <template #icon>
+                      <MdiDeleteOutlineIcon />
+                    </template>
+                  </a-button>
+                </a-tooltip>
+              </template>
             </template>
           </a-table>
 
-          <div v-if="!viewMode" class="text-center">
+          <div class="text-center">
             <a-tooltip bottom>
               <template #title>
                 <!-- TODO: i18n -->

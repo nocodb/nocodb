@@ -87,7 +87,7 @@ const sidebarOpen = computed({
     <a-layout>
       <a-layout-sider
         v-model:collapsed="sidebarOpen"
-        :width="sidebarOpen ? 300 : 0"
+        width="300"
         collapsed-width="0"
         class="bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"
         :trigger="null"

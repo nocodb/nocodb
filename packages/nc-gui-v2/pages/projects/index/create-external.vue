@@ -12,6 +12,7 @@ import {
   getDefaultConnectionConfig,
   getTestDatabaseName,
   projectTitleValidator,
+  sslUsage,
 } from '~/utils/projectCreateUtils'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
 
@@ -68,6 +69,10 @@ const testConnection = async () => {
           ...projectDatasource.value.connection,
           database: getTestDatabaseName(projectDatasource.value),
         },
+        inflection: {
+          tableName: 'camelize',
+          columnName: 'camelize',
+        },
       }
 
       const result = await $api.utils.testConnection(testConnectionConfig)
@@ -107,6 +112,8 @@ const { resetFields, validate, validateInfos } = useForm(formState, validators)
 const onClientChange = () => {
   formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
 }
+
+const inflectionTypes = ['camelize', 'none']
 
 // populate database name based on title
 // watch(()=>formStat)
@@ -161,79 +168,6 @@ const onClientChange = () => {
       <!--        </a-col> -->
       <!--      </a-row> -->
       <!--
-    <a-form-item label="InputNumber">
-      <a-form-item name="input-number" no-style>
-        <a-input-number v-model:value="formState['input-number']" />
-      </a-form-item>
-      <span class="ant-form-text">machines</span>
-    </a-form-item>
-
-    <a-form-item name="switch" label="Switch">
-      <a-switch v-model:checked="formState.switch" />
-    </a-form-item>
-
-    <a-form-item name="slider" label="Slider">
-      <a-slider
-        v-model:value="formState.slider"
-        :marks="{
-          0: 'A',
-          20: 'B',
-          40: 'C',
-          60: 'D',
-          80: 'E',
-          100: 'F',
-        }"
-      />
-    </a-form-item>
-
-    <a-form-item name="radio-group" label="Radio.Group">
-      <a-radio-group v-model:value="formState['radio-group']">
-        <a-radio value="a">item 1</a-radio>
-        <a-radio value="b">item 2</a-radio>
-        <a-radio value="c">item 3</a-radio>
-      </a-radio-group>
-    </a-form-item>
-
-    <a-form-item
-      name="radio-button"
-      label="Radio.Button"
-      :rules="[{ required: true, message: 'Please pick an item!' }]"
-    >
-      <a-radio-group v-model:value="formState['radio-button']">
-        <a-radio-button value="a">item 1</a-radio-button>
-        <a-radio-button value="b">item 2</a-radio-button>
-        <a-radio-button value="c">item 3</a-radio-button>
-      </a-radio-group>
-    </a-form-item>
-
-    <a-form-item name="checkbox-group" label="Checkbox.Group">
-      <a-checkbox-group v-model:value="formState['checkbox-group']">
-        <a-row>
-          <a-col :span="8">
-            <a-checkbox value="A" style="line-height: 32px">A</a-checkbox>
-          </a-col>
-          <a-col :span="8">
-            <a-checkbox value="B" style="line-height: 32px" disabled>B</a-checkbox>
-          </a-col>
-          <a-col :span="8">
-            <a-checkbox value="C" style="line-height: 32px">C</a-checkbox>
-          </a-col>
-          <a-col :span="8">
-            <a-checkbox value="D" style="line-height: 32px">D</a-checkbox>
-          </a-col>
-          <a-col :span="8">
-            <a-checkbox value="E" style="line-height: 32px">E</a-checkbox>
-          </a-col>
-          <a-col :span="8">
-            <a-checkbox value="F" style="line-height: 32px">F</a-checkbox>
-          </a-col>
-        </a-row>
-      </a-checkbox-group>
-    </a-form-item>
-
-    <a-form-item name="rate" label="Rate">
-      <a-rate v-model:value="formState.rate" allow-half />
-    </a-form-item>
 
     <a-form-item name="upload" label="Upload" extra="longgggggggggggggggggggggggggggggggggg">
       <a-upload
@@ -248,99 +182,91 @@ const onClientChange = () => {
         </a-button>
       </a-upload>
     </a-form-item>
+ -->
 
-    <a-form-item label="Dragger">
-      <a-form-item name="dragger" no-style>
-        <a-upload-dragger v-model:fileList="formState.dragger" name="files" action="/upload.do">
-          <p class="ant-upload-drag-icon">
-            <InboxOutlined />
-          </p>
-          <p class="ant-upload-text">Click or drag file to this area to upload</p>
-          <p class="ant-upload-hint">Support for a single or bulk upload.</p>
-        </a-upload-dragger>
-      </a-form-item>
-    </a-form-item> -->
+      <a-collapse ghost>
+        <a-collapse-panel key="1" header="Advance options">
+          <a-form-item :label="$t('lables.ssl')" v-bind="validateInfos['dataSource.ssl']">
+            <a-select v-model:value="formState.dataSource.ssl" size="small" @change="onClientChange">
+              <a-select-option v-for="opt in Object.keys(sslUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
+            </a-select>
+          </a-form-item>
 
-      <a-form-item class="text-center">
-        <a-button type="primary" html-type="submit">Submit</a-button>
+          <a-form-item :label="$t('labels.dbCredentials')">
+            <!--            <a-input v-model:value="formState.dataSource.connection.database" size="small" /> -->
+
+            <div class="flex gap-2">
+              <a-tooltip placement="top">
+                <template #title>
+                  <span>{{ $t('tooltip.clientCert') }}</span>
+                </template>
+                <a-button size="small">
+                  {{ $t('labels.clientCert') }}
+                </a-button>
+              </a-tooltip>
+              <a-tooltip placement="top">
+                <template #title>
+                  <span>{{ $t('tooltip.clientKey') }}</span>
+                </template>
+                <a-button size="small">
+                  {{ $t('labels.clientKey') }}
+                </a-button>
+              </a-tooltip>
+              <a-tooltip placement="top">
+                <template #title>
+                  <span>{{ $t('tooltip.clientCA') }}</span>
+                </template>
+                <a-button size="small">
+                  {{ $t('labels.serverCA') }}
+                </a-button>
+              </a-tooltip>
+            </div>
+          </a-form-item>
+
+          <!-- <v-row> -->
+          <!--  <v-col> -->
+          <a-form-item :label="$t('labels.inflection.tableName')" v-bind="validateInfos['dataSource.client']">
+            <a-select v-model:value="formState.dataSource.client" size="small" @change="onClientChange">
+              <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
+                >{{ client.text }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+          <!--  </v-col> -->
+          <!--  <v-col> -->
+          <a-form-item :label="$t('labels.inflection.columnName')" v-bind="validateInfos['dataSource.client']">
+            <a-select v-model:value="formState.dataSource.client" size="small" @change="onClientChange">
+              <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
+                >{{ client.text }}
+              </a-select-option>
+            </a-select>
+          </a-form-item>
+          <!--  </v-col> -->
+          <!-- </v-row> -->
+          <div class="flex justify-end">
+            <a-button size="small">
+              <!-- Edit connection JSON -->
+              {{ $t('activity.editConnJson') }}
+            </a-button>
+          </div>
+        </a-collapse-panel>
+      </a-collapse>
+
+      <a-form-item class="flex justify-center">
+        <div class="flex justify-center gap-2">
+          <a-button type="primary" html-type="submit">Submit</a-button>
+          <a-button type="primary" html-type="submit">Test Connection</a-button>
+        </div>
       </a-form-item>
     </a-form>
   </a-card>
-
-  <!--  <v-form ref="formValidator" v-model="valid" class="h-full" @submit.prevent="createProject">
-      <v-container fluid class="flex justify-center items-center h-5/6">
-        <v-card max-width="600">
-          &lt;!&ndash; Create Project &ndash;&gt;
-          <v-container class="pb-10 px-12">
-            <h1 class="my-4 prose-lg text-center">
-              {{ $t('activity.createProject') }}
-            </h1>
-
-            <v-row>
-              <v-col offset="2" cols="8">
-                <v-text-field
-                  v-model="name"
-                  :rules="titleValidationRule"
-                  class="nc-metadb-project-name"
-                  :label="$t('labels.projName')"
-                />
-              </v-col>
-
-              <v-col cols="6">
-                <v-select
-                  v-model="projectDatasource.client"
-                  density="compact"
-                  :items="clientTypes"
-                  item-title="text"
-                  item-value="value"
-                  class="nc-metadb-project-name"
-                  label="Database client"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model="projectDatasource.connection.host" density="compact" :label="$t('labels.hostAddress')" />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="projectDatasource.connection.port"
-                  density="compact"
-                  :label="$t('labels.port')"
-                  type="number"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model="projectDatasource.connection.user" density="compact" :label="$t('labels.username')" />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field
-                  v-model="projectDatasource.connection.password"
-                  density="compact"
-                  type="password"
-                  :label="$t('labels.password')"
-                />
-              </v-col>
-              <v-col cols="6">
-                <v-text-field v-model="projectDatasource.connection.database" density="compact" label="Database name" />
-              </v-col>
-            </v-row>
-
-            <div class="d-flex justify-center" style="gap: 4px">
-              <v-btn :disabled="!testSuccess" large :loading="loading" color="primary" @click="createProject">
-                <MaterialSymbolsRocketLaunchOutline class="mr-1" />
-                <span> {{ $t('general.create') }} </span>
-              </v-btn>
-
-              &lt;!&ndash;              <v-btn small class="px-2"> &ndash;&gt;
-              &lt;!&ndash;     todo:implement test connection &ndash;&gt;
-              &lt;!&ndash;         <v-btn size="sm" class="text-sm text-capitalize">
-                    &lt;!&ndash; Test Database Connection &ndash;&gt;
-                    {{ $t('activity.testDbConn') }}
-                  </v-btn> &ndash;&gt;
-            </div>
-          </v-container>
-        </v-card>
-      </v-container>
-    </v-form> -->
 </template>
 
-<style scoped></style>
+<style scoped>
+:deep(.ant-collapse-header) {
+  @apply !px-0;
+}
+:deep(.ant-collapse-content-box) {
+  @apply !pr-0;
+}
+</style>

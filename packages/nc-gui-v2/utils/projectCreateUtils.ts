@@ -184,3 +184,11 @@ export const fieldRequiredValidator = {
   required: true,
   message: 'Field is required',
 }
+
+export const sslUsage = {
+  'No': 'No',
+  'Preferred': 'Preferred',
+  'Required': 'pg',
+  'Required-CA': 'Required-CA',
+  'Required-IDENTITY': 'Required-IDENTITY',
+}

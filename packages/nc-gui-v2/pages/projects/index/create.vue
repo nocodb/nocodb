@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { onMounted } from '@vue/runtime-core'
 import { ref } from 'vue'
 import { navigateTo, useNuxtApp } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -36,6 +37,12 @@ const createProject = async () => {
   }
   loading.value = false
 }
+
+const input = ref()
+
+onMounted(() => {
+  input.value.input.focus()
+})
 </script>
 
 <template>
@@ -44,7 +51,7 @@ const createProject = async () => {
 
     <a-form :model="formState" name="basic" layout="vertical" autocomplete="off" @submit="createProject">
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="my-10 mx-10">
-        <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
+        <a-input ref="input" v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>
 
       <a-form-item style="text-align: center" class="mt-2">

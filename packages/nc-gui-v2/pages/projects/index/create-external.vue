@@ -114,9 +114,13 @@ const onClientChange = () => {
 }
 
 const inflectionTypes = ['camelize', 'none']
+const configEditDlg = ref(false)
 
 // populate database name based on title
-// watch(()=>formStat)
+watch(
+  () => formState.title,
+  (v) => (formState.dataSource.connection.database = `${v}_noco`),
+)
 </script>
 
 <template>
@@ -162,33 +166,21 @@ const inflectionTypes = ['camelize', 'none']
       </a-form-item>
       <!--        </a-col> -->
       <!--        <a-col :span="8"> -->
-      <a-form-item :label="$t('labels.dbCreateIfNotExists')" v-bind="validateInfos['dataSource.connection.database']">
-        <a-input v-model:value="formState.dataSource.connection.database" size="small" />
+      <a-form-item :label="$t('labels.database')" v-bind="validateInfos['dataSource.connection.database']">
+        <a-input
+          v-model:value="formState.dataSource.connection.database"
+          :placeholder="$t('labels.dbCreateIfNotExists')"
+          size="small"
+        />
       </a-form-item>
       <!--        </a-col> -->
       <!--      </a-row> -->
-      <!--
 
-    <a-form-item name="upload" label="Upload" extra="longgggggggggggggggggggggggggggggggggg">
-      <a-upload
-        v-model:fileList="formState.upload"
-        name="logo"
-        action="/upload.do"
-        list-type="picture"
-      >
-        <a-button>
-          <template #icon><UploadOutlined /></template>
-          Click to upload
-        </a-button>
-      </a-upload>
-    </a-form-item>
- -->
-
-      <a-collapse ghost>
+      <a-collapse ghost expand-icon-position="right">
         <a-collapse-panel key="1" header="Advance options">
           <a-form-item :label="$t('lables.ssl')" v-bind="validateInfos['dataSource.ssl']">
             <a-select v-model:value="formState.dataSource.ssl" size="small" @change="onClientChange">
-              <a-select-option v-for="opt in Object.keys(sslUsage)" :key="opt" :value="opt">{{ opt }} </a-select-option>
+              <a-select-option v-for="opt in Object.keys(sslUsage)" :key="opt" :value="opt">{{ opt }}</a-select-option>
             </a-select>
           </a-form-item>
 
@@ -244,7 +236,7 @@ const inflectionTypes = ['camelize', 'none']
           <!--  </v-col> -->
           <!-- </v-row> -->
           <div class="flex justify-end">
-            <a-button size="small">
+            <a-button size="small" @click="configEditDlg = true">
               <!-- Edit connection JSON -->
               {{ $t('activity.editConnJson') }}
             </a-button>
@@ -259,13 +251,18 @@ const inflectionTypes = ['camelize', 'none']
         </div>
       </a-form-item>
     </a-form>
+
+    <v-dialog v-model="configEditDlg">
+      <MonacoJson v-if="configEditDlg" class="h-[320px] w-[600px]"></MonacoJson>
+    </v-dialog>
   </a-card>
 </template>
 
 <style scoped>
 :deep(.ant-collapse-header) {
-  @apply !px-0;
+  @apply !pr-10 !-mt-4 text-right;
 }
+
 :deep(.ant-collapse-content-box) {
   @apply !pr-0;
 }

@@ -41,6 +41,7 @@ const sampleConnectionData = {
     user: 'postgres',
     password: 'password',
     database: '_test',
+    searchPath: ['public'],
     // ssl: {
     //   ca: '',
     //   key: '',
@@ -137,6 +138,7 @@ const sampleConnectionData = {
     user: 'sa',
     password: 'Password123.',
     database: '_test',
+    searchPath: ['dbo'],
     // ssl: {
     //   ca: '',
     //   key: '',

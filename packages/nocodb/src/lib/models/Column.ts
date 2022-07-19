@@ -6,7 +6,7 @@ import SingleSelectColumn from './SingleSelectColumn';
 import MultiSelectColumn from './MultiSelectColumn';
 import Model from './Model';
 import NocoCache from '../cache/NocoCache';
-import { ColumnType, UITypes } from 'nocodb-sdk';
+import { ColumnType, isSystemColumn, UITypes } from 'nocodb-sdk';
 import {
   CacheDelDirection,
   CacheGetType,
@@ -877,6 +877,10 @@ export default class Column<T = any> implements ColumnType {
 
   async delete(ncMeta = Noco.ncMeta) {
     return await Column.delete(this.id, ncMeta);
+  }
+
+  public isSystemColumnExceptForeignKey() {
+    return !!isSystemColumn(this) && this.uidt !== UITypes.ForeignKey;
   }
 
   static async checkTitleAvailable(

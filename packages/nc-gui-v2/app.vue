@@ -23,7 +23,7 @@ const sidebarOpen = computed({
 
 <template>
   <a-layout>
-    <a-layout-header class="flex !bg-primary items-center text-white !px-4">
+    <a-layout-header class="flex !bg-primary items-center text-white px-4 shadow-md">
       <MaterialSymbolsMenu
         v-if="$state.signedIn.value"
         class="text-xl cursor-pointer"

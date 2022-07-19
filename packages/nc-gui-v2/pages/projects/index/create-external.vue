@@ -2,8 +2,9 @@
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
-import { Form } from 'ant-design-vue'
+import { Form, Modal } from 'ant-design-vue'
 import { navigateTo, useNuxtApp } from '#app'
+import type { ProjectCreateForm } from '~/lib/types'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import {
   clientTypes,
@@ -13,84 +14,28 @@ import {
   projectTitleValidator,
   sslUsage,
 } from '~/utils/projectCreateUtils'
+import MdiCheckIcon from '~icons/mdi/check-circle'
 
 import { readFile } from '~/utils/fileUtils'
 
+const onVal = (v) => {
+  console.log(v)
+}
 const useForm = Form.useForm
-const name = ref('')
 const loading = ref(false)
 const valid = ref(false)
 const testSuccess = ref(true)
-const projectDatasource = ref()
-const inflection = reactive({
-  tableName: 'camelize',
-  columnName: 'camelize',
-})
 
 const { $api, $e } = useNuxtApp()
 const toast = useToast()
 const { t } = useI18n()
 
-const createProject = async () => {
-  loading.value = true
-  try {
-    const result = await $api.project.create({
-      title: name.value,
-      bases: [
-        {
-          type: projectDatasource.value.client,
-          config: projectDatasource.value,
-          inflection_column: inflection.columnName,
-          inflection_table: inflection.tableName,
-        },
-      ],
-      external: true,
-    })
-
-    await navigateTo(`/nc/${result.id}`)
-  } catch (e: any) {
-    // todo: toast
-    toast.error(await extractSdkResponseErrorMsg(e))
-  }
-  loading.value = false
-}
-
-const testConnection = async () => {
-  $e('a:project:create:extdb:test-connection', [])
-  try {
-    // this.handleSSL(projectDatasource)
-
-    if (projectDatasource.value.client === 'sqlite3') {
-      testSuccess.value = true
-    } else {
-      const testConnectionConfig = {
-        ...projectDatasource,
-        connection: {
-          ...projectDatasource.value.connection,
-          database: getTestDatabaseName(projectDatasource.value),
-        },
-      }
-
-      const result = await $api.utils.testConnection(testConnectionConfig)
-
-      if (result.code === 0) {
-        testSuccess.value = true
-      } else {
-        testSuccess.value = false
-        toast.error(`${t('msg.error.dbConnectionFailed')} ${result.message}`)
-      }
-    }
-  } catch (e: any) {
-    testSuccess.value = false
-    toast.error(await extractSdkResponseErrorMsg(e))
-  }
-}
-
-const formState = reactive<Record<string, any>>({
+const formState = reactive<ProjectCreateForm>({
+  title: '',
   dataSource: { ...getDefaultConnectionConfig('mysql2') },
   inflection: {
-    tableName: 'camelize',
-    columnName: 'camelize',
+    inflection_column: 'camelize',
+    inflection_table: 'camelize',
   },
 })
 
@@ -130,8 +75,87 @@ const certFileInput = ref<HTMLInputElement>()
 
 const onFileSelect = (key: 'ca' | 'cert' | 'key', el: HTMLInputElement) => {
   readFile(el, (content) => {
-    formState.dataSource.connection.ssl[key] = content ?? ''
+    if ('ssl' in formState.dataSource.connection && formState.dataSource.connection.ssl)
+      formState.dataSource.connection.ssl[key] = content ?? ''
   })
+}
+
+function getConnectionConfig() {
+  const connection = {
+    ...formState.dataSource.connection,
+  }
+
+  if ('ssl' in connection && connection.ssl && Object.values(connection.ssl).every((v) => !v)) {
+    delete connection.ssl
+  }
+  return connection
+}
+
+const createProject = async () => {
+  loading.value = true
+  try {
+    const connection = getConnectionConfig()
+    const config = { ...formState.dataSource, connection }
+    const result = await $api.project.create({
+      title: formState.title,
+      bases: [
+        {
+          type: formState.dataSource.client,
+          config,
+          inflection_column: formState.inflection.inflection_column,
+          inflection_table: formState.inflection.inflection_table,
+        },
+      ],
+      external: true,
+    })
+
+    await navigateTo(`/nc/${result.id}`)
+  } catch (e: any) {
+    // todo: toast
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
+  loading.value = false
+}
+
+const testConnection = async () => {
+  $e('a:project:create:extdb:test-connection', [])
+  try {
+    // this.handleSSL(projectDatasource)
+
+    if (formState.dataSource.client === 'sqlite3') {
+      testSuccess.value = true
+    } else {
+      const connection: any = getConnectionConfig()
+      connection.database = getTestDatabaseName(formState.dataSource)
+      const testConnectionConfig = {
+        ...formState.dataSource,
+        connection,
+      }
+
+      const result = await $api.utils.testConnection(testConnectionConfig)
+
+      if (result.code === 0) {
+        testSuccess.value = true
+
+        Modal.confirm({
+          title: t('msg.info.dbConnected'),
+          icon: null,
+          type: 'success',
+
+          okText: t('activity.OkSaveProject'),
+          okType: 'primary',
+          cancelText: 'Cancel',
+          onOk: createProject,
+        })
+      } else {
+        testSuccess.value = false
+        toast.error(`${t('msg.error.dbConnectionFailed')} ${result.message}`)
+      }
+    }
+  } catch (e: any) {
+    testSuccess.value = false
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 </script>
 
@@ -238,13 +262,13 @@ const onFileSelect = (key: 'ca' | 'cert' | 'key', el: HTMLInputElement) => {
             <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect('cert', certFileInput)" />
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
 
-            <a-form-item :label="$t('labels.inflection.tableName')" v-bind="validateInfos['dataSource.client']">
-              <a-select v-model:value="formState.inflection.tableName" size="small" @change="onClientChange">
+            <a-form-item :label="$t('labels.inflection.inflection_column')" v-bind="validateInfos['dataSource.client']">
+              <a-select v-model:value="formState.inflection.inflection_table" size="small" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
-            <a-form-item :label="$t('labels.inflection.columnName')" v-bind="validateInfos['dataSource.type']">
-              <a-select v-model:value="formState.inflection.columnName" size="small" @change="onClientChange">
+            <a-form-item :label="$t('labels.inflection.inflection_column')" v-bind="validateInfos['dataSource.type']">
+              <a-select v-model:value="formState.inflection.inflection_column" size="small" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
@@ -260,17 +284,15 @@ const onFileSelect = (key: 'ca' | 'cert' | 'key', el: HTMLInputElement) => {
 
       <a-form-item class="flex justify-center">
         <div class="flex justify-center gap-2">
-          <a-button type="primary" html-type="submit">Submit</a-button>
-          <a-button type="primary" html-type="submit">Test Connection</a-button>
+          <a-button type="primary" @click="createProject">Submit</a-button>
+          <a-button type="primary" @click="testConnection">Test Connection</a-button>
         </div>
       </a-form-item>
     </a-form>
 
     <v-dialog v-model="configEditDlg">
-      <Monaco v-if="configEditDlg" v-model="formState" class="h-[320px] w-[600px]"></Monaco>
+      <Monaco v-if="configEditDlg" :model-value="formState" class="h-[320px] w-[600px]" @update:modelValue="onVal"></Monaco>
     </v-dialog>
-
-    {{ formState }}
   </a-card>
 </template>
 

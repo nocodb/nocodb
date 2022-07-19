@@ -1,3 +1,5 @@
+import type { ClientType, ProjectCreateForm } from '~/lib/types'
+
 const testDataBaseNames = {
   mysql2: null,
   mysql: null,
@@ -6,8 +8,6 @@ const testDataBaseNames = {
   mssql: undefined,
   sqlite3: 'a.sqlite',
 }
-
-export type ClientType = 'mysql2' | 'mssql' | 'pg' | 'sqlite3' | 'vitess'
 
 export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
   if (db.client === 'pg') return db.connection?.database
@@ -34,7 +34,7 @@ export const clientTypes = [
 ]
 
 const homeDir = ''
-const sampleConnectionData = {
+const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataSource']['connection']> = {
   pg: {
     host: 'localhost',
     port: '5432',
@@ -167,7 +167,7 @@ const sampleConnectionData = {
   },
 }
 
-export const getDefaultConnectionConfig = (client: ClientType): { client: ClientType; connection: any } => {
+export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateForm['dataSource'] => {
   return {
     client,
     connection: sampleConnectionData[client],

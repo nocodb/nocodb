@@ -32,3 +32,34 @@ export interface Actions {
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>
 
 export type GlobalState = Getters & Actions & ToRefs<ReadonlyState>
+
+export type ClientType = 'mysql2' | 'mssql' | 'pg' | 'sqlite3' | 'vitess'
+
+export interface ProjectCreateForm {
+  title: string
+  dataSource: {
+    client: ClientType
+    connection:
+      | {
+          host: string
+          database: string
+          user: string
+          password: string
+          port: number | string
+          ssl?: Record<string, string>
+          searchPath?: string[]
+        }
+      | {
+          client?: 'sqlite3'
+          database: string
+          connection?: {
+            filename?: string
+          }
+          useNullAsDefault?: boolean
+        }
+  }
+  inflection: {
+    inflection_column?: string
+    inflection_table?: string
+  }
+}

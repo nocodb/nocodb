@@ -1,5 +1,14 @@
 import dayjs from 'dayjs'
 
+import relativeTime from 'dayjs/plugin/relativeTime'
+import utc from 'dayjs/plugin/utc'
+dayjs.extend(utc)
+dayjs.extend(relativeTime)
+
+export const calculateDiff = (date: any) => {
+  return dayjs.utc(date).fromNow()
+}
+
 export const handleTZ = (val: any) => {
   if (!val) {
     return

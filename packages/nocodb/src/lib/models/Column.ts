@@ -231,12 +231,12 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
       case UITypes.MultiSelect: {
-        if (column.dt === 'set' && !column.altered) {
+        if (!column.colOptions?.options) {
           for (const [i, option] of column.dtxp?.split(',').entries() || [].entries()) {
             await SelectOption.insert(
               {
                 fk_column_id: colId,
-                title: option,
+                title: option.replace(/^'/, '').replace(/'$/, ''),
                 order: i + 1
               },
               ncMeta
@@ -257,12 +257,12 @@ export default class Column<T = any> implements ColumnType {
         break;
       }
       case UITypes.SingleSelect: {
-        if (column.dt === 'enum' && !column.altered) {
+        if (!column.colOptions?.options) {
           for (const [i, option] of column.dtxp?.split(',').entries() || [].entries()) {
             await SelectOption.insert(
               {
                 fk_column_id: colId,
-                title: option,
+                title: option.replace(/^'/, '').replace(/'$/, ''),
                 order: i + 1
               },
               ncMeta

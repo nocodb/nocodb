@@ -3,6 +3,7 @@ import { useToast } from 'vue-toastification'
 import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol, UITypes } from 'nocodb-sdk'
 import type { SizeType } from 'ant-design-vue/es/config-provider'
+import type { FormInstance } from 'ant-design-vue'
 import { computed, onMounted } from '#imports'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiStringIcon from '~icons/mdi/alpha-a'
@@ -23,7 +24,7 @@ interface Option {
 }
 
 const { quickImportType, projectTemplate, importData } = defineProps<Props>()
-
+const formRef = ref<FormInstance>()
 const { $api } = useNuxtApp()
 const valid = ref(false)
 const expansionPanel = ref(<number[]>[])
@@ -34,6 +35,14 @@ const { sqlUi, project, loadTables } = useProject()
 const loading = ref(false)
 const buttonSize = ref<SizeType>('middle')
 const toast = useToast()
+const templateForm = reactive<{ tables: object[] }>({
+  tables: [],
+})
+
+const formRules = {
+  columnName: [{ required: true, message: 'Please fill in column name', trigger: 'change' }],
+  columnType: [{ required: true, message: 'Please fill in column type', trigger: 'change' }],
+}
 
 const uiTypeOptions = ref<Option[]>(
   (Object.keys(UITypes) as Array<keyof typeof UITypes>)
@@ -180,6 +189,14 @@ const remapColNames = (batchData: any[], columns: ColumnType[]) => {
 }
 
 const importTemplate = async () => {
+  // check if form is valid
+  try {
+    const values = await formRef.value.validateFields()
+    console.log('Success:', values)
+  } catch (errorInfo) {
+    console.log('Failed:', errorInfo)
+  }
+
   let firstTable = null
   try {
     loading.value = true
@@ -267,12 +284,13 @@ const importTemplate = async () => {
         {{ $t('activity.import') }}
       </a-button>
     </template>
-    <v-form ref="form" v-model="valid">
+    <a-form ref="formRef" :model="data" @finish="valid = true" @finish-failed="valid = false">
       <p v-if="data.tables && quickImportType === 'excel'" class="caption grey--text mt-4">
         {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
         available for import
       </p>
       <a-collapse v-if="data.value?.tables && data.value?.tables.length" v-model:activeKey="expansionPanel">
+        {{ data.value }}
         <a-collapse-panel v-for="(table, i) in data.value?.tables" :key="i">
           <template #header>
             <a-input
@@ -298,6 +316,7 @@ const importTemplate = async () => {
               <MdiDeleteOutlineIcon v-if="data.value.tables.length > 1" @click.stop="deleteTable(i)" />
             </a-tooltip>
           </template>
+          {{ table }}
           <a-table v-if="table.columns.length" :dataSource="table.columns" :columns="tableColumns" :pagination="false">
             <template #headerCell="{ column }">
               <template v-if="column.key === 'column_name'">
@@ -313,22 +332,28 @@ const importTemplate = async () => {
             </template>
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'column_name'">
-                <a-input
-                  v-model:value="record.column_name"
-                  :ref="
-                    (el) => {
-                      inputRefs[record.key] = el
-                    }
-                  "
-                />
+<!--                TODO: FIX nested form path -->
+                <a-form-item :name="['tables', i, 'columns', record.key, 'column_name']" :rules="formRules.columnName">
+                  <a-input
+                    v-model:value="record.column_name"
+                    :ref="
+                      (el) => {
+                        inputRefs[record.key] = el
+                      }
+                    "
+                  />
+                </a-form-item>
               </template>
               <template v-else-if="column.key === 'column_type'">
-                <a-auto-complete
-                  v-model:value="record.uidt"
-                  :options="uiTypeOptions"
-                  :filter-option="filterOption"
-                  style="width: 200px"
-                />
+<!--                TODO: fix form item name-->
+                <a-form-item name="column_type" :rules="formRules.columnType">
+                  <a-auto-complete
+                    v-model:value="record.uidt"
+                    :options="uiTypeOptions"
+                    :filter-option="filterOption"
+                    style="width: 200px"
+                  />
+                </a-form-item>
               </template>
 
               <template v-else-if="column.key === 'select_option'">
@@ -410,6 +435,6 @@ const importTemplate = async () => {
           </div>
         </a-collapse-panel>
       </a-collapse>
-    </v-form>
+    </a-form>
   </a-card>
 </template>

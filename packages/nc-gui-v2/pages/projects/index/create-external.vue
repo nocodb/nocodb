@@ -9,6 +9,7 @@ import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import {
   clientTypes,
   fieldRequiredValidator,
+  generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
   projectTitleValidator,
@@ -76,6 +77,9 @@ watch(
   () => formState.title,
   (v) => (formState.dataSource.connection.database = `${v}_noco`),
 )
+
+// generate a random project title
+formState.title = generateUniqueName()
 
 const caFileInput = ref<HTMLInputElement>()
 const keyFileInput = ref<HTMLInputElement>()

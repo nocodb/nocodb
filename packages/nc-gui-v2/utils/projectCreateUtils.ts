@@ -1,3 +1,4 @@
+import { adjectives, animals, starWars, uniqueNamesGenerator } from 'unique-names-generator'
 import type { ClientType, ProjectCreateForm } from '~/lib/types'
 
 const testDataBaseNames = {
@@ -188,3 +189,11 @@ export const fieldRequiredValidator = {
 }
 
 export const sslUsage = ['No', 'Preferred', 'Required', 'Required-CA', 'Required-IDENTITY']
+
+export const generateUniqueName = () => {
+  return uniqueNamesGenerator({
+    dictionaries: [[starWars], [adjectives, animals]][Math.floor(Math.random() * 2)],
+  })
+    .toLowerCase()
+    .replace(/[ -]/g, '_')
+}

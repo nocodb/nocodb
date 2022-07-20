@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { onMounted } from '@vue/runtime-core'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
 import { Form, Modal } from 'ant-design-vue'
@@ -198,6 +199,13 @@ watch(
   () => (testSuccess.value = false),
   { deep: true },
 )
+
+// select and focus title field on load
+onMounted(() => {
+  const input = form.value?.$el.querySelector('input')
+  input.setSelectionRange(0, formState.title.length)
+  input.focus()
+})
 </script>
 
 <template>

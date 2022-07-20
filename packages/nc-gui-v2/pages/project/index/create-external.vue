@@ -111,7 +111,7 @@ function getConnectionConfig() {
 
 const form = ref<any>()
 const focusInvalidInput = () => {
-  form?.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.querySelector('input')?.focus()
+  form?.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.parentNode?.querySelector('input')?.focus()
 }
 
 const createProject = async () => {
@@ -371,7 +371,7 @@ onMounted(() => {
 
 <style scoped>
 :deep(.ant-collapse-header) {
-  @apply !pr-10 !-mt-4 text-right;
+  @apply !pr-10 !-mt-4 text-right justify-end;
 }
 
 :deep(.ant-collapse-content-box) {

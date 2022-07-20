@@ -189,7 +189,15 @@ const testConnection = async () => {
   }
 }
 
+// hide sidebar
 $state.sidebarOpen.value = false
+
+// reset test status on config change
+watch(
+  () => formState.dataSource,
+  () => (testSuccess.value = false),
+  { deep: true },
+)
 </script>
 
 <template>

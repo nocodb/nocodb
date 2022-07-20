@@ -2,9 +2,8 @@
 import { useToast } from 'vue-toastification'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isVirtualCol, UITypes } from 'nocodb-sdk'
-import type { SizeType } from 'ant-design-vue/es/config-provider'
-import type { FormInstance } from 'ant-design-vue'
 import { Form } from 'ant-design-vue'
+import type { SizeType } from 'ant-design-vue/es/config-provider'
 import { computed, onMounted } from '#imports'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiStringIcon from '~icons/mdi/alpha-a'
@@ -32,8 +31,8 @@ const inputRefs = ref(<HTMLInputElement[]>[])
 const { addTab } = useTabs()
 const { sqlUi, project, loadTables } = useProject()
 const loading = ref(false)
-const buttonSize = ref<SizeType>('middle')
 const toast = useToast()
+const buttonSize = ref<SizeType>('large')
 const templateForm = reactive<{ tables: object[] }>({
   tables: [],
 })
@@ -49,6 +48,7 @@ const uiTypeOptions = ref<Option[]>(
     )
     .map((x: string) => ({
       value: x,
+      label: x,
     })),
 )
 
@@ -310,7 +310,7 @@ const importTemplate = async () => {
 <template>
   <a-card :title="editorTitle">
     <template #extra>
-      <a-button type="primary" :loading="loading" @click="importTemplate">
+      <a-button type="primary" :loading="loading" @click="importTemplate" :size="buttonSize">
         {{ $t('activity.import') }}
       </a-button>
     </template>
@@ -354,7 +354,7 @@ const importTemplate = async () => {
                   {{ $t('labels.columnName') }}
                 </span>
               </template>
-              <template v-else-if="column.key === 'column_type'">
+              <template v-else-if="column.key === 'uidt'">
                 <span>
                   {{ $t('labels.columnType') }}
                 </span>
@@ -396,33 +396,39 @@ const importTemplate = async () => {
                     <!-- TODO: i18n -->
                     <span>Primary Value</span>
                   </template>
-                  <MdiKeyStarIcon />
+                  <a-button type="text" disabled>
+                    <div class="flex items-center">
+                      <MdiKeyStarIcon />
+                    </div>
+                  </a-button>
                 </a-tooltip>
                 <a-tooltip v-else bottom>
                   <template #title>
                     <!-- TODO: i18n -->
                     <span>Delete Column</span>
                   </template>
-                  <a-button type="link" @click="deleteTableColumn(i, record.key, record, table)" :size="buttonSize">
-                    <template #icon>
+
+                  <a-button @click="deleteTableColumn(i, record.key, record, table)" type="text">
+                    <div class="flex items-center">
                       <MdiDeleteOutlineIcon />
-                    </template>
+                    </div>
                   </a-button>
                 </a-tooltip>
               </template>
             </template>
           </a-table>
-
+          <a-divider />
           <div class="text-center">
             <a-tooltip bottom>
               <template #title>
                 <!-- TODO: i18n -->
                 <span>Add Number Column</span>
               </template>
-              <a-button @click="addNewColumnRow(table, 'Number')" :size="buttonSize">
-                <template #icon>
-                  <MdiNumericIcon />
-                </template>
+
+              <a-button @click="addNewColumnRow(table, 'Number')">
+                <div class="flex items-center">
+                  <MdiNumericIcon class="text-lg" />
+                </div>
               </a-button>
             </a-tooltip>
 
@@ -431,10 +437,10 @@ const importTemplate = async () => {
                 <!-- TODO: i18n -->
                 <span>Add SingleLineText Column</span>
               </template>
-              <a-button @click="addNewColumnRow(table, 'SingleLineText')" :size="buttonSize">
-                <template #icon>
-                  <MdiStringIcon />
-                </template>
+              <a-button @click="addNewColumnRow(table, 'SingleLineText')">
+                <div class="flex items-center">
+                  <MdiStringIcon class="text-lg" />
+                </div>
               </a-button>
             </a-tooltip>
 
@@ -443,10 +449,10 @@ const importTemplate = async () => {
                 <!-- TODO: i18n -->
                 <span>Add LongText Column</span>
               </template>
-              <a-button @click="addNewColumnRow(table, 'LongText')" :size="buttonSize">
-                <template #icon>
-                  <MdiLongTextIcon />
-                </template>
+              <a-button @click="addNewColumnRow(table, 'LongText')">
+                <div class="flex items-center">
+                  <MdiLongTextIcon class="text-lg" />
+                </div>
               </a-button>
             </a-tooltip>
 
@@ -455,11 +461,11 @@ const importTemplate = async () => {
                 <!-- TODO: i18n -->
                 <span>Add Other Column</span>
               </template>
-              <a-button @click="addNewColumnRow(table)" :size="buttonSize">
-                <template #icon>
-                  <MdiPlusIcon />
-                </template>
-                Column
+              <a-button @click="addNewColumnRow(table)">
+                <div class="flex items-center">
+                  <MdiPlusIcon class="text-lg" />
+                  Column
+                </div>
               </a-button>
             </a-tooltip>
           </div>

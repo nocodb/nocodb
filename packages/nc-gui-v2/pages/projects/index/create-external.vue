@@ -1,8 +1,8 @@
 <script lang="ts" setup>
-import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
 import { Form, Modal } from 'ant-design-vue'
+import { ref } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
 import type { ProjectCreateForm } from '~/lib/types'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -14,17 +14,11 @@ import {
   projectTitleValidator,
   sslUsage,
 } from '~/utils/projectCreateUtils'
-import MdiCheckIcon from '~icons/mdi/check-circle'
-
 import { readFile } from '~/utils/fileUtils'
 
-const onVal = (v) => {
-  console.log(v)
-}
 const useForm = Form.useForm
 const loading = ref(false)
-const valid = ref(false)
-const testSuccess = ref(true)
+const testSuccess = ref(false)
 
 const { $api, $e } = useNuxtApp()
 const toast = useToast()
@@ -39,19 +33,33 @@ const formState = reactive<ProjectCreateForm>({
   },
 })
 
-const validators = reactive({
-  'title': [
-    {
-      required: true,
-      message: 'Please input project title',
-    },
-    projectTitleValidator,
-  ],
-  'dataSource.client': [fieldRequiredValidator],
-  'dataSource.connection.port': [fieldRequiredValidator],
-  'dataSource.connection.host': [fieldRequiredValidator],
-  'dataSource.connection.user': [fieldRequiredValidator],
-  'dataSource.connection.database': [fieldRequiredValidator],
+const validators = computed(() => {
+  return {
+    'title': [
+      {
+        required: true,
+        message: 'Please input project title',
+      },
+      projectTitleValidator,
+    ],
+    'dataSource.client': [fieldRequiredValidator],
+    ...(formState.dataSource.client === 'sqlite3'
+      ? {
+          'dataSource.connection.connection.filename': [fieldRequiredValidator],
+        }
+      : {
+          'dataSource.connection.host': [fieldRequiredValidator],
+          'dataSource.connection.port': [fieldRequiredValidator],
+          'dataSource.connection.username': [fieldRequiredValidator],
+          'dataSource.connection.password': [fieldRequiredValidator],
+          'dataSource.connection.database': [fieldRequiredValidator],
+          ...(['pg', 'mssql'].includes(formState.dataSource.client)
+            ? {
+                'dataSource.connection.searchPath.0': [fieldRequiredValidator],
+              }
+            : {}),
+        }),
+  }
 })
 
 const { resetFields, validate, validateInfos } = useForm(formState, validators)
@@ -80,18 +88,25 @@ const onFileSelect = (key: 'ca' | 'cert' | 'key', el: HTMLInputElement) => {
   })
 }
 
+const sslFilesRequired = computed<boolean>(() => {
+  return formState?.sslUse && formState.sslUse !== 'No'
+})
+
 function getConnectionConfig() {
   const connection = {
     ...formState.dataSource.connection,
   }
 
-  if ('ssl' in connection && connection.ssl && Object.values(connection.ssl).every((v) => !v)) {
+  if ('ssl' in connection && connection.ssl && (!sslFilesRequired || Object.values(connection.ssl).every((v) => !v))) {
     delete connection.ssl
   }
   return connection
 }
 
 const createProject = async () => {
+  if (!(await validate())) {
+    return
+  }
   loading.value = true
   try {
     const connection = getConnectionConfig()
@@ -118,6 +133,9 @@ const createProject = async () => {
 }
 
 const testConnection = async () => {
+  if (!(await validate())) {
+    return
+  }
   $e('a:project:create:extdb:test-connection', [])
   try {
     // this.handleSSL(projectDatasource)
@@ -177,7 +195,7 @@ const testConnection = async () => {
       <a-form-item
         v-if="formState.dataSource.client === 'sqlite3'"
         :label="$t('labels.sqliteFile')"
-        v-bind="validateInfos['dataSource.connection.host']"
+        v-bind="validateInfos['dataSource.connection.connection.filename']"
       >
         <a-input v-model:value="formState.dataSource.connection.connection.filename" size="small" />
       </a-form-item>
@@ -213,27 +231,31 @@ const testConnection = async () => {
           />
         </a-form-item>
         <!-- Schema name -->
-        <a-form-item v-if="['mssql', 'pg'].includes(formState.dataSource.client)" :label="$t('labels.schemaName')">
+        <a-form-item
+          v-if="['mssql', 'pg'].includes(formState.dataSource.client)"
+          :label="$t('labels.schemaName')"
+          v-bind="validateInfos['dataSource.connection.searchPath.0']"
+        >
           <a-input v-model:value="formState.dataSource.connection.searchPath[0]" size="small" />
         </a-form-item>
 
         <a-collapse ghost expand-icon-position="right">
           <a-collapse-panel key="1" :header="$t('title.advancedParameters')">
             <!--            todo:  add in i18n -->
-            <a-form-item label="SSL Mode" v-bind="validateInfos['dataSource.ssl']">
-              <a-select v-model:value="formState.dataSource.sslUse" size="small" @change="onClientChange">
+            <a-form-item label="SSL mode">
+              <a-select v-model:value="formState.sslUse" size="small" @change="onClientChange">
                 <a-select-option v-for="opt in sslUsage" :key="opt" :value="opt">{{ opt }}</a-select-option>
               </a-select>
             </a-form-item>
 
-            <a-form-item :label="$t('labels.dbCredentials')">
+            <a-form-item label="SSL keys">
               <div class="flex gap-2">
                 <a-tooltip placement="top">
                   <!-- Select .cert file -->
                   <template #title>
                     <span>{{ $t('tooltip.clientCert') }}</span>
                   </template>
-                  <a-button size="small" @click="certFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" size="small" @click="certFileInput.click()">
                     {{ $t('labels.clientCert') }}
                   </a-button>
                 </a-tooltip>
@@ -242,7 +264,7 @@ const testConnection = async () => {
                   <template #title>
                     <span>{{ $t('tooltip.clientKey') }}</span>
                   </template>
-                  <a-button size="small" @click="keyFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" size="small" @click="keyFileInput.click()">
                     {{ $t('labels.clientKey') }}
                   </a-button>
                 </a-tooltip>
@@ -251,7 +273,7 @@ const testConnection = async () => {
                   <template #title>
                     <span>{{ $t('tooltip.clientCA') }}</span>
                   </template>
-                  <a-button size="small" @click="caFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" size="small" @click="caFileInput.click()">
                     {{ $t('labels.serverCA') }}
                   </a-button>
                 </a-tooltip>
@@ -262,12 +284,12 @@ const testConnection = async () => {
             <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect('cert', certFileInput)" />
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
 
-            <a-form-item :label="$t('labels.inflection.inflection_column')" v-bind="validateInfos['dataSource.client']">
+            <a-form-item :label="$t('labels.inflection.tableName')" v-bind="validateInfos['dataSource.client']">
               <a-select v-model:value="formState.inflection.inflection_table" size="small" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
-            <a-form-item :label="$t('labels.inflection.inflection_column')" v-bind="validateInfos['dataSource.type']">
+            <a-form-item :label="$t('labels.inflection.columnName')" v-bind="validateInfos['dataSource.type']">
               <a-select v-model:value="formState.inflection.inflection_column" size="small" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
@@ -284,7 +306,7 @@ const testConnection = async () => {
 
       <a-form-item class="flex justify-center">
         <div class="flex justify-center gap-2">
-          <a-button type="primary" @click="createProject">Submit</a-button>
+          <a-button type="primary" :disabled="!testSuccess" @click="createProject">Submit</a-button>
           <a-button type="primary" @click="testConnection">Test Connection</a-button>
         </div>
       </a-form-item>

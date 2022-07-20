@@ -62,4 +62,5 @@ export interface ProjectCreateForm {
     inflection_column?: string
     inflection_table?: string
   }
+  sslUse?: any
 }

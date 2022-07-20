@@ -55,8 +55,6 @@ const sidebarOpen = computed({
       <div class="flex-1" />
 
       <div class="flex justify-end gap-4">
-        <general-color-mode-switcher v-model="$state.darkMode.value" />
-
         <general-language class="mr-3" />
 
         <template v-if="$state.signedIn.value">

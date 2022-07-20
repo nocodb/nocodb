@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { createVNode } from '@vue/runtime-core'
 import { Modal } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
@@ -10,7 +9,6 @@ import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 import MdiFolderOutline from '~icons/mdi/folder-outline'
-import ExclamationCircleOutlined from '~icons/mdi/information-outline'
 
 const navDrawerOptions = [
   {
@@ -34,8 +32,10 @@ const navDrawerOptions = [
 
 const route = useRoute()
 
-const { $api } = useNuxtApp()
+const { $api, $state } = useNuxtApp()
 const toast = useToast()
+
+$state.sidebarOpen.value = false
 
 const response = await $api.project.list({})
 const projects = $ref(response.list)
@@ -59,7 +59,6 @@ const deleteProject = (project: ProjectType) => {
   })
 }
 
-console.log(route.name)
 const visible = ref(true)
 </script>
 

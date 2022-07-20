@@ -21,7 +21,7 @@ const useForm = Form.useForm
 const loading = ref(false)
 const testSuccess = ref(false)
 
-const { $api, $e } = useNuxtApp()
+const { $api, $e, $state } = useNuxtApp()
 const toast = useToast()
 const { t } = useI18n()
 
@@ -107,8 +107,16 @@ function getConnectionConfig() {
   return connection
 }
 
+const form = ref<any>()
+const focusInvalidInput = () => {
+  form?.value?.$el.querySelector('.ant-form-item-explain-error')?.parentNode?.querySelector('input')?.focus()
+}
+
 const createProject = async () => {
-  if (!(await validate())) {
+  try {
+    await validate()
+  } catch (e) {
+    focusInvalidInput()
     return
   }
   loading.value = true
@@ -137,7 +145,10 @@ const createProject = async () => {
 }
 
 const testConnection = async () => {
-  if (!(await validate())) {
+  try {
+    await validate()
+  } catch (e) {
+    focusInvalidInput()
     return
   }
   $e('a:project:create:extdb:test-connection', [])
@@ -177,6 +188,8 @@ const testConnection = async () => {
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
+$state.sidebarOpen.value = false
 </script>
 
 <template>
@@ -185,10 +198,18 @@ const testConnection = async () => {
     :title="$t('activity.createProject')"
     :head-style="{ textAlign: 'center', fontWeight: '700' }"
   >
-    <a-form :model="formState" name="validate_other" layout="horizontal" :label-col="{ span: 8 }" :wrapper-col="{ span: 18 }">
+    <a-form
+      ref="form"
+      :model="formState"
+      name="validate_other"
+      layout="horizontal"
+      :label-col="{ span: 8 }"
+      :wrapper-col="{ span: 18 }"
+    >
       <a-form-item :label="$t('placeholder.projName')" v-bind="validateInfos.title">
         <a-input v-model:value="formState.title" size="small" />
       </a-form-item>
+
       <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
         <a-select v-model:value="formState.dataSource.client" size="small" @change="onClientChange">
           <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"

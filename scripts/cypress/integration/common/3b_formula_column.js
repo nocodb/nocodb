@@ -153,6 +153,8 @@ export const genTest = (apiType, dbType) => {
         let RESULT_MATH_0 = [];
         let RESULT_MATH_1 = [];
         let RESULT_MATH_2 = [];
+        let RESULT_WEEKDAY_0 = [];
+        let RESULT_WEEKDAY_1 = [];
 
         for (let i = 0; i < 10; i++) {
             // CONCAT, LOWER, UPPER, TRIM
@@ -184,6 +186,11 @@ export const genTest = (apiType, dbType) => {
                     Math.pow(cityId[i], 3) +
                     Math.sqrt(countryId[i])
             );
+
+            // WEEKDAY: starts from Monday
+            RESULT_WEEKDAY_0[i] = 1;
+            // WEEKDAY: starts from Sunday
+            RESULT_WEEKDAY_1[i] = 2;
         }
 
         it("Formula: ADD, AVG, LEN", () => {
@@ -194,9 +201,25 @@ export const genTest = (apiType, dbType) => {
             rowValidation("NC_MATH_0", RESULT_MATH_0);
         });
 
-        it("Formula: CONCAT, LOWER, UPPER, TRIM", () => {
+        it("Formula: WEEKDAY", () => {
             editColumnByName(
                 "NC_MATH_0",
+                "NC_WEEKDAY_0",
+                `WEEKDAY("2022-07-19")`
+            );
+            rowValidation("NC_WEEKDAY_0", RESULT_WEEKDAY_0);
+
+            editColumnByName(
+                "NC_WEEKDAY_0",
+                "NC_WEEKDAY_1",
+                `WEEKDAY("2022-07-19", "sunday")`
+            );
+            rowValidation("NC_WEEKDAY_1", RESULT_WEEKDAY_1);
+        });
+
+        it("Formula: CONCAT, LOWER, UPPER, TRIM", () => {
+            editColumnByName(
+                "NC_WEEKDAY_1",
                 "NC_STR_1",
                 `CONCAT(UPPER({City}), LOWER({City}), TRIM('    trimmed    '))`
             );

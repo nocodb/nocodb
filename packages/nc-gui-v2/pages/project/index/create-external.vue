@@ -33,6 +33,7 @@ const formState = $ref<ProjectCreateForm>({
     inflection_column: 'camelize',
     inflection_table: 'camelize',
   },
+  sslUse: 'No',
 })
 
 const validators = computed(() => {
@@ -212,7 +213,7 @@ onMounted(() => {
 
 <template>
   <a-card
-    class="max-w-[600px] mx-auto !mt-5"
+    class="max-w-[600px] mx-auto !mt-5 !mb-5"
     :title="$t('activity.createProject')"
     :head-style="{ textAlign: 'center', fontWeight: '700' }"
   >

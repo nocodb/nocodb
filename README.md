@@ -447,6 +447,9 @@ Our mission is to provide the most powerful no-code interface for databases whic
     <td align="center"><a href="https://github.com/seokjunjin"><img src="https://avatars.githubusercontent.com/u/46950889?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Seokjun Jin</b></sub></a><br /><a href="#translation-seokjunjin" title="Translation">🌍</a></td>
     <td align="center"><a href="https://github.com/systemctls"><img src="https://avatars.githubusercontent.com/u/37177191?v=4?s=100" width="100px;" alt=""/><br /><sub><b>jinxm</b></sub></a><br /><a href="https://github.com/nocodb/nocodb/commits?author=systemctls" title="Code">💻</a></td>
   </tr>
+  <tr>
+    <td align="center"><a href="https://yohanboniface.me"><img src="https://avatars.githubusercontent.com/u/146023?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Yohan Boniface</b></sub></a><br /><a href="#translation-yohanboniface" title="Translation">🌍</a></td>
+  </tr>
 </table>
 
 <!-- markdownlint-restore -->

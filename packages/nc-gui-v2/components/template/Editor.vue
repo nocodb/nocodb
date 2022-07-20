@@ -4,6 +4,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol, UITypes } from 'nocodb-sdk'
 import type { SizeType } from 'ant-design-vue/es/config-provider'
 import type { FormInstance } from 'ant-design-vue'
+import { Form } from 'ant-design-vue'
 import { computed, onMounted } from '#imports'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiStringIcon from '~icons/mdi/alpha-a'
@@ -22,11 +23,9 @@ interface Props {
 interface Option {
   value: string
 }
-
+const useForm = Form.useForm
 const { quickImportType, projectTemplate, importData } = defineProps<Props>()
-const formRef = ref<FormInstance>()
 const { $api } = useNuxtApp()
-const valid = ref(false)
 const expansionPanel = ref(<number[]>[])
 const editableTn = ref(<boolean[]>{})
 const inputRefs = ref(<HTMLInputElement[]>[])
@@ -38,11 +37,6 @@ const toast = useToast()
 const templateForm = reactive<{ tables: object[] }>({
   tables: [],
 })
-
-const formRules = {
-  columnName: [{ required: true, message: 'Please fill in column name', trigger: 'change' }],
-  columnType: [{ required: true, message: 'Please fill in column type', trigger: 'change' }],
-}
 
 const uiTypeOptions = ref<Option[]>(
   (Object.keys(UITypes) as Array<keyof typeof UITypes>)
@@ -72,12 +66,12 @@ const tableColumns = [
   {
     name: 'Column Type',
     dataIndex: 'column_type',
-    key: 'column_type',
+    key: 'uidt',
     width: 250,
   },
   {
     name: 'Select Option',
-    key: 'select_option',
+    key: 'dtxp',
   },
   {
     name: 'Action',
@@ -90,6 +84,27 @@ const data = reactive(<any>{
   tables: [],
 })
 
+const validators = computed(() => {
+  // TODO: centralise
+  const cnValidator = [{ required: true, message: 'Please fill in column name', trigger: 'change' }]
+  const uidtValidator = [{ required: true, message: 'Please fill in column type', trigger: 'change' }]
+  // TODO: check existing validation logic
+  const dtxpValidator = [{}]
+  let res: any = {}
+  for (let i = 0; i < data.tables.length; i++) {
+    for (let j = 0; j < data.tables[i].columns.length; j++) {
+      res[`tables.${i}.columns.${j}.column_name`] = cnValidator
+      res[`tables.${i}.columns.${j}.uidt`] = uidtValidator
+      if (isSelect(data.tables[i].columns)) {
+        res[`tables.${i}.columns.${j}.dtxp`] = dtxpValidator
+      }
+    }
+  }
+  return res
+})
+
+const { resetFields, validate, validateInfos } = useForm(data, validators)
+
 const editorTitle = computed(() => {
   return `${quickImportType.toUpperCase()} Import`
 })
@@ -101,7 +116,7 @@ onMounted(() => {
 const parseAndLoadTemplate = () => {
   if (projectTemplate) {
     parseTemplate(projectTemplate)
-    expansionPanel.value = Array.from({ length: data.value?.tables.length || 0 }, (_, i) => i)
+    expansionPanel.value = Array.from({ length: data.tables.length || 0 }, (_, i) => i)
   }
 }
 
@@ -127,18 +142,18 @@ const parseTemplate = ({ tables = [], ...rest }: Record<string, any>) => {
       ],
     })),
   }
-  data.value = parsedTemplate
+  Object.assign(data, parsedTemplate)
 }
 
 const deleteTable = (tableIdx: number) => {
-  const deleteTable = data.value.tables[tableIdx]
-  for (const table of data.value.tables) {
+  const deleteTable = data.tables[tableIdx]
+  for (const table of data.tables) {
     if (table === deleteTable) {
       continue
     }
     table.columns = table.columns.filter((c: Record<string, any>) => c.ref_table_name !== deleteTable.table_name)
   }
-  data.value.tables.splice(tableIdx, 1)
+  data.tables.splice(tableIdx, 1)
 }
 
 const isSelect = (col: ColumnType) => {
@@ -146,9 +161,9 @@ const isSelect = (col: ColumnType) => {
 }
 
 const deleteTableColumn = (i: number, j: number, col: Record<string, any>, table: Record<string, any>) => {
-  const deleteTable = data.value.tables[i]
+  const deleteTable = data.tables[i]
   const deleteColumn = deleteTable.columns[j]
-  for (const table of data.value.tables) {
+  for (const table of data.tables) {
     if (table === deleteTable) {
       continue
     }
@@ -191,16 +206,18 @@ const remapColNames = (batchData: any[], columns: ColumnType[]) => {
 const importTemplate = async () => {
   // check if form is valid
   try {
-    const values = await formRef.value.validateFields()
+    const values = await validate()
     console.log('Success:', values)
   } catch (errorInfo) {
+    // TODO: handle error message
     console.log('Failed:', errorInfo)
+    return
   }
 
   let firstTable = null
   try {
     loading.value = true
-    for (const t of data.value.tables) {
+    for (const t of data.tables) {
       // enrich system fields if not provided
       // e.g. id, created_at, updated_at
       const systemColumns = sqlUi?.value.getNewTableColumns().filter((c: ColumnType) => c.column_name !== 'title')
@@ -220,11 +237,17 @@ const importTemplate = async () => {
       }
 
       // create table
-      const table = await $api.dbTable.create(project?.value?.id as string, {
+      const table: TableType = await $api.dbTable.create(project?.value?.id as string, {
         table_name: t.table_name,
         title: '',
         columns: t.columns,
       })
+      // TODO: should catch error msg throw from sdk
+      if (!table) {
+        throw {
+          message: 'Failed to create table',
+        }
+      }
       t.table_title = table.title
 
       // open the first table after import
@@ -233,10 +256,11 @@ const importTemplate = async () => {
       }
 
       // set primary value
-      // TODO: handle it later
-      // await $api.dbTableColumn.primaryColumnSet(table?.columns[0]?.id as string)
+      await $api.dbTableColumn.primaryColumnSet(table.columns[0].id as string)
     }
   } catch (e: any) {
+    // TODO: retrieve error msg from sdk
+    console.log(e)
     toast.error(e.message)
     return
   }
@@ -261,6 +285,7 @@ const importTemplate = async () => {
         ),
       )
     } catch (e: any) {
+      // TODO: retrieve error msg from sdk
       toast.error(e.message)
       return
     }
@@ -284,14 +309,13 @@ const importTemplate = async () => {
         {{ $t('activity.import') }}
       </a-button>
     </template>
-    <a-form ref="formRef" :model="data" @finish="valid = true" @finish-failed="valid = false">
+    <a-form :model="data" name="template-editor-form">
       <p v-if="data.tables && quickImportType === 'excel'" class="caption grey--text mt-4">
         {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
         available for import
       </p>
-      <a-collapse v-if="data.value?.tables && data.value?.tables.length" v-model:activeKey="expansionPanel">
-        {{ data.value }}
-        <a-collapse-panel v-for="(table, i) in data.value?.tables" :key="i">
+      <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel">
+        <a-collapse-panel v-for="(table, i) in data.tables" :key="i">
           <template #header>
             <a-input
               v-if="editableTn[i]"
@@ -313,10 +337,9 @@ const importTemplate = async () => {
                 <!-- TODO: i18n -->
                 <span>Delete Table</span>
               </template>
-              <MdiDeleteOutlineIcon v-if="data.value.tables.length > 1" @click.stop="deleteTable(i)" />
+              <MdiDeleteOutlineIcon v-if="data.tables.length > 1" @click.stop="deleteTable(i)" />
             </a-tooltip>
           </template>
-          {{ table }}
           <a-table v-if="table.columns.length" :dataSource="table.columns" :columns="tableColumns" :pagination="false">
             <template #headerCell="{ column }">
               <template v-if="column.key === 'column_name'">
@@ -332,8 +355,7 @@ const importTemplate = async () => {
             </template>
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'column_name'">
-<!--                TODO: FIX nested form path -->
-                <a-form-item :name="['tables', i, 'columns', record.key, 'column_name']" :rules="formRules.columnName">
+                <a-form-item v-bind="validateInfos[`tables.${i}.columns.${record.key}.${column.key}`]">
                   <a-input
                     v-model:value="record.column_name"
                     :ref="
@@ -344,9 +366,8 @@ const importTemplate = async () => {
                   />
                 </a-form-item>
               </template>
-              <template v-else-if="column.key === 'column_type'">
-<!--                TODO: fix form item name-->
-                <a-form-item name="column_type" :rules="formRules.columnType">
+              <template v-else-if="column.key === 'uidt'">
+                <a-form-item v-bind="validateInfos[`tables.${i}.columns.${record.key}.${column.key}`]">
                   <a-auto-complete
                     v-model:value="record.uidt"
                     :options="uiTypeOptions"
@@ -356,8 +377,10 @@ const importTemplate = async () => {
                 </a-form-item>
               </template>
 
-              <template v-else-if="column.key === 'select_option'">
-                <a-input v-model:value="record.dtxp" v-if="isSelect(record)" />
+              <template v-else-if="column.key === 'dtxp'">
+                <a-form-item v-if="isSelect(record)" v-bind="validateInfos[`tables.${i}.columns.${record.key}.${column.key}`]">
+                  <a-input v-model:value="record.dtxp" />
+                </a-form-item>
               </template>
 
               <template v-if="column.key === 'action'">

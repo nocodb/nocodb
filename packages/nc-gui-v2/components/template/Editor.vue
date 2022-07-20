@@ -86,12 +86,14 @@ const data = reactive(<any>{
 
 const validators = computed(() => {
   // TODO: centralise
+  const tnValidator = [{ required: true, message: 'Please fill in table name', trigger: 'change' }]
   const cnValidator = [{ required: true, message: 'Please fill in column name', trigger: 'change' }]
   const uidtValidator = [{ required: true, message: 'Please fill in column type', trigger: 'change' }]
   // TODO: check existing validation logic
   const dtxpValidator = [{}]
   let res: any = {}
   for (let i = 0; i < data.tables.length; i++) {
+    res[`tables.${i}.table_name`] = tnValidator
     for (let j = 0; j < data.tables[i].columns.length; j++) {
       res[`tables.${i}.columns.${j}.column_name`] = cnValidator
       res[`tables.${i}.columns.${j}.uidt`] = uidtValidator
@@ -317,15 +319,17 @@ const importTemplate = async () => {
       <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel">
         <a-collapse-panel v-for="(table, i) in data.tables" :key="i">
           <template #header>
-            <a-input
-              v-if="editableTn[i]"
-              v-model:value="table.table_name"
-              style="max-width: 300px"
-              hide-details
-              @click="(e) => e.stopPropagation()"
-              @blur="setEditableTn(i, false)"
-              @keydown.enter="setEditableTn(i, false)"
-            />
+            <a-form-item v-if="editableTn[i]" v-bind="validateInfos[`tables.${i}.table_name`]" noStyle>
+              <a-input
+                v-model:value="table.table_name"
+                style="max-width: 300px"
+                hide-details
+                @click="(e) => e.stopPropagation()"
+                @blur="setEditableTn(i, false)"
+                @keydown.enter="setEditableTn(i, false)"
+              />
+            </a-form-item>
+
             <span v-else class="font-weight-bold" @click="(e) => (e.stopPropagation(), setEditableTn(i, true))">
               <MdiTableIcon />
               {{ table.table_name }}

@@ -1,8 +1,10 @@
 <template>
   <div>
-    <v-combobox
+    <v-select
       v-model="localState"
       :items="setValues"
+      :menu-props="{ bottom: true, offsetY: true }"
+      item-value="title"
       multiple
       chips
       flat
@@ -14,34 +16,32 @@
     >
       <template #selection="data">
         <v-chip
-          :key="data.item"
+          :color="data.item.color"
           small
           class="ma-1"
-          :color="colors[setValues.indexOf(data.item) % colors.length]"
           @click:close="data.parent.selectItem(data.item)"
         >
-          {{ data.item }}
+          {{ data.item.title }}
         </v-chip>
       </template>
 
-      <template #item="{ item }">
-        <v-chip small :color="colors[setValues.indexOf(item) % colors.length]">
-          {{ item }}
+      <template #item="{item}">
+        <v-chip small :color="item.color">
+          {{ item.title }}
         </v-chip>
       </template>
       <template #append>
-        <v-icon small class="mt-2"> mdi-menu-down </v-icon>
+        <v-icon small class="mt-1">
+          mdi-menu-down
+        </v-icon>
       </template>
-    </v-combobox>
+    </v-select>
   </div>
 </template>
 
 <script>
-import colors from '@/mixins/colors';
-
 export default {
   name: 'SetListEditableCell',
-  mixins: [colors],
   props: {
     value: String,
     column: Object,
@@ -49,19 +49,18 @@ export default {
   computed: {
     localState: {
       get() {
-        return this.value && this.value.match(/(?:[^',]|\\')+(?='?(?:,|$))/g).map(v => v.replace(/\\'/g, "'"));
+        return typeof this.value === 'string' ? this.value.split(',') : [];
       },
       set(val) {
-        this.$emit('input', val.filter(v => this.setValues.includes(v)).join(','));
+        this.$emit('input', val.filter(v => this.setValues.find(el => el.title === v)).join(','));
       },
     },
     setValues() {
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp
-          .match(/(?:[^']|\\')+(?='?(?:,|$))/g)
-          .map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''));
+      const opts = this.column.colOptions.options || [];
+      for (const op of opts.filter(el => el.order === null)) {
+        op.title = op.title.replace(/^'/, '').replace(/'$/, '');
       }
-      return [];
+      return opts;
     },
     parentListeners() {
       const $listeners = {};
@@ -86,17 +85,26 @@ export default {
 };
 </script>
 
-<style scoped>
-select {
-  width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
-  -webkit-appearance: menulist;
-  /*webkit browsers */
-  -moz-appearance: menulist;
-  /*Firefox */
-  appearance: menulist;
+<style scoped lang="scss">
+
+::v-deep {
+  .v-select {
+    min-width: 150px;
+    .v-select__selections {
+      min-height: 38px !important;
+    }
+  }
+  .v-input__slot{
+    padding-right: 0 !important;
+  }
+  .v-input__icon.v-input__icon--clear {
+    width: 15px !important;
+    .v-icon {
+      font-size: 13px !important;
+    }
+  }
 }
+
 </style>
 <!--
 /**

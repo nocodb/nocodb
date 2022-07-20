@@ -1,10 +1,12 @@
 <template>
   <v-select
     v-model="localState"
+    :items="enumValues"
+    :menu-props="{ bottom: true, offsetY: true }"
+    item-value="title"
     solo
     dense
     flat
-    :items="enumValues"
     hide-details
     class="mt-0"
     :clearable="!column.rqd"
@@ -17,14 +19,14 @@
           'text-center': !isForm,
         }"
       >
-        <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]" class="ma-1">
-          {{ item }}
+        <v-chip small :color="item.color" class="ma-1">
+          {{ item.title }}
         </v-chip>
       </div>
     </template>
     <template #item="{ item }">
-      <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">
-        {{ item }}
+      <v-chip small :color="item.color">
+        {{ item.title }}
       </v-chip>
     </template>
     <template #append>
@@ -48,17 +50,18 @@ export default {
   computed: {
     localState: {
       get() {
-        return this.value && this.value.replace(/\\'/g, "'").replace(/^'|'$/g, '');
+        return this.value;
       },
       set(val) {
         this.$emit('input', val);
       },
     },
     enumValues() {
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''));
+      const opts = this.column.colOptions.options || [];
+      for (const op of opts.filter(el => el.order === null)) {
+        op.title = op.title.replace(/^'/, '').replace(/'$/, '');
       }
-      return [];
+      return opts;
     },
     parentListeners() {
       const $listeners = {};

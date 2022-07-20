@@ -76,6 +76,7 @@ const tableColumns = [
   {
     name: 'Action',
     key: 'action',
+    align: 'right',
   },
 ]
 
@@ -108,7 +109,7 @@ const validators = computed(() => {
 const { resetFields, validate, validateInfos } = useForm(data, validators)
 
 const editorTitle = computed(() => {
-  return `${quickImportType.toUpperCase()} Import`
+  return `${quickImportType.toUpperCase()} Import: ${data.title}`
 })
 
 onMounted(() => {
@@ -315,11 +316,11 @@ const importTemplate = async () => {
       </a-button>
     </template>
     <a-form :model="data" name="template-editor-form">
-      <p v-if="data.tables && quickImportType === 'excel'" class="caption grey--text mt-4">
+      <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
         {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
         available for import
       </p>
-      <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel">
+      <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" accordion>
         <a-collapse-panel v-for="(table, i) in data.tables" :key="i">
           <template #header>
             <a-form-item v-if="editableTn[i]" v-bind="validateInfos[`tables.${i}.table_name`]" noStyle>
@@ -332,9 +333,8 @@ const importTemplate = async () => {
                 @keydown.enter="setEditableTn(i, false)"
               />
             </a-form-item>
-
-            <span v-else class="font-weight-bold" @click="(e) => (e.stopPropagation(), setEditableTn(i, true))">
-              <MdiTableIcon />
+            <span v-else class="font-weight-bold text-lg" @click="(e) => (e.stopPropagation(), setEditableTn(i, true))">
+              <MdiTableIcon style="margin-bottom: -5px" />
               {{ table.table_name }}
             </span>
           </template>
@@ -344,10 +344,24 @@ const importTemplate = async () => {
                 <!-- TODO: i18n -->
                 <span>Delete Table</span>
               </template>
-              <MdiDeleteOutlineIcon v-if="data.tables.length > 1" @click.stop="deleteTable(i)" />
+              <MdiDeleteOutlineIcon
+                v-if="data.tables.length > 1"
+                class="text-lg"
+                style="margin-right: 30px"
+                @click.stop="deleteTable(i)"
+              />
             </a-tooltip>
           </template>
-          <a-table v-if="table.columns.length" :dataSource="table.columns" :columns="tableColumns" :pagination="false">
+
+          <a-table
+            v-if="table.columns.length"
+            class="template-form"
+            size="middle"
+            row-class-name="template-form-row"
+            :data-source="table.columns"
+            :columns="tableColumns"
+            :pagination="false"
+          >
             <template #headerCell="{ column }">
               <template v-if="column.key === 'column_name'">
                 <span>
@@ -391,18 +405,16 @@ const importTemplate = async () => {
               </template>
 
               <template v-if="column.key === 'action'">
-                <a-tooltip v-if="record.key == 0" bottom>
+                <a-tooltip v-if="record.key === 0">
                   <template #title>
                     <!-- TODO: i18n -->
                     <span>Primary Value</span>
                   </template>
-                  <a-button type="text" disabled>
-                    <div class="flex items-center">
-                      <MdiKeyStarIcon />
-                    </div>
-                  </a-button>
+                  <span style="margin-right: 15px">
+                    <MdiKeyStarIcon class="text-lg" />
+                  </span>
                 </a-tooltip>
-                <a-tooltip v-else bottom>
+                <a-tooltip v-else>
                   <template #title>
                     <!-- TODO: i18n -->
                     <span>Delete Column</span>
@@ -410,7 +422,7 @@ const importTemplate = async () => {
 
                   <a-button @click="deleteTableColumn(i, record.key, record, table)" type="text">
                     <div class="flex items-center">
-                      <MdiDeleteOutlineIcon />
+                      <MdiDeleteOutlineIcon class="text-lg" />
                     </div>
                   </a-button>
                 </a-tooltip>
@@ -474,3 +486,9 @@ const importTemplate = async () => {
     </a-form>
   </a-card>
 </template>
+
+<style scoped>
+.template-form :deep(.template-form-row) > td {
+  padding-bottom: 0px !important;
+}
+</style>

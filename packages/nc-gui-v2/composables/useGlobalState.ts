@@ -67,9 +67,6 @@ export const useGlobalState = (): GlobalState => {
   /** State */
   const initialState: StoredState = { token: null, user: null, lang: preferredLanguage, darkMode: prefersDarkMode }
 
-  /** is sidebar open */
-  const sidebarOpen = ref(breakpoints.greater('md').value)
-
   /** saves a reactive state, any change to these values will write/delete to localStorage */
   const storage = $(useStorage<StoredState>(storageKey, initialState))
 
@@ -87,6 +84,9 @@ export const useGlobalState = (): GlobalState => {
   const signedIn: Getters['signedIn'] = computed(
     () => !!(!!token && token !== '' && payload && payload.exp && payload.exp > timestamp / 1000),
   )
+
+  /** is sidebar open */
+  const sidebarOpen = ref(signedIn.value && breakpoints.greater('md').value)
 
   /** Actions */
   /** Sign out by deleting the token from localStorage */

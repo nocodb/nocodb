@@ -59,6 +59,7 @@ const deleteProject = (project: ProjectType) => {
   })
 }
 
+console.log(route.name)
 const visible = ref(true)
 </script>
 
@@ -97,11 +98,11 @@ const visible = ref(true)
           </v-menu>
         </div>
 
-        <a-menu class="mx-4 dark:bg-gray-800 dark:text-white flex-1 border-0">
+        <a-menu class="pr-4 dark:bg-gray-800 dark:text-white flex-1 border-0">
           <a-menu-item
             v-for="(option, index) in navDrawerOptions"
             :key="index"
-            class="f!rounded-r-lg"
+            class="!rounded-r-lg"
             @click="activePage = option.title"
           >
             <div class="flex items-center gap-4">
@@ -128,12 +129,12 @@ const visible = ref(true)
 
         <div class="self-end flex text-4xl mb-1">
           <MaterialSymbolsGridView
-            :class="route.name === 'index-index' ? 'text-primary dark:(!text-secondary/75)' : ''"
+            :class="route.name === 'index-index' ? '!text-primary dark:(!text-secondary/75)' : ''"
             class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/')"
           />
           <MaterialSymbolsFormatListBulletedRounded
-            :class="route.name === 'index-index-list' ? 'text-primary dark:(!text-secondary/75)' : ''"
+            :class="route.name === 'index-index-list' ? '!text-primary dark:(!text-secondary/75)' : ''"
             class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
             @click="navigateTo('/list')"
           />

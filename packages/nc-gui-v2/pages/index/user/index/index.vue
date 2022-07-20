@@ -1,17 +1,16 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { navigateTo, useNuxtApp } from '#app'
-import { isEmail } from '~/utils/validation'
+import { useNuxtApp } from '#app'
 import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
 import { reactive, ref } from '#imports'
 
-const { $api, $state } = useNuxtApp()
+const { $api } = useNuxtApp()
 
 const { t } = useI18n()
 
-const valid = ref()
+const formValidator = ref()
 let error = $ref<string | null>(null)
 
 const form = reactive({
@@ -22,22 +21,34 @@ const form = reactive({
 
 const formRules = {
   currentPassword: [
-    (v: string) => !!v || t('msg.error.signUpRules.passwdRequired'),
-    // E-mail must be valid format
-    (v: string) => isEmail(v) || t('msg.error.signUpRules.emailInvalid'),
+    // Current password is required
+    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
   ],
   password: [
     // Password is required
-    (v: string) => !!v || t('msg.error.signUpRules.passwdRequired'),
-    (v: string) => v.length >= 8 || t('msg.error.signUpRules.passwdLength'),
+    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
+    { min: 8, message: t('msg.error.signUpRules.passwdLength') },
   ],
   passwordRepeat: [
+    // PasswordRepeat is required
+    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
     // Passwords match
-    (v: string) => v === form.password || t('msg.error.signUpRules.passwdMismatch'),
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (form.password === form.passwordRepeat) return resolve(true)
+          reject(new Error(t('msg.error.signUpRules.passwdMismatch')))
+        })
+      },
+      message: t('msg.error.signUpRules.passwdMismatch'),
+    },
   ],
 }
 
 const passwordChange = async () => {
+  const valid = formValidator.value.validate()
+  if (!valid) return
+
   error = null
   try {
     const { msg } = await $api.auth.passwordChange(form)
@@ -55,86 +66,59 @@ const resetError = () => {
 </script>
 
 <template>
-  <v-form
-    ref="formValidator"
-    v-model="valid"
-    class="h-[calc(100%_+_180px)] min-h-[600px] flex justify-center items-center"
-    @submit.prevent="passwordChange"
-  >
-    <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
-      <div
-        class="dark:(md:bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
-      >
-        <div
-          style="left: -moz-calc(50% - 45px); left: -webkit-calc(50% - 45px); left: calc(50% - 45px)"
-          class="absolute top-12 md:top-[-10%] rounded-lg bg-primary"
-        >
-          <img width="90" height="90" src="~/assets/img/icons/512x512-trans.png" />
+  <a-form ref="formValidator" layout="vertical" :model="form" class="change-password h-full w-full" @finish="passwordChange">
+    <div class="md:relative flex flex-col gap-2 w-full h-full p-8 max-w-1/2">
+      <h1 class="prose-2xl font-bold mb-4">{{ $t('activity.changePwd') }}</h1>
+
+      <Transition name="layout">
+        <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
+          <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
         </div>
+      </Transition>
 
-        <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signUp') }}</h1>
-
-        <Transition name="layout">
-          <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
-            <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
-          </div>
-        </Transition>
-
-        <v-text-field
-          id="email"
-          v-model="form.email"
-          class="bg-white dark:!bg-gray-900"
-          :rules="formRules.email"
-          :label="$t('labels.email')"
-          :placeholder="$t('labels.email')"
-          :persistent-placeholder="true"
-          type="text"
+      <a-form-item :label="$t('placeholder.password.current')" name="currentPassword" :rules="formRules.password">
+        <a-input-password
+          v-model:value="form.password"
+          size="large"
+          class="password"
+          :placeholder="$t('placeholder.password.current')"
           @focus="resetError"
         />
+      </a-form-item>
 
-        <v-text-field
-          id="password"
-          v-model="form.password"
-          class="bg-white dark:!bg-gray-900"
-          :rules="formRules.password"
-          :label="$t('labels.password')"
-          :placeholder="$t('labels.password')"
-          :persistent-placeholder="true"
-          type="password"
+      <a-form-item :label="$t('placeholder.password.new')" name="newPassword" :rules="formRules.password">
+        <a-input-password
+          v-model:value="form.password"
+          size="large"
+          class="password"
+          :placeholder="$t('placeholder.password.new')"
           @focus="resetError"
         />
+      </a-form-item>
 
-        <v-text-field
-          id="password_repeat"
-          v-model="form.passwordRepeat"
-          class="bg-white dark:!bg-gray-900"
-          :rules="formRules.passwordRepeat"
-          :label="`Repeat ${$t('labels.password')}`"
-          :placeholder="`Repeat ${$t('labels.password')}`"
-          :persistent-placeholder="true"
-          type="password"
+      <a-form-item :label="$t('placeholder.password.confirm')" name="passwordRepeat" :rules="formRules.passwordRepeat">
+        <a-input-password
+          v-model:value="form.passwordRepeat"
+          size="large"
+          class="password"
+          :placeholder="$t('placeholder.password.confirm')"
           @focus="resetError"
         />
+      </a-form-item>
 
-        <div class="self-center flex flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
-          <button
-            :disabled="!valid"
-            :class="[
-              !valid
-                ? '!opacity-50 !cursor-default'
-                : 'shadow-md hover:(text-primary bg-primary/10 dark:text-white dark:!bg-primary/50)',
-            ]"
-            class="ml-1 border-1 border-solid border-gray-300 color-transition rounded-lg p-4 bg-gray-100/50"
-            type="submit"
-          >
-            <span class="flex items-center gap-2"><MaterialSymbolsRocketLaunchOutline /> {{ $t('general.signUp') }}</span>
-          </button>
-          <div class="text-end prose-sm">
-            {{ $t('msg.info.signUp.alreadyHaveAccount') }}
-            <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
-          </div>
-        </div>
+      <div class="flex flex-wrap gap-4 items-center mt-4 md:justify-between w-full">
+        <button class="submit" type="submit">
+          <span class="flex items-center gap-2"><MaterialSymbolsRocketLaunchOutline /> {{ $t('activity.changePwd') }}</span>
+        </button>
       </div>
     </div>
-  </v-form>
+  </a-form>
 </template>
+
+<style lang="scss">
+.change-password {
+  .submit {
+    @apply ml-1 bordered border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+  }
+}
+</style>

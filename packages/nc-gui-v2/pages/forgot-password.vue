@@ -20,8 +20,6 @@ definePageMeta({
 let error = $ref<string | null>(null)
 let success = $ref(false)
 
-const valid = ref()
-
 const formValidator = ref()
 
 const form = reactive({
@@ -31,13 +29,24 @@ const form = reactive({
 const formRules = {
   email: [
     // E-mail is required
-    (v: string) => !!v || t('msg.error.signUpRules.emailReqd'),
+    { required: true, message: t('msg.error.signUpRules.emailReqd') },
     // E-mail must be valid format
-    (v: string) => isEmail(v) || t('msg.error.signUpRules.emailInvalid'),
+    {
+      validator: (_: unknown, v: string) => {
+        return new Promise((resolve, reject) => {
+          if (isEmail(v)) return resolve(true)
+          reject(new Error(t('msg.error.signUpRules.emailInvalid')))
+        })
+      },
+      message: t('msg.error.signUpRules.emailInvalid'),
+    },
   ],
 }
 
 const resetPassword = async () => {
+  const valid = formValidator.value.validate()
+  if (!valid) return
+
   error = null
   try {
     await $api.auth.passwordForgot(form)
@@ -57,11 +66,12 @@ const resetError = () => {
 
 <template>
   <NuxtLayout>
-    <v-form
+    <a-form
       ref="formValidator"
-      v-model="valid"
-      class="h-full min-h-[600px] flex justify-center items-center"
-      @submit.prevent="resetPassword"
+      layout="vertical"
+      :model="form"
+      class="forgot-password h-full min-h-[600px] flex justify-center items-center"
+      @finish="resetPassword"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div
@@ -91,29 +101,12 @@ const resetError = () => {
             </div>
           </Transition>
 
-          <v-text-field
-            id="email"
-            v-model="form.email"
-            class="bg-white dark:!bg-gray-900"
-            :rules="formRules.email"
-            :label="$t('labels.email')"
-            :placeholder="$t('labels.email')"
-            :persistent-placeholder="true"
-            type="text"
-            @focus="resetError"
-          />
+          <a-form-item :label="$t('labels.email')" name="email" :rules="formRules.email">
+            <a-input v-model:value="form.email" size="large" :placeholder="$t('labels.email')" @focus="resetError" />
+          </a-form-item>
 
           <div class="self-center flex flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
-            <button
-              :disabled="!valid"
-              :class="[
-                !valid
-                  ? '!opacity-50 !cursor-default'
-                  : 'text-white bg-primary hover:(text-primary !bg-primary/75) dark:(!bg-secondary/75 hover:!bg-secondary/50)',
-              ]"
-              class="ml-1 border-1 border-solid border-gray-300 color-transition rounded-lg p-4 bg-gray-100/50"
-              type="submit"
-            >
+            <button class="submit" type="submit">
               <span class="flex items-center gap-2"><MdiLogin /> {{ $t('activity.sendEmail') }}</span>
             </button>
             <div class="text-end prose-sm">
@@ -123,6 +116,19 @@ const resetError = () => {
           </div>
         </div>
       </div>
-    </v-form>
+    </a-form>
   </NuxtLayout>
 </template>
+
+<style lang="scss">
+.forgot-password {
+  .ant-input-affix-wrapper,
+  .ant-input {
+    @apply dark:(bg-gray-700 !text-white) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+  }
+
+  .submit {
+    @apply ml-1 bordered border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+  }
+}
+</style>

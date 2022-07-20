@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import * as monaco from 'monaco-editor'
 import { onMounted } from '#imports'
-import { deepCompare } from "~/utils/deepCompare";
+import { deepCompare } from '~/utils/deepCompare'
 
 const { modelValue } = defineProps<{ modelValue: any }>()
 const emit = defineEmits(['update:modelValue'])

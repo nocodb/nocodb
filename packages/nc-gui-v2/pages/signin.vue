@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
-import { definePageMeta, useHead } from '#imports'
+import { definePageMeta } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { navigateTo, useNuxtApp } from '#app'
 import { isEmail } from '~/utils/validation'

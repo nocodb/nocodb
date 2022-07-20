@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isVirtualCol, UITypes } from 'nocodb-sdk'
 import type { SizeType } from 'ant-design-vue/es/config-provider'
 import type { FormInstance } from 'ant-design-vue'
@@ -239,7 +239,7 @@ const importTemplate = async () => {
       }
 
       // create table
-      const table: TableType = await $api.dbTable.create(project?.value?.id as string, {
+      const table: TableType | undefined = await $api.dbTable.create(project?.value?.id as string, {
         table_name: t.table_name,
         title: '',
         columns: t.columns,
@@ -258,7 +258,9 @@ const importTemplate = async () => {
       }
 
       // set primary value
-      await $api.dbTableColumn.primaryColumnSet(table.columns[0].id as string)
+      if (table?.columns[0]?.id) {
+        await $api.dbTableColumn.primaryColumnSet(table.columns[0].id as string)
+      }
     }
   } catch (e: any) {
     // TODO: retrieve error msg from sdk
@@ -301,6 +303,7 @@ const importTemplate = async () => {
     type: 'table',
   })
   loading.value = false
+  // TODO: close dialog ?
 }
 </script>
 

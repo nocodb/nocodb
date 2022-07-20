@@ -38,8 +38,8 @@ const openProject = async (project: ProjectType) => {
       <div class="font-semibold capitalize">{{ project.title || 'Untitled' }}</div>
       <div>{{ project.updated_at }}</div>
       <div class="flex justify-center">
-        <MdiDeleteOutline class="text-gray-500 hover:text-red-500 mr-2" @click.stop @click="emit('delete-project', project)" />
-        <MdiEditOutline class="text-gray-500 hover:text-primary mr-2" @click.stop />
+        <MdiDeleteOutline class="text-gray-500 hover:text-red-500 mr-2" @click.stop="emit('delete-project', project)" />
+        <MdiEditOutline class="text-gray-500 hover:text-primary mr-2" @click.stop="navigateTo(`/project/${project.id}`)" />
       </div>
     </div>
     <v-divider class="col-span-3" />

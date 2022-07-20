@@ -34,7 +34,7 @@ const formatTitle = (title: string) =>
 </script>
 
 <template>
-  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 3xl:grid-cols-6 gap-6 md:(gap-y-16)">
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 3xl:grid-cols-8 gap-6 md:(gap-y-16)">
     <div class="group flex flex-col items-center gap-2">
       <v-menu>
         <template #activator="{ props }">
@@ -92,7 +92,7 @@ const formatTitle = (title: string) =>
         </a-dropdown>
       </div>
 
-      <div class="prose-lg font-semibold">
+      <div class="prose-lg font-semibold overflow-ellipsis w-full overflow-hidden text-center capitalize">
         {{ project.title || 'Untitled' }}
       </div>
     </div>
@@ -101,7 +101,7 @@ const formatTitle = (title: string) =>
 
 <style scoped>
 .thumbnail {
-  @apply relative rounded-md opacity-75 font-bold text-white text-[75px] h-[150px] w-full max-w-[150px] shadow-md cursor-pointer uppercase flex items-center justify-center color-transition hover:(after:opacity-100 shadow-none);
+  @apply relative rounded-md opacity-75 font-bold text-white text-[75px] h-[100px] w-full w-[100px] shadow-md cursor-pointer uppercase flex items-center justify-center color-transition hover:(after:opacity-100 shadow-none);
 }
 
 .thumbnail::after {

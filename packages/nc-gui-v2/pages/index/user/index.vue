@@ -2,39 +2,38 @@
 import { useNuxtApp, useRoute } from '#app'
 import MdiAccountCog from '~icons/mdi/account-cog'
 
-const { $api, $state } = useNuxtApp()
+const { $api } = useNuxtApp()
 
 const route = useRoute()
+
+const navDrawerOptions = [
+  {
+    title: 'Settings',
+    icon: MdiAccountCog,
+  },
+]
 </script>
 
 <template>
   <NuxtLayout>
     <template #sidebar>
-      <v-navigation-drawer v-model="$state.sidebarOpen.value" :border="0">
-        <div class="flex flex-col h-full">
-          <div class="advance-menu flex-1">
-            <v-list class="flex flex-col gap-1" :color="$state.darkMode.value ? 'secondary' : 'primary'">
-              <v-list-item
-                :active="route.name === 'index-user-index'"
-                class="flex items-center gap-4 !rounded-r-lg"
-                :value="$t('activity.settings')"
-              >
-                <MdiAccountCog />
+      <div class="flex flex-col h-full">
+        <a-menu :selected-keys="[0]" class="pr-4 dark:bg-gray-800 dark:text-white flex-1 border-0">
+          <a-menu-item v-for="(option, index) in navDrawerOptions" :key="index" class="!rounded-r-lg">
+            <div class="flex items-center gap-4">
+              <component :is="option.icon" />
 
-                <span class="font-semibold">
-                  {{ $t('activity.settings') }}
-                </span>
-              </v-list-item>
-            </v-list>
-          </div>
+              <span class="font-semibold">
+                {{ option.title }}
+              </span>
+            </div>
+          </a-menu-item>
+        </a-menu>
 
-          <v-divider />
+        <general-social />
 
-          <general-social />
-
-          <general-sponsors :nav="true" />
-        </div>
-      </v-navigation-drawer>
+        <general-sponsors :nav="true" />
+      </div>
     </template>
 
     <NuxtPage />

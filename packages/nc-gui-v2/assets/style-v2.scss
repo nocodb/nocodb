@@ -49,16 +49,8 @@ a {
   @apply prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
 }
 
-h1, h2, h3, h4, h5, h6 {
-  @apply text-black dark:(text-white);
-}
-
-.v-field__field {
-  @apply bg-white dark:(!bg-gray-900 text-white);
-
-  input {
-    @apply bg-white dark:(!bg-gray-700) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
-  }
+h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
+  @apply dark:(!text-white);
 }
 
 .nc-icon {
@@ -68,3 +60,4 @@ h1, h2, h3, h4, h5, h6 {
 :root {
   --header-height: 64px;
 }
+

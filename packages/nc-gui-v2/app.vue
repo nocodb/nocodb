@@ -6,6 +6,9 @@ import MaterialSymbolsMenu from '~icons/material-symbols/menu'
 import { navigateTo } from '#app'
 
 const { $state } = useNuxtApp()
+
+const sidebar = ref<HTMLDivElement>()
+
 const email = computed(() => $state.user?.value?.email ?? '---')
 
 const signOut = () => {
@@ -16,14 +19,14 @@ const signOut = () => {
 const toggleSidebar = useToggle($state.sidebarOpen)
 
 const sidebarOpen = computed({
-  get: () => !($state.sidebarOpen.value ?? true),
+  get: () => !$state.sidebarOpen.value,
   set: (val) => toggleSidebar(val),
 })
 </script>
 
 <template>
   <a-layout>
-    <a-layout-header class="flex !bg-primary items-center text-white !px-4">
+    <a-layout-header class="flex !bg-primary items-center text-white px-4 shadow-md">
       <MaterialSymbolsMenu
         v-if="$state.signedIn.value"
         class="text-xl cursor-pointer"
@@ -62,19 +65,19 @@ const sidebarOpen = computed({
 
             <template #overlay>
               <a-menu class="!py-0 nc-user-menu min-w-32 dark:(!bg-gray-800) leading-8 !rounded">
-                <a-menu-item key="0" class="!rounded">
+                <a-menu-item key="0" class="!rounded-t">
                   <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
                     <MdiAt class="mt-1 group-hover:text-success" />&nbsp;
-                    <span class="prose">{{ email }}</span>
+                    <span class="prose group-hover:text-black">{{ email }}</span>
                   </nuxt-link>
                 </a-menu-item>
 
                 <a-menu-divider class="!m-0" />
 
-                <a-menu-item key="1" class="!rounded">
+                <a-menu-item key="1" class="!rounded-b">
                   <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="signOut">
                     <MdiLogout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
-                    <span class="prose font-semibold text-gray-500">{{ $t('general.signOut') }}</span>
+                    <span class="prose font-semibold text-gray-500 group-hover:text-black">{{ $t('general.signOut') }}</span>
                   </div>
                 </a-menu-item>
               </a-menu>
@@ -93,7 +96,7 @@ const sidebarOpen = computed({
         :trigger="null"
         collapsible
       >
-        <div id="sidebar" class="w-full h-full" />
+        <div id="sidebar" ref="sidebar" class="w-full h-full" />
       </a-layout-sider>
 
       <NuxtPage />

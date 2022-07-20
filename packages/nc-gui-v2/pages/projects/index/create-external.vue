@@ -202,9 +202,11 @@ watch(
 
 // select and focus title field on load
 onMounted(() => {
-  const input = form.value?.$el.querySelector('input')
-  input.setSelectionRange(0, formState.title.length)
-  input.focus()
+  const input = form.value?.$el?.querySelector('input')
+  if (input) {
+    input.setSelectionRange(0, formState.title.length)
+    input.focus()
+  }
 })
 </script>
 

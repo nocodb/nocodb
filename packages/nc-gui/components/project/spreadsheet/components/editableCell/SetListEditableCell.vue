@@ -18,6 +18,8 @@
         <v-chip
           :color="data.item.color"
           small
+          close
+          close-icon="mdi-close"
           class="ma-1"
           @click:close="data.parent.selectItem(data.item)"
         >
@@ -102,6 +104,10 @@ export default {
     .v-icon {
       font-size: 13px !important;
     }
+  }
+  .mdi-close {
+    font-size: 12px !important;
+    color: gray !important;
   }
 }
 

@@ -81,7 +81,7 @@ const formatTitle = (title: string) =>
                   <div class="col-span-4 text-sm xl:text-md">{{ $t('general.delete') }}</div>
                 </div>
               </a-menu-item>
-              <a-menu-item>
+              <a-menu-item @click.stop="navigateTo(`/project/${project.id}`)">
                 <div class="grid grid-cols-6 cursor-pointer flex items-center p-2">
                   <MdiEditOutline class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
                   <div class="col-span-4 text-sm xl:text-md">{{ $t('general.edit') }}</div>

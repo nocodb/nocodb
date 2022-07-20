@@ -519,7 +519,6 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
             ? `${colBody.colOptions.options.map((o) => {
                 if(o.title.includes(',')) {
                   NcError.badRequest('Illegal char(\',\') for MultiSelect');
-                  throw new Error('');
                 }
                 return `'${o.title.replace(/'/gi, '\'\'')}'`;
               }).join(',')}`
@@ -680,7 +679,6 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         ? `${colBody.colOptions.options.map((o) => {
             if(o.title.includes(',')) {
               NcError.badRequest('Illegal char(\',\') for MultiSelect');
-              throw new Error('');
             }
             return `'${o.title.replace(/'/gi, '\'\'')}'`;
           }).join(',')}`
@@ -696,6 +694,16 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       // Handle migrations
       for (const op of column.colOptions.options.filter(el => el.order === null)) {
         op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+      }
+
+      // Restrict duplicates
+      const titles = colBody.colOptions.options.map(el => el.title)
+      if (titles
+        .some( function(item) {
+          return titles.indexOf(item) !== titles.lastIndexOf(item);
+        })
+      ) {
+        NcError.badRequest('Duplicates are not allowed!');
       }
 
       // Handle option delete

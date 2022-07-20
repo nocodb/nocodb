@@ -1,7 +1,7 @@
 <script lang="ts" setup>
-import { onMounted } from '@vue/runtime-core'
+import { onMounted, onUpdated } from '@vue/runtime-core'
 import type { Form } from 'ant-design-vue'
-import { ref } from 'vue'
+import { nextTick, ref } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { projectTitleValidator } from '~/utils/projectCreateUtils'
@@ -42,15 +42,18 @@ const createProject = async () => {
 const form = ref<typeof Form>()
 
 // hide sidebar
-$state.sidebarOpen.value = false
+// $state.sidebarOpen.value = false
 
 // select and focus title field on load
-onMounted(() => {
-  const input = form.value?.$el?.querySelector('input')
-  if (input) {
-    input.setSelectionRange(0, formState.title.length)
-    input.focus()
-  }
+onMounted(async () => {
+  nextTick(() => {
+    // todo: replace setTimeout and follow better approach
+    setTimeout(() => {
+      const input = form.value?.$el?.querySelector('input[type=text]')
+      input.setSelectionRange(0, formState.title.length)
+      input.focus()
+    }, 500)
+  })
 })
 </script>
 

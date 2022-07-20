@@ -203,11 +203,14 @@ watch(
 
 // select and focus title field on load
 onMounted(() => {
-  const input = form.value?.$el?.querySelector('input')
-  if (input) {
-    input.setSelectionRange(0, formState.title.length)
-    input.focus()
-  }
+  nextTick(() => {
+    // todo: replace setTimeout and follow better approach
+    setTimeout(() => {
+      const input = form.value?.$el?.querySelector('input[type=text]')
+      input.setSelectionRange(0, formState.title.length)
+      input.focus()
+    }, 500)
+  })
 })
 </script>
 

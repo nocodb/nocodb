@@ -16,8 +16,9 @@ definePageMeta({
   title: 'title.headLogin',
 })
 
+const formValidator = ref()
+
 let error = $ref<string | null>(null)
-const valid = $ref(false)
 
 const form = reactive({
   email: '',
@@ -46,6 +47,7 @@ const formRules = {
 }
 
 const signIn = async () => {
+  const valid = formValidator.value.validate()
   if (!valid) return
 
   error = null
@@ -73,9 +75,7 @@ const resetError = () => {
       :model="form"
       layout="vertical"
       class="signin h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
-      @finish="valid = true"
-      @finish-failed="valid = false"
-      @submit.prevent="signIn"
+      @finish="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div

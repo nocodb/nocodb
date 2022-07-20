@@ -20,8 +20,6 @@ definePageMeta({
 let error = $ref<string | null>(null)
 let success = $ref(false)
 
-const valid = $ref()
-
 const formValidator = ref()
 
 const form = reactive({
@@ -46,6 +44,7 @@ const formRules = {
 }
 
 const resetPassword = async () => {
+  const valid = formValidator.value.validate()
   if (!valid) return
 
   error = null
@@ -72,9 +71,7 @@ const resetError = () => {
       layout="vertical"
       :model="form"
       class="forgot-password h-full min-h-[600px] flex justify-center items-center"
-      @finish="valid = true"
-      @finish-failed="valid = false"
-      @submit.prevent="resetPassword"
+      @finish="resetPassword"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div

@@ -148,9 +148,9 @@ const resetError = () => {
       @apply dark:!text-white;
     }
   }
-}
 
-.submit {
-  @apply ml-1 bordered border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+  .submit {
+    @apply ml-1 bordered border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+  }
 }
 </style>

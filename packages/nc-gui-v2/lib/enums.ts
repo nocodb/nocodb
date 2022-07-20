@@ -4,6 +4,8 @@ export enum Role {
   User = 'user',
 }
 
+export type Roles = Record<Role, boolean>
+
 export enum Language {
   de = 'Deutsch',
   en = 'English',

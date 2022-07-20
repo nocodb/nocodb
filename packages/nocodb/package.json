@@ -143,6 +143,7 @@
     "jsonfile": "^6.1.0",
     "jsonwebtoken": "^8.5.1",
     "knex": "^0.21.2",
+    "knex-schema-inspector": "^2.0.3",
     "lodash": "^4.17.19",
     "lru-cache": "^6.0.0",
     "mailersend": "^1.1.0",

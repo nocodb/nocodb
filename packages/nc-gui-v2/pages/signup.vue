@@ -117,7 +117,7 @@ const resetError = () => {
             />
           </a-form-item>
 
-          <a-form-item :label="`Repeat ${$t('labels.password')}`" name="password" :rules="formRules.passwordRepeat">
+          <a-form-item :label="`Repeat ${$t('labels.password')}`" name="passwordRepeat" :rules="formRules.passwordRepeat">
             <a-input-password
               v-model:value="form.passwordRepeat"
               size="large"

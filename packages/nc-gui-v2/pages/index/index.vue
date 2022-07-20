@@ -97,11 +97,11 @@ const visible = ref(true)
           </v-menu>
         </div>
 
-        <a-menu class="mx-4 dark:bg-gray-800 dark:text-white flex-1 border-0">
+        <a-menu class="pr-4 dark:bg-gray-800 dark:text-white flex-1 border-0">
           <a-menu-item
             v-for="(option, index) in navDrawerOptions"
             :key="index"
-            class="f!rounded-r-lg"
+            class="!rounded-r-lg"
             @click="activePage = option.title"
           >
             <div class="flex items-center gap-4">

@@ -71,7 +71,9 @@ export default defineNuxtConfig({
           }),
         ],
       }),
-      monacoEditorPlugin({}),
+      monacoEditorPlugin({
+        languageWorkers: ['json'],
+      }),
     ],
     define: {
       'process.env.DEBUG': 'false',

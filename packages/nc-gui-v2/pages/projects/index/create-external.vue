@@ -1,116 +1,116 @@
 <script lang="ts" setup>
-import { useI18n } from 'vue-i18n'
-import { useToast } from 'vue-toastification'
-import { Form, Modal } from 'ant-design-vue'
-import { ref } from '#imports'
-import { navigateTo, useNuxtApp } from '#app'
-import type { ProjectCreateForm } from '~/lib/types'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { useI18n } from "vue-i18n";
+import { useToast } from "vue-toastification";
+import { Form, Modal } from "ant-design-vue";
+import { ref } from "#imports";
+import { navigateTo, useNuxtApp } from "#app";
+import type { ProjectCreateForm } from "~/lib/types";
+import { extractSdkResponseErrorMsg } from "~/utils/errorUtils";
 import {
   clientTypes,
   fieldRequiredValidator,
   getDefaultConnectionConfig,
   getTestDatabaseName,
   projectTitleValidator,
-  sslUsage,
-} from '~/utils/projectCreateUtils'
-import { readFile } from '~/utils/fileUtils'
+  sslUsage
+} from "~/utils/projectCreateUtils";
+import { readFile } from "~/utils/fileUtils";
 
-const useForm = Form.useForm
-const loading = ref(false)
-const testSuccess = ref(false)
+const useForm = Form.useForm;
+const loading = ref(false);
+const testSuccess = ref(false);
 
-const { $api, $e } = useNuxtApp()
-const toast = useToast()
-const { t } = useI18n()
+const { $api, $e } = useNuxtApp();
+const toast = useToast();
+const { t } = useI18n();
 
-const formState = reactive<ProjectCreateForm>({
-  title: '',
-  dataSource: { ...getDefaultConnectionConfig('mysql2') },
+const formState = $ref<ProjectCreateForm>({
+  title: "",
+  dataSource: { ...getDefaultConnectionConfig("mysql2") },
   inflection: {
-    inflection_column: 'camelize',
-    inflection_table: 'camelize',
-  },
-})
+    inflection_column: "camelize",
+    inflection_table: "camelize"
+  }
+});
 
 const validators = computed(() => {
   return {
-    'title': [
+    "title": [
       {
         required: true,
-        message: 'Please input project title',
+        message: "Please input project title"
       },
-      projectTitleValidator,
+      projectTitleValidator
     ],
-    'dataSource.client': [fieldRequiredValidator],
-    ...(formState.dataSource.client === 'sqlite3'
+    "dataSource.client": [fieldRequiredValidator],
+    ...(formState.dataSource.client === "sqlite3"
       ? {
-          'dataSource.connection.connection.filename': [fieldRequiredValidator],
-        }
+        "dataSource.connection.connection.filename": [fieldRequiredValidator]
+      }
       : {
-          'dataSource.connection.host': [fieldRequiredValidator],
-          'dataSource.connection.port': [fieldRequiredValidator],
-          'dataSource.connection.username': [fieldRequiredValidator],
-          'dataSource.connection.password': [fieldRequiredValidator],
-          'dataSource.connection.database': [fieldRequiredValidator],
-          ...(['pg', 'mssql'].includes(formState.dataSource.client)
-            ? {
-                'dataSource.connection.searchPath.0': [fieldRequiredValidator],
-              }
-            : {}),
-        }),
-  }
-})
+        "dataSource.connection.host": [fieldRequiredValidator],
+        "dataSource.connection.port": [fieldRequiredValidator],
+        "dataSource.connection.user": [fieldRequiredValidator],
+        "dataSource.connection.password": [fieldRequiredValidator],
+        "dataSource.connection.database": [fieldRequiredValidator],
+        ...(["pg", "mssql"].includes(formState.dataSource.client)
+          ? {
+            "dataSource.connection.searchPath.0": [fieldRequiredValidator]
+          }
+          : {})
+      })
+  };
+});
 
-const { resetFields, validate, validateInfos } = useForm(formState, validators)
+const { resetFields, validate, validateInfos } = useForm(formState, validators);
 
 const onClientChange = () => {
-  formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
-}
+  formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) };
+};
 
-const inflectionTypes = ['camelize', 'none']
-const configEditDlg = ref(false)
+const inflectionTypes = ["camelize", "none"];
+const configEditDlg = ref(false);
 
 // populate database name based on title
 watch(
   () => formState.title,
-  (v) => (formState.dataSource.connection.database = `${v}_noco`),
-)
+  (v) => (formState.dataSource.connection.database = `${v}_noco`)
+);
 
-const caFileInput = ref<HTMLInputElement>()
-const keyFileInput = ref<HTMLInputElement>()
-const certFileInput = ref<HTMLInputElement>()
+const caFileInput = ref<HTMLInputElement>();
+const keyFileInput = ref<HTMLInputElement>();
+const certFileInput = ref<HTMLInputElement>();
 
-const onFileSelect = (key: 'ca' | 'cert' | 'key', el: HTMLInputElement) => {
+const onFileSelect = (key: "ca" | "cert" | "key", el: HTMLInputElement) => {
   readFile(el, (content) => {
-    if ('ssl' in formState.dataSource.connection && formState.dataSource.connection.ssl)
-      formState.dataSource.connection.ssl[key] = content ?? ''
-  })
-}
+    if ("ssl" in formState.dataSource.connection && formState.dataSource.connection.ssl)
+      formState.dataSource.connection.ssl[key] = content ?? "";
+  });
+};
 
 const sslFilesRequired = computed<boolean>(() => {
-  return formState?.sslUse && formState.sslUse !== 'No'
-})
+  return formState?.sslUse && formState.sslUse !== "No";
+});
 
 function getConnectionConfig() {
   const connection = {
-    ...formState.dataSource.connection,
-  }
+    ...formState.dataSource.connection
+  };
 
-  if ('ssl' in connection && connection.ssl && (!sslFilesRequired || Object.values(connection.ssl).every((v) => !v))) {
-    delete connection.ssl
+  if ("ssl" in connection && connection.ssl && (!sslFilesRequired || Object.values(connection.ssl).every((v) => !v))) {
+    delete connection.ssl;
   }
-  return connection
+  return connection;
 }
 
 const createProject = async () => {
   if (!(await validate())) {
-    return
+    return;
   }
-  loading.value = true
+  loading.value = true;
   try {
-    const connection = getConnectionConfig()
-    const config = { ...formState.dataSource, connection }
+    const connection = getConnectionConfig();
+    const config = { ...formState.dataSource, connection };
     const result = await $api.project.create({
       title: formState.title,
       bases: [
@@ -118,75 +118,74 @@ const createProject = async () => {
           type: formState.dataSource.client,
           config,
           inflection_column: formState.inflection.inflection_column,
-          inflection_table: formState.inflection.inflection_table,
-        },
+          inflection_table: formState.inflection.inflection_table
+        }
       ],
-      external: true,
-    })
-
-    await navigateTo(`/nc/${result.id}`)
+      external: true
+    });
+    $e("a:project:create:extdb");
+    await navigateTo(`/nc/${result.id}`);
   } catch (e: any) {
     // todo: toast
-    toast.error(await extractSdkResponseErrorMsg(e))
+    toast.error(await extractSdkResponseErrorMsg(e));
   }
-  loading.value = false
-}
+  loading.value = false;
+};
 
 const testConnection = async () => {
   if (!(await validate())) {
-    return
+    return;
   }
-  $e('a:project:create:extdb:test-connection', [])
+  $e("a:project:create:extdb:test-connection", []);
   try {
-    // this.handleSSL(projectDatasource)
-
-    if (formState.dataSource.client === 'sqlite3') {
-      testSuccess.value = true
+    if (formState.dataSource.client === "sqlite3") {
+      testSuccess.value = true;
     } else {
-      const connection: any = getConnectionConfig()
-      connection.database = getTestDatabaseName(formState.dataSource)
+      const connection: any = getConnectionConfig();
+      connection.database = getTestDatabaseName(formState.dataSource);
       const testConnectionConfig = {
         ...formState.dataSource,
-        connection,
-      }
+        connection
+      };
 
-      const result = await $api.utils.testConnection(testConnectionConfig)
+      const result = await $api.utils.testConnection(testConnectionConfig);
 
       if (result.code === 0) {
-        testSuccess.value = true
+        testSuccess.value = true;
 
         Modal.confirm({
-          title: t('msg.info.dbConnected'),
+          title: t("msg.info.dbConnected"),
           icon: null,
-          type: 'success',
+          type: "success",
 
-          okText: t('activity.OkSaveProject'),
-          okType: 'primary',
-          cancelText: 'Cancel',
-          onOk: createProject,
-        })
+          okText: t("activity.OkSaveProject"),
+          okType: "primary",
+          cancelText: "Cancel",
+          onOk: createProject
+        });
       } else {
-        testSuccess.value = false
-        toast.error(`${t('msg.error.dbConnectionFailed')} ${result.message}`)
+        testSuccess.value = false;
+        toast.error(`${t("msg.error.dbConnectionFailed")} ${result.message}`);
       }
     }
   } catch (e: any) {
-    testSuccess.value = false
-    toast.error(await extractSdkResponseErrorMsg(e))
+    testSuccess.value = false;
+    toast.error(await extractSdkResponseErrorMsg(e));
   }
-}
+};
 </script>
 
 <template>
   <a-card class="max-w-[600px] mx-auto !mt-100px" :title="$t('activity.createProject')">
-    <a-form :model="formState" name="validate_other" layout="horizontal" :label-col="{ span: 8 }" :wrapper-col="{ span: 18 }">
+    <a-form :model="formState" name="validate_other" layout="horizontal" :label-col="{ span: 8 }"
+            :wrapper-col="{ span: 18 }">
       <a-form-item :label="$t('placeholder.projName')" v-bind="validateInfos.title">
         <a-input v-model:value="formState.title" size="small" />
       </a-form-item>
       <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
         <a-select v-model:value="formState.dataSource.client" size="small" @change="onClientChange">
           <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
-            >{{ client.text }}
+          >{{ client.text }}
           </a-select-option>
         </a-select>
       </a-form-item>
@@ -253,28 +252,28 @@ const testConnection = async () => {
                 <a-tooltip placement="top">
                   <!-- Select .cert file -->
                   <template #title>
-                    <span>{{ $t('tooltip.clientCert') }}</span>
+                    <span>{{ $t("tooltip.clientCert") }}</span>
                   </template>
                   <a-button :disabled="!sslFilesRequired" size="small" @click="certFileInput.click()">
-                    {{ $t('labels.clientCert') }}
+                    {{ $t("labels.clientCert") }}
                   </a-button>
                 </a-tooltip>
                 <a-tooltip placement="top">
                   <!-- Select .key file -->
                   <template #title>
-                    <span>{{ $t('tooltip.clientKey') }}</span>
+                    <span>{{ $t("tooltip.clientKey") }}</span>
                   </template>
                   <a-button :disabled="!sslFilesRequired" size="small" @click="keyFileInput.click()">
-                    {{ $t('labels.clientKey') }}
+                    {{ $t("labels.clientKey") }}
                   </a-button>
                 </a-tooltip>
                 <a-tooltip placement="top">
                   <!-- Select CA file -->
                   <template #title>
-                    <span>{{ $t('tooltip.clientCA') }}</span>
+                    <span>{{ $t("tooltip.clientCA") }}</span>
                   </template>
                   <a-button :disabled="!sslFilesRequired" size="small" @click="caFileInput.click()">
-                    {{ $t('labels.serverCA') }}
+                    {{ $t("labels.serverCA") }}
                   </a-button>
                 </a-tooltip>
               </div>
@@ -297,7 +296,7 @@ const testConnection = async () => {
             <div class="flex justify-end">
               <a-button size="small" @click="configEditDlg = true">
                 <!-- Edit connection JSON -->
-                {{ $t('activity.editConnJson') }}
+                {{ $t("activity.editConnJson") }}
               </a-button>
             </div>
           </a-collapse-panel>
@@ -313,7 +312,9 @@ const testConnection = async () => {
     </a-form>
 
     <v-dialog v-model="configEditDlg">
-      <Monaco v-if="configEditDlg" :model-value="formState" class="h-[320px] w-[600px]" @update:modelValue="onVal"></Monaco>
+      <a-card>
+        <Monaco v-if="configEditDlg" v-model="formState" class="h-[400px] w-[600px]"></Monaco>
+      </a-card>
     </v-dialog>
   </a-card>
 </template>

@@ -28,11 +28,11 @@ const openProject = async (project: ProjectType) => {
     <div></div>
   </div>
 
-  <v-divider class="col-span-3" />
+  <div class="col-span-3 w-full h-[1px] bg-gray-500/50" />
 
   <template v-for="project of projects" :key="project.id">
     <div
-      class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-gray-100 shadow-sm dark:text-black) p-2 transition-color ease-in duration-100"
+      class="cursor-pointer grid grid-cols-3 gap-2 prose-md hover:(bg-gray-300/30 dark:bg-gray-500/30 shadow-sm) p-2 transition-color ease-in duration-100"
       @click="openProject(project)"
     >
       <div class="font-semibold capitalize">{{ project.title || 'Untitled' }}</div>
@@ -42,6 +42,6 @@ const openProject = async (project: ProjectType) => {
         <MdiEditOutline class="text-gray-500 hover:text-primary mr-2" @click.stop="navigateTo(`/project/${project.id}`)" />
       </div>
     </div>
-    <v-divider class="col-span-3" />
+    <div class="col-span-3 w-full h-[1px] bg-gray-500/30" />
   </template>
 </template>

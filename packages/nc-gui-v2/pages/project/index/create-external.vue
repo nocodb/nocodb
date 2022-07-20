@@ -77,7 +77,7 @@ const configEditDlg = ref(false)
 // populate database name based on title
 watch(
   () => formState.title,
-  (v) => (formState.dataSource.connection.database = `${v}_noco`),
+  (v) => (formState.dataSource.connection.database = `${v?.trim()}_noco`),
 )
 
 // generate a random project title
@@ -288,7 +288,7 @@ onMounted(() => {
           <a-input v-model:value="formState.dataSource.connection.searchPath[0]" size="small" />
         </a-form-item>
 
-        <a-collapse ghost expand-icon-position="right">
+        <a-collapse ghost expand-icon-position="right" class="mt-6">
           <a-collapse-panel key="1" :header="$t('title.advancedParameters')">
             <!--            todo:  add in i18n -->
             <a-form-item label="SSL mode">
@@ -333,18 +333,18 @@ onMounted(() => {
             <input ref="certFileInput" type="file" class="!hidden" @change="onFileSelect('cert', certFileInput)" />
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
 
-            <a-form-item :label="$t('labels.inflection.tableName')" v-bind="validateInfos['dataSource.client']">
+            <a-form-item :label="$t('labels.inflection.tableName')">
               <a-select v-model:value="formState.inflection.inflection_table" size="small" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
-            <a-form-item :label="$t('labels.inflection.columnName')" v-bind="validateInfos['dataSource.type']">
+            <a-form-item :label="$t('labels.inflection.columnName')">
               <a-select v-model:value="formState.inflection.inflection_column" size="small" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
             <div class="flex justify-end">
-              <a-button size="small" @click="configEditDlg = true">
+              <a-button size="small" class="!shadow-md" @click="configEditDlg = true">
                 <!-- Edit connection JSON -->
                 {{ $t('activity.editConnJson') }}
               </a-button>
@@ -355,8 +355,8 @@ onMounted(() => {
 
       <a-form-item class="flex justify-center mt-5">
         <div class="flex justify-center gap-2">
-          <a-button type="primary" :disabled="!testSuccess" @click="createProject">Submit</a-button>
           <a-button type="primary" @click="testConnection">Test Connection</a-button>
+          <a-button type="primary" :disabled="!testSuccess" @click="createProject">Submit</a-button>
         </div>
       </a-form-item>
     </a-form>
@@ -375,10 +375,18 @@ onMounted(() => {
 }
 
 :deep(.ant-collapse-content-box) {
-  @apply !pr-0;
+  @apply !px-0;
 }
 
 :deep(.ant-form-item-explain-error) {
   @apply !text-xs;
+}
+
+:deep(.ant-form-item) {
+  @apply mb-2;
+}
+
+:deep(.ant-form-item-with-help .ant-form-item-explain) {
+  @apply !min-h-0;
 }
 </style>

@@ -70,10 +70,12 @@ onMounted(async () => {
       </a-form-item>
 
       <a-form-item style="text-align: center" class="mt-2">
-        <a-button type="primary" html-type="submit" class="mx-auto flex justify-self-center">
-          <MaterialSymbolsRocketLaunchOutline class="mr-1" />
-          <span> {{ $t('general.create') }} </span></a-button
-        >
+        <a-button type="primary" html-type="submit">
+          <div class="flex items-center">
+            <MaterialSymbolsRocketLaunchOutline class="mr-1" />
+            {{ $t('general.create') }}
+          </div>
+        </a-button>
       </a-form-item>
     </a-form>
   </a-card>

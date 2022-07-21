@@ -6,18 +6,35 @@ export default {
     info: '#3B1845',
     success: '#527A21',
     warning: '#FF5733',
-    error: '#ff0100'
+    error: '#ff0100',
+    headerBg: '#ff6601'
   },
   Default: {
-    // "primary": "#0989ff",
-    // "primary": "#1082da",
     primary: '#1348ba',
     secondary: '#9575CD',
     accent: '#FF4081',
     info: '#2196F3',
     success: '#4CAF50',
     warning: '#FB8C00',
-    error: '#ff0100'
+    error: '#ff0100',
+    headerBg: '#1348ba'
+  },
+  DefaultFinn: {
+    primary: '#0086EA',
+    secondary: '#ffffff',
+    accent: '#4CAF50',
+    info: '#E82A4A',
+    success: '#4CAF50',
+    warning: '#FB8C00',
+    error: '#A70822',
+    themes: {
+      light: {
+        headerBg: '#FFFFFF'
+      },
+      dark: {
+        headerBg: '#191919'
+      }
+    }
   },
   Strawberry: {
     primary: '#ea2abb',
@@ -26,7 +43,8 @@ export default {
     info: '#00CED1',
     success: '#4CAF50',
     warning: '#FB8C00',
-    error: '#ff0100'
+    error: '#ff0100',
+    headerBg: '#ea2abb'
   },
   Grapes: {
     primary: '#8b46fe',
@@ -35,7 +53,8 @@ export default {
     info: '#00CED1',
     success: '#4CAF50',
     warning: '#FB8C00',
-    error: '#ff0100'
+    error: '#ff0100',
+    headerBg: '#8b46fe'
   }
 }
 /**

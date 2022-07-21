@@ -24,6 +24,11 @@ export default {
   methods: {}
 }
 </script>
+
+<style lang="scss">
+@import "assets/style/themes/finn.scss";
+</style>
+
 <style scoped>
 
 </style>

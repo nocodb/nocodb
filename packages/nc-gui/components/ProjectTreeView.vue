@@ -7,10 +7,10 @@
   >
     <!--    :expand-on-hover="mini"-->
     <div
-      class="primary nc-project-title theme--dark"
+      class="headerBg nc-project-title"
       :class="{ shared: sharedBase }"
     >
-      <img v-if="sharedBase" src="favicon-32.png" height="18" class="ml-2">
+      <v-img v-if="sharedBase" :src="logo" :max-height="`${headerHeight}px`" :max-width="`${headerHeight}px`" class="ml-2" />
       <h3
         v-if="sharedBase"
         class="nc-project-title white--text text-capitalize"
@@ -812,6 +812,7 @@ import QuickImport from "~/components/import/QuickImport";
 import draggable from "vuedraggable";
 import SettingsModal from "~/components/settings/SettingsModal";
 import Language from "~/components/utils/Language";
+import { headerHeight } from '~/config/constants'
 
 export default {
   components: {
@@ -828,6 +829,7 @@ export default {
     sharedBase: Boolean,
   },
   data: () => ({
+    headerHeight,
     treeViewStatus: {},
     drag: false,
     dragOptions: {
@@ -922,6 +924,9 @@ export default {
     },
   }),
   computed: {
+    logo() {
+      return this.$store.state.settings.darkTheme ? require('~/assets/img/brand/finn-white.svg') : require('~/assets/img/brand/finn.svg')
+    },
     apiLink() {
       return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
     },

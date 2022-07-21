@@ -28,43 +28,30 @@
               </v-tooltip>
             </td>
           </tr>
-          <!--<tr>
-          <td>Show metatables</td>
-          <td>
-            <v-tooltip bottom>
-              <template v-slot:activator="{ on }">
-                <v-checkbox v-model="showMetatable" v-on="on" x-large
-                            color="primary">
-                  mdi-bat
-                </v-checkbox>
-              </template>
-              Show/hide metatables
-            </v-tooltip>
-          </td>
-        </tr>-->
-          <!--          <tr>
-            <td>Show Screensaver</td>
+          <tr @dblclick="darkThemeAppBar = true">
+            <td>Invert header font colors</td>
             <td>
-              <v-tooltip bottom>
-                <template #activator="{ on }">
-                  <v-checkbox
-                    v-model="showScreensaver"
-                    x-large
-                    color="primary"
-                    v-on="on"
-                  >
-                    mdi-bat
-                  </v-checkbox>
-                </template>
-                Show/hide metatables
-              </v-tooltip>
+              <v-switch
+                v-model="darkThemeAppBar"
+                flat
+              />
             </td>
-          </tr>-->
+          </tr>
+          <tr @dblclick="enableAppRefresh = true">
+            <td>
+              Auto update
+            </td>
+            <td>
+              <v-switch
+                v-model="autoUpdate"
+                flat
+              />
+            </td>
+          </tr>
           <tr>
             <td>Themes</td>
             <td class="pa-1">
               <v-list rounded>
-                <!--              <v-subheader>REPORTS</v-subheader>-->
                 <v-list-item-group v-model="item" color="primary">
                   <v-list-item
                     v-for="(t,i) in themes"
@@ -196,7 +183,8 @@ export default {
         info: '#00CED1',
         success: '#4CAF50',
         warning: '#FB8C00',
-        error: '#ff0100'
+        error: '#ff0100',
+        headerBg: '#6f5dcc'
       },
       themes
     }
@@ -234,6 +222,14 @@ export default {
       },
       set(show) {
         this.$store.commit('settings/MutIncludeM2M', show)
+      }
+    },
+    darkThemeAppBar: {
+      get() {
+        return this.$store.state.settings.darkThemeAppBar
+      },
+      set(show) {
+        this.$store.commit('settings/MutToggleDarkModeAppBar', show)
       }
     }
   },

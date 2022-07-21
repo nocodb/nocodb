@@ -1,5 +1,6 @@
 // https://github.com/vuetifyjs/vuetify/tree/master/packages/vuetify/src/styles/settings
 
+@import "./finn/variables.scss";
 @import "~vuetify/src/styles/styles";
 
 
@@ -22,15 +23,6 @@ $pagination-navigation-height: 24px !important;
 $pagination-item-font-size: map-deep-get($headings, 'caption', 'size') !default;
 
 $btn-text-transform: none !important;
-
-//
-//$treeview-node-shaped-margin:4px ;
-//$treeview-node-padding:4px ;
-//$treeview-node-margin: 2px ;
-
-//$treeview-label-font-size:
-
-
 
 $skeleton-loader-table-tbody-padding: 3px 3px 0;
 $skeleton-loader-table-cell-height: 32px;

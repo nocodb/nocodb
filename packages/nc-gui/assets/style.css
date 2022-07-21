@@ -27,6 +27,9 @@
   }
 }
 
+.v-btn.overlay {
+  background-color: rgba(256, 256, 256, 0.3)
+}
 
 .v-treeview--dense .v-treeview-node__root {
   min-height: 22px !important;

@@ -8,9 +8,9 @@
         <v-btn
           v-show="isDashboard && _isUIAllowed('previewAs')"
           small
-          light
-          color="#fff3"
-          class="white--text nc-btn-preview"
+          class="nc-btn-preview"
+          :class="{ 'white--text': !!$store.state.settings.darkThemeAppBar,
+                    'overlay': !!$store.state.settings.darkThemeAppBar || !!$store.state.settings.darkTheme }"
           v-on="on"
         >
           <v-icon small class="mr-1">

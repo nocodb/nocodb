@@ -1,11 +1,11 @@
 import browserLang from 'browser-lang'
-import themes from '../helpers/themes'
 
 export const state = () => ({
   treeWindow: true,
   logWindow: true,
   outputWindow: true,
   darkTheme: false,
+  darkThemeAppBar: true,
   clientDisabledLogWindow: false,
   theme: {},
   themeName: 'default',
@@ -62,6 +62,9 @@ export const mutations = {
       status = !state.darkTheme
     }
     state.darkTheme = status
+  },
+  MutToggleDarkModeAppBar(state, status) {
+    state.darkThemeAppBar = !state.darkThemeAppBar
   },
   MutToggleGaEnabled(state, isEnabled) {
     state.isGaEnabled = isEnabled

@@ -213,6 +213,7 @@
     "sqlOutput": "SQL-Ausgabe",
     "addOption": "Option hinzufügen",
     "aggregateFunction": "Globale Funktion",
+    "database": "Datenbank",
     "dbCreateIfNotExists": "Datenbank: Erstellen, falls nicht vorhanden",
     "clientKey": "Client-Schlüssel",
     "clientCert": "Client Cert",
@@ -412,7 +413,7 @@
       "deleteProject": "Möchten Sie das Projekt löschen?",
       "shareBasePrivate": "Öffentlich freigegebene Nur-Lese-Datenbank generieren",
       "shareBasePublic": "Für Jeden im Internet mit diesem Link sichtbar",
-      "userInviteNoSMTP": "Es sieht so aus, als hätten Sie den Mailer noch nicht konfiguriert! \\ n Bitte kopieren Sie den obigen Einladungs-Link und senden Sie ihn an",
+      "userInviteNoSMTP": "Es sieht so aus, als hätten Sie den Mailer noch nicht konfiguriert! Bitte kopieren Sie den obigen Einladungs-Link und senden Sie ihn an",
       "dragDropHide": "Ziehen Sie die Felder hierher, um sie zu verstecken",
       "formInput": "Formularbezeichnung eingeben",
       "formHelpText": "Einen Hilfs-Text hinzufügen",
@@ -496,7 +497,8 @@
         "emailReqd": "E-Mail ist erforderlich",
         "emailInvalid": "Email muß gültig sein",
         "passwdRequired": "Passwort ist erforderlich",
-        "passwdLength": "Ihr Passwort muß mindestens 8 Zeichen haben"
+        "passwdLength": "Ihr Passwort muß mindestens 8 Zeichen haben",
+        "passwdMismatch": "Passwörter stimmen nicht überein"
       }
     },
     "toast": {

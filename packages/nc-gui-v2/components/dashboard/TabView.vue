@@ -20,7 +20,8 @@ const tableCreateDialog = ref(false)
 
     <v-window v-model="activeTab">
       <v-window-item v-for="(tab, i) in tabs" :key="i" :value="i">
-        <TabsSmartsheet :tab-meta="tab" />
+        <TabsAuth v-if="tab.type === 'auth'" :tab-meta="tab" />
+        <TabsSmartsheet v-else :tab-meta="tab" />
       </v-window-item>
     </v-window>
   </div>

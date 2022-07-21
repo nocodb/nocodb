@@ -6,7 +6,7 @@ import { ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import { navigateTo, useNuxtApp, useRoute } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { projectTitleValidator } from '~/utils/projectCreateUtils'
+import { projectTitleValidator } from '~/utils/validation'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
 
 const loading = ref(false)

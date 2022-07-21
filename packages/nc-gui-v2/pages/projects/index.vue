@@ -59,7 +59,6 @@ const deleteProject = (project: ProjectType) => {
   })
 }
 
-console.log(route.name)
 const visible = ref(true)
 </script>
 

@@ -1,22 +1,22 @@
 <script lang="ts" setup>
 import { onMounted } from '@vue/runtime-core'
+import { Form, Modal } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
-import { Form, Modal } from 'ant-design-vue'
 import { ref } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
 import type { ProjectCreateForm } from '~/lib/types'
+import { ClientType } from '~/lib/types'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { readFile } from '~/utils/fileUtils'
 import {
   clientTypes,
-  fieldRequiredValidator,
   generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
-  projectTitleValidator,
   sslUsage,
 } from '~/utils/projectCreateUtils'
-import { readFile } from '~/utils/fileUtils'
+import { fieldRequiredValidator, projectTitleValidator } from '~/utils/validation'
 
 const useForm = Form.useForm
 const loading = ref(false)
@@ -28,10 +28,10 @@ const { t } = useI18n()
 
 const formState = $ref<ProjectCreateForm>({
   title: '',
-  dataSource: { ...getDefaultConnectionConfig('mysql2') },
+  dataSource: { ...getDefaultConnectionConfig(ClientType.MYSQL) },
   inflection: {
-    inflection_column: 'camelize',
-    inflection_table: 'camelize',
+    inflectionColumn: 'camelize',
+    inflectionTable: 'camelize',
   },
   sslUse: 'No',
 })
@@ -46,7 +46,7 @@ const validators = computed(() => {
       projectTitleValidator,
     ],
     'dataSource.client': [fieldRequiredValidator],
-    ...(formState.dataSource.client === 'sqlite3'
+    ...(formState.dataSource.client === ClientType.SQLITE
       ? {
           'dataSource.connection.connection.filename': [fieldRequiredValidator],
         }
@@ -56,7 +56,7 @@ const validators = computed(() => {
           'dataSource.connection.user': [fieldRequiredValidator],
           'dataSource.connection.password': [fieldRequiredValidator],
           'dataSource.connection.database': [fieldRequiredValidator],
-          ...(['pg', 'mssql'].includes(formState.dataSource.client)
+          ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
             ? {
                 'dataSource.connection.searchPath.0': [fieldRequiredValidator],
               }
@@ -131,8 +131,8 @@ const createProject = async () => {
         {
           type: formState.dataSource.client,
           config,
-          inflection_column: formState.inflection.inflection_column,
-          inflection_table: formState.inflection.inflection_table,
+          inflection_column: formState.inflection.inflectionColumn,
+          inflection_table: formState.inflection.inflectionTable,
         },
       ],
       external: true,
@@ -155,7 +155,7 @@ const testConnection = async () => {
   }
   $e('a:project:create:extdb:test-connection', [])
   try {
-    if (formState.dataSource.client === 'sqlite3') {
+    if (formState.dataSource.client === ClientType.SQLITE) {
       testSuccess.value = true
     } else {
       const connection: any = getConnectionConfig()
@@ -242,7 +242,7 @@ onMounted(() => {
 
       <!-- SQLite File -->
       <a-form-item
-        v-if="formState.dataSource.client === 'sqlite3'"
+        v-if="formState.dataSource.client === ClientType.SQLITE"
         :label="$t('labels.sqliteFile')"
         v-bind="validateInfos['dataSource.connection.connection.filename']"
       >
@@ -286,7 +286,7 @@ onMounted(() => {
         </a-form-item>
         <!-- Schema name -->
         <a-form-item
-          v-if="['mssql', 'pg'].includes(formState.dataSource.client)"
+          v-if="[ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client)"
           :label="$t('labels.schemaName')"
           v-bind="validateInfos['dataSource.connection.searchPath.0']"
         >
@@ -339,12 +339,12 @@ onMounted(() => {
             <input ref="keyFileInput" type="file" class="!hidden" @change="onFileSelect('key', keyFileInput)" />
 
             <a-form-item :label="$t('labels.inflection.tableName')">
-              <a-select v-model:value="formState.inflection.inflection_table" size="small" @change="onClientChange">
+              <a-select v-model:value="formState.inflection.inflectionTable" size="small" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
             <a-form-item :label="$t('labels.inflection.columnName')">
-              <a-select v-model:value="formState.inflection.inflection_column" size="small" @change="onClientChange">
+              <a-select v-model:value="formState.inflection.inflectionColumn" size="small" @change="onClientChange">
                 <a-select-option v-for="type in inflectionTypes" :key="type" :value="type">{{ type }}</a-select-option>
               </a-select>
             </a-form-item>
@@ -370,7 +370,7 @@ onMounted(() => {
 
     <v-dialog v-model="configEditDlg">
       <a-card>
-        <Monaco v-if="configEditDlg" v-model="formState" class="h-[400px] w-[600px]"></Monaco>
+        <MonacoEditor v-if="configEditDlg" v-model="formState" class="h-[400px] w-[600px]" />
       </a-card>
     </v-dialog>
   </a-card>

@@ -33,7 +33,13 @@ export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State
 
 export type GlobalState = Getters & Actions & ToRefs<ReadonlyState>
 
-export type ClientType = 'mysql2' | 'mssql' | 'pg' | 'sqlite3' | 'vitess'
+export enum ClientType {
+  MYSQL = 'mysql2',
+  MSSQL = 'mssql',
+  PG = 'pg',
+  SQLITE = 'sqlite3',
+  VITESS = 'vitess',
+}
 
 export interface ProjectCreateForm {
   title: string
@@ -59,8 +65,8 @@ export interface ProjectCreateForm {
         }
   }
   inflection: {
-    inflection_column?: string
-    inflection_table?: string
+    inflectionColumn?: string
+    inflectionTable?: string
   }
   sslUse?: any
 }

@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import useProject from '~/composables/useProject'
-import useTabs from '~/composables/useTabs'
+import { useProject, useTabs } from '#imports'
 import MdiSettingIcon from '~icons/mdi/cog'
 
 const { tables } = useProject()

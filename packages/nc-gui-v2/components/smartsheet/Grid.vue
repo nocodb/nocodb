@@ -11,7 +11,7 @@ import {
   MetaInj,
   PaginationDataInj,
   ReloadViewDataHookInj,
-} from '~/components'
+} from '~/context'
 import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)

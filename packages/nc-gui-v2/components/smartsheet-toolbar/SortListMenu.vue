@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import { computed, inject } from '#imports'
-import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/components'
+import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import useViewSorts from '~/composables/useViewSorts'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiSortIcon from '~icons/mdi/sort'

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, ref } from '#imports'
-import { ColumnInj } from '~/components'
+import { ColumnInj } from '~/context'
 import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils/durationHelper'
 
 interface Props {

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ColumnInj } from '~/components'
+import { ColumnInj } from '~/context'
 import useColumn from '~/composables/useColumn'
 import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'

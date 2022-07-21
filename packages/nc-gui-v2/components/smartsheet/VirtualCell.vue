@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { provide } from '#imports'
-import { ColumnInj } from '~/components'
+import { ColumnInj } from '~/context'
 import useVirtualCell from '~/composables/useVirtualCell'
 
 interface Props {

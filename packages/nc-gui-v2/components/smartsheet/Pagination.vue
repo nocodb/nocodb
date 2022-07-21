@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { ChangePageInj, PaginationDataInj } from '~/components'
+import { ChangePageInj, PaginationDataInj } from '~/context'
 import MdiKeyboardIcon from '~icons/mdi/keyboard-return'
 
 const paginatedData = inject(PaginationDataInj)

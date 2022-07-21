@@ -35,7 +35,7 @@ async function loadAudits(page: number, limit: number) {
     })
 
     audits = list
-    totalRows = pageInfo.totalRows ?? 0
+    totalRows = 100
   } catch (e) {
     console.error(e)
   } finally {
@@ -46,7 +46,7 @@ async function loadAudits(page: number, limit: number) {
 onMounted(async () => {
   if (audits === null) {
     await loadProject(projectId)
-    await loadAudits(page.value, limit.value)
+    await loadAudits(currentPage.value, currentLimit.value)
   }
 })
 
@@ -84,24 +84,22 @@ const columns = [
 </script>
 
 <template>
-  <div class="flex flex-col items-center gap-4 w-full">
+  <div class="flex flex-col gap-4 w-full">
+    <a-button class="self-start" @click="loadAudits">
+      <div class="flex items-center gap-2">
+        <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+        Reload
+      </div>
+    </a-button>
+
     <a-table class="w-full" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading" />
 
-    <div class="flex flex-wrap items-center justify-center gap-4">
-      <a-button class="self-start" @click="loadAudits">
-        <div class="flex items-center gap-2">
-          <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
-          Reload
-        </div>
-      </a-button>
-
-      <a-pagination
-        v-model:current="currentPage"
-        :page-size="currentLimit"
-        :total="totalRows"
-        show-less-items
-        @change="loadAudits"
-      />
-    </div>
+    <a-pagination
+      v-model:current="currentPage"
+      :page-size="currentLimit"
+      :total="totalRows"
+      show-less-items
+      @change="loadAudits"
+    />
   </div>
 </template>

@@ -14,9 +14,9 @@ const { tabs, activeTab, closeTab } = useTabs()
 // const { isUIAllowed } = useUIPermission()
 const isUIAllowed = (x: string) => true
 const tableCreateDialog = ref(false)
-const excelCsvDialog = ref(false)
-const jsonImportDialog = ref(false)
 const airtableImportDialog = ref(false)
+const fileImportDialog = ref(false)
+const importType = ref('')
 const currentMenu = ref<string[]>(['addORImport'])
 
 const onEdit = (targetKey: number, action: string) => {
@@ -73,7 +73,10 @@ const onEdit = (targetKey: number, action: string) => {
                 v-if="isUIAllowed('csvImport')"
                 key="quick-import-csv"
                 v-t="['a:actions:import-csv']"
-                @click="excelCsvDialog = true"
+                @click="
+                  fileImportDialog = true
+                  importType = 'csv'
+                "
               >
                 <span>
                   <MdiCsvIcon class="text-primary mdi-icons" />
@@ -85,7 +88,10 @@ const onEdit = (targetKey: number, action: string) => {
                 v-if="isUIAllowed('jsonImport')"
                 key="quick-import-json"
                 v-t="['a:actions:import-json']"
-                @click="jsonImportDialog = true"
+                @click="
+                  fileImportDialog = true
+                  importType = 'json'
+                "
               >
                 <span>
                   <MdiJSONIcon class="text-primary mdi-icons" />
@@ -97,7 +103,10 @@ const onEdit = (targetKey: number, action: string) => {
                 v-if="isUIAllowed('excelImport')"
                 key="quick-import-excel"
                 v-t="['a:actions:import-excel']"
-                @click="excelCsvDialog = true"
+                @click="
+                  fileImportDialog = true
+                  importType = 'excel'
+                "
               >
                 <span>
                   <MdiExcelIcon class="text-primary mdi-icons" />
@@ -120,8 +129,7 @@ const onEdit = (targetKey: number, action: string) => {
     </a-tabs>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
-    <DlgExcelCsvImport v-if="excelCsvDialog" v-model="excelCsvDialog" />
-    <DlgJsonImport v-if="jsonImportDialog" v-model="jsonImportDialog" />
+    <DlgFileImport v-if="fileImportDialog" v-model="fileImportDialog" :import-type="importType" />
     <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
 
     <v-window v-model="activeTab">

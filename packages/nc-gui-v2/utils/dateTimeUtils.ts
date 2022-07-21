@@ -5,7 +5,7 @@ import utc from 'dayjs/plugin/utc'
 dayjs.extend(utc)
 dayjs.extend(relativeTime)
 
-export const calculateDiff = (date: any) => {
+export const timeAgo = (date: any) => {
   return dayjs.utc(date).fromNow()
 }
 

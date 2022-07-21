@@ -13,7 +13,7 @@ import MdiMenuDown from '~icons/mdi/menu-down'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 
-const { $api, $state } = useNuxtApp()
+const { $api, $state, $e } = useNuxtApp()
 const toast = useToast()
 
 const filterQuery = ref('')
@@ -34,6 +34,7 @@ const filteredProjects = computed(() => {
 })
 
 const deleteProject = (project: ProjectType) => {
+  $e('c:project:delete')
   Modal.confirm({
     title: `Do you want to delete '${project.title}' project?`,
     okText: 'Yes',
@@ -41,6 +42,7 @@ const deleteProject = (project: ProjectType) => {
     cancelText: 'No',
     async onOk() {
       try {
+        $e('c:project:delete')
         await $api.project.delete(project.id as string)
         projects.value.splice(projects.value.indexOf(project), 1)
       } catch (e) {
@@ -65,7 +67,11 @@ $state.sidebarOpen.value = false
         <!-- My Projects -->
         <b>{{ $t('title.myProject') }}</b>
 
-        <MdiRefresh class="text-sm text-gray-500 hover:text-primary mt-1 cursor-pointer" @click="loadProjects"></MdiRefresh>
+        <MdiRefresh
+          v-t="['a:project:refresh']"
+          class="text-sm text-gray-500 hover:text-primary mt-1 cursor-pointer"
+          @click="loadProjects"
+        ></MdiRefresh>
       </h1>
 
       <div class="flex mb-6">
@@ -87,6 +93,7 @@ $state.sidebarOpen.value = false
           <template #overlay>
             <a-menu>
               <div
+                v-t="['c:project:create:xcdb']"
                 class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
                 @click="navigateTo('/project/create')"
               >
@@ -94,6 +101,7 @@ $state.sidebarOpen.value = false
                 <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
               </div>
               <div
+                v-t="['c:project:create:extdb']"
                 class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
                 @click="navigateTo('/project/create-external')"
               >
@@ -113,7 +121,10 @@ $state.sidebarOpen.value = false
         v-else
         :custom-row="
           (record) => ({
-            onClick: () => navigateTo(`/nc/${record.id}`),
+            onClick: () => {
+              $e('a:project:open');
+              navigateTo(`/nc/${record.id}`),
+            }
           })
         "
         :data-source="filteredProjects"
@@ -129,7 +140,11 @@ $state.sidebarOpen.value = false
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
             <div class="flex align-center">
-              <MdiEditOutline class="nc-action-btn" @click.stop="navigateTo(`/project/${text}`)" />
+              <MdiEditOutline
+                v-t="['c:project:edit:rename']"
+                class="nc-action-btn"
+                @click.stop="navigateTo(`/project/${text}`)"
+              />
               <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
             </div>
           </template>

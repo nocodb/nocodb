@@ -12,13 +12,13 @@ const name = ref('')
 const loading = ref(false)
 const valid = ref(false)
 
-const { $api, $state } = useNuxtApp()
+const { $api, $state, $e } = useNuxtApp()
 const toast = useToast()
 
 const nameValidationRules = [
   {
     required: true,
-    message: 'Title is required',
+    message: 'Project name is required',
   },
   projectTitleValidator,
 ]
@@ -28,16 +28,15 @@ const formState = reactive({
 })
 
 const createProject = async () => {
+  $e('a:project:create:xcdb')
   loading.value = true
   try {
     const result = await $api.project.create({
       title: formState.title,
     })
 
-    debugger
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
-    debugger
     toast.error(await extractSdkResponseErrorMsg(e))
   }
   loading.value = false

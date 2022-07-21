@@ -18,7 +18,7 @@ const route = useRoute()
 const nameValidationRules = [
   {
     required: true,
-    message: 'Title is required',
+    message: 'Project name is required',
   },
   projectTitleValidator,
 ]
@@ -76,7 +76,7 @@ onMounted(async () => {
       </a-form-item>
 
       <a-form-item style="text-align: center" class="mt-2">
-        <a-button type="primary" html-type="submit" class="mx-auto flex justify-self-center">
+        <a-button v-t="['a:project:edit:rename']" type="primary" html-type="submit" class="mx-auto flex justify-self-center">
           <MaterialSymbolsRocketLaunchOutline class="mr-1" />
           <span> {{ $t('general.edit') }} </span></a-button
         >

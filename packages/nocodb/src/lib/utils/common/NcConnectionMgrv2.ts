@@ -11,6 +11,7 @@ import {
 } from '../NcConfigFactory';
 import Base from '../../models/Base';
 import Noco from '../../Noco';
+import SqlClientDecorator from './decorators/sqlClientDecorator';
 
 export default class NcConnectionMgrv2 {
   private static connectionRefs: {
@@ -127,6 +128,7 @@ export default class NcConnectionMgrv2 {
   //   return config?.envs?.[env]?.db?.find(db => db?.meta?.dbAlias === dbAlias);
   // }
 
+  @SqlClientDecorator.modifyColumnList()
   public static getSqlClient(base: Base, _knex = null): any {
     const knex = _knex || this.get(base);
     return SqlClientFactory.create({

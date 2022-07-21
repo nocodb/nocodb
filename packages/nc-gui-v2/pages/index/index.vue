@@ -83,7 +83,7 @@ $state.sidebarOpen.value = false
         <div class="flex-grow"></div>
 
         <a-dropdown @click.stop>
-          <a-button>
+          <a-button class="nc-new-project-menu">
             <div class="flex align-center">
               {{ $t('title.newProj') }}
               <MdiMenuDown class="menu-icon" />
@@ -94,7 +94,7 @@ $state.sidebarOpen.value = false
             <a-menu>
               <div
                 v-t="['c:project:create:xcdb']"
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-xc-db-project"
                 @click="navigateTo('/project/create')"
               >
                 <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
@@ -102,7 +102,7 @@ $state.sidebarOpen.value = false
               </div>
               <div
                 v-t="['c:project:create:extdb']"
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
+                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-external-db-project"
                 @click="navigateTo('/project/create-external')"
               >
                 <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
@@ -133,7 +133,9 @@ $state.sidebarOpen.value = false
         <!--        Title -->
         <a-table-column key="title" :title="$t('general.title')" data-index="title">
           <template #default="{ text }">
-            <div class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap" :title="text">{{ text }}</div>
+            <div class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap nc-project-row" :title="text">
+              {{ text }}
+            </div>
           </template>
         </a-table-column>
         <!--        Actions -->

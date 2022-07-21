@@ -229,11 +229,11 @@ onMounted(() => {
       :wrapper-col="{ span: 18 }"
     >
       <a-form-item :label="$t('placeholder.projName')" v-bind="validateInfos.title">
-        <a-input v-model:value="formState.title" size="small" />
+        <a-input v-model:value="formState.title" size="small" class="nc-extdb-proj-name" />
       </a-form-item>
 
       <a-form-item :label="$t('labels.dbType')" v-bind="validateInfos['dataSource.client']">
-        <a-select v-model:value="formState.dataSource.client" size="small" @change="onClientChange">
+        <a-select v-model:value="formState.dataSource.client" size="small" class="nc-extdb-db-type" @change="onClientChange">
           <a-select-option v-for="client in clientTypes" :key="client.value" :value="client.value"
             >{{ client.text }}
           </a-select-option>
@@ -252,22 +252,26 @@ onMounted(() => {
       <template v-else>
         <!-- Host Address -->
         <a-form-item :label="$t('labels.hostAddress')" v-bind="validateInfos['dataSource.connection.host']">
-          <a-input v-model:value="formState.dataSource.connection.host" size="small" />
+          <a-input v-model:value="formState.dataSource.connection.host" size="small" class="nc-extdb-host-address" />
         </a-form-item>
 
         <!-- Port Number -->
         <a-form-item :label="$t('labels.port')" v-bind="validateInfos['dataSource.connection.port']">
-          <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full" size="small" />
+          <a-input-number v-model:value="formState.dataSource.connection.port" class="!w-full nc-extdb-host-port" size="small" />
         </a-form-item>
 
         <!-- Username -->
         <a-form-item :label="$t('labels.username')" v-bind="validateInfos['dataSource.connection.user']">
-          <a-input v-model:value="formState.dataSource.connection.user" size="small" />
+          <a-input v-model:value="formState.dataSource.connection.user" size="small" class="nc-extdb-host-user" />
         </a-form-item>
 
         <!-- Password -->
         <a-form-item :label="$t('labels.password')">
-          <a-input-password v-model:value="formState.dataSource.connection.password" size="small" />
+          <a-input-password
+            v-model:value="formState.dataSource.connection.password"
+            size="small"
+            class="nc-extdb-host-password"
+          />
         </a-form-item>
 
         <!-- Database -->
@@ -277,6 +281,7 @@ onMounted(() => {
             v-model:value="formState.dataSource.connection.database"
             :placeholder="$t('labels.dbCreateIfNotExists')"
             size="small"
+            class="nc-extdb-host-database"
           />
         </a-form-item>
         <!-- Schema name -->
@@ -355,8 +360,10 @@ onMounted(() => {
 
       <a-form-item class="flex justify-center mt-5">
         <div class="flex justify-center gap-2">
-          <a-button type="primary" @click="testConnection">Test Connection</a-button>
-          <a-button type="primary" :disabled="!testSuccess" @click="createProject">Submit</a-button>
+          <a-button type="primary" class="nc-extdb-btn-test-connection" @click="testConnection">
+            {{ $t('activity.testDbConn') }}
+          </a-button>
+          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit" @click="createProject"> Submit </a-button>
         </div>
       </a-form-item>
     </a-form>

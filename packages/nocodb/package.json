@@ -186,7 +186,8 @@
     "unique-names-generator": "^4.3.1",
     "uuid": "^8.2.0",
     "validator": "^13.1.1",
-    "xc-core-ts": "^0.1.0"
+    "xc-core-ts": "^0.1.0",
+    "xlsx": "^0.18.5"
   },
   "devDependencies": {
     "@bitjson/npm-scripts-info": "^1.0.0",

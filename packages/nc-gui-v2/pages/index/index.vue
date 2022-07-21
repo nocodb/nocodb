@@ -168,4 +168,8 @@ $state.sidebarOpen.value = false
 :deep(.ant-table-row) {
   @apply cursor-pointer;
 }
+
+:deep(.ant-table) {
+  @apply min-h-[428px];
+}
 </style>

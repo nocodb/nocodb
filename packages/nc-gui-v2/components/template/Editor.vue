@@ -27,6 +27,7 @@ interface Option {
 const useForm = Form.useForm
 const { quickImportType, projectTemplate, importData } = defineProps<Props>()
 const { $api } = useNuxtApp()
+const hasSelectColumn = ref(<boolean[]>{})
 const expansionPanel = ref(<number[]>[])
 const editableTn = ref(<boolean[]>{})
 const inputRefs = ref(<HTMLInputElement[]>[])
@@ -97,10 +98,12 @@ const validators = computed(() => {
   let res: any = {}
   for (let i = 0; i < data.tables.length; i++) {
     res[`tables.${i}.table_name`] = tnValidator
+    hasSelectColumn.value[i] = false
     for (let j = 0; j < data.tables[i].columns.length; j++) {
       res[`tables.${i}.columns.${j}.column_name`] = cnValidator
       res[`tables.${i}.columns.${j}.uidt`] = uidtValidator
-      if (isSelect(data.tables[i].columns)) {
+      if (isSelect(data.tables[i].columns[j])) {
+        hasSelectColumn.value[i] = true
         res[`tables.${i}.columns.${j}.dtxp`] = dtxpValidator
       }
     }
@@ -122,6 +125,7 @@ const parseAndLoadTemplate = () => {
   if (projectTemplate) {
     parseTemplate(projectTemplate)
     expansionPanel.value = Array.from({ length: data.tables.length || 0 }, (_, i) => i)
+    hasSelectColumn.value = Array.from({ length: data.tables.length || 0 }, () => false)
   }
 }
 
@@ -364,6 +368,12 @@ const importTemplate = async () => {
               <template v-else-if="column.key === 'uidt'">
                 <span>
                   {{ $t('labels.columnType') }}
+                </span>
+              </template>
+              <template v-else-if="column.key === 'dtxp' && hasSelectColumn[i]">
+                <span>
+                  <!-- TODO: i18n -->
+                  Options
                 </span>
               </template>
             </template>

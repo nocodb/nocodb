@@ -45,7 +45,7 @@ const onEdit = (targetKey: number, action: string) => {
               </span>
             </template>
             <a-menu-item-group v-if="isUIAllowed('addTable')" title="">
-              <a-menu-item key="add-new-table" @click="tableCreateDialog = true">
+              <a-menu-item key="add-new-table" v-t="['a:actions:create-table']" @click="tableCreateDialog = true">
                 <span>
                   <MdiTableIcon class="text-primary mdi-icons" />
                   <!-- Add new table -->
@@ -54,28 +54,28 @@ const onEdit = (targetKey: number, action: string) => {
               </a-menu-item>
             </a-menu-item-group>
             <a-menu-item-group title="QUICK IMPORT FROM">
-              <a-menu-item v-if="isUIAllowed('airtableImport')" key="quick-import-airtable">
+              <a-menu-item v-if="isUIAllowed('airtableImport')" key="quick-import-airtable" v-t="['a:actions:import-airtable']">
                 <span>
                   <MdiAirTableIcon class="text-primary mdi-icons" />
                   <!-- TODO: i18n -->
                   Airtable
                 </span>
               </a-menu-item>
-              <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv">
+              <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" v-t="['a:actions:import-csv']">
                 <span>
                   <MdiCsvIcon class="text-primary mdi-icons" />
                   <!-- TODO: i18n -->
                   CSV file
                 </span>
               </a-menu-item>
-              <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json">
+              <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" v-t="['a:actions:import-json']">
                 <span>
                   <MdiJSONIcon class="text-primary mdi-icons" />
                   <!-- TODO: i18n -->
                   JSON file
                 </span>
               </a-menu-item>
-              <a-menu-item v-if="isUIAllowed('excelImport')" key="quick-import-excel">
+              <a-menu-item v-if="isUIAllowed('excelImport')" key="quick-import-excel" v-t="['a:actions:import-excel']">
                 <span>
                   <MdiExcelIcon class="text-primary mdi-icons" />
                   <!-- TODO: i18n -->
@@ -84,12 +84,12 @@ const onEdit = (targetKey: number, action: string) => {
               </a-menu-item>
             </a-menu-item-group>
             <a-divider style="margin: 0px" />
-            <a-menu-item key="add-new-table" @click="tableCreateDialog = true">
-              <span>
+            <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" v-t="['e:datasource:import-request']">
+              <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">
                 <MdiRequestDataSourceIcon class="text-primary mdi-icons" />
                 <!-- TODO: i18n -->
                 Request Data Source
-              </span>
+              </a>
             </a-menu-item>
           </a-sub-menu>
         </a-menu>

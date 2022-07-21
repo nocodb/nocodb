@@ -214,6 +214,7 @@ const importTemplate = async () => {
   } catch (errorInfo) {
     // TODO: handle error message
     console.log('Failed:', errorInfo)
+    loading.value = false
     return
   }
 
@@ -267,6 +268,7 @@ const importTemplate = async () => {
     // TODO: retrieve error msg from sdk
     console.log(e)
     toast.error(e.message)
+    loading.value = false
     return
   }
 
@@ -280,11 +282,13 @@ const importTemplate = async () => {
           (async (tableMeta) => {
             const tableName = tableMeta.table_title
             const data = importData[tableMeta.ref_table_name]
-            total += data.length
-            for (let i = 0; i < data.length; i += 500) {
-              const batchData = remapColNames(data.slice(i, i + 500), tableMeta.columns)
-              await $api.dbTableRow.bulkCreate('noco', projectName, tableName, batchData)
-              progress += batchData.length
+            if (data) {
+              total += data.length
+              for (let i = 0; i < data.length; i += 500) {
+                const batchData = remapColNames(data.slice(i, i + 500), tableMeta.columns)
+                await $api.dbTableRow.bulkCreate('noco', projectName, tableName, batchData)
+                progress += batchData.length
+              }
             }
           })(v),
         ),
@@ -292,6 +296,7 @@ const importTemplate = async () => {
     } catch (e: any) {
       // TODO: retrieve error msg from sdk
       toast.error(e.message)
+      loading.value = false
       return
     }
   }

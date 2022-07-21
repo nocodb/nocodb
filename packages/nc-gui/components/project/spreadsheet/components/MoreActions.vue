@@ -28,6 +28,15 @@
             </span>
           </v-list-item-title>
         </v-list-item>
+        <v-list-item v-t="['a:actions:download-excel']" dense @click="exportExcel">
+          <v-list-item-title>
+            <v-icon small class="mr-1"> mdi-download-outline </v-icon>
+            <span class="caption">
+              <!-- Download as CSV -->
+              {{ $t('activity.downloadExcel') }}
+            </span>
+          </v-list-item-title>
+        </v-list-item>
         <v-list-item
           v-if="_isUIAllowed('csvImport') && !isView"
           v-t="['a:actions:upload-csv']"
@@ -87,6 +96,7 @@
 
 <script>
 import FileSaver from 'file-saver';
+import * as XLSX from 'xlsx';
 import { ExportTypes } from 'nocodb-sdk';
 import DropOrSelectFileModal from '~/components/import/DropOrSelectFileModal';
 import ColumnMappingModal from '~/components/project/spreadsheet/components/importExport/ColumnMappingModal';
@@ -219,6 +229,32 @@ export default {
           return row;
         })
       );
+    },
+    async exportExcel() {
+      let offset = 0;
+      let c = 1;
+      const res = await this.$api.dbViewRow.export(
+        'noco',
+        this.projectName,
+        this.meta.title,
+        this.selectedView.title,
+        ExportTypes.EXCEL,
+        {
+          responseType: 'base64',
+          query: {
+            offset,
+          },
+        }
+      );
+      const workbook = XLSX.read(res.data, { type: 'base64' });
+      XLSX.writeFile(workbook, `${this.meta.title}_exported_${c++}.xlsx`);
+
+      offset = +res.headers['nc-export-offset'];
+      if (offset > -1) {
+        this.$toast.info('Downloading more files').goAway(3000);
+      } else {
+        this.$toast.success('Successfully exported all table data').goAway(3000);
+      }
     },
     async exportCsv() {
       let offset = 0;

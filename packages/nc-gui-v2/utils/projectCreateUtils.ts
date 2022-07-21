@@ -1,3 +1,6 @@
+import { adjectives, animals, starWars, uniqueNamesGenerator } from 'unique-names-generator'
+import type { ClientType, ProjectCreateForm } from '~/lib/types'
+
 const testDataBaseNames = {
   mysql2: null,
   mysql: null,
@@ -6,8 +9,6 @@ const testDataBaseNames = {
   mssql: undefined,
   sqlite3: 'a.sqlite',
 }
-
-export type ClientType = 'mysql2' | 'mssql' | 'pg' | 'sqlite3' | 'vitess'
 
 export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
   if (db.client === 'pg') return db.connection?.database
@@ -29,23 +30,24 @@ export const clientTypes = [
   },
   {
     text: 'SQLite',
-    value: 'sqlite',
+    value: 'sqlite3',
   },
 ]
 
 const homeDir = ''
-const sampleConnectionData = {
+const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataSource']['connection']> = {
   pg: {
     host: 'localhost',
     port: '5432',
     user: 'postgres',
     password: 'password',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    searchPath: ['public'],
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   mysql2: {
     host: 'localhost',
@@ -53,11 +55,11 @@ const sampleConnectionData = {
     user: 'root',
     password: 'password',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   vitess: {
     host: 'localhost',
@@ -65,11 +67,11 @@ const sampleConnectionData = {
     user: 'root',
     password: 'password',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   tidb: {
     host: 'localhost',
@@ -77,11 +79,11 @@ const sampleConnectionData = {
     user: 'root',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   yugabyte: {
     host: 'localhost',
@@ -89,11 +91,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   citusdb: {
     host: 'localhost',
@@ -101,11 +103,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   cockroachdb: {
     host: 'localhost',
@@ -113,11 +115,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   greenplum: {
     host: 'localhost',
@@ -125,11 +127,11 @@ const sampleConnectionData = {
     user: 'postgres',
     password: '',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   mssql: {
     host: 'localhost',
@@ -137,11 +139,12 @@ const sampleConnectionData = {
     user: 'sa',
     password: 'Password123.',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    searchPath: ['dbo'],
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   oracledb: {
     host: 'localhost',
@@ -149,11 +152,11 @@ const sampleConnectionData = {
     user: 'system',
     password: 'Oracle18',
     database: '_test',
-    // ssl: {
-    //   ca: '',
-    //   key: '',
-    //   cert: '',
-    // },
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
   },
   sqlite3: {
     client: 'sqlite3',
@@ -165,9 +168,19 @@ const sampleConnectionData = {
   },
 }
 
-export const getDefaultConnectionConfig = (client: ClientType): { client: ClientType; connection: any } => {
+export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateForm['dataSource'] => {
   return {
     client,
     connection: sampleConnectionData[client],
   }
+}
+
+export const sslUsage = ['No', 'Preferred', 'Required', 'Required-CA', 'Required-IDENTITY']
+
+export const generateUniqueName = () => {
+  return uniqueNamesGenerator({
+    dictionaries: [[starWars], [adjectives, animals]][Math.floor(Math.random() * 2)],
+  })
+    .toLowerCase()
+    .replace(/[ -]/g, '_')
 }

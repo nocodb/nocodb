@@ -3,55 +3,48 @@ import { Modal } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import { navigateTo } from '#app'
+import { computed, onMounted } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
-import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
+
+import MdiDeleteOutline from '~icons/mdi/delete-outline'
+import MdiEditOutline from '~icons/mdi/edit-outline'
+import MdiRefresh from '~icons/mdi/refresh'
+import MdiMenuDown from '~icons/mdi/menu-down'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
-import MdiFolderOutline from '~icons/mdi/folder-outline'
 
-const navDrawerOptions = [
-  {
-    title: 'My NocoDB',
-    icon: MdiFolderOutline,
-  },
-  /* todo: implement the api and bring back the options below
-   {
-    title: "Shared With Me",
-    icon: MdiAccountGroup
-  },
-  {
-    title: "Recent",
-    icon: MdiClockOutline
-  },
-  {
-    title: "Starred",
-    icon: MdiStar
-  } */
-]
-
-const route = useRoute()
-
-const { $api, $state } = useNuxtApp()
+const { $api, $state, $e } = useNuxtApp()
 const toast = useToast()
 
-$state.sidebarOpen.value = false
+const filterQuery = ref('')
+const loading = ref(true)
+const projects = ref()
 
-const response = await $api.project.list({})
-const projects = $ref(response.list)
-const activePage = $ref(navDrawerOptions[0].title)
+const loadProjects = async () => {
+  loading.value = true
+  const response = await $api.project.list({})
+  projects.value = response.list
+  loading.value = false
+}
+
+const filteredProjects = computed(() => {
+  return projects.value.filter(
+    (project) => !filterQuery.value || project.title?.toLowerCase?.().includes(filterQuery.value.toLowerCase()),
+  )
+})
+
 const deleteProject = (project: ProjectType) => {
+  $e('c:project:delete')
   Modal.confirm({
-    title: 'Do you want to delete the project?',
-    // icon: createVNode(ExclamationCircleOutlined),
-    content: 'Some descriptions',
+    title: `Do you want to delete '${project.title}' project?`,
     okText: 'Yes',
     okType: 'danger',
     cancelText: 'No',
     async onOk() {
       try {
+        $e('c:project:delete')
         await $api.project.delete(project.id as string)
-        projects.splice(projects.indexOf(project), 1)
+        projects.value.splice(projects.value.indexOf(project), 1)
       } catch (e) {
         toast.error(await extractSdkResponseErrorMsg(e))
       }
@@ -59,92 +52,124 @@ const deleteProject = (project: ProjectType) => {
   })
 }
 
-const visible = ref(true)
+onMounted(() => {
+  loadProjects()
+})
+
+// hide sidebar
+$state.sidebarOpen.value = false
 </script>
 
 <template>
   <NuxtLayout>
-    <template #sidebar>
-      <div class="flex flex-col h-full">
-        <div class="flex p-4">
-          <v-menu class="select-none">
-            <template #activator="{ props }">
-              <div
-                class="color-transition hover:(bg-gray-100 dark:bg-secondary/25) dark:(bg-secondary/50 !text-white shadow-gray-600) mr-auto select-none flex items-center gap-2 leading-8 cursor-pointer rounded-full border-1 border-gray-300 px-5 py-2 shadow prose-lg font-semibold"
-                @click="props.onClick"
-              >
-                <MdiPlus class="text-primary dark:(!text-white) text-2xl" />
-                {{ $t('title.newProj') }}
-              </div>
-            </template>
+    <a-card class="mx-auto mt-5 !max-w-[600px] shadow-lg">
+      <h1 class="text-center text-4xl pa-2 nc-project-page-title flex align-center justify-center gap-2">
+        <!-- My Projects -->
+        <b>{{ $t('title.myProject') }}</b>
 
-            <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
+        <MdiRefresh
+          v-t="['a:project:refresh']"
+          class="text-sm text-gray-500 hover:text-primary mt-1 cursor-pointer"
+          @click="loadProjects"
+        ></MdiRefresh>
+      </h1>
+
+      <div class="flex mb-6">
+        <a-input-search
+          v-model:value="filterQuery"
+          class="max-w-[200px] nc-project-page-search"
+          :placeholder="$t('activity.searchProject')"
+        ></a-input-search>
+        <div class="flex-grow"></div>
+
+        <a-dropdown @click.stop>
+          <a-button class="nc-new-project-menu">
+            <div class="flex align-center">
+              {{ $t('title.newProj') }}
+              <MdiMenuDown class="menu-icon" />
+            </div>
+          </a-button>
+
+          <template #overlay>
+            <a-menu>
               <div
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                @click="navigateTo('/create')"
+                v-t="['c:project:create:xcdb']"
+                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-xc-db-project"
+                @click="navigateTo('/project/create')"
               >
                 <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
                 <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
               </div>
               <div
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-                @click="navigateTo('/create-external')"
+                v-t="['c:project:create:extdb']"
+                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-external-db-project"
+                @click="navigateTo('/project/create-external')"
               >
                 <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
                 <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
               </div>
-            </v-list>
-          </v-menu>
-        </div>
+            </a-menu>
+          </template>
+        </a-dropdown>
+      </div>
 
-        <a-menu class="pr-4 dark:bg-gray-800 dark:text-white flex-1 border-0">
-          <a-menu-item
-            v-for="(option, index) in navDrawerOptions"
-            :key="index"
-            class="!rounded-r-lg"
-            @click="activePage = option.title"
-          >
-            <div class="flex items-center gap-4">
-              <component :is="option.icon" />
+      <div v-if="loading">
+        <a-skeleton />
+      </div>
 
-              <span class="font-semibold">
-                {{ option.title }}
-              </span>
+      <a-table
+        v-else
+        :custom-row="
+          (record) => ({
+            onClick: () => {
+              $e('a:project:open')
+              navigateTo(`/nc/${record.id}`)
+            },
+          })
+        "
+        :data-source="filteredProjects"
+        :pagination="{ position: ['bottomCenter'] }"
+      >
+        <!--        Title -->
+        <a-table-column key="title" :title="$t('general.title')" data-index="title">
+          <template #default="{ text }">
+            <div class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap nc-project-row" :title="text">
+              {{ text }}
             </div>
-          </a-menu-item>
-        </a-menu>
-
-        <general-social />
-
-        <general-sponsors :nav="true" />
-      </div>
-    </template>
-
-    <v-container class="flex-1 mb-12">
-      <div class="flex">
-        <div class="flex-1 text-2xl md:text-4xl font-bold text-gray-500 dark:text-white p-4">
-          {{ activePage }}
-        </div>
-
-        <div class="self-end flex text-4xl mb-1">
-          <MaterialSymbolsGridView
-            :class="route.name === 'index-index' ? '!text-primary dark:(!text-secondary/75)' : ''"
-            class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
-            @click="navigateTo('/')"
-          />
-          <MaterialSymbolsFormatListBulletedRounded
-            :class="route.name === 'index-index-list' ? '!text-primary dark:(!text-secondary/75)' : ''"
-            class="cursor-pointer p-2 hover:bg-gray-300/50 rounded-full"
-            @click="navigateTo('/list')"
-          />
-        </div>
-      </div>
-
-      <a-divider class="!mb-4 lg:(!mb-8)" />
-
-      <NuxtPage :projects="projects" @delete-project="deleteProject" />
-    </v-container>
-
-    <a-modal></a-modal>
+          </template>
+        </a-table-column>
+        <!--        Actions -->
+        <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
+          <template #default="{ text, record }">
+            <div class="flex align-center">
+              <MdiEditOutline
+                v-t="['c:project:edit:rename']"
+                class="nc-action-btn"
+                @click.stop="navigateTo(`/project/${text}`)"
+              />
+              <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
+            </div>
+          </template>
+        </a-table-column>
+      </a-table>
+    </a-card>
   </NuxtLayout>
 </template>
+
+<style scoped>
+.nc-action-btn {
+  @apply text-gray-500 hover:text-primary mr-2 cursor-pointer p-2 w-[30px] h-[30px] hover:bg-gray-300/50 rounded-full;
+}
+
+:deep(.ant-table-cell) {
+  @apply py-1;
+}
+
+:deep(.ant-table-row) {
+  @apply cursor-pointer;
+}
+
+:deep(.ant-table) {
+  @apply min-h-[428px];
+}
+</style>

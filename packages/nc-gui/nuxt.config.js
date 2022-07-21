@@ -63,6 +63,10 @@ export default {
       ssr: false
     },
     {
+      src: '~plugins/setFinnTheme.js',
+      ssr: false
+    },
+    {
       src: '~plugins/confetti.js',
       ssr: false
     },
@@ -139,7 +143,7 @@ export default {
       // font: false,
       icons: false
     },
-    optionsPath: '@/config/vuetify.options.js',
+    optionsPath: '@/config/finn/vuetify.options.js',
     treeShake: true,
     customVariables: ['./config/variables.scss']
   },

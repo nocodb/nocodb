@@ -1,0 +1,32 @@
+:root {
+  --finn-white: #FFFFFF;
+  --finn-black: #191919;
+  --pearl: #E9EAEC;
+}
+
+.v-application {
+  & .v-btn {
+    box-shadow: none !important;
+  }
+
+  & .v-btn, & div {
+    &.primary.lighten-5, &.primary.lighten-4 {
+      background-color: var(--pearl) !important;
+      border-color: var(--pearl) !important;
+    }
+  }
+
+  &.theme--light {
+    & .project-tabs .v-tab.project-tab  {
+      background-color: var(--pearl) !important;
+      color: var(--finn-black) !important;
+    }
+  }
+
+  &.theme--dark {
+    & .project-tabs .v-tab.project-tab  {
+      background-color: var(--finn-black) !important;
+      color: var(--pearl) !important;
+    }
+  }
+}

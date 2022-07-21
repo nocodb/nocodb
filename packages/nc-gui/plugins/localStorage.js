@@ -7,8 +7,15 @@ export default async({ store, $vuetify: { theme }, route }) => {
   store.watch(
     state => state.settings.theme,
     (c) => {
-      theme.themes.dark = { ...theme.themes.dark, ...c }
-      theme.themes.light = { ...theme.themes.light, ...c }
+      const {
+        themes: {
+          dark = {},
+          light = {}
+        } = {},
+        ...rest
+      } = c
+      theme.themes.dark = { ...theme.themes.dark, ...rest, ...dark }
+      theme.themes.light = { ...theme.themes.light, ...rest, ...light }
     }
   )
   store.watch(

@@ -1,0 +1,61 @@
+$btn-border-radius: 2px;
+
+$body-font-family: 'Inter', sans-serif;
+
+$headings: (
+  'h1': (
+    'fontFamily': 'Suisse Intl, sans-serif',
+    'fontStyle': 'normal',
+    'fontWeight': 600,
+    'fontSize': 40,
+    'lineHeight': '48px',
+  ),
+  'h2': (
+    'fontFamily': 'Suisse Intl, sans-serif',
+    'fontStyle': 'normal',
+    'fontWeight': 600,
+    'fontSize': 36,
+    'lineHeight': '44px',
+  ),
+  'h3': (
+    'fontFamily': 'Suisse Intl, sans-serif',
+    'fontStyle': 'normal',
+    'fontWeight': 600,
+    'fontSize': 32,
+    'lineHeight': '40px',
+  ),
+  'h4': (
+    'fontFamily': 'Suisse Intl, sans-serif',
+    'fontStyle': 'normal',
+    'fontWeight': 600,
+    'fontSize': 28,
+    'lineHeight': '36px',
+  ),
+  'h5': (
+    'fontFamily': 'Suisse Intl, sans-serif',
+    'fontStyle': 'normal',
+    'fontWeight': 600,
+    'fontSize': 24,
+    'lineHeight': '32px',
+  ),
+  'h6': (
+    'fontFamily': 'Suisse Intl, sans-serif',
+    'fontStyle': 'normal',
+    'fontWeight': 600,
+    'fontSize': 16,
+    'lineHeight': '24px',
+  ),
+);
+
+$grey: (
+  'base': #979797,
+  'lighten-5': #f8f8f8,
+  'lighten-4': #f3f3f3,
+  'lighten-3': #E9EAEC,
+  'lighten-2': #D7D7D7,
+  'lighten-1': #979797,
+  'darken-1': #707070,
+  'darken-2': #707070,
+  'darken-3': #191919,
+  'darken-4': #191919
+);

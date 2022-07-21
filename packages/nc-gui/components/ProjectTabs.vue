@@ -7,8 +7,8 @@
     <v-tabs
       ref="projectTabs"
       v-model="activeTab"
-      dark
-      background-color="primary"
+      :dark="!!$store.state.settings.darkThemeAppBar"
+      background-color="headerBg"
       height="40"
       class="project-tabs nc-project-tabs"
       color=""

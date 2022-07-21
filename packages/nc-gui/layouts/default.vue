@@ -2,12 +2,12 @@
   <v-app v-if="isProjectInfoLoaded">
     <v-app-bar
       class="elevation-0"
-      color="primary"
+      color="headerBg"
       app
       clipped-left
       dense
-      dark
-      height="48"
+      :dark="!!$store.state.settings.darkThemeAppBar"
+      :height="headerHeight"
     >
       <div class="d-flex align-center pt-1" style="flex: 1">
         <v-toolbar-title>
@@ -20,11 +20,11 @@
                 class="pa-1 pr-0 brand-icon nc-noco-brand-icon"
                 v-on="on"
               >
-                <v-img :src="logo" max-height="32px" max-width="32px" />
+                <v-img :src="logo" :max-height="`${headerHeight}px`" :max-width="`${headerHeight}px`" />
               </v-btn>
             </template>
             <!-- Home -->
-            {{ $t("general.home") }}
+            {{ $t('general.home') }}
             <span
               class="caption font-weight-light pointer"
             >(v{{
@@ -33,7 +33,7 @@
             }})</span>
           </v-tooltip>
 
-          <span class="body-1 ml-n1" @click="$router.push('/projects')">
+          <span v-if="!!brandName" class="body-1 ml-n1" @click="$router.push('/projects')">
             {{ brandName }}</span>
         </v-toolbar-title>
 
@@ -340,6 +340,7 @@ import Language from '~/components/utils/Language'
 import Loader from '~/components/Loader'
 import PreviewAs from '~/components/PreviewAs'
 import ShareOrInviteModal from '~/components/auth/ShareOrInviteModal'
+import { headerHeight } from '~/config/constants'
 
 export default {
   components: {
@@ -353,6 +354,7 @@ export default {
     settings
   },
   data: () => ({
+    headerHeight,
     clickCount: true,
     templateModal: false,
     swaggerOrGraphiqlUrl: null,
@@ -386,7 +388,9 @@ export default {
     shareModal: false
   }),
   computed: {
-
+    logo() {
+      return this.$store.state.settings.darkTheme ? require('~/assets/img/brand/finn-white.svg') : require('~/assets/img/brand/finn.svg')
+    },
     swaggerLink() {
       return new URL(`/api/v1/db/meta/projects/${this.projectId}/swagger`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
     },
@@ -394,8 +398,6 @@ export default {
       return new URL(`/api/v1/db/meta/projects/${this.projectId}/redoc`, this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl)
     },
     ...mapGetters({
-      logo: 'plugins/brandLogo',
-      brandName: 'plugins/brandName',
       projects: 'project/list',
       tabs: 'tabs/list',
       sqldMgr: 'sqlMgr/sqlMgr',
@@ -746,6 +748,11 @@ export default {
   }
 }
 </script>
+
+<style lang="scss">
+@import "assets/style/themes/finn.scss";
+</style>
+
 <style scoped>
 a {
   text-decoration: none;

@@ -12,28 +12,27 @@ export default function({ app }) {
       },
       dark: app.store.state.settings.darkTheme,
       themes: {
-
         dark: {
           primary: '#0989ff',
-          // primary: '#0989ff',
           'x-active': '#e91e63',
           textColor: '#ffffff',
           text: '#ffffff',
           textLight: '#b3b3b3',
           backgroundColor: '#565656',
           backgroundColor1: '#252525',
-          backgroundColorDefault: '#1f1f1f'
+          backgroundColorDefault: '#1f1f1f',
+          headerBg: '#0989ff'
         },
         light: {
           primary: '#1348ba',
-          // primary: '#0989ff',
           'x-active': '#e91e63',
           textColor: '#333333',
           text: '#333333',
           textLight: '#929292',
           backgroundColor: '#f7f7f7',
           backgroundColor1: '#f7f6f3',
-          backgroundColorDefault: '#ffffff'
+          backgroundColorDefault: '#ffffff',
+          headerBg: '#1348ba'
         }
       }
     }

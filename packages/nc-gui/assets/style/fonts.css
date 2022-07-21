@@ -228,3 +228,75 @@
   font-style: normal;
   font-display: swap;
 }
+
+
+/* FINN */
+@font-face {
+  font-family: 'Inter';
+  src: url('./Inter/Inter-Regular.eot');
+  src: local('Inter Regular'), local('Inter-Regular'),
+  url('./Inter/Inter-Regular.eot?#iefix') format('embedded-opentype'),
+  url('./Inter/Inter-Regular.woff2') format('woff2'),
+  url('./Inter/Inter-Regular.woff') format('woff'),
+  url('./Inter/Inter-Regular.ttf') format('truetype'),
+  url('./Inter/Inter-Regular.svg') format('svg');
+  font-weight: normal;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('./Inter/Inter-SemiBold.eot');
+  src: local('Inter SemiBold'), local('Inter-SemiBold'),
+  url('./Inter/Inter-SemiBold.eot?#iefix') format('embedded-opentype'),
+  url('./Inter/Inter-SemiBold.woff2') format('woff2'),
+  url('./Inter/Inter-SemiBold.woff') format('woff'),
+  url('./Inter/Inter-SemiBold.ttf') format('truetype'),
+  url('./Inter/Inter-SemiBold.svg') format('svg');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('./Inter/Inter-Light.eot');
+  src: local('Inter Light'), local('Inter-Light'),
+  url('./Inter/Inter-Light.eot?#iefix') format('embedded-opentype'),
+  url('./Inter/Inter-Light.woff2') format('woff2'),
+  url('./Inter/Inter-Light.woff') format('woff'),
+  url('./Inter/Inter-Light.ttf') format('truetype'),
+  url('./Inter/Inter-Light.svg') format('svg');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Inter';
+  src: url('./Inter/Inter-Medium.eot');
+  src: local('Inter Medium'), local('Inter-Medium'),
+  url('./Inter/Inter-Medium.eot?#iefix') format('embedded-opentype'),
+  url('./Inter/Inter-Medium.woff2') format('woff2'),
+  url('./Inter/Inter-Medium.woff') format('woff'),
+  url('./Inter/Inter-Medium.ttf') format('truetype'),
+  url('./Inter/Inter-Medium.svg') format('svg');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Suisse Intl';
+  src: url('./SuisseIntl/SuisseIntl-SemiBold.eot');
+  src: local('SuisseIntl-SemiBold'),
+  url('./SuisseIntl/SuisseIntl-SemiBold.eot?#iefix') format('embedded-opentype'),
+  url('./SuisseIntl/SuisseIntl-SemiBold.woff2') format('woff2'),
+  url('./SuisseIntl/SuisseIntl-SemiBold.woff') format('woff'),
+  url('./SuisseIntl/SuisseIntl-SemiBold.ttf') format('truetype'),
+  url('./SuisseIntl/SuisseIntl-SemiBold.svg') format('svg');
+  font-weight: 600;
+  font-style: normal;
+  font-display: swap;
+}

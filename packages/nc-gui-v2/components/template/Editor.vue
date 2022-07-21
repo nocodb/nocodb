@@ -12,6 +12,7 @@ import MdiNumericIcon from '~icons/mdi/numeric'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiKeyStarIcon from '~icons/mdi/key-star'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
@@ -22,6 +23,7 @@ interface Props {
 interface Option {
   value: string
 }
+
 const useForm = Form.useForm
 const { quickImportType, projectTemplate, importData } = defineProps<Props>()
 const { $api } = useNuxtApp()
@@ -209,18 +211,22 @@ const remapColNames = (batchData: any[], columns: ColumnType[]) => {
 const importTemplate = async () => {
   // check if form is valid
   try {
-    const values = await validate()
-    console.log('Success:', values)
+    await validate()
   } catch (errorInfo) {
-    // TODO: handle error message
-    console.log('Failed:', errorInfo)
+    toast.error('Please fill all the required values')
     loading.value = false
     return
   }
 
-  let firstTable = null
   try {
     loading.value = true
+    // tab info to be used to show the tab after successful import
+    const tab = {
+      id: '',
+      title: '',
+    }
+
+    // create tables
     for (const t of data.tables) {
       // enrich system fields if not provided
       // e.g. id, created_at, updated_at
@@ -239,24 +245,18 @@ const importTemplate = async () => {
           break
         }
       }
-
-      // create table
-      const table: TableType | undefined = await $api.dbTable.create(project?.value?.id as string, {
+      const table = await $api.dbTable.create(project?.value?.id as string, {
         table_name: t.table_name,
+        // leave title empty to get a generated one based on table_name
         title: '',
         columns: t.columns,
       })
-      // TODO: should catch error msg throw from sdk
-      if (!table) {
-        throw {
-          message: 'Failed to create table',
-        }
-      }
       t.table_title = table.title
 
       // open the first table after import
-      if (firstTable === null) {
-        firstTable = table
+      if (tab.id === '' && tab.title === '') {
+        tab.id = table.id as string
+        tab.title = table.title as string
       }
 
       // set primary value
@@ -264,16 +264,8 @@ const importTemplate = async () => {
         await $api.dbTableColumn.primaryColumnSet(table.columns[0].id as string)
       }
     }
-  } catch (e: any) {
-    // TODO: retrieve error msg from sdk
-    console.log(e)
-    toast.error(e.message)
-    loading.value = false
-    return
-  }
-
-  if (importData) {
-    try {
+    // bulk imsert data
+    if (importData) {
       let total = 0
       let progress = 0
       const projectName = project.value.title as string
@@ -293,23 +285,19 @@ const importTemplate = async () => {
           })(v),
         ),
       )
-    } catch (e: any) {
-      // TODO: retrieve error msg from sdk
-      toast.error(e.message)
-      loading.value = false
-      return
     }
+    // reload table list
+    await loadTables()
+    addTab({
+      ...tab,
+      type: 'table',
+    })
+  } catch (e: any) {
+    toast.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    // TODO: close dialog when the integration is ready
+    loading.value = false
   }
-
-  // reload table list
-  await loadTables()
-  addTab({
-    id: firstTable?.id as string,
-    title: firstTable?.title as string,
-    type: 'table',
-  })
-  loading.value = false
-  // TODO: close dialog ?
 }
 </script>
 

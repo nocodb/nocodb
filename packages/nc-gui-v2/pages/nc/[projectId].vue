@@ -5,11 +5,12 @@ import useTabs from '~/composables/useTabs'
 
 const route = useRoute()
 const { loadProject, loadTables } = useProject()
-const { clearTabs } = useTabs()
+const { clearTabs, addTab } = useTabs()
 
 onMounted(async () => {
   await loadProject(route.params.projectId as string)
   await loadTables()
+  addTab({ type: 'auth', title: 'Team & Auth' })
 })
 
 watch(

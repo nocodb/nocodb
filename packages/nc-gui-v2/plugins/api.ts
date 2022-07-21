@@ -43,14 +43,14 @@ function addAxiosInterceptors(api: Api<any>, app: { $state: GlobalState }) {
 
       // Return any error which is not due to authentication back to the calling service
       if (!error.response || error.response.status !== 401) {
-        return error
+        return Promise.reject(error)
       }
 
       // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/refresh-token') {
         app.$state.signOut()
 
-        return error
+        return Promise.reject(error)
       }
 
       // Try request again with new token

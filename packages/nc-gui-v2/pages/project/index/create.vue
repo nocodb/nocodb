@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onMounted, onUpdated } from '@vue/runtime-core'
 import type { Form } from 'ant-design-vue'
+import { useToast } from 'vue-toastification'
 import { nextTick, ref } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -11,7 +12,8 @@ const name = ref('')
 const loading = ref(false)
 const valid = ref(false)
 
-const { $api, $toast, $state } = useNuxtApp()
+const { $api, $state } = useNuxtApp()
+const toast = useToast()
 
 const nameValidationRules = [
   {
@@ -32,9 +34,11 @@ const createProject = async () => {
       title: formState.title,
     })
 
+    debugger
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
-    $toast.error(await extractSdkResponseErrorMsg(e)).goAway(3000)
+    debugger
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
   loading.value = false
 }
@@ -42,7 +46,7 @@ const createProject = async () => {
 const form = ref<typeof Form>()
 
 // hide sidebar
-// $state.sidebarOpen.value = false
+$state.sidebarOpen.value = false
 
 // select and focus title field on load
 onMounted(async () => {
@@ -61,7 +65,7 @@ onMounted(async () => {
   <a-card class="w-[500px] mx-auto !mt-100px shadow-md">
     <h3 class="text-3xl text-center font-semibold mb-2">{{ $t('activity.createProject') }}</h3>
 
-    <a-form ref="form" :model="formState" name="basic" layout="vertical" autocomplete="off" @submit="createProject">
+    <a-form ref="form" :model="formState" name="basic" layout="vertical" autocomplete="off" @finish="createProject">
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="my-10 mx-10">
         <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>

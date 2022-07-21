@@ -3,6 +3,7 @@ import { onMounted } from '@vue/runtime-core'
 import type { Form } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { ref } from 'vue'
+import { useToast } from 'vue-toastification'
 import { navigateTo, useNuxtApp, useRoute } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { projectTitleValidator } from '~/utils/projectCreateUtils'
@@ -10,7 +11,8 @@ import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-l
 
 const loading = ref(false)
 
-const { $api, $toast, $state } = useNuxtApp()
+const { $api, $state } = useNuxtApp()
+const toast = useToast()
 const route = useRoute()
 
 const nameValidationRules = [
@@ -30,7 +32,7 @@ const getProject = async () => {
     const result: ProjectType = await $api.project.read(route.params.id as string)
     formState.title = result.title as string
   } catch (e: any) {
-    $toast.error(await extractSdkResponseErrorMsg(e))
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
 }
 const renameProject = async () => {
@@ -40,7 +42,7 @@ const renameProject = async () => {
 
     navigateTo(`/nc/${route.params.id}`)
   } catch (e) {
-    $toast.error(await extractSdkResponseErrorMsg(e)).goAway(3000)
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
   loading.value = false
 }
@@ -68,7 +70,7 @@ onMounted(async () => {
   <a-card class="w-[500px] mx-auto !mt-100px shadow-md">
     <h3 class="text-3xl text-center font-semibold mb-2">{{ $t('activity.editProject') }}</h3>
 
-    <a-form ref="form" :model="formState" name="basic" layout="vertical" autocomplete="off" @submit="renameProject">
+    <a-form ref="form" :model="formState" name="basic" layout="vertical" autocomplete="off" @finish="renameProject">
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="my-10 mx-10">
         <a-input v-model:value="formState.title" name="title" class="nc-metadb-project-name" />
       </a-form-item>

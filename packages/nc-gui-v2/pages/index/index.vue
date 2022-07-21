@@ -2,6 +2,7 @@
 import { Modal } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
+import { navigateTo } from '#app'
 import { computed, onMounted } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
@@ -12,7 +13,7 @@ import MdiMenuDown from '~icons/mdi/menu-down'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 
-const { $api } = useNuxtApp()
+const { $api, $state } = useNuxtApp()
 const toast = useToast()
 
 const filterQuery = ref('')
@@ -34,15 +35,14 @@ const filteredProjects = computed(() => {
 
 const deleteProject = (project: ProjectType) => {
   Modal.confirm({
-    title: 'Do you want to delete the project?',
-    content: 'Some descriptions',
+    title: `Do you want to delete '${project.title}' project?`,
     okText: 'Yes',
     okType: 'danger',
     cancelText: 'No',
     async onOk() {
       try {
         await $api.project.delete(project.id as string)
-        projects.splice(projects.indexOf(project), 1)
+        projects.value.splice(projects.value.indexOf(project), 1)
       } catch (e) {
         toast.error(await extractSdkResponseErrorMsg(e))
       }
@@ -53,6 +53,9 @@ const deleteProject = (project: ProjectType) => {
 onMounted(() => {
   loadProjects()
 })
+
+// hide sidebar
+$state.sidebarOpen.value = false
 </script>
 
 <template>
@@ -74,10 +77,10 @@ onMounted(() => {
         <div class="flex-grow"></div>
 
         <a-dropdown @click.stop>
-          <a-button
-            >
-            <div class="flex align-center" >{{ $t('title.newProj') }}
-            <MdiMenuDown class="menu-icon" />
+          <a-button>
+            <div class="flex align-center">
+              {{ $t('title.newProj') }}
+              <MdiMenuDown class="menu-icon" />
             </div>
           </a-button>
 
@@ -106,17 +109,26 @@ onMounted(() => {
         <a-skeleton />
       </div>
 
-      <a-table v-else :data-source="filteredProjects" :pagination="{ position: ['bottomCenter'] }">
+      <a-table
+        v-else
+        :custom-row="
+          (record) => ({
+            onClick: () => navigateTo(`/nc/${record.id}`),
+          })
+        "
+        :data-source="filteredProjects"
+        :pagination="{ position: ['bottomCenter'] }"
+      >
         <a-table-column key="title" title="Title" data-index="title">
           <template #default="{ text }">
             <div class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap" :title="text">{{ text }}</div>
           </template>
         </a-table-column>
         <a-table-column key="id" title="Actions" data-index="id">
-          <template #default="{ text }">
+          <template #default="{ text, record }">
             <div class="flex align-center">
               <MdiEditOutline class="nc-action-btn" @click.stop="navigateTo(`/project/${text}`)" />
-              <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(text)" />
+              <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
             </div>
           </template>
         </a-table-column>
@@ -132,5 +144,9 @@ onMounted(() => {
 
 :deep(.ant-table-cell) {
   @apply py-1;
+}
+
+:deep(.ant-table-row) {
+  @apply cursor-pointer;
 }
 </style>

@@ -27,38 +27,6 @@ interface Option {
 const useForm = Form.useForm
 const { quickImportType, projectTemplate, importData } = defineProps<Props>()
 const { $api } = useNuxtApp()
-const hasSelectColumn = ref(<boolean[]>{})
-const expansionPanel = ref(<number[]>[])
-const editableTn = ref(<boolean[]>{})
-const inputRefs = ref(<HTMLInputElement[]>[])
-const { addTab } = useTabs()
-const { sqlUi, project, loadTables } = useProject()
-const loading = ref(false)
-const toast = useToast()
-const buttonSize = ref<SizeType>('large')
-const templateForm = reactive<{ tables: object[] }>({
-  tables: [],
-})
-
-const uiTypeOptions = ref<Option[]>(
-  (Object.keys(UITypes) as Array<keyof typeof UITypes>)
-    .filter(
-      (uiType: any) =>
-        !isVirtualCol(uiType) &&
-        ![UITypes.ForeignKey, UITypes.ID, UITypes.CreateTime, UITypes.LastModifiedTime, UITypes.Barcode, UITypes.Button].includes(
-          uiType,
-        ),
-    )
-    .map((uiType: string) => ({
-      value: uiType,
-      label: uiType,
-    })),
-)
-
-const filterOption = (input: string, option: Option) => {
-  return option.value.toUpperCase().indexOf(input.toUpperCase()) >= 0
-}
-
 const tableColumns = [
   {
     name: 'Column Name',
@@ -82,10 +50,41 @@ const tableColumns = [
     align: 'right',
   },
 ]
-
+const templateForm = reactive<{ tables: object[] }>({
+  tables: [],
+})
+const buttonSize = ref<SizeType>('large')
+const hasSelectColumn = ref(<boolean[]>{})
+const expansionPanel = ref(<number[]>[])
+const editableTn = ref(<boolean[]>{})
+const inputRefs = ref(<HTMLInputElement[]>[])
+const isImporting = ref(false)
+const importingTip = ref('Importing')
+const uiTypeOptions = ref<Option[]>(
+  (Object.keys(UITypes) as Array<keyof typeof UITypes>)
+    .filter(
+      (uiType: any) =>
+        !isVirtualCol(uiType) &&
+        ![UITypes.ForeignKey, UITypes.ID, UITypes.CreateTime, UITypes.LastModifiedTime, UITypes.Barcode, UITypes.Button].includes(
+          uiType,
+        ),
+    )
+    .map((uiType: string) => ({
+      value: uiType,
+      label: uiType,
+    })),
+)
 const data = reactive(<any>{
   name: 'Project Name',
   tables: [],
+})
+
+const toast = useToast()
+const { addTab } = useTabs()
+const { sqlUi, project, loadTables } = useProject()
+
+onMounted(() => {
+  parseAndLoadTemplate()
 })
 
 const validators = computed(() => {
@@ -93,8 +92,6 @@ const validators = computed(() => {
   const tnValidator = [{ required: true, message: 'Please fill in table name', trigger: 'change' }]
   const cnValidator = [{ required: true, message: 'Please fill in column name', trigger: 'change' }]
   const uidtValidator = [{ required: true, message: 'Please fill in column type', trigger: 'change' }]
-  // TODO: check existing validation logic
-  const dtxpValidator = [{}]
   let res: any = {}
   for (let tableIdx = 0; tableIdx < data.tables.length; tableIdx++) {
     res[`tables.${tableIdx}.table_name`] = tnValidator
@@ -104,22 +101,21 @@ const validators = computed(() => {
       res[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = uidtValidator
       if (isSelect(data.tables[tableIdx].columns[columnIdx])) {
         hasSelectColumn.value[tableIdx] = true
-        res[`tables.${tableIdx}.columns.${columnIdx}.dtxp`] = dtxpValidator
       }
     }
   }
   return res
 })
 
-const { resetFields, validate, validateInfos } = useForm(data, validators)
-
 const editorTitle = computed(() => {
   return `${quickImportType.toUpperCase()} Import: ${data.title}`
 })
 
-onMounted(() => {
-  parseAndLoadTemplate()
-})
+const { resetFields, validate, validateInfos } = useForm(data, validators)
+
+const filterOption = (input: string, option: Option) => {
+  return option.value.toUpperCase().indexOf(input.toUpperCase()) >= 0
+}
 
 const parseAndLoadTemplate = () => {
   if (projectTemplate) {
@@ -198,12 +194,12 @@ const importTemplate = async () => {
     await validate()
   } catch (errorInfo) {
     toast.error('Please fill all the required values')
-    loading.value = false
+    isImporting.value = false
     return
   }
 
   try {
-    loading.value = true
+    isImporting.value = true
     // tab info to be used to show the tab after successful import
     const tab = {
       id: '',
@@ -263,6 +259,7 @@ const importTemplate = async () => {
             if (data) {
               total += data.length
               for (let i = 0; i < data.length; i += offset) {
+                importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
                 const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
                 await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.table_title, batchData)
                 progress += batchData.length
@@ -282,202 +279,206 @@ const importTemplate = async () => {
     toast.error(await extractSdkResponseErrorMsg(e))
   } finally {
     // TODO: close dialog when the integration is ready
-    loading.value = false
+    isImporting.value = false
   }
 }
 </script>
 
 <template>
-  <a-card :title="editorTitle">
-    <template #extra>
-      <a-button type="primary" :loading="loading" @click="importTemplate" :size="buttonSize">
-        {{ $t('activity.import') }}
-      </a-button>
-    </template>
-    <a-form :model="data" name="template-editor-form">
-      <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
-        {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
-        available for import
-      </p>
-      <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" class="template-collapse" accordion>
-        <a-collapse-panel v-for="(table, tableIdx) in data.tables" :key="tableIdx">
-          <template #header>
-            <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" noStyle>
-              <a-input
-                v-model:value="table.table_name"
-                style="max-width: 300px"
-                hide-details
-                @click="(e) => e.stopPropagation()"
-                @blur="setEditableTn(tableIdx, false)"
-                @keydown.enter="setEditableTn(tableIdx, false)"
-              />
-            </a-form-item>
-            <span v-else class="font-weight-bold text-lg" @click="(e) => (e.stopPropagation(), setEditableTn(tableIdx, true))">
-              <MdiTableIcon class="text-primary" style="margin-bottom: -5px" />
-              {{ table.table_name }}
-            </span>
-          </template>
-          <template #extra>
-            <a-tooltip bottom>
-              <template #title>
-                <!-- TODO: i18n -->
-                <span>Delete Table</span>
-              </template>
-              <MdiDeleteOutlineIcon
-                v-if="data.tables.length > 1"
-                class="text-lg"
-                style="margin-right: 25px"
-                @click.stop="deleteTable(tableIdx)"
-              />
-            </a-tooltip>
-          </template>
-
-          <a-table
-            v-if="table.columns.length"
-            class="template-form"
-            size="middle"
-            row-class-name="template-form-row"
-            :data-source="table.columns"
-            :columns="tableColumns"
-            :pagination="false"
-          >
-            <template #headerCell="{ column }">
-              <template v-if="column.key === 'column_name'">
-                <span>
-                  {{ $t('labels.columnName') }}
-                </span>
-              </template>
-              <template v-else-if="column.key === 'uidt'">
-                <span>
-                  {{ $t('labels.columnType') }}
-                </span>
-              </template>
-              <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
-                <span>
+  <a-spin :spinning="isImporting" :tip="importingTip" size="large">
+    <a-card :title="editorTitle">
+      <template #extra>
+        <a-button type="primary" @click="importTemplate" :size="buttonSize">
+          {{ $t('activity.import') }}
+        </a-button>
+      </template>
+      <a-form :model="data" name="template-editor-form">
+        <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
+          {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
+          available for import
+        </p>
+        <a-collapse
+          v-if="data.tables && data.tables.length"
+          v-model:activeKey="expansionPanel"
+          class="template-collapse"
+          accordion
+        >
+          <a-collapse-panel v-for="(table, tableIdx) in data.tables" :key="tableIdx">
+            <template #header>
+              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" noStyle>
+                <a-input
+                  v-model:value="table.table_name"
+                  style="max-width: 300px"
+                  hide-details
+                  @click="(e) => e.stopPropagation()"
+                  @blur="setEditableTn(tableIdx, false)"
+                  @keydown.enter="setEditableTn(tableIdx, false)"
+                />
+              </a-form-item>
+              <span v-else class="font-weight-bold text-lg" @click="(e) => (e.stopPropagation(), setEditableTn(tableIdx, true))">
+                <MdiTableIcon class="text-primary" style="margin-bottom: -5px" />
+                {{ table.table_name }}
+              </span>
+            </template>
+            <template #extra>
+              <a-tooltip bottom>
+                <template #title>
                   <!-- TODO: i18n -->
-                  Options
-                </span>
-              </template>
+                  <span>Delete Table</span>
+                </template>
+                <MdiDeleteOutlineIcon
+                  v-if="data.tables.length > 1"
+                  class="text-lg"
+                  style="margin-right: 25px"
+                  @click.stop="deleteTable(tableIdx)"
+                />
+              </a-tooltip>
             </template>
-            <template #bodyCell="{ column, record }">
-              <template v-if="column.key === 'column_name'">
-                <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                  <a-input
-                    v-model:value="record.column_name"
-                    :ref="
-                      (el) => {
-                        inputRefs[record.key] = el
-                      }
-                    "
-                  />
-                </a-form-item>
-              </template>
-              <template v-else-if="column.key === 'uidt'">
-                <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                  <a-auto-complete
-                    v-model:value="record.uidt"
-                    :options="uiTypeOptions"
-                    :filter-option="filterOption"
-                    style="width: 200px"
-                  />
-                </a-form-item>
-              </template>
 
-              <template v-else-if="column.key === 'dtxp'">
-                <a-form-item
-                  v-if="isSelect(record)"
-                  v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]"
-                >
-                  <a-input v-model:value="record.dtxp" />
-                </a-form-item>
-              </template>
-
-              <template v-if="column.key === 'action'">
-                <a-tooltip v-if="record.key === 0">
-                  <template #title>
-                    <!-- TODO: i18n -->
-                    <span>Primary Value</span>
-                  </template>
-                  <span style="margin-right: 15px">
-                    <MdiKeyStarIcon class="text-lg" />
+            <a-table
+              v-if="table.columns.length"
+              class="template-form"
+              row-class-name="template-form-row"
+              :data-source="table.columns"
+              :columns="tableColumns"
+              :pagination="false"
+            >
+              <template #headerCell="{ column }">
+                <template v-if="column.key === 'column_name'">
+                  <span>
+                    {{ $t('labels.columnName') }}
                   </span>
-                </a-tooltip>
-                <a-tooltip v-else>
-                  <template #title>
+                </template>
+                <template v-else-if="column.key === 'uidt'">
+                  <span>
+                    {{ $t('labels.columnType') }}
+                  </span>
+                </template>
+                <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
+                  <span>
                     <!-- TODO: i18n -->
-                    <span>Delete Column</span>
-                  </template>
-
-                  <a-button @click="deleteTableColumn(tableIdx, record.key)" type="text">
-                    <div class="flex items-center">
-                      <MdiDeleteOutlineIcon class="text-lg" />
-                    </div>
-                  </a-button>
-                </a-tooltip>
+                    Options
+                  </span>
+                </template>
               </template>
-            </template>
-          </a-table>
-          <div class="text-center" style="margin-top: 15px">
-            <a-tooltip bottom>
-              <template #title>
-                <!-- TODO: i18n -->
-                <span>Add Number Column</span>
-              </template>
+              <template #bodyCell="{ column, record }">
+                <template v-if="column.key === 'column_name'">
+                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
+                    <a-input
+                      v-model:value="record.column_name"
+                      :ref="
+                        (el) => {
+                          inputRefs[record.key] = el
+                        }
+                      "
+                    />
+                  </a-form-item>
+                </template>
+                <template v-else-if="column.key === 'uidt'">
+                  <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
+                    <a-auto-complete
+                      v-model:value="record.uidt"
+                      :options="uiTypeOptions"
+                      :filter-option="filterOption"
+                      style="width: 200px"
+                    />
+                  </a-form-item>
+                </template>
 
-              <a-button @click="addNewColumnRow(table, 'Number')">
-                <div class="flex items-center">
-                  <MdiNumericIcon class="text-lg" />
-                </div>
-              </a-button>
-            </a-tooltip>
+                <template v-else-if="column.key === 'dtxp'">
+                  <a-form-item v-if="isSelect(record)">
+                    <a-input v-model:value="record.dtxp" />
+                  </a-form-item>
+                </template>
 
-            <a-tooltip bottom>
-              <template #title>
-                <!-- TODO: i18n -->
-                <span>Add SingleLineText Column</span>
-              </template>
-              <a-button @click="addNewColumnRow(table, 'SingleLineText')">
-                <div class="flex items-center">
-                  <MdiStringIcon class="text-lg" />
-                </div>
-              </a-button>
-            </a-tooltip>
+                <template v-if="column.key === 'action'">
+                  <a-tooltip v-if="record.key === 0">
+                    <template #title>
+                      <!-- TODO: i18n -->
+                      <span>Primary Value</span>
+                    </template>
+                    <span style="margin-right: 15px">
+                      <MdiKeyStarIcon class="text-lg" />
+                    </span>
+                  </a-tooltip>
+                  <a-tooltip v-else>
+                    <template #title>
+                      <!-- TODO: i18n -->
+                      <span>Delete Column</span>
+                    </template>
 
-            <a-tooltip bottom>
-              <template #title>
-                <!-- TODO: i18n -->
-                <span>Add LongText Column</span>
+                    <a-button @click="deleteTableColumn(tableIdx, record.key)" type="text">
+                      <div class="flex items-center">
+                        <MdiDeleteOutlineIcon class="text-lg" />
+                      </div>
+                    </a-button>
+                  </a-tooltip>
+                </template>
               </template>
-              <a-button @click="addNewColumnRow(table, 'LongText')">
-                <div class="flex items-center">
-                  <MdiLongTextIcon class="text-lg" />
-                </div>
-              </a-button>
-            </a-tooltip>
+            </a-table>
+            <div class="text-center" style="margin-top: 15px">
+              <a-tooltip bottom>
+                <template #title>
+                  <!-- TODO: i18n -->
+                  <span>Add Number Column</span>
+                </template>
 
-            <a-tooltip bottom>
-              <template #title>
-                <!-- TODO: i18n -->
-                <span>Add Other Column</span>
-              </template>
-              <a-button @click="addNewColumnRow(table)">
-                <div class="flex items-center">
-                  <MdiPlusIcon class="text-lg" />
-                  Column
-                </div>
-              </a-button>
-            </a-tooltip>
-          </div>
-        </a-collapse-panel>
-      </a-collapse>
-    </a-form>
-  </a-card>
+                <a-button @click="addNewColumnRow(table, 'Number')">
+                  <div class="flex items-center">
+                    <MdiNumericIcon class="text-lg" />
+                  </div>
+                </a-button>
+              </a-tooltip>
+
+              <a-tooltip bottom>
+                <template #title>
+                  <!-- TODO: i18n -->
+                  <span>Add SingleLineText Column</span>
+                </template>
+                <a-button @click="addNewColumnRow(table, 'SingleLineText')">
+                  <div class="flex items-center">
+                    <MdiStringIcon class="text-lg" />
+                  </div>
+                </a-button>
+              </a-tooltip>
+
+              <a-tooltip bottom>
+                <template #title>
+                  <!-- TODO: i18n -->
+                  <span>Add LongText Column</span>
+                </template>
+                <a-button @click="addNewColumnRow(table, 'LongText')">
+                  <div class="flex items-center">
+                    <MdiLongTextIcon class="text-lg" />
+                  </div>
+                </a-button>
+              </a-tooltip>
+
+              <a-tooltip bottom>
+                <template #title>
+                  <!-- TODO: i18n -->
+                  <span>Add Other Column</span>
+                </template>
+                <a-button @click="addNewColumnRow(table)">
+                  <div class="flex items-center">
+                    <MdiPlusIcon class="text-lg" />
+                    Column
+                  </div>
+                </a-button>
+              </a-tooltip>
+            </div>
+          </a-collapse-panel>
+        </a-collapse>
+      </a-form>
+    </a-card>
+  </a-spin>
 </template>
 
 <style scoped lang="scss">
 .template-collapse {
   background-color: #ffffff;
 }
+
 .template-form {
   :deep(.ant-table-thead) > tr > th {
     background: #ffffff;

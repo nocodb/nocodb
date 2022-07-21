@@ -223,7 +223,7 @@ onMounted(() => {
     <a-form
       ref="form"
       :model="formState"
-      name="validate_other"
+      name="external-project-create-form"
       layout="horizontal"
       :label-col="{ span: 8 }"
       :wrapper-col="{ span: 18 }"

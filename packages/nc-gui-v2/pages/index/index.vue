@@ -119,12 +119,14 @@ $state.sidebarOpen.value = false
         :data-source="filteredProjects"
         :pagination="{ position: ['bottomCenter'] }"
       >
-        <a-table-column key="title" title="Title" data-index="title">
+        <!--        Title -->
+        <a-table-column key="title" :title="$t('general.title')" data-index="title">
           <template #default="{ text }">
             <div class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap" :title="text">{{ text }}</div>
           </template>
         </a-table-column>
-        <a-table-column key="id" title="Actions" data-index="id">
+        <!--        Actions -->
+        <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
             <div class="flex align-center">
               <MdiEditOutline class="nc-action-btn" @click.stop="navigateTo(`/project/${text}`)" />

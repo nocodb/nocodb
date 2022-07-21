@@ -100,7 +100,7 @@ onMounted(async () => {
   </v-dialog>
 
   <div class="h-full overflow-y-scroll grid grid-cols-2 gap-x-2 gap-y-4">
-    <a-card v-for="(app, i) in apps" :key="i" class="relative flex overflow-x-hidden app-item-card !shadow-sm rounded-md w-full">
+    <a-card v-for="(app, i) in apps" :key="i" class="relative flex overflow-x-hidden app-item-card !shadow-sm rounded-md w-full" :bodyStyle="{width: '100%'}">
       <div class="install-btn flex flex-row justify-end space-x-1">
         <a-button v-if="app.parsedInput" size="small" outlined class="!caption capitalize" @click="installApp(app)">
           <div class="flex flex-row justify-center items-center">
@@ -134,7 +134,7 @@ onMounted(async () => {
           >
           </a-avatar>
         </div>
-        <div class="flex flex-col flex-grow-1">
+        <div class="flex flex-col flex-grow-1 w-3/4">
           <a-typography-title :level="5">{{ app.title }}</a-typography-title>
           {{ app.description }}
         </div>

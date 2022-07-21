@@ -1,17 +1,19 @@
 import { SqlUiFactory } from 'nocodb-sdk'
 import type { ProjectType, TableType } from 'nocodb-sdk'
+import type { MaybeRef } from '@vueuse/core'
 import { useNuxtApp, useState } from '#app'
 import { USER_PROJECT_ROLES } from '~/lib/constants'
 
-export default () => {
+export default (projectId?: MaybeRef<string>) => {
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
-
   const { $api } = useNuxtApp()
 
-  const project = useState<ProjectType>('project')
-  const tables = useState<TableType[]>('tables')
+  const _projectId = $computed(() => unref(projectId))
 
-  const loadProjectRoles = async () => {
+  const project = useState<ProjectType>('project')
+  const tables = useState<TableType[]>('tables', () => [] as TableType[])
+
+  async function loadProjectRoles() {
     projectRoles.value = {}
 
     if (project.value.id) {
@@ -19,21 +21,30 @@ export default () => {
       projectRoles.value = user.roles
     }
   }
-  const loadTables = async () => {
+  async function loadTables() {
     if (project.value.id) {
       const tablesResponse = await $api.dbTable.list(project.value.id)
       if (tablesResponse.list) tables.value = tablesResponse.list
     }
   }
 
-  const loadProject = async (projectId: string) => {
-    project.value = await $api.project.read(projectId)
+  async function loadProject(id: string) {
+    project.value = await $api.project.read(id)
     await loadProjectRoles()
   }
 
-  const isMysql = computed(() => ['mysql', 'mysql2'].includes(project.value?.bases?.[0]?.type || ''))
-  const isPg = computed(() => project.value?.bases?.[0]?.type === 'pg')
-  const sqlUi = computed(() => SqlUiFactory.create({ client: project.value?.bases?.[0]?.type || '' }))
+  watchEffect(async () => {
+    if (_projectId) {
+      await loadProject(_projectId)
+      await loadTables()
+    }
+  })
 
-  return { project, tables, loadProject, loadTables, isMysql, isPg, sqlUi }
+  const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
+
+  const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
+  const isPg = computed(() => projectBaseType === 'pg')
+  const sqlUi = computed(() => SqlUiFactory.create({ client: projectBaseType }))
+
+  return { project, tables, loadProjectRoles, loadProject, loadTables, isMysql, isPg, sqlUi }
 }

@@ -34,7 +34,7 @@ const formatTitle = (title: string) =>
 </script>
 
 <template>
-  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 3xl:grid-cols-6 gap-6 md:(gap-y-16)">
+  <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 3xl:grid-cols-8 gap-6 md:(gap-y-16)">
     <div class="group flex flex-col items-center gap-2">
       <v-menu>
         <template #activator="{ props }">
@@ -50,13 +50,16 @@ const formatTitle = (title: string) =>
           </div>
         </template>
         <v-list class="!py-0 flex flex-col bg-white rounded-lg shadow-md border-1 border-gray-300 mt-2 ml-2">
-          <div class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2" @click="navigateTo('/create')">
+          <div
+            class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
+            @click="navigateTo('/project/create')"
+          >
             <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
             <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
           </div>
           <div
             class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2"
-            @click="navigateTo('/create-external')"
+            @click="navigateTo('/project/create-external')"
           >
             <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
             <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
@@ -78,7 +81,7 @@ const formatTitle = (title: string) =>
                   <div class="col-span-4 text-sm xl:text-md">{{ $t('general.delete') }}</div>
                 </div>
               </a-menu-item>
-              <a-menu-item>
+              <a-menu-item @click.stop="navigateTo(`/project/${project.id}`)">
                 <div class="grid grid-cols-6 cursor-pointer flex items-center p-2">
                   <MdiEditOutline class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
                   <div class="col-span-4 text-sm xl:text-md">{{ $t('general.edit') }}</div>
@@ -89,7 +92,7 @@ const formatTitle = (title: string) =>
         </a-dropdown>
       </div>
 
-      <div class="prose-lg font-semibold">
+      <div class="prose-lg font-semibold overflow-ellipsis w-full overflow-hidden text-center capitalize">
         {{ project.title || 'Untitled' }}
       </div>
     </div>
@@ -98,7 +101,7 @@ const formatTitle = (title: string) =>
 
 <style scoped>
 .thumbnail {
-  @apply relative rounded-md opacity-75 font-bold text-white text-[75px] h-[150px] w-full max-w-[150px] shadow-md cursor-pointer uppercase flex items-center justify-center color-transition hover:(after:opacity-100 shadow-none);
+  @apply relative rounded-md opacity-75 font-bold text-white text-[75px] h-[100px] w-full w-[100px] shadow-md cursor-pointer uppercase flex items-center justify-center color-transition hover:(after:opacity-100 shadow-none);
 }
 
 .thumbnail::after {

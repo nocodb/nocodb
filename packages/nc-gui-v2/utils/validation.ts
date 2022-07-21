@@ -65,3 +65,20 @@ export function validateColumnName(v: string, isGQL = false) {
     return true
   }
 }
+
+export const projectTitleValidator = {
+  validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
+    if (value?.length > 50) {
+      callback('Project name exceeds 50 characters')
+    }
+    if (value[0] === ' ') {
+      callback('Project name cannot start with space')
+    }
+
+    callback()
+  },
+}
+export const fieldRequiredValidator = {
+  required: true,
+  message: 'Field is required',
+}

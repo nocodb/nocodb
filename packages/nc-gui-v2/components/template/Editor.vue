@@ -326,7 +326,7 @@ const importTemplate = async () => {
               <MdiDeleteOutlineIcon
                 v-if="data.tables.length > 1"
                 class="text-lg"
-                style="margin-right: 30px"
+                style="margin-right: 25px"
                 @click.stop="deleteTable(tableIdx)"
               />
             </a-tooltip>

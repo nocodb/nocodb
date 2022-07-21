@@ -122,9 +122,9 @@ $state.sidebarOpen.value = false
         :custom-row="
           (record) => ({
             onClick: () => {
-              $e('a:project:open');
-              navigateTo(`/nc/${record.id}`),
-            }
+              $e('a:project:open')
+              navigateTo(`/nc/${record.id}`)
+            },
           })
         "
         :data-source="filteredProjects"

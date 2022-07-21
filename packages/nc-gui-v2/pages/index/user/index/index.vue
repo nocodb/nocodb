@@ -1,12 +1,13 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
+import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { useNuxtApp } from '#app'
-import MaterialSymbolsWarning from '~icons/material-symbols/warning'
-import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
 import { reactive, ref } from '#imports'
+import MaterialSymbolsWarning from '~icons/material-symbols/warning'
+import MdiKeyChange from '~icons/mdi/key-change'
 
-const { $api } = useNuxtApp()
+const { $api, $state } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -51,8 +52,11 @@ const passwordChange = async () => {
 
   error = null
   try {
-    const { msg } = await $api.auth.passwordChange(form)
-    console.log(msg)
+    const { msg } = await $api.auth.passwordChange({
+      currentPassword: form.currentPassword,
+      newPassword: form.password,
+    })
+    message.success(msg)
   } catch (e: any) {
     error = await extractSdkResponseErrorMsg(e)
   }
@@ -67,7 +71,10 @@ const resetError = () => {
 
 <template>
   <a-form ref="formValidator" layout="vertical" :model="form" class="change-password h-full w-full" @finish="passwordChange">
-    <div class="md:relative flex flex-col gap-2 w-full h-full p-8 max-w-1/2">
+    <div
+      class="md:relative flex flex-col gap-2 w-full h-full p-8 lg:(max-w-1/2)"
+      :class="{ 'mx-auto': !$state.sidebarOpen.value }"
+    >
       <h1 class="prose-2xl font-bold mb-4">{{ $t('activity.changePwd') }}</h1>
 
       <Transition name="layout">
@@ -76,9 +83,9 @@ const resetError = () => {
         </div>
       </Transition>
 
-      <a-form-item :label="$t('placeholder.password.current')" name="currentPassword" :rules="formRules.password">
+      <a-form-item :label="$t('placeholder.password.current')" name="currentPassword" :rules="formRules.currentPassword">
         <a-input-password
-          v-model:value="form.password"
+          v-model:value="form.currentPassword"
           size="large"
           class="password"
           :placeholder="$t('placeholder.password.current')"
@@ -86,7 +93,7 @@ const resetError = () => {
         />
       </a-form-item>
 
-      <a-form-item :label="$t('placeholder.password.new')" name="newPassword" :rules="formRules.password">
+      <a-form-item :label="$t('placeholder.password.new')" name="password" :rules="formRules.password">
         <a-input-password
           v-model:value="form.password"
           size="large"
@@ -108,7 +115,7 @@ const resetError = () => {
 
       <div class="flex flex-wrap gap-4 items-center mt-4 md:justify-between w-full">
         <button class="submit" type="submit">
-          <span class="flex items-center gap-2"><MaterialSymbolsRocketLaunchOutline /> {{ $t('activity.changePwd') }}</span>
+          <span class="flex items-center gap-2"><MdiKeyChange /> {{ $t('activity.changePwd') }}</span>
         </button>
       </div>
     </div>
@@ -117,6 +124,21 @@ const resetError = () => {
 
 <style lang="scss">
 .change-password {
+  .ant-input-affix-wrapper,
+  .ant-input {
+    @apply dark:(!bg-gray-700 !text-white) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+  }
+
+  .password {
+    input {
+      @apply !border-none;
+    }
+
+    .ant-input-password-icon {
+      @apply dark:!text-white;
+    }
+  }
+
   .submit {
     @apply ml-1 bordered border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
   }

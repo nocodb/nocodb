@@ -9,10 +9,10 @@ import MdiDatabaseOutline from '~icons/mdi/database-outline'
 import MdiEditOutline from '~icons/mdi/edit-outline'
 
 interface Props {
-  projects: ProjectType[]
+  projects?: ProjectType[]
 }
 
-const { projects } = defineProps<Props>()
+const { projects = [] } = defineProps<Props>()
 
 const emit = defineEmits(['delete-project'])
 

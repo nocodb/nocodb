@@ -159,8 +159,8 @@ const deleteTable = (tableIdx: number) => {
   data.tables.splice(tableIdx, 1)
 }
 
-const deleteTableColumn = (tableIdx: number, columnIdx: number, col: Record<string, any>, table: Record<string, any>) => {
-  data.tables[tableIdx].columns.splice(columnIdx, 1)
+const deleteTableColumn = (tableIdx: number, columnIdx: number) => {
+  data.tables[tableIdx].columns = data.tables[tableIdx].columns.filter((c: any) => c.key !== columnIdx)
 }
 
 const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
@@ -408,7 +408,7 @@ const importTemplate = async () => {
                     <span>Delete Column</span>
                   </template>
 
-                  <a-button @click="deleteTableColumn(tableIdx, record.key, record, table)" type="text">
+                  <a-button @click="deleteTableColumn(tableIdx, record.key)" type="text">
                     <div class="flex items-center">
                       <MdiDeleteOutlineIcon class="text-lg" />
                     </div>

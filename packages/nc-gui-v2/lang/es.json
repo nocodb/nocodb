@@ -12,7 +12,7 @@
     "add": "Agregar",
     "edit": "Editar",
     "remove": "Eliminar",
-    "save": "Guardar",
+    "save": "Salvar",
     "cancel": "Cancelar",
     "submit": "Enviar",
     "create": "Crear",
@@ -213,6 +213,7 @@
     "sqlOutput": "Salida SQL",
     "addOption": "Añadir opción",
     "aggregateFunction": "Función agregada",
+    "database": "Base de datos",
     "dbCreateIfNotExists": "Base de datos : Crear si no existe",
     "clientKey": "Clave de Cliente",
     "clientCert": "Certificado de Cliente",
@@ -412,7 +413,7 @@
       "deleteProject": "¿Quieres eliminar el proyecto?",
       "shareBasePrivate": "Generar una base de sólo lectura compartible públicamente",
       "shareBasePublic": "Cualquier persona en Internet con este enlace puede ver",
-      "userInviteNoSMTP": "¡Parece que aún no has configurado Mailer!\nPor favor, copia el link de invitación de arriba y envíalo a",
+      "userInviteNoSMTP": "¡Parece que aún no has configurado Mailer! Por favor, copia el link de invitación de arriba y envíalo a",
       "dragDropHide": "Arrastra y suelta los campos a ocultar aquí",
       "formInput": "Ingrese la etiqueta de entrada del formulario",
       "formHelpText": "Añade algo de texto de ayuda",
@@ -496,7 +497,8 @@
         "emailReqd": "E-mail requerido",
         "emailInvalid": "E-mail debe ser correcto",
         "passwdRequired": "Contraseña requerida",
-        "passwdLength": "Tu contraseña debe tener al menos 8 carácteres"
+        "passwdLength": "Tu contraseña debe tener al menos 8 carácteres",
+        "passwdMismatch": "Las contraseñas no coinciden"
       }
     },
     "toast": {

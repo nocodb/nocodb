@@ -213,6 +213,7 @@
     "sqlOutput": "خروجی SQL",
     "addOption": "افزودن گزینه",
     "aggregateFunction": "تابع جمع",
+    "database": "بخش پایگاه داده",
     "dbCreateIfNotExists": "پایگاه داده: ایجاد در صورت عدم وجود",
     "clientKey": "کلید Client",
     "clientCert": "گواهینامه Client",
@@ -496,7 +497,8 @@
         "emailReqd": "پست الکترونیکی مورد نیاز است",
         "emailInvalid": "پست الکترونیکی باید معتبر باشد",
         "passwdRequired": "کلمه عبور مورد نیاز است",
-        "passwdLength": "کلمه عبور شما باید حداقل 8 کاراکتر داشته باشد"
+        "passwdLength": "کلمه عبور شما باید حداقل 8 کاراکتر داشته باشد",
+        "passwdMismatch": "رمزهای ورود مطابقت ندارند"
       }
     },
     "toast": {

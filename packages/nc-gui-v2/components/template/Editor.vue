@@ -299,7 +299,7 @@ const importTemplate = async () => {
         {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
         available for import
       </p>
-      <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" accordion>
+      <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" class="template-collapse" accordion>
         <a-collapse-panel v-for="(table, tableIdx) in data.tables" :key="tableIdx">
           <template #header>
             <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" noStyle>
@@ -313,7 +313,7 @@ const importTemplate = async () => {
               />
             </a-form-item>
             <span v-else class="font-weight-bold text-lg" @click="(e) => (e.stopPropagation(), setEditableTn(tableIdx, true))">
-              <MdiTableIcon style="margin-bottom: -5px" />
+              <MdiTableIcon class="text-primary" style="margin-bottom: -5px" />
               {{ table.table_name }}
             </span>
           </template>
@@ -417,8 +417,7 @@ const importTemplate = async () => {
               </template>
             </template>
           </a-table>
-          <a-divider />
-          <div class="text-center">
+          <div class="text-center" style="margin-top: 15px">
             <a-tooltip bottom>
               <template #title>
                 <!-- TODO: i18n -->
@@ -475,8 +474,16 @@ const importTemplate = async () => {
   </a-card>
 </template>
 
-<style scoped>
-.template-form :deep(.template-form-row) > td {
-  padding-bottom: 0px !important;
+<style scoped lang="scss">
+.template-collapse {
+  background-color: #ffffff;
+}
+.template-form {
+  :deep(.ant-table-thead) > tr > th {
+    background: #ffffff;
+  }
+  :deep(.template-form-row) > td {
+    padding-bottom: 0px !important;
+  }
 }
 </style>

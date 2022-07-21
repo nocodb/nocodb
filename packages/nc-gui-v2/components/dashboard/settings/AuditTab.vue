@@ -1,38 +1,52 @@
 <script setup lang="ts">
 import { Tooltip as ATooltip } from 'ant-design-vue'
-import { h, ref } from 'vue'
 import type { AuditType } from 'nocodb-sdk'
-import { calculateDiff } from '~/utils/dateTimeUtils'
+import { timeAgo } from '~/utils/dateTimeUtils'
+import { h, ref, useNuxtApp, useProject } from '#imports'
+import MdiReload from '~icons/mdi/reload'
+
+interface Props {
+  projectId: string
+}
+
+const { projectId } = defineProps<Props>()
 
 const { $api } = useNuxtApp()
-const { project } = useProject()
+const { project, loadProject } = useProject()
 
-const isLoading = ref(true)
-const audits = ref<null | Array<AuditType>>(null)
-const totalRows = ref(0)
-const page = ref(1)
-const limit = ref(25)
+let isLoading = $ref(false)
 
-const loadAudits = async () => {
+let audits = $ref<null | Array<AuditType>>(null)
+
+let totalRows = $ref(0)
+
+const currentPage = ref(1)
+const currentLimit = ref(25)
+
+async function loadAudits(page: number, limit: number) {
   try {
-    isLoading.value = true
-    const { list, pageInfo } = await $api.project.auditList(project.value.id ?? '', {
-      offset: (limit.value * (page.value - 1)).toString(),
-      limit: limit.value.toString(),
+    if (!project.value?.id) return
+
+    isLoading = true
+
+    const { list, pageInfo } = await $api.project.auditList(project.value?.id, {
+      offset: (limit * (page - 1)).toString(),
+      limit: limit.toString(),
     })
 
-    audits.value = list
-    totalRows.value = pageInfo.totalRows ?? 0
+    audits = list
+    totalRows = pageInfo.totalRows ?? 0
   } catch (e) {
     console.error(e)
   } finally {
-    isLoading.value = false
+    isLoading = false
   }
 }
 
 onMounted(async () => {
-  if (audits.value === null) {
-    loadAudits()
+  if (audits === null) {
+    await loadProject(projectId)
+    await loadAudits(page.value, limit.value)
   }
 })
 
@@ -56,7 +70,7 @@ const columns = [
     title: 'User',
     dataIndex: 'user',
     key: 'user',
-    customRender: (value: { text: string }) => h('div', value.text || 'Shared base'),
+    customRender: (value: { text: string }) => h('div', () => value.text || 'Shared base'),
   },
   {
     title: 'Created',
@@ -64,28 +78,30 @@ const columns = [
     key: 'created_at',
     sort: 'desc',
     customRender: (value: { text: string }) =>
-      h(ATooltip, { placement: 'bottom', title: h('span', {}, value.text) }, calculateDiff(value.text)),
+      h(ATooltip, { placement: 'bottom', title: h('span', {}, value.text) }, () => timeAgo(value.text)),
   },
 ]
 </script>
 
 <template>
-  <a-button class="mb-2" :loading="isLoading" @click="loadAudits"> Reload </a-button>
+  <div class="flex flex-col items-center justify-center gap-4">
+    <a-table class="centre" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading" />
 
-  <div v-if="isLoading" class="flex flex-row justify-center w-full p-32">
-    <a-spin size="large" />
+    <div class="flex flex-wrap items-center justify-center gap-4">
+      <a-button class="self-start" @click="loadAudits">
+        <div class="flex items-center gap-2">
+          <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+          Reload
+        </div>
+      </a-button>
+
+      <a-pagination
+        v-model:current="currentPage"
+        :page-size="currentLimit"
+        :total="totalRows"
+        show-less-items
+        @change="loadAudits"
+      />
+    </div>
   </div>
-  <template v-else>
-    <a-table class="centre" :data-source="audits ?? []" :columns="columns" :pagination="false" />
-    <a-pagination
-      v-model:current="page"
-      :page-size="limit"
-      class="pt-4"
-      :total="totalRows"
-      show-less-items
-      @change="loadAudits"
-    />
-  </template>
 </template>
-
-<style scoped></style>

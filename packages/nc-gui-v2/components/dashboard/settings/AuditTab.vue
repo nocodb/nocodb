@@ -2,7 +2,7 @@
 import { Tooltip as ATooltip } from 'ant-design-vue'
 import type { AuditType } from 'nocodb-sdk'
 import { timeAgo } from '~/utils/dateTimeUtils'
-import { h, ref, useNuxtApp, useProject } from '#imports'
+import { h, useNuxtApp, useProject } from '#imports'
 import MdiReload from '~icons/mdi/reload'
 
 interface Props {
@@ -20,10 +20,10 @@ let audits = $ref<null | Array<AuditType>>(null)
 
 let totalRows = $ref(0)
 
-const currentPage = ref(1)
-const currentLimit = ref(25)
+const currentPage = $ref(1)
+const currentLimit = $ref(25)
 
-async function loadAudits(page: number, limit: number) {
+async function loadAudits(page = currentPage, limit = currentLimit) {
   try {
     if (!project.value?.id) return
 
@@ -35,7 +35,7 @@ async function loadAudits(page: number, limit: number) {
     })
 
     audits = list
-    totalRows = 100
+    totalRows = pageInfo.totalRows ?? 0
   } catch (e) {
     console.error(e)
   } finally {
@@ -46,7 +46,7 @@ async function loadAudits(page: number, limit: number) {
 onMounted(async () => {
   if (audits === null) {
     await loadProject(projectId)
-    await loadAudits(currentPage.value, currentLimit.value)
+    await loadAudits(currentPage, currentLimit)
   }
 })
 

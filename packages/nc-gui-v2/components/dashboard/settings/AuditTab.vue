@@ -84,8 +84,8 @@ const columns = [
 </script>
 
 <template>
-  <div class="flex flex-col items-center justify-center gap-4">
-    <a-table class="centre" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading" />
+  <div class="flex flex-col items-center gap-4 w-full">
+    <a-table class="w-full" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading" />
 
     <div class="flex flex-wrap items-center justify-center gap-4">
       <a-button class="self-start" @click="loadAudits">

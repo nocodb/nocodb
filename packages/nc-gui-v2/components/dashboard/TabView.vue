@@ -14,6 +14,9 @@ const { tabs, activeTab, closeTab } = useTabs()
 // const { isUIAllowed } = useUIPermission()
 const isUIAllowed = (x: string) => true
 const tableCreateDialog = ref(false)
+const excelCsvDialog = ref(false)
+const jsonImportDialog = ref(false)
+const airtableImportDialog = ref(false)
 const currentMenu = ref<string[]>(['addORImport'])
 
 const onEdit = (targetKey: number, action: string) => {
@@ -54,28 +57,48 @@ const onEdit = (targetKey: number, action: string) => {
               </a-menu-item>
             </a-menu-item-group>
             <a-menu-item-group title="QUICK IMPORT FROM">
-              <a-menu-item v-if="isUIAllowed('airtableImport')" key="quick-import-airtable" v-t="['a:actions:import-airtable']">
+              <a-menu-item
+                v-if="isUIAllowed('airtableImport')"
+                key="quick-import-airtable"
+                v-t="['a:actions:import-airtable']"
+                @click="airtableImportDialog = true"
+              >
                 <span>
                   <MdiAirTableIcon class="text-primary mdi-icons" />
                   <!-- TODO: i18n -->
                   Airtable
                 </span>
               </a-menu-item>
-              <a-menu-item v-if="isUIAllowed('csvImport')" key="quick-import-csv" v-t="['a:actions:import-csv']">
+              <a-menu-item
+                v-if="isUIAllowed('csvImport')"
+                key="quick-import-csv"
+                v-t="['a:actions:import-csv']"
+                @click="excelCsvDialog = true"
+              >
                 <span>
                   <MdiCsvIcon class="text-primary mdi-icons" />
                   <!-- TODO: i18n -->
                   CSV file
                 </span>
               </a-menu-item>
-              <a-menu-item v-if="isUIAllowed('jsonImport')" key="quick-import-json" v-t="['a:actions:import-json']">
+              <a-menu-item
+                v-if="isUIAllowed('jsonImport')"
+                key="quick-import-json"
+                v-t="['a:actions:import-json']"
+                @click="jsonImportDialog = true"
+              >
                 <span>
                   <MdiJSONIcon class="text-primary mdi-icons" />
                   <!-- TODO: i18n -->
                   JSON file
                 </span>
               </a-menu-item>
-              <a-menu-item v-if="isUIAllowed('excelImport')" key="quick-import-excel" v-t="['a:actions:import-excel']">
+              <a-menu-item
+                v-if="isUIAllowed('excelImport')"
+                key="quick-import-excel"
+                v-t="['a:actions:import-excel']"
+                @click="excelCsvDialog = true"
+              >
                 <span>
                   <MdiExcelIcon class="text-primary mdi-icons" />
                   <!-- TODO: i18n -->
@@ -94,8 +117,12 @@ const onEdit = (targetKey: number, action: string) => {
           </a-sub-menu>
         </a-menu>
       </template>
-      <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
     </a-tabs>
+
+    <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
+    <DlgExcelCsvImport v-if="excelCsvDialog" v-model="excelCsvDialog" />
+    <DlgJsonImport v-if="jsonImportDialog" v-model="jsonImportDialog" />
+    <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
 
     <v-window v-model="activeTab">
       <v-window-item v-for="(tab, i) in tabs" :key="i" :value="i">

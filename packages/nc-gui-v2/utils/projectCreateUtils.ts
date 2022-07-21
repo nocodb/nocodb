@@ -180,6 +180,10 @@ export const projectTitleValidator = {
     if (value?.length > 50) {
       callback('Project name exceeds 50 characters')
     }
+    if (value[0] === ' ') {
+      callback('Project name cannot start with space')
+    }
+
     callback()
   },
 }

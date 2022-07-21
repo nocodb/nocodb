@@ -1,4 +1,4 @@
-import { breakpointsTailwind, usePreferredDark, usePreferredLanguages, useStorage } from '@vueuse/core'
+import { breakpointsTailwind, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
 import { computed, ref, toRefs, useBreakpoints, useNuxtApp, useTimestamp, watch } from '#imports'
@@ -25,8 +25,10 @@ const storageKey = 'nocodb-gui-v2'
 export const useGlobalState = (): GlobalState => {
   /** get the preferred languages of a user, according to browser settings */
   const preferredLanguages = $(usePreferredLanguages())
-  /** get the preferred dark mode setting, according to browser settings */
-  const prefersDarkMode = $(usePreferredDark())
+  /** todo: reimplement; get the preferred dark mode setting, according to browser settings */
+  //   const prefersDarkMode = $(usePreferredDark())
+
+  const prefersDarkMode = false
   /** get current breakpoints (for enabling sidebar) */
   const breakpoints = useBreakpoints(breakpointsTailwind)
 

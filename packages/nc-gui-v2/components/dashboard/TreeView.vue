@@ -8,7 +8,6 @@ import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
 import { $computed } from 'vue/macros'
 import { useNuxtApp, useRoute } from '#app'
-// import Draggable  from 'vuedraggable'
 import useProject from '~/composables/useProject'
 import useTabs from '~/composables/useTabs'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -106,7 +105,7 @@ const filteredTables = $computed(() => {
   return tables?.value?.filter((table) => !filterQuery || table?.title.toLowerCase()?.includes(filterQuery.toLowerCase()))
 })
 
-const contextMenuTarget = reactive<{ type: 'table' | 'main'; value?: any }>({})
+const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
 const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
@@ -162,6 +161,13 @@ const deleteTable = (table: TableType) => {
     },
   })
 }
+
+const renameTableDlg = ref(false)
+const renameTableMeta = ref()
+const showRenameTableDlg = (table: TableType) => {
+  renameTableMeta.value = table
+  renameTableDlg.value = true
+}
 </script>
 
 <template>
@@ -212,7 +218,7 @@ const deleteTable = (table: TableType) => {
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
                     <template #overlay>
                       <a-menu>
-                        <a-menu-item class="!text-xs"> Rename</a-menu-item>
+                        <a-menu-item class="!text-xs" @click="showRenameTableDlg(table)"> Rename</a-menu-item>
                         <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
                       </a-menu>
                     </template>
@@ -227,7 +233,7 @@ const deleteTable = (table: TableType) => {
       <template #overlay>
         <a-menu>
           <template v-if="contextMenuTarget.type === 'table'">
-            <a-menu-item class="!text-xs">Table Rename</a-menu-item>
+            <a-menu-item class="!text-xs" @click="showRenameTableDlg(contextMenuTarget.value)">Table Rename</a-menu-item>
             <a-menu-item class="!text-xs" @click="deleteTable(contextMenuTarget.value)">Table Delete</a-menu-item>
           </template>
           <template v-else>
@@ -253,6 +259,7 @@ const deleteTable = (table: TableType) => {
 
     <a-modal v-model:visible="settingsDlg" width="max(90vw, 600px)"> Team and settings</a-modal>
     <DlgTableCreate v-model="tableCreateDlg" />
+    <DlgTableRename v-model="renameTableDlg" :table-meta="renameTableMeta" />
   </div>
 </template>
 

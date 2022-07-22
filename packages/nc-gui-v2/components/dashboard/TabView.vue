@@ -109,13 +109,13 @@ const onEdit = (targetKey: number, action: string) => {
             </a-menu-item-group>
             <a-divider class="ma-0 mb-2" />
             <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" v-t="['e:datasource:import-request']">
-              <a-anchor-link href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" class="pa-0">
+              <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" class="prose-sm pa-0">
                 <span class="flex items-center gap-2">
                   <MdiRequestDataSourceIcon class="text-primary" />
                   <!-- TODO: i18n -->
                   Request Data Source
                 </span>
-              </a-anchor-link>
+              </a>
             </a-menu-item>
           </a-sub-menu>
         </a-menu>

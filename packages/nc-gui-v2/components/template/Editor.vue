@@ -305,6 +305,7 @@ const importTemplate = async () => {
               <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" noStyle>
                 <a-input
                   v-model:value="table.table_name"
+                  size="large"
                   style="max-width: 300px"
                   hide-details
                   @click="(e) => e.stopPropagation()"
@@ -312,8 +313,12 @@ const importTemplate = async () => {
                   @keydown.enter="setEditableTn(tableIdx, false)"
                 />
               </a-form-item>
-              <span v-else class="font-weight-bold text-lg" @click="(e) => (e.stopPropagation(), setEditableTn(tableIdx, true))">
-                <MdiTableIcon class="text-primary" style="margin-bottom: -5px" />
+              <span
+                v-else
+                class="font-weight-bold text-lg flex items-center gap-2"
+                @click="(e) => (e.stopPropagation(), setEditableTn(tableIdx, true))"
+              >
+                <MdiTableIcon class="text-primary" />
                 {{ table.table_name }}
               </span>
             </template>
@@ -323,12 +328,7 @@ const importTemplate = async () => {
                   <!-- TODO: i18n -->
                   <span>Delete Table</span>
                 </template>
-                <MdiDeleteOutlineIcon
-                  v-if="data.tables.length > 1"
-                  class="text-lg"
-                  style="margin-right: 25px"
-                  @click.stop="deleteTable(tableIdx)"
-                />
+                <MdiDeleteOutlineIcon v-if="data.tables.length > 1" class="text-lg mr-8" @click.stop="deleteTable(tableIdx)" />
               </a-tooltip>
             </template>
 
@@ -363,6 +363,7 @@ const importTemplate = async () => {
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
                     <a-input
                       v-model:value="record.column_name"
+                      size="large"
                       :ref="
                         (el) => {
                           inputRefs[record.key] = el
@@ -375,6 +376,7 @@ const importTemplate = async () => {
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
                     <a-auto-complete
                       v-model:value="record.uidt"
+                      size="large"
                       :options="uiTypeOptions"
                       :filter-option="filterOption"
                       style="width: 200px"
@@ -384,7 +386,7 @@ const importTemplate = async () => {
 
                 <template v-else-if="column.key === 'dtxp'">
                   <a-form-item v-if="isSelect(record)">
-                    <a-input v-model:value="record.dtxp" />
+                    <a-input v-model:value="record.dtxp" size="large" />
                   </a-form-item>
                 </template>
 
@@ -394,7 +396,7 @@ const importTemplate = async () => {
                       <!-- TODO: i18n -->
                       <span>Primary Value</span>
                     </template>
-                    <span style="margin-right: 15px">
+                    <span class="mr-3">
                       <MdiKeyStarIcon class="text-lg" />
                     </span>
                   </a-tooltip>
@@ -413,7 +415,7 @@ const importTemplate = async () => {
                 </template>
               </template>
             </a-table>
-            <div class="text-center" style="margin-top: 15px">
+            <div class="text-center mt-5">
               <a-tooltip bottom>
                 <template #title>
                   <!-- TODO: i18n -->

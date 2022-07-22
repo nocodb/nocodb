@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import SettingsModal from './settings/SettingsModal.vue'
 import { useProject, useTabs } from '#imports'
 import MdiSettingIcon from '~icons/mdi/cog'
 
@@ -25,7 +26,7 @@ const settingsDlg = ref(false)
       <span> {{ $t('title.teamAndSettings') }}</span>
     </div>
 
-    <a-modal v-model:visible="settingsDlg" width="max(90vw, 600px)"> Team and settings </a-modal>
+    <SettingsModal :show="settingsDlg" @closed="settingsDlg = false" />
   </div>
 </template>
 

@@ -41,6 +41,7 @@ declare module '@vue/runtime-core' {
     ATableColumnGroup: typeof import('ant-design-vue/es')['TableColumnGroup']
     ATag: typeof import('ant-design-vue/es')['Tag']
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
+    ATypographyTitle: typeof import('ant-design-vue/es')['TypographyTitle']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

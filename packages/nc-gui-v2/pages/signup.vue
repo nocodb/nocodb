@@ -74,7 +74,7 @@ const resetError = () => {
       class="signup h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
       @finish="signUp"
     >
-      <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
+      <div class="h-full w-full flex flex-col flex-wrap justify-center">
         <div
           class="bg-white dark:(!bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >

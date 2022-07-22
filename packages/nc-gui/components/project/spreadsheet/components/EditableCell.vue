@@ -83,6 +83,7 @@
       v-else-if="isSet && (active || isForm) && !isLocked && !(isPublic && !isForm) && _isUIAllowed('tableRowUpdate')"
       v-model="localState"
       :column="column"
+      :is-form="isForm"
       v-on="parentListeners"
     />
     <set-list-cell v-else-if="isSet" v-model="localState" :column="column" v-on="parentListeners" />

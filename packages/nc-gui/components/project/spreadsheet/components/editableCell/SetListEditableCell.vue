@@ -12,7 +12,7 @@
       solo
       hide-details
       deletable-chips
-      class="text-center mt-0"
+      :class="`text-center mt-0 ${isForm ? 'form-select': ''}`"
     >
       <template #selection="data">
         <v-chip
@@ -47,6 +47,7 @@ export default {
   props: {
     value: String,
     column: Object,
+    isForm: Boolean,
   },
   computed: {
     localState: {
@@ -108,6 +109,14 @@ export default {
   .mdi-close {
     font-size: 12px !important;
     color: gray !important;
+  }
+  .form-select {
+    .v-select__selections {
+      border: 1px solid rgba(127,130,139,0.2);
+    }
+    input {
+      z-index: -1;
+    }
   }
 }
 

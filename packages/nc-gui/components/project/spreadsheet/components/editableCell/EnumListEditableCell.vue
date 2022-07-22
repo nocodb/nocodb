@@ -1,47 +1,45 @@
 <template>
-  <v-select
-    v-model="localState"
-    :items="enumValues"
-    :menu-props="{ bottom: true, offsetY: true }"
-    item-value="title"
-    solo
-    dense
-    flat
-    hide-details
-    class="mt-0"
-    :clearable="!column.rqd"
-    v-on="parentListeners"
-  >
-    <template #selection="{ item }">
-      <div
-        class="d-100"
-        :class="{
-          'text-center': !isForm,
-        }"
-      >
-        <v-chip small :color="item.color" class="ma-1">
+  <div>
+    <v-select
+      v-model="localState"
+      :items="enumValues"
+      :menu-props="{ bottom: true, offsetY: true }"
+      item-value="title"
+      solo
+      dense
+      flat
+      hide-details
+      :class="`mt-0 ${isForm ? 'form-select': ''}`"
+      :clearable="!column.rqd"
+      v-on="parentListeners"
+    >
+      <template #selection="{ item }">
+        <div
+          class="d-100"
+          :class="{
+            'text-center': !isForm,
+          }"
+        >
+          <v-chip small :color="item.color" class="ma-1">
+            {{ item.title }}
+          </v-chip>
+        </div>
+      </template>
+      <template #item="{ item }">
+        <v-chip small :color="item.color">
           {{ item.title }}
         </v-chip>
-      </div>
-    </template>
-    <template #item="{ item }">
-      <v-chip small :color="item.color">
-        {{ item.title }}
-      </v-chip>
-    </template>
-    <template #append>
-      <v-icon small class="mt-1"> mdi-menu-down </v-icon>
-    </template>
-  </v-select>
+      </template>
+      <template #append>
+        <v-icon small class="mt-1"> mdi-menu-down </v-icon>
+      </template>
+    </v-select>
+  </div>
 </template>
 
 <script>
-import colors from '@/mixins/colors';
-
 export default {
   name: 'EnumListEditableCell',
-  mixins: [colors],
-
   props: {
     value: String,
     column: Object,
@@ -101,6 +99,14 @@ export default {
 
     .v-icon {
       font-size: 13px !important;
+    }
+  }
+  .form-select {
+    .v-select__selections {
+      border: 1px solid rgba(127,130,139,0.2);
+    }
+    input {
+      z-index: -1;
     }
   }
 }

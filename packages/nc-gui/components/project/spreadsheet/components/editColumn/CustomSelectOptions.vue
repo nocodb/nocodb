@@ -87,6 +87,11 @@ export default {
             },
           };
           await this.$api.dbTableColumn.create(this.meta.id, selectCol);
+          if (this.column.colOptions) {
+            this.$store
+              .dispatch('meta/ActLoadMeta', { force: true, id: this.column.fk_model_id })
+              .then(() => {});
+          }
           this.$toast.success('Select column saved successfully').goAway(3000);
           return true;
         }
@@ -107,6 +112,11 @@ export default {
             },
           };
           await this.$api.dbTableColumn.update(this.column.id, selectCol);
+          if (this.column.colOptions) {
+            this.$store
+              .dispatch('meta/ActLoadMeta', { force: true, id: this.column.fk_model_id })
+              .then(() => {});
+          }
           return true;
         }
         return false;

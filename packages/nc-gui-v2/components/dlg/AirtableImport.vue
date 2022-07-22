@@ -55,7 +55,7 @@ const dialogShow = computed({
 <template>
   <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
     <div class="pl-10 pr-10 pt-5">
-      <h1 class="prose-2xl font-bold self-center">{{ $t('title.importFromAirtable') }}</h1>
+      <span class="prose-2xl font-bold self-center">{{ $t('title.importFromAirtable') }}</span>
       <a-divider />
       <div class="mb-4">
         <span class="prose-xl font-bold mr-3">Credentials</span>

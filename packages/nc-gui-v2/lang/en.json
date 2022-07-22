@@ -213,6 +213,7 @@
     "sqlOutput": "SQL Output",
     "addOption": "Add option",
     "aggregateFunction": "Aggregate function",
+    "database": "Database",
     "dbCreateIfNotExists": "Database : create if not exists",
     "clientKey": "Client Key",
     "clientCert": "Client Cert",

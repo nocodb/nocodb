@@ -35,10 +35,10 @@ const sidebarOpen = computed({
 
       <div class="flex-1" />
 
-      <div class="ml-4 flex items-center flex-1">
-        <div class="flex items-center gap-2">
+      <div class="ml-4 flex justify-center flex-1">
+        <div class="flex items-center gap-2 cursor-pointer" @click="navigateTo('/')">
           <img width="35" src="~/assets/img/icons/512x512-trans.png" />
-          <span class="prose-xl" @click="navigateTo('/')">NocoDB</span>
+          <span class="prose-xl">NocoDB</span>
         </div>
 
         <!-- todo: loading is not yet supported by nuxt 3 - see https://v3.nuxtjs.org/migration/component-options#loading
@@ -55,8 +55,6 @@ const sidebarOpen = computed({
       <div class="flex-1" />
 
       <div class="flex justify-end gap-4">
-        <general-color-mode-switcher v-model="$state.darkMode.value" />
-
         <general-language class="mr-3" />
 
         <template v-if="$state.signedIn.value">

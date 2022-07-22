@@ -1,9 +1,9 @@
 import { useState } from '#app'
 
 export interface TabItem {
-  type: 'table' | 'view'
+  type: 'table' | 'view' | 'auth'
   title: string
-  id: string
+  id?: string
 }
 
 export default () => {

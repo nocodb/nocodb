@@ -116,7 +116,7 @@ const handleSubmit = () => {
 <template>
   <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
     <template #footer>
-      <a-button key="back" @click="dialogShow = false">Cancel</a-button>
+      <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
       <a-button v-if="activeKey === 'json'" key="format" :loading="loading" @click="formatJson">Format JSON</a-button>
       <a-button key="submit" type="primary" :loading="loading" @click="handleSubmit">Import</a-button>
     </template>

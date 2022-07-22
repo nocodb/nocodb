@@ -9,6 +9,14 @@ const emit = defineEmits(['update:modelValue'])
 const root = ref<HTMLDivElement>()
 let editor: monaco.editor.IStandaloneCodeEditor
 
+const format = () => {
+  editor.setValue(JSON.stringify(JSON.parse(editor?.getValue() as string), null, 2))
+}
+
+defineExpose({
+  format,
+})
+
 onMounted(() => {
   if (root.value) {
     const model = monaco.editor.createModel(JSON.stringify(modelValue, null, 2), 'json')

@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { Modal } from 'ant-design-vue'
-import type { ProjectType } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
-import { navigateTo } from '#app'
-import { computed, onMounted } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import {Modal} from 'ant-design-vue'
+import type {ProjectType} from 'nocodb-sdk'
+import {useToast} from 'vue-toastification'
+import {navigateTo} from '#app'
+import {computed, onMounted} from '#imports'
+import {extractSdkResponseErrorMsg} from '~/utils/errorUtils'
 
 import MdiDeleteOutline from '~icons/mdi/delete-outline'
 import MdiEditOutline from '~icons/mdi/edit-outline'
@@ -13,7 +13,7 @@ import MdiMenuDown from '~icons/mdi/menu-down'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 
-const { $api, $state, $e } = useNuxtApp()
+const {$api, $state, $e} = useNuxtApp()
 const toast = useToast()
 
 const filterQuery = ref('')
@@ -29,7 +29,7 @@ const loadProjects = async () => {
 
 const filteredProjects = computed(() => {
   return projects.value.filter(
-    (project) => !filterQuery.value || project.title?.toLowerCase?.().includes(filterQuery.value.toLowerCase()),
+      (project) => !filterQuery.value || project.title?.toLowerCase?.().includes(filterQuery.value.toLowerCase()),
   )
 })
 
@@ -68,45 +68,45 @@ $state.sidebarOpen.value = false
         <b>{{ $t('title.myProject') }}</b>
 
         <MdiRefresh
-          v-t="['a:project:refresh']"
-          class="text-sm text-gray-500 hover:text-primary mt-1 cursor-pointer"
-          @click="loadProjects"
+            v-t="['a:project:refresh']"
+            class="text-sm text-gray-500 hover:text-primary mt-1 cursor-pointer"
+            @click="loadProjects"
         ></MdiRefresh>
       </h1>
 
       <div class="flex mb-6">
         <a-input-search
-          v-model:value="filterQuery"
-          class="max-w-[200px] nc-project-page-search"
-          :placeholder="$t('activity.searchProject')"
+            v-model:value="filterQuery"
+            class="max-w-[200px] nc-project-page-search"
+            :placeholder="$t('activity.searchProject')"
         ></a-input-search>
         <div class="flex-grow"></div>
 
         <a-dropdown @click.stop>
-          <a-button class="nc-new-project-menu">
+          <a-button class="nc-new-project-menu !shadow btn-primary">
             <div class="flex align-center">
               {{ $t('title.newProj') }}
-              <MdiMenuDown class="menu-icon" />
+              <MdiMenuDown class="menu-icon"/>
             </div>
           </a-button>
 
           <template #overlay>
             <a-menu>
               <div
-                v-t="['c:project:create:xcdb']"
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-xc-db-project"
-                @click="navigateTo('/project/create')"
+                  v-t="['c:project:create:xcdb']"
+                  class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-xc-db-project"
+                  @click="navigateTo('/project/create')"
               >
-                <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+                <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg"/>
                 <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
               </div>
               <div
-                v-t="['c:project:create:extdb']"
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-external-db-project"
-                @click="navigateTo('/project/create-external')"
+                  v-t="['c:project:create:extdb']"
+                  class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-external-db-project"
+                  @click="navigateTo('/project/create-external')"
               >
-                <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
-                <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
+                <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg"/>
+                <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')"/>
               </div>
             </a-menu>
           </template>
@@ -114,12 +114,12 @@ $state.sidebarOpen.value = false
       </div>
 
       <div v-if="loading">
-        <a-skeleton />
+        <a-skeleton/>
       </div>
 
       <a-table
-        v-else
-        :custom-row="
+          v-else
+          :custom-row="
           (record) => ({
             onClick: () => {
               $e('a:project:open')
@@ -127,13 +127,14 @@ $state.sidebarOpen.value = false
             },
           })
         "
-        :data-source="filteredProjects"
-        :pagination="{ position: ['bottomCenter'] }"
+          :data-source="filteredProjects"
+          :pagination="{ position: ['bottomCenter'] }"
       >
         <!--        Title -->
         <a-table-column key="title" :title="$t('general.title')" data-index="title">
           <template #default="{ text }">
-            <div class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap nc-project-row" :title="text">
+            <div class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap nc-project-row"
+                 :title="text">
               {{ text }}
             </div>
           </template>
@@ -143,11 +144,11 @@ $state.sidebarOpen.value = false
           <template #default="{ text, record }">
             <div class="flex align-center">
               <MdiEditOutline
-                v-t="['c:project:edit:rename']"
-                class="nc-action-btn"
-                @click.stop="navigateTo(`/project/${text}`)"
+                  v-t="['c:project:edit:rename']"
+                  class="nc-action-btn"
+                  @click.stop="navigateTo(`/project/${text}`)"
               />
-              <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
+              <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)"/>
             </div>
           </template>
         </a-table-column>

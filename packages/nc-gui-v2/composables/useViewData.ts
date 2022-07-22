@@ -1,7 +1,7 @@
 import type { Api, FormType, GalleryType, GridType, PaginatedType, TableType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
-import useProject from '~/composables/useProject'
+import { useProject } from '#imports'
 import { NOCO } from '~/lib/constants'
 
 const formatData = (list: Record<string, any>[]) =>

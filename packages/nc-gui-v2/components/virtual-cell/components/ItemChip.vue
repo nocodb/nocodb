@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { ReadonlyInj } from '~/components'
+import { ReadonlyInj } from '~/context'
 import MdiCloseThickIcon from '~icons/mdi/close-thick'
 
 interface Props {

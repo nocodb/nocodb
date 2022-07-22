@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
-import { inject, ref, watchEffect } from '#imports'
+import { inject, ref, useProject, watchEffect } from '#imports'
 import { useNuxtApp } from '#app'
-import { ColumnInj, MetaInj } from '~/components'
-import useProject from '~/composables/useProject'
+import { ColumnInj, MetaInj } from '~/context'
 import { NOCO } from '~/lib/constants'
 import { isImage } from '~/utils/fileUtils'
 import MaterialPlusIcon from '~icons/mdi/plus'

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { LinkToAnotherRecordType, RelationTypes, UITypes } from "nocodb-sdk";
-import { ColumnInj } from '~/components'
+import { ColumnInj } from '~/context'
 import GenericIcon from '~icons/mdi/square-rounded'
 import HMIcon from '~icons/mdi/table-arrow-right'
 import BTIcon from '~icons/mdi/table-arrow-left'

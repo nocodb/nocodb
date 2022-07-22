@@ -16,6 +16,7 @@
     "ant-design-vue": "^3.1.0-rc.6",
     "dayjs": "^1.11.3",
     "jwt-decode": "^3.1.2",
+    "monaco-editor": "^0.33.0",
     "nocodb-sdk": "file:../nocodb-sdk",
     "socket.io-client": "^4.5.1",
     "unique-names-generator": "^4.7.1",

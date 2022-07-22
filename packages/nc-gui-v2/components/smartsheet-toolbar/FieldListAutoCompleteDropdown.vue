@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { MetaInj } from '~/components'
+import { MetaInj } from '~/context'
 
 interface Props {
   modelValue?: string

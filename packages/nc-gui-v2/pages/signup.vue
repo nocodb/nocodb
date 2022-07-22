@@ -19,8 +19,7 @@ let error = $ref<string | null>(null)
 
 const form = reactive({
   email: '',
-  password: '',
-  passwordRepeat: '',
+  password: ''
 })
 
 const formRules = {
@@ -42,20 +41,6 @@ const formRules = {
     // Password is required
     { required: true, message: t('msg.error.signUpRules.passwdRequired') },
     { min: 8, message: t('msg.error.signUpRules.passwdLength') },
-  ],
-  passwordRepeat: [
-    // PasswordRepeat is required
-    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
-    // Passwords match
-    {
-      validator: (_: unknown, v: string) => {
-        return new Promise((resolve, reject) => {
-          if (form.password === form.passwordRepeat) return resolve(true)
-          reject(new Error(t('msg.error.signUpRules.passwdMismatch')))
-        })
-      },
-      message: t('msg.error.signUpRules.passwdMismatch'),
-    },
   ],
 }
 
@@ -89,7 +74,7 @@ const resetError = () => {
       class="signup h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
       @finish="signUp"
     >
-      <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
+      <div class="h-full w-full flex flex-col flex-wrap pt-[100px]">
         <div
           class="bg-white dark:(!bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
@@ -117,17 +102,7 @@ const resetError = () => {
             />
           </a-form-item>
 
-          <a-form-item :label="`Repeat ${$t('labels.password')}`" name="passwordRepeat" :rules="formRules.passwordRepeat">
-            <a-input-password
-              v-model:value="form.passwordRepeat"
-              size="large"
-              class="password"
-              :placeholder="`Repeat ${$t('labels.password')}`"
-              @focus="resetError"
-            />
-          </a-form-item>
-
-          <div class="self-center flex flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
+          <div class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
             <button class="submit" type="submit">
               <span class="flex items-center gap-2"><MaterialSymbolsRocketLaunchOutline /> {{ $t('general.signUp') }}</span>
             </button>

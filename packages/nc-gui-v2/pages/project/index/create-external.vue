@@ -216,7 +216,7 @@ onMounted(() => {
 
 <template>
   <a-card
-    class="max-w-[600px] mx-auto !mt-5 !mb-5"
+    class="max-w-[600px] mx-auto !mt-15 !mb-5 !shadow-md"
     :title="$t('activity.createProject')"
     :head-style="{ textAlign: 'center', fontWeight: '700' }"
   >
@@ -227,6 +227,7 @@ onMounted(() => {
       layout="horizontal"
       :label-col="{ span: 8 }"
       :wrapper-col="{ span: 18 }"
+      class="!pr-5"
     >
       <a-form-item :label="$t('placeholder.projName')" v-bind="validateInfos.title">
         <a-input v-model:value="formState.title" size="small" class="nc-extdb-proj-name" />
@@ -309,7 +310,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientCert') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" @click="certFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" size="small" @click="certFileInput.click()" class="shadow">
                     {{ $t('labels.clientCert') }}
                   </a-button>
                 </a-tooltip>
@@ -318,7 +319,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientKey') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" @click="keyFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" size="small" @click="keyFileInput.click()" class="shadow">
                     {{ $t('labels.clientKey') }}
                   </a-button>
                 </a-tooltip>
@@ -327,7 +328,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientCA') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" @click="caFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" size="small" @click="caFileInput.click()" class="shadow">
                     {{ $t('labels.serverCA') }}
                   </a-button>
                 </a-tooltip>
@@ -360,10 +361,10 @@ onMounted(() => {
 
       <a-form-item class="flex justify-center mt-5">
         <div class="flex justify-center gap-2">
-          <a-button type="primary" class="nc-extdb-btn-test-connection" @click="testConnection">
+          <a-button type="primary" ghost class="nc-extdb-btn-test-connection" @click="testConnection">
             {{ $t('activity.testDbConn') }}
           </a-button>
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit" @click="createProject"> Submit </a-button>
+          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="createProject"> Submit </a-button>
         </div>
       </a-form-item>
     </a-form>
@@ -395,5 +396,9 @@ onMounted(() => {
 
 :deep(.ant-form-item-with-help .ant-form-item-explain) {
   @apply !min-h-0;
+}
+
+:deep(.ant-card-head-title){
+  @apply !text-3xl
 }
 </style>

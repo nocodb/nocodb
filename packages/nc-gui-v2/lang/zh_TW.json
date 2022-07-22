@@ -213,6 +213,7 @@
     "sqlOutput": "SQL 輸出",
     "addOption": "新增選項",
     "aggregateFunction": "匯總功能",
+    "database": "數據庫",
     "dbCreateIfNotExists": "資料庫：不存在則建立",
     "clientKey": "用戶端金鑰",
     "clientCert": "用戶端憑證",
@@ -496,7 +497,8 @@
         "emailReqd": "電子信箱地址為必填",
         "emailInvalid": "電子信箱地址格式錯誤",
         "passwdRequired": "密碼為必填",
-        "passwdLength": "您的密碼應至少有 8 個字元"
+        "passwdLength": "您的密碼應至少有 8 個字元",
+        "passwdMismatch": "密碼不匹配"
       }
     },
     "toast": {

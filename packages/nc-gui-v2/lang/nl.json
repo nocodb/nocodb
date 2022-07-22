@@ -213,6 +213,7 @@
     "sqlOutput": "SQL Uitvoer",
     "addOption": "Optie toevoegen",
     "aggregateFunction": "Geaggregeerde functie",
+    "database": "Database",
     "dbCreateIfNotExists": "Database: creëer als het niet bestaat",
     "clientKey": "Client Key",
     "clientCert": "Client Cert",
@@ -412,7 +413,7 @@
       "deleteProject": "Wilt u het project verwijderen?",
       "shareBasePrivate": "Genereer openbaar deelbare alleen-lezen database",
       "shareBasePublic": "Iedereen op het internet met deze link kan bekijken",
-      "userInviteNoSMTP": "Het lijkt erop dat je nog geen mailer hebt geconfigureerd! \\n Kopieer de bovenstaande uitnodigingslink en verstuur deze zelf naar de ontvanger",
+      "userInviteNoSMTP": "Het lijkt erop dat je nog geen mailer hebt geconfigureerd! Kopieer de bovenstaande uitnodigingslink en verstuur deze zelf naar de ontvanger",
       "dragDropHide": "Versleep de velden naar hier om ze te verbergen",
       "formInput": "Voer formulier invoerlabel in",
       "formHelpText": "Voeg wat hulptekst toe",
@@ -496,7 +497,8 @@
         "emailReqd": "E-mail is vereist",
         "emailInvalid": "E-mail moet geldig zijn",
         "passwdRequired": "Wachtwoord is verplicht",
-        "passwdLength": "Je wachtwoord moet ten minste 8 tekens hebben"
+        "passwdLength": "Je wachtwoord moet ten minste 8 tekens hebben",
+        "passwdMismatch": "Wachtwoorden komen niet overeen"
       }
     },
     "toast": {

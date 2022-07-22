@@ -1,7 +1,7 @@
 <script setup lang="ts">
 // todo: move to persisted state
 import { useState } from '#app'
-import { IsLockedInj } from '~/components'
+import { IsLockedInj } from '~/context'
 import MdiFilterIcon from '~icons/mdi/filter-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 

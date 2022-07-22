@@ -45,35 +45,36 @@ async function loadAudits(page = currentPage, limit = currentLimit) {
 
 onMounted(async () => {
   if (audits === null) {
-    await loadProject(projectId)
     await loadAudits(currentPage, currentLimit)
   }
 })
 
+const tableHeaderRenderer = (label: string) => (value: { text: string }) => h('div', { class: 'text-gray-500' }, label)
+
 const columns = [
   {
-    title: 'Operation Type',
+    title: tableHeaderRenderer('Operation Type'),
     dataIndex: 'op_type',
     key: 'op_type',
   },
   {
-    title: 'Operation sub-type',
+    title: tableHeaderRenderer('Operation sub-type'),
     dataIndex: 'op_sub_type',
     key: 'op_sub_type',
   },
   {
-    title: 'Description',
+    title: tableHeaderRenderer('Description'),
     dataIndex: 'description',
     key: 'description',
   },
   {
-    title: 'User',
+    title: tableHeaderRenderer('User'),
     dataIndex: 'user',
     key: 'user',
-    customRender: (value: { text: string }) => h('div', () => value.text || 'Shared base'),
+    customRender: (value: { text: string }) => h('div', {}, value.text || 'Shared base'),
   },
   {
-    title: 'Created',
+    title: tableHeaderRenderer('Created'),
     dataIndex: 'created_at',
     key: 'created_at',
     sort: 'desc',
@@ -85,21 +86,22 @@ const columns = [
 
 <template>
   <div class="flex flex-col gap-4 w-full">
-    <a-button class="self-start" @click="loadAudits">
-      <div class="flex items-center gap-2">
-        <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
-        Reload
-      </div>
-    </a-button>
+    <div class="flex flex-row justify-between items-center">
+      <a-button class="self-start" @click="loadAudits">
+        <div class="flex items-center gap-2 text-gray-600 font-light">
+          <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+          Reload
+        </div>
+      </a-button>
+      <a-pagination
+        v-model:current="currentPage"
+        :page-size="currentLimit"
+        :total="totalRows"
+        show-less-items
+        @change="loadAudits"
+      />
+    </div>
 
     <a-table class="w-full" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading" />
-
-    <a-pagination
-      v-model:current="currentPage"
-      :page-size="currentLimit"
-      :total="totalRows"
-      show-less-items
-      @change="loadAudits"
-    />
   </div>
 </template>

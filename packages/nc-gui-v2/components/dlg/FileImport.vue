@@ -8,6 +8,7 @@ import MdiFileUploadOutlineIcon from '~icons/mdi/file-upload-outline'
 import MdiLinkVariantIcon from '~icons/mdi/link-variant'
 import MdiCodeJSONIcon from '~icons/mdi/code-json'
 import { fieldRequiredValidator, importUrlValidator } from '~/utils/validation'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 const { t } = useI18n()
 
 interface Props {
@@ -22,17 +23,32 @@ const emit = defineEmits(['update:modelValue'])
 const activeKey = ref('upload')
 const jsonEditorRef = ref()
 const loading = ref(false)
+const templateData = ref()
+const importData = ref()
+const templateEditorModal = ref(false)
 const useForm = Form.useForm
 
 const importState = ref({
   fileList: [],
-  url: '',
-  json: {},
+  url: {
+    value: '',
+    parserConfig: {
+      maxRowsToParse: 500,
+    },
+  },
+  json: {
+    value: {},
+    parserConfig: {
+      maxRowsToParse: 500,
+      normalizeNested: true,
+      importData: true,
+    },
+  },
 })
 
 const validators = computed(() => {
   return {
-    url: [fieldRequiredValidator, importUrlValidator],
+    'url.value': [fieldRequiredValidator, importUrlValidator],
   }
 })
 
@@ -111,6 +127,34 @@ const handleSubmit = () => {
     // TODO
   }
 }
+
+const parseAndExtractData = async (type: string, val: string, name: string) => {
+  try {
+    let templateGenerator
+    templateData.value = null
+    importData.value = null
+    // switch (type) {
+    //   case 'file':
+    //     templateGenerator = new JSONTemplateAdapter(name, val, parserConfig)
+    //     break
+    //   case 'url':
+    //     templateGenerator = new JSONUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
+    //     break
+    //   case 'string':
+    //     templateGenerator = new JSONTemplateAdapter(name, val, this.parserConfig)
+    //     break
+    // }
+    // await templateGenerator.init()
+    // templateGenerator.parse()
+    // templateData.value = templateGenerator.getTemplate()
+    // templateData.value.tables[0].table_name = this.populateUniqueTableName()
+    // importData.value = templateGenerator.getData()
+    templateEditorModal.value = true
+  } catch (e: any) {
+    console.log(e)
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
@@ -155,7 +199,7 @@ const handleSubmit = () => {
           </span>
         </template>
         <div class="pl-10 pr-10 pb-10 pt-5">
-          <MonacoEditor v-model="importState.json" class="h-[400px]" ref="jsonEditorRef" />
+          <MonacoEditor v-model="importState.json.value" class="h-[400px]" ref="jsonEditorRef" />
         </div>
       </a-tab-pane>
       <a-tab-pane v-else key="url" :closable="false">
@@ -167,8 +211,8 @@ const handleSubmit = () => {
         </template>
         <div class="pl-10 pr-10 pt-5">
           <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
-            <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-              <a-input v-model:value="importState.url" size="large" />
+            <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos['url.value']">
+              <a-input v-model:value="importState.url.value" size="large" />
             </a-form-item>
           </a-form>
         </div>

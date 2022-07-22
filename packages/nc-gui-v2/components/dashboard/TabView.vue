@@ -75,8 +75,7 @@ const onEdit = (targetKey: number, action: string) => {
                 v-if="isUIAllowed('csvImport')"
                 key="quick-import-csv"
                 v-t="['a:actions:import-csv']"
-                @click="fileImportDialog = true"
-                importType="csv"
+                @click="fileImportDialog = true; importType = 'csv';"
               >
                 <span class="flex items-center gap-2">
                   <MdiCsvIcon class="text-primary" />
@@ -88,8 +87,7 @@ const onEdit = (targetKey: number, action: string) => {
                 v-if="isUIAllowed('jsonImport')"
                 key="quick-import-json"
                 v-t="['a:actions:import-json']"
-                @click="fileImportDialog = true"
-                importType="json"
+                @click="fileImportDialog = true; importType = 'json';"
               >
                 <span class="flex items-center gap-2">
                   <MdiJSONIcon class="text-primary" />
@@ -101,8 +99,8 @@ const onEdit = (targetKey: number, action: string) => {
                 v-if="isUIAllowed('excelImport')"
                 key="quick-import-excel"
                 v-t="['a:actions:import-excel']"
-                @click="fileImportDialog = true"
-                importType="excel"
+                @click="fileImportDialog = true; importType = 'excel'"
+
               >
                 <span class="flex items-center gap-2">
                   <MdiExcelIcon class="text-primary" />

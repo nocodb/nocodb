@@ -2,7 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { provide } from 'vue'
 import { computed } from '#imports'
-import { ColumnInj } from '~/components'
+import { ColumnInj } from '~/context'
 import useColumn from '~/composables/useColumn'
 
 interface Props {

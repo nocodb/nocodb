@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import useTableCreate from '../../composables/useTableCreate'
-import useProject from '~/composables/useProject'
-import useTabs from '~/composables/useTabs'
+import { useProject, useTableCreate, useTabs } from '#imports'
 import { validateTableName } from '~/utils/validation'
 
 const { modelValue = false } = defineProps<{ modelValue?: boolean }>()

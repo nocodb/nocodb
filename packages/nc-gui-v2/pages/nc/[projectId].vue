@@ -1,17 +1,9 @@
 <script setup lang="ts">
-import { watch } from 'vue'
-import useProject from '~/composables/useProject'
-import useTabs from '~/composables/useTabs'
-
 const route = useRoute()
-const { loadProject, loadTables } = useProject()
+const { loadProject, loadTables } = useProject(route.params.projectId as string)
 const { clearTabs, addTab } = useTabs()
 
-onMounted(async () => {
-  await loadProject(route.params.projectId as string)
-  await loadTables()
-  addTab({ type: 'auth', title: 'Team & Auth' })
-})
+addTab({ type: 'auth', title: 'Team & Auth' })
 
 watch(
   () => route.params.projectId,

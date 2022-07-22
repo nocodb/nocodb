@@ -4,7 +4,7 @@ import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import { useNuxtApp } from '#app'
 import { inject } from '#imports'
 import { comparisonOpList } from '~/utils/filterUtils'
-import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/components'
+import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import useViewFilters from '~/composables/useViewFilters'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 

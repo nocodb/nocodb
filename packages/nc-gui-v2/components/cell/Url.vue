@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, ref } from '#imports'
-import { ColumnInj } from '~/components'
+import { ColumnInj } from '~/context'
 import { isValidURL } from '~/utils/urlUtils'
 
 interface Props {

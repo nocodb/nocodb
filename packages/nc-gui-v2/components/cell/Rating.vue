@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from '#imports'
-import { ColumnInj, IsFormInj } from '~/components'
+import { ColumnInj, IsFormInj } from '~/context'
 import MdiStarIcon from '~icons/mdi/star'
 import MdiStarOutlineIcon from '~icons/mdi/star-outline'
 

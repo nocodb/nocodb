@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from '#imports'
-import { ColumnInj, IsFormInj } from '~/components'
+import { ColumnInj, IsFormInj } from '~/context'
 
 interface Props {
   modelValue?: boolean | undefined | number

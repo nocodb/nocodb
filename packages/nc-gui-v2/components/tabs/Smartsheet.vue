@@ -3,7 +3,7 @@ import { useEventBus } from '@vueuse/core'
 import type { ColumnType, FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { computed, onMounted, provide, watch } from '#imports'
-import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/components'
+import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/context'
 import useMetas from '~/composables/useMetas'
 
 const { tabMeta } = defineProps({

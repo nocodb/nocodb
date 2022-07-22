@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
+import { Form } from 'ant-design-vue'
 import type { UploadChangeParam } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import MdiFileIcon from '~icons/mdi/file-plus-outline'
 import MdiFileUploadOutlineIcon from '~icons/mdi/file-upload-outline'
 import MdiLinkVariantIcon from '~icons/mdi/link-variant'
 import MdiCodeJSONIcon from '~icons/mdi/code-json'
+import { fieldRequiredValidator } from '~/utils/validation'
 const { t } = useI18n()
 
 interface Props {
@@ -19,14 +21,42 @@ const toast = useToast()
 const emit = defineEmits(['update:modelValue'])
 const activeKey = ref('upload')
 const fileList = ref([])
+const urlValidator = ref()
+const useForm = Form.useForm
+const formState = reactive({
+  url: '',
+})
+const validators = computed(() => {
+  return {
+    url: [fieldRequiredValidator],
+  }
+})
+
+const { resetFields, validate, validateInfos } = useForm(formState, validators)
+
 const handleDrop = (e: DragEvent) => {
   console.log(e)
 }
 
-const uploadHint = computed(() => {
+const importMeta = computed(() => {
   if (importType === 'excel') {
-    return t('msg.info.excelSupport')
+    return {
+      uploadHint: t('msg.info.excelSupport'),
+      urlInputLabel: t('msg.info.excelURL'),
+      loadUrlDirective: ['c:quick-import:excel:load-url'],
+    }
+  } else if (importType === 'csv') {
+    return {
+      uploadHint: '',
+      urlInputLabel: t('msg.info.csvURL'),
+      loadUrlDirective: ['c:quick-import:csv:load-url'],
+    }
+  } else if (importType === 'json') {
+    return {
+      uploadHint: '',
+    }
   }
+  return {}
 })
 
 const dialogShow = computed({
@@ -49,11 +79,13 @@ const handleChange = (info: UploadChangeParam) => {
     toast.error(`${info.file.name} file upload failed.`)
   }
 }
+
+const loadUrl = () => {}
 </script>
 
 <template>
   <v-dialog v-model="dialogShow" persistent @keydown.esc="dialogShow = false">
-    <v-card class="w-300 max-h-300">
+    <v-card class="w-300 min-h-200 max-h-300">
       <a-tabs v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
         <a-tab-pane key="upload" :closable="false">
           <template #tab>
@@ -74,7 +106,7 @@ const handleChange = (info: UploadChangeParam) => {
               <MdiFileIcon size="large" />
               <p class="ant-upload-text">Click or drag file to this area to upload</p>
               <p class="ant-upload-hint">
-                {{ uploadHint }}
+                {{ importMeta.uploadHint }}
               </p>
             </a-upload-dragger>
           </div>
@@ -95,7 +127,24 @@ const handleChange = (info: UploadChangeParam) => {
               Url
             </span>
           </template>
-          <!-- TODO -->
+          <div class="pl-10 pr-10 pb-10 pt-5">
+            <a-form ref="formValidator" layout="vertical" :model="form">
+              <a-form-item ref="form" :model="formState" name="quick-import-url-form" layout="horizontal" class="mb-0">
+                <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
+                  <a-input v-model:value="formState.url" size="large" />
+                </a-form-item>
+              </a-form-item>
+              <a-button
+                :disabled="!formState.url"
+                :v-t="importMeta.loadUrlDirective"
+                size="large"
+                type="primary"
+                @click="loadUrl"
+              >
+                {{ $t('general.load') }}
+              </a-button>
+            </a-form>
+          </div>
         </a-tab-pane>
       </a-tabs>
     </v-card>

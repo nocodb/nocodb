@@ -11,9 +11,7 @@ import MdiRequestDataSourceIcon from '~icons/mdi/open-in-new'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
 
 const { tabs, activeTab, closeTab } = useTabs()
-// TODO: use useUIPermission when it's ready
-// const { isUIAllowed } = useUIPermission()
-const isUIAllowed = (x: string) => true
+const { isUIAllowed } = useUIPermission()
 const tableCreateDialog = ref(false)
 const airtableImportDialog = ref(false)
 const fileImportDialog = ref(false)

@@ -213,6 +213,7 @@
     "sqlOutput": "SQL izvade",
     "addOption": "Pievienot iespēju",
     "aggregateFunction": "Agregācijas funkcija",
+    "database": "Datubāze",
     "dbCreateIfNotExists": "Datubāze : izveidotm ja neeksistē",
     "clientKey": "Klienta atslēga",
     "clientCert": "Klienta sertifikāts",
@@ -412,7 +413,7 @@
       "deleteProject": "Vai tu vēlies dzēst projektu?",
       "shareBasePrivate": "Izveidot koplietojamu saiti",
       "shareBasePublic": "Jebkurš ar šo saiti varēs skatīt",
-      "userInviteNoSMTP": "E-pasta nosūtītājs vēl nav konfigurēts! \\n Lūdzu kopējiet uzaicinājuma saiti augstāk un nosūtiet to",
+      "userInviteNoSMTP": "E-pasta nosūtītājs vēl nav konfigurēts! Lūdzu kopējiet uzaicinājuma saiti augstāk un nosūtiet to",
       "dragDropHide": "Vilkt un nomest laukus šeit lai noņemtu",
       "formInput": "Ievadiet formas ievades lauka birku",
       "formHelpText": "Pievienot norādījumus",
@@ -496,7 +497,8 @@
         "emailReqd": "E-pasts ir obligāts",
         "emailInvalid": "E-pastam ir jābūt korektam",
         "passwdRequired": "Parole ir obligāta",
-        "passwdLength": "Parolei jābūt vismaz 8 simboli"
+        "passwdLength": "Parolei jābūt vismaz 8 simboli",
+        "passwdMismatch": "Paroles nesakrīt"
       }
     },
     "toast": {

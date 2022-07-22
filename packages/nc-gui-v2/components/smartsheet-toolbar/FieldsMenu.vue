@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject } from 'vue'
-import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/components'
+import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import useViewColumns from '~/composables/useViewColumns'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiEyeIcon from '~icons/mdi/eye-off-outline'

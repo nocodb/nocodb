@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import { Form } from 'ant-design-vue'
 import { useProject, useTableCreate, useTabs } from '#imports'
+import { validateTableName } from '~/utils/validation'
+import { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
-import { fieldRequiredValidator, importUrlValidator, validateTableName } from '~/utils/validation'
 
 const { modelValue = false } = defineProps<{ modelValue?: boolean }>()
 
@@ -67,7 +67,7 @@ const formState = reactive({
 const validators = computed(() => {
   return {
     title: [validateTableName, validateDuplicateAlias],
-    table_name: [],
+    table_name: [validateTableName],
   }
 })
 const { resetFields, validate, validateInfos } = useForm(formState, validators)

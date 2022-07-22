@@ -1,8 +1,9 @@
 <script lang="ts" setup>
-import { computed } from '#imports'
-import { ColumnInj } from '~/components'
+import { computed, useProject } from '#imports'
+import { ColumnInj } from '~/context'
 import { handleTZ } from '~/utils/dateTimeUtils'
 import { replaceUrlsWithLink } from '~/utils/urlUtils'
+
 const column = inject(ColumnInj)
 const value = inject('value')
 

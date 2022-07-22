@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, onKeyStroke, onMounted, provide } from '#imports'
-import { ActiveViewInj, ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReadonlyInj } from '~/components'
+import { ActiveViewInj, ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReadonlyInj } from '~/context'
 import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)

@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { computed, ref } from '#imports'
-import useProject from '~/composables/useProject'
+import { computed, ref, useProject } from '#imports'
 
 interface Props {
   modelValue?: string

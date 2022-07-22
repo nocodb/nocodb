@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
-import { ColumnInj } from '~/components'
+import { ColumnInj } from '~/context'
 import useBelongsTo from '~/composables/useBelongsTo'
 
 const column = inject(ColumnInj)

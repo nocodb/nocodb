@@ -3,7 +3,7 @@ import { inject } from '@vue/runtime-core'
 import type { TableType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import type { Ref } from '#imports'
-import { ActiveViewInj, MetaInj, ViewListInj } from '~/components'
+import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
 import useViewCreate from '~/composables/useViewCreate'
 
 const { modelValue, type } = defineProps<{ type: ViewTypes; modelValue: boolean }>()

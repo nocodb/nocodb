@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, inject } from '#imports'
-import { ColumnInj } from '~/components'
+import { ColumnInj } from '~/context'
 
 interface Props {
   modelValue: string

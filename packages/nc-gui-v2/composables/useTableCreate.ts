@@ -1,6 +1,7 @@
 import type { TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
+import { useProject } from '#imports'
 
 export default (onTableCreate?: (tableMeta: TableType) => void) => {
   const table = reactive<{ title: string; table_name: string; columns: string[] }>({

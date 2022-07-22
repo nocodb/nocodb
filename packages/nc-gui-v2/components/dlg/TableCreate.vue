@@ -1,9 +1,11 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
+import { Form } from 'ant-design-vue'
 import useTableCreate from '../../composables/useTableCreate'
 import useProject from '~/composables/useProject'
 import useTabs from '~/composables/useTabs'
-import { validateTableName } from '~/utils/validation'
+import { useToast } from 'vue-toastification'
+import { fieldRequiredValidator, importUrlValidator, validateTableName } from '~/utils/validation'
 
 const { modelValue = false } = defineProps<{ modelValue?: boolean }>()
 
@@ -14,6 +16,7 @@ const idTypes = [
   { value: 'AG', text: 'Auto generated string' },
 ]
 
+const toast = useToast()
 const dialogShow = computed({
   get() {
     return modelValue
@@ -23,7 +26,6 @@ const dialogShow = computed({
   },
 })
 
-const valid = ref(false)
 const isIdToggleAllowed = ref(false)
 const isAdvanceOptVisible = ref(false)
 
@@ -53,6 +55,25 @@ const validateDuplicate = (v: string) => {
 
 const inputEl = ref<any>()
 
+const useForm = Form.useForm
+const formState = reactive({
+  title: '',
+  table_name: '',
+  columns: {
+    id: true,
+    title: true,
+    created_at: true,
+    updated_at: true,
+  },
+})
+const validators = computed(() => {
+  return {
+    title: [validateTableName, validateDuplicateAlias],
+    table_name: [],
+  }
+})
+const { resetFields, validate, validateInfos } = useForm(formState, validators)
+
 onMounted(() => {
   generateUniqueTitle()
   nextTick(() => {
@@ -64,130 +85,74 @@ onMounted(() => {
 </script>
 
 <template>
-  <v-dialog
-    v-model="dialogShow"
-    persistent
-    max-width="550"
+  <a-modal
+    v-model:visible="dialogShow"
+    width="max(90vw, 600px)"
     @keydown.esc="dialogShow = false"
     @keydown.enter="$emit('create', table)"
   >
-    <!-- Create A New Table -->
-    <v-card class="elevation-1 backgroundColor nc-create-table-card">
-      <v-form ref="form" v-model="valid">
-        <v-card-title class="primary subheading white--text py-2">
-          {{ $t('activity.createTable') }}
-        </v-card-title>
-
-        <v-card-text class="py-6 px-10">
-          <!-- hint="Enter table name" -->
-          <v-text-field
+    <template #footer>
+      <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <a-button key="submit" size="large" type="primary" @click="createTable">{{ $t('general.submit') }}</a-button>
+    </template>
+    <div class="pl-10 pr-10 pt-5">
+      <a-form :model="formState" name="create-new-table-form">
+        <!-- Create A New Table -->
+        <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
+        <!-- hint="Enter table name" -->
+        <div class="mb-2">Table Name</div>
+        <a-form-item v-bind="validateInfos['title']">
+          <a-input
             ref="inputEl"
-            v-model="table.title"
-            solo
-            flat
-            persistent-hint
-            dense
-            hide-details1
-            :rules="[validateTableName, validateDuplicateAlias]"
-            :hint="$t('msg.info.enterTableName')"
-            class="mt-4 caption nc-table-name"
+            v-model:value="table.title"
+            size="large"
+            hide-details
+            :placeholder="$t('msg.info.enterTableName')"
           />
-
-          <div class="d-flex justify-end">
-            <div class="grey--text caption pointer" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
-              {{ isAdvanceOptVisible ? 'Hide' : 'Show' }} more
-              <v-icon x-small color="grey">
-                {{ isAdvanceOptVisible ? 'mdi-minus-circle-outline' : 'mdi-plus-circle-outline' }}
-              </v-icon>
-            </div>
+        </a-form-item>
+        <div class="flex justify-end">
+          <div class="pointer" @click="isAdvanceOptVisible = !isAdvanceOptVisible">
+            {{ isAdvanceOptVisible ? 'Hide' : 'Show' }} more
+            <v-icon x-small color="grey">
+              {{ isAdvanceOptVisible ? 'mdi-minus-circle-outline' : 'mdi-plus-circle-outline' }}
+            </v-icon>
           </div>
-
-          <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
-            <!-- hint="Table name as saved in database" -->
-            <v-text-field
-              v-if="!project.prefix"
-              v-model="table.table_name"
-              solo
-              flat
-              dense
-              persistent-hint
-              :rules="[validateDuplicate]"
-              :hint="$t('msg.info.tableNameInDb')"
-              class="mt-4 caption nc-table-name-alias"
-            />
-
-            <div class="mt-5">
-              <label class="add-default-title grey--text">
-                <!-- Add Default Columns -->
-                {{ $t('msg.info.addDefaultColumns') }}
-              </label>
-
-              <div class="d-flex caption justify-space-between align-center">
-                <v-checkbox
-                  key="chk1"
-                  v-model="table.columns"
-                  dense
-                  class="mt-0"
-                  color="info"
-                  hide-details
-                  value="id"
-                  @click.capture.prevent.stop="
-                    () => {
-                      $toast.info('ID column is required, you can rename this later if required.').goAway(3000)
-                      if (!table.columns.includes('id')) {
-                        table.columns.push('id')
-                      }
-                    }
-                  "
-                >
-                  <template #label>
-                    <div>
-                      <span v-if="!isIdToggleAllowed" class="caption" @dblclick="isIdToggleAllowed = true">id</span>
-                      <v-select
-                        v-else
-                        v-model="idType"
-                        style="max-width: 100px"
-                        class="caption"
-                        outlined
-                        dense
-                        hide-details
-                        :items="idTypes"
-                      />
-                    </div>
-                  </template>
-                </v-checkbox>
-                <v-checkbox key="chk2" v-model="table.columns" dense class="mt-0" color="info" hide-details value="title">
-                  <template #label>
-                    <span class="caption">title</span>
-                  </template>
-                </v-checkbox>
-                <v-checkbox key="chk3" v-model="table.columns" dense class="mt-0" color="info" hide-details value="created_at">
-                  <template #label>
-                    <span class="caption">created_at</span>
-                  </template>
-                </v-checkbox>
-                <v-checkbox key="chk4" v-model="table.columns" dense class="mt-0" color="info" hide-details value="updated_at">
-                  <template #label>
-                    <span class="caption">updated_at</span>
-                  </template>
-                </v-checkbox>
-              </div>
+        </div>
+        <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
+          <!-- hint="Table name as saved in database" -->
+          <div class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
+          <a-form-item v-if="!project.prefix" v-bind="validateInfos['table_name']">
+            <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
+          </a-form-item>
+          <div>
+            <div class="mb-5">
+              <!-- Add Default Columns -->
+              {{ $t('msg.info.addDefaultColumns') }}
             </div>
+            <a-row>
+              <a-col :span="6">
+                <a-tooltip placement="top">
+                  <template #title>
+                    <span>ID column is required, you can rename this later if required.</span>
+                  </template>
+                  <a-checkbox disabled v-model:checked="formState.columns.id">ID</a-checkbox>
+                </a-tooltip>
+              </a-col>
+              <a-col :span="6">
+                <a-checkbox v-model:checked="formState.columns.title"> title </a-checkbox>
+              </a-col>
+              <a-col :span="6">
+                <a-checkbox v-model:checked="formState.columns.created_at"> created_at </a-checkbox>
+              </a-col>
+              <a-col :span="6">
+                <a-checkbox v-model:checked="formState.columns.updated_at"> updated_at </a-checkbox>
+              </a-col>
+            </a-row>
           </div>
-        </v-card-text>
-        <v-divider />
-        <v-card-actions class="py-4 px-10">
-          <v-spacer />
-          <v-btn class="" @click="dialogShow = false">
-            {{ $t('general.cancel') }}
-          </v-btn>
-          <v-btn :disabled="!valid" color="primary" class="nc-create-table-submit" @click="createTable">
-            {{ $t('general.submit') }}
-          </v-btn>
-        </v-card-actions>
-      </v-form>
-    </v-card>
-  </v-dialog>
+        </div>
+      </a-form>
+    </div>
+  </a-modal>
 </template>
 
 <style scoped lang="scss">

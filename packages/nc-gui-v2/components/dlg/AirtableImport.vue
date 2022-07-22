@@ -55,8 +55,17 @@ const dialogShow = computed({
 <template>
   <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
     <div class="pl-10 pr-10 pb-10 pt-5">
-      <h1 class="font-bold self-center my-4">{{ $t('title.importFromAirtable') }}</h1>
+      <h1 class="prose-2xl font-bold self-center">{{ $t('title.importFromAirtable') }}</h1>
       <a-divider />
+      <div class="mb-4">
+        <span class="prose-xl font-bold mr-3">Credentials</span>
+        <a
+          href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials"
+          class="prose-sm underline text-grey"
+          target="_blank"
+          >Where to find this?
+        </a>
+      </div>
       <a-form ref="formValidator" layout="vertical" :model="form">
         <a-form-item ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
           <a-form-item v-bind="validateInfos.apiKey">
@@ -66,7 +75,7 @@ const dialogShow = computed({
             <a-input v-model:value="syncSource.details.shareId" placeholder="Shared Base ID / URL" size="large" />
           </a-form-item>
         </a-form-item>
-        <h1 class="font-bold self-center my-4">More Options</h1>
+        <span class="prose-xl font-bold self-center my-4">More Options</span>
         <a-divider />
         <div class="mt-0 my-2">
           <a-checkbox v-model:checked="syncSource.details.options.syncData">Import Data</a-checkbox>
@@ -90,6 +99,15 @@ const dialogShow = computed({
           <a-checkbox disabled v-model:checked="syncSource.details.options.syncFormula">Import Formula Columns</a-checkbox>
         </a-tooltip>
       </a-form>
+      <a-divider />
+      <div>
+        <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">Questions / Help - Reach out here</a>
+        <br />
+        <div>
+          This feature is currently in beta and more information can be found
+          <a class="prose-sm" href="https://github.com/nocodb/nocodb/discussions/2122" target="_blank">here</a>.
+        </div>
+      </div>
     </div>
   </a-modal>
 </template>

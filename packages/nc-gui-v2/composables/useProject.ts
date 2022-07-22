@@ -1,6 +1,8 @@
 import { SqlUiFactory } from 'nocodb-sdk'
 import type { ProjectType, TableType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
+import { ComputedRef } from 'vue'
+import { ComputedVariable } from 'vue/macros'
 import { useNuxtApp, useState } from '#app'
 import { USER_PROJECT_ROLES } from '~/lib/constants'
 

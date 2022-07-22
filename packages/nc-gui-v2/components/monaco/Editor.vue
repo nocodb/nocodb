@@ -28,7 +28,15 @@ onMounted(() => {
 
     editor = monaco.editor.create(root.value, {
       model,
-      theme: 'dark',
+      theme: 'vs',
+      foldingStrategy: 'indentation',
+      selectOnLineNumbers: true,
+      scrollbar: {
+        verticalScrollbarSize: 8,
+        horizontalScrollbarSize: 8,
+      },
+      tabSize: 2,
+      automaticLayout: true,
     })
 
     editor.onDidChangeModelContent(async (e) => {

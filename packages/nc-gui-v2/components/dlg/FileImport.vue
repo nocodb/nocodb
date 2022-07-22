@@ -165,12 +165,10 @@ const handleSubmit = () => {
             Url
           </span>
         </template>
-        <div class="pl-10 pr-10 pb-10 pt-5">
-          <a-form ref="formValidator" layout="vertical" :model="form">
-            <a-form-item ref="form" :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
-              <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                <a-input v-model:value="importState.url" size="large" />
-              </a-form-item>
+        <div class="pl-10 pr-10 pt-5">
+          <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
+            <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
+              <a-input v-model:value="importState.url" size="large" />
             </a-form-item>
           </a-form>
         </div>

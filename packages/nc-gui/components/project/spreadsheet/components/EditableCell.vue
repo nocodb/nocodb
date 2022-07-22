@@ -64,7 +64,7 @@
     <date-time-picker-cell v-else-if="isDateTime" v-model="localState" ignore-focus v-on="parentListeners" />
 
     <enum-cell
-      v-else-if="isEnum && ((!isForm && !active) || isLocked || (isPublic && !isForm))"
+      v-else-if="isEnum && ((!isForm && !active) || isLocked || (isPublic && !isForm) || !_isUIAllowed('tableRowUpdate'))"
       v-model="localState"
       :column="column"
       v-on="parentListeners"
@@ -80,7 +80,7 @@
     />
 
     <set-list-editable-cell
-      v-else-if="isSet && (active || isForm) && !isLocked && !(isPublic && !isForm)"
+      v-else-if="isSet && (active || isForm) && !isLocked && !(isPublic && !isForm) && _isUIAllowed('tableRowUpdate')"
       v-model="localState"
       :column="column"
       v-on="parentListeners"

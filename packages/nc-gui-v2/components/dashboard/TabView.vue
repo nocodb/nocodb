@@ -8,6 +8,7 @@ import MdiExcelIcon from '~icons/mdi/file-excel'
 import MdiJSONIcon from '~icons/mdi/code-json'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiRequestDataSourceIcon from '~icons/mdi/open-in-new'
+import MdiAccountGroupIcon from '~icons/mdi/account-group'
 
 const { tabs, activeTab, closeTab } = useTabs()
 // TODO: use useUIPermission when it's ready
@@ -31,8 +32,9 @@ const onEdit = (targetKey: number, action: string) => {
     <a-tabs v-model:activeKey="activeTab" hide-add type="editable-card" :tab-position="top" @edit="onEdit">
       <a-tab-pane v-for="(tab, i) in tabs" :key="i" :value="i" class="text-capitalize" :closable="true">
         <template #tab>
-          <span>
-            <MdiTableIcon class="text-primary mdi-icons" />
+          <span class="flex items-center gap-2">
+            <MdiTableIcon v-if="tab.type === 'table'" class="text-primary" />
+            <MdiAccountGroupIcon v-if="tab.type === 'auth'" class="text-primary" />
             {{ tab.title }}
           </span>
         </template>
@@ -42,15 +44,15 @@ const onEdit = (targetKey: number, action: string) => {
         <a-menu v-model:selectedKeys="currentMenu" mode="horizontal">
           <a-sub-menu key="addORImport">
             <template #title>
-              <span>
-                <MdiPlusIcon class="mdi-icons" />
+              <span class="flex items-center gap-2">
+                <MdiPlusIcon />
                 Add / Import
               </span>
             </template>
-            <a-menu-item-group v-if="isUIAllowed('addTable')" title="">
+            <a-menu-item-group v-if="isUIAllowed('addTable')">
               <a-menu-item key="add-new-table" v-t="['a:actions:create-table']" @click="tableCreateDialog = true">
-                <span>
-                  <MdiTableIcon class="text-primary mdi-icons" />
+                <span class="flex items-center gap-2">
+                  <MdiTableIcon class="text-primary" />
                   <!-- Add new table -->
                   {{ $t('tooltip.addTable') }}
                 </span>
@@ -63,8 +65,8 @@ const onEdit = (targetKey: number, action: string) => {
                 v-t="['a:actions:import-airtable']"
                 @click="airtableImportDialog = true"
               >
-                <span>
-                  <MdiAirTableIcon class="text-primary mdi-icons" />
+                <span class="flex items-center gap-2">
+                  <MdiAirTableIcon class="text-primary" />
                   <!-- TODO: i18n -->
                   Airtable
                 </span>
@@ -76,8 +78,8 @@ const onEdit = (targetKey: number, action: string) => {
                 @click="fileImportDialog = true"
                 importType="csv"
               >
-                <span>
-                  <MdiCsvIcon class="text-primary mdi-icons" />
+                <span class="flex items-center gap-2">
+                  <MdiCsvIcon class="text-primary" />
                   <!-- TODO: i18n -->
                   CSV file
                 </span>
@@ -89,8 +91,8 @@ const onEdit = (targetKey: number, action: string) => {
                 @click="fileImportDialog = true"
                 importType="json"
               >
-                <span>
-                  <MdiJSONIcon class="text-primary mdi-icons" />
+                <span class="flex items-center gap-2">
+                  <MdiJSONIcon class="text-primary" />
                   <!-- TODO: i18n -->
                   JSON file
                 </span>
@@ -102,20 +104,22 @@ const onEdit = (targetKey: number, action: string) => {
                 @click="fileImportDialog = true"
                 importType="excel"
               >
-                <span>
-                  <MdiExcelIcon class="text-primary mdi-icons" />
+                <span class="flex items-center gap-2">
+                  <MdiExcelIcon class="text-primary" />
                   <!-- TODO: i18n -->
                   Microsoft Excel
                 </span>
               </a-menu-item>
             </a-menu-item-group>
-            <a-divider style="margin: 0px" />
+            <a-divider class="ma-0 mb-2" />
             <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" v-t="['e:datasource:import-request']">
-              <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank">
-                <MdiRequestDataSourceIcon class="text-primary mdi-icons" />
-                <!-- TODO: i18n -->
-                Request Data Source
-              </a>
+              <a-anchor-link href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" class="pa-0">
+                <span class="flex items-center gap-2">
+                  <MdiRequestDataSourceIcon class="text-primary" />
+                  <!-- TODO: i18n -->
+                  Request Data Source
+                </span>
+              </a-anchor-link>
             </a-menu-item>
           </a-sub-menu>
         </a-menu>
@@ -136,10 +140,6 @@ const onEdit = (targetKey: number, action: string) => {
 </template>
 
 <style scoped lang="scss">
-.mdi-icons {
-  margin-bottom: -5px;
-}
-
 :deep(.ant-menu-item-group-list) .ant-menu-item {
   padding: 0px 46px 0px 16px;
   margin: 0px;

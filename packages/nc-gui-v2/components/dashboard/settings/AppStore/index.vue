@@ -79,7 +79,7 @@ onMounted(async () => {
     />
   </a-modal>
 
-  <a-modal v-model:visible="showPluginUninstallModal" width="22rem" centered :footer="null">
+  <a-modal v-model:visible="showPluginUninstallModal" :closable="false" width="22rem" centered :footer="null">
     <div class="flex flex-col h-full">
       <div class="flex flex-row justify-center mt-2 text-center w-full">
         {{ `Are you sure you to reset ${pluginApp && pluginApp.title}` }}

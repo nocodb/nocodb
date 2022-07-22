@@ -62,7 +62,7 @@ $state.sidebarOpen.value = false
 
 <template>
   <NuxtLayout>
-    <a-card class="mx-auto mt-5 !max-w-[600px] shadow-lg">
+    <a-card class="mx-auto mt-10 !max-w-[600px] shadow-lg">
       <h1 class="text-center text-4xl pa-2 nc-project-page-title flex align-center justify-center gap-2">
         <!-- My Projects -->
         <b>{{ $t('title.myProject') }}</b>
@@ -83,7 +83,7 @@ $state.sidebarOpen.value = false
         <div class="flex-grow"></div>
 
         <a-dropdown @click.stop>
-          <a-button class="nc-new-project-menu !shadow btn-primary">
+          <a-button class="nc-new-project-menu !shadow">
             <div class="flex align-center">
               {{ $t('title.newProj') }}
               <MdiMenuDown class="menu-icon"/>

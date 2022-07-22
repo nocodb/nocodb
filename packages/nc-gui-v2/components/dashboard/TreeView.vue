@@ -1,13 +1,17 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity'
 import { onMounted } from '@vue/runtime-core'
-import type { TableType } from 'nocodb-sdk'
+import { Modal } from 'ant-design-vue'
+import { UITypes } from 'nocodb-sdk'
+import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
+import { useToast } from 'vue-toastification'
 import { $computed } from 'vue/macros'
 import { useNuxtApp, useRoute } from '#app'
 // import Draggable  from 'vuedraggable'
 import useProject from '~/composables/useProject'
 import useTabs from '~/composables/useTabs'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiSettingIcon from '~icons/mdi/cog'
 import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
@@ -19,10 +23,12 @@ import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiAPIDocIcon from '~icons/mdi/open-in-new'
 
 const { addTab } = useTabs()
+const toast = useToast()
 const { $api } = useNuxtApp()
 const { isUIAllowed } = useUIPermission()
 const route = useRoute()
 const { tables, loadTables } = useProject(route.params.projectId as string)
+const { closeTab } = useTabs()
 
 const tablesById = $computed<Record<string, TableType>>(() =>
   tables?.value?.reduce((acc: Record<string, TableType>, table: TableType) => {
@@ -105,6 +111,57 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
 }
+
+const deleteTable = (table: TableType) => {
+  // 'Click Submit to Delete The table'
+  Modal.confirm({
+    title: `Click Yes to Delete The table : ${table.title}`,
+    okText: 'Yes',
+    okType: 'danger',
+    cancelText: 'No',
+    async onOk() {
+      const { getMeta, removeMeta } = useMetas()
+      try {
+        const meta = (await getMeta(table.id as string)) as TableType
+        const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord)
+
+        if (relationColumns?.length) {
+          const refColMsgs = await Promise.all(
+            relationColumns.map(async (c, i) => {
+              const refMeta = (await getMeta(
+                (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
+              )) as TableType
+              return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
+            }),
+          )
+          toast.info(
+            h('div', {
+              innerHTML: `<div style="padding:10px 4px">Unable to delete tables because of the following.
+                <br><br>${refColMsgs.join('<br>')}<br><br>
+                Delete them & try again</div>`,
+            }),
+          )
+          return
+        }
+
+        await $api.dbTable.delete(table?.id as string)
+
+        closeTab({
+          type: 'table',
+          id: table.id,
+          title: table.title,
+        })
+
+        await loadTables()
+
+        removeMeta(table.id as string)
+        toast.info(`Deleted table ${table.title} successfully`)
+      } catch (e: any) {
+        toast.error(await extractSdkResponseErrorMsg(e))
+      }
+    },
+  })
+}
 </script>
 
 <template>
@@ -118,7 +175,7 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
       />
     </div>
 
-    <a-dropdown :trigger="['contextmenu']" >
+    <a-dropdown :trigger="['contextmenu']">
       <div class="p-1 flex-1 overflow-y-auto flex flex-column">
         <div
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
@@ -126,7 +183,9 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
           @contextmenu="setMenuContext('main')"
         >
           <MdiTable class="mr-1 text-gray-500" />
-          <span class="flex-grow text-bold">{{ $t('objects.tables') }} <template v-if="tables?.length">({{tables.length}})</template></span>
+          <span class="flex-grow text-bold"
+            >{{ $t('objects.tables') }} <template v-if="tables?.length">({{ tables.length }})</template></span
+          >
           <MdiPlus class="text-gray-500" @click.stop="tableCreateDlg = true" />
           <MdiMenuDown
             class="transition-transform !duration-100 text-gray-500"
@@ -154,8 +213,7 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
                     <template #overlay>
                       <a-menu>
                         <a-menu-item class="!text-xs"> Rename</a-menu-item>
-                        <a-menu-item class="!text-xs"> UI ACL</a-menu-item>
-                        <a-menu-item class="!text-xs"> Delete</a-menu-item>
+                        <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
                       </a-menu>
                     </template>
                   </a-dropdown>
@@ -170,10 +228,10 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
         <a-menu>
           <template v-if="contextMenuTarget.type === 'table'">
             <a-menu-item class="!text-xs">Table Rename</a-menu-item>
-            <a-menu-item class="!text-xs">Table Delete</a-menu-item>
+            <a-menu-item class="!text-xs" @click="deleteTable(contextMenuTarget.value)">Table Delete</a-menu-item>
           </template>
           <template v-else>
-            <a-menu-item @click="loadTables" class="!text-xs">Tables Refresh</a-menu-item>
+            <a-menu-item class="!text-xs" @click="loadTables">Tables Refresh</a-menu-item>
           </template>
         </a-menu>
       </template>
@@ -194,7 +252,7 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
     </div>
 
     <a-modal v-model:visible="settingsDlg" width="max(90vw, 600px)"> Team and settings</a-modal>
-    <DlgTableCreate v-model="tableCreateDlg"/>
+    <DlgTableCreate v-model="tableCreateDlg" />
   </div>
 </template>
 

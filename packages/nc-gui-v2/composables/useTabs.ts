@@ -25,8 +25,12 @@ export default () => {
   const clearTabs = () => {
     tabs.value = []
   }
-  const closeTab = (index: number) => {
-    tabs.value.splice(index, 1)
+  const closeTab = (key: number | TabItem) => {
+    if (typeof key === 'number') tabs.value.splice(key, 1)
+    else {
+      const index = tabs.value.findIndex((tab) => tab.id === key.id && tab.type === key.type && tab.title === key.title)
+      if (index > -1) tabs.value.splice(index, 1)
+    }
   }
 
   return { tabs, addTab, activeTab, clearTabs, closeTab }

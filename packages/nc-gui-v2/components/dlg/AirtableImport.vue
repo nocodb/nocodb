@@ -54,7 +54,7 @@ const dialogShow = computed({
 
 <template>
   <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
-    <div class="pl-10 pr-10 pb-10 pt-5">
+    <div class="pl-10 pr-10 pt-5">
       <h1 class="prose-2xl font-bold self-center">{{ $t('title.importFromAirtable') }}</h1>
       <a-divider />
       <div class="mb-4">
@@ -67,7 +67,7 @@ const dialogShow = computed({
         </a>
       </div>
       <a-form ref="formValidator" layout="vertical" :model="form">
-        <a-form-item ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="m-0">
+        <a-form-item ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="ma-0">
           <a-form-item v-bind="validateInfos.apiKey">
             <a-input-password v-model:value="syncSource.details.apiKey" placeholder="Api Key" size="large" />
           </a-form-item>

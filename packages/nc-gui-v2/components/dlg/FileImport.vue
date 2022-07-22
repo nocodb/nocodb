@@ -20,19 +20,23 @@ const { modelValue, importType } = defineProps<Props>()
 const toast = useToast()
 const emit = defineEmits(['update:modelValue'])
 const activeKey = ref('upload')
-const fileList = ref([])
-const urlValidator = ref()
+const jsonEditorRef = ref()
+const loading = ref(false)
 const useForm = Form.useForm
-const formState = reactive({
+
+const importState = ref({
+  fileList: [],
   url: '',
+  json: {},
 })
+
 const validators = computed(() => {
   return {
     url: [fieldRequiredValidator],
   }
 })
 
-const { resetFields, validate, validateInfos } = useForm(formState, validators)
+const { resetFields, validate, validateInfos } = useForm(importState, validators)
 
 const handleDrop = (e: DragEvent) => {
   console.log(e)
@@ -80,6 +84,10 @@ const handleChange = (info: UploadChangeParam) => {
   }
 }
 
+const formatJson = () => {
+  jsonEditorRef.value.format()
+}
+
 const handleSubmit = () => {
   if (activeKey.value === 'upload') {
     // TODO
@@ -97,13 +105,12 @@ const handleSubmit = () => {
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    width="max(90vw, 600px)"
-    @keydown.esc="dialogShow = false"
-    @ok="handleSubmit"
-    okText="Import"
-  >
+  <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
+    <template #footer>
+      <a-button key="back" @click="dialogShow = false">Cancel</a-button>
+      <a-button v-if="activeKey === 'json'" key="format" :loading="loading" @click="formatJson">Format JSON</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="handleSubmit">Import</a-button>
+    </template>
     <a-tabs v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
       <a-tab-pane key="upload" :closable="false">
         <template #tab>
@@ -114,7 +121,7 @@ const handleSubmit = () => {
         </template>
         <div class="pl-10 pr-10 pb-10 pt-5">
           <a-upload-dragger
-            v-model:fileList="fileList"
+            v-model:fileList="importState.fileList"
             name="file"
             :multiple="true"
             @change="handleChange"
@@ -133,10 +140,12 @@ const handleSubmit = () => {
         <template #tab>
           <span class="flex items-center gap-2">
             <MdiCodeJSONIcon />
-            Json String
+            Json Editor
           </span>
         </template>
-        <!-- TODO -->
+        <div class="pl-10 pr-10 pb-10 pt-5">
+          <MonacoEditor v-model="importState.json" class="h-[400px]" ref="jsonEditorRef" />
+        </div>
       </a-tab-pane>
       <a-tab-pane v-else key="url" :closable="false">
         <template #tab>
@@ -147,9 +156,9 @@ const handleSubmit = () => {
         </template>
         <div class="pl-10 pr-10 pb-10 pt-5">
           <a-form ref="formValidator" layout="vertical" :model="form">
-            <a-form-item ref="form" :model="formState" name="quick-import-url-form" layout="horizontal" class="mb-0">
+            <a-form-item ref="form" :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
               <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                <a-input v-model:value="formState.url" size="large" />
+                <a-input v-model:value="importState.url" size="large" />
               </a-form-item>
             </a-form-item>
           </a-form>

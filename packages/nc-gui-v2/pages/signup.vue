@@ -19,8 +19,7 @@ let error = $ref<string | null>(null)
 
 const form = reactive({
   email: '',
-  password: '',
-  passwordRepeat: '',
+  password: ''
 })
 
 const formRules = {
@@ -42,20 +41,6 @@ const formRules = {
     // Password is required
     { required: true, message: t('msg.error.signUpRules.passwdRequired') },
     { min: 8, message: t('msg.error.signUpRules.passwdLength') },
-  ],
-  passwordRepeat: [
-    // PasswordRepeat is required
-    { required: true, message: t('msg.error.signUpRules.passwdRequired') },
-    // Passwords match
-    {
-      validator: (_: unknown, v: string) => {
-        return new Promise((resolve, reject) => {
-          if (form.password === form.passwordRepeat) return resolve(true)
-          reject(new Error(t('msg.error.signUpRules.passwdMismatch')))
-        })
-      },
-      message: t('msg.error.signUpRules.passwdMismatch'),
-    },
   ],
 }
 
@@ -113,16 +98,6 @@ const resetError = () => {
               size="large"
               class="password"
               :placeholder="$t('labels.password')"
-              @focus="resetError"
-            />
-          </a-form-item>
-
-          <a-form-item :label="`Repeat ${$t('labels.password')}`" name="passwordRepeat" :rules="formRules.passwordRepeat">
-            <a-input-password
-              v-model:value="form.passwordRepeat"
-              size="large"
-              class="password"
-              :placeholder="`Repeat ${$t('labels.password')}`"
               @focus="resetError"
             />
           </a-form-item>

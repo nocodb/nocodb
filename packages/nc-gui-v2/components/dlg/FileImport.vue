@@ -7,7 +7,7 @@ import MdiFileIcon from '~icons/mdi/file-plus-outline'
 import MdiFileUploadOutlineIcon from '~icons/mdi/file-upload-outline'
 import MdiLinkVariantIcon from '~icons/mdi/link-variant'
 import MdiCodeJSONIcon from '~icons/mdi/code-json'
-import { fieldRequiredValidator } from '~/utils/validation'
+import { fieldRequiredValidator, importUrlValidator } from '~/utils/validation'
 const { t } = useI18n()
 
 interface Props {
@@ -32,7 +32,7 @@ const importState = ref({
 
 const validators = computed(() => {
   return {
-    url: [fieldRequiredValidator],
+    url: [fieldRequiredValidator, importUrlValidator],
   }
 })
 
@@ -42,22 +42,31 @@ const handleDrop = (e: DragEvent) => {
   console.log(e)
 }
 
+const rejectDrop = (fileList: any[]) => {
+  fileList.map((file) => {
+    toast.error(`Failed to upload file ${file.name}`)
+  })
+}
+
 const importMeta = computed(() => {
   if (importType === 'excel') {
     return {
       uploadHint: t('msg.info.excelSupport'),
       urlInputLabel: t('msg.info.excelURL'),
       loadUrlDirective: ['c:quick-import:excel:load-url'],
+      acceptTypes: '.xls, .xlsx, .xlsm, .ods, .ots',
     }
   } else if (importType === 'csv') {
     return {
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
+      acceptTypes: '.csv',
     }
   } else if (importType === 'json') {
     return {
       uploadHint: '',
+      acceptTypes: '.json',
     }
   }
   return {}
@@ -78,9 +87,9 @@ const handleChange = (info: UploadChangeParam) => {
     console.log(info.file, info.fileList)
   }
   if (status === 'done') {
-    toast.success(`${info.file.name} file uploaded successfully.`)
+    toast.success(`Uploaded file ${info.file.name} successfully`)
   } else if (status === 'error') {
-    toast.error(`${info.file.name} file upload failed.`)
+    toast.error(`Failed to upload file ${info.file.name}`)
   }
 }
 
@@ -124,8 +133,10 @@ const handleSubmit = () => {
             v-model:fileList="importState.fileList"
             name="file"
             :multiple="true"
+            :accept="importMeta.acceptTypes"
             @change="handleChange"
             @drop="handleDrop"
+            @reject="rejectDrop"
             list-type="picture"
           >
             <MdiFileIcon size="large" />

@@ -80,75 +80,83 @@ const handleChange = (info: UploadChangeParam) => {
   }
 }
 
-const loadUrl = () => {}
+const handleSubmit = () => {
+  if (activeKey.value === 'upload') {
+    // TODO
+  } else if (activeKey.value === 'url') {
+    // TODO
+    try {
+      validate()
+    } catch (e) {
+      // TODO
+    }
+  } else if (activeKey.value === 'json') {
+    // TODO
+  }
+}
 </script>
 
 <template>
-  <v-dialog v-model="dialogShow" persistent @keydown.esc="dialogShow = false">
-    <v-card class="w-300 min-h-200 max-h-300">
-      <a-tabs v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
-        <a-tab-pane key="upload" :closable="false">
-          <template #tab>
-            <span class="flex items-center gap-2">
-              <MdiFileUploadOutlineIcon />
-              Upload
-            </span>
-          </template>
-          <div class="pl-10 pr-10 pb-10 pt-5">
-            <a-upload-dragger
-              v-model:fileList="fileList"
-              name="file"
-              :multiple="true"
-              @change="handleChange"
-              @drop="handleDrop"
-              list-type="picture"
-            >
-              <MdiFileIcon size="large" />
-              <p class="ant-upload-text">Click or drag file to this area to upload</p>
-              <p class="ant-upload-hint">
-                {{ importMeta.uploadHint }}
-              </p>
-            </a-upload-dragger>
-          </div>
-        </a-tab-pane>
-        <a-tab-pane v-if="importType === 'json'" key="json" :closable="false">
-          <template #tab>
-            <span class="flex items-center gap-2">
-              <MdiCodeJSONIcon />
-              Json String
-            </span>
-          </template>
-          <!-- TODO -->
-        </a-tab-pane>
-        <a-tab-pane v-else key="url" :closable="false">
-          <template #tab>
-            <span class="flex items-center gap-2">
-              <MdiLinkVariantIcon />
-              Url
-            </span>
-          </template>
-          <div class="pl-10 pr-10 pb-10 pt-5">
-            <a-form ref="formValidator" layout="vertical" :model="form">
-              <a-form-item ref="form" :model="formState" name="quick-import-url-form" layout="horizontal" class="mb-0">
-                <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-                  <a-input v-model:value="formState.url" size="large" />
-                </a-form-item>
+  <a-modal
+    v-model:visible="dialogShow"
+    width="max(90vw, 600px)"
+    @keydown.esc="dialogShow = false"
+    @ok="handleSubmit"
+    okText="Import"
+  >
+    <a-tabs v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
+      <a-tab-pane key="upload" :closable="false">
+        <template #tab>
+          <span class="flex items-center gap-2">
+            <MdiFileUploadOutlineIcon />
+            Upload
+          </span>
+        </template>
+        <div class="pl-10 pr-10 pb-10 pt-5">
+          <a-upload-dragger
+            v-model:fileList="fileList"
+            name="file"
+            :multiple="true"
+            @change="handleChange"
+            @drop="handleDrop"
+            list-type="picture"
+          >
+            <MdiFileIcon size="large" />
+            <p class="ant-upload-text">Click or drag file to this area to upload</p>
+            <p class="ant-upload-hint">
+              {{ importMeta.uploadHint }}
+            </p>
+          </a-upload-dragger>
+        </div>
+      </a-tab-pane>
+      <a-tab-pane v-if="importType === 'json'" key="json" :closable="false">
+        <template #tab>
+          <span class="flex items-center gap-2">
+            <MdiCodeJSONIcon />
+            Json String
+          </span>
+        </template>
+        <!-- TODO -->
+      </a-tab-pane>
+      <a-tab-pane v-else key="url" :closable="false">
+        <template #tab>
+          <span class="flex items-center gap-2">
+            <MdiLinkVariantIcon />
+            Url
+          </span>
+        </template>
+        <div class="pl-10 pr-10 pb-10 pt-5">
+          <a-form ref="formValidator" layout="vertical" :model="form">
+            <a-form-item ref="form" :model="formState" name="quick-import-url-form" layout="horizontal" class="mb-0">
+              <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
+                <a-input v-model:value="formState.url" size="large" />
               </a-form-item>
-              <a-button
-                :disabled="!formState.url"
-                :v-t="importMeta.loadUrlDirective"
-                size="large"
-                type="primary"
-                @click="loadUrl"
-              >
-                {{ $t('general.load') }}
-              </a-button>
-            </a-form>
-          </div>
-        </a-tab-pane>
-      </a-tabs>
-    </v-card>
-  </v-dialog>
+            </a-form-item>
+          </a-form>
+        </div>
+      </a-tab-pane>
+    </a-tabs>
+  </a-modal>
 </template>
 
 <style scoped lang="scss">

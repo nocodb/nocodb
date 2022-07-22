@@ -310,7 +310,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientCert') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" @click="certFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" size="small" @click="certFileInput.click()" class="shadow">
                     {{ $t('labels.clientCert') }}
                   </a-button>
                 </a-tooltip>
@@ -319,7 +319,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientKey') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" @click="keyFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" size="small" @click="keyFileInput.click()" class="shadow">
                     {{ $t('labels.clientKey') }}
                   </a-button>
                 </a-tooltip>
@@ -328,7 +328,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientCA') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" @click="caFileInput.click()">
+                  <a-button :disabled="!sslFilesRequired" size="small" @click="caFileInput.click()" class="shadow">
                     {{ $t('labels.serverCA') }}
                   </a-button>
                 </a-tooltip>
@@ -364,7 +364,7 @@ onMounted(() => {
           <a-button type="primary" ghost class="nc-extdb-btn-test-connection" @click="testConnection">
             {{ $t('activity.testDbConn') }}
           </a-button>
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit" @click="createProject"> Submit </a-button>
+          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="createProject"> Submit </a-button>
         </div>
       </a-form-item>
     </a-form>

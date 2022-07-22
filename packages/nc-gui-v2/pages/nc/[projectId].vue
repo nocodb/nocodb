@@ -1,6 +1,6 @@
 <script setup lang="ts">
 const route = useRoute()
-const { loadProject, loadTables } = useProject(route.params.projectId as string)
+const { project } = useProject(true)
 const { clearTabs, addTab } = useTabs()
 
 addTab({ type: 'auth', title: 'Team & Auth' })
@@ -10,10 +10,6 @@ watch(
   async (newVal, oldVal) => {
     if (newVal !== oldVal) {
       clearTabs()
-      if (newVal) {
-        await loadProject(newVal as string)
-        await loadTables()
-      }
     }
   },
 )

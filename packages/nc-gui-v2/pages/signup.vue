@@ -19,7 +19,7 @@ let error = $ref<string | null>(null)
 
 const form = reactive({
   email: '',
-  password: ''
+  password: '',
 })
 
 const formRules = {
@@ -102,7 +102,9 @@ const resetError = () => {
             />
           </a-form-item>
 
-          <div class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
+          <div
+            class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full"
+          >
             <button class="submit" type="submit">
               <span class="flex items-center gap-2"><MaterialSymbolsRocketLaunchOutline /> {{ $t('general.signUp') }}</span>
             </button>

@@ -13,6 +13,7 @@ import MdiPlusIcon from '~icons/mdi/plus'
 import MdiKeyStarIcon from '~icons/mdi/key-star'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { fieldRequiredValidator } from '~/utils/validation'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
@@ -88,17 +89,13 @@ onMounted(() => {
 })
 
 const validators = computed(() => {
-  // TODO: centralise
-  const tnValidator = [{ required: true, message: 'Please fill in table name', trigger: 'change' }]
-  const cnValidator = [{ required: true, message: 'Please fill in column name', trigger: 'change' }]
-  const uidtValidator = [{ required: true, message: 'Please fill in column type', trigger: 'change' }]
   let res: any = {}
   for (let tableIdx = 0; tableIdx < data.tables.length; tableIdx++) {
-    res[`tables.${tableIdx}.table_name`] = tnValidator
+    res[`tables.${tableIdx}.table_name`] = fieldRequiredValidator
     hasSelectColumn.value[tableIdx] = false
     for (let columnIdx = 0; columnIdx < data.tables[tableIdx].columns.length; columnIdx++) {
-      res[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = cnValidator
-      res[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = uidtValidator
+      res[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = fieldRequiredValidator
+      res[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = fieldRequiredValidator
       if (isSelect(data.tables[tableIdx].columns[columnIdx])) {
         hasSelectColumn.value[tableIdx] = true
       }

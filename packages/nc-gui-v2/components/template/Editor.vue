@@ -3,7 +3,6 @@ import { useToast } from 'vue-toastification'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isVirtualCol, UITypes } from 'nocodb-sdk'
 import { Form } from 'ant-design-vue'
-import type { SizeType } from 'ant-design-vue/es/config-provider'
 import { computed, onMounted } from '#imports'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiStringIcon from '~icons/mdi/alpha-a'
@@ -54,7 +53,6 @@ const tableColumns = [
 const templateForm = reactive<{ tables: object[] }>({
   tables: [],
 })
-const buttonSize = ref<SizeType>('large')
 const hasSelectColumn = ref(<boolean[]>{})
 const expansionPanel = ref(<number[]>[])
 const editableTn = ref(<boolean[]>{})
@@ -285,7 +283,7 @@ const importTemplate = async () => {
   <a-spin :spinning="isImporting" :tip="importingTip" size="large">
     <a-card :title="editorTitle">
       <template #extra>
-        <a-button type="primary" @click="importTemplate" :size="buttonSize">
+        <a-button type="primary" @click="importTemplate" size="large">
           {{ $t('activity.import') }}
         </a-button>
       </template>

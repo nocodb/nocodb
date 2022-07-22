@@ -91,11 +91,11 @@ onMounted(() => {
 const validators = computed(() => {
   let res: any = {}
   for (let tableIdx = 0; tableIdx < data.tables.length; tableIdx++) {
-    res[`tables.${tableIdx}.table_name`] = fieldRequiredValidator
+    res[`tables.${tableIdx}.table_name`] = [fieldRequiredValidator]
     hasSelectColumn.value[tableIdx] = false
     for (let columnIdx = 0; columnIdx < data.tables[tableIdx].columns.length; columnIdx++) {
-      res[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = fieldRequiredValidator
-      res[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = fieldRequiredValidator
+      res[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator]
+      res[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator]
       if (isSelect(data.tables[tableIdx].columns[columnIdx])) {
         hasSelectColumn.value[tableIdx] = true
       }

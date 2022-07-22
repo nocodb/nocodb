@@ -1,28 +1,44 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useToast } from 'vue-toastification'
+import type { PluginType } from 'nocodb-sdk'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import MdiPlusIcon from '~icons/mdi/plus'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
-import { extractSdkResponseErrorMsg } from '~~/utils/errorUtils'
 interface Props {
   id: string
+}
+
+type Plugin = PluginType & {
+  formDetails: Record<string, any>
+  parsedInput: Record<string, any>
 }
 
 const { id } = defineProps<Props>()
 
 const emits = defineEmits(['saved'])
 
+enum Action {
+  Save = 'save',
+  Test = 'test',
+}
+
 const toast = useToast()
+
 const { $api } = useNuxtApp()
+
 const formRef = ref()
-let plugin = $ref<any>(null)
-let pluginFormData = $ref<any>({})
+
+let plugin = $ref<Plugin | null>(null)
+let pluginFormData = $ref<Record<string, any>>({})
 let isLoading = $ref(true)
-let loadingAction = $ref<null | string>(null)
+let loadingAction = $ref<null | Action>(null)
+
+const addSetting = () => pluginFormData.push({})
 
 const saveSettings = async () => {
-  loadingAction = 'save'
+  loadingAction = Action.Save
 
   try {
     await formRef.value?.validateFields()
@@ -33,7 +49,7 @@ const saveSettings = async () => {
     })
 
     emits('saved')
-    toast.success(plugin.formDetails.msgOnInstall || 'Plugin settings saved successfully')
+    toast.success(plugin?.formDetails.msgOnInstall || 'Plugin settings saved successfully')
   } catch (_e: any) {
     const e = await extractSdkResponseErrorMsg(_e)
     toast.error(e.message)
@@ -42,12 +58,9 @@ const saveSettings = async () => {
   }
 }
 
-const addSetting = () => {
-  pluginFormData.push({})
-}
-
 const testSettings = async () => {
-  loadingAction = 'test'
+  loadingAction = Action.Test
+
   try {
     const res = await $api.plugin.test({
       input: pluginFormData,
@@ -55,6 +68,7 @@ const testSettings = async () => {
       category: plugin?.category,
       title: plugin?.title,
     })
+
     if (res) {
       toast.success('Successfully tested plugin settings')
     } else {
@@ -68,15 +82,16 @@ const testSettings = async () => {
   }
 }
 
-const doAction = async (action: { key: string }) => {
-  switch (action.key) {
-    case 'save':
+const doAction = async (action: Action) => {
+  switch (action) {
+    case Action.Save:
       await saveSettings()
       break
-    case 'test':
+    case Action.Test:
       await testSettings()
       break
     default:
+      // noop
       break
   }
 }
@@ -84,6 +99,7 @@ const doAction = async (action: { key: string }) => {
 const readPluginDetails = async () => {
   try {
     isLoading = true
+
     const res = await $api.plugin.read(id)
     const formDetails = JSON.parse(res.input_schema ?? '{}')
     const emptyParsedInput = formDetails.array ? [{}] : {}
@@ -98,12 +114,10 @@ const readPluginDetails = async () => {
   }
 }
 
-const deleteFormRow = (index: number) => {
-  pluginFormData.splice(index, 1)
-}
+const deleteFormRow = (index: number) => pluginFormData.splice(index, 1)
 
 onMounted(async () => {
-  if (plugin === null) {
+  if (!plugin) {
     await readPluginDetails()
   }
 })
@@ -113,14 +127,14 @@ onMounted(async () => {
   <div v-if="isLoading" class="flex flex-row w-full justify-center items-center h-52">
     <a-spin size="large" />
   </div>
+
   <template v-else>
     <div class="flex flex-col">
-      <div class="flex flex-row justify-center pb-4 mb-2 border-b-1 w-full space-x-1">
+      <div class="flex flex-row justify-center pb-4 mb-2 border-b-1 w-full gap-x-1">
         <div
           v-if="plugin.logo"
-          :style="{ background: plugin.title === 'SES' ? '#242f3e' : '' }"
-          class="mr-1 d-flex align-center justify-center"
-          :class="{ 'pa-2': plugin.title === 'SES' }"
+          class="mr-1 flex items-center justify-center"
+          :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
         >
           <img :src="`/${plugin.logo}`" class="h-6" />
         </div>
@@ -173,7 +187,7 @@ onMounted(async () => {
 
           <tr>
             <td :colspan="plugin.formDetails.items.length" class="text-center">
-              <a-button type="default" class="!bg-gray-100 rounded-md border-0" @click="addSetting">
+              <a-button type="default" class="!bg-gray-100 rounded-md border-none" @click="addSetting">
                 <template #icon>
                   <MdiPlusIcon class="flex mx-auto" />
                 </template>
@@ -214,9 +228,9 @@ onMounted(async () => {
             v-for="(action, i) in plugin.formDetails.actions"
             :key="i"
             :loading="loadingAction === action.key"
-            :type="action.key === 'save' ? 'primary' : 'default'"
+            :type="action.key === Action.Save ? 'primary' : 'default'"
             :disabled="!!loadingAction"
-            @click="doAction(action)"
+            @click="doAction(action.key)"
           >
             {{ action.label }}
           </a-button>
@@ -228,11 +242,10 @@ onMounted(async () => {
 
 <style scoped lang="scss">
 .form-table {
-  border: none;
-  min-width: 400px;
+  @apply border-none min-w-[400px];
 }
 
 tbody tr:nth-of-type(odd) {
-  background-color: transparent;
+  @apply bg-transparent;
 }
 </style>

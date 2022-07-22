@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
 import { Form } from 'ant-design-vue'
-import useTableCreate from '../../composables/useTableCreate'
-import useProject from '~/composables/useProject'
-import useTabs from '~/composables/useTabs'
+import { useProject, useTableCreate, useTabs } from '#imports'
 import { useToast } from 'vue-toastification'
 import { fieldRequiredValidator, importUrlValidator, validateTableName } from '~/utils/validation'
 

@@ -243,12 +243,17 @@ const showRenameTableDlg = (table: TableType) => {
               v-t="['c:table:rename:navdraw:right-click']"
               class="!text-xs"
               @click="showRenameTableDlg(contextMenuTarget.value)"
-              >Table Rename</a-menu-item
             >
-            <a-menu-item class="!text-xs" @click="deleteTable(contextMenuTarget.value)">Table Delete</a-menu-item>
+              {{ $t('general.rename') }}
+            </a-menu-item>
+            <a-menu-item class="!text-xs" @click="deleteTable(contextMenuTarget.value)">
+              {{ $t('general.delete') }}
+            </a-menu-item>
           </template>
           <template v-else>
-            <a-menu-item v-t="['a:table:refresh:navdraw']" class="!text-xs" @click="loadTables">Tables Refresh</a-menu-item>
+            <a-menu-item v-t="['a:table:refresh:navdraw']" class="!text-xs" @click="loadTables">
+              {{ $t('general.reload') }}
+            </a-menu-item>
           </template>
         </a-menu>
       </template>
@@ -289,5 +294,9 @@ const showRenameTableDlg = (table: TableType) => {
 
 :deep(.nc-filter-input input::placeholder) {
   @apply !text-xs;
+}
+
+:deep(.ant-dropdown-menu-title-content) {
+  @apply !p-2;
 }
 </style>

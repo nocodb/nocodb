@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { FunctionalComponent, SVGAttributes, VNode } from 'vue'
+import type { FunctionalComponent, SVGAttributes } from 'vue'
 import AuditTab from './AuditTab.vue'
 import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
@@ -96,12 +96,15 @@ const selectedSubTab = $computed(() => {
     ? currentlySelectedSubTabKey
     : firstKeyOfObject(selectedTab.subTabs)
 
-  if (subTabKey !== selectedSubTabKeys[0]) {
-    selectedSubTabKeys = [subTabKey]
-  }
-
   return selectedTab.subTabs[subTabKey]
 })
+
+watch(
+  () => selectedTabKeys[0],
+  (newTabKey) => {
+    selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
+  },
+)
 </script>
 
 <template>
@@ -141,7 +144,6 @@ const selectedSubTab = $computed(() => {
   height: 70vh;
 }
 ::-webkit-scrollbar-thumb {
-  width: 8px;
   background-color: darkgrey;
 }
 </style>

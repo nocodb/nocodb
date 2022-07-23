@@ -6,6 +6,13 @@ export interface TabItem {
   id?: string
 }
 
+function getPredicate(key: Partial<TabItem>) {
+  return (tab: TabItem) =>
+    (!('id' in key) || tab.id === key.id) &&
+    (!('title' in key) || tab.title === key.id) &&
+    (!('type' in key) || tab.type === key.id)
+}
+
 export default () => {
   const tabs = useState<TabItem[]>('tabs', () => [])
   const activeTab = useState<number>('activeTab', () => 0)
@@ -25,13 +32,21 @@ export default () => {
   const clearTabs = () => {
     tabs.value = []
   }
-  const closeTab = (key: number | TabItem) => {
+
+  const closeTab = (key: number | Partial<TabItem>) => {
     if (typeof key === 'number') tabs.value.splice(key, 1)
     else {
-      const index = tabs.value.findIndex((tab) => tab.id === key.id && tab.type === key.type && tab.title === key.title)
+      const index = tabs.value.findIndex(getPredicate(key))
       if (index > -1) tabs.value.splice(index, 1)
     }
   }
 
-  return { tabs, addTab, activeTab, clearTabs, closeTab }
+  const updateTab = (key: number | Partial<TabItem>, newTabItemProps: Partial<TabItem>) => {
+    const tab = typeof key === 'number' ? tabs.value[key] : tabs.value.find(getPredicate(key))
+    if (tab) {
+      Object.assign(tab, newTabItemProps)
+    }
+  }
+
+  return { tabs, addTab, activeTab, clearTabs, closeTab, updateTab }
 }

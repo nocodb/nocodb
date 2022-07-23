@@ -113,7 +113,7 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
 }
 
 const deleteTable = (table: TableType) => {
-  $e('c:table:delete');
+  $e('c:table:delete')
   // 'Click Submit to Delete The table'
   Modal.confirm({
     title: `Click Yes to Delete The table : ${table.title}`,
@@ -195,7 +195,7 @@ const showRenameTableDlg = (table: TableType) => {
           <span class="flex-grow text-bold"
             >{{ $t('objects.tables') }} <template v-if="tables?.length">({{ tables.length }})</template></span
           >
-          <MdiPlus class="text-gray-500" @click.stop="tableCreateDlg = true" v-t="['c:table:create:navdraw']"/>
+          <MdiPlus v-t="['c:table:create:navdraw']" class="text-gray-500" @click.stop="tableCreateDlg = true" />
           <MdiMenuDown
             class="transition-transform !duration-100 text-gray-500"
             :class="{ 'transform rotate-180': showTableList }"
@@ -207,11 +207,11 @@ const showRenameTableDlg = (table: TableType) => {
               <a-menu-item
                 v-for="table in filteredTables"
                 :key="table.id"
+                v-t="['a:table:open']"
                 class="!pl-1 py-1 !h-[28px] !my-0 text-sm pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTab({ type: 'table', title: table.title, id: table.id })"
-                v-t="['a:table:open']"
               >
                 <div class="flex align-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
                   <MdiDrag class="transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move" />
@@ -222,8 +222,9 @@ const showRenameTableDlg = (table: TableType) => {
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
                     <template #overlay>
                       <a-menu class="cursor-pointer">
-                        <a-menu-item class="!text-xs"
-                                     v-t="['c:table:rename:navdraw:options']" @click="showRenameTableDlg(table)"> Rename</a-menu-item>
+                        <a-menu-item v-t="['c:table:rename:navdraw:options']" class="!text-xs" @click="showRenameTableDlg(table)">
+                          Rename</a-menu-item
+                        >
                         <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
                       </a-menu>
                     </template>
@@ -238,12 +239,16 @@ const showRenameTableDlg = (table: TableType) => {
       <template #overlay>
         <a-menu class="cursor-pointer">
           <template v-if="contextMenuTarget.type === 'table'">
-            <a-menu-item class="!text-xs"
-                         v-t="['c:table:rename:navdraw:right-click']" @click="showRenameTableDlg(contextMenuTarget.value)">Table Rename</a-menu-item>
+            <a-menu-item
+              v-t="['c:table:rename:navdraw:right-click']"
+              class="!text-xs"
+              @click="showRenameTableDlg(contextMenuTarget.value)"
+              >Table Rename</a-menu-item
+            >
             <a-menu-item class="!text-xs" @click="deleteTable(contextMenuTarget.value)">Table Delete</a-menu-item>
           </template>
           <template v-else>
-            <a-menu-item class="!text-xs" @click="loadTables" v-t="['a:table:refresh:navdraw']">Tables Refresh</a-menu-item>
+            <a-menu-item v-t="['a:table:refresh:navdraw']" class="!text-xs" @click="loadTables">Tables Refresh</a-menu-item>
           </template>
         </a-menu>
       </template>

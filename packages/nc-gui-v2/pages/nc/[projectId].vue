@@ -2,6 +2,7 @@
 const route = useRoute()
 const { loadProject, loadTables } = useProject(route.params.projectId as string)
 const { clearTabs, addTab } = useTabs()
+const {$state} = useNuxtApp()
 
 addTab({ type: 'auth', title: 'Team & Auth' })
 
@@ -17,6 +18,8 @@ watch(
     }
   },
 )
+
+$state.sidebarOpen.value = true
 </script>
 
 <template>

@@ -87,17 +87,7 @@ const selectedTabKeys = $ref<string[]>([firstKeyOfObject(tabsInfo)])
 const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
 
 let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
-const selectedSubTab = $computed(() => {
-  const isSubTabInSelectedTab = (subTab: any) => subTab in selectedTab.subTabs
-
-  // Select the first subtab
-  const currentlySelectedSubTabKey = selectedSubTabKeys[0]
-  const subTabKey = isSubTabInSelectedTab(currentlySelectedSubTabKey)
-    ? currentlySelectedSubTabKey
-    : firstKeyOfObject(selectedTab.subTabs)
-
-  return selectedTab.subTabs[subTabKey]
-})
+const selectedSubTab = $computed(() => selectedTab.subTabs[selectedSubTabKeys[0]])
 
 watch(
   () => selectedTabKeys[0],

@@ -30,7 +30,7 @@ const importData = ref()
 const templateEditorModal = ref(false)
 const useForm = Form.useForm
 
-const importState = ref({
+const importState = reactive({
   fileList: [],
   url: {
     value: '',
@@ -118,18 +118,20 @@ const formatJson = () => {
   jsonEditorRef.value.format()
 }
 
-const handleSubmit = () => {
+const handleImport = async () => {
   if (activeKey.value === 'upload') {
-    // TODO
+    importState.fileList.map(async (file: any) => {
+      await parseAndExtractData('file', file.orginFileObj, file.name)
+    })
   } else if (activeKey.value === 'url') {
-    // TODO
     try {
-      validate()
-    } catch (e) {
-      // TODO
+      await validate()
+      await parseAndExtractData('url', importState.url.value, '')
+    } catch (e: any) {
+      toast.error(await extractSdkResponseErrorMsg(e))
     }
   } else if (activeKey.value === 'json') {
-    // TODO
+    await parseAndExtractData('string', JSON.stringify(importState.json.value), '')
   }
 }
 
@@ -141,7 +143,7 @@ const populateUniqueTableName = () => {
   return `Sheet${c}`
 }
 
-const parseAndExtractData = async (type: string, val: string, name: string) => {
+const parseAndExtractData = async (type: string, val: any, name: string) => {
   try {
     let templateGenerator
     templateData.value = null
@@ -176,7 +178,7 @@ const parseAndExtractData = async (type: string, val: string, name: string) => {
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
       <a-button v-if="activeKey === 'json'" key="format" :loading="loading" @click="formatJson">Format JSON</a-button>
-      <a-button key="submit" type="primary" :loading="loading" @click="handleSubmit">Import</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="handleImport">Import</a-button>
     </template>
     <a-tabs v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
       <a-tab-pane key="upload" :closable="false">

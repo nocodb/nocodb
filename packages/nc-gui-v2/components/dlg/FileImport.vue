@@ -10,6 +10,7 @@ import MdiLinkVariantIcon from '~icons/mdi/link-variant'
 import MdiCodeJSONIcon from '~icons/mdi/code-json'
 import { fieldRequiredValidator, importUrlValidator } from '~/utils/validation'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { JSONTemplateAdapter, JSONUrlTemplateAdapter, ExcelTemplateAdapter, ExcelUrlTemplateAdapter } from '~/utils/parsers'
 import { useProject } from '#imports'
 const { t } = useI18n()
 
@@ -32,19 +33,12 @@ const useForm = Form.useForm
 
 const importState = reactive({
   fileList: [],
-  url: {
-    value: '',
-    parserConfig: {
-      maxRowsToParse: 500,
-    },
-  },
-  json: {
-    value: {},
-    parserConfig: {
-      maxRowsToParse: 500,
-      normalizeNested: true,
-      importData: true,
-    },
+  url: '',
+  jsonEditor: {},
+  parserConfig: {
+    maxRowsToParse: 500,
+    normalizeNested: true,
+    importData: true,
   },
 })
 
@@ -126,12 +120,12 @@ const handleImport = async () => {
   } else if (activeKey.value === 'url') {
     try {
       await validate()
-      await parseAndExtractData('url', importState.url.value, '')
+      await parseAndExtractData('url', importState.url, '')
     } catch (e: any) {
       toast.error(await extractSdkResponseErrorMsg(e))
     }
   } else if (activeKey.value === 'json') {
-    await parseAndExtractData('string', JSON.stringify(importState.json.value), '')
+    await parseAndExtractData('jsonEditor', JSON.stringify(importState.jsonEditor), '')
   }
 }
 
@@ -143,27 +137,34 @@ const populateUniqueTableName = () => {
   return `Sheet${c}`
 }
 
+const getAdapter: any = (name: string, val: any) => {
+  if (importType === 'excel' || importType === 'csv') {
+    return {
+      file: new ExcelTemplateAdapter(name, val, importState.parserConfig),
+      url: new ExcelUrlTemplateAdapter(val, importState.parserConfig),
+    }
+  } else if (importType === 'json') {
+    return {
+      file: new JSONTemplateAdapter(name, val, importState.parserConfig),
+      url: new JSONUrlTemplateAdapter(val, importState.parserConfig),
+      jsonEditor: new JSONTemplateAdapter(name, val, importState.parserConfig),
+    }
+  }
+  return {}
+}
+
 const parseAndExtractData = async (type: string, val: any, name: string) => {
   try {
     let templateGenerator
     templateData.value = null
     importData.value = null
-    // switch (type) {
-    //   case 'file':
-    //     templateGenerator = new JSONTemplateAdapter(name, val, parserConfig)
-    //     break
-    //   case 'url':
-    //     templateGenerator = new JSONUrlTemplateAdapter(val, this.$store, this.parserConfig, this.$api)
-    //     break
-    //   case 'string':
-    //     templateGenerator = new JSONTemplateAdapter(name, val, this.parserConfig)
-    //     break
-    // }
-    // await templateGenerator.init()
-    // templateGenerator.parse()
-    // templateData.value = templateGenerator.getTemplate()
-    // templateData.value.tables[0].table_name = this.populateUniqueTableName()
-    // importData.value = templateGenerator.getData()
+    templateGenerator = getAdapter(name, val)[type]
+
+    await templateGenerator.init()
+    templateGenerator.parse()
+    templateData.value = templateGenerator.getTemplate()
+    templateData.value.tables[0].table_name = populateUniqueTableName()
+    importData.value = templateGenerator.getData()
     templateEditorModal.value = true
   } catch (e: any) {
     console.log(e)
@@ -215,7 +216,7 @@ const parseAndExtractData = async (type: string, val: any, name: string) => {
           </span>
         </template>
         <div class="pr-10 pb-10 pt-5">
-          <MonacoEditor v-model="importState.json.value" class="h-[400px]" ref="jsonEditorRef" />
+          <MonacoEditor v-model="importState.jsonEditor" class="h-[400px]" ref="jsonEditorRef" />
         </div>
       </a-tab-pane>
       <a-tab-pane v-else key="url" :closable="false">
@@ -227,8 +228,8 @@ const parseAndExtractData = async (type: string, val: any, name: string) => {
         </template>
         <div class="pr-10 pt-5">
           <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
-            <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos['url.value']">
-              <a-input v-model:value="importState.url.value" size="large" />
+            <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
+              <a-input v-model:value="importState.url" size="large" />
             </a-form-item>
           </a-form>
         </div>

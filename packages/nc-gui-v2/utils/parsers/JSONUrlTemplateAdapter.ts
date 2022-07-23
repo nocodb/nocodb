@@ -1,16 +1,20 @@
 import JSONTemplateAdapter from './JSONTemplateAdapter'
-const { $api } = useNuxtApp()
+import { useNuxtApp } from '#imports'
 
 export default class JSONUrlTemplateAdapter extends JSONTemplateAdapter {
   url: string
+  $api: any
+
   constructor(url: string, parserConfig: Record<string, any>) {
+    const { $api } = useNuxtApp()
     const name = url.split('/').pop()
     super(name, parserConfig)
     this.url = url
+    this.$api = $api
   }
 
   async init() {
-    const data = await $api.utils.axiosRequestMake({
+    const data = await this.$api.utils.axiosRequestMake({
       apiMeta: {
         url: this.url,
       },

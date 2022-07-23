@@ -69,6 +69,7 @@ const rejectDrop = (fileList: any[]) => {
 const importMeta = computed(() => {
   if (importType === 'excel') {
     return {
+      header: 'QUICK IMPORT - EXCEL',
       uploadHint: t('msg.info.excelSupport'),
       urlInputLabel: t('msg.info.excelURL'),
       loadUrlDirective: ['c:quick-import:excel:load-url'],
@@ -76,6 +77,7 @@ const importMeta = computed(() => {
     }
   } else if (importType === 'csv') {
     return {
+      header: 'QUICK IMPORT - CSV',
       uploadHint: '',
       urlInputLabel: t('msg.info.csvURL'),
       loadUrlDirective: ['c:quick-import:csv:load-url'],
@@ -83,6 +85,7 @@ const importMeta = computed(() => {
     }
   } else if (importType === 'json') {
     return {
+      header: 'QUICK IMPORT - JSON',
       uploadHint: '',
       acceptTypes: '.json',
     }
@@ -169,6 +172,7 @@ const parseAndExtractData = async (type: string, val: string, name: string) => {
 
 <template>
   <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
+    <a-typography-title class="ml-4 mb-4 select-none" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
       <a-button v-if="activeKey === 'json'" key="format" :loading="loading" @click="formatJson">Format JSON</a-button>
@@ -182,7 +186,7 @@ const parseAndExtractData = async (type: string, val: string, name: string) => {
             Upload
           </span>
         </template>
-        <div class="pl-10 pr-10 pb-10 pt-5">
+        <div class="pr-10 pb-10 pt-5">
           <a-upload-dragger
             v-model:fileList="importState.fileList"
             name="file"
@@ -208,7 +212,7 @@ const parseAndExtractData = async (type: string, val: string, name: string) => {
             Json Editor
           </span>
         </template>
-        <div class="pl-10 pr-10 pb-10 pt-5">
+        <div class="pr-10 pb-10 pt-5">
           <MonacoEditor v-model="importState.json.value" class="h-[400px]" ref="jsonEditorRef" />
         </div>
       </a-tab-pane>
@@ -219,7 +223,7 @@ const parseAndExtractData = async (type: string, val: string, name: string) => {
             Url
           </span>
         </template>
-        <div class="pl-10 pr-10 pt-5">
+        <div class="pr-10 pt-5">
           <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
             <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos['url.value']">
               <a-input v-model:value="importState.url.value" size="large" />

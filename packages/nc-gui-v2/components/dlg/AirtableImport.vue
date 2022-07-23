@@ -179,12 +179,12 @@ onMounted(() => {
 
 <template>
   <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
+    <a-typography-title class="ml-4 mb-4 select-none" type="secondary" :level="5">QUICK IMPORT - AIRTABLE</a-typography-title>
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
       <a-button v-t="['c:sync-airtable:save-and-sync']" key="submit" type="primary" @click="saveAndSync">Import</a-button>
     </template>
-    <div class="pl-10 pr-10 pt-5">
-      <span class="prose-2xl font-bold self-center">{{ $t('title.importFromAirtable') }}</span>
+    <div class="ml-4 pr-10">
       <a-divider />
       <div class="mb-4">
         <span class="prose-xl font-bold mr-3">Credentials</span>

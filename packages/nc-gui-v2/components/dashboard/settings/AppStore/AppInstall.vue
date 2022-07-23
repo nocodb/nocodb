@@ -3,6 +3,7 @@ import { ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import type { PluginType } from 'nocodb-sdk'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
+import CloseIcon from '~icons/material-symbols/close-rounded'
 import MdiPlusIcon from '~icons/mdi/plus'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
@@ -17,7 +18,7 @@ type Plugin = PluginType & {
 
 const { id } = defineProps<Props>()
 
-const emits = defineEmits(['saved'])
+const emits = defineEmits(['saved', 'close'])
 
 enum Action {
   Save = 'save',
@@ -34,6 +35,11 @@ let plugin = $ref<Plugin | null>(null)
 let pluginFormData = $ref<Record<string, any>>({})
 let isLoading = $ref(true)
 let loadingAction = $ref<null | Action>(null)
+
+const layout = {
+  labelCol: { span: 10 },
+  wrapperCol: { span: 16 },
+}
 
 const addSetting = () => pluginFormData.push({})
 
@@ -130,71 +136,86 @@ onMounted(async () => {
 
   <template v-else>
     <div class="flex flex-col">
-      <div class="flex flex-row justify-center pb-4 mb-2 border-b-1 w-full gap-x-1">
-        <div
-          v-if="plugin.logo"
-          class="mr-1 flex items-center justify-center"
-          :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
-        >
-          <img :src="`/${plugin.logo}`" class="h-6" />
-        </div>
+      <div class="w-full relative">
+        <div class="flex flex-row justify-center pb-4 mb-2 border-b-1 w-full gap-x-1">
+          <div
+            v-if="plugin.logo"
+            class="mr-1 flex items-center justify-center"
+            :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
+          >
+            <img :src="`/${plugin.logo}`" class="h-6" />
+          </div>
 
-        <span class="font-semibold text-lg">{{ plugin.formDetails.title }}</span>
+          <span class="font-semibold text-lg">{{ plugin.formDetails.title }}</span>
+        </div>
+        <div class="absolute -right-2 -top-0.5">
+          <a-button type="text" class="!rounded-md mr-1" @click="emits('close')">
+            <template #icon>
+              <CloseIcon class="flex mx-auto" />
+            </template>
+          </a-button>
+        </div>
       </div>
 
-      <a-form ref="formRef" :model="pluginFormData" class="mx-auto mt-2">
+      <a-form ref="formRef" v-bind="plugin?.formDetails.array ? {} : layout" :model="pluginFormData" class="mx-4 mt-3">
         <!-- Form with multiple entry -->
-        <table v-if="plugin.formDetails.array" class="form-table">
-          <thead>
-            <tr>
-              <th v-for="(columnData, columnIndex) in plugin.formDetails.items" :key="columnIndex">
-                <div class="text-center font-normal">
-                  {{ columnData.label }} <span v-if="columnData.required" class="text-red-600">*</span>
-                </div>
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            <tr v-for="(itemRow, itemIndex) in plugin.parsedInput" :key="itemIndex">
-              <td v-for="(columnData, columnIndex) in plugin.formDetails.items" :key="columnIndex" class="px-2">
-                <a-form-item
-                  :name="[`${itemIndex}`, columnData.key]"
-                  :rules="[{ required: columnData.required, message: `${columnData.label} is required` }]"
-                >
-                  <a-input-password
-                    v-if="columnData.type === 'Password'"
-                    v-model:value="itemRow[columnData.key]"
-                    :placeholder="columnData.placeholder"
-                  />
-                  <a-textarea
-                    v-else-if="columnData.type === 'LongText'"
-                    v-model:value="itemRow[columnData.key]"
-                    :placeholder="columnData.placeholder"
-                  />
-                  <a-switch
-                    v-else-if="columnData.type === 'Checkbox'"
-                    v-model:value="itemRow[columnData.key]"
-                    :placeholder="columnData.placeholder"
-                  />
-                  <a-input v-else v-model:value="itemRow[columnData.key]" :placeholder="columnData.placeholder" />
-                </a-form-item>
-              </td>
-              <td v-if="itemIndex !== 0" class="pb-4">
-                <MdiDeleteOutlineIcon class="hover:text-red-400 cursor-pointer" @click="deleteFormRow(itemIndex)" />
-              </td>
-            </tr>
-          </tbody>
+        <div v-if="plugin.formDetails.array" class="flex flex-row justify-center">
+          <table class="form-table">
+            <thead>
+              <tr>
+                <th v-for="(columnData, columnIndex) in plugin.formDetails.items" :key="columnIndex">
+                  <div class="text-center font-normal">
+                    {{ columnData.label }} <span v-if="columnData.required" class="text-red-600">*</span>
+                  </div>
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr v-for="(itemRow, itemIndex) in plugin.parsedInput" :key="itemIndex">
+                <td v-for="(columnData, columnIndex) in plugin.formDetails.items" :key="columnIndex" class="px-2">
+                  <a-form-item
+                    class="relative mb-3"
+                    :name="[`${itemIndex}`, columnData.key]"
+                    :rules="[{ required: columnData.required, message: `${columnData.label} is required` }]"
+                  >
+                    <a-input-password
+                      v-if="columnData.type === 'Password'"
+                      v-model:value="itemRow[columnData.key]"
+                      :placeholder="columnData.placeholder"
+                    />
+                    <a-textarea
+                      v-else-if="columnData.type === 'LongText'"
+                      v-model:value="itemRow[columnData.key]"
+                      :placeholder="columnData.placeholder"
+                    />
+                    <a-switch
+                      v-else-if="columnData.type === 'Checkbox'"
+                      v-model:value="itemRow[columnData.key]"
+                      :placeholder="columnData.placeholder"
+                    />
+                    <a-input v-else v-model:value="itemRow[columnData.key]" :placeholder="columnData.placeholder" />
+                    <div
+                      v-if="itemIndex !== 0 && columnIndex === plugin.formDetails.items.length - 1"
+                      class="absolute flex flex-col justify-start mt-2 -right-6 top-0"
+                    >
+                      <MdiDeleteOutlineIcon class="hover:text-red-400 cursor-pointer" @click="deleteFormRow(itemIndex)" />
+                    </div>
+                  </a-form-item>
+                </td>
+              </tr>
+            </tbody>
 
-          <tr>
-            <td :colspan="plugin.formDetails.items.length" class="text-center">
-              <a-button type="default" class="!bg-gray-100 rounded-md border-none" @click="addSetting">
-                <template #icon>
-                  <MdiPlusIcon class="flex mx-auto" />
-                </template>
-              </a-button>
-            </td>
-          </tr>
-        </table>
+            <tr>
+              <td :colspan="plugin.formDetails.items.length" class="text-center">
+                <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
+                  <template #icon>
+                    <MdiPlusIcon class="flex mx-auto" />
+                  </template>
+                </a-button>
+              </td>
+            </tr>
+          </table>
+        </div>
 
         <!-- Form with only one entry -->
         <div v-else>
@@ -240,12 +261,4 @@ onMounted(async () => {
   </template>
 </template>
 
-<style scoped lang="scss">
-.form-table {
-  @apply border-none min-w-[400px];
-}
-
-tbody tr:nth-of-type(odd) {
-  @apply bg-transparent;
-}
-</style>
+<style scoped lang="scss"></style>

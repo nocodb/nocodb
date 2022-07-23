@@ -70,7 +70,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a-modal v-model:visible="showPluginInstallModal" min-width="400px" max-width="700px" min-height="300" :footer="null">
+  <a-modal v-model:visible="showPluginInstallModal" :closable="false" centered min-height="300" :footer="null">
     <AppInstall
       v-if="pluginApp && showPluginInstallModal"
       :id="pluginApp.id"
@@ -90,16 +90,6 @@ onMounted(async () => {
       </div>
     </div>
   </a-modal>
-
-  <v-dialog min-width="400px" max-width="700px" min-height="300">
-    <v-card v-if="pluginApp">
-      <v-card-text> Please confirm to reset {{ pluginApp.title }} </v-card-text>
-      <v-card-actions>
-        <v-btn color="primary" @click="resetPlugin"> Yes </v-btn>
-        <v-btn @click="showPluginUninstallModal = false"> No </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
 
   <div class="h-full overflow-y-scroll grid grid-cols-2 gap-x-2 gap-y-4">
     <a-card

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onMounted, watchEffect } from '@vue/runtime-core'
+import { watchEffect } from '@vue/runtime-core'
 import { Form } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
@@ -31,24 +31,33 @@ const { loadTables } = useProject()
 const { project, tables } = useProject()
 
 const prefix = computed(() => project?.value?.prefix || '')
-const validateDuplicateAlias = (v: string) => {
-  return (tables?.value || []).every((t) => t.title !== (v || '')) || 'Duplicate table alias'
-}
-const validateLeadingOrTrailingWhiteSpace = (v: string) => {
-  return !/^\s+|\s+$/.test(v) || 'Leading or trailing whitespace not allowed in table name'
-}
-const validateDuplicate = (v: string) => {
-  return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
-}
+
 const inputEl = $ref<any>()
+let loading = $ref(false)
 const useForm = Form.useForm
 const formState = reactive({
   title: '',
 })
 const validators = computed(() => {
   return {
-    title: [validateTableName, validateDuplicateAlias],
-    table_name: [validateTableName],
+    title: [
+      validateTableName,
+      {
+        validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
+          if (/^\s+|\s+$/.test(value)) {
+            callback('Leading or trailing whitespace not allowed in table name')
+          }
+          if (
+            !(tables?.value || []).every(
+              (t) => t.id === tableMeta.id || t.table_name.toLowerCase() !== (value || '').toLowerCase(),
+            )
+          ) {
+            callback('Duplicate table alias')
+          }
+          callback()
+        },
+      },
+    ],
   }
 })
 const { resetFields, validate, validateInfos } = useForm(formState, validators)
@@ -64,38 +73,36 @@ watchEffect(() => {
 })
 
 const renameTable = async () => {
+  loading = true
   try {
     await $api.dbTable.update(tableMeta?.id as string, {
       title: formState.title,
     })
-
+    dialogShow.value = false
     loadTables()
     updateTab({ id: tableMeta?.id }, { title: formState.title })
     toast.success('Table renamed successfully')
     $e('a:table:rename')
+    dialogShow.value = false
   } catch (e) {
     toast.error(await extractSdkResponseErrorMsg(e))
   }
+  loading = false
 }
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" @keydown.esc="dialogShow = false" @finish="renameTable" title="Rename Table">
+  <a-modal v-model:visible="dialogShow" title="Rename Table" @keydown.esc="dialogShow = false" @finish="renameTable">
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" type="primary" @click="renameTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="renameTable">{{ $t('general.submit') }}</a-button>
     </template>
     <div class="pl-10 pr-10 pt-5">
       <a-form :model="formState" name="create-new-table-form">
         <!-- hint="Enter table name" -->
         <div class="mb-2">Table Name</div>
         <a-form-item v-bind="validateInfos.title">
-          <a-input
-            ref="inputEl"
-            v-model:value="formState.title"
-            hide-details
-            :placeholder="$t('msg.info.enterTableName')"
-          />
+          <a-input ref="inputEl" v-model:value="formState.title" hide-details :placeholder="$t('msg.info.enterTableName')" />
         </a-form-item>
       </a-form>
     </div>

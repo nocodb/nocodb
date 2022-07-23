@@ -218,7 +218,7 @@ onMounted(async () => {
         </div>
 
         <!-- Form with only one entry -->
-        <div v-else>
+        <template v-else>
           <a-form-item
             v-for="(columnData, i) in plugin.formDetails.items"
             :key="i"
@@ -243,7 +243,7 @@ onMounted(async () => {
             />
             <a-input v-else v-model:value="pluginFormData[columnData.key]" :placeholder="columnData.placeholder" />
           </a-form-item>
-        </div>
+        </template>
         <div class="flex flex-row space-x-4 justify-center mt-4">
           <a-button
             v-for="(action, i) in plugin.formDetails.actions"

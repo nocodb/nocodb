@@ -5,14 +5,8 @@ import { timeAgo } from '~/utils/dateTimeUtils'
 import { h, useNuxtApp, useProject } from '#imports'
 import MdiReload from '~icons/mdi/reload'
 
-interface Props {
-  projectId: string
-}
-
-const { projectId } = defineProps<Props>()
-
 const { $api } = useNuxtApp()
-const { project, loadProject } = useProject()
+const { project } = useProject()
 
 let isLoading = $ref(false)
 

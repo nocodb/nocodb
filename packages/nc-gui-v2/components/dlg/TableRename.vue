@@ -80,22 +80,19 @@ const renameTable = async () => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" @keydown.esc="dialogShow = false" @finish="renameTable">
+  <a-modal v-model:visible="dialogShow" @keydown.esc="dialogShow = false" @finish="renameTable" title="Rename Table">
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
       <a-button key="submit" type="primary" @click="renameTable">{{ $t('general.submit') }}</a-button>
     </template>
     <div class="pl-10 pr-10 pt-5">
       <a-form :model="formState" name="create-new-table-form">
-        <!-- Rename Table -->
-        <div class="prose-xl font-bold text-center my-4">Rename Table</div>
         <!-- hint="Enter table name" -->
         <div class="mb-2">Table Name</div>
         <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
             v-model:value="formState.title"
-            size="large"
             hide-details
             :placeholder="$t('msg.info.enterTableName')"
           />

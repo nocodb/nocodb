@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
 import { Form } from 'ant-design-vue'
+import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import MdiFileIcon from '~icons/mdi/file-plus-outline'
@@ -9,6 +10,7 @@ import MdiLinkVariantIcon from '~icons/mdi/link-variant'
 import MdiCodeJSONIcon from '~icons/mdi/code-json'
 import { fieldRequiredValidator, importUrlValidator } from '~/utils/validation'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { useProject } from '#imports'
 const { t } = useI18n()
 
 interface Props {
@@ -17,7 +19,7 @@ interface Props {
 }
 
 const { modelValue, importType } = defineProps<Props>()
-
+const { tables } = useProject()
 const toast = useToast()
 const emit = defineEmits(['update:modelValue'])
 const activeKey = ref('upload')
@@ -126,6 +128,14 @@ const handleSubmit = () => {
   } else if (activeKey.value === 'json') {
     // TODO
   }
+}
+
+const populateUniqueTableName = () => {
+  let c = 1
+  while (tables.value.some((t: TableType) => t.title === `Sheet${c}`)) {
+    c++
+  }
+  return `Sheet${c}`
 }
 
 const parseAndExtractData = async (type: string, val: string, name: string) => {

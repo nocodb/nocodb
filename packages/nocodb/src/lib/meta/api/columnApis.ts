@@ -727,7 +727,19 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       const dbDriver = NcConnectionMgrv2.get(base);
       const driverType = dbDriver.clientType();
 
-      
+      // MultiSelect to SingleSelect
+      if (column.uidt === UITypes.MultiSelect && colBody.uidt === UITypes.SingleSelect) {
+        if (driverType === 'mysql' || driverType === 'mysql2') {
+          await dbDriver.raw(`UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`, [table.table_name, column.title, column.title, column.title]);
+        } else if (driverType === 'pg') {
+          await dbDriver.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [table.table_name, column.title, column.title]);
+        } else if (driverType === 'mssql') {
+          await dbDriver.raw(`UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`, [table.table_name, column.title, column.title, column.title, column.title]);
+        } else if (driverType === 'sqlite3') {
+          await dbDriver.raw(`UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`, [table.table_name, column.title, column.title, column.title, column.title]);
+        }
+      }
+
       // Handle migrations
       for (const op of column.colOptions.options.filter(el => el.order === null)) {
         op.title = op.title.replace(/^'/, '').replace(/'$/, '')

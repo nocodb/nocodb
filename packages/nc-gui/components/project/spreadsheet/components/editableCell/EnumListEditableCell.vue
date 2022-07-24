@@ -9,7 +9,7 @@
       dense
       flat
       hide-details
-      :class="`mt-0 ${isForm ? 'form-select': ''}`"
+      :class="`mt-0 ${isForm ? 'form-select' : ''}`"
       :clearable="!column.rqd"
       v-on="parentListeners"
     >
@@ -55,9 +55,7 @@ export default {
       },
     },
     enumValues() {
-      const opts = (this.column.colOptions)
-        ? this.column.colOptions.options.filter(el => el.title !== '') || []
-        : [];
+      const opts = this.column.colOptions ? this.column.colOptions.options.filter(el => el.title !== '') || [] : [];
       for (const op of opts.filter(el => el.order === null)) {
         op.title = op.title.replace(/^'/, '').replace(/'$/, '');
       }
@@ -105,7 +103,7 @@ export default {
   }
   .form-select {
     .v-select__selections {
-      border: 1px solid rgba(127,130,139,0.2);
+      border: 1px solid rgba(127, 130, 139, 0.2);
     }
     input {
       z-index: -1;

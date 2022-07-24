@@ -12,7 +12,7 @@
       solo
       hide-details
       deletable-chips
-      :class="`text-center mt-0 ${isForm ? 'form-select': ''}`"
+      :class="`text-center mt-0 ${isForm ? 'form-select' : ''}`"
     >
       <template #selection="data">
         <v-chip
@@ -27,15 +27,13 @@
         </v-chip>
       </template>
 
-      <template #item="{item}">
+      <template #item="{ item }">
         <v-chip small :color="item.color">
           {{ item.title }}
         </v-chip>
       </template>
       <template #append>
-        <v-icon small class="mt-1">
-          mdi-menu-down
-        </v-icon>
+        <v-icon small class="mt-1"> mdi-menu-down </v-icon>
       </template>
     </v-select>
   </div>
@@ -59,9 +57,7 @@ export default {
       },
     },
     setValues() {
-      const opts = (this.column.colOptions)
-        ? this.column.colOptions.options.filter(el => el.title !== '') || []
-        : [];
+      const opts = this.column.colOptions ? this.column.colOptions.options.filter(el => el.title !== '') || [] : [];
       for (const op of opts.filter(el => el.order === null)) {
         op.title = op.title.replace(/^'/, '').replace(/'$/, '');
       }
@@ -91,7 +87,6 @@ export default {
 </script>
 
 <style scoped lang="scss">
-
 ::v-deep {
   .v-select {
     min-width: 150px;
@@ -99,7 +94,7 @@ export default {
       min-height: 38px !important;
     }
   }
-  .v-input__slot{
+  .v-input__slot {
     padding-right: 0 !important;
   }
   .v-input__icon.v-input__icon--clear {
@@ -114,14 +109,13 @@ export default {
   }
   .form-select {
     .v-select__selections {
-      border: 1px solid rgba(127,130,139,0.2);
+      border: 1px solid rgba(127, 130, 139, 0.2);
     }
     input {
       z-index: -1;
     }
   }
 }
-
 </style>
 <!--
 /**

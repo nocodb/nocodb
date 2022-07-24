@@ -17,14 +17,12 @@ export default {
   props: ['value', 'column'],
   computed: {
     enumValues() {
-      const opts = (this.column.colOptions)
-        ? this.column.colOptions.options.filter(el => el.title !== '') || []
-        : [];
+      const opts = this.column.colOptions ? this.column.colOptions.options.filter(el => el.title !== '') || [] : [];
       for (const op of opts.filter(el => el.order === null)) {
         op.title = op.title.replace(/^'/, '').replace(/'$/, '');
       }
       return opts;
-    }
+    },
   },
 };
 </script>

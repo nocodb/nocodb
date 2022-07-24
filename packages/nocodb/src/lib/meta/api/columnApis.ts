@@ -513,7 +513,25 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
         if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)) {
           const dbDriver = NcConnectionMgrv2.get(base);
           const driverType = dbDriver.clientType();
-          
+          const optionTitles = colBody.colOptions.options.map(el => el.title);
+          // Handle default values
+          if (colBody.cdf) {
+            if (colBody.uidt === UITypes.SingleSelect) {
+              if (!optionTitles.includes(colBody.cdf)) {
+                NcError.badRequest(`Default value '${colBody.cdf}' is not a select option.`);
+              }
+            } else {
+              for (const cdf of colBody.cdf.split(',')) {
+                if (!optionTitles.includes(cdf)) {
+                  NcError.badRequest(`Default value '${cdf}' is not a select option.`);
+                }
+              }
+            }
+            if (driverType === 'pg') {
+              colBody.cdf = `'${colBody.cdf}'`;
+            }
+          }
+
           // Restrict duplicates
           const titles = colBody.colOptions.options.map(el => el.title)
           if (titles
@@ -744,6 +762,21 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       for (const op of column.colOptions.options.filter(el => el.order === null)) {
         op.title = op.title.replace(/^'/, '').replace(/'$/, '')
       }
+
+      // Handle default values
+      if (colBody.cdf) {
+        
+        if (driverType === 'mysql' || driverType === 'mysql2') {
+          
+        } else if (driverType === 'pg') {
+          
+        } else if (driverType === 'mssql') {
+          
+        } else if (driverType === 'sqlite3') {
+          
+        }
+      }
+      
 
       // Restrict duplicates
       const titles = colBody.colOptions.options.map(el => el.title)

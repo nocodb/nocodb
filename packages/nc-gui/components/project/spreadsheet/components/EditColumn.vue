@@ -399,7 +399,7 @@
                                 <v-textarea
                                   v-model="newColumn.cdf"
                                   :label="$t('placeholder.defaultValue')"
-                                  :hint="sqlUi.getDefaultValueForDatatype(newColumn.dt)"
+                                  :hint="defaultValueHint"
                                   persistent-hint
                                   rows="3"
                                   outlined
@@ -585,6 +585,14 @@ export default {
     },
     isDate() {
       return this.newColumn && this.newColumn.uidt === UITypes.Date;
+    },
+    defaultValueHint() {
+      if (this.newColumn.uidt === UITypes.MultiSelect) {
+        return 'eg : a,b,c';
+      } else if (this.newColumn.uidt === UITypes.SingleSelect) {
+        return 'eg : a';
+      }
+      return this.sqlUi.getDefaultValueForDatatype(this.newColumn.dt);
     },
   },
   watch: {

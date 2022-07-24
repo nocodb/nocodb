@@ -765,7 +765,11 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
           NcError.badRequest('Your database not yet supported for this operation. Please remove option from records manually before dropping.');
         }
         if (column.uidt === UITypes.SingleSelect) { 
-          await baseModel.bulkUpdateAll({ where: `(${column.title},like,${option.title})` }, { [column.title]: null });
+          if (driverType === 'mssql') {
+            await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [table.table_name, column.title, column.title, option.title]);
+          } else {
+            await baseModel.bulkUpdateAll({ where: `(${column.title},eq,${option.title})` }, { [column.title]: null });
+          }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {
             await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.title, column.title, option.title, option.title, column.title]);
@@ -779,68 +783,91 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         }
       }
 
+      let interchange = [];
+
       // Handle option update
+      const old_titles = column.colOptions.options.map(el => el.title);
       for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id && newOp.title !== oldOp.title))) {
         if (!supportedDrivers.includes(driverType) && column.uidt === UITypes.MultiSelect) {
           NcError.badRequest('Your database not yet supported for this operation. Please remove option from records manually before updating.');
         }
-        let newOp = colBody.colOptions.options.find(el => option.id === el.id);
-        column.colOptions.options.push({ title: newOp.title });
 
-        let temp_dtxp = '';
-        if (column.uidt === UITypes.SingleSelect) {
-          temp_dtxp = (column.colOptions?.options.length)
-            ? `${column.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
-            : '';
-        } else if (column.uidt === UITypes.MultiSelect){
-          temp_dtxp = (column.colOptions?.options.length)
-            ? `${column.colOptions.options.map((o) => {
-                if(o.title.includes(',')) {
-                  NcError.badRequest('Illegal char(\',\') for MultiSelect');
-                  throw new Error('');
+        let newOp = { ...colBody.colOptions.options.find(el => option.id === el.id) };
+        if (old_titles.includes(newOp.title)) {
+          let def_option = { ...newOp };
+          let title_counter = 1;
+          while (old_titles.includes(newOp.title)) {
+            newOp.title = `${def_option.title}_${title_counter++}`;
+          }
+          interchange.push( {
+            def_option,
+            temp_title: newOp.title
+          } );
+        }
+        
+        // Append new option before editing
+        if ((driverType === 'mysql' || driverType === 'mysql2') && (column.dt === 'enum' || column.dt === 'set')) {
+          column.colOptions.options.push({ title: newOp.title });
+
+          let temp_dtxp = '';
+          if (column.uidt === UITypes.SingleSelect) {
+            temp_dtxp = (column.colOptions?.options.length)
+              ? `${column.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+              : '';
+          } else if (column.uidt === UITypes.MultiSelect){
+            temp_dtxp = (column.colOptions?.options.length)
+              ? `${column.colOptions.options.map((o) => {
+                  if(o.title.includes(',')) {
+                    NcError.badRequest('Illegal char(\',\') for MultiSelect');
+                    throw new Error('');
+                  }
+                  return `'${o.title.replace(/'/gi, '\'\'')}'`;
+                }).join(',')}`
+              : '';
+          }
+
+          const tableUpdateBody = {
+            ...table,
+            tn: table.table_name,
+            originalColumns: table.columns.map((c) => ({
+              ...c,
+              cn: c.column_name,
+              cno: c.column_name,
+            })),
+            columns: await Promise.all(
+              table.columns.map(async (c) => {
+                if (c.id === req.params.columnId) {
+                  const res = {
+                    ...c,
+                    ...column,
+                    cn: column.column_name,
+                    cno: c.column_name,
+                    dtxp: temp_dtxp,
+                    altered: Altered.UPDATE_COLUMN,
+                  };
+                  return Promise.resolve(res);
+                } else {
+                  (c as any).cn = c.column_name;
                 }
-                return `'${o.title.replace(/'/gi, '\'\'')}'`;
-              }).join(',')}`
-            : '';
+                return Promise.resolve(c);
+              })
+            ),
+          };
+
+          const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
+          await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
+        
+          await Column.update(req.params.columnId, {
+            ...column,
+          });
         }
 
-        const tableUpdateBody = {
-          ...table,
-          tn: table.table_name,
-          originalColumns: table.columns.map((c) => ({
-            ...c,
-            cn: c.column_name,
-            cno: c.column_name,
-          })),
-          columns: await Promise.all(
-            table.columns.map(async (c) => {
-              if (c.id === req.params.columnId) {
-                const res = {
-                  ...c,
-                  ...column,
-                  cn: column.column_name,
-                  cno: c.column_name,
-                  dtxp: temp_dtxp,
-                  altered: Altered.UPDATE_COLUMN,
-                };
-                return Promise.resolve(res);
-              } else {
-                (c as any).cn = c.column_name;
-              }
-              return Promise.resolve(c);
-            })
-          ),
-        };
-
-        const sqlMgr = await ProjectMgrv2.getSqlMgr({ id: base.project_id });
-        await sqlMgr.sqlOpPlus(base, 'tableUpdate', tableUpdateBody);
-      
-        await Column.update(req.params.columnId, {
-          ...column,
-        });
-
         if (column.uidt === UITypes.SingleSelect) { 
-          await baseModel.bulkUpdateAll({ where: `(${column.title},like,${option.title})` }, { [column.title]: newOp.title });
+          if (driverType === 'mssql') {
+            await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.title, newOp.title, column.title, option.title]);
+          } else {
+            await baseModel.bulkUpdateAll({ where: `(${column.title},eq,${option.title})` }, { [column.title]: newOp.title });
+          }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {
             await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.title, column.title, option.title, newOp.title, option.title, column.title]);
@@ -850,6 +877,27 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
             await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.title, column.title, option.title, newOp.title, column.title, option.title, newOp.title]);
           } else if (driverType === 'sqlite3') {
             await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.title, column.title, option.title, newOp.title]);
+          }
+        }
+      }
+
+      for (const ch of interchange) {
+        let newOp = ch.def_option;
+        if (column.uidt === UITypes.SingleSelect) { 
+          if (driverType === 'mssql') {
+            await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.title, newOp.title, column.title, ch.temp_title]);
+          } else {
+            await baseModel.bulkUpdateAll({ where: `(${column.title},eq,${ch.temp_title})` }, { [column.title]: newOp.title });
+          }
+        } else if (column.uidt === UITypes.MultiSelect) {
+          if (driverType === 'mysql' || driverType === 'mysql2') {
+            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.title, column.title, ch.temp_title, newOp.title, ch.temp_title, column.title]);
+          } else if (driverType === 'pg') {
+            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`, [table.table_name, column.title, column.title, ch.temp_title, newOp.title]);
+          } else if (driverType === 'mssql') {
+            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.title, column.title, ch.temp_title, newOp.title, column.title, ch.temp_title, newOp.title]);
+          } else if (driverType === 'sqlite3') {
+            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.title, column.title, ch.temp_title, newOp.title]);
           }
         }
       }

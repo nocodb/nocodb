@@ -510,20 +510,52 @@ export async function columnAdd(req: Request, res: Response<TableType>) {
           colBody.dtxs = '4';
         }
 
-        if (colBody.uidt === UITypes.SingleSelect) {
-          colBody.dtxp = (colBody.colOptions?.options.length)
-            ? `${colBody.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
-            : '';
-        } else if (colBody.uidt === UITypes.MultiSelect){
-          colBody.dtxp = (colBody.colOptions?.options.length)
-            ? `${colBody.colOptions.options.map((o) => {
-                if(o.title.includes(',')) {
-                  NcError.badRequest('Illegal char(\',\') for MultiSelect');
-                }
-                return `'${o.title.replace(/'/gi, '\'\'')}'`;
-              }).join(',')}`
-            : '';
+        if ([UITypes.SingleSelect, UITypes.MultiSelect].includes(colBody.uidt)) {
+          const dbDriver = NcConnectionMgrv2.get(base);
+          const driverType = dbDriver.clientType();
+          
+          // Restrict duplicates
+          const titles = colBody.colOptions.options.map(el => el.title)
+          if (titles
+            .some( function(item) {
+              return titles.indexOf(item) !== titles.lastIndexOf(item);
+            })
+          ) {
+            NcError.badRequest('Duplicates are not allowed!');
+          }
+
+          // Restrict empty options
+          if (titles
+            .some( function(item) {
+              return item === '';
+            })
+          ) {
+            NcError.badRequest('Empty options are not allowed!');
+          }
+
+          // Handle empty enum/set for mysql (we restrict empty user options beforehand)
+          if (driverType === 'mysql' || driverType === 'mysql2') {
+            if (!colBody.colOptions.options.length && (!colBody.dtxp || colBody.dtxp === '')) {
+              colBody.colOptions.options.push({ title: '' });
+            }
+          }
+          
+          if (colBody.uidt === UITypes.SingleSelect) {
+            colBody.dtxp = (colBody.colOptions?.options.length)
+              ? `${colBody.colOptions.options.map(o => `'${o.title.replace(/'/gi, '\'\'')}'`).join(',')}`
+              : '';
+          } else if (colBody.uidt === UITypes.MultiSelect){
+            colBody.dtxp = (colBody.colOptions?.options.length)
+              ? `${colBody.colOptions.options.map((o) => {
+                  if(o.title.includes(',')) {
+                    NcError.badRequest('Illegal char(\',\') for MultiSelect');
+                  }
+                  return `'${o.title.replace(/'/gi, '\'\'')}'`;
+                }).join(',')}`
+              : '';
+          }
         }
+        
 
         const tableUpdateBody = {
           ...table,
@@ -692,7 +724,10 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 
     if (column.colOptions?.options) {
       const supportedDrivers = ['mysql', 'mysql2', 'pg', 'mssql', 'sqlite3'];
+      const dbDriver = NcConnectionMgrv2.get(base);
+      const driverType = dbDriver.clientType();
 
+      
       // Handle migrations
       for (const op of column.colOptions.options.filter(el => el.order === null)) {
         op.title = op.title.replace(/^'/, '').replace(/'$/, '')
@@ -708,8 +743,21 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         NcError.badRequest('Duplicates are not allowed!');
       }
 
-      const dbDriver = NcConnectionMgrv2.get(base);
-      const driverType = dbDriver.clientType();
+      // Restrict empty options
+      if (titles
+        .some( function(item) {
+          return item === '';
+        })
+      ) {
+        NcError.badRequest('Empty options are not allowed!');
+      }
+
+      // Handle empty enum/set for mysql (we restrict empty user options beforehand)
+      if (driverType === 'mysql' || driverType === 'mysql2') {
+        if (!colBody.colOptions.options.length && (!colBody.dtxp || colBody.dtxp === '')) {
+          colBody.dtxp = '\'\'';
+        }
+      }
 
       // Handle option delete
       for (const option of column.colOptions.options.filter(oldOp => colBody.colOptions.options.find(newOp => newOp.id === oldOp.id) ? false : true)) {

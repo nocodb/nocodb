@@ -55,7 +55,9 @@ export default {
       },
     },
     enumValues() {
-      const opts = this.column.colOptions.options || [];
+      const opts = (this.column.colOptions)
+        ? this.column.colOptions.options.filter(el => el.title !== '') || []
+        : [];
       for (const op of opts.filter(el => el.order === null)) {
         op.title = op.title.replace(/^'/, '').replace(/'$/, '');
       }

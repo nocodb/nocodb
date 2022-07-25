@@ -78,10 +78,16 @@ export const projectTitleValidator = {
     callback()
   },
 }
+
 export const fieldRequiredValidator = {
   required: true,
   message: 'Field is required',
 }
+
+export const getRequiredValidator = (field = 'Field') => ({
+  required: true,
+  message: `${field} is required`,
+})
 
 export const importUrlValidator = {
   validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {

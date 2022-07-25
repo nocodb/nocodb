@@ -1,43 +1,75 @@
 import { adjectives, animals, starWars, uniqueNamesGenerator } from 'unique-names-generator'
-import type { ClientType, ProjectCreateForm } from '~/lib/types'
+import { ClientType } from '~/lib/enums'
+
+export interface ProjectCreateForm {
+  title: string
+  dataSource: {
+    client: ClientType
+    connection:
+      | {
+          host: string
+          database: string
+          user: string
+          password: string
+          port: number | string
+          ssl?: Record<string, string>
+          searchPath?: string[]
+        }
+      | {
+          client?: ClientType.SQLITE
+          database: string
+          connection?: {
+            filename?: string
+          }
+          useNullAsDefault?: boolean
+        }
+  }
+  inflection: {
+    inflectionColumn?: string
+    inflectionTable?: string
+  }
+  sslUse?: any
+}
+
+const defaultHost = 'localhost'
 
 const testDataBaseNames = {
-  mysql2: null,
+  [ClientType.MYSQL]: null,
   mysql: null,
-  pg: 'postgres',
+  [ClientType.PG]: 'postgres',
   oracledb: 'xe',
-  mssql: undefined,
-  sqlite3: 'a.sqlite',
+  [ClientType.MSSQL]: undefined,
+  [ClientType.SQLITE]: 'a.sqlite',
 }
 
 export const getTestDatabaseName = (db: { client: ClientType; connection?: { database?: string } }) => {
-  if (db.client === 'pg') return db.connection?.database
+  if (db.client === ClientType.PG) return db.connection?.database
   return testDataBaseNames[db.client as keyof typeof testDataBaseNames]
 }
 
 export const clientTypes = [
   {
     text: 'MySql',
-    value: 'mysql2',
+    value: ClientType.MYSQL,
   },
   {
     text: 'MSSQL',
-    value: 'mssql',
+    value: ClientType.MSSQL,
   },
   {
     text: 'PostgreSQL',
-    value: 'pg',
+    value: ClientType.PG,
   },
   {
     text: 'SQLite',
-    value: 'sqlite3',
+    value: ClientType.SQLITE,
   },
 ]
 
 const homeDir = ''
 const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataSource']['connection']> = {
-  pg: {
-    host: 'localhost',
+  [ClientType.PG]: {
+    host: defaultHost,
     port: '5432',
     user: 'postgres',
     password: 'password',
@@ -49,8 +81,8 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
       cert: '',
     },
   },
-  mysql2: {
-    host: 'localhost',
+  [ClientType.MYSQL]: {
+    host: defaultHost,
     port: '3306',
     user: 'root',
     password: 'password',
@@ -61,8 +93,8 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
       cert: '',
     },
   },
-  vitess: {
-    host: 'localhost',
+  [ClientType.VITESS]: {
+    host: defaultHost,
     port: '15306',
     user: 'root',
     password: 'password',
@@ -73,68 +105,8 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
       cert: '',
     },
   },
-  tidb: {
-    host: 'localhost',
-    port: '4000',
-    user: 'root',
-    password: '',
-    database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
-  },
-  yugabyte: {
-    host: 'localhost',
-    port: '5432',
-    user: 'postgres',
-    password: '',
-    database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
-  },
-  citusdb: {
-    host: 'localhost',
-    port: '5432',
-    user: 'postgres',
-    password: '',
-    database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
-  },
-  cockroachdb: {
-    host: 'localhost',
-    port: '5432',
-    user: 'postgres',
-    password: '',
-    database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
-  },
-  greenplum: {
-    host: 'localhost',
-    port: '5432',
-    user: 'postgres',
-    password: '',
-    database: '_test',
-    ssl: {
-      ca: '',
-      key: '',
-      cert: '',
-    },
-  },
-  mssql: {
-    host: 'localhost',
+  [ClientType.MSSQL]: {
+    host: defaultHost,
     port: 1433,
     user: 'sa',
     password: 'Password123.',
@@ -146,8 +118,76 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
       cert: '',
     },
   },
+  [ClientType.SQLITE]: {
+    client: ClientType.SQLITE,
+    database: homeDir,
+    connection: {
+      filename: homeDir,
+    },
+    useNullAsDefault: true,
+  },
+  tidb: {
+    host: defaultHost,
+    port: '4000',
+    user: 'root',
+    password: '',
+    database: '_test',
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
+  },
+  yugabyte: {
+    host: defaultHost,
+    port: '5432',
+    user: 'postgres',
+    password: '',
+    database: '_test',
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
+  },
+  citusdb: {
+    host: defaultHost,
+    port: '5432',
+    user: 'postgres',
+    password: '',
+    database: '_test',
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
+  },
+  cockroachdb: {
+    host: defaultHost,
+    port: '5432',
+    user: 'postgres',
+    password: '',
+    database: '_test',
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
+  },
+  greenplum: {
+    host: defaultHost,
+    port: '5432',
+    user: 'postgres',
+    password: '',
+    database: '_test',
+    ssl: {
+      ca: '',
+      key: '',
+      cert: '',
+    },
+  },
   oracledb: {
-    host: 'localhost',
+    host: defaultHost,
     port: '1521',
     user: 'system',
     password: 'Oracle18',
@@ -157,14 +197,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
       key: '',
       cert: '',
     },
-  },
-  sqlite3: {
-    client: 'sqlite3',
-    database: homeDir,
-    connection: {
-      filename: homeDir,
-    },
-    useNullAsDefault: true,
   },
 }
 

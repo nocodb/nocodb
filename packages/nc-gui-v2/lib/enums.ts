@@ -4,7 +4,13 @@ export enum Role {
   User = 'user',
 }
 
-export type Roles = Record<Role, boolean>
+export enum ClientType {
+  MYSQL = 'mysql2',
+  MSSQL = 'mssql',
+  PG = 'pg',
+  SQLITE = 'sqlite3',
+  VITESS = 'vitess',
+}
 
 export enum Language {
   de = 'Deutsch',

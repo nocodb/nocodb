@@ -37,8 +37,8 @@ let isLoading = $ref(true)
 let loadingAction = $ref<null | Action>(null)
 
 const layout = {
-  labelCol: { span: 10 },
-  wrapperCol: { span: 16 },
+  labelCol: { span: 14, pull: 4 },
+  wrapperCol: { span: 20, pull: 4 },
 }
 
 const addSetting = () => pluginFormData.push({})

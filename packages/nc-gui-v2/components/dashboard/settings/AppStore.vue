@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
-import AppInstall from './AppInstall.vue'
+import AppInstall from './AppStore/AppInstall.vue'
 import MdiEditIcon from '~icons/ic/round-edit'
 import MdiCloseCircleIcon from '~icons/mdi/close-circle-outline'
 import MdiPlusIcon from '~icons/mdi/plus'

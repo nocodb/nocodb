@@ -1,4 +1,6 @@
+import type { WritableComputedRef } from '@vue/reactivity'
 import { useState } from '#app'
+import useProject from '~/composables/useProject'
 
 export interface TabItem {
   type: 'table' | 'view' | 'auth'
@@ -43,13 +45,6 @@ export default () => {
         router.push(`/nc/${route.params.projectId}/table/${tabs.value?.[index]?.title}`)
       }
     },
-
-    // if (route.params.title) {
-    //   const tab = tabs.value.find(t => t.id === route.params.tab)
-    //   if (tab) {
-    //     activeTab.value = tabs.value.indexOf(tab)
-    //   }
-    // }
   })
 
   const addTab = (tabMeta: TabItem) => {
@@ -67,13 +62,18 @@ export default () => {
   const clearTabs = () => {
     tabs.value = []
   }
-
-  const closeTab = (key: number | Partial<TabItem>) => {
-    if (typeof key === 'number') tabs.value.splice(key, 1)
-    else {
-      const index = tabs.value.findIndex(getPredicate(key))
-      if (index > -1) tabs.value.splice(index, 1)
+  const closeTab = async (key: number | Partial<TabItem>) => {
+    const index = typeof key === 'number' ? key : tabs.value.findIndex(getPredicate(key))
+    if (activeTab.value === index) {
+      let newTabIndex = index - 1
+      if (newTabIndex < 0 && tabs.value?.length > 1) newTabIndex = index + 1
+      if (newTabIndex === -1) {
+        await router.push(`/nc/${route.params.projectId}`)
+      } else {
+        await router.push(`/nc/${route.params.projectId}/table/${tabs.value?.[newTabIndex]?.title}`)
+      }
     }
+    tabs.value.splice(index, 1)
   }
 
   const updateTab = (key: number | Partial<TabItem>, newTabItemProps: Partial<TabItem>) => {

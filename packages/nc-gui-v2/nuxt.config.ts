@@ -18,7 +18,6 @@ export default defineNuxtConfig({
     'vuetify/lib/styles/main.sass',
     '~/assets/style/fonts.css',
     '~/assets/css/global.css',
-    '~/assets/style/style.css',
     '~/assets/style.css',
     '~/assets/style-v2.scss',
   ],

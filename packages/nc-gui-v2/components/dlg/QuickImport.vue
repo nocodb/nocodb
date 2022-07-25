@@ -27,6 +27,7 @@ const { tables } = useProject()
 const toast = useToast()
 const activeKey = ref('uploadTab')
 const jsonEditorRef = ref()
+const templateEditorRef = ref()
 const loading = ref(false)
 const templateData = ref()
 const importData = ref()
@@ -89,7 +90,8 @@ const dialogShow = computed({
 
 const { resetFields, validate, validateInfos } = useForm(importState, validators)
 
-async function handleImport() {
+async function handlePreImport() {
+  loading.value = true
   if (activeKey.value === 'uploadTab') {
     // FIXME:
     importState.fileList.map(async (file: any) => {
@@ -105,6 +107,14 @@ async function handleImport() {
   } else if (activeKey.value === 'jsonEditorTab') {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor), '')
   }
+  loading.value = false
+}
+
+async function handleImport() {
+  loading.value = true
+  await templateEditorRef.value.importTemplate()
+  loading.value = false
+  dialogShow.value = false
 }
 
 async function parseAndExtractData(val: any, name: string) {
@@ -119,7 +129,6 @@ async function parseAndExtractData(val: any, name: string) {
     templateData.value.tables[0].table_name = populateUniqueTableName()
     importData.value = templateGenerator.getData()
     templateEditorModal.value = true
-    dialogShow.value = false
   } catch (e: any) {
     console.log(e)
     toast.error(await extractSdkResponseErrorMsg(e))
@@ -156,7 +165,9 @@ function handleChange(info: UploadChangeParam) {
 }
 
 function formatJson() {
+  loading.value = true
   jsonEditorRef.value.format()
+  loading.value = false
 }
 
 function populateUniqueTableName() {
@@ -193,9 +204,19 @@ function getAdapter(name: string, val: any) {
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
       <a-button v-if="activeKey === 'jsonEditorTab'" key="format" :loading="loading" @click="formatJson">Format JSON</a-button>
-      <a-button key="submit" type="primary" :loading="loading" @click="handleImport">Import</a-button>
+      <a-button v-if="!templateEditorModal" key="pre-import" type="primary" :loading="loading" @click="handlePreImport">{{
+        $t('activity.import')
+      }}</a-button>
+      <a-button v-else key="import" type="primary" :loading="loading" @click="handleImport">{{ $t('activity.import') }}</a-button>
     </template>
-    <a-tabs v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
+    <TemplateEditor
+      v-if="templateEditorModal"
+      ref="templateEditorRef"
+      :project-template="templateData"
+      :import-data="importData"
+      :quick-import-type="importType"
+    />
+    <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
       <a-tab-pane key="uploadTab" :closable="false">
         <template #tab>
           <span class="flex items-center gap-2">
@@ -253,12 +274,6 @@ function getAdapter(name: string, val: any) {
       </a-tab-pane>
     </a-tabs>
   </a-modal>
-  <TemplateEditor
-    v-if="templateEditorModal"
-    :project-template="templateData"
-    :import-data="importData"
-    :quick-import-type="importType"
-  />
 </template>
 
 <style scoped lang="scss">

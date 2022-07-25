@@ -23,7 +23,7 @@ const { modelValue, importType } = defineProps<Props>()
 const { tables } = useProject()
 const toast = useToast()
 const emit = defineEmits(['update:modelValue'])
-const activeKey = ref('upload')
+const activeKey = ref('uploadTab')
 const jsonEditorRef = ref()
 const loading = ref(false)
 const templateData = ref()
@@ -44,8 +44,8 @@ const importState = reactive({
 
 const validators = computed(() => {
   return {
-    'url': [fieldRequiredValidator, importUrlValidator],
-    'maxRowsToParse': [fieldRequiredValidator]
+    url: [fieldRequiredValidator, importUrlValidator],
+    maxRowsToParse: [fieldRequiredValidator],
   }
 })
 
@@ -100,7 +100,14 @@ const dialogShow = computed({
 const handleChange = (info: UploadChangeParam) => {
   const status = info.file.status
   if (status !== 'uploading') {
-    console.log(info.file, info.fileList)
+    const reader: any = new FileReader()
+    reader.onload = (e: any) => {
+      const target: any = importState.fileList.find((f: any) => f?.uid === info.file.uid)
+      if (target) {
+        target.data = e.target.result
+      }
+    }
+    reader.readAsArrayBuffer(info.file.originFileObj)
   }
   if (status === 'done') {
     toast.success(`Uploaded file ${info.file.name} successfully`)
@@ -114,19 +121,20 @@ const formatJson = () => {
 }
 
 const handleImport = async () => {
-  if (activeKey.value === 'upload') {
+  if (activeKey.value === 'uploadTab') {
+    // FIXME:
     importState.fileList.map(async (file: any) => {
-      await parseAndExtractData('file', file.orginFileObj, file.name)
+      await parseAndExtractData(file.data, file.name)
     })
-  } else if (activeKey.value === 'url') {
+  } else if (activeKey.value === 'urlTab') {
     try {
       await validate()
-      await parseAndExtractData('url', importState.url, '')
+      await parseAndExtractData(importState.url, '')
     } catch (e: any) {
       toast.error(await extractSdkResponseErrorMsg(e))
     }
-  } else if (activeKey.value === 'json') {
-    await parseAndExtractData('jsonEditor', JSON.stringify(importState.jsonEditor), '')
+  } else if (activeKey.value === 'jsonEditorTab') {
+    await parseAndExtractData(JSON.stringify(importState.jsonEditor), '')
   }
 }
 
@@ -140,26 +148,29 @@ const populateUniqueTableName = () => {
 
 const getAdapter: any = (name: string, val: any) => {
   if (importType === 'excel' || importType === 'csv') {
-    return {
-      file: new ExcelTemplateAdapter(name, val, importState.parserConfig),
-      url: new ExcelUrlTemplateAdapter(val, importState.parserConfig),
+    if (activeKey.value === 'uploadTab') {
+      return new ExcelTemplateAdapter(name, val, importState.parserConfig)
+    } else if (activeKey.value === 'urlTab') {
+      return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
     }
   } else if (importType === 'json') {
-    return {
-      file: new JSONTemplateAdapter(name, val, importState.parserConfig),
-      url: new JSONUrlTemplateAdapter(val, importState.parserConfig),
-      jsonEditor: new JSONTemplateAdapter(name, val, importState.parserConfig),
+    if (activeKey.value === 'uploadTab') {
+      return new JSONTemplateAdapter(name, val, importState.parserConfig)
+    } else if (activeKey.value === 'urlTab') {
+      return new JSONUrlTemplateAdapter(val, importState.parserConfig)
+    } else if (activeKey.value === 'jsonEditorTab') {
+      return new JSONTemplateAdapter(name, val, importState.parserConfig)
     }
   }
   return {}
 }
 
-const parseAndExtractData = async (type: string, val: any, name: string) => {
+const parseAndExtractData = async (val: any, name: string) => {
   try {
     let templateGenerator
     templateData.value = null
     importData.value = null
-    templateGenerator = getAdapter(name, val)[type]
+    templateGenerator = getAdapter(name, val)
 
     await templateGenerator.init()
     templateGenerator.parse()
@@ -180,11 +191,11 @@ const parseAndExtractData = async (type: string, val: any, name: string) => {
     <a-typography-title class="ml-4 mb-4 select-none" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
     <template #footer>
       <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-      <a-button v-if="activeKey === 'json'" key="format" :loading="loading" @click="formatJson">Format JSON</a-button>
+      <a-button v-if="activeKey === 'jsonEditorTab'" key="format" :loading="loading" @click="formatJson">Format JSON</a-button>
       <a-button key="submit" type="primary" :loading="loading" @click="handleImport">Import</a-button>
     </template>
     <a-tabs v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
-      <a-tab-pane key="upload" :closable="false">
+      <a-tab-pane key="uploadTab" :closable="false">
         <template #tab>
           <span class="flex items-center gap-2">
             <MdiFileUploadOutlineIcon />
@@ -213,7 +224,7 @@ const parseAndExtractData = async (type: string, val: any, name: string) => {
           </a-upload-dragger>
         </div>
       </a-tab-pane>
-      <a-tab-pane v-if="importType === 'json'" key="json" :closable="false">
+      <a-tab-pane v-if="importType === 'json'" key="jsonEditorTab" :closable="false">
         <template #tab>
           <span class="flex items-center gap-2">
             <MdiCodeJSONIcon />
@@ -224,7 +235,7 @@ const parseAndExtractData = async (type: string, val: any, name: string) => {
           <MonacoEditor v-model="importState.jsonEditor" class="h-[400px]" ref="jsonEditorRef" />
         </div>
       </a-tab-pane>
-      <a-tab-pane v-else key="url" :closable="false">
+      <a-tab-pane v-else key="urlTab" :closable="false">
         <template #tab>
           <span class="flex items-center gap-2">
             <MdiLinkVariantIcon />
@@ -241,7 +252,12 @@ const parseAndExtractData = async (type: string, val: any, name: string) => {
       </a-tab-pane>
     </a-tabs>
   </a-modal>
-  <TemplateEditor v-if="templateEditorModal" :project-template="templateData" :import-data="importData" :quick-import-type="importType"/>
+  <TemplateEditor
+    v-if="templateEditorModal"
+    :project-template="templateData"
+    :import-data="importData"
+    :quick-import-type="importType"
+  />
 </template>
 
 <style scoped lang="scss">

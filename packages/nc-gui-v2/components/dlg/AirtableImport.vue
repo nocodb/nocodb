@@ -169,9 +169,10 @@ onMounted(() => {
     console.log('socket connected', data)
   })
 
-  socket.value.on('progress', (d: Record<string, any>) => {
+  socket.value.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
 
+    // TODO: check if it still requires
     // nextTick(() => {
     //   if ($refs.log) {
     //     const el = $refs.log.$el;
@@ -180,17 +181,8 @@ onMounted(() => {
     // });
 
     if (d.status === 'COMPLETED') {
-      // $store
-      //     .dispatch('project/_loadTables', {
-      //       dbKey: '0.projectJson.envs._noco.db.0',
-      //       key: '0.projectJson.envs._noco.db.0.tables',
-      //       _nodes: {
-      //         dbAlias: 'db',
-      //         env: '_noco',
-      //         type: 'tableDir',
-      //       },
-      //     })
-      //     .then(() => this.$store.dispatch('tabs/loadFirstTableTab'));
+      await loadTables()
+      // TODO: add tab of the first table
     }
   })
   loadSyncSrc()

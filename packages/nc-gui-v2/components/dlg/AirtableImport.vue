@@ -20,7 +20,7 @@ const toast = useToast()
 const { sqlUi, project, loadTables } = useProject()
 const loading = ref(false)
 const step = ref(1)
-const progress = ref([])
+const progress = ref<Record<string, any>[]>([])
 const socket = ref()
 const syncSourceUrlOrId = ref('')
 const syncSource = ref({
@@ -64,7 +64,7 @@ const { resetFields, validate, validateInfos } = useForm(syncSource, validators)
 
 async function saveAndSync() {
   await createOrUpdate()
-  sync()
+  await sync()
 }
 
 async function createOrUpdate() {

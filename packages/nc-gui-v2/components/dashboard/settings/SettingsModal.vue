@@ -131,7 +131,7 @@ watch(
 
 <style scoped>
 .modal-body {
-  height: 70vh;
+  @apply h-[70vh];
 }
 ::-webkit-scrollbar-thumb {
   background-color: darkgrey;

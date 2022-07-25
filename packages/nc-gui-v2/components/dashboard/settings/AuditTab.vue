@@ -43,7 +43,7 @@ onMounted(async () => {
   }
 })
 
-const tableHeaderRenderer = (label: string) => (value: { text: string }) => h('div', { class: 'text-gray-500' }, label)
+const tableHeaderRenderer = (label: string) => () => h('div', { class: 'text-gray-500' }, label)
 
 const columns = [
   {

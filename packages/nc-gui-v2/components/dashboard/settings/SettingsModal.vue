@@ -116,7 +116,7 @@ watch(
       </a-layout-sider>
 
       <!-- Sub Tabs -->
-      <a-layout-content class="h-full px-4">
+      <a-layout-content class="h-full px-4 scrollbar-thumb-gray-500">
         <a-menu v-model:selectedKeys="selectedSubTabKeys" :open-keys="[]" mode="horizontal">
           <a-menu-item v-for="(tab, key) of selectedTab.subTabs" :key="key" class="select-none">
             {{ tab.title }}
@@ -132,8 +132,5 @@ watch(
 <style scoped>
 .modal-body {
   @apply h-[70vh];
-}
-::-webkit-scrollbar-thumb {
-  background-color: darkgrey;
 }
 </style>

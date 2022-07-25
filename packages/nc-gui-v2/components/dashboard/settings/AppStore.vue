@@ -91,7 +91,7 @@ onMounted(async () => {
     </div>
   </a-modal>
 
-  <div class="h-full overflow-y-scroll grid grid-cols-2 gap-x-2 gap-y-4">
+  <div class="grid grid-cols-2 gap-x-2 gap-y-4 mt-4">
     <a-card
       v-for="(app, i) in apps"
       :key="i"

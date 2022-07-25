@@ -161,10 +161,10 @@ onMounted(async () => {
         <!-- Form with multiple entry -->
         <div v-if="plugin.formDetails.array" class="flex flex-row justify-center">
           <table>
-            <thead class="mb-2">
+            <thead>
               <tr>
                 <th v-for="(columnData, columnIndex) in plugin.formDetails.items" :key="columnIndex">
-                  <div class="text-center font-normal">
+                  <div class="text-center font-normal mb-2">
                     {{ columnData.label }} <span v-if="columnData.required" class="text-red-600">*</span>
                   </div>
                 </th>

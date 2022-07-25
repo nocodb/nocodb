@@ -1,21 +1,29 @@
+import type { ThemeDefinition } from 'vuetify'
 import { createVuetify } from 'vuetify'
-// import {
-//   VApp,
-//   VAppBar,
-//   VBtn
-// } from 'vuetify/components'
-import {defineNuxtPlugin} from "nuxt/app";
+import { defineNuxtPlugin } from 'nuxt/app'
 
+// todo: exclude unused components
 // Import everything
 import * as components from 'vuetify/components'
 
-export default defineNuxtPlugin((nuxtApp) => {
-  const vuetify = createVuetify({
-    components/*: {
-      VApp,
-      VAppBar,
-      VBtn*/
-    // }
+import { themeColors } from '~/utils/colorsUtils'
+
+const ncLightTheme: ThemeDefinition = {
+  dark: false,
+  colors: themeColors,
+}
+
+export const createVuetifyPlugin = () =>
+  createVuetify({
+    components,
+    theme: {
+      defaultTheme: 'ncLightTheme',
+      themes: {
+        ncLightTheme,
+      },
+    },
   })
-  nuxtApp.vueApp.use(vuetify)
+
+export default defineNuxtPlugin((nuxtApp) => {
+  nuxtApp.vueApp.use(createVuetifyPlugin())
 })

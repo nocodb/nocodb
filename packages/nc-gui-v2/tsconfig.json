@@ -1,5 +1,21 @@
 {
-  // https://v3.nuxtjs.org/concepts/typescript
   "extends": "./.nuxt/tsconfig.json",
-
+  "compilerOptions": {
+    "strict": true,
+    "esModuleInterop": true,
+    "incremental": false,
+    "skipLibCheck": true,
+    "moduleResolution": "node",
+    "resolveJsonModule": true,
+    "noUnusedLocals": false,
+    "strictNullChecks": true,
+    "forceConsistentCasingInFileNames": true,
+    "types": ["@intlify/vite-plugin-vue-i18n/client", "vue-i18n", "unplugin-icons/types/vue", "nuxt-windicss"]
+  },
+  "files": ["nuxt-shim.d.ts", "windi.config.ts"],
+  "exclude": [
+    "node_modules",
+    "dist",
+    ".output"
+  ]
 }

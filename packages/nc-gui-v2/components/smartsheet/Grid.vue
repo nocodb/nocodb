@@ -1,71 +1,247 @@
-<template>
-  <div>
-
-    <div class="card">
-      <v-table>
-        <thead>
-        <tr>
-          <th v-for="col in meta.columns">
-            {{ col.title }}
-          </th>
-        </tr>
-        </thead>
-        <tbody>
-
-        <tr v-for="(row,i) in rows" :key="i">
-          <th v-for="col in meta.columns" :key="col.title">
-            {{ row[col.title] }}
-          </th>
-        </tr>
-
-        </tbody>
-        <!--        <Column v-for="col in meta.columns" :key="col.id" :field="col.title" :header="col.title">
-                  <template v-if="col.uidt === 'LinkToAnotherRecord'" #body="{data:{[col.title]:d}}">
-                    {{ d && (Array.isArray(d) ? d : [d]).map(c1 => c1[Object.keys(c1)[1]]).join(', ') }}
-                  </template>
-                </Column>-->
-      </v-table>
-    </div>
-
-  </div>
-</template>
-
 <script lang="ts" setup>
-import { useNuxtApp } from "#app";
-import { Api } from "nocodb-sdk";
-import { useUser } from "~/composables/user";
+import { computed } from '@vue/reactivity'
+import { ColumnType, isVirtualCol } from 'nocodb-sdk'
+import { inject, onKeyStroke, onMounted, provide } from '#imports'
+import {
+  ActiveViewInj,
+  ChangePageInj,
+  FieldsInj,
+  IsFormInj,
+  IsGridInj,
+  MetaInj,
+  PaginationDataInj,
+  ReloadViewDataHookInj,
+} from '~/context'
+import useViewData from '~/composables/useViewData'
 
-const { tabMeta, meta } = defineProps({
-  tabMeta: Object,
-  meta: Object
-});
+const meta = inject(MetaInj)
+const view = inject(ActiveViewInj)
+// keep a root fields variable and will get modified from
+// fields menu and get used in grid and gallery
+const fields = inject(FieldsInj)
 
-const { project } = useProject();
-const { user } = useUser();
-const rows = ref();
+// todo: get from parent ( inject or use prop )
+const isPublicView = false
 
-const { $api } = useNuxtApp();
+const selected = reactive<{ row?: number | null; col?: number | null }>({})
+const editEnabled = ref(false)
 
+const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
 
-const loadData = async () => {
-  const response = await $api.dbTableRow.list("noco",
-    project.value.id,
-    meta.id, {}, {
-      headers: {
-        "xc-auth": user.token
-      }
-    });
+provide(IsFormInj, false)
+provide(IsGridInj, true)
+provide(PaginationDataInj, paginationData)
+provide(ChangePageInj, changePage)
 
-  rows.value = response.list;
-};
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
+reloadViewDataHook?.on(() => {
+  loadData()
+})
 
-onMounted(async () => {
-  await loadData();
-});
+const selectCell = (row: number, col: number) => {
+  selected.row = row
+  selected.col = col
+}
 
+onKeyStroke(['Enter'], (e) => {
+  if (selected.row !== null && selected.col !== null) {
+    editEnabled.value = true
+  }
+})
 
+watch(
+  [() => meta?.value?.id, () => view?.value?.id],
+  async (n: any, o: any) => {
+    if (meta?.value && view?.value) {
+      await loadData()
+    }
+  },
+  { immediate: true },
+)
+
+defineExpose({
+  loadData,
+})
 </script>
 
-<style scoped>
+<template>
+  <div class="nc-grid-wrapper">
+    <table class="xc-row-table nc-grid backgroundColorDefault">
+      <thead>
+        <tr>
+          <th>#</th>
+          <th v-for="col in fields" :key="col.title">
+            <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+            <SmartsheetHeaderCell v-else :column="col" />
+          </th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr v-for="({ row }, rowIndex) in data" :key="rowIndex" class="nc-grid-row">
+          <td key="row-index" style="width: 65px" class="caption nc-grid-cell">
+            <div class="d-flex align-center">
+              {{ rowIndex + 1 }}
+            </div>
+          </td>
+          <td
+            v-for="(columnObj, colIndex) in fields"
+            :key="rowIndex + columnObj.title"
+            class="cell pointer nc-grid-cell"
+            :class="{
+              active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
+              // 'primary-column': primaryValueColumn === columnObj.title,
+              // 'text-center': isCentrallyAligned(columnObj),
+              // 'required': isRequired(columnObj, rowObj),
+            }"
+            :data-col="columnObj.title"
+            @click="selectCell(rowIndex, colIndex)"
+            @dblclick="editEnabled = true"
+          >
+            <!--          @contextmenu=" -->
+            <!--            showRowContextMenu($event, rowObj, rowMeta, row, col, columnObj) -->
+            <!--          " -->
+            <!--        > -->
+            <!--          <virtual-cell -->
+            <!--            v-if="isVirtualCol(columnObj)" -->
+            <!--            :password="password" -->
+            <!--            :is-public="isPublicView" -->
+            <!--            :metas="metas" -->
+            <!--            :is-locked="isLocked" -->
+            <!--            :column="columnObj" -->
+            <!--            :row="rowObj" -->
+            <!--            :nodes="nodes" -->
+            <!--            :meta="meta" -->
+            <!--            :api="api" -->
+            <!--            :active="selected.col === col && selected.row === row" -->
+            <!--            :sql-ui="sqlUi" -->
+            <!--            :is-new="rowMeta.new" -->
+            <!--            v-on="$listeners" -->
+            <!--            @updateCol=" -->
+            <!--              (...args) => -->
+            <!--                updateCol( -->
+            <!--                  ...args, -->
+            <!--                  columnObj.bt -->
+            <!--                    && meta.columns.find( -->
+            <!--                      (c) => c.column_name === columnObj.bt.column_name, -->
+            <!--                    ), -->
+            <!--                  col, -->
+            <!--                  row, -->
+            <!--                ) -->
+            <!--            " -->
+            <!--            @saveRow="onCellValueChange(col, row, columnObj, true)" -->
+            <!--          /> -->
 
+            <!--          <editable-cell -->
+            <!--            v-else-if=" -->
+            <!--              ((isPkAvail || rowMeta.new) -->
+            <!--                && !isView -->
+            <!--                && !isLocked -->
+            <!--                && !isPublicView -->
+            <!--                && editEnabled.col === col -->
+            <!--                && editEnabled.row === row) -->
+            <!--                || enableEditable(columnObj) -->
+            <!--            " -->
+            <!--            v-model="rowObj[columnObj.title]" -->
+            <!--            :column="columnObj" -->
+            <!--            :meta="meta" -->
+            <!--            :active="selected.col === col && selected.row === row" -->
+            <!--            :sql-ui="sqlUi" -->
+            <!--            :db-alias="nodes.dbAlias" -->
+            <!--            :is-locked="isLocked" -->
+            <!--            :is-public="isPublicView" -->
+            <!--            :view-id="viewId" -->
+            <!--            @save="editEnabled = {}; onCellValueChange(col, row, columnObj, true);" -->
+            <!--            @cancel="editEnabled = {}" -->
+            <!--            @update="onCellValueChange(col, row, columnObj, false)" -->
+            <!--            @blur="onCellValueChange(col, row, columnObj, true)" -->
+            <!--            @input="unsaved = true" -->
+            <!--            @navigateToNext="navigateToNext" -->
+            <!--            @navigateToPrev="navigateToPrev" -->
+            <!--          /> -->
+
+            <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row[columnObj.title]" :column="columnObj" />
+
+            <SmartsheetCell
+              v-else
+              v-model="row[columnObj.title]"
+              :column="columnObj"
+              :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+              @update:model-value="updateRowProperty(row, columnObj.title)"
+            />
+
+            <!--          <SmartsheetCell v-else :column="columnObj" :value="row[columnObj.title]" /> -->
+            <!-- :selected="selected.col === col && selected.row === row" -->
+            <!--        :is-locked="isLocked" -->
+            <!--            :column="columnObj" -->
+            <!--            :meta="meta" -->
+            <!--            :db-alias="nodes.dbAlias" -->
+            <!--            :value="rowObj[columnObj.title]" -->
+            <!--            :sql-ui="sqlUi" -->
+            <!--            @enableedit=" -->
+            <!--              makeSelected(col, row); -->
+            <!--              makeEditable(col, row, columnObj.ai, rowMeta); -->
+            <!--            " -->
+            <!--          /> -->
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <SmartsheetPagination />
+</template>
+
+<style scoped lang="scss">
+.nc-grid-wrapper {
+  width: 100%;
+  // todo : proper height calculation
+  height: calc(100vh - 215px);
+  overflow: auto;
+
+  td,
+  th {
+    min-height: 31px !important;
+    position: relative;
+    padding: 0 5px !important;
+    min-width: 200px;
+  }
+
+  table,
+  td,
+  th {
+    border-right: 1px solid #7f828b33 !important;
+    border-left: 1px solid #7f828b33 !important;
+    border-bottom: 1px solid #7f828b33 !important;
+    border-top: 1px solid #7f828b33 !important;
+    border-collapse: collapse;
+
+    font-size: 0.8rem;
+  }
+
+  td {
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  td.active::after,
+  td.active::before {
+    content: '';
+    position: absolute;
+    z-index: 3;
+    height: calc(100% + 2px);
+    width: calc(100% + 2px);
+    left: -1px;
+    top: -1px;
+    pointer-events: none;
+  }
+
+  // todo: replace with css variable
+  td.active::after {
+    border: 2px solid #0040bc; /*var(--v-primary-lighten1);*/
+  }
+
+  td.active::before {
+    background: #0040bc /*var(--v-primary-base)*/;
+    opacity: 0.1;
+  }
+}
 </style>

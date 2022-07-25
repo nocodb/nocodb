@@ -1,39 +1,30 @@
+<script setup lang="ts">
+import useTabs from '~/composables/useTabs'
+import MdiCloseIcon from '~icons/mdi/close'
+import MdiPlusIcon from '~icons/mdi/plus'
+
+const { tabs, activeTab, closeTab } = useTabs()
+const tableCreateDialog = ref(false)
+</script>
+
 <template>
   <div>
-    <!--    <TabMenu :model="tabItems" v-model:activeIndex="activeTab"/>
-        <template v-if="tabItems && tabItems[activeTab]">
-         <TabsSmartsheet :tab-meta="tabs[activeTab]" :key="tabs[activeTab].id"/>
-        </template>-->
-
-    <v-tabs v-model="activeTab">
-
-      <v-tab v-for="(tab,i) in tabs" :key="i" v-model:activeIndex="activeTab" >{{tab.title}} </v-tab>
-
-      <v-tab-item v-for="(tab,i) in tabs" :key="i">
-        <TabsSmartsheet :tab-meta="tab" />
-      </v-tab-item>
+    <v-tabs v-model="activeTab" height="32" density="compact" color="primary">
+      <v-tab v-for="(tab, i) in tabs" :key="i" :value="i" class="text-capitalize">
+        {{ tab.title }}
+        <MdiCloseIcon class="ml-2 text-gray-500/50" @click.stop="closeTab(i)"></MdiCloseIcon>
+      </v-tab>
+      <MdiPlusIcon @click="tableCreateDialog = true" />
+      <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
     </v-tabs>
+
+    <v-window v-model="activeTab">
+      <v-window-item v-for="(tab, i) in tabs" :key="i" :value="i">
+        <TabsAuth v-if="tab.type === 'auth'" :tab-meta="tab" />
+        <TabsSmartsheet v-else :tab-meta="tab" />
+      </v-window-item>
+    </v-window>
   </div>
 </template>
 
-<script setup lang="ts">
-
-import { useTabs } from "~/composables/tabs";
-
-const { tabs, activeTab } = useTabs();
-
-// const tabItems = computed(() => {
-//   return tabs.value.map(tab => {
-//     return {
-//       label: tab.title,
-//       // icon: tab.icon,
-//       closable: true
-//     }
-//   })
-// })
-
-</script>
-
-<style scoped>
-
-</style>
+<style scoped></style>

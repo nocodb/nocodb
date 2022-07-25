@@ -1,0 +1,66 @@
+html,
+body,
+#__nuxt,
+.ant-layout,
+main {
+  @apply m-0 h-full w-full bg-white dark:(bg-black text-white);
+}
+
+main {
+  @apply flex-0 w-full relative scrollbar-thin-primary;
+  overflow-x: hidden;
+}
+
+nav,
+nav .v-list {
+  @apply dark:(!bg-gray-900 text-white)
+}
+
+.v-divider {
+  @apply dark:bg-white
+}
+
+.page-enter-active,
+.page-leave-active,
+.layout-enter-active,
+.layout-leave-active {
+  @apply transition-opacity duration-300 ease-in-out;
+}
+
+.page-enter,
+.page-leave-active,
+.layout-enter,
+.layout-leave-active {
+  @apply opacity-0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  @apply transition-all duration-200 ease-in-out;
+  transform: translate(100%, 0);
+}
+
+.slide-enter,
+.slide-leave-active {
+  transform: translate(-100%, 0);
+}
+
+a {
+  @apply prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
+}
+
+h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
+  @apply dark:(!text-white);
+}
+
+.nc-icon {
+  @apply color-transition;
+}
+
+:root {
+  --header-height: 64px;
+}
+
+html {
+  overflow-y: auto !important;
+}

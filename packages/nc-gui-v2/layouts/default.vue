@@ -1,27 +1,28 @@
-<template>
-  <div class="">
-<!--    <div class="topbar">-->
-<!--    </div>-->
-<!--    <div class="sidebar">-->
-<!--    </div>-->
-<!--    <div class="content">-->
+<script lang="ts" setup>
+import { useI18n } from 'vue-i18n'
+import { useHead, useRoute } from '#imports'
 
+const route = useRoute()
 
-    <v-layout>
-      <v-app-bar color=""></v-app-bar>
-<slot></slot>
-    </v-layout>
+const { te, t } = useI18n()
 
-<!--    </div>-->
-  </div>
-</template>
+useHead({
+  title: route.meta?.title && te(route.meta.title as string) ? `${t(route.meta.title as string)} | NocoDB` : 'NocoDB',
+})
+</script>
 
-<script>
+<script lang="ts">
 export default {
-  name: "default"
+  name: 'Default',
 }
 </script>
 
-<style scoped>
+<template>
+  <a-layout-content>
+    <teleport v-if="$slots.sidebar" to="#sidebar">
+      <slot name="sidebar" />
+    </teleport>
 
-</style>
+    <slot />
+  </a-layout-content>
+</template>

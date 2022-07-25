@@ -24,6 +24,7 @@ const progress = ref([])
 const socket = ref()
 const syncSourceUrlOrId = ref('')
 const syncSource = ref({
+  id: '',
   type: 'Airtable',
   details: {
     syncInterval: '15mins',
@@ -67,57 +68,66 @@ async function saveAndSync() {
 }
 
 async function createOrUpdate() {
-  // TODO: check $axios implementation
-  // try {
-  //   const { id, ...payload } = syncSource.value;
-  //   if (id) {
-  //     await $axios.patch(`/api/v1/db/meta/syncs/${id}`, payload);
-  //   } else {
-  //     syncSource.value = (await $axios.post(`/api/v1/db/meta/projects/${project.value.id}/syncs`, payload)).data;
-  //   }
-  // } catch (e: any) {
-  //   toast.error(await extractSdkResponseErrorMsg(e))
-  // }
+  try {
+    const { id, ...payload } = syncSource.value
+    if (id !== '') {
+      await $fetch(`/api/v1/db/meta/syncs/${id}`, {
+        method: 'PATCH',
+        body: payload,
+      })
+    } else {
+      const { data }: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+        method: 'POST',
+        body: payload,
+      })
+      syncSource.value = data
+    }
+  } catch (e: any) {
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
 }
 
 async function loadSyncSrc() {
-  // const {
-  //   data: { list: srcs },
-  // } = await $axios.get(`/api/v1/db/meta/projects/${project.id}/syncs`)
-  // if (srcs && srcs[0]) {
-  //   srcs[0].details = srcs[0].details || {}
-  //   syncSource.value = this.migrateSync(srcs[0])
-  //   syncSourceUrlOrId.value = srcs[0].details.shareId
-  // } else {
-  //   syncSource.value = {
-  //     type: 'Airtable',
-  //     details: {
-  //       syncInterval: '15mins',
-  //       syncDirection: 'Airtable to NocoDB',
-  //       syncRetryCount: 1,
-  //       apiKey: '',
-  //       shareId: '',
-  //       options: {
-  //         syncViews: true,
-  //         syncData: true,
-  //         syncRollup: false,
-  //         syncLookup: true,
-  //         syncFormula: false,
-  //         syncAttachment: true,
-  //       },
-  //     },
-  //   }
-  // }
+  const {
+    data: { list: srcs },
+  }: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+    method: 'GET',
+  })
+  if (srcs && srcs[0]) {
+    srcs[0].details = srcs[0].details || {}
+    syncSource.value = migrateSync(srcs[0])
+    syncSourceUrlOrId.value = srcs[0].details.shareId
+  } else {
+    syncSource.value = {
+      id: '',
+      type: 'Airtable',
+      details: {
+        syncInterval: '15mins',
+        syncDirection: 'Airtable to NocoDB',
+        syncRetryCount: 1,
+        apiKey: '',
+        shareId: '',
+        options: {
+          syncViews: true,
+          syncData: true,
+          syncRollup: false,
+          syncLookup: true,
+          syncFormula: false,
+          syncAttachment: true,
+        },
+      },
+    }
+  }
 }
 
-function sync() {
+async function sync() {
   step.value = 2
-  // TODO: check $axios implementation
-  // $axios.post(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, payload, {
-  //   params: {
-  //     id: this.socket.id,
-  //   },
-  // });
+  const { data }: any = await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
+    method: 'POST',
+    body: {
+      id: socket.value.id,
+    },
+  })
 }
 
 function migrateSync(src: any) {

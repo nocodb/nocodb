@@ -188,7 +188,7 @@ onMounted(() => {
     <template #footer>
       <div v-if="step === 1">
         <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-        <a-button v-t="['c:sync-airtable:save-and-sync']" key="submit" type="primary" @click="saveAndSync">Import</a-button>
+        <a-button key="submit" v-t="['c:sync-airtable:save-and-sync']" type="primary" @click="saveAndSync">Import</a-button>
       </div>
     </template>
     <a-typography-title class="ml-4 mb-4 select-none" type="secondary" :level="5">QUICK IMPORT - AIRTABLE</a-typography-title>
@@ -234,7 +234,7 @@ onMounted(() => {
             <template #title>
               <span>Coming Soon!</span>
             </template>
-            <a-checkbox disabled v-model:checked="syncSource.details.options.syncFormula">Import Formula Columns</a-checkbox>
+            <a-checkbox v-model:checked="syncSource.details.options.syncFormula" disabled>Import Formula Columns</a-checkbox>
           </a-tooltip>
         </a-form>
         <a-divider />
@@ -249,7 +249,7 @@ onMounted(() => {
       </div>
       <div v-if="step === 2">
         <div class="mb-4 prose-xl font-bold">Logs</div>
-        <a-card bodyStyle="background-color: #000000; height:400px; overflow: auto;">
+        <a-card body-style="background-color: #000000; height:400px; overflow: auto;">
           <div v-for="({ msg, status }, i) in progress" :key="i">
             <div v-if="status === 'FAILED'" class="flex items-center">
               <MdiCloseCircleOutlineIcon class="text-red-500" />
@@ -261,12 +261,12 @@ onMounted(() => {
             </div>
           </div>
           <div
-            class="flex items-center"
             v-if="
               !progress ||
               !progress.length ||
               (progress[progress.length - 1].status !== 'COMPLETED' && progress[progress.length - 1].status !== 'FAILED')
             "
+            class="flex items-center"
           >
             <MdiLoadingIcon class="text-green-500 animate-spin" />
             <span class="text-green-500 ml-2"> Importing</span>

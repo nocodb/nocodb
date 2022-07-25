@@ -1,13 +1,17 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
-import { useProject, useTableCreate, useTabs } from '#imports'
-import { validateTableName } from '~/utils/validation'
+import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
+import { onMounted, useProject, useTableCreate, useTabs } from '#imports'
+import { validateTableName } from '~/utils/validation'
 
-const { modelValue = false } = defineProps<{ modelValue?: boolean }>()
+interface Props {
+  modelValue?: boolean
+}
+const props = defineProps<Props>()
+const emit = defineEmits(['update:modelValue', 'create'])
 
-const emit = defineEmits(['update:modelValue'])
+const dialogShow = useVModel(props, 'modelValue', emit)
 
 const idTypes = [
   { value: 'AI', text: 'Auto increment number' },
@@ -15,14 +19,6 @@ const idTypes = [
 ]
 
 const toast = useToast()
-const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v) {
-    emit('update:modelValue', v)
-  },
-})
 
 const isIdToggleAllowed = ref(false)
 const isAdvanceOptVisible = ref(false)
@@ -51,7 +47,7 @@ const validateDuplicate = (v: string) => {
   return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
 }
 
-const inputEl = ref<any>()
+const inputEl = ref<ComponentPublicInstance>()
 
 const useForm = Form.useForm
 const formState = reactive({
@@ -75,7 +71,7 @@ const { resetFields, validate, validateInfos } = useForm(formState, validators)
 onMounted(() => {
   generateUniqueTitle()
   nextTick(() => {
-    const el = inputEl?.value?.$el
+    const el = inputEl.value?.$el
     el?.querySelector('input')?.focus()
     el?.querySelector('input')?.select()
   })
@@ -99,7 +95,7 @@ onMounted(() => {
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
         <!-- hint="Enter table name" -->
         <div class="mb-2">Table Name</div>
-        <a-form-item v-bind="validateInfos['title']">
+        <a-form-item v-bind="validateInfos.title">
           <a-input
             ref="inputEl"
             v-model:value="table.title"
@@ -119,7 +115,7 @@ onMounted(() => {
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
           <!-- hint="Table name as saved in database" -->
           <div class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
-          <a-form-item v-if="!project.prefix" v-bind="validateInfos['table_name']">
+          <a-form-item v-if="!project.prefix" v-bind="validateInfos.table_name">
             <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
           </a-form-item>
           <div>
@@ -133,7 +129,7 @@ onMounted(() => {
                   <template #title>
                     <span>ID column is required, you can rename this later if required.</span>
                   </template>
-                  <a-checkbox disabled v-model:checked="formState.columns.id">ID</a-checkbox>
+                  <a-checkbox v-model:checked="formState.columns.id" disabled>ID</a-checkbox>
                 </a-tooltip>
               </a-col>
               <a-col :span="6">

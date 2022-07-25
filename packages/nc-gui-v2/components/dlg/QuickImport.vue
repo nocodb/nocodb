@@ -10,8 +10,12 @@ import MdiLinkVariantIcon from '~icons/mdi/link-variant'
 import MdiCodeJSONIcon from '~icons/mdi/code-json'
 import { fieldRequiredValidator, importUrlValidator } from '~/utils/validation'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { JSONTemplateAdapter, JSONUrlTemplateAdapter, ExcelTemplateAdapter, ExcelUrlTemplateAdapter } from '~/utils/parsers'
+import { ExcelTemplateAdapter, ExcelUrlTemplateAdapter, JSONTemplateAdapter, JSONUrlTemplateAdapter } from '~/utils/parsers'
 import { useProject } from '#imports'
+const { modelValue, importType } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue'])
+
 const { t } = useI18n()
 
 interface Props {
@@ -19,10 +23,8 @@ interface Props {
   importType: 'csv' | 'json' | 'excel'
 }
 
-const { modelValue, importType } = defineProps<Props>()
 const { tables } = useProject()
 const toast = useToast()
-const emit = defineEmits(['update:modelValue'])
 const activeKey = ref('uploadTab')
 const jsonEditorRef = ref()
 const loading = ref(false)
@@ -211,10 +213,10 @@ const parseAndExtractData = async (val: any, name: string) => {
             name="file"
             :multiple="true"
             :accept="importMeta.acceptTypes"
+            list-type="picture"
             @change="handleChange"
             @drop="handleDrop"
             @reject="rejectDrop"
-            list-type="picture"
           >
             <MdiFileIcon size="large" />
             <p class="ant-upload-text">Click or drag file to this area to upload</p>
@@ -232,7 +234,7 @@ const parseAndExtractData = async (val: any, name: string) => {
           </span>
         </template>
         <div class="pr-10 pb-10 pt-5">
-          <MonacoEditor v-model="importState.jsonEditor" class="h-[400px]" ref="jsonEditorRef" />
+          <MonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="h-[400px]" />
         </div>
       </a-tab-pane>
       <a-tab-pane v-else key="urlTab" :closable="false">

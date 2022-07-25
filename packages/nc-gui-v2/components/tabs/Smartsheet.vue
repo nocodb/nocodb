@@ -37,7 +37,7 @@ watch(
 </script>
 
 <template>
-  <div class="overflow-auto">
+  <div class="overflow-auto nc-container">
     <SmartsheetToolbar />
     <template v-if="meta">
       <div class="d-flex">

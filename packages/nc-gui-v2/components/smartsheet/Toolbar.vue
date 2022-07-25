@@ -1,11 +1,11 @@
 <script setup lang="ts"></script>
 
 <template>
-  <v-toolbar dense class="nc-table-toolbar elevation-0 xc-toolbar xc-border-bottom" style="z-index: 7">
+  <div dense class="nc-table-toolbar w-100 p-1 flex gap-1" style="z-index: 7">
     <SmartsheetToolbarFieldsMenu :show-system-fields="false" />
     <SmartsheetToolbarColumnFilterMenu />
     <SmartsheetToolbarSortListMenu />
-  </v-toolbar>
+  </div>
 </template>
 
 <style scoped></style>

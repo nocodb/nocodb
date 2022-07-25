@@ -248,7 +248,7 @@ const addTableTab = (table: TableType) => {
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
                     <template #overlay>
                       <a-menu class="cursor-pointer">
-                        <a-menu-item class="!text-xs" @click="showRenameTableDlg(table)"> Rename </a-menu-item>
+                        <a-menu-item v-t="" class="!text-xs" @click="showRenameTableDlg(table)"><div>Rename</div></a-menu-item>
                         <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
                       </a-menu>
                     </template>

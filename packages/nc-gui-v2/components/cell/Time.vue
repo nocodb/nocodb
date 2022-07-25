@@ -1,17 +1,27 @@
 <script setup lang="ts">
 import { inject } from 'vue'
 
+interface Props {
+  modelValue: any
+}
+
+const props = defineProps<Props>()
+
+const emits = defineEmits(['update:modelValue', 'save'])
+
+const vModel = useVModel(props, 'modelValue', emits)
+
 const editEnabled = inject<boolean>('editEnabled')
 </script>
 
 <template>
   <v-menu>
-    <template #activator="{ on }">
-      <input v-model="localState" class="value" v-on="on" />
+    <template #activator="{ props: menuProps }">
+      <input v-model="vModel" class="value" v-bind="menuProps.onClick" />
     </template>
     <div class="d-flex flex-column justify-center" @click.stop>
-      <v-time-picker v-model="localState" v-on="parentListeners" />
-      <v-btn small color="primary" @click="$emit('save')">
+      <v-time-picker v-model="vModel" />
+      <v-btn small color="primary" @click="emits('save')">
         <!-- Save -->
         {{ $t('general.save') }}
       </v-btn>

@@ -1,66 +1,47 @@
-<script>
-import MonacoJsonObjectEditor from '@/components/monaco/MonacoJsonObjectEditor'
-const editEnabled = inject < boolean > 'editEnabled'
+<script lang="ts" setup>
+import MonacoJsonObjectEditor from '@/components/monaco/Editor.vue'
+import { inject } from '#imports'
 
-export default {
-  name: 'JsonEditableCell',
-  components: { MonacoJsonObjectEditor },
-  props: {
-    value: [String, Object],
-    isForm: Boolean,
-  },
-  data: () => ({
-    localState: '',
-    expand: false,
-    isValid: true,
-    error: undefined,
-  }),
-  computed: {
-    parentListeners() {
-      const $listeners = {}
+interface Props {
+  modelValue: string | Record<string, any>
+  isForm: boolean
+}
 
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
+const props = defineProps<Props>()
 
-      return $listeners
-    },
-  },
-  watch: {
-    value(val) {
-      try {
-        this.localState = typeof val === 'string' ? JSON.parse(val) : val
-      } catch (e) {
-        // ignore parse error for invalid JSON
-      }
-    },
-    localState(val) {
-      if (this.isForm) {
-        this.$emit('input', JSON.stringify(val))
-      }
-    },
-  },
-  created() {
-    try {
-      this.localState = typeof this.value === 'string' ? JSON.parse(this.value) : this.value
-    } catch (e) {
-      // ignore parse error for invalid JSON
+const emits = defineEmits(['update:modelValue', 'cancel'])
+
+const editEnabled = inject('editEnabled')
+
+let expand = $ref(false)
+
+let isValid = $ref(true)
+
+let error = $ref()
+
+const localState = computed({
+  get: () => (typeof props.modelValue === 'string' ? JSON.parse(props.modelValue) : props.modelValue),
+  set: (val) => {
+    if (props.isForm) {
+      emits('update:modelValue', JSON.stringify(val))
     }
   },
-  mounted() {},
-  methods: {
-    save() {
-      this.expand = false
-      this.$emit('input', JSON.stringify(this.localState))
-    },
-    validate(n, e) {
-      this.isValid = n
-      this.error = e
-    },
-  },
+})
+
+function save() {
+  expand = false
+  emits('update:modelValue', JSON.stringify(props.modelValue))
+}
+
+function validate(n: boolean, e: any) {
+  isValid = n
+  error = e
+}
+</script>
+
+<script lang="ts">
+export default {
+  name: 'JsonEditableCell',
 }
 </script>
 

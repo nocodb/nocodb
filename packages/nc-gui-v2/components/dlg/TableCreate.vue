@@ -8,7 +8,9 @@ import { validateTableName } from '~/utils/validation'
 interface Props {
   modelValue?: boolean
 }
+
 const props = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue', 'create'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
@@ -17,16 +19,18 @@ const idTypes = [
   { value: 'AI', text: 'Auto increment number' },
   { value: 'AG', text: 'Auto generated string' },
 ]
-
 const toast = useToast()
-
+const valid = ref(false)
 const isIdToggleAllowed = ref(false)
 const isAdvanceOptVisible = ref(false)
 
 const { addTab } = useTabs()
+
 const { loadTables } = useProject()
+
 const { table, createTable, generateUniqueTitle, tables, project } = useTableCreate(async (table) => {
   await loadTables()
+
   addTab({
     id: table.id as string,
     title: table.title,
@@ -48,7 +52,6 @@ const validateDuplicate = (v: string) => {
 }
 
 const inputEl = ref<ComponentPublicInstance>()
-
 const useForm = Form.useForm
 const formState = reactive({
   title: '',
@@ -70,6 +73,7 @@ const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
 onMounted(() => {
   generateUniqueTitle()
+
   nextTick(() => {
     const el = inputEl.value?.$el
     el?.querySelector('input')?.focus()

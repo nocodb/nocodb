@@ -5,10 +5,11 @@ import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
 import { ref } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
-import type { ProjectCreateForm } from '~/lib/types'
-import { ClientType } from '~/lib/types'
+import { ClientType } from '~/lib/enums'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { readFile } from '~/utils/fileUtils'
+
+import type { ProjectCreateForm } from '~/utils/projectCreateUtils'
 import {
   clientTypes,
   generateUniqueName,

@@ -146,7 +146,12 @@ function migrateSync(src: any) {
   return src
 }
 
-// TODO: watch syncSourceUrlOrId
+watch(syncSourceUrlOrId, (v) => {
+  if (syncSource.value.details) {
+    const m = v && v.match(/(exp|shr).{14}/g)
+    syncSource.value.details.shareId = m ? m[0] : ''
+  }
+})
 
 onMounted(() => {
   // TODO: handle base url

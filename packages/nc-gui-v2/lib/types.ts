@@ -1,5 +1,5 @@
 import type { ComputedRef, ToRefs } from 'vue'
-import type { Roles } from '~/lib/enums'
+import type { Role } from './enums'
 
 export interface User {
   id: string
@@ -33,40 +33,4 @@ export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State
 
 export type GlobalState = Getters & Actions & ToRefs<ReadonlyState>
 
-export enum ClientType {
-  MYSQL = 'mysql2',
-  MSSQL = 'mssql',
-  PG = 'pg',
-  SQLITE = 'sqlite3',
-  VITESS = 'vitess',
-}
-
-export interface ProjectCreateForm {
-  title: string
-  dataSource: {
-    client: ClientType
-    connection:
-      | {
-          host: string
-          database: string
-          user: string
-          password: string
-          port: number | string
-          ssl?: Record<string, string>
-          searchPath?: string[]
-        }
-      | {
-          client?: 'sqlite3'
-          database: string
-          connection?: {
-            filename?: string
-          }
-          useNullAsDefault?: boolean
-        }
-  }
-  inflection: {
-    inflectionColumn?: string
-    inflectionTable?: string
-  }
-  sslUse?: any
-}
+export type Roles = Record<Role, boolean>

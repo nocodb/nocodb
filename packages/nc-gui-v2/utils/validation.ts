@@ -78,7 +78,12 @@ export const projectTitleValidator = {
     callback()
   },
 }
+
 export const fieldRequiredValidator = {
   required: true,
   message: 'Field is required',
 }
+export const getRequiredValidator = (field = 'Field') => ({
+  required: true,
+  message: `${field} is required`,
+})

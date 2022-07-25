@@ -1,5 +1,5 @@
 <script>
-import ListChildItems from '~/components/project/spreadsheet/components/virtualCell/components/ListChildItems'
+import ListChildItems from './ListChildItems.vue'
 
 export default {
   name: 'ListChildItemsModal',
@@ -32,6 +32,7 @@ export default {
     rowId: [String, Number],
     column: Object,
   },
+  emits: ['input'],
   data: () => ({
     data: null,
     page: 1,
@@ -50,7 +51,7 @@ export default {
   methods: {
     async loadData() {
       if (this.$refs && this.$refs.child) {
-        this.$refs.child.loadData()
+        await this.$refs.child.loadData()
       }
     },
   },
@@ -79,7 +80,6 @@ export default {
       :read-only="readOnly"
       :is-public="isPublic"
       :column="column"
-      v-on="$listeners"
     />
   </v-dialog>
 </template>

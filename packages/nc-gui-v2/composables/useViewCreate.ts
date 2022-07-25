@@ -3,7 +3,7 @@ import { ViewTypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useToast } from 'vue-toastification'
 import { useNuxtApp } from '#app'
-import useMetas from '~/composables/useMetas'
+// import useMetas from '~/composables/useMetas'
 
 export default (meta: Ref<TableType>, onViewCreate?: (viewMeta: any) => void) => {
   const view = reactive<{ title: string; type?: ViewTypes }>({
@@ -14,7 +14,8 @@ export default (meta: Ref<TableType>, onViewCreate?: (viewMeta: any) => void) =>
 
   const { $api } = useNuxtApp()
   const toast = useToast()
-  const { metas } = useMetas()
+  // unused
+  // const { metas } = useMetas()
 
   const createView = async (viewType: ViewTypes, selectedViewId = null) => {
     loading.value = true
@@ -53,7 +54,7 @@ export default (meta: Ref<TableType>, onViewCreate?: (viewMeta: any) => void) =>
       }
       toast.success('View created successfully')
       onViewCreate?.(data)
-    } catch (e) {
+    } catch (e: any) {
       toast.error(e.message)
     }
 

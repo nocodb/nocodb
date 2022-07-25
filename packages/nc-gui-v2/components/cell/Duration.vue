@@ -66,7 +66,7 @@ const submitDuration = () => {
       @keypress="checkDurationFormat($event)"
       @keydown.enter="submitDuration"
     />
-    <div v-if="showWarningMessage == true" class="duration-warning">
+    <div v-if="showWarningMessage" class="duration-warning">
       <!-- TODO: i18n -->
       Please enter a number
     </div>

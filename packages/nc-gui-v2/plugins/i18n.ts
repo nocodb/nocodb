@@ -1,10 +1,10 @@
 import { defineNuxtPlugin } from 'nuxt/app'
 import { createI18n } from 'vue-i18n'
 
-import type en from '~/lang/en.json'
+// import type en from '~/lang/en.json'
 
-// Type-define 'en' as the master schema for the resource
-type MessageSchema = typeof en
+// todo: Type-define 'en' as the master schema for the resource
+// type MessageSchema = typeof en
 
 export const createI18nPlugin = async () =>
   createI18n({

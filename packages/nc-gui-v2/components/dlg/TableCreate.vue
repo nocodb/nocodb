@@ -1,34 +1,34 @@
 <script setup lang="ts">
-import { onMounted } from '@vue/runtime-core'
-import { useProject, useTableCreate, useTabs } from '#imports'
+import type { ComponentPublicInstance } from '@vue/runtime-core'
+import { onMounted, useProject, useTableCreate, useTabs } from '#imports'
 import { validateTableName } from '~/utils/validation'
 
-const { modelValue = false } = defineProps<{ modelValue?: boolean }>()
+interface Props {
+  modelValue?: boolean
+}
 
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue', 'create'])
+
+const dialogShow = useVModel(props, 'modelValue', emit)
 
 const idTypes = [
   { value: 'AI', text: 'Auto increment number' },
   { value: 'AG', text: 'Auto generated string' },
 ]
 
-const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v) {
-    emit('update:modelValue', v)
-  },
-})
-
 const valid = ref(false)
 const isIdToggleAllowed = ref(false)
 const isAdvanceOptVisible = ref(false)
 
 const { addTab } = useTabs()
+
 const { loadTables } = useProject()
+
 const { table, createTable, generateUniqueTitle, tables, project } = useTableCreate(async (table) => {
   await loadTables()
+
   addTab({
     id: table.id as string,
     title: table.title,
@@ -49,12 +49,13 @@ const validateDuplicate = (v: string) => {
   return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
 }
 
-const inputEl = ref<any>()
+const inputEl = ref<ComponentPublicInstance>()
 
 onMounted(() => {
   generateUniqueTitle()
+
   nextTick(() => {
-    const el = inputEl?.value?.$el
+    const el = inputEl.value?.$el
     el?.querySelector('input')?.focus()
     el?.querySelector('input')?.select()
   })

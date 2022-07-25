@@ -32,6 +32,7 @@ export default {
     column: Object,
     rowId: [Number, String],
   },
+  emits: ['input', 'add', 'addNewRecord'],
   data: () => ({
     data: null,
     page: 1,
@@ -127,7 +128,7 @@ export default {
         <v-spacer />
 
         <v-icon small class="mr-1" @click="loadData()"> mdi-reload </v-icon>
-        <v-btn v-if="!isPublic" small class="caption mr-2" color="primary" @click="$emit('add-new-record')">
+        <v-btn v-if="!isPublic" small class="caption mr-2" color="primary" @click="$emit('addNewRecord')">
           <v-icon small> mdi-plus </v-icon>&nbsp; New Record
         </v-btn>
       </v-card-title>

@@ -36,6 +36,7 @@ export default {
     type: String,
     password: String,
   },
+  emits: ['input', 'edit', 'delete', 'unlink', 'newRecord'],
   data: () => ({
     RelationTypes,
     data: null,
@@ -121,7 +122,7 @@ export default {
         small
         class="caption"
         color="primary"
-        @click="$emit('new-record')"
+        @click="$emit('newRecord')"
       >
         <v-icon small> mdi-link </v-icon>&nbsp; Link to '{{ meta.title }}'
       </v-btn>
@@ -129,7 +130,7 @@ export default {
     <v-card-text>
       <div class="items-container pt-2 mb-n4" :class="{ 'mx-n2': isForm }">
         <div v-if="!readOnly && (isPublic || _isUIAllowed('xcDatatableEditable'))" class="text-right mb-2 mt-n2 mx-2">
-          <v-btn v-if="isForm" x-small class="caption" color="primary" outlined @click="$emit('new-record')">
+          <v-btn v-if="isForm" x-small class="caption" color="primary" outlined @click="$emit('newRecord')">
             <v-icon x-small> mdi-link </v-icon>&nbsp; Link to '{{ meta.title }}'
           </v-btn>
         </div>

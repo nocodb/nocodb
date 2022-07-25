@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import { isVirtualCol, UITypes } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { Form } from 'ant-design-vue'
+import { tableColumns } from './utils'
 import { computed, onMounted } from '#imports'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiStringIcon from '~icons/mdi/alpha-a'
@@ -16,103 +17,90 @@ import { fieldRequiredValidator } from '~/utils/validation'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
-  projectTemplate: object
+  projectTemplate: Record<string, any>
   importData: any[]
 }
 
 interface Option {
+  label: string
   value: string
 }
 
-const useForm = Form.useForm
 const { quickImportType, projectTemplate, importData } = defineProps<Props>()
+
+const useForm = Form.useForm
+
 const { $api } = useNuxtApp()
-const tableColumns = [
-  {
-    name: 'Column Name',
-    dataIndex: 'column_name',
-    key: 'column_name',
-    width: 250,
-  },
-  {
-    name: 'Column Type',
-    dataIndex: 'column_type',
-    key: 'uidt',
-    width: 250,
-  },
-  {
-    name: 'Select Option',
-    key: 'dtxp',
-  },
-  {
-    name: 'Action',
-    key: 'action',
-    align: 'right',
-  },
-]
-const templateForm = reactive<{ tables: object[] }>({
-  tables: [],
-})
-const hasSelectColumn = ref(<boolean[]>{})
-const expansionPanel = ref(<number[]>[])
-const editableTn = ref(<boolean[]>{})
-const inputRefs = ref(<HTMLInputElement[]>[])
+
+const hasSelectColumn = ref<boolean[]>([])
+
+const expansionPanel = ref<number[]>([])
+
+const editableTn = ref<boolean[]>([])
+
+const inputRefs = ref<HTMLInputElement[]>([])
+
 const isImporting = ref(false)
+
 const importingTip = ref('Importing')
+
 const uiTypeOptions = ref<Option[]>(
-  (Object.keys(UITypes) as Array<keyof typeof UITypes>)
+  (Object.keys(UITypes) as (keyof typeof UITypes)[])
     .filter(
-      (uiType: any) =>
-        !isVirtualCol(uiType) &&
+      (uiType) =>
+        !isVirtualCol(UITypes[uiType]) &&
         ![UITypes.ForeignKey, UITypes.ID, UITypes.CreateTime, UITypes.LastModifiedTime, UITypes.Barcode, UITypes.Button].includes(
-          uiType,
+          UITypes[uiType],
         ),
     )
-    .map((uiType: string) => ({
+    .map<Option>((uiType) => ({
       value: uiType,
       label: uiType,
     })),
 )
-const data = reactive(<any>{
+
+const data = reactive<{ title: string | null; name: string; tables: TableType[] }>({
+  title: null,
   name: 'Project Name',
   tables: [],
 })
 
 const toast = useToast()
+
 const { addTab } = useTabs()
+
 const { sqlUi, project, loadTables } = useProject()
 
 onMounted(() => {
   parseAndLoadTemplate()
 })
 
-const validators = computed(() => {
-  let res: any = {}
-  for (let tableIdx = 0; tableIdx < data.tables.length; tableIdx++) {
-    res[`tables.${tableIdx}.table_name`] = [fieldRequiredValidator]
+const validators = computed(() =>
+  data.tables.reduce<Record<string, [typeof fieldRequiredValidator]>>((acc, table, tableIdx) => {
+    acc[`tables.${tableIdx}.table_name`] = [fieldRequiredValidator]
     hasSelectColumn.value[tableIdx] = false
-    for (let columnIdx = 0; columnIdx < data.tables[tableIdx].columns.length; columnIdx++) {
-      res[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator]
-      res[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator]
-      if (isSelect(data.tables[tableIdx].columns[columnIdx])) {
+
+    table.columns?.forEach((column, columnIdx) => {
+      acc[`tables.${tableIdx}.columns.${columnIdx}.column_name`] = [fieldRequiredValidator]
+      acc[`tables.${tableIdx}.columns.${columnIdx}.uidt`] = [fieldRequiredValidator]
+      if (isSelect(column)) {
         hasSelectColumn.value[tableIdx] = true
       }
-    }
-  }
-  return res
-})
+    })
 
-const editorTitle = computed(() => {
-  return `${quickImportType.toUpperCase()} Import: ${data.title}`
-})
+    return acc
+  }, {}),
+)
 
-const { resetFields, validate, validateInfos } = useForm(data, validators)
+const editorTitle = computed(() => `${quickImportType.toUpperCase()} Import: ${data.title}`)
 
-const filterOption = (input: string, option: Option) => {
-  return option.value.toUpperCase().indexOf(input.toUpperCase()) >= 0
+const { validate, validateInfos } = useForm(data, validators)
+
+function filterOption(input: string, option: Option) {
+  return option.value.toUpperCase().includes(input.toUpperCase())
 }
 
-const parseAndLoadTemplate = () => {
+function parseAndLoadTemplate() {
   if (projectTemplate) {
     parseTemplate(projectTemplate)
     expansionPanel.value = Array.from({ length: data.tables.length || 0 }, (_, i) => i)
@@ -120,10 +108,10 @@ const parseAndLoadTemplate = () => {
   }
 }
 
-const parseTemplate = ({ tables = [], ...rest }: Record<string, any>) => {
+function parseTemplate({ tables = [], ...rest }: Props['projectTemplate']) {
   const parsedTemplate = {
     ...rest,
-    tables: tables.map(({ v = [], columns = [], ...rest }: Record<string, any>) => ({
+    tables: tables.map(({ v = [], columns = [], ...rest }) => ({
       ...rest,
       columns: [
         ...columns.map((c: any, idx: number) => {
@@ -142,19 +130,19 @@ const parseTemplate = ({ tables = [], ...rest }: Record<string, any>) => {
   Object.assign(data, parsedTemplate)
 }
 
-const isSelect = (col: ColumnType) => {
+function isSelect(col: ColumnType) {
   return col.uidt === 'MultiSelect' || col.uidt === 'SingleSelect'
 }
 
-const deleteTable = (tableIdx: number) => {
+function deleteTable(tableIdx: number) {
   data.tables.splice(tableIdx, 1)
 }
 
-const deleteTableColumn = (tableIdx: number, columnIdx: number) => {
-  data.tables[tableIdx].columns = data.tables[tableIdx].columns.filter((c: any) => c.key !== columnIdx)
+function deleteTableColumn(tableIdx: number, columnIdx: number) {
+  data.tables[tableIdx].columns?.splice(columnIdx, 1)
 }
 
-const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
+function addNewColumnRow(table: Record<string, any>, uidt?: string) {
   table.columns.push({
     key: table.columns.length,
     column_name: `title${table.columns.length + 1}`,
@@ -167,11 +155,11 @@ const addNewColumnRow = (table: Record<string, any>, uidt?: string) => {
   })
 }
 
-const setEditableTn = (tableIdx: number, val: boolean) => {
+function setEditableTn(tableIdx: number, val: boolean) {
   editableTn.value[tableIdx] = val
 }
 
-const remapColNames = (batchData: any[], columns: ColumnType[]) => {
+function remapColNames(batchData: any[], columns: ColumnType[]) {
   return batchData.map((data) =>
     (columns || []).reduce(
       (aggObj, col: Record<string, any>) => ({
@@ -183,7 +171,7 @@ const remapColNames = (batchData: any[], columns: ColumnType[]) => {
   )
 }
 
-const importTemplate = async () => {
+async function importTemplate() {
   // check if form is valid
   try {
     await validate()
@@ -207,19 +195,19 @@ const importTemplate = async () => {
       // e.g. id, created_at, updated_at
       const systemColumns = sqlUi?.value.getNewTableColumns().filter((c: ColumnType) => c.column_name !== 'title')
       for (const systemColumn of systemColumns) {
-        if (
-          !table.columns.some((c: Record<string, any>) => c.column_name.toLowerCase() === systemColumn.column_name.toLowerCase())
-        ) {
-          table.columns.push(systemColumn)
+        if (!table.columns?.some((c) => c.column_name?.toLowerCase() === systemColumn.column_name.toLowerCase())) {
+          table.columns?.push(systemColumn)
         }
       }
 
       // set pk & rqd if ID is provided
-      for (const column of table.columns) {
-        if (column.column_name.toLowerCase() === 'id' && !('pk' in column)) {
-          column.pk = true
-          column.rqd = true
-          break
+      if (table.columns) {
+        for (const column of table.columns) {
+          if (column.column_name?.toLowerCase() === 'id' && !('pk' in column)) {
+            column.pk = true
+            column.rqd = true
+            break
+          }
         }
       }
       const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
@@ -228,7 +216,7 @@ const importTemplate = async () => {
         title: '',
         columns: table.columns,
       })
-      table.table_title = tableMeta.title
+      table.title = tableMeta.title
 
       // open the first table after import
       if (tab.id === '' && tab.title === '') {
@@ -237,7 +225,7 @@ const importTemplate = async () => {
       }
 
       // set primary value
-      if (tableMeta?.columns[0]?.id) {
+      if (tableMeta?.columns?.[0]?.id) {
         await $api.dbTableColumn.primaryColumnSet(tableMeta.columns[0].id as string)
       }
     }
@@ -245,7 +233,7 @@ const importTemplate = async () => {
     if (importData) {
       let total = 0
       let progress = 0
-      let offset = 500
+      const offset = 500
       const projectName = project.value.title as string
       await Promise.all(
         data.tables.map((table: Record<string, any>) =>
@@ -283,7 +271,7 @@ const importTemplate = async () => {
   <a-spin :spinning="isImporting" :tip="importingTip" size="large">
     <a-card :title="editorTitle">
       <template #extra>
-        <a-button type="primary" @click="importTemplate" size="large">
+        <a-button type="primary" size="large" @click="importTemplate">
           {{ $t('activity.import') }}
         </a-button>
       </template>
@@ -300,7 +288,7 @@ const importTemplate = async () => {
         >
           <a-collapse-panel v-for="(table, tableIdx) in data.tables" :key="tableIdx">
             <template #header>
-              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" noStyle>
+              <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <a-input
                   v-model:value="table.table_name"
                   size="large"
@@ -314,7 +302,7 @@ const importTemplate = async () => {
               <span
                 v-else
                 class="font-weight-bold text-lg flex items-center gap-2"
-                @click="(e) => (e.stopPropagation(), setEditableTn(tableIdx, true))"
+                @click="$event.stopPropagation() && setEditableTn(tableIdx, true)"
               >
                 <MdiTableIcon class="text-primary" />
                 {{ table.table_name }}
@@ -360,13 +348,13 @@ const importTemplate = async () => {
                 <template v-if="column.key === 'column_name'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
                     <a-input
-                      v-model:value="record.column_name"
-                      size="large"
                       :ref="
                         (el) => {
                           inputRefs[record.key] = el
                         }
                       "
+                      v-model:value="record.column_name"
+                      size="large"
                     />
                   </a-form-item>
                 </template>
@@ -404,7 +392,7 @@ const importTemplate = async () => {
                       <span>Delete Column</span>
                     </template>
 
-                    <a-button @click="deleteTableColumn(tableIdx, record.key)" type="text">
+                    <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
                       <div class="flex items-center">
                         <MdiDeleteOutlineIcon class="text-lg" />
                       </div>
@@ -473,15 +461,15 @@ const importTemplate = async () => {
 
 <style scoped lang="scss">
 .template-collapse {
-  background-color: #ffffff;
+  @apply bg-white;
 }
 
 .template-form {
   :deep(.ant-table-thead) > tr > th {
-    background: #ffffff;
+    @apply bg-white;
   }
   :deep(.template-form-row) > td {
-    padding-bottom: 0px !important;
+    @apply !pb-0;
   }
 }
 </style>

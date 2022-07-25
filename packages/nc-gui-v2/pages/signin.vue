@@ -74,7 +74,7 @@ const resetError = () => {
       ref="formValidator"
       :model="form"
       layout="vertical"
-      class="signin h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center"
+      class="signin h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center nc-form-signin"
       @finish="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap items-center pt-[100px]">

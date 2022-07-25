@@ -45,6 +45,7 @@ const importState = reactive({
 const validators = computed(() => {
   return {
     'url': [fieldRequiredValidator, importUrlValidator],
+    'maxRowsToParse': [fieldRequiredValidator]
   }
 })
 
@@ -190,6 +191,9 @@ const parseAndExtractData = async (type: string, val: any, name: string) => {
           </span>
         </template>
         <div class="pr-10 pb-10 pt-5">
+          <a-form-item :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
+            <a-input-number id="x" v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" size="large" />
+          </a-form-item>
           <a-upload-dragger
             v-model:fileList="importState.fileList"
             name="file"

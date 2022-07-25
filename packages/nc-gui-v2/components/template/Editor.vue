@@ -92,8 +92,6 @@ const validators = computed(() =>
   }, {}),
 )
 
-const editorTitle = computed(() => `${quickImportType.toUpperCase()} Import: ${data.title}`)
-
 const { validate, validateInfos } = useForm(data, validators)
 
 function filterOption(input: string, option: Option) {
@@ -229,7 +227,7 @@ async function importTemplate() {
         await $api.dbTableColumn.primaryColumnSet(tableMeta.columns[0].id as string)
       }
     }
-    // bulk imsert data
+    // bulk insert data
     if (importData) {
       let total = 0
       let progress = 0
@@ -244,7 +242,7 @@ async function importTemplate() {
               for (let i = 0; i < data.length; i += offset) {
                 importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
                 const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.table_title, batchData)
+                await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.title, batchData)
                 progress += batchData.length
               }
             }
@@ -265,16 +263,15 @@ async function importTemplate() {
     isImporting.value = false
   }
 }
+
+defineExpose({
+  importTemplate,
+})
 </script>
 
 <template>
   <a-spin :spinning="isImporting" :tip="importingTip" size="large">
-    <a-card :title="editorTitle">
-      <template #extra>
-        <a-button type="primary" size="large" @click="importTemplate">
-          {{ $t('activity.import') }}
-        </a-button>
-      </template>
+    <a-card>
       <a-form :model="data" name="template-editor-form">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
@@ -299,11 +296,7 @@ async function importTemplate() {
                   @keydown.enter="setEditableTn(tableIdx, false)"
                 />
               </a-form-item>
-              <span
-                v-else
-                class="font-weight-bold text-lg flex items-center gap-2"
-                @click="$event.stopPropagation() && setEditableTn(tableIdx, true)"
-              >
+              <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
                 <MdiTableIcon class="text-primary" />
                 {{ table.table_name }}
               </span>

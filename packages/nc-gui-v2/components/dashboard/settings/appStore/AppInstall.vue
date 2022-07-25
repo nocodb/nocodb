@@ -160,8 +160,8 @@ onMounted(async () => {
       <a-form ref="formRef" v-bind="plugin?.formDetails.array ? {} : layout" :model="pluginFormData" class="mx-4 mt-3">
         <!-- Form with multiple entry -->
         <div v-if="plugin.formDetails.array" class="flex flex-row justify-center">
-          <table class="form-table">
-            <thead>
+          <table>
+            <thead class="mb-2">
               <tr>
                 <th v-for="(columnData, columnIndex) in plugin.formDetails.items" :key="columnIndex">
                   <div class="text-center font-normal">

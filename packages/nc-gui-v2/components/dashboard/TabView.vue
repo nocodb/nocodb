@@ -123,7 +123,7 @@ const onEdit = (targetKey: number, action: string) => {
     </a-tabs>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
-    <DlgFileImport v-if="fileImportDialog" v-model="fileImportDialog" :import-type="importType" />
+    <DlgQuickImport v-if="fileImportDialog" v-model="fileImportDialog" :import-type="importType" />
     <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
 
     <v-window v-model="activeTab">

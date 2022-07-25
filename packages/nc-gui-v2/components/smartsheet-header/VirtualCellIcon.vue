@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { LinkToAnotherRecordType, RelationTypes, UITypes } from "nocodb-sdk";
+import type { LinkToAnotherRecordType } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
 import { ColumnInj } from '~/context'
 import GenericIcon from '~icons/mdi/square-rounded'
 import HMIcon from '~icons/mdi/table-arrow-right'
@@ -13,7 +14,7 @@ const column = inject(ColumnInj)
 const icon = computed(() => {
   switch (column?.uidt) {
     case UITypes.LinkToAnotherRecord:
-      switch ((<LinkToAnotherRecordType>column?.colOptions)?.type) {
+      switch ((column?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
           return MMIcon
         case RelationTypes.HAS_MANY:

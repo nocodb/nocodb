@@ -62,7 +62,7 @@ watch(
             class="caption nc-sort-field-select"
             :columns="columns"
             @click.stop
-            @update:modelValue="saveOrUpdate(sort, i)"
+            @update:model-value="saveOrUpdate(sort, i)"
           />
           <v-select
             v-model="sort.direction"
@@ -73,7 +73,7 @@ watch(
             variant="solo"
             hide-details
             @click.stop
-            @update:modelValue="saveOrUpdate(sort, i)"
+            @update:model-value="saveOrUpdate(sort, i)"
           />
           <!--            <template #item="{ item }"> -->
           <!--              <span class="caption font-weight-regular">{{ item.text }}</span> -->

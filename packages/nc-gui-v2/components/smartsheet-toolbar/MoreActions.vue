@@ -13,7 +13,6 @@ export default {
   name: 'ExportImport',
   components: {
     WebhookSlider,
-    WebhookModal,
     ColumnMappingModal,
     DropOrSelectFileModal,
   },
@@ -26,6 +25,7 @@ export default {
     isView: Boolean,
     reqPayload: Object,
   },
+  emits: ['reload', 'showAdditionalFeatOverlay'],
   data() {
     return {
       importModal: false,
@@ -206,19 +206,19 @@ export default {
                 const v = this.meta && this.meta.columns.find((c) => c.title === col.destCn)
                 let input = row[col.sourceCn]
                 // parse potential boolean values
-                if (v.uidt == UITypes.Checkbox) {
+                if (v.uidt === UITypes.Checkbox) {
                   input = input.replace(/["']/g, '').toLowerCase().trim()
-                  if (input == 'false' || input == 'no' || input == 'n') {
+                  if (input === 'false' || input === 'no' || input === 'n') {
                     input = '0'
-                  } else if (input == 'true' || input == 'yes' || input == 'y') {
+                  } else if (input === 'true' || input === 'yes' || input === 'y') {
                     input = '1'
                   }
                 } else if (v.uidt === UITypes.Number) {
-                  if (input == '') {
+                  if (input === '') {
                     input = null
                   }
                 } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
-                  if (input == '') {
+                  if (input === '') {
                     input = null
                   }
                 }

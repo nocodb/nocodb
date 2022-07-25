@@ -15,6 +15,9 @@ interface Props {
 const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
+// TODO: handle baseURL
+const baseURL = 'http://localhost:8080' // this.$axios.defaults.baseURL
+
 const { $state } = useNuxtApp()
 const toast = useToast()
 const { sqlUi, project, loadTables } = useProject()
@@ -72,12 +75,16 @@ async function createOrUpdate() {
     const { id, ...payload } = syncSource.value
     if (id !== '') {
       await $fetch(`/api/v1/db/meta/syncs/${id}`, {
+        baseURL,
         method: 'PATCH',
+        headers: { 'xc-auth': $state.token.value as string },
         body: payload,
       })
     } else {
-      const { data }: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+      const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+        baseURL,
         method: 'POST',
+        headers: { 'xc-auth': $state.token.value as string },
         body: payload,
       })
       syncSource.value = data
@@ -88,11 +95,12 @@ async function createOrUpdate() {
 }
 
 async function loadSyncSrc() {
-  const {
-    data: { list: srcs },
-  }: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+  const data: any = await $fetch(`/api/v1/db/meta/projects/${project.value.id}/syncs`, {
+    baseURL,
     method: 'GET',
+    headers: { 'xc-auth': $state.token.value as string },
   })
+  const { list: srcs } = data
   if (srcs && srcs[0]) {
     srcs[0].details = srcs[0].details || {}
     syncSource.value = migrateSync(srcs[0])
@@ -122,12 +130,19 @@ async function loadSyncSrc() {
 
 async function sync() {
   step.value = 2
-  const { data }: any = await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
-    method: 'POST',
-    body: {
-      id: socket.value.id,
-    },
-  })
+  try {
+    await $fetch(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, {
+      baseURL,
+      method: 'POST',
+      headers: { 'xc-auth': $state.token.value as string },
+      body: {
+        id: socket.value.id,
+      },
+    })
+  } catch (e: any) {
+    console.log(e)
+    toast.error(e)
+  }
 }
 
 function migrateSync(src: any) {
@@ -153,9 +168,7 @@ watch(syncSourceUrlOrId, (v) => {
   }
 })
 
-onMounted(() => {
-  // TODO: handle base url
-  const baseURL = 'http://localhost:8080' // this.$axios.defaults.baseURL
+onMounted(async () => {
   socket.value = io(new URL(baseURL, window.location.href.split(/[?#]/)[0]).href, {
     extraHeaders: { 'xc-auth': $state.token.value as string },
   })
@@ -185,7 +198,13 @@ onMounted(() => {
       // TODO: add tab of the first table
     }
   })
-  loadSyncSrc()
+  await loadSyncSrc()
+})
+
+onBeforeUnmount(() => {
+  if (socket.value) {
+    socket.value.disconnect()
+  }
 })
 </script>
 

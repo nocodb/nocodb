@@ -310,7 +310,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientCert') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" @click="certFileInput.click()" class="shadow">
+                  <a-button :disabled="!sslFilesRequired" size="small" class="shadow" @click="certFileInput.click()">
                     {{ $t('labels.clientCert') }}
                   </a-button>
                 </a-tooltip>
@@ -319,7 +319,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientKey') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" @click="keyFileInput.click()" class="shadow">
+                  <a-button :disabled="!sslFilesRequired" size="small" class="shadow" @click="keyFileInput.click()">
                     {{ $t('labels.clientKey') }}
                   </a-button>
                 </a-tooltip>
@@ -328,7 +328,7 @@ onMounted(() => {
                   <template #title>
                     <span>{{ $t('tooltip.clientCA') }}</span>
                   </template>
-                  <a-button :disabled="!sslFilesRequired" size="small" @click="caFileInput.click()" class="shadow">
+                  <a-button :disabled="!sslFilesRequired" size="small" class="shadow" @click="caFileInput.click()">
                     {{ $t('labels.serverCA') }}
                   </a-button>
                 </a-tooltip>
@@ -364,7 +364,9 @@ onMounted(() => {
           <a-button type="primary" ghost class="nc-extdb-btn-test-connection" @click="testConnection">
             {{ $t('activity.testDbConn') }}
           </a-button>
-          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="createProject"> Submit </a-button>
+          <a-button type="primary" :disabled="!testSuccess" class="nc-extdb-btn-submit !shadow" @click="createProject">
+            Submit
+          </a-button>
         </div>
       </a-form-item>
     </a-form>
@@ -398,7 +400,7 @@ onMounted(() => {
   @apply !min-h-0;
 }
 
-:deep(.ant-card-head-title){
-  @apply !text-3xl
+:deep(.ant-card-head-title) {
+  @apply !text-3xl;
 }
 </style>

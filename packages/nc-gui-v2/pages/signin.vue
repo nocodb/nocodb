@@ -111,7 +111,9 @@ const resetError = () => {
             </nuxt-link>
           </div>
 
-          <div class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
+          <div
+            class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full"
+          >
             <button class="submit" type="submit">
               <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
             </button>

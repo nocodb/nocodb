@@ -36,8 +36,8 @@ function openQuickImportDialog(type: string) {
       <a-tab-pane v-for="(tab, i) in tabs" :key="i" :value="i" class="text-capitalize" :closable="true">
         <template #tab>
           <span class="flex items-center gap-2">
-            <MdiTableIcon v-if="tab.type === 'table'" class="text-primary" />
             <MdiAccountGroupIcon v-if="tab.type === 'auth'" class="text-primary" />
+            <MdiTableIcon v-else class="text-primary" />
             {{ tab.title }}
           </span>
         </template>

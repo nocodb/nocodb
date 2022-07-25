@@ -167,6 +167,7 @@ const parseAndExtractData = async (type: string, val: any, name: string) => {
     templateData.value.tables[0].table_name = populateUniqueTableName()
     importData.value = templateGenerator.getData()
     templateEditorModal.value = true
+    dialogShow.value = false
   } catch (e: any) {
     console.log(e)
     toast.error(await extractSdkResponseErrorMsg(e))
@@ -240,6 +241,7 @@ const parseAndExtractData = async (type: string, val: any, name: string) => {
       </a-tab-pane>
     </a-tabs>
   </a-modal>
+  <TemplateEditor v-if="templateEditorModal" :project-template="templateData" :import-data="importData" :quick-import-type="importType"/>
 </template>
 
 <style scoped lang="scss">

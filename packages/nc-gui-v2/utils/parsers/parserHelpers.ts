@@ -1,4 +1,4 @@
-import { ColumnType, UITypes } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { isValidURL } from '~/utils/urlUtils'
 import { isEmail } from '~/utils/validation'
 

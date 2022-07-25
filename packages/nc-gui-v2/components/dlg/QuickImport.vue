@@ -51,18 +51,6 @@ const validators = computed(() => {
   }
 })
 
-const { resetFields, validate, validateInfos } = useForm(importState, validators)
-
-const handleDrop = (e: DragEvent) => {
-  console.log(e)
-}
-
-const rejectDrop = (fileList: any[]) => {
-  fileList.map((file) => {
-    toast.error(`Failed to upload file ${file.name}`)
-  })
-}
-
 const importMeta = computed(() => {
   if (importType === 'excel') {
     return {
@@ -99,7 +87,56 @@ const dialogShow = computed({
   },
 })
 
-const handleChange = (info: UploadChangeParam) => {
+const { resetFields, validate, validateInfos } = useForm(importState, validators)
+
+async function handleImport() {
+  if (activeKey.value === 'uploadTab') {
+    // FIXME:
+    importState.fileList.map(async (file: any) => {
+      await parseAndExtractData(file.data, file.name)
+    })
+  } else if (activeKey.value === 'urlTab') {
+    try {
+      await validate()
+      await parseAndExtractData(importState.url, '')
+    } catch (e: any) {
+      toast.error(await extractSdkResponseErrorMsg(e))
+    }
+  } else if (activeKey.value === 'jsonEditorTab') {
+    await parseAndExtractData(JSON.stringify(importState.jsonEditor), '')
+  }
+}
+
+async function parseAndExtractData(val: any, name: string) {
+  try {
+    templateData.value = null
+    importData.value = null
+    const templateGenerator: any = getAdapter(name, val)
+
+    await templateGenerator.init()
+    templateGenerator.parse()
+    templateData.value = templateGenerator.getTemplate()
+    templateData.value.tables[0].table_name = populateUniqueTableName()
+    importData.value = templateGenerator.getData()
+    templateEditorModal.value = true
+    dialogShow.value = false
+  } catch (e: any) {
+    console.log(e)
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
+}
+
+function handleDrop(e: DragEvent) {
+  console.log(e)
+}
+
+function rejectDrop(fileList: any[]) {
+  fileList.map((file) => {
+    return toast.error(`Failed to upload file ${file.name}`)
+  })
+}
+
+function handleChange(info: UploadChangeParam) {
   const status = info.file.status
   if (status !== 'uploading') {
     const reader: any = new FileReader()
@@ -118,29 +155,11 @@ const handleChange = (info: UploadChangeParam) => {
   }
 }
 
-const formatJson = () => {
+function formatJson() {
   jsonEditorRef.value.format()
 }
 
-const handleImport = async () => {
-  if (activeKey.value === 'uploadTab') {
-    // FIXME:
-    importState.fileList.map(async (file: any) => {
-      await parseAndExtractData(file.data, file.name)
-    })
-  } else if (activeKey.value === 'urlTab') {
-    try {
-      await validate()
-      await parseAndExtractData(importState.url, '')
-    } catch (e: any) {
-      toast.error(await extractSdkResponseErrorMsg(e))
-    }
-  } else if (activeKey.value === 'jsonEditorTab') {
-    await parseAndExtractData(JSON.stringify(importState.jsonEditor), '')
-  }
-}
-
-const populateUniqueTableName = () => {
+function populateUniqueTableName() {
   let c = 1
   while (tables.value.some((t: TableType) => t.title === `Sheet${c}`)) {
     c++
@@ -148,7 +167,7 @@ const populateUniqueTableName = () => {
   return `Sheet${c}`
 }
 
-const getAdapter: any = (name: string, val: any) => {
+function getAdapter(name: string, val: any) {
   if (importType === 'excel' || importType === 'csv') {
     if (activeKey.value === 'uploadTab') {
       return new ExcelTemplateAdapter(name, val, importState.parserConfig)
@@ -165,26 +184,6 @@ const getAdapter: any = (name: string, val: any) => {
     }
   }
   return {}
-}
-
-const parseAndExtractData = async (val: any, name: string) => {
-  try {
-    let templateGenerator
-    templateData.value = null
-    importData.value = null
-    templateGenerator = getAdapter(name, val)
-
-    await templateGenerator.init()
-    templateGenerator.parse()
-    templateData.value = templateGenerator.getTemplate()
-    templateData.value.tables[0].table_name = populateUniqueTableName()
-    importData.value = templateGenerator.getData()
-    templateEditorModal.value = true
-    dialogShow.value = false
-  } catch (e: any) {
-    console.log(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
-  }
 }
 </script>
 

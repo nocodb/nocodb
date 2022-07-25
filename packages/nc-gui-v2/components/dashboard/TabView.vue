@@ -14,14 +14,19 @@ const { tabs, activeTab, closeTab } = useTabs()
 const { isUIAllowed } = useUIPermission()
 const tableCreateDialog = ref(false)
 const airtableImportDialog = ref(false)
-const fileImportDialog = ref(false)
+const quickImportDialog = ref(false)
 const importType = ref('')
 const currentMenu = ref<string[]>(['addORImport'])
 
-const onEdit = (targetKey: number, action: string) => {
+function onEdit(targetKey: number, action: string) {
   if (action !== 'add') {
     closeTab(targetKey)
   }
+}
+
+function openQuickImportDialog(type: string) {
+  quickImportDialog.value = true
+  importType.value = type
 }
 </script>
 
@@ -73,7 +78,7 @@ const onEdit = (targetKey: number, action: string) => {
                 v-if="isUIAllowed('csvImport')"
                 key="quick-import-csv"
                 v-t="['a:actions:import-csv']"
-                @click="fileImportDialog = true; importType = 'csv';"
+                @click="openQuickImportDialog('csv')"
               >
                 <span class="flex items-center gap-2">
                   <MdiCsvIcon class="text-primary" />
@@ -85,7 +90,7 @@ const onEdit = (targetKey: number, action: string) => {
                 v-if="isUIAllowed('jsonImport')"
                 key="quick-import-json"
                 v-t="['a:actions:import-json']"
-                @click="fileImportDialog = true; importType = 'json';"
+                @click="openQuickImportDialog('json')"
               >
                 <span class="flex items-center gap-2">
                   <MdiJSONIcon class="text-primary" />
@@ -97,8 +102,7 @@ const onEdit = (targetKey: number, action: string) => {
                 v-if="isUIAllowed('excelImport')"
                 key="quick-import-excel"
                 v-t="['a:actions:import-excel']"
-                @click="fileImportDialog = true; importType = 'excel'"
-
+                @click="openQuickImportDialog('excel')"
               >
                 <span class="flex items-center gap-2">
                   <MdiExcelIcon class="text-primary" />
@@ -123,7 +127,7 @@ const onEdit = (targetKey: number, action: string) => {
     </a-tabs>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
-    <DlgQuickImport v-if="fileImportDialog" v-model="fileImportDialog" :import-type="importType" />
+    <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" :import-type="importType" />
     <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
 
     <v-window v-model="activeTab">

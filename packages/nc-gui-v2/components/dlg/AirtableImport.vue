@@ -42,16 +42,12 @@ const syncSource = ref({
   },
 })
 
-const useForm = Form.useForm
-
 const validators = computed(() => {
   return {
     apiKey: [fieldRequiredValidator],
     syncSourceUrlOrId: [fieldRequiredValidator],
   }
 })
-
-const { resetFields, validate, validateInfos } = useForm(syncSource, validators)
 
 const dialogShow = computed({
   get() {
@@ -62,12 +58,15 @@ const dialogShow = computed({
   },
 })
 
-const saveAndSync = async () => {
+const useForm = Form.useForm
+const { resetFields, validate, validateInfos } = useForm(syncSource, validators)
+
+async function saveAndSync() {
   await createOrUpdate()
   sync()
 }
 
-const createOrUpdate = async () => {
+async function createOrUpdate() {
   // TODO: check $axios implementation
   // try {
   //   const { id, ...payload } = syncSource.value;
@@ -81,17 +80,7 @@ const createOrUpdate = async () => {
   // }
 }
 
-const sync = () => {
-  step.value = 2
-  // TODO: check $axios implementation
-  // $axios.post(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, payload, {
-  //   params: {
-  //     id: this.socket.id,
-  //   },
-  // });
-}
-
-const loadSyncSrc = async () => {
+async function loadSyncSrc() {
   // const {
   //   data: { list: srcs },
   // } = await $axios.get(`/api/v1/db/meta/projects/${project.id}/syncs`)
@@ -121,7 +110,17 @@ const loadSyncSrc = async () => {
   // }
 }
 
-const migrateSync = (src: any) => {
+function sync() {
+  step.value = 2
+  // TODO: check $axios implementation
+  // $axios.post(`/api/v1/db/meta/syncs/${syncSource.value.id}/trigger`, payload, {
+  //   params: {
+  //     id: this.socket.id,
+  //   },
+  // });
+}
+
+function migrateSync(src: any) {
   if (!src.details?.options) {
     src.details.options = {
       syncViews: false,

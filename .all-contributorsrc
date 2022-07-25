@@ -819,6 +819,24 @@
       "contributions": [
         "translation"
       ]
+    },
+    {
+      "login": "systemctls",
+      "name": "jinxm",
+      "avatar_url": "https://avatars.githubusercontent.com/u/37177191?v=4",
+      "profile": "https://github.com/systemctls",
+      "contributions": [
+        "code"
+      ]
+    },
+    {
+      "login": "yohanboniface",
+      "name": "Yohan Boniface",
+      "avatar_url": "https://avatars.githubusercontent.com/u/146023?v=4",
+      "profile": "https://yohanboniface.me",
+      "contributions": [
+        "translation"
+      ]
     }
   ],
   "contributorsPerLine": 7,

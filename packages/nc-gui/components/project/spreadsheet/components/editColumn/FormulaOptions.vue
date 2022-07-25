@@ -100,6 +100,7 @@ import jsep from 'jsep';
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk';
 import { getUIDTIcon } from '~/components/project/spreadsheet/helpers/uiTypes';
 import formulaList, { formulas, formulaTypes } from '@/helpers/formulaList';
+import { validateDateWithUnknownFormat } from '@/helpers/dateFormatHelper';
 import { getWordUntilCaret, insertAtCursor } from '@/helpers';
 import NcAutocompleteTree from '@/helpers/NcAutocompleteTree';
 
@@ -108,7 +109,6 @@ export default {
   props: ['nodes', 'column', 'meta', 'isSQLite', 'alias', 'value', 'sqlUi'],
   data: () => ({
     formula: {},
-    // formulas: ['AVERAGE()', 'COUNT()', 'COUNTA()', 'COUNTALL()', 'SUM()', 'MIN()', 'MAX()', 'AND()', 'OR()', 'TRUE()', 'FALSE()', 'NOT()', 'XOR()', 'ISERROR()', 'IF()', 'LEN()', 'MID()', 'LEFT()', 'RIGHT()', 'FIND()', 'CONCATENATE()', 'T()', 'VALUE()', 'ARRAYJOIN()', 'ARRAYUNIQUE()', 'ARRAYCOMPACT()', 'ARRAYFLATTEN()', 'ROUND()', 'ROUNDUP()', 'ROUNDDOWN()', 'INT()', 'EVEN()', 'ODD()', 'MOD()', 'LOG()', 'EXP()', 'POWER()', 'SQRT()', 'CEILING()', 'FLOOR()', 'ABS()', 'RECORD_ID()', 'CREATED_TIME()', 'ERROR()', 'BLANK()', 'YEAR()', 'MONTH()', 'DAY()', 'HOUR()', 'MINUTE()', 'SECOND()', 'TODAY()', 'NOW()', 'WORKDAY()', 'DATETIME_PARSE()', 'DATETIME_FORMAT()', 'SET_LOCALE()', 'SET_TIMEZONE()', 'DATESTR()', 'TIMESTR()', 'TONOW()', 'FROMNOW()', 'DATEADD()', 'WEEKDAY()', 'WEEKNUM()', 'DATETIME_DIFF()', 'WORKDAY_DIFF()', 'IS_BEFORE()', 'IS_SAME()', 'IS_AFTER()', 'REPLACE()', 'REPT()', 'LOWER()', 'UPPER()', 'TRIM()', 'SUBSTITUTE()', 'SEARCH()', 'SWITCH()', 'LAST_MODIFIED_TIME()', 'ENCODE_URL_COMPONENT()', 'REGEX_EXTRACT()', 'REGEX_MATCH()', 'REGEX_REPLACE()']
     availableFunctions: formulaList,
     availableBinOps: ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!='],
     autocomplete: false,
@@ -260,7 +260,39 @@ export default {
         if (parsedTree.callee.type === jsep.IDENTIFIER) {
           const expectedType = formulas[parsedTree.callee.name].type;
           if (expectedType === formulaTypes.NUMERIC) {
-            parsedTree.arguments.map(arg => this.validateAgainstType(arg, expectedType, null, typeErrors));
+            if (parsedTree.callee.name === 'WEEKDAY') {
+              // parsedTree.arguments[0] = date
+              this.validateAgainstType(
+                parsedTree.arguments[0],
+                formulaTypes.DATE,
+                v => {
+                  if (!validateDateWithUnknownFormat(v)) {
+                    typeErrors.add('The first parameter of WEEKDAY() should have date value');
+                  }
+                },
+                typeErrors
+              );
+              // parsedTree.arguments[1] = startDayOfWeek (optional)
+              this.validateAgainstType(
+                parsedTree.arguments[1],
+                formulaTypes.STRING,
+                v => {
+                  if (
+                    typeof v !== 'string' ||
+                    !['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].includes(
+                      v.toLowerCase()
+                    )
+                  ) {
+                    typeErrors.add(
+                      'The second parameter of WEEKDAY() should have the value either "sunday", "monday", "tuesday", "wednesday", "thursday", "friday" or "saturday"'
+                    );
+                  }
+                },
+                typeErrors
+              );
+            } else {
+              parsedTree.arguments.map(arg => this.validateAgainstType(arg, expectedType, null, typeErrors));
+            }
           } else if (expectedType === formulaTypes.DATE) {
             if (parsedTree.callee.name === 'DATEADD') {
               // parsedTree.arguments[0] = date
@@ -268,7 +300,7 @@ export default {
                 parsedTree.arguments[0],
                 formulaTypes.DATE,
                 v => {
-                  if (!(v instanceof Date)) {
+                  if (!validateDateWithUnknownFormat(v)) {
                     typeErrors.add('The first parameter of DATEADD() should have date value');
                   }
                 },

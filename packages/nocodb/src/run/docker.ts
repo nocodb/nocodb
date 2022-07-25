@@ -5,6 +5,8 @@ import Noco from '../lib/Noco';
 process.env.NC_VERSION = '0009044';
 
 const server = express();
+server.enable('trust proxy');
+
 server.use(
   cors({
     exposedHeaders: 'xc-db-response',

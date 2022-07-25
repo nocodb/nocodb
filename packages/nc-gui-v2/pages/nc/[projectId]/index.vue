@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import useTabs from '~/composables/useTabs'
+
 const route = useRoute()
 const { loadProject, loadTables } = useProject(route.params.projectId as string)
 const { clearTabs, addTab } = useTabs()

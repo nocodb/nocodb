@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import useTabs from '~/composables/useTabs'
+import { TabMetaInj } from '~/context'
 
-const { tabs, activeTab, closeTab } = useTabs()
+const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 const tableCreateDialog = ref(false)
+
+provide(TabMetaInj, activeTab)
 </script>
 
 <template>
@@ -15,8 +18,7 @@ const tableCreateDialog = ref(false)
       <MdiPlusIcon @click="tableCreateDialog = true" />
       <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
     </v-tabs> -->
-
-    <a-tabs v-model:activeKey="activeTab" size="small" type="editable-card" @edit="closeTab">
+    <a-tabs v-model:activeKey="activeTabIndex" size="small" type="editable-card" @edit="closeTab">
       <a-tab-pane v-for="(tab, i) in tabs" :key="i" :tab="tab.title" />
     </a-tabs>
 

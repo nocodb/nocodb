@@ -1,25 +1,22 @@
 <script setup lang="ts">
-import { useEventBus } from '@vueuse/core'
-import type { ColumnType, FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
+import type { ColumnType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { computed, onMounted, provide, watch } from '#imports'
+import { computed, inject, onMounted, provide, watch, watchEffect } from '#imports'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/context'
 import useMetas from '~/composables/useMetas'
 
-const { tabMeta } = defineProps({
-  tabMeta: Object,
-})
-
 const { getMeta, metas } = useMetas()
 
-const activeView = ref<GridType | FormType | KanbanType | GalleryType>()
+const activeView = ref<ViewType>()
 const el = ref<any>()
 const fields = ref<ColumnType[]>([])
 
-const meta = computed(() => metas.value?.[tabMeta?.id])
+const tabMeta = inject(TabMetaInj)
 
-onMounted(async () => {
-  await getMeta(tabMeta?.id)
+const meta = computed(() => metas.value?.[tabMeta?.value?.id as string])
+
+watchEffect(async () => {
+  await getMeta(tabMeta?.value?.id as string)
 })
 
 const reloadEventHook = createEventHook<void>()

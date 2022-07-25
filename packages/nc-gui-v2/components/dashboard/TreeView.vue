@@ -192,7 +192,7 @@ const reloadTables = async () => {
 }
 const addTableTab = (table: TableType) => {
   $e('a:table:open')
-  addTab({ title: table.title, id: table.id })
+  addTab({ title: table.title, id: table.id, type: table.type as any })
 }
 </script>
 

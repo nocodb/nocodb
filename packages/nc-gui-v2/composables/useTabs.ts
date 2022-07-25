@@ -23,11 +23,12 @@ export default () => {
   const router = useRouter()
   const { tables } = useProject()
 
-  const activeTab: WritableComputedRef<number> = computed({
+  const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
-      if ((route?.name as string)?.startsWith('nc-projectId-index-index-table-title') && tables?.value?.length) {
+      console.log(route?.name)
+      if ((route?.name as string)?.startsWith('nc-projectId-index-index-type-title') && tables?.value?.length) {
         const tab: Partial<TabItem> = { type: 'table', title: route.params.title as string }
-        const id = tables.value?.find((t) => t.title === tab.title)?.id
+        const id = tables?.value?.find((t) => t.title === tab.title)?.id
         tab.id = id as string
         let index = tabs.value.findIndex((t) => t.id === tab.id)
         if (index === -1) {
@@ -35,6 +36,8 @@ export default () => {
           index = tabs.value.length - 1
         }
         return index
+      } else if ((route?.name as string)?.startsWith('nc-projectId-index-index-auth')) {
+        return tabs.value.findIndex((t) => t.type === 'auth')
       }
       return -1
     },
@@ -42,21 +45,31 @@ export default () => {
       if (index === -1) {
         router.push(`/nc/${route.params.projectId}`)
       } else {
-        router.push(`/nc/${route.params.projectId}/table/${tabs.value?.[index]?.title}`)
+        const tab = tabs.value[index]
+        if (!tab) {
+        } else if (tab.type === 'table') {
+          router.push(`/nc/${route.params.projectId}/table/${tab?.title}`)
+        } else if (tab.type === 'view') {
+          router.push(`/nc/${route.params.projectId}/view/${tab?.title}`)
+        } else if (tab.type === 'auth') {
+          router.push(`/nc/${route.params.projectId}/auth`)
+        }
       }
     },
   })
+
+  const activeTab = computed(() => tabs.value?.[activeTabIndex.value])
 
   const addTab = (tabMeta: TabItem) => {
     const tabIndex = tabs.value.findIndex((tab) => tab.id === tabMeta.id)
     // if tab already found make it active
     if (tabIndex > -1) {
-      activeTab.value = tabIndex
+      activeTabIndex.value = tabIndex
     }
     // if tab not found add it
     else {
       tabs.value = [...(tabs.value || []), tabMeta]
-      activeTab.value = tabs.value.length - 1
+      activeTabIndex.value = tabs.value.length - 1
     }
   }
   const clearTabs = () => {
@@ -64,7 +77,7 @@ export default () => {
   }
   const closeTab = async (key: number | Partial<TabItem>) => {
     const index = typeof key === 'number' ? key : tabs.value.findIndex(getPredicate(key))
-    if (activeTab.value === index) {
+    if (activeTabIndex.value === index) {
       let newTabIndex = index - 1
       if (newTabIndex < 0 && tabs.value?.length > 1) newTabIndex = index + 1
       if (newTabIndex === -1) {
@@ -83,5 +96,5 @@ export default () => {
     }
   }
 
-  return { tabs, addTab, activeTab, clearTabs, closeTab, updateTab }
+  return { tabs, addTab, activeTabIndex, activeTab, clearTabs, closeTab, updateTab }
 }

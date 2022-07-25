@@ -8,7 +8,6 @@ import { navigateTo, useNuxtApp } from '#app'
 import { ClientType } from '~/lib/enums'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { readFile } from '~/utils/fileUtils'
-
 import type { ProjectCreateForm } from '~/utils/projectCreateUtils'
 import {
   clientTypes,

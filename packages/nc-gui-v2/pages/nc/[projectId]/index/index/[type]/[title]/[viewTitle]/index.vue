@@ -4,6 +4,8 @@ export default {
 }
 </script>
 
-<template></template>
+<template>
+  <TabsSmartsheet />
+</template>
 
 <style scoped></style>

@@ -48,7 +48,7 @@ export default {
   <div class="d-flex align-center">
     <span v-if="count !== null && count !== Infinity" class="caption ml-2"> {{ count }} record{{ count !== 1 ? 's' : '' }} </span>
     <v-spacer />
-    <v-pagination
+    <!--    <v-pagination
       v-if="count !== Infinity"
       v-model="page"
       style="max-width: 100%"
@@ -56,6 +56,17 @@ export default {
       :total-visible="8"
       color="primary lighten-2"
       class="nc-pagination"
+    /> -->
+
+    <a-pagination
+      v-if="count !== Infinity"
+      v-model:current="page"
+      size="small"
+      class="!text-xs !m-1"
+      :total="count"
+      :page-size="size"
+      show-less-items
+      :show-size-changer="false"
     />
     <div v-else class="mx-auto d-flex align-center mt-n1" style="max-width: 250px">
       <span class="caption" style="white-space: nowrap"> Change page:</span>
@@ -79,3 +90,10 @@ export default {
     <v-spacer />
   </div>
 </template>
+
+<style scoped>
+:deep(.ant-pagination-item a) {
+  line-height: 21px !important;
+  @apply text-sm;
+}
+</style>

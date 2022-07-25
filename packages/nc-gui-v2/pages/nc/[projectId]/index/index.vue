@@ -15,7 +15,7 @@ provide(TabMetaInj, activeTab)
         <a-tab-pane v-for="(tab, i) in tabs" :key="i" :tab="tab.title" />
       </a-tabs>
     </div>
-    <div class="flex-1">
+    <div class="flex-1 min-h-0">
       <NuxtPage />
     </div>
   </div>
@@ -23,7 +23,8 @@ provide(TabMetaInj, activeTab)
 
 <style scoped>
 .nc-container {
-  height: calc(100vh - var(--header-height));
+  height: calc(calc(100vh - var(--header-height)));
+  @apply overflow-hidden;
 }
 
 :deep(.ant-tabs-nav) {

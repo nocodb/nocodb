@@ -37,17 +37,21 @@ watch(
 </script>
 
 <template>
-  <div class="overflow-auto nc-container">
-    <SmartsheetToolbar />
-    <template v-if="meta">
-      <div class="d-flex">
-        <div v-if="activeView" class="flex-grow-1 min-w-0">
-          <SmartsheetGrid v-if="activeView.type === ViewTypes.GRID" :ref="el" />
-          <SmartsheetGallery v-else-if="activeView.type === ViewTypes.GALLERY" />
-          <SmartsheetForm v-else-if="activeView.type === ViewTypes.FORM" />
+  <div class="nc-container flex h-full">
+    <div class="flex flex-col h-full flex-1 min-w-0">
+      <SmartsheetToolbar />
+      <template v-if="meta">
+        <div class="flex flex-1 min-h-0">
+          <div v-if="activeView" class="h-full flex-grow min-w-0 min-h-0">
+            <SmartsheetGrid v-if="activeView.type === ViewTypes.GRID" :ref="el" />
+            <SmartsheetGallery v-else-if="activeView.type === ViewTypes.GALLERY" />
+            <SmartsheetForm v-else-if="activeView.type === ViewTypes.FORM" />
+          </div>
         </div>
-        <SmartsheetSidebar />
-      </div>
+      </template>
+    </div>
+    <template v-if="meta">
+      <SmartsheetSidebar />
     </template>
   </div>
 </template>

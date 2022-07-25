@@ -315,23 +315,24 @@ export default {
   <v-menu>
     <template #activator="{ props }">
       <v-badge :value="isAnyFieldHidden" color="primary" dot overlap v-bind="props">
-        <v-btn
+        <a-button
           v-t="['c:fields']"
           class="nc-fields-menu-btn px-2 nc-remove-border"
           :disabled="isLocked"
           outlined
-          small
+          size="small"
           text
           :class="{
             'primary lighten-5 grey--text text--darken-3': isAnyFieldHidden,
           }"
-        >
-          <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
-          <MdiEyeIcon class="mr-1 text-grey"></MdiEyeIcon>
-          <!-- Fields -->
-          <span class="text-sm text-capitalize">{{ $t('objects.fields') }}</span>
-          <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
-        </v-btn>
+          ><div class="flex align-center gap-1 text-sm">
+            <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
+            <MdiEyeIcon class="text-grey"></MdiEyeIcon>
+            <!-- Fields -->
+            <span class="text-capitalize">{{ $t('objects.fields') }}</span>
+            <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
+          </div>
+        </a-button>
       </v-badge>
     </template>
 

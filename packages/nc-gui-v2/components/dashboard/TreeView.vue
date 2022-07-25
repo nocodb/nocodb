@@ -208,7 +208,7 @@ const addTableTab = (table: TableType) => {
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
-      <div class="p-1 flex-1 overflow-y-auto flex flex-column">
+      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-primary">
         <div
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
           @click="showTableList = !showTableList"

@@ -19,23 +19,24 @@ const applyChanges = () => {}
   <v-menu offset-y eager transition="slide-y-transition">
     <template #activator="{ props }">
       <v-badge :value="filters.length" color="primary" dot overlap>
-        <v-btn
+        <a-button
           v-t="['c:filter']"
           class="nc-filter-menu-btn px-2 nc-remove-border"
           :disabled="isLocked"
           outlined
-          small
+          size="small"
           text
           :class="{
             'primary lighten-5 grey--text text--darken-3': filters.length,
           }"
           v-bind="props"
-        >
-          <MdiFilterIcon class="mr-1 text-grey" />
-          <!-- Filter -->
-          <span class="text-capitalize">{{ $t('activity.filter') }}</span>
-          <MdiMenuDownIcon class="text-grey" />
-        </v-btn>
+          ><div class="flex align-center gap-1 text-sm">
+            <MdiFilterIcon class="text-grey" />
+            <!-- Filter -->
+            <span class="text-capitalize">{{ $t('activity.filter') }}</span>
+            <MdiMenuDownIcon class="text-grey" />
+          </div>
+        </a-button>
       </v-badge>
     </template>
     <SmartsheetToolbarColumnFilter>

@@ -29,8 +29,9 @@ watch(
   <v-menu offset-y transition="slide-y-transition">
     <template #activator="{ props }">
       <v-badge :value="sorts && sorts.length" color="primary" dot overlap>
-        <v-btn
+        <a-button
           v-t="['c:sort']"
+          size="small"
           class="nc-sort-menu-btn px-2 nc-remove-border"
           :disabled="isLocked"
           small
@@ -40,12 +41,13 @@ watch(
             'primary lighten-5 grey&#45;&#45;text text&#45;&#45;darken-3': sorts && sorts.length,
           }"
           v-bind="props"
-        >
-          <MdiSortIcon class="mr-1 text-grey" />
-          <!-- Sort -->
-          <span class="text-capitalize">{{ $t('activity.sort') }}</span>
-          <MdiMenuDownIcon class="text-grey" />
-        </v-btn>
+          ><div class="flex align-center gap-1 text-sm">
+            <MdiSortIcon class="text-grey" />
+            <!-- Sort -->
+            <span class="text-capitalize">{{ $t('activity.sort') }}</span>
+            <MdiMenuDownIcon class="text-grey" />
+          </div>
+        </a-button>
       </v-badge>
     </template>
     <div class="backgroundColor pa-2 menu-filter-dropdown bg-background min-w-[400px]">

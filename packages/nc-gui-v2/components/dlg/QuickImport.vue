@@ -44,7 +44,7 @@ const importState = reactive({
 
 const validators = computed(() => {
   return {
-    'url.value': [fieldRequiredValidator, importUrlValidator],
+    'url': [fieldRequiredValidator, importUrlValidator],
   }
 })
 

@@ -79,8 +79,9 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
         <a-menu :selected-keys="selected">
           <h3 class="pt-3 px-3 text-sm font-semibold">{{ $t('objects.views') }}</h3>
           <a-menu-item v-for="view in views" :key="view.id" @click="changeView(view)">
-            <div v-t="['a:view:open', { view: view.type }]" class="flex items-center w-full">
-              <component :is="viewIcons[view.type].icon" :class="`text-${viewIcons[view.type].color} mr-1`" />
+            <div v-t="['a:view:open', { view: view.type }]" class="flex items-center w-full gap-2">
+              <component :is="viewIcons[view.type].icon" :class="`text-${viewIcons[view.type].color}`" />
+
               <div>{{ view.alias || view.title }}</div>
             </div>
           </a-menu-item>
@@ -91,56 +92,56 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
             {{ $t('activity.createView') }}
           </h3>
 
-          <a-menu-item key="grid" @click="openCreateViewDlg(ViewTypes.GRID)">
+          <a-menu-item key="grid" class="group" @click="openCreateViewDlg(ViewTypes.GRID)">
             <a-tooltip placement="left">
               <template #title>
                 {{ $t('msg.info.addView.grid') }}
               </template>
 
-              <div class="flex items-center w-full">
-                <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color} mr-1`" />
+              <div class="flex items-center w-full gap-2">
+                <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color}`" />
 
                 <div>{{ $t('objects.viewType.grid') }}</div>
 
                 <div class="flex-1" />
 
-                <MdiPlusIcon />
+                <MdiPlusIcon class="group-hover:text-primary" />
               </div>
             </a-tooltip>
           </a-menu-item>
 
-          <a-menu-item key="gallery" @click="openCreateViewDlg(ViewTypes.GALLERY)">
+          <a-menu-item key="gallery" class="group" @click="openCreateViewDlg(ViewTypes.GALLERY)">
             <a-tooltip placement="left">
               <template #title>
                 {{ $t('msg.info.addView.gallery') }}
               </template>
 
-              <div class="flex items-center w-full">
-                <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color} mr-1`" />
+              <div class="flex items-center w-full gap-2">
+                <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color}`" />
 
                 <div>{{ $t('objects.viewType.gallery') }}</div>
 
                 <div class="flex-1" />
 
-                <MdiPlusIcon />
+                <MdiPlusIcon class="group-hover:text-primary" />
               </div>
             </a-tooltip>
           </a-menu-item>
 
-          <a-menu-item v-if="!isView" key="form" @click="openCreateViewDlg(ViewTypes.FORM)">
+          <a-menu-item v-if="!isView" key="form" class="group" @click="openCreateViewDlg(ViewTypes.FORM)">
             <a-tooltip placement="left">
               <template #title>
                 {{ $t('msg.info.addView.form') }}
               </template>
 
-              <div class="flex items-center w-full">
-                <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color} mr-1`" />
+              <div class="flex items-center w-full gap-2">
+                <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color}`" />
 
                 <div>{{ $t('objects.viewType.form') }}</div>
 
                 <div class="flex-1" />
 
-                <MdiPlusIcon />
+                <MdiPlusIcon class="group-hover:text-primary" />
               </div>
             </a-tooltip>
           </a-menu-item>

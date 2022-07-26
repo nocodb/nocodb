@@ -202,7 +202,7 @@ function getAdapter(name: string, val: any) {
 
 <template>
   <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
-    <a-typography-title class="ml-4 mb-4 select-none" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
+    <a-typography-title class="mb-4 select-none" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
       <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>

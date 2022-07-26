@@ -29,19 +29,8 @@ watch(
 <template>
   <a-dropdown offset-y class="" :trigger="['click']">
     <v-badge :value="sorts && sorts.length" color="primary" dot overlap>
-      <a-button
-        v-t="['c:sort']"
-        size="small"
-        class="nc-sort-menu-btn px-2 nc-remove-border border-0"
-        :disabled="isLocked"
-        small
-        text
-        outlined
-        :class="{
-          'primary lighten-5 grey&#45;&#45;text text&#45;&#45;darken-3': sorts && sorts.length,
-        }"
-        v-bind="props"
-        ><div class="flex align-center gap-1 text-sm">
+      <a-button v-t="['c:sort']" size="small" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
+        ><div class="flex align-center gap-1">
           <MdiSortIcon class="text-grey" />
           <!-- Sort -->
           <span class="text-capitalize">{{ $t('activity.sort') }}</span>

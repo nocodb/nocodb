@@ -77,18 +77,8 @@ const onMove = (event) => {
 <template>
   <a-dropdown :trigger="['click']">
     <v-badge :value="isAnyFieldHidden" color="primary" dot overlap v-bind="props">
-      <a-button
-        v-t="['c:fields']"
-        class="nc-fields-menu-btn px-2 nc-remove-border border-0"
-        :disabled="isLocked"
-        outlined
-        size="small"
-        text
-        :class="{
-          'primary lighten-5 grey--text text--darken-3': isAnyFieldHidden,
-        }"
-      >
-        <div class="flex align-center gap-1 text-sm">
+      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked" size="small">
+        <div class="flex align-center gap-1">
           <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
           <MdiEyeIcon class="text-grey"></MdiEyeIcon>
           <!-- Fields -->

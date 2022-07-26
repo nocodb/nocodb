@@ -6,7 +6,19 @@
     <SmartsheetToolbarFieldsMenu :show-system-fields="false" />
     <SmartsheetToolbarColumnFilterMenu />
     <SmartsheetToolbarSortListMenu />
+    <SmartsheetToolbarShareView />
+    <SmartsheetToolbarMoreActions />
+    <div class="flex-1" />
+    <SmartsheetToolbarLockMenu />
+    <SmartsheetToolbarReload />
+    <SmartsheetToolbarAddRow />
+    <SmartsheetToolbarDeleteTable />
+    <SmartsheetToolbarToggleDrawer />
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+:deep(.nc-toolbar-btn) {
+  @apply border-0 !text-xs font-semibold px-2;
+}
+</style>

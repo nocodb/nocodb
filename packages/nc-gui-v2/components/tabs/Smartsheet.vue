@@ -47,11 +47,9 @@ watch(
             <SmartsheetGallery v-else-if="activeView.type === ViewTypes.GALLERY" />
             <SmartsheetForm v-else-if="activeView.type === ViewTypes.FORM" />
           </div>
+          <SmartsheetSidebar />
         </div>
       </template>
     </div>
-    <template v-if="meta">
-      <SmartsheetSidebar />
-    </template>
   </div>
 </template>

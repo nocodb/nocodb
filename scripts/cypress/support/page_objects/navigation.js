@@ -136,14 +136,19 @@ export class _projectsPage {
         // click on "New Project"
         cy.get(".nc-new-project-menu").should("exist").click();
 
+
         if ("none" == projectData.dbType) {
             // Subsequent form, select (+ Create) option
-            cy.get(".nc-create-xc-db-project", { timeout: 20000 }).click({
+            cy.get(".nc-create-xc-db-project", { timeout: 20000 }).last().click({
                 force: true,
             });
 
+            // wait for page load by verifying required elements
+            cy.get(".nc-metadb-project-name").should("exist");
+            cy.contains("button", "Create").should("exist");
+
             // feed project name
-            cy.get(".nc-metadb-project-name", { timeout: 20000 }).type(
+            cy.get(".nc-metadb-project-name", { timeout: 20000 }).clear().type(
                 projectName
             );
 

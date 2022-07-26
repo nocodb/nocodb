@@ -252,7 +252,7 @@ function getAdapter(name: string, val: any) {
             Json Editor
           </span>
         </template>
-        <div class="pr-10 pb-10 pt-5">
+        <div class="pb-3 pt-3">
           <MonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
         </div>
       </a-tab-pane>

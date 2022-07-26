@@ -227,8 +227,8 @@ onBeforeUnmount(() => {
         </a-button>
       </div>
     </template>
-    <a-typography-title class="ml-4 mb-4 select-none" type="secondary" :level="5">QUICK IMPORT - AIRTABLE</a-typography-title>
-    <div class="ml-4 pr-10">
+    <a-typography-title class="ml-5 mt-5" type="secondary" :level="5">QUICK IMPORT - AIRTABLE</a-typography-title>
+    <div class="ml-5 mr-5">
       <a-divider />
       <div v-if="step === 1">
         <div class="mb-4">
@@ -250,7 +250,7 @@ onBeforeUnmount(() => {
             </a-form-item>
           </a-form-item>
           <span class="prose-xl font-bold self-center my-4">Advanced Settings</span>
-          <a-divider />
+          <a-divider class="mt-2 mb-5" />
           <div class="mt-0 my-2">
             <a-checkbox v-model:checked="syncSource.details.options.syncData">Import Data</a-checkbox>
           </div>

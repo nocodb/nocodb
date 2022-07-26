@@ -24,9 +24,11 @@ watch(
   { immediate: true },
 )
 
-const toggleDrawer = $ref(false)
+const toggleDrawer = ref(false)
 // todo: identify based on meta
-const isView = $ref(false)
+const isView = ref(false)
+
+const enableDummyFeat = ref(false)
 
 let viewCreateType = $ref<ViewTypes>()
 
@@ -80,23 +82,24 @@ function onViewCreate(view: GridType | FormType | KanbanType | GalleryType) {
           <v-tooltip bottom>
             <template #activator="{ props }">
               <v-list-item dense class="body-2 nc-create-grid-view" v-bind="props" @click="openCreateViewDlg(ViewTypes.GRID)">
-                <!--                <v-list-item-icon class="mr-n1"> -->
                 <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color} mr-1`" />
-                <!--                </v-list-item-icon> -->
+
                 <v-list-item-title>
                   <span class="font-weight-regular">
                     <!-- Grid -->
                     {{ $t('objects.viewType.grid') }}
                   </span>
                 </v-list-item-title>
+
                 <v-spacer />
+
                 <MdiPlusIcon class="mr-1" />
-                <!--                <v-icon class="mr-1" small> mdi-plus</v-icon> -->
               </v-list-item>
             </template>
             <!-- Add Grid View -->
             {{ $t('msg.info.addView.grid') }}
           </v-tooltip>
+
           <v-tooltip bottom>
             <template #activator="{ props }">
               <v-list-item
@@ -154,6 +157,6 @@ function onViewCreate(view: GridType | FormType | KanbanType | GalleryType) {
       </div>
     </div>
 
-    <DlgViewCreate v-if="views" v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate" />
+    <DlgViewCreate v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate" />
   </a-layout-sider>
 </template>

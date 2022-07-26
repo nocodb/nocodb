@@ -227,15 +227,12 @@ function getAdapter(name: string, val: any) {
             Upload
           </span>
         </template>
-        <div class="pr-10 pb-10 pt-5">
-          <a-form-item :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
-            <a-input-number id="x" v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" size="large" />
-          </a-form-item>
+        <div class="pr-10 pb-0 pt-5">
           <a-upload-dragger
             v-model:fileList="importState.fileList"
             name="file"
-            :multiple="true"
             :accept="importMeta.acceptTypes"
+            :max-count="1"
             list-type="picture"
             @change="handleChange"
             @drop="handleDrop"
@@ -257,7 +254,7 @@ function getAdapter(name: string, val: any) {
           </span>
         </template>
         <div class="pr-10 pb-10 pt-5">
-          <MonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="h-[400px]" />
+          <MonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
         </div>
       </a-tab-pane>
       <a-tab-pane v-else key="urlTab" :closable="false">
@@ -276,12 +273,28 @@ function getAdapter(name: string, val: any) {
         </div>
       </a-tab-pane>
     </a-tabs>
+    <div>
+      <a-divider />
+      <div class="mb-4">
+        <span class="prose-xl font-bold">Advanced Settings</span>
+        <a-form-item class="mt-4 mb-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
+          <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
+        </a-form-item>
+        <div v-if="importType === 'json'" class="mt-3">
+          <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
+            <span class="caption">Flatten nested</span>
+          </a-checkbox>
+        </div>
+        <div v-if="importType === 'json'" class="mt-4">
+          <a-checkbox v-model:checked="importState.parserConfig.importData">Import data</a-checkbox>
+        </div>
+      </div>
+    </div>
   </a-modal>
 </template>
 
 <style scoped lang="scss">
 :deep(.ant-upload-list) {
-  overflow: auto;
-  height: 300px;
+  @apply max-h-80 overflow-auto;
 }
 </style>

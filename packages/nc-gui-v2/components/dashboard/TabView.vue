@@ -42,7 +42,6 @@ function openQuickImportDialog(type: string) {
           </span>
         </template>
       </a-tab-pane>
-
       <template #leftExtra>
         <a-menu v-model:selectedKeys="currentMenu" mode="horizontal">
           <a-sub-menu key="addORImport">

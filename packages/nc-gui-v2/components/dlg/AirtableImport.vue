@@ -24,7 +24,7 @@ const { sqlUi, project, loadTables } = useProject()
 const loading = ref(false)
 const step = ref(1)
 const progress = ref<Record<string, any>[]>([])
-const socket = ref()
+let socket:any;
 const syncSource = ref({
   id: '',
   type: 'Airtable',
@@ -140,8 +140,8 @@ async function sync() {
       baseURL,
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
-      body: {
-        id: socket.value.id,
+      params: {
+        id: socket.id,
       },
     })
   } catch (e: any) {
@@ -177,20 +177,20 @@ watch(
 )
 
 onMounted(async () => {
-  socket.value = io(new URL(baseURL, window.location.href.split(/[?#]/)[0]).href, {
+  socket = io(new URL(baseURL, window.location.href.split(/[?#]/)[0]).href, {
     extraHeaders: { 'xc-auth': $state.token.value as string },
   })
-  socket.value.on('connect_error', () => {
-    socket.value.disconnect()
-    socket.value = null
+  socket.on('connect_error', () => {
+    socket.disconnect()
+    socket = null
   })
 
-  socket.value.on('connect', function (data: any) {
-    console.log(socket.value.id)
+  socket.on('connect', function (data: any) {
+    console.log(socket.id)
     console.log('socket connected', data)
   })
 
-  socket.value.on('progress', async (d: Record<string, any>) => {
+  socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
     if (d.status === 'COMPLETED') {
       await loadTables()
@@ -201,8 +201,8 @@ onMounted(async () => {
 })
 
 onBeforeUnmount(() => {
-  if (socket.value) {
-    socket.value.disconnect()
+  if (socket) {
+    socket.disconnect()
   }
 })
 </script>

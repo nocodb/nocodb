@@ -238,7 +238,7 @@ onBeforeUnmount(() => {
               <a-input v-model:value="syncSource.details.syncSourceUrlOrId" placeholder="Shared Base ID / URL" size="large" />
             </a-form-item>
           </a-form-item>
-          <span class="prose-xl font-bold self-center my-4">More Options</span>
+          <span class="prose-xl font-bold self-center my-4">Advanced Settings</span>
           <a-divider />
           <div class="mt-0 my-2">
             <a-checkbox v-model:checked="syncSource.details.options.syncData">Import Data</a-checkbox>

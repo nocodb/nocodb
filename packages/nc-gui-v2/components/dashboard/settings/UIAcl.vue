@@ -10,14 +10,23 @@ const { $api, $e } = useNuxtApp()
 const { project } = useProject()
 const toast = useToast()
 
-const roles = $ref<Array<string>>(['editor', 'commenter', 'viewer'])
+const roles = $ref<string[]>(['editor', 'commenter', 'viewer'])
 let isLoading = $ref(false)
-let tables = $ref<Array<any>>([])
-let searchInput = $ref<string>('')
+let tables = $ref<any[]>([])
+let searchInput = $ref('')
+
+const filteredTables = computed(() =>
+  tables.filter(
+    (el) =>
+      (typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
+      (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase())),
+  ),
+)
 
 async function loadTableList() {
   try {
     if (!project.value?.id) return
+
     isLoading = true
     // TODO includeM2M
     tables = await $api.project.modelVisibilityList(project.value?.id, {
@@ -33,6 +42,7 @@ async function loadTableList() {
 async function saveUIAcl() {
   try {
     if (!project.value?.id) return
+
     await $api.project.modelVisibilitySet(
       project.value.id,
       tables.filter((t) => t.edited),
@@ -42,6 +52,11 @@ async function saveUIAcl() {
     toast.error(e?.message)
   }
   $e('a:proj-meta:ui-acl')
+}
+
+const onRoleCheck = (record: any, role: string) => {
+  record.disabled[role] = !record.disabled[role]
+  record.edited = true
 }
 
 onMounted(async () => {
@@ -102,20 +117,7 @@ const columns = [
           </div>
         </a-button>
       </div>
-      <a-table
-        class="w-full"
-        :data-source="
-          tables.filter(
-            (el) =>
-              (typeof el?._ptn === 'string' && el._ptn.toLowerCase().includes(searchInput.toLowerCase())) ||
-              (typeof el?.title === 'string' && el.title.toLowerCase().includes(searchInput.toLowerCase())),
-          )
-        "
-        :columns="columns"
-        :pagination="false"
-        :loading="isLoading"
-        bordered
-      >
+      <a-table class="w-full" :data-source="filteredTables" :columns="columns" :pagination="false" :loading="isLoading" bordered>
         <template #bodyCell="{ record, column }">
           <div v-if="column.name === 'table_name'">{{ record._ptn }}</div>
           <div v-if="column.name === 'view_name'">
@@ -128,14 +130,7 @@ const columns = [
             <div v-if="column.name === role">
               <a-tooltip>
                 <template #title>Click to hide '{{ record.title }}' for role:{{ role }} in UI dashboard</template>
-                <a-checkbox
-                  :checked="!record.disabled[role]"
-                  @change="
-                    // eslint-disable-next-line prettier/prettier
-                    record.disabled[role] = !record.disabled[role];
-                    record.edited = true
-                  "
-                ></a-checkbox>
+                <a-checkbox :checked="!record.disabled[role]" @change="onRoleCheck(record, role)"></a-checkbox>
               </a-tooltip>
             </div>
           </div>

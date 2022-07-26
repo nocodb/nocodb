@@ -10,11 +10,12 @@ const toast = useToast()
 
 let isLoading = $ref(false)
 let isDifferent = $ref(false)
-let metadiff = $ref<Array<any>>([])
+let metadiff = $ref<any[]>([])
 
 async function loadMetaDiff() {
   try {
     if (!project.value?.id) return
+
     isLoading = true
     isDifferent = false
     metadiff = await $api.project.metaDiffGet(project.value?.id)
@@ -34,6 +35,7 @@ async function loadMetaDiff() {
 async function syncMetaDiff() {
   try {
     if (!project.value?.id || !isDifferent) return
+
     isLoading = true
     await $api.project.metaDiffSync(project.value.id)
     toast.info(`Table metadata recreated successfully`)

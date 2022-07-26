@@ -5,6 +5,7 @@
     <SmartsheetToolbarFieldsMenu :show-system-fields="false" />
     <SmartsheetToolbarColumnFilterMenu />
     <SmartsheetToolbarSortListMenu />
+    <SmartsheetToolbarMoreActions />
   </v-toolbar>
 </template>
 

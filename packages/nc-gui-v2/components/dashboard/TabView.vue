@@ -10,9 +10,9 @@ const tableCreateDialog = ref(false)
 <template>
   <div>
     <v-tabs v-model="activeTab" height="32" density="compact" color="primary">
-      <v-tab v-for="(tab, i) in tabs" :key="i" :value="i" class="text-capitalize">
+      <v-tab v-for="(tab, i) in tabs" :key="i" :value="i" :class="`text-capitalize nc-tab-${tab.title}`">
         {{ tab.title }}
-        <MdiCloseIcon class="ml-2 text-gray-500/50" @click.stop="closeTab(i)"></MdiCloseIcon>
+        <MdiCloseIcon class="ml-2 text-gray-500/50 mdi-close" @click.stop="closeTab(i)"></MdiCloseIcon>
       </v-tab>
       <MdiPlusIcon @click="tableCreateDialog = true" />
       <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />

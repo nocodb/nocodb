@@ -72,7 +72,6 @@ const onMove = (event) => {
   // saveOrUpdate(sortedFields[event.moved.newIndex], event.moved.newIndex);
   $e('a:fields:reorder')
 }
-
 </script>
 
 <template>
@@ -116,9 +115,7 @@ const onMove = (event) => {
         </div>
         <v-divider class="my-2" />
 
-
         <div class="p-2 py-1 flex" @click.stop>
-
           <a-checkbox v-model:checked="showSystemFields">
             <span class="text-xs"> {{ $t('activity.showSystemFields') }}</span>
           </a-checkbox>
@@ -135,9 +132,7 @@ const onMove = (event) => {
         </div>
       </div>
     </template>
-
   </a-dropdown>
-
 </template>
 
 <style scoped lang="scss">

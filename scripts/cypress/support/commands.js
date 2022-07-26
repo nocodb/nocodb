@@ -31,14 +31,14 @@ require("@4tw/cypress-drag-drop");
 
 // for waiting until page load
 Cypress.Commands.add("waitForSpinners", () => {
-    cy.visit("http://localhost:3000", {
+    cy.visit("http://localhost:3000/signup", {
         retryOnNetworkFailure: true,
         timeout: 1200000,
         headers: {
             "Accept-Encoding": "gzip, deflate",
         },
     });
-    cy.get("#nuxt-loading", { timeout: 10_0000 }).should("have.length", 0);
+    cy.get(".nc-form-signup").should("exist")
 });
 
 Cypress.Commands.add("signinOrSignup", (_args) => {
@@ -247,7 +247,7 @@ Cypress.Commands.add("restoreLocalStorage", () => {
 });
 
 Cypress.Commands.add("getActiveModal", () => {
-    return cy.get(".v-dialog.v-dialog--active").last();
+    return cy.get(".ant-modal-content")
 });
 
 Cypress.Commands.add("getActiveMenu", () => {

@@ -17,7 +17,7 @@ const formState = reactive({
   },
   method: 'GET',
 })
-
+const filters = []
 const formInput = ref({
   'Email': [
     {
@@ -258,7 +258,35 @@ onMounted(() => {
         </a-col>
       </a-row>
       <!--  TODO: handle column filter -->
-      <!--  TODO: sample payload -->
+      <div>
+        <span class="caption grey--text">
+          <em>Available context variables are <strong>data and user</strong></em>
+          <v-tooltip top>
+            <template #activator="{ on }">
+              <v-icon small color="grey" class="ml-2" v-on="on">mdi-information</v-icon>
+            </template>
+            <span class="caption">
+              <strong>data</strong> : Row data <br />
+              <strong>user</strong> : User information<br />
+            </span>
+          </v-tooltip>
+          <br />
+          <a href="https://docs.nocodb.com/developer-resources/webhooks/" target="_blank">
+            <!-- Document Reference -->
+            {{ $t('labels.docReference') }}
+          </a>
+        </span>
+        <WebhookTest
+          :hook="{
+            ...formState,
+            filters,
+            notification: {
+              ...formState.notification,
+              payload: notification,
+            },
+          }"
+        />
+      </div>
     </a-form-item>
   </a-form>
 </template>

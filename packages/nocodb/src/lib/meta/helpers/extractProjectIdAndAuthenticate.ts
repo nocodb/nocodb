@@ -11,6 +11,7 @@ import Project from '../../models/Project';
 import Column from '../../models/Column';
 import Filter from '../../models/Filter';
 import Sort from '../../models/Sort';
+import User from '../../models/User';
 
 export default async (req, res, next) => {
   try {
@@ -81,60 +82,64 @@ export default async (req, res, next) => {
     }
 
     const user = await new Promise((resolve, _reject) => {
-      passport.authenticate('jwt', { session: false }, (_err, user, _info) => {
-        if (user && !req.headers['xc-shared-base-id']) {
-          if (
-            req.path.indexOf('/user/me') === -1 &&
-            req.header('xc-preview') &&
-            /(?:^|,)(?:owner|creator)(?:$|,)/.test(user.roles)
-          ) {
-            return resolve({
-              ...user,
-              isAuthorized: true,
-              roles: req.header('xc-preview')
-            });
+      passport.authenticate(
+        'jwt',
+        { session: false },
+        async (_err, user, _info) => {
+          if (user && !req.headers['xc-shared-base-id']) {
+            if (
+              req.path.indexOf('/user/me') === -1 &&
+              req.header('xc-preview') &&
+              /(?:^|,)(?:owner|creator)(?:$|,)/.test(user.roles)
+            ) {
+              return resolve({
+                ...user,
+                isAuthorized: true,
+                roles: req.header('xc-preview')
+              });
+            }
+            if (await User.isSuperAdmin(user.id)) user.roles = 'owner';
+            return resolve({ ...user, isAuthorized: true });
           }
 
-          return resolve({ ...user, isAuthorized: true });
-        }
-
-        if (req.headers['xc-token']) {
-          passport.authenticate(
-            'authtoken',
-            {
-              session: false,
-              optional: false
-            },
-            (_err, user, _info) => {
+          if (req.headers['xc-token']) {
+            passport.authenticate(
+              'authtoken',
+              {
+                session: false,
+                optional: false
+              },
+              (_err, user, _info) => {
+                // if (_err) return reject(_err);
+                if (user) {
+                  return resolve({
+                    ...user,
+                    isAuthorized: true,
+                    roles: user.roles === 'owner' ? 'owner,creator' : user.roles
+                  });
+                } else {
+                  resolve({ roles: 'guest' });
+                }
+              }
+            )(req, res, next);
+          } else if (req.headers['xc-shared-base-id']) {
+            passport.authenticate('baseView', {}, (_err, user, _info) => {
               // if (_err) return reject(_err);
               if (user) {
                 return resolve({
                   ...user,
                   isAuthorized: true,
-                  roles: user.roles === 'owner' ? 'owner,creator' : user.roles
+                  isPublicBase: true
                 });
               } else {
                 resolve({ roles: 'guest' });
               }
-            }
-          )(req, res, next);
-        } else if (req.headers['xc-shared-base-id']) {
-          passport.authenticate('baseView', {}, (_err, user, _info) => {
-            // if (_err) return reject(_err);
-            if (user) {
-              return resolve({
-                ...user,
-                isAuthorized: true,
-                isPublicBase: true
-              });
-            } else {
-              resolve({ roles: 'guest' });
-            }
-          })(req, res, next);
-        } else {
-          resolve({ roles: 'guest' });
+            })(req, res, next);
+          } else {
+            resolve({ roles: 'guest' });
+          }
         }
-      })(req, res, next);
+      )(req, res, next);
     });
 
     await promisify((req as any).login.bind(req))(user);

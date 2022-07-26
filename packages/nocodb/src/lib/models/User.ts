@@ -139,6 +139,11 @@ export default class User implements UserType {
     )?.count;
   }
 
+  static async isSuperAdmin(userId, ncMeta = Noco.ncMeta) {
+    const user = await this.get(userId, ncMeta);
+    return user?.roles?.split(',')?.includes('super');
+  }
+
   static async get(userId, ncMeta = Noco.ncMeta) {
     let user =
       userId &&

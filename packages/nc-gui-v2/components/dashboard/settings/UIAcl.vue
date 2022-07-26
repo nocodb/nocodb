@@ -77,7 +77,6 @@ const columns = [
     name: 'view_name',
   },
   {
-    // { icon: MdiGridIcon, color: 'blue' },
     title: tableHeaderRenderer('Editor'),
     name: 'editor',
     width: 150,

@@ -10,9 +10,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} Table/view drag-drop reorder`, () => {
         function validateTreeField(index, tblName) {
-            cy.get(`:nth-child(${index}) > .v-list-item__title > .caption`)
-                .contains(tblName)
-                .should("exist");
+            cy.get(`.nc-project-tree-tbl`).eq(index-1).find('.nc-tbl-title').contains(tblName).should('exist');
         }
 
         /*
@@ -69,9 +67,6 @@ export const genTest = (apiType, dbType) => {
 
             // undo project-tree expand operation
             cy.get(".nc-project-tree")
-                .find(".v-list-item__title:contains(Tables)", {
-                    timeout: 10000,
-                })
                 .should("exist")
                 .first()
                 .click({ force: true });

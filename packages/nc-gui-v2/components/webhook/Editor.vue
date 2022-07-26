@@ -54,7 +54,12 @@ const methodList = ref([
 ])
 
 const validators = computed(() => {
-  return {}
+  return {
+    'title': [],
+    'event': [],
+    'notification.type': [],
+    'method': [],
+  }
 })
 const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
@@ -98,7 +103,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
         <a-col :span="12">
-          <a-form-item v-bind="validateInfos.notification.type">
+          <a-form-item v-bind="validateInfos['notification.type']">
             <a-select v-model:value="formState.notification.type" size="large" :placeholder="$t('general.notification')">
               <a-select-option v-for="(notification, i) in notificationList" :key="i" :value="notification.type">{{
                 notification.type

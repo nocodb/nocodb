@@ -23,11 +23,11 @@ const extractNestedData: any = (obj: any, path: any) => path.reduce((val: any, k
 export default class JSONTemplateAdapter extends TemplateGenerator {
   config: Record<string, any>
   name: string
-  _jsonData: string | object
-  project: Record<string, any>
   data: Record<string, any>
+  _jsonData: string | Record<string, any>
+  jsonData: Record<string, any>
+  project: Record<string, any>
   columns: object
-  csv: Record<string, any>
   constructor(name = 'test', data: object, parserConfig = {}) {
     super()
     this.config = {
@@ -40,16 +40,13 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
       title: this.name,
       tables: [],
     }
+    this.jsonData = []
+    this.data = []
     this.columns = {}
-    this.data = {}
-    this.csv = {}
   }
 
-  async init() {}
-
-  parseData(): any {
-    this.columns = this.csv.meta.fields
-    this.data = this.csv.data
+  async init() {
+    this.jsonData = JSON.parse(new TextDecoder().decode(this._jsonData as BufferSource))
   }
 
   getColumns(): any {
@@ -58,10 +55,6 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
 
   getData(): any {
     return this.data
-  }
-
-  get jsonData(): any {
-    return Array.isArray(this._jsonData) ? this._jsonData : [this._jsonData]
   }
 
   parse(): any {
@@ -148,7 +141,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   }
 
   _parseTableData(tableMeta: any) {
-    for (const row of this.jsonData) {
+    for (const row of this.jsonData as any) {
       const rowData: any = {}
       for (let i = 0; i < tableMeta.columns.length; i++) {
         const value = extractNestedData(row, tableMeta.columns[i].path || [])

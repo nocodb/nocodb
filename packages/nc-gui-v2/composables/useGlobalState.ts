@@ -27,8 +27,8 @@ export const useGlobalState = (): GlobalState => {
   const preferredLanguages = $(usePreferredLanguages())
   /** todo: reimplement; get the preferred dark mode setting, according to browser settings */
   //   const prefersDarkMode = $(usePreferredDark())
-
   const prefersDarkMode = false
+
   /** get current breakpoints (for enabling sidebar) */
   const breakpoints = useBreakpoints(breakpointsTailwind)
 
@@ -71,6 +71,9 @@ export const useGlobalState = (): GlobalState => {
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
   const storage = $(useStorage<StoredState>(storageKey, initialState))
+
+  /** force turn off of dark mode, regardless of previously stored settings */
+  storage.darkMode = false
 
   /** current token ref, used by `useJwt` to reactively parse our token payload */
   let token = $computed({

@@ -111,12 +111,17 @@ function openQuickImportDialog(type: string) {
               </a-menu-item>
             </a-menu-item-group>
             <a-divider class="ma-0 mb-2" />
-            <a-menu-item v-if="isUIAllowed('importRequest')" key="add-new-table" v-t="['e:datasource:import-request']">
+            <a-menu-item
+              v-if="isUIAllowed('importRequest')"
+              key="add-new-table"
+              v-t="['e:datasource:import-request']"
+              class="ma-0 mt-3"
+            >
               <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" class="prose-sm pa-0">
                 <span class="flex items-center gap-2">
                   <MdiRequestDataSourceIcon class="text-primary" />
                   <!-- TODO: i18n -->
-                  Request Data Source
+                  Request a data source you need?
                 </span>
               </a>
             </a-menu-item>
@@ -140,7 +145,6 @@ function openQuickImportDialog(type: string) {
 
 <style scoped lang="scss">
 :deep(.ant-menu-item-group-list) .ant-menu-item {
-  padding: 0px 46px 0px 16px;
-  margin: 0px;
+  @apply m-0 pa-0 pl-4 pr-16;
 }
 </style>

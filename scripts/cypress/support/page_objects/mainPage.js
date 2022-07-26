@@ -228,41 +228,26 @@ export class _mainPage {
     };
 
     configureSMTP = (from, host, port, secure) => {
-        cy.get(".v-card__title.title")
-            .contains("SMTP")
-            .parents(".elevatio")
-            .find("button")
-            .contains(" Install ")
-            .click({ force: true });
-        cy.getActiveModal()
-            .find('[placeholder="eg: admin@run.com"]')
-            .click()
-            .type(from);
-        cy.getActiveModal()
-            .find('[placeholder="eg: smtp.run.com"]')
-            .click()
-            .type(host);
-        cy.getActiveModal().find('[placeholder="Port"]').click().type(port);
-        cy.getActiveModal().find('[placeholder="Secure"]').click().type(secure);
-        cy.getActiveModal().find("button").contains("Save").click();
-        cy.toastWait(
-            "Successfully installed and email notification will use SMTP configuration"
-        );
+        cy.getActiveModal().find('.nc-app-store-card-SMTP').click().then((obj) => {
+            cy.wrap(obj).find('.nc-app-store-card-install').click({ force: true });
+        })
 
-        this.closeMetaTab();
+        cy.getActiveModal().find('#form_item_from').should('exist').clear().type(from)
+        cy.getActiveModal().find('#form_item_host').should('exist').clear().type(host)
+        cy.getActiveModal().find('#form_item_port').should('exist').clear().type(port)
+        cy.getActiveModal().find('#form_item_secure').should('exist').clear().type(secure)
+        cy.getActiveModal().find("button").contains("Save").click();
+
+        cy.toastWait('Successfully installed and email notification will use SMTP configuration');
     };
 
     resetSMTP = () => {
-        cy.get(".v-card__title.title")
-            .contains("SMTP")
-            .parents(".elevatio")
-            .find("button")
-            .contains(" Reset ")
-            .click({ force: true });
-        cy.getActiveModal().find("button").contains("Submit").click();
-        cy.toastWait("Plugin uninstalled successfully");
+        cy.getActiveModal().find('.nc-app-store-card-SMTP').click().then((obj) => {
+            cy.wrap(obj).find('.nc-app-store-card-reset').click({ force: true });
+        })
+        cy.getActiveModal().find("button").contains("Confirm").click();
 
-        this.closeMetaTab();
+        cy.toastWait("Plugin uninstalled successfully");
     };
 
     shareView = () => {

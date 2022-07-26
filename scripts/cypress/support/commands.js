@@ -247,11 +247,11 @@ Cypress.Commands.add("restoreLocalStorage", () => {
 });
 
 Cypress.Commands.add("getActiveModal", () => {
-    return cy.get(".ant-modal-content")
+    return cy.get(".ant-modal-content:visible").last()
 });
 
 Cypress.Commands.add("getActiveMenu", () => {
-    return cy.get(".v-overlay__content").last();
+    return cy.get(".v-overlay__content:visible").last();
 });
 
 Cypress.Commands.add("getActiveContentModal", () => {
@@ -367,11 +367,14 @@ Cypress.Commands.add("createColumn", (table, columnName) => {
 });
 
 Cypress.Commands.add("toastWait", (msg) => {
+    cy.get('.Vue-Toastification__toast:visible', { timout: 12000 }).contains(msg).should('exist')
+    cy.get('.Vue-Toastification__toast:visible', { timout: 12000 }).should('not.exist')
+
     // cy.get(".toasted:visible", { timout: 12000 }).contains(msg).should("exist");
     // cy.get(".toasted:visible", { timout: 12000 })
     //     .contains(msg)
     //     .should("not.exist");
-    cy.wait(3000);
+    // cy.wait(3000);
 });
 
 // vn: view name

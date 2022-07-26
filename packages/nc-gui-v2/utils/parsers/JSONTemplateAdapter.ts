@@ -35,7 +35,7 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
       ...parserConfig,
     }
     this.name = name
-    this._jsonData = typeof data === 'string' ? JSON.parse(data) : data
+    this._jsonData = data
     this.project = {
       title: this.name,
       tables: [],
@@ -46,7 +46,13 @@ export default class JSONTemplateAdapter extends TemplateGenerator {
   }
 
   async init() {
-    this.jsonData = JSON.parse(new TextDecoder().decode(this._jsonData as BufferSource))
+    const parsedJsonData =
+      typeof this._jsonData === 'string'
+        ? // for json editor
+          JSON.parse(this._jsonData)
+        : // for file upload
+          JSON.parse(new TextDecoder().decode(this._jsonData as BufferSource))
+    this.jsonData = Array.isArray(parsedJsonData) ? parsedJsonData : [parsedJsonData]
   }
 
   getColumns(): any {

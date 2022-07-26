@@ -205,7 +205,8 @@ function getAdapter(name: string, val: any) {
   <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
     <a-typography-title class="ml-4 mb-4 select-none" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
     <template #footer>
-      <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
+      <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
+      <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
       <a-button v-if="activeKey === 'jsonEditorTab'" key="format" :loading="loading" @click="formatJson">Format JSON</a-button>
       <a-button v-if="!templateEditorModal" key="pre-import" type="primary" :loading="loading" @click="handlePreImport">{{
         $t('activity.import')
@@ -273,7 +274,7 @@ function getAdapter(name: string, val: any) {
         </div>
       </a-tab-pane>
     </a-tabs>
-    <div>
+    <div v-if="!templateEditorModal">
       <a-divider />
       <div class="mb-4">
         <span class="prose-xl font-bold">Advanced Settings</span>

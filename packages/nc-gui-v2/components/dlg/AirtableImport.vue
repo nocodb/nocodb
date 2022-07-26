@@ -25,7 +25,6 @@ const loading = ref(false)
 const step = ref(1)
 const progress = ref<Record<string, any>[]>([])
 const socket = ref()
-const syncSourceUrlOrId = ref('')
 const syncSource = ref({
   id: '',
   type: 'Airtable',
@@ -35,6 +34,7 @@ const syncSource = ref({
     syncRetryCount: 1,
     apiKey: '',
     shareId: '',
+    syncSourceUrlOrId: '',
     options: {
       syncViews: true,
       syncData: true,
@@ -48,8 +48,8 @@ const syncSource = ref({
 
 const validators = computed(() => {
   return {
-    apiKey: [fieldRequiredValidator],
-    syncSourceUrlOrId: [fieldRequiredValidator],
+    'details.apiKey': [fieldRequiredValidator],
+    'details.syncSourceUrlOrId': [fieldRequiredValidator],
   }
 })
 
@@ -66,7 +66,7 @@ const useForm = Form.useForm
 const { resetFields, validate, validateInfos } = useForm(syncSource, validators)
 
 const disableImportButton = computed(() => {
-  return !syncSource.value.details.apiKey || !syncSourceUrlOrId.value
+  return !syncSource.value.details.apiKey || !syncSource.value.details.syncSourceUrlOrId
 })
 
 async function saveAndSync() {
@@ -108,7 +108,7 @@ async function loadSyncSrc() {
   if (srcs && srcs[0]) {
     srcs[0].details = srcs[0].details || {}
     syncSource.value = migrateSync(srcs[0])
-    syncSourceUrlOrId.value = srcs[0].details.shareId
+    syncSource.value.details.syncSourceUrlOrId = srcs[0].details.shareId
   } else {
     syncSource.value = {
       id: '',
@@ -119,6 +119,7 @@ async function loadSyncSrc() {
         syncRetryCount: 1,
         apiKey: '',
         shareId: '',
+        syncSourceUrlOrId: '',
         options: {
           syncViews: true,
           syncData: true,
@@ -165,12 +166,15 @@ function migrateSync(src: any) {
   return src
 }
 
-watch(syncSourceUrlOrId, (v) => {
-  if (syncSource.value.details) {
-    const m = v && v.match(/(exp|shr).{14}/g)
-    syncSource.value.details.shareId = m ? m[0] : ''
-  }
-})
+watch(
+  () => syncSource.value.details.syncSourceUrlOrId,
+  (v) => {
+    if (syncSource.value.details) {
+      const m = v && v.match(/(exp|shr).{14}/g)
+      syncSource.value.details.shareId = m ? m[0] : ''
+    }
+  },
+)
 
 onMounted(async () => {
   socket.value = io(new URL(baseURL, window.location.href.split(/[?#]/)[0]).href, {
@@ -188,15 +192,6 @@ onMounted(async () => {
 
   socket.value.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
-
-    // TODO: check if it still requires
-    // nextTick(() => {
-    //   if ($refs.log) {
-    //     const el = $refs.log.$el;
-    //     el.scrollTop = el.scrollHeight;
-    //   }
-    // });
-
     if (d.status === 'COMPLETED') {
       await loadTables()
       // TODO: add tab of the first table
@@ -240,14 +235,12 @@ onBeforeUnmount(() => {
             >Where to find this?
           </a>
         </div>
-        <a-form ref="formValidator" layout="vertical" :model="form">
-          <a-form-item ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="ma-0">
-            <a-form-item v-bind="validateInfos.apiKey">
-              <a-input-password v-model:value="syncSource.details.apiKey" placeholder="Api Key" size="large" />
-            </a-form-item>
-            <a-form-item v-bind="validateInfos.syncSourceUrlOrId">
-              <a-input v-model:value="syncSourceUrlOrId" placeholder="Shared Base ID / URL" size="large" />
-            </a-form-item>
+        <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="ma-0">
+          <a-form-item v-bind="validateInfos['details.apiKey']">
+            <a-input-password v-model:value="syncSource.details.apiKey" placeholder="Api Key" size="large" />
+          </a-form-item>
+          <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']">
+            <a-input v-model:value="syncSource.details.syncSourceUrlOrId" placeholder="Shared Base ID / URL" size="large" />
           </a-form-item>
           <span class="prose-xl font-bold self-center my-4">Advanced Settings</span>
           <a-divider class="mt-2 mb-5" />

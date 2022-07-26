@@ -2102,7 +2102,7 @@ class PGClient extends KnexClient {
           this.genQuery(`DROP FUNCTION IF EXISTS ??()`, [triggerFnName]);
       }
     }
-    await this.sqlClient.raw(upQuery);
+    if (upQuery != '') await this.sqlClient.raw(upQuery);
     result.upStatement[0] = { sql: upQuery };
     result.downStatement[0] = { sql: downQuery };
 
@@ -2153,7 +2153,7 @@ class PGClient extends KnexClient {
           this.genQuery(`DROP FUNCTION IF EXISTS ??()`, [triggerFnName]);
       }
     }
-    await this.sqlClient.raw(upQuery);
+    if (upQuery != '') await this.sqlClient.raw(upQuery);
     result.upStatement[0] = { sql: upQuery };
     result.downStatement[0] = { sql: downQuery };
 
@@ -2273,7 +2273,7 @@ class PGClient extends KnexClient {
         //downQuery = `ALTER TABLE "${args.columns[0].tn}" ${downQuery};`;
       }
 
-      await this.sqlClient.raw(upQuery);
+      if (upQuery != '') await this.sqlClient.raw(upQuery);
 
       // console.log(upQuery);
 

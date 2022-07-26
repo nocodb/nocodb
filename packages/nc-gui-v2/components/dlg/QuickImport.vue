@@ -35,7 +35,7 @@ const templateEditorModal = ref(false)
 const useForm = Form.useForm
 
 const importState = reactive({
-  fileList: [],
+  fileList: [] as Record<string, any>,
   url: '',
   jsonEditor: {},
   parserConfig: {
@@ -45,15 +45,21 @@ const importState = reactive({
   },
 })
 
+const isImportTypeJson = computed(() => importType === 'json')
+
+const isImportTypeCsv = computed(() => importType === 'csv')
+
+const IsImportTypeExcel = computed(() => importType === 'excel')
+
 const validators = computed(() => {
   return {
-    url: [fieldRequiredValidator, importUrlValidator, importType === 'csv' ? importCsvUrlValidator : importExcelUrlValidator],
+    url: [fieldRequiredValidator, importUrlValidator, isImportTypeCsv.value ? importCsvUrlValidator : importExcelUrlValidator],
     maxRowsToParse: [fieldRequiredValidator],
   }
 })
 
 const importMeta = computed(() => {
-  if (importType === 'excel') {
+  if (IsImportTypeExcel.value) {
     return {
       header: 'QUICK IMPORT - EXCEL',
       uploadHint: t('msg.info.excelSupport'),
@@ -61,7 +67,7 @@ const importMeta = computed(() => {
       loadUrlDirective: ['c:quick-import:excel:load-url'],
       acceptTypes: '.xls, .xlsx, .xlsm, .ods, .ots',
     }
-  } else if (importType === 'csv') {
+  } else if (isImportTypeCsv.value) {
     return {
       header: 'QUICK IMPORT - CSV',
       uploadHint: '',
@@ -69,7 +75,7 @@ const importMeta = computed(() => {
       loadUrlDirective: ['c:quick-import:csv:load-url'],
       acceptTypes: '.csv',
     }
-  } else if (importType === 'json') {
+  } else if (isImportTypeJson.value) {
     return {
       header: 'QUICK IMPORT - JSON',
       uploadHint: '',
@@ -93,10 +99,7 @@ const { resetFields, validate, validateInfos } = useForm(importState, validators
 async function handlePreImport() {
   loading.value = true
   if (activeKey.value === 'uploadTab') {
-    // FIXME:
-    importState.fileList.map(async (file: any) => {
-      await parseAndExtractData(file.data, file.name)
-    })
+    await parseAndExtractData(importState.fileList[0].data, importState.fileList[0].name)
   } else if (activeKey.value === 'urlTab') {
     try {
       await validate()
@@ -136,10 +139,6 @@ async function parseAndExtractData(val: any, name: string) {
     console.log(e)
     toast.error(await extractSdkResponseErrorMsg(e))
   }
-}
-
-function handleDrop(e: DragEvent) {
-  console.log(e)
 }
 
 function rejectDrop(fileList: any[]) {
@@ -182,13 +181,13 @@ function populateUniqueTableName() {
 }
 
 function getAdapter(name: string, val: any) {
-  if (importType === 'excel' || importType === 'csv') {
+  if (IsImportTypeExcel.value || isImportTypeCsv.value) {
     if (activeKey.value === 'uploadTab') {
       return new ExcelTemplateAdapter(name, val, importState.parserConfig)
     } else if (activeKey.value === 'urlTab') {
       return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
     }
-  } else if (importType === 'json') {
+  } else if (isImportTypeJson.value) {
     if (activeKey.value === 'uploadTab') {
       return new JSONTemplateAdapter(name, val, importState.parserConfig)
     } else if (activeKey.value === 'urlTab') {
@@ -197,7 +196,7 @@ function getAdapter(name: string, val: any) {
       return new JSONTemplateAdapter(name, val, importState.parserConfig)
     }
   }
-  return {}
+  return null
 }
 </script>
 
@@ -236,7 +235,6 @@ function getAdapter(name: string, val: any) {
             :max-count="1"
             list-type="picture"
             @change="handleChange"
-            @drop="handleDrop"
             @reject="rejectDrop"
           >
             <MdiFileIcon size="large" />
@@ -247,7 +245,7 @@ function getAdapter(name: string, val: any) {
           </a-upload-dragger>
         </div>
       </a-tab-pane>
-      <a-tab-pane v-if="importType === 'json'" key="jsonEditorTab" :closable="false">
+      <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
         <template #tab>
           <span class="flex items-center gap-2">
             <MdiCodeJSONIcon />
@@ -281,12 +279,12 @@ function getAdapter(name: string, val: any) {
         <a-form-item class="mt-4 mb-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
           <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
         </a-form-item>
-        <div v-if="importType === 'json'" class="mt-3">
+        <div v-if="isImportTypeJson" class="mt-3">
           <a-checkbox v-model:checked="importState.parserConfig.normalizeNested">
             <span class="caption">Flatten nested</span>
           </a-checkbox>
         </div>
-        <div v-if="importType === 'json'" class="mt-4">
+        <div v-if="isImportTypeJson" class="mt-4">
           <a-checkbox v-model:checked="importState.parserConfig.importData">Import data</a-checkbox>
         </div>
       </div>

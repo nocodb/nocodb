@@ -19,6 +19,7 @@ import MdiPlus from '~icons/mdi/plus-circle-outline'
 import MdiDrag from '~icons/mdi/drag-vertical'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiAPIDocIcon from '~icons/mdi/open-in-new'
+import SettingsModal from '~/components/dashboard/settings/SettingsModal.vue'
 
 const { addTab } = useTabs()
 const toast = useToast()
@@ -290,7 +291,7 @@ const addTableTab = (table: TableType) => {
       <span> {{ $t('title.teamAndSettings') }}</span>
     </div>
 
-    <a-modal v-model:visible="settingsDlg" width="max(90vw, 600px)"> Team and settings</a-modal>
+    <SettingsModal :show="settingsDlg" @closed="settingsDlg = false" />
     <DlgTableCreate v-model="tableCreateDlg" />
     <DlgTableRename v-if="renameTableMeta" v-model="renameTableDlg" :table-meta="renameTableMeta" />
   </div>

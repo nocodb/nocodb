@@ -8,6 +8,7 @@ import MdiHookIcon from '~icons/mdi/hook'
 const { isUIAllowed } = useUIPermission()
 // TODO:: identify based on meta
 const isView = ref(false)
+const showWebhookDrawer = ref(false)
 
 function exportCsv() {
   // TODO
@@ -22,7 +23,7 @@ function openSharedViewModal() {
 }
 
 function openWebhookModal() {
-  // TODO:
+  showWebhookDrawer.value = true
 }
 </script>
 
@@ -86,6 +87,7 @@ function openWebhookModal() {
       </a-menu-item>
     </a-sub-menu>
   </a-menu>
+  <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 </template>
 
 <style scoped></style>

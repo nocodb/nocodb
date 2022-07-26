@@ -58,6 +58,8 @@ const validators = computed(() => {
   }
 })
 
+const { resetFields, validate, validateInfos } = useForm(importState, validators)
+
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {
     return {
@@ -94,7 +96,18 @@ const dialogShow = computed({
   },
 })
 
-const { resetFields, validate, validateInfos } = useForm(importState, validators)
+const disablePreImportButton = computed(() => {
+  if (activeKey.value === 'uploadTab') {
+    return !(importState.fileList.length > 0)
+  } else if (activeKey.value === 'urlTab') {
+    if (!validateInfos.url.validateStatus) return true
+    return validateInfos.url.validateStatus === 'error'
+  } else if (activeKey.value === 'jsonEditorTab') {
+    return !jsonEditorRef.value?.isEditorValid()
+  }
+})
+
+const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isEditorValid())
 
 async function handlePreImport() {
   loading.value = true
@@ -167,9 +180,7 @@ function handleChange(info: UploadChangeParam) {
 }
 
 function formatJson() {
-  loading.value = true
-  jsonEditorRef.value.format()
-  loading.value = false
+  jsonEditorRef.value?.format()
 }
 
 function populateUniqueTableName() {
@@ -206,10 +217,18 @@ function getAdapter(name: string, val: any) {
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
       <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-      <a-button v-if="activeKey === 'jsonEditorTab'" key="format" :loading="loading" @click="formatJson">Format JSON</a-button>
-      <a-button v-if="!templateEditorModal" key="pre-import" type="primary" :loading="loading" @click="handlePreImport">{{
-        $t('activity.import')
-      }}</a-button>
+      <a-button v-if="activeKey === 'jsonEditorTab'" key="format" :disabled="disableFormatJsonButton" @click="formatJson"
+        >Format JSON</a-button
+      >
+      <a-button
+        v-if="!templateEditorModal"
+        key="pre-import"
+        type="primary"
+        :loading="loading"
+        :disabled="disablePreImportButton"
+        @click="handlePreImport"
+        >{{ $t('activity.import') }}</a-button
+      >
       <a-button v-else key="import" type="primary" :loading="loading" @click="handleImport">{{ $t('activity.import') }}</a-button>
     </template>
     <TemplateEditor

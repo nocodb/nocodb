@@ -65,6 +65,10 @@ const dialogShow = computed({
 const useForm = Form.useForm
 const { resetFields, validate, validateInfos } = useForm(syncSource, validators)
 
+const disableImportButton = computed(() => {
+  return !syncSource.value.details.apiKey || !syncSourceUrlOrId.value
+})
+
 async function saveAndSync() {
   await createOrUpdate()
   await sync()
@@ -213,7 +217,14 @@ onBeforeUnmount(() => {
     <template #footer>
       <div v-if="step === 1">
         <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-        <a-button key="submit" v-t="['c:sync-airtable:save-and-sync']" type="primary" @click="saveAndSync">Import</a-button>
+        <a-button
+          key="submit"
+          v-t="['c:sync-airtable:save-and-sync']"
+          type="primary"
+          :disabled="disableImportButton"
+          @click="saveAndSync"
+          >Import
+        </a-button>
       </div>
     </template>
     <a-typography-title class="ml-4 mb-4 select-none" type="secondary" :level="5">QUICK IMPORT - AIRTABLE</a-typography-title>
@@ -235,7 +246,7 @@ onBeforeUnmount(() => {
               <a-input-password v-model:value="syncSource.details.apiKey" placeholder="Api Key" size="large" />
             </a-form-item>
             <a-form-item v-bind="validateInfos.syncSourceUrlOrId">
-              <a-input v-model:value="syncSource.details.syncSourceUrlOrId" placeholder="Shared Base ID / URL" size="large" />
+              <a-input v-model:value="syncSourceUrlOrId" placeholder="Shared Base ID / URL" size="large" />
             </a-form-item>
           </a-form-item>
           <span class="prose-xl font-bold self-center my-4">Advanced Settings</span>

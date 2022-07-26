@@ -8,6 +8,7 @@ import { deepCompare } from '~/utils/deepCompare'
 const { modelValue } = defineProps<{ modelValue: any }>()
 
 const emit = defineEmits(['update:modelValue'])
+const isValid = ref(true)
 
 /**
  * Adding monaco editor to Vite
@@ -29,8 +30,13 @@ const format = () => {
   editor.setValue(JSON.stringify(JSON.parse(editor?.getValue() as string), null, 2))
 }
 
+const isEditorValid = () => {
+  return isValid.value
+}
+
 defineExpose({
   format,
+  isEditorValid,
 })
 
 onMounted(() => {
@@ -57,9 +63,11 @@ onMounted(() => {
 
     editor.onDidChangeModelContent(async (e) => {
       try {
+        isValid.value = true
         const obj = JSON.parse(editor.getValue())
         if (!deepCompare(modelValue, obj)) emit('update:modelValue', obj)
       } catch (e) {
+        isValid.value = false
         console.log(e)
       }
     })

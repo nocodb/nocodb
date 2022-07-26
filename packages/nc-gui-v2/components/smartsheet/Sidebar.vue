@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { inject, provide, ref, useViews, watch } from '#imports'
+import { inject, provide, ref, useTabs, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
 import { viewIcons } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj, ref())
+
 const activeView = inject(ActiveViewInj, ref())
+
+const { addTab } = useTabs()
 
 const { views } = useViews(meta)
 
@@ -34,6 +37,16 @@ let viewCreateType = $ref<ViewTypes>()
 
 let viewCreateDlg = $ref(false)
 
+const selected = ref<string[]>([])
+
+watch(activeView, (nextActiveView) => {
+  const _nextActiveView = nextActiveView as GridType | FormType | KanbanType
+
+  if (_nextActiveView && _nextActiveView.id) {
+    selected.value = [_nextActiveView.id]
+  }
+})
+
 function openCreateViewDlg(type: ViewTypes) {
   viewCreateDlg = true
   viewCreateType = type
@@ -44,31 +57,34 @@ function onViewCreate(view: GridType | FormType | KanbanType | GalleryType) {
   activeView.value = view
   viewCreateDlg = false
 }
+
+// todo: fix view type, alias is missing for some reason?
+function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
+  activeView.value = view
+
+  const tabProps = {
+    id: view.id,
+    title: (view.alias ?? view.title) || '',
+    type: ViewTypes[view.type],
+  }
+
+  addTab(tabProps)
+}
 </script>
 
 <template>
   <a-layout-sider class="views-navigation-drawer bg-white shadow" :width="toggleDrawer ? 0 : 250">
     <div class="flex flex-col h-full">
       <div class="flex-1">
-        <v-list v-if="views && views.length" dense>
-          <v-list-item dense>
-            <!-- Views -->
-            <span class="body-2 font-weight-medium">{{ $t('objects.views') }}</span>
-          </v-list-item>
-          <v-list-item
-            v-for="view in views"
-            :key="view.id"
-            v-t="['a:view:open', { view: view.type }]"
-            dense
-            :value="view.id"
-            active-class="x-active--text"
-            @click="activeView = view"
-          >
-            <component :is="viewIcons[view.type].icon" :class="`text-${viewIcons[view.type].color} mr-1`" />
-            <span>{{ view.alias || view.title }}</span>
-            <v-spacer />
-          </v-list-item>
-        </v-list>
+        <a-menu v-model:selected-keys="selected">
+          <h3 class="pt-3 px-3 text-sm font-semibold">{{ $t('objects.views') }}</h3>
+          <a-menu-item v-for="view in views" :key="view.id" @click="changeView(view)">
+            <div v-t="['a:view:open', { view: view.type }]" class="flex items-center w-full">
+              <component :is="viewIcons[view.type].icon" :class="`text-${viewIcons[view.type].color} mr-1`" />
+              <div>{{ view.alias || view.title }}</div>
+            </div>
+          </a-menu-item>
+        </a-menu>
 
         <v-divider class="advance-menu-divider" />
 

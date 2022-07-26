@@ -198,7 +198,7 @@ const addTableTab = (table: TableType) => {
 
 <template>
   <div class="nc-treeview-container flex flex-column">
-    <div class="p-1">
+    <div class="px-3 py-2">
       <a-input-search
         v-model:value="filterQuery"
         size="small"
@@ -232,7 +232,7 @@ const addTableTab = (table: TableType) => {
                 :key="table.id"
                 v-t="['a:table:open']"
                 :class="{ hidden: !filteredTables?.includes(table) }"
-                class="!pl-1 py-1 !h-[28px] !my-0 text-sm pointer group"
+                class="!pl-1 py-1 !h-[28px] !my-0 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTableTab(table)"
@@ -298,12 +298,8 @@ const addTableTab = (table: TableType) => {
 </template>
 
 <style scoped>
-.pointer {
-  cursor: pointer;
-}
-
 .nc-treeview-container {
-  height: calc(100vh - var(--header-height));
+  @apply h-[calc(100vh_-_var(--header-height))];
 }
 
 .nc-treeview-footer-item {
@@ -316,5 +312,9 @@ const addTableTab = (table: TableType) => {
 
 :deep(.ant-dropdown-menu-title-content) {
   @apply !p-2;
+}
+
+:deep(.ant-input-group-addon:last-child) {
+  @apply top-[-0.5px];
 }
 </style>

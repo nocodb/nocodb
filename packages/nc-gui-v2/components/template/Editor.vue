@@ -259,13 +259,24 @@ async function importTemplate() {
   } catch (e: any) {
     toast.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    // TODO: close dialog when the integration is ready
     isImporting.value = false
   }
 }
 
+const isValid = () => {
+  for (const [_, o] of Object.entries(validateInfos)) {
+    if (o?.validateStatus) {
+      if (o.validateStatus === 'error') {
+        return false
+      }
+    }
+  }
+  return true
+}
+
 defineExpose({
   importTemplate,
+  isValid,
 })
 </script>
 
@@ -288,8 +299,8 @@ defineExpose({
               <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <a-input
                   v-model:value="table.table_name"
+                  class="max-w-xs"
                   size="large"
-                  style="max-width: 300px"
                   hide-details
                   @click="(e) => e.stopPropagation()"
                   @blur="setEditableTn(tableIdx, false)"
@@ -355,10 +366,10 @@ defineExpose({
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
                     <a-auto-complete
                       v-model:value="record.uidt"
+                      class="w-52"
                       size="large"
                       :options="uiTypeOptions"
                       :filter-option="filterOption"
-                      style="width: 200px"
                     />
                   </a-form-item>
                 </template>

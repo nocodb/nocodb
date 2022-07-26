@@ -1,10 +1,26 @@
 <script setup lang="ts">
 import * as monaco from 'monaco-editor'
+import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
+import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import { onMounted } from '#imports'
 import { deepCompare } from '~/utils/deepCompare'
 
 const { modelValue } = defineProps<{ modelValue: any }>()
+
 const emit = defineEmits(['update:modelValue'])
+
+/**
+ * Adding monaco editor to Vite
+ *
+ * @ts-expect-error */
+self.MonacoEnvironment = {
+  getWorker(_: any, label: string) {
+    if (label === 'json') {
+      return new JsonWorker()
+    }
+    return new EditorWorker()
+  },
+}
 
 const root = ref<HTMLDivElement>()
 let editor: monaco.editor.IStandaloneCodeEditor
@@ -41,7 +57,6 @@ onMounted(() => {
 
     editor.onDidChangeModelContent(async (e) => {
       try {
-        // console.log(e)
         const obj = JSON.parse(editor.getValue())
         if (!deepCompare(modelValue, obj)) emit('update:modelValue', obj)
       } catch (e) {

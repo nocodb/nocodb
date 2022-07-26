@@ -5,6 +5,14 @@ import type { TableType } from 'nocodb-sdk'
 import { MetaInj } from '~/context'
 import useViews from '~/composables/useViews'
 import MdiContentSaveIcon from '~icons/mdi/content-save'
+import MdiLinkIcon from '~icons/mdi/link'
+import MdiEmailIcon from '~icons/mdi/email'
+import MdiSlackIcon from '~icons/mdi/slack'
+import MdiMicrosoftTeamsIcon from '~icons/mdi/microsoft-teams'
+import MdiDiscordIcon from '~icons/mdi/discord'
+import MdiChatIcon from '~icons/mdi/chat'
+import MdiWhatsAppIcon from '~icons/mdi/whatsapp'
+import MdiCellPhoneMessageIcon from '~icons/mdi/cellphone-message'
 
 const meta = inject(MetaInj)
 const { views, loadViews } = useViews(meta as Ref<TableType>)
@@ -200,7 +208,9 @@ onMounted(() => {
         <a-col :span="12">
           <a-form-item v-bind="validateInfos.event">
             <a-select v-model:value="formState.event" size="large" :placeholder="$t('general.event')">
-              <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value">{{ event.title }}</a-select-option>
+              <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value">
+                {{ event.title }}
+              </a-select-option>
             </a-select>
           </a-form-item>
         </a-col>
@@ -212,9 +222,19 @@ onMounted(() => {
               :placeholder="$t('general.notification')"
               @change="onNotTypeChange"
             >
-              <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">{{
-                notificationOption.type
-              }}</a-select-option>
+              <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
+                <div class="flex items-center">
+                  <MdiLinkIcon v-if="notificationOption.type === 'URL'" class="mr-2" />
+                  <MdiEmailIcon v-if="notificationOption.type === 'Email'" class="mr-2" />
+                  <MdiSlackIcon v-if="notificationOption.type === 'Slack'" class="mr-2" />
+                  <MdiMicrosoftTeamsIcon v-if="notificationOption.type === 'Microsoft Teams'" class="mr-2" />
+                  <MdiDiscordIcon v-if="notificationOption.type === 'Discord'" class="mr-2" />
+                  <MdiChatIcon v-if="notificationOption.type === 'Mattermost'" class="mr-2" />
+                  <MdiWhatsAppIcon v-if="notificationOption.type === 'Whatsapp Twilio'" class="mr-2" />
+                  <MdiCellPhoneMessageIcon v-if="notificationOption.type === 'Twilio'" class="mr-2" />
+                  {{ notificationOption.type }}
+                </div>
+              </a-select-option>
             </a-select>
           </a-form-item>
         </a-col>

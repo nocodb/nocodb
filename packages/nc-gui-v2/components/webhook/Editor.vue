@@ -18,6 +18,104 @@ const formState = reactive({
   method: 'GET',
 })
 
+const formInput = ref({
+  'Email': [
+    {
+      key: 'to',
+      label: 'To Address',
+      placeholder: 'To Address',
+      type: 'SingleLineText',
+      required: true,
+    },
+    {
+      key: 'subject',
+      label: 'Subject',
+      placeholder: 'Subject',
+      type: 'SingleLineText',
+      required: true,
+    },
+    {
+      key: 'body',
+      label: 'Body',
+      placeholder: 'Body',
+      type: 'LongText',
+      required: true,
+    },
+  ],
+  'Slack': [
+    {
+      key: 'body',
+      label: 'Body',
+      placeholder: 'Body',
+      type: 'LongText',
+      required: true,
+    },
+  ],
+  'Microsoft Teams': [
+    {
+      key: 'body',
+      label: 'Body',
+      placeholder: 'Body',
+      type: 'LongText',
+      required: true,
+    },
+  ],
+  'Discord': [
+    {
+      key: 'body',
+      label: 'Body',
+      placeholder: 'Body',
+      type: 'LongText',
+      required: true,
+    },
+  ],
+  'Mattermost': [
+    {
+      key: 'body',
+      label: 'Body',
+      placeholder: 'Body',
+      type: 'LongText',
+      required: true,
+    },
+  ],
+  'Twilio': [
+    {
+      key: 'body',
+      label: 'Body',
+      placeholder: 'Body',
+      type: 'LongText',
+      required: true,
+    },
+    {
+      key: 'to',
+      label: 'Comma separated Mobile #',
+      placeholder: 'Comma separated Mobile #',
+      type: 'LongText',
+      required: true,
+    },
+  ],
+  'Whatsapp Twilio': [
+    {
+      key: 'body',
+      label: 'Body',
+      placeholder: 'Body',
+      type: 'LongText',
+      required: true,
+    },
+    {
+      key: 'to',
+      label: 'Comma separated Mobile #',
+      placeholder: 'Comma separated Mobile #',
+      type: 'LongText',
+      required: true,
+    },
+  ],
+})
+const notification = ref({
+  method: 'POST',
+  body: '{{ json data }}',
+})
+
 const eventList = ref([
   {
     title: 'After Insert',
@@ -63,6 +161,10 @@ const validators = computed(() => {
 })
 const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
+function onNotTypeChange() {
+  // TODO
+}
+
 onMounted(() => {
   loadViews()
 })
@@ -94,7 +196,7 @@ onMounted(() => {
       <a-row class="mb-5" type="flex">
         <a-input v-model:value="formState.title" size="large" :placeholder="$t('general.title')" />
       </a-row>
-      <a-row class="mb-5" type="flex" :gutter="[16, 16]">
+      <a-row type="flex" :gutter="[16, 16]">
         <a-col :span="12">
           <a-form-item v-bind="validateInfos.event">
             <a-select v-model:value="formState.event" size="large" :placeholder="$t('general.event')">
@@ -104,9 +206,14 @@ onMounted(() => {
         </a-col>
         <a-col :span="12">
           <a-form-item v-bind="validateInfos['notification.type']">
-            <a-select v-model:value="formState.notification.type" size="large" :placeholder="$t('general.notification')">
-              <a-select-option v-for="(notification, i) in notificationList" :key="i" :value="notification.type">{{
-                notification.type
+            <a-select
+              v-model:value="formState.notification.type"
+              size="large"
+              :placeholder="$t('general.notification')"
+              @change="onNotTypeChange"
+            >
+              <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">{{
+                notificationOption.type
               }}</a-select-option>
             </a-select>
           </a-form-item>
@@ -119,15 +226,37 @@ onMounted(() => {
           </a-select>
         </a-col>
         <a-col :span="18">
-          <a-input></a-input>
+          <a-form-item v-bind="validateInfos['notification.url']">
+            <a-input v-model:value="formState.url" size="large" placeholder="http://example.com" />
+          </a-form-item>
         </a-col>
       </a-row>
-
       <a-row v-if="formState.notification.type === 'Slack'" class="mb-5" type="flex"> TODO: Slack </a-row>
       <a-row v-if="formState.notification.type === 'Microsoft Teams'" class="mb-5" type="flex"> TODO: Microsoft Teams </a-row>
       <a-row v-if="formState.notification.type === 'Discord'" class="mb-5" type="flex"> TODO: Discord </a-row>
       <a-row v-if="formState.notification.type === 'Mattermost'" class="mb-5" type="flex"> TODO: Mattermost </a-row>
-      <!--  TODO: handle inputs[hook.notification.type] -->
+      <a-row v-if="formInput[formState.notification.type] && notification" class="mb-5" type="flex">
+        <a-col v-for="(input, i) in formInput[formState.notification.type]" :key="i" :span="24">
+          <a-form-item v-if="input.type === 'LongText'">
+            <a-textarea
+              :key="input.key"
+              v-model:value="notification[input.key]"
+              outlined
+              :placeholder="input.label"
+              :rules="[(v) => !input.required || !!v || `${$t('general.required')}`]"
+            />
+          </a-form-item>
+          <a-form-item v-else>
+            <a-input
+              :key="input.key"
+              v-model:value="notification[input.key]"
+              class="caption"
+              :placeholder="input.label"
+              :rules="[(v) => !input.required || !!v || `${$t('general.required')}`]"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
       <!--  TODO: handle column filter -->
       <!--  TODO: sample payload -->
     </a-form-item>

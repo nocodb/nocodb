@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { inject, ref, useViews } from '#imports'
+import { inject, provide, ref, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
-import { viewIcons } from '~/utils/viewUtils'
+import { viewIcons } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
@@ -157,6 +157,6 @@ function onViewCreate(view: GridType | FormType | KanbanType | GalleryType) {
       </div>
     </div>
 
-    <DlgViewCreate v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate" />
+    <DlgViewCreate v-if="views" v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate" />
   </a-layout-sider>
 </template>

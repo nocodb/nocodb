@@ -1,37 +1,72 @@
 <script setup lang="ts">
-import { inject } from '@vue/runtime-core'
-import type { TableType } from 'nocodb-sdk'
+import type { ComponentPublicInstance } from '@vue/runtime-core'
+import { notification } from 'ant-design-vue'
+import type { Form as AntForm } from 'ant-design-vue'
+import { capitalize, inject } from '@vue/runtime-core'
+import type { GalleryType, GridType, KanbanType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
-import useViewCreate from '~/composables/useViewCreate'
+import { useI18n } from 'vue-i18n'
+import { MetaInj, ViewListInj } from '~/context'
+import { generateUniqueTitle } from '~/utils'
+import { useNuxtApp } from '#app'
+import { computed, nextTick, onMounted, reactive, unref, useVModel, watch } from '#imports'
 
-const { modelValue, type } = defineProps<{ type: ViewTypes; modelValue: boolean }>()
+interface Props {
+  modelValue: boolean
+  type: ViewTypes
+}
 
-const emit = defineEmits(['update:modelValue', 'created'])
+interface Emits {
+  (event: 'update:modelValue', value: boolean): void
+  (event: 'created', value: ViewType): void
+}
 
-const valid = ref(false)
+interface Form {
+  title: string
+  type: ViewTypes
+  copy_from_id: string | null
+}
+
+const props = defineProps<Props>()
+
+const emits = defineEmits<Emits>()
+
+const inputEl = $ref<ComponentPublicInstance>()
+
+const formValidator = $ref<typeof AntForm>()
+
+const vModel = useVModel(props, 'modelValue', emits)
+
+const { t } = useI18n()
+
+const meta = inject(MetaInj)
 
 const viewList = inject(ViewListInj)
 
-const activeView = inject(ActiveViewInj)
-
-const inputEl = ref()
-
-const form = ref()
-
-const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v) {
-    emit('update:modelValue', v)
-  },
+const form = reactive<Form>({
+  title: '',
+  type: props.type,
+  copy_from_id: null,
 })
 
-const { view, createView, generateUniqueTitle, loading } = useViewCreate(inject(MetaInj) as Ref<TableType>, (view) =>
-  emit('created', view),
-)
+const formRules = [
+  // name is required
+  { required: true, message: `${t('labels.viewName')} ${t('general.required')}` },
+  // name is unique
+  {
+    validator: (_: unknown, v: string) =>
+      new Promise((resolve, reject) => {
+        ;(unref(viewList) || []).every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== v)
+          ? resolve(true)
+          : reject(new Error(`View name should be unique`))
+      }),
+    message: 'View name should be unique',
+  },
+]
+
+let loading = $ref(false)
+
+const { $api } = useNuxtApp()
 
 const typeAlias = computed(
   () =>
@@ -40,46 +75,85 @@ const typeAlias = computed(
       [ViewTypes.GALLERY]: 'gallery',
       [ViewTypes.FORM]: 'form',
       [ViewTypes.KANBAN]: 'kanban',
-    }[type]),
+    }[props.type]),
 )
+
+watch(vModel, (value) => value && init())
 
 watch(
-  () => modelValue,
-  (v) => {
-    if (v) {
-      generateUniqueTitle(viewList?.value || [])
-      nextTick(() => {
-        const el = inputEl?.value?.$el
-        el?.querySelector('input')?.focus()
-        el?.querySelector('input')?.select()
-        form?.value?.validate()
-      })
-    }
-  },
+  () => props.type,
+  (newType) => (form.type = newType),
 )
 
-const onSubmit = () => {
-  const isValid = form.value.validate()
-  if (isValid) {
-    createView(view.type!)
-    emit('update:modelValue', false)
+function init() {
+  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), viewList?.value || [], 'title')
+
+  nextTick(() => {
+    const el = inputEl?.$el as HTMLInputElement
+
+    if (el) {
+      el.focus()
+      el.select()
+    }
+  })
+}
+
+async function onSubmit() {
+  const isValid = await formValidator.value?.validate()
+
+  if (isValid && form.type) {
+    loading = true
+
+    const _meta = unref(meta)
+
+    if (!_meta || !_meta.id) return
+
+    try {
+      let data
+      switch (form.type) {
+        case ViewTypes.GRID:
+          data = await $api.dbView.gridCreate(_meta.id, form)
+          break
+        case ViewTypes.GALLERY:
+          data = await $api.dbView.galleryCreate(_meta.id, form)
+          break
+        case ViewTypes.FORM:
+          data = await $api.dbView.formCreate(_meta.id, form)
+          break
+      }
+
+      notification.success({
+        message: 'View created successfully',
+      })
+
+      emits('created', data)
+    } catch (e: any) {
+      notification.error({
+        message: e.message,
+      })
+    }
+
+    loading = false
+    vModel.value = false
   }
 }
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow">
+  <a-modal v-model:visible="vModel" :confirm-loading="loading">
     <template #title>
       {{ $t('general.create') }} <span class="text-capitalize">{{ typeAlias }}</span> {{ $t('objects.view') }}
     </template>
-    <a-form ref="form" layout="vertical" :model="valid" name="createView" @finish="createView">
-      <a-form-item
-        :label="$t('labels.viewName')"
-        :name="$t('labels.viewName')"
-        :rules="[{ required: true, message: 'View name required' }]"
-      >
-        <a-input ref="inputEl" v-model:value="view.title" autofocus />
+
+    <a-form ref="formValidator" layout="vertical" :model="form">
+      <a-form-item :label="$t('labels.viewName')" name="title" :rules="formRules">
+        <a-input ref="inputEl" v-model:value="form.title" autofocus />
       </a-form-item>
     </a-form>
+
+    <template #footer>
+      <a-button key="back" @click="vModel = false">Return</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="onSubmit">Submit</a-button>
+    </template>
   </a-modal>
 </template>

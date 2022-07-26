@@ -1,37 +1,48 @@
 <script setup lang="ts">
-import type { Ref } from 'vue'
-import type { TableType } from 'nocodb-sdk'
 import { MetaInj } from '~/context'
-import useViews from '~/composables/useViews'
-interface Props {
-  visible: boolean
-}
+import MdiHookIcon from '~icons/mdi/hook'
+import MdiDeleteIcon from '~icons/mdi/delete'
 
-const { visible } = defineProps<Props>()
-const emit = defineEmits(['visible', 'editOrAdd'])
+const emit = defineEmits(['edit'])
 const hooks = ref([])
 const meta = inject(MetaInj)
-const { views, loadViews } = useViews(meta as Ref<TableType>)
-
-const afterVisibleChange = (bool: boolean) => {
-  console.log('visible', bool)
-  emit('visible')
-}
-
-onMounted(() => {
-  loadViews()
-})
 </script>
 
 <template>
   <div class="h-5/6">
-    <a-typography-title class="inline" :level="4">{{ views?.[0].title }} : Webhooks </a-typography-title>
-    <a-button class="float-right" type="primary" size="large" @click="emit('editOrAdd')">
+    <a-typography-title class="inline" :level="4">{{ meta.title }} : Webhooks </a-typography-title>
+    <a-button class="float-right" type="primary" size="large" @click="emit('add')">
       <!-- TODO: i18n -->
       Create Webhook
     </a-button>
     <a-divider />
-    <div v-if="hooks.length > 0">TODO</div>
+    <div v-if="hooks.length">
+      <a-list item-layout="horizontal" :data-source="hooks" class="cursor-pointer bg-gray-100 pl-5 pr-5 pt-2 pb-2">
+        <template #renderItem="{ item }">
+          <a-list-item @click="emit('edit', item)">
+            <a-list-item-meta :description="item.event">
+              <template #title>
+                {{ item.title }}
+              </template>
+              <template #avatar>
+                <div class="mt-4">
+                  <MdiHookIcon />
+                </div>
+              </template>
+            </a-list-item-meta>
+            <template #extra>
+              <div>
+                <!-- Notify Via -->
+                <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
+                <div class="float-right pt-2 pr-1">
+                  <MdiDeleteIcon />
+                </div>
+              </div>
+            </template>
+          </a-list-item>
+        </template>
+      </a-list>
+    </div>
     <div v-else class="pa-4 bg-gray-100 text-gray-600">
       Webhooks list is empty, create new webhook by clicking 'Create webhook' button.
     </div>

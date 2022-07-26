@@ -107,6 +107,10 @@ const disablePreImportButton = computed(() => {
   }
 })
 
+const disableImportButton = computed(() => {
+  return !templateEditorRef.value?.isValid()
+})
+
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isEditorValid())
 
 async function handlePreImport() {
@@ -213,7 +217,7 @@ function getAdapter(name: string, val: any) {
 
 <template>
   <a-modal v-model:visible="dialogShow" width="max(90vw, 600px)" @keydown.esc="dialogShow = false">
-    <a-typography-title class="mb-4 select-none" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
+    <a-typography-title class="ml-5 mt-5 mb-5" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
       <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
@@ -227,71 +231,75 @@ function getAdapter(name: string, val: any) {
         :loading="loading"
         :disabled="disablePreImportButton"
         @click="handlePreImport"
-        >{{ $t('activity.import') }}</a-button
-      >
-      <a-button v-else key="import" type="primary" :loading="loading" @click="handleImport">{{ $t('activity.import') }}</a-button>
+        >{{ $t('activity.import') }}
+      </a-button>
+      <a-button v-else key="import" type="primary" :loading="loading" :disabled="disableImportButton" @click="handleImport">{{
+        $t('activity.import')
+      }}</a-button>
     </template>
-    <TemplateEditor
-      v-if="templateEditorModal"
-      ref="templateEditorRef"
-      :project-template="templateData"
-      :import-data="importData"
-      :quick-import-type="importType"
-    />
-    <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
-      <a-tab-pane key="uploadTab" :closable="false">
-        <template #tab>
-          <span class="flex items-center gap-2">
-            <MdiFileUploadOutlineIcon />
-            Upload
-          </span>
-        </template>
-        <div class="pr-10 pb-0 pt-5">
-          <a-upload-dragger
-            v-model:fileList="importState.fileList"
-            name="file"
-            :accept="importMeta.acceptTypes"
-            :max-count="1"
-            list-type="picture"
-            @change="handleChange"
-            @reject="rejectDrop"
-          >
-            <MdiFileIcon size="large" />
-            <p class="ant-upload-text">Click or drag file to this area to upload</p>
-            <p class="ant-upload-hint">
-              {{ importMeta.uploadHint }}
-            </p>
-          </a-upload-dragger>
-        </div>
-      </a-tab-pane>
-      <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
-        <template #tab>
-          <span class="flex items-center gap-2">
-            <MdiCodeJSONIcon />
-            Json Editor
-          </span>
-        </template>
-        <div class="pb-3 pt-3">
-          <MonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
-        </div>
-      </a-tab-pane>
-      <a-tab-pane v-else key="urlTab" :closable="false">
-        <template #tab>
-          <span class="flex items-center gap-2">
-            <MdiLinkVariantIcon />
-            Url
-          </span>
-        </template>
-        <div class="pr-10 pt-5">
-          <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
-            <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
-              <a-input v-model:value="importState.url" size="large" />
-            </a-form-item>
-          </a-form>
-        </div>
-      </a-tab-pane>
-    </a-tabs>
-    <div v-if="!templateEditorModal">
+    <div class="ml-5 mr-5">
+      <TemplateEditor
+        v-if="templateEditorModal"
+        ref="templateEditorRef"
+        :project-template="templateData"
+        :import-data="importData"
+        :quick-import-type="importType"
+      />
+      <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
+        <a-tab-pane key="uploadTab" :closable="false">
+          <template #tab>
+            <span class="flex items-center gap-2">
+              <MdiFileUploadOutlineIcon />
+              Upload
+            </span>
+          </template>
+          <div class="pr-10 pb-0 pt-5">
+            <a-upload-dragger
+              v-model:fileList="importState.fileList"
+              name="file"
+              :accept="importMeta.acceptTypes"
+              :max-count="1"
+              list-type="picture"
+              @change="handleChange"
+              @reject="rejectDrop"
+            >
+              <MdiFileIcon size="large" />
+              <p class="ant-upload-text">Click or drag file to this area to upload</p>
+              <p class="ant-upload-hint">
+                {{ importMeta.uploadHint }}
+              </p>
+            </a-upload-dragger>
+          </div>
+        </a-tab-pane>
+        <a-tab-pane v-if="isImportTypeJson" key="jsonEditorTab" :closable="false">
+          <template #tab>
+            <span class="flex items-center gap-2">
+              <MdiCodeJSONIcon />
+              Json Editor
+            </span>
+          </template>
+          <div class="pb-3 pt-3">
+            <MonacoEditor ref="jsonEditorRef" v-model="importState.jsonEditor" class="min-h-60 max-h-80" />
+          </div>
+        </a-tab-pane>
+        <a-tab-pane v-else key="urlTab" :closable="false">
+          <template #tab>
+            <span class="flex items-center gap-2">
+              <MdiLinkVariantIcon />
+              Url
+            </span>
+          </template>
+          <div class="pr-10 pt-5">
+            <a-form :model="importState" name="quick-import-url-form" layout="horizontal" class="mb-0">
+              <a-form-item :label="importMeta.urlInputLabel" v-bind="validateInfos.url">
+                <a-input v-model:value="importState.url" size="large" />
+              </a-form-item>
+            </a-form>
+          </div>
+        </a-tab-pane>
+      </a-tabs>
+    </div>
+    <div v-if="!templateEditorModal" class="ml-5 mr-5">
       <a-divider />
       <div class="mb-4">
         <span class="prose-xl font-bold">Advanced Settings</span>

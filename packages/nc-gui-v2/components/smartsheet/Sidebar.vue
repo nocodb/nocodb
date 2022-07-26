@@ -76,7 +76,7 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
   <a-layout-sider class="views-navigation-drawer bg-white shadow" :width="toggleDrawer ? 0 : 250">
     <div class="flex flex-col h-full">
       <div class="flex-1">
-        <a-menu v-model:selected-keys="selected">
+        <a-menu :selected-keys="selected">
           <h3 class="pt-3 px-3 text-sm font-semibold">{{ $t('objects.views') }}</h3>
           <a-menu-item v-for="view in views" :key="view.id" @click="changeView(view)">
             <div v-t="['a:view:open', { view: view.type }]" class="flex items-center w-full">
@@ -84,92 +84,67 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
               <div>{{ view.alias || view.title }}</div>
             </div>
           </a-menu-item>
-        </a-menu>
 
-        <v-divider class="advance-menu-divider" />
+          <a-divider class="my-4" />
 
-        <v-list dense>
-          <v-list-item dense>
-            <!-- Create a View -->
-            <span class="body-2 font-weight-medium" @dblclick="enableDummyFeat = true">
-              {{ $t('activity.createView') }}
-            </span>
-          </v-list-item>
-          <v-tooltip bottom>
-            <template #activator="{ props }">
-              <v-list-item dense class="body-2 nc-create-grid-view" v-bind="props" @click="openCreateViewDlg(ViewTypes.GRID)">
+          <h3 class="px-3 text-sm font-semibold" @dblclick="enableDummyFeat = true">
+            {{ $t('activity.createView') }}
+          </h3>
+
+          <a-menu-item key="grid" @click="openCreateViewDlg(ViewTypes.GRID)">
+            <a-tooltip placement="left">
+              <template #title>
+                {{ $t('msg.info.addView.grid') }}
+              </template>
+
+              <div class="flex items-center w-full">
                 <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color} mr-1`" />
 
-                <v-list-item-title>
-                  <span class="font-weight-regular">
-                    <!-- Grid -->
-                    {{ $t('objects.viewType.grid') }}
-                  </span>
-                </v-list-item-title>
+                <div>{{ $t('objects.viewType.grid') }}</div>
 
-                <v-spacer />
+                <div class="flex-1" />
 
-                <MdiPlusIcon class="mr-1" />
-              </v-list-item>
-            </template>
-            <!-- Add Grid View -->
-            {{ $t('msg.info.addView.grid') }}
-          </v-tooltip>
+                <MdiPlusIcon />
+              </div>
+            </a-tooltip>
+          </a-menu-item>
 
-          <v-tooltip bottom>
-            <template #activator="{ props }">
-              <v-list-item
-                dense
-                class="body-2 nc-create-gallery-view"
-                v-bind="props"
-                @click="openCreateViewDlg(ViewTypes.GALLERY)"
-              >
+          <a-menu-item key="gallery" @click="openCreateViewDlg(ViewTypes.GALLERY)">
+            <a-tooltip placement="left">
+              <template #title>
+                {{ $t('msg.info.addView.gallery') }}
+              </template>
+
+              <div class="flex items-center w-full">
                 <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color} mr-1`" />
 
-                <v-list-item-title>
-                  <span class="font-weight-regular">
-                    <!-- Gallery -->
-                    {{ $t('objects.viewType.gallery') }}
-                  </span>
-                </v-list-item-title>
+                <div>{{ $t('objects.viewType.gallery') }}</div>
 
-                <v-spacer />
+                <div class="flex-1" />
 
-                <MdiPlusIcon class="mr-1" />
-              </v-list-item>
-            </template>
-            <!-- Add Gallery View -->
-            {{ $t('msg.info.addView.gallery') }}
-          </v-tooltip>
+                <MdiPlusIcon />
+              </div>
+            </a-tooltip>
+          </a-menu-item>
 
-          <v-tooltip bottom>
-            <template #activator="{ props }">
-              <v-list-item
-                v-if="!isView"
-                dense
-                class="body-2 nc-create-form-view"
-                v-bind="props"
-                @click="openCreateViewDlg(ViewTypes.FORM)"
-              >
+          <a-menu-item v-if="!isView" key="form" @click="openCreateViewDlg(ViewTypes.FORM)">
+            <a-tooltip placement="left">
+              <template #title>
+                {{ $t('msg.info.addView.form') }}
+              </template>
+
+              <div class="flex items-center w-full">
                 <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color} mr-1`" />
 
-                <v-list-item-title>
-                  <span class="font-weight-regular">
-                    <!-- Form -->
+                <div>{{ $t('objects.viewType.form') }}</div>
 
-                    {{ $t('objects.viewType.form') }}
-                  </span>
-                </v-list-item-title>
+                <div class="flex-1" />
 
-                <v-spacer />
-
-                <MdiPlusIcon class="mr-1" />
-              </v-list-item>
-            </template>
-            <!-- Add Form View -->
-            {{ $t('msg.info.addView.form') }}
-          </v-tooltip>
-        </v-list>
+                <MdiPlusIcon />
+              </div>
+            </a-tooltip>
+          </a-menu-item>
+        </a-menu>
       </div>
     </div>
 

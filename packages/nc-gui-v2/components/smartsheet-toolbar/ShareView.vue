@@ -5,7 +5,7 @@ const { isUIAllowed } = useUIPermission()
 
 <template>
   <div>
-    <a-button v-t="['c:view:share']" outlined class="nc-btn-share-view nc-toolbar-btn" size="small" @click="$emit('share')">
+    <a-button v-t="['c:view:share']" outlined class="nc-btn-share-view nc-toolbar-btn" size="small">
       <div class="flex align-center gap-1">
         <MdiOpenInNew class="text-grey" />
         <!-- Share View -->

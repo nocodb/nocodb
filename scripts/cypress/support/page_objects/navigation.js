@@ -163,7 +163,14 @@ export class _projectsPage {
                 force: true,
             });
 
-            cy.get('.nc-extdb-proj-name').type(projectName);
+            // wait for page load by verifying required elements
+            cy.get('.nc-extdb-host-database').should('exist');
+            cy.get('.nc-extdb-proj-name').should('exist');
+            cy.get('.nc-extdb-btn-test-connection').should('exist');
+
+
+            cy.get('.nc-extdb-proj-name').clear().type(projectName);
+
             if (cred.databaseType === 1) {
                 cy.get('.nc-extdb-db-type').select('PostgreSQL');
             }

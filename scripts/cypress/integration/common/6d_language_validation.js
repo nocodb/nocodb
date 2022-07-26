@@ -8,23 +8,16 @@ export const genTest = (apiType, dbType) => {
     describe(`Language support`, () => {
         before(() => {
             loginPage.signIn(roles.owner.credentials)
-            // mainPage.toolBarTopLeft(mainPage.HOME).click();
-            cy.screenshot("Debug 6d-1", { overwrite: true });
         });
 
         const langVerification = (idx, lang) => {
             // pick json from the file specified
             it(`Language verification: ${lang} > Projects page`, () => {
-                let json = require(`../../../../packages/nc-gui/lang/${lang}`);
+                let json = require(`../../../../packages/nc-gui-v2/lang/${lang}`);
 
                 // toggle menu as per index
                 cy.get(".nc-menu-translate").click();
-
-                cy.snipActiveMenu("Menu_Translation");
-
                 cy.getActiveMenu().find(".v-list-item").eq(idx).click();
-
-                cy.screenshot("Debug 6d-2", { overwrite: true });
 
                 // basic validations
                 // 1. Page title: "My Projects"

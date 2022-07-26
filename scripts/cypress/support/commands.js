@@ -251,7 +251,7 @@ Cypress.Commands.add("getActiveModal", () => {
 });
 
 Cypress.Commands.add("getActiveMenu", () => {
-    return cy.get(".menuable__content__active").last();
+    return cy.get(".v-overlay__content").last();
 });
 
 Cypress.Commands.add("getActiveContentModal", () => {

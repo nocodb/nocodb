@@ -96,7 +96,6 @@ export default {
         </div>
       </div>
     </template>
-
   </a-dropdown>
 </template>
 

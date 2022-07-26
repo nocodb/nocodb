@@ -55,7 +55,6 @@ const columns = [
   {
     title: tableHeaderRenderer('Table name'),
     name: 'table_name',
-    onFilter: (value: string, record: any) => record._ptn.indexOf(value) === 0,
   },
   {
     title: tableHeaderRenderer('View name'),
@@ -65,14 +64,17 @@ const columns = [
     // { icon: MdiGridIcon, color: 'blue' },
     title: tableHeaderRenderer('Editor'),
     name: 'editor',
+    width: 150,
   },
   {
     title: tableHeaderRenderer('Commenter'),
     name: 'commenter',
+    width: 150,
   },
   {
     title: tableHeaderRenderer('Viewer'),
     name: 'viewer',
+    width: 150,
   },
 ]
 </script>

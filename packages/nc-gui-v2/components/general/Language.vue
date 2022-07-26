@@ -36,7 +36,7 @@ onMounted(() => {
 <template>
   <v-menu class="select-none">
     <template #activator="{ props }">
-      <MaterialSymbolsTranslate class="md:text-xl cursor-pointer" @click="props.onClick" />
+      <MaterialSymbolsTranslate class="md:text-xl cursor-pointer nc-menu-translate" @click="props.onClick" />
     </template>
     <v-list class="scrollbar min-w-50 max-h-90vh overflow-auto !py-0 dark:(!bg-gray-800 !text-white)">
       <v-list-item

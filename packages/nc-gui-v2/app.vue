@@ -36,7 +36,7 @@ const sidebarOpen = computed({
       <div class="flex-1" />
 
       <div class="ml-4 flex justify-center flex-1">
-        <div class="flex items-center gap-2 cursor-pointer" @click="navigateTo('/')">
+        <div class="flex items-center gap-2 cursor-pointer nc-noco-brand-icon" @click="navigateTo('/')">
           <img width="35" src="~/assets/img/icons/512x512-trans.png" />
           <span class="prose-xl">NocoDB</span>
         </div>

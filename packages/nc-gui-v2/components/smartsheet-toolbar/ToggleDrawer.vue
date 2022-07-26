@@ -4,7 +4,7 @@ import MdiDoorOpenIcon from '~icons/mdi/door-open'
 import MdiDoorClosedIcon from '~icons/mdi/door-closed'
 const navDrawerOpened = ref(false)
 
-const Icon = computed(()=> navDrawerOpened.value ? MdiDoorOpenIcon : MdiDoorClosedIcon)
+const Icon = computed(() => (navDrawerOpened.value ? MdiDoorOpenIcon : MdiDoorClosedIcon))
 </script>
 
 <template>

@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import MdiFlashIcon from '~icons/mdi/flash-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
+import MdiDownloadIcon from '~icons/mdi/download-outline'
 </script>
 
 <template>
-  <v-dropdown>
+  <a-dropdown>
     <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
       <div class="flex gap-1 align-center">
         <MdiFlashIcon class="text-grey" />
@@ -14,9 +15,19 @@ import MdiMenuDownIcon from '~icons/mdi/menu-down'
       </div>
     </a-button>
     <template #overlay>
-      <div></div>
+      <div class="p-2 bg-white">
+        <a-menu>
+          <a-menu-item>
+            <div class="text-xs flex align-center gap-2">
+              <MdiDownloadIcon />
+              <!-- Download as CSV -->
+              {{ $t('activity.downloadCSV') }}
+            </div>
+          </a-menu-item>
+        </a-menu>
+      </div>
     </template>
-  </v-dropdown>
+  </a-dropdown>
   <!--  <div>
     <v-menu open-on-hover bottom offset-y transition="slide-y-transition">
       <template #activator="{ on }">

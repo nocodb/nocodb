@@ -8,26 +8,47 @@ const path = require("path");
  */
 export const deleteDownloadsFolder = () => {
     const downloadsFolder = Cypress.config("downloadsFolder");
-
     cy.task("deleteFolder", downloadsFolder);
 };
+
+export class _settingsPage {
+    constructor() {
+        // menu
+        this.TEAM_N_AUTH = "teamAndAuth";
+        this.APPSTORE = "appStore";
+        this.PROJ_METADATA = "metaData";
+        this.AUDIT = "audit";
+
+        // submenu
+        this.USER_MANAGEMENT = "usersManagement";
+        this.API_TOKEN_MANAGEMENT = "apiTokenManagement";
+        this.APPS = "new";
+        this.METADATA = "metaData";
+        this.UI_ACCESS_CONTROL = "acl";
+        this.AUDIT_LOG = "audit";
+    }
+
+    openMenu(menuId) {
+        // open settings tab
+        cy.get('.nc-team-settings').should('exist').click()
+        cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
+    }
+
+    openTab(tabId) {
+        cy.get(`[data-menu-id=${tabId}]`).should('exist').last().click()
+    }
+
+    closeMenu() {
+        cy.getActiveModal().find('.ant-modal-close-x').click({ force: true });
+    }
+}
 
 // main page
 export class _mainPage {
     constructor() {
-        // Top Right items
-        this.SHARE = 0;
-        this.THEME_BODY = 1;
-        this.THEME_HEADER = 2;
-        this.ALERT = 3;
-        this.LANGUAGE = 4;
-        this.USER = 5;
 
         // Top Left items
         this.HOME = 0;
-        this.GIT_HOME = 1;
-        this.GIT_STAR = 2;
-        this.GIT_DOCS = 3;
 
         this.AUDIT = 0;
         this.APPSTORE = 2;
@@ -516,6 +537,7 @@ export class _mainPage {
 }
 
 export const mainPage = new _mainPage();
+export const settingsPage = new _settingsPage();
 
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

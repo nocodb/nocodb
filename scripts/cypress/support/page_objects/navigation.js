@@ -71,28 +71,11 @@ export class _loginPage {
         loginPage.signIn(roles.owner.credentials);
 
         if (dbType === "mysql") {
-            if ("rest" == apiType)
-                projectsPage.openProject(
-                    staticProjects.externalREST.basic.name
-                );
-            else
-                projectsPage.openProject(staticProjects.externalGQL.basic.name);
+            projectsPage.openProject(staticProjects.externalREST.basic.name);
         } else if (dbType === "xcdb") {
-            if ("rest" == apiType)
-                projectsPage.openProject(staticProjects.sampleREST.basic.name);
-            else {
-                projectsPage.openProject(staticProjects.sampleGQL.basic.name);
-            }
+            projectsPage.openProject(staticProjects.sampleREST.basic.name);
         } else if (dbType === "postgres") {
-            if ("rest" == apiType)
-                projectsPage.openProject(
-                    staticProjects.pgExternalREST.basic.name
-                );
-            else {
-                projectsPage.openProject(
-                    staticProjects.pgExternalGQL.basic.name
-                );
-            }
+            projectsPage.openProject(staticProjects.pgExternalREST.basic.name);
         }
     }
 }
@@ -130,12 +113,10 @@ export class _projectsPage {
         cy.get("body", { timeout: 2000 });
 
         let projectName = projectData.name;
-
         if (projectData.name == "") projectName = "test_proj" + Date.now();
 
         // click on "New Project"
         cy.get(".nc-new-project-menu").should("exist").click();
-
 
         if ("none" == projectData.dbType) {
             // Subsequent form, select (+ Create) option
@@ -197,39 +178,39 @@ export class _projectsPage {
         }
     }
 
-    // create REST default project (sakila DB)
+    // // create REST default project (sakila DB)
+    // //
+    // createDefaulRestProject() {
+    //     return this.createProject(
+    //         { dbType: 1, apiType: 0, name: "" },
+    //         defaultDbParams
+    //     );
+    // }
+
+    // // search project with given key
+    // // return project-name array
+    // //
+    // searchProject(projectNameKey) {
+    //     cy.get('input[placeholder="Search Project"]').type(projectNameKey);
     //
-    createDefaulRestProject() {
-        return this.createProject(
-            { dbType: 1, apiType: 0, name: "" },
-            defaultDbParams
-        );
-    }
-
-    // search project with given key
-    // return project-name array
+    //     const projectName = [];
     //
-    searchProject(projectNameKey) {
-        cy.get('input[placeholder="Search Project"]').type(projectNameKey);
-
-        const projectName = [];
-
-        cy.get("table tr")
-            .each((tableRow) => {
-                cy.wrap(tableRow)
-                    .find("td")
-                    .eq(0)
-                    .find(".title")
-                    .then((input) => {
-                        projectName.push(input.text());
-                    });
-            })
-            .then(() => {
-                // TBD: validate project name to contain search key
-                console.log(projectName);
-                return projectName;
-            });
-    }
+    //     cy.get("table tr")
+    //         .each((tableRow) => {
+    //             cy.wrap(tableRow)
+    //                 .find("td")
+    //                 .eq(0)
+    //                 .find(".title")
+    //                 .then((input) => {
+    //                     projectName.push(input.text());
+    //                 });
+    //         })
+    //         .then(() => {
+    //             // TBD: validate project name to contain search key
+    //             console.log(projectName);
+    //             return projectName;
+    //         });
+    // }
 
     // remove specified project entry
     //

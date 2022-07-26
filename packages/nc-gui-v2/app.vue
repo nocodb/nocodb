@@ -36,7 +36,7 @@ const sidebarOpen = computed({
       <div class="flex-1" />
 
       <div class="ml-4 flex justify-center flex-1">
-        <div class="flex items-center gap-2 cursor-pointer" @click="navigateTo('/')">
+        <div class="flex items-center gap-2 cursor-pointer nc-noco-brand-icon" @click="navigateTo('/')">
           <img width="35" src="~/assets/img/icons/512x512-trans.png" />
           <span class="prose-xl">NocoDB</span>
         </div>
@@ -59,14 +59,14 @@ const sidebarOpen = computed({
 
         <template v-if="$state.signedIn.value">
           <a-dropdown :trigger="['click']">
-            <MdiDotsVertical class="md:text-xl cursor-pointer" @click.prevent />
+            <MdiDotsVertical class="md:text-xl cursor-pointer nc-user-menu" @click.prevent />
 
             <template #overlay>
               <a-menu class="!py-0 nc-user-menu min-w-32 dark:(!bg-gray-800) leading-8 !rounded">
                 <a-menu-item key="0" class="!rounded-t">
                   <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
                     <MdiAt class="mt-1 group-hover:text-success" />&nbsp;
-                    <span class="prose group-hover:text-black">{{ email }}</span>
+                    <span class="prose group-hover:text-black nc-user-menu-email">{{ email }}</span>
                   </nuxt-link>
                 </a-menu-item>
 
@@ -75,7 +75,7 @@ const sidebarOpen = computed({
                 <a-menu-item key="1" class="!rounded-b">
                   <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="signOut">
                     <MdiLogout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
-                    <span class="prose font-semibold text-gray-500 group-hover:text-black">{{ $t('general.signOut') }}</span>
+                    <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">{{ $t('general.signOut') }}</span>
                   </div>
                 </a-menu-item>
               </a-menu>

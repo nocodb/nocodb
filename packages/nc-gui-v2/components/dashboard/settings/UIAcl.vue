@@ -10,6 +10,7 @@ const { $api, $e } = useNuxtApp()
 const { project } = useProject()
 const toast = useToast()
 
+const roles = $ref<Array<string>>(['editor', 'commenter', 'viewer'])
 let isLoading = $ref(false)
 let tables = $ref<Array<any>>([])
 let searchInput = $ref<string>('')
@@ -123,44 +124,20 @@ const columns = [
               {{ record.title }}
             </div>
           </div>
-          <div v-if="column.name === 'editor'">
-            <a-tooltip>
-              <template #title>Click to hide '{{ record.title }}' for role:Editor in UI dashboard</template>
-              <a-checkbox
-                :checked="!record.disabled.editor"
-                @change="
-                  // eslint-disable-next-line prettier/prettier
-                  record.disabled.editor = !record.disabled.editor;
-                  record.edited = true
-                "
-              ></a-checkbox>
-            </a-tooltip>
-          </div>
-          <div v-if="column.name === 'commenter'">
-            <a-tooltip>
-              <template #title>Click to hide '{{ record.title }}' for role:Commenter in UI dashboard</template>
-              <a-checkbox
-                :checked="!record.disabled.commenter"
-                @change="
-                  // eslint-disable-next-line prettier/prettier
-                  record.disabled.commenter = !record.disabled.commenter;
-                  record.edited = true
-                "
-              ></a-checkbox>
-            </a-tooltip>
-          </div>
-          <div v-if="column.name === 'viewer'">
-            <a-tooltip>
-              <template #title>Click to hide '{{ record.title }}' for role:Viewer in UI dashboard</template>
-              <a-checkbox
-                :checked="!record.disabled.viewer"
-                @change="
-                  // eslint-disable-next-line prettier/prettier
-                  record.disabled.viewer = !record.disabled.viewer;
-                  record.edited = true
-                "
-              ></a-checkbox>
-            </a-tooltip>
+          <div v-for="role in roles" :key="role">
+            <div v-if="column.name === role">
+              <a-tooltip>
+                <template #title>Click to hide '{{ record.title }}' for role:{{ role }} in UI dashboard</template>
+                <a-checkbox
+                  :checked="!record.disabled[role]"
+                  @change="
+                    // eslint-disable-next-line prettier/prettier
+                    record.disabled[role] = !record.disabled[role];
+                    record.edited = true
+                  "
+                ></a-checkbox>
+              </a-tooltip>
+            </div>
           </div>
         </template>
       </a-table>

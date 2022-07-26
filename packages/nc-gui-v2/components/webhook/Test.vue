@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
+import { MetaInj } from '~/context'
 
 interface Props {
   hook: Record<string, any>
@@ -8,8 +9,7 @@ interface Props {
 const { hook } = defineProps<Props>()
 
 const { $state, $api, $e } = useNuxtApp()
-
-const { getMeta, removeMeta } = useMetas()
+const meta = inject(MetaInj)
 const isVisible = ref(false)
 const sampleData = ref({
   data: {},
@@ -25,16 +25,13 @@ watch(
 )
 
 async function loadSampleData() {
-  // TODO: get model id
-  const modelId = 'XXX'
   sampleData.value = {
-    data: $api.dbTableWebhook.samplePayloadGet(modelId, hook?.operation),
+    data: $api.dbTableWebhook.samplePayloadGet(meta?.value?.id as string, hook?.operation),
     user: $state.user.value as Record<string, any>,
   }
 }
 
 onMounted(async () => {
-  console.log(hook)
   await loadSampleData()
 })
 </script>

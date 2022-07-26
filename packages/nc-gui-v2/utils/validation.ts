@@ -101,3 +101,21 @@ export const importUrlValidator = {
     callback()
   },
 }
+
+export const importCsvUrlValidator = {
+  validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
+    if (value && !/.*\.(csv)/.test(value)) {
+      callback('Target file is not an accepted file type. The accepted file type is .csv!')
+    }
+    callback()
+  },
+}
+
+export const importExcelUrlValidator = {
+  validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
+    if (value && !/.*\.(xls|xlsx|xlsm|ods|ots)/.test(value)) {
+      callback('Target file is not an accepted file type. The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots!')
+    }
+    callback()
+  },
+}

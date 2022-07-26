@@ -8,7 +8,7 @@ import MdiFileIcon from '~icons/mdi/file-plus-outline'
 import MdiFileUploadOutlineIcon from '~icons/mdi/file-upload-outline'
 import MdiLinkVariantIcon from '~icons/mdi/link-variant'
 import MdiCodeJSONIcon from '~icons/mdi/code-json'
-import { fieldRequiredValidator, importUrlValidator } from '~/utils/validation'
+import { fieldRequiredValidator, importCsvUrlValidator, importExcelUrlValidator, importUrlValidator } from '~/utils/validation'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { ExcelTemplateAdapter, ExcelUrlTemplateAdapter, JSONTemplateAdapter, JSONUrlTemplateAdapter } from '~/utils/parsers'
 import { useProject } from '#imports'
@@ -47,7 +47,7 @@ const importState = reactive({
 
 const validators = computed(() => {
   return {
-    url: [fieldRequiredValidator, importUrlValidator],
+    url: [fieldRequiredValidator, importUrlValidator, importType === 'csv' ? importCsvUrlValidator : importExcelUrlValidator],
     maxRowsToParse: [fieldRequiredValidator],
   }
 })
@@ -122,7 +122,10 @@ async function parseAndExtractData(val: any, name: string) {
     templateData.value = null
     importData.value = null
     const templateGenerator: any = getAdapter(name, val)
-
+    if (!templateGenerator) {
+      toast.error('Template Generator cannot be found!')
+      return
+    }
     await templateGenerator.init()
     templateGenerator.parse()
     templateData.value = templateGenerator.getTemplate()

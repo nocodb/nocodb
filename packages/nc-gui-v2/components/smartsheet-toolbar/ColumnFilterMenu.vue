@@ -21,7 +21,7 @@ const applyChanges = () => {}
       <v-badge :value="filters.length" color="primary" dot overlap>
         <a-button
           v-t="['c:filter']"
-          class="nc-filter-menu-btn px-2 nc-remove-border"
+          class="nc-filter-menu-btn px-2 nc-remove-border border-0"
           :disabled="isLocked"
           outlined
           size="small"

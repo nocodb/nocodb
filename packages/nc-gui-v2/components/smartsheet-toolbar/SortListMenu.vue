@@ -32,7 +32,7 @@ watch(
         <a-button
           v-t="['c:sort']"
           size="small"
-          class="nc-sort-menu-btn px-2 nc-remove-border"
+          class="nc-sort-menu-btn px-2 nc-remove-border border-0"
           :disabled="isLocked"
           small
           text

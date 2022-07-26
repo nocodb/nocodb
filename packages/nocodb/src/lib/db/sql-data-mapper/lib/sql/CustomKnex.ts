@@ -1,4 +1,4 @@
-import Knex, { QueryBuilder } from 'knex';
+import { Knex, knex } from 'knex';
 
 const types = require('pg').types;
 // override parsing date column to Date()
@@ -464,70 +464,72 @@ const appendWhereCondition = function (
 };
 
 declare module 'knex' {
-  interface QueryInterface {
-    clientType(): string;
-  }
+  namespace Knex {
+    interface QueryInterface {
+      clientType(): string;
+    }
 
-  export type XcConditionObjVal = {
-    [key in 'eq' | 'neq' | 'lt' | 'gt' | 'ge' | 'le' | 'like' | 'nlike']:
-      | string
-      | number
-      | any;
-  };
+    export type XcConditionObjVal = {
+      [key in 'eq' | 'neq' | 'lt' | 'gt' | 'ge' | 'le' | 'like' | 'nlike']:
+        | string
+        | number
+        | any;
+    };
 
-  export interface XcXonditionObj {
-    _or: XcXonditionObj[];
-    _and: XcXonditionObj[];
-    _not: XcXonditionObj;
+    export interface XcXonditionObj {
+      _or: XcXonditionObj[];
+      _and: XcXonditionObj[];
+      _not: XcXonditionObj;
 
-    [key: string]:
-      | XcXonditionObj
-      | XcXonditionObj[]
-      | XcConditionObjVal
-      | XcConditionObjVal[];
-  }
+      [key: string]:
+        | XcXonditionObj
+        | XcXonditionObj[]
+        | XcConditionObjVal
+        | XcConditionObjVal[];
+    }
 
-  interface QueryBuilder {
-    xwhere<TRecord, TResult>(
-      value: string,
-      columnAliases?: {
-        [columnAlias: string]: string;
-      }
-    ): Knex.QueryBuilder<TRecord, TResult>;
+    interface QueryBuilder {
+      xwhere<TRecord, TResult>(
+        value: string,
+        columnAliases?: {
+          [columnAlias: string]: string;
+        }
+      ): Knex.QueryBuilder<TRecord, TResult>;
 
-    condition<TRecord, TResult>(
-      conditionObj: XcXonditionObj,
-      columnAliases?: {
-        [columnAlias: string]: string;
-      }
-    ): Knex.QueryBuilder<TRecord, TResult>;
+      condition<TRecord, TResult>(
+        conditionObj: XcXonditionObj,
+        columnAliases?: {
+          [columnAlias: string]: string;
+        }
+      ): Knex.QueryBuilder<TRecord, TResult>;
 
-    conditionv2<TRecord, TResult>(
-      conditionObj: Filter
-    ): Knex.QueryBuilder<TRecord, TResult>;
+      conditionv2<TRecord, TResult>(
+        conditionObj: Filter
+      ): Knex.QueryBuilder<TRecord, TResult>;
 
-    concat<TRecord, TResult>(
-      cn: string | any
-    ): Knex.QueryBuilder<TRecord, TResult>;
+      concat<TRecord, TResult>(
+        cn: string | any
+      ): Knex.QueryBuilder<TRecord, TResult>;
 
-    conditionGraph<TRecord, TResult>(condition: {
-      condition: XcXonditionObj;
-      models: { [key: string]: BaseModelSql };
-    }): Knex.QueryBuilder<TRecord, TResult>;
+      conditionGraph<TRecord, TResult>(condition: {
+        condition: XcXonditionObj;
+        models: { [key: string]: BaseModelSql };
+      }): Knex.QueryBuilder<TRecord, TResult>;
 
-    xhaving<TRecord, TResult>(
-      value: string,
-      columnAliases?: {
-        [columnAlias: string]: string;
-      }
-    ): Knex.QueryBuilder<TRecord, TResult>;
+      xhaving<TRecord, TResult>(
+        value: string,
+        columnAliases?: {
+          [columnAlias: string]: string;
+        }
+      ): Knex.QueryBuilder<TRecord, TResult>;
+    }
   }
 }
 
 /**
  * Append xwhere to knex query builder
  */
-Knex.QueryBuilder.extend(
+knex.QueryBuilder.extend(
   'xwhere',
   function (
     conditionString,
@@ -542,7 +544,7 @@ Knex.QueryBuilder.extend(
 /**
  * Append concat to knex query builder
  */
-Knex.QueryBuilder.extend('concat', function (cn: any) {
+knex.QueryBuilder.extend('concat', function (cn: any) {
   switch (this?.client?.config?.client) {
     case 'pg':
       this.select(this.client.raw(`STRING_AGG(?? , ',')`, [cn]));
@@ -564,7 +566,7 @@ Knex.QueryBuilder.extend('concat', function (cn: any) {
 /**
  * Append xhaving to knex query builder
  */
-Knex.QueryBuilder.extend(
+knex.QueryBuilder.extend(
   'xhaving',
   function (
     conditionString,
@@ -580,7 +582,7 @@ Knex.QueryBuilder.extend(
 /**
  * Append custom where condition(nested object) to knex query builder
  */
-Knex.QueryBuilder.extend('condition', function (conditionObj, columnAliases) {
+knex.QueryBuilder.extend('condition', function (conditionObj, columnAliases) {
   if (!conditionObj || typeof conditionObj !== 'object') {
     return this;
   }
@@ -661,7 +663,7 @@ const parseCondition = (obj, columnAliases, qb, pKey?) => {
 };
 
 // todo: optimize
-Knex.QueryBuilder.extend(
+knex.QueryBuilder.extend(
   'conditionGraph',
   function (args: { condition; models }) {
     if (!args) {
@@ -986,9 +988,9 @@ function parseNestedCondition(obj, qb, pKey?, table?, tableAlias?) {
 type CustomKnex = Knex;
 
 function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
-  const knex: any = Knex(arg);
+  const kn: any = knex(arg);
 
-  const knexRaw = knex.raw;
+  const knexRaw = kn.raw;
 
   /**
    * Wrapper for knex.raw
@@ -1000,11 +1002,11 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
   //   return knexRaw.apply(knex, args);
   // };
 
-  Object.defineProperties(knex, {
+  Object.defineProperties(kn, {
     raw: {
       enumerable: true,
       value: (...args) => {
-        return knexRaw.apply(knex, args);
+        return knexRaw.apply(kn, args);
       },
     },
     clientType: {
@@ -1032,11 +1034,11 @@ function CustomKnex(arg: string | Knex.Config<any> | any): CustomKnex {
   //   return typeof arg === 'string' ? arg.match(/^(\w+):/) ?? [1] : arg.client;
   // };
 
-  return knex;
+  return kn;
 }
 
 // todo: optimize
-Knex.QueryBuilder.extend(
+knex.QueryBuilder.extend(
   'conditionGraphv2',
   function (args: { condition; models }) {
     if (!args) {
@@ -1227,14 +1229,14 @@ function parseNestedConditionv2(obj, qb, pKey?, table?, tableAlias?) {
 /**
  * Append custom where condition(nested object) to knex query builder
  */
-Knex.QueryBuilder.extend('conditionv2', function (conditionObj: Filter) {
+knex.QueryBuilder.extend('conditionv2', function (conditionObj: Filter) {
   if (!conditionObj || typeof conditionObj !== 'object') {
     return this;
   }
   return parseConditionv2(conditionObj, this);
 } as any);
 
-const parseConditionv2 = (obj: Filter, qb: QueryBuilder) => {
+const parseConditionv2 = (obj: Filter, qb: Knex.QueryBuilder) => {
   if (obj.is_group) {
     qb = qb.where(function () {
       const children = obj.children;

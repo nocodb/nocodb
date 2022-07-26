@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/ban-types,prefer-const */
-import Knex from 'knex';
+import  { Knex } from 'knex';
 import Filter from '../../../models/Filter';
 import Sort from '../../../models/Sort';
 
@@ -112,7 +112,7 @@ abstract class BaseModel {
       timeout: 25000,
     };
 
-    this.clientType = this.dbDriver.clientType();
+    this.clientType = this.dbDriver.client;
 
     autoBind(this);
   }
@@ -221,8 +221,8 @@ abstract class BaseModel {
       const query = this.$db.insert(data);
 
       if (
-        this.dbDriver.clientType() === 'pg' ||
-        this.dbDriver.clientType() === 'mssql'
+        this.dbDriver.client === 'pg' ||
+        this.dbDriver.client === 'mssql'
       ) {
         query.returning('*');
         response = await this._run(query);
@@ -266,8 +266,8 @@ abstract class BaseModel {
       const query = this.$db.insert(data);
 
       if (
-        this.dbDriver.clientType() === 'pg' ||
-        this.dbDriver.clientType() === 'mssql'
+        this.dbDriver.client === 'pg' ||
+        this.dbDriver.client === 'mssql'
       ) {
         query.returning('*');
         response = await this._run(query);

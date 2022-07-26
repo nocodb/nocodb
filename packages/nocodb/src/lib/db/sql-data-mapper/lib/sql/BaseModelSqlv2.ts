@@ -17,7 +17,7 @@ import Sort from '../../../../models/Sort';
 import FormulaColumn from '../../../../models/FormulaColumn';
 import genRollupSelectv2 from './genRollupSelectv2';
 import formulaQueryBuilderv2 from './formulav2/formulaQueryBuilderv2';
-import { QueryBuilder } from 'knex';
+import { Knex } from 'knex';
 import View from '../../../../models/View';
 import {
   AuditOperationSubTypes,
@@ -1336,7 +1336,7 @@ class BaseModelSqlv2 {
     return obj;
   }
 
-  public async shuffle({ qb }: { qb: QueryBuilder }): Promise<void> {
+  public async shuffle({ qb }: { qb: Knex.QueryBuilder }): Promise<void> {
     if (this.isMySQL) {
       qb.orderByRaw('RAND()');
     } else if (this.isPg || this.isSqlite) {
@@ -1350,7 +1350,7 @@ class BaseModelSqlv2 {
     qb,
     columns: _columns,
   }: {
-    qb: QueryBuilder;
+    qb: Knex.QueryBuilder;
     columns?: Column[];
   }): Promise<void> {
     const res = {};
@@ -2629,7 +2629,7 @@ class BaseModelSqlv2 {
     return await qb;
   }
 
-  private async extractRawQueryAndExec(qb: QueryBuilder) {
+  private async extractRawQueryAndExec(qb: Knex.QueryBuilder) {
     let query = qb.toQuery();
     if (!this.isPg && !this.isMssql) {
       query = unsanitize(qb.toQuery());

@@ -62,7 +62,7 @@ $state.sidebarOpen.value = false
 
 <template>
   <NuxtLayout>
-    <a-card class="mx-auto mt-10 !max-w-[600px] shadow-lg">
+    <div class="p-12">
       <h1 class="text-center text-4xl pa-2 nc-project-page-title flex align-center justify-center gap-2">
         <!-- My Projects -->
         <b>{{ $t('title.myProject') }}</b>
@@ -152,7 +152,7 @@ $state.sidebarOpen.value = false
           </template>
         </a-table-column>
       </a-table>
-    </a-card>
+    </div>
   </NuxtLayout>
 </template>
 

@@ -8,6 +8,6 @@
 
 <style scoped>
 .nc-container {
-  height: calc(100vh - var(--header-height));
+  @apply h-[calc(100vh_-_var(--header-height))];
 }
 </style>

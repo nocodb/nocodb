@@ -149,8 +149,8 @@ async function onSubmit() {
     </a-form>
 
     <template #footer>
-      <a-button key="back" @click="vModel = false">Return</a-button>
-      <a-button key="submit" type="primary" :loading="loading" @click="onSubmit">Submit</a-button>
+      <a-button key="back" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="onSubmit">{{ $t('general.submit') }}</a-button>
     </template>
   </a-modal>
 </template>

@@ -298,7 +298,7 @@ function onApiSnippet() {
 <template>
   <a-layout-sider class="shadow" :width="toggleDrawer ? 0 : 250">
     <div class="flex flex-col h-full">
-      <a-menu class="min-h-[250px] overflow-y-scroll scrollbar-thin-primary" :selected-keys="selected">
+      <a-menu class="flex-1 max-h-50vh overflow-y-scroll scrollbar-thin-primary" :selected-keys="selected">
         <h3 class="pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
 
         <a-menu-item

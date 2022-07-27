@@ -36,8 +36,21 @@ const hook = reactive({
     type: 'URL',
     channels: '',
   },
-  method: 'GET',
+  api: {
+    method: 'POST',
+    path: '',
+    body: '{{ json data }}',
+    params: [],
+    auth: '',
+    headers: [],
+    response: {},
+    perf: {},
+    meta: {},
+  },
+  condition: false,
 })
+
+const urlTabKey = ref('body')
 
 const apps: Record<string, any> = ref()
 
@@ -145,7 +158,17 @@ const formInput = ref({
   ],
 })
 
-const notification = ref({})
+const notification = ref({
+  method: 'GET',
+  path: '',
+  body: '',
+  params: [],
+  auth: '',
+  headers: [],
+  response: {},
+  perf: {},
+  meta: {},
+})
 
 const eventList = ref([
   {
@@ -187,7 +210,8 @@ const validators = computed(() => {
     'title': [fieldRequiredValidator],
     'event': [fieldRequiredValidator],
     'notification.type': [fieldRequiredValidator],
-    'notification.url': [fieldRequiredValidator],
+    'api.method': [fieldRequiredValidator],
+    'api.path': [fieldRequiredValidator],
     'notification.channels': [fieldRequiredValidator],
     'method': [fieldRequiredValidator],
   }
@@ -195,7 +219,17 @@ const validators = computed(() => {
 const { resetFields, validate, validateInfos } = useForm(hook, validators)
 
 function onNotTypeChange() {
-  notification.value = {}
+  notification.value = {
+    method: 'GET',
+    path: '',
+    body: '',
+    params: [],
+    auth: '',
+    headers: [],
+    response: {},
+    perf: {},
+    meta: {},
+  }
 
   if (hook.notification.type === 'Slack') {
     slackChannels.value = (apps && apps?.Slack && apps.Slack.parsedInput) || []
@@ -305,16 +339,33 @@ onMounted(() => {
       </a-row>
       <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 16]">
         <a-col :span="6">
-          <a-select v-model:value="hook.method" size="large">
+          <a-select v-model:value="hook.api.method" size="large">
             <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">{{ method.title }}</a-select-option>
           </a-select>
         </a-col>
         <a-col :span="18">
-          <a-form-item v-bind="validateInfos['notification.url']">
-            <a-input v-model:value="hook.notification.url" size="large" placeholder="http://example.com" />
+          <a-form-item v-bind="validateInfos['notification.api.path']">
+            <a-input v-model:value="hook.api.path" size="large" placeholder="http://example.com" />
           </a-form-item>
         </a-col>
-        <!-- TODO: add Body, Params Headers & Auth Tabs -->
+        <a-col :span="24">
+          <a-tabs v-model:activeKey="urlTabKey">
+            <a-tab-pane key="body" tab="Body">
+              <!-- TODO: set lang -->
+              <MonacoEditor v-model="hook.api.body" class="min-h-60 max-h-80" />
+            </a-tab-pane>
+            <a-tab-pane key="params" tab="Params" force-render>
+              <!-- TODO: Params component -->
+            </a-tab-pane>
+            <a-tab-pane key="headers" tab="Headers">
+              <!-- TODO: header component -->
+            </a-tab-pane>
+            <a-tab-pane key="auth" tab="Auth">
+              <!-- TODO: set lang -->
+              <MonacoEditor v-model="hook.api.auth" class="min-h-60 max-h-80" />
+            </a-tab-pane>
+          </a-tabs>
+        </a-col>
       </a-row>
       <a-row v-if="hook.notification.type === 'Slack'" type="flex">
         <a-col :span="24">

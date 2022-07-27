@@ -22,7 +22,7 @@ const dialogShow = computed({
 async function editHook(hook: Record<string, any>) {
   editOrAdd.value = true
   nextTick(async () => {
-    webhookEditorRef.value.hook = { ...hook }
+    webhookEditorRef.value.setHook(hook)
     await webhookEditorRef.value.onEventChange()
   })
 }

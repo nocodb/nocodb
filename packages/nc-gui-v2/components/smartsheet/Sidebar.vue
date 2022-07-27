@@ -273,7 +273,7 @@ function onApiSnippet() {
 </script>
 
 <template>
-  <a-layout-sider class="views-navigation-drawer bg-white shadow" :width="toggleDrawer ? 0 : 250">
+  <a-layout-sider class="shadow" :width="toggleDrawer ? 0 : 250">
     <div class="flex flex-col h-full">
       <a-menu class="flex-1" :selected-keys="selected">
         <h3 class="pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
@@ -389,7 +389,7 @@ function onApiSnippet() {
 
         <div class="flex flex-col gap-4 mt-8">
           <button
-            class="flex items-center gap-2 w-full mx-3 p-4 rounded bordered bg-primary transform translate-x-4 hover:translate-x-0 transition duration-150 ease"
+            class="flex items-center gap-2 w-full mx-3 p-4 rounded bordered !bg-primary text-white transform translate-x-4 hover:translate-x-0 transition duration-150 ease"
             @click="onApiSnippet"
           >
             <MdiXml />Get API Snippet
@@ -402,6 +402,14 @@ function onApiSnippet() {
             <MdiHook />{{ $t('objects.webhooks') }}
           </button>
         </div>
+
+        <general-flipping-card class="my-4 h-[250px] w-[250px]">
+          <template #front>
+            <general-social />
+
+            <a v-t="['e:hiring']" href="https://angel.co/company/nocodb" target="_blank"> 🚀 We are Hiring! 🚀 </a>
+          </template>
+        </general-flipping-card>
       </a-menu>
     </div>
 

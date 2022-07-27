@@ -45,18 +45,10 @@ export default {
 </script>
 
 <template>
-  <div class="d-flex align-center">
+  <div class="flex items-center mb-2">
     <span v-if="count !== null && count !== Infinity" class="caption ml-2"> {{ count }} record{{ count !== 1 ? 's' : '' }} </span>
-    <v-spacer />
-    <!--    <v-pagination
-      v-if="count !== Infinity"
-      v-model="page"
-      style="max-width: 100%"
-      :length="Math.ceil(count / size)"
-      :total-visible="8"
-      color="primary lighten-2"
-      class="nc-pagination"
-    /> -->
+
+    <div class="flex-1" />
 
     <a-pagination
       v-if="count !== Infinity"
@@ -86,8 +78,7 @@ export default {
       </v-text-field>
     </div>
 
-    <v-spacer />
-    <v-spacer />
+    <div class="flex-1" />
   </div>
 </template>
 

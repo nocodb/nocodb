@@ -36,13 +36,13 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <div class="nc-container d-flex flex-column">
+  <div class="nc-container flex flex-col">
     <div>
-      <a-tabs v-model:activeKey="activeTabIndex" size="small" type="editable-card" @edit="closeTab">
+      <a-tabs v-model:activeKey="activeTabIndex" type="editable-card" @edit="closeTab">
         <a-tab-pane v-for="(tab, i) in tabs" :key="i" :tab="tab.title" />
 
         <template #leftExtra>
-          <a-menu v-model:selectedKeys="currentMenu" mode="horizontal">
+          <a-menu v-model:selectedKeys="currentMenu" class="border-0" mode="horizontal">
             <a-sub-menu key="addORImport">
               <template #title>
                 <div class="text-sm flex items-center gap-2">
@@ -142,7 +142,7 @@ function openQuickImportDialog(type: string) {
 
 <style scoped>
 .nc-container {
-  height: calc(calc(100vh - var(--header-height)));
+  height: calc(100% + var(--header-height));
   @apply overflow-hidden;
 }
 

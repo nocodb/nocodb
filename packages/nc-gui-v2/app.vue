@@ -3,9 +3,12 @@ import MdiAt from '~icons/mdi/at'
 import MdiLogout from '~icons/mdi/logout'
 import MdiDotsVertical from '~icons/mdi/dots-vertical'
 import MaterialSymbolsMenu from '~icons/material-symbols/menu'
+import MdiReload from '~icons/mdi/reload'
 import { navigateTo } from '#app'
 
 const { $state } = useNuxtApp()
+
+const { isLoading } = useApi()
 
 const sidebar = ref<HTMLDivElement>()
 
@@ -16,11 +19,9 @@ const signOut = () => {
   navigateTo('/signin')
 }
 
-const toggleSidebar = useToggle($state.sidebarOpen)
-
 const sidebarOpen = computed({
   get: () => !$state.sidebarOpen.value,
-  set: (val) => toggleSidebar(val),
+  set: (val) => ($state.sidebarOpen.value = !val),
 })
 </script>
 
@@ -41,15 +42,9 @@ const sidebarOpen = computed({
           <span class="prose-xl">NocoDB</span>
         </div>
 
-        <!-- todo: loading is not yet supported by nuxt 3 - see https://v3.nuxtjs.org/migration/component-options#loading
-          <span v-show="$nuxt.$loading.show" class="caption grey--text ml-3">
-            {{ $t('general.loading') }} <v-icon small color="grey">mdi-spin mdi-loading</v-icon>
-          </span>
-
-
-          todo: replace shortkey?
-          <span v-shortkey="['ctrl', 'shift', 'd']" @shortkey="openDiscord" />
-           -->
+        <div v-show="isLoading" class="text-gray-400 ml-3">
+          {{ $t('general.loading') }} <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+        </div>
       </div>
 
       <div class="flex-1" />

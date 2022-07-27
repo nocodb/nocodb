@@ -217,38 +217,17 @@ const validators = computed(() => {
       'notification.payload.subject': [fieldRequiredValidator],
       'notification.payload.body': [fieldRequiredValidator],
     }),
-    ...(hook.notification.type === 'Slack' && {
+    ...((hook.notification.type === 'Slack' ||
+      hook.notification.type === 'Microsoft Teams' ||
+      hook.notification.type === 'Discord' ||
+      hook.notification.type === 'Mattermost') && {
       'notification.payload.channels': [fieldRequiredValidator],
       'notification.payload.body': [fieldRequiredValidator],
     }),
-    ...(hook.notification.type === 'Slack' &&
-      {
-        // TODO:
-      }),
-    ...(hook.notification.type === 'Microsoft Teams' &&
-      {
-        // TODO:
-      }),
-    ...(hook.notification.type === 'Discord' &&
-      {
-        // TODO:
-      }),
-    ...(hook.notification.type === 'Mattermost' &&
-      {
-        // TODO:
-      }),
-    ...(hook.notification.type === 'URL' &&
-      {
-        // TODO:
-      }),
-    ...(hook.notification.type === 'Twilio' &&
-      {
-        // TODO:
-      }),
-    ...(hook.notification.type === 'Whatsapp Twilio' &&
-      {
-        // TODO:
-      }),
+    ...((hook.notification.type === 'Twilio' || hook.notification.type === 'Whatsapp Twilio') && {
+      'notification.payload.body': [fieldRequiredValidator],
+      'notification.payload.to': [fieldRequiredValidator],
+    }),
   }
 })
 const { resetFields, validate, validateInfos } = useForm(hook, validators)

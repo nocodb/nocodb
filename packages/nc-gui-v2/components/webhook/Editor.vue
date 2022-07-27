@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { Form } from 'ant-design-vue'
-import type { Ref } from 'vue'
-import type { TableType } from 'nocodb-sdk'
+import { useToast } from 'vue-toastification'
+import { PluginType } from 'nocodb-sdk'
 import { MetaInj } from '~/context'
-import useViews from '~/composables/useViews'
 import MdiContentSaveIcon from '~icons/mdi/content-save'
 import MdiLinkIcon from '~icons/mdi/link'
 import MdiEmailIcon from '~icons/mdi/email'
@@ -16,15 +15,18 @@ import MdiCellPhoneMessageIcon from '~icons/mdi/cellphone-message'
 import MdiGestureDoubleTapIcon from '~icons/mdi/gesture-double-tap'
 import MdiInformationIcon from '~icons/mdi/information'
 import { fieldRequiredValidator } from '~/utils/validation'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
 interface Option {
   label: string
   value: string
 }
 
-const meta = inject(MetaInj)
+const { $state, $api, $e } = useNuxtApp()
 
-const { views, loadViews } = useViews(meta as Ref<TableType>)
+const toast = useToast()
+
+const meta = inject(MetaInj)
 
 const useForm = Form.useForm
 
@@ -36,6 +38,8 @@ const formState = reactive({
   },
   method: 'GET',
 })
+
+const apps = ref({})
 
 const slackChannels = ref()
 
@@ -201,14 +205,28 @@ function filterOption(input: string, option: Option) {
   return option.value.toUpperCase().includes(input.toUpperCase())
 }
 
+async function loadPluginList() {
+  try {
+    const plugins = (await $api.plugin.list()).list as any
+    apps.value = plugins.reduce((o: Record<string, any>[], p: Record<string, any>) => {
+      p.tags = p.tags ? p.tags.split(',') : []
+      p.parsedInput = p.input && JSON.parse(p.input)
+      o[p.title] = p
+      return o
+    }, {})
+  } catch (e) {
+    toast.error(extractSdkResponseErrorMsg(e))
+  }
+}
+
 onMounted(() => {
-  loadViews()
+  loadPluginList()
 })
 </script>
 
 <template>
   <div class="float-left pt-3">
-    <a-typography-title class="inline" :level="4">{{ views?.[0].title }} : Webhooks </a-typography-title>
+    <a-typography-title class="inline" :level="4">{{ meta.title }} : Webhooks </a-typography-title>
   </div>
   <div class="float-right mb-5">
     <a-button class="mr-3" type="primary" size="large" @click="emit('editOrAdd')">

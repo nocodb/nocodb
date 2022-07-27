@@ -1,5 +1,5 @@
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
-import { mainPage } from "../../support/page_objects/mainPage";
+import { mainPage, settingsPage } from "../../support/page_objects/mainPage";
 
 export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
@@ -32,13 +32,12 @@ export const genTest = (apiType, dbType) => {
         };
 
         it("Open Audit tab", () => {
-            mainPage.navigationDraw(mainPage.AUDIT).click();
-
-            cy.snip("AuditPage");
-
+            // mainPage.navigationDraw(mainPage.AUDIT).click();
+            settingsPage.openMenu(settingsPage.AUDIT);
+            settingsPage.openTab(settingsPage.AUDIT_LOG);
             // wait for column headers to appear
             //
-            cy.get("thead > tr > th.caption").should("have.length", 5);
+            cy.get("thead > tr > th.ant-table-cell").should("have.length", 5);
 
             // Audit table entries
             //  [Header] Operation Type, Operation Sub Type, Description, User, Created
@@ -53,9 +52,7 @@ export const genTest = (apiType, dbType) => {
             getAuditCell(1, 1).contains("CREATED").should("exist");
             getAuditCell(1, 3).contains("user@nocodb.com").should("exist");
 
-            // click on home icon to close modal
-            // cy.get(".nc-noco-brand-icon").click({ force: true });
-            cy.get("body").click("bottomRight");
+            settingsPage.closeMenu()
         });
 
         it("Table Rename operation", () => {
@@ -63,7 +60,7 @@ export const genTest = (apiType, dbType) => {
 
             // verify
             // 1. Table name in project tree has changed
-            cy.get(".nc-project-tree").contains("CityX").should("exist");
+            cy.get(".nc-tbl-title").contains("CityX").should("exist");
 
             // 2. Table tab name has changed
             cy.get(`.project-tab:contains('CityX'):visible`).should("exist");

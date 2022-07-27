@@ -251,7 +251,7 @@ Cypress.Commands.add("getActiveModal", () => {
 });
 
 Cypress.Commands.add("getActiveMenu", () => {
-    return cy.get(".v-overlay__content:visible").last();
+    return cy.get(".ant-dropdown-content:visible").last();
 });
 
 Cypress.Commands.add("getActiveContentModal", () => {
@@ -259,7 +259,7 @@ Cypress.Commands.add("getActiveContentModal", () => {
 });
 
 Cypress.Commands.add("createTable", (name) => {
-    cy.get(".add-btn").click();
+    cy.get(".nc-btn-tbl-add").click();
     cy.getActiveMenu().contains("Add new table").should('exist').click()
     cy.get('.nc-create-table-card .nc-table-name input[type="text"]')
         .first()
@@ -306,16 +306,9 @@ Cypress.Commands.add("deleteTable", (name, dbType) => {
 });
 
 Cypress.Commands.add("renameTable", (oldName, newName) => {
-    // expand project tree
-    cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)")
-        .should('exist')
-        .first()
-        .click();
 
     // right click on project table name
-    cy.get(".nc-project-tree")
-        .contains(oldName)
+    cy.get(`.nc-project-tree-tbl-${oldName}`)
         .should('exist')
         .first()
         .rightclick();
@@ -323,26 +316,17 @@ Cypress.Commands.add("renameTable", (oldName, newName) => {
     // choose rename option from menu
     cy.getActiveMenu()
         .find('[role="menuitem"]')
-        .contains("Table Rename")
+        .contains("Rename")
         .click({ force: true });
 
     // feed new name
-    cy.getActiveContentModal().find("input").clear().type(newName);
+    cy.getActiveModal().find("input").clear().type(newName);
 
-    cy.snipActiveModal("Modal_RenameTable");
     // submit
-    cy.getActiveContentModal().find("button").contains("Submit").click();
+    cy.getActiveModal().find("button").contains("Submit").click();
 
     cy.toastWait("Table renamed successfully");
 
-    // close expanded project tree
-    cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)")
-        .should('exist')
-        .first()
-        .click();
-
-    cy.wait(8000)
 });
 
 Cypress.Commands.add("createColumn", (table, columnName) => {

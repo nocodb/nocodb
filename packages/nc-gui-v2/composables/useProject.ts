@@ -1,5 +1,5 @@
 import { SqlUiFactory } from 'nocodb-sdk'
-import type { ProjectType, TableType } from 'nocodb-sdk'
+import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
 import { useNuxtApp, useState } from '#app'
 import { USER_PROJECT_ROLES } from '~/lib/constants'
@@ -21,6 +21,7 @@ export default (projectId?: MaybeRef<string>) => {
       projectRoles.value = user.roles
     }
   }
+
   async function loadTables() {
     if (project.value.id) {
       const tablesResponse = await $api.dbTable.list(project.value.id)
@@ -44,7 +45,9 @@ export default (projectId?: MaybeRef<string>) => {
 
   const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
   const isPg = computed(() => projectBaseType === 'pg')
-  const sqlUi = computed(() => SqlUiFactory.create({ client: projectBaseType }))
+  const sqlUi = computed<ReturnType<typeof SqlUiFactory['create']>>(() =>
+    SqlUiFactory.create({ client: projectBaseType }),
+  )
 
   return { project, tables, loadProjectRoles, loadProject, loadTables, isMysql, isPg, sqlUi }
 }

@@ -70,13 +70,14 @@ export default {
 </script>
 
 <template>
-  <div class="d-flex align-center d-100">
+  <div class="flex align-center w-full">
     <SmartsheetHeaderCellIcon v-if="column" />
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
 
     <!--    <span v-if="(column.rqd && !column.cdf) || required" class="error&#45;&#45;text text&#45;&#45;lighten-1">&nbsp;*</span> -->
 
-    <v-spacer />
+    <div class="flex-1" />
+    <SmartsheetHeaderMenu />
     <!--  todo: implement delete or edit column
     <v-menu
       v-if="!isLocked && !isPublicView && _isUIAllowed('edit-column') && !isForm"

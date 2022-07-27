@@ -43,7 +43,7 @@ watch(
         >
           <MdiSortIcon class="mr-1 text-grey" />
           <!-- Sort -->
-          <span class="text-capitalize">{{ $t('activity.sort') }}</span>
+          <span class="text-capitalize nc-sort-menu-btn">{{ $t('activity.sort') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </v-btn>
       </v-badge>

@@ -33,7 +33,7 @@ const applyChanges = () => {}
         >
           <MdiFilterIcon class="mr-1 text-grey" />
           <!-- Filter -->
-          <span class="text-capitalize">{{ $t('activity.filter') }}</span>
+          <span class="text-capitalize nc-filter-menu-btn">{{ $t('activity.filter') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </v-btn>
       </v-badge>

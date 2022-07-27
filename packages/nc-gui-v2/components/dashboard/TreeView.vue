@@ -218,7 +218,7 @@ const addTableTab = (table: TableType) => {
           <span class="flex-grow text-bold nc-project-tree"
             >{{ $t('objects.tables') }} <template v-if="tables?.length">({{ tables.length }})</template></span
           >
-          <MdiPlus v-t="['c:table:create:navdraw']" class="text-gray-500" @click.stop="tableCreateDlg = true" />
+          <MdiPlus v-t="['c:table:create:navdraw']" class="text-gray-500 nc-btn-tbl-add" @click.stop="tableCreateDlg = true" />
           <MdiMenuDown
             class="transition-transform !duration-100 text-gray-500"
             :class="{ 'transform rotate-180': showTableList }"

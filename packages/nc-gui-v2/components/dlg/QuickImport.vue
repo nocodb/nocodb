@@ -118,7 +118,7 @@ const disablePreImportButton = computed(() => {
 })
 
 const disableImportButton = computed(() => {
-  return !templateEditorRef.value?.isValid()
+  return !templateEditorRef.value?.isValid
 })
 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)

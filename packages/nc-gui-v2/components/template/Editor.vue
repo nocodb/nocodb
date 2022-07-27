@@ -263,7 +263,7 @@ async function importTemplate() {
   }
 }
 
-const isValid = () => {
+const isValid = computed(() => {
   for (const [_, o] of Object.entries(validateInfos)) {
     if (o?.validateStatus) {
       if (o.validateStatus === 'error') {
@@ -272,7 +272,7 @@ const isValid = () => {
     }
   }
   return true
-}
+})
 
 defineExpose({
   importTemplate,

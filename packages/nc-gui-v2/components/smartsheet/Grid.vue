@@ -26,6 +26,7 @@ const isPublicView = false
 
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
+const addColumnDropdown = ref(false)
 
 const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
@@ -231,9 +232,14 @@ defineExpose({
 
   td,
   th {
-    min-height: 31px !important;
+    min-height: 41px !important;
+    height: 41px !important;
     position: relative;
     padding: 0 5px !important;
+    min-width: 200px;
+    & > * {
+      @apply flex align-center h-auto;
+    }
   }
 
   table,

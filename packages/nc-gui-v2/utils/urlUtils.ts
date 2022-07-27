@@ -17,6 +17,10 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
   return found && out
 }
 
+export const dashboardUrl = () => {
+  return `${location.origin}${location.pathname || ''}`
+}
+
 // ref : https://stackoverflow.com/a/5717133
 export const isValidURL = (str: string) => {
   const pattern =

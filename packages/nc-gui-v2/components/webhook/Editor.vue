@@ -13,6 +13,8 @@ import MdiDiscordIcon from '~icons/mdi/discord'
 import MdiChatIcon from '~icons/mdi/chat'
 import MdiWhatsAppIcon from '~icons/mdi/whatsapp'
 import MdiCellPhoneMessageIcon from '~icons/mdi/cellphone-message'
+import MdiGestureDoubleTapIcon from '~icons/mdi/gesture-double-tap'
+import MdiInformationIcon from '~icons/mdi/information'
 import { fieldRequiredValidator } from '~/utils/validation'
 
 interface Option {
@@ -211,7 +213,7 @@ onMounted(() => {
   <div class="float-right mb-5">
     <a-button class="mr-3" type="primary" size="large" @click="emit('editOrAdd')">
       <div class="flex items-center">
-        <MdiContentSaveIcon class="mr-2" />
+        <MdiGestureDoubleTapIcon class="mr-2" />
         <!-- TODO: i18n -->
         Test Webhook
       </div>
@@ -333,7 +335,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formInput[formState.notification.type] && notification" class="mb-5" type="flex">
+      <a-row v-if="formInput[formState.notification.type] && notification" type="flex">
         <a-col v-for="(input, i) in formInput[formState.notification.type]" :key="i" :span="24">
           <a-form-item v-if="input.type === 'LongText'">
             <!--  TODO: add validator -->
@@ -345,36 +347,46 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <!--  TODO: handle column filter -->
-      <div>
-        <span class="caption grey--text">
-          <em>Available context variables are <strong>data and user</strong></em>
-          <v-tooltip top>
-            <template #activator="{ on }">
-              <v-icon small color="grey" class="ml-2" v-on="on">mdi-information</v-icon>
-            </template>
-            <span class="caption">
-              <strong>data</strong> : Row data <br />
-              <strong>user</strong> : User information<br />
-            </span>
-          </v-tooltip>
-          <br />
-          <a href="https://docs.nocodb.com/developer-resources/webhooks/" target="_blank">
-            <!-- Document Reference -->
-            {{ $t('labels.docReference') }}
-          </a>
-        </span>
-        <WebhookTest
-          :hook="{
-            ...formState,
-            filters,
-            notification: {
-              ...formState.notification,
-              payload: notification,
-            },
-          }"
-        />
-      </div>
+      <a-row class="mb-5" type="flex">
+        <a-col :span="24">
+          <a-checkbox v-model:checked="formState.condition">On Condition</a-checkbox>
+          <SmartsheetToolbarColumnFilter v-if="formState.condition" />
+        </a-col>
+      </a-row>
+      <a-row>
+        <a-col :span="24">
+          <div class="text-gray-600">
+            <em>Available context variables are <strong>data and user</strong></em>
+
+            <a-tooltip bottom>
+              <template #title>
+                <span>
+                  <strong>data</strong> : Row data <br />
+                  <strong>user</strong> : User information<br />
+                </span>
+              </template>
+              <MdiInformationIcon class="ml-2" />
+            </a-tooltip>
+
+            <div class="mt-3">
+              <a href="https://docs.nocodb.com/developer-resources/webhooks/" target="_blank">
+                <!-- Document Reference -->
+                {{ $t('labels.docReference') }}
+              </a>
+            </div>
+          </div>
+          <WebhookTest
+            :hook="{
+              ...formState,
+              filters,
+              notification: {
+                ...formState.notification,
+                payload: notification,
+              },
+            }"
+          />
+        </a-col>
+      </a-row>
     </a-form-item>
   </a-form>
 </template>

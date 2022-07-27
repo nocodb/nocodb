@@ -260,8 +260,53 @@ function filterOption(input: string, option: Option) {
   return option.value.toUpperCase().includes(input.toUpperCase())
 }
 
+function setHook(newHook: any) {
+  Object.assign(hook, { ...newHook })
+}
+
 async function onEventChange() {
-  // TODO
+  const { notification: { payload = {}, type = {} } = {}, ...rest } = hook
+
+  Object.assign(hook, {
+    ...hook,
+    notification: {
+      type,
+    },
+  })
+
+  await onNotTypeChange()
+
+  notification.value = payload
+
+  let channels: Record<string, any>[] | null = null
+
+  switch (hook.notification.type) {
+    case 'Slack':
+      channels = slackChannels
+      break
+    case 'Microsoft Teams':
+      channels = teamsChannels
+      break
+    case 'Discord':
+      channels = discordChannels
+      break
+    case 'Mattermost':
+      channels = mattermostChannels
+      break
+  }
+
+  if (channels) {
+    notification.webhook_url =
+      notification.webhook_url &&
+      notification.webhook_url.map((v: Record<string, any>) =>
+        channels?.find((s: Record<string, any>) => v.webhook_url === s.webhook_url),
+      )
+  }
+
+  if (hook.notification.type === 'URL') {
+    notification.value = notification.value || {}
+    notification.value.body = '{{ json data }}'
+  }
 }
 
 async function loadPluginList() {
@@ -337,8 +382,8 @@ async function testWebhook() {
 }
 
 defineExpose({
-  hook,
   onEventChange,
+  setHook,
 })
 
 onMounted(() => {

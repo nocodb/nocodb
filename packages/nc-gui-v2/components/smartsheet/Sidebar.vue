@@ -420,7 +420,7 @@ function onApiSnippet() {
           </a-tooltip>
         </a-menu-item>
 
-        <div class="justify-end flex flex-col gap-4">
+        <div class="flex-auto justify-end flex flex-col gap-4">
           <button
             class="flex items-center gap-2 w-full mx-3 p-4 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
             @click="onApiSnippet"
@@ -436,7 +436,7 @@ function onApiSnippet() {
           </button>
         </div>
 
-        <general-flipping-card class="my-4 h-[150px] w-[250px]" :triggers="['click', { duration: 15000 }]">
+        <general-flipping-card class="my-4 min-h-[100px] w-[250px]" :triggers="['click', { duration: 15000 }]">
           <template #front>
             <div class="flex h-full w-full gap-6 flex-col">
               <general-social />

@@ -87,4 +87,14 @@ export default defineNuxtConfig({
     reactivityTransform: true,
     viteNode: false,
   },
+
+  typescript: {
+    typeCheck: true,
+    strict: true,
+    tsConfig: {
+      compilerOptions: {
+        types: ['@intlify/vite-plugin-vue-i18n/client', 'vue-i18n', 'unplugin-icons/types/vue', 'nuxt-windicss'],
+      },
+    },
+  },
 })

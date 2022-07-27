@@ -211,13 +211,6 @@ async function onDelete(index: number) {
   $e('a:view:delete', { view: view.type })
 }
 
-onMounted(() => {
-  notification.open({
-    message: 'Welcome to the View Manager',
-    duration: 3,
-  })
-})
-
 /** Rename a view */
 async function onRename(index: number) {
   // todo: validate if title is unique and not empty
@@ -309,13 +302,21 @@ function onStopEdit() {
                   <MdiContentCopy class="hidden group-hover:block text-gray-500" @click.stop="onDuplicate(i)" />
                 </a-tooltip>
 
-                <a-tooltip placement="left">
-                  <template #title>
-                    {{ $t('activity.deleteView') }}
-                  </template>
+                <a-popconfirm
+                  placement="left"
+                  :title="$t('msg.info.deleteProject')"
+                  :ok-text="$t('general.yes')"
+                  :cancel-text="$t('general.no')"
+                  @confirm="onDelete(i)"
+                >
+                  <a-tooltip placement="left">
+                    <template #title>
+                      {{ $t('activity.deleteView') }}
+                    </template>
 
-                  <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop="onDelete(i)" />
-                </a-tooltip>
+                    <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop />
+                  </a-tooltip>
+                </a-popconfirm>
               </div>
             </div>
           </a-menu-item>

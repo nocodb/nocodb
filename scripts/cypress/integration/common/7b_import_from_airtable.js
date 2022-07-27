@@ -1,8 +1,8 @@
 // Cypress test suite: Project import from Airtable
 //
 
-import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
-import { projectsPage } from "../../support/page_objects/navigation";
+import { isTestSuiteActive, roles } from "../../support/page_objects/projectConstants";
+import { loginPage, projectsPage } from "../../support/page_objects/navigation";
 import { mainPage } from "../../support/page_objects/mainPage";
 
 let apiKey = ""
@@ -17,10 +17,8 @@ export const genTest = (apiType, dbType) => {
       apiKey = Cypress.env("airtable").apiKey;
       sharedBase = Cypress.env("airtable").sharedBase;
 
-      mainPage.toolBarTopLeft(mainPage.HOME).click({force: true})
+      loginPage.signIn(roles.owner.credentials);
       projectsPage.createProject({ dbType: "none", apiType: "REST", name: "importSample" }, {})
-      // projectsPage.openProject("importSample")
-      // cy.openTableTab("Film", 3)
     });
 
     after(() => {});
@@ -29,19 +27,19 @@ export const genTest = (apiType, dbType) => {
       cy.log(apiKey, sharedBase);
 
       // trigger import
-      cy.get(".add-btn").click();
-      cy.getActiveMenu().contains("Airtable").should('exist').click();
-
-      // enable turbo
-      // cy.getActiveModal().find(".nc-btn-enable-turbo").should('exist').click()
+      cy.get(`[data-menu-id="addORImport"]`).click();
+      cy.getActivePopUp().contains("Airtable").should('exist').click();
 
       cy.getActiveModal().find(".nc-input-api-key").should('exist').clear().type(apiKey)
       cy.getActiveModal().find(".nc-input-shared-base").should('exist').clear().type(sharedBase)
       cy.getActiveModal().find(".nc-btn-airtable-import").should('exist').click()
 
       // it will take a while for import to finish
-      cy.getActiveModal().find(".nc-btn-go-dashboard", {timeout: 180000}).should('exist').click()
+      // cy.getActiveModal().find(".nc-btn-go-dashboard", {timeout: 180000}).should('exist').click()
 
+      // wait for import to finish (kludge/hardcoded)
+      cy.get(':nth-child(51) > .flex', {timeout: 180000}).contains('Complete!').should('exist')
+      cy.get('.ant-modal-close-x').should('exist').click()
     });
   });
 };

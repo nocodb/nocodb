@@ -254,6 +254,10 @@ Cypress.Commands.add("getActiveMenu", () => {
     return cy.get(".ant-dropdown-content:visible").last();
 });
 
+Cypress.Commands.add("getActivePopUp", () => {
+    return cy.get(".ant-menu-submenu-popup:visible").last();
+})
+
 Cypress.Commands.add("getActiveContentModal", () => {
     return cy.get(".v-dialog__content--active").last();
 });

@@ -1,8 +1,6 @@
 <script lang="ts" setup>
 import { computed, inject } from '#imports'
-import {
-  useColumnCreateStoreOrThrow,
-} from '~/composables/useColumnCreateStore'
+import { useColumnCreateStoreOrThrow } from '~/composables/useColumnCreateStore'
 import { MetaInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
@@ -11,7 +9,7 @@ import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 const meta = inject(MetaInj)
 const advancedOptions = ref(false)
 
-const { formState, resetFields, validate, validateInfos } = useColumnCreateStoreOrThrow()
+const { formState, resetFields, validate, validateInfos, onUidtOrIdTypeChange, onAlter } = useColumnCreateStoreOrThrow()
 
 // todo: make as a prop
 const editColumn = null
@@ -35,10 +33,15 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   <div class="max-w-[450px] min-w-[350px] w-max max-h-[95vh] bg-white shadow p-4 overflow-auto" @click.stop>
     <a-form v-model="formState" layout="vertical">
       <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.column_name">
-        <a-input v-model:value="formState.column_name" size="small" class="nc-column-name-input" />
+        <a-input
+          v-model:value="formState.column_name"
+          size="small"
+          class="nc-column-name-input"
+          @input="onAlter(8)"
+        />
       </a-form-item>
-      <a-form-item  :label="$t('labels.columnType')">
-        <a-select v-model:value="formState.uidt" size="small" class="nc-column-name-input">
+      <a-form-item :label="$t('labels.columnType')">
+        <a-select v-model:value="formState.uidt" size="small" class="nc-column-name-input" @change="onUidtOrIdTypeChange">
           <a-select-option v-for="opt in uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
             <div class="flex gap-1 align-center text-xs">
               <component :is="opt.icon" class="text-grey" />

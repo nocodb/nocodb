@@ -1081,7 +1081,7 @@ export class MysqlUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col, idType: IDType) {
+  static getDataTypeListForUiType(col, idType?: IDType) {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {

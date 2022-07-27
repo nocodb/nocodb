@@ -898,7 +898,7 @@ export class SqliteUi {
     return colProp;
   }
 
-  static getDataTypeListForUiType(col: { uidt: UITypes }, idType: IDType) {
+  static getDataTypeListForUiType(col: { uidt: UITypes }, idType?: IDType) {
     switch (col.uidt) {
       case 'ID':
         if (idType === 'AG') {

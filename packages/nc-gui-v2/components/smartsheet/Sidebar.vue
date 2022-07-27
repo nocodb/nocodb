@@ -420,7 +420,7 @@ function onApiSnippet() {
           </a-tooltip>
         </a-menu-item>
 
-        <div class="flex-auto justify-end flex flex-col gap-4">
+        <div class="flex-auto justify-end flex flex-col gap-4 mt-2">
           <button
             class="flex items-center gap-2 w-full mx-3 p-4 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
             @click="onApiSnippet"

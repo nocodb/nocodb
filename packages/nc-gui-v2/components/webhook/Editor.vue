@@ -13,6 +13,7 @@ import MdiDiscordIcon from '~icons/mdi/discord'
 import MdiChatIcon from '~icons/mdi/chat'
 import MdiWhatsAppIcon from '~icons/mdi/whatsapp'
 import MdiCellPhoneMessageIcon from '~icons/mdi/cellphone-message'
+import { fieldRequiredValidator } from '~/utils/validation'
 
 interface Option {
   label: string
@@ -29,7 +30,7 @@ const formState = reactive({
   title: '',
   notification: {
     type: 'URL',
-    channel: '',
+    channels: '',
   },
   method: 'GET',
 })
@@ -180,10 +181,12 @@ const methodList = ref([
 
 const validators = computed(() => {
   return {
-    'title': [],
-    'event': [],
-    'notification.type': [],
-    'method': [],
+    'title': [fieldRequiredValidator],
+    'event': [fieldRequiredValidator],
+    'notification.type': [fieldRequiredValidator],
+    'notification.url': [fieldRequiredValidator],
+    'notification.channels': [fieldRequiredValidator],
+    'method': [fieldRequiredValidator],
   }
 })
 const { resetFields, validate, validateInfos } = useForm(formState, validators)
@@ -224,8 +227,12 @@ onMounted(() => {
   <a-divider />
   <a-form :model="formState" name="create-or-edit-webhook">
     <a-form-item>
-      <a-row class="mb-5" type="flex">
-        <a-input v-model:value="formState.title" size="large" :placeholder="$t('general.title')" />
+      <a-row type="flex">
+        <a-col :span="24">
+          <a-form-item v-bind="validateInfos.title">
+            <a-input v-model:value="formState.title" size="large" :placeholder="$t('general.title')" />
+          </a-form-item>
+        </a-col>
       </a-row>
       <a-row type="flex" :gutter="[16, 16]">
         <a-col :span="12">
@@ -270,7 +277,7 @@ onMounted(() => {
         </a-col>
         <a-col :span="18">
           <a-form-item v-bind="validateInfos['notification.url']">
-            <a-input v-model:value="formState.url" size="large" placeholder="http://example.com" />
+            <a-input v-model:value="formState.notification.url" size="large" placeholder="http://example.com" />
           </a-form-item>
         </a-col>
       </a-row>
@@ -278,7 +285,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="formState.channels"
+              v-model:value="formState.notification.channels"
               size="large"
               :options="slackChannels"
               placeholder="Select Slack channels"
@@ -291,7 +298,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="formState.channels"
+              v-model:value="formState.notification.channels"
               size="large"
               :options="teamsChannels"
               placeholder="Select Microsoft Teams channels"
@@ -304,7 +311,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="formState.channels"
+              v-model:value="formState.notification.channels"
               size="large"
               :options="discordChannels"
               placeholder="Select Discord channels"
@@ -317,7 +324,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="formState.channels"
+              v-model:value="formState.notification.channels"
               size="large"
               :options="mattermostChannels"
               placeholder="Select Mattermost channels"
@@ -329,22 +336,12 @@ onMounted(() => {
       <a-row v-if="formInput[formState.notification.type] && notification" class="mb-5" type="flex">
         <a-col v-for="(input, i) in formInput[formState.notification.type]" :key="i" :span="24">
           <a-form-item v-if="input.type === 'LongText'">
-            <a-textarea
-              :key="input.key"
-              v-model:value="notification[input.key]"
-              outlined
-              :placeholder="input.label"
-              :rules="[(v) => !input.required || !!v || `${$t('general.required')}`]"
-            />
+            <!--  TODO: add validator -->
+            <a-textarea :key="input.key" v-model:value="notification[input.key]" outlined :placeholder="input.label" />
           </a-form-item>
           <a-form-item v-else>
-            <a-input
-              :key="input.key"
-              v-model:value="notification[input.key]"
-              class="caption"
-              :placeholder="input.label"
-              :rules="[(v) => !input.required || !!v || `${$t('general.required')}`]"
-            />
+            <!--  TODO: add validator -->
+            <a-input :key="input.key" v-model:value="notification[input.key]" class="caption" :placeholder="input.label" />
           </a-form-item>
         </a-col>
       </a-row>

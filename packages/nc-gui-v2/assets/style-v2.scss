@@ -1,3 +1,11 @@
+:root {
+  --header-height: 56px;
+}
+
+.ant-layout-header {
+  height: var(--header-height) !important;
+}
+
 html,
 body,
 #__nuxt,
@@ -55,10 +63,6 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 
 .nc-icon {
   @apply color-transition;
-}
-
-:root {
-  --header-height: 64px;
 }
 
 html {

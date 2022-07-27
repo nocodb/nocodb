@@ -1,9 +1,13 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { ColumnInj } from '../../context'
+import { useProvideColumnCreateStore } from '~/composables/useColumnCreateStore'
 
 const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
 provide(ColumnInj, column)
+
+// instantiate column update store
+useProvideColumnCreateStore(column)
 
 /*
 import { UITypes } from 'nocodb-sdk'

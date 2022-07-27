@@ -142,7 +142,7 @@ function openQuickImportDialog(type: string) {
 
 <style scoped>
 .nc-container {
-  height: calc(100% + var(--header-height));
+  height: calc(100vh + var(--header-height));
   @apply overflow-hidden;
 }
 

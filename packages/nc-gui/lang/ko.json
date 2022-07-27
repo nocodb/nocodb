@@ -309,6 +309,7 @@
     "importExcel": "엑셀 가져오기",
     "importCSV": "CSV 가져오기",
     "downloadCSV": "CSV 다운로드",
+    "downloadExcel": "XLSX 다운로드",
     "uploadCSV": "CSV 업로드",
     "import": "가져오기",
     "importMetadata": "메타 데이터 가져오기",

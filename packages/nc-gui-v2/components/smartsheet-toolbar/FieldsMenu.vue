@@ -329,7 +329,7 @@ export default {
           <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
           <MdiEyeIcon class="mr-1 text-grey"></MdiEyeIcon>
           <!-- Fields -->
-          <span class="text-sm text-capitalize">{{ $t('objects.fields') }}</span>
+          <span class="text-sm text-capitalize nc-fields-menu-btn">{{ $t('objects.fields') }}</span>
           <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
         </v-btn>
       </v-badge>

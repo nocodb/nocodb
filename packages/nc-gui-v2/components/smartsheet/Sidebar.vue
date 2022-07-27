@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { inject, onClickOutside, onKeyStroke, provide, ref, useDebounceFn, useTabs, useViews, watch } from '#imports'
+import { notification } from 'ant-design-vue'
+import { inject, onClickOutside, onKeyStroke, provide, ref, useApi, useDebounceFn, useTabs, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
-import { viewIcons } from '~/utils'
+import { extractSdkResponseErrorMsg, viewIcons } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiTrashCan from '~icons/mdi/trash-can'
 import MdiContentCopy from '~icons/mdi/content-copy'
@@ -15,6 +16,8 @@ const activeView = inject(ActiveViewInj, ref())
 const { addTab } = useTabs()
 
 const { views } = useViews(meta)
+
+const { api } = useApi()
 
 provide(ViewListInj, views)
 
@@ -33,6 +36,8 @@ const toggleDrawer = ref(false)
 const isView = ref(false)
 
 let isEditing = $ref<number | null>(null)
+
+let isStopped = $ref(false)
 
 let originalTitle = $ref<string | undefined>()
 
@@ -86,35 +91,17 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
   addTab(tabProps)
 }
 
-const debouncedChangeView = useDebounceFn((view) => {
-  if (isEditing !== null) return
+const onClick = useDebounceFn((view) => {
+  if (isEditing !== null || isStopped) return
 
   changeView(view)
 }, 250)
-
-function onCopy(index: number) {
-  // copy view
-}
-
-function onDelete(index: number) {
-  // delete view
-}
-
-function onRename(index: number) {
-  // rename view
-}
 
 function onDblClick(index: number) {
   if (isEditing === null) {
     isEditing = index
     originalTitle = views.value[index].title
   }
-}
-
-function onCancel(index: number) {
-  isEditing = null
-  views.value[index].title = originalTitle
-  originalTitle = ''
 }
 
 function onKeyDown(event: KeyboardEvent, index: number) {
@@ -136,6 +123,62 @@ onClickOutside(inputRef, () => {
     onCancel(isEditing)
   }
 })
+
+function onCopy(index: number) {
+  // copy view
+}
+
+function onDelete(index: number) {
+  // delete view
+}
+
+async function onRename(index: number) {
+  // todo: validate if title is unique and not empty
+  if (isEditing === null) return
+  const view = views.value[index]
+
+  if (view.title === '' || view.title === originalTitle) {
+    onCancel(index)
+    return
+  }
+
+  try {
+    // todo typing issues, order and id do not exist on all members of ViewTypes (Kanban, Gallery, Form, Grid)
+    await api.dbView.update((view as any).id, {
+      title: view.title,
+      order: (view as any).order,
+    })
+
+    notification.success({
+      message: 'View renamed successfully',
+      duration: 3000,
+    })
+
+    console.log('success')
+  } catch (e: any) {
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+      duration: 3000,
+    })
+  }
+
+  onStopEdit()
+}
+
+function onCancel(index: number) {
+  views.value[index].title = originalTitle
+  onStopEdit()
+}
+
+function onStopEdit() {
+  isStopped = true
+  isEditing = null
+  originalTitle = ''
+
+  setTimeout(() => {
+    isStopped = false
+  }, 250)
+}
 </script>
 
 <template>
@@ -150,7 +193,7 @@ onClickOutside(inputRef, () => {
             :key="view.id"
             class="group !flex !items-center !h-[30px]"
             @dblclick="onDblClick(i)"
-            @click="debouncedChangeView(view)"
+            @click="onClick(view)"
           >
             <div v-t="['a:view:open', { view: view.type }]" class="text-xs flex items-center w-full gap-2">
               <component :is="viewIcons[view.type].icon" :class="`text-${viewIcons[view.type].color}`" />

@@ -299,31 +299,33 @@ function onApiSnippet() {
 
             <div class="flex-1" />
 
-            <div class="flex items-center gap-1">
-              <a-tooltip placement="left">
-                <template #title>
-                  {{ $t('activity.copyView') }}
-                </template>
-
-                <MdiContentCopy class="hidden group-hover:block text-gray-500" @click.stop="onDuplicate(i)" />
-              </a-tooltip>
-
-              <a-popconfirm
-                placement="left"
-                :title="$t('msg.info.deleteProject')"
-                :ok-text="$t('general.yes')"
-                :cancel-text="$t('general.no')"
-                @confirm="onDelete(i)"
-              >
+            <template v-if="isEditing !== i">
+              <div class="flex items-center gap-1">
                 <a-tooltip placement="left">
                   <template #title>
-                    {{ $t('activity.deleteView') }}
+                    {{ $t('activity.copyView') }}
                   </template>
 
-                  <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop />
+                  <MdiContentCopy class="hidden group-hover:block text-gray-500" @click.stop="onDuplicate(i)" />
                 </a-tooltip>
-              </a-popconfirm>
-            </div>
+
+                <a-popconfirm
+                  placement="left"
+                  :title="$t('msg.info.deleteProject')"
+                  :ok-text="$t('general.yes')"
+                  :cancel-text="$t('general.no')"
+                  @confirm="onDelete(i)"
+                >
+                  <a-tooltip placement="left">
+                    <template #title>
+                      {{ $t('activity.deleteView') }}
+                    </template>
+
+                    <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop />
+                  </a-tooltip>
+                </a-popconfirm>
+              </div>
+            </template>
           </div>
         </a-menu-item>
 

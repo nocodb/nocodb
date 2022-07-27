@@ -1,4 +1,4 @@
-import type { ColumnType, FormType, GalleryType, GridType, KanbanType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, FormType, GalleryType, GridType, KanbanType, TableType } from 'nocodb-sdk'
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { useViewData } from '#imports'

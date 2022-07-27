@@ -287,7 +287,19 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formState.notification.type === 'Microsoft Teams'" class="mb-5" type="flex"> TODO: Microsoft Teams </a-row>
+      <a-row v-if="formState.notification.type === 'Microsoft Teams'" type="flex">
+        <a-col :span="24">
+          <a-form-item v-bind="validateInfos['notification.channels']">
+            <a-auto-complete
+              v-model:value="formState.channels"
+              size="large"
+              :options="teamsChannels"
+              placeholder="Select Microsoft Teams  channels"
+              :filter-option="filterOption"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
       <a-row v-if="formState.notification.type === 'Discord'" class="mb-5" type="flex"> TODO: Discord </a-row>
       <a-row v-if="formState.notification.type === 'Mattermost'" class="mb-5" type="flex"> TODO: Mattermost </a-row>
       <a-row v-if="formInput[formState.notification.type] && notification" class="mb-5" type="flex">

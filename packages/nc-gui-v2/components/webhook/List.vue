@@ -52,11 +52,12 @@ onMounted(() => {
 
 <template>
   <div class="h-5/6">
-    <a-typography-title class="inline" :level="4">{{ meta.title }} : Webhooks </a-typography-title>
-    <a-button class="float-right" type="primary" size="large" @click="emit('add')">
-      <!-- TODO: i18n -->
-      Create Webhook
-    </a-button>
+    <div class="mb-4">
+      <div class="float-left font-bold text-xl mt-2 mb-4">{{ meta.title }} : Webhooks</div>
+      <a-button class="float-right" type="primary" size="large" @click="emit('add')">
+        {{ $t('activity.addWebhook') }}
+      </a-button>
+    </div>
     <a-divider />
     <div v-if="hooks.length">
       <a-list item-layout="horizontal" :data-source="hooks" class="cursor-pointer bg-gray-100 pl-5 pr-5 pt-2 pb-2">

@@ -3,13 +3,12 @@ import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { notification } from 'ant-design-vue'
 import type { Form as AntForm } from 'ant-design-vue'
 import { capitalize, inject } from '@vue/runtime-core'
-import type { GalleryType, GridType, KanbanType, ViewType } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { useI18n } from 'vue-i18n'
 import { MetaInj, ViewListInj } from '~/context'
 import { generateUniqueTitle } from '~/utils'
-import { useNuxtApp } from '#app'
-import { computed, nextTick, onMounted, reactive, unref, useVModel, watch } from '#imports'
+import { computed, nextTick, reactive, unref, useApi, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -18,7 +17,7 @@ interface Props {
 
 interface Emits {
   (event: 'update:modelValue', value: boolean): void
-  (event: 'created', value: ViewType): void
+  (event: 'created', value: GridType | KanbanType | GalleryType | FormType): void
 }
 
 interface Form {
@@ -38,6 +37,8 @@ const formValidator = $ref<typeof AntForm>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const { t } = useI18n()
+
+const { isLoading: loading, api } = useApi()
 
 const meta = inject(MetaInj)
 
@@ -63,10 +64,6 @@ const formRules = [
     message: 'View name should be unique',
   },
 ]
-
-let loading = $ref(false)
-
-const { $api } = useNuxtApp()
 
 const typeAlias = computed(
   () =>
@@ -102,38 +99,38 @@ async function onSubmit() {
   const isValid = await formValidator.value?.validate()
 
   if (isValid && form.type) {
-    loading = true
-
     const _meta = unref(meta)
 
     if (!_meta || !_meta.id) return
 
     try {
-      let data
+      let data: GridType | KanbanType | GalleryType | FormType | null = null
+
       switch (form.type) {
         case ViewTypes.GRID:
-          data = await $api.dbView.gridCreate(_meta.id, form)
+          data = await api.dbView.gridCreate(_meta.id, form)
           break
         case ViewTypes.GALLERY:
-          data = await $api.dbView.galleryCreate(_meta.id, form)
+          data = await api.dbView.galleryCreate(_meta.id, form)
           break
         case ViewTypes.FORM:
-          data = await $api.dbView.formCreate(_meta.id, form)
+          data = await api.dbView.formCreate(_meta.id, form)
           break
       }
 
-      notification.success({
-        message: 'View created successfully',
-      })
+      if (data) {
+        notification.success({
+          message: 'View created successfully',
+        })
 
-      emits('created', data)
+        emits('created', data)
+      }
     } catch (e: any) {
       notification.error({
         message: e.message,
       })
     }
 
-    loading = false
     vModel.value = false
   }
 }

@@ -45,11 +45,7 @@ const dataTypes = computed(() => sqlUi?.value?.getDataTypeListForUiType(newColum
     <a-form-item v-if="sqlUi.showScale(newColumn)" label="Scale">
       <a-input size="small" />
     </a-form-item>
-    <a-form-item
-      v-if="sqlUi.showScale(newColumn)"
-      :help="sqlUi.getDefaultValueForDatatype(newColumn.dt)"
-      :label="$t('placeholder.defaultValue')"
-    >
+    <a-form-item :help="sqlUi.getDefaultValueForDatatype(newColumn.dt)" :label="$t('placeholder.defaultValue')">
       <a-textarea size="small" auto-size />
     </a-form-item>
   </div>

@@ -235,47 +235,7 @@ export default {
       let c = 1;
       try {
         while (!isNaN(offset) && offset > -1) {
-          let res;
-          if (this.publicViewId) {
-            console.log('IF', this.publicViewId)
-            res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.EXCEL, {
-              responseType: 'blob',
-              query: {
-                fields:
-                  this.queryParams &&
-                  this.queryParams.fieldsOrder &&
-                  this.queryParams.fieldsOrder.filter(c => this.queryParams.showFields[c]),
-                offset,
-                sortArrJson: JSON.stringify(
-                  this.reqPayload &&
-                    this.reqPayload.sorts &&
-                    this.reqPayload.sorts.map(({ fk_column_id, direction }) => ({
-                      direction,
-                      fk_column_id,
-                    }))
-                ),
-                filterArrJson: JSON.stringify(this.reqPayload && this.reqPayload.filters),
-              },
-              headers: {
-                'xc-password': this.reqPayload && this.reqPayload.password,
-              },
-            });
-          } else {
-            console.log('ELSE')
-            res = await this.$api.dbViewRow.export(
-              'noco',
-              this.projectName,
-              this.meta.title,
-              this.selectedView.title,
-              ExportTypes.EXCEL,
-              {
-                responseType: 'base64',
-                query: {
-                  offset,
-                },
-              }
-            );
-          }
+          const res = await this.getExportData({ offset, exportType: ExportTypes.EXCEL, responseType: 'base64' });
           const workbook = XLSX.read(res.data, { type: 'base64' });
           XLSX.writeFile(workbook, `${this.meta.title}_exported_${c++}.xlsx`);
 
@@ -297,45 +257,7 @@ export default {
 
       try {
         while (!isNaN(offset) && offset > -1) {
-          let res;
-          if (this.publicViewId) {
-            res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.CSV, {
-              responseType: 'blob',
-              query: {
-                fields:
-                  this.queryParams &&
-                  this.queryParams.fieldsOrder &&
-                  this.queryParams.fieldsOrder.filter(c => this.queryParams.showFields[c]),
-                offset,
-                sortArrJson: JSON.stringify(
-                  this.reqPayload &&
-                    this.reqPayload.sorts &&
-                    this.reqPayload.sorts.map(({ fk_column_id, direction }) => ({
-                      direction,
-                      fk_column_id,
-                    }))
-                ),
-                filterArrJson: JSON.stringify(this.reqPayload && this.reqPayload.filters),
-              },
-              headers: {
-                'xc-password': this.reqPayload && this.reqPayload.password,
-              },
-            });
-          } else {
-            res = await this.$api.dbViewRow.export(
-              'noco',
-              this.projectName,
-              this.meta.title,
-              this.selectedView.title,
-              ExportTypes.CSV,
-              {
-                responseType: 'blob',
-                query: {
-                  offset,
-                },
-              }
-            );
-          }
+          const res = await this.getExportData({ offset, exportType: ExportTypes.CSV, responseType: 'blob' })
           const { data } = res;
 
           offset = +res.headers['nc-export-offset'];
@@ -351,6 +273,48 @@ export default {
         console.log(e);
         this.$toast.error(e.message).goAway(3000);
       }
+    },
+    async getExportData({ offset, exportType, responseType }) {
+      let res;
+      if (this.publicViewId) {
+        res = await this.$api.public.csvExport(this.publicViewId, exportType, {
+          responseType,
+          query: {
+            fields:
+              this.queryParams &&
+              this.queryParams.fieldsOrder &&
+              this.queryParams.fieldsOrder.filter(c => this.queryParams.showFields[c]),
+            offset,
+            sortArrJson: JSON.stringify(
+              this.reqPayload &&
+                this.reqPayload.sorts &&
+                this.reqPayload.sorts.map(({ fk_column_id, direction }) => ({
+                  direction,
+                  fk_column_id,
+                }))
+            ),
+            filterArrJson: JSON.stringify(this.reqPayload && this.reqPayload.filters),
+          },
+          headers: {
+            'xc-password': this.reqPayload && this.reqPayload.password,
+          },
+        });
+      } else {
+        res = await this.$api.dbViewRow.export(
+          'noco',
+          this.projectName,
+          this.meta.title,
+          this.selectedView.title,
+          exportType,
+          {
+            responseType,
+            query: {
+              offset,
+            },
+          }
+        );
+      }
+      return res;
     },
     async importData(columnMappings) {
       try {

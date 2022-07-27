@@ -261,7 +261,7 @@ function filterOption(input: string, option: Option) {
 }
 
 function setHook(newHook: any) {
-  Object.assign(hook, { ...newHook })
+  Object.assign(hook, { ...newHook, api: { ...newHook.notification.payload } })
 }
 
 async function onEventChange() {

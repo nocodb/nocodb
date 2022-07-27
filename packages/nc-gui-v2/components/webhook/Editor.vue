@@ -313,7 +313,19 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formState.notification.type === 'Mattermost'" class="mb-5" type="flex"> TODO: Mattermost </a-row>
+      <a-row v-if="formState.notification.type === 'Mattermost'" type="flex">
+        <a-col :span="24">
+          <a-form-item v-bind="validateInfos['notification.channels']">
+            <a-auto-complete
+              v-model:value="formState.channels"
+              size="large"
+              :options="mattermostChannels"
+              placeholder="Select Mattermost channels"
+              :filter-option="filterOption"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
       <a-row v-if="formInput[formState.notification.type] && notification" class="mb-5" type="flex">
         <a-col v-for="(input, i) in formInput[formState.notification.type]" :key="i" :span="24">
           <a-form-item v-if="input.type === 'LongText'">

@@ -42,6 +42,8 @@ export function useApi<Data = any, RequestConfig = any>(_?: UseApiProps): UseApi
       error.value = requestError
       response.value = null
       isLoading.value = false
+
+      return requestError
     },
   )
 
@@ -51,11 +53,15 @@ export function useApi<Data = any, RequestConfig = any>(_?: UseApiProps): UseApi
       // can't properly typecast
       response.value = apiResponse
       isLoading.value = false
+
+      return apiResponse
     },
     (apiError) => {
       errorHook.trigger(apiError)
       error.value = apiError
       isLoading.value = false
+
+      return apiError
     },
   )
 

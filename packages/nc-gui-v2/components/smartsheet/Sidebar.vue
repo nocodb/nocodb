@@ -273,7 +273,7 @@ function onApiSnippet() {
 
 <template>
   <a-layout-sider class="shadow" :width="toggleDrawer ? 0 : 250">
-    <a-menu class="h-full relative" :selected-keys="selected">
+    <a-menu class="flex flex-col h-full relative" :selected-keys="selected">
       <h3 class="pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
 
       <a-menu-item
@@ -385,7 +385,7 @@ function onApiSnippet() {
         </a-tooltip>
       </a-menu-item>
 
-      <div class="flex flex-col gap-4 mt-8">
+      <div class="flex-auto justify-end flex flex-col gap-4 mt-8">
         <button
           class="flex items-center gap-2 w-full mx-3 p-4 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
           @click="onApiSnippet"
@@ -401,7 +401,7 @@ function onApiSnippet() {
         </button>
       </div>
 
-      <general-flipping-card class="my-4 h-[250px] w-[250px]" :triggers="['click', { duration: 15000 }]">
+      <general-flipping-card class="my-4 h-[150px] w-[250px]" :triggers="['click', { duration: 15000 }]">
         <template #front>
           <div class="flex h-full w-full gap-6 flex-col">
             <general-social />

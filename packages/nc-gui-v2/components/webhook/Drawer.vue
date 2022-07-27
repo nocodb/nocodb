@@ -27,7 +27,7 @@ function editHook(hook: Record<string, any>) {
   <a-drawer v-model:visible="dialogShow" :closable="false" placement="right" width="700px" @keydown.esc="dialogShow = false">
     <WebhookEditor v-if="editOrAdd" />
     <WebhookList v-else @edit="editHook" @add="editOrAdd = true" />
-    <div class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
+    <div class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center">
       <a-button v-t="['e:hiring']" href="https://angel.co/company/nocodb" target="_blank" size="large">
         🚀 We are Hiring! 🚀
       </a-button>

@@ -282,6 +282,7 @@ onMounted(() => {
             <a-input v-model:value="formState.notification.url" size="large" placeholder="http://example.com" />
           </a-form-item>
         </a-col>
+        <!-- TODO: add Body, Params Headers & Auth Tabs -->
       </a-row>
       <a-row v-if="formState.notification.type === 'Slack'" type="flex">
         <a-col :span="24">

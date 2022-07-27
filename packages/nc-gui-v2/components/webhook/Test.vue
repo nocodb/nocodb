@@ -26,7 +26,7 @@ watch(
 
 async function loadSampleData() {
   sampleData.value = {
-    data: $api.dbTableWebhook.samplePayloadGet(meta?.value?.id as string, hook?.operation),
+    data: await $api.dbTableWebhook.samplePayloadGet(meta?.value?.id as string, hook?.operation),
     user: $state.user.value as Record<string, any>,
   }
 }
@@ -40,7 +40,7 @@ onMounted(async () => {
   <a-collapse v-model:activeKey="activeKey" ghost>
     <a-collapse-panel key="1" header="Sample Payload">
       <!-- TODO: need changes from Quick Import PR -->
-      <MonacoEditor v-model:value="sampleData" read-only class="caption mb-2 min-h-75" />
+      <MonacoEditor v-model="sampleData" class="min-h-60 max-h-80" />
     </a-collapse-panel>
   </a-collapse>
 </template>

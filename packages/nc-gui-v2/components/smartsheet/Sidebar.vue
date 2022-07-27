@@ -422,6 +422,7 @@ function onApiSnippet() {
         </template>
 
         <template #back>
+          <!-- todo: add project cost -->
           <a
             href="https://github.com/sponsors/nocodb"
             target="_blank"

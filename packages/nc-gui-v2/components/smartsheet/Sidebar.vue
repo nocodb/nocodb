@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { inject, provide, ref, useTabs, useViews, watch } from '#imports'
+import { inject, onClickOutside, onKeyStroke, provide, ref, useDebounceFn, useTabs, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
 import { viewIcons } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -32,7 +32,9 @@ const toggleDrawer = ref(false)
 
 const isView = ref(false)
 
-const enableDummyFeat = ref(false)
+let isEditing = $ref<number | null>(null)
+
+let originalTitle = $ref<string | undefined>()
 
 let viewCreateType = $ref<ViewTypes>()
 
@@ -48,12 +50,24 @@ watch(activeView, (nextActiveView) => {
   }
 })
 
+onKeyStroke('Escape', () => {
+  if (isEditing !== null) {
+    onCancel(isEditing)
+  }
+})
+
+onKeyStroke('Enter', () => {
+  if (isEditing !== null) {
+    onRename(isEditing)
+  }
+})
+
 function openCreateViewDlg(type: ViewTypes) {
   viewCreateDlg = true
   viewCreateType = type
 }
 
-function onViewCreate(view: GridType | FormType | KanbanType | GalleryType) {
+function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
   views.value?.push(view)
   activeView.value = view
   viewCreateDlg = false
@@ -71,6 +85,57 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
 
   addTab(tabProps)
 }
+
+const debouncedChangeView = useDebounceFn((view) => {
+  if (isEditing !== null) return
+
+  changeView(view)
+}, 250)
+
+function onCopy(index: number) {
+  // copy view
+}
+
+function onDelete(index: number) {
+  // delete view
+}
+
+function onRename(index: number) {
+  // rename view
+}
+
+function onDblClick(index: number) {
+  if (isEditing === null) {
+    isEditing = index
+    originalTitle = views.value[index].title
+  }
+}
+
+function onCancel(index: number) {
+  isEditing = null
+  views.value[index].title = originalTitle
+  originalTitle = ''
+}
+
+function onKeyDown(event: KeyboardEvent, index: number) {
+  if (event.key === 'Escape') {
+    onCancel(index)
+  } else if (event.key === 'Enter') {
+    onRename(index)
+  }
+}
+
+const inputRef = $ref<HTMLInputElement>()
+
+function setInputRef(el: HTMLInputElement) {
+  if (el) el.focus()
+}
+
+onClickOutside(inputRef, () => {
+  if (isEditing !== null) {
+    onCancel(isEditing)
+  }
+})
 </script>
 
 <template>
@@ -79,11 +144,25 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
       <div class="flex-1">
         <a-menu :selected-keys="selected">
           <h3 class="pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
-          <a-menu-item v-for="view in views" :key="view.id" class="group !flex !items-center !h-[30px]" @click="changeView(view)">
+
+          <a-menu-item
+            v-for="(view, i) of views"
+            :key="view.id"
+            class="group !flex !items-center !h-[30px]"
+            @dblclick="onDblClick(i)"
+            @click="debouncedChangeView(view)"
+          >
             <div v-t="['a:view:open', { view: view.type }]" class="text-xs flex items-center w-full gap-2">
               <component :is="viewIcons[view.type].icon" :class="`text-${viewIcons[view.type].color}`" />
 
-              <div>{{ view.alias || view.title }}</div>
+              <a-input
+                v-if="isEditing === i"
+                :ref="setInputRef"
+                v-model:value="view.title"
+                @blur="onCancel(i)"
+                @keydown="onKeyDown($event, i)"
+              />
+              <div v-else>{{ view.alias || view.title }}</div>
 
               <div class="flex-1" />
 
@@ -109,9 +188,7 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
 
           <a-divider class="my-2" />
 
-          <h3 class="px-3 text-xs font-semibold" @dblclick="enableDummyFeat = true">
-            {{ $t('activity.createView') }}
-          </h3>
+          <h3 class="px-3 text-xs font-semibold">{{ $t('activity.createView') }}</h3>
 
           <a-menu-item key="grid" class="group !flex !items-center !h-[30px]" @click="openCreateViewDlg(ViewTypes.GRID)">
             <a-tooltip placement="left">
@@ -175,7 +252,7 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
       </div>
     </div>
 
-    <DlgViewCreate v-if="views" v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate" />
+    <DlgViewCreate v-if="views" v-model="viewCreateDlg" :type="viewCreateType" @created="onCreate" />
   </a-layout-sider>
 </template>
 

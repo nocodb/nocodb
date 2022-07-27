@@ -15,7 +15,7 @@ const sampleData = ref({
   data: {},
   user: {},
 })
-const activeKey = ref(1)
+const activeKey = ref(0)
 
 watch(
   () => hook?.operation,

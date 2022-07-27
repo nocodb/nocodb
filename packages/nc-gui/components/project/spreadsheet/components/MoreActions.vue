@@ -233,27 +233,62 @@ export default {
     async exportExcel() {
       let offset = 0;
       let c = 1;
-      const res = await this.$api.dbViewRow.export(
-        'noco',
-        this.projectName,
-        this.meta.title,
-        this.selectedView.title,
-        ExportTypes.EXCEL,
-        {
-          responseType: 'base64',
-          query: {
-            offset,
-          },
-        }
-      );
-      const workbook = XLSX.read(res.data, { type: 'base64' });
-      XLSX.writeFile(workbook, `${this.meta.title}_exported_${c++}.xlsx`);
+      try {
+        while (!isNaN(offset) && offset > -1) {
+          let res;
+          if (this.publicViewId) {
+            console.log('IF', this.publicViewId)
+            res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.EXCEL, {
+              responseType: 'blob',
+              query: {
+                fields:
+                  this.queryParams &&
+                  this.queryParams.fieldsOrder &&
+                  this.queryParams.fieldsOrder.filter(c => this.queryParams.showFields[c]),
+                offset,
+                sortArrJson: JSON.stringify(
+                  this.reqPayload &&
+                    this.reqPayload.sorts &&
+                    this.reqPayload.sorts.map(({ fk_column_id, direction }) => ({
+                      direction,
+                      fk_column_id,
+                    }))
+                ),
+                filterArrJson: JSON.stringify(this.reqPayload && this.reqPayload.filters),
+              },
+              headers: {
+                'xc-password': this.reqPayload && this.reqPayload.password,
+              },
+            });
+          } else {
+            console.log('ELSE')
+            res = await this.$api.dbViewRow.export(
+              'noco',
+              this.projectName,
+              this.meta.title,
+              this.selectedView.title,
+              ExportTypes.EXCEL,
+              {
+                responseType: 'base64',
+                query: {
+                  offset,
+                },
+              }
+            );
+          }
+          const workbook = XLSX.read(res.data, { type: 'base64' });
+          XLSX.writeFile(workbook, `${this.meta.title}_exported_${c++}.xlsx`);
 
-      offset = +res.headers['nc-export-offset'];
-      if (offset > -1) {
-        this.$toast.info('Downloading more files').goAway(3000);
-      } else {
-        this.$toast.success('Successfully exported all table data').goAway(3000);
+          offset = +res.headers['nc-export-offset'];
+          if (offset > -1) {
+            this.$toast.info('Downloading more files').goAway(3000);
+          } else {
+            this.$toast.success('Successfully exported all table data').goAway(3000);
+          }
+        }
+      } catch (e) {
+        console.log(e);
+        this.$toast.error(e.message).goAway(3000);
       }
     },
     async exportCsv() {

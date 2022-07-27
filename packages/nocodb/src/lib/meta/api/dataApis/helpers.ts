@@ -57,53 +57,10 @@ export async function extractXlsxData(view: View, req: Request) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
-  let offset = +req.query.offset || 0;
-  const limit = 100;
-  // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
-  const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 5000;
-  const csvRows = [];
-  const startTime = process.hrtime();
-  let elapsed, temp;
+  const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
+  const data = XLSX.utils.json_to_sheet(dbRows);
 
-  for (
-    elapsed = 0;
-    elapsed < timeout;
-    offset += limit,
-      temp = process.hrtime(startTime),
-      elapsed = temp[0] * 1000 + temp[1] / 1000000
-  ) {
-    const rows = await nocoExecute(
-      await getAst({
-        query: req.query,
-        includePkByDefault: false,
-        model: view.model,
-        view,
-      }),
-      await baseModel.list({ ...req.query, offset, limit }),
-      {},
-      req.query
-    );
-
-    if (!rows?.length) {
-      offset = -1;
-      break;
-    }
-
-    for (const row of rows) {
-      const csvRow = { ...row };
-
-      for (const column of view.model.columns) {
-        if (isSystemColumn(column) && !view.show_system_fields) continue;
-        csvRow[column.title] = await serializeCellValue({
-          value: row[column.title],
-          column,
-        });
-      }
-      csvRows.push(csvRow);
-    }
-  }
-  const data = XLSX.utils.json_to_sheet(csvRows);
-  return { offset, csvRows, elapsed, data };
+  return { offset, dbRows, elapsed, data };
 }
 
 export async function extractCsvData(view: View, req: Request) {
@@ -126,11 +83,27 @@ export async function extractCsvData(view: View, req: Request) {
     dbDriver: NcConnectionMgrv2.get(base),
   });
 
+  const { offset, dbRows, elapsed } = await getDbRows(baseModel, view, req);
+
+  const data = papaparse.unparse(
+    {
+      fields: view.model.columns.map((c) => c.title),
+      data: dbRows,
+    },
+    {
+      escapeFormulae: true,
+    }
+  );
+
+  return { offset, dbRows, elapsed, data };
+}
+
+async function getDbRows(baseModel, view: View, req: Request) {
   let offset = +req.query.offset || 0;
   const limit = 100;
   // const size = +process.env.NC_EXPORT_MAX_SIZE || 1024;
   const timeout = +process.env.NC_EXPORT_MAX_TIMEOUT || 5000;
-  const csvRows = [];
+  const dbRows = [];
   const startTime = process.hrtime();
   let elapsed, temp;
 
@@ -159,30 +132,19 @@ export async function extractCsvData(view: View, req: Request) {
     }
 
     for (const row of rows) {
-      const csvRow = { ...row };
+      const dbRow = { ...row };
 
       for (const column of view.model.columns) {
         if (isSystemColumn(column) && !view.show_system_fields) continue;
-        csvRow[column.title] = await serializeCellValue({
+        dbRow[column.title] = await serializeCellValue({
           value: row[column.title],
           column,
         });
       }
-      csvRows.push(csvRow);
+      dbRows.push(dbRow);
     }
   }
-
-  const data = papaparse.unparse(
-    {
-      fields: view.model.columns.map((c) => c.title),
-      data: csvRows,
-    },
-    {
-      escapeFormulae: true,
-    }
-  );
-
-  return { offset, csvRows, elapsed, data };
+  return { offset, dbRows, elapsed };
 }
 
 export async function serializeCellValue({

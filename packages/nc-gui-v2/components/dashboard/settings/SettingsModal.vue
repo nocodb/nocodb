@@ -2,6 +2,8 @@
 import type { FunctionalComponent, SVGAttributes } from 'vue'
 import AuditTab from './AuditTab.vue'
 import AppStore from './AppStore.vue'
+import Metadata from './Metadata.vue'
+import UIAcl from './UIAcl.vue'
 import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
@@ -61,11 +63,11 @@ const tabsInfo: TabGroup = {
     subTabs: {
       metaData: {
         title: 'Metadata',
-        body: () => AuditTab,
+        body: () => Metadata,
       },
       acl: {
         title: 'UI Access Control',
-        body: () => AuditTab,
+        body: () => UIAcl,
       },
     },
   },

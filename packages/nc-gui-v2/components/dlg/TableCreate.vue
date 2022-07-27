@@ -85,7 +85,7 @@ onMounted(() => {
 <template>
   <a-modal
     v-model:visible="dialogShow"
-    width="max(90vw, 600px)"
+    width="max(30vw, 600px)"
     @keydown.esc="dialogShow = false"
     @keydown.enter="$emit('create', table)"
   >

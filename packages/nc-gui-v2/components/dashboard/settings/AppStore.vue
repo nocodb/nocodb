@@ -95,24 +95,24 @@ onMounted(async () => {
     <a-card
       v-for="(app, i) in apps"
       :key="i"
-      class="relative flex overflow-x-hidden app-item-card !shadow-sm rounded-md w-full"
+      :class="`relative flex overflow-x-hidden app-item-card !shadow-sm rounded-md w-full nc-app-store-card-${app.title}`"
       :body-style="{ width: '100%' }"
     >
       <div class="install-btn flex flex-row justify-end space-x-1">
         <a-button v-if="app.parsedInput" size="small" outlined @click="showInstallPluginModal(app)">
-          <div class="flex flex-row justify-center items-center caption capitalize">
+          <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-edit">
             <MdiEditIcon class="pr-0.5" :height="12" />
             Edit
           </div>
         </a-button>
         <a-button v-if="app.parsedInput" size="small" outlined @click="showResetPluginModal(app)">
-          <div class="flex flex-row justify-center items-center caption capitalize">
+          <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-reset">
             <MdiCloseCircleIcon />
             <div class="flex ml-0.5">Reset</div>
           </div>
         </a-button>
         <a-button v-else size="small" outlined @click="showInstallPluginModal(app)">
-          <div class="flex flex-row justify-center items-center caption capitalize">
+          <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-install">
             <MdiPlusIcon />
             Install
           </div>

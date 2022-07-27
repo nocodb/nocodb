@@ -234,14 +234,10 @@ async function onRename(index: number) {
       order: (view as any).order,
     })
 
-    console.log('rename success')
-
     notification.success({
       message: 'View renamed successfully',
       duration: 3,
     })
-
-    console.log('success')
   } catch (e: any) {
     notification.error({
       message: await extractSdkResponseErrorMsg(e),
@@ -301,7 +297,7 @@ function onApiSnippet() {
 
           <div class="flex-1" />
 
-          <template v-if="isEditing !== i">
+          <template v-if="isEditing !== i && !view.is_default">
             <div class="flex items-center gap-1">
               <a-tooltip placement="left">
                 <template #title>

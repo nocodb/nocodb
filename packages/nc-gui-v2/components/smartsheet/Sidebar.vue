@@ -55,15 +55,15 @@ watch(activeView, (nextActiveView) => {
   }
 })
 
-onKeyStroke('Escape', () => {
+onKeyStroke('Escape', (event) => {
   if (isEditing !== null) {
-    onCancel(isEditing)
+    onKeyEsc(event, isEditing)
   }
 })
 
-onKeyStroke('Enter', () => {
+onKeyStroke('Enter', (event) => {
   if (isEditing !== null) {
-    onRename(isEditing)
+    onKeyEnter(event, isEditing)
   }
 })
 
@@ -106,10 +106,24 @@ function onDblClick(index: number) {
 
 function onKeyDown(event: KeyboardEvent, index: number) {
   if (event.key === 'Escape') {
-    onCancel(index)
+    onKeyEsc(event, index)
   } else if (event.key === 'Enter') {
-    onRename(index)
+    onKeyEnter(event, index)
   }
+}
+
+function onKeyEnter(event: KeyboardEvent, index: number) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+
+  onRename(index)
+}
+
+function onKeyEsc(event: KeyboardEvent, index: number) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+
+  onCancel(index)
 }
 
 const inputRef = $ref<HTMLInputElement>()
@@ -137,6 +151,8 @@ async function onRename(index: number) {
   if (isEditing === null) return
   const view = views.value[index]
 
+  console.log(view.title, originalTitle)
+
   if (view.title === '' || view.title === originalTitle) {
     onCancel(index)
     return
@@ -148,6 +164,8 @@ async function onRename(index: number) {
       title: view.title,
       order: (view as any).order,
     })
+
+    console.log('rename success')
 
     notification.success({
       message: 'View renamed successfully',

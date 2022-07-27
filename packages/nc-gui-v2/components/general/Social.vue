@@ -52,7 +52,7 @@ const isZhLang = $computed(() => locale.value.startsWith('zh'))
 .discourse {
   height: 22px;
   width: 22px;
-  background-image: url('~/assets/img/discourse-icon.png');
+  background-image: url('assets/img/discourse-icon.png');
   background-size: contain;
   background-repeat: no-repeat;
 }

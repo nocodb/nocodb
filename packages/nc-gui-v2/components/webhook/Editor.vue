@@ -337,7 +337,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 16]">
+      <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 0]">
         <a-col :span="6">
           <a-select v-model:value="hook.api.method" size="large">
             <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">{{ method.title }}</a-select-option>
@@ -349,7 +349,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
         <a-col :span="24">
-          <a-tabs v-model:activeKey="urlTabKey">
+          <a-tabs v-model:activeKey="urlTabKey" centered>
             <a-tab-pane key="body" tab="Body">
               <!-- TODO: set lang -->
               <MonacoEditor v-model="hook.api.body" class="min-h-60 max-h-80" />
@@ -423,11 +423,23 @@ onMounted(() => {
         <a-col v-for="(input, i) in formInput[hook.notification.type]" :key="i" :span="24">
           <a-form-item v-if="input.type === 'LongText'">
             <!--  TODO: add validator -->
-            <a-textarea :key="input.key" v-model:value="notification[input.key]" outlined :placeholder="input.label" />
+            <a-textarea
+              :key="input.key"
+              v-model:value="notification[input.key]"
+              outlined
+              :placeholder="input.label"
+              size="large"
+            />
           </a-form-item>
           <a-form-item v-else>
             <!--  TODO: add validator -->
-            <a-input :key="input.key" v-model:value="notification[input.key]" class="caption" :placeholder="input.label" />
+            <a-input
+              :key="input.key"
+              v-model:value="notification[input.key]"
+              class="caption"
+              :placeholder="input.label"
+              size="large"
+            />
           </a-form-item>
         </a-col>
       </a-row>

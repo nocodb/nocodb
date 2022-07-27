@@ -14,18 +14,36 @@ import MdiChatIcon from '~icons/mdi/chat'
 import MdiWhatsAppIcon from '~icons/mdi/whatsapp'
 import MdiCellPhoneMessageIcon from '~icons/mdi/cellphone-message'
 
+interface Option {
+  label: string
+  value: string
+}
+
 const meta = inject(MetaInj)
+
 const { views, loadViews } = useViews(meta as Ref<TableType>)
 
 const useForm = Form.useForm
+
 const formState = reactive({
   title: '',
   notification: {
     type: 'URL',
+    channel: '',
   },
   method: 'GET',
 })
+
+const slackChannels = ref()
+
+const teamsChannels = ref()
+
+const discordChannels = ref()
+
+const mattermostChannels = ref()
+
 const filters = []
+
 const formInput = ref({
   'Email': [
     {
@@ -119,6 +137,7 @@ const formInput = ref({
     },
   ],
 })
+
 const notification = ref({
   method: 'POST',
   body: '{{ json data }}',
@@ -171,6 +190,10 @@ const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
 function onNotTypeChange() {
   // TODO
+}
+
+function filterOption(input: string, option: Option) {
+  return option.value.toUpperCase().includes(input.toUpperCase())
 }
 
 onMounted(() => {
@@ -251,7 +274,19 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formState.notification.type === 'Slack'" class="mb-5" type="flex"> TODO: Slack </a-row>
+      <a-row v-if="formState.notification.type === 'Slack'" type="flex">
+        <a-col :span="24">
+          <a-form-item v-bind="validateInfos['notification.channels']">
+            <a-auto-complete
+              v-model:value="formState.channels"
+              size="large"
+              :options="slackChannels"
+              placeholder="Select Slack channels"
+              :filter-option="filterOption"
+            />
+          </a-form-item>
+        </a-col>
+      </a-row>
       <a-row v-if="formState.notification.type === 'Microsoft Teams'" class="mb-5" type="flex"> TODO: Microsoft Teams </a-row>
       <a-row v-if="formState.notification.type === 'Discord'" class="mb-5" type="flex"> TODO: Discord </a-row>
       <a-row v-if="formState.notification.type === 'Mattermost'" class="mb-5" type="flex"> TODO: Mattermost </a-row>

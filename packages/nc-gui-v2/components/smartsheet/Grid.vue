@@ -106,7 +106,7 @@ useProvideColumnCreateStore()
                   <MdiPlusIcon class="text-sm" />
                 </div>
                 <template #overlay>
-                  <SmartsheetColumnEditOrAdd @click.stop />
+                  <SmartsheetColumnEditOrAdd @click.stop @cancel="editColumnDropdown = false" />
                 </template>
               </a-dropdown>
             </th>

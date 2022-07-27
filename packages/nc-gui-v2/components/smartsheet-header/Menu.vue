@@ -11,7 +11,7 @@ const editColumnDropdown = $ref(false)
   <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']">
     <span />
     <template #overlay>
-      <SmartsheetColumnEditOrAdd @click.stop />
+      <SmartsheetColumnEditOrAdd @click.stop @cancel="editColumnDropdown = false" />
     </template>
   </a-dropdown>
   <a-dropdown :trigger="['hover']">

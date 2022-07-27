@@ -133,8 +133,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
   const onAlter = (val = 2, cdf = false) => {
     formState.value.altered = formState.value.altered || val
-    if (cdf)
-      formState.value.cdf = formState.value.cdf || null
+    if (cdf) formState.value.cdf = formState.value.cdf || null
+  }
+
+  const addOrUpdate = () => {
+    // todo
+    console.log('To be done')
   }
 
   const { resetFields, validate, validateInfos } = useForm(formState, validators)
@@ -148,7 +152,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     onUidtOrIdTypeChange,
     sqlUi,
     onDataTypeChange,
-    onAlter
+    onAlter,
+    addOrUpdate,
   }
 })
 

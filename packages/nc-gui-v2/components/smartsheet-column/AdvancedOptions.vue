@@ -77,12 +77,7 @@ formState.value.au = !!formState.value.au
       />
     </a-form-item>
     <a-form-item v-if="sqlUi.showScale(formState)" label="Scale">
-      <a-input
-        v-model="formState.dtxs"
-        :disabled="!sqlUi.columnEditable(formState)"
-        size="small"
-        @input="onAlter"
-      />
+      <a-input v-model="formState.dtxs" :disabled="!sqlUi.columnEditable(formState)" size="small" @input="onAlter" />
     </a-form-item>
     <a-form-item :label="$t('placeholder.defaultValue')">
       <a-textarea

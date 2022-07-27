@@ -363,6 +363,10 @@ onMounted(() => {
             <a-tab-pane key="auth" tab="Auth">
               <!-- TODO: set lang -->
               <MonacoEditor v-model="hook.api.auth" class="min-h-60 max-h-80" />
+              <span class="text-gray-600 prose-sm">
+                For more about auth option refer
+                <a class="prose-sm" href="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.
+              </span>
             </a-tab-pane>
           </a-tabs>
         </a-col>
@@ -445,8 +449,10 @@ onMounted(() => {
       </a-row>
       <a-row class="mb-5" type="flex">
         <a-col :span="24">
-          <a-checkbox v-model:checked="hook.condition">On Condition</a-checkbox>
-          <SmartsheetToolbarColumnFilter v-if="hook.condition" />
+          <a-card>
+            <a-checkbox v-model:checked="hook.condition">On Condition</a-checkbox>
+            <SmartsheetToolbarColumnFilter v-if="hook.condition" />
+          </a-card>
         </a-col>
       </a-row>
       <a-row>

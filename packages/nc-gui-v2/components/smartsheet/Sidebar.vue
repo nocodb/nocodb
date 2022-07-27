@@ -23,6 +23,8 @@ import MdiContentCopy from '~icons/mdi/content-copy'
 import MdiXml from '~icons/mdi/xml'
 import MdiHook from '~icons/mdi/hook'
 import MdiHeartsCard from '~icons/mdi/cards-heart'
+import type { TabItem } from '~/composables/useTabs'
+import { TabType } from '~/composables/useTabs'
 
 const meta = inject(MetaInj, ref())
 
@@ -102,10 +104,10 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
   activeView.value = view
 
-  const tabProps = {
+  const tabProps: TabItem = {
     id: view.id,
     title: (view.alias ?? view.title) || '',
-    type: ViewTypes[view.type],
+    type: TabType.VIEW,
   }
 
   addTab(tabProps)

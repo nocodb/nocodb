@@ -2,7 +2,7 @@ import type { WritableComputedRef } from '@vue/reactivity'
 import { useState } from '#app'
 import useProject from '~/composables/useProject'
 
-enum TabType {
+export enum TabType {
   TABLE = 'table',
   VIEW = 'view',
   AUTH = 'auth',

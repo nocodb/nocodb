@@ -30,7 +30,7 @@ const meta = inject(MetaInj)
 
 const useForm = Form.useForm
 
-const formState = reactive({
+const hook = reactive({
   title: '',
   notification: {
     type: 'URL',
@@ -39,7 +39,7 @@ const formState = reactive({
   method: 'GET',
 })
 
-const apps = ref({})
+const apps: Record<string, any> = ref()
 
 const slackChannels = ref()
 
@@ -145,10 +145,7 @@ const formInput = ref({
   ],
 })
 
-const notification = ref({
-  method: 'POST',
-  body: '{{ json data }}',
-})
+const notification = ref({})
 
 const eventList = ref([
   {
@@ -195,10 +192,27 @@ const validators = computed(() => {
     'method': [fieldRequiredValidator],
   }
 })
-const { resetFields, validate, validateInfos } = useForm(formState, validators)
+const { resetFields, validate, validateInfos } = useForm(hook, validators)
 
 function onNotTypeChange() {
-  // TODO
+  notification.value = {}
+
+  if (hook.notification.type === 'Slack') {
+    slackChannels.value = (apps && apps?.Slack && apps.Slack.parsedInput) || []
+  }
+  if (hook.notification.type === 'Microsoft Teams') {
+    teamsChannels.value = (apps && apps['Microsoft Teams'] && apps['Microsoft Teams'].parsedInput) || []
+  }
+  if (hook.notification.type === 'Discord') {
+    discordChannels.value = (apps && apps.Discord && apps.Discord.parsedInput) || []
+  }
+  if (hook.notification.type === 'Mattermost') {
+    mattermostChannels.value = (apps && apps.Mattermost && apps.Mattermost.parsedInput) || []
+  }
+  if (hook.notification.type === 'URL') {
+    notification.value = notification.value || {}
+    notification.value.body = '{{ json data }}'
+  }
 }
 
 function filterOption(input: string, option: Option) {
@@ -245,19 +259,19 @@ onMounted(() => {
     </a-button>
   </div>
   <a-divider />
-  <a-form :model="formState" name="create-or-edit-webhook">
+  <a-form :model="hook" name="create-or-edit-webhook">
     <a-form-item>
       <a-row type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos.title">
-            <a-input v-model:value="formState.title" size="large" :placeholder="$t('general.title')" />
+            <a-input v-model:value="hook.title" size="large" :placeholder="$t('general.title')" />
           </a-form-item>
         </a-col>
       </a-row>
       <a-row type="flex" :gutter="[16, 16]">
         <a-col :span="12">
           <a-form-item v-bind="validateInfos.event">
-            <a-select v-model:value="formState.event" size="large" :placeholder="$t('general.event')">
+            <a-select v-model:value="hook.event" size="large" :placeholder="$t('general.event')">
               <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value">
                 {{ event.title }}
               </a-select-option>
@@ -267,7 +281,7 @@ onMounted(() => {
         <a-col :span="12">
           <a-form-item v-bind="validateInfos['notification.type']">
             <a-select
-              v-model:value="formState.notification.type"
+              v-model:value="hook.notification.type"
               size="large"
               :placeholder="$t('general.notification')"
               @change="onNotTypeChange"
@@ -289,24 +303,24 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formState.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 16]">
+      <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 16]">
         <a-col :span="6">
-          <a-select v-model:value="formState.method" size="large">
+          <a-select v-model:value="hook.method" size="large">
             <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">{{ method.title }}</a-select-option>
           </a-select>
         </a-col>
         <a-col :span="18">
           <a-form-item v-bind="validateInfos['notification.url']">
-            <a-input v-model:value="formState.notification.url" size="large" placeholder="http://example.com" />
+            <a-input v-model:value="hook.notification.url" size="large" placeholder="http://example.com" />
           </a-form-item>
         </a-col>
         <!-- TODO: add Body, Params Headers & Auth Tabs -->
       </a-row>
-      <a-row v-if="formState.notification.type === 'Slack'" type="flex">
+      <a-row v-if="hook.notification.type === 'Slack'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="formState.notification.channels"
+              v-model:value="hook.notification.channels"
               size="large"
               :options="slackChannels"
               placeholder="Select Slack channels"
@@ -315,11 +329,11 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formState.notification.type === 'Microsoft Teams'" type="flex">
+      <a-row v-if="hook.notification.type === 'Microsoft Teams'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="formState.notification.channels"
+              v-model:value="hook.notification.channels"
               size="large"
               :options="teamsChannels"
               placeholder="Select Microsoft Teams channels"
@@ -328,11 +342,11 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formState.notification.type === 'Discord'" type="flex">
+      <a-row v-if="hook.notification.type === 'Discord'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="formState.notification.channels"
+              v-model:value="hook.notification.channels"
               size="large"
               :options="discordChannels"
               placeholder="Select Discord channels"
@@ -341,11 +355,11 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formState.notification.type === 'Mattermost'" type="flex">
+      <a-row v-if="hook.notification.type === 'Mattermost'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="formState.notification.channels"
+              v-model:value="hook.notification.channels"
               size="large"
               :options="mattermostChannels"
               placeholder="Select Mattermost channels"
@@ -354,8 +368,8 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formInput[formState.notification.type] && notification" type="flex">
-        <a-col v-for="(input, i) in formInput[formState.notification.type]" :key="i" :span="24">
+      <a-row v-if="formInput[hook.notification.type] && notification" type="flex">
+        <a-col v-for="(input, i) in formInput[hook.notification.type]" :key="i" :span="24">
           <a-form-item v-if="input.type === 'LongText'">
             <!--  TODO: add validator -->
             <a-textarea :key="input.key" v-model:value="notification[input.key]" outlined :placeholder="input.label" />
@@ -368,8 +382,8 @@ onMounted(() => {
       </a-row>
       <a-row class="mb-5" type="flex">
         <a-col :span="24">
-          <a-checkbox v-model:checked="formState.condition">On Condition</a-checkbox>
-          <SmartsheetToolbarColumnFilter v-if="formState.condition" />
+          <a-checkbox v-model:checked="hook.condition">On Condition</a-checkbox>
+          <SmartsheetToolbarColumnFilter v-if="hook.condition" />
         </a-col>
       </a-row>
       <a-row>
@@ -396,10 +410,10 @@ onMounted(() => {
           </div>
           <WebhookTest
             :hook="{
-              ...formState,
+              ...hook,
               filters,
               notification: {
-                ...formState.notification,
+                ...hook.notification,
                 payload: notification,
               },
             }"

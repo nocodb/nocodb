@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import useTabs from '~/composables/useTabs'
-import MdiCloseIcon from '~icons/mdi/close'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiCsvIcon from '~icons/mdi/file-document-outline'

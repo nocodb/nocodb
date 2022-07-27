@@ -198,7 +198,7 @@ const addTableTab = (table: TableType) => {
 
 <template>
   <div class="nc-treeview-container flex flex-column">
-    <div class="p-1">
+    <div class="px-3 py-2">
       <a-input-search
         v-model:value="filterQuery"
         size="small"
@@ -215,7 +215,7 @@ const addTableTab = (table: TableType) => {
           @contextmenu="setMenuContext('main')"
         >
           <MdiTable class="mr-1 text-gray-500" />
-          <span class="flex-grow text-bold"
+          <span class="flex-grow text-bold nc-project-tree"
             >{{ $t('objects.tables') }} <template v-if="tables?.length">({{ tables.length }})</template></span
           >
           <MdiPlus v-t="['c:table:create:navdraw']" class="text-gray-500" @click.stop="tableCreateDlg = true" />
@@ -231,17 +231,19 @@ const addTableTab = (table: TableType) => {
                 v-for="table in tables"
                 :key="table.id"
                 v-t="['a:table:open']"
-                :class="{ hidden: !filteredTables?.includes(table) }"
-                class="!pl-1 py-1 !h-[28px] !my-0 text-sm pointer group"
+                :class="[{ hidden: !filteredTables?.includes(table) }, `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`]"
+                class="!pl-1 py-1 !h-[28px] !my-0 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTableTab(table)"
               >
                 <div class="flex align-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
-                  <MdiDrag class="transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move" />
+                  <MdiDrag
+                    :class="`transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move nc-child-draggable-icon-${table.title}`"
+                  />
                   <component :is="icon(table)" class="text-[10px] text-gray-500" />
 
-                  <span class="text-xs flex-1 ml-2">{{ table.title }}</span>
+                  <span class="nc-tbl-title text-xs flex-1 ml-2">{{ table.title }}</span>
                   <a-dropdown :trigger="['click']" @click.stop>
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
                     <template #overlay>
@@ -298,12 +300,8 @@ const addTableTab = (table: TableType) => {
 </template>
 
 <style scoped>
-.pointer {
-  cursor: pointer;
-}
-
 .nc-treeview-container {
-  height: calc(100vh - var(--header-height));
+  @apply h-[calc(100vh_-_var(--header-height))];
 }
 
 .nc-treeview-footer-item {
@@ -316,5 +314,9 @@ const addTableTab = (table: TableType) => {
 
 :deep(.ant-dropdown-menu-title-content) {
   @apply !p-2;
+}
+
+:deep(.ant-input-group-addon:last-child) {
+  @apply top-[-0.5px];
 }
 </style>

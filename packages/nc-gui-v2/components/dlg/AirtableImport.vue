@@ -218,6 +218,7 @@ onBeforeUnmount(() => {
           key="submit"
           v-t="['c:sync-airtable:save-and-sync']"
           type="primary"
+          class="nc-btn-airtable-import"
           :disabled="disableImportButton"
           @click="saveAndSync"
           >Import
@@ -239,10 +240,10 @@ onBeforeUnmount(() => {
         </div>
         <a-form ref="form" :model="syncSource" name="quick-import-airtable-form" layout="horizontal" class="ma-0">
           <a-form-item v-bind="validateInfos['details.apiKey']">
-            <a-input-password v-model:value="syncSource.details.apiKey" placeholder="Api Key" size="large" />
+            <a-input-password v-model:value="syncSource.details.apiKey" class="nc-input-api-key" placeholder="Api Key" size="large" />
           </a-form-item>
           <a-form-item v-bind="validateInfos['details.syncSourceUrlOrId']">
-            <a-input v-model:value="syncSource.details.syncSourceUrlOrId" placeholder="Shared Base ID / URL" size="large" />
+            <a-input v-model:value="syncSource.details.syncSourceUrlOrId" class="nc-input-shared-base" placeholder="Shared Base ID / URL" size="large" />
           </a-form-item>
           <span class="prose-xl font-bold self-center my-4">Advanced Settings</span>
           <a-divider class="mt-2 mb-5" />

@@ -260,6 +260,10 @@ function filterOption(input: string, option: Option) {
   return option.value.toUpperCase().includes(input.toUpperCase())
 }
 
+async function onEventChange() {
+  // TODO
+}
+
 async function loadPluginList() {
   try {
     const plugins = (await $api.plugin.list()).list as any
@@ -331,6 +335,11 @@ async function saveHooks() {
 async function testWebhook() {
   await webhookTestRef.value.testWebhook()
 }
+
+defineExpose({
+  hook,
+  onEventChange,
+})
 
 onMounted(() => {
   loadPluginList()

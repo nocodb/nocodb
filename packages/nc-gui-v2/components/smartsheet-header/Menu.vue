@@ -4,11 +4,11 @@ import MdiStarIcon from '~icons/mdi/star'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
-const editCellDropdown = $ref(false)
+const editColumnDropdown = $ref(false)
 </script>
 
 <template>
-  <a-dropdown v-model:visible="editCellDropdown" :trigger="['click']">
+  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']">
     <span />
     <template #overlay>
       <SmartsheetColumnEdit @click.stop />
@@ -18,7 +18,7 @@ const editCellDropdown = $ref(false)
     <MdiMenuDownIcon class="text-grey" />
     <template #overlay>
       <div class="shadow bg-white">
-        <div class="nc-column-edit nc-menu-item" @click="editCellDropdown = true">
+        <div class="nc-column-edit nc-menu-item" @click="editColumnDropdown = true">
           <MdiEditIcon class="text-primary" />
           <!-- Edit -->
           {{ $t('general.edit') }}

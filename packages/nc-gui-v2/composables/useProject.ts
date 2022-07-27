@@ -45,8 +45,8 @@ export default (projectId?: MaybeRef<string>) => {
 
   const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
   const isPg = computed(() => projectBaseType === 'pg')
-  const sqlUi = computed<ReturnType<typeof SqlUiFactory['create']>>(() =>
-    SqlUiFactory.create({ client: projectBaseType }),
+  const sqlUi = computed(
+    () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
   )
 
   return { project, tables, loadProjectRoles, loadProject, loadTables, isMysql, isPg, sqlUi }

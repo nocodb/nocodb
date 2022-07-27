@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { getCurrentInstance, inject, onKeyStroke, onMounted, provide } from '#imports'
+import { inject, onKeyStroke, onMounted, provide } from '#imports'
 import useGridViewColumnWidth from '~/composables/useGridViewColumnWidth'
 import {
   ActiveViewInj,
@@ -13,6 +13,7 @@ import {
   ReloadViewDataHookInj,
 } from '~/context'
 import useViewData from '~/composables/useViewData'
+import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
@@ -92,6 +93,17 @@ defineExpose({
             >
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
               <SmartsheetHeaderCell v-else :column="col" />
+            </th>
+            <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
+            <th v-t="['c:column:add']" @click="addColumnDropdown = true">
+              <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
+                <div class="h-full w-full flex align-center justify-center">
+                  <MdiPlusIcon class="text-sm" />
+                </div>
+                <template #overlay>
+                  <SmartsheetColumnEdit @click.stop />
+                </template>
+              </a-dropdown>
             </th>
           </tr>
         </thead>
@@ -237,7 +249,6 @@ defineExpose({
   }
 
   td {
-    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }

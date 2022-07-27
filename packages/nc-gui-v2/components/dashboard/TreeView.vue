@@ -192,7 +192,7 @@ const reloadTables = async () => {
 }
 const addTableTab = (table: TableType) => {
   $e('a:table:open')
-  addTab({ title: table.title, id: table.id })
+  addTab({ title: table.title, id: table.id, type: table.type as any })
 }
 </script>
 
@@ -208,7 +208,7 @@ const addTableTab = (table: TableType) => {
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
-      <div class="p-1 flex-1 overflow-y-auto flex flex-column">
+      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-primary">
         <div
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
           @click="showTableList = !showTableList"
@@ -248,7 +248,7 @@ const addTableTab = (table: TableType) => {
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
                     <template #overlay>
                       <a-menu class="cursor-pointer">
-                        <a-menu-item class="!text-xs" @click="showRenameTableDlg(table)"> Rename </a-menu-item>
+                        <a-menu-item v-t="" class="!text-xs" @click="showRenameTableDlg(table)"><div>Rename</div></a-menu-item>
                         <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
                       </a-menu>
                     </template>

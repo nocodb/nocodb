@@ -7,6 +7,7 @@ import useBelongsTo from '~/composables/useBelongsTo'
 const column = inject(ColumnInj)
 const value = inject('value')
 const active = false
+const localState = null
 
 const { parentMeta, loadParentMeta, primaryValueProp } = useBelongsTo(column as ColumnType)
 await loadParentMeta()

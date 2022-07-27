@@ -65,7 +65,9 @@ const discordChannels = ref()
 
 const mattermostChannels = ref()
 
-const filters = []
+const loading = ref(false)
+
+const filters = ref([])
 
 const formInput = ref({
   'Email': [
@@ -270,6 +272,60 @@ async function loadPluginList() {
   }
 }
 
+async function saveHooks() {
+  loading.value = true
+  try {
+    await validate()
+  } catch (_: any) {
+    toast.error('Invalid Form')
+    loading.value = false
+    return
+  }
+
+  try {
+    let res
+    if (hook.id) {
+      res = await $api.dbTableWebhook.update(hook.id, {
+        ...hook,
+        notification: {
+          ...hook.notification,
+          payload: notification,
+        },
+      })
+    } else {
+      res = await $api.dbTableWebhook.create(meta.value.id as string, {
+        ...hook,
+        notification: {
+          ...hook.notification,
+          payload: notification,
+        },
+      })
+    }
+
+    if (!hook.id && res) {
+      hook.id = res.id
+    }
+
+    // TODO: wait for filter implementation
+    // if ($refs.filter) {
+    //   await $refs.filter.applyChanges(false, {
+    //     hookId: hook.id,
+    //   });
+    // }
+
+    toast.success('Webhook details updated successfully')
+  } catch (e: any) {
+    toast.error(extractSdkResponseErrorMsg(e))
+  } finally {
+    loading.value = false
+  }
+  $e('a:webhook:add', {
+    operation: hook.operation,
+    condition: hook.condition,
+    notification: hook.notification.type,
+  })
+}
+
 onMounted(() => {
   loadPluginList()
 })
@@ -291,9 +347,10 @@ onMounted(() => {
           Test Webhook
         </div>
       </a-button>
-      <a-button type="primary" size="large" @click="emit('editOrAdd')">
+      <a-button type="primary" size="large" @click.prevent="saveHooks">
         <div class="flex items-center">
           <MdiContentSaveIcon class="mr-2" />
+          <!-- Save -->
           {{ $t('general.save') }}
         </div>
       </a-button>

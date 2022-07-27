@@ -391,14 +391,14 @@ function onApiSnippet() {
 
       <div class="flex flex-col gap-4 mt-8">
         <button
-          class="flex items-center gap-2 w-full mx-3 p-4 rounded bordered !bg-primary text-white transform translate-x-4 hover:translate-x-0 transition duration-150 ease"
+          class="flex items-center gap-2 w-full mx-3 p-4 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
           @click="onApiSnippet"
         >
           <MdiXml />Get API Snippet
         </button>
 
         <button
-          class="flex items-center gap-2 w-full mx-3 p-4 rounded border-1 border-solid border-black transform translate-x-4 hover:translate-x-0 transition duration-150 ease"
+          class="flex items-center gap-2 w-full mx-3 p-4 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
           @click="onApiSnippet"
         >
           <MdiHook />{{ $t('objects.webhooks') }}
@@ -413,9 +413,10 @@ function onApiSnippet() {
             <div>
               <a
                 v-t="['e:hiring']"
-                class="p-4 bg-primary/75 rounded accent-pink-500 shadow bordered border-primary text-white"
+                class="p-4 bg-primary/75 rounded accent-pink-500 shadow border border-primary text-white"
                 href="https://angel.co/company/nocodb"
                 target="_blank"
+                @click.stop
               >
                 🚀 We are Hiring! 🚀
               </a>
@@ -428,7 +429,8 @@ function onApiSnippet() {
           <a
             href="https://github.com/sponsors/nocodb"
             target="_blank"
-            class="flex items-center gap-2 w-full mx-3 p-4 rounded bordered !bg-primary text-white transform translate-x-4 hover:translate-x-0 transition duration-150 ease"
+            class="group flex items-center gap-2 w-full mx-3 p-3 rounded-l !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg !opacity-100) transition duration-150 ease"
+            @click.stop
           >
             <MdiHeartsCard class="text-red-500" />
             {{ $t('activity.sponsorUs') }}

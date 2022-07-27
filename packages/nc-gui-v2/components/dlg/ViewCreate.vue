@@ -147,7 +147,7 @@ async function onSubmit() {
 
     <a-form ref="formValidator" layout="vertical" :model="form">
       <a-form-item :label="$t('labels.viewName')" name="title" :rules="formRules">
-        <a-input ref="inputEl" v-model:value="form.title" autofocus />
+        <a-input ref="inputEl" v-model:value="form.title" autofocus @keydown.enter="onSubmit" />
       </a-form-item>
     </a-form>
 

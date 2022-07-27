@@ -18,6 +18,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             mainPage.openMetaTab();
         });

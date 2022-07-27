@@ -45,6 +45,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create project (rest/graphql)
         //
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             // open a table to work on views
             //
@@ -371,6 +372,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Grid view/ row-column update verification`, () => {
         before(() => {
+            cy.fileHook();
             // Address table has belongs to, has many & many-to-many
             cy.openTableTab("Country", 25);
 

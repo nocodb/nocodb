@@ -68,6 +68,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`Import from excel`, () => {
         before(() => {
+            cy.fileHook();
             cy.task("readSheetList", {
                 file: `./scripts/cypress/fixtures/${filepath}`,
             }).then((rows) => {

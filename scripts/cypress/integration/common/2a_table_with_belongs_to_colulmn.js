@@ -6,6 +6,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Table: belongs to, link record`, () => {
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             cy.openTableTab("Country", 25);
         });

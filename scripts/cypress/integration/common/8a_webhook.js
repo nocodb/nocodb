@@ -182,6 +182,7 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Webhook`, () => {
         before(() => {
+            cy.fileHook();
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.createTable("Temp");
         });

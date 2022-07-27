@@ -7,6 +7,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} Columns of type attachment`, () => {
         before(() => {
+            cy.fileHook();
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.openTableTab("Country", 25);
         });

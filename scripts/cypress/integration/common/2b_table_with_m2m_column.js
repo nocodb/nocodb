@@ -6,6 +6,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - M2M Column validation`, () => {
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             cy.openTableTab("Actor", 25);
         });

@@ -8,6 +8,7 @@ export const genTest = (apiType, dbType) => {
         dbType === "xcdb" ? "Meta - " : ""
     }${apiType.toUpperCase()} api - Table`, () => {
         before(() => {
+            cy.fileHook();
             cy.get(".mdi-close").click({ multiple: true });
         });
 

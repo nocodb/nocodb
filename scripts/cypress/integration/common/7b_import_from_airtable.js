@@ -13,6 +13,7 @@ export const genTest = (apiType, dbType) => {
 
   describe(`Import from airtable`, () => {
     before(() => {
+      cy.fileHook();
       apiKey = Cypress.env("airtable").apiKey;
       sharedBase = Cypress.env("airtable").sharedBase;
 

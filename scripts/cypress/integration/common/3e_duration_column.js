@@ -18,6 +18,7 @@ export const genTest = (apiType, dbType) => {
         // Run once before test- create table
         //
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             cy.createTable(tableName);
         });

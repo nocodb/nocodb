@@ -451,6 +451,12 @@ Cypress.Commands.add("snipActiveMenu", (filename) => {
     }
 });
 
+// pre-test file hook
+Cypress.Commands.add("fileHook", () => {
+    window.localStorage.setItem('vueuse-color-scheme', 'light')
+});
+
+
 
 // Drag n Drop
 // refer: https://stackoverflow.com/a/55409853

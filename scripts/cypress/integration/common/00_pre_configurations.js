@@ -158,6 +158,10 @@ function prepareSqliteQuery(projId) {
 export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Project pre-configurations`, () => {
+        before(() => {
+            cy.fileHook();
+        })
+
         it("Admin SignUp", () => {
             cy.task("log", "This will be output to the terminal");
             loginPage.signUp(roles.owner.credentials);

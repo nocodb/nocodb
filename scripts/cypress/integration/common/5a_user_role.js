@@ -23,6 +23,7 @@ export const genTest = (apiType, dbType) => {
 
     describe("Static user creations (different roles)", () => {
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             cy.get(".mdi-close").click();
             mainPage.navigationDraw(mainPage.TEAM_N_AUTH).click();
@@ -92,6 +93,10 @@ export const genTest = (apiType, dbType) => {
 
     const roleValidation = (roleType) => {
         describe(`User role validation`, () => {
+            before(() => {
+                cy.fileHook();
+            })
+
             if (roleType != "owner") {
                 it(`[${roles[roleType].name}] SignIn, Open project`, () => {
                     cy.log(mainPage.roleURL[roleType]);

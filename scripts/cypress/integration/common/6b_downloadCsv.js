@@ -10,6 +10,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} Upload/ Download CSV`, () => {
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             // loginPage.loginAndOpenProject(type)
             cy.openTableTab("Country", 25);

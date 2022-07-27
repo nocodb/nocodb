@@ -6,6 +6,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} api - Filter, Fields, Sort`, () => {
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
             // open country table
             cy.openTableTab("Country", 25);
@@ -16,6 +17,10 @@ export const genTest = (apiType, dbType) => {
         });
 
         describe(`Pagination`, () => {
+            before(() => {
+                cy.fileHook();
+            })
+
             // check pagination
             it("Check country table - Pagination", () => {
                 cy.get(".nc-pagination").should("exist");
@@ -35,6 +40,10 @@ export const genTest = (apiType, dbType) => {
         });
 
         describe(`Row operations`, () => {
+            before(() => {
+                cy.fileHook();
+            })
+
             // create new row using + button in header
             //
             it("Add row using tool header button", () => {
@@ -139,6 +148,10 @@ export const genTest = (apiType, dbType) => {
         });
 
         describe(`Sort operations`, () => {
+            before(() => {
+                cy.fileHook();
+            })
+
             it("Enable sort", () => {
                 mainPage.sortField("Country", "Z → A");
 
@@ -166,6 +179,10 @@ export const genTest = (apiType, dbType) => {
         });
 
         describe("Field Operation", () => {
+            before(() => {
+                cy.fileHook();
+            })
+
             it("Hide field", () => {
                 cy.get("th:contains(LastUpdate)").should("be.visible");
 
@@ -191,6 +208,10 @@ export const genTest = (apiType, dbType) => {
         });
 
         describe("Filter operations", () => {
+            before(() => {
+                cy.fileHook();
+            })
+
             it("Create Filter", () => {
                 mainPage.filterField("Country", "is equal", "India");
                 cy.get("td:contains(India)").should("exist");

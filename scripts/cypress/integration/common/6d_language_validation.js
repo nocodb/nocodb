@@ -7,6 +7,7 @@ export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
     describe(`Language support`, () => {
         before(() => {
+            cy.fileHook();
             loginPage.signIn(roles.owner.credentials)
         });
 

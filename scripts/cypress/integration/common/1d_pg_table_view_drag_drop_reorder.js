@@ -17,6 +17,7 @@ export const genTest = (apiType, dbType) => {
         }
 
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
         });
 

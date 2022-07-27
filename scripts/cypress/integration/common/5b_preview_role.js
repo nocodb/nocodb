@@ -29,6 +29,7 @@ export const genTest = (apiType, dbType, roleType) => {
     describe("Role preview validations", () => {
         // Sign in/ open project
         before(() => {
+            cy.fileHook();
             loginPage.loginAndOpenProject(apiType, dbType);
             cy.openTableTab("City", 25);
             cy.get(".nc-btn-preview").click();

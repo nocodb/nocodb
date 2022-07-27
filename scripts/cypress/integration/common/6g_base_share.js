@@ -54,6 +54,7 @@ export const genTest = (apiType, dbType) => {
 
     describe(`${apiType.toUpperCase()} Base VIEW share`, () => {
         before(() => {
+            cy.fileHook();
             mainPage.tabReset();
         });
 

@@ -80,6 +80,7 @@ export const genTest = (apiType, dbType, testMode) => {
         }
 
         before(() => {
+            cy.fileHook();
             if( testMode === 'CY_QUICK') {
                 // cy.task("copyFile")
                 loginPage.signIn(roles.owner.credentials);

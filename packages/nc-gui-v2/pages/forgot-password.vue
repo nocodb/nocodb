@@ -75,7 +75,7 @@ const resetError = () => {
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div
-          class="color-transition bg-white dark:(!bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+          class="color-transition bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
           <general-noco-icon />
 

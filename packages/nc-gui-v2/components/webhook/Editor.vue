@@ -214,7 +214,7 @@ async function loadPluginList() {
       o[p.title] = p
       return o
     }, {})
-  } catch (e) {
+  } catch (e: any) {
     toast.error(extractSdkResponseErrorMsg(e))
   }
 }

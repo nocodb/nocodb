@@ -355,10 +355,10 @@ onMounted(() => {
               <MonacoEditor v-model="hook.api.body" class="min-h-60 max-h-80" />
             </a-tab-pane>
             <a-tab-pane key="params" tab="Params" force-render>
-              <!-- TODO: Params component -->
+              <ApiClientParams v-model="hook.api.parameters" />
             </a-tab-pane>
             <a-tab-pane key="headers" tab="Headers">
-              <!-- TODO: header component -->
+              <ApiClientHeaders v-model="hook.api.headers" />
             </a-tab-pane>
             <a-tab-pane key="auth" tab="Auth">
               <!-- TODO: set lang -->

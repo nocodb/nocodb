@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import io from 'socket.io-client'
+import type { Socket } from 'socket.io-client'
 import { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
 import { fieldRequiredValidator } from '~/utils/validation'
@@ -24,7 +25,7 @@ const { sqlUi, project, loadTables } = useProject()
 const loading = ref(false)
 const step = ref(1)
 const progress = ref<Record<string, any>[]>([])
-let socket:any;
+let socket: Socket | null
 const syncSource = ref({
   id: '',
   type: 'Airtable',
@@ -181,13 +182,14 @@ onMounted(async () => {
     extraHeaders: { 'xc-auth': $state.token.value as string },
   })
   socket.on('connect_error', () => {
-    socket.disconnect()
+    socket?.disconnect()
     socket = null
   })
 
-  socket.on('connect', function (data: any) {
-    console.log(socket.id)
-    console.log('socket connected', data)
+  // connect event does not provide data
+  socket.on('connect', () => {
+    console.log(socket?.id)
+    console.log('socket connected')
   })
 
   socket.on('progress', async (d: Record<string, any>) => {

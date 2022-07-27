@@ -12,26 +12,36 @@ import { fieldRequiredValidator, importCsvUrlValidator, importExcelUrlValidator,
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { ExcelTemplateAdapter, ExcelUrlTemplateAdapter, JSONTemplateAdapter, JSONUrlTemplateAdapter } from '~/utils/parsers'
 import { useProject } from '#imports'
-const { modelValue, importType } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue'])
-
-const { t } = useI18n()
 
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
 }
 
+const { modelValue, importType } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue'])
+
+const { t } = useI18n()
+
 const { tables } = useProject()
+
 const toast = useToast()
+
 const activeKey = ref('uploadTab')
+
 const jsonEditorRef = ref()
+
 const templateEditorRef = ref()
+
 const loading = ref(false)
+
 const templateData = ref()
+
 const importData = ref()
+
 const templateEditorModal = ref(false)
+
 const useForm = Form.useForm
 
 const importState = reactive({
@@ -103,7 +113,7 @@ const disablePreImportButton = computed(() => {
     if (!validateInfos.url.validateStatus) return true
     return validateInfos.url.validateStatus === 'error'
   } else if (activeKey.value === 'jsonEditorTab') {
-    return !jsonEditorRef.value?.isEditorValid()
+    return !jsonEditorRef.value?.isValid
   }
 })
 
@@ -111,7 +121,7 @@ const disableImportButton = computed(() => {
   return !templateEditorRef.value?.isValid()
 })
 
-const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isEditorValid())
+const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
 async function handlePreImport() {
   loading.value = true
@@ -197,18 +207,20 @@ function populateUniqueTableName() {
 
 function getAdapter(name: string, val: any) {
   if (IsImportTypeExcel.value || isImportTypeCsv.value) {
-    if (activeKey.value === 'uploadTab') {
-      return new ExcelTemplateAdapter(name, val, importState.parserConfig)
-    } else if (activeKey.value === 'urlTab') {
-      return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
+    switch (activeKey.value) {
+      case 'uploadTab':
+        return new ExcelTemplateAdapter(name, val, importState.parserConfig)
+      case 'urlTab':
+        return new ExcelUrlTemplateAdapter(val, importState.parserConfig)
     }
   } else if (isImportTypeJson.value) {
-    if (activeKey.value === 'uploadTab') {
-      return new JSONTemplateAdapter(name, val, importState.parserConfig)
-    } else if (activeKey.value === 'urlTab') {
-      return new JSONUrlTemplateAdapter(val, importState.parserConfig)
-    } else if (activeKey.value === 'jsonEditorTab') {
-      return new JSONTemplateAdapter(name, val, importState.parserConfig)
+    switch (activeKey.value) {
+      case 'uploadTab':
+        return new JSONTemplateAdapter(name, val, importState.parserConfig)
+      case 'urlTab':
+        return new JSONUrlTemplateAdapter(val, importState.parserConfig)
+      case 'jsonEditorTab':
+        return new JSONTemplateAdapter(name, val, importState.parserConfig)
     }
   }
   return null

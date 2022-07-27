@@ -30,13 +30,9 @@ const format = () => {
   editor.setValue(JSON.stringify(JSON.parse(editor?.getValue() as string), null, 2))
 }
 
-const isEditorValid = () => {
-  return isValid.value
-}
-
 defineExpose({
   format,
-  isEditorValid,
+  isValid,
 })
 
 onMounted(() => {

@@ -1,11 +1,36 @@
 <script setup lang="ts">
+import { useToast } from 'vue-toastification'
 import { MetaInj } from '~/context'
 import MdiHookIcon from '~icons/mdi/hook'
 import MdiDeleteIcon from '~icons/mdi/delete'
 
 const emit = defineEmits(['edit'])
+
+const { $api, $e } = useNuxtApp()
+
+const toast = useToast()
+
 const hooks = ref([])
 const meta = inject(MetaInj)
+
+async function deleteHook(item: Record<string, any>, index: number) {
+  try {
+    if (item.id) {
+      // await $api.dbTableWebhook.delete(item.id)
+      hooks.value.splice(index, 1)
+    } else {
+      hooks.value.splice(index, 1)
+    }
+    toast.success('Hook deleted successfully')
+    if (!hooks.value.length) {
+      hooks.value = []
+    }
+  } catch (e: any) {
+    toast.error(e.message)
+  }
+
+  $e('a:webhook:delete')
+}
 </script>
 
 <template>
@@ -18,15 +43,17 @@ const meta = inject(MetaInj)
     <a-divider />
     <div v-if="hooks.length">
       <a-list item-layout="horizontal" :data-source="hooks" class="cursor-pointer bg-gray-100 pl-5 pr-5 pt-2 pb-2">
-        <template #renderItem="{ item }">
+        <template #renderItem="{ item, index }">
           <a-list-item @click="emit('edit', item)">
-            <a-list-item-meta :description="item.event">
+            <a-list-item-meta :description="item.event" class="uppercase">
               <template #title>
-                {{ item.title }}
+                <span class="text-xl normal-case">
+                  {{ item.title }}
+                </span>
               </template>
               <template #avatar>
                 <div class="mt-4">
-                  <MdiHookIcon />
+                  <MdiHookIcon class="text-xl" />
                 </div>
               </template>
             </a-list-item-meta>
@@ -35,7 +62,7 @@ const meta = inject(MetaInj)
                 <!-- Notify Via -->
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
                 <div class="float-right pt-2 pr-1">
-                  <MdiDeleteIcon />
+                  <MdiDeleteIcon class="text-xl" @click.stop="deleteHook(item, index)" />
                 </div>
               </div>
             </template>

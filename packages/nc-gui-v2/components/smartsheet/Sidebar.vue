@@ -1,42 +1,46 @@
 <script setup lang="ts">
+import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import type { TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
-import { inject, ref } from '#imports'
+import { inject, ref, useViews } from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
-import useViews from '~/composables/useViews'
 import { viewIcons } from '~/utils/viewUtils'
 import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
-const activeView = inject(ActiveViewInj)
+const activeView = inject(ActiveViewInj, ref())
 
-const { views, loadViews } = useViews(meta as Ref<TableType>)
+const { views } = useViews(meta)
 
 provide(ViewListInj, views)
 
-const _isUIAllowed = (view: string) => {}
-
 // todo decide based on route param
-loadViews().then(() => {
-  if (activeView) activeView.value = views.value?.[0]
-})
+watch(
+  views,
+  (nextViews) => {
+    if (nextViews.length) {
+      activeView.value = nextViews[0]
+    }
+  },
+  { immediate: true },
+)
 
-const toggleDrawer = ref(false)
+const toggleDrawer = $ref(false)
 // todo: identify based on meta
-const isView = ref(false)
-const viewCreateType = ref<ViewTypes>()
-const viewCreateDlg = ref<boolean>(false)
+const isView = $ref(false)
+
+let viewCreateType = $ref<ViewTypes>()
+
+let viewCreateDlg = $ref(false)
 
 const openCreateViewDlg = (type: ViewTypes) => {
-  viewCreateDlg.value = true
-  viewCreateType.value = type
+  viewCreateDlg = true
+  viewCreateType = type
 }
 
-const onViewCreate = (view) => {
+const onViewCreate = (view: GridType | FormType | KanbanType | GalleryType) => {
   views.value?.push(view)
   activeView.value = view
-  viewCreateDlg.value = false
+  viewCreateDlg = false
 }
 </script>
 
@@ -277,5 +281,3 @@ const onViewCreate = (view) => {
     <DlgViewCreate v-if="views" v-model="viewCreateDlg" :type="viewCreateType" @created="onViewCreate" />
   </div>
 </template>
-
-<style scoped></style>

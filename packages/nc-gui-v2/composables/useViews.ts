@@ -1,15 +1,20 @@
 import type { FormType, GalleryType, GridType, KanbanType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import type { MaybeRef } from '@vueuse/core'
 import { useNuxtApp } from '#app'
 
-export default function (meta: Ref<TableType>) {
-  const views = ref<(GridType | FormType | KanbanType | GalleryType)[]>()
+export default function (meta: MaybeRef<TableType | undefined>) {
+  let views = $ref<(GridType | FormType | KanbanType | GalleryType)[]>([])
   const { $api } = useNuxtApp()
 
   const loadViews = async () => {
-    if (meta.value?.id)
-      views.value = (await $api.dbView.list(meta.value?.id)).list as (GridType | FormType | KanbanType | GalleryType)[]
+    const _meta = unref(meta)
+
+    if (_meta && _meta.id) {
+      views = (await $api.dbView.list(_meta.id)).list as (GridType | FormType | KanbanType | GalleryType)[]
+    }
   }
 
-  return { views, loadViews }
+  watch(() => meta, loadViews, { immediate: true })
+
+  return { views: $$(views), loadViews }
 }

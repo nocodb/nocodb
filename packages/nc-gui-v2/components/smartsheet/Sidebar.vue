@@ -2,7 +2,19 @@
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { notification } from 'ant-design-vue'
-import { inject, onClickOutside, onKeyStroke, provide, ref, useApi, useDebounceFn, useTabs, useViews, watch } from '#imports'
+import {
+  inject,
+  onClickOutside,
+  onKeyStroke,
+  provide,
+  ref,
+  useApi,
+  useDebounceFn,
+  useNuxtApp,
+  useTabs,
+  useViews,
+  watch,
+} from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
 import { extractSdkResponseErrorMsg, viewIcons } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -13,14 +25,17 @@ const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
+const { $e } = useNuxtApp()
+
 const { addTab } = useTabs()
 
-const { views } = useViews(meta)
+const { views, loadViews } = useViews(meta)
 
 const { api } = useApi()
 
 provide(ViewListInj, views)
 
+/** Watch current views and on change set the next active view */
 watch(
   views,
   (nextViews) => {
@@ -31,22 +46,33 @@ watch(
   { immediate: true },
 )
 
+/** Sidebar visible */
 const toggleDrawer = ref(false)
 
 const isView = ref(false)
 
+/** Is editing the view name enabled */
 let isEditing = $ref<number | null>(null)
 
+/** Helper to check if editing was disabled before the view navigation timeout triggers */
 let isStopped = $ref(false)
 
+/** Original view title when editing the view name */
 let originalTitle = $ref<string | undefined>()
 
+/** View type to create from modal */
 let viewCreateType = $ref<ViewTypes>()
 
-let viewCreateDlg = $ref(false)
+/** View title to create from modal (when duplicating) */
+const viewCreateTitle = $ref('')
 
+/** is view creation modal open */
+let modalOpen = $ref(false)
+
+/** Selected view(s) for menu */
 const selected = ref<string[]>([])
 
+/** Watch currently active view so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
   const _nextActiveView = nextActiveView as GridType | FormType | KanbanType
 
@@ -54,6 +80,73 @@ watch(activeView, (nextActiveView) => {
     selected.value = [_nextActiveView.id]
   }
 })
+
+/** Open view creation modal */
+function openModal(type: ViewTypes) {
+  modalOpen = true
+  viewCreateType = type
+}
+
+/** Handle view creation */
+function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
+  views.value?.push(view)
+  activeView.value = view
+  modalOpen = false
+}
+
+// todo: fix view type, alias is missing for some reason?
+/** Navigate to view and add new tab if necessary */
+function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
+  activeView.value = view
+
+  const tabProps = {
+    id: view.id,
+    title: (view.alias ?? view.title) || '',
+    type: ViewTypes[view.type],
+  }
+
+  addTab(tabProps)
+}
+
+/** Debounce click handler so we can potentially enable editing view name {@see onDblClick} */
+const onClick = useDebounceFn((view) => {
+  if (isEditing !== null || isStopped) return
+
+  changeView(view)
+}, 250)
+
+/** Enable editing view name on dbl click */
+function onDblClick(index: number) {
+  if (isEditing === null) {
+    isEditing = index
+    originalTitle = views.value[index].title
+  }
+}
+
+/** Handle keydown on input field */
+function onKeyDown(event: KeyboardEvent, index: number) {
+  if (event.key === 'Escape') {
+    onKeyEsc(event, index)
+  } else if (event.key === 'Enter') {
+    onKeyEnter(event, index)
+  }
+}
+
+/** Rename view when enter is pressed */
+function onKeyEnter(event: KeyboardEvent, index: number) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+
+  onRename(index)
+}
+
+/** Disable renaming view when escape is pressed */
+function onKeyEsc(event: KeyboardEvent, index: number) {
+  event.stopImmediatePropagation()
+  event.preventDefault()
+
+  onCancel(index)
+}
 
 onKeyStroke('Escape', (event) => {
   if (isEditing !== null) {
@@ -67,91 +160,69 @@ onKeyStroke('Enter', (event) => {
   }
 })
 
-function openCreateViewDlg(type: ViewTypes) {
-  viewCreateDlg = true
-  viewCreateType = type
-}
-
-function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
-  views.value?.push(view)
-  activeView.value = view
-  viewCreateDlg = false
-}
-
-// todo: fix view type, alias is missing for some reason?
-function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
-  activeView.value = view
-
-  const tabProps = {
-    id: view.id,
-    title: (view.alias ?? view.title) || '',
-    type: ViewTypes[view.type],
-  }
-
-  addTab(tabProps)
-}
-
-const onClick = useDebounceFn((view) => {
-  if (isEditing !== null || isStopped) return
-
-  changeView(view)
-}, 250)
-
-function onDblClick(index: number) {
-  if (isEditing === null) {
-    isEditing = index
-    originalTitle = views.value[index].title
-  }
-}
-
-function onKeyDown(event: KeyboardEvent, index: number) {
-  if (event.key === 'Escape') {
-    onKeyEsc(event, index)
-  } else if (event.key === 'Enter') {
-    onKeyEnter(event, index)
-  }
-}
-
-function onKeyEnter(event: KeyboardEvent, index: number) {
-  event.stopImmediatePropagation()
-  event.preventDefault()
-
-  onRename(index)
-}
-
-function onKeyEsc(event: KeyboardEvent, index: number) {
-  event.stopImmediatePropagation()
-  event.preventDefault()
-
-  onCancel(index)
-}
-
-const inputRef = $ref<HTMLInputElement>()
+/** Current input element, changes when edit is enabled on a view menu item */
+let inputRef = $ref<HTMLInputElement>()
 
 function setInputRef(el: HTMLInputElement) {
-  if (el) el.focus()
+  if (el) {
+    el.focus()
+    inputRef = el
+  }
 }
 
+/** Cancel editing when clicked outside of input */
 onClickOutside(inputRef, () => {
   if (isEditing !== null) {
     onCancel(isEditing)
   }
 })
 
-function onCopy(index: number) {
-  // copy view
+/** Duplicate a view */
+// todo: This is not really a duplication, maybe we need to implement a true duplication?
+function onDuplicate(index: number) {
+  const view: any = views.value[index]
+
+  openModal(view.type)
+
+  $e('c:view:copy', { view: view.type })
 }
 
-function onDelete(index: number) {
-  // delete view
+/** Delete a view */
+async function onDelete(index: number) {
+  const view: any = views.value[index]
+
+  try {
+    await api.dbView.delete(view.id)
+
+    notification.success({
+      message: 'View deleted successfully',
+      duration: 3,
+    })
+
+    await loadViews()
+  } catch (e: any) {
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+      duration: 3,
+    })
+  }
+
+  // telemetry event
+  $e('a:view:delete', { view: view.type })
 }
 
+onMounted(() => {
+  notification.open({
+    message: 'Welcome to the View Manager',
+    duration: 3,
+  })
+})
+
+/** Rename a view */
 async function onRename(index: number) {
   // todo: validate if title is unique and not empty
   if (isEditing === null) return
   const view = views.value[index]
-
-  console.log(view.title, originalTitle)
 
   if (view.title === '' || view.title === originalTitle) {
     onCancel(index)
@@ -169,25 +240,27 @@ async function onRename(index: number) {
 
     notification.success({
       message: 'View renamed successfully',
-      duration: 3000,
+      duration: 3,
     })
 
     console.log('success')
   } catch (e: any) {
     notification.error({
       message: await extractSdkResponseErrorMsg(e),
-      duration: 3000,
+      duration: 3,
     })
   }
 
   onStopEdit()
 }
 
+/** Cancel renaming view */
 function onCancel(index: number) {
   views.value[index].title = originalTitle
   onStopEdit()
 }
 
+/** Stop editing view name, timeout makes sure that view navigation (click trigger) does not pick up before stop is done */
 function onStopEdit() {
   isStopped = true
   isEditing = null
@@ -233,7 +306,7 @@ function onStopEdit() {
                     {{ $t('activity.copyView') }}
                   </template>
 
-                  <MdiContentCopy class="hidden group-hover:block text-gray-500" />
+                  <MdiContentCopy class="hidden group-hover:block text-gray-500" @click.stop="onDuplicate(i)" />
                 </a-tooltip>
 
                 <a-tooltip placement="left">
@@ -241,7 +314,7 @@ function onStopEdit() {
                     {{ $t('activity.deleteView') }}
                   </template>
 
-                  <MdiTrashCan class="hidden group-hover:block text-red-500" />
+                  <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop="onDelete(i)" />
                 </a-tooltip>
               </div>
             </div>
@@ -251,7 +324,7 @@ function onStopEdit() {
 
           <h3 class="px-3 text-xs font-semibold">{{ $t('activity.createView') }}</h3>
 
-          <a-menu-item key="grid" class="group !flex !items-center !h-[30px]" @click="openCreateViewDlg(ViewTypes.GRID)">
+          <a-menu-item key="grid" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.GRID)">
             <a-tooltip placement="left">
               <template #title>
                 {{ $t('msg.info.addView.grid') }}
@@ -269,7 +342,7 @@ function onStopEdit() {
             </a-tooltip>
           </a-menu-item>
 
-          <a-menu-item key="gallery" class="group !flex !items-center !h-[30px]" @click="openCreateViewDlg(ViewTypes.GALLERY)">
+          <a-menu-item key="gallery" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.GALLERY)">
             <a-tooltip placement="left">
               <template #title>
                 {{ $t('msg.info.addView.gallery') }}
@@ -287,12 +360,7 @@ function onStopEdit() {
             </a-tooltip>
           </a-menu-item>
 
-          <a-menu-item
-            v-if="!isView"
-            key="form"
-            class="group !flex !items-center !h-[30px]"
-            @click="openCreateViewDlg(ViewTypes.FORM)"
-          >
+          <a-menu-item v-if="!isView" key="form" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.FORM)">
             <a-tooltip placement="left">
               <template #title>
                 {{ $t('msg.info.addView.form') }}
@@ -313,7 +381,7 @@ function onStopEdit() {
       </div>
     </div>
 
-    <DlgViewCreate v-if="views" v-model="viewCreateDlg" :type="viewCreateType" @created="onCreate" />
+    <DlgViewCreate v-if="views" v-model="modalOpen" :title="viewCreateTitle" :type="viewCreateType" @created="onCreate" />
   </a-layout-sider>
 </template>
 

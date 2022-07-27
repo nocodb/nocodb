@@ -13,6 +13,7 @@ import { computed, nextTick, reactive, unref, useApi, useVModel, watch } from '#
 interface Props {
   modelValue: boolean
   type: ViewTypes
+  title?: string
 }
 
 interface Emits {
@@ -45,7 +46,7 @@ const meta = inject(MetaInj)
 const viewList = inject(ViewListInj)
 
 const form = reactive<Form>({
-  title: '',
+  title: props.title || '',
   type: props.type,
   copy_from_id: null,
 })

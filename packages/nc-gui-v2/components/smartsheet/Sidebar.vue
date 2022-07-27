@@ -20,6 +20,8 @@ import { extractSdkResponseErrorMsg, viewIcons } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiTrashCan from '~icons/mdi/trash-can'
 import MdiContentCopy from '~icons/mdi/content-copy'
+import MdiXml from '~icons/mdi/xml'
+import MdiHook from '~icons/mdi/hook'
 
 const meta = inject(MetaInj, ref())
 
@@ -263,123 +265,142 @@ function onStopEdit() {
     isStopped = false
   }, 250)
 }
+
+function onApiSnippet() {
+  // get API snippet
+  $e('a:view:api-snippet')
+}
 </script>
 
 <template>
   <a-layout-sider class="views-navigation-drawer bg-white shadow" :width="toggleDrawer ? 0 : 250">
     <div class="flex flex-col h-full">
-      <div class="flex-1">
-        <a-menu :selected-keys="selected">
-          <h3 class="pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
+      <a-menu class="flex-1" :selected-keys="selected">
+        <h3 class="pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
 
-          <a-menu-item
-            v-for="(view, i) of views"
-            :key="view.id"
-            class="group !flex !items-center !h-[30px]"
-            @dblclick="onDblClick(i)"
-            @click="onClick(view)"
-          >
-            <div v-t="['a:view:open', { view: view.type }]" class="text-xs flex items-center w-full gap-2">
-              <component :is="viewIcons[view.type].icon" :class="`text-${viewIcons[view.type].color}`" />
+        <a-menu-item
+          v-for="(view, i) of views"
+          :key="view.id"
+          class="group !flex !items-center !h-[30px]"
+          @dblclick="onDblClick(i)"
+          @click="onClick(view)"
+        >
+          <div v-t="['a:view:open', { view: view.type }]" class="text-xs flex items-center w-full gap-2">
+            <component :is="viewIcons[view.type].icon" :class="`text-${viewIcons[view.type].color}`" />
 
-              <a-input
-                v-if="isEditing === i"
-                :ref="setInputRef"
-                v-model:value="view.title"
-                @blur="onCancel(i)"
-                @keydown="onKeyDown($event, i)"
-              />
-              <div v-else>{{ view.alias || view.title }}</div>
+            <a-input
+              v-if="isEditing === i"
+              :ref="setInputRef"
+              v-model:value="view.title"
+              @blur="onCancel(i)"
+              @keydown="onKeyDown($event, i)"
+            />
+            <div v-else>{{ view.alias || view.title }}</div>
+
+            <div class="flex-1" />
+
+            <div class="flex items-center gap-1">
+              <a-tooltip placement="left">
+                <template #title>
+                  {{ $t('activity.copyView') }}
+                </template>
+
+                <MdiContentCopy class="hidden group-hover:block text-gray-500" @click.stop="onDuplicate(i)" />
+              </a-tooltip>
+
+              <a-popconfirm
+                placement="left"
+                :title="$t('msg.info.deleteProject')"
+                :ok-text="$t('general.yes')"
+                :cancel-text="$t('general.no')"
+                @confirm="onDelete(i)"
+              >
+                <a-tooltip placement="left">
+                  <template #title>
+                    {{ $t('activity.deleteView') }}
+                  </template>
+
+                  <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop />
+                </a-tooltip>
+              </a-popconfirm>
+            </div>
+          </div>
+        </a-menu-item>
+
+        <a-divider class="my-2" />
+
+        <h3 class="px-3 text-xs font-semibold">{{ $t('activity.createView') }}</h3>
+
+        <a-menu-item key="grid" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.GRID)">
+          <a-tooltip placement="left">
+            <template #title>
+              {{ $t('msg.info.addView.grid') }}
+            </template>
+
+            <div class="text-xs flex items-center h-full w-full gap-2">
+              <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color}`" />
+
+              <div>{{ $t('objects.viewType.grid') }}</div>
 
               <div class="flex-1" />
 
-              <div class="flex items-center gap-1">
-                <a-tooltip placement="left">
-                  <template #title>
-                    {{ $t('activity.copyView') }}
-                  </template>
-
-                  <MdiContentCopy class="hidden group-hover:block text-gray-500" @click.stop="onDuplicate(i)" />
-                </a-tooltip>
-
-                <a-popconfirm
-                  placement="left"
-                  :title="$t('msg.info.deleteProject')"
-                  :ok-text="$t('general.yes')"
-                  :cancel-text="$t('general.no')"
-                  @confirm="onDelete(i)"
-                >
-                  <a-tooltip placement="left">
-                    <template #title>
-                      {{ $t('activity.deleteView') }}
-                    </template>
-
-                    <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop />
-                  </a-tooltip>
-                </a-popconfirm>
-              </div>
+              <MdiPlusIcon class="group-hover:text-primary" />
             </div>
-          </a-menu-item>
+          </a-tooltip>
+        </a-menu-item>
 
-          <a-divider class="my-2" />
+        <a-menu-item key="gallery" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.GALLERY)">
+          <a-tooltip placement="left">
+            <template #title>
+              {{ $t('msg.info.addView.gallery') }}
+            </template>
 
-          <h3 class="px-3 text-xs font-semibold">{{ $t('activity.createView') }}</h3>
+            <div class="text-xs flex items-center h-full w-full gap-2">
+              <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color}`" />
 
-          <a-menu-item key="grid" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.GRID)">
-            <a-tooltip placement="left">
-              <template #title>
-                {{ $t('msg.info.addView.grid') }}
-              </template>
+              <div>{{ $t('objects.viewType.gallery') }}</div>
 
-              <div class="text-xs flex items-center h-full w-full gap-2">
-                <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color}`" />
+              <div class="flex-1" />
 
-                <div>{{ $t('objects.viewType.grid') }}</div>
+              <MdiPlusIcon class="group-hover:text-primary" />
+            </div>
+          </a-tooltip>
+        </a-menu-item>
 
-                <div class="flex-1" />
+        <a-menu-item v-if="!isView" key="form" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.FORM)">
+          <a-tooltip placement="left">
+            <template #title>
+              {{ $t('msg.info.addView.form') }}
+            </template>
 
-                <MdiPlusIcon class="group-hover:text-primary" />
-              </div>
-            </a-tooltip>
-          </a-menu-item>
+            <div class="text-xs flex items-center h-full w-full gap-2">
+              <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color}`" />
 
-          <a-menu-item key="gallery" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.GALLERY)">
-            <a-tooltip placement="left">
-              <template #title>
-                {{ $t('msg.info.addView.gallery') }}
-              </template>
+              <div>{{ $t('objects.viewType.form') }}</div>
 
-              <div class="text-xs flex items-center h-full w-full gap-2">
-                <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color}`" />
+              <div class="flex-1" />
 
-                <div>{{ $t('objects.viewType.gallery') }}</div>
+              <MdiPlusIcon class="group-hover:text-primary" />
+            </div>
+          </a-tooltip>
+        </a-menu-item>
 
-                <div class="flex-1" />
+        <div class="flex flex-col gap-4 mt-8">
+          <button
+            class="flex items-center gap-2 w-full mx-3 p-4 rounded bordered bg-primary transform translate-x-4 hover:translate-x-0 transition duration-150 ease"
+            @click="onApiSnippet"
+          >
+            <MdiXml />Get API Snippet
+          </button>
 
-                <MdiPlusIcon class="group-hover:text-primary" />
-              </div>
-            </a-tooltip>
-          </a-menu-item>
-
-          <a-menu-item v-if="!isView" key="form" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.FORM)">
-            <a-tooltip placement="left">
-              <template #title>
-                {{ $t('msg.info.addView.form') }}
-              </template>
-
-              <div class="text-xs flex items-center h-full w-full gap-2">
-                <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color}`" />
-
-                <div>{{ $t('objects.viewType.form') }}</div>
-
-                <div class="flex-1" />
-
-                <MdiPlusIcon class="group-hover:text-primary" />
-              </div>
-            </a-tooltip>
-          </a-menu-item>
-        </a-menu>
-      </div>
+          <button
+            class="flex items-center gap-2 w-full mx-3 p-4 rounded border-1 border-solid border-black transform translate-x-4 hover:translate-x-0 transition duration-150 ease"
+            @click="onApiSnippet"
+          >
+            <MdiHook />{{ $t('objects.webhooks') }}
+          </button>
+        </div>
+      </a-menu>
     </div>
 
     <DlgViewCreate v-if="views" v-model="modalOpen" :title="viewCreateTitle" :type="viewCreateType" @created="onCreate" />

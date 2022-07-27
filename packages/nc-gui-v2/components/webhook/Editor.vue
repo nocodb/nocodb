@@ -14,6 +14,7 @@ import MdiWhatsAppIcon from '~icons/mdi/whatsapp'
 import MdiCellPhoneMessageIcon from '~icons/mdi/cellphone-message'
 import MdiGestureDoubleTapIcon from '~icons/mdi/gesture-double-tap'
 import MdiInformationIcon from '~icons/mdi/information'
+import MdiArrowLeftBoldIcon from '~icons/mdi/arrow-left-bold'
 import { fieldRequiredValidator } from '~/utils/validation'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
@@ -21,6 +22,8 @@ interface Option {
   label: string
   value: string
 }
+
+const emit = defineEmits(['backToList', 'editOrAdd'])
 
 const { $state, $api, $e } = useNuxtApp()
 
@@ -273,24 +276,28 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="float-left pt-3">
-    <a-typography-title class="inline" :level="4">{{ meta.title }} : Webhooks </a-typography-title>
-  </div>
-  <div class="float-right mb-5">
-    <a-button class="mr-3" type="primary" size="large" @click="emit('editOrAdd')">
+  <div class="mb-4">
+    <div class="float-left mt-2">
       <div class="flex items-center">
-        <MdiGestureDoubleTapIcon class="mr-2" />
-        <!-- TODO: i18n -->
-        Test Webhook
+        <MdiArrowLeftBoldIcon class="mr-3 text-xl cursor-pointer" @click="emit('backToList')" />
+        <span class="inline text-xl font-bold">{{ meta.title }} : {{ hook.title || 'Webhooks' }} </span>
       </div>
-    </a-button>
-    <a-button class="mt-2" type="primary" size="large" @click="emit('editOrAdd')">
-      <div class="flex items-center">
-        <MdiContentSaveIcon class="mr-2" />
-        <!-- TODO: i18n -->
-        Save
-      </div>
-    </a-button>
+    </div>
+    <div class="float-right mb-5">
+      <a-button class="mr-3" type="primary" size="large" @click="emit('editOrAdd')">
+        <div class="flex items-center">
+          <MdiGestureDoubleTapIcon class="mr-2" />
+          <!-- TODO: i18n -->
+          Test Webhook
+        </div>
+      </a-button>
+      <a-button type="primary" size="large" @click="emit('editOrAdd')">
+        <div class="flex items-center">
+          <MdiContentSaveIcon class="mr-2" />
+          {{ $t('general.save') }}
+        </div>
+      </a-button>
+    </div>
   </div>
   <a-divider />
   <a-form :model="hook" name="create-or-edit-webhook">

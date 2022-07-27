@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
+import { onMounted } from '@vue/runtime-core'
 import { MetaInj } from '~/context'
 import MdiHookIcon from '~icons/mdi/hook'
 import MdiDeleteIcon from '~icons/mdi/delete'
@@ -12,6 +13,18 @@ const toast = useToast()
 
 const hooks = ref([])
 const meta = inject(MetaInj)
+
+async function loadHooksList() {
+  try {
+    const hookList = (await $api.dbTableWebhook.list(meta?.value.id as string)).list as any
+    hooks.value = hookList.map((hook: Record<string, any>) => {
+      hook.notification = hook.notification && JSON.parse(hook.notification)
+      return hook
+    })
+  } catch (e: any) {
+    toast.error(e.message)
+  }
+}
 
 async function deleteHook(item: Record<string, any>, index: number) {
   try {
@@ -31,6 +44,10 @@ async function deleteHook(item: Record<string, any>, index: number) {
 
   $e('a:webhook:delete')
 }
+
+onMounted(() => {
+  loadHooksList()
+})
 </script>
 
 <template>
@@ -45,7 +62,10 @@ async function deleteHook(item: Record<string, any>, index: number) {
       <a-list item-layout="horizontal" :data-source="hooks" class="cursor-pointer bg-gray-100 pl-5 pr-5 pt-2 pb-2">
         <template #renderItem="{ item, index }">
           <a-list-item @click="emit('edit', item)">
-            <a-list-item-meta :description="item.event" class="uppercase">
+            <a-list-item-meta>
+              <template #description>
+                <span class="uppercase"> {{ item.event }} {{ item.operation }}</span>
+              </template>
               <template #title>
                 <span class="text-xl normal-case">
                   {{ item.title }}

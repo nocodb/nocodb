@@ -3,10 +3,12 @@ type FlipTrigger = 'hover' | 'click' | { duration: number }
 
 interface Props {
   triggers?: FlipTrigger[]
+  duration?: number
 }
 
 const props = withDefaults(defineProps<Props>(), {
   triggers: () => ['click'] as FlipTrigger[],
+  duration: 800,
 })
 
 let flipped = $ref(false)
@@ -50,15 +52,34 @@ function onClick() {
     flipped = !flipped
   }
 }
+
+let isFlipping = $ref(false)
+
+watch($$(flipped), () => {
+  isFlipping = true
+
+  setTimeout(() => {
+    isFlipping = false
+  }, props.duration / 2)
+})
 </script>
 
 <template>
   <div class="flip-card" @click="onClick" @mouseover="onHover(true)" @mouseleave="onHover(false)">
-    <div class="flipper" :style="{ transform: flipped ? 'rotateY(180deg)' : '' }">
-      <div class="front" :style="{ 'pointer-events': flipped ? 'none' : 'auto' }">
+    <div
+      class="flipper"
+      :style="{ '--flip-duration': `${props.duration || 800}ms`, 'transform': flipped ? 'rotateY(180deg)' : '' }"
+    >
+      <div
+        class="front"
+        :style="{ 'pointer-events': flipped ? 'none' : 'auto', 'opacity': !isFlipping ? (flipped ? 0 : 100) : flipped ? 100 : 0 }"
+      >
         <slot name="front" />
       </div>
-      <div class="back" :style="{ 'pointer-events': flipped ? 'auto' : 'none' }">
+      <div
+        class="back"
+        :style="{ 'pointer-events': flipped ? 'auto' : 'none', 'opacity': !isFlipping ? (flipped ? 100 : 0) : flipped ? 0 : 100 }"
+      >
         <slot name="back" />
       </div>
     </div>
@@ -72,11 +93,14 @@ function onClick() {
 }
 
 .flipper {
+  --flip-duration: 800ms;
+
   position: relative;
   width: 100%;
   height: 100%;
   text-align: center;
-  transition: transform 0.8s;
+  transition: all ease-in-out;
+  transition-duration: var(--flip-duration);
   transform-style: preserve-3d;
 }
 

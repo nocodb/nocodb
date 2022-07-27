@@ -37,18 +37,7 @@ const hook = reactive({
   title: '',
   notification: {
     type: 'URL',
-    channels: '',
-  },
-  api: {
-    method: 'POST',
-    path: '',
-    body: '{{ json data }}',
-    params: [],
-    auth: '',
-    headers: [],
-    response: {},
-    perf: {},
-    meta: {},
+    payload: {},
   },
   condition: false,
 })
@@ -165,6 +154,7 @@ const formInput = ref({
   ],
 })
 
+// FIXME: this s paylaod for URL only
 const notification = ref({
   method: 'GET',
   path: '',
@@ -217,10 +207,48 @@ const validators = computed(() => {
     'title': [fieldRequiredValidator],
     'event': [fieldRequiredValidator],
     'notification.type': [fieldRequiredValidator],
-    'api.method': [fieldRequiredValidator],
-    'api.path': [fieldRequiredValidator],
     'notification.channels': [fieldRequiredValidator],
-    'method': [fieldRequiredValidator],
+    ...(hook.notification.type === 'URL' && {
+      'payload.method': [fieldRequiredValidator],
+      'payload.path': [fieldRequiredValidator],
+    }),
+    ...(hook.notification.type === 'Email' && {
+      'notification.payload.to': [fieldRequiredValidator],
+      'notification.payload.subject': [fieldRequiredValidator],
+      'notification.payload.body': [fieldRequiredValidator],
+    }),
+    ...(hook.notification.type === 'Slack' && {
+      'notification.payload.channels': [fieldRequiredValidator],
+      'notification.payload.body': [fieldRequiredValidator],
+    }),
+    ...(hook.notification.type === 'Slack' &&
+      {
+        // TODO:
+      }),
+    ...(hook.notification.type === 'Microsoft Teams' &&
+      {
+        // TODO:
+      }),
+    ...(hook.notification.type === 'Discord' &&
+      {
+        // TODO:
+      }),
+    ...(hook.notification.type === 'Mattermost' &&
+      {
+        // TODO:
+      }),
+    ...(hook.notification.type === 'URL' &&
+      {
+        // TODO:
+      }),
+    ...(hook.notification.type === 'Twilio' &&
+      {
+        // TODO:
+      }),
+    ...(hook.notification.type === 'Whatsapp Twilio' &&
+      {
+        // TODO:
+      }),
   }
 })
 const { resetFields, validate, validateInfos } = useForm(hook, validators)

@@ -75,7 +75,9 @@ const sidebarOpen = computed({
                 <a-menu-item key="1" class="!rounded-b">
                   <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="signOut">
                     <MdiLogout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
-                    <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">{{ $t('general.signOut') }}</span>
+                    <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">{{
+                      $t('general.signOut')
+                    }}</span>
                   </div>
                 </a-menu-item>
               </a-menu>

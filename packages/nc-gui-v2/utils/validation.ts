@@ -83,7 +83,47 @@ export const fieldRequiredValidator = {
   required: true,
   message: 'Field is required',
 }
+
 export const getRequiredValidator = (field = 'Field') => ({
   required: true,
   message: `${field} is required`,
 })
+
+export const importUrlValidator = {
+  validator: (rule: any, value: any) => {
+    return new Promise((resolve, reject) => {
+      if (
+        /(10)(\.([2]([0-5][0-5]|[01234][6-9])|[1][0-9][0-9]|[1-9][0-9]|[0-9])){3}|(172)\.(1[6-9]|2[0-9]|3[0-1])(\.(2[0-4][0-9]|25[0-5]|[1][0-9][0-9]|[1-9][0-9]|[0-9])){2}|(192)\.(168)(\.(25[0-5]|2[0-4][0-9]|1[0-9][0-9]|[1-9][0-9]|[0-9])){2}|(0.0.0.0)|localhost?/g.test(
+          value,
+        )
+      ) {
+        return reject(new Error('IP Not allowed!'))
+      }
+      return resolve(true)
+    })
+  },
+}
+
+export const importCsvUrlValidator = {
+  validator: (rule: any, value: any) => {
+    return new Promise((resolve, reject) => {
+      if (value && !/.*\.(csv)/.test(value)) {
+        return reject(new Error('Target file is not an accepted file type. The accepted file type is .csv!'))
+      }
+      return resolve(true)
+    })
+  },
+}
+
+export const importExcelUrlValidator = {
+  validator: (rule: any, value: any) => {
+    return new Promise((resolve, reject) => {
+      if (value && !/.*\.(xls|xlsx|xlsm|ods|ots)/.test(value)) {
+        return reject(
+          new Error('Target file is not an accepted file type. The accepted file types are .xls, .xlsx, .xlsm, .ods, .ots!'),
+        )
+      }
+      return resolve(true)
+    })
+  },
+}

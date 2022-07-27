@@ -92,8 +92,6 @@ const validators = computed(() =>
   }, {}),
 )
 
-const editorTitle = computed(() => `${quickImportType.toUpperCase()} Import: ${data.title}`)
-
 const { validate, validateInfos } = useForm(data, validators)
 
 function filterOption(input: string, option: Option) {
@@ -229,7 +227,7 @@ async function importTemplate() {
         await $api.dbTableColumn.primaryColumnSet(tableMeta.columns[0].id as string)
       }
     }
-    // bulk imsert data
+    // bulk insert data
     if (importData) {
       let total = 0
       let progress = 0
@@ -244,7 +242,7 @@ async function importTemplate() {
               for (let i = 0; i < data.length; i += offset) {
                 importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
                 const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.table_title, batchData)
+                await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.title, batchData)
                 progress += batchData.length
               }
             }
@@ -261,20 +259,30 @@ async function importTemplate() {
   } catch (e: any) {
     toast.error(await extractSdkResponseErrorMsg(e))
   } finally {
-    // TODO: close dialog when the integration is ready
     isImporting.value = false
   }
 }
+
+const isValid = computed(() => {
+  for (const [_, o] of Object.entries(validateInfos)) {
+    if (o?.validateStatus) {
+      if (o.validateStatus === 'error') {
+        return false
+      }
+    }
+  }
+  return true
+})
+
+defineExpose({
+  importTemplate,
+  isValid,
+})
 </script>
 
 <template>
   <a-spin :spinning="isImporting" :tip="importingTip" size="large">
-    <a-card :title="editorTitle">
-      <template #extra>
-        <a-button type="primary" size="large" @click="importTemplate">
-          {{ $t('activity.import') }}
-        </a-button>
-      </template>
+    <a-card>
       <a-form :model="data" name="template-editor-form">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
@@ -291,19 +299,15 @@ async function importTemplate() {
               <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <a-input
                   v-model:value="table.table_name"
+                  class="max-w-xs"
                   size="large"
-                  style="max-width: 300px"
                   hide-details
                   @click="(e) => e.stopPropagation()"
                   @blur="setEditableTn(tableIdx, false)"
                   @keydown.enter="setEditableTn(tableIdx, false)"
                 />
               </a-form-item>
-              <span
-                v-else
-                class="font-weight-bold text-lg flex items-center gap-2"
-                @click="$event.stopPropagation() && setEditableTn(tableIdx, true)"
-              >
+              <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
                 <MdiTableIcon class="text-primary" />
                 {{ table.table_name }}
               </span>
@@ -362,10 +366,10 @@ async function importTemplate() {
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
                     <a-auto-complete
                       v-model:value="record.uidt"
+                      class="w-52"
                       size="large"
                       :options="uiTypeOptions"
                       :filter-option="filterOption"
-                      style="width: 200px"
                     />
                   </a-form-item>
                 </template>

@@ -57,6 +57,8 @@ const urlTabKey = ref('body')
 
 const apps: Record<string, any> = ref()
 
+const webhookTestRef = ref()
+
 const slackChannels = ref()
 
 const teamsChannels = ref()
@@ -326,6 +328,10 @@ async function saveHooks() {
   })
 }
 
+async function testWebhook() {
+  await webhookTestRef.value.testWebhook()
+}
+
 onMounted(() => {
   loadPluginList()
 })
@@ -340,7 +346,7 @@ onMounted(() => {
       </div>
     </div>
     <div class="float-right mb-5">
-      <a-button class="mr-3" type="primary" size="large" @click="emit('editOrAdd')">
+      <a-button class="mr-3" type="primary" size="large" @click="testWebhook">
         <div class="flex items-center">
           <MdiGestureDoubleTapIcon class="mr-2" />
           <!-- TODO: i18n -->
@@ -542,6 +548,7 @@ onMounted(() => {
             </div>
           </div>
           <WebhookTest
+            ref="webhookTestRef"
             :hook="{
               ...hook,
               filters,

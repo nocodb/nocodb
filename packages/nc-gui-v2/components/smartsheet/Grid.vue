@@ -50,9 +50,9 @@ onKeyStroke(['Enter'], (e) => {
 })
 
 watch(
-  [() => meta?.value?.id, () => view?.value?.id],
-  async (n: any, o: any) => {
-    if (meta?.value && view?.value) {
+  () => view?.value?.id,
+  async (n?: string, o?: string) => {
+    if (n && n !== o) {
       await loadData()
     }
   },

@@ -77,6 +77,18 @@ let modalOpen = $ref(false)
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
 
+const validate = (value?: string) => {
+  if (!value || value.trim().length < 0) {
+    return 'View name is required'
+  }
+
+  if ((unref(views) || []).every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== value)) {
+    return 'View name should be unique'
+  }
+
+  return true
+}
+
 /** Watch currently active view so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
   const _nextActiveView = nextActiveView as GridType | FormType | KanbanType
@@ -218,9 +230,20 @@ async function onDelete(index: number) {
 
 /** Rename a view */
 async function onRename(index: number) {
-  // todo: validate if title is unique and not empty
   if (isEditing === null) return
+
   const view = views.value[index]
+
+  const valid = validate(view?.title)
+
+  console.log(valid)
+
+  if (valid !== true) {
+    notification.error({
+      message: valid,
+      duration: 2,
+    })
+  }
 
   if (view.title === '' || view.title === originalTitle) {
     onCancel(index)
@@ -279,7 +302,7 @@ function onApiSnippet() {
       <a-menu-item
         v-for="(view, i) of views"
         :key="view.id"
-        class="group !flex !items-center !h-[30px]"
+        class="group !flex !items-center"
         @dblclick="onDblClick(i)"
         @click="onClick(view)"
       >
@@ -435,7 +458,7 @@ function onApiSnippet() {
       </general-flipping-card>
     </a-menu>
 
-    <DlgViewCreate v-if="views" v-model="modalOpen" :title="viewCreateTitle" :type="viewCreateType" @created="onCreate" />
+    <dlg-view-create v-if="views" v-model="modalOpen" :title="viewCreateTitle" :type="viewCreateType" @created="onCreate" />
   </a-layout-sider>
 </template>
 

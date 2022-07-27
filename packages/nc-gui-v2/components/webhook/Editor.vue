@@ -491,30 +491,30 @@ onMounted(() => {
       </a-row>
       <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 0]">
         <a-col :span="6">
-          <a-select v-model:value="hook.api.method" size="large">
+          <a-select v-model:value="hook.notification.payload.method" size="large">
             <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">{{ method.title }}</a-select-option>
           </a-select>
         </a-col>
         <a-col :span="18">
-          <a-form-item v-bind="validateInfos['notification.api.path']">
-            <a-input v-model:value="hook.api.path" size="large" placeholder="http://example.com" />
+          <a-form-item v-bind="validateInfos['notification.payload.path']">
+            <a-input v-model:value="hook.notification.payload.path" size="large" placeholder="http://example.com" />
           </a-form-item>
         </a-col>
         <a-col :span="24">
           <a-tabs v-model:activeKey="urlTabKey" centered>
             <a-tab-pane key="body" tab="Body">
               <!-- TODO: set lang -->
-              <MonacoEditor v-model="hook.api.body" class="min-h-60 max-h-80" />
+              <MonacoEditor v-model="hook.notification.payload.body" class="min-h-60 max-h-80" />
             </a-tab-pane>
             <a-tab-pane key="params" tab="Params" force-render>
-              <ApiClientParams v-model="hook.api.parameters" />
+              <ApiClientParams v-model="hook.notification.payload.parameters" />
             </a-tab-pane>
             <a-tab-pane key="headers" tab="Headers">
-              <ApiClientHeaders v-model="hook.api.headers" />
+              <ApiClientHeaders v-model="hook.notification.payload.headers" />
             </a-tab-pane>
             <a-tab-pane key="auth" tab="Auth">
               <!-- TODO: set lang -->
-              <MonacoEditor v-model="hook.api.auth" class="min-h-60 max-h-80" />
+              <MonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />
               <span class="text-gray-600 prose-sm">
                 For more about auth option refer
                 <a class="prose-sm" href="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.
@@ -527,7 +527,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="hook.notification.channels"
+              v-model:value="hook.notification.payload.channels"
               size="large"
               :options="slackChannels"
               placeholder="Select Slack channels"
@@ -540,7 +540,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="hook.notification.channels"
+              v-model:value="hook.notification.payload.channels"
               size="large"
               :options="teamsChannels"
               placeholder="Select Microsoft Teams channels"
@@ -553,7 +553,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="hook.notification.channels"
+              v-model:value="hook.notification.payload.channels"
               size="large"
               :options="discordChannels"
               placeholder="Select Discord channels"
@@ -566,7 +566,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
             <a-auto-complete
-              v-model:value="hook.notification.channels"
+              v-model:value="hook.notification.payload.channels"
               size="large"
               :options="mattermostChannels"
               placeholder="Select Mattermost channels"
@@ -636,6 +636,7 @@ onMounted(() => {
               filters,
               notification: {
                 ...hook.notification,
+                // FIXME: this should be wrong
                 payload: notification,
               },
             }"

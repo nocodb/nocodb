@@ -29,7 +29,7 @@ async function loadHooksList() {
 async function deleteHook(item: Record<string, any>, index: number) {
   try {
     if (item.id) {
-      // await $api.dbTableWebhook.delete(item.id)
+      await $api.dbTableWebhook.delete(item.id)
       hooks.value.splice(index, 1)
     } else {
       hooks.value.splice(index, 1)

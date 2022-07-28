@@ -450,7 +450,7 @@ function onApiSnippet() {
               <div>
                 <a
                   v-t="['e:hiring']"
-                  class="px-4 py-3 bg-primary/75 rounded accent-pink-500 shadow border border-primary text-white"
+                  class="px-4 py-3 !bg-primary rounded shadow text-white"
                   href="https://angel.co/company/nocodb"
                   target="_blank"
                   @click.stop

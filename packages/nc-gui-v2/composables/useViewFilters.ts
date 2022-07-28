@@ -7,7 +7,8 @@ export function useViewFilters(
   parentId?: string,
   reloadData?: () => void,
 ) {
-  const filters = ref<(FilterType & { status?: 'update' | 'delete' })[]>([])
+  // todo: update swagger
+  const filters = ref<(FilterType & { status?: 'update' | 'delete'; parentId?: string })[]>([])
 
   const { $api } = useNuxtApp()
 
@@ -100,5 +101,16 @@ export function useViewFilters(
     })
   }
 
-  return { filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter }
+  const addFilterGroup = async (parentId?: string) => {
+    filters.value.push({
+      parentId,
+      is_group: true,
+      status: 'update',
+      logical_op: 'and',
+    })
+    const index = filters.value.length - 1
+   await saveOrUpdate(filters.value[index], index)
+  }
+
+  return { filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup }
 }

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import { useNuxtApp } from '#app'
 import { inject, useViewFilters } from '#imports'
@@ -8,6 +9,7 @@ import { comparisonOpList } from '~/utils/filterUtils'
 import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
+
 const { nested = false, parentId } = defineProps<{ nested?: boolean; parentId?: string }>()
 
 const meta = inject(MetaInj)
@@ -16,9 +18,13 @@ const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const { $e } = useNuxtApp()
 
-const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter } = useViewFilters(activeView, parentId, () => {
-  reloadDataHook?.trigger()
-})
+const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup } = useViewFilters(
+  activeView,
+  parentId,
+  () => {
+    reloadDataHook?.trigger()
+  },
+)
 
 const filterUpdateCondition = (filter: FilterType, i: number) => {
   saveOrUpdate(filter, i)
@@ -70,6 +76,13 @@ watch(
   },
   { immediate: true },
 )
+
+const nestedFilter = ref()
+
+const logicalOps = [
+  { value: 'and', text: 'AND' },
+  { value: 'or', text: 'OR' },
+]
 </script>
 
 <template>
@@ -77,7 +90,7 @@ watch(
     <div v-if="filters && filters.length" class="grid" @click.stop>
       <template v-for="(filter, i) in filters" :key="filter.id || i">
         <template v-if="filter.status !== 'delete'">
-          <div v-if="filter.is_group" :key="i" style="grid-column: span 4; padding: 6px" class="elevation-4">
+          <div v-if="filter.is_group" :key="i" style="grid-column: span 5; padding: 6px" class="">
             <div class="d-flex" style="gap: 6px; padding: 0 6px">
               <!--              <v-icon
                 v-if="!filter.readOnly"
@@ -100,33 +113,20 @@ watch(
               <a-select
                 v-model:value="filter.logical_op"
                 class="flex-shrink-1 flex-grow-0 elevation-0 caption"
-                :items="['and', 'or']"
-                density="compact"
-                variant="solo"
-                hide-details
+                :options="logicalOps"
                 placeholder="Group op"
                 @click.stop
                 @change="saveOrUpdate(filter, i)"
               >
-                <!--                <template #item="{ item }"> -->
-                <!--                  <span class="caption font-weight-regular">{{ item }}</span> -->
-                <!--                </template> -->
               </a-select>
             </div>
-            <!--            <column-filter
+            <SmartsheetToolbarColumnFilter
               v-if="filter.id || shared"
               ref="nestedFilter"
               v-model="filter.children"
               :parent-id="filter.id"
-              :view-id="viewId"
               nested
-              :meta="meta"
-              :shared="shared"
-              :web-hook="webHook"
-              :hook-id="hookId"
-              @updated="$emit('updated')"
-              @input="$emit('input', filters)"
-            /> -->
+            />
           </div>
           <template v-else>
             <!--                        <v-icon
@@ -152,10 +152,7 @@ watch(
               v-else
               v-model:value="filter.logical_op"
               class="h-full"
-              :options="[
-                { value: 'and', text: 'AND' },
-                { value: 'or', text: 'OR' },
-              ]"
+              :options="logicalOps"
               hide-details
               :disabled="filter.readOnly"
               @click.stop
@@ -215,14 +212,24 @@ watch(
       </template>
     </div>
 
-    <a-button size="small" class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilter">
-      <div class="flex align-center gap-1">
-        <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
-        <MdiAddIcon />
-        <!-- Add Filter -->
-        {{ $t('activity.addFilter') }}
-      </div>
-    </a-button>
+    <div class="flex gap-2">
+      <a-button size="small" class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilter">
+        <div class="flex align-center gap-1">
+          <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
+          <MdiAddIcon />
+          <!-- Add Filter -->
+          {{ $t('activity.addFilter') }}
+        </div>
+      </a-button>
+      <a-button size="small" class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilterGroup">
+        <div class="flex align-center gap-1">
+          <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
+          <MdiAddIcon />
+          Add Filter Group
+          <!--     todo: add i18n {{ $t('activity.addFilterGroup') }} -->
+        </div>
+      </a-button>
+    </div>
     <slot />
   </div>
 </template>

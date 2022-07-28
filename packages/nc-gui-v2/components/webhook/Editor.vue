@@ -217,17 +217,7 @@ const validators = computed(() => {
 const { resetFields, validate, validateInfos } = useForm(hook, validators)
 
 function onNotTypeChange() {
-  const notification = {
-    method: 'GET',
-    path: '',
-    body: '',
-    params: [],
-    auth: '',
-    headers: [],
-    response: {},
-    perf: {},
-    meta: {},
-  }
+  hook.notification.payload = {} as any
 
   if (hook.notification.type === 'Slack') {
     slackChannels.value = (apps && apps?.Slack && apps.Slack.parsedInput) || []
@@ -242,7 +232,6 @@ function onNotTypeChange() {
     mattermostChannels.value = (apps && apps.Mattermost && apps.Mattermost.parsedInput) || []
   }
   if (hook.notification.type === 'URL') {
-    hook.notification = hook.notification ?? notification
     hook.notification.payload.body = '{{ json data }}'
   }
 }
@@ -271,8 +260,6 @@ async function onEventChange() {
       payload,
     },
   })
-
-  await onNotTypeChange()
 
   hook.notification.payload = payload
 
@@ -303,7 +290,6 @@ async function onEventChange() {
 
   if (hook.notification.type === 'URL') {
     hook.notification.payload = hook.notification.payload || {}
-    hook.notification.payload.body = '{{ json data }}'
   }
 }
 

@@ -198,7 +198,12 @@ const clickInviteMore = () => {
                 </div>
               </div>
               <div class="flex flex-row justify-center">
-                <a-button type="primary" html-type="submit">Invite</a-button>
+                <a-button type="primary" html-type="submit">
+                  <div class="flex flex-row justify-center items-center space-x-1.5">
+                    <SendIcon height="0.8rem" class="flex" />
+                    <div>Invite</div>
+                  </div>
+                </a-button>
               </div>
             </a-form>
           </div>

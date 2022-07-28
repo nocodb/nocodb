@@ -2,19 +2,7 @@
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import { notification } from 'ant-design-vue'
-import {
-  inject,
-  onClickOutside,
-  onKeyStroke,
-  provide,
-  ref,
-  useApi,
-  useDebounceFn,
-  useNuxtApp,
-  useTabs,
-  useViews,
-  watch,
-} from '#imports'
+import { inject, onKeyStroke, provide, ref, useApi, useDebounceFn, useNuxtApp, useTabs, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
 import { extractSdkResponseErrorMsg, viewIcons } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -126,7 +114,7 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
   addTab(tabProps)
 }
 
-/** Debounce click handler so we can potentially enable editing view name {@see onDblClick} */
+/** Debounce click handler, so we can potentially enable editing view name {@see onDblClick} */
 const onClick = useDebounceFn((view) => {
   if (isEditing !== null || isStopped) return
 
@@ -166,34 +154,15 @@ function onKeyEsc(event: KeyboardEvent, index: number) {
   onCancel(index)
 }
 
-onKeyStroke('Escape', (event) => {
-  if (isEditing !== null) {
-    onKeyEsc(event, isEditing)
-  }
-})
-
 onKeyStroke('Enter', (event) => {
   if (isEditing !== null) {
     onKeyEnter(event, isEditing)
   }
 })
 
-/** Current input element, changes when edit is enabled on a view menu item */
-let inputRef = $ref<HTMLInputElement>()
-
 function setInputRef(el: HTMLInputElement) {
-  if (el) {
-    el.focus()
-    inputRef = el
-  }
+  if (el) el.focus()
 }
-
-/** Cancel editing when clicked outside of input */
-onClickOutside(inputRef, () => {
-  if (isEditing !== null) {
-    onCancel(isEditing)
-  }
-})
 
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?

@@ -12,9 +12,6 @@ import { projectRoleTagColors } from '~/utils/userUtils'
 import { copyTextToClipboard } from '~/utils/miscUtils'
 import { extractSdkResponseErrorMsg } from '~~/utils/errorUtils'
 import { isEmail } from '~~/utils/validation'
-const { show, selectedUser } = defineProps<Props>()
-const emits = defineEmits(['closed'])
-const toast = useToast()
 
 interface Props {
   show: boolean
@@ -26,6 +23,10 @@ interface Users {
   role: ProjectRole
   invitationToken?: string
 }
+
+const { show, selectedUser } = defineProps<Props>()
+const emits = defineEmits(['closed'])
+const toast = useToast()
 
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()

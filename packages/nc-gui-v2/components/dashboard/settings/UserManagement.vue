@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useDebounce } from '@vueuse/core'
 import KebabIcon from '~icons/ic/baseline-more-vert'
+import { extractSdkResponseErrorMsg } from '~~/utils/errorUtils'
 import UsersModal from './userManagement/UsersModal.vue'
 import { projectRoleTagColors } from '~/utils/userUtils'
 import MidAccountIcon from '~icons/mdi/account-outline'
@@ -21,7 +22,7 @@ const toast = useToast()
 const { $api, $e } = useNuxtApp()
 const { project } = useProject()
 
-let users = $ref<null | Array<User>>(null)
+let users = $ref<null | User[]>(null)
 let selectedUser = $ref<null | User>(null)
 let showUserModal = $ref(false)
 let showUserDeleteModal = $ref(false)
@@ -34,7 +35,6 @@ const debouncedSearchText = useDebounce(searchText, 300)
 
 const loadUsers = async (page = currentPage, limit = currentLimit) => {
   try {
-    console.log('loadUsers', page, limit)
     if (!project.value?.id) return
 
     const response = await $api.auth.projectUserList(project.value?.id, <any> {
@@ -44,25 +44,26 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
         query: searchText.value,
       },
     })
-    console.log('userData', response)
     if (!response.users) return
 
     totalRows = response.users.pageInfo.totalRows ?? 0
-    users = response.users.list as Array<User>
-  } catch (e) {
-    console.log(e)
+    users = response.users.list as User[]
+  } catch (e: any) {
+    console.error(e)
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const inviteUser = async (user) => {
+const inviteUser = async (user: User) => {
   try {
     if (!project.value?.id) return
 
-    await $api.auth.projectUserAdd(project.id, user);
+    await $api.auth.projectUserAdd(project.value.id, user);
     toast.success('Successfully added user to project');
     await loadUsers();
-  } catch (e) {
-    toast.error(e.response.data.msg);
+  } catch (e: any) {
+    console.error(e)
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:user:add');
@@ -75,8 +76,9 @@ const deleteUser = async () => {
     await $api.auth.projectUserRemove(project.value.id, selectedUser.id);
     toast.success('Successfully deleted user from project');
     await loadUsers();
-  } catch (e) {
-    toast.error(e.response.data.msg);
+  } catch (e: any) {
+    console.error(e)
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:user:delete');
@@ -104,8 +106,9 @@ const resendInvite = async (user: User) => {
     await $api.auth.projectUserResendInvite(project.value.id, user.id);
     toast.success('Invite email sent successfully');
     await loadUsers();
-  } catch (e) {
-    toast.error(e.response.data.msg);
+  } catch (e: any) {
+    console.error(e)
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:user:resend-invite');
@@ -130,6 +133,7 @@ watch(
   () => debouncedSearchText.value,
   () => loadUsers(),
 )
+
 </script>
 
 <template>

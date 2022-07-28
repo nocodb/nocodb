@@ -2,7 +2,7 @@
 import { useToast } from 'vue-toastification'
 import OpenInNewIcon from '~icons/mdi/open-in-new'
 import { dashboardUrl } from '~/utils/urlUtils'
-
+import { extractSdkResponseErrorMsg } from '~~/utils/errorUtils'
 import MdiReload from '~icons/mdi/reload'
 import DownIcon from '~icons/ic/round-keyboard-arrow-down'
 import ContentCopyIcon from '~icons/mdi/content-copy'
@@ -38,9 +38,9 @@ const loadBase = async () => {
       url: res.url,
       role: res.roles,
     }
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
-    toast.error('Something went wrong')
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -54,9 +54,9 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
 
     base = res || {}
     base.role = role
-  } catch (e) {
+  } catch (e: any) {
     console.error(e)
-    toast.error('Something went wrong')
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
   $e('a:shared-base:enable', { role })
 }
@@ -67,8 +67,9 @@ const disableSharedBase = async () => {
 
     await $api.project.sharedBaseDisable(project.value.id)
     base = {}
-  } catch (e) {
-    toast.error(e.message)
+  } catch (e: any) {
+    console.error(e)
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:shared-base:disable')
@@ -83,8 +84,9 @@ const recreate = async () => {
     })
     const newBase = sharedBase || {}
     base = { ...newBase, role: base?.role }
-  } catch (e) {
-    toast.error(e.message)
+  } catch (e: any) {
+    console.error(e)
+    toast.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:shared-base:recreate')

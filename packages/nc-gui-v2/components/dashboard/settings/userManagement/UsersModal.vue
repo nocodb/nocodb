@@ -20,6 +20,7 @@ interface Props {
   show: boolean
   selectedUser?: User
 }
+
 interface Users {
   emails?: string
   role: ProjectRole
@@ -30,7 +31,6 @@ const { project } = useProject()
 const { $api, $e } = useNuxtApp()
 
 const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Guest, invitationToken: undefined })
-const inviteToken = $ref(null)
 const formRef = ref()
 
 const useForm = Form.useForm
@@ -89,13 +89,16 @@ const saveUser = async () => {
       usersData.invitationToken = res.invite_token
     }
     toast.success('Successfully updated the user details')
-  } catch (e) {
+  } catch (e: any) {
+    console.error(e)
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 const inviteUrl = $computed(() =>
-  inviteToken ? `${location.origin}${location.pathname}#/user/authentication/signup/${inviteToken}` : null,
+  usersData.invitationToken
+    ? `${location.origin}${location.pathname}#/user/authentication/signup/${usersData.invitationToken}`
+    : null,
 )
 
 const copyUrl = async () => {
@@ -139,7 +142,7 @@ const clickInviteMore = () => {
               <template #message>
                 <div class="flex flex-row w-full justify-between items-center">
                   <div class="flex pl-2 text-green-700">
-                    {{ inviteUrl }} http://localhost:3001/nc/p_60c3wrrzv563zq#/nc/base/2d6f72d7-b16a-40f2-951c-00b1b90f3920
+                    {{ inviteUrl }}
                   </div>
                   <a-button type="text" class="!rounded-md mr-1" @click="copyUrl">
                     <template #icon>

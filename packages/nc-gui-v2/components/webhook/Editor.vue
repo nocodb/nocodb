@@ -37,10 +37,15 @@ const hook = reactive({
   title: '',
   event: '',
   operation: '',
-  eventOperation: '',
+  eventOperation: undefined,
   notification: {
     type: 'URL',
-    payload: {} as any,
+    payload: {
+      method: 'POST',
+      body: '{{ json data }}',
+      headers: [{}],
+      parameters: [{}],
+    } as any,
   },
   condition: false,
 })
@@ -234,6 +239,7 @@ function onNotTypeChange() {
     hook.notification.payload.body = '{{ json data }}'
     hook.notification.payload.parameters = [{}]
     hook.notification.payload.headers = [{}]
+    hook.notification.payload.method = 'POST'
   }
 }
 
@@ -293,6 +299,7 @@ async function onEventChange() {
     hook.notification.payload = hook.notification.payload || {}
     hook.notification.payload.parameters = hook.notification.payload.parameters || [{}]
     hook.notification.payload.headers = hook.notification.payload.headers || [{}]
+    hook.notification.payload.method = hook.notification.payload.method || 'POST'
   }
 }
 

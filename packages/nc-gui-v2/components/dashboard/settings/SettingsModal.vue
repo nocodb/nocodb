@@ -5,6 +5,7 @@ import AppStore from './AppStore.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
 import UserManagement from './UserManagement.vue'
+import ApiTokenManagement from './ApiTokenManagement.vue'
 import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
@@ -44,7 +45,7 @@ const tabsInfo: TabGroup = {
       },
       apiTokenManagement: {
         title: 'API Token Management',
-        body: () => AuditTab,
+        body: () => ApiTokenManagement,
       },
     },
   },

@@ -142,17 +142,17 @@ watch(
 <template>
   <div class="flex flex-col w-full px-6">
     <UsersModal :key="showUserModal" :show="showUserModal" :selected-user="selectedUser" @closed="showUserModal = false" @reload="loadUsers()"/>
-      <a-modal v-model:visible="showUserDeleteModal" :closable="false" width="28rem" centered :footer="null">
-    <div class="flex flex-col h-full">
-      <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
-        This action will remove this user from this project
+    <a-modal v-model:visible="showUserDeleteModal" :closable="false" width="28rem" centered :footer="null">
+      <div class="flex flex-col h-full">
+        <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
+          This action will remove this user from this project
+        </div>
+        <div class="flex mt-6 justify-center space-x-2">
+          <a-button @click="showUserDeleteModal = false"> Cancel </a-button>
+          <a-button type="primary" danger @click="deleteUser"> Confirm </a-button>
+        </div>
       </div>
-      <div class="flex mt-6 justify-center space-x-2">
-        <a-button @click="showUserDeleteModal = false"> Cancel </a-button>
-        <a-button type="primary" danger @click="deleteUser"> Confirm </a-button>
-      </div>
-    </div>
-  </a-modal>
+    </a-modal>
     <div class="flex flex-row mb-4 mx-4 justify-between">
       <div class="flex w-1/3" >
         <a-input  v-model:value="searchText" placeholder="Filter by email" >

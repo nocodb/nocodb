@@ -34,10 +34,14 @@ const meta = inject(MetaInj)
 const useForm = Form.useForm
 
 const hook = reactive({
+  id: '',
   title: '',
+  event: '',
+  operation: '',
+  eventOperation: '',
   notification: {
     type: 'URL',
-    payload: {},
+    payload: {} as any,
   },
   condition: false,
 })
@@ -48,13 +52,13 @@ const apps: Record<string, any> = ref()
 
 const webhookTestRef = ref()
 
-const slackChannels = ref()
+const slackChannels = ref<Record<string, any>[]>([])
 
-const teamsChannels = ref()
+const teamsChannels = ref<Record<string, any>[]>([])
 
-const discordChannels = ref()
+const discordChannels = ref<Record<string, any>[]>([])
 
-const mattermostChannels = ref()
+const mattermostChannels = ref<Record<string, any>[]>([])
 
 const loading = ref(false)
 
@@ -155,31 +159,25 @@ const formInput = ref({
 })
 
 // FIXME: this s paylaod for URL only
-const notification = ref({
-  method: 'GET',
-  path: '',
-  body: '',
-  params: [],
-  auth: '',
-  headers: [],
-  response: {},
-  perf: {},
-  meta: {},
-})
+// const notification = ref({
+//   method: 'GET',
+//   path: '',
+//   body: '',
+//   params: [],
+//   auth: '',
+//   headers: [],
+//   response: {},
+//   perf: {},
+//   meta: {},
+// })
 
 const eventList = ref([
-  {
-    title: 'After Insert',
-    value: 'after insert',
-  },
-  {
-    title: 'After Update',
-    value: 'after update',
-  },
-  {
-    title: 'After Delete',
-    value: 'after delete',
-  },
+  // {text: ["Before", "Insert"], value: ['before', 'insert']},
+  { text: ['After', 'Insert'], value: ['after', 'insert'] },
+  // {text: ["Before", "Update"], value: ['before', 'update']},
+  { text: ['After', 'Update'], value: ['after', 'update'] },
+  // {text: ["Before", "Delete"], value: ['before', 'delete']},
+  { text: ['After', 'Delete'], value: ['after', 'delete'] },
 ])
 
 const notificationList = ref([
@@ -233,7 +231,7 @@ const validators = computed(() => {
 const { resetFields, validate, validateInfos } = useForm(hook, validators)
 
 function onNotTypeChange() {
-  notification.value = {
+  const notification = {
     method: 'GET',
     path: '',
     body: '',
@@ -258,8 +256,8 @@ function onNotTypeChange() {
     mattermostChannels.value = (apps && apps.Mattermost && apps.Mattermost.parsedInput) || []
   }
   if (hook.notification.type === 'URL') {
-    notification.value = notification.value || {}
-    notification.value.body = '{{ json data }}'
+    hook.notification = hook.notification ?? notification
+    hook.notification.payload.body = '{{ json data }}'
   }
 }
 
@@ -283,36 +281,36 @@ async function onEventChange() {
 
   await onNotTypeChange()
 
-  notification.value = payload
+  hook.notification.payload = payload
 
   let channels: Record<string, any>[] | null = null
 
   switch (hook.notification.type) {
     case 'Slack':
-      channels = slackChannels
+      channels = slackChannels as any
       break
     case 'Microsoft Teams':
-      channels = teamsChannels
+      channels = teamsChannels as any
       break
     case 'Discord':
-      channels = discordChannels
+      channels = discordChannels as any
       break
     case 'Mattermost':
-      channels = mattermostChannels
+      channels = mattermostChannels as any
       break
   }
 
   if (channels) {
-    notification.webhook_url =
-      notification.webhook_url &&
-      notification.webhook_url.map((v: Record<string, any>) =>
+    hook.notification.payload.webhook_url =
+      hook.notification.payload.webhook_url &&
+      hook.notification.payload.webhook_url.map((v: Record<string, any>) =>
         channels?.find((s: Record<string, any>) => v.webhook_url === s.webhook_url),
       )
   }
 
   if (hook.notification.type === 'URL') {
-    notification.value = notification.value || {}
-    notification.value.body = '{{ json data }}'
+    hook.notification.payload = hook.notification.payload || {}
+    hook.notification.payload.body = '{{ json data }}'
   }
 }
 
@@ -325,6 +323,9 @@ async function loadPluginList() {
       o[p.title] = p
       return o
     }, {})
+    if (hook.event && hook.operation) {
+      hook.eventOperation = `${hook.event} ${hook.operation}`
+    }
   } catch (e: any) {
     toast.error(extractSdkResponseErrorMsg(e))
   }
@@ -347,15 +348,15 @@ async function saveHooks() {
         ...hook,
         notification: {
           ...hook.notification,
-          payload: notification,
+          payload: hook.notification.payload,
         },
       })
     } else {
-      res = await $api.dbTableWebhook.create(meta.value.id as string, {
+      res = await $api.dbTableWebhook.create(meta?.value.id as string, {
         ...hook,
         notification: {
           ...hook.notification,
-          payload: notification,
+          payload: hook.notification.payload,
         },
       })
     }
@@ -392,6 +393,15 @@ defineExpose({
   onEventChange,
   setHook,
 })
+
+watch(
+  () => hook.eventOperation,
+  (v) => {
+    const [event, operation] = hook.eventOperation.split(' ')
+    hook.event = event
+    hook.operation = operation
+  },
+)
 
 onMounted(() => {
   loadPluginList()
@@ -436,9 +446,9 @@ onMounted(() => {
       <a-row type="flex" :gutter="[16, 16]">
         <a-col :span="12">
           <a-form-item v-bind="validateInfos.event">
-            <a-select v-model:value="hook.event" size="large" :placeholder="$t('general.event')">
-              <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value">
-                {{ event.title }}
+            <a-select v-model:value="hook.eventOperation" size="large" :placeholder="$t('general.event')">
+              <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value.join(' ')">
+                {{ event.text.join(' ') }}
               </a-select-option>
             </a-select>
           </a-form-item>

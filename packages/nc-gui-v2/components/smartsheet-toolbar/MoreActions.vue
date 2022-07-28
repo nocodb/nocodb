@@ -15,13 +15,23 @@ import MdiViewListIcon from '~icons/mdi/view-list-outline'
 
 // todo : replace with inject
 const publicViewId = null
+
+// TODO:: identify based on meta
+const isView = ref(false)
+
+const { isUIAllowed } = useUIPermission()
+
 const { project } = useProject()
 
 const { $api } = useNuxtApp()
+
 const toast = useToast()
 
 const meta = inject(MetaInj)
+
 const selectedView = inject(ActiveViewInj)
+
+const showWebhookDrawer = ref(false)
 
 const exportCsv = async () => {
   let offset = 0
@@ -80,7 +90,7 @@ const exportCsv = async () => {
         toast.success('Successfully exported all table data')
       }
     }
-  } catch (e) {
+  } catch (e: any) {
     toast.error(extractSdkResponseErrorMsg(e))
   }
 }
@@ -99,22 +109,37 @@ const exportCsv = async () => {
     <template #overlay>
       <div class="bg-white shadow">
         <div>
-          <div class="nc-menu-item" @click.stop="exportCsv">
+          <div
+            v-if="isUIAllowed('csvImport') && !isView"
+            v-t="['a:actions:upload-csv']"
+            class="nc-menu-item"
+            @click.stop="exportCsv"
+          >
             <MdiDownloadIcon />
             <!-- Download as CSV -->
             {{ $t('activity.downloadCSV') }}
           </div>
-          <div class="nc-menu-item" @click.stop>
+          <div v-if="isUIAllowed('csvImport') && !isView" v-t="['a:actions:upload-csv']" class="nc-menu-item" @click.stop>
             <MdiUploadIcon />
             <!-- Upload CSV -->
             {{ $t('activity.uploadCSV') }}
           </div>
-          <div class="nc-menu-item" @click.stop>
+          <div
+            v-if="isUIAllowed('SharedViewList') && !isView"
+            v-t="['a:actions:shared-view-list']"
+            class="nc-menu-item"
+            @click.stop
+          >
             <MdiViewListIcon />
             <!-- Shared View List -->
             {{ $t('activity.listSharedView') }}
           </div>
-          <div class="nc-menu-item" @click.stop>
+          <div
+            v-if="isUIAllowed('webhook') && !isView"
+            v-t="['c:actions:webhook']"
+            class="nc-menu-item"
+            @click.stop="showWebhookDrawer = true"
+          >
             <MdiHookIcon />
             <!-- todo: i18n -->
             Webhook
@@ -123,4 +148,5 @@ const exportCsv = async () => {
       </div>
     </template>
   </a-dropdown>
+  <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 </template>

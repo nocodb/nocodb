@@ -1,7 +1,11 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
+import { computed } from 'vue'
+import { useToast } from 'vue-toastification'
+import { useNuxtApp } from '#app'
 import { useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 
@@ -9,19 +13,31 @@ const { isUIAllowed } = useUIPermission()
 const { view, $api } = useSmartsheetStoreOrThrow()
 
 const { copy } = useClipboard()
+const toast = useToast()
+const { $e } = useNuxtApp()
 
 let showShareModel = $ref(false)
+const passwordProtected = $ref(false)
 const shared = ref()
 
-const source = ref('Hello')
+const allowCSVDownload = computed({
+  get() {
+    return !!(shared.value?.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta)
+      ?.allowCSVDownload
+  },
+  set(allow) {
+    shared.value.meta = { allowCSVDownload: allow }
+    saveAllowCSVDownload()
+  },
+})
 
 const genShareLink = async () => {
   shared.value = await $api.dbViewShare.create(view.value.id as string)
   // shared.meta = shared.meta && typeof shared.meta === 'string' ? JSON.parse(shared.meta) : shared.meta;
   // // todo: url
-  // this.shareLink = shared;
-  // this.passwordProtect = shared.password !== null;
-  // this.allowCSVDownload = shared.meta.allowCSVDownload;
+  // shareLink = shared;
+  // passwordProtect = shared.password !== null;
+  // allowCSVDownload = shared.meta.allowCSVDownload;
   showShareModel = true
 }
 
@@ -43,6 +59,38 @@ const sharedViewUrl = computed(() => {
   // todo: get dashboard url
   return `#/nc/${viewType}/${shared.value.uuid}`
 })
+
+async function saveAllowCSVDownload () {
+  try {
+    const meta = shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
+
+    // todo: update swagger
+    await $api.dbViewShare.update(shared.value.id, {
+      meta,
+    } as any)
+    toast.success('Successfully updated')
+  } catch (e) {
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
+  if (allowCSVDownload?.value) {
+    $e('a:view:share:enable-csv-download')
+  } else {
+    $e('a:view:share:disable-csv-download')
+  }
+}
+
+const saveShareLinkPassword = async () => {
+  try {
+    await $api.dbViewShare.update(shared.value.id, {
+      password: shared.value.password,
+    })
+    toast.success('Successfully updated')
+  } catch (e) {
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
+
+  $e('a:view:share:enable-pwd')
+}
 </script>
 
 <template>
@@ -56,7 +104,7 @@ const sharedViewUrl = computed(() => {
     </a-button>
 
     <!-- This view is shared via a private link -->
-    <a-modal v-model:visible="showShareModel" size="small" :title="$t('msg.info.privateLink')">
+    <a-modal v-model:visible="showShareModel" size="small" :title="$t('msg.info.privateLink')" :footer="null">
       <div class="share-link-box nc-share-link-box">
         <div class="flex-1 h-min">{{ sharedViewUrl }}</div>
         <!--        <v-spacer /> -->
@@ -65,64 +113,31 @@ const sharedViewUrl = computed(() => {
         </a>
         <MdiCopyIcon class="text-grey text-sm cursor-pointer" @click="copy(sharedViewUrl)" />
       </div>
-      <!--
-                <v-expansion-panels v-model="advanceOptionsPanel" class="mx-auto" flat>
-                  <v-expansion-panel>
-                    <v-expansion-panel-header hide-actions>
-                      <v-spacer />
-                      <span class="grey&#45;&#45;text caption"
-                        >More Options
-                        <v-icon color="grey" small> mdi-chevron-{{ advanceOptionsPanel === 0 ? 'up' : 'down' }} </v-icon></span
-                      >
-                    </v-expansion-panel-header>
-                    <v-expansion-panel-content>
-                      <v-checkbox
-                        v-model="passwordProtect"
-                        class="caption"
-                        :label="$t('msg.info.beforeEnablePwd')"
-                        hide-details
-                        dense
-                        @change="onPasswordProtectChange"
-                      />
-                      <div v-if="passwordProtect" class="d-flex flex-column align-center justify-center">
-                        <v-text-field
-                          v-model="shareLink.password"
-                          autocomplete="new-password"
-                          browser-autocomplete="new-password"
-                          class="password-field mr-2 caption"
-                          style="max-width: 230px"
-                          :type="showShareLinkPassword ? 'text' : 'password'"
-                          :hint="$t('placeholder.password.enter')"
-                          persistent-hint
-                          dense
-                          solo
-                          flat
-                        >
-                          <template #append>
-                            <v-icon small @click="showShareLinkPassword = !showShareLinkPassword">
-                              {{ showShareLinkPassword ? 'visibility_off' : 'visibility' }}
-                            </v-icon>
-                          </template>
-                        </v-text-field>
-                        <v-btn color="primary" class="caption" small @click="saveShareLinkPassword">
-                          &lt;!&ndash; Save password &ndash;&gt;
-                          {{ $t('placeholder.password.save') }}
-                        </v-btn>
-                      </div>
-                      <v-checkbox
-                        v-if="selectedView && selectedView.type === viewTypes.GRID"
-                        v-model="allowCSVDownload"
-                        class="caption"
-                        label="Allow Download"
-                        hide-details
-                        dense
-                        @change="onAllowCSVDownloadChange"
-                      />
-                    </v-expansion-panel-content>
-                  </v-expansion-panel>
-                </v-expansion-panels> -->
-      <!--      </v-container> -->
-      <!--      </v-card> -->
+
+      <a-collapse ghost>
+        <a-collapse-panel key="1" header="More Options">
+          <div class="mb-2">
+            <a-checkbox v-model:checked="passwordProtected" class="text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
+            <!--           todo: add password toggle -->
+            <div v-if="passwordProtected" class="flex gap-2 mt-2 mb-4">
+              <a-input
+                v-model:value="shared.password"
+                size="small"
+                class="max-w-[250px]"
+                :placeholder="$t('placeholder.password.enter')"
+              />
+              <a-button size="small" class="!text-xs" @click="saveShareLinkPassword">{{
+                $t('placeholder.password.save')
+              }}</a-button>
+            </div>
+          </div>
+          <div>
+            <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="text-xs"
+              >Allow Download
+            </a-checkbox>
+          </div>
+        </a-collapse-panel>
+      </a-collapse>
     </a-modal>
   </div>
 </template>

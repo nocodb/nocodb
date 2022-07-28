@@ -120,8 +120,7 @@ const clickInviteMore = () => {
   <a-modal :footer="null" centered :visible="show" :closable="false" width="max(50vw, 44rem)" @cancel="emits('closed')">
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" type="secondary" :level="5"> Share: {{ project.title }} </a-typography-title>
-
+        <a-typography-title class="select-none" :level="4"> Share: {{ project.title }} </a-typography-title>
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emits('closed')">
           <template #icon>
             <CloseIcon class="flex mx-auto" />
@@ -129,12 +128,12 @@ const clickInviteMore = () => {
         </a-button>
       </div>
 
-      <div class="px-3">
+      <div class="px-2 mt-1.5">
         <template v-if="usersData.invitationToken">
           <div class="flex flex-col mt-1 border-b-1 pb-5">
-            <div class="flex flex-row items-center">
-              <MidAccountIcon height="1.1rem" class="text-gray-500" />
-              <div class="text-gray-500 text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
+            <div class="flex flex-row items-center pl-1.5 pb-1">
+              <MidAccountIcon height="1.1rem" />
+              <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
             </div>
 
             <a-alert class="mt-1" type="success" show-icon>
@@ -151,7 +150,7 @@ const clickInviteMore = () => {
                 </div>
               </template>
             </a-alert>
-            <div class="flex text-xs text-gray-400 mt-2 justify-start ml-2">
+            <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">
               Looks like you have not configured mailer yet! Please copy above invite link and send it to
               {{ usersData.invitationToken && usersData.emails }}.
             </div>
@@ -166,9 +165,9 @@ const clickInviteMore = () => {
           </div>
         </template>
         <div v-else class="flex flex-col pb-4">
-          <div class="flex flex-row items-center pl-2">
-            <MidAccountIcon height="1rem" class="text-gray-500" />
-            <div class="text-gray-500 text-xs ml-0.5 mt-0.5">{{ selectedUser ? 'Edit User' : 'Invite Team' }}</div>
+          <div class="flex flex-row items-center pl-2 pb-1">
+            <MidAccountIcon height="1rem" />
+            <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? 'Edit User' : 'Invite Team' }}</div>
           </div>
           <div class="border-1 py-3 px-4 rounded-md mt-1">
             <a-form ref="formRef" :model="usersData" @finish="saveUser">
@@ -199,7 +198,7 @@ const clickInviteMore = () => {
                 </div>
               </div>
               <div class="flex flex-row justify-center">
-                <a-button type="primary" html-type="submit">Submit</a-button>
+                <a-button type="primary" html-type="submit">Invite</a-button>
               </div>
             </a-form>
           </div>

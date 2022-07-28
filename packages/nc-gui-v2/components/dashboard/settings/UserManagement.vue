@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useDebounce } from '@vueuse/core'
+import KebabIcon from '~icons/ic/baseline-more-vert'
 import UsersModal from './userManagement/UsersModal.vue'
 import { projectRoleTagColors } from '~/utils/userUtils'
 import MidAccountIcon from '~icons/mdi/account-outline'
@@ -13,7 +14,6 @@ import MdiPlusIcon from '~icons/mdi/plus'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
 import MdiEmailSendIcon from '~icons/mdi/email-arrow-right-outline'
 import RolesIcon from '~icons/mdi/drama-masks'
-import SendIcon from '~icons/material-symbols/send'
 import { User } from '~~/lib/types'
 import { useToast } from 'vue-toastification'
 const toast = useToast()
@@ -170,7 +170,7 @@ watch(
         </a-button>
       </div>
     </div>
-    <div class="px-6">
+    <div class="px-5">
       <div class="flex flex-row border-b-1 pb-2 px-2">
         <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
           <EmailIcon class="flex text-gray-500 -mt-0.5" />
@@ -192,36 +192,76 @@ watch(
           {{ user.email }}
         </div>
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
-          <div :class="`rounded-full  px-2 py-1 bg-[${projectRoleTagColors[user.roles]}]`">
+          <div :class="`rounded-full px-2 py-1 bg-[${projectRoleTagColors[user.roles]}]`">
             {{ user.roles }}
           </div>
         </div>
         <div class="flex w-1/6 flex-wrap justify-end">
-          <a-button v-if="user.project_id" type="text" class="!rounded-md" @click="onEdit(user)">
-            <template #icon>
-              <MdiEditIcon height="1rem" class="flex mx-auto" />
+          <a-tooltip v-if="user.project_id" placement="bottom">
+            <template #title>
+              <span>Edit user</span>
             </template>
-          </a-button>
-          <a-button type="text" v-if="!user.project_id" class="!rounded-md " @click="inviteUser(user)">
-            <template #icon>
-              <MdiPlusIcon height="1.1rem" class="flex mx-auto" />
+            <a-button  type="text" class="!rounded-md" @click="onEdit(user)">
+                <template #icon>
+                  <MdiEditIcon height="1rem" class="flex mx-auto" />
+                </template>
+              </a-button>
+          </a-tooltip>
+          <a-tooltip v-if="!user.project_id" placement="bottom">
+            <template #title>
+              <span>Add user to the project</span>
             </template>
-          </a-button>
-          <a-button v-else type="text" class="!rounded-md" @click="onDelete(user)">
-            <template #icon>
-              <MdiDeleteOutlineIcon height="1.1rem"  class="flex mx-auto" />
+            <a-button type="text"  class="!rounded-md " @click="inviteUser(user)">
+              <template #icon>
+                <MdiPlusIcon height="1.1rem" class="flex mx-auto" />
+              </template>
+            </a-button>
+          </a-tooltip>
+
+          <a-tooltip v-else placement="bottom">
+            <template #title>
+              <span>Remove user from the project</span>
             </template>
-          </a-button>
-          <a-button type="text" class="!rounded-md" @click="resendInvite(user)">
-            <template #icon>
-              <MdiEmailSendIcon height="1.1rem"  class="flex mx-auto" />
+            <a-button  type="text" class="!rounded-md" @click="onDelete(user)">
+              <template #icon>
+                <MdiDeleteOutlineIcon height="1.1rem"  class="flex mx-auto" />
+              </template>
+            </a-button>
+          </a-tooltip>
+
+          <a-dropdown :trigger="['click']" class="flex">
+            <div class="flex flex-row items-center">
+              <a-button type="text" class="!px-0">
+                <div class="flex flex-row items-center ">
+                  <KebabIcon height="1.2rem" />
+                </div>
+              </a-button>
+            </div>
+            <template #overlay>
+              <a-menu>
+                <a-menu-item>
+                  <a-button type="text" @click="resendInvite(user)">
+                    <div class="flex flex-row items-center">
+                      <MdiEmailSendIcon height="1rem" class="flex" />
+                      <div class="text-xs pl-2">
+                        Resend invite email
+                      </div>
+                    </div>
+                  </a-button>
+                </a-menu-item>
+                <a-menu-item>
+                  <a-button class="w-full" type="text" @click="copyInviteUrl(user)">
+                    <div class="flex flex-row items-center">
+                      <MdiContentCopyIcon height="1rem" class="flex" />
+                      <div class="text-xs pl-2">
+                        Copy invite URL
+                      </div>
+                    </div>
+                  </a-button>
+                </a-menu-item>
+              </a-menu>
             </template>
-          </a-button>
-          <a-button type="text" class="!rounded-md" @click="copyInviteUrl(user)">
-            <template #icon>
-              <MdiContentCopyIcon height="1.1rem"  class="flex mx-auto" />
-            </template>
-          </a-button>
+          </a-dropdown>
         </div>
       </div>
       <a-pagination

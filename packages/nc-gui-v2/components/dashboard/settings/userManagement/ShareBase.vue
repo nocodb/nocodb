@@ -133,41 +133,57 @@ onMounted(() => {
 </script>
 
 <template>
-  <div class="flex flex-col">
-    <div class="flex flex-row items-center space-x-0.5 pl-1.5">
-      <OpenInNewIcon height="0.8rem" class="text-gray-500" />
-      <div class="text-gray-500 text-xs">Shared Base Link</div>
+  <div class="flex flex-col w-full">
+    <div class="flex flex-row items-center space-x-0.5 pl-2">
+      <OpenInNewIcon height="0.8rem" />
+      <div class="text-xs">Shared Base Link</div>
     </div>
-    <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm">
-      <span class="text-xs overflow-x-hidden overflow-ellipsis text-gray-700">{{ url }}</span>
-      <a-divider class="flex" type="vertical" />
-
-      <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="recreate">
-        <template #icon>
-          <MdiReload height="1rem" class="flex mx-auto text-gray-600" />
-        </template>
-      </a-button>
-
-      <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="copyUrl">
-        <template #icon>
-          <ContentCopyIcon height="1rem" class="flex mx-auto text-gray-600" />
-        </template>
-      </a-button>
-
-      <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="navigateToSharedBase">
-        <template #icon>
-          <OpenInNewIcon height="1rem" class="flex mx-auto text-gray-600" />
-        </template>
-      </a-button>
-      <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="generateEmbeddableIframe">
-        <template #icon>
-          <MdiXmlIcon height="1rem" class="flex mx-auto text-gray-600" />
-        </template>
-      </a-button>
+    <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
+      <span class="flex text-xs overflow-x-hidden overflow-ellipsis text-gray-700 pl-2">{{ url }}</span>
+      <div class="flex border-l-1 pt-1 pl-1">
+        <a-tooltip placement="bottom">
+          <template #title>
+            <span>Reload</span>
+          </template>
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="recreate">
+            <template #icon>
+              <MdiReload height="1rem" class="flex mx-auto text-gray-600" />
+            </template>
+          </a-button>
+        </a-tooltip>
+        <a-tooltip placement="bottom">
+          <template #title>
+            <span>Copy URL</span>
+          </template>
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="copyUrl">
+            <template #icon>
+              <ContentCopyIcon height="1rem" class="flex mx-auto text-gray-600" />
+            </template>
+          </a-button>
+        </a-tooltip>
+        <a-tooltip placement="bottom">
+          <template #title>
+            <span>Open new tab</span>
+          </template>
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="navigateToSharedBase">
+            <template #icon>
+              <OpenInNewIcon height="1rem" class="flex mx-auto text-gray-600" />
+            </template>
+          </a-button>
+        </a-tooltip>
+        <a-tooltip placement="bottom">
+          <template #title>
+            <span>Copy embeddable HTML code</span>
+          </template>
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="generateEmbeddableIframe">
+            <template #icon>
+              <MdiXmlIcon height="1rem" class="flex mx-auto text-gray-600" />
+            </template>
+          </a-button>
+        </a-tooltip>
+      </div>
     </div>
-    <div class="flex text-xs text-gray-400 mt-2 justify-start ml-2">
-      This link can be used to signup by anyone under this project
-    </div>
+    <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">Generate publicly shareable readonly base</div>
     <div class="mt-4 flex flex-row justify-between mx-1">
       <a-dropdown v-model="showEditBaseDropdown" class="flex">
         <a-button>

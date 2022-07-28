@@ -33,6 +33,8 @@
     <div class="dot" />
 
     <SmartsheetToolbarToggleDrawer class="mr-2" />
+
+    <div class="dot" />
   </div>
 </template>
 

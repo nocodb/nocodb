@@ -17,6 +17,7 @@ import MdiEmailSendIcon from '~icons/mdi/email-arrow-right-outline'
 import RolesIcon from '~icons/mdi/drama-masks'
 import { User } from '~~/lib/types'
 import { useToast } from 'vue-toastification'
+import FeedbackForm from './userManagement/FeedbackForm.vue'
 const toast = useToast()
 
 const { $api, $e } = useNuxtApp()
@@ -277,6 +278,7 @@ watch(
         show-less-items
         @change="loadUsers"
       />
+      <FeedbackForm />
     </div>
   </div>
 </template>

@@ -9,11 +9,19 @@ export interface User {
   roles: Roles
 }
 
+export interface FeedbackForm {
+  url: string
+  createdAt: string
+  isHidden: boolean
+  lastFormPollDate?: string
+}
+
 export interface StoredState {
   token: string | null
   user: User | null
   lang: string
   darkMode: boolean
+  feedbackForm: FeedbackForm
 }
 
 export interface State extends StoredState {

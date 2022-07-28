@@ -21,7 +21,7 @@ function addAxiosInterceptors(api: Api<any>, app: { $state: GlobalState }) {
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
-    if (app.$state.token.value) config.headers['xc-auth'] = app.$state.token.value
+    if (app.$state?.token.value) config.headers['xc-auth'] = app.$state.token.value
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       // config.headers['xc-preview'] = store.state.users.previewAs

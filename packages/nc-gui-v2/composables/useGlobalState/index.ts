@@ -1,6 +1,7 @@
 import { breakpointsTailwind, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
+import initialFeedBackForm from './initialFeedBackForm'
 import { computed, ref, toRefs, useBreakpoints, useNuxtApp, useTimestamp, watch } from '#imports'
 import type { Actions, Getters, GlobalState, StoredState, User } from '~/lib/types'
 
@@ -67,7 +68,13 @@ export const useGlobalState = (): GlobalState => {
   }, 'en' /** fallback locale */)
 
   /** State */
-  const initialState: StoredState = { token: null, user: null, lang: preferredLanguage, darkMode: prefersDarkMode }
+  const initialState: StoredState = {
+    token: null,
+    user: null,
+    lang: preferredLanguage,
+    darkMode: prefersDarkMode,
+    feedbackForm: initialFeedBackForm,
+  }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
   const storage = $(useStorage<StoredState>(storageKey, initialState))

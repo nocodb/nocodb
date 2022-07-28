@@ -38,7 +38,6 @@ const debouncedSearchText = useDebounce(searchText, 300)
 const loadUsers = async (page = currentPage, limit = currentLimit) => {
   try {
     if (!project.value?.id) return
-    isLoading = true
 
     // TODO: Types of api is not correct
     const response = await $api.auth.projectUserList(project.value?.id, <any> {
@@ -55,8 +54,6 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
   } catch (e: any) {
     console.error(e)
     toast.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isLoading = false
   }
 }
 
@@ -132,7 +129,12 @@ const copyInviteUrl = (user: User) => {
 
 onMounted(async () => {
   if (!users) {
-    await loadUsers()
+    isLoading = true
+    try {
+      await loadUsers()
+    } finally {
+      isLoading = false
+    }
   }
 })
 

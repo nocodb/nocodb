@@ -215,7 +215,7 @@ watch(
       </template>
     </div>
 
-    <a-button small class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilter">
+    <a-button size="small" class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilter">
       <div class="flex align-center gap-1">
         <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
         <MdiAddIcon />

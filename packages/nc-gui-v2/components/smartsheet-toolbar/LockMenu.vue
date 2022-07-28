@@ -49,6 +49,15 @@ const Icon = computed(() => {
       return MdiAccountGroupIcon
   }
 })
+
+const changeLockType = (type) => {
+  $e('a:grid:lockmenu', { lockType: type })
+  if (type === 'personal') {
+    return toast.info('Coming soon')
+  }
+  // $emit('input', type);
+  toast.success(`Successfully Switched to ${type} view`)
+}
 </script>
 
 <template>
@@ -62,7 +71,6 @@ const Icon = computed(() => {
           <div class="nc-menu-item">
             <MdiCheckIcon v-if="!vModel || vModel === LockType.Collaborative" />
             <span v-else />
-
             <div>
               <MdiAccountGroupIcon />
               Collaborative view

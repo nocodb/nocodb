@@ -27,6 +27,7 @@ let users = $ref<null | User[]>(null)
 let selectedUser = $ref<null | User>(null)
 let showUserModal = $ref(false)
 let showUserDeleteModal = $ref(false)
+let isLoading = $ref(false)
 
 let totalRows = $ref(0)
 const currentPage = $ref(1)
@@ -37,6 +38,7 @@ const debouncedSearchText = useDebounce(searchText, 300)
 const loadUsers = async (page = currentPage, limit = currentLimit) => {
   try {
     if (!project.value?.id) return
+    isLoading = true
 
     // TODO: Types of api is not correct
     const response = await $api.auth.projectUserList(project.value?.id, <any> {
@@ -53,6 +55,8 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
   } catch (e: any) {
     console.error(e)
     toast.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    isLoading = false
   }
 }
 
@@ -140,7 +144,10 @@ watch(
 </script>
 
 <template>
-  <div class="flex flex-col w-full px-6">
+  <div v-if="isLoading" class="h-full w-full flex flex-row justify-center mt-42">
+      <a-spin size="large"/>
+  </div>
+  <div v-else class="flex flex-col w-full px-6">
     <UsersModal :key="showUserModal" :show="showUserModal" :selected-user="selectedUser" @closed="showUserModal = false" @reload="loadUsers()"/>
     <a-modal v-model:visible="showUserDeleteModal" :closable="false" width="28rem" centered :footer="null">
       <div class="flex flex-col h-full">
@@ -236,7 +243,7 @@ watch(
             </a-button>
           </a-tooltip>
 
-          <a-dropdown :trigger="['click']" class="flex">
+          <a-dropdown :trigger="['click']" class="flex" placement="bottomRight">
             <div class="flex flex-row items-center">
               <a-button type="text" class="!px-0">
                 <div class="flex flex-row items-center ">
@@ -247,24 +254,20 @@ watch(
             <template #overlay>
               <a-menu>
                 <a-menu-item>
-                  <a-button type="text" @click="resendInvite(user)">
-                    <div class="flex flex-row items-center">
-                      <MdiEmailSendIcon height="1rem" class="flex" />
-                      <div class="text-xs pl-2">
-                        Resend invite email
-                      </div>
+                  <div class="flex flex-row items-center py-1" @click="resendInvite(user)">
+                    <MdiEmailSendIcon height="1rem" class="flex" />
+                    <div class="text-xs pl-2">
+                      Resend invite email
                     </div>
-                  </a-button>
+                  </div>
                 </a-menu-item>
                 <a-menu-item>
-                  <a-button class="w-full" type="text" @click="copyInviteUrl(user)">
-                    <div class="flex flex-row items-center">
-                      <MdiContentCopyIcon height="1rem" class="flex" />
-                      <div class="text-xs pl-2">
-                        Copy invite URL
-                      </div>
+                  <div class="flex flex-row items-center py-1" @click="copyInviteUrl(user)">
+                    <MdiContentCopyIcon height="1rem" class="flex" />
+                    <div class="text-xs pl-2">
+                      Copy invite URL
                     </div>
-                  </a-button>
+                  </div>
                 </a-menu-item>
               </a-menu>
             </template>

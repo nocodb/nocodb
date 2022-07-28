@@ -172,7 +172,7 @@ onMounted(() => {
               </a-button>
             </a-tooltip>
 
-            <a-dropdown :trigger="['click']" class="flex">
+            <a-dropdown :trigger="['click']" class="flex" placement="bottomRight">
               <div class="flex flex-row items-center">
                 <a-button type="text" class="!px-0">
                   <div class="flex flex-row items-center">
@@ -183,12 +183,10 @@ onMounted(() => {
               <template #overlay>
                 <a-menu>
                   <a-menu-item>
-                    <a-button type="text" @click="openDeleteModal(item)">
-                      <div class="flex flex-row items-center">
-                        <MdiDeleteOutlineIcon height="1rem" class="flex" />
-                        <div class="text-xs pl-2">Remove API Token</div>
-                      </div>
-                    </a-button>
+                    <div class="flex flex-row items-center py-1" @click="openDeleteModal(item)">
+                      <MdiDeleteOutlineIcon height="1rem" class="flex" />
+                      <div class="text-xs pl-2">Remove API Token</div>
+                    </div>
                   </a-menu-item>
                 </a-menu>
               </template>

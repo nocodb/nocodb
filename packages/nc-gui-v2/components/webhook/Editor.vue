@@ -158,19 +158,6 @@ const formInput = ref({
   ],
 })
 
-// FIXME: this s paylaod for URL only
-// const notification = ref({
-//   method: 'GET',
-//   path: '',
-//   body: '',
-//   params: [],
-//   auth: '',
-//   headers: [],
-//   response: {},
-//   perf: {},
-//   meta: {},
-// })
-
 const eventList = ref([
   // {text: ["Before", "Insert"], value: ['before', 'insert']},
   { text: ['After', 'Insert'], value: ['after', 'insert'] },
@@ -266,7 +253,13 @@ function filterOption(input: string, option: Option) {
 }
 
 function setHook(newHook: any) {
-  Object.assign(hook, { ...newHook, api: { ...newHook.notification.payload } })
+  Object.assign(hook, {
+    ...newHook,
+    notification: {
+      ...newHook.notification,
+      payload: newHook.notification.payload,
+    },
+  })
 }
 
 async function onEventChange() {
@@ -276,6 +269,7 @@ async function onEventChange() {
     ...hook,
     notification: {
       type,
+      payload,
     },
   })
 
@@ -323,6 +317,7 @@ async function loadPluginList() {
       o[p.title] = p
       return o
     }, {})
+
     if (hook.event && hook.operation) {
       hook.eventOperation = `${hook.event} ${hook.operation}`
     }
@@ -344,25 +339,27 @@ async function saveHooks() {
   try {
     let res
     if (hook.id) {
-      res = await $api.dbTableWebhook.update(hook.id, {
-        ...hook,
-        notification: {
-          ...hook.notification,
-          payload: hook.notification.payload,
-        },
-      })
+      // TODO: fix me
+      // res = await $api.dbTableWebhook.update(hook.id, {
+      //   ...hook,
+      //   notification: {
+      //     ...hook.notification,
+      //     payload: hook.notification.payload,
+      //   },
+      // })
     } else {
-      res = await $api.dbTableWebhook.create(meta?.value.id as string, {
-        ...hook,
-        notification: {
-          ...hook.notification,
-          payload: hook.notification.payload,
-        },
-      })
+      // TODO: fix me
+      // res = await $api.dbTableWebhook.create(meta?.value.id as string, {
+      //   ...hook,
+      //   notification: {
+      //     ...hook.notification,
+      //     payload: hook.notification.payload,
+      //   },
+      // })
     }
 
     if (!hook.id && res) {
-      hook.id = res.id
+      // hook.id = res.id
     }
 
     // TODO: wait for filter implementation

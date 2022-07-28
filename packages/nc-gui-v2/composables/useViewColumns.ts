@@ -42,6 +42,7 @@ export function useViewColumns(
           fk_column_id: c.id,
           ...(fieldById[c.id as string] ? fieldById[c.id as string] : {}),
           order: (fieldById[c.id as string] && fieldById[c.id as string].order) || order++,
+          system: isSystemColumn(fieldById[c.fk_model_id as string]?.type as ColumnType),
         }))
         .sort((a, b) => a.order - b.order)
     } else if (isPublic) {
@@ -125,10 +126,6 @@ export function useViewColumns(
       ?.sort((c1, c2) => c1.order - c2.order)
       ?.map((c) => metaColumnById?.value?.[c.fk_column_id as string]) || []) as ColumnType[]
   })
-  const sortedFields = computed<ColumnType[]>(() => {
-    return (fields?.value?.sort((c1, c2) => c1.order - c2.order)?.map((c) => metaColumnById?.value?.[c.fk_column_id as string]) ||
-      []) as ColumnType[]
-  })
 
   // reload view columns when table meta changes
   watch(meta, () => loadViewColumns())
@@ -143,6 +140,5 @@ export function useViewColumns(
     saveOrUpdate,
     sortedAndFilteredFields,
     showSystemFields,
-    sortedFields,
   }
 }

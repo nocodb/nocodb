@@ -1,8 +1,10 @@
-import type { AxiosError, AxiosResponse } from 'axios'
-import type { Api } from 'nocodb-sdk'
+import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { EventHook } from '@vueuse/core'
-import { createEventHook, ref, useNuxtApp } from '#imports'
+import type { EventHook, MaybeRef } from '@vueuse/core'
+import { addAxiosInterceptors } from './interceptors'
+import { createEventHook, ref, unref, useNuxtApp } from '#imports'
+import type { NuxtApp } from '#app'
 
 interface UseApiReturn<D = any, R = any> {
   api: Api<any>
@@ -13,10 +15,23 @@ interface UseApiReturn<D = any, R = any> {
   onResponse: EventHook<AxiosResponse<D, R>>['on']
 }
 
-/** todo: add props? */
-type UseApiProps = never
+export function createApiInstance(app: NuxtApp, baseURL = 'http://localhost:8080') {
+  const api = new Api({
+    baseURL,
+  })
 
-export function useApi<Data = any, RequestConfig = any>(_?: UseApiProps): UseApiReturn<Data, RequestConfig> {
+  addAxiosInterceptors(api, app)
+
+  return api
+}
+
+/** todo: add props? */
+interface UseApiProps<D = any> {
+  axiosConfig?: MaybeRef<AxiosRequestConfig<D>>
+  useGlobalInstance?: MaybeRef<boolean>
+}
+
+export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
   const isLoading = ref(false)
 
   const error = ref(null)
@@ -27,15 +42,18 @@ export function useApi<Data = any, RequestConfig = any>(_?: UseApiProps): UseApi
 
   const responseHook = createEventHook<AxiosResponse<Data, RequestConfig>>()
 
-  const { $api } = useNuxtApp()
+  const api = unref(props.useGlobalInstance) ? useNuxtApp().$api : createApiInstance(useNuxtApp())
 
-  $api.instance.interceptors.request.use(
+  api.instance.interceptors.request.use(
     (config) => {
       error.value = null
       response.value = null
       isLoading.value = true
 
-      return config
+      return {
+        ...config,
+        ...unref(props),
+      }
     },
     (requestError) => {
       errorHook.trigger(requestError)
@@ -47,7 +65,7 @@ export function useApi<Data = any, RequestConfig = any>(_?: UseApiProps): UseApi
     },
   )
 
-  $api.instance.interceptors.response.use(
+  api.instance.interceptors.response.use(
     (apiResponse) => {
       responseHook.trigger(apiResponse as AxiosResponse<Data, RequestConfig>)
       // can't properly typecast
@@ -65,5 +83,5 @@ export function useApi<Data = any, RequestConfig = any>(_?: UseApiProps): UseApi
     },
   )
 
-  return { api: $api, isLoading, response, error, onError: errorHook.on, onResponse: responseHook.on }
+  return { api, isLoading, response, error, onError: errorHook.on, onResponse: responseHook.on }
 }

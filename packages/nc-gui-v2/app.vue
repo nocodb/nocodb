@@ -8,7 +8,7 @@ import { navigateTo } from '#app'
 
 const { $state } = useNuxtApp()
 
-const { isLoading } = useApi()
+const { isLoading } = useApi({ useGlobalInstance: true })
 
 const sidebar = ref<HTMLDivElement>()
 

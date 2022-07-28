@@ -232,6 +232,8 @@ function onNotTypeChange() {
   }
   if (hook.notification.type === 'URL') {
     hook.notification.payload.body = '{{ json data }}'
+    hook.notification.payload.parameters = [{}]
+    hook.notification.payload.headers = [{}]
   }
 }
 
@@ -289,6 +291,8 @@ async function onEventChange() {
 
   if (hook.notification.type === 'URL') {
     hook.notification.payload = hook.notification.payload || {}
+    hook.notification.payload.parameters = hook.notification.payload.parameters || [{}]
+    hook.notification.payload.headers = hook.notification.payload.headers || [{}]
   }
 }
 
@@ -344,7 +348,7 @@ async function saveHooks() {
     }
 
     if (!hook.id && res) {
-      // hook.id = res.id
+      hook.id = res.id
     }
 
     // TODO: wait for filter implementation
@@ -591,8 +595,7 @@ onMounted(() => {
               filters,
               notification: {
                 ...hook.notification,
-                // FIXME: this should be wrong
-                payload: notification,
+                payload: hook.notification.payload,
               },
             }"
           />

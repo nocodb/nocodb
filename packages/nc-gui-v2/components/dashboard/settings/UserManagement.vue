@@ -2,7 +2,7 @@
 import { useDebounce } from '@vueuse/core'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import { extractSdkResponseErrorMsg } from '~~/utils/errorUtils'
-import UsersModal from './userManagement/UsersModal.vue'
+import UsersModal from './user-management/UsersModal.vue'
 import { projectRoleTagColors } from '~/utils/userUtils'
 import MidAccountIcon from '~icons/mdi/account-outline'
 import ReloadIcon from "~icons/mdi/reload"
@@ -17,7 +17,7 @@ import MdiEmailSendIcon from '~icons/mdi/email-arrow-right-outline'
 import RolesIcon from '~icons/mdi/drama-masks'
 import { User } from '~~/lib/types'
 import { useToast } from 'vue-toastification'
-import FeedbackForm from './userManagement/FeedbackForm.vue'
+import FeedbackForm from './user-management/FeedbackForm.vue'
 const toast = useToast()
 
 const { $api, $e } = useNuxtApp()

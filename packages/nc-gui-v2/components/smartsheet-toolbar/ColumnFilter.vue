@@ -7,7 +7,7 @@ import { comparisonOpList } from '~/utils/filterUtils'
 import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import useViewFilters from '~/composables/useViewFilters'
 import MdiDeleteIcon from '~icons/mdi/close-box'
-
+import MdiAddIcon from '~icons/mdi/plus'
 const { nested = false, parentId } = defineProps<{ nested?: boolean; parentId?: string }>()
 
 const meta = inject(MetaInj)
@@ -72,13 +72,13 @@ watch(
 </script>
 
 <template>
-  <div class="backgroundColor pa-2 menu-filter-dropdown bg-background" :style="{ width: nested ? '100%' : '630px' }">
+  <div class="bg-white shadow pa-2 menu-filter-dropdown" :style="{ width: nested ? '100%' : '630px' }">
     <div v-if="filters && filters.length" class="grid" @click.stop>
       <template v-for="(filter, i) in filters" :key="filter.id || i">
         <template v-if="filter.status !== 'delete'">
           <div v-if="filter.is_group" :key="i" style="grid-column: span 4; padding: 6px" class="elevation-4">
             <div class="d-flex" style="gap: 6px; padding: 0 6px">
-              <v-icon
+              <!--              <v-icon
                 v-if="!filter.readOnly"
                 :key="`${i}_3`"
                 small
@@ -86,10 +86,18 @@ watch(
                 @click.stop="deleteFilter(filter, i)"
               >
                 mdi-close-box
-              </v-icon>
+              </v-icon> -->
+              <MdiDeleteIcon
+                v-if="!filter.readOnly"
+                small
+                class="nc-filter-item-remove-btn"
+                @click.stop="deleteFilter(filter, i)"
+              />
+
               <span v-else :key="`${i}_1`" />
-              <v-select
-                v-model="filter.logical_op"
+
+              <a-select
+                v-model:value="filter.logical_op"
                 class="flex-shrink-1 flex-grow-0 elevation-0 caption"
                 :items="['and', 'or']"
                 density="compact"
@@ -102,7 +110,7 @@ watch(
                 <!--                <template #item="{ item }"> -->
                 <!--                  <span class="caption font-weight-regular">{{ item }}</span> -->
                 <!--                </template> -->
-              </v-select>
+              </a-select>
             </div>
             <!--            <column-filter
               v-if="filter.id || shared"
@@ -134,28 +142,24 @@ watch(
               v-if="!filter.readOnly"
               class="nc-filter-item-remove-btn text-grey align-self-center"
               @click.stop="deleteFilter(filter, i)"
-            ></MdiDeleteIcon>
+            />
             <span v-else />
 
-            <span v-if="!i" :key="`${i}_2`" class="text-xs d-flex align-center">{{ $t('labels.where') }}</span>
+            <span v-if="!i" class="text-xs d-flex align-center">{{ $t('labels.where') }}</span>
 
-            <v-select
+            <a-select
               v-else
-              :key="`${i}_4`"
-              v-model="filter.logical_op"
-              class="w-full elevation-0 caption"
-              :items="['and', 'or']"
-              density="compact"
-              variant="solo"
+              v-model:value="filter.logical_op"
+              class="h-full"
+              :options="[
+                { value: 'and', text: 'AND' },
+                { value: 'or', text: 'OR' },
+              ]"
               hide-details
               :disabled="filter.readOnly"
               @click.stop
               @change="filterUpdateCondition(filter, i)"
             />
-            <!--              <template #item="{ item }">
-                <span class="caption font-weight-regular">{{ item }}</span>
-              </template>
-            </v-select> -->
 
             <FieldListAutoCompleteDropdown
               :key="`${i}_6`"
@@ -167,10 +171,10 @@ watch(
               @change="saveOrUpdate(filter, i)"
             />
 
-            <v-select
-              v-model="filter.comparison_op"
+            <a-select
+              v-model:value="filter.comparison_op"
               class="caption nc-filter-operation-select text-sm"
-              :items="comparisonOpList.map((it) => it.value)"
+              :options="comparisonOpList"
               :placeholder="$t('labels.operation')"
               density="compact"
               variant="solo"
@@ -189,21 +193,17 @@ watch(
             <!--              </template> -->
             <!--            </v-select> -->
             <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="`span${i}`" />
-            <v-checkbox
+            <a-checkbox
               v-else-if="types[filter.field] === 'boolean'"
-              :key="`${i}_7`"
-              v-model="filter.value"
+              v-model:value="filter.value"
               dense
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
             />
-            <v-text-field
+            <a-input
               v-else
               :key="`${i}_7`"
               v-model="filter.value"
-              density="compact"
-              variant="solo"
-              hide-details
               class="caption text-sm nc-filter-value-select"
               :disabled="filter.readOnly"
               @click.stop
@@ -214,11 +214,14 @@ watch(
       </template>
     </div>
 
-    <v-btn small class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilter">
-      <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
-      <!-- Add Filter -->
-      {{ $t('activity.addFilter') }}
-    </v-btn>
+    <a-button small class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilter">
+      <div class="flex align-center gap-1">
+        <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
+        <MdiAddIcon />
+        <!-- Add Filter -->
+        {{ $t('activity.addFilter') }}
+      </div>
+    </a-button>
     <slot />
   </div>
 </template>

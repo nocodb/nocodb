@@ -2,7 +2,7 @@
 import { computed, inject, onMounted, ref } from '#imports'
 
 interface Props {
-  modelValue: string
+  modelValue?: string
 }
 
 const { modelValue: value } = defineProps<Props>()

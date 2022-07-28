@@ -6,6 +6,7 @@ import useManyToMany from '~/composables/useManyToMany'
 const column = inject(ColumnInj)
 const value = inject('value')
 const active = false
+const isLocked = false
 
 const { childMeta, loadChildMeta, primaryValueProp } = useManyToMany(column as ColumnType)
 await loadChildMeta()

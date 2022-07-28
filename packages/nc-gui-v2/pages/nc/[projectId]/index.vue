@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import useTabs from '~/composables/useTabs'
+
 const route = useRoute()
 const { loadProject, loadTables } = useProject(route.params.projectId as string)
 const { clearTabs, addTab } = useTabs()
 const { $state } = useNuxtApp()
 
-addTab({ type: 'auth', title: 'Team & Auth' })
+if (!route.params.type) {
+  addTab({ type: 'auth', title: 'Team & Auth' })
+}
 
 watch(
   () => route.params.projectId,
@@ -27,38 +31,6 @@ $state.sidebarOpen.value = true
     <template #sidebar>
       <DashboardTreeView />
     </template>
-
-    <v-container fluid>
-      <DashboardTabView />
-    </v-container>
+    <NuxtPage />
   </NuxtLayout>
 </template>
-
-<style scoped lang="scss">
-.nc-container {
-  .nc-topbar {
-    position: fixed;
-    top: 0;
-    left: 0;
-    height: 50px;
-    width: 100%;
-    z-index: 5;
-  }
-
-  .nc-sidebar {
-    position: fixed;
-    top: 50px;
-    left: 0;
-    height: calc(100% - 50px);
-    width: 250px;
-  }
-
-  .nc-content {
-    position: fixed;
-    top: 50px;
-    left: 250px;
-    height: calc(100% - 50px);
-    width: calc(100% - 250px);
-  }
-}
-</style>

@@ -561,27 +561,13 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
-      <a-row v-if="formInput[hook.notification.type] && notification" type="flex">
+      <a-row v-if="formInput[hook.notification.type] && hook.notification.payload" type="flex">
         <a-col v-for="(input, i) in formInput[hook.notification.type]" :key="i" :span="24">
-          <a-form-item v-if="input.type === 'LongText'">
-            <!--  TODO: add validator -->
-            <a-textarea
-              :key="input.key"
-              v-model:value="notification[input.key]"
-              outlined
-              :placeholder="input.label"
-              size="large"
-            />
+          <a-form-item v-if="input.type === 'LongText'" v-bind="validateInfos[`notification.payload.${input.key}`]">
+            <a-textarea v-model:value="hook.notification.payload[input.key]" :placeholder="input.label" size="large" />
           </a-form-item>
-          <a-form-item v-else>
-            <!--  TODO: add validator -->
-            <a-input
-              :key="input.key"
-              v-model:value="notification[input.key]"
-              class="caption"
-              :placeholder="input.label"
-              size="large"
-            />
+          <a-form-item v-else v-bind="validateInfos[`notification.payload.${input.key}`]">
+            <a-input v-model:value="hook.notification.payload[input.key]" :placeholder="input.label" size="large" />
           </a-form-item>
         </a-col>
       </a-row>

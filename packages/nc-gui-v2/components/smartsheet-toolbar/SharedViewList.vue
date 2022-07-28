@@ -1,13 +1,33 @@
 <script lang="ts" setup>
+import { useClipboard } from '@vueuse/core'
+import { ViewTypes } from 'nocodb-sdk'
+import { useToast } from 'vue-toastification'
 import { onMounted } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
 import MdiVisibilityOffIcon from '~icons/mdi/visibility-off'
+import MdiCopyIcon from '~icons/mdi/content-copy'
+import MdiDeleteIcon from '~icons/mdi/delete-outline'
+
+interface SharedViewType {
+  password: string
+  title: string
+  uuid: string
+  type: ViewTypes
+  meta: string | Record<string, any>
+  showPassword?: boolean
+}
 
 const { view, $api, meta } = useSmartsheetStoreOrThrow()
+const { copy } = useClipboard()
+const toast = useToast()
 
 let isLoading = $ref(false)
 // let activeSharedView = $ref(null)
-const sharedViewList = ref()
+const sharedViewList = ref<SharedViewType[]>()
+
+// todo: replace with inject/composable
+const dashboardUrl = ''
 
 const loadSharedViewsList = async () => {
   isLoading = true
@@ -33,7 +53,45 @@ const loadSharedViewsList = async () => {
 }
 
 onMounted(loadSharedViewsList)
-const test = (t) => console.log(t)
+
+const sharedViewUrl = (view: SharedViewType) => {
+  let viewType
+  switch (view.type) {
+    case ViewTypes.FORM:
+      viewType = 'form'
+      break
+    case ViewTypes.KANBAN:
+      viewType = 'kanban'
+      break
+    default:
+      viewType = 'view'
+  }
+  return `/nc/${viewType}/${view.uuid}`
+}
+
+const renderAllowCSVDownload = (view: SharedViewType) => {
+  if (view.type === ViewTypes.GRID) {
+    view.meta = (view.meta && typeof view.meta === 'string' ? JSON.parse(view.meta) : view.meta) as Record<string, any>
+    return view.meta.allowCSVDownload ? '✔️' : '❌'
+  } else {
+    return 'N/A'
+  }
+}
+
+const copyLink = (view: SharedViewType) => {
+  copy(`${dashboardUrl}/${sharedViewUrl(view)}`)
+  toast.info('Copied to clipboard')
+}
+
+const deleteLink = async (id: string) => {
+  try {
+    await $api.dbViewShare.delete(id)
+    toast.success('Deleted shared view successfully')
+    await loadSharedViewsList()
+  } catch (e) {
+    toast.error(await extractSdkResponseErrorMsg(e))
+  }
+}
 </script>
 
 <template>
@@ -50,9 +108,9 @@ const test = (t) => console.log(t)
       <!-- View Link -->
       <a-table-column key="title" :title="$t('labels.viewLink')" data-index="title">
         <template #default="{ record }">
-          <!--          <nuxt-link :to="sharedViewUrl(currentView)">
-            {{ `${dashboardUrl}#${sharedViewUrl(currentView)}` }}
-          </nuxt-link> -->
+          <nuxt-link :to="sharedViewUrl(record)">
+            {{ `${dashboardUrl}/${sharedViewUrl(record)}` }}
+          </nuxt-link>
         </template>
       </a-table-column>
       <!-- Password -->
@@ -69,19 +127,18 @@ const test = (t) => console.log(t)
       </a-table-column>
       <!-- Todo: i18n  -->
       <a-table-column key="meta" title="Download allowed" data-index="title">
-        <template #default="{ text }">
-          {{ text }}
-          <!--          <template v-if="'meta' in currentView"> -->
-          <!--            <span>{{ renderAllowCSVDownload(currentView) }}</span> -->
-          <!--          </template> -->
+        <template #default="{ record }">
+          <template v-if="'meta' in record">
+            <span>{{ renderAllowCSVDownload(record) }}</span>
+          </template>
         </template>
       </a-table-column>
       <!-- Actions -->
       <a-table-column key="id" :title="$t('labels.actions')" data-index="title">
         <template #default="{ record }">
-          <div class="text-xs" :title="text">
-            <!--            <v-icon small @click="copyLink(currentView)"> mdi-content-copy </v-icon> -->
-            <!--            <v-icon small @click="deleteLink(currentView.id)"> mdi-delete-outline </v-icon> -->
+          <div class="text-sm flex gap-2" :title="text">
+            <MdiCopyIcon @click="copyLink(record)" />
+            <MdiDeleteIcon @click="deleteLink(record.id)" />
           </div>
         </template>
       </a-table-column>

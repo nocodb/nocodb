@@ -58,6 +58,9 @@ const initSortable = (el: Element) => {
       // get the html collection of all list items
       const children: HTMLCollection = evt.to.children
 
+      // skip if children count is 1
+      if (children.length < 2) return
+
       // get items before and after the moved item
       const itemBeforeEl = children[newIndex - 1] as HTMLLIElement
       const itemAfterEl = children[newIndex + 1] as HTMLLIElement

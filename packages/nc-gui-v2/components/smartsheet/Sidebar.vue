@@ -41,6 +41,9 @@ const { api } = useApi()
 
 provide(ViewListInj, views)
 
+/** Sidebar visible */
+const drawerOpen = inject('navDrawerOpen', ref(false))
+
 /** Watch current views and on change set the next active view */
 watch(
   views,
@@ -51,9 +54,6 @@ watch(
   },
   { immediate: true },
 )
-
-/** Sidebar visible */
-const toggleDrawer = ref(false)
 
 const isView = ref(false)
 
@@ -296,7 +296,7 @@ function onApiSnippet() {
 </script>
 
 <template>
-  <a-layout-sider class="shadow" :width="toggleDrawer ? 0 : 250">
+  <a-layout-sider class="shadow" :width="drawerOpen ? 0 : 250">
     <div class="flex flex-col h-full">
       <a-menu class="flex-1 max-h-50vh overflow-y-scroll scrollbar-thin-primary" :selected-keys="selected">
         <h3 class="pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>

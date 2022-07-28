@@ -27,6 +27,7 @@ provide(ActiveViewInj, activeView)
 provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
+provide('navDrawerOpen', ref(false))
 
 watch(
   () => tabMeta && tabMeta?.id,

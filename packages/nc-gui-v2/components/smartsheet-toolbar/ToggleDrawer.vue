@@ -1,20 +1,14 @@
 <script setup lang="ts">
-import { ReloadViewDataHookInj } from '~/context'
 import MdiDoorOpenIcon from '~icons/mdi/door-open'
 import MdiDoorClosedIcon from '~icons/mdi/door-closed'
-const navDrawerOpened = ref(false)
 
-const Icon = computed(() => (navDrawerOpened.value ? MdiDoorOpenIcon : MdiDoorClosedIcon))
+const drawerOpen = inject('navDrawerOpen', ref(false))
+const Icon = computed(() => (drawerOpen.value ? MdiDoorOpenIcon : MdiDoorClosedIcon))
 </script>
 
 <template>
-  <a-tooltip>
+  <a-tooltip placement="left">
     <template #title> {{ $t('tooltip.toggleNavDraw') }} </template>
-    <Icon
-      class="rounded text-xl p-1 text-gray-500 hover:(text-white bg-pink-500 shadow)"
-      @click="navDrawerOpened = !navDrawerOpened"
-    />
+    <Icon class="rounded text-xl p-1 text-gray-500 hover:(text-white bg-pink-500 shadow)" @click="drawerOpen = !drawerOpen" />
   </a-tooltip>
 </template>
-
-<style scoped></style>

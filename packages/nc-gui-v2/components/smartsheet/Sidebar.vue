@@ -304,7 +304,7 @@ function onApiSnippet() {
         <a-menu-item
           v-for="(view, i) of views"
           :key="view.id"
-          class="group !flex !items-center"
+          class="group !flex !items-center !my-0"
           @dblclick="onDblClick(i)"
           @click="onClick(view)"
         >
@@ -322,7 +322,7 @@ function onApiSnippet() {
 
             <div class="flex-1" />
 
-            <template v-if="isEditing !== i && !view.is_default">
+            <template v-if="isEditing !== i">
               <div class="flex items-center gap-1">
                 <a-tooltip placement="left">
                   <template #title>
@@ -333,6 +333,7 @@ function onApiSnippet() {
                 </a-tooltip>
 
                 <a-popconfirm
+                  v-if="!view.is_default"
                   placement="left"
                   :title="$t('msg.info.deleteProject')"
                   :ok-text="$t('general.yes')"
@@ -366,7 +367,7 @@ function onApiSnippet() {
           </a-tooltip>
         </h3>
 
-        <a-menu-item key="grid" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.GRID)">
+        <a-menu-item key="grid" class="group !flex !items-center !my-0 !h-[30px]" @click="openModal(ViewTypes.GRID)">
           <a-tooltip placement="left">
             <template #title>
               {{ $t('msg.info.addView.grid') }}
@@ -384,7 +385,7 @@ function onApiSnippet() {
           </a-tooltip>
         </a-menu-item>
 
-        <a-menu-item key="gallery" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.GALLERY)">
+        <a-menu-item key="gallery" class="group !flex !items-center !-my0 !h-[30px]" @click="openModal(ViewTypes.GALLERY)">
           <a-tooltip placement="left">
             <template #title>
               {{ $t('msg.info.addView.gallery') }}
@@ -402,7 +403,12 @@ function onApiSnippet() {
           </a-tooltip>
         </a-menu-item>
 
-        <a-menu-item v-if="!isView" key="form" class="group !flex !items-center !h-[30px]" @click="openModal(ViewTypes.FORM)">
+        <a-menu-item
+          v-if="!isView"
+          key="form"
+          class="group !flex !items-center !my-0 !h-[30px]"
+          @click="openModal(ViewTypes.FORM)"
+        >
           <a-tooltip placement="left">
             <template #title>
               {{ $t('msg.info.addView.form') }}
@@ -420,16 +426,16 @@ function onApiSnippet() {
           </a-tooltip>
         </a-menu-item>
 
-        <div class="flex-auto justify-end flex flex-col gap-4 mt-2">
+        <div class="flex-auto justify-end flex flex-col gap-4 mt-4">
           <button
-            class="flex items-center gap-2 w-full mx-3 p-4 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
+            class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
             @click="onApiSnippet"
           >
             <MdiXml />Get API Snippet
           </button>
 
           <button
-            class="flex items-center gap-2 w-full mx-3 p-4 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
+            class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
             @click="onApiSnippet"
           >
             <MdiHook />{{ $t('objects.webhooks') }}
@@ -444,7 +450,7 @@ function onApiSnippet() {
               <div>
                 <a
                   v-t="['e:hiring']"
-                  class="p-4 bg-primary/75 rounded accent-pink-500 shadow border border-primary text-white"
+                  class="px-4 py-3 bg-primary/75 rounded accent-pink-500 shadow border border-primary text-white"
                   href="https://angel.co/company/nocodb"
                   target="_blank"
                   @click.stop
@@ -460,7 +466,7 @@ function onApiSnippet() {
             <a
               href="https://github.com/sponsors/nocodb"
               target="_blank"
-              class="group flex items-center gap-2 w-full mx-3 p-3 rounded-l !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg !opacity-100) transition duration-150 ease"
+              class="group flex items-center gap-2 w-full mx-3 px-4 py-2 rounded-l !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg !opacity-100) transition duration-150 ease"
               @click.stop
             >
               <MdiHeartsCard class="text-red-500" />

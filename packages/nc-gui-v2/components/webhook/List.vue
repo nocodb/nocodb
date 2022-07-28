@@ -3,7 +3,7 @@ import { useToast } from 'vue-toastification'
 import { onMounted } from '@vue/runtime-core'
 import { MetaInj } from '~/context'
 import MdiHookIcon from '~icons/mdi/hook'
-import MdiDeleteIcon from '~icons/mdi/delete'
+import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 
 const emit = defineEmits(['edit'])
 
@@ -83,7 +83,7 @@ onMounted(() => {
                 <!-- Notify Via -->
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
                 <div class="float-right pt-2 pr-1">
-                  <MdiDeleteIcon class="text-xl" @click.stop="deleteHook(item, index)" />
+                  <MdiDeleteOutlineIcon class="text-xl" @click.stop="deleteHook(item, index)" />
                 </div>
               </div>
             </template>

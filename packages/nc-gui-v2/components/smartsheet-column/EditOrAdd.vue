@@ -1,6 +1,8 @@
 <script lang="ts" setup>
+import { useMeta } from '#head'
 import { computed, inject } from '#imports'
 import { useColumnCreateStoreOrThrow } from '~/composables/useColumnCreateStore'
+import useMetas from '~/composables/useMetas'
 import { MetaInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
@@ -9,8 +11,10 @@ import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 const emit = defineEmits(['cancel'])
 const meta = inject(MetaInj)
 const advancedOptions = ref(false)
+const { getMeta } = useMetas()
 
-const { formState, resetFields, validate, validateInfos, onUidtOrIdTypeChange, onAlter } = useColumnCreateStoreOrThrow()
+const { formState, resetFields, validate, validateInfos, onUidtOrIdTypeChange, onAlter, addOrUpdate } =
+  useColumnCreateStoreOrThrow()
 
 // todo: make as a prop
 const editColumn = null
@@ -28,11 +32,16 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
       : []),
   ]
 })
+
+const reloadMeta = () => {
+  emit('cancel')
+  getMeta(meta?.value.id as string, true)
+}
 </script>
 
 <template>
   <div class="max-w-[450px] min-w-[350px] w-max max-h-[95vh] bg-white shadow p-4 overflow-auto" @click.stop>
-    <a-form v-model="formState" layout="vertical">
+    <a-form v-model="formState" name="column-create-or-edit" layout="vertical">
       <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.column_name">
         <a-input v-model:value="formState.column_name" size="small" class="nc-column-name-input" @input="onAlter(8)" />
       </a-form-item>
@@ -59,17 +68,18 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
       <div class="overflow-hidden" :class="advancedOptions ? 'h-min' : 'h-0'">
         <SmartsheetColumnAdvancedOptions />
       </div>
-
-      <div class="flex justify-end gap-1 mt-4">
-        <a-button html-type="button" size="small" @click="emit('cancel')">
-          <!-- Cancel -->
-          {{ $t('general.cancel') }}
-        </a-button>
-        <a-button html-type="submit" type="primary" size="small">
-          <!-- Save -->
-          {{ $t('general.save') }}
-        </a-button>
-      </div>
+      <a-form-item>
+        <div class="flex justify-end gap-1 mt-4">
+          <a-button html-type="button" size="small" @click="emit('cancel')">
+            <!-- Cancel -->
+            {{ $t('general.cancel') }}
+          </a-button>
+          <a-button html-type="submit" type="primary" size="small" @click="addOrUpdate(reloadMeta)">
+            <!-- Save -->
+            {{ $t('general.save') }}
+          </a-button>
+        </div>
+      </a-form-item>
     </a-form>
   </div>
 </template>

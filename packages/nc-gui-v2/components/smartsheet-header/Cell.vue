@@ -1,13 +1,16 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
-import { ColumnInj } from '../../context'
+import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import { inject } from 'vue'
+import { ColumnInj, MetaInj } from '../../context'
 import { useProvideColumnCreateStore } from '~/composables/useColumnCreateStore'
 
 const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
 provide(ColumnInj, column)
+const meta = inject(MetaInj)
 
 // instantiate column update store
-useProvideColumnCreateStore(column)
+useProvideColumnCreateStore(meta as Ref<TableType>, column)
 
 /*
 import { UITypes } from 'nocodb-sdk'

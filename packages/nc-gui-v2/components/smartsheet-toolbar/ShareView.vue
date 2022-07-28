@@ -60,7 +60,7 @@ const sharedViewUrl = computed(() => {
   return `#/nc/${viewType}/${shared.value.uuid}`
 })
 
-async function saveAllowCSVDownload () {
+async function saveAllowCSVDownload() {
   try {
     const meta = shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
 
@@ -124,6 +124,7 @@ const saveShareLinkPassword = async () => {
                 v-model:value="shared.password"
                 size="small"
                 class="max-w-[250px]"
+                type="password"
                 :placeholder="$t('placeholder.password.enter')"
               />
               <a-button size="small" class="!text-xs" @click="saveShareLinkPassword">{{

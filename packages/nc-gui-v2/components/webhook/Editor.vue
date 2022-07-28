@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
-import { PluginType } from 'nocodb-sdk'
 import { MetaInj } from '~/context'
 import MdiContentSaveIcon from '~icons/mdi/content-save'
 import MdiLinkIcon from '~icons/mdi/link'
@@ -339,23 +338,24 @@ async function saveHooks() {
   try {
     let res
     if (hook.id) {
-      // TODO: fix me
-      // res = await $api.dbTableWebhook.update(hook.id, {
-      //   ...hook,
-      //   notification: {
-      //     ...hook.notification,
-      //     payload: hook.notification.payload,
-      //   },
-      // })
+      res = await $api.dbTableWebhook.update(hook.id, {
+        ...hook,
+        notification: {
+          ...hook.notification,
+          payload: hook.notification.payload,
+        },
+      } as any)
     } else {
-      // TODO: fix me
-      // res = await $api.dbTableWebhook.create(meta?.value.id as string, {
-      //   ...hook,
-      //   notification: {
-      //     ...hook.notification,
-      //     payload: hook.notification.payload,
-      //   },
-      // })
+      res = await $api.dbTableWebhook.create(
+        meta?.value.id as string,
+        {
+          ...hook,
+          notification: {
+            ...hook.notification,
+            payload: hook.notification.payload,
+          },
+        } as any,
+      )
     }
 
     if (!hook.id && res) {

@@ -15,6 +15,7 @@ server.set('view engine', 'ejs');
   const httpServer = server.listen(process.env.PORT || 8080, () => {
     console.log(`App started successfully.\nVisit -> ${Noco.dashboardUrl}`);
   })
+  httpServer.keepAliveTimeout = 0; // disable keep-alive
 
   server.use(await Noco.init({}, httpServer, server));
 })().catch(e => console.log(e))

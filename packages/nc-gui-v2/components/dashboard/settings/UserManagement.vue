@@ -38,6 +38,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
   try {
     if (!project.value?.id) return
 
+    // TODO: Types of api is not correct
     const response = await $api.auth.projectUserList(project.value?.id, <any> {
       query: {
         limit,

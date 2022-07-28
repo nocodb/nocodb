@@ -237,8 +237,6 @@ async function onRename(index: number) {
 
   const valid = validate(view?.title)
 
-  console.log(valid)
-
   if (valid !== true) {
     notification.error({
       message: valid,
@@ -274,6 +272,8 @@ async function onRename(index: number) {
 
 /** Cancel renaming view */
 function onCancel(index: number) {
+  if (isEditing === null) return
+
   views.value[index].title = originalTitle
   onStopEdit()
 }

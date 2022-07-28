@@ -151,9 +151,9 @@ const clickInviteMore = () => {
             </a-alert>
             <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">
               Looks like you have not configured mailer yet! Please copy above invite link and send it to
-              {{ usersData.invitationToken && usersData.emails }}.
+              {{ usersData.invitationToken && usersData.emails }}
             </div>
-            <div class="flex flex-row justify-start mt-4 ml-1">
+            <div class="flex flex-row justify-start mt-4 ml-2">
               <a-button size="small" outlined @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
                   <SendIcon height="0.8rem" class="flex mx-auto text-gray-600" />
@@ -198,7 +198,8 @@ const clickInviteMore = () => {
               </div>
               <div class="flex flex-row justify-center">
                 <a-button type="primary" html-type="submit">
-                  <div class="flex flex-row justify-center items-center space-x-1.5">
+                  <div v-if="selectedUser">Save</div>
+                  <div v-else class="flex flex-row justify-center items-center space-x-1.5">
                     <SendIcon height="0.8rem" class="flex" />
                     <div>Invite</div>
                   </div>

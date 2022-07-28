@@ -1,5 +1,7 @@
 <script lang="ts" setup>
 import { onMounted } from '#imports'
+import MdiVisibilityOnIcon from '~icons/mdi/visibility'
+import MdiVisibilityOffIcon from '~icons/mdi/visibility-off'
 
 const { view, $api, meta } = useSmartsheetStoreOrThrow()
 
@@ -48,7 +50,6 @@ const test = (t) => console.log(t)
       <!-- View Link -->
       <a-table-column key="title" :title="$t('labels.viewLink')" data-index="title">
         <template #default="{ record }">
-          <div @click="test(rest)">click</div>
           <!--          <nuxt-link :to="sharedViewUrl(currentView)">
             {{ `${dashboardUrl}#${sharedViewUrl(currentView)}` }}
           </nuxt-link> -->
@@ -56,15 +57,17 @@ const test = (t) => console.log(t)
       </a-table-column>
       <!-- Password -->
       <a-table-column key="password" :title="$t('labels.password')" data-index="title">
-        <template #default="{ text }">
-          {{ text }}
-          <!--          <span>{{ currentView.showPassword ? currentView.password : '***************************' }}</span>
-          <v-icon small @click="$set(currentView, 'showPassword', !currentView.showPassword)">
-            {{ currentView.showPassword ? 'visibility_off' : 'visibility' }}
-          </v-icon> -->
+        <template #default="{ text, record }">
+          <div class="flex align-center items-center gap-1">
+            <span class="h-min">{{ record.showPassword ? text : '***************************' }}</span>
+            <component
+              :is="record.showPassword ? MdiVisibilityOffIcon : MdiVisibilityOnIcon"
+              @click="record.showPassword = !record.showPassword"
+            />
+          </div>
         </template>
       </a-table-column>
-      <!-- Password -->
+      <!-- Todo: i18n  -->
       <a-table-column key="meta" title="Download allowed" data-index="title">
         <template #default="{ text }">
           {{ text }}

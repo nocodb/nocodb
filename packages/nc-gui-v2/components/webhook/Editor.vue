@@ -410,7 +410,7 @@ onMounted(() => {
       </div>
     </div>
     <div class="float-right mb-5">
-      <a-button class="mr-3" type="primary" size="large" @click="testWebhook">
+      <a-button class="mr-3" size="large" @click="testWebhook">
         <div class="flex items-center">
           <MdiGestureDoubleTapIcon class="mr-2" />
           <!-- TODO: i18n -->

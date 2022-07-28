@@ -189,12 +189,11 @@ const methodList = ref([
 const validators = computed(() => {
   return {
     'title': [fieldRequiredValidator],
-    'event': [fieldRequiredValidator],
+    'eventOperation': [fieldRequiredValidator],
     'notification.type': [fieldRequiredValidator],
-    'notification.channels': [fieldRequiredValidator],
     ...(hook.notification.type === 'URL' && {
-      'payload.method': [fieldRequiredValidator],
-      'payload.path': [fieldRequiredValidator],
+      'notification.payload.method': [fieldRequiredValidator],
+      'notification.payload.path': [fieldRequiredValidator],
     }),
     ...(hook.notification.type === 'Email' && {
       'notification.payload.to': [fieldRequiredValidator],
@@ -428,7 +427,7 @@ onMounted(() => {
       </a-row>
       <a-row type="flex" :gutter="[16, 16]">
         <a-col :span="12">
-          <a-form-item v-bind="validateInfos.event">
+          <a-form-item v-bind="validateInfos.eventOperation">
             <a-select v-model:value="hook.eventOperation" size="large" :placeholder="$t('general.event')">
               <a-select-option v-for="(event, i) in eventList" :key="i" :value="event.value.join(' ')">
                 {{ event.text.join(' ') }}

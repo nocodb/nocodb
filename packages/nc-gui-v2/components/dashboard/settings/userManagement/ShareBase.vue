@@ -16,11 +16,8 @@ interface ShareBase {
   role?: string
 }
 
-enum Role {
-  Owner = 'owner',
+enum ShareBaseRole {
   Editor = 'editor',
-  User = 'user',
-  Guest = 'guest',
   Viewer = 'viewer',
 }
 
@@ -47,7 +44,7 @@ const loadBase = async () => {
   }
 }
 
-const createShareBase = async (role = Role.Viewer) => {
+const createShareBase = async (role = ShareBaseRole.Viewer) => {
   try {
     if (!project.value.id) return
 
@@ -198,8 +195,7 @@ onMounted(() => {
           <a-menu>
             <a-menu-item>
               <div v-if="base?.uuid" @click="disableSharedBase">Disable shared base</div>
-
-              <div v-else @click="createShareBase(Role.Viewer)">Anyone with the link</div>
+              <div v-else @click="createShareBase(ShareBaseRole.Viewer)">Anyone with the link</div>
             </a-menu-item>
           </a-menu>
         </template>
@@ -207,7 +203,7 @@ onMounted(() => {
 
       <a-select v-if="base?.uuid" v-model:value="base.role" class="flex">
         <a-select-option
-          v-for="(role, index) in [Role.Editor, Role.Viewer]"
+          v-for="(role, index) in [ShareBaseRole.Editor, ShareBaseRole.Viewer]"
           :key="index"
           :value="role"
           dropdown-class-name="capitalize"

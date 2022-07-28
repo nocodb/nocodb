@@ -15,12 +15,13 @@ import { isEmail } from '~~/utils/validation'
 const { show, selectedUser } = defineProps<Props>()
 const emits = defineEmits(['closed'])
 const toast = useToast()
+
 interface Props {
   show: boolean
   selectedUser?: User
 }
 interface Users {
-  emails: string
+  emails?: string
   role: ProjectRole
   invitationToken?: string
 }
@@ -28,8 +29,7 @@ interface Users {
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()
 
-const usersData = $ref<Users>({ emails: '', role: ProjectRole.Guest, invitationToken: undefined })
-let isFirstRender = $ref(true)
+const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Guest, invitationToken: undefined })
 const inviteToken = $ref(null)
 const formRef = ref()
 
@@ -58,11 +58,10 @@ const validators = computed(() => {
 const { validateInfos } = useForm(usersData, validators)
 
 onMounted(() => {
-  if (isFirstRender && selectedUser) {
+  if (!usersData.emails && selectedUser?.email) {
     usersData.emails = selectedUser.email
     usersData.role = selectedUser.roles
   }
-  if (isFirstRender) isFirstRender = false
 })
 
 const saveUser = async () => {
@@ -112,7 +111,7 @@ const clickInviteMore = () => {
   $e('c:user:invite-more')
   usersData.invitationToken = undefined
   usersData.role = ProjectRole.Guest
-  usersData.emails = ''
+  usersData.emails = undefined
 }
 </script>
 

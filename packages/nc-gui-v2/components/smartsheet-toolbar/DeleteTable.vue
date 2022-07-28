@@ -11,3 +11,5 @@ import MdiDeleteIcon from '~icons/mdi/delete-outline'
     </div>
   </a-tooltip>
 </template>
+
+<style scoped></style>

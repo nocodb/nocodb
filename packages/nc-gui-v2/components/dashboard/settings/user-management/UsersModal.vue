@@ -25,7 +25,7 @@ interface Users {
 }
 
 const { show, selectedUser } = defineProps<Props>()
-const emits = defineEmits(['closed'])
+const emit = defineEmits(['closed', 'reload'])
 const toast = useToast()
 
 const { project } = useProject()
@@ -75,11 +75,13 @@ const saveUser = async () => {
   try {
     if (selectedUser?.id) {
       await $api.auth.projectUserUpdate(project.value.id, selectedUser.id, {
-        roles: selectedUser.roles,
+        roles: usersData.role,
         email: selectedUser.email,
         project_id: project.value.id,
         projectName: project.value.title,
       })
+      emit('reload')
+      emit('closed')
     } else {
       const res = await $api.auth.projectUserAdd(project.value.id, {
         roles: usersData.role,
@@ -120,11 +122,11 @@ const clickInviteMore = () => {
 </script>
 
 <template>
-  <a-modal :footer="null" centered :visible="show" :closable="false" width="max(50vw, 44rem)" @cancel="emits('closed')">
+  <a-modal :footer="null" centered :visible="show" :closable="false" width="max(50vw, 44rem)" @cancel="emit('closed')">
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
         <a-typography-title class="select-none" :level="4"> Share: {{ project.title }} </a-typography-title>
-        <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emits('closed')">
+        <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
             <CloseIcon class="flex mx-auto" />
           </template>

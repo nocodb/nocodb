@@ -78,6 +78,7 @@ const deleteUser = async () => {
     await $api.auth.projectUserRemove(project.value.id, selectedUser.id);
     toast.success('Successfully deleted user from project');
     await loadUsers();
+    showUserDeleteModal = false;
   } catch (e: any) {
     console.error(e)
     toast.error(await extractSdkResponseErrorMsg(e))
@@ -140,7 +141,7 @@ watch(
 
 <template>
   <div class="flex flex-col w-full px-6">
-    <UsersModal :key="showUserModal" :show="showUserModal" :selected-user="selectedUser" @closed="showUserModal = false" />
+    <UsersModal :key="showUserModal" :show="showUserModal" :selected-user="selectedUser" @closed="showUserModal = false" @reload="loadUsers()"/>
       <a-modal v-model:visible="showUserDeleteModal" :closable="false" width="28rem" centered :footer="null">
     <div class="flex flex-col h-full">
       <div class="flex flex-row justify-center mt-2 text-center w-full text-base">

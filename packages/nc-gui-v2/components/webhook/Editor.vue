@@ -474,8 +474,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-tabs v-model:activeKey="urlTabKey" centered>
             <a-tab-pane key="body" tab="Body">
-              <!-- TODO: set lang -->
-              <MonacoEditor v-model="hook.notification.payload.body" class="min-h-60 max-h-80" />
+              <MonacoEditor v-model="hook.notification.payload.body" :validate="false" class="min-h-60 max-h-80" />
             </a-tab-pane>
             <a-tab-pane key="params" tab="Params" force-render>
               <ApiClientParams v-model="hook.notification.payload.parameters" />
@@ -484,7 +483,6 @@ onMounted(() => {
               <ApiClientHeaders v-model="hook.notification.payload.headers" />
             </a-tab-pane>
             <a-tab-pane key="auth" tab="Auth">
-              <!-- TODO: set lang -->
               <MonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />
               <span class="text-gray-600 prose-sm">
                 For more about auth option refer

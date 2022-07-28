@@ -61,7 +61,6 @@ onMounted(async () => {
 <template>
   <a-collapse v-model:activeKey="activeKey" ghost>
     <a-collapse-panel key="1" header="Sample Payload">
-      <!-- TODO: set lang -->
       <MonacoEditor v-model="sampleData" class="min-h-60 max-h-80" />
     </a-collapse-panel>
   </a-collapse>

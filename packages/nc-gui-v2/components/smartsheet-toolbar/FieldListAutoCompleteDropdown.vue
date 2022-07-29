@@ -96,4 +96,3 @@ const filterOption = (input: string, option: any) => {
     </v-autocomplete> -->
 </template>
 
-<style scoped></style>

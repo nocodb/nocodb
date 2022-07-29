@@ -39,7 +39,7 @@ watch(
     </div>
     <template #overlay>
       <div class="bg-gray-50 shadow p-2 menu-filter-dropdown min-w-[400px]">
-        <div class="sort-grid" @click.stop>
+        <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">
             <!--          <v-icon :key="`${i}icon`" class="nc-sort-item-remove-btn" small @click.stop="deleteSort(sort)"> mdi-close-box </v-icon> -->
             <MdiDeleteIcon
@@ -55,17 +55,14 @@ watch(
               @update:model-value="saveOrUpdate(sort, i)"
             />
             <a-select
-              size="small"
               v-model:value="sort.direction"
+              size="small"
               class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
               :items="[
                 { text: 'asc', value: 'asc' },
                 { text: 'desc', value: 'desc' },
               ]"
               :label="$t('labels.operation')"
-              density="compact"
-              variant="solo"
-              hide-details
               @click.stop
               @update:model-value="saveOrUpdate(sort, i)"
             />
@@ -75,7 +72,7 @@ watch(
             <!--          </v-select> -->
           </template>
         </div>
-        <a-button size="small" class="text-grey text-capitalize text-sm my-3" @click.stop="addSort">
+        <a-button size="small" class="text-xs text-grey text-capitalize " @click.stop="addSort">
           <div class="flex gap-1 align-center">
             <MdiAddIcon />
             <!-- Add Sort Option -->
@@ -93,5 +90,9 @@ watch(
   grid-template-columns: 22px auto 150px;
   column-gap: 6px;
   row-gap: 6px;
+}
+
+:deep(.ant-btn, .ant-select, .ant-input, ::placeholder) {
+  @apply "!text-xs";
 }
 </style>

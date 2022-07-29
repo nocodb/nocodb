@@ -96,23 +96,23 @@ watch(
 
 <template>
   <div
-    class=" pa-2 menu-filter-dropdown bg-gray-50"
+    class="pa-2 menu-filter-dropdown bg-gray-50"
     :class="{ 'shadow-xl min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
   >
     <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
       <template v-for="(filter, i) in filters" :key="filter.id || i">
         <template v-if="filter.status !== 'delete'">
-          <template v-if="filter.is_group" >
+          <template v-if="filter.is_group">
             <MdiDeleteIcon
-              :key="i"
               v-if="!filter.readOnly"
+              :key="i"
               small
               class="nc-filter-item-remove-btn text-grey"
               @click.stop="deleteFilter(filter, i)"
             />
-            <span v-else :key="i + 'dummy'"/>
+            <span v-else :key="`${i}dummy`" />
 
-            <div class="d-flex" :key="i + 'nested'">
+            <div :key="`${i}nested`" class="d-flex">
               <a-select
                 v-model:value="filter.logical_op"
                 size="small"
@@ -224,7 +224,7 @@ watch(
     </div>
 
     <div class="flex gap-2">
-      <a-button  size="small" class="elevation-0 text-capitalize text-grey" @click.stop="addFilter">
+      <a-button size="small" class="elevation-0 text-capitalize text-grey" @click.stop="addFilter">
         <div class="flex align-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiAddIcon />

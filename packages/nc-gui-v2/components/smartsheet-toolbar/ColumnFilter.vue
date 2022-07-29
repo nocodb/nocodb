@@ -2,7 +2,6 @@
 import type { FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
-import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import { useNuxtApp } from '#app'
 import { inject, useViewFilters, watchEffect } from '#imports'
 import { comparisonOpList } from '~/utils/filterUtils'
@@ -10,7 +9,7 @@ import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
 
-const { nested = false, parentId } = defineProps<{ nested?: boolean; parentId?: string }>()
+const { nested = false, parentId, autoSave = true } = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean }>()
 
 const emit = defineEmits(['update:filters-length'])
 
@@ -20,9 +19,10 @@ const reloadDataHook = inject(ReloadViewDataHookInj)
 
 const { $e } = useNuxtApp()
 
-const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup } = useViewFilters(
+const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
   activeView,
   parentId,
+  computed(() => autoSave),
   () => {
     reloadDataHook?.trigger()
   },
@@ -30,7 +30,6 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
 
 const filterUpdateCondition = (filter: FilterType, i: number) => {
   saveOrUpdate(filter, i)
-
   $e('a:filter:update', {
     logical: filter.logical_op,
     comparison: filter.comparison_op,
@@ -79,7 +78,7 @@ watch(
   { immediate: true },
 )
 
-const nestedFilter = ref()
+const nestedFilters = ref()
 
 const logicalOps = [
   { value: 'and', text: 'AND' },
@@ -92,6 +91,22 @@ watch(
     emit('update:filters-length', length ?? 0)
   },
 )
+
+const applyChanges = async () => {
+  console.log('hello')
+  // sync()
+  // $e('a:filter:apply')
+
+    for (const nestedFilter of nestedFilters?.value || []) {
+      if (nestedFilter.parentId) {
+        await nestedFilter.applyChanges(true);
+      }
+    }
+}
+
+defineExpose({
+  applyChanges, parentId
+})
 </script>
 
 <template>
@@ -128,7 +143,7 @@ watch(
             <div class="col-span-5">
               <SmartsheetToolbarColumnFilter
                 v-if="filter.id || shared"
-                ref="nestedFilter"
+                ref="nestedFilters"
                 v-model="filter.children"
                 :parent-id="filter.id"
                 nested

@@ -1,10 +1,11 @@
 import type { FilterType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#imports'
 
 export function useViewFilters(
   view: Ref<(GridType | KanbanType | GalleryType) & { id?: string }> | undefined,
   parentId?: string,
+  autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
 ) {
   // todo: update swagger
@@ -39,20 +40,20 @@ export function useViewFilters(
     reloadData?.()
   }
 
-  const deleteFilter = async (filter: FilterType, i: number) => {
+  const deleteFilter = async (filter: FilterType & { status: string }, i: number) => {
     //   if (this.shared || !this._isUIAllowed('filterSync')) {
     //     this.filters.splice(i, 1)
     //     this.$emit('updated')
     //   } else
 
     if (filter.id) {
-      //     if (!this.autoApply) {
-      //       this.$set(filter, 'status', 'delete')
-      //     } else {
-      await $api.dbTableFilter.delete(filter.id) /**/
-      //       await this.loadFilter()
-      //       this.$emit('updated')
-      //     }
+      if (!autoApply?.value) {
+        filter.status = 'delete'
+      } else {
+        await $api.dbTableFilter.delete(filter.id) /**/
+        //       await this.loadFilter()
+        //       this.$emit('updated')
+      }
     } else {
       //     this.$emit('updated')
     }
@@ -64,16 +65,16 @@ export function useViewFilters(
     reloadData?.()
   }
 
-  const saveOrUpdate = async (filter: FilterType, i: number) => {
+  const saveOrUpdate = async (filter: FilterType & { status?: string }, i: number) => {
     if (!view?.value) return
 
     // if (this.shared || !this._isUIAllowed('filterSync')) {
     // this.$emit('input', this.filters.filter(f => f.fk_column_id && f.comparison_op))
     // this.$emit('updated')
-    // } else if (!this.autoApply) {
-    //   filter.status = 'update'
     // } else
-    if (filter.id) {
+    if (!autoApply?.value) {
+      filter.status = 'update'
+    } else if (filter.id) {
       await $api.dbTableFilter.update(filter.id, {
         ...filter,
         fk_parent_id: parentId,

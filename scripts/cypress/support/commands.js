@@ -356,6 +356,7 @@ Cypress.Commands.add("createColumn", (table, columnName) => {
 
 Cypress.Commands.add("toastWait", (msg) => {
     cy.get('.Vue-Toastification__toast:visible', { timout: 12000 }).contains(msg).should('exist')
+    cy.get('.Vue-Toastification__toast:visible', { timout: 12000 }).find('button').click();
     cy.get('.Vue-Toastification__toast:visible', { timout: 12000 }).should('not.exist')
 
     // cy.get(".toasted:visible", { timout: 12000 }).contains(msg).should("exist");

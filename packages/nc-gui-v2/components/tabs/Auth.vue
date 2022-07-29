@@ -27,7 +27,7 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
 </script>
 
 <template>
-  <div>
+  <div class="mt-2">
     <a-menu v-model:selectedKeys="selectedTabKeys" :open-keys="[]" mode="horizontal">
       <a-menu-item v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
         <div class="text-xs pb-2.5">

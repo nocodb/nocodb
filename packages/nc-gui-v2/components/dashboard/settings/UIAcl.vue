@@ -98,25 +98,37 @@ const columns = [
   <div class="flex flex-row w-full">
     <div class="flex flex-column w-full">
       <div class="flex flex-row items-center w-full mb-4 gap-2">
-        <a-input v-model:value="searchInput" placeholder="Search models">
+        <a-input v-model:value="searchInput" placeholder="Search models" class="nc-acl-search">
           <template #prefix>
             <MdiMagnify />
           </template>
         </a-input>
-        <a-button class="self-start" @click="loadTableList">
+        <a-button class="self-start nc-acl-reload" @click="loadTableList">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             Reload
           </div>
         </a-button>
-        <a-button class="self-start" @click="saveUIAcl">
+        <a-button class="self-start nc-acl-save" @click="saveUIAcl">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <MdiContentSave />
             Save
           </div>
         </a-button>
       </div>
-      <a-table class="w-full" :data-source="filteredTables" :columns="columns" :pagination="false" :loading="isLoading" bordered>
+      <a-table
+        class="w-full"
+        :data-source="filteredTables"
+        :columns="columns"
+        :pagination="false"
+        :loading="isLoading"
+        bordered
+        :customRow="
+          (record) => ({
+            class: `nc-acl-table-row nc-acl-table-row-${record.title}`,
+          })
+        "
+      >
         <template #bodyCell="{ record, column }">
           <div v-if="column.name === 'table_name'">{{ record._ptn }}</div>
           <div v-if="column.name === 'view_name'">
@@ -128,8 +140,17 @@ const columns = [
           <div v-for="role in roles" :key="role">
             <div v-if="column.name === role">
               <a-tooltip>
-                <template #title>Click to hide '{{ record.title }}' for role:{{ role }} in UI dashboard</template>
-                <a-checkbox :checked="!record.disabled[role]" @change="onRoleCheck(record, role)"></a-checkbox>
+                <template #title>
+                  <span v-if="record.disabled[role]">
+                    Click to make '{{ record.title }}' visible for role:{{ role }} in UI dashboard</span
+                  >
+                  <span v-else>Click to hide '{{ record.title }}' for role:{{ role }} in UI dashboard</span>
+                </template>
+                <a-checkbox
+                  :checked="!record.disabled[role]"
+                  :class="`nc-acl-${record.title}-${role}-chkbox`"
+                  @change="onRoleCheck(record, role)"
+                ></a-checkbox>
               </a-tooltip>
             </div>
           </div>

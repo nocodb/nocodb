@@ -15,6 +15,7 @@ import MdiDatabaseOutline from '~icons/mdi/database-outline'
 
 const { $api, $state, $e } = useNuxtApp()
 const toast = useToast()
+const { loadProject } = useProject()
 
 const filterQuery = ref('')
 const loading = ref(true)
@@ -121,8 +122,9 @@ $state.sidebarOpen.value = false
         v-else
         :custom-row="
           (record) => ({
-            onClick: () => {
+            onClick: async () => {
               $e('a:project:open')
+              await loadProject(record.id)
               navigateTo(`/nc/${record.id}`)
             },
           })

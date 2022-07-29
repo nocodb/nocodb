@@ -159,8 +159,8 @@ onMounted(() => {
               </template>
               <a-button type="text" class="!rounded-md" @click="item.show = !item.show">
                 <template #icon>
-                  <VisibilityCloseIcon v-if="item.show" height="1.1rem" class="flex mx-auto" />
-                  <VisibilityOpenIcon v-else height="1rem" class="flex mx-auto" />
+                  <VisibilityCloseIcon v-if="item.show" class="flex mx-auto h-[1.1rem]" />
+                  <VisibilityOpenIcon v-else class="flex mx-auto h-[1rem]" />
                 </template>
               </a-button>
             </a-tooltip>
@@ -168,7 +168,7 @@ onMounted(() => {
               <template #title> Copy token to clipboard </template>
               <a-button type="text" class="!rounded-md" @click="copyToken(item.token)">
                 <template #icon>
-                  <MdiContentCopyIcon height="1rem" class="flex mx-auto" />
+                  <MdiContentCopyIcon class="flex mx-auto h-[1rem]" />
                 </template>
               </a-button>
             </a-tooltip>
@@ -176,16 +176,16 @@ onMounted(() => {
             <a-dropdown :trigger="['click']" class="flex" placement="bottomRight">
               <div class="flex flex-row items-center">
                 <a-button type="text" class="!px-0">
-                  <div class="flex flex-row items-center">
-                    <KebabIcon height="1.2rem" />
+                  <div class="flex flex-row items-center h-[1.2rem]">
+                    <KebabIcon />
                   </div>
                 </a-button>
               </div>
               <template #overlay>
                 <a-menu>
                   <a-menu-item>
-                    <div class="flex flex-row items-center py-1" @click="openDeleteModal(item)">
-                      <MdiDeleteOutlineIcon height="1rem" class="flex" />
+                    <div class="flex flex-row items-center py-1 h-[1rem]" @click="openDeleteModal(item)">
+                      <MdiDeleteOutlineIcon class="flex" />
                       <div class="text-xs pl-2">Remove API Token</div>
                     </div>
                   </a-menu-item>

@@ -220,7 +220,7 @@ watchDebounced(
             </template>
             <a-button  type="text" class="!rounded-md" @click="onEdit(user)">
                 <template #icon>
-                  <MdiEditIcon height="1rem" class="flex mx-auto" />
+                  <MdiEditIcon  class="flex mx-auto h-[1rem]" />
                 </template>
               </a-button>
           </a-tooltip>
@@ -230,7 +230,7 @@ watchDebounced(
             </template>
             <a-button type="text"  class="!rounded-md " @click="inviteUser(user)">
               <template #icon>
-                <MdiPlusIcon height="1.1rem" class="flex mx-auto" />
+                <MdiPlusIcon  class="flex mx-auto h-[1.1rem]" />
               </template>
             </a-button>
           </a-tooltip>
@@ -241,7 +241,7 @@ watchDebounced(
             </template>
             <a-button  type="text" class="!rounded-md" @click="onDelete(user)">
               <template #icon>
-                <MdiDeleteOutlineIcon height="1.1rem"  class="flex mx-auto" />
+                <MdiDeleteOutlineIcon   class="flex mx-auto h-[1.1rem]" />
               </template>
             </a-button>
           </a-tooltip>
@@ -249,8 +249,8 @@ watchDebounced(
           <a-dropdown :trigger="['click']" class="flex" placement="bottomRight">
             <div class="flex flex-row items-center">
               <a-button type="text" class="!px-0">
-                <div class="flex flex-row items-center ">
-                  <KebabIcon height="1.2rem" />
+                <div class="flex flex-row items-center h-[1.2rem]">
+                  <KebabIcon />
                 </div>
               </a-button>
             </div>
@@ -258,7 +258,7 @@ watchDebounced(
               <a-menu>
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="resendInvite(user)">
-                    <MdiEmailSendIcon height="1rem" class="flex" />
+                    <MdiEmailSendIcon class="flex h-[1rem]" />
                     <div class="text-xs pl-2">
                       Resend invite email
                     </div>
@@ -266,7 +266,7 @@ watchDebounced(
                 </a-menu-item>
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="copyInviteUrl(user)">
-                    <MdiContentCopyIcon height="1rem" class="flex" />
+                    <MdiContentCopyIcon class="flex h-[1rem]" />
                     <div class="text-xs pl-2">
                       Copy invite URL
                     </div>

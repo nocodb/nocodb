@@ -137,8 +137,8 @@ const clickInviteMore = () => {
       <div class="px-2 mt-1.5">
         <template v-if="usersData.invitationToken">
           <div class="flex flex-col mt-1 border-b-1 pb-5">
-            <div class="flex flex-row items-center pl-1.5 pb-1">
-              <MidAccountIcon height="1.1rem" />
+            <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
+              <MidAccountIcon />
               <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
             </div>
 
@@ -150,7 +150,7 @@ const clickInviteMore = () => {
                   </div>
                   <a-button type="text" class="!rounded-md mr-1" @click="copyUrl">
                     <template #icon>
-                      <ContentCopyIcon height="1rem" class="flex mx-auto text-green-700" />
+                      <ContentCopyIcon class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
                   </a-button>
                 </div>
@@ -163,7 +163,7 @@ const clickInviteMore = () => {
             <div class="flex flex-row justify-start mt-4 ml-2">
               <a-button size="small" outlined @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
-                  <SendIcon height="0.8rem" class="flex mx-auto text-gray-600" />
+                  <SendIcon class="flex mx-auto text-gray-600 h-[0.8rem]" />
                   <div class="text-xs text-gray-600">Invite more</div>
                 </div>
               </a-button>
@@ -171,8 +171,8 @@ const clickInviteMore = () => {
           </div>
         </template>
         <div v-else class="flex flex-col pb-4">
-          <div class="flex flex-row items-center pl-2 pb-1">
-            <MidAccountIcon height="1rem" />
+          <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
+            <MidAccountIcon />
             <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? 'Edit User' : 'Invite Team' }}</div>
           </div>
           <div class="border-1 py-3 px-4 rounded-md mt-1">
@@ -219,7 +219,7 @@ const clickInviteMore = () => {
                 <a-button type="primary" html-type="submit">
                   <div v-if="selectedUser">Save</div>
                   <div v-else class="flex flex-row justify-center items-center space-x-1.5">
-                    <SendIcon height="0.8rem" class="flex" />
+                    <SendIcon class="flex h-[0.8rem]" />
                     <div>Invite</div>
                   </div>
                 </a-button>

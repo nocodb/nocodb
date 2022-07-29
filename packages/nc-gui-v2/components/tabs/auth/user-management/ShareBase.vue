@@ -134,8 +134,8 @@ onMounted(() => {
 
 <template>
   <div class="flex flex-col w-full">
-    <div class="flex flex-row items-center space-x-0.5 pl-2">
-      <OpenInNewIcon height="0.8rem" />
+    <div class="flex flex-row items-center space-x-0.5 pl-2 h-[0.8rem]">
+      <OpenInNewIcon />
       <div class="text-xs">Shared Base Link</div>
     </div>
     <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
@@ -145,9 +145,9 @@ onMounted(() => {
           <template #title>
             <span>Reload</span>
           </template>
-          <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="recreate">
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="recreate">
             <template #icon>
-              <MdiReload height="1rem" class="flex mx-auto text-gray-600" />
+              <MdiReload class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -155,9 +155,9 @@ onMounted(() => {
           <template #title>
             <span>Copy URL</span>
           </template>
-          <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="copyUrl">
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="copyUrl">
             <template #icon>
-              <ContentCopyIcon height="1rem" class="flex mx-auto text-gray-600" />
+              <ContentCopyIcon class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -165,9 +165,9 @@ onMounted(() => {
           <template #title>
             <span>Open new tab</span>
           </template>
-          <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="navigateToSharedBase">
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="navigateToSharedBase">
             <template #icon>
-              <OpenInNewIcon height="1rem" class="flex mx-auto text-gray-600" />
+              <OpenInNewIcon class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -175,9 +175,9 @@ onMounted(() => {
           <template #title>
             <span>Copy embeddable HTML code</span>
           </template>
-          <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="generateEmbeddableIframe">
+          <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="generateEmbeddableIframe">
             <template #icon>
-              <MdiXmlIcon height="1rem" class="flex mx-auto text-gray-600" />
+              <MdiXmlIcon class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -190,7 +190,7 @@ onMounted(() => {
           <div class="flex flex-row items-center space-x-2">
             <div v-if="base?.uuid">Anyone with the link</div>
             <div v-else>Disable shared base</div>
-            <DownIcon height="1rem" />
+            <DownIcon class="h-[1rem]" />
           </div>
         </a-button>
 
@@ -205,6 +205,11 @@ onMounted(() => {
       </a-dropdown>
 
       <a-select v-if="base?.uuid" v-model:value="base.role" class="flex">
+        <template #suffixIcon>
+          <div class="flex flex-row">
+            <DownIcon class="text-black -mt-0.5 h-[1rem]" />
+          </div>
+        </template>
         <a-select-option
           v-for="(role, index) in [ShareBaseRole.Editor, ShareBaseRole.Viewer]"
           :key="index"

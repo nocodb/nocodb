@@ -71,6 +71,12 @@ export function useGlobalState(): State {
   /** global loading state */
   const isLoading = ref(false)
 
+  /** currently running requests */
+  const runningRequests = ref<number[]>([])
+
+  /** global error */
+  const error = ref()
+
   return {
     ...toRefs(storage.value),
     token,
@@ -78,5 +84,7 @@ export function useGlobalState(): State {
     sidebarOpen,
     timestamp,
     isLoading,
+    runningRequests,
+    error,
   }
 }

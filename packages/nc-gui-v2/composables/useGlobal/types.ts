@@ -16,6 +16,8 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   sidebarOpen: Ref<boolean>
   timestamp: Ref<number>
   isLoading: Ref<boolean>
+  runningRequests: Ref<number[]>
+  error: Ref<any>
 }
 
 export interface Getters {

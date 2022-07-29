@@ -10,18 +10,8 @@ if (!route.params.type) {
   addTab({ type: 'auth', title: 'Team & Auth' })
 }
 
-watch(
-  () => route.params.projectId,
-  async (newVal, oldVal) => {
-    if (newVal !== oldVal) {
-      clearTabs()
-      if (newVal) {
-        await loadProject(newVal as string)
-        await loadTables()
-      }
-    }
-  },
-)
+loadProject(route.params.projectId as string)
+loadTables()
 
 $state.sidebarOpen.value = true
 </script>

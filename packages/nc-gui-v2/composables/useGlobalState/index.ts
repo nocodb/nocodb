@@ -24,6 +24,15 @@ const storageKey = 'nocodb-gui-v2'
  * ```
  */
 export const useGlobalState = (): GlobalState => {
+  const { $state } = useNuxtApp()
+
+  if ($state) {
+    console.warn(
+      '[useGlobalState] Global state is injected by state plugin. Manual initialization is unnecessary and should be avoided.',
+    )
+    return $state
+  }
+
   /** get the preferred languages of a user, according to browser settings */
   const preferredLanguages = $(usePreferredLanguages())
   /** todo: reimplement; get the preferred dark mode setting, according to browser settings */

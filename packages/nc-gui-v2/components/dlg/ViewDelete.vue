@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { notification } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import { useApi, useNuxtApp, useVModel } from '#imports'
+import { onKeyStroke, useApi, useNuxtApp, useVModel } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -22,6 +22,10 @@ const vModel = useVModel(props, 'modelValue', emits)
 const { api, isLoading } = useApi()
 
 const { $e } = useNuxtApp()
+
+onKeyStroke('Escape', () => (vModel.value = false))
+
+onKeyStroke('Enter', () => onDelete())
 
 /** Delete a view */
 async function onDelete() {

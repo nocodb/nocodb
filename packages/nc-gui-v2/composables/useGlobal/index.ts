@@ -24,29 +24,34 @@ export const useGlobal = (): UseGlobalReturn => {
   const { $state, provide } = useNuxtApp()
 
   /** If state already exists, return it */
-  if ($state) return $state
+  if (typeof $state !== 'undefined') return $state
 
-  const state = $(useGlobalState())
+  const state = useGlobalState()
 
-  const getters = useGlobalGetters($$(state))
+  const getters = useGlobalGetters(state)
 
-  const actions = useGlobalActions($$(state))
+  const actions = useGlobalActions(state)
 
   /** try to refresh token before expiry (5 min before expiry) */
   watch(
-    () => !!(state.jwtPayload && state.jwtPayload.exp && state.jwtPayload.exp - 5 * 60 < state.timestamp / 1000),
+    () =>
+      !!(
+        state.jwtPayload.value &&
+        state.jwtPayload.value.exp &&
+        state.jwtPayload.value.exp - 5 * 60 < state.timestamp.value / 1000
+      ),
     async (expiring) => {
-      if (getters.signedIn.value && state.jwtPayload && expiring) {
+      if (getters.signedIn.value && state.jwtPayload.value && expiring) {
         await actions.refreshToken()
       }
     },
     { immediate: true },
   )
 
+  const globalState = { ...state, ...getters, ...actions } as UseGlobalReturn
+
   /** provide a fresh state instance into nuxt app */
-  provide('state', state)
+  provide('state', globalState)
 
-  console.log('provided state')
-
-  return { ...toRefs($$(state)), ...getters, ...actions }
+  return globalState
 }

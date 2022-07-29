@@ -79,7 +79,7 @@ const columns = [
   <div class="flex flex-row w-full">
     <div class="flex flex-column w-3/5">
       <div class="flex flex-row justify-end items-center w-full mb-4">
-        <a-button class="self-start" @click="loadMetaDiff">
+        <a-button class="self-start nc-btn-metasync-reload" @click="loadMetaDiff">
           <div class="flex items-center gap-2 text-gray-600 font-light">
             <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
             Reload
@@ -88,6 +88,11 @@ const columns = [
       </div>
       <a-table
         class="w-full"
+        :customRow="
+          (record) => ({
+            class: `nc-metasync-row nc-metasync-row-${record.title}`,
+          })
+        "
         :data-source="metadiff ?? []"
         :columns="columns"
         :pagination="false"
@@ -97,7 +102,7 @@ const columns = [
     </div>
     <div class="flex place-content-center w-2/5">
       <div v-if="isDifferent">
-        <a-button v-t="['a:proj-meta:meta-data:sync']" type="primary" @click="syncMetaDiff">
+        <a-button v-t="['a:proj-meta:meta-data:sync']" class="nc-btn-metasync-sync-now" type="primary" @click="syncMetaDiff">
           <div class="flex items-center gap-2">
             <MdiDatabaseSync />
             Sync Now

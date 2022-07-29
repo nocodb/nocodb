@@ -27,7 +27,7 @@ watch(
 
 <template>
   <a-dropdown offset-y class="" :trigger="['click']">
-    <v-badge :value="sorts && sorts.length" color="primary" dot overlap>
+    <div :class="{ 'nc-badge': sorts?.length }">
       <a-button v-t="['c:sort']" size="small" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
         ><div class="flex align-center gap-1">
           <MdiSortIcon class="text-grey" />
@@ -36,7 +36,7 @@ watch(
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>
-    </v-badge>
+    </div>
     <template #overlay>
       <div class="bg-white shadow p-2 menu-filter-dropdown min-w-[400px]">
         <div class="sort-grid" @click.stop>

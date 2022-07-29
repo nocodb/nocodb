@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import MdiAddIcon from '~icons/mdi/plus-outline '
+import MdiAddIcon from '~icons/mdi/plus-outline'
 const emit = defineEmits(['add-row'])
 </script>
 

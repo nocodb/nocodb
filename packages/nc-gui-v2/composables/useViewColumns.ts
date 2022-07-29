@@ -16,6 +16,7 @@ export function useViewColumns(
       show: number | boolean
       title: string
       fk_column_id?: string
+      system?: boolean
     }[]
   >()
 

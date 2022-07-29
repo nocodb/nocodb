@@ -92,3 +92,7 @@ html {
     @apply z-1 text-xl p-1 text-gray-500;
   }
 }
+
+.nc-badge {
+  @apply relative after:(absolute top-[-2px] right-[-2px] w-[8px] h-[8px] rounded-full bg-primary content-['']);
+}

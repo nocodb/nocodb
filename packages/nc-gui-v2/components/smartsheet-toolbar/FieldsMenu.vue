@@ -19,12 +19,6 @@ const reloadDataHook = inject(ReloadViewDataHookInj)
 const isLocked = inject(IsLockedInj)
 const rootFields = inject(FieldsInj)
 
-const isAnyFieldHidden = computed(() => {
-  return false
-  // todo: implement
-  // return meta?.fields?.some(field => field.hidden)
-})
-
 const { $e } = useNuxtApp()
 
 const {
@@ -57,7 +51,11 @@ watch(
   { immediate: true },
 )
 
-const onMove = (event: unknown) => {
+const isAnyFieldHidden = computed(() => {
+  return fields?.value?.some((f) => !(!showSystemFields && f.system) && !f.show)
+})
+
+const onMove = (event: { moved: { newIndex: number } }) => {
   // todo : sync with server
   if (!fields?.value) return
 
@@ -79,28 +77,26 @@ const onMove = (event: unknown) => {
 
 <template>
   <a-dropdown :trigger="['click']">
-    <v-badge :value="isAnyFieldHidden" color="primary" dot overlap>
-      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn text-xs" :disabled="isLocked" size="small">
-        <div class="flex align-center gap-1">
-          <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
-          <MdiEyeIcon class="text-grey"></MdiEyeIcon>
-          <!-- Fields -->
-          <span class="text-xs text-capitalize nc-fields-menu-btn">{{ $t('objects.fields') }}</span>
-          <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
-        </div>
-      </a-button>
-    </v-badge>
+    <a-button
+      v-t="['c:fields']"
+      class="nc-fields-menu-btn nc-toolbar-btn text-xs"
+      :class="{ 'nc-badge': isAnyFieldHidden }"
+      :disabled="isLocked"
+      size="small"
+    >
+      <div class="flex align-center gap-1">
+        <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
+        <MdiEyeIcon class="text-grey"></MdiEyeIcon>
+        <!-- Fields -->
+        <span class="text-xs text-capitalize nc-fields-menu-btn">{{ $t('objects.fields') }}</span>
+        <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
+      </div>
+    </a-button>
 
     <template #overlay>
       <div class="pt-0 min-w-[280px] bg-white shadow" @click.stop>
-
-        <div
-          class="p-1"
-          @click.stop>
-        <a-input
-          size="small"
-          v-model:value="filterQuery"
-          :placeholder="$t('placeholder.searchFields')"/>
+        <div class="p-1" @click.stop>
+          <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
         </div>
         <div class="nc-fields-list py-1">
           <Draggable :list="fields" @change="onMove($event)">
@@ -141,7 +137,7 @@ const onMove = (event: unknown) => {
 :deep(.ant-checkbox-inner) {
   @apply transform scale-60;
 }
-:deep(::placeholder){
-  @apply !text-xs
+:deep(::placeholder) {
+  @apply !text-xs;
 }
 </style>

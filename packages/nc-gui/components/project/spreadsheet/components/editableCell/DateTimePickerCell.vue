@@ -47,7 +47,6 @@ export default {
     localState: {
       get() {
         if (!this.value) {
-          this.$refs?.picker?.clearHandler()
           return this.value
         }
         const d = (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value))

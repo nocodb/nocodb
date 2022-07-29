@@ -3,8 +3,7 @@ import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { EventHook, MaybeRef } from '@vueuse/core'
 import { addAxiosInterceptors } from './interceptors'
-import { createEventHook, ref, unref, useNuxtApp } from '#imports'
-import type { NuxtApp } from '#app'
+import { createEventHook, ref, unref, useGlobal } from '#imports'
 
 interface UseApiReturn<D = any, R = any> {
   api: Api<any>
@@ -15,23 +14,26 @@ interface UseApiReturn<D = any, R = any> {
   onResponse: EventHook<AxiosResponse<D, R>>['on']
 }
 
-export function createApiInstance(app: NuxtApp, baseURL = 'http://localhost:8080') {
-  const api = new Api({
-    baseURL,
-  })
-
-  addAxiosInterceptors(api, app)
-
-  return api
+interface CreateApiOptions {
+  baseURL?: string
 }
 
-/** todo: add props? */
+export function createApiInstance<SecurityDataType = any>(options: CreateApiOptions = {}): Api<SecurityDataType> {
+  return addAxiosInterceptors(
+    new Api<SecurityDataType>({
+      baseURL: options.baseURL ?? 'http://localhost:8080',
+    }),
+  )
+}
+
 interface UseApiProps<D = any> {
   axiosConfig?: MaybeRef<AxiosRequestConfig<D>>
-  useGlobalInstance?: MaybeRef<boolean>
+  apiOptions?: CreateApiOptions
 }
 
 export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
+  const state = $(useGlobal())
+
   const isLoading = ref(false)
 
   const error = ref(null)
@@ -42,13 +44,23 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
 
   const responseHook = createEventHook<AxiosResponse<Data, RequestConfig>>()
 
-  const api = unref(props.useGlobalInstance) ? useNuxtApp().$api : createApiInstance(useNuxtApp())
+  const api = createApiInstance(props.apiOptions)
+
+  function addRequest() {
+    state.runningRequests.push(state.runningRequests.length + 1)
+  }
+
+  function removeRequest() {
+    state.runningRequests.pop()
+  }
 
   api.instance.interceptors.request.use(
     (config) => {
       error.value = null
       response.value = null
       isLoading.value = true
+
+      addRequest()
 
       return {
         ...config,
@@ -61,6 +73,8 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
       response.value = null
       isLoading.value = false
 
+      removeRequest()
+
       return requestError
     },
   )
@@ -72,12 +86,16 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
       response.value = apiResponse
       isLoading.value = false
 
+      removeRequest()
+
       return apiResponse
     },
     (apiError) => {
       errorHook.trigger(apiError)
       error.value = apiError
       isLoading.value = false
+
+      removeRequest()
 
       return apiError
     },

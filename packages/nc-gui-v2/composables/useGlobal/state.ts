@@ -68,9 +68,6 @@ export function useGlobalState(): State {
   /** is sidebar open */
   const sidebarOpen = ref(false)
 
-  /** global loading state */
-  const isLoading = ref(false)
-
   /** currently running requests */
   const runningRequests = ref<number[]>([])
 
@@ -83,7 +80,6 @@ export function useGlobalState(): State {
     jwtPayload: payload,
     sidebarOpen,
     timestamp,
-    isLoading,
     runningRequests,
     error,
   }

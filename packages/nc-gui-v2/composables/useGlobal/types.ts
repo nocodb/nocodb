@@ -11,17 +11,17 @@ export interface StoredState {
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
-  token: WritableComputedRef<string | null>
+  token: WritableComputedRef<string>
   jwtPayload: ComputedRef<(JwtPayload & User) | null>
   sidebarOpen: Ref<boolean>
   timestamp: Ref<number>
-  isLoading: Ref<boolean>
   runningRequests: Ref<number[]>
   error: Ref<any>
 }
 
 export interface Getters {
   signedIn: ComputedRef<boolean>
+  isLoading: WritableComputedRef<boolean>
 }
 
 export interface Actions {

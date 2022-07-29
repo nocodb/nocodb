@@ -1,17 +1,17 @@
 import type { Api } from 'nocodb-sdk'
-import { navigateTo, useRoute, useRouter } from '#imports'
-import type { NuxtApp } from '#app'
+import { navigateTo, useGlobal, useRoute, useRouter } from '#imports'
 
 const DbNotFoundMsg = 'Database config not found'
 
-export function addAxiosInterceptors(api: Api<any>, app: NuxtApp) {
+export function addAxiosInterceptors(api: Api<any>) {
+  const state = $(useGlobal())
   const router = useRouter()
   const route = useRoute()
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
-    if (app.$state.token.value) config.headers['xc-auth'] = app.$state.token.value
+    if (state.token) config.headers['xc-auth'] = state.token
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       // config.headers['xc-preview'] = store.state.users.previewAs
@@ -38,7 +38,7 @@ export function addAxiosInterceptors(api: Api<any>, app: NuxtApp) {
 
       // Logout user if token refresh didn't work or user is disabled
       if (error.config.url === '/auth/refresh-token') {
-        app.$state.signOut()
+        state.signOut()
 
         return Promise.reject(error)
       }
@@ -52,7 +52,7 @@ export function addAxiosInterceptors(api: Api<any>, app: NuxtApp) {
           // New request with new token
           const config = error.config
           config.headers['xc-auth'] = token.data.token
-          app.$state.signIn(token.data.token)
+          state.signIn(token.data.token)
 
           return new Promise((resolve, reject) => {
             api.instance
@@ -66,7 +66,7 @@ export function addAxiosInterceptors(api: Api<any>, app: NuxtApp) {
           })
         })
         .catch(async (error) => {
-          app.$state.signOut()
+          state.signOut()
           // todo: handle new user
 
           navigateTo('/signIn')
@@ -75,4 +75,6 @@ export function addAxiosInterceptors(api: Api<any>, app: NuxtApp) {
         })
     },
   )
+
+  return api
 }

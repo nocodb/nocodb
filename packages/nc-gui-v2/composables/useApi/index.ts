@@ -39,7 +39,7 @@ interface UseApiProps<D = any> {
  *
  * You can use this composable to generate a fresh api instance with its own loading and error refs.
  *
- * Any request called by useApi will be pushed into the global requests state and which toggles the global loading state.
+ * Any request called by useApi will be pushed into the global requests counter which toggles the global loading state.
  *
  * @example
  * ```js

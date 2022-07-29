@@ -59,6 +59,7 @@ const filterOption = (input: string, option: any) => {
 <template>
   <a-select
     v-model:value="localValue"
+    size="small"
     show-search
     placeholder="Select a field"
     :options="options"

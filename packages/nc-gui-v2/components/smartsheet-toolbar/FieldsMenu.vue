@@ -77,7 +77,7 @@ const onMove = (event: { moved: { newIndex: number } }) => {
 
 <template>
   <a-dropdown :trigger="['click']">
-    <div :class="{ 'nc-badge': isAnyFieldHidden }">
+    <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
       <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn text-xs" :disabled="isLocked" size="small">
         <div class="flex align-center gap-1">
           <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->

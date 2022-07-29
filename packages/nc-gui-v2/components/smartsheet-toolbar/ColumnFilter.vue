@@ -95,32 +95,27 @@ watch(
 </script>
 
 <template>
-  <div class="bg-white shadow pa-2 menu-filter-dropdown" :style="{ width: nested ? '100%' : '630px' }">
-    <div v-if="filters && filters.length" class="grid" @click.stop>
+  <div
+    class=" pa-2 menu-filter-dropdown bg-gray-50"
+    :class="{ 'shadow-xl min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
+  >
+    <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
       <template v-for="(filter, i) in filters" :key="filter.id || i">
         <template v-if="filter.status !== 'delete'">
-          <div v-if="filter.is_group" :key="i" style="grid-column: span 5; padding: 6px" class="">
-            <div class="d-flex" style="gap: 6px; padding: 0 6px">
-              <!--              <v-icon
-                v-if="!filter.readOnly"
-                :key="`${i}_3`"
-                small
-                class="nc-filter-item-remove-btn"
-                @click.stop="deleteFilter(filter, i)"
-              >
-                mdi-close-box
-              </v-icon> -->
-              <MdiDeleteIcon
-                v-if="!filter.readOnly"
-                small
-                class="nc-filter-item-remove-btn"
-                @click.stop="deleteFilter(filter, i)"
-              />
+          <template v-if="filter.is_group" >
+            <MdiDeleteIcon
+              :key="i"
+              v-if="!filter.readOnly"
+              small
+              class="nc-filter-item-remove-btn text-grey"
+              @click.stop="deleteFilter(filter, i)"
+            />
+            <span v-else :key="i + 'dummy'"/>
 
-              <span v-else :key="`${i}_1`" />
-
+            <div class="d-flex" :key="i + 'nested'">
               <a-select
                 v-model:value="filter.logical_op"
+                size="small"
                 class="flex-shrink-1 flex-grow-0 elevation-0 caption"
                 :options="logicalOps"
                 placeholder="Group op"
@@ -129,14 +124,17 @@ watch(
               >
               </a-select>
             </div>
-            <SmartsheetToolbarColumnFilter
-              v-if="filter.id || shared"
-              ref="nestedFilter"
-              v-model="filter.children"
-              :parent-id="filter.id"
-              nested
-            />
-          </div>
+            <span class="col-span-3" />
+            <div class="col-span-5">
+              <SmartsheetToolbarColumnFilter
+                v-if="filter.id || shared"
+                ref="nestedFilter"
+                v-model="filter.children"
+                :parent-id="filter.id"
+                nested
+              />
+            </div>
+          </template>
           <template v-else>
             <!--                        <v-icon
                                       v-if="!filter.readOnly"
@@ -160,6 +158,7 @@ watch(
             <a-select
               v-else
               v-model:value="filter.logical_op"
+              size="small"
               class="h-full"
               :options="logicalOps"
               hide-details
@@ -171,7 +170,7 @@ watch(
             <FieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="caption text-sm nc-filter-field-select"
+              class="caption nc-filter-field-select"
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
@@ -180,7 +179,8 @@ watch(
 
             <a-select
               v-model:value="filter.comparison_op"
-              class="caption nc-filter-operation-select text-sm"
+              size="small"
+              class="caption nc-filter-operation-select"
               :options="comparisonOpList"
               :placeholder="$t('labels.operation')"
               density="compact"
@@ -203,6 +203,7 @@ watch(
             <a-checkbox
               v-else-if="types[filter.field] === 'boolean'"
               v-model:value="filter.value"
+              size="small"
               dense
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
@@ -211,7 +212,8 @@ watch(
               v-else
               :key="`${i}_7`"
               v-model="filter.value"
-              class="caption text-sm nc-filter-value-select"
+              size="small"
+              class="caption nc-filter-value-select"
               :disabled="filter.readOnly"
               @click.stop
               @input="saveOrUpdate(filter, i)"
@@ -222,7 +224,7 @@ watch(
     </div>
 
     <div class="flex gap-2">
-      <a-button size="small" class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilter">
+      <a-button  size="small" class="elevation-0 text-capitalize text-grey" @click.stop="addFilter">
         <div class="flex align-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiAddIcon />
@@ -230,7 +232,7 @@ watch(
           {{ $t('activity.addFilter') }}
         </div>
       </a-button>
-      <a-button size="small" class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilterGroup">
+      <a-button size="small" class="elevation-0 text-capitalize text-grey" @click.stop="addFilterGroup">
         <div class="flex align-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiAddIcon />
@@ -244,10 +246,15 @@ watch(
 </template>
 
 <style scoped>
-.grid {
+.nc-filter-grid {
   display: grid;
-  grid-template-columns: 30px 130px auto auto auto;
+  grid-template-columns: 18px 70px auto auto auto;
   column-gap: 6px;
   row-gap: 6px;
+  align-items: center;
+}
+
+:deep(.ant-btn, .ant-select, .ant-input) {
+  @apply "!text-xs";
 }
 </style>

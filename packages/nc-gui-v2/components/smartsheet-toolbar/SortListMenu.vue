@@ -27,7 +27,7 @@ watch(
 
 <template>
   <a-dropdown offset-y class="" :trigger="['click']">
-    <div :class="{ 'nc-badge': sorts?.length }">
+    <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-t="['c:sort']" size="small" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
         ><div class="flex align-center gap-1">
           <MdiSortIcon class="text-grey" />
@@ -38,7 +38,7 @@ watch(
       </a-button>
     </div>
     <template #overlay>
-      <div class="bg-white shadow p-2 menu-filter-dropdown min-w-[400px]">
+      <div class="bg-gray-50 shadow p-2 menu-filter-dropdown min-w-[400px]">
         <div class="sort-grid" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">
             <!--          <v-icon :key="`${i}icon`" class="nc-sort-item-remove-btn" small @click.stop="deleteSort(sort)"> mdi-close-box </v-icon> -->
@@ -55,6 +55,7 @@ watch(
               @update:model-value="saveOrUpdate(sort, i)"
             />
             <a-select
+              size="small"
               v-model:value="sort.direction"
               class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
               :items="[

@@ -2,14 +2,14 @@
 import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
-import { inject, provide, ref, useApi, useViews } from '#imports'
+import { inject, provide, ref, useApi, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
 
 const meta = inject(MetaInj, ref())
 
 const activeView = inject(ActiveViewInj, ref())
 
-const { views } = useViews(meta)
+const { views, loadViews } = useViews(meta)
 
 const { api } = useApi()
 
@@ -27,6 +27,17 @@ let viewCreateTitle = $ref('')
 /** is view creation modal open */
 let modalOpen = $ref(false)
 
+/** Watch current views and on change set the next active view */
+watch(
+  views,
+  (nextViews) => {
+    if (nextViews.length) {
+      activeView.value = nextViews[0]
+    }
+  },
+  { immediate: true },
+)
+
 /** Open view creation modal */
 function openModal({ type, title = '' }: { type: ViewTypes; title: string }) {
   modalOpen = true
@@ -36,7 +47,7 @@ function openModal({ type, title = '' }: { type: ViewTypes; title: string }) {
 
 /** Handle view creation */
 function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
-  views.value?.push(view)
+  views.value.push(view)
   activeView.value = view
   modalOpen = false
 }
@@ -45,7 +56,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 <template>
   <a-layout-sider theme="light" class="shadow" :width="drawerOpen ? 0 : 250">
     <div class="flex flex-col h-full">
-      <MenuTop @open-modal="openModal" />
+      <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
       <MenuBottom @open-modal="openModal" />
     </div>
 

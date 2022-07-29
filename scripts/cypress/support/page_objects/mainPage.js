@@ -460,27 +460,13 @@ export class _mainPage {
     openMetaTab() {
         // open Project metadata tab
         //
-        this.navigationDraw(this.PROJ_METADATA).click();
-
-        cy.snip("Meta_Tab0");
-
-        cy.get(".nc-meta-mgmt-metadata-tab")
-            .should("exist")
-            .click({ force: true });
-        // kludge, at times test failed to open tab on click
-        cy.get(".nc-meta-mgmt-metadata-tab")
-            .should("exist")
-            .click({ force: true });
-
-        cy.snip("Meta_Tab1");
+        settingsPage.openMenu(settingsPage.PROJ_METADATA)
+        settingsPage.openTab(settingsPage.METADATA)
     }
 
     closeMetaTab() {
-        // user href link to find meta mgmt tab
-        // cy.get('[href="#disableOrEnableModel||||Meta Management"]')
-        //     .find("button.mdi-close")
-        //     .click({ force: true });
-        cy.get("body").click("bottomRight");
+        // close Project metadata tab
+        settingsPage.closeMenu()
 
         // refresh
         cy.refreshTableTab();
@@ -502,12 +488,6 @@ export class _mainPage {
                 cy.wrap(row).contains("No change identified").should("exist");
             }
         });
-        // cy.get(`.nc-metasync-row-${tbl}`).contains(msg).should("not.exist");
-        // cy.get(`.nc-metasync-row-${tbl}`)
-        //   .contains("No change identified")
-        //   .should("exist");
-        // cy.toastWait(`Table metadata recreated successfully`);
-        // cy.get(`.nc-metasync-row-${tbl}`).should("exist");
     }
 
     tabReset() {

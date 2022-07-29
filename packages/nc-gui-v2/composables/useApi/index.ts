@@ -74,16 +74,26 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
   /** fresh api instance - with interceptors for token refresh already bound */
   const api = createApiInstance(props.apiOptions)
 
-  /** increment local and global request counter */
-  function addRequest() {
+  /** set loading to true and increment local and global request counter */
+  function onRequestStart() {
+    isLoading.value = true
+
+    /** local count */
     inc()
+
+    /** global count */
     state.runningRequests.inc()
   }
 
-  /** decrement local and global request counter */
-  function removeRequest() {
+  /** decrement local and global request counter and check if we can stop loading */
+  function onRequestFinish() {
+    /** local count */
     dec()
+    /** global count */
     state.runningRequests.dec()
+
+    /** try to stop loading */
+    stopLoading()
   }
 
   /** set loading state to false *only* if no request is still running */
@@ -103,9 +113,7 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
     (config) => {
       reset()
 
-      isLoading.value = true
-
-      addRequest()
+      onRequestStart()
 
       return {
         ...config,
@@ -118,9 +126,7 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
 
       response.value = null
 
-      stopLoading()
-
-      removeRequest()
+      onRequestFinish()
 
       return requestError
     },
@@ -131,9 +137,7 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
       responseHook.trigger(apiResponse as AxiosResponse<Data, RequestConfig>)
       response.value = apiResponse
 
-      stopLoading()
-
-      removeRequest()
+      onRequestFinish()
 
       return apiResponse
     },
@@ -141,9 +145,7 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
       errorHook.trigger(apiError)
       error.value = apiError
 
-      stopLoading()
-
-      removeRequest()
+      onRequestFinish()
 
       return apiError
     },

@@ -17,7 +17,7 @@ server.set('view engine', 'ejs');
   })
 
   const keepAliveTimeoutSeconds = parseInt(process.env.NC_KEEP_ALIVE_TIMEOUT_SECONDS);
-  if(keepAliveTimeoutSeconds) httpServer.keepAliveTimeout = keepAliveTimeoutSeconds * 1000;
+  if(Number.isFinite(keepAliveTimeoutSeconds)) httpServer.keepAliveTimeout = keepAliveTimeoutSeconds * 1000;
 
   server.use(await Noco.init({}, httpServer, server));
 })().catch(e => console.log(e))

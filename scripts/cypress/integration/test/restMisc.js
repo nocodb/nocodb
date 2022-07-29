@@ -34,7 +34,7 @@ const nocoTestSuite = (apiType, dbType) => {
 
     // intended to keep this after earlier project deletion
     // creates project using excel & deletes it
-    // exclude@ncv2 t7a.genTest(apiType, dbType);
+    t7a.genTest(apiType, dbType);
 };
 
 nocoTestSuite("rest", "mysql");

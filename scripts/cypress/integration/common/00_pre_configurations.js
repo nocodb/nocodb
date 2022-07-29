@@ -236,6 +236,11 @@ export const genTest = (apiType, dbType) => {
                         }
                     }
                 });
+
+                // hack to disable dark mode
+                cy.fileHook();
+
+
             });
         };
 

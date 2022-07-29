@@ -9,11 +9,11 @@ export const genTest = (apiType, dbType) => {
     }${apiType.toUpperCase()} api - Table`, () => {
         before(() => {
             cy.fileHook();
-            cy.get(".mdi-close").click({ multiple: true });
+            // cy.get(".mdi-close").click({ multiple: true });
         });
 
         after(() => {
-            cy.get(".mdi-close").click({ multiple: true, force: true });
+            // cy.get(".mdi-close").click({ multiple: true, force: true });
         });
 
         const name = "tablex";

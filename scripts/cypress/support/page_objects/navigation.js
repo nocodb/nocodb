@@ -216,9 +216,9 @@ export class _projectsPage {
     //
     deleteProject(projectName) {
         cy.log("Delete project: " + projectName);
-        console.log("Delete project: " + projectName);
         cy.get(".nc-noco-brand-icon").should('exist').click();
-        cy.get(".ant-table-row").contains(`${projectName}`).should("exist").then(($obj) => {
+        cy.get(".ant-table-row").contains(`${projectName}`).should("exist")
+        .then(($obj) => {
             cy.log($obj)
             cy.wrap($obj).parent().parent().find('.ant-table-cell').last().click()
         })

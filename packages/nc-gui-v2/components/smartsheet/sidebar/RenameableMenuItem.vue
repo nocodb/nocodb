@@ -135,11 +135,14 @@ function onStopEdit() {
 <template>
   <a-menu-item class="group !flex !items-center !my-0" @dblclick="onDblClick" @click="onClick">
     <div v-t="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
-      <MdiDrag
-        :class="`transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move nc-child-draggable-icon-${vModel.title}`"
-      />
+      <div class="flex w-auto">
+        <MdiDrag
+          class="hidden group-hover:block"
+          :class="`transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move nc-child-draggable-icon-${vModel.title}`"
+        />
 
-      <component :is="viewIcons[vModel.type].icon" :class="`text-${viewIcons[vModel.type].color}`" />
+        <component :is="viewIcons[vModel.type].icon" class="group-hover:hidden" :class="`text-${viewIcons[vModel.type].color}`" />
+      </div>
 
       <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
       <div v-else>{{ vModel.alias || vModel.title }}</div>

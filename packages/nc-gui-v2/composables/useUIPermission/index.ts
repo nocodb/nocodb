@@ -2,7 +2,7 @@ import rolePermissions from './rolePermissions'
 import { useState } from '#app'
 import { USER_PROJECT_ROLES } from '~/lib/constants'
 
-export default () => {
+export function useUIPermission() {
   const { $state } = useNuxtApp()
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
 

@@ -34,7 +34,7 @@ const rolePermissions = {
     projectActions: true,
     projectSettings: true,
   },
-}
+} as const
 
 export default rolePermissions
 

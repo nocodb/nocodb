@@ -14,7 +14,8 @@
       "@intlify/vite-plugin-vue-i18n/client",
       "vue-i18n",
       "unplugin-icons/types/vue",
-      "nuxt-windicss"
+      "nuxt-windicss",
+      "vite/client"
     ]
   },
   "exclude": [

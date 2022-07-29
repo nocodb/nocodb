@@ -3,7 +3,7 @@ import * as monaco from 'monaco-editor'
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
 import { onMounted } from '#imports'
-import { deepCompare } from '~/utils/deepCompare'
+import { deepCompare } from '~/utils'
 
 const { modelValue } = defineProps<{ modelValue: any }>()
 
@@ -83,5 +83,3 @@ watch(
 <template>
   <div ref="root"></div>
 </template>
-
-<style scoped></style>

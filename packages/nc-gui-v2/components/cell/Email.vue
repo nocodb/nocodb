@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed } from '#imports'
-import { isEmail } from '~/utils/validation'
+import { isEmail } from '~/utils'
 
 const { modelValue: value } = defineProps<Props>()
 

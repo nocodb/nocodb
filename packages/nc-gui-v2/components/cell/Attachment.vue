@@ -37,7 +37,7 @@ watchEffect(() => {
   }
 })
 
-const selectImage = (file: any, i) => {
+const selectImage = (file: any, i: unknown) => {
   // todo: implement
 }
 
@@ -49,7 +49,7 @@ const addFile = () => {
   fileInput.value?.click()
 }
 
-const onFileSelection = async (e) => {
+const onFileSelection = async (e: unknown) => {
   // if (this.isPublicGrid) {
   //   return
   // }

@@ -20,7 +20,7 @@ function getPredicate(key: Partial<TabItem>) {
     (!('type' in key) || tab.type === key.id)
 }
 
-export default () => {
+export function useTabs() {
   const tabs = useState<TabItem[]>('tabs', () => [])
 
   const route = useRoute()

@@ -1,5 +1,5 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
-import useMetas from './useMetas'
+import { useMetas } from './useMetas'
 
 export function useBelongsTo(column: ColumnType) {
   const { metas, getMeta } = useMetas()

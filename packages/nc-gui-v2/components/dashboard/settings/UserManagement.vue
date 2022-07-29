@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { useDebounce } from '@vueuse/core'
 import KebabIcon from '~icons/ic/baseline-more-vert'
-import { extractSdkResponseErrorMsg } from '~~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import UsersModal from './user-management/UsersModal.vue'
 import { projectRoleTagColors } from '~/utils/userUtils'
 import MidAccountIcon from '~icons/mdi/account-outline'
@@ -15,7 +14,8 @@ import MdiPlusIcon from '~icons/mdi/plus'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
 import MdiEmailSendIcon from '~icons/mdi/email-arrow-right-outline'
 import RolesIcon from '~icons/mdi/drama-masks'
-import { User } from '~~/lib/types'
+import { User } from '~/lib/types'
+import { watchDebounced } from '@vueuse/core'
 import { useToast } from 'vue-toastification'
 import FeedbackForm from './user-management/FeedbackForm.vue'
 const toast = useToast()
@@ -33,7 +33,6 @@ let totalRows = $ref(0)
 const currentPage = $ref(1)
 const currentLimit = $ref(10)
 const searchText = ref<string>('')
-const debouncedSearchText = useDebounce(searchText, 300)
 
 const loadUsers = async (page = currentPage, limit = currentLimit) => {
   try {
@@ -138,9 +137,10 @@ onMounted(async () => {
   }
 })
 
-watch(
-  () => debouncedSearchText.value,
+watchDebounced(
+  searchText,
   () => loadUsers(),
+  { debounce: 300, maxWait: 600 },
 )
 
 </script>

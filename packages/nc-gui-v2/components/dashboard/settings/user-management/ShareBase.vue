@@ -2,7 +2,7 @@
 import { useToast } from 'vue-toastification'
 import OpenInNewIcon from '~icons/mdi/open-in-new'
 import { dashboardUrl } from '~/utils/urlUtils'
-import { extractSdkResponseErrorMsg } from '~~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiReload from '~icons/mdi/reload'
 import DownIcon from '~icons/ic/round-keyboard-arrow-down'
 import ContentCopyIcon from '~icons/mdi/content-copy'

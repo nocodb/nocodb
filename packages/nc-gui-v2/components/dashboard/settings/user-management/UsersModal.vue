@@ -6,12 +6,12 @@ import SendIcon from '~icons/material-symbols/send-outline'
 import CloseIcon from '~icons/material-symbols/close-rounded'
 import MidAccountIcon from '~icons/mdi/account-outline'
 import ContentCopyIcon from '~icons/mdi/content-copy'
-import type { User } from '~~/lib/types'
+import type { User } from '~/lib/types'
 import { ProjectRole } from '~/lib/enums'
 import { projectRoleTagColors } from '~/utils/userUtils'
 import { copyTextToClipboard } from '~/utils/miscUtils'
-import { extractSdkResponseErrorMsg } from '~~/utils/errorUtils'
-import { isEmail } from '~~/utils/validation'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { isEmail } from '~/utils/validation'
 
 interface Props {
   show: boolean
@@ -175,16 +175,28 @@ const clickInviteMore = () => {
             <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? 'Edit User' : 'Invite Team' }}</div>
           </div>
           <div class="border-1 py-3 px-4 rounded-md mt-1">
-            <a-form ref="formRef" :model="usersData" @finish="saveUser">
+            <a-form
+              ref="formRef"
+              :validate-on-rule-change="false"
+              :model="usersData"
+              validate-trigger="onBlur"
+              @finish="saveUser"
+            >
               <div class="flex flex-row space-x-4">
                 <div class="flex flex-col w-3/4">
                   <a-form-item
                     v-bind="validateInfos.emails"
+                    validate-trigger="onBlur"
                     name="emails"
                     :rules="[{ required: true, message: 'Please input email' }]"
                   >
                     <div class="ml-1 mb-1 text-xs text-gray-500">Email:</div>
-                    <a-input v-model:value="usersData.emails" placeholder="Email" :disabled="!!selectedUser" />
+                    <a-input
+                      v-model:value="usersData.emails"
+                      validate-trigger="onBlur"
+                      placeholder="Email"
+                      :disabled="!!selectedUser"
+                    />
                   </a-form-item>
                 </div>
                 <div class="flex flex-col w-1/4">

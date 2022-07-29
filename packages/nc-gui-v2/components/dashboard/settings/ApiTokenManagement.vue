@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import type { ApiTokenType } from '~~/../nocodb-sdk/build/main'
+import type { ApiTokenType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -9,7 +9,7 @@ import VisibilityOpenIcon from '~icons/material-symbols/visibility'
 import VisibilityCloseIcon from '~icons/material-symbols/visibility-off'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
-import { extractSdkResponseErrorMsg } from '~~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { copyTextToClipboard } from '~/utils/miscUtils'
 
 const toast = useToast()

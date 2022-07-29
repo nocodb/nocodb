@@ -53,7 +53,7 @@ async function onDelete() {
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" :confirm-loading="isLoading">
+  <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="isLoading">
     <template #title> {{ $t('general.delete') }} {{ $t('objects.view') }} </template>
 
     Are you sure you want to delete this view?

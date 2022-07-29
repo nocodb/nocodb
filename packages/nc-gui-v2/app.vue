@@ -5,23 +5,22 @@ import MdiDotsVertical from '~icons/mdi/dots-vertical'
 import MaterialSymbolsMenu from '~icons/material-symbols/menu'
 import MdiReload from '~icons/mdi/reload'
 import { navigateTo } from '#app'
+import { useGlobal } from '#imports'
 
-const { $state } = useNuxtApp()
-
-const { isLoading } = useApi({ useGlobalInstance: true })
+const state = useGlobal()
 
 const sidebar = ref<HTMLDivElement>()
 
-const email = computed(() => $state.user?.value?.email ?? '---')
+const email = computed(() => state.user.value?.email ?? '---')
 
 const signOut = () => {
-  $state.signOut()
+  state.signOut()
   navigateTo('/signin')
 }
 
 const sidebarCollapsed = computed({
-  get: () => !$state.sidebarOpen.value,
-  set: (val) => ($state.sidebarOpen.value = !val),
+  get: () => !state.sidebarOpen.value,
+  set: (val) => (state.sidebarOpen.value = !val),
 })
 
 const toggleSidebar = () => {
@@ -32,7 +31,7 @@ const toggleSidebar = () => {
 <template>
   <a-layout class="min-h-[100vh]">
     <a-layout-header class="flex !bg-primary items-center text-white px-4 shadow-md">
-      <MaterialSymbolsMenu v-if="$state.signedIn.value" class="text-xl cursor-pointer" @click="toggleSidebar" />
+      <MaterialSymbolsMenu v-if="state.signedIn.value" class="text-xl cursor-pointer" @click="toggleSidebar" />
 
       <div class="flex-1" />
 
@@ -42,8 +41,9 @@ const toggleSidebar = () => {
           <span class="prose-xl">NocoDB</span>
         </div>
 
-        <div v-show="isLoading" class="text-gray-400 ml-3">
-          {{ $t('general.loading') }} <MdiReload :class="{ 'animate-infinite animate-spin !text-success': isLoading }" />
+        <div v-show="state.isLoading.value" class="text-gray-400 ml-3">
+          {{ $t('general.loading') }}
+          <MdiReload :class="{ 'animate-infinite animate-spin !text-success': state.isLoading.value }" />
         </div>
       </div>
 
@@ -52,7 +52,7 @@ const toggleSidebar = () => {
       <div class="flex justify-end gap-4">
         <general-language class="mr-3" />
 
-        <template v-if="$state.signedIn.value">
+        <template v-if="state.signedIn.value">
           <a-dropdown :trigger="['click']">
             <MdiDotsVertical class="md:text-xl cursor-pointer nc-user-menu" @click.prevent />
 

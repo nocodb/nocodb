@@ -32,7 +32,7 @@ interface UseApiProps<D = any> {
 }
 
 export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
-  const state = $(useGlobal())
+  const state = useGlobal()
 
   const isLoading = ref(false)
 
@@ -47,11 +47,11 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
   const api = createApiInstance(props.apiOptions)
 
   function addRequest() {
-    state.runningRequests.push(state.runningRequests.length + 1)
+    state.runningRequests.value.push(state.runningRequests.value.length + 1)
   }
 
   function removeRequest() {
-    state.runningRequests.pop()
+    state.runningRequests.value.pop()
   }
 
   api.instance.interceptors.request.use(

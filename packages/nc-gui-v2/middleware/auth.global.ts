@@ -1,4 +1,5 @@
-import { defineNuxtRouteMiddleware, navigateTo, useNuxtApp } from '#app'
+import { defineNuxtRouteMiddleware, navigateTo } from '#app'
+import { useGlobal } from '#imports'
 
 /**
  * Global auth middleware
@@ -20,12 +21,13 @@ import { defineNuxtRouteMiddleware, navigateTo, useNuxtApp } from '#app'
  * ```
  */
 export default defineNuxtRouteMiddleware((to, from) => {
-  const { $state } = useNuxtApp()
+  const state = useGlobal()
 
   /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
-  if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !$state.signedIn.value) {
+  if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !state.signedIn.value) {
+    console.log('tosignin')
     return navigateTo('/signin')
-  } else if (to.meta.requiresAuth === false && $state.signedIn.value) {
+  } else if (to.meta.requiresAuth === false && state.signedIn.value) {
     /**
      * if user was turned away from non-auth page but also came from a non-auth page (e.g. user went to /signin and reloaded the page)
      * redirect to home page

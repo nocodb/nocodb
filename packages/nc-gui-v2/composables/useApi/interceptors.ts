@@ -4,14 +4,14 @@ import { navigateTo, useGlobal, useRoute, useRouter } from '#imports'
 const DbNotFoundMsg = 'Database config not found'
 
 export function addAxiosInterceptors(api: Api<any>) {
-  const state = $(useGlobal())
+  const state = useGlobal()
   const router = useRouter()
   const route = useRoute()
 
   api.instance.interceptors.request.use((config) => {
     config.headers['xc-gui'] = 'true'
 
-    if (state.token) config.headers['xc-auth'] = state.token
+    if (state.token.value) config.headers['xc-auth'] = state.token.value
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
       // config.headers['xc-preview'] = store.state.users.previewAs

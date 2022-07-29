@@ -11,7 +11,8 @@ export interface StoredState {
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {
-  token: WritableComputedRef<string>
+  storage: Ref<StoredState>
+  token: WritableComputedRef<StoredState['token']>
   jwtPayload: ComputedRef<(JwtPayload & User) | null>
   sidebarOpen: Ref<boolean>
   timestamp: Ref<number>

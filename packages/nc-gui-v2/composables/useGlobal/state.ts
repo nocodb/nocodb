@@ -63,7 +63,7 @@ export function useGlobalState(): State {
   })
 
   /** reactive token payload */
-  const { payload } = useJwt<JwtPayload & User>(token.value)
+  const { payload } = useJwt<JwtPayload & User>(token)
 
   /** is sidebar open */
   const sidebarOpen = ref(false)
@@ -76,6 +76,7 @@ export function useGlobalState(): State {
 
   return {
     ...toRefs(storage.value),
+    storage,
     token,
     jwtPayload: payload,
     sidebarOpen,

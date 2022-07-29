@@ -2,6 +2,7 @@ import type { ComputedRef, Ref, ToRefs } from 'vue'
 import type { WritableComputedRef } from '@vue/reactivity'
 import type { JwtPayload } from 'jwt-decode'
 import type { User } from '~/lib'
+import type { useCounter } from '#imports'
 
 export interface StoredState {
   token: string | null
@@ -16,7 +17,7 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   jwtPayload: ComputedRef<(JwtPayload & User) | null>
   sidebarOpen: Ref<boolean>
   timestamp: Ref<number>
-  runningRequests: Ref<number[]>
+  runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>
 }
 

@@ -2,7 +2,7 @@ import { usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
 import type { State, StoredState } from './types'
-import { computed, ref, toRefs, useNuxtApp, useTimestamp } from '#imports'
+import { computed, ref, toRefs, useCounter, useNuxtApp, useTimestamp } from '#imports'
 import type { User } from '~/lib'
 
 export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
@@ -67,7 +67,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   const sidebarOpen = ref(false)
 
   /** currently running requests */
-  const runningRequests = ref<number[]>([])
+  const runningRequests = useCounter()
 
   /** global error */
   const error = ref()

@@ -17,7 +17,7 @@ export function useGlobalGetters(state: State): Getters {
   /** global loading state */
   let loading = $ref(false)
   const isLoading = computed({
-    get: () => state.runningRequests.value.length > 0 || loading,
+    get: () => state.runningRequests.count.value > 0 || loading,
     set: (_loading) => (loading = !_loading),
   })
 

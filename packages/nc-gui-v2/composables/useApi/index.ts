@@ -3,7 +3,7 @@ import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type { EventHook, MaybeRef } from '@vueuse/core'
 import { addAxiosInterceptors } from './interceptors'
-import { createEventHook, ref, unref, useGlobal } from '#imports'
+import { createEventHook, ref, unref, useCounter, useGlobal } from '#imports'
 
 interface UseApiReturn<D = any, R = any> {
   api: Api<any>
@@ -52,30 +52,57 @@ interface UseApiProps<D = any> {
 export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
   const state = useGlobal()
 
+  /**
+   * Local state of running requests, do not confuse with global state of running requests
+   * This state is only counting requests made by this instance of `useApi` and not by other instances.
+   */
+  const { count, inc, dec } = useCounter(0)
+
+  /** is request loading */
   const isLoading = ref(false)
 
+  /** latest request error */
   const error = ref(null)
 
-  const response = ref<any>(null)
+  /** latest request response */
+  const response = ref<unknown | null>(null)
 
   const errorHook = createEventHook<AxiosError<Data, RequestConfig>>()
 
   const responseHook = createEventHook<AxiosResponse<Data, RequestConfig>>()
 
+  /** fresh api instance - with interceptors for token refresh already bound */
   const api = createApiInstance(props.apiOptions)
 
+  /** increment local and global request counter */
   function addRequest() {
-    state.runningRequests.value.push(state.runningRequests.value.length + 1)
+    inc()
+    state.runningRequests.inc()
   }
 
+  /** decrement local and global request counter */
   function removeRequest() {
-    state.runningRequests.value.pop()
+    dec()
+    state.runningRequests.dec()
+  }
+
+  /** set loading state to false *only* if no request is still running */
+  function stopLoading() {
+    if (count.value === 0) {
+      isLoading.value = false
+    }
+  }
+
+  /** reset response and error refs */
+  function reset() {
+    error.value = null
+    response.value = null
   }
 
   api.instance.interceptors.request.use(
     (config) => {
-      error.value = null
-      response.value = null
+      reset()
+
       isLoading.value = true
 
       addRequest()
@@ -88,8 +115,10 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
     (requestError) => {
       errorHook.trigger(requestError)
       error.value = requestError
+
       response.value = null
-      isLoading.value = false
+
+      stopLoading()
 
       removeRequest()
 
@@ -100,9 +129,9 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
   api.instance.interceptors.response.use(
     (apiResponse) => {
       responseHook.trigger(apiResponse as AxiosResponse<Data, RequestConfig>)
-      // can't properly typecast
       response.value = apiResponse
-      isLoading.value = false
+
+      stopLoading()
 
       removeRequest()
 
@@ -111,7 +140,8 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
     (apiError) => {
       errorHook.trigger(apiError)
       error.value = apiError
-      isLoading.value = false
+
+      stopLoading()
 
       removeRequest()
 
@@ -119,5 +149,12 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
     },
   )
 
-  return { api, isLoading, response, error, onError: errorHook.on, onResponse: responseHook.on }
+  return {
+    api,
+    isLoading,
+    response: response as Ref<AxiosResponse<Data, RequestConfig>>,
+    error,
+    onError: errorHook.on,
+    onResponse: responseHook.on,
+  }
 }

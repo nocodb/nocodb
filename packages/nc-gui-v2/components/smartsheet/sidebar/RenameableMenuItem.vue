@@ -159,22 +159,15 @@ function onStopEdit() {
             <MdiContentCopy class="hidden group-hover:block text-gray-500" @click.stop="onDuplicate" />
           </a-tooltip>
 
-          <a-popconfirm
-            v-if="!vModel.is_default"
-            placement="left"
-            :title="$t('msg.info.deleteProject')"
-            :ok-text="$t('general.yes')"
-            :cancel-text="$t('general.no')"
-            @confirm="onDelete"
-          >
+          <template v-if="!vModel.is_default">
             <a-tooltip placement="left">
               <template #title>
                 {{ $t('activity.deleteView') }}
               </template>
 
-              <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop />
+              <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop="onDelete" />
             </a-tooltip>
-          </a-popconfirm>
+          </template>
         </div>
       </template>
     </div>

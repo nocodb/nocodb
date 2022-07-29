@@ -4,7 +4,7 @@ import Sortable from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import { notification } from 'ant-design-vue'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { computed, inject, onBeforeUnmount, onMounted, ref, unref, useApi, useNuxtApp, useTabs, watch } from '#imports'
+import { computed, inject, onBeforeUnmount, onMounted, ref, unref, useApi, useTabs, watch } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import type { TabItem } from '~/composables/useTabs'
 import { TabType } from '~/composables/useTabs'
@@ -22,8 +22,6 @@ const activeView = inject(ActiveViewInj, ref())
 
 const views = inject(ViewListInj, ref([]))
 
-const { $e } = useNuxtApp()
-
 const { addTab } = useTabs()
 
 const { api } = useApi()
@@ -35,6 +33,10 @@ let sortable: Sortable
 const selected = ref<string[]>([])
 
 const menuRef = ref<typeof AntMenu>()
+
+let deleteModalVisible = $ref(false)
+
+let toDelete = $ref<Record<string, any> | undefined>()
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
@@ -146,24 +148,14 @@ async function onRename(view: Record<string, any>) {
 
 /** Delete a view */
 async function onDelete(view: Record<string, any>) {
-  try {
-    await api.dbView.delete(view.id)
+  toDelete = view
+  deleteModalVisible = true
+}
 
-    notification.success({
-      message: 'View deleted successfully',
-      duration: 3,
-    })
-
-    emits('deleted')
-  } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-      duration: 3,
-    })
-  }
-
-  // telemetry event
-  $e('a:view:delete', { view: view.type })
+function onDeleted() {
+  emits('deleted')
+  toDelete = undefined
+  deleteModalVisible = false
 }
 
 const sortedViews = computed(() => (views.value as any[]).sort((a, b) => a.order - b.order))
@@ -183,4 +175,6 @@ const sortedViews = computed(() => (views.value as any[]).sort((a, b) => a.order
       @rename="onRename"
     />
   </a-menu>
+
+  <dlg-view-delete v-model="deleteModalVisible" :view="toDelete" @deleted="onDeleted" />
 </template>

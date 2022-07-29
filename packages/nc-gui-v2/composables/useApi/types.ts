@@ -22,4 +22,5 @@ export interface UseApiProps<D = any> {
   axiosConfig?: MaybeRef<AxiosRequestConfig<D>>
   /** {@link Api} options */
   apiOptions?: CreateApiOptions
+  useGlobalInstance?: boolean
 }

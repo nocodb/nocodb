@@ -3,7 +3,7 @@ import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { addAxiosInterceptors } from './interceptors'
 import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
-import { createEventHook, ref, unref, useCounter, useGlobal } from '#imports'
+import { createEventHook, ref, unref, useCounter, useGlobal, useNuxtApp } from '#imports'
 
 export function createApiInstance<SecurityDataType = any>(options: CreateApiOptions = {}): Api<SecurityDataType> {
   return addAxiosInterceptors(
@@ -28,7 +28,11 @@ export function createApiInstance<SecurityDataType = any>(options: CreateApiOpti
  *   const { token } = await api.auth.signIn(form)
  * }
  */
-export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
+export function useApi<Data = any, RequestConfig = any>({
+  useGlobalInstance = false,
+  apiOptions,
+  axiosConfig,
+}: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
   const state = useGlobal()
 
   /**
@@ -50,8 +54,11 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
 
   const responseHook = createEventHook<AxiosResponse<Data, RequestConfig>>()
 
-  /** fresh api instance - with interceptors for token refresh already bound */
-  const api = createApiInstance(props.apiOptions)
+  /** global api instance */
+  const $api = useNuxtApp().$api
+
+  /** api instance - with interceptors for token refresh already bound */
+  const api = useGlobalInstance && !!$api ? $api : createApiInstance(apiOptions)
 
   /** set loading to true and increment local and global request counter */
   function onRequestStart() {
@@ -96,7 +103,7 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
 
       return {
         ...config,
-        ...unref(props),
+        ...unref(axiosConfig),
       }
     },
     (requestError) => {

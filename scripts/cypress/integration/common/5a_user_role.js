@@ -1,5 +1,5 @@
 import { loginPage, projectsPage } from "../../support/page_objects/navigation";
-import { mainPage } from "../../support/page_objects/mainPage";
+import { mainPage, settingsPage } from "../../support/page_objects/mainPage";
 import {
     isPostgres,
     isXcdb,
@@ -64,11 +64,8 @@ export const genTest = (apiType, dbType) => {
 
             // open Project metadata tab
             //
-            mainPage.navigationDraw(mainPage.PROJ_METADATA).click();
-            // cy.get(".nc-exp-imp-metadata").dblclick({ force: true });
-            cy.get(".nc-ui-acl-tab").click({ force: true });
-
-            cy.snip("Meta_Tab3");
+            settingsPage.openMenu(settingsPage.PROJ_METADATA);
+            settingsPage.openTab(settingsPage.UI_ACCESS_CONTROL);
 
             // validate if it has 19 entries representing tables & views
             if (isPostgres())

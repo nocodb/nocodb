@@ -89,7 +89,7 @@ const onMove = (event: { moved: { newIndex: number } }) => {
       </a-button>
     </div>
     <template #overlay>
-      <div class="pt-0 min-w-[280px] bg-gray-50 shadow nc-table-toolbar-menu" @click.stop>
+      <div class="pt-0 min-w-[280px] bg-gray-50 shadow nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto" @click.stop>
         <div class="p-1" @click.stop>
           <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
         </div>

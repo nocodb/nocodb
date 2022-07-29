@@ -38,7 +38,7 @@ watch(
       </a-button>
     </div>
     <template #overlay>
-      <div class="bg-gray-50 shadow p-2 menu-filter-dropdown min-w-[400px]">
+      <div class="bg-gray-50 shadow p-2 menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto">
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">
             <!--          <v-icon :key="`${i}icon`" class="nc-sort-item-remove-btn" small @click.stop="deleteSort(sort)"> mdi-close-box </v-icon> -->

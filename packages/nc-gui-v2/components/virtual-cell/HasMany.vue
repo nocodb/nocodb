@@ -2,7 +2,8 @@
 import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
 import { ColumnInj } from '~/context'
-import useHasMany from '~/composables/useHasMany'
+import { useHasMany } from '#imports'
+
 const column = inject(ColumnInj)
 const value = inject('value')
 const active = false

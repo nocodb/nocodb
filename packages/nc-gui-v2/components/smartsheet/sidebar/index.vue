@@ -43,7 +43,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 </script>
 
 <template>
-  <a-layout-sider class="shadow" :width="drawerOpen ? 0 : 250">
+  <a-layout-sider theme="light" class="shadow" :width="drawerOpen ? 0 : 250">
     <div class="flex flex-col h-full">
       <MenuTop @open-modal="openModal" />
       <MenuBottom @open-modal="openModal" />

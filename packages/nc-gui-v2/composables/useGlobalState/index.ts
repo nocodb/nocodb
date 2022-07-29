@@ -1,7 +1,7 @@
 import { breakpointsTailwind, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
-import initialFeedBackForm from './initialFeedBackForm'
+import initialFeedBackForm from './initialFeedbackForm'
 import { computed, ref, toRefs, useBreakpoints, useNuxtApp, useTimestamp, watch } from '#imports'
 import type { Actions, Getters, GlobalState, StoredState, User } from '~/lib/types'
 

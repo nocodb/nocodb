@@ -37,10 +37,6 @@ const handleFeedbackForm = async () => {
   }
 }
 
-const handleInitFunctions = async () => {
+export default defineNuxtPlugin(async () => {
   await handleFeedbackForm()
-}
-
-export default defineNuxtPlugin((nuxtApp) => {
-  nuxtApp.vueApp.use(handleInitFunctions)
 })

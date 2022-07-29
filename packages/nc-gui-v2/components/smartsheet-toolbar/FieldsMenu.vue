@@ -80,12 +80,12 @@ const onMove = (event: unknown) => {
 <template>
   <a-dropdown :trigger="['click']">
     <v-badge :value="isAnyFieldHidden" color="primary" dot overlap>
-      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked" size="small">
+      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn text-xs" :disabled="isLocked" size="small">
         <div class="flex align-center gap-1">
           <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
           <MdiEyeIcon class="text-grey"></MdiEyeIcon>
           <!-- Fields -->
-          <span class="text-sm text-capitalize nc-fields-menu-btn">{{ $t('objects.fields') }}</span>
+          <span class="text-xs text-capitalize nc-fields-menu-btn">{{ $t('objects.fields') }}</span>
           <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
         </div>
       </a-button>
@@ -93,6 +93,15 @@ const onMove = (event: unknown) => {
 
     <template #overlay>
       <div class="pt-0 min-w-[280px] bg-white shadow" @click.stop>
+
+        <div
+          class="p-1"
+          @click.stop>
+        <a-input
+          size="small"
+          v-model:value="filterQuery"
+          :placeholder="$t('placeholder.searchFields')"/>
+        </div>
         <div class="nc-fields-list py-1">
           <Draggable :list="fields" @change="onMove($event)">
             <template #item="{ element: field }">
@@ -114,11 +123,11 @@ const onMove = (event: unknown) => {
           </a-checkbox>
         </div>
         <div class="p-2 flex gap-2" @click.stop>
-          <a-button size="small" class="text-gray-500 text-sm text-capitalize" @click.stop="showAll">
+          <a-button size="small" class="text-gray-500 text-xs text-capitalize" @click.stop="showAll">
             <!-- Show All -->
             {{ $t('general.showAll') }}
           </a-button>
-          <a-button size="small" class="text-gray-500 text-sm text-capitalize" @click.stop="hideAll">
+          <a-button size="small" class="text-gray-500 text-xs text-capitalize" @click.stop="hideAll">
             <!-- Hide All -->
             {{ $t('general.hideAll') }}
           </a-button>
@@ -129,7 +138,10 @@ const onMove = (event: unknown) => {
 </template>
 
 <style scoped lang="scss">
-:deep(.ant-checkbox-input) {
-  transform: scale(0.7);
+:deep(.ant-checkbox-inner) {
+  @apply transform scale-60;
+}
+:deep(::placeholder){
+  @apply !text-xs
 }
 </style>

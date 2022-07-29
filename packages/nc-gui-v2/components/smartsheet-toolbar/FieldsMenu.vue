@@ -77,22 +77,17 @@ const onMove = (event: { moved: { newIndex: number } }) => {
 
 <template>
   <a-dropdown :trigger="['click']">
-    <a-button
-      v-t="['c:fields']"
-      class="nc-fields-menu-btn nc-toolbar-btn text-xs"
-      :class="{ 'nc-badge': isAnyFieldHidden }"
-      :disabled="isLocked"
-      size="small"
-    >
-      <div class="flex align-center gap-1">
-        <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
-        <MdiEyeIcon class="text-grey"></MdiEyeIcon>
-        <!-- Fields -->
-        <span class="text-xs text-capitalize nc-fields-menu-btn">{{ $t('objects.fields') }}</span>
-        <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
-      </div>
-    </a-button>
-
+    <div :class="{ 'nc-badge': isAnyFieldHidden }">
+      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn text-xs" :disabled="isLocked" size="small">
+        <div class="flex align-center gap-1">
+          <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
+          <MdiEyeIcon class="text-grey"></MdiEyeIcon>
+          <!-- Fields -->
+          <span class="text-xs text-capitalize nc-fields-menu-btn">{{ $t('objects.fields') }}</span>
+          <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
+        </div>
+      </a-button>
+    </div>
     <template #overlay>
       <div class="pt-0 min-w-[280px] bg-white shadow" @click.stop>
         <div class="p-1" @click.stop>

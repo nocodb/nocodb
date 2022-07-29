@@ -46,7 +46,7 @@ export const createI18nPlugin = async () =>
 export default defineNuxtPlugin(async (nuxtApp) => {
   const i18n = await createI18nPlugin()
 
-  nuxtApp.vueApp.i18n = i18n.global
+  nuxtApp.vueApp.i18n = i18n.global as any
 
   nuxtApp.vueApp.use(i18n)
 })

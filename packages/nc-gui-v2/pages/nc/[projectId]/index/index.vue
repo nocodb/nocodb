@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import useTabs from '~/composables/useTabs'
 import { TabMetaInj } from '~/context'
-import useUIPermission from '~/composables/useUIPermission'
+import { useTabs, useUIPermission } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiCsvIcon from '~icons/mdi/file-document-outline'
@@ -9,7 +8,6 @@ import MdiExcelIcon from '~icons/mdi/file-excel'
 import MdiJSONIcon from '~icons/mdi/code-json'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiRequestDataSourceIcon from '~icons/mdi/open-in-new'
-import MdiAccountGroupIcon from '~icons/mdi/account-group'
 
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 

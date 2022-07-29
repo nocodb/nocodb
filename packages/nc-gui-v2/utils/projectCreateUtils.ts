@@ -1,4 +1,4 @@
-import { ClientType } from '~/lib/enums'
+import { ClientType } from '~/lib'
 
 export interface ProjectCreateForm {
   title: string

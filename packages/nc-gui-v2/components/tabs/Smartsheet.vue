@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { ColumnType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { computed, inject, provide, watch, watchEffect } from '#imports'
+import { computed, inject, provide, useMetas, watch, watchEffect } from '#imports'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/context'
-import useMetas from '~/composables/useMetas'
 
 const { getMeta, metas } = useMetas()
 

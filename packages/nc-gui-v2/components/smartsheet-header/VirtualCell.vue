@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ColumnInj } from '../../context'
+import { ColumnInj } from '~/context'
 import { provide } from '#imports'
 
 const { column } = defineProps<{ column: ColumnType & { meta: any } }>()

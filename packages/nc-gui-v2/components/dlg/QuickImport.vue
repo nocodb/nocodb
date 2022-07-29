@@ -240,6 +240,7 @@ function getAdapter(name: string, val: any) {
         v-if="!templateEditorModal"
         key="pre-import"
         type="primary"
+        class="nc-btn-import"
         :loading="loading"
         :disabled="disablePreImportButton"
         @click="handlePreImport"
@@ -269,6 +270,7 @@ function getAdapter(name: string, val: any) {
             <a-upload-dragger
               v-model:fileList="importState.fileList"
               name="file"
+              class="nc-input-import"
               :accept="importMeta.acceptTypes"
               :max-count="1"
               list-type="picture"

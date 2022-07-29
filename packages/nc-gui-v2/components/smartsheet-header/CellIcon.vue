@@ -19,7 +19,9 @@ import URLIcon from '~icons/mdi/link'
 import EmailIcon from '~icons/mdi/email'
 import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
 
-const column = inject(ColumnInj)
+const { columnMeta } = defineProps<{ columnMeta?: ColumnType }>()
+
+const column = inject(ColumnInj, columnMeta)
 
 const additionalColMeta = useColumn(column as ColumnType)
 

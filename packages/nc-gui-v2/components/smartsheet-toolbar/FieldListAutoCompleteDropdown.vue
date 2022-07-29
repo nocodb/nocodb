@@ -1,7 +1,10 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
+import { isVirtualCol } from 'nocodb-sdk'
 import { computed } from 'vue'
 import { MetaInj } from '~/context'
+import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
+import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
 
 interface Props {
   modelValue?: string
@@ -48,6 +51,10 @@ const options = computed<SelectProps['options']>(() =>
   meta?.value?.columns?.map((c) => ({
     value: c.id,
     label: c.title,
+    icon: h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
+      columnMeta: c,
+    }),
+    c,
   })),
 )
 
@@ -57,42 +64,9 @@ const filterOption = (input: string, option: any) => {
 </script>
 
 <template>
-  <a-select
-    v-model:value="localValue"
-    size="small"
-    show-search
-    placeholder="Select a field"
-    :options="options"
-    :filter-option="filterOption"
-  ></a-select>
-
-  <!--  <v-autocomplete
-      ref="field"
-      v-model="localValue"
-      class="caption"
-      :items="meta.columns"
-      item-value="id"
-      item-text="title"
-      :label="$t('objects.field')"
-      variant="solo"
-      hide-details
-      @click.stop
-    >
-      &lt;!&ndash;    &lt;!&ndash; @change="$emit('change')" &ndash;&gt; &ndash;&gt;
-      &lt;!&ndash;    <template #selection="{ item }"> &ndash;&gt;
-      &lt;!&ndash;      <v-icon small class="mr-1"> &ndash;&gt;
-      &lt;!&ndash;        {{ item.icon }} &ndash;&gt;
-      &lt;!&ndash;      </v-icon> &ndash;&gt;
-      &lt;!&ndash;      {{ item.title }} &ndash;&gt;
-      &lt;!&ndash;    </template> &ndash;&gt;
-      &lt;!&ndash;    <template #item="{ item }"> &ndash;&gt;
-      &lt;!&ndash;      <span :class="`caption font-weight-regular nc-fld-${item.title}`"> &ndash;&gt;
-      &lt;!&ndash;        <v-icon color="grey" small class="mr-1"> &ndash;&gt;
-      &lt;!&ndash;          {{ item.icon }} &ndash;&gt;
-      &lt;!&ndash;        </v-icon> &ndash;&gt;
-      &lt;!&ndash;        {{ item.title }} &ndash;&gt;
-      &lt;!&ndash;      </span> &ndash;&gt;
-      &lt;!&ndash;    </template> &ndash;&gt;
-    </v-autocomplete> -->
+  <a-select v-model:value="localValue" size="small" show-search placeholder="Select a field" :filter-option="filterOption">
+    <a-select-option v-for="option in options" :key="option.value" :value="option.value">
+      <div class="flex gap-2 align-center"><component :is="option.icon" class="!text-xs !mx-0" /> {{ option.label }}</div>
+    </a-select-option>
+  </a-select>
 </template>
-

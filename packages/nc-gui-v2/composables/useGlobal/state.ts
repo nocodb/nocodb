@@ -5,9 +5,7 @@ import type { State, StoredState } from './types'
 import { computed, ref, toRefs, useNuxtApp, useTimestamp } from '#imports'
 import type { User } from '~/lib'
 
-const storageKey = 'nocodb-gui-v2'
-
-export function useGlobalState(): State {
+export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** get the preferred languages of a user, according to browser settings */
   const preferredLanguages = $(usePreferredLanguages())
   /** todo: reimplement; get the preferred dark mode setting, according to browser settings */

@@ -5,7 +5,6 @@ import { useNuxtApp } from '#imports'
 export function useGlobalActions(state: State) {
   const { $api } = useNuxtApp()
 
-  /** Actions */
   /** Sign out by deleting the token from localStorage */
   const signOut: Actions['signOut'] = () => {
     state.token.value = null

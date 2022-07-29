@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
+import { useClipboard } from '@vueuse/core'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import MdiPlusIcon from '~icons/mdi/plus'
 import CloseIcon from '~icons/material-symbols/close-rounded'
@@ -10,7 +11,6 @@ import VisibilityCloseIcon from '~icons/material-symbols/visibility-off'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { copyTextToClipboard } from '~/utils/miscUtils'
 
 const toast = useToast()
 
@@ -20,6 +20,7 @@ interface ApiToken extends ApiTokenType {
 
 const { $api, $e } = useNuxtApp()
 const { project } = $(useProject())
+const { copy } = useClipboard()
 
 let tokensInfo = $ref<ApiToken[] | undefined>([])
 let showNewTokenModal = $ref(false)
@@ -40,7 +41,7 @@ const openNewTokenModal = () => {
 const copyToken = (token: string | undefined) => {
   if (!token) return
 
-  copyTextToClipboard(token)
+  copy(token)
   toast.info('Copied to clipboard')
 
   $e('c:api-token:copy')
@@ -165,7 +166,7 @@ onMounted(() => {
             </a-tooltip>
             <a-tooltip placement="bottom">
               <template #title> Copy token to clipboard </template>
-              <a-button type="text" class="!rounded-md" @click="item.show = !item.show">
+              <a-button type="text" class="!rounded-md" @click="copyToken(item.token)">
                 <template #icon>
                   <MdiContentCopyIcon height="1rem" class="flex mx-auto" />
                 </template>

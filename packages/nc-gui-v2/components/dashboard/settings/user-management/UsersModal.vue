@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
 import { Form } from 'ant-design-vue'
+import { useClipboard } from '@vueuse/core'
 import ShareBase from './ShareBase.vue'
 import SendIcon from '~icons/material-symbols/send-outline'
 import CloseIcon from '~icons/material-symbols/close-rounded'
@@ -9,7 +10,6 @@ import ContentCopyIcon from '~icons/mdi/content-copy'
 import type { User } from '~/lib/types'
 import { ProjectRole } from '~/lib/enums'
 import { projectRoleTagColors } from '~/utils/userUtils'
-import { copyTextToClipboard } from '~/utils/miscUtils'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { isEmail } from '~/utils/validation'
 
@@ -30,6 +30,7 @@ const toast = useToast()
 
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()
+const { copy } = useClipboard()
 
 const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Guest, invitationToken: undefined })
 const formRef = ref()
@@ -107,7 +108,7 @@ const inviteUrl = $computed(() =>
 const copyUrl = async () => {
   if (!inviteUrl) return
 
-  copyTextToClipboard(inviteUrl)
+  copy(inviteUrl)
   toast.success('Copied shareable base url to clipboard!')
 
   $e('c:shared-base:copy-url')

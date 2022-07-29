@@ -7,7 +7,7 @@ import MidAccountIcon from '~icons/mdi/account-outline'
 import ReloadIcon from "~icons/mdi/reload"
 import MdiEditIcon from '~icons/ic/round-edit'
 import SearchIcon from '~icons/ic/round-search'
-import { copyTextToClipboard } from '~/utils/miscUtils'
+import { useClipboard } from '@vueuse/core'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import EmailIcon from '~icons/eva/email-outline'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -22,6 +22,7 @@ const toast = useToast()
 
 const { $api, $e } = useNuxtApp()
 const { project } = useProject()
+const { copy } = useClipboard()
 
 let users = $ref<null | User[]>(null)
 let selectedUser = $ref<null | User>(null)
@@ -122,7 +123,7 @@ const copyInviteUrl = (user: User) => {
 
   const getInviteUrl = (token: string) => `${location.origin}${location.pathname}#/user/authentication/signup/${token}`;
 
-  copyTextToClipboard(getInviteUrl(user.invite_token) );
+  copy(getInviteUrl(user.invite_token) );
   toast.success('Invite url copied to clipboard');
 }
 

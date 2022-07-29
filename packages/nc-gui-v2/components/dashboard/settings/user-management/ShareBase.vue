@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
+import { useClipboard } from '@vueuse/core'
 import OpenInNewIcon from '~icons/mdi/open-in-new'
 import { dashboardUrl } from '~/utils/urlUtils'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -7,7 +8,6 @@ import MdiReload from '~icons/mdi/reload'
 import DownIcon from '~icons/ic/round-keyboard-arrow-down'
 import ContentCopyIcon from '~icons/mdi/content-copy'
 import MdiXmlIcon from '~icons/mdi/xml'
-import { copyTextToClipboard } from '~/utils/miscUtils'
 const toast = useToast()
 
 interface ShareBase {
@@ -25,6 +25,7 @@ const { $api, $e } = useNuxtApp()
 let base = $ref<null | ShareBase>(null)
 const showEditBaseDropdown = $ref(false)
 const { project } = useProject()
+const { copy } = useClipboard()
 
 const url = $computed(() => (base && base.uuid ? `${dashboardUrl()}#/nc/base/${base.uuid}` : null))
 
@@ -95,7 +96,7 @@ const recreate = async () => {
 const copyUrl = async () => {
   if (!url) return
 
-  copyTextToClipboard(url)
+  copy(url)
   toast.success('Copied shareable base url to clipboard!')
 
   $e('c:shared-base:copy-url')
@@ -112,7 +113,7 @@ const navigateToSharedBase = () => {
 const generateEmbeddableIframe = () => {
   if (!url) return
 
-  copyTextToClipboard(`<iframe
+  copy(`<iframe
 class="nc-embed"
 src="${url}?embed"
 frameborder="0"

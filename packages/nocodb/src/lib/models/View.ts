@@ -30,7 +30,7 @@ export default class View implements ViewType {
   is_default: boolean;
   order: number;
   type: ViewTypes;
-  lock_type?: string;
+  lock_type?: ViewType['lock_type'];
 
   fk_model_id: string;
   model?: Model;

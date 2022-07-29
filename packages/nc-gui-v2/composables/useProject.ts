@@ -2,9 +2,9 @@ import { SqlUiFactory } from 'nocodb-sdk'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
 import { useNuxtApp, useState } from '#app'
-import { USER_PROJECT_ROLES } from '~/lib/constants'
+import { USER_PROJECT_ROLES } from '~/lib'
 
-export default (projectId?: MaybeRef<string>) => {
+export function useProject(projectId?: MaybeRef<string>) {
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
   const { $api } = useNuxtApp()
 

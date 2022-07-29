@@ -2,7 +2,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { SqlUiFactory, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { useProject } from '#imports'
 
-export default (column: ColumnType) => {
+export function useColumn(column: ColumnType) {
   const { project } = useProject()
 
   const uiDatatype: UITypes = (column && column.uidt) as UITypes

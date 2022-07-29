@@ -10,7 +10,7 @@ export interface StoredState {
   darkMode: boolean
 }
 
-export type State = ToRefs<StoredState> & {
+export type State = ToRefs<Omit<StoredState, 'token'>> & {
   token: WritableComputedRef<string | null>
   jwtPayload: ComputedRef<(JwtPayload & User) | null>
   sidebarOpen: Ref<boolean>
@@ -29,4 +29,4 @@ export interface Actions {
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>
 
-export type GlobalState = Getters & Actions & ReadonlyState
+export type UseGlobalReturn = Getters & Actions & ReadonlyState

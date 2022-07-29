@@ -1,8 +1,8 @@
 import { useGlobalState } from './state'
 import { useGlobalActions } from './actions'
+import type { UseGlobalReturn } from './types'
+import { useGlobalGetters } from './getters'
 import { toRefs, useNuxtApp, watch } from '#imports'
-import type { GlobalState } from '~/lib'
-import { useGlobalGetters } from '~/composables/useGlobal/getters'
 
 /**
  * Global state is injected by {@link import('~/plugins/state') state} plugin into our nuxt app (available as `$state`).
@@ -20,15 +20,11 @@ import { useGlobalGetters } from '~/composables/useGlobal/getters'
  * const user = $state.user.value
  * ```
  */
-export const useGlobal = (): GlobalState => {
+export const useGlobal = (): UseGlobalReturn => {
   const { $state, provide } = useNuxtApp()
 
-  if ($state) {
-    console.warn(
-      '[useGlobalState] Global state is injected by state plugin. Manual initialization is unnecessary and should be avoided.',
-    )
-    return $state
-  }
+  /** If state already exists, return it */
+  if ($state) return $state
 
   const state = $(useGlobalState())
 
@@ -38,16 +34,17 @@ export const useGlobal = (): GlobalState => {
 
   /** try to refresh token before expiry (5 min before expiry) */
   watch(
-    () => !!(state.payload && state.payload.exp && state.payload.exp - 5 * 60 < state.timestamp / 1000),
+    () => !!(state.jwtPayload && state.jwtPayload.exp && state.jwtPayload.exp - 5 * 60 < state.timestamp / 1000),
     async (expiring) => {
-      if (getters.signedIn.value && state.payload && expiring) {
+      if (getters.signedIn.value && state.jwtPayload && expiring) {
         await actions.refreshToken()
       }
     },
     { immediate: true },
   )
 
+  /** provide a fresh state instance into nuxt app */
   provide('state', state)
 
-  return { ...toRefs(state), ...getters, ...actions }
+  return { ...toRefs($$(state)), ...getters, ...actions }
 }

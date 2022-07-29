@@ -1,6 +1,6 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
 import type { I18n } from 'vue-i18n'
-import type { GlobalState } from './composables/useGlobal/types'
+import type { UseGlobalReturn } from './composables/useGlobal/types'
 
 import type en from './lang/en.json'
 
@@ -15,7 +15,7 @@ declare module '#app/nuxt' {
     }
     /** {@link import('./plugins/tele') Telemetry} Emit telemetry event */
     $e: (event: string, data?: any) => void
-    $state: GlobalState
+    $state: UseGlobalReturn
   }
 }
 

@@ -2,13 +2,15 @@ import { useGlobalState } from './state'
 import { useGlobalActions } from './actions'
 import type { UseGlobalReturn } from './types'
 import { useGlobalGetters } from './getters'
-import { toRefs, useNuxtApp, watch } from '#imports'
+import { useNuxtApp, watch } from '#imports'
 
 /**
  * Global state is injected by {@link import('~/plugins/state') state} plugin into our nuxt app (available as `$state`).
- * Manual initialization is unnecessary and should be avoided.
+ * You can still call `useGlobal` to receive the `$state` object and access the global state.
+ * If it's not available yet, a new global state object is created and injected into the nuxt app.
  *
- * The state is stored in {@link WindowLocalStorage localStorage}, so it will be available even if the user closes the browser tab.
+ * Part of the state is stored in {@link WindowLocalStorage localStorage}, so it will be available even if the user closes the browser tab.
+ * Check the {@link StoredState StoredState} type for more information.
  *
  * @example
  * ```js
@@ -18,6 +20,18 @@ import { toRefs, useNuxtApp, watch } from '#imports'
  *
  * const token = $state.token.value
  * const user = $state.user.value
+ * ```
+ *
+ * @example
+ * ```js
+ * import { useGlobal } from '#imports'
+ *
+ * const globalState = useGlobal()
+ *
+ * cont token = globalState.token.value
+ * const user = globalState.user.value
+ *
+ * console.log(state.isLoading.value) // isLoading = true if any api request is still running
  * ```
  */
 export const useGlobal = (): UseGlobalReturn => {

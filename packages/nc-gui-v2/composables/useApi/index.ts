@@ -14,6 +14,7 @@ interface UseApiReturn<D = any, R = any> {
   onResponse: EventHook<AxiosResponse<D, R>>['on']
 }
 
+/** {@link Api} options */
 interface CreateApiOptions {
   baseURL?: string
 }
@@ -27,10 +28,27 @@ export function createApiInstance<SecurityDataType = any>(options: CreateApiOpti
 }
 
 interface UseApiProps<D = any> {
+  /** additional axios config for requests */
   axiosConfig?: MaybeRef<AxiosRequestConfig<D>>
+  /** {@link Api} options */
   apiOptions?: CreateApiOptions
 }
 
+/**
+ * Api composable that provides loading, error and response refs, as well as event hooks for error and response.
+ *
+ * You can use this composable to generate a fresh api instance with its own loading and error refs.
+ *
+ * Any request called by useApi will be pushed into the global requests state and which toggles the global loading state.
+ *
+ * @example
+ * ```js
+ * const { api, isLoading, error, response, onError, onResponse } = useApi()
+ *
+ * const onSignIn = async () => {
+ *   const { token } = await api.auth.signIn(form)
+ * }
+ */
 export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
   const state = useGlobal()
 

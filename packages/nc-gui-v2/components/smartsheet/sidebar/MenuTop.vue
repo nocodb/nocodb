@@ -75,6 +75,8 @@ function initializeSortable(el: HTMLElement) {
 
       const { newIndex = 0, oldIndex = 0 } = evt
 
+      if (newIndex === oldIndex) return
+
       const currentItem: Record<string, any> = views.value[oldIndex]
 
       // get items meta of before and after the moved item

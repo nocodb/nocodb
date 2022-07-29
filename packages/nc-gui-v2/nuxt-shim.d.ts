@@ -1,6 +1,7 @@
 import type { Api as BaseAPI } from 'nocodb-sdk'
-import type { createI18nPlugin } from 'src/plugins/i18n'
-import type { GlobalState } from './src/lib/types'
+import type { I18n } from 'vue-i18n'
+import type { GlobalState } from './composables/useGlobal/types'
+
 import type en from './lang/en.json'
 
 type MessageSchema = typeof en
@@ -20,6 +21,6 @@ declare module '#app/nuxt' {
 
 declare module '@vue/runtime-core' {
   interface App {
-    i18n: ReturnType<typeof createI18nPlugin> extends Promise<infer Return> ? Return : never
+    i18n: I18n<MessageSchema, unknown, unknown, false>['global']
   }
 }

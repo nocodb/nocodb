@@ -1,26 +1,21 @@
 import { usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
-import type { ComputedRef, Ref, ToRefs } from 'vue'
-import type { WritableComputedRef } from '@vue/reactivity'
+import type { State, StoredState } from './types'
 import { computed, ref, toRefs, useNuxtApp, useTimestamp } from '#imports'
-import type { StoredState, User } from '~/lib'
+import type { User } from '~/lib'
 
 const storageKey = 'nocodb-gui-v2'
 
-export type UseGlobalStateReturn = ToRefs<StoredState> & {
-  token: WritableComputedRef<string | null>
-  payload: ComputedRef<(JwtPayload & User) | null>
-  sidebarOpen: Ref<boolean>
-  timestamp: Ref<number>
-}
-
-export function useGlobalState(): UseGlobalStateReturn {
+export function useGlobalState(): State {
   /** get the preferred languages of a user, according to browser settings */
   const preferredLanguages = $(usePreferredLanguages())
   /** todo: reimplement; get the preferred dark mode setting, according to browser settings */
   //   const prefersDarkMode = $(usePreferredDark())
   const prefersDarkMode = false
+
+  /** reactive timestamp to check token expiry against */
+  const timestamp = useTimestamp({ immediate: true, interval: 100 })
 
   const {
     vueApp: { i18n },
@@ -73,14 +68,15 @@ export function useGlobalState(): UseGlobalStateReturn {
   /** is sidebar open */
   const sidebarOpen = ref(false)
 
-  /** reactive timestamp to check token expiry against */
-  const timestamp = useTimestamp({ immediate: true, interval: 100 })
+  /** global loading state */
+  const isLoading = ref(false)
 
   return {
-    ...(toRefs(storage) as any),
+    ...toRefs(storage.value),
     token,
-    payload,
+    jwtPayload: payload,
     sidebarOpen,
     timestamp,
+    isLoading,
   }
 }

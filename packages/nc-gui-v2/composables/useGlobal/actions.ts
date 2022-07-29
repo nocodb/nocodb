@@ -1,9 +1,8 @@
 import { notification } from 'ant-design-vue'
-import type { UseGlobalStateReturn } from './state'
-import type { Actions } from '~/lib'
+import type { Actions, State } from './types'
 import { useNuxtApp } from '#imports'
 
-export function useGlobalActions(state: UseGlobalStateReturn) {
+export function useGlobalActions(state: State) {
   const { $api } = useNuxtApp()
 
   /** Actions */
@@ -17,13 +16,13 @@ export function useGlobalActions(state: UseGlobalStateReturn) {
   const signIn: Actions['signIn'] = async (newToken) => {
     state.token.value = newToken
 
-    if (state.payload.value) {
+    if (state.jwtPayload.value) {
       state.user.value = {
-        id: state.payload.value.id,
-        email: state.payload.value.email,
-        firstname: state.payload.value.firstname,
-        lastname: state.payload.value.lastname,
-        roles: state.payload.value.roles,
+        id: state.jwtPayload.value.id,
+        email: state.jwtPayload.value.email,
+        firstname: state.jwtPayload.value.firstname,
+        lastname: state.jwtPayload.value.lastname,
+        roles: state.jwtPayload.value.roles,
       }
     }
   }

@@ -29,7 +29,7 @@ provide(FieldsInj, fields)
 provide('navDrawerOpen', ref(true))
 
 watch(
-  () => tabMeta && tabMeta?.id,
+  () => tabMeta && tabMeta.value.id,
   async (newVal, oldVal) => {
     if (newVal !== oldVal) await getMeta(newVal)
   },

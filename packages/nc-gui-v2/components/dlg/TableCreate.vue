@@ -4,6 +4,7 @@ import { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
 import { onMounted, useProject, useTableCreate, useTabs } from '#imports'
 import { validateTableName } from '~/utils/validation'
+import { TabType } from '~/composables'
 
 interface Props {
   modelValue?: boolean
@@ -34,7 +35,7 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTableCre
   addTab({
     id: table.id as string,
     title: table.title,
-    type: 'table',
+    type: TabType.TABLE,
   })
   dialogShow.value = false
 })

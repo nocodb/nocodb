@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import { definePageMeta } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { navigateTo, useNuxtApp } from '#app'
@@ -25,7 +26,7 @@ const form = reactive({
   password: '',
 })
 
-const formRules = {
+const formRules: Record<string, RuleObject[]> = {
   email: [
     // E-mail is required
     { required: true, message: t('msg.error.signUpRules.emailReqd') },
@@ -33,7 +34,7 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (isEmail(v)) return resolve(true)
+          if (isEmail(v)) return resolve()
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },

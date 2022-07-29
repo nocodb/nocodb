@@ -3,7 +3,7 @@ interface Props {
   url: string
   socialMedias: string[]
   title?: string
-  summary: string
+  summary?: string
   hashTags?: string
   css?: string
   iconClass?: string

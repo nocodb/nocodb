@@ -4,13 +4,15 @@ import { UITypes } from 'nocodb-sdk'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import Smartsheet from '~/components/tabs/Smartsheet.vue'
 import { useNuxtApp } from '#app'
-import { inject, useViewFilters } from '#imports'
+import { inject, useViewFilters, watchEffect } from '#imports'
 import { comparisonOpList } from '~/utils/filterUtils'
 import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
 
 const { nested = false, parentId } = defineProps<{ nested?: boolean; parentId?: string }>()
+
+const emit = defineEmits(['update:filters-length'])
 
 const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
@@ -83,6 +85,13 @@ const logicalOps = [
   { value: 'and', text: 'AND' },
   { value: 'or', text: 'OR' },
 ]
+
+watch(
+  () => filters?.value?.length,
+  (length) => {
+    emit('update:filters-length', length ?? 0)
+  },
+)
 </script>
 
 <template>

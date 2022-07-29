@@ -9,7 +9,7 @@ const autoApplyFilter = useState('autoApplyFilter', () => false)
 const isLocked = inject(IsLockedInj)
 
 // todo: emit from child
-const filters = []
+const filtersLength = ref(0)
 
 // todo: implement
 const applyChanges = () => {}
@@ -17,7 +17,7 @@ const applyChanges = () => {}
 
 <template>
   <a-dropdown :trigger="['click']">
-    <v-badge :value="filters.length" color="primary" dot overlap>
+    <div :class="{ 'nc-badge': filtersLength }">
       <a-button v-t="['c:filter']" class="nc-filter-menu-btn nc-toolbar-btn" :disabled="isLocked" size="small">
         <div class="flex align-center gap-1">
           <MdiFilterIcon class="text-grey" />
@@ -26,9 +26,9 @@ const applyChanges = () => {}
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>
-    </v-badge>
+    </div>
     <template #overlay>
-      <SmartsheetToolbarColumnFilter />
+      <SmartsheetToolbarColumnFilter @update:filters-length="filtersLength = $event" />
     </template>
   </a-dropdown>
 </template>

@@ -1,23 +1,9 @@
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosError, AxiosResponse } from 'axios'
 import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { EventHook, MaybeRef } from '@vueuse/core'
 import { addAxiosInterceptors } from './interceptors'
+import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
 import { createEventHook, ref, unref, useCounter, useGlobal } from '#imports'
-
-interface UseApiReturn<D = any, R = any> {
-  api: Api<any>
-  isLoading: Ref<boolean>
-  error: Ref<AxiosError<D, R> | null>
-  response: Ref<AxiosResponse<D, R> | null>
-  onError: EventHook<AxiosError<D, R>>['on']
-  onResponse: EventHook<AxiosResponse<D, R>>['on']
-}
-
-/** {@link Api} options */
-interface CreateApiOptions {
-  baseURL?: string
-}
 
 export function createApiInstance<SecurityDataType = any>(options: CreateApiOptions = {}): Api<SecurityDataType> {
   return addAxiosInterceptors(
@@ -25,13 +11,6 @@ export function createApiInstance<SecurityDataType = any>(options: CreateApiOpti
       baseURL: options.baseURL ?? 'http://localhost:8080',
     }),
   )
-}
-
-interface UseApiProps<D = any> {
-  /** additional axios config for requests */
-  axiosConfig?: MaybeRef<AxiosRequestConfig<D>>
-  /** {@link Api} options */
-  apiOptions?: CreateApiOptions
 }
 
 /**

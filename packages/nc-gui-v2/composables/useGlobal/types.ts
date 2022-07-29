@@ -29,6 +29,7 @@ export interface Getters {
 export interface Actions {
   signOut: () => void
   signIn: (token: string) => void
+  refreshToken: () => void
 }
 
 export type ReadonlyState = Readonly<Pick<State, 'token' | 'user'>> & Omit<State, 'token' | 'user'>

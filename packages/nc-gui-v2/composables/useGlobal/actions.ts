@@ -2,7 +2,9 @@ import { notification } from 'ant-design-vue'
 import type { Actions, State } from './types'
 import { useNuxtApp } from '#imports'
 
-export function useGlobalActions(state: State) {
+export function useGlobalActions(state: State): Actions {
+  // todo replace with just `new Api()`? Would solve recursion issues
+  /** we have to use the globally injected api instance, otherwise we run into recursion as `useApi` calls `useGlobal` */
   const { $api } = useNuxtApp()
 
   /** Sign out by deleting the token from localStorage */

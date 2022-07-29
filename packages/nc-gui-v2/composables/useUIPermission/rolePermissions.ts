@@ -1,4 +1,4 @@
-const permissions: Record<string, Record<string, boolean> | '*'> = {
+const rolePermissions = {
   creator: '*',
   owner: '*',
   guest: {},
@@ -36,4 +36,13 @@ const permissions: Record<string, Record<string, boolean> | '*'> = {
   },
 }
 
-export default permissions
+export default rolePermissions
+
+type GetKeys<T> = T extends Record<string, any> ? keyof T : never
+
+export type RolePermissions<T extends typeof rolePermissions = typeof rolePermissions, K extends keyof T = keyof T> =
+  | T[K] extends string
+  ? T[K]
+  : never & T[K] extends Record<string, any>
+  ? GetKeys<T[K]>
+  : never

@@ -67,7 +67,7 @@ const disableSharedBase = async () => {
     if (!project.value.id) return
 
     await $api.project.sharedBaseDisable(project.value.id)
-    base = {}
+    base = null
   } catch (e: any) {
     console.error(e)
     toast.error(await extractSdkResponseErrorMsg(e))
@@ -81,7 +81,7 @@ const recreate = async () => {
     if (!project.value.id) return
 
     const sharedBase = await $api.project.sharedBaseCreate(project.value.id, {
-      roles: base?.role || 'viewer',
+      roles: base?.role || ShareBaseRole.Viewer,
     })
     const newBase = sharedBase || {}
     base = { ...newBase, role: base?.role }

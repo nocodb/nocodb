@@ -22,6 +22,10 @@ import { defineNuxtRouteMiddleware, navigateTo, useNuxtApp } from '#app'
 export default defineNuxtRouteMiddleware((to, from) => {
   const { $state } = useNuxtApp()
 
+  if (!$state) return navigateTo('/')
+
+  console.log($state)
+
   /** if auth is required or unspecified (same as required) and user is not signed in, redirect to signin page */
   if ((to.meta.requiresAuth || typeof to.meta.requiresAuth === 'undefined') && !$state.signedIn.value) {
     return navigateTo('/signin')

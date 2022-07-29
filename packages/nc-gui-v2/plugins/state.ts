@@ -17,6 +17,8 @@ import { useBreakpoints, useDark, useGlobal, watch } from '#imports'
 export default defineNuxtPlugin((nuxtApp) => {
   const state = useGlobal()
 
+  console.log('state', state)
+
   const darkMode = useDark()
 
   /** get current breakpoints (for enabling sidebar) */

@@ -46,5 +46,7 @@ export const useGlobal = (): UseGlobalReturn => {
   /** provide a fresh state instance into nuxt app */
   provide('state', state)
 
+  console.log('provided state')
+
   return { ...toRefs($$(state)), ...getters, ...actions }
 }

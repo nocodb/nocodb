@@ -89,7 +89,7 @@ function initializeSortable(el: HTMLElement) {
       if (views.value.length - 1 === newIndex) {
         nextOrder = parseFloat(previousItem.order) + 1
       } else if (newIndex === 0) {
-        nextOrder = parseFloat(previousItem.order) / 2
+        nextOrder = (parseFloat(nextItem.order) > 1 ? parseFloat(nextItem.order) - 1 : parseFloat(nextItem.order) / 2) || 0
       } else {
         nextOrder = (parseFloat(previousItem.order) + parseFloat(nextItem.order)) / 2
       }

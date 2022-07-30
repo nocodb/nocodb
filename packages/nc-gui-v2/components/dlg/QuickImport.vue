@@ -123,6 +123,13 @@ const disableImportButton = computed(() => {
 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
+const modalWidth = computed(() => {
+  if (importType === 'excel' && templateEditorModal.value) {
+    return 'max(90vw, 600px)'
+  }
+  return 'max(60vw, 600px)'
+})
+
 async function handlePreImport() {
   loading.value = true
   if (activeKey.value === 'uploadTab') {
@@ -233,7 +240,7 @@ function getAdapter(name: string, val: any) {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(60vw, 600px)" :mask-closable="false" @keydown.esc="dialogShow = false">
+  <a-modal v-model:visible="dialogShow" :width="modalWidth" :mask-closable="false" @keydown.esc="dialogShow = false">
     <a-typography-title class="ml-5 mt-5 mb-5" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>

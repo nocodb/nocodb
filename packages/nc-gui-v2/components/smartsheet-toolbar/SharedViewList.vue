@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity'
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
@@ -25,6 +24,7 @@ const { view, $api, meta } = useSmartsheetStoreOrThrow()
 const { copy } = useClipboard()
 const toast = useToast()
 const route = useRoute()
+const { dashboardUrl } = useDashboard()
 
 let isLoading = $ref(false)
 // let activeSharedView = $ref(null)
@@ -54,11 +54,6 @@ const loadSharedViewsList = async () => {
 }
 
 onMounted(loadSharedViewsList)
-
-// todo: get correct dashboard url
-const dashboardUrl = computed(() => {
-  return `${location.origin}`
-})
 
 const sharedViewUrl = (view: SharedViewType) => {
   let viewType

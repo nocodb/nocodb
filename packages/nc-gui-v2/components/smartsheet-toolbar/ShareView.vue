@@ -15,6 +15,7 @@ const { view, $api } = useSmartsheetStoreOrThrow()
 const { copy } = useClipboard()
 const toast = useToast()
 const { $e } = useNuxtApp()
+const { dashboardUrl } = useDashboard()
 
 let showShareModel = $ref(false)
 const passwordProtected = $ref(false)
@@ -57,7 +58,7 @@ const sharedViewUrl = computed(() => {
   }
 
   // todo: get dashboard url
-  return `#/nc/${viewType}/${shared.value.uuid}`
+  return `${dashboardUrl?.value}/nc/${viewType}/${shared.value.uuid}`
 })
 
 async function saveAllowCSVDownload() {
@@ -91,6 +92,11 @@ const saveShareLinkPassword = async () => {
 
   $e('a:view:share:enable-pwd')
 }
+
+const copyLink = () => {
+  copy(sharedViewUrl?.value as string)
+  toast.info('Copied to clipboard')
+}
 </script>
 
 <template>
@@ -105,13 +111,13 @@ const saveShareLinkPassword = async () => {
 
     <!-- This view is shared via a private link -->
     <a-modal v-model:visible="showShareModel" size="small" :title="$t('msg.info.privateLink')" :footer="null">
-      <div class="share-link-box nc-share-link-box">
+      <div class="share-link-box nc-share-link-box bg-primary-50">
         <div class="flex-1 h-min">{{ sharedViewUrl }}</div>
         <!--        <v-spacer /> -->
         <a v-t="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
-          <MdiOpenInNewIcon class="text-sm text-grey mt-1" />
+          <MdiOpenInNewIcon class="text-sm text-gray-500 mt-1" />
         </a>
-        <MdiCopyIcon class="text-grey text-sm cursor-pointer" @click="copy(sharedViewUrl)" />
+        <MdiCopyIcon class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
       </div>
 
       <a-collapse ghost>
@@ -127,9 +133,9 @@ const saveShareLinkPassword = async () => {
                 type="password"
                 :placeholder="$t('placeholder.password.enter')"
               />
-              <a-button size="small" class="!text-xs" @click="saveShareLinkPassword">{{
-                $t('placeholder.password.save')
-              }}</a-button>
+              <a-button size="small" class="!text-xs" @click="saveShareLinkPassword"
+                >{{ $t('placeholder.password.save') }}
+              </a-button>
             </div>
           </div>
           <div>

@@ -106,7 +106,7 @@ export function useViewColumns(
         return false
       }
 
-      return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value)
+      return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
     })
   })
 

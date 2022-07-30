@@ -26,13 +26,9 @@ const isPublicView = false
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
 
-const instance: any = getCurrentInstance()
-
 const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
-console.log(instance)
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(
-  view,
-  instance.ctx.$options.__scopeId,
+  view
 )
 onMounted(loadGridViewColumns)
 
@@ -91,7 +87,7 @@ defineExpose({
               v-for="col in fields"
               :key="col.title"
               v-xc-ver-resize
-              :data-col="col.title"
+              :data-col="col.id"
               @xcresize="onresize(col.id, $event)"
               @xcresizing="onXcResizing(col.title, $event)"
               @xcresized="resizingCol = null"
@@ -118,7 +114,7 @@ defineExpose({
                 // 'text-center': isCentrallyAligned(columnObj),
                 // 'required': isRequired(columnObj, rowObj),
               }"
-              :data-col="columnObj.title"
+              :data-col="columnObj.id"
               @click="selectCell(rowIndex, colIndex)"
               @dblclick="editEnabled = true"
             >

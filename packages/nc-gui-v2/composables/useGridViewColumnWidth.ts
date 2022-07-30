@@ -5,7 +5,7 @@ import type GridView from '../../nocodb/src/lib/models/GridView'
 import useMetas from '~/composables/useMetas'
 
 // todo: update swagger
-export default (view: Ref<(GridView & { id?: string }) | undefined>, scopeId: string) => {
+export default (view: Ref<(GridView & { id?: string }) | undefined>) => {
   const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
 
   const gridViewCols = ref<Record<string, GridColumnType>>({})
@@ -27,9 +27,9 @@ export default (view: Ref<(GridView & { id?: string }) | undefined>, scopeId: st
         const val = gridViewCols?.value?.[c?.id as string]?.width || '200px'
 
         if (val && c.title !== resizingCol?.value) {
-          style += `[${scopeId}] [data-col="${c.title}"]{min-width:${val};max-width:${val};width: ${val};}`
+          style += `[data-col="${c.id}"]{min-width:${val};max-width:${val};width: ${val};}`
         } else {
-          style += `[${scopeId}] [data-col="${c.title}"]{min-width:${resizingColWidth?.value};max-width:${resizingColWidth?.value};width: ${resizingColWidth?.value};}`
+          style += `[data-col="${c.id}"]{min-width:${resizingColWidth?.value};max-width:${resizingColWidth?.value};width: ${resizingColWidth?.value};}`
         }
       }
       css.value = style

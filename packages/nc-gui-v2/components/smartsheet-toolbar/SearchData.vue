@@ -19,7 +19,7 @@ const columns = computed(() =>
     size="small"
     class="max-w-[250px]"
     placeholder="Filter query"
-    @pressEnter="reloadData.trigger()"
+    @press-enter="reloadData.trigger()"
   >
     <template #addonBefore>
       <a-select v-model:value="search.field" :options="columns" style="width: 80px" class="!text-xs" size="small" />

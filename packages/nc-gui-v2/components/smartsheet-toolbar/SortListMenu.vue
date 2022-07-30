@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
+import { getSortDirectionOptions } from '~/utils/sortUtils'
 import { computed, inject, useViewSorts } from '#imports'
 import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
@@ -15,6 +17,12 @@ const reloadDataHook = inject(ReloadViewDataHookInj)
 const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const columns = computed(() => meta?.value?.columns || [])
+const columnByID = computed<Record<string, ColumnType>>(() =>
+  columns?.value?.reduce((obj: any, col: any) => {
+    obj[col.id] = col
+    return obj
+  }, {}),
+)
 
 watch(
   () => (view?.value as any)?.id,
@@ -57,15 +65,19 @@ watch(
             <a-select
               v-model:value="sort.direction"
               size="small"
-              class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
-              :options="[
-                { text: 'asc', value: 'asc' },
-                { text: 'desc', value: 'desc' },
-              ]"
+              class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
               @click.stop
               @update:model-value="saveOrUpdate(sort, i)"
-            />
+            >
+              <a-select-option
+                v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
+                :key="j"
+                :value="option.value"
+              >
+                <span class="text-xs">{{ option.text }}</span>
+              </a-select-option>
+            </a-select>
             <!--            <template #item="{ item }"> -->
             <!--              <span class="caption font-weight-regular">{{ item.text }}</span> -->
             <!--            </template> -->

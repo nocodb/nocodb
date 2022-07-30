@@ -210,7 +210,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" @keydown.esc="dialogShow = false">
+  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" :mask-closable="false" @keydown.esc="dialogShow = false">
     <template #footer>
       <div v-if="step === 1">
         <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>

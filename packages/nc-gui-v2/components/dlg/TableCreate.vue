@@ -76,6 +76,7 @@ onMounted(() => {
   <a-modal
     v-model:visible="dialogShow"
     width="max(30vw, 600px)"
+    :mask-closable="false"
     @keydown.esc="dialogShow = false"
     @keydown.enter="$emit('create', table)"
   >

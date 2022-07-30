@@ -228,7 +228,7 @@ function getAdapter(name: string, val: any) {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(60vw, 600px)" @keydown.esc="dialogShow = false">
+  <a-modal v-model:visible="dialogShow" width="max(60vw, 600px)" :mask-closable="false" @keydown.esc="dialogShow = false">
     <a-typography-title class="ml-5 mt-5 mb-5" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>

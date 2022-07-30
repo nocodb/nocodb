@@ -30,7 +30,7 @@ const toggleSidebar = () => {
 </script>
 
 <template>
-  <a-layout>
+  <a-layout class="min-h-[100vh]">
     <a-layout-header class="flex !bg-primary items-center text-white px-4 shadow-md">
       <MaterialSymbolsMenu v-if="$state.signedIn.value" class="text-xl cursor-pointer" @click="toggleSidebar" />
 

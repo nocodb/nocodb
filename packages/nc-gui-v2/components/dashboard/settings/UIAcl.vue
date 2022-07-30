@@ -13,7 +13,7 @@ const toast = useToast()
 const roles = $ref<string[]>(['editor', 'commenter', 'viewer'])
 let isLoading = $ref(false)
 let tables = $ref<any[]>([])
-let searchInput = $ref('')
+const searchInput = $ref('')
 
 const filteredTables = computed(() =>
   tables.filter(
@@ -123,7 +123,7 @@ const columns = [
         :pagination="false"
         :loading="isLoading"
         bordered
-        :customRow="
+        :custom-row="
           (record) => ({
             class: `nc-acl-table-row nc-acl-table-row-${record.title}`,
           })

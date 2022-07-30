@@ -76,3 +76,20 @@ html {
 .nc-menu-item {
   @apply cursor-pointer text-xs flex align-center gap-2 p-4 relative after:(content-[''] absolute top-0 left-0  w-full h-full right 0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
 }
+
+.nc-sidebar-right-item {
+  @apply relative flex items-center;
+
+  &::after {
+    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out;
+    content: '';
+  }
+
+  &:hover::after {
+    @apply ring shadow-2xl transform scale-110;
+  }
+
+  svg {
+    @apply z-1 text-xl p-1 text-gray-500;
+  }
+}

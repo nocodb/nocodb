@@ -72,11 +72,23 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 
     <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
       <template #start>
-        <MdiHook class="rounded text-xl p-1 text-gray-500 hover:(text-white bg-pink-500 shadow)" />
+        <a-tooltip placement="left">
+          <template #title> {{ $t('objects.webhooks') }} </template>
+
+          <div class="nc-sidebar-right-item hover:after:bg-gray-300">
+            <MdiHook />
+          </div>
+        </a-tooltip>
 
         <div class="dot" />
 
-        <MdiXml class="rounded text-xl p-1 text-gray-500 hover:(text-white bg-pink-500 shadow)" />
+        <a-tooltip placement="left">
+          <template #title> Get API Snippet </template>
+
+          <div class="nc-sidebar-right-item group hover:after:bg-yellow-500">
+            <MdiXml class="group-hover:!text-white" />
+          </div>
+        </a-tooltip>
 
         <div class="dot" />
       </template>

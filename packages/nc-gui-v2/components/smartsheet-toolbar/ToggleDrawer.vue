@@ -7,9 +7,8 @@ const drawerOpen = inject('navDrawerOpen', ref(false))
 <template>
   <a-tooltip placement="left">
     <template #title> {{ $t('tooltip.toggleNavDraw') }} </template>
-    <MdiMenuClose
-      class="rounded text-xl p-1 text-gray-500 hover:(text-white bg-pink-500 shadow)"
-      @click="drawerOpen = !drawerOpen"
-    />
+    <div class="nc-sidebar-right-item hover:after:bg-pink-500 group">
+      <MdiMenuClose class="group-hover:(!text-white)" @click="drawerOpen = !drawerOpen" />
+    </div>
   </a-tooltip>
 </template>

@@ -51,7 +51,6 @@ const {
     <!--
 todo :
  JSONCell
- Currency
 -->
 
     <!--    <RatingCell -->
@@ -197,6 +196,7 @@ todo :
     <!-- v-on="parentListeners"
         />
     -->
+    <CellCurrency v-else-if="isCurrency" v-model="localState" />
     <CellText v-else-if="isString" v-model="localState" />
     <!-- v-on="parentListeners"
         />

@@ -174,9 +174,8 @@ async function importTemplate() {
   try {
     await validate()
   } catch (errorInfo) {
-    toast.error('Please fill all the required values')
     isImporting.value = false
-    return
+    throw new Error('Please fill all the required values')
   }
 
   try {

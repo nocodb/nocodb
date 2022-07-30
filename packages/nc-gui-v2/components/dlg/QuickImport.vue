@@ -141,9 +141,14 @@ async function handlePreImport() {
 }
 
 async function handleImport() {
-  loading.value = true
-  await templateEditorRef.value.importTemplate()
-  loading.value = false
+  try {
+    loading.value = true
+    await templateEditorRef.value.importTemplate()
+  } catch (e: any) {
+    return toast.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    loading.value = false
+  }
   dialogShow.value = false
 }
 

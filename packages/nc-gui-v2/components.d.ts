@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    AAlert: typeof import('ant-design-vue/es')['Alert']
     AAnchorLink: typeof import('ant-design-vue/es')['AnchorLink']
     AAutoComplete: typeof import('ant-design-vue/es')['AutoComplete']
     AButton: typeof import('ant-design-vue/es')['Button']

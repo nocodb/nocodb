@@ -137,8 +137,8 @@ function onStopEdit() {
     <div v-t="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
       <div class="flex w-auto">
         <MdiDrag
-          class="hidden group-hover:block"
-          :class="`transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move nc-child-draggable-icon-${vModel.title}`"
+          class="hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move"
+          :class="`nc-child-draggable-icon-${vModel.title}`"
         />
 
         <component :is="viewIcons[vModel.type].icon" class="group-hover:hidden" :class="`text-${viewIcons[vModel.type].color}`" />

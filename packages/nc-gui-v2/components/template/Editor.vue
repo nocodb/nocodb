@@ -357,7 +357,6 @@ defineExpose({
                         }
                       "
                       v-model:value="record.column_name"
-                      size="large"
                     />
                   </a-form-item>
                 </template>
@@ -367,7 +366,6 @@ defineExpose({
                       v-model:value="record.uidt"
                       class="w-52"
                       show-search
-                      size="large"
                       :options="uiTypeOptions"
                       :filter-option="filterOption"
                     />
@@ -376,7 +374,7 @@ defineExpose({
 
                 <template v-else-if="column.key === 'dtxp'">
                   <a-form-item v-if="isSelect(record)">
-                    <a-input v-model:value="record.dtxp" size="large" />
+                    <a-input v-model:value="record.dtxp" />
                   </a-form-item>
                 </template>
 
@@ -386,9 +384,9 @@ defineExpose({
                       <!-- TODO: i18n -->
                       <span>Primary Value</span>
                     </template>
-                    <span class="mr-3">
+                    <div class="flex items-center float-right mr-4">
                       <MdiKeyStarIcon class="text-lg" />
-                    </span>
+                    </div>
                   </a-tooltip>
                   <a-tooltip v-else>
                     <template #title>
@@ -473,7 +471,10 @@ defineExpose({
     @apply bg-white;
   }
   :deep(.template-form-row) > td {
-    @apply !pb-0;
+    @apply pa-0 mb-0;
+    .ant-form-item {
+      @apply mb-0;
+    }
   }
 }
 </style>

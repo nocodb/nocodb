@@ -16,6 +16,7 @@ import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
 import URLIcon from '~icons/mdi/link'
+import EmailIcon from '~icons/mdi/email'
 
 const column = inject(ColumnInj)
 
@@ -38,6 +39,8 @@ const icon = computed(() => {
     return BooleanIcon
   } else if (additionalColMeta.isTextArea) {
     return TextAreaIcon
+  } else if (additionalColMeta.isEmail) {
+    return EmailIcon
   } else if (additionalColMeta.isRating) {
     return RatingIcon
   } else if (additionalColMeta.isAttachment) {

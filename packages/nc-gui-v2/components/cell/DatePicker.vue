@@ -33,6 +33,11 @@ const localState = $computed({
     return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
   },
   set(val?: dayjs.Dayjs) {
+    if (!val) {
+      emit('update:modelValue', null)
+      return
+    }
+
     if (val?.isValid()) {
       emit('update:modelValue', val?.format('YYYY-MM-DD'))
     }

@@ -72,7 +72,7 @@ watch(
             <!--          </v-select> -->
           </template>
         </div>
-        <a-button size="small" class="text-xs text-grey text-capitalize" @click.stop="addSort">
+        <a-button size="small" class="text-xs text-grey text-capitalize my-2" @click.stop="addSort">
           <div class="flex gap-1 align-center">
             <MdiAddIcon />
             <!-- Add Sort Option -->

@@ -239,7 +239,7 @@ defineExpose({
       </template>
     </div>
 
-    <div class="flex gap-2">
+    <div class="flex gap-2 my-2">
       <a-button size="small" class="elevation-0 text-capitalize text-grey" @click.stop="addFilter">
         <div class="flex align-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->

@@ -140,8 +140,8 @@ const deleteLink = async (id: string) => {
       <a-table-column key="id" :title="$t('labels.actions')" data-index="title">
         <template #default="{ record }">
           <div class="text-sm flex gap-2" :title="text">
-            <MdiCopyIcon @click="copyLink(record)" />
-            <MdiDeleteIcon @click="deleteLink(record.id)" />
+            <MdiCopyIcon class="cursor-pointer" @click="copyLink(record)" />
+            <MdiDeleteIcon  class="cursor-pointer" @click="deleteLink(record.id)" />
           </div>
         </template>
       </a-table-column>

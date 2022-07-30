@@ -53,23 +53,13 @@ const validateDuplicate = (v: string) => {
 
 const inputEl = ref<ComponentPublicInstance>()
 const useForm = Form.useForm
-const formState = reactive({
-  title: '',
-  table_name: '',
-  columns: {
-    id: true,
-    title: true,
-    created_at: true,
-    updated_at: true,
-  },
-})
 const validators = computed(() => {
   return {
     title: [validateTableName, validateDuplicateAlias],
     table_name: [validateTableName],
   }
 })
-const { resetFields, validate, validateInfos } = useForm(formState, validators)
+const { resetFields, validate, validateInfos } = useForm(table, validators)
 
 onMounted(() => {
   generateUniqueTitle()
@@ -91,10 +81,10 @@ onMounted(() => {
   >
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" size="large" type="primary" @click="createTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" size="large" type="primary" @click="createTable()">{{ $t('general.submit') }}</a-button>
     </template>
     <div class="pl-10 pr-10 pt-5">
-      <a-form :model="formState" name="create-new-table-form">
+      <a-form :model="table" name="create-new-table-form">
         <!-- Create A New Table -->
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
         <!-- hint="Enter table name" -->
@@ -133,17 +123,17 @@ onMounted(() => {
                   <template #title>
                     <span>ID column is required, you can rename this later if required.</span>
                   </template>
-                  <a-checkbox v-model:checked="formState.columns.id" disabled>ID</a-checkbox>
+                  <a-checkbox v-model:checked="table.columns.id" disabled>ID</a-checkbox>
                 </a-tooltip>
               </a-col>
               <a-col :span="6">
-                <a-checkbox v-model:checked="formState.columns.title"> title </a-checkbox>
+                <a-checkbox v-model:checked="table.columns.title"> title </a-checkbox>
               </a-col>
               <a-col :span="6">
-                <a-checkbox v-model:checked="formState.columns.created_at"> created_at </a-checkbox>
+                <a-checkbox v-model:checked="table.columns.created_at"> created_at </a-checkbox>
               </a-col>
               <a-col :span="6">
-                <a-checkbox v-model:checked="formState.columns.updated_at"> updated_at </a-checkbox>
+                <a-checkbox v-model:checked="table.columns.updated_at"> updated_at </a-checkbox>
               </a-col>
             </a-row>
           </div>

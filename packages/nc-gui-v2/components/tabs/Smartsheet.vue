@@ -1,16 +1,23 @@
 <script setup lang="ts">
-import type { ColumnType, ViewType } from 'nocodb-sdk'
+import type { ColumnType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
+import SmartsheetGrid from '../smartsheet/Grid.vue'
 import { computed, inject, provide, useMetas, watch, watchEffect } from '#imports'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/context'
+import type { TabItem } from '~/composables'
 
 const { getMeta, metas } = useMetas()
 
-const activeView = ref<ViewType>()
-const el = ref<any>()
+const activeView = ref()
+
+const el = ref<typeof SmartsheetGrid>()
+
 const fields = ref<ColumnType[]>([])
 
-const tabMeta = inject(TabMetaInj)
+const tabMeta = inject(
+  TabMetaInj,
+  computed(() => ({} as TabItem)),
+)
 
 const meta = computed(() => metas.value?.[tabMeta?.value?.id as string])
 
@@ -28,12 +35,9 @@ provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
 provide('navDrawerOpen', ref(true))
 
-watch(
-  () => tabMeta && tabMeta.value.id,
-  async (newVal, oldVal) => {
-    if (newVal !== oldVal) await getMeta(newVal)
-  },
-)
+watch(tabMeta, async (newTabMeta, oldTabMeta) => {
+  if (newTabMeta !== oldTabMeta && newTabMeta.id) await getMeta(newTabMeta.id)
+})
 </script>
 
 <template>

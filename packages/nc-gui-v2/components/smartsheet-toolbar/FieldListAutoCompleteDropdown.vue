@@ -69,6 +69,7 @@ const filterOption = (input: string, option: any) => {
     :dropdown-match-select-width="false"
     size="small"
     show-search
+    class="!text-xs"
     placeholder="Select a field"
     :filter-option="filterOption"
   >
@@ -79,9 +80,3 @@ const filterOption = (input: string, option: any) => {
     </a-select-option>
   </a-select>
 </template>
-
-<style scoped>
-:deep(::placeholder) {
-  @apply !text-xs;
-}
-</style>

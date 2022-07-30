@@ -6,7 +6,7 @@ import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'
 // import FKIcon from '~icons/mdi/link-variant'
 import TextAreaIcon from '~icons/mdi/card-text-outline'
-import StringIcon from '~icons/mdi/alpha-a'
+import StringIcon from '~icons/mdi/alpha-a-box-outline'
 import BooleanIcon from '~icons/mdi/check-box-outline'
 import SingleSelectIcon from '~icons/mdi/radiobox-marked'
 import MultiSelectIcon from '~icons/mdi/checkbox-multiple-marked'
@@ -57,9 +57,7 @@ const icon = computed(() => {
   } else if (additionalColMeta.isCurrency) {
     return CurrencyIcon
   } else if (additionalColMeta.isString) {
-    return h(StringIcon, {
-      class: 'text-[1.5rem]',
-    })
+    return StringIcon
   } else {
     return GenericIcon
   }

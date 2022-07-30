@@ -278,12 +278,7 @@ export class _mainPage {
     hideField = (field) => {
         cy.get(".nc-grid-header-cell").contains(field).should("be.visible");
         cy.get(".nc-fields-menu-btn").click();
-
-        cy.snipActiveMenu("Menu_HideField");
-
-        cy.get(
-            `.menuable__content__active .v-list-item label:contains(${field})`
-        ).click();
+        cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
         cy.get(".nc-fields-menu-btn").click();
         cy.get(".nc-grid-header-cell").contains(field).should("not.be.visible");
     };
@@ -291,31 +286,19 @@ export class _mainPage {
     unhideField = (field) => {
         cy.get(".nc-grid-header-cell").contains(field).should("not.be.visible");
         cy.get(".nc-fields-menu-btn").click();
-        cy.get(
-            `.menuable__content__active .v-list-item label:contains(${field})`
-        ).click();
+        cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
         cy.get(".nc-fields-menu-btn").click();
         cy.get(".nc-grid-header-cell").contains(field).should("be.visible");
     };
 
     sortField = (field, criteria) => {
         cy.get(".nc-sort-menu-btn").click();
-        cy.contains("Add Sort Option").click();
-
-        cy.snipActiveMenu("Menu_SortField");
-
-        cy.get(".nc-sort-field-select div").first().click().type(field);
-        cy.snipActiveMenu("Menu_SortField_fieldSelection");
-        // cy.get(`.menuable__content__active .v-list-item:contains(${field})`)
-        //     .first()
-        //     .click();
-        // cy.wait(3000)
-        cy.getActiveMenu().find(`.nc-fld-${field}`).should('exist').click();
+        cy.getActiveMenu().contains("Add Sort Option").click();
+        // cy.get(".nc-sort-field-select div").first().click().type(field);
+        cy.get(".nc-sort-field-select div").first().click();
+        cy.get('.ant-select-dropdown').find(`.ant-select-item`).contains(field).should('exist').click();
         cy.get(".nc-sort-dir-select div").first().click();
-        cy.snipActiveMenu("Menu_SortField_criteriaSelection");
-        cy.get(
-            `.menuable__content__active .v-list-item:contains(${criteria})`
-        ).click();
+        cy.get('.ant-select-dropdown').find(`.ant-select-item`).contains(criteria).should('exist').click();
         cy.get(".nc-sort-menu-btn").click();
     };
 
@@ -327,36 +310,20 @@ export class _mainPage {
 
     filterField = (field, operation, value) => {
         cy.get(".nc-filter-menu-btn").click();
-        // cy.wait(2000);
         cy.contains("Add Filter").click();
-        // cy.wait(2000);
-        cy.snipActiveMenu("Menu_FilterField");
-
-        cy.get(".nc-filter-field-select").should("exist").last().click().type(field);;
-        cy.snipActiveMenu("Menu_FilterField-fieldSelect");
-
-        cy.getActiveMenu().find(`.nc-fld-${field}`).should('exist').click();
+        // cy.get(".nc-filter-field-select").should("exist").last().click().type(field);
+        cy.get(".nc-filter-field-select").should("exist").last().click();
+        cy.get('.ant-select-dropdown').find(`.ant-select-item`).contains(field).should('exist').click();
+        cy.wait(1000);
         cy.get(".nc-filter-operation-select").should("exist").last().click();
-        cy.snipActiveMenu("Menu_FilterField-operationSelect");
-
-        cy.getActiveMenu().find(`.v-list-item:contains(${operation})`).click();
+        cy.get('.ant-select-dropdown').find(`.ant-select-item`).contains(operation).should('exist').click();
         if (operation != "is null" && operation != "is not null") {
-            cy.get(".nc-filter-value-select input:text")
+            cy.get(".nc-filter-value-select")
                 .should("exist")
                 .last()
-                .type(`${value}`);
+                .type(value);
             cy.get(".nc-filter-operation-select").last().click();
         }
-
-        cy.get(".nc-filter-field-select")
-            .find(".v-select__slot")
-            .contains(field)
-            .should("exist");
-        cy.get(".nc-filter-operation-select")
-            .find(".v-select__slot")
-            .contains(operation)
-            .should("exist");
-
         cy.get(".nc-filter-menu-btn").click();
     };
 

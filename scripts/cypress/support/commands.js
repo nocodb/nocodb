@@ -154,35 +154,14 @@ Cypress.Commands.add("refreshTableTab", () => {
 // rc: row count. validate row count if rc!=0
 Cypress.Commands.add("openTableTab", (tn, rc) => {
     cy.task("log", `[openTableTab] ${tn} ${rc}`);
-
-    cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)", { timeout: 10000 })
-        .should("exist")
-        .first()
-        .click({ force: true });
-
-    cy.get(".nc-project-tree")
-        .contains(tn)
-        .should('exist')
-        .first()
-        .click({ force: true });
-
-    cy.get(`.project-tab`).contains(tn).should("exist");
-
-    cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)")
-        .should('exist')
-        .first()
-        .click({ force: true });
-
-    // wait for page rendering to complete
-    if (rc != 0) {
-        cy.get(".nc-grid-row").should("have.length", rc);
-    }
-
-    // kludge: add delay to skip flicker
-    cy.wait(3000)
-    cy.snip(`GridView_${tn}`);
+    cy.get(`.nc-project-tree-tbl-${tn}`, { timeout: 10000 }).should("exist")
+      .first()
+      .click({ force: true });
+    //
+    // // wait for page rendering to complete
+    // if (rc != 0) {
+    //     cy.get(".nc-grid-row").should("have.length", rc);
+    // }
 });
 
 Cypress.Commands.add("closeTableTab", (tn) => {

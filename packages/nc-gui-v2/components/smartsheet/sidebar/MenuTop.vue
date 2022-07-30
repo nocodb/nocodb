@@ -80,18 +80,18 @@ function initializeSortable(el: HTMLElement) {
       const currentItem: Record<string, any> = views.value[oldIndex]
 
       // get items meta of before and after the moved item
-      const nextItem: Record<string, any> = views.value[newIndex]
-      const previousItem: Record<string, any> = views.value[newIndex + 1]
+      const previousItem: Record<string, any> = views.value[newIndex]
+      const nextItem: Record<string, any> = views.value[newIndex + 1]
 
       let nextOrder: number
 
       // set new order value based on the new order of the items
       if (views.value.length - 1 === newIndex) {
-        nextOrder = parseFloat(nextItem.order) + 1
+        nextOrder = parseFloat(previousItem.order) + 1
       } else if (newIndex === 0) {
-        nextOrder = parseFloat(nextItem.order) / 2
+        nextOrder = parseFloat(previousItem.order) / 2
       } else {
-        nextOrder = (parseFloat(nextItem.order) + parseFloat(previousItem.order)) / 2
+        nextOrder = (parseFloat(previousItem.order) + parseFloat(nextItem.order)) / 2
       }
 
       await api.dbView.update(currentItem.id, { order: !isNaN(Number(nextOrder)) ? nextOrder.toString() : oldIndex.toString() })

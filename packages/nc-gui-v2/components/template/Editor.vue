@@ -364,9 +364,10 @@ defineExpose({
                 </template>
                 <template v-else-if="column.key === 'uidt'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-auto-complete
+                    <a-select
                       v-model:value="record.uidt"
                       class="w-52"
+                      show-search
                       size="large"
                       :options="uiTypeOptions"
                       :filter-option="filterOption"

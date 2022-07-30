@@ -29,7 +29,7 @@ const applyChanges = async () => {
         <div class="flex align-center gap-1">
           <MdiFilterIcon class="text-grey" />
           <!-- Filter -->
-          <span class="text-capitalize nc-filter-menu-btn">{{ $t('activity.filter') }}</span>
+          <span class="text-capitalize">{{ $t('activity.filter') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>

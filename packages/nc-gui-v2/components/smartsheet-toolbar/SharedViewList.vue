@@ -109,7 +109,7 @@ const deleteLink = async (id: string) => {
       <!-- View Link -->
       <a-table-column key="title" :title="$t('labels.viewLink')" data-index="title">
         <template #default="{ record }">
-          <nuxt-link :to="sharedViewUrl(record)">
+          <nuxt-link :to="sharedViewUrl(record)" class="text-xs">
             {{ `${dashboardUrl}/${sharedViewUrl(record)}` }}
           </nuxt-link>
         </template>
@@ -149,4 +149,8 @@ const deleteLink = async (id: string) => {
   </div>
 </template>
 
-<style scoped></style>
+<style scoped>
+:deep(.ant-pagination-item > a){
+@apply leading-normal
+}
+</style>

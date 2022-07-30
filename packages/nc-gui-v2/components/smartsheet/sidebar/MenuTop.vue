@@ -63,11 +63,16 @@ async function onSortEnd(evt: SortableEvent) {
 
   if (newIndex === oldIndex) return
 
-  const currentItem: Record<string, any> = sortedViews.value[oldIndex]
+  const children = evt.to.children
 
-  // get items meta of before and after the moved item
-  const previousItem: Record<string, any> = sortedViews.value[newIndex]
-  const nextItem: Record<string, any> = sortedViews.value[newIndex + 1]
+  const currentEl = children[oldIndex]
+  const previousEl = children[newIndex - 1]
+  const nextEl = children[newIndex + 1]
+
+  const currentItem: Record<string, any> = currentEl ? sortedViews.value.find((v) => v.id === currentEl.id) : {}
+
+  const previousItem: Record<string, any> = previousEl ? sortedViews.value.find((v) => v.id === previousEl.id) : {}
+  const nextItem: Record<string, any> = nextEl ? sortedViews.value.find((v) => v.id === nextEl.id) : {}
 
   let nextOrder: number
 
@@ -159,7 +164,7 @@ function onDeleted() {
     @end="onSortEnd"
   >
     <template #item="{ element: view }">
-      <div>
+      <div :id="view.id">
         <RenameableMenuItem
           :view="view"
           @change-view="changeView"

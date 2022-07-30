@@ -17,6 +17,7 @@ export function useViewData(
     | Ref<(GridType | GalleryType | FormType) & { id: string }>
     | ComputedRef<(GridType | GalleryType | FormType) & { id: string }>
     | undefined,
+  where?: ComputedRef<string | undefined>,
 ) {
   const data = ref<Record<string, any>[]>()
   const formattedData = ref<{ row: Record<string, any>; oldRow: Record<string, any>; rowMeta?: any }[]>()
@@ -27,7 +28,10 @@ export function useViewData(
 
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
     if (!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) return
-    const response = await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, params)
+    const response = await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, {
+      ...params,
+      where: where?.value,
+    })
     data.value = response.list
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -97,7 +101,7 @@ export function useViewData(
 
   const changePage = async (page: number) => {
     paginationData.value.page = page
-    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25) } as any)
+    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25), where: where?.value } as any)
   }
 
   return { data, loadData, paginationData, formattedData, insertRow, updateRowProperty, changePage }

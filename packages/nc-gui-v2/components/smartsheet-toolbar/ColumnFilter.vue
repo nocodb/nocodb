@@ -97,15 +97,16 @@ const applyChanges = async () => {
   // sync()
   // $e('a:filter:apply')
 
-    for (const nestedFilter of nestedFilters?.value || []) {
-      if (nestedFilter.parentId) {
-        await nestedFilter.applyChanges(true);
-      }
+  for (const nestedFilter of nestedFilters?.value || []) {
+    if (nestedFilter.parentId) {
+      await nestedFilter.applyChanges(true)
     }
+  }
 }
 
 defineExpose({
-  applyChanges, parentId
+  applyChanges,
+  parentId,
 })
 </script>
 

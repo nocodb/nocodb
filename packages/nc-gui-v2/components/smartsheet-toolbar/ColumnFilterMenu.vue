@@ -1,10 +1,10 @@
 <script setup lang="ts">
 // todo: move to persisted state
+import type ColumnFilter from './ColumnFilter.vue'
 import { useState } from '#app'
 import { IsLockedInj } from '~/context'
 import MdiFilterIcon from '~icons/mdi/filter-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
-import ColumnFilter from './ColumnFilter.vue'
 
 const autoApplyFilter = useState('autoApplyFilter', () => false)
 const isLocked = inject(IsLockedInj)
@@ -35,25 +35,22 @@ const applyChanges = async () => {
       </a-button>
     </div>
     <template #overlay>
-      <SmartsheetToolbarColumnFilter ref="filterComp" class="nc-table-toolbar-menu" @update:filters-length="filtersLength = $event" :auto-save="autosave" >
+      <SmartsheetToolbarColumnFilter
+        ref="filterComp"
+        class="nc-table-toolbar-menu"
+        :auto-save="autosave"
+        @update:filters-length="filtersLength = $event"
+      >
         <div class="d-flex align-end mt-2 min-h-[30px]" @click.stop>
-          <a-checkbox
-            id="col-filter-checkbox"
-            v-model:checked="autosave"
-            class="col-filter-checkbox"
-            hide-details
-            dense
-          >
+          <a-checkbox id="col-filter-checkbox" v-model:checked="autosave" class="col-filter-checkbox" hide-details dense>
             <span class="text-grey text-xs">
               {{ $t('msg.info.filterAutoApply') }}
               <!-- Auto apply -->
             </span>
           </a-checkbox>
 
-          <div class="flex-1"/>
-          <a-button v-show="!autosave" size="small" class="text-xs ml-2" @click="applyChanges">
-            Apply changes
-          </a-button>
+          <div class="flex-1" />
+          <a-button v-show="!autosave" size="small" class="text-xs ml-2" @click="applyChanges"> Apply changes </a-button>
         </div>
       </SmartsheetToolbarColumnFilter>
     </template>

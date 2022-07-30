@@ -36,13 +36,9 @@ const localState = computed({
     <v-rating v-model="localState" :length="ratingMeta.max" dense x-small :readonly="readOnly" clearable>
       <!--      todo:  use the proper slot -->
       <template #item="{ isFilled, click }">
-        <!--        todo : custom color and icon -->
-        <!--        <v-icon v-if="isFilled"- :size="15" :color="ratingMeta.color" @click="click"> -->
-        <MdiStarIcon v-if="isFilled" :class="`text-[${ratingMeta.color}]`" @click="click" />
-        <!--        </v-icon> -->
-        <!--        <v-icon v-else :color="ratingMeta.color" :size="15" class="nc-cell-hover-show" @click="click"> -->
-        <MdiStarOutlineIcon v-else :class="`text-[${ratingMeta.color}]`" @click="click" />
-        <!--        </v-icon> -->
+        <!--        todo : custom icon -->
+        <MdiStarIcon v-if="isFilled" :style="`color: ${ratingMeta.color}`" @click="click" />
+        <MdiStarOutlineIcon v-else :style="`color: ${ratingMeta.color}`" @click="click" />
       </template>
     </v-rating>
   </div>

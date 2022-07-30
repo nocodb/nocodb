@@ -52,7 +52,6 @@ const {
 todo :
  JSONCell
  Currency
- Email
 -->
 
     <!--    <RatingCell -->
@@ -193,6 +192,7 @@ todo :
           v-on="$listeners"
         /> -->
     <CellDuration v-else-if="isDuration" v-model="localState" />
+    <CellEmail v-else-if="isEmail" v-model="localState" />
     <CellUrl v-else-if="isURL" v-model="localState" />
     <!-- v-on="parentListeners"
         />

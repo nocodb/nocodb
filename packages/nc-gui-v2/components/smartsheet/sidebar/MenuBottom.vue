@@ -30,8 +30,6 @@ function onOpenModal(type: ViewTypes, title = '') {
 
 <template>
   <a-menu :selected-keys="[]" class="flex-1 flex flex-col">
-    <a-divider class="my-2" />
-
     <h3 class="px-3 text-xs font-semibold flex items-center gap-4">
       {{ $t('activity.createView') }}
       <a-tooltip>

@@ -27,9 +27,7 @@ const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
 
 const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
-const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(
-  view
-)
+const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, false)

@@ -96,6 +96,13 @@ const columns = [
       />
     </div>
 
-    <a-table class="w-full" size="small" :data-source="audits ?? []" :columns="columns" :pagination="false" :loading="isLoading" />
+    <a-table
+      class="w-full"
+      size="small"
+      :data-source="audits ?? []"
+      :columns="columns"
+      :pagination="false"
+      :loading="isLoading"
+    />
   </div>
 </template>

@@ -88,7 +88,7 @@ const columns = [
       </div>
       <a-table
         class="w-full"
-        :customRow="
+        :custom-row="
           (record) => ({
             class: `nc-metasync-row nc-metasync-row-${record.title}`,
           })

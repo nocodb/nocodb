@@ -218,7 +218,7 @@ defineExpose({
             <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="`span${i}`" />
             <a-checkbox
               v-else-if="types[filter.field] === 'boolean'"
-              v-model:value="filter.value"
+              v-model:checked="filter.value"
               size="small"
               dense
               :disabled="filter.readOnly"
@@ -227,7 +227,7 @@ defineExpose({
             <a-input
               v-else
               :key="`${i}_7`"
-              v-model="filter.value"
+              v-model:value="filter.value"
               size="small"
               class="caption nc-filter-value-select"
               :disabled="filter.readOnly"

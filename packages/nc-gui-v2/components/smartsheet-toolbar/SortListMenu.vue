@@ -58,7 +58,7 @@ watch(
               v-model:value="sort.direction"
               size="small"
               class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
-              :items="[
+              :options="[
                 { text: 'asc', value: 'asc' },
                 { text: 'desc', value: 'desc' },
               ]"

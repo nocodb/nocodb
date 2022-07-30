@@ -118,11 +118,13 @@ const deleteLink = async (id: string) => {
       <a-table-column key="password" :title="$t('labels.password')" data-index="title">
         <template #default="{ record }">
           <div class="flex align-center items-center gap-1">
-            <span class="h-min">{{ record.showPassword ? record.password : '***************************' }}</span>
-            <component
-              :is="record.showPassword ? MdiVisibilityOffIcon : MdiVisibilityOnIcon"
-              @click="record.showPassword = !record.showPassword"
-            />
+            <template v-if="record.password">
+              <span class="h-min">{{ record.showPassword ? record.password : '***************************' }}</span>
+              <component
+                :is="record.showPassword ? MdiVisibilityOffIcon : MdiVisibilityOnIcon"
+                @click="record.showPassword = !record.showPassword"
+              />
+            </template>
           </div>
         </template>
       </a-table-column>

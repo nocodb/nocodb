@@ -4,10 +4,15 @@ import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
 
 export default (onTableCreate?: (tableMeta: TableType) => void) => {
-  const table = reactive<{ title: string; table_name: string; columns: string[] }>({
+  const table = reactive<{ title: string; table_name: string; columns: Record<string, boolean> }>({
     title: '',
     table_name: '',
-    columns: ['id', 'title', 'created_at', 'updated_at'],
+    columns: {
+      id: true,
+      title: true,
+      created_at: true,
+      updated_at: true,
+    },
   })
 
   const { sqlUi, project, tables } = useProject()
@@ -16,13 +21,13 @@ export default (onTableCreate?: (tableMeta: TableType) => void) => {
   const createTable = async () => {
     if (!sqlUi?.value) return
     const columns = sqlUi?.value?.getNewTableColumns().filter((col) => {
-      if (col.column_name === 'id' && table.columns.includes('id_ag')) {
+      if (col.column_name === 'id' && table.columns.id_ag) {
         Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
         col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt)
         col.dtxs = sqlUi?.value?.getDefaultScaleForDatatype(col.dt)
         return true
       }
-      return table.columns.includes(col.column_name)
+      return !!table.columns[col.column_name]
     })
 
     const tableMeta = await $api.dbTable.create(project?.value?.id as string, {

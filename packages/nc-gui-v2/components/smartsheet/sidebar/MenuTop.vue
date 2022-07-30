@@ -158,7 +158,7 @@ function onDeleted() {
     item-key="title"
     handle=".nc-drag-icon"
     :component-data="{
-      class: 'flex-1 max-h-50vh overflow-y-scroll scrollbar-thin-primary',
+      class: 'flex-1 max-h-[50vh] md:max-h-[200px] lg:max-h-[400px] xl:max-h-[600px] overflow-y-scroll scrollbar-thin-primary',
       selectedKeys: selected,
     }"
     @end="onSortEnd"

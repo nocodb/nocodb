@@ -96,7 +96,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       </a-tooltip>
     </a-menu-item>
 
-    <div class="flex-auto justify-end flex flex-col gap-4 mt-4">
+    <div class="flex-auto justify-end flex flex-col md:gap-4 lg:gap-8 mt-4">
       <button
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
         @click="onApiSnippet"
@@ -112,7 +112,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       </button>
     </div>
 
-    <general-flipping-card class="my-4 min-h-[100px] w-[250px]" :triggers="['click', { duration: 15000 }]">
+    <general-flipping-card class="my-4 lg:my-6 min-h-[100px] w-[250px]" :triggers="['click', { duration: 15000 }]">
       <template #front>
         <div class="flex h-full w-full gap-6 flex-col">
           <general-social />

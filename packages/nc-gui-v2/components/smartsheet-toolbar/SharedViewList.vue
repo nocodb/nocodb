@@ -141,7 +141,7 @@ const deleteLink = async (id: string) => {
         <template #default="{ record }">
           <div class="text-sm flex gap-2" :title="text">
             <MdiCopyIcon class="cursor-pointer" @click="copyLink(record)" />
-            <MdiDeleteIcon  class="cursor-pointer" @click="deleteLink(record.id)" />
+            <MdiDeleteIcon class="cursor-pointer" @click="deleteLink(record.id)" />
           </div>
         </template>
       </a-table-column>
@@ -150,7 +150,7 @@ const deleteLink = async (id: string) => {
 </template>
 
 <style scoped>
-:deep(.ant-pagination-item > a){
-@apply leading-normal
+:deep(.ant-pagination-item > a) {
+  @apply leading-normal;
 }
 </style>

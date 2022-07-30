@@ -131,13 +131,16 @@ defineExpose({
             <div :key="`${i}nested`" class="d-flex">
               <a-select
                 v-model:value="filter.logical_op"
+                :dropdown-match-select-width="false"
                 size="small"
-                class="flex-shrink-1 flex-grow-0 elevation-0 caption"
-                :options="logicalOps"
+                class="flex-shrink-1 flex-grow-0 elevation-0 caption !text-xs"
                 placeholder="Group op"
                 @click.stop
                 @change="saveOrUpdate(filter, i)"
               >
+                <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="!text-xs">
+                  {{ op.text }}
+                </a-select-option>
               </a-select>
             </div>
             <span class="col-span-3" />
@@ -174,14 +177,18 @@ defineExpose({
             <a-select
               v-else
               v-model:value="filter.logical_op"
+              :dropdown-match-select-width="false"
               size="small"
-              class="h-full"
-              :options="logicalOps"
+              class="h-full !text-xs"
               hide-details
               :disabled="filter.readOnly"
               @click.stop
               @change="filterUpdateCondition(filter, i)"
-            />
+            >
+              <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="!text-xs">
+                {{ op.text }}
+              </a-select-option>
+            </a-select>
 
             <FieldListAutoCompleteDropdown
               :key="`${i}_6`"
@@ -195,16 +202,21 @@ defineExpose({
 
             <a-select
               v-model:value="filter.comparison_op"
+              :dropdown-match-select-width="false"
               size="small"
-              class="caption nc-filter-operation-select"
-              :options="comparisonOpList"
+              class="caption nc-filter-operation-select !text-xs"
               :placeholder="$t('labels.operation')"
               density="compact"
               variant="solo"
               :disabled="filter.readOnly"
               hide-details
               @change="filterUpdateCondition(filter, i)"
-            /><!--
+            >
+              <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="!text-xs">
+                {{ compOp.text }}
+              </a-select-option>
+            </a-select>
+            <!--
             todo: filter based on column type
 
             item-value="value"
@@ -264,7 +276,7 @@ defineExpose({
 <style scoped>
 .nc-filter-grid {
   display: grid;
-  grid-template-columns: 18px 70px auto 90px auto;
+  grid-template-columns: 18px 70px auto auto auto;
   column-gap: 6px;
   row-gap: 6px;
   align-items: center;

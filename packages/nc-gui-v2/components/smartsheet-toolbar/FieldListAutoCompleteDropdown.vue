@@ -64,9 +64,24 @@ const filterOption = (input: string, option: any) => {
 </script>
 
 <template>
-  <a-select v-model:value="localValue" size="small" show-search placeholder="Select a field" :filter-option="filterOption">
+  <a-select
+    v-model:value="localValue"
+    :dropdown-match-select-width="false"
+    size="small"
+    show-search
+    placeholder="Select a field"
+    :filter-option="filterOption"
+  >
     <a-select-option v-for="option in options" :key="option.value" :value="option.value">
-      <div class="flex gap-2 align-center"><component :is="option.icon" class="!text-xs !mx-0" /> {{ option.label }}</div>
+      <div class="flex gap-2 text-xs items-center align-center h-full">
+        <component :is="option.icon" class="min-w-5 !mx-0" /> <span class="min-w-0"> {{ option.label }}</span>
+      </div>
     </a-select-option>
   </a-select>
 </template>
+
+<style scoped>
+:deep(::placeholder) {
+  @apply !text-xs;
+}
+</style>

@@ -112,10 +112,10 @@ const copyLink = () => {
     <!-- This view is shared via a private link -->
     <a-modal v-model:visible="showShareModel" size="small" :title="$t('msg.info.privateLink')" :footer="null">
       <div class="share-link-box nc-share-link-box bg-primary-50">
-        <div class="flex-1 h-min">{{ sharedViewUrl }}</div>
+        <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
         <!--        <v-spacer /> -->
         <a v-t="['c:view:share:open-url']" :href="sharedViewUrl" target="_blank">
-          <MdiOpenInNewIcon class="text-sm text-gray-500 mt-1" />
+          <MdiOpenInNewIcon class="text-sm text-gray-500 mt-2" />
         </a>
         <MdiCopyIcon class="text-gray-500 text-sm cursor-pointer" @click="copyLink" />
       </div>
@@ -123,13 +123,13 @@ const copyLink = () => {
       <a-collapse ghost>
         <a-collapse-panel key="1" header="More Options">
           <div class="mb-2">
-            <a-checkbox v-model:checked="passwordProtected" class="text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
+            <a-checkbox v-model:checked="passwordProtected" class="!text-xs">{{ $t('msg.info.beforeEnablePwd') }} </a-checkbox>
             <!--           todo: add password toggle -->
             <div v-if="passwordProtected" class="flex gap-2 mt-2 mb-4">
               <a-input
                 v-model:value="shared.password"
                 size="small"
-                class="max-w-[250px]"
+                class="!text-xs max-w-[250px]"
                 type="password"
                 :placeholder="$t('placeholder.password.enter')"
               />
@@ -139,7 +139,7 @@ const copyLink = () => {
             </div>
           </div>
           <div>
-            <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="text-xs"
+            <a-checkbox v-if="shared && shared.type === ViewTypes.GRID" v-model:checked="allowCSVDownload" class="!text-xs"
               >Allow Download
             </a-checkbox>
           </div>
@@ -152,5 +152,8 @@ const copyLink = () => {
 <style scoped>
 .share-link-box {
   @apply flex p-2 w-full items-center align-center gap-1 bg-gray-100 rounded;
+}
+:deep(.ant-collapse-header) {
+  @apply !text-xs;
 }
 </style>

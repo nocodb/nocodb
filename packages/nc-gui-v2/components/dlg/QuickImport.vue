@@ -233,7 +233,11 @@ function getAdapter(name: string, val: any) {
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
       <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-      <a-button v-if="activeKey === 'jsonEditorTab'" key="format" :disabled="disableFormatJsonButton" @click="formatJson"
+      <a-button
+        v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
+        key="format"
+        :disabled="disableFormatJsonButton"
+        @click="formatJson"
         >Format JSON</a-button
       >
       <a-button

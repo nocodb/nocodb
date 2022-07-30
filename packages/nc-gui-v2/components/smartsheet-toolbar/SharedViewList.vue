@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { useRoute } from '#app'
 import { computed } from '@vue/reactivity'
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
+import { useRoute } from '#app'
 import { onMounted } from '#imports'
 import { useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -29,7 +29,6 @@ const route = useRoute()
 let isLoading = $ref(false)
 // let activeSharedView = $ref(null)
 const sharedViewList = ref<SharedViewType[]>()
-
 
 const loadSharedViewsList = async () => {
   isLoading = true
@@ -57,7 +56,7 @@ const loadSharedViewsList = async () => {
 onMounted(loadSharedViewsList)
 
 // todo: get correct dashboard url
-const dashboardUrl = computed(() =>{
+const dashboardUrl = computed(() => {
   return `${location.origin}`
 })
 
@@ -99,7 +98,6 @@ const deleteLink = async (id: string) => {
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
 </script>
 
 <template>

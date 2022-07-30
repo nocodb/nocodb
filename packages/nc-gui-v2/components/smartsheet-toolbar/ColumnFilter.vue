@@ -264,7 +264,7 @@ defineExpose({
 <style scoped>
 .nc-filter-grid {
   display: grid;
-  grid-template-columns: 18px 70px auto auto auto;
+  grid-template-columns: 18px 70px auto 90px auto;
   column-gap: 6px;
   row-gap: 6px;
   align-items: center;
@@ -272,5 +272,9 @@ defineExpose({
 
 :deep(.ant-btn, .ant-select, .ant-input) {
   @apply "!text-xs";
+}
+
+:deep(.ant-select-item-option) {
+  @apply "!min-w-min";
 }
 </style>

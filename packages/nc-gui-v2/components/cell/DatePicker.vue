@@ -1,13 +1,10 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import customParseFormat from 'dayjs/plugin/customParseFormat'
-
 import { ColumnInj, ReadonlyInj } from '~/context'
+
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
-
-dayjs.extend(customParseFormat)
 
 interface Props {
   modelValue: string
@@ -38,7 +35,7 @@ const localState = $computed({
       return
     }
 
-    if (val?.isValid()) {
+    if (val.isValid()) {
       emit('update:modelValue', val?.format('YYYY-MM-DD'))
     }
   },

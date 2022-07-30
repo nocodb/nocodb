@@ -114,11 +114,11 @@ const onMove = (event: { moved: { newIndex: number } }) => {
           </a-checkbox>
         </div>
         <div class="p-2 flex gap-2" @click.stop>
-          <a-button size="small" class="text-xs text-gray-500 text-capitalize" @click.stop="showAll">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="showAll">
             <!-- Show All -->
             {{ $t('general.showAll') }}
           </a-button>
-          <a-button size="small" class="text-xs text-gray-500 text-capitalize" @click.stop="hideAll">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="hideAll">
             <!-- Hide All -->
             {{ $t('general.hideAll') }}
           </a-button>

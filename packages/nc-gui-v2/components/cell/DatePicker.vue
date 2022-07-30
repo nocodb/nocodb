@@ -1,91 +1,63 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { computed } from '#imports'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+
+import { ColumnInj, ReadonlyInj } from '~/context'
+const { modelValue } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue'])
+
+dayjs.extend(customParseFormat)
 
 interface Props {
   modelValue: string
 }
 
-const { modelValue } = defineProps<Props>()
+const columnMeta = inject(ColumnInj, null)
+const readOnlyMode = inject(ReadonlyInj, false)
 
-const emit = defineEmits(['update:modelValue'])
+let isDateInvalid = $ref(false)
+const dateFormat = columnMeta?.meta?.date_format ?? 'YYYY-MM-DD'
 
-const localState = computed({
+const localState = $computed({
   get() {
-    if (!modelValue || !dayjs(modelValue).isValid()) {
+    if (!modelValue) {
       return undefined
     }
 
-    return (/^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)).format('YYYY-MM-DD')
+    if (!dayjs(modelValue).isValid()) {
+      isDateInvalid = true
+      return undefined
+    }
+
+    return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
   },
-  set(val?: string) {
-    if (dayjs(val).isValid()) {
-      emit('update:modelValue', val && dayjs(val).format('YYYY-MM-DD'))
+  set(val?: dayjs.Dayjs) {
+    if (!val && !columnMeta?.rqd) {
+      emit('update:modelValue', null)
+      return
+    }
+
+    if (val?.isValid()) {
+      emit('update:modelValue', val?.format('YYYY-MM-DD'))
     }
   },
 })
-
-/*
-
-export default {
-  name: 'DatePickerCell',
-  props: {
-    value: [String, Date],
-  },
-  computed: {
-    localState: {
-      get() {
-        if (!this.value || !dayjs(this.value).isValid()) {
-          return undefined
-        }
-
-        return (/^\d+$/.test(this.value) ? dayjs(+this.value) : dayjs(this.value)).format('YYYY-MM-DD')
-      },
-      set(val) {
-        if (dayjs(val).isValid()) {
-          this.$emit('input', val && dayjs(val).format('YYYY-MM-DD'))
-        }
-      },
-    },
-    date() {
-      if (!this.value || this.localState) {
-        return this.localState
-      }
-      return 'Invalid Date'
-    },
-    parentListeners() {
-      const $listeners = {}
-
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
-
-      return $listeners
-    },
-  },
-  mounted() {
-    if (this.$el && this.$el.$el) {
-      this.$el.$el.focus()
-    }
-  },
-} */
 </script>
 
 <template>
-  <!--  <v-menu> -->
-  <!--    <template #activator="{ on }"> -->
-  <input v-model="localState" type="date" class="value" />
-  <!--    </template> -->
-  <!--    <v-date-picker v-model="localState" flat @click.native.stop v-on="parentListeners" /> -->
-  <!--  </v-menu> -->
+  <a-date-picker
+    v-model:value="localState"
+    :bordered="false"
+    class="!w-full px-1"
+    :format="dateFormat"
+    :placeholder="isDateInvalid ? 'Invalid date' : 'Select date'"
+    :allow-clear="!readOnlyMode"
+    :input-read-only="true"
+    :open="readOnlyMode ? false : undefined"
+  >
+    <template v-if="readOnlyMode" #suffixIcon></template>
+  </a-date-picker>
 </template>
 
-<style scoped>
-.value {
-  width: 100%;
-  min-height: 20px;
-}
-</style>
+<style scoped></style>

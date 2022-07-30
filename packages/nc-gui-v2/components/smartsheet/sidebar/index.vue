@@ -5,6 +5,8 @@ import MenuBottom from './MenuBottom.vue'
 import Toolbar from './Toolbar.vue'
 import { inject, provide, ref, useApi, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
+import MdiXml from '~icons/mdi/xml'
+import MdiHook from '~icons/mdi/hook'
 
 const meta = inject(MetaInj, ref())
 
@@ -58,7 +60,17 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
   <a-layout-sider class="shadow !mt-[-9px]" style="height: calc(100% + 9px)" theme="light" :width="drawerOpen ? 250 : 50">
     <Toolbar v-if="drawerOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />
 
-    <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]" />
+    <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
+      <template #start>
+        <MdiHook class="rounded text-xl p-1 text-gray-500 hover:(text-white bg-pink-500 shadow)" />
+
+        <div class="dot" />
+
+        <MdiXml class="rounded text-xl p-1 text-gray-500 hover:(text-white bg-pink-500 shadow)" />
+
+        <div class="dot" />
+      </template>
+    </Toolbar>
 
     <div v-if="drawerOpen" class="flex-1 flex flex-col">
       <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
@@ -79,5 +91,9 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 
 :deep(.ant-layout-sider-children) {
   @apply flex flex-col;
+}
+
+.dot {
+  @apply w-[3px] h-[3px] bg-gray-300 rounded-full;
 }
 </style>

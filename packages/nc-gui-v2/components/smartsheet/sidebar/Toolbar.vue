@@ -1,5 +1,7 @@
 <template>
   <div class="flex gap-2">
+    <slot name="start" />
+
     <SmartsheetToolbarLockMenu />
 
     <div class="dot" />
@@ -17,6 +19,8 @@
     <div class="dot" />
 
     <SmartsheetToolbarToggleDrawer />
+
+    <slot name="end" />
   </div>
 </template>
 

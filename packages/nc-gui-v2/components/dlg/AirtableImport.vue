@@ -34,6 +34,8 @@ const step = ref(1)
 
 const progress = ref<Record<string, any>[]>([])
 
+const logRef = ref()
+
 let socket: Socket | null
 
 const syncSource = ref({
@@ -205,6 +207,14 @@ onMounted(async () => {
 
   socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
+
+    nextTick(() => {
+      if (logRef.value) {
+        const el = logRef.value.$el
+        el.scrollTop = el.scrollHeight
+      }
+    })
+
     if (d.status === 'COMPLETED') {
       showGoToDashboardButton.value = true
       await loadTables()
@@ -303,7 +313,7 @@ onBeforeUnmount(() => {
       </div>
       <div v-if="step === 2">
         <div class="mb-4 prose-xl font-bold">Logs</div>
-        <a-card body-style="background-color: #000000; height:400px; overflow: auto;">
+        <a-card ref="logRef" body-style="background-color: #000000; height:400px; overflow: auto;">
           <div v-for="({ msg, status }, i) in progress" :key="i">
             <div v-if="status === 'FAILED'" class="flex items-center">
               <MdiCloseCircleOutlineIcon class="text-red-500" />
@@ -327,7 +337,9 @@ onBeforeUnmount(() => {
           </div>
         </a-card>
         <div class="flex justify-center items-center">
-          <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">Go to Dashboard</a-button>
+          <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false"
+            >Go to Dashboard</a-button
+          >
         </div>
       </div>
     </div>

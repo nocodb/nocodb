@@ -14,18 +14,28 @@ interface Props {
 }
 
 const { modelValue } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
 
 // TODO: handle baseURL
 const baseURL = 'http://localhost:8080' // this.$axios.defaults.baseURL
 
 const { $state } = useNuxtApp()
+
 const toast = useToast()
+
 const { sqlUi, project, loadTables } = useProject()
+
 const loading = ref(false)
+
+const showGoToDashboardButton = ref(false)
+
 const step = ref(1)
+
 const progress = ref<Record<string, any>[]>([])
+
 let socket: Socket | null
+
 const syncSource = ref({
   id: '',
   type: 'Airtable',
@@ -64,6 +74,7 @@ const dialogShow = computed({
 })
 
 const useForm = Form.useForm
+
 const { resetFields, validate, validateInfos } = useForm(syncSource, validators)
 
 const disableImportButton = computed(() => {
@@ -195,6 +206,7 @@ onMounted(async () => {
   socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
     if (d.status === 'COMPLETED') {
+      showGoToDashboardButton.value = true
       await loadTables()
       // TODO: add tab of the first table
     }
@@ -314,6 +326,9 @@ onBeforeUnmount(() => {
             <span class="text-green-500 ml-2"> Importing</span>
           </div>
         </a-card>
+        <div class="flex justify-center items-center">
+          <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">Go to Dashboard</a-button>
+        </div>
       </div>
     </div>
   </a-modal>

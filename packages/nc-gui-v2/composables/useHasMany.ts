@@ -1,7 +1,7 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { useMetas } from './useMetas'
 
-export default function (column: ColumnType) {
+export function useHasMany(column: ColumnType) {
   const { metas, getMeta } = useMetas()
   const childMeta = computed<TableType>(() => {
     return metas.value?.[(column.colOptions as any)?.fk_related_model_id as string]

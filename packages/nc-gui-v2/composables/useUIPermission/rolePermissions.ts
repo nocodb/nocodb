@@ -1,4 +1,4 @@
-export default {
+const permissions: Record<string, Record<string, boolean> | '*'> = {
   creator: '*',
   owner: '*',
   guest: {},
@@ -35,3 +35,5 @@ export default {
     projectSettings: true,
   },
 }
+
+export default permissions

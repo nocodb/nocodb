@@ -3,18 +3,18 @@ import type { ColumnType, GridColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import type GridView from '../../nocodb/src/lib/models/GridView'
 import useMetas from '~/composables/useMetas'
+import useUIPermission from '~/composables/useUIPermission'
 
 // todo: update swagger
 export default (view: Ref<(GridView & { id?: string }) | undefined>) => {
   const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
+  const { isUIAllowed } = useUIPermission()
+  const { $api } = useNuxtApp()
+  const { metas } = useMetas()
 
   const gridViewCols = ref<Record<string, GridColumnType>>({})
   const resizingCol = ref('')
   const resizingColWidth = ref('200px')
-
-  const { $api } = useNuxtApp()
-
-  const { metas } = useMetas()
 
   const columns = computed<ColumnType[]>(() => metas?.value?.[(view?.value as any)?.fk_model_id as string]?.columns)
 
@@ -51,7 +51,16 @@ export default (view: Ref<(GridView & { id?: string }) | undefined>) => {
   }
 
   const updateWidth = (id: string, width: string) => {
-    if (gridViewCols?.value?.[id]) gridViewCols.value[id].width = width
+    if (gridViewCols?.value?.[id]) {
+      gridViewCols.value[id].width = width
+    }
+
+    // sync with server if allowed
+    if (isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
+      $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
+        width,
+      })
+    }
   }
 
   return { loadGridViewColumns, updateWidth, resizingCol, resizingColWidth, loadCss, unloadCss }

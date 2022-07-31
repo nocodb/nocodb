@@ -138,11 +138,14 @@ function onStopEdit() {
       <div class="flex w-auto">
         <MdiDrag
           class="nc-drag-icon hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
-          :class="`nc-child-draggable-icon-${vModel.title}`"
           @click.stop.prevent
         />
 
-        <component :is="viewIcons[vModel.type].icon" class="group-hover:hidden" :class="`text-${viewIcons[vModel.type].color}`" />
+        <component
+          :is="viewIcons[vModel.type].icon"
+          class="nc-view-icon group-hover:hidden"
+          :class="`text-${viewIcons[vModel.type].color}`"
+        />
       </div>
 
       <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />

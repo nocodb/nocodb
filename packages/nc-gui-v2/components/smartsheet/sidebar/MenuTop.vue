@@ -207,11 +207,11 @@ function onDeleted() {
   @apply !pointer-events-none;
 }
 
-.dragging .nc-drag-icon {
+.dragging .nc-icon {
   @apply !hidden;
 }
 
-.dragging .nc-icon:not(.nc-drag-icon) {
+.dragging .nc-view-icon {
   @apply !block;
 }
 </style>

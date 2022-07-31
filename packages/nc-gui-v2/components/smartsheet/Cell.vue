@@ -32,6 +32,7 @@ const {
   isEmail,
   isJSON,
   isDate,
+  isYear,
   isDateTime,
   isTime,
   isBoolean,
@@ -51,8 +52,6 @@ const {
     <!--
 todo :
  JSONCell
- Currency
- Email
 -->
 
     <!--    <RatingCell -->
@@ -177,6 +176,7 @@ todo :
     <CellSingleSelect v-else-if="isSingleSelect" v-model="localState" />
     <CellMultiSelect v-else-if="isMultiSelect" v-model="localState" />
     <CellDatePicker v-else-if="isDate" v-model="localState" />
+    <CellYearPicker v-else-if="isYear" v-model="localState" />
     <CellDateTimePicker v-else-if="isDateTime" v-model="localState" />
     <CellDateTimePicker v-else-if="isTime" v-model="localState" />
     <CellRating v-else-if="isRating" v-model="localState" />
@@ -193,10 +193,12 @@ todo :
           v-on="$listeners"
         /> -->
     <CellDuration v-else-if="isDuration" v-model="localState" />
+    <CellEmail v-else-if="isEmail" v-model="localState" />
     <CellUrl v-else-if="isURL" v-model="localState" />
     <!-- v-on="parentListeners"
         />
     -->
+    <CellCurrency v-else-if="isCurrency" v-model="localState" />
     <CellText v-else-if="isString" v-model="localState" />
     <!-- v-on="parentListeners"
         />

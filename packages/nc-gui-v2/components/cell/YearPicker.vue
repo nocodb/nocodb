@@ -7,15 +7,12 @@ const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 interface Props {
-  modelValue: string
+  modelValue: number
 }
-
-const { isMysql } = useProject()
 
 const readOnlyMode = inject(ReadonlyInj, false)
 
-let isDateInvalid = $ref(false)
-const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
+let isYearInvalid = $ref(false)
 
 const localState = $computed({
   get() {
@@ -23,12 +20,13 @@ const localState = $computed({
       return undefined
     }
 
-    if (!dayjs(modelValue).isValid()) {
-      isDateInvalid = true
+    const yearDate = dayjs(modelValue.toString(), 'YYYY')
+    if (!yearDate.isValid()) {
+      isYearInvalid = true
       return undefined
     }
 
-    return /^\d+$/.test(modelValue) ? dayjs(+modelValue) : dayjs(modelValue)
+    return yearDate
   },
   set(val?: dayjs.Dayjs) {
     if (!val) {
@@ -36,8 +34,8 @@ const localState = $computed({
       return
     }
 
-    if (val.isValid()) {
-      emit('update:modelValue', val?.format(dateFormat))
+    if (val?.isValid()) {
+      emit('update:modelValue', Number(val.format('YYYY')))
     }
   },
 })
@@ -46,11 +44,10 @@ const localState = $computed({
 <template>
   <a-date-picker
     v-model:value="localState"
-    :show-time="true"
+    picker="year"
     :bordered="false"
     class="!w-full px-1"
-    format="YYYY-MM-DD HH:mm"
-    :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date' : ''"
+    :placeholder="isYearInvalid ? 'Invalid year' : !readOnlyMode ? 'Select year' : ''"
     :allow-clear="!readOnlyMode"
     :input-read-only="true"
     :open="readOnlyMode ? false : undefined"

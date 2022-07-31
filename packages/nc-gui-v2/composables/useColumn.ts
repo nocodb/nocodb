@@ -17,6 +17,7 @@ export default (column: ColumnType) => {
   const isInt = abstractType === 'integer'
   const isFloat = abstractType === 'float'
   const isDate = abstractType === 'date' || uiDatatype === 'Date'
+  const isYear = abstractType === 'year' || uiDatatype === 'Year'
   const isTime = abstractType === 'time' || uiDatatype === 'Time'
   const isDateTime = abstractType === 'datetime' || uiDatatype === 'DateTime'
   const isJSON = uiDatatype === 'JSON'
@@ -55,6 +56,7 @@ export default (column: ColumnType) => {
     isInt,
     isFloat,
     isDate,
+    isYear,
     isTime,
     isDateTime,
     isJSON,

@@ -3,8 +3,9 @@ import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'noc
 import type { SortableEvent } from 'sortablejs'
 import { Menu as AntMenu, notification } from 'ant-design-vue'
 import Draggable from 'vuedraggable'
+import type { Ref } from 'vue'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { computed, inject, ref, useApi, useTabs, watch } from '#imports'
+import { inject, ref, useApi, useTabs, watch } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import type { TabItem } from '~/composables/useTabs'
 import { TabType } from '~/composables/useTabs'
@@ -20,7 +21,7 @@ const emits = defineEmits<Emits>()
 
 const activeView = inject(ActiveViewInj, ref())
 
-const views = inject(ViewListInj, ref([]))
+const views = inject<Ref<any[]>>(ViewListInj, ref([]))
 
 const { addTab } = useTabs()
 
@@ -32,8 +33,6 @@ const selected = ref<string[]>([])
 let deleteModalVisible = $ref(false)
 
 let toDelete = $ref<Record<string, any> | undefined>()
-
-const sortedViews = computed(() => ((views.value as any[]) || []).sort((a, b) => a.order - b.order))
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
@@ -49,7 +48,7 @@ function validate(value?: string) {
     return 'View name is required'
   }
 
-  if (sortedViews.value.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== value)) {
+  if (views.value.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== value)) {
     return 'View name should be unique'
   }
 
@@ -57,7 +56,7 @@ function validate(value?: string) {
 }
 
 async function onSortEnd(evt: SortableEvent) {
-  if (sortedViews.value.length < 2) return
+  if (views.value.length < 2) return
 
   const { newIndex = 0, oldIndex = 0 } = evt
 
@@ -65,19 +64,17 @@ async function onSortEnd(evt: SortableEvent) {
 
   const children = evt.to.children
 
-  const currentEl = children[oldIndex]
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
 
-  const currentItem: Record<string, any> = currentEl ? sortedViews.value.find((v) => v.id === currentEl.id) : {}
-
-  const previousItem: Record<string, any> = previousEl ? sortedViews.value.find((v) => v.id === previousEl.id) : {}
-  const nextItem: Record<string, any> = nextEl ? sortedViews.value.find((v) => v.id === nextEl.id) : {}
+  const currentItem: Record<string, any> = views.value.find((v) => v.id === evt.item.id)
+  const previousItem: Record<string, any> = previousEl ? views.value.find((v) => v.id === previousEl.id) : {}
+  const nextItem: Record<string, any> = nextEl ? views.value.find((v) => v.id === nextEl.id) : {}
 
   let nextOrder: number
 
   // set new order value based on the new order of the items
-  if (sortedViews.value.length - 1 === newIndex) {
+  if (views.value.length - 1 === newIndex) {
     nextOrder = parseFloat(previousItem.order) + 1
   } else if (newIndex === 0) {
     nextOrder = parseFloat(nextItem.order) / 2
@@ -153,7 +150,7 @@ function onDeleted() {
   <h3 class="nc-headline pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
 
   <Draggable
-    :list="sortedViews"
+    :list="views"
     :tag="AntMenu.name"
     item-key="title"
     handle=".nc-drag-icon"

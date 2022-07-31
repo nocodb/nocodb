@@ -1,8 +1,9 @@
 import type { FormType, GalleryType, GridType, KanbanType, TableType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
+import type { WatchOptions } from '@vue/runtime-core'
 import { useNuxtApp } from '#app'
 
-export default function (meta: MaybeRef<TableType | undefined>) {
+export default function (meta: MaybeRef<TableType | undefined>, watchOptions: WatchOptions = {}) {
   let views = $ref<(GridType | FormType | KanbanType | GalleryType)[]>([])
   const { $api } = useNuxtApp()
 
@@ -17,7 +18,10 @@ export default function (meta: MaybeRef<TableType | undefined>) {
     }
   }
 
-  watch(() => meta, loadViews, { immediate: true })
+  watch(() => meta, loadViews, {
+    immediate: true,
+    ...watchOptions,
+  })
 
   return { views: $$(views), loadViews }
 }

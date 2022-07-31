@@ -68,7 +68,7 @@ watch(
               class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
               @click.stop
-              @update:model-value="saveOrUpdate(sort, i)"
+              @update:value="saveOrUpdate(sort, i)"
             >
               <a-select-option
                 v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"

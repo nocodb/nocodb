@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
-import { Menu as AntMenu, notification } from 'ant-design-vue'
-import Draggable from 'vuedraggable'
+import type { Menu as AntMenu } from 'ant-design-vue'
+import { notification } from 'ant-design-vue'
 import type { Ref } from 'vue'
+import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
 import { inject, ref, useApi, useTabs, watch } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
@@ -32,7 +33,10 @@ const selected = ref<string[]>([])
 
 let deleteModalVisible = $ref(false)
 
+/** view to delete for modal */
 let toDelete = $ref<Record<string, any> | undefined>()
+
+const menuRef = ref<typeof AntMenu>()
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
@@ -43,6 +47,7 @@ watch(activeView, (nextActiveView) => {
   }
 })
 
+/** validate view title */
 function validate(value?: string) {
   if (!value || value.trim().length < 0) {
     return 'View name is required'
@@ -55,7 +60,14 @@ function validate(value?: string) {
   return true
 }
 
+function onSortStart(evt: SortableEvent) {
+  evt.stopImmediatePropagation()
+  evt.preventDefault()
+  dragging = true
+}
+
 async function onSortEnd(evt: SortableEvent) {
+  dragging = false
   if (views.value.length < 2) return
 
   const { newIndex = 0, oldIndex = 0 } = evt
@@ -88,6 +100,22 @@ async function onSortEnd(evt: SortableEvent) {
 
   await api.dbView.update(currentItem.id, { order: _nextOrder })
 }
+
+let sortable: Sortable
+
+// todo: replace with vuedraggable
+const initSortable = (el: HTMLElement) => {
+  if (sortable) sortable.destroy()
+
+  sortable = new Sortable(el, {
+    handle: '.nc-drag-icon',
+    ghostClass: 'ghost',
+    onStart: onSortStart,
+    onEnd: onSortEnd,
+  })
+}
+
+onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
 
 // todo: fix view type, alias is missing for some reason?
 /** Navigate to view and add new tab if necessary */
@@ -133,12 +161,13 @@ async function onRename(view: Record<string, any>) {
   }
 }
 
-/** Delete a view */
+/** Open delete modal */
 async function onDelete(view: Record<string, any>) {
   toDelete = view
   deleteModalVisible = true
 }
 
+/** View was deleted, trigger reload */
 function onDeleted() {
   emits('deleted')
   toDelete = undefined
@@ -149,29 +178,22 @@ function onDeleted() {
 <template>
   <h3 class="nc-headline pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
 
-  <Draggable
-    :list="views"
-    :tag="AntMenu.name"
-    item-key="title"
-    handle=".nc-drag-icon"
-    :component-data="{
-      class: 'flex-1 max-h-[50vh] md:max-h-[200px] lg:max-h-[400px] xl:max-h-[600px] overflow-y-scroll scrollbar-thin-primary',
-      selectedKeys: selected,
-    }"
-    @end="onSortEnd"
+  <a-menu
+    ref="menuRef"
+    :class="{ dragging }"
+    class="flex-1 max-h-[50vh] md:max-h-[200px] lg:max-h-[400px] xl:max-h-[600px] overflow-y-scroll scrollbar-thin-primary"
+    :selected-keys="selected"
   >
-    <template #item="{ element: view }">
-      <div :id="view.id">
-        <RenameableMenuItem
-          :view="view"
-          @change-view="changeView"
-          @open-modal="$emit('openModal', $event)"
-          @delete="onDelete"
-          @rename="onRename"
-        />
-      </div>
-    </template>
-  </Draggable>
+    <RenameableMenuItem
+      v-for="view of views"
+      :key="view.id"
+      :view="view"
+      @change-view="changeView"
+      @open-modal="$emit('openModal', $event)"
+      @delete="onDelete"
+      @rename="onRename"
+    />
+  </a-menu>
 
   <dlg-view-delete v-model="deleteModalVisible" :view="toDelete" @deleted="onDeleted" />
 </template>

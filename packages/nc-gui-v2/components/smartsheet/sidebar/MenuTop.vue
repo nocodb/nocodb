@@ -31,6 +31,9 @@ const { api } = useApi()
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
 
+/** dragging renamable view items */
+let dragging = $ref(false)
+
 let deleteModalVisible = $ref(false)
 
 /** view to delete for modal */
@@ -197,3 +200,18 @@ function onDeleted() {
 
   <dlg-view-delete v-model="deleteModalVisible" :view="toDelete" @deleted="onDeleted" />
 </template>
+
+<style>
+.ghost,
+.ghost > * {
+  @apply !pointer-events-none;
+}
+
+.dragging .nc-drag-icon {
+  @apply !hidden;
+}
+
+.dragging .nc-icon:not(.nc-drag-icon) {
+  @apply !block;
+}
+</style>

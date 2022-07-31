@@ -17,6 +17,9 @@ const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
+// todo: replace with inject or get from state
+const shared = ref(false)
+
 const { $e } = useNuxtApp()
 
 const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
@@ -93,10 +96,7 @@ watch(
 )
 
 const applyChanges = async () => {
-  console.log('hello')
-  // sync()
-  // $e('a:filter:apply')
-
+  await sync()
   for (const nestedFilter of nestedFilters?.value || []) {
     if (nestedFilter.parentId) {
       await nestedFilter.applyChanges(true)
@@ -151,6 +151,7 @@ defineExpose({
                 v-model="filter.children"
                 :parent-id="filter.id"
                 nested
+                :auto-save="autoSave"
               />
             </div>
           </template>

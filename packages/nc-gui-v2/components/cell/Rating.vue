@@ -36,17 +36,15 @@ const localState = computed({
 </script>
 
 <template>
-  <div class="text-sm" :class="{ 'nc-cell-hover-show': localState === 0 || !localState }">
-    <a-rate v-model:value="localState" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`">
-      <template #character>
-        <MdiStarIcon v-if="ratingMeta.icon.full === 'mdi-star'" />
-        <MdiHeartIcon v-if="ratingMeta.icon.full === 'mdi-heart'" />
-        <MdiMoonFullIcon v-if="ratingMeta.icon.full === 'mdi-moon-full'" />
-        <MdiThumbUpIcon v-if="ratingMeta.icon.full === 'mdi-thumb-up'" />
-        <MdiFlagIcon v-if="ratingMeta.icon.full === 'mdi-flag'" />
-      </template>
-    </a-rate>
-  </div>
+  <a-rate v-model:value="localState" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`">
+    <template #character>
+      <MdiStarIcon v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />
+      <MdiHeartIcon v-if="ratingMeta.icon.full === 'mdi-heart'" class="text-sm" />
+      <MdiMoonFullIcon v-if="ratingMeta.icon.full === 'mdi-moon-full'" class="text-sm" />
+      <MdiThumbUpIcon v-if="ratingMeta.icon.full === 'mdi-thumb-up'" class="text-sm" />
+      <MdiFlagIcon v-if="ratingMeta.icon.full === 'mdi-flag'" class="text-sm" />
+    </template>
+  </a-rate>
 </template>
 
 <style scoped></style>

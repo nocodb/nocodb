@@ -114,6 +114,7 @@ export default function (
         if (
           !showSystemFields.value &&
           metaColumnById.value &&
+          metaColumnById?.value?.[c.fk_column_id as string] &&
           isSystemColumn(metaColumnById?.value?.[c.fk_column_id as string])
         ) {
           return false

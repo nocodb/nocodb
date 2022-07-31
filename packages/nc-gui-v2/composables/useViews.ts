@@ -10,7 +10,10 @@ export default function (meta: MaybeRef<TableType | undefined>) {
     const _meta = unref(meta)
 
     if (_meta && _meta.id) {
-      views = (await $api.dbView.list(_meta.id)).list as (GridType | FormType | KanbanType | GalleryType)[]
+      const response = (await $api.dbView.list(_meta.id)).list as any[]
+      if (response) {
+        views = response.sort((a, b) => a.order - b.order)
+      }
     }
   }
 

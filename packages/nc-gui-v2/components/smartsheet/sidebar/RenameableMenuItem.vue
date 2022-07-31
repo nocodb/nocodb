@@ -133,7 +133,7 @@ function onStopEdit() {
 </script>
 
 <template>
-  <a-menu-item class="group !flex !items-center !my-0" @dblclick="onDblClick" @click="onClick">
+  <a-menu-item class="select-none group !flex !items-center !my-0" @dblclick.stop="onDblClick" @click.stop="onClick">
     <div v-t="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
       <div class="flex w-auto">
         <MdiDrag

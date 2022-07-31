@@ -6,7 +6,7 @@ import { notification } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { inject, ref, useApi, useTabs, watch } from '#imports'
+import { inject, onMounted, ref, useApi, useTabs, watch } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import type { TabItem } from '~/composables/useTabs'
 import { TabType } from '~/composables/useTabs'
@@ -39,7 +39,9 @@ let deleteModalVisible = $ref(false)
 /** view to delete for modal */
 let toDelete = $ref<Record<string, any> | undefined>()
 
-const menuRef = ref<typeof AntMenu>()
+const menuRef = $ref<typeof AntMenu>()
+
+let isMarked = $ref<string | false>(false)
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
@@ -49,6 +51,14 @@ watch(activeView, (nextActiveView) => {
     selected.value = [_nextActiveView.id]
   }
 })
+
+/** shortly mark an item after sorting */
+function markItem(id: string) {
+  isMarked = id
+  setTimeout(() => {
+    isMarked = false
+  }, 300)
+}
 
 /** validate view title */
 function validate(value?: string) {
@@ -70,14 +80,17 @@ function onSortStart(evt: SortableEvent) {
 }
 
 async function onSortEnd(evt: SortableEvent) {
+  evt.stopImmediatePropagation()
+  evt.preventDefault()
   dragging = false
+
   if (views.value.length < 2) return
 
   const { newIndex = 0, oldIndex = 0 } = evt
 
   if (newIndex === oldIndex) return
 
-  const children = evt.to.children
+  const children = evt.to.children as unknown as HTMLLIElement[]
 
   const previousEl = children[newIndex - 1]
   const nextEl = children[newIndex + 1]
@@ -102,6 +115,8 @@ async function onSortEnd(evt: SortableEvent) {
   currentItem.order = _nextOrder
 
   await api.dbView.update(currentItem.id, { order: _nextOrder })
+
+  markItem(currentItem.id)
 }
 
 let sortable: Sortable
@@ -118,7 +133,7 @@ const initSortable = (el: HTMLElement) => {
   })
 }
 
-onMounted(() => menuRef.value && initSortable(menuRef.value.$el))
+onMounted(() => menuRef && initSortable(menuRef.$el))
 
 // todo: fix view type, alias is missing for some reason?
 /** Navigate to view and add new tab if necessary */
@@ -181,17 +196,14 @@ function onDeleted() {
 <template>
   <h3 class="nc-headline pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
 
-  <a-menu
-    ref="menuRef"
-    :class="{ dragging }"
-    class="flex-1 max-h-[50vh] md:max-h-[200px] lg:max-h-[400px] xl:max-h-[600px] overflow-y-scroll scrollbar-thin-primary"
-    :selected-keys="selected"
-  >
+  <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu" :selected-keys="selected">
     <RenameableMenuItem
       v-for="view of views"
       :id="view.id"
       :key="view.id"
       :view="view"
+      class="transition-all ease-in duration-300"
+      :class="[isMarked === view.id ? 'bg-gray-200' : '']"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="onDelete"
@@ -202,17 +214,31 @@ function onDeleted() {
   <dlg-view-delete v-model="deleteModalVisible" :view="toDelete" @deleted="onDeleted" />
 </template>
 
-<style>
-.ghost,
-.ghost > * {
-  @apply !pointer-events-none;
-}
+<style lang="scss">
+.nc-views-menu {
+  @apply flex-1 max-h-[50vh] md:max-h-[200px] lg:max-h-[400px] xl:max-h-[600px] overflow-y-scroll scrollbar-thin-primary;
 
-.dragging .nc-icon {
-  @apply !hidden;
-}
+  .ghost,
+  .ghost > * {
+    @apply !pointer-events-none;
+  }
 
-.dragging .nc-view-icon {
-  @apply !block;
+  &.dragging {
+    .nc-icon {
+      @apply !hidden;
+    }
+
+    .nc-view-icon {
+      @apply !block;
+    }
+  }
+
+  .ant-menu-item:not(.sortable-chosen) {
+    @apply color-transition hover:!bg-transparent;
+  }
+
+  .sortable-chosen {
+    @apply !bg-primary/25 text-primary;
+  }
 }
 </style>

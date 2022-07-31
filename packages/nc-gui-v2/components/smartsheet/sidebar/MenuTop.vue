@@ -189,6 +189,7 @@ function onDeleted() {
   >
     <RenameableMenuItem
       v-for="view of views"
+      :id="view.id"
       :key="view.id"
       :view="view"
       @change-view="changeView"

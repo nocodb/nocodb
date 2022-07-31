@@ -446,7 +446,7 @@ defineExpose({
                   <!-- TODO: i18n -->
                   <span>Add Other Column</span>
                 </template>
-                <a-button @click="addNewColumnRow(table)">
+                <a-button @click="addNewColumnRow(table, 'SingleLineText')">
                   <div class="flex items-center">
                     <MdiPlusIcon class="text-lg" />
                     Column

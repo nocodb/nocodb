@@ -102,7 +102,7 @@ const exportCsv = async () => {
       <template #overlay>
         <div class="bg-white shadow">
           <div>
-            <div class="nc-menu-item" @click.stop="exportCsv">
+            <div class="nc-menu-item" @click="exportCsv">
               <MdiDownloadIcon />
               <!-- Download as CSV -->
               {{ $t('activity.downloadCSV') }}
@@ -112,7 +112,7 @@ const exportCsv = async () => {
               <!-- Upload CSV -->
               {{ $t('activity.uploadCSV') }}
             </div>
-            <div class="nc-menu-item" @click.stop="sharedViewListDlg = true">
+            <div class="nc-menu-item" @click="sharedViewListDlg = true">
               <MdiViewListIcon />
               <!-- Shared View List -->
               {{ $t('activity.listSharedView') }}

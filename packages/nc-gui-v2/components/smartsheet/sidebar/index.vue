@@ -86,7 +86,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
           <template #title> Get API Snippet </template>
 
           <div class="nc-sidebar-right-item group hover:after:bg-yellow-500">
-            <MdiXml class="group-hover:!text-white" />
+            <MdiXml class="group-hover:(!text-white)" />
           </div>
         </a-tooltip>
 

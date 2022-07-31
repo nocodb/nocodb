@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed, inject } from '#imports'
-import { ColumnInj, IsFormInj } from '~/context'
+import { ColumnInj } from '~/context'
 import MdiStarIcon from '~icons/mdi/star'
-import MdiStarOutlineIcon from '~icons/mdi/star-outline'
+import MdiHeartIcon from '~icons/mdi/heart'
+import MdiMoonFullIcon from '~icons/mdi/moon-full'
+import MdiThumbUpIcon from '~icons/mdi/thumb-up'
+import MdiFlagIcon from '~icons/mdi/flag'
 
 interface Props {
   modelValue?: string | number
@@ -10,9 +13,10 @@ interface Props {
 }
 
 const { modelValue: value, readOnly } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
+
 const column = inject(ColumnInj)
-const isForm = inject(IsFormInj)
 
 const ratingMeta = computed(() => {
   return {
@@ -22,25 +26,26 @@ const ratingMeta = computed(() => {
     },
     color: '#fcb401',
     max: 5,
-    // ...(column?.meta || {})
+    ...(column?.meta || {}),
   }
 })
 const localState = computed({
   get: () => value,
-  set: (val) => emit('update:modelValue', val),
+  set: (val: any) => emit('update:modelValue', val),
 })
 </script>
 
 <template>
-  <div class="d-100 h-100" :class="{ 'nc-cell-hover-show': localState === 0 || !localState }">
-    <v-rating v-model="localState" :length="ratingMeta.max" dense x-small :readonly="readOnly" clearable>
-      <!--      todo:  use the proper slot -->
-      <template #item="{ isFilled, click }">
-        <!--        todo : custom icon -->
-        <MdiStarIcon v-if="isFilled" :style="`color: ${ratingMeta.color}`" @click="click" />
-        <MdiStarOutlineIcon v-else :style="`color: ${ratingMeta.color}`" @click="click" />
+  <div class="text-sm" :class="{ 'nc-cell-hover-show': localState === 0 || !localState }">
+    <a-rate v-model:value="localState" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`">
+      <template #character>
+        <MdiStarIcon v-if="ratingMeta.icon.full === 'mdi-star'" />
+        <MdiHeartIcon v-if="ratingMeta.icon.full === 'mdi-heart'" />
+        <MdiMoonFullIcon v-if="ratingMeta.icon.full === 'mdi-moon-full'" />
+        <MdiThumbUpIcon v-if="ratingMeta.icon.full === 'mdi-thumb-up'" />
+        <MdiFlagIcon v-if="ratingMeta.icon.full === 'mdi-flag'" />
       </template>
-    </v-rating>
+    </a-rate>
   </div>
 </template>
 

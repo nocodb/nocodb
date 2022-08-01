@@ -13,7 +13,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = createInjectionState((vi
   // todo: move to grid view store
   const search = reactive({
     field: '',
-    value: '',
+    query: '',
   })
 
   // getters
@@ -23,11 +23,11 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = createInjectionState((vi
     const col = meta?.value?.columns?.find(({ id }) => id === search.field) || meta?.value?.columns?.find((v) => v.pv)
     if (!col) return
 
-    if (!search.value.trim()) return
+    if (!search.query.trim()) return
     if (['text', 'string'].includes(sqlUi.value.getAbstractType(col)) && col.dt !== 'bigint') {
-      where = `(${col.title},like,%${search.value.trim()}%)`
+      where = `(${col.title},like,%${search.query.trim()}%)`
     } else {
-      where = `(${col.title},eq,${search.value.trim()})`
+      where = `(${col.title},eq,${search.query.trim()})`
     }
     return where
   })

@@ -17,7 +17,7 @@ const columns = computed(() =>
 
 <template>
   <a-input
-    v-model:value="search.value"
+    v-model:value="search.query"
     size="small"
     class="max-w-[200px]"
     placeholder="Filter query"

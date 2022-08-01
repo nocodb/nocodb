@@ -35,7 +35,7 @@ const urls = computed(() => replaceUrlsWithLink(result.value))
     <div class="pa-2" @dblclick="showEditFormulaWarningMessage">
       <div v-if="urls" v-html="urls" />
       <div v-else>{{ result }}</div>
-      <div v-if="showEditFormulaWarning" class="text-left mt-2 text-[#e65100]">
+      <div v-if="showEditFormulaWarning" class="text-left text-wrap mt-2 text-[#e65100]">
         <!-- TODO: i18n -->
         Warning: Formula fields should be configured in the field menu dropdown.
       </div>

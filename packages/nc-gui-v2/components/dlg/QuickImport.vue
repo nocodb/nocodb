@@ -305,7 +305,7 @@ function getAdapter(name: string, val: any) {
           <template #tab>
             <span class="flex items-center gap-2">
               <MdiCodeJSONIcon />
-              Json Editor
+              JSON Editor
             </span>
           </template>
           <div class="pb-3 pt-3">
@@ -316,7 +316,7 @@ function getAdapter(name: string, val: any) {
           <template #tab>
             <span class="flex items-center gap-2">
               <MdiLinkVariantIcon />
-              Url
+              URL
             </span>
           </template>
           <div class="pr-10 pt-5">

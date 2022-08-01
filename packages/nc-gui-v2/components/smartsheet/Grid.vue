@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { getCurrentInstance, inject, onKeyStroke, onMounted, provide } from '#imports'
+import { inject, onKeyStroke, onMounted, provide } from '#imports'
+import { useProvideColumnCreateStore } from '~/composables/useColumnCreateStore'
 import useGridViewColumnWidth from '~/composables/useGridViewColumnWidth'
 import {
   ActiveViewInj,
@@ -13,6 +14,7 @@ import {
   ReloadViewDataHookInj,
 } from '~/context'
 import useViewData from '~/composables/useViewData'
+import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
@@ -25,6 +27,7 @@ const isPublicView = false
 
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
+const addColumnDropdown = ref(false)
 
 const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
@@ -72,6 +75,11 @@ const onXcResizing = (cn: string, event: any) => {
 defineExpose({
   loadData,
 })
+
+// instantiate column create store
+// watchEffect(() => {
+if (meta) useProvideColumnCreateStore(meta)
+// })
 </script>
 
 <template>
@@ -92,6 +100,17 @@ defineExpose({
             >
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
               <SmartsheetHeaderCell v-else :column="col" />
+            </th>
+            <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
+            <th v-t="['c:column:add']" @click="addColumnDropdown = true">
+              <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
+                <div class="h-full w-full flex align-center justify-center">
+                  <MdiPlusIcon class="text-sm" />
+                </div>
+                <template #overlay>
+                  <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
+                </template>
+              </a-dropdown>
             </th>
           </tr>
         </thead>
@@ -219,9 +238,15 @@ defineExpose({
 
   td,
   th {
-    min-height: 31px !important;
+    min-height: 41px !important;
+    height: 41px !important;
     position: relative;
-    padding: 0 5px !important;
+    padding: 0 5px;
+
+    & > * {
+      @apply flex align-center h-auto;
+    }
+    overflow: hidden;
   }
 
   table,
@@ -237,7 +262,6 @@ defineExpose({
   }
 
   td {
-    overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
   }

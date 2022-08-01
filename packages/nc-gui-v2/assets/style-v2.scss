@@ -72,9 +72,8 @@ html {
   overflow-y: auto !important;
 }
 
-
 .nc-menu-item {
-  @apply cursor-pointer text-xs flex align-center gap-2 p-4 relative after:(content-[''] absolute top-0 left-0  w-full h-full right 0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+  @apply cursor-pointer text-xs flex align-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0  w-full h-full right 0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
 }
 
 .nc-sidebar-right-item {

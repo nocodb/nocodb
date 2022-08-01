@@ -5,7 +5,7 @@ import useMetas from '~/composables/useMetas'
 import useUIPermission from '~/composables/useUIPermission'
 
 // todo: update swagger
-export default (view: Ref<(GridType & { id?: string }) | undefined>) => {
+export default (view: Ref<GridType & { id?: string }>) => {
   const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
   const { isUIAllowed } = useUIPermission()
   const { $api } = useNuxtApp()

@@ -13,5 +13,3 @@ const emits = defineEmits(['addRow'])
     </div>
   </a-tooltip>
 </template>
-
-<style scoped></style>

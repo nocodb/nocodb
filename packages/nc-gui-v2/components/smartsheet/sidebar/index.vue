@@ -37,16 +37,16 @@ let modalOpen = $ref(false)
 /** Watch route param and change active view based on `viewTitle` */
 watch(
   [views, () => route.params.viewTitle],
-  ([views, viewTitle]) => {
+  ([nextViews, viewTitle]) => {
     if (viewTitle) {
-      const view = views.find((v) => v.title === viewTitle)
+      const view = nextViews.find((v) => v.title === viewTitle)
       if (view) {
         activeView.value = view
       }
     }
     /** if active view is not found, set it to first view */
-    if (!activeView.value && views.length) {
-      activeView.value = views[0]
+    if (!activeView.value && nextViews.length) {
+      activeView.value = nextViews[0]
     }
   },
   { immediate: true },

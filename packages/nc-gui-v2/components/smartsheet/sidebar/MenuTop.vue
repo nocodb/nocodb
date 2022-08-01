@@ -6,11 +6,8 @@ import { notification } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { Meta } from '#head/components'
 import { inject, onMounted, ref, useApi, useTabs, watch } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import type { TabItem } from '~/composables/useTabs'
-import { TabType } from '~/composables/useTabs'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
 
 interface Emits {

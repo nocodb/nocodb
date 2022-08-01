@@ -12,9 +12,9 @@ interface Props {
   readOnly?: boolean
 }
 
-const { modelValue: value, readOnly } = defineProps<Props>()
+const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
@@ -29,14 +29,12 @@ const ratingMeta = computed(() => {
     ...(column?.meta || {}),
   }
 })
-const localState = computed({
-  get: () => value,
-  set: (val: any) => emit('update:modelValue', val),
-})
+
+const vModel = useVModel(props, 'modelValue', emits)
 </script>
 
 <template>
-  <a-rate v-model:value="localState" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`">
+  <a-rate v-model:value="vModel" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`" :disabled="props.readOnly">
     <template #character>
       <MdiStarIcon v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />
       <MdiHeartIcon v-if="ratingMeta.icon.full === 'mdi-heart'" class="text-sm" />

@@ -33,9 +33,9 @@ export function useUIPermission() {
     // }
 
     return Object.entries<boolean>(roles).some(([role, hasRole]) => {
-      const rolePermission = rolePermissions[role as keyof typeof rolePermissions] as Permission
+      const rolePermission = rolePermissions[role as keyof typeof rolePermissions] as '*' | Record<Permission, true>
 
-      return hasRole && (rolePermission === '*' || (typeof rolePermission === 'object' && rolePermission[permission]))
+      return hasRole && (rolePermission === '*' || rolePermission[permission])
     })
   }
 

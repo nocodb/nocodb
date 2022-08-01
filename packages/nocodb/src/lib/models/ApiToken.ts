@@ -23,23 +23,30 @@ export default class ApiToken {
     const token = nanoid(40);
     await ncMeta.metaInsert(null, null, MetaTable.API_TOKENS, {
       description: apiToken.description,
+      user_id: apiToken?.user_id,
       token
     });
-    return this.getByToken(token);
+    return this.getByToken(token, apiToken?.user_id);
   }
 
-  static async list(ncMeta = Noco.ncMeta) {
-    const tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS);
+  static async list(userId = null, ncMeta = Noco.ncMeta) {
+    const tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS, {
+      condition: { user_id: userId },
+    });
     return tokens?.map(t => new ApiToken(t));
   }
 
-  static async delete(token, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, { token });
+  static async delete(token, userId = null, ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
+      token,
+      user_id: userId,
+    });
   }
 
-  static async getByToken(token, ncMeta = Noco.ncMeta) {
+  static async getByToken(token, userId = null, ncMeta = Noco.ncMeta) {
     const data = await ncMeta.metaGet(null, null, MetaTable.API_TOKENS, {
       token,
+      user_id: userId,
     });
     return data && new ApiToken(data);
   }

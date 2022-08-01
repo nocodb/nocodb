@@ -1,23 +1,24 @@
 <script setup lang="ts">
 import Text from './Text.vue'
-import { computed } from '#imports'
 
 interface Props {
   modelValue: any
 }
 
-const { modelValue: value } = defineProps<Props>()
+interface Emits {
+  (event: 'update:modelValue', model: number): void
+}
 
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps<Props>()
 
-const VModal = computed({
-  get: () => value,
-  set: (val) => emit('update:modelValue', val),
-})
+const emits = defineEmits<Emits>()
+
+const vModel = useVModel(props, 'modelValue', emits)
+
 </script>
 
 <template>
-  <Text v-model="VModal" />
+  <Text v-model="vModel" />
 </template>
 
 <style scoped></style>

@@ -3,7 +3,7 @@ import { defineNuxtPlugin } from '#app'
 import { useBreakpoints, useDark, useGlobal, watch } from '#imports'
 
 /**
- * Injects global state into nuxt app.
+ * Initialize global state and watches for changes
  *
  * @example
  * ```js

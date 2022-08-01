@@ -24,10 +24,10 @@ const validEmail = computed(() => isEmail(vModel.value))
 </script>
 
 <template>
-  <input v-if="editEnabled" ref="root" v-model="vModel" class="outline-none" />
+  <input v-if="editEnabled" ref="root" v-model="vModel" class="outline-none prose-sm" />
   <a
     v-else-if="validEmail"
-    class="caption py-2 text-primary underline hover:opacity-75"
+    class="prose-sm underline hover:opacity-75"
     :href="`mailto:${vModel}`"
     target="_blank"
   >

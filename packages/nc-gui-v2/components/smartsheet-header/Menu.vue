@@ -4,7 +4,7 @@ import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
 import { useNuxtApp } from '#app'
-import useMetas from '~/composables/useMetas'
+import { useMetas } from '#imports'
 import { ColumnInj, MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiEditIcon from '~icons/mdi/pencil'
@@ -12,6 +12,7 @@ import MdiStarIcon from '~icons/mdi/star'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
+const { virtual = false } = defineProps<{ virtual?: boolean }>()
 const editColumnDropdown = $ref(false)
 
 const column = inject(ColumnInj)
@@ -61,12 +62,12 @@ const setAsPrimaryValue = async () => {
     <MdiMenuDownIcon class="text-grey" />
     <template #overlay>
       <div class="shadow bg-white">
-        <div class="nc-column-edit nc-menu-item" @click="editColumnDropdown = true">
+        <div v-if="!virtual" class="nc-column-edit nc-menu-item" @click="editColumnDropdown = true">
           <MdiEditIcon class="text-primary" />
           <!-- Edit -->
           {{ $t('general.edit') }}
         </div>
-        <div v-t="['a:column:set-primary']" class="nc-menu-item" @click="setAsPrimaryValue">
+        <div  v-if="!virtual" v-t="['a:column:set-primary']" class="nc-menu-item" @click="setAsPrimaryValue">
           <MdiStarIcon class="text-primary" />
 
           <!--       todo : tooltip -->

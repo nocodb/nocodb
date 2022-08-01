@@ -53,7 +53,7 @@ const localState = $computed({
     :input-read-only="true"
     :open="readOnlyMode ? false : undefined"
   >
-    <template v-if="readOnlyMode" #suffixIcon></template>
+    <template #suffixIcon></template>
   </a-date-picker>
 </template>
 

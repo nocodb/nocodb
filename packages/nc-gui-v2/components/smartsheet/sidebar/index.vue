@@ -16,6 +16,8 @@ const { views, loadViews } = useViews(meta)
 
 const { api } = useApi()
 
+const route = useRoute()
+
 provide(ViewListInj, views)
 
 /** Sidebar visible */
@@ -32,12 +34,19 @@ let viewCreateTitle = $ref('')
 /** is view creation modal open */
 let modalOpen = $ref(false)
 
-/** Watch current views and on change set the next active view */
+/** Watch route param and change active view based on `viewTitle` */
 watch(
-  views,
-  (nextViews) => {
-    if (nextViews.length) {
-      activeView.value = nextViews[0]
+  [views, () => route.params.viewTitle],
+  ([views, viewTitle]) => {
+    if (viewTitle) {
+      const view = views.find((v) => v.title === viewTitle)
+      if (view) {
+        activeView.value = view
+      }
+    }
+    /** if active view is not found, set it to first view */
+    if (!activeView.value && views.length) {
+      activeView.value = views[0]
     }
   },
   { immediate: true },
@@ -73,7 +82,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
       <template #start>
         <a-tooltip placement="left">
-          <template #title> {{ $t('objects.webhooks') }} </template>
+          <template #title> {{ $t('objects.webhooks') }}</template>
 
           <div class="nc-sidebar-right-item hover:after:bg-gray-300">
             <MdiHook />
@@ -83,7 +92,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
         <div class="dot" />
 
         <a-tooltip placement="left">
-          <template #title> Get API Snippet </template>
+          <template #title> Get API Snippet</template>
 
           <div class="nc-sidebar-right-item group hover:after:bg-yellow-500">
             <MdiXml class="group-hover:(!text-white)" />

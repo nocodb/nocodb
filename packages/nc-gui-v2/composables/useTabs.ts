@@ -11,6 +11,8 @@ export interface TabItem {
   type: TabType
   title: string
   id?: string
+  viewTitle?: string
+  viewId?: string
 }
 
 function getPredicate(key: Partial<TabItem>) {
@@ -60,9 +62,9 @@ export function useTabs() {
 
         switch (tab.type) {
           case TabType.TABLE:
-            return navigateTo(`/nc/${route.params.projectId}/table/${tab?.title}`)
+            return navigateTo(`/nc/${route.params.projectId}/table/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
           case TabType.VIEW:
-            return navigateTo(`/nc/${route.params.projectId}/view/${tab?.title}`)
+            return navigateTo(`/nc/${route.params.projectId}/view/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
           case TabType.AUTH:
             return navigateTo(`/nc/${route.params.projectId}/auth`)
         }

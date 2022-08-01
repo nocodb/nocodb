@@ -6,11 +6,12 @@ import { notification } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
+import { Meta } from '#head/components'
 import { inject, onMounted, ref, useApi, useTabs, watch } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import type { TabItem } from '~/composables/useTabs'
 import { TabType } from '~/composables/useTabs'
-import { ActiveViewInj, ViewListInj } from '~/context'
+import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void
@@ -24,9 +25,13 @@ const activeView = inject(ActiveViewInj, ref())
 
 const views = inject<Ref<any[]>>(ViewListInj, ref([]))
 
+const meta = inject(MetaInj)
+
 const { addTab } = useTabs()
 
 const { api } = useApi()
+
+const router = useRouter()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -136,17 +141,9 @@ const initSortable = (el: HTMLElement) => {
 onMounted(() => menuRef && initSortable(menuRef.$el))
 
 // todo: fix view type, alias is missing for some reason?
-/** Navigate to view and add new tab if necessary */
+/** Navigate to view by changing url param */
 function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
-  activeView.value = view
-
-  const tabProps: TabItem = {
-    id: view.id,
-    title: (view.alias ?? view.title) || '',
-    type: TabType.VIEW,
-  }
-
-  addTab(tabProps)
+  router.push({ params: { viewTitle: (view.alias ?? view.title) || '' } })
 }
 
 /** Rename a view */

@@ -265,7 +265,8 @@ function getAdapter(name: string, val: any) {
         ref="templateEditorRef"
         :project-template="templateData"
         :import-data="importData"
-        :quick-import-type="importType"
+        :quick-import-type="props.importType"
+        @import="handleImport"
       />
       <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
         <a-tab-pane key="uploadTab" :closable="false">

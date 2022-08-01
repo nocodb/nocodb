@@ -28,6 +28,8 @@ interface Option {
 
 const { quickImportType, projectTemplate, importData } = defineProps<Props>()
 
+const emit = defineEmits(['import'])
+
 const useForm = Form.useForm
 
 const { $api } = useNuxtApp()
@@ -73,6 +75,9 @@ const { sqlUi, project, loadTables } = useProject()
 
 onMounted(() => {
   parseAndLoadTemplate()
+  nextTick(() => {
+    inputRefs.value[0]?.focus()
+  })
 })
 
 const validators = computed(() =>
@@ -282,7 +287,7 @@ defineExpose({
 <template>
   <a-spin :spinning="isImporting" :tip="importingTip" size="large">
     <a-card>
-      <a-form :model="data" name="template-editor-form">
+      <a-form :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
           available for import

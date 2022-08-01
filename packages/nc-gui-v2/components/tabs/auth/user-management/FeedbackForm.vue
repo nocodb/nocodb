@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import CloseIcon from '~icons/material-symbols/close-rounded'
 
-const { feedbackForm } = $(useGlobalState())
+const { feedbackForm } = useGlobal()
 </script>
 
 <template>

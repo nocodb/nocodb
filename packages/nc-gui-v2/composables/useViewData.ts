@@ -3,6 +3,8 @@ import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
 import { NOCO } from '~/lib'
+import { notification } from 'ant-design-vue'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -36,65 +38,79 @@ export function useViewData(
   }
 
   const updateRowProperty = async (row: Record<string, any>, property: string) => {
-    const id = meta?.value?.columns
-      ?.filter((c) => c.pk)
-      .map((c) => row[c.title as string])
-      .join('___') as string
+    try {
+      const id = meta?.value?.columns
+        ?.filter((c) => c.pk)
+        .map((c) => row[c.title as string])
+        .join('___') as string
 
-    return $api.dbViewRow.update(
-      NOCO,
-      project?.value.id as string,
-      meta?.value.id as string,
-      viewMeta?.value?.id as string,
-      id,
-      {
-        [property]: row[property],
-      },
-      // todo:
-      // {
-      //   query: { ignoreWebhook: !saved }
-      // }
-    )
+      return $api.dbViewRow.update(
+        NOCO,
+        project?.value.id as string,
+        meta?.value.id as string,
+        viewMeta?.value?.id as string,
+        id,
+        {
+          [property]: row[property],
+        },
+        // todo:
+        // {
+        //   query: { ignoreWebhook: !saved }
+        // }
+      )
 
-    /*
+      /*
 
-        todo: audit
+          todo: audit
 
-        // audit
-          this.$api.utils
-            .auditRowUpdate(id, {
-              fk_model_id: this.meta.id,
-              column_name: column.title,
-              row_id: id,
-              value: getPlainText(rowObj[column.title]),
-              prev_value: getPlainText(oldRow[column.title])
-            })
-            .then(() => {})
-        */
+          // audit
+            this.$api.utils
+              .auditRowUpdate(id, {
+                fk_model_id: this.meta.id,
+                column_name: column.title,
+                row_id: id,
+                value: getPlainText(rowObj[column.title]),
+                prev_value: getPlainText(oldRow[column.title])
+              })
+              .then(() => {})
+          */
+    } catch (error) {
+      notification.error({
+        message: 'Row update failed',
+        description:
+          await extractSdkResponseErrorMsg(error),
+      })
+    }
   }
   const insertRow = async (row: Record<string, any>, rowIndex = formattedData.value?.length) => {
-    // todo: implement insert row
+    try {
+      const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
+        if (!col.ai && row?.[col.title as string] !== null) {
+          o[col.title as string] = row?.[col.title as string]
+        }
+        return o
+      }, {})
 
-    const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
-      if (!col.ai && row?.[col.title as string] !== null) {
-        o[col.title as string] = row?.[col.title as string]
-      }
-      return o
-    }, {})
+      const insertedData = await $api.dbViewRow.create(
+        NOCO,
+        project?.value.id as string,
+        meta?.value.id as string,
+        viewMeta?.value?.id as string,
+        insertObj,
+      )
 
-    const insertedData = await $api.dbViewRow.create(
-      NOCO,
-      project?.value.id as string,
-      meta?.value.id as string,
-      viewMeta?.value?.id as string,
-      insertObj,
-    )
-
-    formattedData.value?.splice(rowIndex ?? 0, 1, {
-      row: insertedData,
-      rowMeta: {},
-      oldRow: { ...insertedData },
-    })
+      formattedData.value?.splice(rowIndex ?? 0, 1, {
+        row: insertedData,
+        rowMeta: {},
+        oldRow: { ...insertedData },
+      })
+    } catch (error) {
+      notification.error({
+        message: 'Row insert failed',
+        description:
+          await extractSdkResponseErrorMsg(error),
+      })
+    }
   }
 
   const changePage = async (page: number) => {
@@ -110,5 +126,15 @@ export function useViewData(
     })
   }
 
-  return { data, loadData, paginationData, formattedData, insertRow, updateRowProperty, changePage, addRow, selectedRows }
+  return {
+    data,
+    loadData,
+    paginationData,
+    formattedData,
+    insertRow,
+    updateRowProperty,
+    changePage,
+    addRow,
+    selectedRows,
+  }
 }

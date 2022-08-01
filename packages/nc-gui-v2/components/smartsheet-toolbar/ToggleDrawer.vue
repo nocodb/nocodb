@@ -1,5 +1,7 @@
 <script setup lang="ts">
 import MdiMenuClose from '~icons/mdi/menu-close'
+import MdiUnfoldMoreVertical from '~icons/mdi/unfold-more-vertical'
+import MdiUnfoldLessVertical from '~icons/mdi/unfold-less-vertical'
 
 const drawerOpen = inject('navDrawerOpen', ref(false))
 </script>
@@ -8,7 +10,8 @@ const drawerOpen = inject('navDrawerOpen', ref(false))
   <a-tooltip placement="left">
     <template #title> {{ $t('tooltip.toggleNavDraw') }} </template>
     <div class="nc-sidebar-right-item hover:after:bg-pink-500 group">
-      <MdiMenuClose class="group-hover:(!text-white)" @click="drawerOpen = !drawerOpen" />
+      <MdiUnfoldLessVertical class="group-hover:(!text-white)" v-if="drawerOpen" @click="drawerOpen = !drawerOpen" />
+      <MdiUnfoldMoreVertical class="group-hover:(!text-white)" v-else @click="drawerOpen = !drawerOpen" />
     </div>
   </a-tooltip>
 </template>

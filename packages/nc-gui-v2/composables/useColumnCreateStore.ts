@@ -47,20 +47,21 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         },
         // validation for unique column name
         {
-          validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
-            if (
-              meta.value?.columns?.some(
-                (c) =>
-                  c.id !== formState.value.id && // ignore current column
-                  // compare against column_name and title
-                  ((value || '').toLowerCase() === (c.column_name || '').toLowerCase() ||
-                    (value || '').toLowerCase() === (c.title || '').toLowerCase()),
-              )
-            ) {
-              callback('Duplicate column name')
-            }
-
-            callback()
+          validator: (rule: any, value: any) => {
+            return new Promise<void>((resolve, reject) => {
+              if (
+                meta.value?.columns?.some(
+                  (c) =>
+                    c.id !== formState.value.id && // ignore current column
+                    // compare against column_name and title
+                    ((value || '').toLowerCase() === (c.column_name || '').toLowerCase() ||
+                      (value || '').toLowerCase() === (c.title || '').toLowerCase()),
+                )
+              ) {
+                return reject(new Error('Duplicate column name'))
+              }
+              resolve()
+            })
           },
         },
       ],

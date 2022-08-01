@@ -10,22 +10,14 @@ const { modelValue: value } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const localState = computed({
+const VModal = computed({
   get: () => value,
   set: (val) => emit('update:modelValue', val),
 })
 </script>
 
 <template>
-  <Text v-model="localState" />
+  <Text v-model="VModal" />
 </template>
 
-<style scoped>
-input,
-textarea {
-  width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
-  outline: none;
-}
-</style>
+<style scoped></style>

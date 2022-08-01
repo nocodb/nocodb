@@ -110,7 +110,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       </button>
     </div>
 
-    <general-flipping-card class="my-4 lg:my-6 min-h-[100px] w-[250px]" :triggers="['click', { duration: 15000 }]">
+    <general-flipping-card class="my-4 lg:my-6 min-h-[100px]" :triggers="['click', { duration: 15000 }]">
       <template #front>
         <div class="flex h-full w-full gap-6 flex-col">
           <general-social />

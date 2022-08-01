@@ -241,8 +241,7 @@ if (meta) useProvideColumnCreateStore(meta)
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
-    padding: 0 5px !important;
-    min-width: 200px;
+    padding: 0 5px;
 
     & > * {
       @apply flex align-center h-auto;

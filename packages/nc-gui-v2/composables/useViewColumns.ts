@@ -111,7 +111,12 @@ export default function (
     return (fields?.value
       ?.filter((c) => {
         // hide system columns if not enabled
-        if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.fk_column_id as string])) {
+        if (
+          !showSystemFields.value &&
+          metaColumnById.value &&
+          metaColumnById?.value?.[c.fk_column_id as string] &&
+          isSystemColumn(metaColumnById?.value?.[c.fk_column_id as string])
+        ) {
           return false
         }
         return c.show

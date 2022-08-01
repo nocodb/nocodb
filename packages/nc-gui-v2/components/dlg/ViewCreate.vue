@@ -1,32 +1,70 @@
 <script setup lang="ts">
-import { inject } from '@vue/runtime-core'
-import type { TableType } from 'nocodb-sdk'
+import type { ComponentPublicInstance } from '@vue/runtime-core'
+import { notification } from 'ant-design-vue'
+import type { Form as AntForm } from 'ant-design-vue'
+import { capitalize, inject } from '@vue/runtime-core'
+import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import type { Ref } from '#imports'
-import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
-import useViewCreate from '~/composables/useViewCreate'
+import { useI18n } from 'vue-i18n'
+import { MetaInj, ViewListInj } from '~/context'
+import { generateUniqueTitle } from '~/utils'
+import { computed, nextTick, reactive, unref, useApi, useVModel, watch } from '#imports'
 
-const { modelValue, type } = defineProps<{ type: ViewTypes; modelValue: boolean }>()
+interface Props {
+  modelValue: boolean
+  type: ViewTypes
+  title?: string
+}
 
-const emit = defineEmits(['update:modelValue', 'created'])
+interface Emits {
+  (event: 'update:modelValue', value: boolean): void
+  (event: 'created', value: GridType | KanbanType | GalleryType | FormType): void
+}
 
-const valid = ref(false)
+interface Form {
+  title: string
+  type: ViewTypes
+  copy_from_id: string | null
+}
+
+const props = defineProps<Props>()
+
+const emits = defineEmits<Emits>()
+
+const inputEl = $ref<ComponentPublicInstance>()
+
+const formValidator = $ref<typeof AntForm>()
+
+const vModel = useVModel(props, 'modelValue', emits)
+
+const { t } = useI18n()
+
+const { isLoading: loading, api } = useApi()
+
+const meta = inject(MetaInj)
 
 const viewList = inject(ViewListInj)
-const activeView = inject(ActiveViewInj)
 
-const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v) {
-    emit('update:modelValue', v)
-  },
+const form = reactive<Form>({
+  title: props.title || '',
+  type: props.type,
+  copy_from_id: null,
 })
 
-const { view, createView, generateUniqueTitle, loading } = useViewCreate(inject(MetaInj) as Ref<TableType>, (view) =>
-  emit('created', view),
-)
+const formRules = [
+  // name is required
+  { required: true, message: `${t('labels.viewName')} ${t('general.required')}` },
+  // name is unique
+  {
+    validator: (_: unknown, v: string) =>
+      new Promise((resolve, reject) => {
+        ;(unref(viewList) || []).every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== v)
+          ? resolve(true)
+          : reject(new Error(`View name should be unique`))
+      }),
+    message: 'View name should be unique',
+  },
+]
 
 const typeAlias = computed(
   () =>
@@ -35,113 +73,87 @@ const typeAlias = computed(
       [ViewTypes.GALLERY]: 'gallery',
       [ViewTypes.FORM]: 'form',
       [ViewTypes.KANBAN]: 'kanban',
-    }[type]),
+    }[props.type]),
 )
 
-const inputEl = ref<any>()
-const form = ref<any>()
+watch(vModel, (value) => value && init())
+
 watch(
-  () => modelValue,
-  (v) => {
-    if (v) {
-      generateUniqueTitle(viewList?.value || [])
-      nextTick(() => {
-        const el = inputEl?.value?.$el
-        el?.querySelector('input')?.focus()
-        el?.querySelector('input')?.select()
-        form?.value?.validate()
+  () => props.type,
+  (newType) => (form.type = newType),
+)
+
+function init() {
+  form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), viewList?.value || [], 'title')
+
+  nextTick(() => {
+    const el = inputEl?.$el as HTMLInputElement
+
+    if (el) {
+      el.focus()
+      el.select()
+    }
+  })
+}
+
+async function onSubmit() {
+  const isValid = await formValidator?.validateFields()
+
+  if (!isValid) return
+
+  if (form.type) {
+    const _meta = unref(meta)
+
+    if (!_meta || !_meta.id) return
+
+    try {
+      let data: GridType | KanbanType | GalleryType | FormType | null = null
+
+      switch (form.type) {
+        case ViewTypes.GRID:
+          data = await api.dbView.gridCreate(_meta.id, form)
+          break
+        case ViewTypes.GALLERY:
+          data = await api.dbView.galleryCreate(_meta.id, form)
+          break
+        case ViewTypes.FORM:
+          data = await api.dbView.formCreate(_meta.id, form)
+          break
+      }
+
+      if (data) {
+        notification.success({
+          message: 'View created successfully',
+        })
+
+        emits('created', data)
+      }
+    } catch (e: any) {
+      notification.error({
+        message: e.message,
       })
     }
-  },
-)
 
-/*  name: 'CreateViewDialog',
-  props: [
-    'value',
-    'nodes',
-    'table',
-    'alias',
-    'show_as',
-    'viewsCount',
-    'primaryValueColumn',
-    'meta',
-    'copyView',
-    'viewsList',
-    'selectedViewId',
-  ],
-  data: () => ({
-    valid: false,
-    view_name: '',
-    loading: false,
-    queryParams: {},
-  }),
-  computed: {
-    localState: {
-      get() {
-        return this.value;
-      },
-      set(v) {
-        this.$emit('input', v);
-      },
-    },
-    typeAlias() {
-      return {
-        [ViewTypes.GRID]: 'grid',
-        [ViewTypes.GALLERY]: 'gallery',
-        [ViewTypes.FORM]: 'form',
-        [ViewTypes.KANBAN]: 'kanban',
-      }[this.show_as];
-    },
-  },
-  mounted() {
-    try {
-      if (this.copyView && this.copyView.query_params) {
-        this.queryParams = { ...JSON.parse(this.copyView.query_params) };
-      }
-    } catch (e) {}
-    this.view_name = `${this.alias || this.table}${this.viewsCount}`;
-
-    this.$nextTick(() => {
-      const input = this.$refs.name.$el.querySelector('input');
-      input.setSelectionRange(0, this.view_name.length);
-      input.focus();
-    });
-  }, */
+    vModel.value = false
+  }
+}
 </script>
 
 <template>
-  <v-dialog v-model="dialogShow" max-width="600" min-width="400">
-    <v-card class="elevation-20">
-      <v-card-title class="grey darken-2 subheading" style="height: 30px" />
-      <v-card-text class="pt-4 pl-4">
-        <p class="headline">
-          {{ $t('general.create') }} <span class="text-capitalize">{{ typeAlias }}</span> {{ $t('objects.view') }}
-        </p>
-        <v-form ref="form" v-model="valid" @submit.prevent="createView">
-          <!-- label="View Name" -->
-          <v-text-field
-            ref="inputEl"
-            v-model="view.title"
-            :label="$t('labels.viewName')"
-            :rules="[
-              (v) => !!v || 'View name required',
-              (v) => (viewList || []).every((v1) => (v1.alias || v1.title) !== v) || 'View name should be unique',
-            ]"
-            autofocus
-          />
-        </v-form>
-      </v-card-text>
-      <v-card-actions class="pa-4">
-        <v-spacer />
-        <v-btn class="" small @click="emit('update:modelValue', false)">
-          {{ $t('general.cancel') }}
-        </v-btn>
-        <v-btn small :loading="loading" class="primary" :disabled="!valid" @click="createView(type, activeView.id)">
-          {{ $t('general.submit') }}
-        </v-btn>
-      </v-card-actions>
-    </v-card>
-  </v-dialog>
-</template>
+  <a-modal v-model:visible="vModel" class="!top-[35%]" :confirm-loading="loading">
+    <template #title>
+      {{ $t('general.create') }} <span class="text-capitalize">{{ typeAlias }}</span> {{ $t('objects.view') }}
+    </template>
 
-<style scoped></style>
+    <a-form ref="formValidator" layout="vertical" :model="form">
+      <a-form-item :label="$t('labels.viewName')" name="title" :rules="formRules">
+        <a-input ref="inputEl" v-model:value="form.title" autofocus @keydown.enter="onSubmit" />
+      </a-form-item>
+    </a-form>
+
+    <template #footer>
+      <a-button key="back" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
+      <a-button key="submit" type="primary" :loading="loading" @click="onSubmit">{{ $t('general.submit') }}</a-button>
+    </template>
+  </a-modal>
+</template>

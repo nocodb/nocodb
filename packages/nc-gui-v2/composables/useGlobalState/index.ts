@@ -2,6 +2,7 @@ import { breakpointsTailwind, usePreferredLanguages, useStorage } from '@vueuse/
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
 import initialFeedBackForm from './initialFeedbackForm'
+import { notification } from 'ant-design-vue'
 import { computed, ref, toRefs, useBreakpoints, useNuxtApp, useTimestamp, watch } from '#imports'
 import type { Actions, Getters, GlobalState, StoredState, User } from '~/lib/types'
 
@@ -143,6 +144,10 @@ export const useGlobalState = (): GlobalState => {
         }
       })
       .catch((err) => {
+        notification.error({
+          // todo: add translation
+          message: err.message || 'You have been signed out.',
+        })
         console.error(err)
 
         signOut()

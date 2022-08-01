@@ -1,23 +1,22 @@
 <script setup lang="ts">
+import { useClipboard, watchDebounced } from '@vueuse/core'
+import { useToast } from 'vue-toastification'
+import UsersModal from './user-management/UsersModal.vue'
+import FeedbackForm from './user-management/FeedbackForm.vue'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import UsersModal from './user-management/UsersModal.vue'
 import { projectRoleTagColors } from '~/utils/userUtils'
 import MidAccountIcon from '~icons/mdi/account-outline'
-import ReloadIcon from "~icons/mdi/reload"
+import ReloadIcon from '~icons/mdi/reload'
 import MdiEditIcon from '~icons/ic/round-edit'
 import SearchIcon from '~icons/ic/round-search'
-import { useClipboard } from '@vueuse/core'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import EmailIcon from '~icons/eva/email-outline'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
 import MdiEmailSendIcon from '~icons/mdi/email-arrow-right-outline'
 import RolesIcon from '~icons/mdi/drama-masks'
-import { User } from '~/lib/types'
-import { watchDebounced } from '@vueuse/core'
-import { useToast } from 'vue-toastification'
-import FeedbackForm from './user-management/FeedbackForm.vue'
+import type { User } from '~/lib/types'
 const toast = useToast()
 
 const { $api, $e } = useNuxtApp()
@@ -40,7 +39,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     if (!project.value?.id) return
 
     // TODO: Types of api is not correct
-    const response = await $api.auth.projectUserList(project.value?.id, <any> {
+    const response = await $api.auth.projectUserList(project.value?.id, {
       query: {
         limit,
         offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
@@ -61,31 +60,31 @@ const inviteUser = async (user: User) => {
   try {
     if (!project.value?.id) return
 
-    await $api.auth.projectUserAdd(project.value.id, user);
-    toast.success('Successfully added user to project');
-    await loadUsers();
+    await $api.auth.projectUserAdd(project.value.id, user)
+    toast.success('Successfully added user to project')
+    await loadUsers()
   } catch (e: any) {
     console.error(e)
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 
-  $e('a:user:add');
+  $e('a:user:add')
 }
 
 const deleteUser = async () => {
   try {
     if (!project.value?.id || !selectedUser?.id) return
 
-    await $api.auth.projectUserRemove(project.value.id, selectedUser.id);
-    toast.success('Successfully deleted user from project');
-    await loadUsers();
-    showUserDeleteModal = false;
+    await $api.auth.projectUserRemove(project.value.id, selectedUser.id)
+    toast.success('Successfully deleted user from project')
+    await loadUsers()
+    showUserDeleteModal = false
   } catch (e: any) {
     console.error(e)
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 
-  $e('a:user:delete');
+  $e('a:user:delete')
 }
 
 const onEdit = (user: User) => {
@@ -104,27 +103,27 @@ const onDelete = (user: User) => {
 }
 
 const resendInvite = async (user: User) => {
-  if (!project.value?.id ) return
+  if (!project.value?.id) return
 
   try {
-    await $api.auth.projectUserResendInvite(project.value.id, user.id);
-    toast.success('Invite email sent successfully');
-    await loadUsers();
+    await $api.auth.projectUserResendInvite(project.value.id, user.id)
+    toast.success('Invite email sent successfully')
+    await loadUsers()
   } catch (e: any) {
     console.error(e)
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 
-  $e('a:user:resend-invite');
+  $e('a:user:resend-invite')
 }
 
 const copyInviteUrl = (user: User) => {
-  if(!user.invite_token) return
+  if (!user.invite_token) return
 
-  const getInviteUrl = (token: string) => `${location.origin}${location.pathname}#/user/authentication/signup/${token}`;
+  const getInviteUrl = (token: string) => `${location.origin}${location.pathname}#/user/authentication/signup/${token}`
 
-  copy(getInviteUrl(user.invite_token) );
-  toast.success('Invite url copied to clipboard');
+  copy(getInviteUrl(user.invite_token))
+  toast.success('Invite url copied to clipboard')
 }
 
 onMounted(async () => {
@@ -138,20 +137,21 @@ onMounted(async () => {
   }
 })
 
-watchDebounced(
-  searchText,
-  () => loadUsers(),
-  { debounce: 300, maxWait: 600 },
-)
-
+watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
 </script>
 
 <template>
   <div v-if="isLoading" class="h-full w-full flex flex-row justify-center mt-42">
-      <a-spin size="large"/>
+    <a-spin size="large" />
   </div>
   <div v-else class="flex flex-col w-full px-6">
-    <UsersModal :key="showUserModal" :show="showUserModal" :selected-user="selectedUser" @closed="showUserModal = false" @reload="loadUsers()"/>
+    <UsersModal
+      :key="showUserModal"
+      :show="showUserModal"
+      :selected-user="selectedUser"
+      @closed="showUserModal = false"
+      @reload="loadUsers()"
+    />
     <a-modal v-model:visible="showUserDeleteModal" :closable="false" width="28rem" centered :footer="null">
       <div class="flex flex-col h-full">
         <div class="flex flex-row justify-center mt-2 text-center w-full text-base">
@@ -164,10 +164,10 @@ watchDebounced(
       </div>
     </a-modal>
     <div class="flex flex-row mb-4 mx-4 justify-between">
-      <div class="flex w-1/3" >
-        <a-input  v-model:value="searchText" placeholder="Filter by email" >
+      <div class="flex w-1/3">
+        <a-input v-model:value="searchText" placeholder="Filter by email">
           <template #prefix>
-            <SearchIcon class="text-gray-400"/>
+            <SearchIcon class="text-gray-400" />
           </template>
         </a-input>
       </div>
@@ -218,19 +218,19 @@ watchDebounced(
             <template #title>
               <span>Edit user</span>
             </template>
-            <a-button  type="text" class="!rounded-md" @click="onEdit(user)">
-                <template #icon>
-                  <MdiEditIcon  class="flex mx-auto h-[1rem]" />
-                </template>
-              </a-button>
+            <a-button type="text" class="!rounded-md" @click="onEdit(user)">
+              <template #icon>
+                <MdiEditIcon class="flex mx-auto h-[1rem]" />
+              </template>
+            </a-button>
           </a-tooltip>
           <a-tooltip v-if="!user.project_id" placement="bottom">
             <template #title>
               <span>Add user to the project</span>
             </template>
-            <a-button type="text"  class="!rounded-md " @click="inviteUser(user)">
+            <a-button type="text" class="!rounded-md" @click="inviteUser(user)">
               <template #icon>
-                <MdiPlusIcon  class="flex mx-auto h-[1.1rem]" />
+                <MdiPlusIcon class="flex mx-auto h-[1.1rem]" />
               </template>
             </a-button>
           </a-tooltip>
@@ -239,9 +239,9 @@ watchDebounced(
             <template #title>
               <span>Remove user from the project</span>
             </template>
-            <a-button  type="text" class="!rounded-md" @click="onDelete(user)">
+            <a-button type="text" class="!rounded-md" @click="onDelete(user)">
               <template #icon>
-                <MdiDeleteOutlineIcon   class="flex mx-auto h-[1.1rem]" />
+                <MdiDeleteOutlineIcon class="flex mx-auto h-[1.1rem]" />
               </template>
             </a-button>
           </a-tooltip>
@@ -259,17 +259,13 @@ watchDebounced(
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="resendInvite(user)">
                     <MdiEmailSendIcon class="flex h-[1rem]" />
-                    <div class="text-xs pl-2">
-                      Resend invite email
-                    </div>
+                    <div class="text-xs pl-2">Resend invite email</div>
                   </div>
                 </a-menu-item>
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="copyInviteUrl(user)">
                     <MdiContentCopyIcon class="flex h-[1rem]" />
-                    <div class="text-xs pl-2">
-                      Copy invite URL
-                    </div>
+                    <div class="text-xs pl-2">Copy invite URL</div>
                   </div>
                 </a-menu-item>
               </a-menu>
@@ -278,8 +274,8 @@ watchDebounced(
         </div>
       </div>
       <a-pagination
-        hideOnSinglePage
         v-model:current="currentPage"
+        hide-on-single-page
         class="mt-4"
         :page-size="currentLimit"
         :total="totalRows"

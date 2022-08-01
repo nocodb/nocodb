@@ -151,6 +151,6 @@ function openQuickImportDialog(type: string) {
 }
 
 :deep(.ant-menu-item-selected) {
-  @apply text-inherit !bg-inherit
+  @apply text-inherit !bg-inherit;
 }
 </style>

@@ -40,9 +40,10 @@ export default rolePermissions
 
 type GetKeys<T> = T extends Record<string, any> ? keyof T : never
 
-export type RolePermissions<T extends typeof rolePermissions = typeof rolePermissions, K extends keyof T = keyof T> =
-  | T[K] extends string
+export type Permission<T extends typeof rolePermissions = typeof rolePermissions, K extends keyof T = keyof T> = K extends
+  | 'creator'
+  | 'owner'
   ? T[K]
-  : never & T[K] extends Record<string, any>
+  : never | T[K] extends Record<string, any>
   ? GetKeys<T[K]>
   : never

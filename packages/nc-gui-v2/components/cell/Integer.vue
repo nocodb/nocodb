@@ -27,12 +27,8 @@ function onKeyDown(evt: KeyboardEvent) {
 </script>
 
 <template>
-  <input v-if="editEnabled" ref="root" v-model="vModel" type="number" @keydown="onKeyDown" />
+  <input v-if="editEnabled" ref="root" v-model="vModel" class="outline-none w-full h-full" type="number" @keydown="onKeyDown" />
   <span v-else>{{ vModel }}</span>
 </template>
 
-<style scoped>
-input {
-  @apply outline-none w-full h-full;
-}
-</style>
+<style scoped></style>

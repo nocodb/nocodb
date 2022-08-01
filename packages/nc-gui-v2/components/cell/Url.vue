@@ -8,11 +8,14 @@ interface Props {
 }
 
 const { modelValue: value } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
+
 const column = inject(ColumnInj)
+
 const editEnabled = inject<boolean>('editEnabled')
 
-const localState = computed({
+const vModel = computed({
   get: () => value,
   set: (val) => {
     if (!(column && column.meta && column.meta.validate) || isValidURL(val)) {
@@ -24,19 +27,16 @@ const localState = computed({
 const isValid = computed(() => value && isValidURL(value))
 
 const root = ref<HTMLInputElement>()
+
 onMounted(() => {
   root.value?.focus()
 })
 </script>
 
 <template>
-  <span v-if="editEnabled">
-    <input ref="root" v-model="localState" />
-  </span>
-  <span v-else>
-    <a v-if="isValid" class="caption py-2 text-primary underline hover:opacity-75" :href="value" target="_blank">{{ value }}</a>
-    <span v-else>{{ value }}</span>
-  </span>
+  <input v-if="editEnabled" ref="root" v-model="vModel" class="outline-none" />
+  <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="value" target="_blank">{{ value }}</nuxt-link>
+  <span v-else>{{ value }}</span>
 </template>
 
 <style scoped></style>

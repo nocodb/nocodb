@@ -1,5 +1,6 @@
 export * from './useApi'
 export * from './useGlobal'
+export * from './useInjectionState'
 export * from './useUIPermission'
 export * from './useAttachment'
 export * from './useBelongsTo'

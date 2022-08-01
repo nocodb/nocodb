@@ -3,8 +3,8 @@ import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'noc
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './Toolbar.vue'
-import { inject, provide, ref, useApi, useViews, watch } from '#imports'
-import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
+import { computed, inject, provide, ref, useApi, useViews, watch } from '#imports'
+import { ActiveViewInj, MetaInj, RightSidebarInj, ViewListInj } from '~/context'
 import MdiXml from '~icons/mdi/xml'
 import MdiHook from '~icons/mdi/hook'
 
@@ -19,9 +19,9 @@ const { api } = useApi()
 provide(ViewListInj, views)
 
 /** Sidebar visible */
-const drawerOpen = inject('navDrawerOpen', ref(true))
+const sidebarOpen = inject(RightSidebarInj, ref(true))
 
-const sidebarCollapsed = computed(() => !drawerOpen.value)
+const sidebarCollapsed = computed(() => !sidebarOpen.value)
 
 /** View type to create from modal */
 let viewCreateType = $ref<ViewTypes>()
@@ -68,7 +68,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     style="height: calc(100% + 9px)"
     theme="light"
   >
-    <Toolbar v-if="drawerOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />
+    <Toolbar v-if="sidebarOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />
 
     <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
       <template #start>
@@ -94,7 +94,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
       </template>
     </Toolbar>
 
-    <div v-if="drawerOpen" class="flex-1 flex flex-col">
+    <div v-if="sidebarOpen" class="flex-1 flex flex-col">
       <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 
       <a-divider class="my-2" />

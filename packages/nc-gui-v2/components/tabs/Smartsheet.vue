@@ -3,7 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
 import SmartsheetGrid from '../smartsheet/Grid.vue'
 import { computed, inject, provide, useMetas, watch, watchEffect } from '#imports'
-import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/context'
+import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, RightSidebarInj, TabMetaInj } from '~/context'
 import type { TabItem } from '~/composables'
 
 const { getMeta, metas } = useMetas()
@@ -33,7 +33,7 @@ provide(ActiveViewInj, activeView)
 provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
-provide('navDrawerOpen', ref(true))
+provide(RightSidebarInj, ref(true))
 
 watch(tabMeta, async (newTabMeta, oldTabMeta) => {
   if (newTabMeta !== oldTabMeta && newTabMeta.id) await getMeta(newTabMeta.id)

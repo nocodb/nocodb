@@ -19,3 +19,5 @@ export const ReadonlyInj: InjectionKey<any> = Symbol('readonly-injection')
 export const ReloadViewDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-view-data-injection')
 export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')
 export const ViewListInj: InjectionKey<Ref<(GridType | FormType | KanbanType | GalleryType)[]>> = Symbol('view-list-injection')
+
+export const RightSidebarInj: InjectionKey<Ref<boolean>> = Symbol('right-sidebar-injection')

@@ -1,65 +1,118 @@
-import type { AxiosError, AxiosRequestConfig, AxiosResponse } from 'axios'
+import type { AxiosError, AxiosResponse } from 'axios'
 import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import type { EventHook, MaybeRef } from '@vueuse/core'
 import { addAxiosInterceptors } from './interceptors'
-import { createEventHook, ref, unref, useNuxtApp } from '#imports'
-import type { NuxtApp } from '#app'
+import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
+import { createEventHook, ref, unref, useCounter, useGlobal, useNuxtApp } from '#imports'
 
-interface UseApiReturn<D = any, R = any> {
-  api: Api<any>
-  isLoading: Ref<boolean>
-  error: Ref<AxiosError<D, R> | null>
-  response: Ref<AxiosResponse<D, R> | null>
-  onError: EventHook<AxiosError<D, R>>['on']
-  onResponse: EventHook<AxiosResponse<D, R>>['on']
+export function createApiInstance<SecurityDataType = any>(options: CreateApiOptions = {}): Api<SecurityDataType> {
+  return addAxiosInterceptors(
+    new Api<SecurityDataType>({
+      baseURL: options.baseURL ?? 'http://localhost:8080',
+    }),
+  )
 }
 
-export function createApiInstance(app: NuxtApp, baseURL = 'http://localhost:8080') {
-  const api = new Api({
-    baseURL,
-  })
+/**
+ * Api composable that provides loading, error and response refs, as well as event hooks for error and response.
+ *
+ * You can use this composable to generate a fresh api instance with its own loading and error refs.
+ *
+ * Any request called by useApi will be pushed into the global requests counter which toggles the global loading state.
+ *
+ * @example
+ * ```js
+ * const { api, isLoading, error, response, onError, onResponse } = useApi()
+ *
+ * const onSignIn = async () => {
+ *   const { token } = await api.auth.signIn(form)
+ * }
+ */
+export function useApi<Data = any, RequestConfig = any>({
+  useGlobalInstance = false,
+  apiOptions,
+  axiosConfig,
+}: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
+  const state = useGlobal()
 
-  addAxiosInterceptors(api, app)
+  /**
+   * Local state of running requests, do not confuse with global state of running requests
+   * This state is only counting requests made by this instance of `useApi` and not by other instances.
+   */
+  const { count, inc, dec } = useCounter(0)
 
-  return api
-}
-
-/** todo: add props? */
-interface UseApiProps<D = any> {
-  axiosConfig?: MaybeRef<AxiosRequestConfig<D>>
-  useGlobalInstance?: MaybeRef<boolean>
-}
-
-export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
+  /** is request loading */
   const isLoading = ref(false)
 
+  /** latest request error */
   const error = ref(null)
 
-  const response = ref<any>(null)
+  /** latest request response */
+  const response = ref<unknown | null>(null)
 
   const errorHook = createEventHook<AxiosError<Data, RequestConfig>>()
 
   const responseHook = createEventHook<AxiosResponse<Data, RequestConfig>>()
 
-  const api = unref(props.useGlobalInstance) ? useNuxtApp().$api : createApiInstance(useNuxtApp())
+  /** global api instance */
+  const $api = useNuxtApp().$api
+
+  /** api instance - with interceptors for token refresh already bound */
+  const api = useGlobalInstance && !!$api ? $api : createApiInstance(apiOptions)
+
+  /** set loading to true and increment local and global request counter */
+  function onRequestStart() {
+    isLoading.value = true
+
+    /** local count */
+    inc()
+
+    /** global count */
+    state.runningRequests.inc()
+  }
+
+  /** decrement local and global request counter and check if we can stop loading */
+  function onRequestFinish() {
+    /** local count */
+    dec()
+    /** global count */
+    state.runningRequests.dec()
+
+    /** try to stop loading */
+    stopLoading()
+  }
+
+  /** set loading state to false *only* if no request is still running */
+  function stopLoading() {
+    if (count.value === 0) {
+      isLoading.value = false
+    }
+  }
+
+  /** reset response and error refs */
+  function reset() {
+    error.value = null
+    response.value = null
+  }
 
   api.instance.interceptors.request.use(
     (config) => {
-      error.value = null
-      response.value = null
-      isLoading.value = true
+      reset()
+
+      onRequestStart()
 
       return {
         ...config,
-        ...unref(props),
+        ...unref(axiosConfig),
       }
     },
     (requestError) => {
       errorHook.trigger(requestError)
       error.value = requestError
+
       response.value = null
-      isLoading.value = false
+
+      onRequestFinish()
 
       return requestError
     },
@@ -68,20 +121,28 @@ export function useApi<Data = any, RequestConfig = any>(props: UseApiProps<Data>
   api.instance.interceptors.response.use(
     (apiResponse) => {
       responseHook.trigger(apiResponse as AxiosResponse<Data, RequestConfig>)
-      // can't properly typecast
       response.value = apiResponse
-      isLoading.value = false
+
+      onRequestFinish()
 
       return apiResponse
     },
     (apiError) => {
       errorHook.trigger(apiError)
       error.value = apiError
-      isLoading.value = false
+
+      onRequestFinish()
 
       return apiError
     },
   )
 
-  return { api, isLoading, response, error, onError: errorHook.on, onResponse: responseHook.on }
+  return {
+    api,
+    isLoading,
+    response: response as Ref<AxiosResponse<Data, RequestConfig>>,
+    error,
+    onError: errorHook.on,
+    onResponse: responseHook.on,
+  }
 }

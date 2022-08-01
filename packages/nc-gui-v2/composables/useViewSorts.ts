@@ -2,7 +2,7 @@ import type { GalleryType, GridType, KanbanType, SortType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#imports'
 
-export default function (
+export function useViewSorts(
   view: Ref<(GridType | KanbanType | GalleryType) & { id?: string }> | undefined,
   reloadData?: () => void,
 ) {

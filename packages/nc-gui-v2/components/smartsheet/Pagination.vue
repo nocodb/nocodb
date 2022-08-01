@@ -73,7 +73,7 @@ export default {
         @keydown.enter="changePage(page)"
       >
         <template #append>
-          <MdiKeyboardIcon small icon.class="mt-1" @click="changePage(page)" />
+          <MdiKeyboardIcon class="mt-1" @click="changePage(page)" />
         </template>
       </v-text-field>
     </div>

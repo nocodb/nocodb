@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { provide } from 'vue'
-import { computed } from '#imports'
+import { computed, useColumn } from '#imports'
 import { ColumnInj } from '~/context'
-import useColumn from '~/composables/useColumn'
 
 interface Props {
   column: ColumnType

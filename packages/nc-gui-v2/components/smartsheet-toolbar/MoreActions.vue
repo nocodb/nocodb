@@ -3,9 +3,9 @@ import { ExportTypes } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import FileSaver from 'file-saver'
 import { useNuxtApp } from '#app'
-import useProject from '~/composables/useProject'
+import { useProject } from '#imports'
 import { ActiveViewInj, MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiFlashIcon from '~icons/mdi/flash-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiDownloadIcon from '~icons/mdi/download-outline'
@@ -80,7 +80,7 @@ const exportCsv = async () => {
         toast.success('Successfully exported all table data')
       }
     }
-  } catch (e) {
+  } catch (e: any) {
     toast.error(extractSdkResponseErrorMsg(e))
   }
 }

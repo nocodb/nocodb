@@ -4,9 +4,9 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useToast } from 'vue-toastification'
+import { useColumn } from './useColumn'
 import { computed } from '#imports'
 import { useNuxtApp } from '#app'
-import useColumn from '~/composables/useColumn'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
 const useForm = Form.useForm
@@ -193,7 +193,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         toast.success('Column created')
       }
       onSuccess()
-    } catch (e) {
+    } catch (e: any) {
       toast.error(await extractSdkResponseErrorMsg(e))
     }
   }

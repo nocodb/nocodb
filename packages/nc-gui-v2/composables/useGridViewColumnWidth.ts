@@ -1,11 +1,11 @@
 import { useStyleTag } from '@vueuse/core'
 import type { ColumnType, GridColumnType, GridType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import useMetas from '~/composables/useMetas'
-import useUIPermission from '~/composables/useUIPermission'
+import { useMetas } from './useMetas'
+import { useUIPermission } from './useUIPermission'
 
 // todo: update swagger
-export default (view: Ref<GridType & { id?: string }>) => {
+export function useGridViewColumnWidth(view: Ref<(GridType & { id?: string }) | undefined>) {
   const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
   const { isUIAllowed } = useUIPermission()
   const { $api } = useNuxtApp()

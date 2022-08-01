@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { defineNuxtPlugin } from '#app'
 
 const handleFeedbackForm = async () => {
-  let { feedbackForm: currentFeedbackForm } = $(useGlobalState())
+  let { feedbackForm: currentFeedbackForm } = $(useGlobal())
   if (!currentFeedbackForm) return
 
   const { $api } = useNuxtApp()

@@ -60,7 +60,9 @@ async function onDelete() {
 
     <template #footer>
       <a-button key="back" @click="vModel = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" type="danger" :loading="isLoading" @click="onDelete">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" danger html-type="submit" :loading="isLoading" @click="onDelete">{{
+        $t('general.submit')
+      }}</a-button>
     </template>
   </a-modal>
 </template>

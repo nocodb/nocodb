@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
-import { computed, inject } from '#imports'
+import { computed, inject, useViewSorts } from '#imports'
 import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import useViewSorts from '~/composables/useViewSorts'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiSortIcon from '~icons/mdi/sort'
 import MdiDeleteIcon from '~icons/mdi/close-box'
@@ -18,7 +17,7 @@ const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(vie
 const columns = computed(() => meta?.value?.columns || [])
 
 watch(
-  () => view?.value?.id,
+  () => (view?.value as any)?.id,
   () => {
     loadSorts()
   },

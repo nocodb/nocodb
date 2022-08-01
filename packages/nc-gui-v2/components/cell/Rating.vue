@@ -5,47 +5,27 @@ import MdiStarIcon from '~icons/mdi/star'
 import MdiStarOutlineIcon from '~icons/mdi/star-outline'
 
 interface Props {
-  modelValue?: string | number
+  modelValue?: number
   readOnly?: boolean
 }
 
-const { modelValue: value, readOnly } = defineProps<Props>()
+const props = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
+
+const vModel = useVModel(props, 'modelValue', emit)
+
 const column = inject(ColumnInj)
 const isForm = inject(IsFormInj)
-
-const ratingMeta = computed(() => {
-  return {
-    icon: {
-      full: 'mdi-star',
-      empty: 'mdi-star-outline',
-    },
-    color: '#fcb401',
-    max: 5,
-    // ...(column?.meta || {})
-  }
-})
-const localState = computed({
-  get: () => value,
-  set: (val) => emit('update:modelValue', val),
-})
 </script>
 
 <template>
-  <div class="d-100 h-100" :class="{ 'nc-cell-hover-show': localState === 0 || !localState }">
-    <v-rating v-model="localState" :length="ratingMeta.max" dense x-small :readonly="readOnly" clearable>
-      <!--      todo:  use the proper slot -->
+  <div class="d-100 h-100" :class="{ 'nc-cell-hover-show': vModel === 0 || !vModel }">
+    <v-rating v-model="vModel" :length="5" dense x-small :readonly="readOnly" clearable>
       <template #item="{ isFilled, click }">
-        <!--        todo : custom color and icon -->
-        <!--        <v-icon v-if="isFilled"- :size="15" :color="ratingMeta.color" @click="click"> -->
-        <MdiStarIcon v-if="isFilled" :class="`text-[${ratingMeta.color}]`" @click="click" />
-        <!--        </v-icon> -->
-        <!--        <v-icon v-else :color="ratingMeta.color" :size="15" class="nc-cell-hover-show" @click="click"> -->
-        <MdiStarOutlineIcon v-else :class="`text-[${ratingMeta.color}]`" @click="click" />
-        <!--        </v-icon> -->
+        <MdiStarIcon v-if="isFilled" class="text-[#fcb40]" @click="click" />
+        <MdiStarOutlineIcon v-else class="text-[#fcb40]" @click="click" />
       </template>
     </v-rating>
   </div>
 </template>
-
-<style scoped></style>

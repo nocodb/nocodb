@@ -11,7 +11,7 @@ import animations from '@windicss/plugin-animations'
 // @ts-expect-error no types for plugin-question-mark
 import questionMark from '@windicss/plugin-question-mark'
 
-import colors, { themeColors } from './utils/colorsUtils'
+import { theme as colors, themeColors } from './utils/colorsUtils'
 
 export default defineConfig({
   extract: {

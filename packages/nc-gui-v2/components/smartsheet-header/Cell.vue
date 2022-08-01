@@ -2,8 +2,8 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { inject } from 'vue'
-import { ColumnInj, MetaInj } from '../../context'
-import { useProvideColumnCreateStore } from '~/composables/useColumnCreateStore'
+import { ColumnInj, MetaInj } from '~/context'
+import { useProvideColumnCreateStore } from '#imports'
 
 const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
 provide(ColumnInj, column)

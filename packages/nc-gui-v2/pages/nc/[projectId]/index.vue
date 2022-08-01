@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import useTabs from '~/composables/useTabs'
+import { useTabs } from '#imports'
+import { TabType } from '~/composables'
 
 const route = useRoute()
 const { loadProject, loadTables } = useProject(route.params.projectId as string)
@@ -7,7 +8,7 @@ const { addTab } = useTabs()
 const { $state } = useNuxtApp()
 
 if (!route.params.type) {
-  addTab({ type: 'auth', title: 'Team & Auth' })
+  addTab({ type: TabType.AUTH, title: 'Team & Auth' })
 }
 
 await loadProject(route.params.projectId as string)

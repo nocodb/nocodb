@@ -1,16 +1,14 @@
 <script lang="ts" setup>
-import { createVNode } from '@vue/runtime-core'
 import { Modal } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import { navigateTo } from '#app'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
 import MaterialSymbolsGridView from '~icons/material-symbols/grid-view'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 import MdiFolderOutline from '~icons/mdi/folder-outline'
-import ExclamationCircleOutlined from '~icons/mdi/information-outline'
 
 const navDrawerOptions = [
   {

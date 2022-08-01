@@ -2,7 +2,7 @@ import type { Api, FormType, GalleryType, GridType, PaginatedType, TableType } f
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
-import { NOCO } from '~/lib/constants'
+import { NOCO } from '~/lib'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -11,13 +11,13 @@ const formatData = (list: Record<string, any>[]) =>
     rowMeta: {},
   }))
 
-export default (
+export function useViewData(
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
   viewMeta:
     | Ref<(GridType | GalleryType | FormType) & { id: string }>
     | ComputedRef<(GridType | GalleryType | FormType) & { id: string }>
     | undefined,
-) => {
+) {
   const data = ref<Record<string, any>[]>()
   const formattedData = ref<{ row: Record<string, any>; oldRow: Record<string, any>; rowMeta?: any }[]>()
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })

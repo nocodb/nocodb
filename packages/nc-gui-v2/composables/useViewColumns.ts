@@ -4,7 +4,7 @@ import { watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 
-export default function (
+export function useViewColumns(
   view: Ref<(GridType | FormType | GalleryType) & { id?: string }> | undefined,
   meta: ComputedRef<TableType>,
   isPublic = false,

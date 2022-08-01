@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import { computed } from '@vue/reactivity'
 import { Modal } from 'ant-design-vue'
-import { UITypes } from 'nocodb-sdk'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
-import { watchEffect } from '#imports'
+import SettingsModal from './settings/SettingsModal.vue'
+import { useProject, useTabs, useUIPermission, watchEffect } from '#imports'
 import { useNuxtApp, useRoute } from '#app'
-import useProject from '~/composables/useProject'
-import useTabs from '~/composables/useTabs'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiSettingIcon from '~icons/mdi/cog'
 import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
@@ -19,7 +18,7 @@ import MdiPlus from '~icons/mdi/plus-circle-outline'
 import MdiDrag from '~icons/mdi/drag-vertical'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiAPIDocIcon from '~icons/mdi/open-in-new'
-import SettingsModal from '~/components/dashboard/settings/SettingsModal.vue'
+import { TabType } from '~/composables'
 
 const { addTab } = useTabs()
 const toast = useToast()
@@ -165,7 +164,7 @@ const deleteTable = (table: TableType) => {
         await $api.dbTable.delete(table?.id as string)
 
         closeTab({
-          type: 'table',
+          type: TabType.TABLE,
           id: table.id,
           title: table.title,
         })

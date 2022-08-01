@@ -1,8 +1,14 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { inject, onKeyStroke, onMounted, provide } from '#imports'
-import { useProvideColumnCreateStore } from '~/composables/useColumnCreateStore'
-import useGridViewColumnWidth from '~/composables/useGridViewColumnWidth'
+import {
+  inject,
+  onKeyStroke,
+  onMounted,
+  provide,
+  useGridViewColumnWidth,
+  useProvideColumnCreateStore,
+  useViewData,
+} from '#imports'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -13,7 +19,6 @@ import {
   PaginationDataInj,
   ReloadViewDataHookInj,
 } from '~/context'
-import useViewData from '~/composables/useViewData'
 import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
@@ -29,7 +34,7 @@ const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
 const addColumnDropdown = ref(false)
 
-const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
+const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view as any)
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 onMounted(loadGridViewColumns)
 
@@ -55,7 +60,7 @@ onKeyStroke(['Enter'], (e) => {
 })
 
 watch(
-  () => view?.value?.id,
+  () => (view?.value as any)?.id,
   async (n?: string, o?: string) => {
     if (n && n !== o) {
       await loadData()

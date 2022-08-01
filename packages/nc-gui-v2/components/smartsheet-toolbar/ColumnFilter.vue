@@ -1,11 +1,11 @@
 <script setup lang="ts">
+import type { FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import { useNuxtApp } from '#app'
-import { inject } from '#imports'
+import { inject, useViewFilters } from '#imports'
 import { comparisonOpList } from '~/utils/filterUtils'
 import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import useViewFilters from '~/composables/useViewFilters'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
 const { nested = false, parentId } = defineProps<{ nested?: boolean; parentId?: string }>()
@@ -20,8 +20,9 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter } = useViewF
   reloadDataHook?.trigger()
 })
 
-const filterUpdateCondition = (filter, i) => {
+const filterUpdateCondition = (filter: FilterType, i: number) => {
   saveOrUpdate(filter, i)
+
   $e('a:filter:update', {
     logical: filter.logical_op,
     comparison: filter.comparison_op,
@@ -63,7 +64,7 @@ const types = computed(() => {
 })
 
 watch(
-  () => activeView?.value?.id,
+  () => (activeView?.value as any)?.id,
   (n, o) => {
     if (n !== o) loadFilters()
   },

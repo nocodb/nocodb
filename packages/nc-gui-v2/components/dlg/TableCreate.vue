@@ -14,10 +14,6 @@ const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const idTypes = [
-  { value: 'AI', text: 'Auto increment number' },
-  { value: 'AG', text: 'Auto generated string' },
-]
 const toast = useToast()
 
 const valid = ref(false)
@@ -102,7 +98,7 @@ onMounted(() => {
         </div>
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
           <!-- hint="Table name as saved in database" -->
-          <div class="mb-2" v-if="!project.prefix">{{ $t('msg.info.tableNameInDb') }}</div>
+          <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
           <a-form-item v-if="!project.prefix" v-bind="validateInfos.table_name">
             <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
           </a-form-item>

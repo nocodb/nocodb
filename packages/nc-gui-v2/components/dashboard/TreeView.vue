@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { computed } from '@vue/reactivity'
-import { Modal } from 'ant-design-vue'
-import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
 import SettingsModal from './settings/SettingsModal.vue'
-import { useProject, useTabs, useUIPermission, watchEffect } from '#imports'
+import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
 import { useNuxtApp, useRoute } from '#app'
-import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiSettingIcon from '~icons/mdi/cog'
 import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
@@ -18,7 +14,6 @@ import MdiPlus from '~icons/mdi/plus-circle-outline'
 import MdiDrag from '~icons/mdi/drag-vertical'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiAPIDocIcon from '~icons/mdi/open-in-new'
-import { TabType } from '~/composables'
 
 const { addTab } = useTabs()
 const toast = useToast()
@@ -27,7 +22,7 @@ const { isUIAllowed } = useUIPermission()
 const route = useRoute()
 const { tables, loadTables } = useProject(route.params.projectId as string)
 const { closeTab } = useTabs()
-const { deleteTable } = useDeleteTable()
+const { deleteTable } = useTable()
 
 const tablesById = $computed<Record<string, TableType>>(() =>
   tables?.value?.reduce((acc: Record<string, TableType>, table: TableType) => {

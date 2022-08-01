@@ -2,16 +2,59 @@ import { Modal } from 'ant-design-vue'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
-import { useTabs } from '#imports'
+import { useProject } from './useProject'
 import { TabType } from '~/composables/useTabs'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils'
+import { useNuxtApp } from '#app'
 
-export function useDeleteTable() {
+export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
+  const table = reactive<{ title: string; table_name: string; columns: string[] }>({
+    title: '',
+    table_name: '',
+    columns: ['id', 'title', 'created_at', 'updated_at'],
+  })
+
   const { $e, $api } = useNuxtApp()
   const toast = useToast()
   const { getMeta, removeMeta } = useMetas()
   const { loadTables } = useProject()
   const { closeTab } = useTabs()
+  const { sqlUi, project, tables } = useProject()
+
+  const createTable = async () => {
+    if (!sqlUi?.value) return
+    const columns = sqlUi?.value?.getNewTableColumns().filter((col) => {
+      if (col.column_name === 'id' && table.columns.includes('id_ag')) {
+        Object.assign(col, sqlUi?.value?.getDataTypeForUiType({ uidt: UITypes.ID }, 'AG'))
+        col.dtxp = sqlUi?.value?.getDefaultLengthForDatatype(col.dt)
+        col.dtxs = sqlUi?.value?.getDefaultScaleForDatatype(col.dt)
+        return true
+      }
+      return table.columns.includes(col.column_name)
+    })
+
+    const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
+      ...table,
+      columns,
+    })
+
+    onTableCreate?.(tableMeta)
+  }
+
+  watch(
+    () => table.title,
+    (title) => {
+      table.table_name = `${project?.value?.prefix || ''}${title}`
+    },
+  )
+
+  const generateUniqueTitle = () => {
+    let c = 1
+    while (tables?.value?.some((t) => t.title === `Sheet${c}`)) {
+      c++
+    }
+    table.title = `Sheet${c}`
+  }
 
   const deleteTable = (table: TableType) => {
     $e('c:table:delete')
@@ -65,5 +108,5 @@ export function useDeleteTable() {
     })
   }
 
-  return { deleteTable }
+  return { table, createTable, generateUniqueTitle, tables, project, deleteTable }
 }

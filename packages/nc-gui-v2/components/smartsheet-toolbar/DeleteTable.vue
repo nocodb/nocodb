@@ -1,11 +1,11 @@
 <script setup lang="ts">
-import { inject, useDeleteTable } from '#imports'
+import { inject, useTable } from '#imports'
 import { MetaInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
 
 const meta = inject(MetaInj)
 
-const { deleteTable } = useDeleteTable()
+const { deleteTable } = useTable()
 </script>
 
 <template>

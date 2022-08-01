@@ -4,11 +4,19 @@ import type { JwtPayload } from 'jwt-decode'
 import type { User } from '~/lib'
 import type { useCounter } from '#imports'
 
+export interface FeedbackForm {
+  url: string
+  createdAt: string
+  isHidden: boolean
+  lastFormPollDate?: string
+}
+
 export interface StoredState {
   token: string | null
   user: User | null
   lang: string
   darkMode: boolean
+  feedbackForm: FeedbackForm
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {

@@ -8,11 +8,4 @@ export interface User {
   roles: Roles
 }
 
-export interface FeedbackForm {
-  url: string
-  createdAt: string
-  isHidden: boolean
-  lastFormPollDate?: string
-}
-
 export type Roles = Record<Role, boolean>

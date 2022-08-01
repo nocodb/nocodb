@@ -24,7 +24,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
    * If the user has not set a preferred language, we fallback to 'en'.
    * If the user has set a preferred language, we try to find a matching locale in the available locales.
    */
-  const preferredLanguage = preferredLanguages.reduce<string>((locale, language) => {
+  const preferredLanguage = preferredLanguages.reduce((locale, language) => {
     /** split language to language and code, e.g. en-GB -> [en, GB] */
     const [lang, code] = language.split(/[_-]/)
 
@@ -46,7 +46,17 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   }, 'en' /** fallback locale */)
 
   /** State */
-  const initialState: StoredState = { token: null, user: null, lang: preferredLanguage, darkMode: prefersDarkMode }
+  const initialState: StoredState = {
+    token: null,
+    user: null,
+    lang: preferredLanguage,
+    darkMode: prefersDarkMode,
+    feedbackForm: {
+      url: 'https://docs.google.com/forms/d/e/1FAIpQLSeTlAfZjszgr53lArz3NvUEnJGOT9JtG9NAU5d0oQwunDS2Pw/viewform?embedded=true',
+      createdAt: new Date('2020-01-01T00:00:00.000Z').toISOString(),
+      isHidden: false,
+    },
+  }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
   const storage = useStorage<StoredState>(storageKey, initialState)

@@ -270,7 +270,7 @@ async function getMetaDiff(
           .find(t => t.table_name === childModel.table_name)
           .detectedChanges.push({
             type: MetaDiffType.TABLE_VIRTUAL_M2M_REMOVE,
-            msg: `Many to many removed(${relatedTable.tn} removed)`,
+            msg: `Many to many removed(${parentModel.table_name} removed)`,
             colId: relationCol.id,
             column: relationCol
           });

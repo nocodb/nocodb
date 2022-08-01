@@ -246,6 +246,7 @@ if (meta) useProvideColumnCreateStore(meta)
     & > * {
       @apply flex align-center h-auto;
     }
+    overflow: hidden;
   }
 
   table,

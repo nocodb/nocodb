@@ -5,6 +5,7 @@ import { handleTZ } from '~/utils/dateTimeUtils'
 import { replaceUrlsWithLink } from '~/utils/urlUtils'
 
 const column = inject(ColumnInj)
+
 const value = inject('value')
 
 const { isPg } = useProject()
@@ -18,32 +19,23 @@ const showEditFormulaWarningMessage = () => {
   }, 3000)
 }
 
-const result = computed(() => {
-  if (isPg) {
-    return handleTZ(value)
-  }
-  return value
-})
+const result = computed(() => (isPg ? handleTZ(value) : value))
 
-const urls = computed(() => {
-  return replaceUrlsWithLink(result.value)
-})
+const urls = computed(() => replaceUrlsWithLink(result.value))
 </script>
 
 <template>
   <div>
-    <v-tooltip v-if="column && column.colOptions && column.colOptions.error" bottom color="error">
-      <template #activator="{ on }">
-        <span class="caption" v-on="on">ERR<span class="error--text">!</span></span>
+    <a-tooltip v-if="column && column.colOptions && column.colOptions.error" placement="bottom" class="text-orange-700">
+      <template #title>
+        <span class="font-bold">{{ column.colOptions.error }}</span>
       </template>
-      <span class="font-weight-bold">{{ column.colOptions.error }}</span>
-    </v-tooltip>
-    <div class="formula-cell-wrapper" @dblclick="showEditFormulaWarningMessage">
+      <span>ERR!</span>
+    </a-tooltip>
+    <div class="pa-2" @dblclick="showEditFormulaWarningMessage">
       <div v-if="urls" v-html="urls" />
-      <div v-else>
-        {{ result }}
-      </div>
-      <div v-if="showEditFormulaWarning" class="edit-warning">
+      <div v-else>{{ result }}</div>
+      <div v-if="showEditFormulaWarning" class="text-left mt-2 text-[#e65100]">
         <!-- TODO: i18n -->
         Warning: Formula fields should be configured in the field menu dropdown.
       </div>
@@ -51,14 +43,4 @@ const urls = computed(() => {
   </div>
 </template>
 
-<style scoped>
-.formula-cell-wrapper {
-  padding: 10px;
-}
-
-.edit-warning {
-  text-align: left;
-  margin-top: 10px;
-  color: #e65100;
-}
-</style>
+<style scoped></style>

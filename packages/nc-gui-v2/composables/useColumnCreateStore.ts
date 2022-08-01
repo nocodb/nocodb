@@ -77,6 +77,10 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
   const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
   // actions
+  const generateNewColumnMeta = () => {
+    formState.value = sqlUi.value.getNewColumn((meta.value.columns?.length || 0) + 1)
+  }
+
   const setAdditionalValidations = (validations: Record<string, any>) => {
     additionalValidations.value = validations
   }
@@ -204,6 +208,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     onDataTypeChange,
     onAlter,
     addOrUpdate,
+    generateNewColumnMeta,
+    isEdit: !!column?.id,
   }
 })
 

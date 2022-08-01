@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { useMeta } from '#head'
-import { computed, inject } from '#imports'
+import { computed, inject, watchEffect } from '#imports'
 import { useColumnCreateStoreOrThrow } from '~/composables/useColumnCreateStore'
 import useMetas from '~/composables/useMetas'
 import { MetaInj } from '~/context'
@@ -13,16 +12,22 @@ const meta = inject(MetaInj)
 const advancedOptions = ref(false)
 const { getMeta } = useMetas()
 
-const { formState, resetFields, validate, validateInfos, onUidtOrIdTypeChange, onAlter, addOrUpdate } =
-  useColumnCreateStoreOrThrow()
-
-// todo: make as a prop
-const editColumn = null
+const {
+  formState,
+  resetFields,
+  validate,
+  validateInfos,
+  onUidtOrIdTypeChange,
+  onAlter,
+  addOrUpdate,
+  generateNewColumnMeta,
+  isEdit,
+} = useColumnCreateStoreOrThrow()
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => !editColumn || !t.virtual),
-    ...(!editColumn && meta?.value?.columns?.every((c) => !c.pk)
+    ...uiTypes.filter((t) => !isEdit || !t.virtual),
+    ...(!isEdit && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
             name: 'ID',
@@ -37,13 +42,38 @@ const reloadMeta = () => {
   emit('cancel')
   getMeta(meta?.value.id as string, true)
 }
+
+// create column meta if it's a new column
+watchEffect(() => {
+  if (!isEdit) {
+    generateNewColumnMeta()
+  }
+})
+
+// focus and select the column name field
+const antInput = ref()
+watchEffect(() => {
+  if (antInput.value && formState.value) {
+    // todo: replace setTimeout
+    setTimeout(() => {
+      antInput.value.focus()
+      antInput.value.select()
+    }, 300)
+  }
+})
 </script>
 
 <template>
   <div class="max-w-[450px] min-w-[350px] w-max max-h-[95vh] bg-white shadow p-4 overflow-auto" @click.stop>
     <a-form v-model="formState" name="column-create-or-edit" layout="vertical">
       <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.column_name">
-        <a-input v-model:value="formState.column_name" size="small" class="nc-column-name-input" @input="onAlter(8)" />
+        <a-input
+          ref="antInput"
+          v-model:value="formState.column_name"
+          size="small"
+          class="nc-column-name-input"
+          @input="onAlter(8)"
+        />
       </a-form-item>
       <a-form-item :label="$t('labels.columnType')">
         <a-select v-model:value="formState.uidt" size="small" class="nc-column-name-input" @change="onUidtOrIdTypeChange">

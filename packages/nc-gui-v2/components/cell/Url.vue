@@ -34,7 +34,7 @@ onMounted(() => {
 </script>
 
 <template>
-  <input class="outline-none" v-if="editEnabled" ref="root" v-model="vModel" />
+  <input v-if="editEnabled" ref="root" v-model="vModel" class="outline-none" />
   <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="value" target="_blank">{{ value }}</nuxt-link>
   <span v-else>{{ value }}</span>
 </template>

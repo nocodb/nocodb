@@ -177,7 +177,7 @@ todo :
     <CellDatePicker v-else-if="isDate" v-model="localState" />
     <CellYearPicker v-else-if="isYear" v-model="localState" />
     <CellDateTimePicker v-else-if="isDateTime" v-model="localState" />
-    <CellDateTimePicker v-else-if="isTime" v-model="localState" />
+    <CellTimePicker v-else-if="isTime" v-model="localState" />
     <CellRating v-else-if="isRating" v-model="localState" />
     <!--      v-model="localState"
           :active="active"

@@ -114,7 +114,7 @@ export function useApi<Data = any, RequestConfig = any>({
 
       onRequestFinish()
 
-      return requestError
+      return Promise.reject(requestError)
     },
   )
 
@@ -125,7 +125,7 @@ export function useApi<Data = any, RequestConfig = any>({
 
       onRequestFinish()
 
-      return apiResponse
+      return Promise.resolve(apiResponse)
     },
     (apiError) => {
       errorHook.trigger(apiError)
@@ -133,7 +133,7 @@ export function useApi<Data = any, RequestConfig = any>({
 
       onRequestFinish()
 
-      return apiError
+      return Promise.reject(apiError)
     },
   )
 

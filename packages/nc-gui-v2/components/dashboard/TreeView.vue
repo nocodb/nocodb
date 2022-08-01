@@ -297,7 +297,7 @@ const addTableTab = (table: TableType) => {
     </div>
 
     <SettingsModal :show="settingsDlg" @closed="settingsDlg = false" />
-    <DlgTableCreate v-model="tableCreateDlg" />
+    <DlgTableCreate v-if="tableCreateDlg" v-model="tableCreateDlg" />
     <DlgTableRename v-if="renameTableMeta" v-model="renameTableDlg" :table-meta="renameTableMeta" />
   </div>
 </template>

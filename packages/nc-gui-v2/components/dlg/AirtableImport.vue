@@ -208,7 +208,9 @@ onMounted(async () => {
   socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
 
-    logRef.value.scrollTop = logRef.value?.scrollHeight
+    nextTick(() => {
+      logRef.value.scrollTop = logRef.value?.scrollHeight
+    })
 
     if (d.status === 'COMPLETED') {
       showGoToDashboardButton.value = true

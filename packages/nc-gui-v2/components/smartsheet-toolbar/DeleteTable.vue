@@ -17,4 +17,3 @@ const { deleteTable } = useDeleteTable()
     </div>
   </a-tooltip>
 </template>
-

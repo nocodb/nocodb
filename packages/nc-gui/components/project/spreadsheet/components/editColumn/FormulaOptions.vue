@@ -486,6 +486,7 @@ export default {
             case UITypes.Rating:
             case UITypes.Count:
             case UITypes.AutoNumber:
+            case UITypes.Currency:
               if (expectedType !== formulaTypes.NUMERIC) {
                 typeErrors.add(
                   `Column '${parsedTree.name}' with ${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`
@@ -510,7 +511,6 @@ export default {
             case UITypes.Attachment:
             case UITypes.ID:
             case UITypes.Time:
-            case UITypes.Currency:
             case UITypes.Percent:
             case UITypes.Duration:
             case UITypes.Rollup:

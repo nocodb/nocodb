@@ -23,8 +23,8 @@ const columns = computed(() =>
     placeholder="Filter query"
     @press-enter="reloadData.trigger()"
   >
-    <template #addonBefore @click="isDropdownOpen = true">
-      <div class="flex align-center relative">
+    <template #addonBefore>
+      <div class="flex align-center relative" @click="isDropdownOpen = true">
         <MdiSearchIcon class="text-grey" />
         <MdiMenuDownIcon class="text-grey" />
         <a-select

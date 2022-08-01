@@ -13,10 +13,7 @@ const formatData = (list: Record<string, any>[]) =>
 
 export function useViewData(
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
-  viewMeta:
-    | Ref<(ViewType) & { id: string }>
-    | ComputedRef<(ViewType) & { id: string }>
-    | undefined,
+  viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }> | undefined,
   where?: ComputedRef<string | undefined>,
 ) {
   const data = ref<Record<string, any>[]>()

@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import SmartsheetGrid from '../smartsheet/Grid.vue'
 import { computed, inject, provide, useMetas, watch, watchEffect } from '#imports'
 import { useProvideSmartsheetStore } from '~/composables/useSmartsheetStore'

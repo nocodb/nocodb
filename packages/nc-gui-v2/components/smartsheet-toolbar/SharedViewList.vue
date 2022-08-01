@@ -132,7 +132,7 @@ const deleteLink = async (id: string) => {
       <a-table-column key="meta" title="Download allowed" data-index="title">
         <template #default="{ record }">
           <template v-if="'meta' in record">
-            <span>{{ renderAllowCSVDownload(record) }}</span>
+            <div class="text-center">{{ renderAllowCSVDownload(record) }}</div>
           </template>
         </template>
       </a-table-column>

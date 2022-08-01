@@ -16,8 +16,8 @@ const { fieldsOrder, coverImageField, modelValue } = defineProps<{
 const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
 const reloadDataHook = inject(ReloadViewDataHookInj)
-const isLocked = inject(IsLockedInj)
 const rootFields = inject(FieldsInj)
+const isLocked = inject(IsLockedInj)
 
 const { $e } = useNuxtApp()
 
@@ -94,7 +94,7 @@ const onMove = (event: { moved: { newIndex: number } }) => {
           <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
         </div>
         <div class="nc-fields-list py-1">
-          <Draggable :list="fields" @change="onMove($event)">
+          <Draggable :list="fields" item-key="id" @change="onMove($event)">
             <template #item="{ element: field }">
               <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex" @click.stop>
                 <a-checkbox v-model:checked="field.show" class="flex-shrink" @change="saveOrUpdate(field, i)">

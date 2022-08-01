@@ -127,7 +127,7 @@ const exportCsv = async () => {
       </template>
     </a-dropdown>
 
-    <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="90vw" :footer="null">
+    <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">
       <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
     </a-modal>
   </div>

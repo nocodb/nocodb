@@ -1,9 +1,6 @@
 import type { Dayjs } from 'dayjs'
 import dayjs from 'dayjs'
-import duration from 'dayjs/plugin/duration'
 import { defineNuxtPlugin } from '#app'
-
-dayjs.extend(duration)
 
 const handleFeedbackForm = async () => {
   let { feedbackForm: currentFeedbackForm } = $(useGlobalState())

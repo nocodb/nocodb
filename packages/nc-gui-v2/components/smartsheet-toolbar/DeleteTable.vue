@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { inject } from '#imports'
-import useDeleteTable from '~/composables/useDeleteTable'
+import { inject, useDeleteTable } from '#imports'
 import { MetaInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
 

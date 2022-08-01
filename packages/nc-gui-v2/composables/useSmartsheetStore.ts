@@ -3,7 +3,7 @@ import { createInjectionState } from '@vueuse/core'
 import type { TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#app'
-import useProject from '~/composables/useProject'
+import { useProject } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = createInjectionState((view: Ref<ViewType>, meta: Ref<TableType>) => {
   const { $api } = useNuxtApp()
@@ -17,7 +17,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = createInjectionState((vi
   })
 
   // getters
-  const isLocked = computed(() => view?.value?.lock_type === 'locked')
+  const isLocked = computed(() => (view?.value as any)?.lock_type === 'locked')
   const xWhere = computed(() => {
     let where
     const col = meta?.value?.columns?.find(({ id }) => id === search.field) || meta?.value?.columns?.find((v) => v.pv)

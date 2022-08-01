@@ -2,10 +2,11 @@ import { Modal } from 'ant-design-vue'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
-import useTabs, { TabType } from '~/composables/useTabs'
+import { useTabs } from '#imports'
+import { TabType } from '~/composables/useTabs'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
-export default () => {
+export function useDeleteTable() {
   const { $e, $api } = useNuxtApp()
   const toast = useToast()
   const { getMeta, removeMeta } = useMetas()

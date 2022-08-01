@@ -1,7 +1,6 @@
 import type { FilterType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { useNuxtApp } from '#imports'
-import useUIPermission from '~/composables/useUIPermission'
+import { useNuxtApp, useUIPermission } from '#imports'
 
 export function useViewFilters(
   view: Ref<(GridType | KanbanType | GalleryType) & { id?: string }> | undefined,

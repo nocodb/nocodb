@@ -39,7 +39,7 @@ const applyChanges = async () => {
         ref="filterComp"
         class="nc-table-toolbar-menu"
         :auto-save="autosave"
-        @update:filters-length="filtersLength = $event"
+        @update:filtersLength="filtersLength = $event"
       >
         <div class="d-flex align-end mt-2 min-h-[30px]" @click.stop>
           <a-checkbox id="col-filter-checkbox" v-model:checked="autosave" class="col-filter-checkbox" hide-details dense>

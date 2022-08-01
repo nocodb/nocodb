@@ -11,7 +11,7 @@ import MdiAddIcon from '~icons/mdi/plus'
 
 const { nested = false, parentId, autoSave = true } = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean }>()
 
-const emit = defineEmits(['update:filters-length'])
+const emit = defineEmits(['update:filtersLength'])
 
 const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
@@ -91,7 +91,7 @@ const logicalOps = [
 watch(
   () => filters?.value?.length,
   (length) => {
-    emit('update:filters-length', length ?? 0)
+    emit('update:filtersLength', length ?? 0)
   },
 )
 

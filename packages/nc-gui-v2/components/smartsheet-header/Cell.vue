@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Modal } from 'ant-design-vue'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { inject } from 'vue'
@@ -6,74 +7,13 @@ import { ColumnInj, MetaInj } from '~/context'
 import { useProvideColumnCreateStore } from '#imports'
 
 const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
+
 provide(ColumnInj, column)
+
 const meta = inject(MetaInj)
 
 // instantiate column update store
 useProvideColumnCreateStore(meta as Ref<TableType>, column)
-
-/*
-import { UITypes } from 'nocodb-sdk'
-import cell from '@/components/project/spreadsheet/mixins/cell'
-import EditColumn from '~/components/project/spreadsheet/components/EditColumn'
-
-export default {
-  name: 'HeaderCell',
-  components: { EditColumn },
-  mixins: [cell],
-  props: [
-    'value',
-    'column',
-    'isForeignKey',
-    'meta',
-    'nodes',
-    'columnIndex',
-    'isForm',
-    'isPublicView',
-    'isVirtual',
-    'required',
-    'isLocked',
-  ],
-  data: () => ({
-    editColumnMenu: false,
-    columnDeleteDialog: false,
-  }),
-  methods: {
-    showColumnEdit() {
-      if (this.column.uidt === UITypes.ID) {
-        return this.$toast.info('Primary key column edit is not allowed.').goAway(3000)
-      }
-      this.editColumnMenu = true
-    },
-    async deleteColumn() {
-      try {
-        const column = { ...this.column, cno: this.column.column_name }
-        column.altered = 4
-        const columns = this.meta.columns.slice()
-        columns[this.columnIndex] = column
-        await this.$api.dbTableColumn.delete(column.id)
-
-        this.$emit('colDelete')
-        this.$emit('saved')
-        this.columnDeleteDialog = false
-      } catch (e) {
-        console.log(e)
-      }
-    },
-    async setAsPrimaryValue() {
-      // todo: pass only updated fields
-      try {
-        await this.$api.dbTableColumn.primaryColumnSet(this.column.id)
-        this.$toast.success('Successfully updated as primary column').goAway(3000)
-      } catch (e) {
-        console.log(e)
-        this.$toast.error('Failed to update primary column').goAway(3000)
-      }
-      this.$emit('saved')
-      this.columnDeleteDialog = false
-    },
-  },
-} */
 </script>
 
 <template>

@@ -199,6 +199,9 @@ if (meta) useProvideColumnCreateStore(meta)
       </table>
     </div>
     <SmartsheetPagination />
+    <a-dropdown :trigger="['contextmenu']">
+<
+    </a-dropdown>
   </div>
 </template>
 

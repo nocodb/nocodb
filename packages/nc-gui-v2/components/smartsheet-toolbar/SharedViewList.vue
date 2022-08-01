@@ -2,6 +2,7 @@
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
+import { message } from 'ant-design-vue'
 import { useRoute } from '#app'
 import { onMounted, useSmartsheetStoreOrThrow } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -80,7 +81,7 @@ const renderAllowCSVDownload = (view: SharedViewType) => {
 
 const copyLink = (view: SharedViewType) => {
   copy(`${dashboardUrl?.value as string}/${sharedViewUrl(view)}`)
-  toast.info('Copied to clipboard')
+  message.success('Copied to clipboard')
 }
 
 const deleteLink = async (id: string) => {

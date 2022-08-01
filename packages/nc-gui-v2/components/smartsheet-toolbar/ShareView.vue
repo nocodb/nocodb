@@ -2,6 +2,7 @@
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { computed } from 'vue'
+import { message } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
 import { useNuxtApp } from '#app'
 import { useSmartsheetStoreOrThrow } from '#imports'
@@ -13,8 +14,8 @@ const { isUIAllowed } = useUIPermission()
 const { view, $api } = useSmartsheetStoreOrThrow()
 
 const { copy } = useClipboard()
-const toast = useToast()
 const { $e } = useNuxtApp()
+const toast = useToast()
 const { dashboardUrl } = useDashboard()
 
 let showShareModel = $ref(false)
@@ -95,7 +96,7 @@ const saveShareLinkPassword = async () => {
 
 const copyLink = () => {
   copy(sharedViewUrl?.value as string)
-  toast.info('Copied to clipboard')
+  message.success('Copied to clipboard')
 }
 </script>
 
@@ -159,6 +160,7 @@ const copyLink = () => {
 .share-link-box {
   @apply flex p-2 w-full items-center align-center gap-1 bg-gray-100 rounded;
 }
+
 :deep(.ant-collapse-header) {
   @apply !text-xs;
 }

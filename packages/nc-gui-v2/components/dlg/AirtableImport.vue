@@ -208,6 +208,7 @@ onMounted(async () => {
   socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
 
+    // FIXME: this doesn't work
     nextTick(() => {
       logRef.value.scrollTop = logRef.value?.scrollHeight
     })

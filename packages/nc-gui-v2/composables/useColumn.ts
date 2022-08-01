@@ -31,6 +31,7 @@ export default (column: ColumnType) => {
   const isRating = uiDatatype === UITypes.Rating
   const isCurrency = uiDatatype === 'Currency'
   const isDuration = uiDatatype === UITypes.Duration
+  const isPercent = uiDatatype === UITypes.Percent
   const isAutoSaved = [
     UITypes.SingleLineText,
     UITypes.LongText,
@@ -72,5 +73,6 @@ export default (column: ColumnType) => {
     isManualSaved,
     isSingleSelect,
     isMultiSelect,
+    isPercent,
   }
 }

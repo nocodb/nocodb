@@ -110,7 +110,13 @@ const copyLink = () => {
     </a-button>
 
     <!-- This view is shared via a private link -->
-    <a-modal v-model:visible="showShareModel" size="small" :title="$t('msg.info.privateLink')" :footer="null" width="min(100vw,640px)">
+    <a-modal
+      v-model:visible="showShareModel"
+      size="small"
+      :title="$t('msg.info.privateLink')"
+      :footer="null"
+      width="min(100vw,640px)"
+    >
       <div class="share-link-box nc-share-link-box bg-primary-50">
         <div class="flex-1 h-min text-xs">{{ sharedViewUrl }}</div>
         <!--        <v-spacer /> -->

@@ -13,7 +13,6 @@ const columns = computed(() =>
     label: c.title,
   })),
 )
-
 </script>
 
 <template>
@@ -26,10 +25,16 @@ const columns = computed(() =>
   >
     <template #addonBefore @click="isDropdownOpen = true">
       <div class="flex align-center relative">
-      <MdiSearchIcon class="text-grey"/>
-      <MdiMenuDownIcon class="text-grey"/>
-      <a-select size="small" :dropdownMatchSelectWidth="false" v-model:value="search.field" :options="columns"  class="!absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0">
-      </a-select>
+        <MdiSearchIcon class="text-grey" />
+        <MdiMenuDownIcon class="text-grey" />
+        <a-select
+          v-model:value="search.field"
+          size="small"
+          :dropdown-match-select-width="false"
+          :options="columns"
+          class="!absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
+        >
+        </a-select>
       </div>
     </template>
   </a-input>

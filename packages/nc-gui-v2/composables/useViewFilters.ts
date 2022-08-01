@@ -1,6 +1,6 @@
-import type {FilterType, GalleryType, GridType, KanbanType} from 'nocodb-sdk'
-import type {ComputedRef, Ref} from 'vue'
-import {useNuxtApp} from '#imports'
+import type { FilterType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
+import type { ComputedRef, Ref } from 'vue'
+import { useNuxtApp } from '#imports'
 import useUIPermission from '~/composables/useUIPermission'
 
 export function useViewFilters(
@@ -8,14 +8,13 @@ export function useViewFilters(
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
-  shared = false
+  shared = false,
 ) {
-
   // todo: update swagger
   const filters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
-  const {$api} = useNuxtApp()
-  const {isUIAllowed} = useUIPermission()
+  const { $api } = useNuxtApp()
+  const { isUIAllowed } = useUIPermission()
 
   const loadFilters = async () => {
     if (parentId) {
@@ -45,7 +44,6 @@ export function useViewFilters(
   }
 
   const deleteFilter = async (filter: FilterType & { status: string }, i: number) => {
-
     if (shared || !isUIAllowed('filterSync')) {
       const _filters = unref(filters.value)
       _filters.splice(i, 1)
@@ -104,5 +102,5 @@ export function useViewFilters(
     await saveOrUpdate(filters.value[index], index, true)
   }
 
-  return {filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup}
+  return { filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup }
 }

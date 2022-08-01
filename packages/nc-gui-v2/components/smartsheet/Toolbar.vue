@@ -13,7 +13,7 @@
     <SmartsheetToolbarMoreActions />
 
     <div class="flex-1" />
-<!--    <SmartsheetToolbarLockMenu />
+    <!--    <SmartsheetToolbarLockMenu />
     <div class="dot" />
     <SmartsheetToolbarReload />
     <div class="dot" />
@@ -29,10 +29,8 @@
 <style scoped>
 :deep(.nc-toolbar-btn) {
   @apply border-0 !text-xs font-semibold px-2;
-}/*
+} /*
 .dot {
   @apply w-[3px] h-[3px] bg-gray-300 mx-1 rounded-full;
 }*/
-
-
 </style>

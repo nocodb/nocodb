@@ -1,6 +1,7 @@
 import { breakpointsTailwind, usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
+import initialFeedBackForm from './initialFeedbackForm'
 import { computed, ref, toRefs, useBreakpoints, useNuxtApp, useTimestamp, watch } from '#imports'
 import type { Actions, Getters, GlobalState, StoredState, User } from '~/lib/types'
 
@@ -23,6 +24,15 @@ const storageKey = 'nocodb-gui-v2'
  * ```
  */
 export const useGlobalState = (): GlobalState => {
+  const { $state } = useNuxtApp()
+
+  if ($state) {
+    console.warn(
+      '[useGlobalState] Global state is injected by state plugin. Manual initialization is unnecessary and should be avoided.',
+    )
+    return $state
+  }
+
   /** get the preferred languages of a user, according to browser settings */
   const preferredLanguages = $(usePreferredLanguages())
   /** todo: reimplement; get the preferred dark mode setting, according to browser settings */
@@ -67,7 +77,13 @@ export const useGlobalState = (): GlobalState => {
   }, 'en' /** fallback locale */)
 
   /** State */
-  const initialState: StoredState = { token: null, user: null, lang: preferredLanguage, darkMode: prefersDarkMode }
+  const initialState: StoredState = {
+    token: null,
+    user: null,
+    lang: preferredLanguage,
+    darkMode: prefersDarkMode,
+    feedbackForm: initialFeedBackForm,
+  }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
   const storage = $(useStorage<StoredState>(storageKey, initialState))

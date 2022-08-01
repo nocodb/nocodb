@@ -32,7 +32,9 @@
   "devDependencies": {
     "@antfu/eslint-config": "^0.25.2",
     "@iconify-json/clarity": "^1.1.4",
+    "@iconify-json/eva": "^1.1.2",
     "@iconify-json/ic": "^1.1.7",
+    "@iconify-json/lucide": "^1.1.36",
     "@iconify-json/material-symbols": "^1.1.8",
     "@iconify-json/mdi": "^1.1.25",
     "@iconify-json/ri": "^1.1.3",

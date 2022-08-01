@@ -30,6 +30,7 @@ export function useColumn(column: ColumnType) {
   const isAttachment = uiDatatype === 'Attachment'
   const isRating = uiDatatype === UITypes.Rating
   const isCurrency = uiDatatype === 'Currency'
+  const isPhoneNumber = uiDatatype === 'PhoneNumber'
   const isDuration = uiDatatype === UITypes.Duration
   const isPercent = uiDatatype === UITypes.Percent
   const isAutoSaved = [
@@ -74,5 +75,6 @@ export function useColumn(column: ColumnType) {
     isSingleSelect,
     isMultiSelect,
     isPercent,
+    isPhoneNumber,
   }
 }

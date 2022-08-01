@@ -44,6 +44,7 @@ const {
   isString,
   isSingleSelect,
   isMultiSelect,
+  isPercent,
 } = useColumn(column)
 </script>
 
@@ -203,6 +204,7 @@ todo :
     <!-- v-on="parentListeners"
         />
     -->
+    <CellPercent v-else-if="isPercent" v-model="localState" />
     <CellText v-else v-model="localState" />
     <!--  v-on="$listeners"   <span v-if="hint" class="nc-hint">{{ hint }}</span> -->
 

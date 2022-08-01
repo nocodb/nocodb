@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
-import { computed, inject, onMounted, provide, watch, watchEffect } from '#imports'
+import { computed, inject, provide, watch, watchEffect } from '#imports'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/context'
 import useMetas from '~/composables/useMetas'
 
@@ -27,7 +27,7 @@ provide(ActiveViewInj, activeView)
 provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
-provide('navDrawerOpen', ref(false))
+provide('navDrawerOpen', ref(true))
 
 watch(
   () => tabMeta && tabMeta?.id,
@@ -41,15 +41,21 @@ watch(
   <div class="nc-container flex h-full">
     <div class="flex flex-col h-full flex-1 min-w-0">
       <SmartsheetToolbar />
+
       <template v-if="meta">
         <div class="flex flex-1 min-h-0">
           <div v-if="activeView" class="h-full flex-grow min-w-0 min-h-0">
             <SmartsheetGrid v-if="activeView.type === ViewTypes.GRID" :ref="el" />
+
             <SmartsheetGallery v-else-if="activeView.type === ViewTypes.GALLERY" />
+
             <SmartsheetForm v-else-if="activeView.type === ViewTypes.FORM" />
           </div>
-          <SmartsheetSidebar />
         </div>
+
+        <teleport to="#sidebar-right">
+          <SmartsheetSidebar />
+        </teleport>
       </template>
     </div>
   </div>

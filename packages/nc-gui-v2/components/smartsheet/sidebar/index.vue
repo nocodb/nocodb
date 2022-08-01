@@ -2,8 +2,11 @@
 import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
+import Toolbar from './Toolbar.vue'
 import { inject, provide, ref, useApi, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
+import MdiXml from '~icons/mdi/xml'
+import MdiHook from '~icons/mdi/hook'
 
 const meta = inject(MetaInj, ref())
 
@@ -16,7 +19,9 @@ const { api } = useApi()
 provide(ViewListInj, views)
 
 /** Sidebar visible */
-const drawerOpen = inject('navDrawerOpen', ref(false))
+const drawerOpen = inject('navDrawerOpen', ref(true))
+
+const sidebarCollapsed = computed(() => !drawerOpen.value)
 
 /** View type to create from modal */
 let viewCreateType = $ref<ViewTypes>()
@@ -54,9 +59,46 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 </script>
 
 <template>
-  <a-layout-sider theme="light" class="shadow" :width="drawerOpen ? 0 : 250">
-    <div class="flex flex-col h-full">
+  <a-layout-sider
+    :collapsed="sidebarCollapsed"
+    collapsiple
+    collapsed-width="50"
+    width="250"
+    class="shadow !mt-[-9px]"
+    style="height: calc(100% + 9px)"
+    theme="light"
+  >
+    <Toolbar v-if="drawerOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />
+
+    <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
+      <template #start>
+        <a-tooltip placement="left">
+          <template #title> {{ $t('objects.webhooks') }} </template>
+
+          <div class="nc-sidebar-right-item hover:after:bg-gray-300">
+            <MdiHook />
+          </div>
+        </a-tooltip>
+
+        <div class="dot" />
+
+        <a-tooltip placement="left">
+          <template #title> Get API Snippet </template>
+
+          <div class="nc-sidebar-right-item group hover:after:bg-yellow-500">
+            <MdiXml class="group-hover:(!text-white)" />
+          </div>
+        </a-tooltip>
+
+        <div class="dot" />
+      </template>
+    </Toolbar>
+
+    <div v-if="drawerOpen" class="flex-1 flex flex-col">
       <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
+
+      <a-divider class="my-2" />
+
       <MenuBottom @open-modal="openModal" />
     </div>
 
@@ -67,5 +109,13 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 <style scoped>
 :deep(.ant-menu-title-content) {
   @apply w-full;
+}
+
+:deep(.ant-layout-sider-children) {
+  @apply flex flex-col;
+}
+
+.dot {
+  @apply w-[3px] h-[3px] bg-gray-300 rounded-full;
 }
 </style>

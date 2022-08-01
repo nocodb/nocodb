@@ -99,9 +99,7 @@ function init() {
 async function onSubmit() {
   const isValid = await formValidator?.validateFields()
 
-  if (!isValid) return
-
-  if (form.type) {
+  if (isValid && form.type) {
     const _meta = unref(meta)
 
     if (!_meta || !_meta.id) return

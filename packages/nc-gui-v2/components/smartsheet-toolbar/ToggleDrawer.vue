@@ -1,14 +1,14 @@
 <script setup lang="ts">
-import MdiDoorOpenIcon from '~icons/mdi/door-open'
-import MdiDoorClosedIcon from '~icons/mdi/door-closed'
+import MdiMenuClose from '~icons/mdi/menu-close'
 
 const drawerOpen = inject('navDrawerOpen', ref(false))
-const Icon = computed(() => (drawerOpen.value ? MdiDoorOpenIcon : MdiDoorClosedIcon))
 </script>
 
 <template>
   <a-tooltip placement="left">
     <template #title> {{ $t('tooltip.toggleNavDraw') }} </template>
-    <Icon class="rounded text-xl p-1 text-gray-500 hover:(text-white bg-pink-500 shadow)" @click="drawerOpen = !drawerOpen" />
+    <div class="nc-sidebar-right-item hover:after:bg-pink-500 group">
+      <MdiMenuClose class="group-hover:(!text-white)" @click="drawerOpen = !drawerOpen" />
+    </div>
   </a-tooltip>
 </template>

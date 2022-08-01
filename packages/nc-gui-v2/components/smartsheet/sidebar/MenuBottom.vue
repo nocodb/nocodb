@@ -30,9 +30,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
 <template>
   <a-menu :selected-keys="[]" class="flex-1 flex flex-col">
-    <a-divider class="my-2" />
-
-    <h3 class="px-3 text-xs font-semibold flex items-center gap-4">
+    <h3 class="px-3 py-1 text-xs font-semibold flex items-center gap-4">
       {{ $t('activity.createView') }}
       <a-tooltip>
         <template #title>
@@ -96,7 +94,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       </a-tooltip>
     </a-menu-item>
 
-    <div class="flex-auto justify-end flex flex-col md:gap-4 lg:gap-8 mt-4">
+    <div class="flex-auto justify-end flex flex-col gap-4 mt-4">
       <button
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
         @click="onApiSnippet"

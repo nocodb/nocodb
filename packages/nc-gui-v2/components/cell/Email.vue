@@ -2,40 +2,36 @@
 import { computed } from '#imports'
 import { isEmail } from '~/utils'
 
-const { modelValue: value } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue'])
-
-const editEnabled = inject<boolean>('editEnabled')
-
 interface Props {
   modelValue: string
 }
 
-const root = ref<HTMLInputElement>()
-const localState = computed({
-  get: () => value,
-  set: (val) => emit('update:modelValue', val),
-})
-
-const validEmail = computed(() => isEmail(value))
-</script>
-
-<script lang="ts">
-export default {
-  name: 'EmailCell',
+interface Emits {
+  (event: 'update:modelValue', model: string): void
 }
+
+const props = defineProps<Props>()
+
+const emits = defineEmits<Emits>()
+
+const root = ref<HTMLInputElement>()
+
+const editEnabled = inject<boolean>('editEnabled')
+
+const vModel = useVModel(props, 'modelValue', emits)
+
+const validEmail = computed(() => isEmail(vModel.value))
 </script>
 
 <template>
-  <input v-if="editEnabled" ref="root" v-model="localState" />
+  <input v-if="editEnabled" ref="root" v-model="vModel" class="outline-none" />
   <a
     v-else-if="validEmail"
     class="caption py-2 text-primary underline hover:opacity-75"
-    :href="`mailto:${value}`"
+    :href="`mailto:${vModel}`"
     target="_blank"
   >
-    {{ value }}
+    {{ vModel }}
   </a>
-  <span v-else>{{ value }}</span>
+  <span v-else>{{ vModel }}</span>
 </template>

@@ -17,8 +17,9 @@ export function useViewData(
   where?: ComputedRef<string | undefined>,
 ) {
   const data = ref<Record<string, any>[]>()
-  const formattedData = ref<{ row: Record<string, any>; oldRow: Record<string, any>; rowMeta?: any }[]>()
+  const formattedData = ref<{ row: Record<string, any>; oldRow: Record<string, any>; rowMeta?: any }[]>([])
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
+  const selectedRows = reactive([])
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
@@ -101,5 +102,13 @@ export function useViewData(
     await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25), where: where?.value } as any)
   }
 
-  return { data, loadData, paginationData, formattedData, insertRow, updateRowProperty, changePage }
+  const addRow = () => {
+    formattedData.value.push({
+      row: {},
+      oldRow: {},
+      rowMeta: { new: true },
+    })
+  }
+
+  return { data, loadData, paginationData, formattedData, insertRow, updateRowProperty, changePage, addRow, selectedRows }
 }

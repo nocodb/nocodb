@@ -67,7 +67,7 @@ const setAsPrimaryValue = async () => {
           <!-- Edit -->
           {{ $t('general.edit') }}
         </div>
-        <div  v-if="!virtual" v-t="['a:column:set-primary']" class="nc-menu-item" @click="setAsPrimaryValue">
+        <div v-if="!virtual" v-t="['a:column:set-primary']" class="nc-menu-item" @click="setAsPrimaryValue">
           <MdiStarIcon class="text-primary" />
 
           <!--       todo : tooltip -->

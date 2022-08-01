@@ -146,7 +146,7 @@ provide(ColumnInj, column)
     <!--    </v-tooltip> -->
     <v-spacer />
 
-    <SmartsheetHeaderMenu :virtual="true"/>
+    <SmartsheetHeaderMenu :virtual="true" />
   </div>
 </template>
 

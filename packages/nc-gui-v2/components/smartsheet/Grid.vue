@@ -8,6 +8,7 @@ import {
   useGridViewColumnWidth,
   useProvideColumnCreateStore,
   useViewData,
+  useSmartsheetStoreOrThrow
 } from '#imports'
 import {
   ActiveViewInj,
@@ -16,18 +17,20 @@ import {
   FieldsInj,
   IsFormInj,
   IsGridInj,
+  IsLockedInj,
   MetaInj,
   PaginationDataInj,
   ReloadViewDataHookInj,
 } from '~/context'
 import MdiPlusIcon from '~icons/mdi/plus'
+import MdiArrowExpandIcon from '~icons/mdi/arrow-expand'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
-const fields = inject(FieldsInj)
-
+const fields = inject(FieldsInj, ref([]))
+const isLocked = inject(IsLockedInj, false)
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
 
@@ -37,15 +40,28 @@ const { sqlUi } = useProject()
 const { xWhere } = useSmartsheetStoreOrThrow()
 const addColumnDropdown = ref(false)
 
-const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view as any, xWhere)
+const visibleColLength = computed(() => {
+  const cols = fields.value
+  return cols.filter((col) => !isVirtualCol(col)).length
+})
+
+const {
+  loadData,
+  paginationData,
+  formattedData: data,
+  updateRowProperty,
+  changePage,
+  addRow,
+  selectedRows,
+} = useViewData(meta, view as any, xWhere)
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, false)
 provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
-provide(ChangePageInj, changePage)
 provide(EditModeInj, editEnabled)
+provide(ChangePageInj, changePage)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 reloadViewDataHook?.on(() => {
@@ -124,10 +140,15 @@ if (meta) useProvideColumnCreateStore(meta)
           </tr>
         </thead>
         <tbody>
-          <tr v-for="({ row }, rowIndex) in data" :key="rowIndex" class="nc-grid-row">
-            <td key="row-index" style="width: 65px" class="caption nc-grid-cell">
-              <div class="d-flex align-center">
-                {{ rowIndex + 1 }}
+          <tr v-for="({ row, rowMeta }, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
+            <td key="row-index" class="caption nc-grid-cell">
+              <div class="align-center flex w-[80px]">
+                <div class="group-hover:hidden" :class="{ hidden: rowMeta.checked }">{{ rowIndex + 1 }}</div>
+                <div :class="{ hidden: !rowMeta.checked, flex: rowMeta.checked }" class="group-hover:flex w-full align-center">
+                  <a-checkbox v-model:checked="rowMeta.checked" />
+                  <span class="flex-1" />
+                  <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" />
+                </div>
               </div>
             </td>
             <td
@@ -135,15 +156,13 @@ if (meta) useProvideColumnCreateStore(meta)
               :key="rowIndex + columnObj.title"
               class="cell pointer nc-grid-cell"
               :class="{
-                active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
-                // 'primary-column': primaryValueColumn === columnObj.title,
-                // 'text-center': isCentrallyAligned(columnObj),
-                // 'required': isRequired(columnObj, rowObj),
+                active: !isPublicView && selected.col === colIndex && selected.row === rowIndex
               }"
               :data-col="columnObj.id"
               @click="selectCell(rowIndex, colIndex)"
               @dblclick="editEnabled = true"
             >
+
               <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row[columnObj.title]" :column="columnObj" />
 
               <SmartsheetCell
@@ -153,6 +172,27 @@ if (meta) useProvideColumnCreateStore(meta)
                 :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
                 @update:model-value="updateRowProperty(row, columnObj.title)"
               />
+            </td>
+          </tr>
+
+          <tr v-if="!isLocked">
+            <td
+              v-t="['c:row:add:grid-bottom']"
+              :colspan="visibleColLength + 1"
+              class="text-left pointer nc-grid-add-new-cell"
+              @click="addRow()"
+            >
+              <a-tooltip top left>
+                <div class="w-min flex align-center">
+                  <MdiPlusIcon class="text-pint-500 text-xs" />
+                  <span class="ml-1 caption grey--text">
+                    {{ $t('activity.addRow') }}
+                  </span>
+                </div>
+                <template #title>
+                  <span class="caption"> Add new row</span>
+                </template>
+              </a-tooltip>
             </td>
           </tr>
         </tbody>
@@ -175,6 +215,10 @@ if (meta) useProvideColumnCreateStore(meta)
     height: 41px !important;
     position: relative;
     padding: 0 5px;
+
+    & > * {
+      @apply flex align-center h-auto;
+    }
     overflow: hidden;
   }
 

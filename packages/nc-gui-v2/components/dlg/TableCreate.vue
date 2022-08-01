@@ -51,8 +51,10 @@ const validateDuplicate = (v: string) => {
   return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
 }
 
-const inputEl = ref<ComponentPublicInstance>()
+const inputEl = ref<HTMLInputElement>()
+
 const useForm = Form.useForm
+
 const validators = computed(() => {
   return {
     title: [validateTableName, validateDuplicateAlias],
@@ -63,29 +65,18 @@ const { resetFields, validate, validateInfos } = useForm(table, validators)
 
 onMounted(() => {
   generateUniqueTitle()
-
-  nextTick(() => {
-    const el = inputEl.value?.$el
-    el?.querySelector('input')?.focus()
-    el?.querySelector('input')?.select()
-  })
+  inputEl.value?.focus()
 })
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    width="max(30vw, 600px)"
-    :mask-closable="false"
-    @keydown.esc="dialogShow = false"
-    @keydown.enter="$emit('create', table)"
-  >
+  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" :mask-closable="false" @keydown.esc="dialogShow = false">
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
       <a-button key="submit" size="large" type="primary" @click="createTable()">{{ $t('general.submit') }}</a-button>
     </template>
     <div class="pl-10 pr-10 pt-5">
-      <a-form :model="table" name="create-new-table-form">
+      <a-form :model="table" name="create-new-table-form" @keydown.enter="createTable">
         <!-- Create A New Table -->
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
         <!-- hint="Enter table name" -->

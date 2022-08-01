@@ -18,7 +18,7 @@ interface Props {
   importType: 'csv' | 'json' | 'excel'
 }
 
-const { modelValue, importType } = defineProps<Props>()
+const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -55,11 +55,11 @@ const importState = reactive({
   },
 })
 
-const isImportTypeJson = computed(() => importType === 'json')
+const isImportTypeJson = computed(() => props.importType === 'json')
 
-const isImportTypeCsv = computed(() => importType === 'csv')
+const isImportTypeCsv = computed(() => props.importType === 'csv')
 
-const IsImportTypeExcel = computed(() => importType === 'excel')
+const IsImportTypeExcel = computed(() => props.importType === 'excel')
 
 const validators = computed(() => {
   return {
@@ -97,14 +97,7 @@ const importMeta = computed(() => {
   return {}
 })
 
-const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v) {
-    emit('update:modelValue', v)
-  },
-})
+const dialogShow = useVModel(props, 'modelValue', emit)
 
 const disablePreImportButton = computed(() => {
   if (activeKey.value === 'uploadTab') {
@@ -124,7 +117,7 @@ const disableImportButton = computed(() => {
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
 const modalWidth = computed(() => {
-  if (importType === 'excel' && templateEditorModal.value) {
+  if (props.importType === 'excel' && templateEditorModal.value) {
     return 'max(90vw, 600px)'
   }
   return 'max(60vw, 600px)'

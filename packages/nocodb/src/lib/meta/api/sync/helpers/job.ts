@@ -945,7 +945,10 @@ export default async (
           nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId
         );
 
-        if (ncLookupColumnId === undefined) {
+        if (
+          ncLookupColumnId === undefined ||
+          ncRelationColumnId === undefined
+        ) {
           continue;
         }
 
@@ -1146,7 +1149,7 @@ export default async (
         nestedLookupTbl[0].typeOptions.foreignTableRollupColumnId
       );
 
-      if (ncLookupColumnId === undefined) {
+      if (ncLookupColumnId === undefined || ncRelationColumnId === undefined) {
         continue;
       }
 

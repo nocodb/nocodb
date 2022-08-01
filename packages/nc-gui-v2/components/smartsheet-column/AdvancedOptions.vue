@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useColumnCreateStoreOrThrow } from '~/composables/useColumnCreateStore'
+import { useColumnCreateStoreOrThrow } from '#imports'
 
 const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
 

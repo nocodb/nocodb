@@ -1,6 +1,14 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { inject, onKeyStroke, onMounted, provide, useGridViewColumnWidth, useViewData, useProvideColumnCreateStore } from '#imports'
+import {
+  inject,
+  onKeyStroke,
+  onMounted,
+  provide,
+  useGridViewColumnWidth,
+  useProvideColumnCreateStore,
+  useViewData,
+} from '#imports'
 import {
   ActiveViewInj,
   ChangePageInj,

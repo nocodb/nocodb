@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { computed, inject, watchEffect } from '#imports'
-import { useColumnCreateStoreOrThrow } from '~/composables/useColumnCreateStore'
-import useMetas from '~/composables/useMetas'
+import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
 import { MetaInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'

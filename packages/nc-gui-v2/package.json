@@ -25,6 +25,7 @@
     "unique-names-generator": "^4.7.1",
     "vue-i18n": "^9.1.10",
     "vue-toastification": "^2.0.0-rc.5",
+    "vuedraggable": "^2.24.3",
     "vuetify": "^3.0.0-alpha.13",
     "xlsx": "^0.17.3"
   },

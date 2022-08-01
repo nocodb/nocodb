@@ -1,12 +1,12 @@
 import { isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, FormType, GalleryType, GridType, TableType } from 'nocodb-sdk'
 import { watch } from 'vue'
-import type { Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 
 export default function (
   view: Ref<(GridType | FormType | GalleryType) & { id?: string }> | undefined,
-  meta: Ref<TableType> | undefined,
+  meta: ComputedRef<TableType>,
   isPublic = false,
   reloadData?: () => void,
 ) {
@@ -131,10 +131,7 @@ export default function (
   })
 
   // reload view columns when table meta changes
-  watch(
-    () => meta?.value,
-    () => loadViewColumns(),
-  )
+  watch(meta, () => loadViewColumns())
 
   return {
     fields,

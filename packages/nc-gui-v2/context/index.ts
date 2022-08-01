@@ -5,7 +5,7 @@ import type { useViewData } from '#imports'
 import type { TabItem } from '~/composables/useTabs'
 
 export const ColumnInj: InjectionKey<ColumnType & { meta: any }> = Symbol('column-injection')
-export const MetaInj: InjectionKey<Ref<TableType>> = Symbol('meta-injection')
+export const MetaInj: InjectionKey<ComputedRef<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem>> = Symbol('tab-meta-injection')
 export const PaginationDataInj: InjectionKey<ReturnType<typeof useViewData>['paginationData']> =
   Symbol('pagination-data-injection')

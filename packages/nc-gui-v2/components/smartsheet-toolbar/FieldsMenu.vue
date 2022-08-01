@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { TableType } from 'nocodb-sdk'
+import type { ComputedRef } from 'vue'
 import { computed, inject } from 'vue'
 import Draggable from 'vuedraggable'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
@@ -38,7 +40,7 @@ const {
   hideAll,
   saveOrUpdate,
   sortedFields,
-} = useViewColumns(activeView, meta, false, () => reloadDataHook?.trigger())
+} = useViewColumns(activeView, meta as ComputedRef<TableType>, false, () => reloadDataHook?.trigger())
 
 watch(
   () => activeView?.value?.id,

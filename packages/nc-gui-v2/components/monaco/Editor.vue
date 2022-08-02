@@ -9,7 +9,7 @@ import { deepCompare } from '~/utils'
 interface Props {
   modelValue: string
   lang?: string
-  validate?: Boolean
+  validate?: boolean
 }
 
 const { modelValue, lang = 'json', validate = true } = defineProps<Props>()

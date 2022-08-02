@@ -54,6 +54,7 @@ const Icon = computed(() => {
     <div class="nc-sidebar-right-item hover:after:bg-indigo-500 group">
       <Icon class="cursor-pointer group-hover:(!text-white)" />
     </div>
+
     <template #overlay>
       <div class="min-w-[350px] max-w-[500px] shadow bg-white">
         <div>

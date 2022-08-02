@@ -1,24 +1,32 @@
+<script lang="ts" setup>
+import AddRow from './AddRow.vue'
+import DeleteTable from './DeleteTable.vue'
+import LockMenu from './LockMenu.vue'
+import Reload from './Reload.vue'
+import ToggleDrawer from './ToggleDrawer.vue'
+</script>
+
 <template>
   <div class="flex gap-2">
     <slot name="start" />
 
-    <SmartsheetToolbarLockMenu />
+    <LockMenu />
 
     <div class="dot" />
 
-    <SmartsheetToolbarReload />
+    <Reload />
 
     <div class="dot" />
 
-    <SmartsheetToolbarAddRow />
+    <AddRow />
 
     <div class="dot" />
 
-    <SmartsheetToolbarDeleteTable />
+    <DeleteTable />
 
     <div class="dot" />
 
-    <SmartsheetToolbarToggleDrawer />
+    <ToggleDrawer />
 
     <slot name="end" />
   </div>

@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
+import { useSortable } from './sort'
 import { ref, useDropZone, useUIPermission } from '#imports'
 import { isImage, openLink } from '~/utils'
 import MaterialSymbolsAttachFile from '~icons/material-symbols/attach-file'
@@ -8,7 +9,6 @@ import MdiCloseCircle from '~icons/mdi/close-circle'
 import MdiDownload from '~icons/mdi/download'
 import MaterialSymbolsFileCopyOutline from '~icons/material-symbols/file-copy-outline'
 import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
-import { useSortable } from './sort'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -34,7 +34,7 @@ const dropZoneRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const { dragging } = useSortable(dropZoneRef, visibleItems, updateModelValue)
+const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue)
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 

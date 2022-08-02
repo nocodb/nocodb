@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { useProvideAttachmentCell } from './utils'
 import Modal from './Modal.vue'
+import { useSortable } from './sort'
 import { ref, useDropZone, watch } from '#imports'
 import { isImage, openLink } from '~/utils'
 import MaterialSymbolsAttachFile from '~icons/material-symbols/attach-file'
@@ -8,7 +9,6 @@ import MaterialArrowExpandIcon from '~icons/mdi/arrow-expand'
 import MaterialSymbolsFileCopyOutline from '~icons/material-symbols/file-copy-outline'
 import MdiReload from '~icons/mdi/reload'
 import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
-import { useSortable } from './sort'
 
 interface Props {
   modelValue: string | Record<string, any>[] | null

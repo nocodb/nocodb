@@ -43,6 +43,7 @@ const {
   isString,
   isInt,
   isFloat,
+  isDecimal,
   isSingleSelect,
   isMultiSelect,
   isPercent,
@@ -189,6 +190,7 @@ todo :
         />
     -->
     <CellCurrency v-else-if="isCurrency" v-model="localState" />
+    <CellDecimal v-else-if="isDecimal" v-model="localState" />
     <CellInteger v-else-if="isInt" v-model="localState" />
     <CellFloat v-else-if="isFloat" v-model="localState" />
     <CellText v-else-if="isString" v-model="localState" />

@@ -80,10 +80,10 @@ watch(
         :hide-minimap="true"
         @validation-error="onError"
         @update:model-value="localValue = $event"
-        @value-changed="resetError"
+        @text-changed="resetError"
       />
       <span v-if="error" class="text-xs w-full py-1 text-red-500">
-        {{ error?.toString() }}
+        {{ error.toString() }}
       </span>
     </div>
     <span v-else>{{ vModel }}</span>

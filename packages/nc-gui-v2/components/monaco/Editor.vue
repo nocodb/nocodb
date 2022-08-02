@@ -14,7 +14,7 @@ interface Props {
 interface Emits {
   (event: 'update:modelValue', model: any): void
   (event: 'validationError', error: any): void
-  (event: 'valueChanged'): void
+  (event: 'textChanged'): void
 }
 
 const props = defineProps<Props>()
@@ -84,7 +84,7 @@ onMounted(() => {
       try {
         isValid.value = true
         const obj = JSON.parse(editor.getValue())
-        emits('valueChanged')
+        emits('textChanged')
         if (!deepCompare(vModel, obj)) vModel = obj
       } catch (e) {
         isValid.value = false
@@ -107,6 +107,7 @@ watch(
         editor.setValue(JSON.stringify(v, null, 2))
       }
     } catch (e) {
+      console.log(e)
       editor.setValue(JSON.stringify(v, null, 2))
     }
   },

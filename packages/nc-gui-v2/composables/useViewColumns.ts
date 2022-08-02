@@ -28,8 +28,8 @@ export function useViewColumns(
     if (!meta || !view) return
 
     let order = 1
-    if (view?.value?.id) {
-      const data = (await $api.dbViewColumn.list(view?.value?.id)) as any[]
+    if (view.value?.id) {
+      const data = (await $api.dbViewColumn.list(view.value.id)) as any[]
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
         curr.show = !!curr.show

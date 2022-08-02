@@ -177,7 +177,7 @@ if (meta) useProvideColumnCreateStore(meta)
     padding: 0 5px;
 
     & > * {
-      @apply flex align-center h-auto;
+      @apply flex items-center;
     }
     overflow: hidden;
   }

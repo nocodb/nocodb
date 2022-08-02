@@ -89,7 +89,7 @@ div {
 }
 
 .nc-cell {
-  position: relative;
+  @apply relative w-full h-full;
 }
 
 .nc-locked-overlay {

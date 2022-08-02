@@ -18,7 +18,7 @@ interface Props {
   importType: 'csv' | 'json' | 'excel'
 }
 
-const props = defineProps<Props>()
+const { importType, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -55,11 +55,11 @@ const importState = reactive({
   },
 })
 
-const isImportTypeJson = computed(() => props.importType === 'json')
+const isImportTypeJson = computed(() => importType === 'json')
 
-const isImportTypeCsv = computed(() => props.importType === 'csv')
+const isImportTypeCsv = computed(() => importType === 'csv')
 
-const IsImportTypeExcel = computed(() => props.importType === 'excel')
+const IsImportTypeExcel = computed(() => importType === 'excel')
 
 const validators = computed(() => {
   return {
@@ -97,7 +97,7 @@ const importMeta = computed(() => {
   return {}
 })
 
-const dialogShow = useVModel(props, 'modelValue', emit)
+const dialogShow = useVModel(rest, 'modelValue', emit)
 
 const disablePreImportButton = computed(() => {
   if (activeKey.value === 'uploadTab') {
@@ -117,7 +117,7 @@ const disableImportButton = computed(() => {
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
 
 const modalWidth = computed(() => {
-  if (props.importType === 'excel' && templateEditorModal.value) {
+  if (importType === 'excel' && templateEditorModal.value) {
     return 'max(90vw, 600px)'
   }
   return 'max(60vw, 600px)'
@@ -265,7 +265,7 @@ function getAdapter(name: string, val: any) {
         ref="templateEditorRef"
         :project-template="templateData"
         :import-data="importData"
-        :quick-import-type="props.importType"
+        :quick-import-type="importType"
         @import="handleImport"
       />
       <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">

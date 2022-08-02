@@ -5,70 +5,43 @@ interface Props {
   modelValue?: string
 }
 
-const { modelValue: value } = defineProps<Props>()
+const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject<boolean>('editEnabled', false)
 
 const root = ref<HTMLInputElement>()
 
-const localState = computed({
-  get: () => value,
-  set: (val) => emit('update:modelValue', val),
-})
+const vModel = useVModel(props, 'modelValue', emits)
 
 onMounted(() => {
   root.value?.focus()
 })
 
-/* export default {
-  name: 'TextAreaCell',
-  props: {
-    value: String,
+watch(
+  () => root.value,
+  (el) => {
+    el?.focus()
   },
-  computed: {
-    localState: {
-      get() {
-        return this.value
-      },
-      set(val) {
-        this.$emit('input', val)
-      },
-    },
-    parentListeners() {
-      const $listeners = {}
-
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
-
-      return $listeners
-    },
-  },
-  created() {
-    this.localState = this.value
-  },
-  mounted() {
-    this.$refs.textarea && this.$refs.textarea.focus()
-  },
-} */
+)
 </script>
 
 <template>
-  <textarea v-if="editEnabled" ref="root" v-model="localState" rows="4" @keydown.alt.enter.stop @keydown.shift.enter.stop />
-  <span v-else>{{ localState }}</span>
+  <textarea
+    v-if="editEnabled"
+    ref="root"
+    v-model="vModel"
+    rows="4"
+    class="h-full w-full min-h-[60px] outline-none"
+    @keydown.alt.enter.stop
+    @keydown.shift.enter.stop
+  />
+  <span v-else>{{ vModel }}</span>
 </template>
 
 <style scoped>
-input,
-textarea {
-  width: 100%;
-  min-height: 60px;
-  height: 100%;
-  color: var(--v-textColor-base);
+textarea:focus {
+  @apply ring-transparent;
 }
 </style>

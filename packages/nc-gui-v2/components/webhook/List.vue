@@ -11,13 +11,14 @@ const { $api, $e } = useNuxtApp()
 
 const toast = useToast()
 
-const hooks = ref([])
+const hooks = ref<Record<string, any>[]>([])
+
 const meta = inject(MetaInj)
 
 async function loadHooksList() {
   try {
-    const hookList = (await $api.dbTableWebhook.list(meta?.value.id as string)).list as any
-    hooks.value = hookList.map((hook: Record<string, any>) => {
+    const hookList = (await $api.dbTableWebhook.list(meta?.value.id as string)).list as Record<string, any>[]
+    hooks.value = hookList.map((hook) => {
       hook.notification = hook.notification && JSON.parse(hook.notification)
       return hook
     })

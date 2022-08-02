@@ -1,8 +1,8 @@
-import type { Api, FormType, GalleryType, GridType, PaginatedType, TableType } from 'nocodb-sdk'
+import type { Api, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
-import { NOCO } from '~/lib/constants'
+import { NOCO } from '~/lib'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -11,13 +11,11 @@ const formatData = (list: Record<string, any>[]) =>
     rowMeta: {},
   }))
 
-export default (
+export function useViewData(
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
-  viewMeta:
-    | Ref<(GridType | GalleryType | FormType) & { id: string }>
-    | ComputedRef<(GridType | GalleryType | FormType) & { id: string }>
-    | undefined,
-) => {
+  viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }> | undefined,
+  where?: ComputedRef<string | undefined>,
+) {
   const data = ref<Record<string, any>[]>()
   const formattedData = ref<{ row: Record<string, any>; oldRow: Record<string, any>; rowMeta?: any }[]>()
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
@@ -27,7 +25,10 @@ export default (
 
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
     if (!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) return
-    const response = await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, params)
+    const response = await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, {
+      ...params,
+      where: where?.value,
+    })
     data.value = response.list
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
@@ -97,7 +98,7 @@ export default (
 
   const changePage = async (page: number) => {
     paginationData.value.page = page
-    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25) } as any)
+    await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25), where: where?.value } as any)
   }
 
   return { data, loadData, paginationData, formattedData, insertRow, updateRowProperty, changePage }

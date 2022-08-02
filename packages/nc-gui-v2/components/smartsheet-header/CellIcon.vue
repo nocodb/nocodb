@@ -1,12 +1,12 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { ColumnInj } from '~/context'
-import useColumn from '~/composables/useColumn'
+import { useColumn } from '#imports'
 import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'
 // import FKIcon from '~icons/mdi/link-variant'
 import TextAreaIcon from '~icons/mdi/card-text-outline'
-import StringIcon from '~icons/mdi/alpha-a'
+import StringIcon from '~icons/mdi/alpha-a-box-outline'
 import BooleanIcon from '~icons/mdi/check-box-outline'
 import SingleSelectIcon from '~icons/mdi/radiobox-marked'
 import MultiSelectIcon from '~icons/mdi/checkbox-multiple-marked'
@@ -16,8 +16,13 @@ import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
 import URLIcon from '~icons/mdi/link'
+import EmailIcon from '~icons/mdi/email'
+import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
+import PercentIcon from '~icons/mdi/percent-outline'
 
-const column = inject(ColumnInj)
+const { columnMeta } = defineProps<{ columnMeta?: ColumnType }>()
+
+const column = inject(ColumnInj, columnMeta)
 
 const additionalColMeta = useColumn(column as ColumnType)
 
@@ -38,6 +43,8 @@ const icon = computed(() => {
     return BooleanIcon
   } else if (additionalColMeta.isTextArea) {
     return TextAreaIcon
+  } else if (additionalColMeta.isEmail) {
+    return EmailIcon
   } else if (additionalColMeta.isRating) {
     return RatingIcon
   } else if (additionalColMeta.isAttachment) {
@@ -48,10 +55,12 @@ const icon = computed(() => {
   // }
   else if (additionalColMeta.isURL) {
     return URLIcon
+  } else if (additionalColMeta.isCurrency) {
+    return CurrencyIcon
+  } else if (additionalColMeta.isPercent) {
+    return PercentIcon
   } else if (additionalColMeta.isString) {
-    return h(StringIcon, {
-      class: 'text-[1.5rem]',
-    })
+    return StringIcon
   } else {
     return GenericIcon
   }
@@ -59,5 +68,5 @@ const icon = computed(() => {
 </script>
 
 <template>
-  <component :is="icon" class="text-grey mx-1" />
+  <component :is="icon" class="text-grey mx-1 !text-sm" />
 </template>

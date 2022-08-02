@@ -1,23 +1,12 @@
 <script lang="ts" setup>
-import { MetaInj } from '~/context'
+import { useProvideSmartsheetStore, useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
+import { MetaInj, ReloadViewDataHookInj } from '~/context'
+import MdiSearchIcon from '~icons/mdi/magnify'
+import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
-const { modelValue, field } = defineProps<{
-  modelValue?: string
-  field?: any
-}>()
+const reloadData = inject(ReloadViewDataHookInj)
+const { search, meta } = useSmartsheetStoreOrThrow()
 
-const emit = defineEmits(['update:modelValue', 'update:field'])
-
-const localValue = computed({
-  get: () => modelValue,
-  set: (val) => emit('update:modelValue', val),
-})
-const localField = computed({
-  get: () => field,
-  set: (val) => emit('update:field', val),
-})
-
-const meta = inject(MetaInj)
 const columns = computed(() =>
   meta?.value?.columns?.map((c) => ({
     value: c.id,
@@ -27,9 +16,26 @@ const columns = computed(() =>
 </script>
 
 <template>
-  <a-input v-model:value="localValue" size="small" class="max-w-[250px]" placeholder="Filter query">
+  <a-input
+    v-model:value="search.query"
+    size="small"
+    class="max-w-[200px]"
+    placeholder="Filter query"
+    @press-enter="reloadData.trigger()"
+  >
     <template #addonBefore>
-      <a-select v-model:value="localField" :options="columns" style="width: 80px" class="!text-xs" size="small" />
+      <div class="flex align-center relative" @click="isDropdownOpen = true">
+        <MdiSearchIcon class="text-grey" />
+        <MdiMenuDownIcon class="text-grey" />
+        <a-select
+          v-model:value="search.field"
+          size="small"
+          :dropdown-match-select-width="false"
+          :options="columns"
+          class="!absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
+        >
+        </a-select>
+      </div>
     </template>
   </a-input>
 </template>

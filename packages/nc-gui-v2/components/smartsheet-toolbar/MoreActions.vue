@@ -3,15 +3,17 @@ import { ExportTypes } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import FileSaver from 'file-saver'
 import { useNuxtApp } from '#app'
-import useProject from '~/composables/useProject'
+import { useProject } from '#imports'
 import { ActiveViewInj, MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiFlashIcon from '~icons/mdi/flash-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 import MdiDownloadIcon from '~icons/mdi/download-outline'
 import MdiUploadIcon from '~icons/mdi/upload-outline'
 import MdiHookIcon from '~icons/mdi/hook'
 import MdiViewListIcon from '~icons/mdi/view-list-outline'
+
+const sharedViewListDlg = ref(false)
 
 // todo : replace with inject
 const publicViewId = null
@@ -97,56 +99,48 @@ const exportCsv = async () => {
 </script>
 
 <template>
-  <a-dropdown>
-    <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
-      <div class="flex gap-1 align-center">
-        <MdiFlashIcon class="text-grey" />
-        <!-- More -->
-        {{ $t('general.more') }}
-        <MdiMenuDownIcon class="text-grey" />
-      </div>
-    </a-button>
-    <template #overlay>
-      <div class="bg-white shadow">
-        <div>
-          <div
-            v-if="isUIAllowed('csvImport') && !isView"
-            v-t="['a:actions:upload-csv']"
-            class="nc-menu-item"
-            @click.stop="exportCsv"
-          >
-            <MdiDownloadIcon />
-            <!-- Download as CSV -->
-            {{ $t('activity.downloadCSV') }}
-          </div>
-          <div v-if="isUIAllowed('csvImport') && !isView" v-t="['a:actions:upload-csv']" class="nc-menu-item" @click.stop>
-            <MdiUploadIcon />
-            <!-- Upload CSV -->
-            {{ $t('activity.uploadCSV') }}
-          </div>
-          <div
-            v-if="isUIAllowed('SharedViewList') && !isView"
-            v-t="['a:actions:shared-view-list']"
-            class="nc-menu-item"
-            @click.stop
-          >
-            <MdiViewListIcon />
-            <!-- Shared View List -->
-            {{ $t('activity.listSharedView') }}
-          </div>
-          <div
-            v-if="isUIAllowed('webhook') && !isView"
-            v-t="['c:actions:webhook']"
-            class="nc-menu-item"
-            @click.stop="showWebhookDrawer = true"
-          >
-            <MdiHookIcon />
-            <!-- todo: i18n -->
-            Webhook
+  <div>
+    <a-dropdown>
+      <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
+        <div class="flex gap-1 align-center">
+          <MdiFlashIcon class="text-grey" />
+          <!-- More -->
+          {{ $t('general.more') }}
+          <MdiMenuDownIcon class="text-grey" />
+        </div>
+      </a-button>
+      <template #overlay>
+        <div class="bg-white shadow">
+          <div>
+            <div class="nc-menu-item" @click="exportCsv">
+              <MdiDownloadIcon />
+              <!-- Download as CSV -->
+              {{ $t('activity.downloadCSV') }}
+            </div>
+            <div class="nc-menu-item" @click.stop>
+              <MdiUploadIcon />
+              <!-- Upload CSV -->
+              {{ $t('activity.uploadCSV') }}
+            </div>
+            <div class="nc-menu-item" @click="sharedViewListDlg = true">
+              <MdiViewListIcon />
+              <!-- Shared View List -->
+              {{ $t('activity.listSharedView') }}
+            </div>
+            <div class="nc-menu-item" @click="showWebhookDrawer = true">
+              <MdiHookIcon />
+              <!-- todo: i18n -->
+              Webhook
+            </div>
           </div>
         </div>
-      </div>
-    </template>
-  </a-dropdown>
-  <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
+      </template>
+    </a-dropdown>
+
+    <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
+
+    <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">
+      <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />
+    </a-modal>
+  </div>
 </template>

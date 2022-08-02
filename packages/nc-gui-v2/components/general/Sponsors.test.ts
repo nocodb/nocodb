@@ -2,7 +2,7 @@ import { mount } from '@vue/test-utils'
 import { expect, test } from 'vitest'
 import Sponsors from './Sponsors.vue'
 import { createVuetifyPlugin } from '~/plugins/vuetify'
-import { createI18nPlugin } from '~/plugins/i18n'
+import { createI18nPlugin } from '~/plugins/a.i18n'
 
 const mountComponent = async (nav: boolean) => {
   const vuetify = createVuetifyPlugin()

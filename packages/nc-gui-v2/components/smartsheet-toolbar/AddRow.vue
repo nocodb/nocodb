@@ -1,10 +1,15 @@
 <script setup lang="ts">
-import MdiAddIcon from '~icons/mdi/plus-outline '
-const emit = defineEmits(['add-row'])
+import MdiAddIcon from '~icons/mdi/plus-outline'
+
+const emits = defineEmits(['addRow'])
 </script>
 
 <template>
-  <MdiAddIcon class="text-grey" @click="emit('add-row')" />
-</template>
+  <a-tooltip placement="left">
+    <template #title> {{ $t('activity.addRow') }} </template>
 
-<style scoped></style>
+    <div class="nc-sidebar-right-item hover:after:bg-primary/75 group">
+      <MdiAddIcon class="group-hover:(!text-white)" @click="emits('addRow')" />
+    </div>
+  </a-tooltip>
+</template>

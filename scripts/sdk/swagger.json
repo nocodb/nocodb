@@ -6024,6 +6024,14 @@
           },
           "slug": {
             "type": "string"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
           }
         }
       },
@@ -6852,6 +6860,14 @@
           },
           "order": {
             "type": "number"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
           }
         },
         "description": ""
@@ -6908,6 +6924,14 @@
           },
           "fk_cover_image_col_id": {
             "type": "string"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
           }
         }
       },
@@ -7057,6 +7081,14 @@
           },
           "fk_model_id": {
             "type": "string"
+          },
+          "lock_type": {
+            "type": "string",
+            "enum": [
+              "collaborative",
+              "locked",
+              "personal"
+            ]
           }
         }
       },

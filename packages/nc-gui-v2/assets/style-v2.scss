@@ -1,3 +1,14 @@
+@import 'ant-design-vue/dist/antd.variable.min.css';
+@import 'ant-design-vue/dist/antd.min.css';
+
+:root {
+  --header-height: 56px;
+}
+
+.ant-layout-header {
+  height: var(--header-height) !important;
+}
+
 html,
 body,
 #__nuxt,
@@ -57,15 +68,39 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
   @apply color-transition;
 }
 
-:root {
-  --header-height: 64px;
-}
-
 html {
   overflow-y: auto !important;
 }
 
 
+// menu item styling
 .nc-menu-item {
-  @apply cursor-pointer text-xs flex align-center gap-2 p-4 relative after:(content-[''] absolute top-0 left-0  w-full h-full right 0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+  @apply cursor-pointer text-xs flex align-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0  w-full h-full right 0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+}
+
+.nc-sidebar-right-item {
+  @apply relative flex items-center;
+
+  &::after {
+    @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out;
+    content: '';
+  }
+
+  &:hover::after {
+    @apply ring shadow-2xl transform scale-110;
+  }
+
+  svg {
+    @apply z-1 text-xl p-1 text-gray-500;
+  }
+}
+
+// show  a dot badge if some change present
+.nc-badge {
+  @apply relative after:(absolute top-[-2px] right-[-2px] w-[8px] h-[8px] rounded-full bg-primary content-[''] !z-20);
+}
+
+// for highlighting toolbar menu item
+.nc-active-btn > .ant-btn{
+  @apply bg-primary/20;
 }

@@ -142,7 +142,7 @@ async function sync() {
       method: 'POST',
       headers: { 'xc-auth': $state.token.value as string },
       params: {
-        id: socket.id,
+        id: socket?.id,
       },
     })
   } catch (e: any) {

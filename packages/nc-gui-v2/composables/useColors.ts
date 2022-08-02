@@ -1,9 +1,9 @@
 import type { MaybeRef } from '@vueuse/core'
 import { computed, effectScope, tryOnScopeDispose, unref, watch, watchEffect } from '#build/imports'
 import { useNuxtApp } from '#app'
-import theme from '~/utils/colorsUtils'
+import { theme } from '~/utils'
 
-export default function useColors(darkMode?: MaybeRef<boolean>) {
+export function useColors(darkMode?: MaybeRef<boolean>) {
   const scope = effectScope()
 
   let mode = $ref(unref(darkMode))

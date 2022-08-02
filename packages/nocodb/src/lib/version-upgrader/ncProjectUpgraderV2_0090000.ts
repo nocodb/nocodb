@@ -8,6 +8,7 @@ import {
   ModelTypes,
   substituteColumnAliasWithIdInFormula,
   UITypes,
+  ViewType,
   ViewTypes,
 } from 'nocodb-sdk';
 import Column from '../models/Column';
@@ -1029,7 +1030,8 @@ async function migrateViewsParams(
             },
             ncMeta
           );
-          view.lock_type = queryParams?.viewStatus?.type;
+          view.lock_type = queryParams?.viewStatus
+            ?.type as ViewType['lock_type'];
         }
         // migrate view sort list
         for (const sort of queryParams.sortList || []) {

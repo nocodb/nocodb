@@ -1,8 +1,8 @@
-import { computed } from '@vue/reactivity'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { computed } from '#imports'
 
-export default function useVirtualCell(column: ColumnType) {
+export function useVirtualCell(column: ColumnType) {
   const isHm = computed(
     () =>
       column.uidt === UITypes.LinkToAnotherRecord && (<LinkToAnotherRecordType>column.colOptions).type === RelationTypes.HAS_MANY,

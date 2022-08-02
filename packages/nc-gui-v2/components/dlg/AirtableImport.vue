@@ -2,6 +2,7 @@
 import io from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import { Form } from 'ant-design-vue'
+import type { Card as AntCard } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
 import { fieldRequiredValidator } from '~/utils/validation'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -34,7 +35,7 @@ const step = ref(1)
 
 const progress = ref<Record<string, any>[]>([])
 
-const logRef = ref()
+const logRef = ref<typeof AntCard>()
 
 let socket: Socket | null
 
@@ -208,9 +209,8 @@ onMounted(async () => {
   socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
 
-    // FIXME: this doesn't work
     nextTick(() => {
-      logRef.value.scrollTop = logRef.value?.scrollHeight
+      ;(logRef.value?.$el as HTMLDivElement).scrollTo()
     })
 
     if (d.status === 'COMPLETED') {

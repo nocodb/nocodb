@@ -134,19 +134,25 @@ onKeyDown('Escape', () => {
   }
 
   .nc-attachment-item {
-    @apply cursor-pointer !h-2/3 !min-h-[200px] flex items-center justify-center relative hover:!border-0;
+    @apply !h-2/3 !min-h-[200px] flex items-center justify-center relative;
+
+    @supports (-moz-appearance: none) {
+      @apply hover:border-0;
+    }
 
     &::after {
       @apply pointer-events-none rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out;
       content: '';
     }
 
-    &:hover::after {
-      @apply ring shadow transform scale-103;
-    }
+    @supports (-moz-appearance: none) {
+      &:hover::after {
+        @apply ring shadow transform scale-103;
+      }
 
-    &:active::after {
-      @apply ring ring-pink-500 shadow transform scale-103;
+      &:active::after {
+        @apply ring ring-pink-500 shadow transform scale-103;
+      }
     }
   }
 

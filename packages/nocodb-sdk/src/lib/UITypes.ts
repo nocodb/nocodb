@@ -46,6 +46,7 @@ export function isVirtualCol(
     | ColumnType
 ) {
   return [
+    UITypes.SpecificDBType,
     UITypes.LinkToAnotherRecord,
     UITypes.Formula,
     UITypes.Rollup,

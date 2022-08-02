@@ -11,8 +11,8 @@
     "coverage": "vitest -c test/vite.config.ts run --coverage"
   },
   "dependencies": {
-    "@vueuse/core": "^8.7.5",
-    "@vueuse/integrations": "^8.9.1",
+    "@vueuse/core": "^9.0.2",
+    "@vueuse/integrations": "^9.0.2",
     "ant-design-vue": "^3.1.0-rc.6",
     "dayjs": "^1.11.3",
     "file-saver": "^2.0.5",
@@ -46,7 +46,7 @@
     "@vitest/ui": "^0.18.0",
     "@vue/compiler-sfc": "^3.2.37",
     "@vue/test-utils": "^2.0.2",
-    "@vueuse/nuxt": "^8.6.0",
+    "@vueuse/nuxt": "^9.0.2",
     "@windicss/plugin-animations": "^1.0.9",
     "@windicss/plugin-question-mark": "^0.1.1",
     "@windicss/plugin-scrollbar": "^1.2.3",

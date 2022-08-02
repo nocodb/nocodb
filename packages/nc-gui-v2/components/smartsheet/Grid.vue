@@ -57,6 +57,7 @@ const {
   selectedRows,
   deleteRow,
   deleteSelectedRows,
+  selectedAllRecords,
 } = useViewData(meta, view as any, xWhere)
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
 onMounted(loadGridViewColumns)
@@ -189,8 +190,19 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
       <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-primary">
         <table class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
-            <tr>
-              <th>#</th>
+            <tr class="group">
+              <th>
+                <div class="flex align-center">
+                  <div class="group-hover:hidden" :class="{ hidden: selectedAllRecords }">#</div>
+                  <div
+                    :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
+                    class="group-hover:flex w-full align-center"
+                  >
+                    <a-checkbox v-model:checked="selectedAllRecords" />
+                    <span class="flex-1" />
+                  </div>
+                </div>
+              </th>
               <th
                 v-for="col in fields"
                 :key="col.title"

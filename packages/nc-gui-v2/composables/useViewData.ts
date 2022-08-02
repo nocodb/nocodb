@@ -26,10 +26,18 @@ export function useViewData(
 ) {
   const formattedData = ref<Row[]>([])
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
-  const selectedRows = reactive([])
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
+
+  const selectedAllRecords = computed({
+    get() {
+      return formattedData.value.every((row) => row.rowMeta.selected)
+    },
+    set(selected) {
+      formattedData.value.forEach((row) => (row.rowMeta.selected = selected))
+    },
+  })
 
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
     if (!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) return
@@ -223,9 +231,9 @@ export function useViewData(
     updateRowProperty,
     changePage,
     addEmptyRow,
-    selectedRows,
     deleteRow,
     deleteSelectedRows,
     updateOrSaveRow,
+    selectedAllRecords,
   }
 }

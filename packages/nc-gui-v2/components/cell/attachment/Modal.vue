@@ -8,16 +8,33 @@ import MdiCloseCircle from '~icons/mdi/close-circle'
 import MdiDownload from '~icons/mdi/download'
 import MaterialSymbolsFileCopyOutline from '~icons/material-symbols/file-copy-outline'
 import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
+import { useSortable } from './sort'
 
 const { isUIAllowed } = useUIPermission()
 
-const { open, isLoading, isPublicGrid, isForm, visibleItems, modalVisible, column, FileIcon, removeFile, onDrop, downloadFile } =
-  useAttachmentCell()
+const {
+  open,
+  isLoading,
+  isPublicGrid,
+  isForm,
+  visibleItems,
+  modalVisible,
+  column,
+  FileIcon,
+  removeFile,
+  onDrop,
+  downloadFile,
+  updateModelValue,
+} = useAttachmentCell()
 
 // todo: replace placeholder var
 const isLocked = ref(false)
 
 const dropZoneRef = ref<HTMLDivElement>()
+
+const sortableRef = ref<HTMLDivElement>()
+
+const { dragging } = useSortable(dropZoneRef, visibleItems, updateModelValue)
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
@@ -47,52 +64,55 @@ onKeyDown('Escape', () => {
       </div>
     </template>
 
-    <div ref="dropZoneRef" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
+    <div ref="dropZoneRef" :class="{ dragging }">
       <div
-        :class="isOverDropZone ? 'opacity-100' : 'opacity-0 pointer-events-none'"
+        v-if="!dragging"
+        :class="[isOverDropZone ? 'opacity-100' : 'opacity-0 pointer-events-none']"
         class="transition-all duration-150 ease-in-out ring ring-pink-500 rounded bg-blue-100/75 flex items-center justify-center gap-4 z-99 absolute top-0 bottom-0 left-0 right-0 backdrop-blur-xl"
       >
         <MaterialSymbolsFileCopyOutline class="text-pink-500" height="35" width="35" />
         <div class="text-3xl text-primary">Drop here</div>
       </div>
 
-      <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col gap-1">
-        <a-card class="nc-attachment-item group">
-          <a-tooltip>
-            <template #title> Remove File </template>
+      <div ref="sortableRef" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
+        <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col gap-1">
+          <a-card class="nc-attachment-item group">
+            <a-tooltip>
+              <template #title> Remove File </template>
 
-            <MdiCloseCircle
-              v-if="isUIAllowed('tableAttachment') && !isPublicGrid && !isLocked"
-              class="nc-attachment-remove"
-              @click.stop="removeFile(i)"
-            />
-          </a-tooltip>
+              <MdiCloseCircle
+                v-if="isUIAllowed('tableAttachment') && !isPublicGrid && !isLocked"
+                class="nc-attachment-remove"
+                @click.stop="removeFile(i)"
+              />
+            </a-tooltip>
 
-          <a-tooltip placement="bottom">
-            <template #title> Download file </template>
+            <a-tooltip placement="bottom">
+              <template #title> Download file </template>
 
-            <div class="nc-attachment-download group-hover:(opacity-100)">
-              <MdiDownload @click.stop="downloadFile(item)" />
+              <div class="nc-attachment-download group-hover:(opacity-100)">
+                <MdiDownload @click.stop="downloadFile(item)" />
+              </div>
+            </a-tooltip>
+
+            <div class="nc-attachment p-2 flex items-center cursor-pointer">
+              <img v-if="isImage(item.title, item.mimetype)" :alt="item.title || `#${i}`" :src="item.url || item.data" />
+
+              <component
+                :is="FileIcon(item.icon)"
+                v-else-if="item.icon"
+                height="150"
+                width="150"
+                @click.stop="openLink(item.url || item.data)"
+              />
+
+              <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openLink(item.url || item.data)" />
             </div>
-          </a-tooltip>
+          </a-card>
 
-          <div class="p-2 flex items-center cursor-pointer">
-            <img v-if="isImage(item.title, item.mimetype)" :alt="item.title || `#${i}`" :src="item.url || item.data" />
-
-            <component
-              :is="FileIcon(item.icon)"
-              v-else-if="item.icon"
-              height="150"
-              width="150"
-              @click.stop="openLink(item.url || item.data)"
-            />
-
-            <IcOutlineInsertDriveFile v-else height="150" width="150" @click.stop="openLink(item.url || item.data)" />
+          <div class="truncate" :title="item.title">
+            {{ item.title }}
           </div>
-        </a-card>
-
-        <div class="truncate" :title="item.title">
-          {{ item.title }}
         </div>
       </div>
     </div>
@@ -108,7 +128,7 @@ onKeyDown('Escape', () => {
   }
 
   .nc-attachment-item {
-    @apply cursor-pointer !h-2/3 !min-h-[200px] flex items-center justify-center relative;
+    @apply cursor-pointer !h-2/3 !min-h-[200px] flex items-center justify-center relative hover:(!border-0);
 
     &::after {
       @apply pointer-events-none rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out;
@@ -144,6 +164,17 @@ onKeyDown('Escape', () => {
 
   .ant-modal-body {
     @apply !p-0;
+  }
+
+  .ghost,
+  .ghost > * {
+    @apply !pointer-events-none;
+  }
+
+  &.dragging {
+    .ant-tooltip {
+      @apply !hidden;
+    }
   }
 }
 </style>

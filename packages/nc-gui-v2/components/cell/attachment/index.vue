@@ -8,6 +8,7 @@ import MaterialArrowExpandIcon from '~icons/mdi/arrow-expand'
 import MaterialSymbolsFileCopyOutline from '~icons/material-symbols/file-copy-outline'
 import MdiReload from '~icons/mdi/reload'
 import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
+import { useSortable } from './sort'
 
 interface Props {
   modelValue: string | Record<string, any>[] | null
@@ -23,8 +24,11 @@ const emits = defineEmits<Emits>()
 
 const dropZoneRef = ref<HTMLDivElement>()
 
-const { modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, fileRemovedHook, fileAddedHook } =
-  useProvideAttachmentCell()
+const sortableRef = ref<HTMLDivElement>()
+
+const { modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon } = useProvideAttachmentCell(updateModelValue)
+
+const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue)
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
@@ -38,13 +42,10 @@ watch(
   { immediate: true },
 )
 
-fileRemovedHook.on((data) => {
-  emits('update:modelValue', data)
-})
-
-fileAddedHook.on((data) => {
-  emits('update:modelValue', data)
-})
+function updateModelValue(data: string | Record<string, any>) {
+  console.log(data)
+  emits('update:modelValue', typeof data !== 'string' ? JSON.stringify(data) : data)
+}
 
 const selectImage = (file: any, i: unknown) => {
   // todo: implement
@@ -52,8 +53,8 @@ const selectImage = (file: any, i: unknown) => {
 </script>
 
 <template>
-  <div ref="dropZoneRef" class="flex-1 color-transition flex items-center justify-between gap-1">
-    <template v-if="isOverDropZone">
+  <div ref="dropZoneRef" class="nc-attachment-cell flex-1 color-transition flex items-center justify-between gap-1">
+    <template v-if="!dragging && isOverDropZone">
       <div
         class="w-full h-full flex items-center justify-center p-1 rounded gap-1 bg-gradient-to-t from-primary/10 via-primary/25 to-primary/10 !text-primary"
       >
@@ -82,12 +83,15 @@ const selectImage = (file: any, i: unknown) => {
 
       <template v-if="visibleItems.length">
         <div
+          ref="sortableRef"
+          :class="{ dragging }"
           class="h-full w-full flex flex-wrap flex-col gap-2 content-start py-1 overflow-x-scroll overflow-y-hidden scrollbar-thin-primary"
         >
           <div
             v-for="(item, i) of visibleItems"
+            :id="item.url"
             :key="item.url || item.title"
-            class="flex-auto flex items-center justify-center w-[45px] border-1"
+            class="nc-attachment flex-auto flex items-center justify-center w-[45px] border-1"
           >
             <a-tooltip placement="bottom">
               <template #title>
@@ -123,3 +127,18 @@ const selectImage = (file: any, i: unknown) => {
     <Modal />
   </div>
 </template>
+
+<style lang="scss">
+.nc-attachment-cell {
+  .ghost,
+  .ghost > * {
+    @apply !pointer-events-none;
+  }
+
+  &.dragging {
+    .ant-tooltip {
+      @apply !hidden;
+    }
+  }
+}
+</style>

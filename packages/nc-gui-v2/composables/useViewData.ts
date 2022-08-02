@@ -13,7 +13,7 @@ const formatData = (list: Record<string, any>[]) =>
     rowMeta: {},
   }))
 
-interface Row {
+export interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
   rowMeta?: any
@@ -136,7 +136,7 @@ export function useViewData(
   }
 
   const addEmptyRow = (addAfter = formattedData.value.length) => {
-    formattedData.value.splice(addAfter,0,  {
+    formattedData.value.splice(addAfter, 0, {
       row: {},
       oldRow: {},
       rowMeta: { new: true },

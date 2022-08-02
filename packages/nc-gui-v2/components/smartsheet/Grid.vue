@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { isVirtualCol } from 'nocodb-sdk'
+import { ColumnType, isVirtualCol } from 'nocodb-sdk'
 import {
+  Row,
   inject,
   onKeyStroke,
   onMounted,
@@ -118,6 +119,19 @@ watch(contextMenu, () => {
   }
 })
 
+const clearCell = async (ctx: { row: number; col: number }) => {
+  const rowObj = data.value[ctx.row]
+  const columnObj = fields.value[ctx.col]
+
+  if (isVirtualCol(columnObj)) {
+    return
+  }
+
+  rowObj.row[columnObj.title] = null
+  // update/save cell value
+  await updateOrSaveRow(rowObj, columnObj.title)
+}
+
 /** handle keypress events */
 onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'], async (e: KeyboardEvent) => {
   if (selected.row !== null && selected.col !== null) {
@@ -148,19 +162,8 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
         break
       /** on delete key press clear cell */
       case 'Delete':
-        {
-          e.preventDefault()
-          const rowObj = data.value[selected.row]
-          const columnObj = fields.value[selected.col]
-
-          if (isVirtualCol(columnObj)) {
-            return
-          }
-
-          rowObj.row[columnObj.title] = null
-          // update/save cell value
-          await updateOrSaveRow(rowObj, columnObj.title)
-        }
+        e.preventDefault()
+        await clearCell(selected as { row: number; col: number })
         break
       /** on arrow key press navigate through cells */
       case 'ArrowRight':
@@ -294,7 +297,7 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
         <div class="bg-white shadow" @click="contextMenu = false">
           <div v-if="contextMenuTarget" class="nc-menu-item" @click="deleteRow(contextMenuTarget.row)">Delete row</div>
           <div class="nc-menu-item" @click="deleteSelectedRows">Delete all selected rows</div>
-          <div v-if="contextMenuTarget" class="nc-menu-item" >Clear cell</div>
+          <div v-if="contextMenuTarget" class="nc-menu-item" @click="clearCell(contextMenuTarget)">Clear cell</div>
           <div v-if="contextMenuTarget" class="nc-menu-item" @click="addEmptyRow(contextMenuTarget.row + 1)">Insert new row</div>
         </div>
       </template>

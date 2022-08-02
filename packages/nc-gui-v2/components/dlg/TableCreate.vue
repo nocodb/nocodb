@@ -2,8 +2,9 @@
 import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
-import { onMounted, useProject, useTableCreate, useTabs } from '#imports'
+import { onMounted, useProject, useTable, useTabs } from '#imports'
 import { validateTableName } from '~/utils/validation'
+import { TabType } from '~/composables'
 
 interface Props {
   modelValue?: boolean
@@ -28,13 +29,13 @@ const { addTab } = useTabs()
 
 const { loadTables } = useProject()
 
-const { table, createTable, generateUniqueTitle, tables, project } = useTableCreate(async (table) => {
+const { table, createTable, generateUniqueTitle, tables, project } = useTable(async (table) => {
   await loadTables()
 
   addTab({
     id: table.id as string,
     title: table.title,
-    type: 'table',
+    type: TabType.TABLE,
   })
   dialogShow.value = false
 })

@@ -1,7 +1,14 @@
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity'
-import { ColumnType, isVirtualCol } from 'nocodb-sdk'
-import { inject, onKeyStroke, onMounted, provide } from '#imports'
+import { isVirtualCol } from 'nocodb-sdk'
+import {
+  inject,
+  onKeyStroke,
+  onMounted,
+  provide,
+  useGridViewColumnWidth,
+  useProvideColumnCreateStore,
+  useViewData,
+} from '#imports'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -12,7 +19,7 @@ import {
   PaginationDataInj,
   ReloadViewDataHookInj,
 } from '~/context'
-import useViewData from '~/composables/useViewData'
+import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
@@ -25,8 +32,13 @@ const isPublicView = false
 
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
+const { sqlUi } = useProject()
+const { xWhere } = useSmartsheetStoreOrThrow()
+const addColumnDropdown = ref(false)
 
-const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
+const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view as any, xWhere)
+const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
+onMounted(loadGridViewColumns)
 
 provide(IsFormInj, false)
 provide(IsGridInj, true)
@@ -50,7 +62,7 @@ onKeyStroke(['Enter'], (e) => {
 })
 
 watch(
-  () => view?.value?.id,
+  () => (view?.value as any)?.id,
   async (n?: string, o?: string) => {
     if (n && n !== o) {
       await loadData()
@@ -59,9 +71,22 @@ watch(
   { immediate: true },
 )
 
+const onresize = (colID: string, event: any) => {
+  updateWidth(colID, event.detail)
+}
+const onXcResizing = (cn: string, event: any) => {
+  resizingCol.value = cn
+  resizingColWidth.value = event.detail
+}
+
 defineExpose({
   loadData,
 })
+
+// instantiate column create store
+// watchEffect(() => {
+if (meta) useProvideColumnCreateStore(meta)
+// })
 </script>
 
 <template>
@@ -71,9 +96,28 @@ defineExpose({
         <thead>
           <tr>
             <th>#</th>
-            <th v-for="col in fields" :key="col.title">
+            <th
+              v-for="col in fields"
+              :key="col.title"
+              v-xc-ver-resize
+              :data-col="col.id"
+              @xcresize="onresize(col.id, $event)"
+              @xcresizing="onXcResizing(col.title, $event)"
+              @xcresized="resizingCol = null"
+            >
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
               <SmartsheetHeaderCell v-else :column="col" />
+            </th>
+            <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
+            <th v-t="['c:column:add']" @click="addColumnDropdown = true">
+              <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
+                <div class="h-full w-full flex align-center justify-center">
+                  <MdiPlusIcon class="text-sm" />
+                </div>
+                <template #overlay>
+                  <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
+                </template>
+              </a-dropdown>
             </th>
           </tr>
         </thead>
@@ -94,7 +138,7 @@ defineExpose({
                 // 'text-center': isCentrallyAligned(columnObj),
                 // 'required': isRequired(columnObj, rowObj),
               }"
-              :data-col="columnObj.title"
+              :data-col="columnObj.id"
               @click="selectCell(rowIndex, colIndex)"
               @dblclick="editEnabled = true"
             >
@@ -201,10 +245,15 @@ defineExpose({
 
   td,
   th {
-    min-height: 31px !important;
+    min-height: 41px !important;
+    height: 41px !important;
     position: relative;
-    padding: 0 5px !important;
-    min-width: 200px;
+    padding: 0 5px;
+
+    & > * {
+      @apply flex align-center h-auto;
+    }
+    overflow: hidden;
   }
 
   table,
@@ -244,6 +293,16 @@ defineExpose({
   td.active::before {
     background: #0040bc /*var(--v-primary-base)*/;
     opacity: 0.1;
+  }
+}
+
+:deep {
+  .resizer:hover,
+  .resizer:active,
+  .resizer:focus {
+    // todo: replace with primary color
+    @apply bg-blue-500/50;
+    cursor: col-resize;
   }
 }
 </style>

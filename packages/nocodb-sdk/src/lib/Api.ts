@@ -127,6 +127,7 @@ export interface ViewType {
   order?: number;
   fk_model_id?: string;
   slug?: string;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
 export interface TableInfoType {
@@ -313,6 +314,7 @@ export interface GridType {
   alias?: string;
   deleted?: boolean;
   order?: number;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
 export interface GalleryType {
@@ -331,6 +333,7 @@ export interface GalleryType {
   columns?: GalleryColumnType[];
   fk_model_id?: string;
   fk_cover_image_col_id?: string;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
 export interface GalleryColumnType {
@@ -382,6 +385,7 @@ export interface FormType {
   submit_another_form?: boolean;
   columns?: FormColumnType[];
   fk_model_id?: string;
+  lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
 export interface FormColumnType {

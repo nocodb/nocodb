@@ -1,11 +1,12 @@
 import { isSystemColumn } from 'nocodb-sdk'
 import type { ColumnType, FormType, GalleryType, GridType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import { watch } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 
-export default function (
+export function useViewColumns(
   view: Ref<(GridType | FormType | GalleryType) & { id?: string }> | undefined,
-  meta: Ref<TableType> | undefined,
+  meta: ComputedRef<TableType>,
   isPublic = false,
   reloadData?: () => void,
 ) {
@@ -15,6 +16,7 @@ export default function (
       show: number | boolean
       title: string
       fk_column_id?: string
+      system?: boolean
     }[]
   >()
 
@@ -41,6 +43,7 @@ export default function (
           fk_column_id: c.id,
           ...(fieldById[c.id as string] ? fieldById[c.id as string] : {}),
           order: (fieldById[c.id as string] && fieldById[c.id as string].order) || order++,
+          system: isSystemColumn(fieldById[c.fk_model_id as string]?.type as ColumnType),
         }))
         .sort((a, b) => a.order - b.order)
     } else if (isPublic) {
@@ -103,7 +106,7 @@ export default function (
         return false
       }
 
-      return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value)
+      return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
     })
   })
 
@@ -111,7 +114,12 @@ export default function (
     return (fields?.value
       ?.filter((c) => {
         // hide system columns if not enabled
-        if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[c.fk_column_id as string])) {
+        if (
+          !showSystemFields.value &&
+          metaColumnById.value &&
+          metaColumnById?.value?.[c.fk_column_id as string] &&
+          isSystemColumn(metaColumnById?.value?.[c.fk_column_id as string])
+        ) {
           return false
         }
         return c.show
@@ -119,10 +127,9 @@ export default function (
       ?.sort((c1, c2) => c1.order - c2.order)
       ?.map((c) => metaColumnById?.value?.[c.fk_column_id as string]) || []) as ColumnType[]
   })
-  const sortedFields = computed<ColumnType[]>(() => {
-    return (fields?.value?.sort((c1, c2) => c1.order - c2.order)?.map((c) => metaColumnById?.value?.[c.fk_column_id as string]) ||
-      []) as ColumnType[]
-  })
+
+  // reload view columns when table meta changes
+  watch(meta, () => loadViewColumns())
 
   return {
     fields,
@@ -134,6 +141,5 @@ export default function (
     saveOrUpdate,
     sortedAndFilteredFields,
     showSystemFields,
-    sortedFields,
   }
 }

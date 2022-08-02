@@ -2,7 +2,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { SqlUiFactory, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { useProject } from '#imports'
 
-export default (column: ColumnType) => {
+export function useColumn(column: ColumnType) {
   const { project } = useProject()
 
   const uiDatatype: UITypes = (column && column.uidt) as UITypes
@@ -17,6 +17,7 @@ export default (column: ColumnType) => {
   const isInt = abstractType === 'integer'
   const isFloat = abstractType === 'float'
   const isDate = abstractType === 'date' || uiDatatype === 'Date'
+  const isYear = abstractType === 'year' || uiDatatype === 'Year'
   const isTime = abstractType === 'time' || uiDatatype === 'Time'
   const isDateTime = abstractType === 'datetime' || uiDatatype === 'DateTime'
   const isJSON = uiDatatype === 'JSON'
@@ -30,6 +31,7 @@ export default (column: ColumnType) => {
   const isRating = uiDatatype === UITypes.Rating
   const isCurrency = uiDatatype === 'Currency'
   const isDuration = uiDatatype === UITypes.Duration
+  const isPercent = uiDatatype === UITypes.Percent
   const isAutoSaved = [
     UITypes.SingleLineText,
     UITypes.LongText,
@@ -55,6 +57,7 @@ export default (column: ColumnType) => {
     isInt,
     isFloat,
     isDate,
+    isYear,
     isTime,
     isDateTime,
     isJSON,
@@ -70,5 +73,6 @@ export default (column: ColumnType) => {
     isManualSaved,
     isSingleSelect,
     isMultiSelect,
+    isPercent,
   }
 }

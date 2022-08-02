@@ -8,7 +8,7 @@ import MdiThumbUpIcon from '~icons/mdi/thumb-up'
 import MdiFlagIcon from '~icons/mdi/flag'
 
 interface Props {
-  modelValue?: string | number
+  modelValue?: number
   readOnly?: boolean
 }
 
@@ -44,5 +44,3 @@ const vModel = useVModel(props, 'modelValue', emits)
     </template>
   </a-rate>
 </template>
-
-<style scoped></style>

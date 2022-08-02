@@ -1,5 +1,5 @@
 <script setup lang="ts">
-const { value } = defineProps<{ value: any }>()
+const { value } = defineProps<{ value?: any }>()
 </script>
 
 <template>

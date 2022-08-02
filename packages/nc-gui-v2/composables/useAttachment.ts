@@ -1,5 +1,5 @@
-// todo:
-export default () => {
+// todo: implement useAttachment
+export function useAttachment() {
   const localFilesState = reactive([])
   const attachments = ref([])
 

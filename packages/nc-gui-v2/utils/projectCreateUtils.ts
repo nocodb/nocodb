@@ -1,5 +1,4 @@
-import { adjectives, animals, starWars, uniqueNamesGenerator } from 'unique-names-generator'
-import { ClientType } from '~/lib/enums'
+import { ClientType } from '~/lib'
 
 export interface ProjectCreateForm {
   title: string
@@ -208,11 +207,3 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
 }
 
 export const sslUsage = ['No', 'Preferred', 'Required', 'Required-CA', 'Required-IDENTITY']
-
-export const generateUniqueName = () => {
-  return uniqueNamesGenerator({
-    dictionaries: [[starWars], [adjectives, animals]][Math.floor(Math.random() * 2)],
-  })
-    .toLowerCase()
-    .replace(/[ -]/g, '_')
-}

@@ -14,16 +14,10 @@ const readonly = inject(ReadonlyInj, false)
 
 <template>
   <v-chip class="chip" :class="{ active }" small text-color="textColor">
-    <!--
-    :color="isDark ? '' : 'primary lighten-5'"
-    @click="!readonly && active && $emit('edit', item)" -->
-    <span class="name" :title="value">{{ value }}</span>
+    <span class="name">{{ value }}</span>
 
-    <!--    && _isUIAllowed('xcDatatableEditable') -->
     <div v-show="active" v-if="!readonly" class="mr-n1 ml-2">
-      <MdiCloseThickIcon class="unlink-icon">
-        <!--        @click.stop="$emit('unlink', item)" -->
-      </MdiCloseThickIcon>
+      <MdiCloseThickIcon class="unlink-icon" />
     </div>
   </v-chip>
 </template>

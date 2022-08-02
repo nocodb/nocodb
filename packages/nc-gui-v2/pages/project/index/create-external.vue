@@ -5,18 +5,19 @@ import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
 import { ref } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
-import { ClientType } from '~/lib/enums'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { readFile } from '~/utils/fileUtils'
-import type { ProjectCreateForm } from '~/utils/projectCreateUtils'
+import { ClientType } from '~/lib'
+import type { ProjectCreateForm } from '~/utils'
 import {
   clientTypes,
+  extractSdkResponseErrorMsg,
+  fieldRequiredValidator,
   generateUniqueName,
   getDefaultConnectionConfig,
   getTestDatabaseName,
+  projectTitleValidator,
+  readFile,
   sslUsage,
-} from '~/utils/projectCreateUtils'
-import { fieldRequiredValidator, projectTitleValidator } from '~/utils/validation'
+} from '~/utils'
 
 const useForm = Form.useForm
 const loading = ref(false)

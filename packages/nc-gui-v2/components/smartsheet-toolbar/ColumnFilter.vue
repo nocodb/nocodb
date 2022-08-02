@@ -1,26 +1,38 @@
 <script setup lang="ts">
+import type { FilterType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import { useNuxtApp } from '#app'
-import { inject } from '#imports'
+import { inject, useViewFilters } from '#imports'
 import { comparisonOpList } from '~/utils/filterUtils'
-import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import useViewFilters from '~/composables/useViewFilters'
+import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
-const { nested = false, parentId } = defineProps<{ nested?: boolean; parentId?: string }>()
+
+const { nested = false, parentId, autoSave = true } = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean }>()
+
+const emit = defineEmits(['update:filtersLength'])
 
 const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
 const reloadDataHook = inject(ReloadViewDataHookInj)
+const isLocked = inject(IsLockedInj)
+
+// todo: replace with inject or get from state
+const shared = ref(false)
 
 const { $e } = useNuxtApp()
 
-const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter } = useViewFilters(activeView, parentId, () => {
-  reloadDataHook?.trigger()
-})
+const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGroup, sync } = useViewFilters(
+  activeView,
+  parentId,
+  computed(() => autoSave),
+  () => {
+    reloadDataHook?.trigger()
+  },
+)
 
-const filterUpdateCondition = (filter, i) => {
+const filterUpdateCondition = (filter: FilterType, i: number) => {
   saveOrUpdate(filter, i)
   $e('a:filter:update', {
     logical: filter.logical_op,
@@ -63,70 +75,87 @@ const types = computed(() => {
 })
 
 watch(
-  () => activeView?.value?.id,
+  () => (activeView?.value as any)?.id,
   (n, o) => {
     if (n !== o) loadFilters()
   },
   { immediate: true },
 )
+
+const nestedFilters = ref()
+
+const logicalOps = [
+  { value: 'and', text: 'AND' },
+  { value: 'or', text: 'OR' },
+]
+
+watch(
+  () => filters?.value?.length,
+  (length) => {
+    emit('update:filtersLength', length ?? 0)
+  },
+)
+
+const applyChanges = async () => {
+  await sync()
+  for (const nestedFilter of nestedFilters?.value || []) {
+    if (nestedFilter.parentId) {
+      await nestedFilter.applyChanges(true)
+    }
+  }
+}
+
+defineExpose({
+  applyChanges,
+  parentId,
+})
 </script>
 
 <template>
-  <div class="bg-white shadow pa-2 menu-filter-dropdown" :style="{ width: nested ? '100%' : '630px' }">
-    <div v-if="filters && filters.length" class="grid" @click.stop>
+  <div
+    class="pa-2 menu-filter-dropdown bg-gray-50"
+    :class="{ 'shadow-xl min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
+  >
+    <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
       <template v-for="(filter, i) in filters" :key="filter.id || i">
         <template v-if="filter.status !== 'delete'">
-          <div v-if="filter.is_group" :key="i" style="grid-column: span 4; padding: 6px" class="elevation-4">
-            <div class="d-flex" style="gap: 6px; padding: 0 6px">
-              <!--              <v-icon
-                v-if="!filter.readOnly"
-                :key="`${i}_3`"
-                small
-                class="nc-filter-item-remove-btn"
-                @click.stop="deleteFilter(filter, i)"
-              >
-                mdi-close-box
-              </v-icon> -->
-              <MdiDeleteIcon
-                v-if="!filter.readOnly"
-                small
-                class="nc-filter-item-remove-btn"
-                @click.stop="deleteFilter(filter, i)"
-              />
+          <template v-if="filter.is_group">
+            <MdiDeleteIcon
+              v-if="!filter.readOnly"
+              :key="i"
+              small
+              class="nc-filter-item-remove-btn text-grey"
+              @click.stop="deleteFilter(filter, i)"
+            />
+            <span v-else :key="`${i}dummy`" />
 
-              <span v-else :key="`${i}_1`" />
-
+            <div :key="`${i}nested`" class="d-flex">
               <a-select
                 v-model:value="filter.logical_op"
-                class="flex-shrink-1 flex-grow-0 elevation-0 caption"
-                :items="['and', 'or']"
-                density="compact"
-                variant="solo"
-                hide-details
+                :dropdown-match-select-width="false"
+                size="small"
+                class="flex-shrink-1 flex-grow-0 elevation-0 caption !text-xs"
                 placeholder="Group op"
                 @click.stop
                 @change="saveOrUpdate(filter, i)"
               >
-                <!--                <template #item="{ item }"> -->
-                <!--                  <span class="caption font-weight-regular">{{ item }}</span> -->
-                <!--                </template> -->
+                <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="!text-xs">
+                  {{ op.text }}
+                </a-select-option>
               </a-select>
             </div>
-            <!--            <column-filter
-              v-if="filter.id || shared"
-              ref="nestedFilter"
-              v-model="filter.children"
-              :parent-id="filter.id"
-              :view-id="viewId"
-              nested
-              :meta="meta"
-              :shared="shared"
-              :web-hook="webHook"
-              :hook-id="hookId"
-              @updated="$emit('updated')"
-              @input="$emit('input', filters)"
-            /> -->
-          </div>
+            <span class="col-span-3" />
+            <div class="col-span-5">
+              <SmartsheetToolbarColumnFilter
+                v-if="filter.id || shared"
+                ref="nestedFilters"
+                v-model="filter.children"
+                :parent-id="filter.id"
+                nested
+                :auto-save="autoSave"
+              />
+            </div>
+          </template>
           <template v-else>
             <!--                        <v-icon
                                       v-if="!filter.readOnly"
@@ -150,21 +179,23 @@ watch(
             <a-select
               v-else
               v-model:value="filter.logical_op"
-              class="h-full"
-              :options="[
-                { value: 'and', text: 'AND' },
-                { value: 'or', text: 'OR' },
-              ]"
+              :dropdown-match-select-width="false"
+              size="small"
+              class="h-full !text-xs"
               hide-details
               :disabled="filter.readOnly"
               @click.stop
               @change="filterUpdateCondition(filter, i)"
-            />
+            >
+              <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="!text-xs">
+                {{ op.text }}
+              </a-select-option>
+            </a-select>
 
             <FieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="caption text-sm nc-filter-field-select"
+              class="caption nc-filter-field-select"
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
@@ -173,15 +204,21 @@ watch(
 
             <a-select
               v-model:value="filter.comparison_op"
-              class="caption nc-filter-operation-select text-sm"
-              :options="comparisonOpList"
+              :dropdown-match-select-width="false"
+              size="small"
+              class="caption nc-filter-operation-select !text-xs"
               :placeholder="$t('labels.operation')"
               density="compact"
               variant="solo"
               :disabled="filter.readOnly"
               hide-details
               @change="filterUpdateCondition(filter, i)"
-            /><!--
+            >
+              <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="!text-xs">
+                {{ compOp.text }}
+              </a-select-option>
+            </a-select>
+            <!--
             todo: filter based on column type
 
             item-value="value"
@@ -195,7 +232,8 @@ watch(
             <span v-if="['null', 'notnull', 'empty', 'notempty'].includes(filter.comparison_op)" :key="`span${i}`" />
             <a-checkbox
               v-else-if="types[filter.field] === 'boolean'"
-              v-model:value="filter.value"
+              v-model:checked="filter.value"
+              size="small"
               dense
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
@@ -203,8 +241,9 @@ watch(
             <a-input
               v-else
               :key="`${i}_7`"
-              v-model="filter.value"
-              class="caption text-sm nc-filter-value-select"
+              v-model:value="filter.value"
+              size="small"
+              class="caption nc-filter-value-select"
               :disabled="filter.readOnly"
               @click.stop
               @input="saveOrUpdate(filter, i)"
@@ -214,23 +253,42 @@ watch(
       </template>
     </div>
 
-    <a-button small class="elevation-0 text-sm text-capitalize text-grey my-3" @click.stop="addFilter">
-      <div class="flex align-center gap-1">
-        <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
-        <MdiAddIcon />
-        <!-- Add Filter -->
-        {{ $t('activity.addFilter') }}
-      </div>
-    </a-button>
+    <div class="flex gap-2 my-2">
+      <a-button size="small" class="elevation-0 text-capitalize text-grey" @click.stop="addFilter">
+        <div class="flex align-center gap-1">
+          <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
+          <MdiAddIcon />
+          <!-- Add Filter -->
+          {{ $t('activity.addFilter') }}
+        </div>
+      </a-button>
+      <a-button size="small" class="elevation-0 text-capitalize text-grey" @click.stop="addFilterGroup">
+        <div class="flex align-center gap-1">
+          <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
+          <MdiAddIcon />
+          Add Filter Group
+          <!--     todo: add i18n {{ $t('activity.addFilterGroup') }} -->
+        </div>
+      </a-button>
+    </div>
     <slot />
   </div>
 </template>
 
 <style scoped>
-.grid {
+.nc-filter-grid {
   display: grid;
-  grid-template-columns: 30px 130px auto auto auto;
+  grid-template-columns: 18px 70px auto auto auto;
   column-gap: 6px;
   row-gap: 6px;
+  align-items: center;
+}
+
+:deep(.ant-btn, .ant-select, .ant-input) {
+  @apply "!text-xs";
+}
+
+:deep(.ant-select-item-option) {
+  @apply "!min-w-min";
 }
 </style>

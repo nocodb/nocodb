@@ -1,4 +1,4 @@
-export default {
+const rolePermissions = {
   creator: '*',
   owner: '*',
   guest: {},
@@ -34,4 +34,16 @@ export default {
     projectActions: true,
     projectSettings: true,
   },
-}
+} as const
+
+export default rolePermissions
+
+type GetKeys<T> = T extends Record<string, any> ? keyof T : never
+
+export type Permission<T extends typeof rolePermissions = typeof rolePermissions, K extends keyof T = keyof T> = K extends
+  | 'creator'
+  | 'owner'
+  ? T[K]
+  : never | T[K] extends Record<string, any>
+  ? GetKeys<T[K]>
+  : never

@@ -28,8 +28,6 @@ export function useSortable(
 
     const { newIndex = 0, oldIndex = 0 } = evt
 
-    console.log(newIndex, oldIndex)
-
     if (newIndex === oldIndex) return
 
     _items.splice(newIndex, 0, ..._items.splice(oldIndex, 1))

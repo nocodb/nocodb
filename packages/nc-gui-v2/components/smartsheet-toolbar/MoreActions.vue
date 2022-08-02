@@ -17,13 +17,23 @@ const sharedViewListDlg = ref(false)
 
 // todo : replace with inject
 const publicViewId = null
+
+// TODO:: identify based on meta
+const isView = ref(false)
+
+const { isUIAllowed } = useUIPermission()
+
 const { project } = useProject()
 
 const { $api } = useNuxtApp()
+
 const toast = useToast()
 
 const meta = inject(MetaInj)
+
 const selectedView = inject(ActiveViewInj)
+
+const showWebhookDrawer = ref(false)
 
 const exportCsv = async () => {
   let offset = 0
@@ -117,7 +127,7 @@ const exportCsv = async () => {
               <!-- Shared View List -->
               {{ $t('activity.listSharedView') }}
             </div>
-            <div class="nc-menu-item" @click.stop>
+            <div class="nc-menu-item" @click="showWebhookDrawer = true">
               <MdiHookIcon />
               <!-- todo: i18n -->
               Webhook
@@ -126,6 +136,8 @@ const exportCsv = async () => {
         </div>
       </template>
     </a-dropdown>
+
+    <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
     <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">
       <SmartsheetToolbarSharedViewList v-if="sharedViewListDlg" />

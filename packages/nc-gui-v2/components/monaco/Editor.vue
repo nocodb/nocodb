@@ -2,12 +2,20 @@
 import * as monaco from 'monaco-editor'
 import JsonWorker from 'monaco-editor/esm/vs/language/json/json.worker?worker'
 import EditorWorker from 'monaco-editor/esm/vs/editor/editor.worker?worker'
+import TypescriptWorker from 'monaco-editor/esm/vs/language/typescript/ts.worker?worker'
 import { onMounted } from '#imports'
 import { deepCompare } from '~/utils'
 
-const { modelValue } = defineProps<{ modelValue: any }>()
+interface Props {
+  modelValue: string
+  lang?: string
+  validate?: boolean
+}
+
+const { modelValue, lang = 'json', validate = true } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
+
 const isValid = ref(true)
 
 /**
@@ -16,10 +24,14 @@ const isValid = ref(true)
  * @ts-expect-error */
 self.MonacoEnvironment = {
   getWorker(_: any, label: string) {
-    if (label === 'json') {
-      return new JsonWorker()
+    switch (label) {
+      case 'json':
+        return new JsonWorker()
+      case 'typescript':
+        return new TypescriptWorker()
+      default:
+        return new EditorWorker()
     }
-    return new EditorWorker()
   },
 }
 
@@ -36,13 +48,14 @@ defineExpose({
 })
 
 onMounted(() => {
-  if (root.value) {
-    const model = monaco.editor.createModel(JSON.stringify(modelValue, null, 2), 'json')
-
-    // configure the JSON language support with schemas and schema associations
-    monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-      validate: true,
-    })
+  if (root.value && lang) {
+    const model = monaco.editor.createModel(JSON.stringify(modelValue, null, 2), lang)
+    if (lang === 'json') {
+      // configure the JSON language support with schemas and schema associations
+      monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+        validate: validate as boolean,
+      })
+    }
 
     editor = monaco.editor.create(root.value, {
       model,
@@ -60,8 +73,15 @@ onMounted(() => {
     editor.onDidChangeModelContent(async (e) => {
       try {
         isValid.value = true
-        const obj = JSON.parse(editor.getValue())
-        if (!deepCompare(modelValue, obj)) emit('update:modelValue', obj)
+
+        const value = editor?.getValue()
+        if (typeof modelValue === 'object') {
+          if (!value || !deepCompare(modelValue, JSON.parse(value))) {
+            emit('update:modelValue', JSON.stringify(modelValue, null, 2))
+          }
+        } else {
+          if (value !== modelValue) emit('update:modelValue', value)
+        }
       } catch (e) {
         isValid.value = false
         console.log(e)
@@ -73,8 +93,15 @@ onMounted(() => {
 watch(
   () => modelValue,
   (v) => {
-    if (editor && v && !deepCompare(v, JSON.parse(editor?.getValue() as string))) {
-      editor.setValue(JSON.stringify(v, null, 2))
+    if (editor && v) {
+      const value = editor?.getValue()
+      if (typeof v === 'object') {
+        if (!value || !deepCompare(v, JSON.parse(value))) {
+          editor.setValue(JSON.stringify(v, null, 2))
+        }
+      } else {
+        if (value !== v) editor.setValue(v)
+      }
     }
   },
 )

@@ -335,8 +335,7 @@ onBeforeUnmount(() => {
           </div>
         </a-card>
         <div class="flex justify-center items-center">
-          <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false"
-            >Go to Dashboard</a-button
+          <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">Go to Dashboard</a-button
           >
         </div>
       </div>

@@ -13,9 +13,9 @@ const active = inject(ActiveCellInj, false)
 </script>
 
 <template>
-  <div class="group py-1 px-2 flex align-center gap-1 bg-gray-200/50 hover:bg-gray-200 rounded-[20px]" :class="{ active }" >
+  <div class="group py-1 px-2 flex align-center gap-1 bg-gray-200/50 hover:bg-gray-200 rounded-[20px]" :class="{ active }">
     <span class="name">{{ value }}</span>
-    <div v-show="active" v-if="!readonly" class="flex align-center ">
+    <div v-show="active" v-if="!readonly" class="flex align-center">
       <MdiCloseThickIcon class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" />
     </div>
   </div>

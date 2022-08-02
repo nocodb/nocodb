@@ -1,13 +1,14 @@
-import {ColumnType, LinkToAnotherRecordType, TableType} from "nocodb-sdk";
-import {Ref} from "vue";
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 
-export default (column: Ref<ColumnType>) =>{
-
-  const {$api} = useNuxtApp()
-  const {metas,getMeta} = useMetas()
+export default (column: Ref<ColumnType>) => {
+  const { $api } = useNuxtApp()
+  const { metas, getMeta } = useMetas()
 
   const colOptions = computed<LinkToAnotherRecordType>(() => column.value.colOptions as LinkToAnotherRecordType)
-  const relatedTableMeta = computed<TableType>(() => colOptions?.value && metas.value?.[colOptions.value?.fk_related_model_id as string])
+  const relatedTableMeta = computed<TableType>(
+    () => colOptions?.value && metas.value?.[colOptions.value?.fk_related_model_id as string],
+  )
 
   const removeChild = () => {
     // todo: audit
@@ -26,10 +27,9 @@ export default (column: Ref<ColumnType>) =>{
     // await this.$api.dbTableRow.nestedAdd('noco', this.projectName, this.meta.title, id, 'bt', this.column.title, pid);
   }
 
- const loadRelatedTableMeta= async ()=>{
-   return getMeta(colOptions.value?.fk_related_model_id as string)
- }
-
+  const loadRelatedTableMeta = async () => {
+    return getMeta(colOptions.value?.fk_related_model_id as string)
+  }
 
   // this.data = await this.$api.dbTableRow.nestedChildrenExcludedList(
   //   'noco',
@@ -45,7 +45,6 @@ export default (column: Ref<ColumnType>) =>{
   //   }
   // );
 
-
   //   this.data = await this.$api.dbTableRow.nestedList(
   //           'noco',
   //           this.projectName,
@@ -59,5 +58,5 @@ export default (column: Ref<ColumnType>) =>{
   //           }
   //         );
 
-  return  {addChild, removeChild, loadRelatedTableMeta, relatedTableMeta}
+  return { addChild, removeChild, loadRelatedTableMeta, relatedTableMeta }
 }

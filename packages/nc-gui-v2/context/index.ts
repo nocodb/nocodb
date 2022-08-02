@@ -6,6 +6,7 @@ import type { TabItem } from '~/composables/useTabs'
 
 export const EditEnabledInj: InjectionKey<boolean> = Symbol('edit-enabled')
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
+export const RowInj: InjectionKey<Ref<Record<string, any>>> = Symbol('row')
 export const ColumnInj: InjectionKey<ColumnType & { meta: any }> = Symbol('column-injection')
 export const MetaInj: InjectionKey<ComputedRef<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem>> = Symbol('tab-meta-injection')

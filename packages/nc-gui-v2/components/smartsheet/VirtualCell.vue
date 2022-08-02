@@ -1,24 +1,30 @@
 <script setup lang="ts">
+import { computed } from '@vue/reactivity'
+import { Row } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import { provide, useVirtualCell } from '#imports'
-import { ColumnInj, ValueInj, ActiveCellInj } from '~/context'
+import { ColumnInj, ValueInj, ActiveCellInj, RowInj } from '~/context'
 import { NavigateDir } from '~/lib'
 
 interface Props {
   column: ColumnType
   modelValue: any
+  row: Record<string, any>
   active?: boolean
 }
 
 const props = defineProps<Props>()
-const  { column, modelValue: value,  } = props
+const emit = defineEmits(['update:modelValue', 'navigate'])
+
+const { column, modelValue: value, row } = props
 const active = toRef(props, 'active', false)
 
-const emit = defineEmits(['update:modelValue', 'navigate'])
 
 provide(ColumnInj, column)
 provide(ValueInj, value)
 provide(ActiveCellInj, active)
+provide(RowInj, row)
+provide('value', value)
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
 </script>

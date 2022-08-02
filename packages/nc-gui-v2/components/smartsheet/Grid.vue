@@ -291,10 +291,10 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
         </table>
       </div>
       <template #overlay>
-        <div class="bg-white shadow">
+        <div class="bg-white shadow" @click="contextMenu = false">
           <div v-if="contextMenuTarget" class="nc-menu-item" @click="deleteRow(contextMenuTarget.row)">Delete row</div>
           <div class="nc-menu-item" @click="deleteSelectedRows">Delete all selected rows</div>
-          <div v-if="contextMenuTarget" class="nc-menu-item">Clear cell</div>
+          <div v-if="contextMenuTarget" class="nc-menu-item" >Clear cell</div>
           <div v-if="contextMenuTarget" class="nc-menu-item" @click="addEmptyRow(contextMenuTarget.row + 1)">Insert new row</div>
         </div>
       </template>

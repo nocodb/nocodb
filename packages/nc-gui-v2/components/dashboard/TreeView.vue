@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { computed } from '@vue/reactivity'
-import { Modal } from 'ant-design-vue'
-import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
-import { UITypes } from 'nocodb-sdk'
+import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
 import SettingsModal from './settings/SettingsModal.vue'
-import { useProject, useTabs, useUIPermission, watchEffect } from '#imports'
+import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
 import { useNuxtApp, useRoute } from '#app'
-import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiSettingIcon from '~icons/mdi/cog'
 import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
@@ -18,7 +14,6 @@ import MdiPlus from '~icons/mdi/plus-circle-outline'
 import MdiDrag from '~icons/mdi/drag-vertical'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiAPIDocIcon from '~icons/mdi/open-in-new'
-import { TabType } from '~/composables'
 
 const { addTab } = useTabs()
 const toast = useToast()
@@ -27,6 +22,7 @@ const { isUIAllowed } = useUIPermission()
 const route = useRoute()
 const { tables, loadTables } = useProject(route.params.projectId as string)
 const { closeTab } = useTabs()
+const { deleteTable } = useTable()
 
 const tablesById = $computed<Record<string, TableType>>(() =>
   tables?.value?.reduce((acc: Record<string, TableType>, table: TableType) => {
@@ -126,59 +122,6 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
   $e('c:table:create:navdraw:right-click')
-}
-
-const deleteTable = (table: TableType) => {
-  $e('c:table:delete')
-  // 'Click Submit to Delete The table'
-  Modal.confirm({
-    title: `Click Yes to Delete The table : ${table.title}`,
-    okText: 'Yes',
-    okType: 'danger',
-    cancelText: 'No',
-    async onOk() {
-      const { getMeta, removeMeta } = useMetas()
-      try {
-        const meta = (await getMeta(table.id as string)) as TableType
-        const relationColumns = meta?.columns?.filter((c) => c.uidt === UITypes.LinkToAnotherRecord)
-
-        if (relationColumns?.length) {
-          const refColMsgs = await Promise.all(
-            relationColumns.map(async (c, i) => {
-              const refMeta = (await getMeta(
-                (c?.colOptions as LinkToAnotherRecordType)?.fk_related_model_id as string,
-              )) as TableType
-              return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
-            }),
-          )
-          toast.info(
-            h('div', {
-              innerHTML: `<div style="padding:10px 4px">Unable to delete tables because of the following.
-                <br><br>${refColMsgs.join('<br>')}<br><br>
-                Delete them & try again</div>`,
-            }),
-          )
-          return
-        }
-
-        await $api.dbTable.delete(table?.id as string)
-
-        closeTab({
-          type: TabType.TABLE,
-          id: table.id,
-          title: table.title,
-        })
-
-        await loadTables()
-
-        removeMeta(table.id as string)
-        toast.info(`Deleted table ${table.title} successfully`)
-        $e('a:table:delete')
-      } catch (e: any) {
-        toast.error(await extractSdkResponseErrorMsg(e))
-      }
-    },
-  })
 }
 
 const renameTableDlg = ref(false)

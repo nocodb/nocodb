@@ -32,9 +32,11 @@ const isPublicView = false
 
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
+const { sqlUi } = useProject()
+const { xWhere } = useSmartsheetStoreOrThrow()
 const addColumnDropdown = ref(false)
 
-const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view as any)
+const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view as any, xWhere)
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 onMounted(loadGridViewColumns)
 

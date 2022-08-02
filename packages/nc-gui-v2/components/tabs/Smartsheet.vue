@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { ViewTypes } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import SmartsheetGrid from '../smartsheet/Grid.vue'
-import { computed, inject, provide, useMetas, watch, watchEffect } from '#imports'
+import { computed, inject, provide, useMetas, useProvideSmartsheetStore, watch, watchEffect } from '#imports'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, RightSidebarInj, TabMetaInj } from '~/context'
 import type { TabItem } from '~/composables'
 
@@ -19,7 +20,7 @@ const tabMeta = inject(
   computed(() => ({} as TabItem)),
 )
 
-const meta = computed(() => metas.value?.[tabMeta?.value?.id as string])
+const meta = computed<TableType>(() => metas.value?.[tabMeta?.value?.id as string])
 
 watchEffect(async () => {
   await getMeta(tabMeta?.value?.id as string)
@@ -27,6 +28,7 @@ watchEffect(async () => {
 
 const reloadEventHook = createEventHook<void>()
 
+// todo: move to store
 provide(MetaInj, meta)
 provide(TabMetaInj, tabMeta)
 provide(ActiveViewInj, activeView)
@@ -34,6 +36,8 @@ provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
 provide(RightSidebarInj, ref(true))
+
+useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 
 watch(tabMeta, async (newTabMeta, oldTabMeta) => {
   if (newTabMeta !== oldTabMeta && newTabMeta.id) await getMeta(newTabMeta.id)

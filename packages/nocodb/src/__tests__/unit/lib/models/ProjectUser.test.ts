@@ -5,6 +5,7 @@ import NcMetaIO from '../../../../lib/meta/NcMetaIO';
 import knex from 'knex';
 import XcMigrationSourcev2 from '../../../../lib/migrations/XcMigrationSourcev2';
 import { MetaTable } from '../../../../lib/utils/globals';
+import XcMigrationSource from '../../../../lib/migrations/XcMigrationSource';
 
 const qb = knex({
   client: 'sqlite3',
@@ -15,6 +16,10 @@ const qb = knex({
 });
 
 before(async () => {
+  await qb.migrate.latest({
+    migrationSource: new XcMigrationSource(),
+    tableName: 'xc_knex_migrations',
+  });
   await qb.migrate.latest({
     migrationSource: new XcMigrationSourcev2(),
     tableName: 'xc_knex_migrationsv2',

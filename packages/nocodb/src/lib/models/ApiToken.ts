@@ -26,27 +26,51 @@ export default class ApiToken {
       user_id: apiToken?.user_id,
       token
     });
-    return this.getByToken(token, apiToken?.user_id);
+    return this.getByToken(token, ncMeta);
   }
 
-  static async list(userId = null, ncMeta = Noco.ncMeta) {
+  static async list(userId, userRoles, ncMeta = Noco.ncMeta) {
+    if (userRoles?.creator || userRoles?.owner) {
+      return await this.listAllTokens(ncMeta);
+    }
+    return await this.listUserTokens(userId, ncMeta);
+  }
+
+  private static async listUserTokens(userId, ncMeta = Noco.ncMeta) {
     const tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS, {
       condition: { user_id: userId },
     });
     return tokens?.map(t => new ApiToken(t));
   }
 
-  static async delete(token, userId = null, ncMeta = Noco.ncMeta) {
+  private static async listAllTokens(ncMeta = Noco.ncMeta) {
+    const tokens = await ncMeta.metaList(null, null, MetaTable.API_TOKENS);
+    return tokens?.map(t => new ApiToken(t));
+  }
+
+  static async delete(token, userId, userRoles, ncMeta = Noco.ncMeta) {
+    if (userRoles?.creator || userRoles?.owner) {
+      return await this.deleteAnyToken(token, ncMeta);
+    }
+    return await this.deleteUserToken(token, userId, ncMeta);
+  }
+
+  private static async deleteUserToken(token, userId, ncMeta = Noco.ncMeta) {
     return await ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
       token,
       user_id: userId,
     });
   }
 
-  static async getByToken(token, userId = null, ncMeta = Noco.ncMeta) {
+  private static async deleteAnyToken(token, ncMeta = Noco.ncMeta) {
+    return await ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
+      token,
+    });
+  }
+
+  static async getByToken(token, ncMeta = Noco.ncMeta) {
     const data = await ncMeta.metaGet(null, null, MetaTable.API_TOKENS, {
       token,
-      user_id: userId,
     });
     return data && new ApiToken(data);
   }

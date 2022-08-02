@@ -5,7 +5,12 @@ import { Tele } from 'nc-help';
 import { metaApiMetrics } from '../helpers/apiMetrics';
 
 export async function apiTokenList(req: Request, res: Response) {
-  res.json(await ApiToken.list(req['session']?.passport?.user?.id));
+  res.json(
+    await ApiToken.list(
+      req['session']?.passport?.user?.id,
+      req['session']?.passport?.user?.roles
+    )
+  );
 }
 export async function apiTokenCreate(req: Request, res: Response) {
   Tele.emit('evt', { evt_type: 'apiToken:created' });
@@ -19,7 +24,11 @@ export async function apiTokenCreate(req: Request, res: Response) {
 export async function apiTokenDelete(req: Request, res: Response) {
   Tele.emit('evt', { evt_type: 'apiToken:deleted' });
   res.json(
-    await ApiToken.delete(req.params.token, req['session']?.passport?.user?.id)
+    await ApiToken.delete(
+      req.params.token,
+      req['session']?.passport?.user?.id,
+      req['session']?.passport?.user?.roles
+    )
   );
 }
 

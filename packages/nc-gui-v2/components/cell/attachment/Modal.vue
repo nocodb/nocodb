@@ -70,10 +70,10 @@ onKeyDown('Escape', () => {
       <div
         v-if="!isReadonly && !dragging"
         :class="[isOverDropZone ? 'opacity-100' : 'opacity-0 pointer-events-none']"
-        class="transition-all duration-150 ease-in-out ring ring-pink-500 rounded bg-blue-100/75 flex items-center justify-center gap-4 z-99 absolute top-0 bottom-0 left-0 right-0 backdrop-blur-xl"
+        class="transition-all duration-150 ease-in-out ring ring-pink-500 rounded bg-gray-700/75 flex items-center justify-center gap-4 z-99 absolute top-0 bottom-0 left-0 right-0 backdrop-blur-xl"
       >
         <MaterialSymbolsFileCopyOutline class="text-pink-500" height="35" width="35" />
-        <div class="text-3xl text-primary">Drop here</div>
+        <div class="text-white text-3xl">Drop here</div>
       </div>
 
       <div ref="sortableRef" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">

@@ -62,19 +62,14 @@ export default function(handlerFn, permissionName) {
           );
         });
       if (!isAllowed) {
-        const projectOwnersEmailsCommaSeperated = (
-          await ProjectUser.getOwnersList({
-            project_id: req.params.projectId,
-          })
-        )
-          .map((user) => user.email)
-          .join(',');
         NcError.forbidden(
           `${permissionName} - ${Object.keys(roles).filter(
             k => roles[k]
           )} : Not allowed.${
             permissionName === 'projectGet'
-              ? ` Please contact ${projectOwnersEmailsCommaSeperated} for access.`
+              ? ` Please contact ${await ProjectUser.getOwnersEmailsCSV(
+                  req.params.projectId
+                )} for access.`
               : ''
           }`
         );

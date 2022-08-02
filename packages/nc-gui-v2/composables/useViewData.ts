@@ -136,11 +136,11 @@ export function useViewData(
   }
 
   const addEmptyRow = (addAfter = formattedData.value.length) => {
-    formattedData.value[addAfter] = {
+    formattedData.value.splice(addAfter,0,  {
       row: {},
       oldRow: {},
       rowMeta: { new: true },
-    }
+    })
   }
 
   const deleteRowById = async (id: string) => {

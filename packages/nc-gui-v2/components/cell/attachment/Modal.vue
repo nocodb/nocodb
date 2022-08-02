@@ -66,7 +66,7 @@ onKeyDown('Escape', () => {
       </div>
     </template>
 
-    <div ref="dropZoneRef" :class="{ dragging }">
+    <div ref="dropZoneRef">
       <div
         v-if="!isReadonly && !dragging"
         :class="[isOverDropZone ? 'opacity-100' : 'opacity-0 pointer-events-none']"
@@ -76,7 +76,7 @@ onKeyDown('Escape', () => {
         <div class="text-white text-3xl">Drop here</div>
       </div>
 
-      <div ref="sortableRef" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
+      <div ref="sortableRef" :class="{ dragging }" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
         <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col gap-1">
           <a-card class="nc-attachment-item group">
             <a-tooltip v-if="!isReadonly">
@@ -134,7 +134,7 @@ onKeyDown('Escape', () => {
   }
 
   .nc-attachment-item {
-    @apply cursor-pointer !h-2/3 !min-h-[200px] flex items-center justify-center relative hover:(!border-0);
+    @apply cursor-pointer !h-2/3 !min-h-[200px] flex items-center justify-center relative hover:!border-0;
 
     &::after {
       @apply pointer-events-none rounded absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out;
@@ -177,7 +177,11 @@ onKeyDown('Escape', () => {
     @apply !pointer-events-none;
   }
 
-  &.dragging {
+  .dragging {
+    .nc-attachment-item {
+      @apply !pointer-events-none;
+    }
+
     .ant-tooltip {
       @apply !hidden;
     }

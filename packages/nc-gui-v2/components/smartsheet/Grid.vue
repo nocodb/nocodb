@@ -262,7 +262,7 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
                   v-model="row.row[columnObj.title]"
                   :column="columnObj"
                   :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
-                  @update:model-value="updateOrSaveRow(row, columnObj.title)"
+                  @save="updateOrSaveRow(row, columnObj.title)"
                 />
               </td>
             </tr>

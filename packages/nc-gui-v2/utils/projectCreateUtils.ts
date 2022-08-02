@@ -12,7 +12,6 @@ export interface ProjectCreateForm {
           password: string
           port: number | string
           ssl?: Record<string, string>
-          searchPath?: string[]
         }
       | {
           client?: ClientType.SQLITE
@@ -22,6 +21,7 @@ export interface ProjectCreateForm {
           }
           useNullAsDefault?: boolean
         }
+    searchPath?: string[]
   }
   inflection: {
     inflectionColumn?: string
@@ -73,7 +73,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'postgres',
     password: 'password',
     database: '_test',
-    searchPath: ['public'],
     ssl: {
       ca: '',
       key: '',
@@ -110,7 +109,6 @@ const sampleConnectionData: Record<ClientType | string, ProjectCreateForm['dataS
     user: 'sa',
     password: 'Password123.',
     database: '_test',
-    searchPath: ['dbo'],
     ssl: {
       ca: '',
       key: '',
@@ -203,6 +201,11 @@ export const getDefaultConnectionConfig = (client: ClientType): ProjectCreateFor
   return {
     client,
     connection: sampleConnectionData[client],
+    searchPath: [ClientType.PG, ClientType.MSSQL].includes(client)
+      ? client === ClientType.PG
+        ? ['public']
+        : ['dbo']
+      : undefined,
   }
 }
 

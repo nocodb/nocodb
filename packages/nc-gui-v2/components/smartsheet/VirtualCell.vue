@@ -15,7 +15,7 @@ const emit = defineEmits(['update:modelValue'])
 provide(ColumnInj, column)
 provide('value', value)
 
-const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(column)
+const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
 </script>
 
 <template>
@@ -25,6 +25,7 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(colum
     <VirtualCellBelongsTo v-else-if="isBt" />
     <VirtualCellRollup v-else-if="isRollup" />
     <VirtualCellFormula v-else-if="isFormula" />
+    <VirtualCellCount v-else-if="isCount" />
 
     <!--    <v-lazy> -->
     <!--      <has-many-cell

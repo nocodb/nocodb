@@ -3,21 +3,15 @@ interface Props {
   modelValue: boolean
 }
 
-const { modelValue } = defineProps<Props>()
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps<Props>()
+
+const emits = defineEmits(['update:modelValue'])
 
 const editOrAdd = ref(false)
 
 const webhookEditorRef = ref()
 
-const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v: boolean) {
-    emit('update:modelValue', v)
-  },
-})
+const vModel = useVModel(props, 'modelValue', emits)
 
 async function editHook(hook: Record<string, any>) {
   editOrAdd.value = true
@@ -29,7 +23,7 @@ async function editHook(hook: Record<string, any>) {
 </script>
 
 <template>
-  <a-drawer v-model:visible="dialogShow" :closable="false" placement="right" width="700px" @keydown.esc="dialogShow = false">
+  <a-drawer v-model:visible="vModel" :closable="false" placement="right" width="700px" @keydown.esc="vModel = false">
     <WebhookEditor v-if="editOrAdd" ref="webhookEditorRef" @back-to-list="editOrAdd = false" />
     <WebhookList v-else @edit="editHook" @add="editOrAdd = true" />
     <div class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center">

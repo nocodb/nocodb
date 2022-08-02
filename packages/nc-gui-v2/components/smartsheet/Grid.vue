@@ -420,7 +420,6 @@ const onNavigate = (dir: NavigateDir) => {
 
   td {
     text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   td.active::after,

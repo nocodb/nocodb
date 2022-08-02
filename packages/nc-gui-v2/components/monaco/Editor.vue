@@ -7,14 +7,22 @@ import { onMounted } from '#imports'
 import { deepCompare } from '~/utils'
 
 interface Props {
-  modelValue: string
-  lang?: string
-  validate?: boolean
+  modelValue: any
+  hideMinimap?: boolean
 }
 
-const { modelValue, lang = 'json', validate = true } = defineProps<Props>()
+interface Emits {
+  (event: 'update:modelValue', model: any): void
+  (event: 'validationError', error: any): void
+  (event: 'valueChanged'): void
+}
 
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps<Props>()
+const emits = defineEmits<Emits>()
+
+const { hideMinimap } = props
+
+let vModel = $(useVModel(props, 'modelValue', emits))
 
 const isValid = ref(true)
 
@@ -48,14 +56,13 @@ defineExpose({
 })
 
 onMounted(() => {
-  if (root.value && lang) {
-    const model = monaco.editor.createModel(JSON.stringify(modelValue, null, 2), lang)
-    if (lang === 'json') {
-      // configure the JSON language support with schemas and schema associations
-      monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
-        validate: validate as boolean,
-      })
-    }
+  if (root.value) {
+    const model = monaco.editor.createModel(JSON.stringify(vModel, null, 2), 'json')
+
+    // configure the JSON language support with schemas and schema associations
+    monaco.languages.json.jsonDefaults.setDiagnosticsOptions({
+      validate: true,
+    })
 
     editor = monaco.editor.create(root.value, {
       model,
@@ -68,22 +75,20 @@ onMounted(() => {
       },
       tabSize: 2,
       automaticLayout: true,
+      minimap: {
+        enabled: !hideMinimap,
+      },
     })
 
     editor.onDidChangeModelContent(async (e) => {
       try {
         isValid.value = true
-
-        const value = editor?.getValue()
-        if (typeof modelValue === 'object') {
-          if (!value || !deepCompare(modelValue, JSON.parse(value))) {
-            emit('update:modelValue', JSON.stringify(modelValue, null, 2))
-          }
-        } else {
-          if (value !== modelValue) emit('update:modelValue', value)
-        }
+        const obj = JSON.parse(editor.getValue())
+        emits('valueChanged')
+        if (!deepCompare(vModel, obj)) vModel = obj
       } catch (e) {
         isValid.value = false
+        emits('validationError', e)
         console.log(e)
       }
     })
@@ -91,17 +96,18 @@ onMounted(() => {
 })
 
 watch(
-  () => modelValue,
+  () => vModel,
   (v) => {
-    if (editor && v) {
-      const value = editor?.getValue()
-      if (typeof v === 'object') {
-        if (!value || !deepCompare(v, JSON.parse(value))) {
-          editor.setValue(JSON.stringify(v, null, 2))
-        }
-      } else {
-        if (value !== v) editor.setValue(v)
+    if (!editor || !v) {
+      return
+    }
+
+    try {
+      if (!deepCompare(v, JSON.parse(editor?.getValue() as string))) {
+        editor.setValue(JSON.stringify(v, null, 2))
       }
+    } catch (e) {
+      editor.setValue(JSON.stringify(v, null, 2))
     }
   },
 )

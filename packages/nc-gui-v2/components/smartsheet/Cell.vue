@@ -130,6 +130,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellFloat v-else-if="isFloat" v-model="vModel" />
     <CellText v-else-if="isString" v-model="vModel" />
     <CellPercent v-else-if="isPercent" v-model="vModel" />
+    <CellJson v-else-if="isJSON" v-model="vModel" />
     <CellText v-else v-model="vModel" />
   </div>
 </template>

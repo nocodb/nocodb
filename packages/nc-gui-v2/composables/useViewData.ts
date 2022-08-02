@@ -40,11 +40,34 @@ export function useViewData(
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
   }
+  const insertRow = async (row: Record<string, any>, rowIndex = formattedData.value?.length) => {
+    try {
+      const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
+        if (!col.ai && row?.[col.title as string] !== null) {
+          o[col.title as string] = row?.[col.title as string]
+        }
+        return o
+      }, {})
 
-  const updateOrSaveRow = async (row: Row, property: string) => {
-if(row.rowMeta.new){
-  insertRow(row.row, formattedData.value.indexOf(row))
-}
+      const insertedData = await $api.dbViewRow.create(
+        NOCO,
+        project?.value.id as string,
+        meta?.value.id as string,
+        viewMeta?.value?.id as string,
+        insertObj,
+      )
+
+      formattedData.value?.splice(rowIndex ?? 0, 1, {
+        row: insertedData,
+        rowMeta: {},
+        oldRow: { ...insertedData },
+      })
+    } catch (error: any) {
+      notification.error({
+        message: 'Row insert failed',
+        description: await extractSdkResponseErrorMsg(error),
+      })
+    }
   }
 
   const updateRowProperty = async (row: Record<string, any>, property: string) => {
@@ -91,36 +114,14 @@ if(row.rowMeta.new){
       })
     }
   }
-  const insertRow = async (row: Record<string, any>, rowIndex = formattedData.value?.length) => {
-    try {
-      const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
-        if (!col.ai && row?.[col.title as string] !== null) {
-          o[col.title as string] = row?.[col.title as string]
-        }
-        return o
-      }, {})
 
-      const insertedData = await $api.dbViewRow.create(
-        NOCO,
-        project?.value.id as string,
-        meta?.value.id as string,
-        viewMeta?.value?.id as string,
-        insertObj,
-      )
-
-      formattedData.value?.splice(rowIndex ?? 0, 1, {
-        row: insertedData,
-        rowMeta: {},
-        oldRow: { ...insertedData },
-      })
-    } catch (error: any) {
-      notification.error({
-        message: 'Row insert failed',
-        description: await extractSdkResponseErrorMsg(error),
-      })
+  const updateOrSaveRow = async (row: Row, property: string) => {
+    if (row.rowMeta.new) {
+      await insertRow(row.row, formattedData.value.indexOf(row))
+    } else {
+      await updateRowProperty(row.row, property)
     }
   }
-
   const changePage = async (page: number) => {
     paginationData.value.page = page
     await loadData({ offset: (page - 1) * (paginationData.value.pageSize || 25), where: where?.value } as any)
@@ -225,6 +226,6 @@ if(row.rowMeta.new){
     selectedRows,
     deleteRow,
     deleteSelectedRows,
-    updateOrSaveRow
+    updateOrSaveRow,
   }
 }

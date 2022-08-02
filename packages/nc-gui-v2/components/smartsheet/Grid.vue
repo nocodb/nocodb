@@ -213,7 +213,7 @@ if (meta) useProvideColumnCreateStore(meta)
 
   // todo: replace with css variable
   td.active::after {
-    border: 2px solid #0040bc; /*var(--v-primary-lighten1);*/
+    @apply border-2 border-solid border-primary;
   }
 
   td.active::before {

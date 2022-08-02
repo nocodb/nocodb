@@ -6,18 +6,11 @@ interface Props {
   modelValue: Record<string, any>[]
 }
 
-const { modelValue } = defineProps<Props>()
+const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue'])
 
-const localState = computed({
-  get() {
-    return modelValue
-  },
-  set(newValue: Record<string, any>[]) {
-    emit('update:modelValue', newValue)
-  },
-})
+const vModel = useVModel(props, 'modelValue', emits)
 
 const headerList = ref([
   'A-IM',
@@ -61,9 +54,9 @@ const headerList = ref([
   'X-CSRF-Token',
 ])
 
-const addHeaderRow = () => localState.value.push({})
+const addHeaderRow = () => vModel.value.push({})
 
-const deleteHeaderRow = (idx: number) => localState.value.splice(idx, 1)
+const deleteHeaderRow = (idx: number) => vModel.value.splice(idx, 1)
 </script>
 
 <template>
@@ -86,7 +79,7 @@ const deleteHeaderRow = (idx: number) => localState.value.splice(idx, 1)
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(headerRow, idx) in localState" :key="idx">
+        <tr v-for="(headerRow, idx) in vModel" :key="idx">
           <td class="px-2">
             <a-form-item>
               <a-checkbox v-model:checked="headerRow.enabled" />

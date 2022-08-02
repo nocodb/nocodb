@@ -6,22 +6,15 @@ interface Props {
   modelValue: Record<string, any>[]
 }
 
-const { modelValue } = defineProps<Props>()
+const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
+const emits = defineEmits(['update:modelValue'])
 
-const localState = computed({
-  get() {
-    return modelValue
-  },
-  set(newValue: Record<string, any>[]) {
-    emit('update:modelValue', newValue)
-  },
-})
+const vModel = useVModel(props, 'modelValue', emits)
 
-const addParamRow = () => localState.value.push({})
+const addParamRow = () => vModel.value.push({})
 
-const deleteParamRow = (idx: number) => localState.value.splice(idx, 1)
+const deleteParamRow = (idx: number) => vModel.value.splice(idx, 1)
 </script>
 
 <template>
@@ -44,7 +37,7 @@ const deleteParamRow = (idx: number) => localState.value.splice(idx, 1)
         </tr>
       </thead>
       <tbody>
-        <tr v-for="(paramRow, idx) in localState" :key="idx">
+        <tr v-for="(paramRow, idx) in vModel" :key="idx">
           <td class="px-2">
             <a-form-item>
               <a-checkbox v-model:checked="paramRow.enabled" />

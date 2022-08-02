@@ -41,9 +41,9 @@ const toggleSidebar = () => {
           <span class="prose-xl">NocoDB</span>
         </div>
 
-        <div v-show="state.isLoading.value" class="text-gray-400 ml-3">
+        <div v-show="state.isLoading.value" class="flex items-center gap-2 ml-3">
           {{ $t('general.loading') }}
-          <MdiReload :class="{ 'animate-infinite animate-spin !text-success': state.isLoading.value }" />
+          <MdiReload :class="{ 'animate-infinite animate-spin': state.isLoading.value }" />
         </div>
       </div>
 

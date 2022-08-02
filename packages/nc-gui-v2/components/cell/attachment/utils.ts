@@ -1,4 +1,5 @@
 import { notification } from 'ant-design-vue'
+import FileSaver from 'file-saver'
 import { computed, createEventHook, inject, ref, useApi, useFileDialog, useInjectionState, useProject, watch } from '#imports'
 import { ColumnInj, EditModeInj, MetaInj } from '~/context'
 import { isImage } from '~/utils'
@@ -93,6 +94,17 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState((
     fileAddedHook.trigger([...attachments.value, ...newAttachments])
   }
 
+  function onDrop(droppedFiles: File[] | null) {
+    if (droppedFiles) {
+      // set files
+      onFileSelect(droppedFiles)
+    }
+  }
+
+  async function downloadFile(item: Record<string, any>) {
+    FileSaver.saveAs(item.url || item.data, item.title)
+  }
+
   const FileIcon = (icon: string) => {
     switch (icon) {
       case 'mdi-pdf-box':
@@ -125,11 +137,12 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState((
     isLoading,
     api,
     open,
-    onFileSelect,
+    onDrop,
     modalVisible,
     FileIcon,
     fileRemovedHook,
     fileAddedHook,
     removeFile,
+    downloadFile,
   }
 }, 'attachmentCell')

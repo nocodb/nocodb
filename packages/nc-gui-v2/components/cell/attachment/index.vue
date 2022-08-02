@@ -23,7 +23,7 @@ const emits = defineEmits<Emits>()
 
 const dropZoneRef = ref<HTMLDivElement>()
 
-const { modalVisible, attachments, visibleItems, onFileSelect, isLoading, open, FileIcon, fileRemovedHook, fileAddedHook } =
+const { modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, fileRemovedHook, fileAddedHook } =
   useProvideAttachmentCell()
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
@@ -45,13 +45,6 @@ fileRemovedHook.on((data) => {
 fileAddedHook.on((data) => {
   emits('update:modelValue', data)
 })
-
-function onDrop(droppedFiles: File[] | null) {
-  if (droppedFiles) {
-    // set files
-    onFileSelect(droppedFiles)
-  }
-}
 
 const selectImage = (file: any, i: unknown) => {
   // todo: implement

@@ -576,14 +576,11 @@ onMounted(() => {
       <a-row>
         <a-col :span="24">
           <div class="text-gray-600">
-            <em>Available context variables are <strong>data and user</strong></em>
+            <em>Use context variable <strong>data</strong> to refer the record under consideration</em>
 
             <a-tooltip bottom>
               <template #title>
-                <span>
-                  <strong>data</strong> : Row data <br />
-                  <strong>user</strong> : User information<br />
-                </span>
+                <span> <strong>data</strong> : Row data <br /> </span>
               </template>
               <MdiInformationIcon class="ml-2" />
             </a-tooltip>

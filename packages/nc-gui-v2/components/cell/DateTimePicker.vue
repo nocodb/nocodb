@@ -50,12 +50,12 @@ const localState = $computed({
     :bordered="false"
     class="!w-full px-1"
     format="YYYY-MM-DD HH:mm"
-    :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date' : ''"
+    :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date and time' : ''"
     :allow-clear="!readOnlyMode"
     :input-read-only="true"
     :open="readOnlyMode ? false : undefined"
   >
-    <template v-if="readOnlyMode" #suffixIcon></template>
+    <template #suffixIcon></template>
   </a-date-picker>
 </template>
 

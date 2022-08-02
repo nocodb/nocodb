@@ -4,6 +4,13 @@ export enum Role {
   User = 'user',
 }
 
+export enum ProjectRole {
+  Owner = 'owner',
+  Editor = 'editor',
+  User = 'user',
+  Guest = 'guest',
+}
+
 export enum ClientType {
   MYSQL = 'mysql2',
   MSSQL = 'mssql',

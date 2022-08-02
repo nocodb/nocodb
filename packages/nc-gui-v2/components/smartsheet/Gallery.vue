@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
-import { inject, onKeyStroke, onMounted, provide } from '#imports'
+import { inject, provide, useViewData } from '#imports'
 import { ActiveViewInj, ChangePageInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReadonlyInj } from '~/context'
-import useViewData from '~/composables/useViewData'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
@@ -13,7 +12,7 @@ const isPublicView = false
 const selected = reactive<{ row?: number | null; col?: number | null }>({})
 const editEnabled = ref(false)
 
-const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view)
+const { loadData, paginationData, formattedData: data, updateRowProperty, changePage } = useViewData(meta, view as any)
 
 provide(IsFormInj, false)
 provide(IsGridInj, false)

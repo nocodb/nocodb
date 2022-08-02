@@ -1,8 +1,8 @@
 import type { TableInfoType, TableType } from 'nocodb-sdk'
+import { useProject } from './useProject'
 import { useNuxtApp, useState } from '#app'
-import { useProject } from '#imports'
 
-export default () => {
+export function useMetas() {
   const { $api } = useNuxtApp()
   const { tables } = useProject()
 

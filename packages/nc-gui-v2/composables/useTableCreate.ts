@@ -1,12 +1,12 @@
 import type { TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
+import { useProject } from './useProject'
 import { useNuxtApp } from '#app'
-import { useProject } from '#imports'
+import { useToast } from 'vue-toastification'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
-export default (onTableCreate?: (tableMeta: TableType) => void) => {
-  const table = reactive<{ title: string; table_name: string; columns: Record<string, boolean> }>({
+export function useTableCreate(onTableCreate?: (tableMeta: TableType) => void) {
+  const table = reactive<{ title: string; table_name: string; columns: string[] }>({
     title: '',
     table_name: '',
     columns: {

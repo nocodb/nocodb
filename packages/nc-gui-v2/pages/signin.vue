@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import type { RuleObject } from 'ant-design-vue/es/form'
 import { definePageMeta } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { navigateTo, useNuxtApp } from '#app'
@@ -25,7 +26,7 @@ const form = reactive({
   password: '',
 })
 
-const formRules = {
+const formRules: Record<string, RuleObject[]> = {
   email: [
     // E-mail is required
     { required: true, message: t('msg.error.signUpRules.emailReqd') },
@@ -33,7 +34,7 @@ const formRules = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (isEmail(v)) return resolve(true)
+          if (isEmail(v)) return resolve()
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },
@@ -79,7 +80,7 @@ const resetError = () => {
     >
       <div class="h-full w-full flex flex-col flex-wrap items-center pt-[100px]">
         <div
-          class="bg-white dark:(!bg-gray-900 !text-white) md:relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+          class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
           <general-noco-icon />
 
@@ -152,7 +153,7 @@ const resetError = () => {
   }
 
   .submit {
-    @apply ml-1 bordered border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+    @apply ml-1 border border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
   }
 }
 </style>

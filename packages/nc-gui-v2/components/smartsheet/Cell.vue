@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { provide } from 'vue'
-import { computed } from '#imports'
+import { computed, useColumn } from '#imports'
 import { ColumnInj } from '~/context'
-import useColumn from '~/composables/useColumn'
 
 interface Props {
   column: ColumnType
@@ -178,7 +177,7 @@ todo :
     <CellDatePicker v-else-if="isDate" v-model="localState" />
     <CellYearPicker v-else-if="isYear" v-model="localState" />
     <CellDateTimePicker v-else-if="isDateTime" v-model="localState" />
-    <CellDateTimePicker v-else-if="isTime" v-model="localState" />
+    <CellTimePicker v-else-if="isTime" v-model="localState" />
     <CellRating v-else-if="isRating" v-model="localState" />
     <!--      v-model="localState"
           :active="active"

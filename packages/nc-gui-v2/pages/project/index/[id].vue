@@ -41,7 +41,7 @@ const renameProject = async () => {
     await $api.project.update(route.params.id as string, formState)
 
     navigateTo(`/nc/${route.params.id}`)
-  } catch (e) {
+  } catch (e: any) {
     toast.error(await extractSdkResponseErrorMsg(e))
   }
   loading.value = false

@@ -10,9 +10,14 @@
     "noUnusedLocals": false,
     "strictNullChecks": true,
     "forceConsistentCasingInFileNames": true,
-    "types": ["@intlify/vite-plugin-vue-i18n/client", "vue-i18n", "unplugin-icons/types/vue", "nuxt-windicss"]
+    "types": [
+      "@intlify/vite-plugin-vue-i18n/client",
+      "vue-i18n",
+      "unplugin-icons/types/vue",
+      "nuxt-windicss",
+      "vite/client"
+    ]
   },
-  "files": ["nuxt-shim.d.ts", "windi.config.ts"],
   "exclude": [
     "node_modules",
     "dist",

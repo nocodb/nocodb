@@ -18,7 +18,7 @@ export default {
 </script>
 
 <template>
-  <a-layout-content>
+  <a-layout-content class="pl-2 pt-2">
     <teleport v-if="$slots.sidebar" to="#sidebar">
       <slot name="sidebar" />
     </teleport>

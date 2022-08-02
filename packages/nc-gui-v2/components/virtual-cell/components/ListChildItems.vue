@@ -148,7 +148,7 @@ export default {
                 :tooltip="`Unlink this '${meta.title}' from '${parentMeta.title}'`"
                 :color="['error', 'grey']"
                 small
-                icon.class="mr-1 mt-n1"
+                class="mr-1 mt-n1"
                 @click.stop="$emit('unlink', ch, i)"
               >
                 mdi-link-variant-remove

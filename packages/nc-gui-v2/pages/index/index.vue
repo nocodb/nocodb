@@ -4,8 +4,7 @@ import type { ProjectType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import { navigateTo } from '#app'
 import { computed, onMounted } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiDeleteOutline from '~icons/mdi/delete-outline'
 import MdiEditOutline from '~icons/mdi/edit-outline'
 import MdiRefresh from '~icons/mdi/refresh'
@@ -18,7 +17,7 @@ const toast = useToast()
 
 const filterQuery = ref('')
 const loading = ref(true)
-const projects = ref()
+const projects = ref<ProjectType[]>()
 
 const loadProjects = async () => {
   loading.value = true
@@ -28,8 +27,10 @@ const loadProjects = async () => {
 }
 
 const filteredProjects = computed(() => {
-  return projects.value.filter(
-    (project) => !filterQuery.value || project.title?.toLowerCase?.().includes(filterQuery.value.toLowerCase()),
+  return (
+    projects.value?.filter(
+      (project) => !filterQuery.value || project.title?.toLowerCase?.().includes(filterQuery.value.toLowerCase()),
+    ) ?? []
   )
 })
 
@@ -44,7 +45,7 @@ const deleteProject = (project: ProjectType) => {
       try {
         $e('c:project:delete')
         await $api.project.delete(project.id as string)
-        projects.value.splice(projects.value.indexOf(project), 1)
+        projects.value?.splice(projects.value.indexOf(project), 1)
       } catch (e) {
         toast.error(await extractSdkResponseErrorMsg(e))
       }

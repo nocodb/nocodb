@@ -2,7 +2,7 @@ import type { FilterType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#imports'
 
-export default function (
+export function useViewFilters(
   view: Ref<(GridType | KanbanType | GalleryType) & { id?: string }> | undefined,
   parentId?: string,
   reloadData?: () => void,

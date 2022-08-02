@@ -3,8 +3,8 @@ import { useToast } from 'vue-toastification'
 import { inject, ref, useProject, watchEffect } from '#imports'
 import { useNuxtApp } from '#app'
 import { ColumnInj, MetaInj } from '~/context'
-import { NOCO } from '~/lib/constants'
-import { isImage } from '~/utils/fileUtils'
+import { NOCO } from '~/lib'
+import { isImage } from '~/utils'
 import MaterialPlusIcon from '~icons/mdi/plus'
 import MaterialArrowExpandIcon from '~icons/mdi/arrow-expand'
 
@@ -37,7 +37,7 @@ watchEffect(() => {
   }
 })
 
-const selectImage = (file: any, i) => {
+const selectImage = (file: any, i: unknown) => {
   // todo: implement
 }
 
@@ -49,7 +49,7 @@ const addFile = () => {
   fileInput.value?.click()
 }
 
-const onFileSelection = async (e) => {
+const onFileSelection = async (e: unknown) => {
   // if (this.isPublicGrid) {
   //   return
   // }

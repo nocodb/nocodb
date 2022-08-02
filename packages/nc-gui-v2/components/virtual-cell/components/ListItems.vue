@@ -122,7 +122,7 @@ export default {
           @keydown.enter="loadData"
         >
           <template #append>
-            <x-icon tooltip="Apply filter" small icon.class="mt-1" @click="loadData"> mdi-keyboard-return </x-icon>
+            <x-icon tooltip="Apply filter" small icon class="mt-1" @click="loadData"> mdi-keyboard-return </x-icon>
           </template>
         </v-text-field>
         <v-spacer />

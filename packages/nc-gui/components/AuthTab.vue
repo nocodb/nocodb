@@ -2,15 +2,17 @@
   <div class="h-100 nc-auth-tab">
     <div class="h-100" style="width: 100%">
       <v-tabs height="40" color="x-active">
-        <v-tab>
-          <span class="caption text-capitalize">
-            <!-- Users Management -->
-            {{ $t('title.userMgmt') }}
-          </span>
-        </v-tab>
-        <v-tab-item class="h-100">
-          <user-management class="backgroundColor" :nodes="nodes" />
-        </v-tab-item>
+        <template v-if="_isUIAllowed('team-auth.userManagement')">
+          <v-tab>
+            <span class="caption text-capitalize">
+              <!-- Users Management -->
+              {{ $t('title.userMgmt') }}
+            </span>
+          </v-tab>
+          <v-tab-item class="h-100">
+            <user-management class="backgroundColor" :nodes="nodes" />
+          </v-tab-item>
+        </template>
 
         <template v-if="_isUIAllowed('apiTokenTab')">
           <v-tab>

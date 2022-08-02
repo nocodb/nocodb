@@ -64,7 +64,7 @@
                     {{ $t('title.rolesUserMgmt') }}
                   </v-tooltip>
 
-                  <template v-if="_isUIAllowed('treeViewProjectSettings')">
+                  <template v-if="_isUIAllowed('treeViewProjectSettings.adminOptions')">
                     <v-tooltip bottom>
                       <template #activator="{ on }">
                         <v-list-item

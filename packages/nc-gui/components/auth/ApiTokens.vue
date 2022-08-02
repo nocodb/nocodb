@@ -20,7 +20,7 @@
         {{ $t("general.reload") }}
       </x-btn>
       <x-btn
-        v-if="_isUIAllowed('newUser')"
+        v-if="_isUIAllowed('newToken')"
         v-ge="['roles', 'add new']"
         outlined
         tooltip="Generate new API token"

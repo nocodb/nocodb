@@ -15,16 +15,31 @@ export default {
     gridColUpdate: true,
     filterSync: true,
     csvImport: true,
-    apiDocs: true
+    apiDocs: true,
+    treeViewProjectSettings: true,
+    settings: true,
+    'team-auth': true,
+    apiTokenTab: true,
+    newToken: true
   },
   commenter: {
     smartSheet: true,
     column: true,
-    rowComments: true
+    rowComments: true,
+    treeViewProjectSettings: true,
+    settings: true,
+    'team-auth': true,
+    apiTokenTab: true,
+    newToken: true
   },
   viewer: {
     smartSheet: true,
-    column: true
+    column: true,
+    treeViewProjectSettings: true,
+    settings: true,
+    'team-auth': true,
+    apiTokenTab: true,
+    newToken: true
   },
   user: {
     projectCreate: true,

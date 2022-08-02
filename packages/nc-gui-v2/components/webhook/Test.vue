@@ -2,7 +2,7 @@
 import { onMounted } from '@vue/runtime-core'
 import { useToast } from 'vue-toastification'
 import { MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 interface Props {
   hook: Record<string, any>

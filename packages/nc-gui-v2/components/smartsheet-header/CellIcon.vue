@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { ColumnInj } from '~/context'
+import FilePhoneIcon from '~icons/mdi/file-phone'
 import { useColumn } from '#imports'
 import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'
@@ -55,6 +56,8 @@ const icon = computed(() => {
     return DecimalIcon
   } else if (additionalColMeta.isInt || additionalColMeta.isFloat) {
     return NumericIcon
+  } else if (additionalColMeta.isPhoneNumber) {
+    return FilePhoneIcon
   }
   // else if(additionalColMeta.isForeignKey) {
   //   return FKIcon

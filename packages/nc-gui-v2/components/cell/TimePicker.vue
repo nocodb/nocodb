@@ -22,13 +22,20 @@ const localState = $computed({
     if (!modelValue) {
       return undefined
     }
+    let dateTime = dayjs(modelValue)
 
-    if (!dayjs(modelValue).isValid()) {
+    if (!dateTime.isValid()) {
+      dateTime = dayjs(modelValue, 'HH:mm:ss')
+    }
+    if (!dateTime.isValid()) {
+      dateTime = dayjs(`1999-01-01 ${modelValue}`)
+    }
+    if (!dateTime.isValid()) {
       isTimeInvalid = true
       return undefined
     }
 
-    return dayjs(modelValue)
+    return dateTime
   },
   set(val?: dayjs.Dayjs) {
     if (!val) {

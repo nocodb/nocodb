@@ -27,8 +27,19 @@ function onKeyDown(evt: KeyboardEvent) {
 </script>
 
 <template>
-  <input v-if="editEnabled" ref="root" v-model="vModel" class="outline-none w-full h-full" type="number" @keydown="onKeyDown" />
-  <span v-else>{{ vModel }}</span>
+  <input
+    v-if="editEnabled"
+    ref="root"
+    v-model="vModel"
+    class="outline-none pa-0 border-none w-full h-full prose-sm"
+    type="number"
+    @keydown="onKeyDown"
+  />
+  <span v-else class="prose-sm">{{ vModel }}</span>
 </template>
 
-<style scoped></style>
+<style scoped lang="scss">
+input[type='number']:focus {
+  @apply ring-transparent;
+}
+</style>

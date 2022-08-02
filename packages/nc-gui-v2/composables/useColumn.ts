@@ -30,6 +30,7 @@ export function useColumn(column: ColumnType) {
   const isAttachment = uiDatatype === 'Attachment'
   const isRating = uiDatatype === UITypes.Rating
   const isCurrency = uiDatatype === 'Currency'
+  const isPhoneNumber = uiDatatype === UITypes.PhoneNumber
   const isDecimal = uiDatatype === UITypes.Decimal
   const isDuration = uiDatatype === UITypes.Duration
   const isPercent = uiDatatype === UITypes.Percent
@@ -76,5 +77,6 @@ export function useColumn(column: ColumnType) {
     isSingleSelect,
     isMultiSelect,
     isPercent,
+    isPhoneNumber,
   }
 }

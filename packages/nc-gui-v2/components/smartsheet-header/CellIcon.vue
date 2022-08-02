@@ -5,10 +5,13 @@ import FilePhoneIcon from '~icons/mdi/file-phone'
 import { useColumn } from '#imports'
 import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'
+import ClockIcon from '~icons/mdi/clock-time-five'
 // import FKIcon from '~icons/mdi/link-variant'
+import Web from '~icons/mdi/web'
 import TextAreaIcon from '~icons/mdi/card-text-outline'
 import StringIcon from '~icons/mdi/alpha-a-box-outline'
 import BooleanIcon from '~icons/mdi/check-box-outline'
+import YearIcon from '~icons/mdi/calendar'
 import SingleSelectIcon from '~icons/mdi/radiobox-marked'
 import MultiSelectIcon from '~icons/mdi/checkbox-multiple-marked'
 import DatetimeIcon from '~icons/mdi/calendar-clock'
@@ -17,7 +20,6 @@ import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
 import NumericIcon from '~icons/mdi/numeric'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
-import URLIcon from '~icons/mdi/link'
 import EmailIcon from '~icons/mdi/email'
 import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
 import PercentIcon from '~icons/mdi/percent-outline'
@@ -48,6 +50,10 @@ const icon = computed(() => {
     return TextAreaIcon
   } else if (additionalColMeta.isEmail) {
     return EmailIcon
+  } else if (additionalColMeta.isYear) {
+    return YearIcon
+  } else if (additionalColMeta.isTime) {
+    return ClockIcon
   } else if (additionalColMeta.isRating) {
     return RatingIcon
   } else if (additionalColMeta.isAttachment) {
@@ -63,7 +69,7 @@ const icon = computed(() => {
   //   return FKIcon
   // }
   else if (additionalColMeta.isURL) {
-    return URLIcon
+    return Web
   } else if (additionalColMeta.isCurrency) {
     return CurrencyIcon
   } else if (additionalColMeta.isPercent) {

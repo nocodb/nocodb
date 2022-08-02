@@ -191,7 +191,7 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
         <table class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
             <tr class="group">
-              <th>
+              <th class="w-[80px]">
                 <div class="flex align-center">
                   <div class="group-hover:hidden" :class="{ hidden: selectedAllRecords }">#</div>
                   <div
@@ -231,7 +231,7 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
           <tbody>
             <tr v-for="(row, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
               <td key="row-index" class="caption nc-grid-cell">
-                <div class="align-center flex w-[80px]">
+                <div class="align-center flex">
                   <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
                   <div
                     :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
@@ -332,8 +332,6 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
     border-bottom: 1px solid #7f828b33 !important;
     border-top: 1px solid #7f828b33 !important;
     border-collapse: collapse;
-
-    font-size: 0.8rem;
   }
 
   td {

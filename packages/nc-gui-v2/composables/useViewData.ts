@@ -174,7 +174,7 @@ export function useViewData(
   const deleteRow = async (rowIndex: number) => {
     try {
       const row = formattedData.value[rowIndex]
-      if (row.rowMeta.new) {
+      if (!row.rowMeta.new){
         const id = meta?.value?.columns
           ?.filter((c) => c.pk)
           .map((c) => row.row[c.title as any])

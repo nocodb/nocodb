@@ -1,8 +1,11 @@
 <script setup lang="ts">
 import { computed, inject } from '#imports'
-import { ColumnInj, IsFormInj } from '~/context'
+import { ColumnInj } from '~/context'
 import MdiStarIcon from '~icons/mdi/star'
-import MdiStarOutlineIcon from '~icons/mdi/star-outline'
+import MdiHeartIcon from '~icons/mdi/heart'
+import MdiMoonFullIcon from '~icons/mdi/moon-full'
+import MdiThumbUpIcon from '~icons/mdi/thumb-up'
+import MdiFlagIcon from '~icons/mdi/flag'
 
 interface Props {
   modelValue?: number
@@ -11,21 +14,33 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue'])
-
-const vModel = useVModel(props, 'modelValue', emit)
+const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
-const isForm = inject(IsFormInj)
+
+const ratingMeta = computed(() => {
+  return {
+    icon: {
+      full: 'mdi-star',
+      empty: 'mdi-star-outline',
+    },
+    color: '#fcb401',
+    max: 5,
+    ...(column?.meta || {}),
+  }
+})
+
+const vModel = useVModel(props, 'modelValue', emits)
 </script>
 
 <template>
-  <div class="d-100 h-100" :class="{ 'nc-cell-hover-show': vModel === 0 || !vModel }">
-    <v-rating v-model="vModel" :length="5" dense x-small :readonly="readOnly" clearable>
-      <template #item="{ isFilled, click }">
-        <MdiStarIcon v-if="isFilled" class="text-[#fcb40]" @click="click" />
-        <MdiStarOutlineIcon v-else class="text-[#fcb40]" @click="click" />
-      </template>
-    </v-rating>
-  </div>
+  <a-rate v-model:value="vModel" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`" :disabled="props.readOnly">
+    <template #character>
+      <MdiStarIcon v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />
+      <MdiHeartIcon v-if="ratingMeta.icon.full === 'mdi-heart'" class="text-sm" />
+      <MdiMoonFullIcon v-if="ratingMeta.icon.full === 'mdi-moon-full'" class="text-sm" />
+      <MdiThumbUpIcon v-if="ratingMeta.icon.full === 'mdi-thumb-up'" class="text-sm" />
+      <MdiFlagIcon v-if="ratingMeta.icon.full === 'mdi-flag'" class="text-sm" />
+    </template>
+  </a-rate>
 </template>

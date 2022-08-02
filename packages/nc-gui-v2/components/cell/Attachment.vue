@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
-import { inject, ref, useProject, watchEffect } from '#imports'
+import { inject, reactive, ref, useProject, watchEffect } from '#imports'
 import { useNuxtApp } from '#app'
-import { ColumnInj, MetaInj } from '~/context'
+import { ColumnInj, EditModeInj, MetaInj } from '~/context'
 import { NOCO } from '~/lib'
 import { isImage } from '~/utils'
 import MaterialPlusIcon from '~icons/mdi/plus'
@@ -20,7 +20,7 @@ const isPublicForm = inject<boolean>('isPublicForm', false)
 const isForm = inject<boolean>('isForm', false)
 const meta = inject(MetaInj)
 const column = inject(ColumnInj)
-const editEnabled = inject<boolean>('editEnabled', false)
+const editEnabled = inject(EditModeInj, ref(false))
 
 const localFilesState = reactive([])
 const attachments = ref([])
@@ -28,7 +28,9 @@ const uploading = ref(false)
 const fileInput = ref<HTMLInputElement>()
 
 const { $api } = useNuxtApp()
+
 const { project } = useProject()
+
 const toast = useToast()
 
 watchEffect(() => {
@@ -97,15 +99,12 @@ const onFileSelection = async (e: unknown) => {
   }
   uploading.value = false
   emit('update:modelValue', JSON.stringify([...attachments.value, ...newAttachments]))
-
-  // this.$emit('input', JSON.stringify(this.localState))
-  // this.$emit('update')
 }
 </script>
 
 <template>
-  <div class="main h-100">
-    <div class="d-flex align-center img-container">
+  <div class="h-full w-full">
+    <div class="flex items-center img-container">
       <div class="d-flex no-overflow">
         <div
           v-for="(item, i) in isPublicForm ? localFilesState : attachments"
@@ -156,13 +155,11 @@ const onFileSelection = async (e: unknown) => {
         <MaterialPlusIcon />
       </div>
 
-      <v-spacer />
-
       <MaterialArrowExpandIcon @click.stop="dialog = true" />
       <!--      <v-icon class="expand-icon mr-1" x-small color="primary" @click.stop="dialog = true"> mdi-arrow-expand </v-icon> -->
     </div>
 
-    <input ref="fileInput" type="file" multiple class="d-none" @change="onFileSelection" />
+    <input ref="fileInput" type="file" multiple class="hidden" @change="onFileSelection" />
   </div>
 </template>
 
@@ -188,151 +185,4 @@ const onFileSelection = async (e: unknown) => {
 .expand-icon:hover {
   background-color: var(--v-primary-lighten4);
 }
-
-/*.img-container {
-  margin: 0 -2px;
-}
-
-.no-overflow {
-  overflow: hidden;
-}
-
-.add {
-  transition: 0.2s background-color;
-  !*background-color: #666666ee;*!
-  border-radius: 4px;
-  height: 33px;
-  margin: 5px 2px;
-}
-
-.add:hover {
-  !*background-color: #66666699;*!
-}
-
-.thumbnail {
-  height: 99px;
-  width: 99px;
-  margin: 2px;
-  border-radius: 4px;
-}
-
-.thumbnail img {
-  !*max-height: 33px;*!
-  max-width: 99px;
-}
-
-.main {
-  min-height: 20px;
-  position: relative;
-  height: auto;
-}
-
-.expand-icon {
-  margin-left: 8px;
-  border-radius: 2px;
-  !*opacity: 0;*!
-  transition: 0.3s background-color;
-}
-
-.expand-icon:hover {
-  !*opacity: 1;*!
-  background-color: var(--v-primary-lighten4);
-}
-
-.modal-thumbnail img {
-  height: 50px;
-  max-width: 100%;
-  border-radius: 4px;
-}
-
-.modal-thumbnail {
-  position: relative;
-  margin: 10px 10px;
-}
-
-.remove-icon {
-  position: absolute;
-  top: 5px;
-  right: 5px;
-}
-
-.modal-thumbnail-card {
-  .download-icon {
-    position: absolute;
-    bottom: 5px;
-    right: 5px;
-    opacity: 0;
-    transition: 0.4s opacity;
-  }
-
-  &:hover .download-icon {
-    opacity: 1;
-  }
-}
-
-.image-overlay-container {
-  max-height: 100vh;
-  overflow-y: auto;
-  position: relative;
-}
-
-.image-overlay-container .close-icon {
-  position: fixed;
-  top: 15px;
-  right: 15px;
-}
-
-.overlay-thumbnail {
-  transition: 0.4s transform, 0.4s opacity;
-  opacity: 0.5;
-}
-
-.overlay-thumbnail.active {
-  transform: scale(1.4);
-  opacity: 1;
-}
-
-.overlay-thumbnail:hover {
-  opacity: 1;
-}
-
-.modal-title {
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  width: 100%;
-  overflow: hidden;
-}
-
-.modal-thumbnail-card {
-  transition: 0.4s transform;
-}
-
-.modal-thumbnail-card:hover {
-  transform: scale(1.05);
-}
-
-.drop-overlay {
-  z-index: 5;
-  position: absolute;
-  width: 100%;
-  height: 100%;
-  left: 0;
-  right: 0;
-  top: 0;
-  bottom: 5px;
-  background: #aaaaaa44;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  pointer-events: none;
-}
-
-.expand-icon {
-  opacity: 0;
-  transition: 0.4s opacity;
-}
-
-.main:hover .expand-icon {
-  opacity: 1;
-}*/
 </style>

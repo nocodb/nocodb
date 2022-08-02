@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, inject } from '#imports'
-import { ColumnInj } from '~/context'
+import { ColumnInj, EditModeInj } from '~/context'
 
 interface Props {
   modelValue: string
@@ -12,7 +12,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 const isForm = inject<boolean>('isForm', false)
-const editEnabled = inject<boolean>('editEnabled', false)
+const editEnabled = inject(EditModeInj, ref(false))
 
 const options = computed(() => column?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
 
@@ -24,56 +24,6 @@ const localState = computed({
     emit('update:modelValue', val?.filter((v) => options.value.includes(v)).join(','))
   },
 })
-
-/* import colors from '@/components/project/spreadsheet/helpers/colors'
-
-export default {
-  name: 'SetListCheckboxCell',
-  props: {
-    value: String,
-    column: Object,
-    values: Array,
-  },
-  data() {},
-  computed: {
-    colors() {
-      return this.$store.state.settings.darkTheme ? colors.dark : colors.light
-    },
-    localState: {
-      get() {
-        return (this.value && this.value.split(',')) || []
-      },
-      set(val) {
-        this.$emit('input', val.join(','))
-        this.$emit('update')
-      },
-    },
-    setValues() {
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map((v) => v.replace(/^'|'$/g, ''))
-      }
-      return this.values || []
-    },
-    parentListeners() {
-      const $listeners = {}
-
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
-
-      return $listeners
-    },
-  },
-  mounted() {
-    this.$el.focus()
-    const event = document.createEvent('MouseEvents')
-    event.initMouseEvent('mousedown', true, true, window)
-    this.$el.dispatchEvent(event)
-  },
-} */
 </script>
 
 <template>

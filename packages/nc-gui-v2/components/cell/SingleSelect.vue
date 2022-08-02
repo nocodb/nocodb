@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, inject } from '#imports'
-import { ColumnInj } from '~/context'
+import { ColumnInj, EditModeInj } from '~/context'
 
 interface Props {
   modelValue: string
@@ -12,45 +12,18 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 const isForm = inject<boolean>('isForm', false)
-const editEnabled = inject<boolean>('editEnabled', false)
+const editEnabled = inject(EditModeInj, ref(false))
 
-const localState = computed({
+const vModel = computed({
   get: () => modelValue?.replace(/\\'/g, "'").replace(/^'|'$/g, ''),
   set: (val) => emit('update:modelValue', val),
 })
 
 const options = computed(() => column?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
-
-/* import colors from '@/mixins/colors'
-
-export default {
-  name: 'EnumListEditableCell',
-  mixins: [colors],
-
-  props: {
-    value: String,
-    column: Object,
-    isForm: Boolean,
-  },
-  computed: {
-    parentListeners() {
-      const $listeners = {}
-
-      if (this.$listeners.blur) {
-        $listeners.blur = this.$listeners.blur
-      }
-      if (this.$listeners.focus) {
-        $listeners.focus = this.$listeners.focus
-      }
-
-      return $listeners
-    },
-  },
-} */
 </script>
 
 <template>
-  <v-select v-model="localState" :items="options" hide-details :clearable="!column.rqd" variation="outlined">
+  <v-select v-model="vModel" :items="options" hide-details :clearable="!column.rqd" variation="outlined">
     <!--    v-on="parentListeners"
     <template #selection="{ item }">
       <div

@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from '#imports'
+import { inject, ref, useVModel } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
   modelValue?: string
@@ -7,32 +8,26 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emits = defineEmits(['update:modelValue'])
+const emit = defineEmits(['update:modelValue'])
 
-const editEnabled = inject<boolean>('editEnabled', false)
+const editEnabled = inject(EditModeInj, ref(false))
 
-const vModel = useVModel(props, 'modelValue', emits)
+const vModel = useVModel(props, 'modelValue', emit)
 
-const onSetRef = (el: HTMLInputElement) => {
-  el.focus()
-}
+const focus = (el: HTMLTextAreaElement) => el.focus()
 </script>
 
 <template>
-  <textarea
-    v-if="editEnabled"
-    :ref="onSetRef"
-    v-model="vModel"
-    rows="4"
-    class="h-full w-full min-h-[60px] outline-none"
-    @keydown.alt.enter.stop
-    @keydown.shift.enter.stop
-  />
+  <textarea v-if="editEnabled" :ref="focus" v-model="vModel" rows="4" @keydown.alt.enter.stop @keydown.shift.enter.stop />
   <span v-else>{{ vModel }}</span>
 </template>
 
 <style scoped>
-textarea:focus {
-  @apply ring-transparent;
+input,
+textarea {
+  width: 100%;
+  min-height: 60px;
+  height: 100%;
+  color: var(--v-textColor-base);
 }
 </style>

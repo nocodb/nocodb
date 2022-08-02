@@ -12,6 +12,7 @@ import {
 import {
   ActiveViewInj,
   ChangePageInj,
+  EditModeInj,
   FieldsInj,
   IsFormInj,
   IsGridInj,
@@ -44,6 +45,7 @@ provide(IsFormInj, false)
 provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
+provide(EditModeInj, editEnabled)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 reloadViewDataHook?.on(() => {
@@ -142,68 +144,6 @@ if (meta) useProvideColumnCreateStore(meta)
               @click="selectCell(rowIndex, colIndex)"
               @dblclick="editEnabled = true"
             >
-              <!--          @contextmenu=" -->
-              <!--            showRowContextMenu($event, rowObj, rowMeta, row, col, columnObj) -->
-              <!--          " -->
-              <!--        > -->
-              <!--          <virtual-cell -->
-              <!--            v-if="isVirtualCol(columnObj)" -->
-              <!--            :password="password" -->
-              <!--            :is-public="isPublicView" -->
-              <!--            :metas="metas" -->
-              <!--            :is-locked="isLocked" -->
-              <!--            :column="columnObj" -->
-              <!--            :row="rowObj" -->
-              <!--            :nodes="nodes" -->
-              <!--            :meta="meta" -->
-              <!--            :api="api" -->
-              <!--            :active="selected.col === col && selected.row === row" -->
-              <!--            :sql-ui="sqlUi" -->
-              <!--            :is-new="rowMeta.new" -->
-              <!--            v-on="$listeners" -->
-              <!--            @updateCol=" -->
-              <!--              (...args) => -->
-              <!--                updateCol( -->
-              <!--                  ...args, -->
-              <!--                  columnObj.bt -->
-              <!--                    && meta.columns.find( -->
-              <!--                      (c) => c.column_name === columnObj.bt.column_name, -->
-              <!--                    ), -->
-              <!--                  col, -->
-              <!--                  row, -->
-              <!--                ) -->
-              <!--            " -->
-              <!--            @saveRow="onCellValueChange(col, row, columnObj, true)" -->
-              <!--          /> -->
-
-              <!--          <editable-cell -->
-              <!--            v-else-if=" -->
-              <!--              ((isPkAvail || rowMeta.new) -->
-              <!--                && !isView -->
-              <!--                && !isLocked -->
-              <!--                && !isPublicView -->
-              <!--                && editEnabled.col === col -->
-              <!--                && editEnabled.row === row) -->
-              <!--                || enableEditable(columnObj) -->
-              <!--            " -->
-              <!--            v-model="rowObj[columnObj.title]" -->
-              <!--            :column="columnObj" -->
-              <!--            :meta="meta" -->
-              <!--            :active="selected.col === col && selected.row === row" -->
-              <!--            :sql-ui="sqlUi" -->
-              <!--            :db-alias="nodes.dbAlias" -->
-              <!--            :is-locked="isLocked" -->
-              <!--            :is-public="isPublicView" -->
-              <!--            :view-id="viewId" -->
-              <!--            @save="editEnabled = {}; onCellValueChange(col, row, columnObj, true);" -->
-              <!--            @cancel="editEnabled = {}" -->
-              <!--            @update="onCellValueChange(col, row, columnObj, false)" -->
-              <!--            @blur="onCellValueChange(col, row, columnObj, true)" -->
-              <!--            @input="unsaved = true" -->
-              <!--            @navigateToNext="navigateToNext" -->
-              <!--            @navigateToPrev="navigateToPrev" -->
-              <!--          /> -->
-
               <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row[columnObj.title]" :column="columnObj" />
 
               <SmartsheetCell
@@ -213,20 +153,6 @@ if (meta) useProvideColumnCreateStore(meta)
                 :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
                 @update:model-value="updateRowProperty(row, columnObj.title)"
               />
-
-              <!--          <SmartsheetCell v-else :column="columnObj" :value="row[columnObj.title]" /> -->
-              <!-- :selected="selected.col === col && selected.row === row" -->
-              <!--        :is-locked="isLocked" -->
-              <!--            :column="columnObj" -->
-              <!--            :meta="meta" -->
-              <!--            :db-alias="nodes.dbAlias" -->
-              <!--            :value="rowObj[columnObj.title]" -->
-              <!--            :sql-ui="sqlUi" -->
-              <!--            @enableedit=" -->
-              <!--              makeSelected(col, row); -->
-              <!--              makeEditable(col, row, columnObj.ai, rowMeta); -->
-              <!--            " -->
-              <!--          /> -->
             </td>
           </tr>
         </tbody>

@@ -55,7 +55,6 @@ const {
   updateOrSaveRow,
   changePage,
   addEmptyRow,
-  selectedRows,
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
@@ -189,8 +188,8 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
 
 <template>
   <div class="flex flex-col h-100 min-h-0 w-100">
-    <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
-      <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-primary">
+    <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-primary">
+      <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
             <tr class="group">
@@ -292,16 +291,19 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
             </tr>
           </tbody>
         </table>
-      </div>
-      <template #overlay>
-        <div class="bg-white shadow" @click="contextMenu = false">
-          <div v-if="contextMenuTarget" class="nc-menu-item" @click="deleteRow(contextMenuTarget.row)">Delete row</div>
-          <div class="nc-menu-item" @click="deleteSelectedRows">Delete all selected rows</div>
-          <div v-if="contextMenuTarget" class="nc-menu-item" @click="clearCell(contextMenuTarget)">Clear cell</div>
-          <div v-if="contextMenuTarget" class="nc-menu-item" @click="addEmptyRow(contextMenuTarget.row + 1)">Insert new row</div>
-        </div>
-      </template>
-    </a-dropdown>
+        <template #overlay>
+          <div class="bg-white shadow" @click="contextMenu = false">
+            <div v-if="contextMenuTarget" class="nc-menu-item" @click="deleteRow(contextMenuTarget.row)">Delete row</div>
+            <div class="nc-menu-item" @click="deleteSelectedRows">Delete all selected rows</div>
+            <div v-if="contextMenuTarget" class="nc-menu-item" @click="clearCell(contextMenuTarget)">Clear cell</div>
+            <div v-if="contextMenuTarget" class="nc-menu-item" @click="addEmptyRow(contextMenuTarget.row + 1)">
+              Insert new row
+            </div>
+          </div>
+        </template>
+      </a-dropdown>
+    </div>
+
     <SmartsheetPagination />
   </div>
 </template>

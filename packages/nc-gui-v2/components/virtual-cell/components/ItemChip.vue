@@ -1,25 +1,24 @@
 <script setup lang="ts">
-import { ReadonlyInj } from '~/context'
+import { ActiveCellInj, ReadonlyInj } from '~/context'
 import MdiCloseThickIcon from '~icons/mdi/close-thick'
 
 interface Props {
   value?: string | number | boolean
-  active?: boolean
   item?: any
 }
 
-const { value, active, item } = defineProps<Props>()
+const { value, item } = defineProps<Props>()
 const readonly = inject(ReadonlyInj, false)
+const active = inject(ActiveCellInj, false)
 </script>
 
 <template>
-  <v-chip class="chip" :class="{ active }" small text-color="textColor">
+  <div class="group py-1 px-2 flex align-center gap-1 bg-gray-200/50 hover:bg-gray-200 rounded-[20px]" :class="{ active }" >
     <span class="name">{{ value }}</span>
-
-    <div v-show="active" v-if="!readonly" class="mr-n1 ml-2">
-      <MdiCloseThickIcon class="unlink-icon" />
+    <div v-show="active" v-if="!readonly" class="flex align-center ">
+      <MdiCloseThickIcon class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" />
     </div>
-  </v-chip>
+  </div>
 </template>
 
 <style scoped lang="scss">

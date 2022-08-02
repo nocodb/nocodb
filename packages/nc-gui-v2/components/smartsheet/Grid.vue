@@ -1,6 +1,7 @@
 <script lang="ts" setup>
-import { isVirtualCol } from 'nocodb-sdk'
+import { ColumnType, isVirtualCol } from 'nocodb-sdk'
 import {
+  Row,
   inject,
   onKeyStroke,
   onMounted,
@@ -13,6 +14,7 @@ import {
 import {
   ActiveViewInj,
   ChangePageInj,
+  EditModeInj,
   FieldsInj,
   IsFormInj,
   IsGridInj,
@@ -279,6 +281,7 @@ const onNavigate = (dir: NavigateDir) => {
                     v-model="row.row[columnObj.title]"
                     :column="columnObj"
                     @navigate="onNavigate"
+                    :active="selected.col === colIndex && selected.row === rowIndex"
                   />
 
                   <SmartsheetCell

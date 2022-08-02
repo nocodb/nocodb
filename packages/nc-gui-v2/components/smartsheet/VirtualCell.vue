@@ -1,20 +1,24 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { provide, useVirtualCell } from '#imports'
-import { ColumnInj, ValueInj } from '~/context'
+import { ColumnInj, ValueInj, ActiveCellInj } from '~/context'
 import { NavigateDir } from '~/lib'
 
 interface Props {
   column: ColumnType
   modelValue: any
+  active?: boolean
 }
 
-const { column, modelValue: value } = defineProps<Props>()
+const props = defineProps<Props>()
+const  { column, modelValue: value,  } = props
+const active = toRef(props, 'active', false)
 
 const emit = defineEmits(['update:modelValue', 'navigate'])
 
 provide(ColumnInj, column)
 provide(ValueInj, value)
+provide(ActiveCellInj, active)
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
 </script>

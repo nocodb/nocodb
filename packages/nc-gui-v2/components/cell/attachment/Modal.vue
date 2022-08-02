@@ -97,8 +97,12 @@ onKeyDown('Escape', () => {
               </div>
             </a-tooltip>
 
-            <div class="nc-attachment p-2 flex items-center cursor-pointer">
-              <img v-if="isImage(item.title, item.mimetype)" :alt="item.title || `#${i}`" :src="item.url || item.data" />
+            <div class="nc-attachment h-full w-full flex items-center justify-center cursor-move">
+              <div
+                v-if="isImage(item.title, item.mimetype)"
+                :style="{ backgroundImage: `url('${item.url}')`, backgroundSize: 'cover' }"
+                class="w-full h-full"
+              />
 
               <component
                 :is="FileIcon(item.icon)"
@@ -147,21 +151,21 @@ onKeyDown('Escape', () => {
   }
 
   .nc-attachment-download {
-    @apply absolute bottom-2 right-2;
+    @apply bg-white absolute bottom-2 right-2;
     @apply transition-opacity duration-150 ease-in opacity-0 hover:ring;
     @apply cursor-pointer rounded shadow flex items-center p-1 border-1;
     @apply active:(ring border-0 ring-pink-500);
   }
 
   .nc-attachment-remove {
-    @apply absolute top-2 right-2;
+    @apply absolute top-2 right-2 bg-white;
     @apply hover:(ring ring-red-500);
-    @apply cursor-pointer rounded-full border-1;
+    @apply cursor-pointer rounded-full border-2;
     @apply active:(ring border-0 ring-red-500);
   }
 
   .ant-card-body {
-    @apply !p-2;
+    @apply !p-2 w-full h-full;
   }
 
   .ant-modal-body {

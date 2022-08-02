@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { ComponentPublicInstance } from '@vue/runtime-core'
 import { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
 import { onMounted, useProject, useTable, useTabs } from '#imports'
@@ -12,17 +11,16 @@ interface Props {
 
 const props = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue', 'create'])
+const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
 
-const idTypes = [
-  { value: 'AI', text: 'Auto increment number' },
-  { value: 'AG', text: 'Auto generated string' },
-]
 const toast = useToast()
+
 const valid = ref(false)
+
 const isIdToggleAllowed = ref(false)
+
 const isAdvanceOptVisible = ref(false)
 
 const { addTab } = useTabs()
@@ -52,50 +50,32 @@ const validateDuplicate = (v: string) => {
   return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
 }
 
-const inputEl = ref<ComponentPublicInstance>()
+const inputEl = ref<HTMLInputElement>()
+
 const useForm = Form.useForm
-const formState = reactive({
-  title: '',
-  table_name: '',
-  columns: {
-    id: true,
-    title: true,
-    created_at: true,
-    updated_at: true,
-  },
-})
+
 const validators = computed(() => {
   return {
     title: [validateTableName, validateDuplicateAlias],
     table_name: [validateTableName],
   }
 })
-const { resetFields, validate, validateInfos } = useForm(formState, validators)
+const { resetFields, validate, validateInfos } = useForm(table, validators)
 
 onMounted(() => {
   generateUniqueTitle()
-
-  nextTick(() => {
-    const el = inputEl.value?.$el
-    el?.querySelector('input')?.focus()
-    el?.querySelector('input')?.select()
-  })
+  inputEl.value?.focus()
 })
 </script>
 
 <template>
-  <a-modal
-    v-model:visible="dialogShow"
-    width="max(30vw, 600px)"
-    @keydown.esc="dialogShow = false"
-    @keydown.enter="$emit('create', table)"
-  >
+  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" :mask-closable="false" @keydown.esc="dialogShow = false">
     <template #footer>
       <a-button key="back" size="large" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-      <a-button key="submit" size="large" type="primary" @click="createTable">{{ $t('general.submit') }}</a-button>
+      <a-button key="submit" size="large" type="primary" @click="createTable()">{{ $t('general.submit') }}</a-button>
     </template>
     <div class="pl-10 pr-10 pt-5">
-      <a-form :model="formState" name="create-new-table-form">
+      <a-form :model="table" name="create-new-table-form" @keydown.enter="createTable">
         <!-- Create A New Table -->
         <div class="prose-xl font-bold self-center my-4">{{ $t('activity.createTable') }}</div>
         <!-- hint="Enter table name" -->
@@ -119,7 +99,7 @@ onMounted(() => {
         </div>
         <div class="nc-table-advanced-options" :class="{ active: isAdvanceOptVisible }">
           <!-- hint="Table name as saved in database" -->
-          <div class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
+          <div v-if="!project.prefix" class="mb-2">{{ $t('msg.info.tableNameInDb') }}</div>
           <a-form-item v-if="!project.prefix" v-bind="validateInfos.table_name">
             <a-input v-model:value="table.table_name" size="large" hide-details :placeholder="$t('msg.info.tableNameInDb')" />
           </a-form-item>
@@ -134,17 +114,17 @@ onMounted(() => {
                   <template #title>
                     <span>ID column is required, you can rename this later if required.</span>
                   </template>
-                  <a-checkbox v-model:checked="formState.columns.id" disabled>ID</a-checkbox>
+                  <a-checkbox v-model:checked="table.columns.id" disabled>ID</a-checkbox>
                 </a-tooltip>
               </a-col>
               <a-col :span="6">
-                <a-checkbox v-model:checked="formState.columns.title"> title </a-checkbox>
+                <a-checkbox v-model:checked="table.columns.title"> title </a-checkbox>
               </a-col>
               <a-col :span="6">
-                <a-checkbox v-model:checked="formState.columns.created_at"> created_at </a-checkbox>
+                <a-checkbox v-model:checked="table.columns.created_at"> created_at </a-checkbox>
               </a-col>
               <a-col :span="6">
-                <a-checkbox v-model:checked="formState.columns.updated_at"> updated_at </a-checkbox>
+                <a-checkbox v-model:checked="table.columns.updated_at"> updated_at </a-checkbox>
               </a-col>
             </a-row>
           </div>

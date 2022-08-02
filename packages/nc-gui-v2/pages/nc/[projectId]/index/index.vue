@@ -152,4 +152,14 @@ function openQuickImportDialog(type: string) {
 :deep(.ant-tabs-nav) {
   @apply !mb-0;
 }
+
+:deep(.ant-menu-item-selected) {
+  @apply text-inherit !bg-inherit;
+}
+
+:deep(.ant-menu-horizontal),
+:deep(.ant-menu-item::after),
+:deep(.ant-menu-submenu::after) {
+  @apply !border-none;
+}
 </style>

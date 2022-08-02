@@ -2,6 +2,7 @@
 import io from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
 import { Form } from 'ant-design-vue'
+import type { Card as AntCard } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
 import { fieldRequiredValidator } from '~/utils/validation'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -14,18 +15,30 @@ interface Props {
 }
 
 const { modelValue } = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue'])
 
 // TODO: handle baseURL
 const baseURL = 'http://localhost:8080' // this.$axios.defaults.baseURL
 
 const { $state } = useNuxtApp()
+
 const toast = useToast()
+
 const { sqlUi, project, loadTables } = useProject()
+
 const loading = ref(false)
+
+const showGoToDashboardButton = ref(false)
+
 const step = ref(1)
+
 const progress = ref<Record<string, any>[]>([])
+
+const logRef = ref<typeof AntCard>()
+
 let socket: Socket | null
+
 const syncSource = ref({
   id: '',
   type: 'Airtable',
@@ -64,6 +77,7 @@ const dialogShow = computed({
 })
 
 const useForm = Form.useForm
+
 const { resetFields, validate, validateInfos } = useForm(syncSource, validators)
 
 const disableImportButton = computed(() => {
@@ -194,7 +208,14 @@ onMounted(async () => {
 
   socket.on('progress', async (d: Record<string, any>) => {
     progress.value.push(d)
+
+    // FIXME: this doesn't work
+    nextTick(() => {
+      ;(logRef.value?.$el as HTMLDivElement).scrollTo()
+    })
+
     if (d.status === 'COMPLETED') {
+      showGoToDashboardButton.value = true
       await loadTables()
       // TODO: add tab of the first table
     }
@@ -210,7 +231,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" @keydown.esc="dialogShow = false">
+  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" :mask-closable="false" @keydown.esc="dialogShow = false">
     <template #footer>
       <div v-if="step === 1">
         <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
@@ -291,7 +312,7 @@ onBeforeUnmount(() => {
       </div>
       <div v-if="step === 2">
         <div class="mb-4 prose-xl font-bold">Logs</div>
-        <a-card body-style="background-color: #000000; height:400px; overflow: auto;">
+        <a-card ref="logRef" body-style="background-color: #000000; height:400px; overflow: auto;">
           <div v-for="({ msg, status }, i) in progress" :key="i">
             <div v-if="status === 'FAILED'" class="flex items-center">
               <MdiCloseCircleOutlineIcon class="text-red-500" />
@@ -314,6 +335,10 @@ onBeforeUnmount(() => {
             <span class="text-green-500 ml-2"> Importing</span>
           </div>
         </a-card>
+        <div class="flex justify-center items-center">
+          <a-button v-if="showGoToDashboardButton" class="mt-4" size="large" @click="dialogShow = false">Go to Dashboard</a-button
+          >
+        </div>
       </div>
     </div>
   </a-modal>

@@ -18,7 +18,6 @@ const meta = inject(MetaInj)
 
 const sampleData = ref({
   data: {},
-  user: {},
 })
 const activeKey = ref(0)
 
@@ -32,7 +31,6 @@ watch(
 async function loadSampleData() {
   sampleData.value = {
     data: await $api.dbTableWebhook.samplePayloadGet(meta?.value?.id as string, hook?.operation),
-    user: $state.user.value as Record<string, any>,
   }
 }
 

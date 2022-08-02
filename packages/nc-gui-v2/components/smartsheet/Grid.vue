@@ -39,6 +39,8 @@ const editEnabled = ref(false)
 const { sqlUi } = useProject()
 const { xWhere } = useSmartsheetStoreOrThrow()
 const addColumnDropdown = ref(false)
+const contextMenu = ref(false)
+const contextMenuTarget = ref(false)
 
 const visibleColLength = computed(() => {
   const cols = fields.value
@@ -51,8 +53,10 @@ const {
   formattedData: data,
   updateRowProperty,
   changePage,
-  addRow,
+  addEmptyRow,
   selectedRows,
+  deleteRow,
+  deleteSelectedRows,
 } = useViewData(meta, view as any, xWhere)
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view)
 onMounted(loadGridViewColumns)
@@ -105,103 +109,116 @@ defineExpose({
 // watchEffect(() => {
 if (meta) useProvideColumnCreateStore(meta)
 // })
+
+// reset context menu target on hide
+watch(contextMenu, () => (contextMenuTarget.value = null))
 </script>
 
 <template>
   <div class="flex flex-col h-100 min-h-0 w-100">
-    <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-primary">
-      <table class="xc-row-table nc-grid backgroundColorDefault">
-        <thead>
-          <tr>
-            <th>#</th>
-            <th
-              v-for="col in fields"
-              :key="col.title"
-              v-xc-ver-resize
-              :data-col="col.id"
-              @xcresize="onresize(col.id, $event)"
-              @xcresizing="onXcResizing(col.title, $event)"
-              @xcresized="resizingCol = null"
-            >
-              <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
-              <SmartsheetHeaderCell v-else :column="col" />
-            </th>
-            <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
-            <th v-t="['c:column:add']" @click="addColumnDropdown = true">
-              <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
-                <div class="h-full w-full flex align-center justify-center">
-                  <MdiPlusIcon class="text-sm" />
+    <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
+      <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-primary">
+        <table class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th
+                v-for="col in fields"
+                :key="col.title"
+                v-xc-ver-resize
+                :data-col="col.id"
+                @xcresize="onresize(col.id, $event)"
+                @xcresizing="onXcResizing(col.title, $event)"
+                @xcresized="resizingCol = null"
+              >
+                <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+                <SmartsheetHeaderCell v-else :column="col" />
+              </th>
+              <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
+              <th v-t="['c:column:add']" @click="addColumnDropdown = true">
+                <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
+                  <div class="h-full w-full flex align-center justify-center">
+                    <MdiPlusIcon class="text-sm" />
+                  </div>
+                  <template #overlay>
+                    <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
+                  </template>
+                </a-dropdown>
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr v-for="({ row, rowMeta }, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
+              <td key="row-index" class="caption nc-grid-cell">
+                <div class="align-center flex w-[80px]">
+                  <div class="group-hover:hidden" :class="{ hidden: rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                  <div
+                    :class="{ hidden: !rowMeta.selected, flex: rowMeta.selected }"
+                    class="group-hover:flex w-full align-center"
+                  >
+                    <a-checkbox v-model:checked="rowMeta.selected" />
+                    <span class="flex-1" />
+                    <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" />
+                  </div>
                 </div>
-                <template #overlay>
-                  <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
-                </template>
-              </a-dropdown>
-            </th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr v-for="({ row, rowMeta }, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
-            <td key="row-index" class="caption nc-grid-cell">
-              <div class="align-center flex w-[80px]">
-                <div class="group-hover:hidden" :class="{ hidden: rowMeta.checked }">{{ rowIndex + 1 }}</div>
-                <div :class="{ hidden: !rowMeta.checked, flex: rowMeta.checked }" class="group-hover:flex w-full align-center">
-                  <a-checkbox v-model:checked="rowMeta.checked" />
-                  <span class="flex-1" />
-                  <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" />
-                </div>
-              </div>
-            </td>
-            <td
-              v-for="(columnObj, colIndex) in fields"
-              :key="rowIndex + columnObj.title"
-              class="cell pointer nc-grid-cell"
-              :class="{
-                active: !isPublicView && selected.col === colIndex && selected.row === rowIndex
-              }"
-              :data-col="columnObj.id"
-              @click="selectCell(rowIndex, colIndex)"
-              @dblclick="editEnabled = true"
-            >
+              </td>
+              <td
+                v-for="(columnObj, colIndex) in fields"
+                :key="rowIndex + columnObj.title"
+                class="cell pointer nc-grid-cell"
+                :class="{
+                  active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
+                }"
+                :data-col="columnObj.id"
+                @click="selectCell(rowIndex, colIndex)"
+                @dblclick="editEnabled = true"
+                @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
+              >
+                <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row[columnObj.title]" :column="columnObj" />
 
-              <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row[columnObj.title]" :column="columnObj" />
+                <SmartsheetCell
+                  v-else
+                  v-model="row[columnObj.title]"
+                  :column="columnObj"
+                  :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                  @update:model-value="updateRowProperty(row, columnObj.title)"
+                />
+              </td>
+            </tr>
 
-              <SmartsheetCell
-                v-else
-                v-model="row[columnObj.title]"
-                :column="columnObj"
-                :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
-                @update:model-value="updateRowProperty(row, columnObj.title)"
-              />
-            </td>
-          </tr>
-
-          <tr v-if="!isLocked">
-            <td
-              v-t="['c:row:add:grid-bottom']"
-              :colspan="visibleColLength + 1"
-              class="text-left pointer nc-grid-add-new-cell"
-              @click="addRow()"
-            >
-              <a-tooltip top left>
-                <div class="w-min flex align-center">
-                  <MdiPlusIcon class="text-pint-500 text-xs" />
-                  <span class="ml-1 caption grey--text">
-                    {{ $t('activity.addRow') }}
-                  </span>
-                </div>
-                <template #title>
-                  <span class="caption"> Add new row</span>
-                </template>
-              </a-tooltip>
-            </td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-    <SmartsheetPagination />
-    <a-dropdown :trigger="['contextmenu']">
-<
+            <tr v-if="!isLocked">
+              <td
+                v-t="['c:row:add:grid-bottom']"
+                :colspan="visibleColLength + 1"
+                class="text-left pointer nc-grid-add-new-cell"
+                @click="addEmptyRow()"
+              >
+                <a-tooltip top left>
+                  <div class="w-min flex align-center">
+                    <MdiPlusIcon class="text-pint-500 text-xs" />
+                    <span class="ml-1 caption grey--text">
+                      {{ $t('activity.addRow') }}
+                    </span>
+                  </div>
+                  <template #title>
+                    <span class="caption"> Add new row</span>
+                  </template>
+                </a-tooltip>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <template #overlay>
+        <div class="bg-white shadow">
+          <div v-if="contextMenuTarget" class="nc-menu-item" @click="deleteRow(contextMenuTarget.row)">Delete row</div>
+          <div class="nc-menu-item" @click="deleteSelectedRows">Delete all selected rows</div>
+          <div v-if="contextMenuTarget" class="nc-menu-item">Clear cell</div>
+          <div v-if="contextMenuTarget" class="nc-menu-item" @click="addEmptyRow(contextMenuTarget.row + 1)">Insert new row</div>
+        </div>
+      </template>
     </a-dropdown>
+    <SmartsheetPagination />
   </div>
 </template>
 
@@ -222,6 +239,7 @@ if (meta) useProvideColumnCreateStore(meta)
     & > * {
       @apply flex align-center h-auto;
     }
+
     overflow: hidden;
   }
 

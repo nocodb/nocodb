@@ -18,6 +18,7 @@ import AttachmentIcon from '~icons/mdi/image-multiple-outline'
 import URLIcon from '~icons/mdi/link'
 import EmailIcon from '~icons/mdi/email'
 import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
+import PercentIcon from '~icons/mdi/percent-outline'
 
 const { columnMeta } = defineProps<{ columnMeta?: ColumnType }>()
 
@@ -56,6 +57,8 @@ const icon = computed(() => {
     return URLIcon
   } else if (additionalColMeta.isCurrency) {
     return CurrencyIcon
+  } else if (additionalColMeta.isPercent) {
+    return PercentIcon
   } else if (additionalColMeta.isString) {
     return StringIcon
   } else {

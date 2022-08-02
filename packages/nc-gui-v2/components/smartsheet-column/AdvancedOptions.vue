@@ -5,9 +5,6 @@ const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeCha
 
 const dataTypes = computed(() => sqlUi?.value?.getDataTypeListForUiType(formState))
 
-// set additional validations
-setAdditionalValidations({})
-
 // to avoid type error with checkbox
 formState.value.rqd = !!formState.value.rqd
 formState.value.pk = !!formState.value.pk

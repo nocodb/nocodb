@@ -51,7 +51,7 @@ const {
   loadData,
   paginationData,
   formattedData: data,
-  updateRowProperty,
+  updateOrSaveRow,
   changePage,
   addEmptyRow,
   selectedRows,
@@ -111,7 +111,12 @@ if (meta) useProvideColumnCreateStore(meta)
 // })
 
 // reset context menu target on hide
-watch(contextMenu, () => (contextMenuTarget.value = null))
+watch(contextMenu, () => {
+  if(!contextMenu.value) {
+    contextMenuTarget.value = false
+  }
+})
+
 </script>
 
 <template>
@@ -148,15 +153,15 @@ watch(contextMenu, () => (contextMenuTarget.value = null))
             </tr>
           </thead>
           <tbody>
-            <tr v-for="({ row, rowMeta }, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
+            <tr v-for="(row, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
               <td key="row-index" class="caption nc-grid-cell">
                 <div class="align-center flex w-[80px]">
-                  <div class="group-hover:hidden" :class="{ hidden: rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                  <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
                   <div
-                    :class="{ hidden: !rowMeta.selected, flex: rowMeta.selected }"
+                    :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
                     class="group-hover:flex w-full align-center"
                   >
-                    <a-checkbox v-model:checked="rowMeta.selected" />
+                    <a-checkbox v-model:checked="row.rowMeta.selected" />
                     <span class="flex-1" />
                     <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" />
                   </div>
@@ -174,14 +179,14 @@ watch(contextMenu, () => (contextMenuTarget.value = null))
                 @dblclick="editEnabled = true"
                 @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
               >
-                <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row[columnObj.title]" :column="columnObj" />
+                <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row.row[columnObj.title]" :column="columnObj" />
 
                 <SmartsheetCell
                   v-else
-                  v-model="row[columnObj.title]"
+                  v-model="row.row[columnObj.title]"
                   :column="columnObj"
                   :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
-                  @update:model-value="updateRowProperty(row, columnObj.title)"
+                  @update:model-value="updateOrSaveRow(row, columnObj.title)"
                 />
               </td>
             </tr>

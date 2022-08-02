@@ -41,6 +41,12 @@ export function useViewData(
     paginationData.value = response.pageInfo
   }
 
+  const updateOrSaveRow = async (row: Row, property: string) => {
+if(row.rowMeta.new){
+  insertRow(row.row, formattedData.value.indexOf(row))
+}
+  }
+
   const updateRowProperty = async (row: Record<string, any>, property: string) => {
     try {
       const id = meta?.value?.columns
@@ -219,5 +225,6 @@ export function useViewData(
     selectedRows,
     deleteRow,
     deleteSelectedRows,
+    updateOrSaveRow
   }
 }

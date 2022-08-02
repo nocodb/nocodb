@@ -7,11 +7,11 @@ import { inject, onMounted } from '#imports'
 import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: any
+  modelValue: string
 }
 
 interface Emits {
-  (event: 'update:modelValue', model: any): void
+  (event: 'update:modelValue', model: string): void
 }
 
 const props = defineProps<Props>()
@@ -22,40 +22,44 @@ let editEnabled = $(inject(EditModeInj))
 
 let vModel = $(useVModel(props, 'modelValue', emits))
 
-let localValue = $ref({})
+let localValue = $ref<string>('{}')
 let error = $ref<string | undefined>(undefined)
 let isExpanded = $ref(false)
-
-const onError = (e: any) => {
-  error = e
-}
 
 const clear = () => {
   error = undefined
   isExpanded = false
   editEnabled = false
 
-  localValue = JSON.parse(vModel)
+  localValue = vModel
 }
 
 const onSave = () => {
-  vModel = JSON.stringify(localValue)
+  vModel = localValue
   isExpanded = false
 }
 
-const resetError = () => {
-  error = undefined
-}
-
 onMounted(() => {
-  localValue = JSON.parse(vModel)
+  localValue = vModel
 })
+
+watch(
+  () => localValue,
+  (val) => {
+    try {
+      JSON.parse(val)
+      error = undefined
+    } catch (e: any) {
+      error = e
+    }
+  },
+)
 
 watch(
   () => editEnabled,
   () => {
     isExpanded = false
-    localValue = JSON.parse(vModel)
+    localValue = vModel
   },
 )
 </script>
@@ -70,7 +74,9 @@ watch(
         </a-button>
         <div class="flex flex-row">
           <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
-          <a-button type="primary" size="small" :disabled="!!error"><div class="text-xs" :onclick="onSave">Save</div></a-button>
+          <a-button type="primary" size="small" :disabled="!!error || localValue === vModel"
+            ><div class="text-xs" :onclick="onSave">Save</div></a-button
+          >
         </div>
       </div>
       <Editor
@@ -78,9 +84,8 @@ watch(
         class="min-w-full w-80"
         :class="{ 'expanded-editor': isExpanded, 'editor': !isExpanded }"
         :hide-minimap="true"
-        @validation-error="onError"
+        :disable-deep-compare="true"
         @update:model-value="localValue = $event"
-        @text-changed="resetError"
       />
       <span v-if="error" class="text-xs w-full py-1 text-red-500">
         {{ error.toString() }}

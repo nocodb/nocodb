@@ -4,7 +4,7 @@ import { isEmail } from '~/utils'
 import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string
+  modelValue: string | null
 }
 
 interface Emits {

@@ -100,8 +100,8 @@ onKeyDown('Escape', () => {
             <div class="nc-attachment h-full w-full flex items-center justify-center cursor-move">
               <div
                 v-if="isImage(item.title, item.mimetype)"
-                :style="{ backgroundImage: `url('${item.url}')`, backgroundSize: 'cover' }"
-                class="w-full h-full"
+                :style="{ backgroundImage: `url('${item.url}')` }"
+                class="w-full h-full bg-contain bg-center bg-no-repeat"
               />
 
               <component

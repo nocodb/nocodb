@@ -117,7 +117,7 @@ watchEffect(() => {
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button html-type="submit" type="primary" size="small" @click="addOrUpdate(reloadMeta)">
+          <a-button html-type="submit" type="primary" size="small" @click="addOrUpdate(reloadMeta); advancedOptions = false">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

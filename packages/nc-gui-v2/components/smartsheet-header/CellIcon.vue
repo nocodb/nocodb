@@ -20,6 +20,7 @@ import URLIcon from '~icons/mdi/link'
 import EmailIcon from '~icons/mdi/email'
 import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
 import PercentIcon from '~icons/mdi/percent-outline'
+import DecimalIcon from '~icons/mdi/decimal'
 
 const { columnMeta } = defineProps<{ columnMeta?: ColumnType }>()
 
@@ -50,6 +51,8 @@ const icon = computed(() => {
     return RatingIcon
   } else if (additionalColMeta.isAttachment) {
     return AttachmentIcon
+  } else if (additionalColMeta.isDecimal) {
+    return DecimalIcon
   } else if (additionalColMeta.isInt || additionalColMeta.isFloat) {
     return NumericIcon
   }

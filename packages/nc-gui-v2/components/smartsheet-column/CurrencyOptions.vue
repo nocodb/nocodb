@@ -27,7 +27,6 @@ const validators = computed(() => {
       {
         validator: (_: any, currencyCode: any) => {
           return new Promise<void>((resolve, reject) => {
-            console.log("currencyCode=" + currencyCode)
             if (!validateCurrencyCode(currencyCode)) {
               return reject(new Error('Invalid Currency Code'))
             }
@@ -69,9 +68,10 @@ function filterOption(input: string, option: Option) {
     </template>
     <a-row>
       <a-col :span="12">
-        <a-form-item v-bind="validateInfos['meta.currency_locale']">
+        <a-form-item v-bind="validateInfos['meta.currency_locale']" label="Currency Locale">
           <a-select
             v-model:value="formState.meta.currency_locale"
+            size="small"
             class="w-52"
             show-search
             :options="currencyLocaleList ?? []"
@@ -80,8 +80,14 @@ function filterOption(input: string, option: Option) {
         </a-form-item>
       </a-col>
       <a-col :span="12">
-        <a-form-item v-bind="validateInfos['meta.currency_code']">
-          <a-select v-model:value="formState.meta.currency_code" class="w-52" show-search :filter-option="filterOption">
+        <a-form-item v-bind="validateInfos['meta.currency_code']" label="Currency Code">
+          <a-select
+            v-model:value="formState.meta.currency_code"
+            class="w-52"
+            show-search
+            :filter-option="filterOption"
+            size="small"
+          >
             <a-select-option v-for="(currencyCode, i) in currencyList ?? []" :key="i" :value="currencyCode">
               {{ currencyCode }}
             </a-select-option>

@@ -175,10 +175,6 @@ if (meta) useProvideColumnCreateStore(meta)
     height: 41px !important;
     position: relative;
     padding: 0 5px;
-
-    & > * {
-      @apply flex items-center;
-    }
     overflow: hidden;
   }
 

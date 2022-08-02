@@ -90,6 +90,7 @@ div {
 
 .nc-cell {
   @apply relative w-full h-full;
+  display: inherit;
 }
 
 .nc-locked-overlay {

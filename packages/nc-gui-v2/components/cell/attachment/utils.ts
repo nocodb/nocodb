@@ -31,6 +31,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const modalVisible = ref(false)
 
+    const selectedImage = ref()
+
     const { project } = useProject()
 
     const { api, isLoading } = useApi()
@@ -140,6 +142,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       removeFile,
       downloadFile,
       updateModelValue,
+      selectedImage,
     }
   },
   'attachmentCell',

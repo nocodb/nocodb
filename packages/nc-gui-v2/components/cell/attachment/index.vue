@@ -2,6 +2,7 @@
 import { useProvideAttachmentCell } from './utils'
 import Modal from './Modal.vue'
 import { useSortable } from './sort'
+import Carousel from './Carousel.vue'
 import { ref, useDropZone, watch } from '#imports'
 import { isImage, openLink } from '~/utils'
 import MaterialSymbolsAttachFile from '~icons/material-symbols/attach-file'
@@ -26,7 +27,8 @@ const dropZoneRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const { modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon } = useProvideAttachmentCell(updateModelValue)
+const { modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, selectedImage } =
+  useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue)
 
@@ -43,17 +45,18 @@ watch(
 )
 
 function updateModelValue(data: string | Record<string, any>) {
-  console.log(data)
   emits('update:modelValue', typeof data !== 'string' ? JSON.stringify(data) : data)
 }
 
-const selectImage = (file: any, i: unknown) => {
-  // todo: implement
+const selectImage = (file: any) => {
+  selectedImage.value = file
 }
 </script>
 
 <template>
   <div ref="dropZoneRef" class="nc-attachment-cell flex-1 color-transition flex items-center justify-between gap-1">
+    <Carousel />
+
     <template v-if="!dragging && isOverDropZone">
       <div
         class="w-full h-full flex items-center justify-center p-1 rounded gap-1 bg-gradient-to-t from-primary/10 via-primary/25 to-primary/10 !text-primary"
@@ -102,7 +105,7 @@ const selectImage = (file: any, i: unknown) => {
                 v-if="isImage(item.title, item.mimetype)"
                 :alt="item.title || `#${i}`"
                 :src="item.url || item.data"
-                @click="selectImage(item.url || item.data, i)"
+                @click="selectImage(item)"
               />
 
               <component :is="FileIcon(item.icon)" v-else-if="item.icon" @click="openLink(item.url || item.data)" />

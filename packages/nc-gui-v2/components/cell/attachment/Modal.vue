@@ -25,7 +25,7 @@ const {
   onDrop,
   downloadFile,
   updateModelValue,
-} = useAttachmentCell()
+} = useAttachmentCell()!
 
 // todo: replace placeholder var
 const isLocked = ref(false)

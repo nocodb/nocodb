@@ -39,8 +39,6 @@ export function useSortable(
 
   // todo: replace with vuedraggable
   const initSortable = (el: HTMLElement) => {
-    if (sortable) sortable.destroy()
-
     sortable = new Sortable(el, {
       handle: '.nc-attachment',
       ghostClass: 'ghost',
@@ -50,11 +48,12 @@ export function useSortable(
   }
 
   watchPostEffect((onCleanup) => {
+    const _element = unref(element)
+
     onCleanup(() => {
-      if (sortable) sortable.destroy()
+      if (_element && sortable) sortable.destroy()
     })
 
-    const _element = unref(element)
     if (_element) initSortable(_element)
   })
 

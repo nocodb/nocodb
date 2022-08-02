@@ -38,13 +38,17 @@ export function useViewColumns(
         }
       }, {})
       fields.value = meta.value?.columns
-        ?.map((c) => ({
-          title: c.title,
-          fk_column_id: c.id,
-          ...(fieldById[c.id as string] ? fieldById[c.id as string] : {}),
-          order: (fieldById[c.id as string] && fieldById[c.id as string].order) || order++,
-          system: isSystemColumn(fieldById[c.fk_model_id as string]?.type as ColumnType),
-        }))
+        ?.map((column) => {
+          const currentColumnField = fieldById[column.id!] || {}
+
+          return {
+            title: column.title,
+            fk_column_id: column.id,
+            ...currentColumnField,
+            order: currentColumnField.order || order++,
+            system: isSystemColumn(currentColumnField.type || false),
+          }
+        })
         .sort((a, b) => a.order - b.order)
     } else if (isPublic) {
       fields.value = meta.value.columns as any
@@ -124,7 +128,7 @@ export function useViewColumns(
         }
         return c.show
       })
-      ?.sort((c1, c2) => c1.order - c2.order)
+      ?.sort((a, b) => a.order - b.order)
       ?.map((c) => metaColumnById?.value?.[c.fk_column_id as string]) || []) as ColumnType[]
   })
 

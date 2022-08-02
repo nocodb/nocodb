@@ -7,7 +7,7 @@ import { inject, onMounted } from '#imports'
 import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string
+  modelValue: string | Record<string, any> | undefined
 }
 
 interface Emits {
@@ -31,16 +31,17 @@ const clear = () => {
   isExpanded = false
   editEnabled = false
 
-  localValue = vModel
+  localValue = JSON.stringify(vModel)
 }
 
 const onSave = () => {
-  vModel = localValue
   isExpanded = false
+  vModel = localValue
 }
 
 onMounted(() => {
-  localValue = vModel
+  console.log('mount', vModel)
+  localValue = JSON.stringify(vModel)
 })
 
 watch(
@@ -59,7 +60,7 @@ watch(
   () => editEnabled,
   () => {
     isExpanded = false
-    localValue = vModel
+    localValue = JSON.stringify(vModel)
   },
 )
 </script>

@@ -14,6 +14,7 @@ import DatetimeIcon from '~icons/mdi/calendar-clock'
 import DateIcon from '~icons/mdi/calendar'
 import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
+import NumericIcon from '~icons/mdi/numeric'
 import AttachmentIcon from '~icons/mdi/image-multiple-outline'
 import URLIcon from '~icons/mdi/link'
 import EmailIcon from '~icons/mdi/email'
@@ -49,6 +50,8 @@ const icon = computed(() => {
     return RatingIcon
   } else if (additionalColMeta.isAttachment) {
     return AttachmentIcon
+  } else if (additionalColMeta.isInt || additionalColMeta.isFloat) {
+    return NumericIcon
   }
   // else if(additionalColMeta.isForeignKey) {
   //   return FKIcon

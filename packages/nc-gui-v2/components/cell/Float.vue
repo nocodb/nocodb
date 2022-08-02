@@ -5,18 +5,19 @@ interface Props {
   modelValue: number
 }
 
-const { modelValue: value } = defineProps<Props>()
+interface Emits {
+  (event: 'update:modelValue', model: number): void
+}
 
-const emit = defineEmits(['update:modelValue'])
+const props = defineProps<Props>()
+
+const emits = defineEmits<Emits>()
 
 const editEnabled = inject<boolean>('editEnabled')
 
 const root = ref<HTMLInputElement>()
 
-const localState = computed({
-  get: () => value,
-  set: (val) => emit('update:modelValue', val),
-})
+const vModel = useVModel(props, 'modelValue', emits)
 
 onMounted(() => {
   root.value?.focus()
@@ -24,15 +25,8 @@ onMounted(() => {
 </script>
 
 <template>
-  <input v-if="editEnabled" ref="root" v-model="localState" type="number" />
-  <span v-else>{{ localState }}</span>
+  <input v-if="editEnabled" ref="root" v-model="vModel" class="outline-none w-full h-full" type="number" />
+  <span v-else>{{ vModel }}</span>
 </template>
 
-<style scoped>
-input {
-  outline: none;
-  width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
-}
-</style>
+<style scoped></style>

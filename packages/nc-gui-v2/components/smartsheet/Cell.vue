@@ -41,6 +41,8 @@ const {
   isAttachment,
   isTextArea,
   isString,
+  isInt,
+  isFloat,
   isSingleSelect,
   isMultiSelect,
   isPercent,
@@ -75,20 +77,6 @@ todo :
     <!--      :is-form="isForm" -->
     <!--      :column="column" -->
     <!--      :is-locked="isLocked" -->
-    <!--      v-on="parentListeners" -->
-    <!--    />&ndash;&gt; -->
-
-    <!--    <IntegerCell -->
-    <!--      v-else-if="isInt" -->
-    <!--      /> -->
-    <!-- &lt;!&ndash;      v-model="localState" -->
-    <!--      v-on="parentListeners" -->
-    <!--    />&ndash;&gt; -->
-
-    <!--    <FloatCell -->
-    <!--      v-else-if="isFloat" -->
-    <!--      /> -->
-    <!-- &lt;!&ndash;      v-model="localState" -->
     <!--      v-on="parentListeners" -->
     <!--    />&ndash;&gt; -->
 
@@ -199,6 +187,8 @@ todo :
         />
     -->
     <CellCurrency v-else-if="isCurrency" v-model="localState" />
+    <CellInteger v-else-if="isInt" v-model="localState" />
+    <CellFloat v-else-if="isFloat" v-model="localState" />
     <CellText v-else-if="isString" v-model="localState" />
     <!-- v-on="parentListeners"
         />

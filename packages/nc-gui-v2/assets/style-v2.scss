@@ -72,6 +72,8 @@ html {
   overflow-y: auto !important;
 }
 
+
+// menu item styling
 .nc-menu-item {
   @apply cursor-pointer text-xs flex align-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0  w-full h-full right 0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
 }
@@ -91,4 +93,14 @@ html {
   svg {
     @apply z-1 text-xl p-1 text-gray-500;
   }
+}
+
+// show  a dot badge if some change present
+.nc-badge {
+  @apply relative after:(absolute top-[-2px] right-[-2px] w-[8px] h-[8px] rounded-full bg-primary content-[''] !z-20);
+}
+
+// for highlighting toolbar menu item
+.nc-active-btn > .ant-btn{
+  @apply bg-primary/20;
 }

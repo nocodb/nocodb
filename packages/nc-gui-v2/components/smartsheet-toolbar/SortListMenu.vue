@@ -1,5 +1,7 @@
 <script setup lang="ts">
+import type { ColumnType } from 'nocodb-sdk'
 import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
+import { getSortDirectionOptions } from '~/utils/sortUtils'
 import { computed, inject, useViewSorts } from '#imports'
 import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
@@ -15,6 +17,12 @@ const reloadDataHook = inject(ReloadViewDataHookInj)
 const { sorts, saveOrUpdate, loadSorts, addSort, deleteSort } = useViewSorts(view, () => reloadDataHook?.trigger())
 
 const columns = computed(() => meta?.value?.columns || [])
+const columnByID = computed<Record<string, ColumnType>>(() =>
+  columns?.value?.reduce((obj: any, col: any) => {
+    obj[col.id] = col
+    return obj
+  }, {}),
+)
 
 watch(
   () => (view?.value as any)?.id,
@@ -27,19 +35,19 @@ watch(
 
 <template>
   <a-dropdown offset-y class="" :trigger="['click']">
-    <v-badge :value="sorts && sorts.length" color="primary" dot overlap>
+    <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-t="['c:sort']" size="small" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
         ><div class="flex align-center gap-1">
           <MdiSortIcon class="text-grey" />
           <!-- Sort -->
-          <span class="text-capitalize nc-sort-menu-btn">{{ $t('activity.sort') }}</span>
+          <span class="text-capitalize">{{ $t('activity.sort') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>
-    </v-badge>
+    </div>
     <template #overlay>
-      <div class="bg-white shadow p-2 menu-filter-dropdown min-w-[400px]">
-        <div class="sort-grid" @click.stop>
+      <div class="bg-gray-50 shadow p-2 menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto">
+        <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">
             <!--          <v-icon :key="`${i}icon`" class="nc-sort-item-remove-btn" small @click.stop="deleteSort(sort)"> mdi-close-box </v-icon> -->
             <MdiDeleteIcon
@@ -56,25 +64,27 @@ watch(
             />
             <a-select
               v-model:value="sort.direction"
-              class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select"
-              :items="[
-                { text: 'asc', value: 'asc' },
-                { text: 'desc', value: 'desc' },
-              ]"
+              size="small"
+              class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
-              density="compact"
-              variant="solo"
-              hide-details
               @click.stop
-              @update:model-value="saveOrUpdate(sort, i)"
-            />
+              @update:value="saveOrUpdate(sort, i)"
+            >
+              <a-select-option
+                v-for="(option, j) in getSortDirectionOptions(columnByID[sort.fk_column_id]?.uidt)"
+                :key="j"
+                :value="option.value"
+              >
+                <span class="text-xs">{{ option.text }}</span>
+              </a-select-option>
+            </a-select>
             <!--            <template #item="{ item }"> -->
             <!--              <span class="caption font-weight-regular">{{ item.text }}</span> -->
             <!--            </template> -->
             <!--          </v-select> -->
           </template>
         </div>
-        <a-button size="small" class="text-grey text-capitalize text-sm my-3" @click.stop="addSort">
+        <a-button size="small" class="text-xs text-grey text-capitalize my-2" @click.stop="addSort">
           <div class="flex gap-1 align-center">
             <MdiAddIcon />
             <!-- Add Sort Option -->
@@ -92,5 +102,9 @@ watch(
   grid-template-columns: 22px auto 150px;
   column-gap: 6px;
   row-gap: 6px;
+}
+
+:deep(.ant-btn, .ant-select, .ant-input, ::placeholder) {
+  @apply "!text-xs";
 }
 </style>

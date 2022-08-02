@@ -10,7 +10,6 @@ export function useUIPermission() {
   const isUIAllowed = (permission: Permission, _skipPreviewAs = false) => {
     const user = $state.user
     let userRoles = user?.value?.roles || {}
-
     // if string populate key-value paired object
     if (typeof userRoles === 'string') {
       userRoles = userRoles.split(',').reduce<Record<string, boolean>>((acc, role) => {
@@ -35,7 +34,7 @@ export function useUIPermission() {
     return Object.entries<boolean>(roles).some(([role, hasRole]) => {
       const rolePermission = rolePermissions[role as keyof typeof rolePermissions] as '*' | Record<Permission, true>
 
-      return hasRole && (rolePermission === '*' || rolePermission[permission])
+      return hasRole && (rolePermission === '*' || rolePermission?.[permission])
     })
   }
 

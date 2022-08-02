@@ -8,6 +8,7 @@ export function useSortable(
   element: MaybeRef<HTMLElement | undefined>,
   items: MaybeRef<any[]>,
   updateModelValue: (data: string | Record<string, any>[]) => void,
+  isReadonly: MaybeRef<boolean> = false,
 ) {
   let dragging = $ref(false)
 
@@ -54,7 +55,7 @@ export function useSortable(
       if (_element && sortable) sortable.destroy()
     })
 
-    if (_element) initSortable(_element)
+    if (_element && !unref(isReadonly)) initSortable(_element)
   })
 
   return {

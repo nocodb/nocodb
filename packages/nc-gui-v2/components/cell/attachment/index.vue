@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
 import Modal from './Modal.vue'
 import { useSortable } from './sort'
@@ -27,10 +28,10 @@ const dropZoneRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const { modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, selectedImage } =
+const { modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, selectedImage, isReadonly } =
   useProvideAttachmentCell(updateModelValue)
 
-const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue)
+const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
@@ -51,13 +52,18 @@ function updateModelValue(data: string | Record<string, any>) {
 const selectImage = (file: any) => {
   selectedImage.value = file
 }
+
+onKeyDown('Escape', () => {
+  modalVisible.value = false
+  isOverDropZone.value = false
+})
 </script>
 
 <template>
   <div ref="dropZoneRef" class="nc-attachment-cell flex-1 color-transition flex items-center justify-between gap-1">
     <Carousel />
 
-    <template v-if="!dragging && isOverDropZone">
+    <template v-if="!isReadonly && !dragging && isOverDropZone">
       <div
         class="w-full h-full flex items-center justify-center p-1 rounded gap-1 bg-gradient-to-t from-primary/10 via-primary/25 to-primary/10 !text-primary"
       >
@@ -67,6 +73,7 @@ const selectImage = (file: any) => {
 
     <template v-else>
       <div
+        v-if="!isReadonly"
         :class="{ 'mx-auto px-4': !visibleItems.length }"
         class="group flex gap-1 items-center active:ring rounded border-1 p-1 hover:bg-primary/10"
         @click.stop="open"

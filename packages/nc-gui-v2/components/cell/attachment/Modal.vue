@@ -17,6 +17,7 @@ const {
   isLoading,
   isPublicGrid,
   isForm,
+  isReadonly,
   visibleItems,
   modalVisible,
   column,
@@ -34,7 +35,7 @@ const dropZoneRef = ref<HTMLDivElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue)
+const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
@@ -49,7 +50,7 @@ onKeyDown('Escape', () => {
     <template #title>
       <div class="flex gap-4">
         <div
-          v-if="(isForm || isUIAllowed('tableAttachment')) && !isPublicGrid && !isLocked"
+          v-if="!isReadonly && (isForm || isUIAllowed('tableAttachment')) && !isPublicGrid && !isLocked"
           class="nc-attach-file group"
           @click="open"
         >
@@ -58,6 +59,7 @@ onKeyDown('Escape', () => {
         </div>
 
         <div class="flex items-center gap-2">
+          <div v-if="isReadonly" class="text-gray-400">[Readonly]</div>
           Viewing Attachments of
           <div class="font-semibold underline">{{ column.title }}</div>
         </div>
@@ -66,7 +68,7 @@ onKeyDown('Escape', () => {
 
     <div ref="dropZoneRef" :class="{ dragging }">
       <div
-        v-if="!dragging"
+        v-if="!isReadonly && !dragging"
         :class="[isOverDropZone ? 'opacity-100' : 'opacity-0 pointer-events-none']"
         class="transition-all duration-150 ease-in-out ring ring-pink-500 rounded bg-blue-100/75 flex items-center justify-center gap-4 z-99 absolute top-0 bottom-0 left-0 right-0 backdrop-blur-xl"
       >
@@ -77,7 +79,7 @@ onKeyDown('Escape', () => {
       <div ref="sortableRef" class="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-4 gap-6 relative p-6">
         <div v-for="(item, i) of visibleItems" :key="`${item.title}-${i}`" class="flex flex-col gap-1">
           <a-card class="nc-attachment-item group">
-            <a-tooltip>
+            <a-tooltip v-if="!isReadonly">
               <template #title> Remove File </template>
 
               <MdiCloseCircle

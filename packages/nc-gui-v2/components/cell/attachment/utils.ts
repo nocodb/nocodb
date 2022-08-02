@@ -1,7 +1,7 @@
 import { notification } from 'ant-design-vue'
 import FileSaver from 'file-saver'
 import { computed, inject, ref, useApi, useFileDialog, useInjectionState, useProject, watch } from '#imports'
-import { ColumnInj, EditModeInj, MetaInj } from '~/context'
+import { ColumnInj, EditModeInj, MetaInj, ReadonlyInj } from '~/context'
 import { isImage } from '~/utils'
 import { NOCO } from '~/lib'
 import MdiPdfBox from '~icons/mdi/pdf-box'
@@ -12,6 +12,8 @@ import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
 export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
   (updateModelValue: (data: string | Record<string, any>[]) => void) => {
+    const isReadonly = inject(ReadonlyInj, false)
+
     const isPublicForm = inject('isPublicForm', false)
 
     const isForm = inject('isForm', false)
@@ -130,6 +132,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       isPublicForm,
       isForm,
       isPublicGrid,
+      isReadonly,
       meta,
       column,
       editEnabled,

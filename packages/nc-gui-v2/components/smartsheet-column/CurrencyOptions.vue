@@ -2,7 +2,18 @@
 import { useColumnCreateStoreOrThrow, useProject } from '#imports'
 import { currencyCodes, currencyLocales, validateCurrencyCode, validateCurrencyLocale } from '@/utils/currencyUtils'
 
+interface Option {
+  label: string
+  value: string
+}
+
 const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
+
+// set additional validations
+setAdditionalValidations({
+  'meta.currency_locale': [isValidCurrencyLocale],
+  'meta.currency_code': [isValidCurrencyCode],
+})
 
 const { isPg } = useProject()
 
@@ -29,6 +40,10 @@ const message = computed(() => {
   if (isMoney && isPg) return "PostgreSQL 'money' type has own currency settings"
   return ''
 })
+
+function filterOption(input: string, option: Option) {
+  return option.value.toUpperCase().includes(input.toUpperCase())
+}
 </script>
 
 <template>
@@ -38,10 +53,28 @@ const message = computed(() => {
     </template>
     <a-row>
       <a-col :span="12">
-        <!--label="Format Locale"-->
+        <!--label="Currency Locale"-->
+        <a-form-item v-bind="validateInfos.meta.currency_locale">
+          <a-select
+            v-model:value="formState.meta.currency_locale"
+            class="w-52"
+            show-search
+            :options="currencyLocaleList"
+            :filter-option="filterOption"
+          />
+        </a-form-item>
       </a-col>
       <a-col :span="12">
         <!--label="Currency Code"-->
+        <a-form-item v-bind="validateInfos.meta.currency_code">
+          <a-select
+            v-model:value="formState.meta.currency_code"
+            class="w-52"
+            show-search
+            :options="currencyList"
+            :filter-option="filterOption"
+          />
+        </a-form-item>
       </a-col>
     </a-row>
   </a-tooltip>

@@ -40,9 +40,15 @@ const onSave = () => {
 }
 
 onMounted(() => {
-  console.log('mount', vModel)
   localValue = JSON.stringify(vModel)
 })
+
+watch(
+  () => vModel,
+  (val) => {
+    localValue = JSON.stringify(val)
+  },
+)
 
 watch(
   () => localValue,

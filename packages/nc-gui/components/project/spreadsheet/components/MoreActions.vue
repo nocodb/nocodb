@@ -32,7 +32,7 @@
           <v-list-item-title>
             <v-icon small class="mr-1"> mdi-download-outline </v-icon>
             <span class="caption">
-              <!-- Download as CSV -->
+              <!-- Download as XLSX -->
               {{ $t('activity.downloadExcel') }}
             </span>
           </v-list-item-title>

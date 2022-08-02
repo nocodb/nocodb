@@ -74,7 +74,7 @@ onKeyDown('Escape', () => {
     <div
       v-if="!isReadonly"
       :class="{ 'mx-auto px-4': !visibleItems.length }"
-      class="group flex gap-1 items-center active:ring rounded border-1 p-2 hover:bg-primary/10"
+      class="group flex gap-1 items-center active:ring rounded border-1 p-1 hover:bg-primary/10"
       @click.stop="open"
     >
       <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
@@ -91,16 +91,12 @@ onKeyDown('Escape', () => {
     </div>
 
     <template v-if="visibleItems.length">
-      <div
-        ref="sortableRef"
-        :class="{ dragging }"
-        class="flex gap-2 py-1 overflow-x-scroll overflow-y-hidden scrollbar-thin-primary"
-      >
+      <div ref="sortableRef" :class="{ dragging }" class="flex flex-wrap gap-2 py-1 overflow-hidden scrollbar-thin-primary">
         <div
           v-for="(item, i) of visibleItems"
           :id="item.url"
           :key="item.url || item.title"
-          class="nc-attachment flex-auto flex items-center justify-center min-w-[45px] w-[45px] border-1"
+          class="nc-attachment flex-auto flex items-center justify-center min-h-[50px] h-[50px] min-w-[50px] w-[50px] border-1"
         >
           <a-tooltip placement="bottom">
             <template #title>
@@ -109,6 +105,8 @@ onKeyDown('Escape', () => {
 
             <img
               v-if="isImage(item.title, item.mimetype)"
+              width="150"
+              height="150"
               :alt="item.title || `#${i}`"
               :src="item.url || item.data"
               @click="selectImage(item)"
@@ -121,13 +119,16 @@ onKeyDown('Escape', () => {
         </div>
       </div>
 
-      <div class="group flex gap-1 items-center active:ring rounded border-1 p-1 hover:bg-primary/10">
+      <div class="group flex gap-1 items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
         <MdiReload v-if="isLoading" :class="{ 'animate-infinite animate-spin': isLoading }" />
 
         <a-tooltip v-else placement="bottom">
           <template #title> View attachments </template>
 
-          <MaterialArrowExpandIcon class="transform group-hover:(text-pink-500 scale-120)" @click.stop="modalVisible = true" />
+          <MaterialArrowExpandIcon
+            class="select-none transform group-hover:(text-pink-500 scale-120)"
+            @click.stop="modalVisible = true"
+          />
         </a-tooltip>
       </div>
     </template>

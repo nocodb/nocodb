@@ -6,7 +6,7 @@ interface Props {
 }
 
 interface Emits {
-  (event: 'update:modelValue', model: number): void
+  (event: 'update:modelValue', model: string): void
 }
 
 const props = defineProps<Props>()
@@ -14,7 +14,6 @@ const props = defineProps<Props>()
 const emits = defineEmits<Emits>()
 
 const vModel = useVModel(props, 'modelValue', emits)
-
 </script>
 
 <template>

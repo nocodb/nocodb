@@ -1,9 +1,9 @@
 <script setup lang="ts">
-const { value } = defineProps<{ value?: any }>()
+const value = inject('value')
 </script>
 
 <template>
-  <span>
+  <span class="text-center pl-3">
     {{ value }}
   </span>
 </template>

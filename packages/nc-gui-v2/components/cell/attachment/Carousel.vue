@@ -57,13 +57,13 @@ function onSlideChange(index: number) {
         >
           <template #prevArrow>
             <div class="custom-slick-arrow left-2 z-1">
-              <MaterialSymbolsArrowCircleLeftRounded />
+              <MaterialSymbolsArrowCircleLeftRounded class="bg-white rounded-full" />
             </div>
           </template>
 
           <template #nextArrow>
             <div class="custom-slick-arrow !right-2 z-1">
-              <MaterialSymbolsArrowCircleRightRounded />
+              <MaterialSymbolsArrowCircleRightRounded class="bg-white rounded-full" />
             </div>
           </template>
 
@@ -77,8 +77,11 @@ function onSlideChange(index: number) {
             </a>
           </template>
 
-          <div v-for="(item, i) of imageItems" :key="item.url">
-            <img class="!block w-full max-w-75vw max-h-75vh" :alt="item.title || `#${i}`" :src="item.url || item.data" />
+          <div v-for="item of imageItems" :key="item.url">
+            <div
+              :style="{ backgroundImage: `url('${item.url}')` }"
+              class="min-w-70vw min-h-70vh w-full h-full bg-contain bg-center bg-no-repeat"
+            />
           </div>
         </a-carousel>
       </div>

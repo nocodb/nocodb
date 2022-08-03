@@ -11,6 +11,7 @@
     "coverage": "vitest -c test/vite.config.ts run --coverage"
   },
   "dependencies": {
+    "@ckpack/vue-color": "^1.2.0",
     "@vueuse/core": "^8.7.5",
     "@vueuse/integrations": "^8.9.1",
     "ant-design-vue": "^3.1.0-rc.6",

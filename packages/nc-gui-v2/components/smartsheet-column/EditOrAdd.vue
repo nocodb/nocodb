@@ -87,6 +87,8 @@ watchEffect(() => {
         </a-select>
       </a-form-item>
 
+      <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" />
+
       <div>
         <div
           class="text-xs cursor-pointer text-grey nc-more-options my-2 flex align-center gap-1 justify-end"

@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { UITypes } from 'nocodb-sdk'
 import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
 import { MetaInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
@@ -83,6 +84,8 @@ watchEffect(() => {
           </a-select-option>
         </a-select>
       </a-form-item>
+
+      <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
 
       <div>
         <div

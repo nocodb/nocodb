@@ -18,7 +18,7 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const focus = (el: HTMLInputElement) => el.focus()
+const focus = (el: HTMLInputElement) => el?.focus()
 
 function onKeyDown(evt: KeyboardEvent) {
   return evt.key === '.' && evt.preventDefault()

@@ -26,7 +26,7 @@ const vModel = computed({
 
 const isValid = computed(() => value && isValidURL(value))
 
-const focus = (el: HTMLInputElement) => el.focus()
+const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>

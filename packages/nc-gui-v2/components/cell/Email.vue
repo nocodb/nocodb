@@ -21,7 +21,7 @@ const vModel = useVModel(props, 'modelValue', emits)
 
 const validEmail = computed(() => isEmail(vModel.value))
 
-const focus = (el: HTMLInputElement) => el.focus()
+const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>

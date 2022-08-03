@@ -62,7 +62,7 @@ const setAsPrimaryValue = async () => {
     <MdiMenuDownIcon class="text-grey" />
     <template #overlay>
       <div class="shadow bg-white">
-        <div v-if="!virtual" class="nc-column-edit nc-menu-item" @click="editColumnDropdown = true">
+        <div class="nc-column-edit nc-menu-item" @click="editColumnDropdown = true">
           <MdiEditIcon class="text-primary" />
           <!-- Edit -->
           {{ $t('general.edit') }}

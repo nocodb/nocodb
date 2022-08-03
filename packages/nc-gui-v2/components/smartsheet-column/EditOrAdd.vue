@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import { UITypes } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import RollupOptions from './RollupOptions.vue'
 import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
 import { MetaInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
@@ -93,16 +94,17 @@ watchEffect(() => {
       <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" />
       <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" />
       <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" />
+      <RollupOptions v-if="formState.uidt === UITypes.Rollup" />
 
-      <div>
-        <div
-          class="text-xs cursor-pointer text-grey nc-more-options my-2 flex align-center gap-1 justify-end"
-          @click="advancedOptions = !advancedOptions"
-        >
-          {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
-          <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
-        </div>
+      <div
+        v-if="!isVirtualCol(formState.uidt)"
+        class="text-xs cursor-pointer text-grey nc-more-options my-2 flex align-center gap-1 justify-end"
+        @click="advancedOptions = !advancedOptions"
+      >
+        {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
+        <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
       </div>
+
       <div class="overflow-hidden" :class="advancedOptions ? 'h-min' : 'h-0'">
         <a-checkbox
           v-if="formState.meta && columnToValidate.includes(formState.uidt)"

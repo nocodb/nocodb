@@ -73,7 +73,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     collapsiple
     collapsed-width="50"
     width="250"
-    class="shadow !mt-[-9.5px]"
+    class="shadow !mt-[-9px]"
     style="height: calc(100% + 9px)"
     theme="light"
   >

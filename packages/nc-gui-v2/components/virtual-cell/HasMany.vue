@@ -32,19 +32,24 @@ await loadRelatedTableMeta()
         <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
       </template>
     </div>
-
-    <MdiExpandIcon class="nc-action-icon w-[20px] text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
-    <MdiPlusIcon class="nc-action-icon w-[20px] text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+    <div class="flex-1 flex justify-end gap-1">
+      <MdiExpandIcon
+        class="select-none transform group-hover:(text-pink-500 scale-120) text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
+        @click="childListDlg = true"
+      />
+      <MdiPlusIcon class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+    </div>
     <ListItems v-model="listItemsDlg" />
-    <ListChildItems v-model="childListDlg" />
+    <ListChildItems @attachRecord="childListDlg=false,listItemsDlg=true" v-model="childListDlg" />
   </div>
 </template>
 
 <style scoped>
 .nc-action-icon {
-  @apply hidden;
+  @apply hidden cursor-pointer;
 }
+
 .chips-wrapper:hover .nc-action-icon {
-  @apply inline-block;
+  @apply flex;
 }
 </style>

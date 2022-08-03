@@ -29,16 +29,21 @@ await loadRelatedTableMeta()
         <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlink(value || localState)" />
       </template>
     </div>
-    <div class="flex-1" />
-    <MdiExpandIcon class="nc-action-icon text-md text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+    <div class="flex-1 flex justify-end gap-1">
+      <MdiExpandIcon
+        class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none transform group-hover:(text-pink-500 scale-120)"
+        @click="listItemsDlg = true"
+      />
+    </div>
     <ListItems v-model="listItemsDlg" />
   </div>
 </template>
 
 <style scoped>
 .nc-action-icon {
-  @apply hidden;
+  @apply hidden cursor-pointer;
 }
+
 .chips-wrapper:hover .nc-action-icon {
   @apply inline-block;
 }

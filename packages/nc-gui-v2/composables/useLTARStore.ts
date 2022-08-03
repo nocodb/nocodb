@@ -1,8 +1,10 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { Modal, notification } from 'ant-design-vue'
 import { useInjectionState, useMetas, useProject } from '#imports'
 import { NOCO } from '~/lib'
 import type { Row } from '~/composables'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -97,6 +99,24 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         } as any,
       )
     }
+
+    const deleteRelatedRow = async (row: Record<string, any>) => {
+      Modal.confirm({
+        title: 'Do you want to delete the record?',
+        type: 'warning',
+        onOk: async () => {
+          const id = getRelatedTableRowId(row)
+          try {
+            $api.dbTableRow.delete(NOCO, project.value.id as string, relatedTableMeta.value.id as string, id as string)
+            reloadData?.()
+            await loadChildrenList()
+          } catch (e) {
+            notification.error(await extractSdkResponseErrorMsg(e))
+          }
+        },
+      })
+    }
+
     const unlink = async (row: Record<string, any>) => {
       // const column = meta.columns.find(c => c.id === this.column.colOptions.fk_child_column_id);
       // todo: handle if new record
@@ -192,6 +212,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       loadChildrenExcludedList,
       loadChildrenList,
       row,
+      deleteRelatedRow,
     }
   },
   'ltar-store',

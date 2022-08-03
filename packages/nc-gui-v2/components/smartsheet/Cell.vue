@@ -4,6 +4,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import { provide, toRef } from 'vue'
 import { computed, useColumn, useDebounceFn, useVModel } from '#imports'
 import { ColumnInj, EditModeInj } from '~/context'
+import { NavigateDir } from '~/lib'
 
 interface Props {
   column: ColumnType
@@ -17,7 +18,7 @@ interface Emits {
 
 const { column, ...props } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue', 'save'])
+const emit = defineEmits(['update:modelValue', 'save', 'navigate'])
 
 provide(ColumnInj, column)
 
@@ -25,6 +26,7 @@ provide(EditModeInj, toRef(props, 'editEnabled'))
 
 let changed = $ref(false)
 const syncValue = useDebounceFn(function () {
+  changed = false
   emit('save')
 }, 1000)
 
@@ -59,6 +61,7 @@ const vModel = computed({
         syncValue()
       } else if (!isManualSaved) {
         emit('save')
+        changed = true
       }
     }
   },
@@ -87,10 +90,26 @@ const {
   isPercent,
   isPhoneNumber,
 } = useColumn(column)
+
+const syncAndNavigate = (dir: NavigateDir) => {
+  if (changed) {
+    emit('save')
+    changed = false
+  }
+  emit('navigate', dir)
+}
 </script>
 
 <template>
-  <div class="nc-cell" @keydown.stop.left @keydown.stop.right @keydown.stop.up @keydown.stop.down>
+  <div
+    class="nc-cell"
+    @keydown.stop.left
+    @keydown.stop.right
+    @keydown.stop.up
+    @keydown.stop.down
+    @keydown.stop.enter.exact="syncAndNavigate(NavigateDir.NEXT)"
+    @keydown.stop.shift.enter.exact="syncAndNavigate(NavigateDir.PREV)"
+  >
     <CellTextArea v-if="isTextArea" v-model="vModel" />
     <CellCheckbox v-else-if="isBoolean" v-model="vModel" />
     <CellAttachment v-else-if="isAttachment" v-model="vModel" />

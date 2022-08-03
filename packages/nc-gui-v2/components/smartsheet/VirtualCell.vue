@@ -22,7 +22,7 @@ provide(ColumnInj, column)
 provide(ValueInj, value)
 provide(ActiveCellInj, active)
 provide(RowInj, row)
-provide(ValueInj, value)
+provide(ValueInj, toRef(props, 'modelValue'))
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
 </script>
@@ -42,23 +42,3 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualC
     <VirtualCellLookup v-else-if="isLookup" />
   </div>
 </template>
-
-<style scoped>
-.nc-hint {
-  font-size: 0.61rem;
-  color: grey;
-}
-
-.nc-virtual-cell {
-  position: relative;
-}
-
-.nc-locked-overlay {
-  position: absolute;
-  z-index: 2;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  left: 0;
-}
-</style>

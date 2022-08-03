@@ -17,7 +17,7 @@ export const ChangePageInj: InjectionKey<ReturnType<typeof useViewData>['changeP
 export const IsFormInj: InjectionKey<boolean> = Symbol('is-form-injection')
 export const IsGridInj: InjectionKey<boolean> = Symbol('is-grid-injection')
 export const IsLockedInj: InjectionKey<boolean> = Symbol('is-locked-injection')
-export const ValueInj: InjectionKey<any> = Symbol('value-injection')
+export const ValueInj: InjectionKey<Ref<any>> = Symbol('value-injection')
 export const ActiveViewInj: InjectionKey<Ref<GridType | FormType | KanbanType | GalleryType>> = Symbol('active-view-injection')
 export const ReadonlyInj: InjectionKey<any> = Symbol('readonly-injection')
 export const ReloadViewDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-view-data-injection')

@@ -25,7 +25,7 @@ await loadRelatedTableMeta()
 </script>
 
 <template>
-  <div class="flex align-center gap-1 w-full chips-wrapper group">
+  <div class="flex align-center gap-1 w-full chips-wrapper">
     <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
       <template v-if="value">
         <ItemChip v-for="(ch, i) in value" :key="i" :value="ch[relatedTablePrimaryValueProp]" @unlink="unlink(ch)" />
@@ -33,9 +33,17 @@ await loadRelatedTableMeta()
       </template>
     </div>
 
-    <MdiExpandIcon class="hidden group-hover:inline w-[20px] text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
-    <MdiPlusIcon class="hidden group-hover:inline w-[20px] text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+    <MdiExpandIcon class="nc-action-icon w-[20px] text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
+    <MdiPlusIcon class="nc-action-icon w-[20px] text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
     <ListItems v-model="listItemsDlg" />
     <ListChildItems v-model="childListDlg" />
   </div>
 </template>
+<style scoped>
+.nc-action-icon{
+  @apply hidden
+}
+.chips-wrapper:hover .nc-action-icon {
+  @apply inline-block
+}
+</style>

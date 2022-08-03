@@ -23,14 +23,22 @@ await loadRelatedTableMeta()
 </script>
 
 <template>
-  <div class="flex w-full chips-wrapper align-center group" :class="{ active }">
+  <div class="flex w-full chips-wrapper align-center" :class="{ active }">
     <div class="chips d-flex align-center flex-grow">
       <template v-if="value || localState">
         <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlink(value || localState)" />
       </template>
     </div>
     <div class="flex-1" />
-    <MdiExpandIcon class="hidden group-hover:inline text-md text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+    <MdiExpandIcon class="nc-action-icon text-md text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
     <ListItems v-model="listItemsDlg" />
   </div>
 </template>
+<style scoped>
+.nc-action-icon{
+  @apply hidden
+}
+.chips-wrapper:hover .nc-action-icon {
+  @apply inline-block
+}
+</style>

@@ -28,6 +28,8 @@ interface Option {
 
 const { quickImportType, projectTemplate, importData } = defineProps<Props>()
 
+const emit = defineEmits(['import'])
+
 const useForm = Form.useForm
 
 const { $api } = useNuxtApp()
@@ -73,6 +75,9 @@ const { sqlUi, project, loadTables } = useProject()
 
 onMounted(() => {
   parseAndLoadTemplate()
+  nextTick(() => {
+    inputRefs.value[0]?.focus()
+  })
 })
 
 const validators = computed(() =>
@@ -174,9 +179,8 @@ async function importTemplate() {
   try {
     await validate()
   } catch (errorInfo) {
-    toast.error('Please fill all the required values')
     isImporting.value = false
-    return
+    throw new Error('Please fill all the required values')
   }
 
   try {
@@ -283,7 +287,7 @@ defineExpose({
 <template>
   <a-spin :spinning="isImporting" :tip="importingTip" size="large">
     <a-card>
-      <a-form :model="data" name="template-editor-form">
+      <a-form :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
           available for import
@@ -358,16 +362,15 @@ defineExpose({
                         }
                       "
                       v-model:value="record.column_name"
-                      size="large"
                     />
                   </a-form-item>
                 </template>
                 <template v-else-if="column.key === 'uidt'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-auto-complete
+                    <a-select
                       v-model:value="record.uidt"
                       class="w-52"
-                      size="large"
+                      show-search
                       :options="uiTypeOptions"
                       :filter-option="filterOption"
                     />
@@ -376,7 +379,7 @@ defineExpose({
 
                 <template v-else-if="column.key === 'dtxp'">
                   <a-form-item v-if="isSelect(record)">
-                    <a-input v-model:value="record.dtxp" size="large" />
+                    <a-input v-model:value="record.dtxp" />
                   </a-form-item>
                 </template>
 
@@ -386,9 +389,9 @@ defineExpose({
                       <!-- TODO: i18n -->
                       <span>Primary Value</span>
                     </template>
-                    <span class="mr-3">
+                    <div class="flex items-center float-right mr-4">
                       <MdiKeyStarIcon class="text-lg" />
-                    </span>
+                    </div>
                   </a-tooltip>
                   <a-tooltip v-else>
                     <template #title>
@@ -448,7 +451,7 @@ defineExpose({
                   <!-- TODO: i18n -->
                   <span>Add Other Column</span>
                 </template>
-                <a-button @click="addNewColumnRow(table)">
+                <a-button @click="addNewColumnRow(table, 'SingleLineText')">
                   <div class="flex items-center">
                     <MdiPlusIcon class="text-lg" />
                     Column
@@ -473,7 +476,10 @@ defineExpose({
     @apply bg-white;
   }
   :deep(.template-form-row) > td {
-    @apply !pb-0;
+    @apply pa-0 mb-0;
+    .ant-form-item {
+      @apply mb-0;
+    }
   }
 }
 </style>

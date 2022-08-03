@@ -54,8 +54,6 @@ const icon = computed(() => {
     return AttachmentIcon
   } else if (additionalColMeta.isDecimal) {
     return DecimalIcon
-  } else if (additionalColMeta.isInt || additionalColMeta.isFloat) {
-    return NumericIcon
   } else if (additionalColMeta.isPhoneNumber) {
     return FilePhoneIcon
   }
@@ -68,6 +66,8 @@ const icon = computed(() => {
     return CurrencyIcon
   } else if (additionalColMeta.isPercent) {
     return PercentIcon
+  } else if (additionalColMeta.isInt || additionalColMeta.isFloat) {
+    return NumericIcon
   } else if (additionalColMeta.isString) {
     return StringIcon
   } else {

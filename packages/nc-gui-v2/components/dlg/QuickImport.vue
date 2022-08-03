@@ -18,7 +18,7 @@ interface Props {
   importType: 'csv' | 'json' | 'excel'
 }
 
-const { modelValue, importType } = defineProps<Props>()
+const { importType, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -97,14 +97,7 @@ const importMeta = computed(() => {
   return {}
 })
 
-const dialogShow = computed({
-  get() {
-    return modelValue
-  },
-  set(v) {
-    emit('update:modelValue', v)
-  },
-})
+const dialogShow = useVModel(rest, 'modelValue', emit)
 
 const disablePreImportButton = computed(() => {
   if (activeKey.value === 'uploadTab') {
@@ -122,6 +115,13 @@ const disableImportButton = computed(() => {
 })
 
 const disableFormatJsonButton = computed(() => !jsonEditorRef.value?.isValid)
+
+const modalWidth = computed(() => {
+  if (importType === 'excel' && templateEditorModal.value) {
+    return 'max(90vw, 600px)'
+  }
+  return 'max(60vw, 600px)'
+})
 
 async function handlePreImport() {
   loading.value = true
@@ -141,9 +141,14 @@ async function handlePreImport() {
 }
 
 async function handleImport() {
-  loading.value = true
-  await templateEditorRef.value.importTemplate()
-  loading.value = false
+  try {
+    loading.value = true
+    await templateEditorRef.value.importTemplate()
+  } catch (e: any) {
+    return toast.error(await extractSdkResponseErrorMsg(e))
+  } finally {
+    loading.value = false
+  }
   dialogShow.value = false
 }
 
@@ -228,12 +233,16 @@ function getAdapter(name: string, val: any) {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(60vw, 600px)" @keydown.esc="dialogShow = false">
+  <a-modal v-model:visible="dialogShow" :width="modalWidth" :mask-closable="false" @keydown.esc="dialogShow = false">
     <a-typography-title class="ml-5 mt-5 mb-5" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
       <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
-      <a-button v-if="activeKey === 'jsonEditorTab'" key="format" :disabled="disableFormatJsonButton" @click="formatJson"
+      <a-button
+        v-if="activeKey === 'jsonEditorTab' && !templateEditorModal"
+        key="format"
+        :disabled="disableFormatJsonButton"
+        @click="formatJson"
         >Format JSON</a-button
       >
       <a-button
@@ -257,6 +266,7 @@ function getAdapter(name: string, val: any) {
         :project-template="templateData"
         :import-data="importData"
         :quick-import-type="importType"
+        @import="handleImport"
       />
       <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">
         <a-tab-pane key="uploadTab" :closable="false">
@@ -289,7 +299,7 @@ function getAdapter(name: string, val: any) {
           <template #tab>
             <span class="flex items-center gap-2">
               <MdiCodeJSONIcon />
-              Json Editor
+              JSON Editor
             </span>
           </template>
           <div class="pb-3 pt-3">
@@ -300,7 +310,7 @@ function getAdapter(name: string, val: any) {
           <template #tab>
             <span class="flex items-center gap-2">
               <MdiLinkVariantIcon />
-              Url
+              URL
             </span>
           </template>
           <div class="pr-10 pt-5">

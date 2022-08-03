@@ -8,7 +8,7 @@ const sidebarOpen = inject(RightSidebarInj, ref(false))
 </script>
 
 <template>
-  <a-tooltip placement="left">
+  <a-tooltip :placement="sidebarOpen ? 'bottomRight' : 'left'">
     <template #title> {{ $t('tooltip.toggleNavDraw') }} </template>
 
     <div class="nc-sidebar-right-item hover:after:bg-pink-500 group">

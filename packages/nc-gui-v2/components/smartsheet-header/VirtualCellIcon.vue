@@ -8,6 +8,7 @@ import BTIcon from '~icons/mdi/table-arrow-left'
 import MMIcon from '~icons/mdi/table-network'
 import FormulaIcon from '~icons/mdi/math-integral'
 import RollupIcon from '~icons/mdi/movie-roll'
+import CountIcon from '~icons/mdi/counter'
 import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 
 const { columnMeta } = defineProps<{ columnMeta?: ColumnType }>()
@@ -34,6 +35,8 @@ const icon = computed(() => {
       return GenericIcon
     case UITypes.Rollup:
       return RollupIcon
+    case UITypes.Count:
+      return CountIcon
   }
   return GenericIcon
 })

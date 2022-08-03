@@ -34,6 +34,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     title: 'title',
     uidt: UITypes.SingleLineText,
     ...(column || {}),
+    // todo: swagger json update - include meta
+    meta: (column as any)?.meta || {},
   })
 
   const additionalValidations = ref<Record<string, any>>({})
@@ -77,14 +79,16 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
   const { resetFields, validate, validateInfos } = useForm(formState, validators)
 
-  // actions
-  const generateNewColumnMeta = () => {
-    formState.value = sqlUi.value.getNewColumn((meta.value.columns?.length || 0) + 1)
-  }
-
   const setAdditionalValidations = (validations: Record<string, any>) => {
     additionalValidations.value = validations
   }
+
+  // actions
+  const generateNewColumnMeta = () => {
+    setAdditionalValidations({})
+    formState.value = { meta: {}, ...sqlUi.value.getNewColumn((meta.value.columns?.length || 0) + 1) }
+  }
+
 
   const onUidtOrIdTypeChange = () => {
     const { isCurrency } = useColumn(formState.value as ColumnType)
@@ -92,7 +96,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const colProp = sqlUi?.value.getDataTypeForUiType(formState?.value as any, idType as any)
     formState.value = {
       ...formState.value,
-      meta: null,
+      meta: {},
       rqd: false,
       pk: false,
       ai: false,
@@ -170,11 +174,13 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
   }
 
   const addOrUpdate = async (onSuccess: () => {}) => {
-    if (!(await validate())) return
 
-    formState.value.table_name = meta.value.table_name
-    formState.value.title = formState.value.column_name
     try {
+      console.log(formState, validators)
+      if (!(await validate())) return
+
+      formState.value.table_name = meta.value.table_name
+      formState.value.title = formState.value.column_name
       if (column) {
         await $api.dbTableColumn.update(column.id as string, formState.value)
         toast.success('Column updated')

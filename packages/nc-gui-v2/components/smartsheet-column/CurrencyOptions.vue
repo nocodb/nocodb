@@ -57,6 +57,13 @@ const message = computed(() => {
 function filterOption(input: string, option: Option) {
   return option.value.toUpperCase().includes(input.toUpperCase())
 }
+
+// set default value
+formState.value.meta = {
+  currency_locale: 'en-US',
+  currency_code: 'USD',
+  ...formState.value.meta,
+}
 </script>
 
 <template>

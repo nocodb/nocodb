@@ -32,6 +32,17 @@ const iconList = [
 const advanced = ref(true)
 
 const picked = ref(formState.value.meta.color || enumColor.light[0])
+
+// set default value
+formState.value.meta = {
+  icons: {
+    full: 'mdi-star',
+    empty: 'mdi-star-outline',
+  },
+  color: '#fcb401',
+  max: 5,
+  ...formState.value.meta,
+}
 </script>
 
 <template>

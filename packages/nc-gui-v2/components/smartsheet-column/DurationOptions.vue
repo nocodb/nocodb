@@ -10,6 +10,12 @@ const durationOptionList =
     // h:mm:ss (e.g. 3:45, 1:23:40)
     title: `${o.title} ${o.example}`,
   })) || []
+
+// set default value
+formState.value.meta = {
+  duration: 0,
+  ...formState.value.meta,
+}
 </script>
 
 <template>

@@ -3,7 +3,7 @@ import { inject, ref, useVModel } from '#imports'
 import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: number
+  modelValue: number | null
 }
 
 interface Emits {

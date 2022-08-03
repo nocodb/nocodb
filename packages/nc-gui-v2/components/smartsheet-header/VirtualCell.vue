@@ -1,10 +1,17 @@
 <script setup lang="ts">
-import type { ColumnType } from 'nocodb-sdk'
-import { ColumnInj } from '~/context'
+import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import { ColumnInj, MetaInj } from '~/context'
 import { provide } from '#imports'
 
 const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
+
 provide(ColumnInj, column)
+
+const meta = inject(MetaInj)
+
+useProvideColumnCreateStore(meta as Ref<TableType>, column)
+
 // import { UITypes } from 'nocodb-sdk'
 // import { getUIDTIcon } from '../helpers/uiTypes'
 // import EditVirtualColumn from '~/components/project/spreadsheet/components/EditVirtualColumn'

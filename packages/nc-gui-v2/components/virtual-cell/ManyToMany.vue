@@ -32,13 +32,6 @@ await loadRelatedTableMeta()
       <template v-if="value">
         <ItemChip v-for="(ch, i) in value" :key="i" :value="ch[relatedTablePrimaryValueProp]" @unlink="unlink(ch)" />
 
-        <!--
-                      :active="active"     :item="ch"
-                      :value="getCellValue(ch)"
-                      :readonly="isLocked || isPublic"
-                      @edit="editChild"
-                      @unlink="unlinkChild "        -->
-
         <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
       </template>
     </div>

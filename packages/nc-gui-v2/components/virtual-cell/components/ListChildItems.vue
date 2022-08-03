@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { watchEffect } from '@vue/runtime-core'
 import { useVModel } from '@vueuse/core'
 import { useLTARStoreOrThrow } from '~/composables'
 
@@ -8,20 +7,25 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { childrenList, loadChildrenList, childrenListPagination, relatedTablePrimaryValueProp, link } = useLTARStoreOrThrow()
+const { childrenList, loadChildrenList, childrenListPagination, relatedTablePrimaryValueProp, unlink } = useLTARStoreOrThrow()
 
 watch(vModel, () => {
   if (vModel.value) {
     loadChildrenList()
   }
 })
+
+const unlinkRow = async (row: Record<string, any>) => {
+  await unlink(row)
+  await loadChildrenList()
+}
 </script>
 
 <template>
   <a-modal v-model:visible="vModel" :footer="null" title="Child list">
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
       <div class="flex-1 overflow-auto min-h-0">
-        <a-card v-for="row in childrenList?.list ?? []" class="my-1 cursor-pointer" @click="link(row)">
+        <a-card v-for="(row, i) of childrenList?.list ?? []" :key="i" class="my-1 cursor-pointer" @click="unlinkRow(row)">
           {{ row[relatedTablePrimaryValueProp] }}
         </a-card>
       </div>

@@ -17,6 +17,11 @@ watch(vModel, () => {
     loadChildrenExcludedList()
   }
 })
+
+const linkRow = async (row: Record<string, any>) => {
+  await link(row)
+  await loadChildrenExcludedList()
+}
 </script>
 
 <template>
@@ -29,12 +34,12 @@ watch(vModel, () => {
         <a-button type="primary" size="small" @click="$emit('addNewRecord')">Add new record</a-button>
       </div>
       <div class="flex-1 overflow-auto min-h-0">
-        <a-card v-for="row in childrenExcludedList?.list ?? []" class="my-1 cursor-pointer" @click="link(row)">
+        <a-card v-for="(row, i) in childrenExcludedList?.list ?? []" :key="i" class="my-1 cursor-pointer" @click="linkRow(row)">
           {{ row[relatedTablePrimaryValueProp] }}
         </a-card>
       </div>
       <a-pagination
-        v-if="childrenList?.pageInfo"
+        v-if="childrenExcludedList?.pageInfo"
         v-model:current="childrenExcludedListPagination.page"
         v-model:page-size="childrenExcludedListPagination.size"
         class="mt-2 mx-auto !text-xs"

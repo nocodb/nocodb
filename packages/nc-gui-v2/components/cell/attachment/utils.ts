@@ -41,6 +41,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const { files, open } = useFileDialog()
 
+    /** remove a file from our stored attachments (either locally stored or saved ones) */
     function removeFile(i: number) {
       if (isPublicForm) {
         storedFiles.value.splice(i, 1)
@@ -52,6 +53,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
+    /** save a file on select / drop, either locally (in-memory) or in the db */
     async function onFileSelect(selectedFiles: FileList | File[]) {
       if (!selectedFiles.length || isPublicGrid) return
 
@@ -95,6 +97,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       updateModelValue([...attachments.value, ...newAttachments])
     }
 
+    /** save files on drop */
     async function onDrop(droppedFiles: File[] | null) {
       if (droppedFiles) {
         // set files
@@ -102,6 +105,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
+    /** download a file */
     async function downloadFile(item: Record<string, any>) {
       FileSaver.saveAs(item.url || item.data, item.title)
     }
@@ -121,6 +125,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       }
     }
 
+    /** our currently visible items, either the locally stored or the ones from db, depending on isPublicForm status */
     const visibleItems = computed<any[]>(() => (isPublicForm ? storedFiles.value : attachments.value) || ([] as any[]))
 
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))

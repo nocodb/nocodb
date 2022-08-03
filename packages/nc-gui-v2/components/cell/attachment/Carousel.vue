@@ -13,6 +13,7 @@ const carouselRef = ref()
 
 const imageItems = computed(() => visibleItems.value.filter((item) => isImage(item.title, item.mimetype)))
 
+/** navigate to previous image on button click */
 onKeyDown(
   (e) => ['Left', 'ArrowLeft', 'A'].includes(e.key),
   () => {
@@ -20,6 +21,7 @@ onKeyDown(
   },
 )
 
+/** navigate to next image on button click */
 onKeyDown(
   (e) => ['Right', 'ArrowRight', 'D'].includes(e.key),
   () => {
@@ -27,21 +29,22 @@ onKeyDown(
   },
 )
 
+/** set our selected image when slide changes */
 function onSlideChange(index: number) {
   selectedImage.value = imageItems.value[index]
 }
 
-watch(
-  carouselRef,
-  () => {
-    carouselRef.value?.goTo(
-      imageItems.value.findIndex((item) => item === selectedImage.value),
-      true,
-    )
-  },
-  { immediate: true },
-)
+/** set our carousel ref and move to initial slide  */
+const setCarouselRef = (el: Element) => {
+  carouselRef.value = el
 
+  carouselRef.value?.goTo(
+    imageItems.value.findIndex((item) => item === selectedImage.value),
+    true,
+  )
+}
+
+/** close overlay view when clicking outside of image */
 onClickOutside(carouselRef, () => {
   selectedImage.value = false
 })
@@ -64,7 +67,7 @@ onClickOutside(carouselRef, () => {
 
         <a-carousel
           v-if="!!selectedImage"
-          ref="carouselRef"
+          :ref="setCarouselRef"
           dots-class="slick-dots slick-thumb"
           :after-change="onSlideChange"
           arrows

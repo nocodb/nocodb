@@ -35,6 +35,7 @@ const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, is
 
 const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
 
+/** on new value, reparse our stored attachments */
 watch(
   () => modelValue,
   (nextModel) => {
@@ -45,19 +46,18 @@ watch(
   { immediate: true },
 )
 
+/** updates attachments array for autosave */
 function updateModelValue(data: string | Record<string, any>) {
   emits('update:modelValue', typeof data !== 'string' ? JSON.stringify(data) : data)
 }
 
-const selectImage = (file: any) => {
-  selectedImage.value = file
-}
-
+/** Close modal on escape press, disable dropzone as well */
 onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
 })
 
+/** if possible, on mounted we try to fetch the relevant `td` cell to use as a dropzone */
 onMounted(() => {
   if (typeof document !== 'undefined') {
     dropZoneRef.value = document.querySelector(`td[data-col="${column.id}"]`) as HTMLTableDataCellElement
@@ -121,7 +121,7 @@ onMounted(() => {
               :alt="item.title || `#${i}`"
               :src="item.url || item.data"
               class="ring-1 ring-gray-300 rounded"
-              @click="selectImage(item)"
+              @click="selectedImage = item"
             />
 
             <component :is="FileIcon(item.icon)" v-else-if="item.icon" @click="openLink(item.url || item.data)" />

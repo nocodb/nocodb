@@ -104,3 +104,7 @@ html {
 .nc-active-btn > .ant-btn{
   @apply bg-primary/20;
 }
+
+.ant-modal-wrap {
+  @apply !scrollbar-thin-primary;
+}

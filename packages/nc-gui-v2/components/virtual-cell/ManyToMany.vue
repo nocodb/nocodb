@@ -19,44 +19,42 @@ const childListDlg = ref(false)
 const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Required<ColumnType>,
   row,
-  () => reloadTrigger?.trigger()
+  () => reloadTrigger?.trigger(),
 )
 
 await loadRelatedTableMeta()
 </script>
 
 <template>
-    <div class="flex align-center gap-1 w-full h-full chips-wrapper">
-      <!--    <template v-if="!isForm"> -->
-      <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
-        <template v-if="value">
-          <ItemChip v-for="(ch, i) in value" :key="i" :value="ch[relatedTablePrimaryValueProp]" @unlink="unlink(ch)" />
+  <div class="flex align-center gap-1 w-full h-full chips-wrapper">
+    <!--    <template v-if="!isForm"> -->
+    <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
+      <template v-if="value">
+        <ItemChip v-for="(ch, i) in value" :key="i" :value="ch[relatedTablePrimaryValueProp]" @unlink="unlink(ch)" />
 
-          <!--
+        <!--
                       :active="active"     :item="ch"
                       :value="getCellValue(ch)"
                       :readonly="isLocked || isPublic"
                       @edit="editChild"
                       @unlink="unlinkChild "        -->
 
-          <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
-        </template>
-      </div>
-<div class="flex-1"/>
-      <MdiExpandIcon
-        class="nc-action-icon text-gray-500/50 hover:text-gray-500"
-        @click="childListDlg = true"
-      />
-      <MdiPlusIcon class="nc-action-icon w-[20px] text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
-      <ListItems v-model="listItemsDlg" />
-      <ListChildItems v-model="childListDlg" />
+        <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
+      </template>
     </div>
+    <div class="flex-1" />
+    <MdiExpandIcon class="nc-action-icon text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
+    <MdiPlusIcon class="nc-action-icon w-[20px] text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+    <ListItems v-model="listItemsDlg" />
+    <ListChildItems v-model="childListDlg" />
+  </div>
 </template>
+
 <style scoped>
-.nc-action-icon{
-  @apply hidden
+.nc-action-icon {
+  @apply hidden;
 }
 .chips-wrapper:hover .nc-action-icon {
-  @apply inline-block
+  @apply inline-block;
 }
 </style>

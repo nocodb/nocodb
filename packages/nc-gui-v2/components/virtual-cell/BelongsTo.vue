@@ -17,7 +17,7 @@ const listItemsDlg = ref(false)
 const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Required<ColumnType>,
   row,
-  () => reloadTrigger?.trigger()
+  () => reloadTrigger?.trigger(),
 )
 await loadRelatedTableMeta()
 </script>
@@ -34,11 +34,12 @@ await loadRelatedTableMeta()
     <ListItems v-model="listItemsDlg" />
   </div>
 </template>
+
 <style scoped>
-.nc-action-icon{
-  @apply hidden
+.nc-action-icon {
+  @apply hidden;
 }
 .chips-wrapper:hover .nc-action-icon {
-  @apply inline-block
+  @apply inline-block;
 }
 </style>

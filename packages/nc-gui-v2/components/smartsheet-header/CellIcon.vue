@@ -7,7 +7,7 @@ import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'
 import ClockIcon from '~icons/mdi/clock-time-five'
 // import FKIcon from '~icons/mdi/link-variant'
-import Web from '~icons/mdi/web'
+import WebIcon from '~icons/mdi/web'
 import TextAreaIcon from '~icons/mdi/card-text-outline'
 import StringIcon from '~icons/mdi/alpha-a-box-outline'
 import BooleanIcon from '~icons/mdi/check-box-outline'
@@ -69,7 +69,7 @@ const icon = computed(() => {
   //   return FKIcon
   // }
   else if (additionalColMeta.isURL) {
-    return Web
+    return WebIcon
   } else if (additionalColMeta.isCurrency) {
     return CurrencyIcon
   } else if (additionalColMeta.isPercent) {

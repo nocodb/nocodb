@@ -15,20 +15,13 @@ const root = ref<HTMLInputElement>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-onMounted(() => {
-  root.value?.focus()
-})
-
-watch(
-  () => root.value,
-  (el) => {
-    el?.focus()
-  },
-)
+const onSetRef = (el: HTMLInputElement) => {
+  el.focus()
+}
 </script>
 
 <template>
-  <input v-if="editEnabled" ref="root" v-model="vModel" class="h-full w-full outline-none" />
+  <input v-if="editEnabled" :ref="onSetRef" v-model="vModel" class="h-full w-full outline-none" />
   <span v-else>{{ vModel }}</span>
 </template>
 

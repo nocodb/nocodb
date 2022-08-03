@@ -2,11 +2,12 @@
 import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
-import { ColumnInj, ValueInj, RowInj } from '~/context'
 import { useProvideLTARStore } from '#imports'
+import { ColumnInj, ReloadViewDataHookInj, RowInj, ValueInj } from '~/context'
 import MdiExpandIcon from '~icons/mdi/arrow-expand'
 
 const column = inject(ColumnInj)
+const reloadTrigger = inject(ReloadViewDataHookInj)
 const value = inject(ValueInj)
 const row = inject(RowInj)
 const active = false
@@ -16,6 +17,7 @@ const listItemsDlg = ref(false)
 const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Required<ColumnType>,
   row,
+  () => reloadTrigger?.trigger()
 )
 await loadRelatedTableMeta()
 </script>

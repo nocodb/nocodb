@@ -4,13 +4,14 @@ import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
 import { useProvideLTARStore } from '~/composables'
-import { ColumnInj, RowInj, ValueInj } from '~/context'
+import { ColumnInj, ReloadViewDataHookInj, RowInj, ValueInj } from '~/context'
 import MdiExpandIcon from '~icons/mdi/arrow-expand'
 import MdiPlusIcon from '~icons/mdi/plus'
 
 const column = inject(ColumnInj)
 const row = inject(RowInj)
 const value = inject(ValueInj)
+const reloadTrigger = inject(ReloadViewDataHookInj)
 
 const listItemsDlg = ref(false)
 const childListDlg = ref(false)
@@ -18,6 +19,7 @@ const childListDlg = ref(false)
 const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Required<ColumnType>,
   row,
+  () => reloadTrigger?.trigger()
 )
 
 await loadRelatedTableMeta()

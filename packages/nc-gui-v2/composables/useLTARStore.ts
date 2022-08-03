@@ -11,7 +11,7 @@ interface DataApiResponse {
   pageInfo: PaginatedType
 }
 
-const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<ColumnType>, row?: Ref<Row>) => {
+const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<ColumnType>, row?: Ref<Row>, reloadData = () => {}) => {
   // state
   const { metas, getMeta } = useMetas()
   const { project } = useProject()
@@ -124,6 +124,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<
       getRelatedTableRowId(row) as string,
     )
 
+    reloadData?.()
     // todo: reload table data and children list
     // this.$emit('loadTableData');
     // if (this.isForm && this.$refs.childList) {
@@ -164,6 +165,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<
     // if (this.isForm && this.$refs.childList) {
     //   this.$refs.childList.loadData();
     // }
+
+    reloadData?.()
   }
 
   // watchers

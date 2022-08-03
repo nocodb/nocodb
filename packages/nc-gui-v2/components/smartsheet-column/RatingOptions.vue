@@ -55,7 +55,7 @@ const iconList = ref([
     </a-col>
     <a-col :span="12">
       <a-form-item label="Max">
-        <a-select v-model:value="formState.meta.max" class="w-52" show-search :filter-option="filterOption" size="small">
+        <a-select v-model:value="formState.meta.max" class="w-52" size="small">
           <a-select-option v-for="(v, i) in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" :key="i" :value="v">
             {{ v }}
           </a-select-option>

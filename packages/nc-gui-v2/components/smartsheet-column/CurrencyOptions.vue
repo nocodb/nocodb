@@ -62,43 +62,41 @@ function filterOption(input: string, option: Option) {
 </script>
 
 <template>
-  <a-tooltip :visible="isMoney && isPg">
-    <template #title>
-      <span>{{ message }}</span>
-    </template>
-    <a-row>
-      <a-col :span="12">
-        <a-form-item v-bind="validateInfos['meta.currency_locale']" label="Currency Locale">
-          <a-select
-            v-model:value="formState.meta.currency_locale"
-            size="small"
-            class="w-52"
-            show-search
-            :filter-option="filterOption"
-            :disabled="isMoney && isPg"
-          >
-            <a-select-option v-for="(currencyLocale, i) in currencyLocaleList ?? []" :key="i" :value="currencyLocale.value">
-              {{ currencyLocale.text }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-      </a-col>
-      <a-col :span="12">
-        <a-form-item v-bind="validateInfos['meta.currency_code']" label="Currency Code">
-          <a-select
-            v-model:value="formState.meta.currency_code"
-            class="w-52"
-            show-search
-            :filter-option="filterOption"
-            size="small"
-            :disabled="isMoney && isPg"
-          >
-            <a-select-option v-for="(currencyCode, i) in currencyList ?? []" :key="i" :value="currencyCode">
-              {{ currencyCode }}
-            </a-select-option>
-          </a-select>
-        </a-form-item>
-      </a-col>
-    </a-row>
-  </a-tooltip>
+  <a-row>
+    <a-col :span="12">
+      <a-form-item v-bind="validateInfos['meta.currency_locale']" label="Currency Locale">
+        <a-select
+          v-model:value="formState.meta.currency_locale"
+          size="small"
+          class="w-52"
+          show-search
+          :filter-option="filterOption"
+          :disabled="isMoney && isPg"
+        >
+          <a-select-option v-for="(currencyLocale, i) in currencyLocaleList ?? []" :key="i" :value="currencyLocale.value">
+            {{ currencyLocale.text }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </a-col>
+    <a-col :span="12">
+      <a-form-item v-bind="validateInfos['meta.currency_code']" label="Currency Code">
+        <a-select
+          v-model:value="formState.meta.currency_code"
+          class="w-52"
+          show-search
+          :filter-option="filterOption"
+          size="small"
+          :disabled="isMoney && isPg"
+        >
+          <a-select-option v-for="(currencyCode, i) in currencyList ?? []" :key="i" :value="currencyCode">
+            {{ currencyCode }}
+          </a-select-option>
+        </a-select>
+      </a-form-item>
+    </a-col>
+    <a-col v-if="isMoney && isPg">
+      <span class="text-[#FB8C00]">{{ message }}</span>
+    </a-col>
+  </a-row>
 </template>

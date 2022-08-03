@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, inject, ref } from '#imports'
 import { ColumnInj } from '~/context'
-import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils/durationUtils'
+import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils'
 
 interface Props {
   modelValue: number | string

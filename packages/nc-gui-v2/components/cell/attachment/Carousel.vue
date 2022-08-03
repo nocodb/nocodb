@@ -50,7 +50,7 @@ onClickOutside(carouselRef, () => {
 <template>
   <general-overlay v-model="selectedImage">
     <template v-if="selectedImage">
-      <div class="p-12 text-center relative">
+      <div class="overflow-hidden p-12 text-center relative">
         <div class="text-white group absolute top-5 right-5">
           <MdiCloseCircle class="group-hover:text-red-500 cursor-pointer text-4xl" @click.stop="selectedImage = false" />
         </div>
@@ -84,7 +84,7 @@ onClickOutside(carouselRef, () => {
           <template #customPaging="props">
             <a>
               <img
-                class="!block w-full"
+                class="!block"
                 :alt="imageItems[props.i].title || `#${props.i}`"
                 :src="imageItems[props.i].url || imageItems[props.i].data"
               />

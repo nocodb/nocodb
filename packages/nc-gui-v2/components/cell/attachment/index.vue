@@ -100,7 +100,7 @@ onMounted(() => {
     </div>
 
     <template v-if="visibleItems.length">
-      <div ref="sortableRef" :class="{ dragging }" class="flex flex-wrap gap-2 py-1 scrollbar-thin-primary">
+      <div ref="sortableRef" :class="{ dragging }" class="flex flex-wrap gap-2 p-1 scrollbar-thin-primary">
         <div
           v-for="(item, i) of visibleItems"
           :id="item.url"
@@ -114,8 +114,9 @@ onMounted(() => {
               <div class="text-center w-full">{{ item.title }}</div>
             </template>
 
-            <img
+            <nuxt-img
               v-if="isImage(item.title, item.mimetype)"
+              placeholder
               width="150"
               height="150"
               :alt="item.title || `#${i}`"

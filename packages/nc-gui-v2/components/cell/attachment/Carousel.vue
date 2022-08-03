@@ -86,7 +86,7 @@ onClickOutside(carouselRef, () => {
 
           <template #customPaging="props">
             <a>
-              <img
+              <nuxt-img
                 class="!block"
                 :alt="imageItems[props.i].title || `#${props.i}`"
                 :src="imageItems[props.i].url || imageItems[props.i].data"

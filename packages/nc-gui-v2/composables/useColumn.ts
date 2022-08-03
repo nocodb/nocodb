@@ -34,6 +34,7 @@ export function useColumn(column: ColumnType) {
   const isDecimal = uiDatatype === UITypes.Decimal
   const isDuration = uiDatatype === UITypes.Duration
   const isPercent = uiDatatype === UITypes.Percent
+  const isCount = uiDatatype === UITypes.Count
   const isAutoSaved = [
     UITypes.SingleLineText,
     UITypes.LongText,
@@ -66,6 +67,7 @@ export function useColumn(column: ColumnType) {
     isEnum,
     isSet,
     isURL,
+    isCount,
     isEmail,
     isAttachment,
     isRating,

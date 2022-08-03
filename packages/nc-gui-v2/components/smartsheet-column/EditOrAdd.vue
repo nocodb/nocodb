@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { UITypes } from 'nocodb-sdk'
 import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
 import { MetaInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
@@ -21,6 +22,8 @@ const {
   generateNewColumnMeta,
   isEdit,
 } = useColumnCreateStoreOrThrow()
+
+const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
@@ -94,6 +97,15 @@ watchEffect(() => {
         </div>
       </div>
       <div class="overflow-hidden" :class="advancedOptions ? 'h-min' : 'h-0'">
+        <a-checkbox
+          v-if="formState.meta && columnToValidate.includes(formState.uidt)"
+          v-model:checked="formState.meta.validate"
+          class="ml-1 mb-1"
+        >
+          <span class="text-xs text-gray-600">
+            {{ `Accept only valid ${formState.uidt}` }}
+          </span>
+        </a-checkbox>
         <SmartsheetColumnAdvancedOptions />
       </div>
       <a-form-item>

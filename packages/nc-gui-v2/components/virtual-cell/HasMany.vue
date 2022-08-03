@@ -6,10 +6,16 @@ import { useHasMany } from '#imports'
 
 const column = inject(ColumnInj)
 const value = inject(ValueInj)
-const active = false
+const row = inject(RowInj)
 
-const { childMeta, loadChildMeta, primaryValueProp } = useHasMany(column as ColumnType)
-await loadChildMeta()
+const listItemsDlg = ref(false)
+const childListDlg = ref(false)
+
+const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
+  column as Required<ColumnType>,
+  row,
+)
+await loadRelatedTableMeta()
 
 /* // import ApiFactory from '@/components/project/spreadsheet/apis/apiFactory'
 import { RelationTypes, UITypes, isSystemColumn } from 'nocodb-sdk'
@@ -373,11 +379,11 @@ export default {
 </script>
 
 <template>
-  <div class="d-flex d-100 chips-wrapper" :class="{ active }">
+  <div class="flex align-center gap-1 w-full chips-wrapper group" :class="{ active }">
     <!--    <template v-if="!isForm"> -->
-    <div class="chips d-flex align-center img-container flex-grow-1 hm-items flex-nowrap">
+    <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
       <template v-if="value || localState">
-        <ItemChip v-for="(ch, i) in value || localState" :key="i" :value="ch[primaryValueProp]" />
+        <ItemChip v-for="(ch, i) in value || localState" :key="i" :value="ch[relatedTablePrimaryValueProp]" @unlink="unlink(ch)" />
 
         <!--
                     :active="active"     :item="ch"
@@ -386,14 +392,14 @@ export default {
                     @edit="editChild"
                     @unlink="unlinkChild "        -->
 
-        <!--          <span
-                    v-if="!isLocked && value && value.length === 10"
-                    class="caption pointer ml-1 grey&#45;&#45;text"
-                    @click="showChildListModal"
-                    >more...
-                  </span> -->
+        <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
       </template>
     </div>
+
+    <MdiExpandIcon class="hidden group-hover:inline w-[20px] text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
+    <MdiPlusIcon class="hidden group-hover:inline w-[20px] text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+    <ListItems v-model="listItemsDlg" />
+    <ListChildItems v-model="childListDlg" />
 
     <!--      <div -->
     <!--        v-if="!isLocked" -->
@@ -513,7 +519,7 @@ export default {
 </template>
 
 <style scoped lang="scss">
-.items-container {
+/*.items-container {
   overflow-x: visible;
   max-height: min(500px, 60vh);
   overflow-y: auto;
@@ -575,7 +581,7 @@ export default {
       max-width: calc(100% - 44px);
     }
   }
-}
+}*/
 </style>
 <!--
 /**

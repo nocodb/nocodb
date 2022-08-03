@@ -13,7 +13,7 @@ const active = false
 const localState = null
 const listItemsDlg = ref(false)
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp } = useProvideLTARStore(
+const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Required<ColumnType>,
   row,
 )
@@ -24,11 +24,11 @@ await loadRelatedTableMeta()
   <div class="flex w-full chips-wrapper align-center group" :class="{ active }">
     <div class="chips d-flex align-center flex-grow">
       <template v-if="value || localState">
-        <ItemChip :active="active" :item="value" :value="value[relatedTablePrimaryValueProp]" />
+        <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlink(value || localState)" />
       </template>
     </div>
     <div class="flex-1" />
-    <MdiExpandIcon class="hidden group-hover:inline text-xs text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+    <MdiExpandIcon class="hidden group-hover:inline text-md text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
     <ListItems v-model="listItemsDlg" />
   </div>
 </template>

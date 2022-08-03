@@ -52,7 +52,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<
   }
 
   const loadRelatedTableMeta = async () => {
-    await getMeta((column.colOptions as any)?.fk_related_model_id as string)
+    debugger
+    await getMeta(colOptions?.fk_related_model_id as string)
   }
 
   const relatedTablePrimaryValueProp = computed(() => {
@@ -164,7 +165,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<
     //   this.$refs.childList.loadData();
     // }
   }
-
 
   // watchers
   watch(childrenExcludedListPagination, async () => {

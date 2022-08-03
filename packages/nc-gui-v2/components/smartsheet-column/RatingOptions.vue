@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useColumnCreateStoreOrThrow } from '#imports'
-import { getMdiIcon, enumColor } from '@/utils'
+import { enumColor, getMdiIcon } from '@/utils'
 
 const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
 
@@ -32,6 +32,8 @@ const rowSize = ref(10)
 
 const advanced = ref(true)
 
+const picked = ref(enumColor.light[0])
+
 const colors = ref(['#fcb401', '#faa307', '#f48c06', '#e85d04', '#dc2f02', '#d00000', '#9d0208', '#777'])
 
 function compare(colorA: any, colorB: any) {
@@ -39,6 +41,10 @@ function compare(colorA: any, colorB: any) {
     return colorA.toLowerCase() === colorB.toLowerCase()
   }
   return false
+}
+
+function select(color: string) {
+  picked.value = color
 }
 </script>
 
@@ -76,32 +82,36 @@ function compare(colorA: any, colorB: any) {
       </a-form-item>
     </a-col>
   </a-row>
-  <!-- TODO: add color picker -->
   <a-row>
-    <div class="color-picker">
-      <div v-for="colId in Math.ceil(colors.length / rowSize)" :key="colId" class="color-picker-row">
-        <button
+    <div class="flex self-center justify-center flex-col pa-[10px]">
+      <div v-for="colId in Math.ceil(colors.length / rowSize)" :key="colId" class="flex row">
+        <div
           v-for="(color, i) in colors.slice((colId - 1) * rowSize, colId * rowSize)"
           :key="`color-${colId}-${i}`"
-          class="color-selector"
+          class="color-selector h-[32px] w-[32px] rounded-[5px] my-[10px] mx-[5px] cursor-pointer relative"
           :class="compare(picked, color) ? 'selected' : ''"
           :style="{ 'background-color': color }"
           @click="select(color)"
         >
           {{ compare(picked, color) ? '&#10003;' : '' }}
-        </button>
+        </div>
       </div>
-      <v-expansion-panels v-if="advanced">
-        <v-expansion-panel>
-          <v-expansion-panel-header>Advanced</v-expansion-panel-header>
-          <v-expansion-panel-content>
-            <v-container class="d-flex flex-column">
-              <v-btn class="primary lighten-2" @click="select(picked)"> Pick Color </v-btn>
-              <v-color-picker v-model="picked" class="align-self-center ma-2" canvas-height="100px" mode="hexa" />
-            </v-container>
-          </v-expansion-panel-content>
-        </v-expansion-panel>
-      </v-expansion-panels>
+      <a-collapse v-model:activeKey="advanced" ghost>
+        <a-collapse-panel key="1" header="Advanced">
+          <a-button class="lighten-2 w-full" @click="select(picked)"> Pick Color </a-button>
+          <v-color-picker v-model="picked" class="align-self-center ma-2" canvas-height="100px" mode="hexa" />
+        </a-collapse-panel>
+      </a-collapse>
     </div>
   </a-row>
 </template>
+
+<style scoped lang="scss">
+.color-selector:hover {
+  @apply brightness-90;
+}
+
+.color-selector.selected {
+  @apply py-[5px] px-[10px] brightness-90;
+}
+</style>

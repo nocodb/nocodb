@@ -16,7 +16,7 @@ const emits = defineEmits<Emits>()
 
 const editEnabled = inject(EditModeInj, ref(false))
 
-const vModel = useVModel(props, 'modelValue', emit)
+const vModel = useVModel(props, 'modelValue', emits)
 
 const focus = (el: HTMLInputElement) => el?.focus()
 

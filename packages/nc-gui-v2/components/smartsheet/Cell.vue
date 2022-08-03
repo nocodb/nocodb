@@ -53,9 +53,9 @@ const isManualSaved = $computed(() => {
 })
 
 const vModel = computed({
-  get: () => value,
+  get: () => rest.modelValue,
   set: (val) => {
-    if (val !== value) {
+    if (val !== rest.modelValue) {
       changed = true
       emit('update:modelValue', val)
       if (isAutoSaved) {

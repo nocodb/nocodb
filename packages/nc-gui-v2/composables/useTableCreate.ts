@@ -1,8 +1,8 @@
 import type { TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
+import { useToast } from 'vue-toastification'
 import { useProject } from './useProject'
 import { useNuxtApp } from '#app'
-import { useToast } from 'vue-toastification'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 
 export function useTableCreate(onTableCreate?: (tableMeta: TableType) => void) {

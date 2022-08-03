@@ -2,11 +2,12 @@ import type { ColumnType, FormType, GalleryType, GridType, KanbanType, TableType
 import type { ComputedRef, InjectionKey, Ref } from 'vue'
 import type { EventHook } from '@vueuse/core'
 import type { useViewData } from '#imports'
+import type { Row } from '~/composables'
 import type { TabItem } from '~/composables/useTabs'
 
 export const EditEnabledInj: InjectionKey<boolean> = Symbol('edit-enabled')
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
-export const RowInj: InjectionKey<Ref<Record<string, any>>> = Symbol('row')
+export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
 export const ColumnInj: InjectionKey<ColumnType & { meta: any }> = Symbol('column-injection')
 export const MetaInj: InjectionKey<ComputedRef<TableType>> = Symbol('meta-injection')
 export const TabMetaInj: InjectionKey<ComputedRef<TabItem>> = Symbol('tab-meta-injection')

@@ -282,6 +282,7 @@ const onNavigate = (dir: NavigateDir) => {
                     :column="columnObj"
                     @navigate="onNavigate"
                     :active="selected.col === colIndex && selected.row === rowIndex"
+                    :row="row"
                   />
 
                   <SmartsheetCell

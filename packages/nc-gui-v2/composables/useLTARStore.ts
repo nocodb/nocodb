@@ -4,13 +4,14 @@ import { useMetas } from './useMetas'
 import { useInjectionState } from '#imports'
 import { useProject } from '~/composables/useProject'
 import { NOCO } from '~/lib'
+import type { Row } from '~/composables'
 
 interface DataApiResponse {
   list: Record<string, any>
   pageInfo: PaginatedType
 }
 
-const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<ColumnType>, row?: Record<string, any>) => {
+const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<ColumnType>, row?: Ref<Row>) => {
   // state
   const { metas, getMeta } = useMetas()
   const { project } = useProject()
@@ -39,7 +40,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<
   const rowId = computed(() =>
     meta.value.columns
       .filter((c: Required<ColumnType>) => c.pk)
-      .map((c: Required<ColumnType>) => row?.[c.title])
+      .map((c: Required<ColumnType>) => row?.value?.row?.[c.title])
       .join('___'),
   )
 
@@ -188,6 +189,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<
     link,
     loadChildrenExcludedList,
     loadChildrenList,
+    row,
   }
 }, 'ltar-store')
 

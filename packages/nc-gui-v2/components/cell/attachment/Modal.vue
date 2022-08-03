@@ -100,7 +100,10 @@ onKeyDown('Escape', () => {
               </div>
             </a-tooltip>
 
-            <div class="nc-attachment h-full w-full flex items-center justify-center cursor-move">
+            <div
+              :class="[dragging ? 'cursor-move' : 'cursor-pointer']"
+              class="nc-attachment h-full w-full flex items-center justify-center"
+            >
               <div
                 v-if="isImage(item.title, item.mimetype)"
                 :style="{ backgroundImage: `url('${item.url}')` }"

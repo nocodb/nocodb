@@ -44,6 +44,7 @@ export const genTest = (apiType, dbType) => {
         };
 
         let langMenu = [
+            "bn.json",
             "da.json",
             "de.json",
             "en.json",
@@ -51,6 +52,7 @@ export const genTest = (apiType, dbType) => {
             "fa.json",
             "fi.json",
             "fr.json",
+            "hi.json",
             "hr.json",
             "id.json",
             "it_IT.json",
@@ -66,8 +68,8 @@ export const genTest = (apiType, dbType) => {
             "sv.json",
             "th.json",
             "tr.json",
-            "uk.json",
             "vi.json",
+            "uk.json",
             "zh_CN.json",
             "zh_HK.json",
             "zh_TW.json",

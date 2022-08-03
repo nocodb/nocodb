@@ -187,72 +187,74 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
-            <tr class="group">
-              <th>
-                <div class="flex align-center w-[80px]">
-                  <div class="group-hover:hidden" :class="{ hidden: selectedAllRecords }">#</div>
-                  <div
-                    :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
-                    class="group-hover:flex w-full align-center"
-                  >
-                    <a-checkbox v-model:checked="selectedAllRecords" />
-                    <span class="flex-1" />
-                  </div>
+          <tr class="group">
+            <th>
+              <div class="flex align-center w-[80px]">
+                <div class="group-hover:hidden" :class="{ hidden: selectedAllRecords }">#</div>
+                <div
+                  :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
+                  class="group-hover:flex w-full align-center"
+                >
+                  <a-checkbox v-model:checked="selectedAllRecords" />
+                  <span class="flex-1" />
                 </div>
-              </th>
-              <th
-                v-for="col in fields"
-                :key="col.title"
-                v-xc-ver-resize
-                :data-col="col.id"
-                @xcresize="onresize(col.id, $event)"
-                @xcresizing="onXcResizing(col.title, $event)"
-                @xcresized="resizingCol = null"
-              >
-                <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
-                <SmartsheetHeaderCell v-else :column="col" />
-              </th>
-              <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
-              <th v-t="['c:column:add']" @click="addColumnDropdown = true">
-                <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
-                  <div class="h-full w-full flex align-center justify-center">
-                    <MdiPlusIcon class="text-sm" />
-                  </div>
-                  <template #overlay>
-                    <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
-                  </template>
-                </a-dropdown>
-              </th>
-            </tr>
+              </div>
+            </th>
+            <th
+              v-for="col in fields"
+              :key="col.title"
+              v-xc-ver-resize
+              :data-col="col.id"
+              @xcresize="onresize(col.id, $event)"
+              @xcresizing="onXcResizing(col.title, $event)"
+              @xcresized="resizingCol = null"
+            >
+              <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+              <SmartsheetHeaderCell v-else :column="col" />
+            </th>
+            <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
+            <th v-t="['c:column:add']" @click="addColumnDropdown = true">
+              <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
+                <div class="h-full w-full flex align-center justify-center">
+                  <MdiPlusIcon class="text-sm" />
+                </div>
+                <template #overlay>
+                  <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
+                </template>
+              </a-dropdown>
+            </th>
+          </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
-              <td key="row-index" class="caption nc-grid-cell">
-                <div class="align-center flex w-[80px]">
-                  <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
-                  <div
-                    :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                    class="group-hover:flex w-full align-center"
-                  >
-                    <a-checkbox v-model:checked="row.rowMeta.selected" />
-                    <span class="flex-1" />
-                    <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" />
-                  </div>
+          <tr v-for="(row, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
+            <td key="row-index" class="caption nc-grid-cell">
+              <div class="align-center flex w-[80px]">
+                <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                <div
+                  :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
+                  class="group-hover:flex w-full align-center"
+                >
+                  <a-checkbox v-model:checked="row.rowMeta.selected" />
+                  <span class="flex-1" />
+                  <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" />
                 </div>
-              </td>
-              <td
-                v-for="(columnObj, colIndex) in fields"
-                :key="rowIndex + columnObj.title"
-                class="cell pointer nc-grid-cell"
-                :class="{
+              </div>
+            </td>
+            <td
+              v-for="(columnObj, colIndex) in fields"
+              :key="rowIndex + columnObj.title"
+              class="cell pointer nc-grid-cell"
+              :class="{
                   active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
                 }"
-                :data-col="columnObj.id"
-                @click="selectCell(rowIndex, colIndex)"
-                @dblclick="editEnabled = true"
-                @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
-              >
-                <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row.row[columnObj.title]" :column="columnObj" />
+              :data-col="columnObj.id"
+              @click="selectCell(rowIndex, colIndex)"
+              @dblclick="editEnabled = true"
+              @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
+            >
+              <div class="w-full h-full">
+                <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row.row[columnObj.title]"
+                                       :column="columnObj" />
 
                 <SmartsheetCell
                   v-else
@@ -261,34 +263,36 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
                   :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
                   @save="updateOrSaveRow(row, columnObj.title)"
                 />
-              </td>
-            </tr>
+              </div>
+            </td>
+          </tr>
 
-            <tr v-if="!isLocked">
-              <td
-                v-t="['c:row:add:grid-bottom']"
-                :colspan="visibleColLength + 1"
-                class="text-left pointer nc-grid-add-new-cell"
-                @click="addEmptyRow()"
-              >
-                <a-tooltip top left>
-                  <div class="w-min flex align-center">
-                    <MdiPlusIcon class="text-pint-500 text-xs" />
-                    <span class="ml-1 caption grey--text">
+          <tr v-if="!isLocked">
+            <td
+              v-t="['c:row:add:grid-bottom']"
+              :colspan="visibleColLength + 1"
+              class="text-left pointer nc-grid-add-new-cell"
+              @click="addEmptyRow()"
+            >
+              <a-tooltip top left>
+                <div class="w-min flex align-center">
+                  <MdiPlusIcon class="text-pint-500 text-xs" />
+                  <span class="ml-1 caption grey--text">
                       {{ $t('activity.addRow') }}
                     </span>
-                  </div>
-                  <template #title>
-                    <span class="caption"> Add new row</span>
-                  </template>
-                </a-tooltip>
-              </td>
-            </tr>
+                </div>
+                <template #title>
+                  <span class="caption"> Add new row</span>
+                </template>
+              </a-tooltip>
+            </td>
+          </tr>
           </tbody>
         </table>
         <template #overlay>
           <div class="bg-white shadow" @click="contextMenu = false">
-            <div v-if="contextMenuTarget" class="nc-menu-item" @click="deleteRow(contextMenuTarget.row)">Delete row</div>
+            <div v-if="contextMenuTarget" class="nc-menu-item" @click="deleteRow(contextMenuTarget.row)">Delete row
+            </div>
             <div class="nc-menu-item" @click="deleteSelectedRows">Delete all selected rows</div>
             <div v-if="contextMenuTarget" class="nc-menu-item" @click="clearCell(contextMenuTarget)">Clear cell</div>
             <div v-if="contextMenuTarget" class="nc-menu-item" @click="addEmptyRow(contextMenuTarget.row + 1)">
@@ -315,13 +319,14 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
-    padding: 0 5px;
+    //padding: 0 5px;
 
-    & > * {
+    & > div {
+      overflow: hidden;
       @apply flex align-center h-auto;
+      padding: 0 5px;
     }
 
-    overflow: hidden;
   }
 
   table,
@@ -357,7 +362,7 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
   }
 
   td.active::before {
-    background: #0040bc /*var(--v-primary-base)*/;
+    background: #0040bc;
     opacity: 0.1;
   }
 }

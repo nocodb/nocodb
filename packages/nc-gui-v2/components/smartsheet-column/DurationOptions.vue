@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useColumnCreateStoreOrThrow } from '#imports'
-import { durationOptions } from '@/utils/durationUtils'
+import { durationOptions } from '@/utils'
 
 const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
 

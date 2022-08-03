@@ -70,14 +70,14 @@ onMounted(() => {
     <Carousel />
 
     <template v-if="!isReadonly && !dragging && dropZoneRef">
-      <teleport :to="`td[data-col='${column.id}']`">
-        <div
-          :class="[isOverDropZone ? 'opacity-100' : 'opacity-0 pointer-events-none']"
-          class="text-white text-lg transition-all duration-150 ease-in-out ring ring-pink-500 bg-gray-700/75 flex items-center justify-center gap-2 z-99 absolute top-0 bottom-0 left-0 right-0 backdrop-blur-xl"
-        >
-          <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here
-        </div>
-      </teleport>
+      <general-overlay
+        v-model="isOverDropZone"
+        inline
+        :target="`td[data-col='${column.id}']`"
+        class="text-white text-lg ring ring-pink-500 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
+      >
+        <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here
+      </general-overlay>
     </template>
 
     <div

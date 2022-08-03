@@ -4,7 +4,7 @@ import { useProvideAttachmentCell } from './utils'
 import Modal from './Modal.vue'
 import { useSortable } from './sort'
 import Carousel from './Carousel.vue'
-import { ref, useDropZone, watch } from '#imports'
+import { onMounted, ref, useDropZone, watch } from '#imports'
 import { isImage, openLink } from '~/utils'
 import MaterialSymbolsAttachFile from '~icons/material-symbols/attach-file'
 import MaterialArrowExpandIcon from '~icons/mdi/arrow-expand'
@@ -24,11 +24,11 @@ const { modelValue } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const dropZoneRef = ref<HTMLDivElement>()
+const dropZoneRef = ref<HTMLTableDataCellElement>()
 
 const sortableRef = ref<HTMLDivElement>()
 
-const { modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, selectedImage, isReadonly } =
+const { column, modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, selectedImage, isReadonly } =
   useProvideAttachmentCell(updateModelValue)
 
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
@@ -57,18 +57,26 @@ onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
 })
+
+onMounted(() => {
+  if (typeof document !== 'undefined') {
+    dropZoneRef.value = document.querySelector(`td[data-col="${column.id}"]`) as HTMLTableDataCellElement
+  }
+})
 </script>
 
 <template>
-  <div ref="dropZoneRef" class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1">
+  <div class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1">
     <Carousel />
 
     <template v-if="!isReadonly && !dragging && isOverDropZone">
-      <div
-        class="z-100 absolute top-0 bottom-0 left-0 right-0 w-full h-full flex items-center justify-center p-1 rounded gap-1 bg-gray-700/75 text-white"
-      >
-        <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here
-      </div>
+      <teleport :to="`td[data-col='${column.id}']`">
+        <div
+          class="z-100 absolute top-0 bottom-0 left-0 right-0 w-full h-full flex items-center justify-center gap-1 bg-gray-700/75 text-white"
+        >
+          <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here
+        </div>
+      </teleport>
     </template>
 
     <div

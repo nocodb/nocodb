@@ -1,28 +1,23 @@
 <script setup lang="ts">
-import { inject, onMounted, ref } from '#imports'
+import { inject, ref, useVModel } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: any
+  modelValue: string
 }
 
 const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
-const editEnabled = inject<boolean>('editEnabled', false)
-
-const root = ref<HTMLInputElement>()
+const editEnabled = inject(EditModeInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const onSetRef = (el: HTMLInputElement) => {
-  el.focus()
-}
+const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" :ref="onSetRef" v-model="vModel" class="h-full w-full outline-none" />
+  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="h-full w-full outline-none" />
   <span v-else>{{ vModel }}</span>
 </template>
-
-<style scoped></style>

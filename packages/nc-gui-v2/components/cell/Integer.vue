@@ -1,4 +1,7 @@
 <script setup lang="ts">
+import { inject, ref, useVModel } from '#imports'
+import { EditModeInj } from '~/context'
+
 interface Props {
   modelValue: number
 }
@@ -11,15 +14,11 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject<boolean>('editEnabled')
+const editEnabled = inject(EditModeInj, ref(false))
 
-const root = ref<HTMLInputElement>()
+const vModel = useVModel(props, 'modelValue', emit)
 
-const vModel = useVModel(props, 'modelValue', emits)
-
-onMounted(() => {
-  root.value?.focus()
-})
+const focus = (el: HTMLInputElement) => el?.focus()
 
 function onKeyDown(evt: KeyboardEvent) {
   return evt.key === '.' && evt.preventDefault()
@@ -29,7 +28,7 @@ function onKeyDown(evt: KeyboardEvent) {
 <template>
   <input
     v-if="editEnabled"
-    ref="root"
+    :ref="focus"
     v-model="vModel"
     class="outline-none pa-0 border-none w-full h-full prose-sm"
     type="number"

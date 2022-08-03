@@ -1,9 +1,10 @@
 <script lang="ts" setup>
-import { computed } from '#imports'
+import { computed, inject, useVModel } from '#imports'
 import { isEmail } from '~/utils'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string
+  modelValue: string | null
 }
 
 interface Emits {
@@ -14,13 +15,13 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const root = ref<HTMLInputElement>()
-
-const editEnabled = inject<boolean>('editEnabled')
+const editEnabled = inject(EditModeInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
 const validEmail = computed(() => isEmail(vModel.value))
+
+const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>

@@ -28,23 +28,30 @@ export function useViewColumns(
     if (!meta || !view) return
 
     let order = 1
-    if (view?.value?.id) {
-      const data = await $api.dbViewColumn.list(view?.value?.id as string)
-      const fieldById: Record<string, any> = data.reduce((o: Record<string, any>, f: any) => {
-        f.show = !!f.show
+    if (view.value?.id) {
+      const data = (await $api.dbViewColumn.list(view.value.id)) as any[]
+
+      const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
+        curr.show = !!curr.show
+
         return {
-          ...o,
-          [f.fk_column_id as string]: f,
+          ...acc,
+          [curr.fk_column_id]: curr,
         }
       }, {})
-      fields.value = meta.value?.columns
-        ?.map((c) => ({
-          title: c.title,
-          fk_column_id: c.id,
-          ...(fieldById[c.id as string] ? fieldById[c.id as string] : {}),
-          order: (fieldById[c.id as string] && fieldById[c.id as string].order) || order++,
-          system: isSystemColumn(fieldById[c.fk_model_id as string]?.type as ColumnType),
-        }))
+
+      fields.value = meta.value.columns
+        ?.map((column) => {
+          const currentColumnField = fieldById[column.id!] || {}
+
+          return {
+            title: column.title,
+            fk_column_id: column.id,
+            ...currentColumnField,
+            order: currentColumnField.order || order++,
+            system: isSystemColumn(currentColumnField.type || false),
+          }
+        })
         .sort((a, b) => a.order - b.order)
     } else if (isPublic) {
       fields.value = meta.value.columns as any
@@ -52,32 +59,37 @@ export function useViewColumns(
   }
 
   const showAll = async () => {
-    await $api.dbView.showAllColumn(view?.value?.id as string)
+    if (view?.value?.id) await $api.dbView.showAllColumn(view.value.id)
+
     await loadViewColumns()
     reloadData?.()
   }
   const hideAll = async () => {
-    await $api.dbView.hideAllColumn(view?.value?.id as string)
+    if (view?.value?.id) await $api.dbView.hideAllColumn(view.value.id)
+
     await loadViewColumns()
     reloadData?.()
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
-    if (field.id) {
-      await $api.dbViewColumn.update(view?.value?.id as string, field.id, field)
-    } else {
-      if (fields.value) fields.value[index] = (await $api.dbViewColumn.create(view?.value?.id as string, field)) as any
+    if (field.id && view?.value?.id) {
+      await $api.dbViewColumn.update(view.value.id, field.id, field)
+    } else if (view?.value?.id) {
+      if (fields.value) fields.value[index] = (await $api.dbViewColumn.create(view.value.id, field)) as any
     }
+
     reloadData?.()
   }
 
   const metaColumnById = computed(() => {
-    return meta?.value?.columns?.reduce<Record<string, ColumnType>>((o: Record<string, any>, c: any) => {
-      return {
-        ...o,
-        [c.id]: c,
-      }
-    }, {})
+    return (
+      meta.value.columns?.reduce<Record<string, ColumnType>>((acc, curr) => {
+        return {
+          ...acc,
+          [curr.id!]: curr,
+        }
+      }, {}) || {}
+    )
   })
 
   const showSystemFields = computed({
@@ -86,28 +98,27 @@ export function useViewColumns(
       return (view?.value as any)?.show_system_fields || false
     },
     set(v) {
-      if (view?.value) {
-        $api.dbView.update(
-          view?.value?.id as string,
-          {
-            // todo: update swagger
-            show_system_fields: v,
-          } as any,
-        )
+      if (view?.value?.id) {
+        $api.dbView.update(view.value.id, {
+          // todo: update swagger
+          show_system_fields: v,
+        } as any)
         ;(view.value as any).show_system_fields = v
       }
     },
   })
 
   const filteredFieldList = computed(() => {
-    return fields.value?.filter((field) => {
-      // hide system columns if not enabled
-      if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id as string])) {
-        return false
-      }
+    return (
+      fields.value?.filter((field) => {
+        // hide system columns if not enabled
+        if (!showSystemFields.value && isSystemColumn(metaColumnById?.value?.[field.fk_column_id!])) {
+          return false
+        }
 
-      return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
-    })
+        return !filterQuery?.value || field.title.toLowerCase().includes(filterQuery.value.toLowerCase())
+      }) || {}
+    )
   })
 
   const sortedAndFilteredFields = computed<ColumnType[]>(() => {
@@ -117,15 +128,15 @@ export function useViewColumns(
         if (
           !showSystemFields.value &&
           metaColumnById.value &&
-          metaColumnById?.value?.[c.fk_column_id as string] &&
-          isSystemColumn(metaColumnById?.value?.[c.fk_column_id as string])
+          metaColumnById?.value?.[c.fk_column_id!] &&
+          isSystemColumn(metaColumnById.value?.[c.fk_column_id!])
         ) {
           return false
         }
         return c.show
       })
-      ?.sort((c1, c2) => c1.order - c2.order)
-      ?.map((c) => metaColumnById?.value?.[c.fk_column_id as string]) || []) as ColumnType[]
+      ?.sort((a, b) => a.order - b.order)
+      ?.map((c) => metaColumnById?.value?.[c.fk_column_id!]) || []) as ColumnType[]
   })
 
   // reload view columns when table meta changes

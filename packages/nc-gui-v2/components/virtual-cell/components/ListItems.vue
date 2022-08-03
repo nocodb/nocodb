@@ -1,5 +1,23 @@
-<script>
-import Pagination from '~/components/project/spreadsheet/components/Pagination'
+<script lang="ts" setup>
+import { useVModel } from '@vueuse/core'
+import { useLTARStoreOrThrow } from '~/composables'
+
+const props = defineProps<{ modelValue: boolean }>()
+const emit = defineEmits(['update:modelValue'])
+
+const vModel = useVModel(props, 'modelValue', emit)
+
+const {
+  childrenExcludedList,
+  loadChildrenExcludedList,
+  childrenExcludedListPagination,
+  relatedTablePrimaryValueProp,
+  link
+} =
+  useLTARStoreOrThrow()
+
+await loadChildrenExcludedList()
+/* import Pagination from '~/components/project/spreadsheet/components/Pagination'
 import { NOCO } from '~/lib/constants'
 
 export default {
@@ -100,14 +118,30 @@ export default {
       }
     },
   },
-}
+} */
 </script>
 
 <template>
-  <v-dialog v-model="show" width="600" content-class="dialog">
+  <a-modal v-model:visible="vModel" :footer="null" title="Related table rows">
+    <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
+      <div class="flex-1 overflow-auto min-h-0">
+        <a-card v-for="row in childrenExcludedList.list" class="my-1 cursor-pointer" @click="link(row)">
+          {{ row[relatedTablePrimaryValueProp] }}
+        </a-card>
+      </div>
+      <a-pagination class="mt-2 mx-auto"
+                    size="small"
+                    v-model:current="childrenExcludedListPagination.page"
+                    v-model:page-size="childrenExcludedListPagination.size"
+                    :total="childrenExcludedList.pageInfo.totalRows"
+                    show-less-items />
+    </div>
+  </a-modal>
+
+  <!--  <v-dialog v-model="show" width="600" content-class="dialog">
     <v-icon small class="close-icon" @click="$emit('input', false)"> mdi-close </v-icon>
     <v-card width="600">
-      <v-card-title class="textColor--text mx-2 justify-center">
+      <v-card-title class="textColor&#45;&#45;text mx-2 justify-center">
         {{ title }}
       </v-card-title>
 
@@ -137,9 +171,9 @@ export default {
         <div class="items-container">
           <template v-if="data && data.list && data.list.length">
             <v-card v-for="(ch, i) in data.list" :key="i" v-ripple class="ma-2 child-card" outlined @click="$emit('add', ch)">
-              <v-card-text class="primary-value textColor--text text--lighten-2 d-flex">
+              <v-card-text class="primary-value textColor&#45;&#45;text text&#45;&#45;lighten-2 d-flex">
                 <span class="font-weight-bold"> {{ ch[primaryCol] || (ch && Object.values(ch).slice(0, 1).join()) }}&nbsp;</span>
-                <span v-if="primaryKey" class="grey--text caption primary-key">(Primary Key : {{ ch[primaryKey] }})</span>
+                <span v-if="primaryKey" class="grey&#45;&#45;text caption primary-key">(Primary Key : {{ ch[primaryKey] }})</span>
                 <v-spacer />
                 <v-chip v-if="hm && ch[`${hm._rtn}Read`] && ch[`${hm._rtn}Read`][hmParentPrimaryValCol]" x-small>
                   {{ ch[`${hm._rtn}Read`][hmParentPrimaryValCol] }}
@@ -148,8 +182,8 @@ export default {
             </v-card>
           </template>
 
-          <div v-else-if="data" class="text-center py-15 textLight--text">
-            <!-- No items found -->
+          <div v-else-if="data" class="text-center py-15 textLight&#45;&#45;text">
+            &lt;!&ndash; No items found &ndash;&gt;
             {{ $t('placeholder.noItemsFound') }}
           </div>
         </div>
@@ -165,11 +199,11 @@ export default {
         />
       </v-card-actions>
     </v-card>
-  </v-dialog>
+  </v-dialog> -->
 </template>
 
 <style scoped lang="scss">
-.child-list-modal {
+/*.child-list-modal {
   position: relative;
 
   .remove-child-icon {
@@ -222,29 +256,9 @@ export default {
       z-index: 9;
     }
   }
+}*/
+
+:deep(.ant-pagination-item a) {
+  line-height: 21px !important;
 }
 </style>
-<!--
-/**
- * @copyright Copyright (c) 2021, Xgene Cloud Ltd
- *
- * @author Naveen MR <oof1lab@gmail.com>
- * @author Pranav C Balan <pranavxc@gmail.com>
- *
- * @license GNU AGPL version 3 or any later version
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU Affero General Public License as
- * published by the Free Software Foundation, either version 3 of the
- * License, or (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU Affero General Public License for more details.
- *
- * You should have received a copy of the GNU Affero General Public License
- * along with this program. If not, see <http://www.gnu.org/licenses/>.
- *
- */
--->

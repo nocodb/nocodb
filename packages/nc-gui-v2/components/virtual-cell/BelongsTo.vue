@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
+import ListItems from './components/ListItems.vue'
 import { ColumnInj, ValueInj, RowInj } from '~/context'
-import { useBelongsTo } from '#imports'
 import { useProvideLTARStore } from '#imports'
 import MdiExpandIcon from '~icons/mdi/arrow-expand'
 
@@ -11,10 +11,13 @@ const value = inject(ValueInj)
 const row = inject(RowInj)
 const active = false
 const localState = null
+const listItemsDlg = ref(false)
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp,childrenExcludedList } = useProvideLTARStore(column as ColumnType, row)
+const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp } = useProvideLTARStore(
+  column as Required<ColumnType>,
+  row,
+)
 await loadRelatedTableMeta()
-const data = await childrenExcludedList()
 </script>
 
 <template>
@@ -25,6 +28,7 @@ const data = await childrenExcludedList()
       </template>
     </div>
     <div class="flex-1" />
-    <MdiExpandIcon class="hidden group-hover:inline text-xs text-gray-500/50 hover:text-gray-500" />
+    <MdiExpandIcon class="hidden group-hover:inline text-xs text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+    <ListItems v-model="listItemsDlg" />
   </div>
 </template>

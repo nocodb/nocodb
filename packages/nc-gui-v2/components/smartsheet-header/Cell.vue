@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { Modal } from 'ant-design-vue'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { inject } from 'vue'

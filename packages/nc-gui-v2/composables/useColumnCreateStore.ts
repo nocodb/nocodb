@@ -33,6 +33,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
   const formState = ref<Partial<Record<string, any>>>({
     title: 'title',
     uidt: UITypes.SingleLineText,
+    meta: {},
     ...(column || {}),
   })
 
@@ -92,7 +93,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const colProp = sqlUi?.value.getDataTypeForUiType(formState?.value as any, idType as any)
     formState.value = {
       ...formState.value,
-      meta: null,
+      meta: {},
       rqd: false,
       pk: false,
       ai: false,

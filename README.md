@@ -449,6 +449,7 @@ Our mission is to provide the most powerful no-code interface for databases whic
   </tr>
   <tr>
     <td align="center"><a href="https://yohanboniface.me"><img src="https://avatars.githubusercontent.com/u/146023?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Yohan Boniface</b></sub></a><br /><a href="#translation-yohanboniface" title="Translation">🌍</a></td>
+    <td align="center"><a href="https://github.com/drsantam"><img src="https://avatars.githubusercontent.com/u/10681456?v=4?s=100" width="100px;" alt=""/><br /><sub><b>Santam Chakraborty</b></sub></a><br /><a href="#translation-drsantam" title="Translation">🌍</a></td>
   </tr>
 </table>
 

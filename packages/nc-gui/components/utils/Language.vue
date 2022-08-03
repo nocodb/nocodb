@@ -66,8 +66,8 @@ export default {
       sv: 'Svenska',
       th: 'ไทย',
       tr: 'Turkish',
-      vi: 'Tiếng Việt',
       uk: 'Українська',
+      vi: 'Tiếng Việt',
       zh_CN: '大陆简体',
       zh_HK: '香港繁體',
       zh_TW: '臺灣正體'

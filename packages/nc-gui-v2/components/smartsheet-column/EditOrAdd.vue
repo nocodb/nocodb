@@ -23,6 +23,8 @@ const {
   isEdit,
 } = useColumnCreateStoreOrThrow()
 
+const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
+
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
     ...uiTypes.filter((t) => !isEdit || !t.virtual),
@@ -85,6 +87,8 @@ watchEffect(() => {
         </a-select>
       </a-form-item>
 
+      <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" />
+      <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
       <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
 
       <div>
@@ -97,6 +101,15 @@ watchEffect(() => {
         </div>
       </div>
       <div class="overflow-hidden" :class="advancedOptions ? 'h-min' : 'h-0'">
+        <a-checkbox
+          v-if="formState.meta && columnToValidate.includes(formState.uidt)"
+          v-model:checked="formState.meta.validate"
+          class="ml-1 mb-1"
+        >
+          <span class="text-xs text-gray-600">
+            {{ `Accept only valid ${formState.uidt}` }}
+          </span>
+        </a-checkbox>
         <SmartsheetColumnAdvancedOptions />
       </div>
       <a-form-item>

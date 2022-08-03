@@ -96,7 +96,8 @@ onKeyDown('Escape', () => {
           v-for="(item, i) of visibleItems"
           :id="item.url"
           :key="item.url || item.title"
-          class="nc-attachment flex-auto flex items-center justify-center min-h-[50px] h-[50px] min-w-[50px] w-[50px] border-1"
+          style="flex: 1 1 50px"
+          class="nc-attachment flex items-center justify-center border-1"
         >
           <a-tooltip placement="bottom">
             <template #title>
@@ -138,15 +139,17 @@ onKeyDown('Escape', () => {
 </template>
 
 <style lang="scss">
-.nc-attachment-cell {
-  .ghost,
-  .ghost > * {
-    @apply !pointer-events-none;
-  }
+.nc-cell {
+  .nc-attachment-cell {
+    .ghost,
+    .ghost > * {
+      @apply !pointer-events-none;
+    }
 
-  .dragging {
-    .ant-tooltip {
-      @apply !hidden;
+    .dragging {
+      .ant-tooltip {
+        @apply !hidden;
+      }
     }
   }
 }

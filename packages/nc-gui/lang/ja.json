@@ -309,6 +309,7 @@
     "importExcel": "エクセルファイルをインポート",
     "importCSV": "Import CSV",
     "downloadCSV": "CSVをダウンロード",
+    "downloadExcel": "XLSXをダウンロード",
     "uploadCSV": "CSVをアップロード",
     "import": "インポート",
     "importMetadata": "メタデータをインポート",

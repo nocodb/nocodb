@@ -251,22 +251,27 @@ export class _mainPage {
 
     shareViewList = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(2);
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Shared View List");
     };
 
     downloadCsv = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(0);
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Download as CSV");
+    };
+
+    downloadExcel = () => {
+        cy.get(".nc-actions-menu-btn").click();
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Download as XLSX");
     };
 
     uploadCsv = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(1);
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Upload CSV");
     };
 
     automations = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(3);
+        return cy.getActiveMenu().find('[role="menuitem"]').contains("Webhooks");
     };
 
     hideField = (field) => {

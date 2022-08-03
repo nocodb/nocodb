@@ -28,6 +28,15 @@
             </span>
           </v-list-item-title>
         </v-list-item>
+        <v-list-item v-t="['a:actions:download-excel']" dense @click="exportExcel">
+          <v-list-item-title>
+            <v-icon small class="mr-1"> mdi-download-outline </v-icon>
+            <span class="caption">
+              <!-- Download as XLSX -->
+              {{ $t('activity.downloadExcel') }}
+            </span>
+          </v-list-item-title>
+        </v-list-item>
         <v-list-item
           v-if="_isUIAllowed('csvImport') && !isView"
           v-t="['a:actions:upload-csv']"
@@ -87,6 +96,7 @@
 
 <script>
 import FileSaver from 'file-saver';
+import * as XLSX from 'xlsx';
 import { ExportTypes } from 'nocodb-sdk';
 import DropOrSelectFileModal from '~/components/import/DropOrSelectFileModal';
 import ColumnMappingModal from '~/components/project/spreadsheet/components/importExport/ColumnMappingModal';
@@ -220,51 +230,34 @@ export default {
         })
       );
     },
+    async exportExcel() {
+      let offset = 0;
+      let c = 1;
+      try {
+        while (!isNaN(offset) && offset > -1) {
+          const res = await this.getExportData({ offset, exportType: ExportTypes.EXCEL, responseType: 'base64' });
+          const workbook = XLSX.read(res.data, { type: 'base64' });
+          XLSX.writeFile(workbook, `${this.meta.title}_exported_${c++}.xlsx`);
+
+          offset = +res.headers['nc-export-offset'];
+          if (offset > -1) {
+            this.$toast.info('Downloading more files').goAway(3000);
+          } else {
+            this.$toast.success('Successfully exported all table data').goAway(3000);
+          }
+        }
+      } catch (e) {
+        console.log(e);
+        this.$toast.error(e.message).goAway(3000);
+      }
+    },
     async exportCsv() {
       let offset = 0;
       let c = 1;
 
       try {
         while (!isNaN(offset) && offset > -1) {
-          let res;
-          if (this.publicViewId) {
-            res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.CSV, {
-              responseType: 'blob',
-              query: {
-                fields:
-                  this.queryParams &&
-                  this.queryParams.fieldsOrder &&
-                  this.queryParams.fieldsOrder.filter(c => this.queryParams.showFields[c]),
-                offset,
-                sortArrJson: JSON.stringify(
-                  this.reqPayload &&
-                    this.reqPayload.sorts &&
-                    this.reqPayload.sorts.map(({ fk_column_id, direction }) => ({
-                      direction,
-                      fk_column_id,
-                    }))
-                ),
-                filterArrJson: JSON.stringify(this.reqPayload && this.reqPayload.filters),
-              },
-              headers: {
-                'xc-password': this.reqPayload && this.reqPayload.password,
-              },
-            });
-          } else {
-            res = await this.$api.dbViewRow.export(
-              'noco',
-              this.projectName,
-              this.meta.title,
-              this.selectedView.title,
-              ExportTypes.CSV,
-              {
-                responseType: 'blob',
-                query: {
-                  offset,
-                },
-              }
-            );
-          }
+          const res = await this.getExportData({ offset, exportType: ExportTypes.CSV, responseType: 'blob' })
           const { data } = res;
 
           offset = +res.headers['nc-export-offset'];
@@ -280,6 +273,48 @@ export default {
         console.log(e);
         this.$toast.error(e.message).goAway(3000);
       }
+    },
+    async getExportData({ offset, exportType, responseType }) {
+      let res;
+      if (this.publicViewId) {
+        res = await this.$api.public.csvExport(this.publicViewId, exportType, {
+          responseType,
+          query: {
+            fields:
+              this.queryParams &&
+              this.queryParams.fieldsOrder &&
+              this.queryParams.fieldsOrder.filter(c => this.queryParams.showFields[c]),
+            offset,
+            sortArrJson: JSON.stringify(
+              this.reqPayload &&
+                this.reqPayload.sorts &&
+                this.reqPayload.sorts.map(({ fk_column_id, direction }) => ({
+                  direction,
+                  fk_column_id,
+                }))
+            ),
+            filterArrJson: JSON.stringify(this.reqPayload && this.reqPayload.filters),
+          },
+          headers: {
+            'xc-password': this.reqPayload && this.reqPayload.password,
+          },
+        });
+      } else {
+        res = await this.$api.dbViewRow.export(
+          'noco',
+          this.projectName,
+          this.meta.title,
+          this.selectedView.title,
+          exportType,
+          {
+            responseType,
+            query: {
+              offset,
+            },
+          }
+        );
+      }
+      return res;
     },
     async importData(columnMappings) {
       try {

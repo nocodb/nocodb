@@ -217,7 +217,7 @@ export function _viewMenu(roleType, previewMode, navDrawListCnt) {
     // let navDrawListCnt = 2;
 
     // Download CSV
-    let actionsMenuItemsCnt = 1;
+    let actionsMenuItemsCnt = 2;
 
     cy.openTableTab(columnName, 25);
 
@@ -234,10 +234,10 @@ export function _viewMenu(roleType, previewMode, navDrawListCnt) {
     if (roleType == "owner" || roleType == "creator") {
         navDrawListCnt = 3;
         // Download CSV / Upload CSV / Shared View List / Webhook
-        actionsMenuItemsCnt = 4;
+        actionsMenuItemsCnt = 5;
     } else if (roleType == "editor") {
         // Download CSV / Upload CSV
-        actionsMenuItemsCnt = 2;
+        actionsMenuItemsCnt = 3;
     }
 
     cy.get(".v-navigation-drawer__content")

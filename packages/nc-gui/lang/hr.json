@@ -309,6 +309,7 @@
     "importExcel": "Uvoz Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Preuzmite kao CSV",
+    "downloadExcel": "Preuzmite kao XLSX",
     "uploadCSV": "Prenesite CSV",
     "import": "Uvoz",
     "importMetadata": "Uvoz metapodataka",

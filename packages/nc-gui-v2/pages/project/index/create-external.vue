@@ -59,7 +59,7 @@ const validators = computed(() => {
           'dataSource.connection.database': [fieldRequiredValidator],
           ...([ClientType.PG, ClientType.MSSQL].includes(formState.dataSource.client)
             ? {
-                'dataSource.connection.searchPath.0': [fieldRequiredValidator],
+                'dataSource.searchPath.0': [fieldRequiredValidator],
               }
             : {}),
         }),
@@ -288,11 +288,11 @@ onMounted(() => {
         </a-form-item>
         <!-- Schema name -->
         <a-form-item
-          v-if="[ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client)"
+          v-if="[ClientType.MSSQL, ClientType.PG].includes(formState.dataSource.client) && formState.dataSource.searchPath"
           :label="$t('labels.schemaName')"
-          v-bind="validateInfos['dataSource.connection.searchPath.0']"
+          v-bind="validateInfos['dataSource.searchPath.0']"
         >
-          <a-input v-model:value="formState.dataSource.connection.searchPath[0]" size="small" />
+          <a-input v-model:value="formState.dataSource.searchPath[0]" size="small" />
         </a-form-item>
 
         <a-collapse ghost expand-icon-position="right" class="mt-6">

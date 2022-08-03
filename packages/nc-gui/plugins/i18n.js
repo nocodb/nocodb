@@ -46,7 +46,8 @@ export default ({ app, store }) => {
       fa: require('~/lang/fa.json'),
       tr: require('~/lang/tr.json'),
       hi: require('~/lang/hi.json'),
-      bn: require('~/lang/bn.json')
+      bn: require('~/lang/bn.json'),
+      ar: require('~/lang/ar.json')
     }
   })
 

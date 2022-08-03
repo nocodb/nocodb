@@ -42,6 +42,7 @@ export default {
   name: 'Language',
   data: () => ({
     labels: {
+      ar: 'العربية',
       bn: 'বাংলা',
       da: 'Dansk',
       de: 'Deutsch',

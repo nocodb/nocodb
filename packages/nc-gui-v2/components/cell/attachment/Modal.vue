@@ -122,6 +122,14 @@ onKeyDown('Escape', () => {
             {{ item.title }}
           </div>
         </div>
+
+        <div v-if="isLoading" class="flex flex-col gap-1">
+          <a-card class="nc-attachment-item group">
+            <div class="nc-attachment h-full w-full flex items-center justify-center">
+              <a-skeleton-image class />
+            </div>
+          </a-card>
+        </div>
       </div>
     </div>
   </a-modal>

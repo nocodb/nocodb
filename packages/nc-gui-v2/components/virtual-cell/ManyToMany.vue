@@ -32,8 +32,7 @@ await loadRelatedTableMeta()
       <template v-if="value">
         <ItemChip v-for="(ch, i) in value" :key="i" :value="ch[relatedTablePrimaryValueProp]" @unlink="unlink(ch)" />
 
-        <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text"
-              @click="childListDlg = true">more... </span>
+        <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
       </template>
     </div>
     <div class="flex-1 flex justify-end gap-1">
@@ -41,7 +40,7 @@ await loadRelatedTableMeta()
       <MdiPlusIcon class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
     </div>
     <ListItems v-model="listItemsDlg" />
-    <ListChildItems @attachRecord="childListDlg=false,listItemsDlg=true" v-model="childListDlg" />
+    <ListChildItems v-model="childListDlg" @attachRecord=";(childListDlg = false), (listItemsDlg = true)" />
   </div>
 </template>
 

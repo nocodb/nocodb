@@ -40,7 +40,7 @@ await loadRelatedTableMeta()
       <MdiPlusIcon class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
     </div>
     <ListItems v-model="listItemsDlg" />
-    <ListChildItems @attachRecord="childListDlg=false,listItemsDlg=true" v-model="childListDlg" />
+    <ListChildItems v-model="childListDlg" @attachRecord=";(childListDlg = false), (listItemsDlg = true)" />
   </div>
 </template>
 

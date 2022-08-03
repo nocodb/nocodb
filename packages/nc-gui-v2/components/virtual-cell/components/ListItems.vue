@@ -20,16 +20,21 @@ watch(vModel, () => {
 
 const linkRow = async (row: Record<string, any>) => {
   await link(row)
-  vModel.value= false
+  vModel.value = false
   // await loadChildrenExcludedList()
 }
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" :footer="null" title="Related table rows">
+  <a-modal v-model:visible="vModel" :footer="null" title="Link Record">
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
       <div class="flex mb-4 align-center gap-2">
-        <a-input v-model:value="childrenExcludedListPagination.query" placeholder="Filter query" class="max-w-[200px]" size="small"></a-input>
+        <a-input
+          v-model:value="childrenExcludedListPagination.query"
+          placeholder="Filter query"
+          class="max-w-[200px]"
+          size="small"
+        ></a-input>
         <div class="flex-1" />
         <MdiReloadIcon class="cursor-pointer text-gray-500" @click="loadChildrenExcludedList" />
         <a-button type="primary" size="small" @click="emit('addNewRecord')">Add new record</a-button>
@@ -55,7 +60,7 @@ const linkRow = async (row: Record<string, any>) => {
           show-less-items
         />
       </template>
-      <a-empty class="my-10" v-else />
+      <a-empty v-else class="my-10" />
     </div>
   </a-modal>
 </template>

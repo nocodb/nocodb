@@ -110,7 +110,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             $api.dbTableRow.delete(NOCO, project.value.id as string, relatedTableMeta.value.id as string, id as string)
             reloadData?.()
             await loadChildrenList()
-          } catch (e) {
+          } catch (e: any) {
             notification.error(await extractSdkResponseErrorMsg(e))
           }
         },

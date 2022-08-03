@@ -10,15 +10,7 @@ const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const {
-  childrenList,
-  meta,
-  deleteRelatedRow,
-  loadChildrenList,
-  childrenListPagination,
-  relatedTablePrimaryValueProp,
-  unlink,
-} =
+const { childrenList, meta, deleteRelatedRow, loadChildrenList, childrenListPagination, relatedTablePrimaryValueProp, unlink } =
   useLTARStoreOrThrow()
 
 watch(vModel, () => {
@@ -56,8 +48,7 @@ const unlinkRow = async (row: Record<string, any>) => {
               </div>
               <div class="flex gap-2">
                 <MdiUnlinkIcon class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="unlinkRow(row)" />
-                <MdiDeleteIcon class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
-                               @click="deleteRelatedRow(row)" />
+                <MdiDeleteIcon class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="deleteRelatedRow(row)" />
               </div>
             </div>
           </a-card>
@@ -72,7 +63,7 @@ const unlinkRow = async (row: Record<string, any>) => {
           show-less-items
         />
       </template>
-      <a-empty class="my-10" v-else />
+      <a-empty v-else class="my-10" />
     </div>
   </a-modal>
 </template>

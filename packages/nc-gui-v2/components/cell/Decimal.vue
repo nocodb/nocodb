@@ -2,7 +2,7 @@
 import { computed, inject, onMounted, ref } from '#imports'
 
 interface Props {
-  modelValue: number
+  modelValue: number | null
 }
 
 interface Emits {

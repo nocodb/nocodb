@@ -3,7 +3,7 @@ import { inject, ref, useVModel } from '#imports'
 import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue?: string
+  modelValue: string | null
 }
 
 const props = defineProps<Props>()

@@ -83,7 +83,7 @@ export function useViewColumns(
 
   const metaColumnById = computed(() => {
     return (
-      meta.value.columns?.reduce<Record<string, ColumnType>>((acc, curr) => {
+      meta.value?.columns?.reduce<Record<string, ColumnType>>((acc, curr) => {
         return {
           ...acc,
           [curr.id!]: curr,

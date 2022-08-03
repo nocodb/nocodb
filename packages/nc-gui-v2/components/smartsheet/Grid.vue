@@ -42,10 +42,7 @@ const addColumnDropdown = ref(false)
 const contextMenu = ref(false)
 const contextMenuTarget = ref(false)
 
-const visibleColLength = $computed(() => {
-  const cols = fields.value
-  return cols.filter((col) => !isVirtualCol(col)).length
-})
+const visibleColLength = $computed(() => fields.value?.length)
 
 const {
   loadData,

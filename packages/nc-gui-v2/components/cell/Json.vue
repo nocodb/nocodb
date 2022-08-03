@@ -18,7 +18,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-let editEnabled = $(inject(EditModeInj))
+const editEnabled = inject(EditModeInj, ref(false))
 
 let vModel = $(useVModel(props, 'modelValue', emits))
 
@@ -38,7 +38,7 @@ let isExpanded = $ref(false)
 const clear = () => {
   error = undefined
   isExpanded = false
-  editEnabled = false
+  editEnabled.value = false
 
   localValue = vModel
 }

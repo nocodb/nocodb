@@ -1,15 +1,20 @@
 <script lang="ts" setup>
+import { watchEffect } from '@vue/runtime-core'
 import { useVModel } from '@vueuse/core'
 import { useLTARStoreOrThrow } from '~/composables'
 
-const props = defineProps<{ modelValue: boolean }>()
+const props = defineProps<{ modelValue?: boolean }>()
 const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
 const { childrenList, loadChildrenList, childrenListPagination, relatedTablePrimaryValueProp, link } = useLTARStoreOrThrow()
 
-await loadChildrenList()
+watchEffect(() => {
+  if (vModel.value) {
+    loadChildrenList()
+  }
+})
 </script>
 
 <template>

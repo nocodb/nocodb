@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { watchEffect } from '@vue/runtime-core'
 import { useVModel } from '@vueuse/core'
 import { useLTARStoreOrThrow } from '~/composables'
 import MdiReloadIcon from '~icons/mdi/reload'
@@ -17,7 +18,11 @@ const {
 } =
   useLTARStoreOrThrow()
 
-await loadChildrenExcludedList()
+watchEffect(() => {
+  if (vModel.value) {
+    loadChildrenExcludedList()
+  }
+})
 /* import Pagination from '~/components/project/spreadsheet/components/Pagination'
 import { NOCO } from '~/lib/constants'
 

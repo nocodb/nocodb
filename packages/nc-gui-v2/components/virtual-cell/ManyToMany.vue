@@ -4,11 +4,17 @@ import { useProvideLTARStore } from '~/composables'
 import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
+import MdiExpandIcon from '~icons/mdi/arrow-expand'
+import MdiPlusIcon from '~icons/mdi/plus'
 import { ColumnInj, RowInj, ValueInj } from '~/context'
 
 const column = inject(ColumnInj)
 const row = inject(RowInj)
 const value = inject(ValueInj)
+
+
+const listItemsDlg = ref(false)
+const childListDlg = ref(false)
 
 const {
   relatedTableMeta,
@@ -22,12 +28,12 @@ await loadRelatedTableMeta()
 </script>
 
 <template>
-  <div class="d-flex d-100 chips-wrapper" :class="{ active }">
-    <div class="flex align-center gap-1 w-full chips-wrapper group" :class="{ active }">
+  <div class="d-flex d-100 chips-wrapper" >
+    <div class="flex align-center gap-1 w-full chips-wrapper group" >
       <!--    <template v-if="!isForm"> -->
       <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
-        <template v-if="value || localState">
-          <ItemChip v-for="(ch, i) in value || localState" :key="i" :value="ch[relatedTablePrimaryValueProp]"
+        <template v-if="value ">
+          <ItemChip v-for="(ch, i) in value " :key="i" :value="ch[relatedTablePrimaryValueProp]"
                     @unlink="unlink(ch)" />
 
           <!--

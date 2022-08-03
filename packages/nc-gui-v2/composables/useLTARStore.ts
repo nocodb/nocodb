@@ -52,7 +52,6 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState((column: Required<
   }
 
   const loadRelatedTableMeta = async () => {
-    debugger
     await getMeta(colOptions?.fk_related_model_id as string)
   }
 

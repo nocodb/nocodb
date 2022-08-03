@@ -1,25 +1,71 @@
 <script setup lang="ts">
+import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import { provide } from 'vue'
-import { useColumn, useVModel } from '#imports'
+import { computed, useColumn, useDebounceFn, useVModel } from '#imports'
 import { ColumnInj } from '~/context'
 
 interface Props {
   column: ColumnType
   modelValue: any
+  editEnabled: boolean
 }
 
 interface Emits {
   (event: 'update:modelValue', value: any): void
 }
 
-const { column, ...rest } = defineProps<Props>()
+const { column, editEnabled, ...rest } = defineProps<Props>()
 
-const emit = defineEmits<Emits>()
+const emit = defineEmits(['update:modelValue', 'save'])
 
 provide(ColumnInj, column)
 
-const vModel = useVModel(rest, 'modelValue', emit)
+provide(
+  'editEnabled',
+  computed(() => editEnabled),
+)
+
+let changed = $ref(false)
+const syncValue = useDebounceFn(function () {
+  emit('save')
+}, 1000)
+
+const isAutoSaved = $computed(() => {
+  return [
+    UITypes.SingleLineText,
+    UITypes.LongText,
+    UITypes.PhoneNumber,
+    UITypes.Email,
+    UITypes.URL,
+    UITypes.Number,
+    UITypes.Decimal,
+    UITypes.Percent,
+    UITypes.Count,
+    UITypes.AutoNumber,
+    UITypes.SpecificDBType,
+    UITypes.Geometry,
+  ].includes(column.uidt as UITypes)
+})
+
+const isManualSaved = $computed(() => {
+  return [UITypes.Currency, UITypes.Year, UITypes.Time, UITypes.Duration].includes(column.uidt as UITypes)
+})
+
+const vModel = computed({
+  get: () => value,
+  set: (val) => {
+    if (val !== value) {
+      changed = true
+      emit('update:modelValue', val)
+      if (isAutoSaved) {
+        syncValue()
+      } else if (!isManualSaved) {
+        emit('save')
+      }
+    }
+  },
+})
 
 const {
   isURL,

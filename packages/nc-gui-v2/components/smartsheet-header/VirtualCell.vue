@@ -145,71 +145,8 @@ provide(ColumnInj, column)
 
     <!--    </v-tooltip> -->
     <v-spacer />
-    <!--
-      todo: implement delete or edit column
 
-          <v-menu
-            v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('edit-column') && !isForm"
-            offset-y
-            open-on-hover
-            left
-            transition="slide-y-transition"
-          >
-            <template #activator="{ on }">
-              <v-icon v-if="!isLocked && !isForm" small v-on="on"> mdi-menu-down </v-icon>
-            </template>
-            <v-list dense>
-              <v-list-item dense @click="editColumnMenu = true">
-                <x-icon small class="mr-1 nc-column-edit" color="primary"> mdi-pencil </x-icon>
-                <span class="caption">
-                  &lt;!&ndash; Edit &ndash;&gt;
-                  {{ $t('general.edit') }}
-                </span>
-              </v-list-item>
-              <v-list-item @click="columnDeleteDialog = true">
-                <x-icon small class="mr-1 nc-column-delete" color="error"> mdi-delete-outline </x-icon>
-                <span class="caption">
-                  &lt;!&ndash; Delete &ndash;&gt;
-                  {{ $t('general.delete') }}
-                </span>
-              </v-list-item>
-            </v-list>
-          </v-menu>
-
-          <v-dialog v-model="columnDeleteDialog" max-width="500" persistent>
-            <v-card>
-              <v-card-title class="grey darken-2 subheading white&#45;&#45;text"> Confirm </v-card-title>
-              <v-divider />
-              <v-card-text class="mt-4 title">
-                Do you want to delete <span class="font-weight-bold">'{{ column.title }}'</span> column ?
-              </v-card-text>
-              <v-divider />
-              <v-card-actions class="d-flex pa-4">
-                <v-spacer />
-                <v-btn small @click="columnDeleteDialog = false">
-                  &lt;!&ndash; Cancel &ndash;&gt;
-                  {{ $t('general.cancel') }}
-                </v-btn>
-                <v-btn v-t="['a:column:delete']" small color="error" @click="deleteColumn"> Confirm </v-btn>
-              </v-card-actions>
-            </v-card>
-          </v-dialog>
-
-          <v-menu v-model="editColumnMenu" offset-y content-class="" left transition="slide-y-transition">
-            <template #activator="{ on }">
-              <span v-on="on" />
-            </template>
-            <edit-virtual-column
-              v-if="editColumnMenu"
-              v-model="editColumnMenu"
-              :nodes="nodes"
-              :edit-column="true"
-              :column="column"
-              :meta="meta"
-              :sql-ui="sqlUi"
-              v-on="$listeners"
-            />
-          </v-menu> -->
+    <SmartsheetHeaderMenu :virtual="true" />
   </div>
 </template>
 

@@ -19,7 +19,7 @@ export function useGridViewColumnWidth(view: Ref<(GridType & { id?: string }) | 
 
   watch(
     // todo : update type in swagger
-    () => [gridViewCols, resizingCol, resizingColWidth],
+    () => [gridViewCols, resizingCol, resizingColWidth, columns],
     () => {
       let style = ''
       for (const c of columns?.value || []) {

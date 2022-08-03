@@ -27,7 +27,7 @@ provide(
 )
 
 let changed = $ref(false)
-const syncValue = useDebounceFn(function() {
+const syncValue = useDebounceFn(function () {
   emit('save')
 }, 1000)
 

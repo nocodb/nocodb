@@ -2,6 +2,7 @@
 import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
 import { MetaInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
+import { UITypes } from 'nocodb-sdk'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
@@ -83,6 +84,8 @@ watchEffect(() => {
           </a-select-option>
         </a-select>
       </a-form-item>
+
+      <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
 
       <div>
         <div

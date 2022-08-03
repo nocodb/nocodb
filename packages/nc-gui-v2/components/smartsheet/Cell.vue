@@ -21,12 +21,10 @@ const emit = defineEmits(['update:modelValue', 'save'])
 
 provide(ColumnInj, column)
 
-
 provide(EditModeInj, toRef(props, 'editEnabled'))
 
-
 let changed = $ref(false)
-const syncValue = useDebounceFn(function() {
+const syncValue = useDebounceFn(function () {
   emit('save')
 }, 1000)
 

@@ -11,11 +11,10 @@ import WebIcon from '~icons/mdi/web'
 import TextAreaIcon from '~icons/mdi/card-text-outline'
 import StringIcon from '~icons/mdi/alpha-a-box-outline'
 import BooleanIcon from '~icons/mdi/check-box-outline'
-import YearIcon from '~icons/mdi/calendar'
+import CalendarIcon from '~icons/mdi/calendar'
 import SingleSelectIcon from '~icons/mdi/radiobox-marked'
 import MultiSelectIcon from '~icons/mdi/checkbox-multiple-marked'
 import DatetimeIcon from '~icons/mdi/calendar-clock'
-import DateIcon from '~icons/mdi/calendar'
 import RatingIcon from '~icons/mdi/star'
 import GenericIcon from '~icons/mdi/square-rounded'
 import NumericIcon from '~icons/mdi/numeric'
@@ -37,7 +36,7 @@ const icon = computed(() => {
   } else if (additionalColMeta.isJSON) {
     return JSONIcon
   } else if (additionalColMeta.isDate) {
-    return DateIcon
+    return CalendarIcon
   } else if (additionalColMeta.isDateTime) {
     return DatetimeIcon
   } else if (additionalColMeta.isSet) {
@@ -51,7 +50,7 @@ const icon = computed(() => {
   } else if (additionalColMeta.isEmail) {
     return EmailIcon
   } else if (additionalColMeta.isYear) {
-    return YearIcon
+    return CalendarIcon
   } else if (additionalColMeta.isTime) {
     return ClockIcon
   } else if (additionalColMeta.isRating) {

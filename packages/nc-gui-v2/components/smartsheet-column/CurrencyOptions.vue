@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useColumnCreateStoreOrThrow, useProject } from '#imports'
-import { currencyCodes, currencyLocales, validateCurrencyCode, validateCurrencyLocale } from '@/utils/currencyUtils'
+import { currencyCodes, currencyLocales, validateCurrencyCode, validateCurrencyLocale } from '@/utils'
 
 interface Option {
   label: string

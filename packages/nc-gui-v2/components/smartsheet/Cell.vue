@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import { provide } from 'vue'
+import { provide, toRef } from 'vue'
 import { computed, useColumn, useDebounceFn, useVModel } from '#imports'
-import { ColumnInj } from '~/context'
+import { ColumnInj, EditModeInj } from '~/context'
 
 interface Props {
   column: ColumnType
@@ -15,16 +15,13 @@ interface Emits {
   (event: 'update:modelValue', value: any): void
 }
 
-const { column, editEnabled, ...rest } = defineProps<Props>()
+const { column, ...props } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue', 'save'])
 
 provide(ColumnInj, column)
 
-provide(
-  'editEnabled',
-  computed(() => editEnabled),
-)
+provide(EditModeInj, toRef(props, 'editEnabled'))
 
 let changed = $ref(false)
 const syncValue = useDebounceFn(function () {
@@ -53,9 +50,9 @@ const isManualSaved = $computed(() => {
 })
 
 const vModel = computed({
-  get: () => rest.modelValue,
+  get: () => props.modelValue,
   set: (val) => {
-    if (val !== rest.modelValue) {
+    if (val !== props.modelValue) {
       changed = true
       emit('update:modelValue', val)
       if (isAutoSaved) {

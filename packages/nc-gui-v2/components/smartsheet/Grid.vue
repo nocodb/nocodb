@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ColumnType, isVirtualCol } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
 import {
   Row,
   inject,
@@ -14,7 +14,6 @@ import {
 import {
   ActiveViewInj,
   ChangePageInj,
-  EditModeInj,
   FieldsInj,
   IsFormInj,
   IsGridInj,
@@ -65,7 +64,6 @@ onMounted(loadGridViewColumns)
 provide(IsFormInj, false)
 provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
-provide(EditModeInj, editEnabled)
 provide(ChangePageInj, changePage)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)

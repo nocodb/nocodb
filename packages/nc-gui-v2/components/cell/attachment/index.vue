@@ -69,10 +69,11 @@ onMounted(() => {
   <div class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1">
     <Carousel />
 
-    <template v-if="!isReadonly && !dragging && isOverDropZone">
+    <template v-if="!isReadonly && !dragging && dropZoneRef">
       <teleport :to="`td[data-col='${column.id}']`">
         <div
-          class="z-100 absolute top-0 bottom-0 left-0 right-0 w-full h-full flex items-center justify-center gap-1 bg-gray-700/75 text-white"
+          :class="[isOverDropZone ? 'opacity-100' : 'opacity-0 pointer-events-none']"
+          class="text-white text-lg transition-all duration-150 ease-in-out ring ring-pink-500 bg-gray-700/75 flex items-center justify-center gap-2 z-99 absolute top-0 bottom-0 left-0 right-0 backdrop-blur-xl"
         >
           <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here
         </div>

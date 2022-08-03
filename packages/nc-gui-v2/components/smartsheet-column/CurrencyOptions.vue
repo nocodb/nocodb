@@ -74,10 +74,13 @@ function filterOption(input: string, option: Option) {
             size="small"
             class="w-52"
             show-search
-            :options="currencyLocaleList ?? []"
             :filter-option="filterOption"
             :disabled="isMoney && isPg"
-          />
+          >
+            <a-select-option v-for="(currencyLocale, i) in currencyLocaleList ?? []" :key="i" :value="currencyLocale.value">
+              {{ currencyLocale.text }}
+            </a-select-option>
+          </a-select>
         </a-form-item>
       </a-col>
       <a-col :span="12">

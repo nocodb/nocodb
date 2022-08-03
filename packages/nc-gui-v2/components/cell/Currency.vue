@@ -1,24 +1,22 @@
 <script setup lang="ts">
-import { computed, inject } from '#imports'
-import { ColumnInj } from '~/context'
+import { computed, inject, ref, useVModel } from '#imports'
+import { ColumnInj, EditModeInj } from '~/context'
 
-const { modelValue: value } = defineProps<Props>()
+interface Props {
+  modelValue: number
+}
+
+const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
-const editEnabled = inject<boolean>('editEnabled')
+const editEnabled = inject(EditModeInj, ref(false))
 
-interface Props {
-  modelValue: number
-}
 const root = ref<HTMLInputElement>()
 
-const localState = computed({
-  get: () => value,
-  set: (val) => emit('update:modelValue', val),
-})
+const vModel = useVModel(props, 'modelValue', emit)
 
 const currencyMeta = computed(() => {
   return {
@@ -29,22 +27,20 @@ const currencyMeta = computed(() => {
 })
 const currency = computed(() => {
   try {
-    return isNaN(value)
-      ? value
+    return isNaN(vModel.value)
+      ? vModel.value
       : new Intl.NumberFormat(currencyMeta?.value?.currency_locale || 'en-US', {
           style: 'currency',
           currency: currencyMeta?.value?.currency_code || 'USD',
-        }).format(value)
+        }).format(vModel.value)
   } catch (e) {
-    return value
+    return vModel.value
   }
 })
 </script>
 
 <template>
-  <input v-if="editEnabled" ref="root" v-model="localState" />
-  <span v-else-if="value">{{ currency }}</span>
+  <input v-if="editEnabled" ref="root" v-model="vModel" />
+  <span v-else-if="vModel">{{ currency }}</span>
   <span v-else />
 </template>
-
-<style scoped></style>

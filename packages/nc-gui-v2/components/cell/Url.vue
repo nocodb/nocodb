@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { computed, ref } from '#imports'
-import { ColumnInj } from '~/context'
-import { isValidURL } from '~/utils/urlUtils'
+import { computed, inject, onMounted, ref } from '#imports'
+import { ColumnInj, EditModeInj } from '~/context'
+import { isValidURL } from '~/utils'
 
 interface Props {
   modelValue: string
@@ -13,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
-const editEnabled = inject<boolean>('editEnabled')
+const editEnabled = inject(EditModeInj, ref(false))
 
 const vModel = computed({
   get: () => value,
@@ -26,20 +26,14 @@ const vModel = computed({
 
 const isValid = computed(() => value && isValidURL(value))
 
-const root = ref<HTMLInputElement>()
-
-onMounted(() => {
-  root.value?.focus()
-})
+const focus = (el: HTMLInputElement) => el.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" ref="root" v-model="vModel" class="outline-none" />
+  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none" />
   <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="value" target="_blank">{{ value }}</nuxt-link>
   <span v-else>{{ value }}</span>
 </template>
-
-<style scoped></style>
 
 <!--
 /**

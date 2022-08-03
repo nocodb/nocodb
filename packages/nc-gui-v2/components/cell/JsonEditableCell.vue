@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import MonacoJsonObjectEditor from '@/components/monaco/Editor.vue'
-import { inject } from '#imports'
+import { computed, inject } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
   modelValue: string | Record<string, any>
@@ -11,7 +12,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue', 'cancel'])
 
-const editEnabled = inject('editEnabled')
+const editEnabled = inject(EditModeInj)
 
 let expand = $ref(false)
 
@@ -19,7 +20,7 @@ let isValid = $ref(true)
 
 let error = $ref()
 
-const localState = computed({
+const vModel = computed({
   get: () => (typeof props.modelValue === 'string' ? JSON.parse(props.modelValue) : props.modelValue),
   set: (val) => {
     if (props.isForm) {
@@ -30,7 +31,7 @@ const localState = computed({
 
 function save() {
   expand = false
-  emits('update:modelValue', JSON.stringify(props.modelValue))
+  emits('update:modelValue', JSON.stringify(vModel.value))
 }
 
 function validate(n: boolean, e: any) {
@@ -69,14 +70,14 @@ export default {
     </div>
     <MonacoJsonObjectEditor
       v-if="expand"
-      v-model="localState"
+      v-model="vModel"
       class="text-left caption"
       style="width: 300px; min-height: min(600px, 80vh); min-width: 100%"
       @validate="validate"
     />
     <MonacoJsonObjectEditor
       v-else
-      v-model="localState"
+      v-model="vModel"
       class="text-left caption"
       style="width: 300px; min-height: 200px; min-width: 100%"
       @validate="validate"

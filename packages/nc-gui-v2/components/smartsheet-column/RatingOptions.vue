@@ -5,7 +5,7 @@ import { getMdiIcon, enumColor } from '@/utils'
 const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
 
 // cater existing v1 cases
-const iconList = ref([
+const iconList = [
   {
     full: 'mdi-star',
     empty: 'mdi-star-outline',
@@ -26,7 +26,7 @@ const iconList = ref([
     full: 'mdi-flag',
     empty: 'mdi-flag-outline',
   },
-])
+]
 
 const rowSize = ref(10)
 
@@ -48,7 +48,7 @@ function compare(colorA: any, colorB: any) {
       <a-form-item label="Icon">
         <a-select v-model:value="formState.meta.icon" size="small" class="w-52">
           <!-- TODO: handle value -->
-          <a-select-option v-for="(icon, i) in iconList ?? []" :key="i" :value="icon">
+          <a-select-option v-for="(icon, i) of iconList" :key="i" :value="icon">
             <component
               :is="getMdiIcon(icon.full)"
               :style="{

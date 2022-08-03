@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { Sketch } from '@ckpack/vue-color'
 import { useColumnCreateStoreOrThrow } from '#imports'
 import { enumColor, getMdiIcon } from '@/utils'
 
@@ -28,24 +29,9 @@ const iconList = [
   },
 ]
 
-const rowSize = ref(10)
-
 const advanced = ref(true)
 
-const picked = ref(enumColor.light[0])
-
-const colors = ref(['#fcb401', '#faa307', '#f48c06', '#e85d04', '#dc2f02', '#d00000', '#9d0208', '#777'])
-
-function compare(colorA: any, colorB: any) {
-  if ((typeof colorA === 'string' || colorA instanceof String) && (typeof colorB === 'string' || colorB instanceof String)) {
-    return colorA.toLowerCase() === colorB.toLowerCase()
-  }
-  return false
-}
-
-function select(color: string) {
-  picked.value = color
-}
+const picked = ref(formState.value.meta.color || enumColor.light[0])
 </script>
 
 <template>
@@ -53,7 +39,7 @@ function select(color: string) {
     <a-col :span="12">
       <a-form-item label="Icon">
         <a-select v-model:value="formState.meta.icon" size="small" class="w-52">
-          <!-- TODO: handle value -->
+          <!-- FIXME: antdv doesn't support object as value -->
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="icon">
             <component
               :is="getMdiIcon(icon.full)"
@@ -83,26 +69,16 @@ function select(color: string) {
     </a-col>
   </a-row>
   <a-row>
-    <div class="flex self-center justify-center flex-col pa-[10px]">
-      <div v-for="colId in Math.ceil(colors.length / rowSize)" :key="colId" class="flex row">
-        <div
-          v-for="(color, i) in colors.slice((colId - 1) * rowSize, colId * rowSize)"
-          :key="`color-${colId}-${i}`"
-          class="color-selector h-[32px] w-[32px] rounded-[5px] my-[10px] mx-[5px] cursor-pointer relative"
-          :class="compare(picked, color) ? 'selected' : ''"
-          :style="{ 'background-color': color }"
-          @click="select(color)"
-        >
-          {{ compare(picked, color) ? '&#10003;' : '' }}
-        </div>
-      </div>
-      <a-collapse v-model:activeKey="advanced" ghost>
-        <a-collapse-panel key="1" header="Advanced">
-          <a-button class="lighten-2 w-full" @click="select(picked)"> Pick Color </a-button>
-          <v-color-picker v-model="picked" class="align-self-center ma-2" canvas-height="100px" mode="hexa" />
+    <a-card class="w-full shadow-lg mt-2" body-style="padding: 0px">
+      <a-collapse v-model:activeKey="advanced" accordion ghost expand-icon-position="right">
+        <a-collapse-panel key="1" header="Advanced" class="">
+          <a-button class="!bg-primary text-white w-full" @click="formState.meta.color = picked.hex"> Pick Color </a-button>
+          <div class="px-7 py-3">
+            <Sketch v-model="picked" />
+          </div>
         </a-collapse-panel>
       </a-collapse>
-    </div>
+    </a-card>
   </a-row>
 </template>
 

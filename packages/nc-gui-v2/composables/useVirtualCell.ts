@@ -20,6 +20,7 @@ export function useVirtualCell(column: ColumnType) {
   const isLookup = computed(() => column.uidt === UITypes.Lookup)
   const isRollup = computed(() => column.uidt === UITypes.Rollup)
   const isFormula = computed(() => column.uidt === UITypes.Formula)
+  const isCount = computed(() => column.uidt === UITypes.Count)
 
   return {
     isHm,
@@ -28,5 +29,6 @@ export function useVirtualCell(column: ColumnType) {
     isLookup,
     isRollup,
     isFormula,
+    isCount,
   }
 }

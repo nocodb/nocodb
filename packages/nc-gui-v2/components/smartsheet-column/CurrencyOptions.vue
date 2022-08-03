@@ -62,9 +62,9 @@ function filterOption(input: string, option: Option) {
 </script>
 
 <template>
-  <a-tooltip>
+  <a-tooltip :visible="isMoney && isPg">
     <template #title>
-      <span> {{ message }} </span>
+      <span>{{ message }}</span>
     </template>
     <a-row>
       <a-col :span="12">
@@ -76,6 +76,7 @@ function filterOption(input: string, option: Option) {
             show-search
             :options="currencyLocaleList ?? []"
             :filter-option="filterOption"
+            :disabled="isMoney && isPg"
           />
         </a-form-item>
       </a-col>
@@ -87,6 +88,7 @@ function filterOption(input: string, option: Option) {
             show-search
             :filter-option="filterOption"
             size="small"
+            :disabled="isMoney && isPg"
           >
             <a-select-option v-for="(currencyCode, i) in currencyList ?? []" :key="i" :value="currencyCode">
               {{ currencyCode }}

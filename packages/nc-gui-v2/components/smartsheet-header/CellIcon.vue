@@ -6,7 +6,6 @@ import { useColumn } from '#imports'
 import KeyIcon from '~icons/mdi/key-variant'
 import JSONIcon from '~icons/mdi/code-json'
 // import FKIcon from '~icons/mdi/link-variant'
-import CountIcon from '~icons/mdi/counter'
 import TextAreaIcon from '~icons/mdi/card-text-outline'
 import StringIcon from '~icons/mdi/alpha-a-box-outline'
 import BooleanIcon from '~icons/mdi/check-box-outline'
@@ -57,8 +56,6 @@ const icon = computed(() => {
     return DecimalIcon
   } else if (additionalColMeta.isPhoneNumber) {
     return FilePhoneIcon
-  } else if (additionalColMeta.isCount) {
-    return CountIcon
   }
   // else if(additionalColMeta.isForeignKey) {
   //   return FKIcon

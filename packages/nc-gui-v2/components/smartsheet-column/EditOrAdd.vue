@@ -90,6 +90,7 @@ watchEffect(() => {
       <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" />
       <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" />
       <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
+      <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
 
       <div>
         <div
@@ -118,7 +119,7 @@ watchEffect(() => {
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button html-type="submit" type="primary" size="small" @click="addOrUpdate(reloadMeta)">
+          <a-button html-type="submit" type="primary" size="small" @click="addOrUpdate(reloadMeta), (advancedOptions = false)">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

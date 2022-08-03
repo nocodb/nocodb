@@ -16,7 +16,7 @@ const root = ref<HTMLInputElement>()
 const vModel = useVModel(props, 'modelValue', emits)
 
 const onSetRef = (el: HTMLInputElement) => {
-  el.focus()
+  el?.focus()
 }
 </script>
 

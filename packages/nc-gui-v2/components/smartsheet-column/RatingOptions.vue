@@ -35,9 +35,20 @@ const iconList = ref([
       <a-form-item label="Icon">
         <a-select v-model:value="formState.meta.icon" size="small" class="w-52">
           <!-- TODO: handle value -->
-          <!-- TODO: handle color -->
-          <a-select-option v-for="(icon, i) in iconList ?? []" :key="i" :value="icon.full">
-            <component :is="getMdiIcon(icon.full)" />
+          <a-select-option v-for="(icon, i) in iconList ?? []" :key="i" :value="icon">
+            <component
+              :is="getMdiIcon(icon.full)"
+              :style="{
+                color: formState.meta.color,
+              }"
+            />
+            {{ ' ' }}
+            <component
+              :is="getMdiIcon(icon.empty)"
+              :style="{
+                color: formState.meta.color,
+              }"
+            />
           </a-select-option>
         </a-select>
       </a-form-item>

@@ -9,45 +9,43 @@ interface Option {
 
 const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
 
-const validators = computed(() => {
-  return {
-    'meta.currency_locale': [
-      {
-        validator: (_: any, locale: any) => {
-          return new Promise<void>((resolve, reject) => {
-            if (!validateCurrencyLocale(locale)) {
-              return reject(new Error('Invalid locale'))
-            }
-            resolve()
-          })
-        },
+const validators = {
+  'meta.currency_locale': [
+    {
+      validator: (_: any, locale: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (!validateCurrencyLocale(locale)) {
+            return reject(new Error('Invalid locale'))
+          }
+          resolve()
+        })
       },
-    ],
-    'meta.currency_code': [
-      {
-        validator: (_: any, currencyCode: any) => {
-          return new Promise<void>((resolve, reject) => {
-            if (!validateCurrencyCode(currencyCode)) {
-              return reject(new Error('Invalid Currency Code'))
-            }
-            resolve()
-          })
-        },
+    },
+  ],
+  'meta.currency_code': [
+    {
+      validator: (_: any, currencyCode: any) => {
+        return new Promise<void>((resolve, reject) => {
+          if (!validateCurrencyCode(currencyCode)) {
+            return reject(new Error('Invalid Currency Code'))
+          }
+          resolve()
+        })
       },
-    ],
-  }
-})
+    },
+  ],
+}
 
 // set additional validations
 setAdditionalValidations({
-  ...validators.value,
+  ...validators,
 })
 
 const { isPg } = useProject()
 
-const currencyList = ref(currencyCodes)
+const currencyList = currencyCodes || []
 
-const currencyLocaleList = ref(currencyLocales())
+const currencyLocaleList = currencyLocales() || []
 
 const isMoney = computed(() => formState.value.dt === 'money')
 
@@ -73,7 +71,7 @@ function filterOption(input: string, option: Option) {
           :filter-option="filterOption"
           :disabled="isMoney && isPg"
         >
-          <a-select-option v-for="(currencyLocale, i) in currencyLocaleList ?? []" :key="i" :value="currencyLocale.value">
+          <a-select-option v-for="(currencyLocale, i) of currencyLocaleList" :key="i" :value="currencyLocale.value">
             {{ currencyLocale.text }}
           </a-select-option>
         </a-select>
@@ -89,7 +87,7 @@ function filterOption(input: string, option: Option) {
           size="small"
           :disabled="isMoney && isPg"
         >
-          <a-select-option v-for="(currencyCode, i) in currencyList ?? []" :key="i" :value="currencyCode">
+          <a-select-option v-for="(currencyCode, i) of currencyList" :key="i" :value="currencyCode">
             {{ currencyCode }}
           </a-select-option>
         </a-select>

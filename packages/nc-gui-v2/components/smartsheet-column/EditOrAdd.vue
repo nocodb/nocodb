@@ -88,6 +88,7 @@ watchEffect(() => {
       </a-form-item>
 
       <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" />
+      <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
 
       <div>
         <div

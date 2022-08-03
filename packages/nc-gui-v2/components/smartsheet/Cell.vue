@@ -89,7 +89,8 @@ div {
 }
 
 .nc-cell {
-  @apply relative w-full h-full;
+  @apply relative h-full;
+  width: inherit;
   display: inherit;
 }
 

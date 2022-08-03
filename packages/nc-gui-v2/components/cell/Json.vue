@@ -22,7 +22,16 @@ let editEnabled = $(inject(EditModeInj))
 
 let vModel = $(useVModel(props, 'modelValue', emits))
 
-let localValue = $ref<string>('{}')
+let localValueState = $ref<string | undefined>(undefined)
+let localValue = $(
+  computed<string | undefined>({
+    get: () => localValueState,
+    set: (val: undefined | string | Record<string, any>) => {
+      localValueState = typeof val === 'object' ? JSON.stringify(val) : val
+    },
+  }),
+)
+
 let error = $ref<string | undefined>(undefined)
 let isExpanded = $ref(false)
 
@@ -31,7 +40,7 @@ const clear = () => {
   isExpanded = false
   editEnabled = false
 
-  localValue = JSON.stringify(vModel)
+  localValue = vModel
 }
 
 const onSave = () => {
@@ -40,13 +49,13 @@ const onSave = () => {
 }
 
 onMounted(() => {
-  localValue = JSON.stringify(vModel)
+  localValue = vModel
 })
 
 watch(
   () => vModel,
   (val) => {
-    localValue = JSON.stringify(val)
+    localValue = val
   },
 )
 
@@ -66,7 +75,7 @@ watch(
   () => editEnabled,
   () => {
     isExpanded = false
-    localValue = JSON.stringify(vModel)
+    localValue = vModel
   },
 )
 </script>

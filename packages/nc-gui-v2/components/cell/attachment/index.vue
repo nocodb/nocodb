@@ -97,7 +97,8 @@ onKeyDown('Escape', () => {
           :id="item.url"
           :key="item.url || item.title"
           style="flex: 1 1 50px"
-          class="nc-attachment flex items-center justify-center border-1"
+          :class="isImage(item.title, item.mimetype) ? '' : 'border-1 rounded'"
+          class="nc-attachment flex items-center justify-center"
         >
           <a-tooltip placement="bottom">
             <template #title>
@@ -110,6 +111,7 @@ onKeyDown('Escape', () => {
               height="150"
               :alt="item.title || `#${i}`"
               :src="item.url || item.data"
+              class="ring-1 ring-gray-300 rounded"
               @click="selectImage(item)"
             />
 

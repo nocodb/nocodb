@@ -18,6 +18,6 @@ const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="h-full w-full outline-none" />
+  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="h-full w-full outline-none" @blur="editEnabled = false" />
   <span v-else>{{ vModel }}</span>
 </template>

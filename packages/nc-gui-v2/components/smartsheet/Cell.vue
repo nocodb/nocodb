@@ -18,11 +18,21 @@ interface Emits {
 
 const { column, ...props } = defineProps<Props>()
 
-const emit = defineEmits(['update:modelValue', 'save', 'navigate'])
+const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'cancel'])
 
 provide(ColumnInj, column)
 
-provide(EditModeInj, toRef(props, 'editEnabled'))
+provide(
+  EditModeInj,
+  computed({
+    get() {
+      return props?.editEnabled
+    },
+    set() {
+      return emit('cancel')
+    },
+  }),
+)
 
 let changed = $ref(false)
 const syncValue = useDebounceFn(function () {

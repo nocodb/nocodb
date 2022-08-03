@@ -4,7 +4,6 @@ import { provide, useVirtualCell } from '#imports'
 import { ColumnInj } from '~/context'
 import { NavigateDir } from '~/lib'
 
-
 interface Props {
   column: ColumnType
   modelValue: any
@@ -21,9 +20,11 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualC
 </script>
 
 <template>
-  <div class="nc-virtual-cell"
-       @keydown.stop.enter.exact="emit('navigate',NavigateDir.NEXT)"
-       @keydown.stop.shift.enter.exact="emit('navigate',NavigateDir.PREV)">
+  <div
+    class="nc-virtual-cell"
+    @keydown.stop.enter.exact="emit('navigate', NavigateDir.NEXT)"
+    @keydown.stop.shift.enter.exact="emit('navigate', NavigateDir.PREV)"
+  >
     <VirtualCellHasMany v-if="isHm" />
     <VirtualCellManyToMany v-else-if="isMm" />
     <VirtualCellBelongsTo v-else-if="isBt" />

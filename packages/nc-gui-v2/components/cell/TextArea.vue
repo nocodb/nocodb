@@ -24,6 +24,7 @@ const focus = (el: HTMLTextAreaElement) => el?.focus()
     v-model="vModel"
     rows="4"
     class="h-full w-full min-h-[60px] outline-none"
+    @blur="editEnabled = false"
     @keydown.alt.enter.stop
     @keydown.shift.enter.stop
   />

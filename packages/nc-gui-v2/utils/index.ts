@@ -1,6 +1,7 @@
 export * from './colorsUtils'
 export * from './dateTimeUtils'
 export * from './deepCompare'
+export * from './formulaUtils'
 export * from './durationUtils'
 export * from './errorUtils'
 export * from './fileUtils'

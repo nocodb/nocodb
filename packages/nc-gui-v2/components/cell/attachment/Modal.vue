@@ -26,6 +26,7 @@ const {
   onDrop,
   downloadFile,
   updateModelValue,
+  selectedImage,
 } = useAttachmentCell()!
 
 // todo: replace placeholder var
@@ -102,6 +103,7 @@ onKeyDown('Escape', () => {
                 v-if="isImage(item.title, item.mimetype)"
                 :style="{ backgroundImage: `url('${item.url}')` }"
                 class="w-full h-full bg-contain bg-center bg-no-repeat"
+                @click.stop="() => (selectedImage = item) && (modalVisible = false)"
               />
 
               <component

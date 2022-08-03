@@ -1,16 +1,15 @@
 <script lang="ts" setup>
-import type { Carousel as AntCarousel } from 'ant-design-vue'
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { isImage } from '~/utils'
-import { computed, ref } from '#imports'
+import { computed, onClickOutside, ref, watch } from '#imports'
 import MaterialSymbolsArrowCircleRightRounded from '~icons/material-symbols/arrow-circle-right-rounded'
 import MaterialSymbolsArrowCircleLeftRounded from '~icons/material-symbols/arrow-circle-left-rounded'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 const { selectedImage, visibleItems, downloadFile } = useAttachmentCell()!
 
-const carouselRef = ref<typeof AntCarousel>()
+const carouselRef = ref()
 
 const imageItems = computed(() => visibleItems.value.filter((item) => isImage(item.title, item.mimetype)))
 
@@ -31,6 +30,21 @@ onKeyDown(
 function onSlideChange(index: number) {
   selectedImage.value = imageItems.value[index]
 }
+
+watch(
+  carouselRef,
+  () => {
+    carouselRef.value?.goTo(
+      imageItems.value.findIndex((item) => item === selectedImage.value),
+      true,
+    )
+  },
+  { immediate: true },
+)
+
+onClickOutside(carouselRef, () => {
+  selectedImage.value = false
+})
 </script>
 
 <template>

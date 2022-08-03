@@ -11,26 +11,17 @@ const emits = defineEmits(['update:modelValue'])
 
 const editEnabled = inject<boolean>('editEnabled', false)
 
-const root = ref<HTMLInputElement>()
-
 const vModel = useVModel(props, 'modelValue', emits)
 
-onMounted(() => {
-  root.value?.focus()
-})
-
-watch(
-  () => root.value,
-  (el) => {
-    el?.focus()
-  },
-)
+const onSetRef = (el: HTMLInputElement) => {
+  el.focus()
+}
 </script>
 
 <template>
   <textarea
     v-if="editEnabled"
-    ref="root"
+    :ref="onSetRef"
     v-model="vModel"
     rows="4"
     class="h-full w-full min-h-[60px] outline-none"

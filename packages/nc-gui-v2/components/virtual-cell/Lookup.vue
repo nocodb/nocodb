@@ -11,7 +11,7 @@ provide(ReadonlyInj, true)
 const column = inject(ColumnInj) as ColumnType & { colOptions: LookupType }
 const meta = inject(MetaInj)
 const value = inject(ValueInj)
-const arrValue = Array.isArray(value) ? value : [value]
+const arrValue = computed(() => (Array.isArray(value?.value) ? value?.value : [value?.value]))
 
 const relationColumn = meta?.value.columns?.find((c) => c.id === column.colOptions.fk_relation_column_id) as ColumnType & {
   colOptions: LinkToAnotherRecordType

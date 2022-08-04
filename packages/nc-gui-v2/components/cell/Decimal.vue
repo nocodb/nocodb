@@ -3,7 +3,7 @@ import { computed, inject, onMounted, ref } from '#imports'
 import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: number | null
+  modelValue: number | null | string
 }
 
 interface Emits {
@@ -20,15 +20,13 @@ const root = ref<HTMLInputElement>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-onMounted(() => {
-  root.value?.focus()
-})
+const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>
   <input
     v-if="editEnabled"
-    ref="root"
+    :ref="focus"
     v-model="vModel"
     class="outline-none pa-0 border-none w-full h-full prose-sm"
     type="number"

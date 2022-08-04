@@ -8,7 +8,7 @@ import MdiThumbUpIcon from '~icons/mdi/thumb-up'
 import MdiFlagIcon from '~icons/mdi/flag'
 
 interface Props {
-  modelValue?: number
+  modelValue?: number | null
   readOnly?: boolean
 }
 

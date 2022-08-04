@@ -4,7 +4,7 @@ import { ColumnInj } from '~/context'
 import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils'
 
 interface Props {
-  modelValue: number | string
+  modelValue: number | string | null
 }
 
 const { modelValue } = defineProps<Props>()

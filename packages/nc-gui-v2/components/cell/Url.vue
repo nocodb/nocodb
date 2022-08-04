@@ -4,7 +4,7 @@ import { ColumnInj, EditModeInj } from '~/context'
 import { isValidURL } from '~/utils'
 
 interface Props {
-  modelValue: string
+  modelValue: string | null
 }
 
 const { modelValue: value } = defineProps<Props>()

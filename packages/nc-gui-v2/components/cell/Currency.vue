@@ -3,7 +3,7 @@ import { computed, inject, ref, useVModel } from '#imports'
 import { ColumnInj, EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: number
+  modelValue: number | null
 }
 
 const props = defineProps<Props>()

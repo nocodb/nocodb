@@ -2,13 +2,13 @@
 import dayjs from 'dayjs'
 import { ReadonlyInj } from '~/context'
 
+interface Props {
+  modelValue: string | null
+}
+
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
-
-interface Props {
-  modelValue: string
-}
 
 const { isMysql } = useProject()
 

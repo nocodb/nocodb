@@ -2,13 +2,13 @@
 import dayjs from 'dayjs'
 import { ReadonlyInj } from '~/context'
 
+interface Props {
+  modelValue: number | string | null
+}
+
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
-
-interface Props {
-  modelValue: number
-}
 
 const readOnlyMode = inject(ReadonlyInj, false)
 

@@ -4,7 +4,7 @@ import { ColumnInj } from '~/context'
 import { getPercentStep, isValidPercent, renderPercent } from '@/utils/percentUtils'
 
 interface Props {
-  modelValue: number | string
+  modelValue: number | string | null
 }
 
 const { modelValue } = defineProps<Props>()

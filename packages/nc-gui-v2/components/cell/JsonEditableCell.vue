@@ -4,7 +4,7 @@ import { computed, inject } from '#imports'
 import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string | Record<string, any>
+  modelValue: string | Record<string, any> | null
   isForm: boolean
 }
 

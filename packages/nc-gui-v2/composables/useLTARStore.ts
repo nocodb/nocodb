@@ -111,7 +111,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             reloadData?.()
             await loadChildrenList()
           } catch (e: any) {
-            notification.error(await extractSdkResponseErrorMsg(e))
+            notification.error({
+              message: 'Delete failed',
+              description: await extractSdkResponseErrorMsg(e),
+            })
           }
         },
       })
@@ -131,18 +134,23 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       //   this.$toast.info('Unlink is not possible, instead map to another parent.').goAway(3000);
       //   return;
       // }
-
-      // todo: audit
-      await $api.dbTableRow.nestedRemove(
-        NOCO,
-        project.value.title as string,
-        meta.value.title,
-        rowId.value,
-        colOptions.type as 'mm' | 'hm',
-        column.title,
-        getRelatedTableRowId(row) as string,
-      )
-
+      try {
+        // todo: audit
+        await $api.dbTableRow.nestedRemove(
+          NOCO,
+          project.value.title as string,
+          meta.value.title,
+          rowId.value,
+          colOptions.type as 'mm' | 'hm',
+          column.title,
+          getRelatedTableRowId(row) as string,
+        )
+      } catch (e) {
+        notification.error({
+          message: 'Unlink failed',
+          description: await extractSdkResponseErrorMsg(e),
+        })
+      }
       reloadData?.()
       // todo: reload table data and children list
       // this.$emit('loadTableData');
@@ -165,15 +173,22 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       //   this.newRecordModal = false;
       //   return;
       // }
-      await $api.dbTableRow.nestedAdd(
-        NOCO,
-        project.value.title as string,
-        meta.value.title as string,
-        rowId.value,
-        colOptions.type as 'mm' | 'hm',
-        column.title,
-        getRelatedTableRowId(row) as string,
-      )
+      try {
+        await $api.dbTableRow.nestedAdd(
+          NOCO,
+          project.value.title as string,
+          meta.value.title as string,
+          rowId.value,
+          colOptions.type as 'mm' | 'hm',
+          column.title,
+          getRelatedTableRowId(row) as string,
+        )
+      } catch (e) {
+        notification.error({
+          message: 'Linking failed',
+          description: await extractSdkResponseErrorMsg(e),
+        })
+      }
 
       // todo: reload table data and child list
       // this.pid = pid;
@@ -213,6 +228,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       loadChildrenList,
       row,
       deleteRelatedRow,
+      getRelatedTableRowId,
     }
   },
   'ltar-store',

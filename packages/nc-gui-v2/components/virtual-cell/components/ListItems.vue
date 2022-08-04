@@ -9,8 +9,14 @@ const emit = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
-const { childrenExcludedList, loadChildrenExcludedList, childrenExcludedListPagination, relatedTablePrimaryValueProp, link } =
-  useLTARStoreOrThrow()
+const {
+  childrenExcludedList,
+  loadChildrenExcludedList,
+  childrenExcludedListPagination,
+  relatedTablePrimaryValueProp,
+  link,
+  getRelatedTableRowId,
+} = useLTARStoreOrThrow()
 
 watch(vModel, () => {
   if (vModel.value) {
@@ -44,10 +50,13 @@ const linkRow = async (row: Record<string, any>) => {
           <a-card
             v-for="(row, i) in childrenExcludedList?.list ?? []"
             :key="i"
-            class="ma-2 cursor-pointer hover:(!bg-gray-200/50 shadow-md)"
+            class="ma-2 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
             @click="linkRow(row)"
           >
-            {{ row[relatedTablePrimaryValueProp] }}
+            {{ row[relatedTablePrimaryValueProp]
+            }}<span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1"
+              >(Primary key : {{ getRelatedTableRowId(row) }})</span
+            >
           </a-card>
         </div>
         <a-pagination

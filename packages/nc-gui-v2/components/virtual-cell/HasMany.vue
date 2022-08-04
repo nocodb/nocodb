@@ -25,19 +25,19 @@ await loadRelatedTableMeta()
 </script>
 
 <template>
-  <div class="flex align-center gap-1 w-full chips-wrapper">
+  <div class="flex align-center gap-1 w-full min-full chips-wrapper">
     <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
       <template v-if="value">
         <ItemChip v-for="(ch, i) in value" :key="i" :value="ch[relatedTablePrimaryValueProp]" @unlink="unlink(ch)" />
         <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
       </template>
     </div>
-    <div class="flex-1 flex justify-end gap-1">
+    <div class="flex-grow flex justify-end gap-1">
       <MdiExpandIcon
-        class="select-none transform group-hover:(text-pink-500 scale-120) text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
+        class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
         @click="childListDlg = true"
       />
-      <MdiPlusIcon class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+      <MdiPlusIcon class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
     </div>
     <ListItems v-model="listItemsDlg" />
     <ListChildItems v-model="childListDlg" @attach-record=";(childListDlg = false), (listItemsDlg = true)" />

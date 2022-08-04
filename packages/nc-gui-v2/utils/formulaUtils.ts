@@ -438,15 +438,8 @@ function getWordUntilCaret(ctrl: typeof AntInput) {
 }
 
 function GetCaretPosition(ctrl: typeof AntInput) {
-  let CaretPos = 0 // IE Support
-  if (document) {
-    ctrl.focus()
-    const Sel = document.createRange() as any
-    Sel.moveStart('character', -ctrl.value.length)
-    CaretPos = Sel.text.length
-  }
-  // Firefox support
-  else if (ctrl.selectionStart || ctrl.selectionStart === '0') {
+  let CaretPos = 0
+  if (ctrl.selectionStart || ctrl.selectionStart === 0) {
     CaretPos = ctrl.selectionStart
   }
   return CaretPos

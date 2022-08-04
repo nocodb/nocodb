@@ -91,7 +91,7 @@ const suggestionsList = computed(() => {
 })
 
 // set default suggestion list
-const suggestion: Ref<Record<string, any>[] | null> = ref(suggestionsList.value)
+const suggestion: Ref<Record<string, any>[]> = ref(suggestionsList.value)
 
 const acTree = computed(() => {
   const ref = new NcAutocompleteTree()
@@ -328,6 +328,7 @@ function isCurlyBracketBalanced() {
 function appendText(it: Record<string, any>) {
   const text = it.text
   const len = wordToComplete.value?.length || 0
+
   if (it.type === 'function') {
     formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, text, len, 1)
   } else if (it.type === 'column') {
@@ -336,7 +337,7 @@ function appendText(it: Record<string, any>) {
     formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
   }
   autocomplete.value = false
-  suggestion.value = null
+  suggestion.value = suggestionsList.value
 }
 
 const handleInputDeb = useDebounceFn(function () {
@@ -345,7 +346,7 @@ const handleInputDeb = useDebounceFn(function () {
 
 function handleInput() {
   selected.value = 0
-  suggestion.value = null
+  suggestion.value = []
   const query = getWordUntilCaret(formulaRef.value.$el)
   const parts = query.split(/\W+/)
   wordToComplete.value = parts.pop() || ''
@@ -445,7 +446,7 @@ formState.value.colOptions = {
               }
             "
             class="cursor-pointer"
-            @mousedown.stop="appendText(item)"
+            @click.prevent.stop="appendText(item)"
           >
             <a-list-item-meta>
               <template v-if="item.type === 'function'" #description>

@@ -31,9 +31,9 @@ export default class ApiToken {
 
   static async list(userId, userRoles, ncMeta = Noco.ncMeta) {
     if (userRoles?.creator || userRoles?.owner) {
-      return await this.listAllTokens(ncMeta);
+      return this.listAllTokens(ncMeta);
     }
-    return await this.listUserTokens(userId, ncMeta);
+    return this.listUserTokens(userId, ncMeta);
   }
 
   private static async listUserTokens(userId, ncMeta = Noco.ncMeta) {
@@ -50,20 +50,20 @@ export default class ApiToken {
 
   static async delete(token, userId, userRoles, ncMeta = Noco.ncMeta) {
     if (userRoles?.creator || userRoles?.owner) {
-      return await this.deleteAnyToken(token, ncMeta);
+      return this.deleteAnyToken(token, ncMeta);
     }
-    return await this.deleteUserToken(token, userId, ncMeta);
+    return this.deleteUserToken(token, userId, ncMeta);
   }
 
   private static async deleteUserToken(token, userId, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
+    return ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
       token,
       user_id: userId,
     });
   }
 
   private static async deleteAnyToken(token, ncMeta = Noco.ncMeta) {
-    return await ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
+    return ncMeta.metaDelete(null, null, MetaTable.API_TOKENS, {
       token,
     });
   }

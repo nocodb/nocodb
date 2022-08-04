@@ -40,7 +40,7 @@ export function useViewColumns(
         }
       }, {})
 
-      fields.value = meta.value.columns
+      fields.value = meta.value?.columns
         ?.map((column) => {
           const currentColumnField = fieldById[column.id!] || {}
 

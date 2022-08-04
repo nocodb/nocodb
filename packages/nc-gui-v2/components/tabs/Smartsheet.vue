@@ -40,7 +40,7 @@ provide(RightSidebarInj, ref(true))
 useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 
 watch(tabMeta, async (newTabMeta, oldTabMeta) => {
-  if (newTabMeta !== oldTabMeta && newTabMeta.id) await getMeta(newTabMeta.id)
+  if (newTabMeta !== oldTabMeta && newTabMeta?.id) await getMeta(newTabMeta.id)
 })
 </script>
 

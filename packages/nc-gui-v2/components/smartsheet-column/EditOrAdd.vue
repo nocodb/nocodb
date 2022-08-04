@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { UITypes } from 'nocodb-sdk'
-import LookupOptions from './LookupOptions.vue'
 import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
 import { MetaInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
@@ -93,6 +92,7 @@ watchEffect(() => {
       <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
       <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" />
       <LookupOptions v-if="formState.uidt === UITypes.Lookup" />
+      <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" />
 
       <div>
         <div

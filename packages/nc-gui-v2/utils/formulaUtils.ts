@@ -398,17 +398,11 @@ const formulaList = Object.keys(formulas)
 
 // ref : https://stackoverflow.com/a/11077016
 function insertAtCursor(myField: typeof AntInput, myValue: string, len = 0, b = 0) {
-  // IE support
-  if (document) {
-    myField.focus()
-    const sel = document.createRange() as any
-    sel.text = myValue
-  } // MOZILLA and others
-  else if (myField.selectionStart || myField.selectionStart === '0') {
+  // MOZILLA and others
+  if (myField.selectionStart || myField.selectionStart === 0) {
     const startPos = myField.selectionStart
     const endPos = myField.selectionEnd
     myField.value = myField.value.substring(0, startPos - len) + myValue + myField.value.substring(endPos, myField.value.length)
-
     const pos = +startPos - len + myValue.length - b
     // https://stackoverflow.com/a/4302688
     if (myField.setSelectionRange) {

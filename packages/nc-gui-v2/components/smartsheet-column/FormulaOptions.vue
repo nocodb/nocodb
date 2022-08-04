@@ -322,6 +322,172 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
   return errors
 }
 
+function validateAgainstType(parsedTree: any, expectedType: string, func: any, typeErrors = new Set()) {
+  if (parsedTree === false || typeof parsedTree === 'undefined') {
+    return typeErrors
+  }
+  if (parsedTree.type === jsep.LITERAL) {
+    if (typeof func === 'function') {
+      func(parsedTree.value)
+    } else if (expectedType === formulaTypes.NUMERIC) {
+      if (typeof parsedTree.value !== 'number') {
+        typeErrors.add('Numeric type is expected')
+      }
+    } else if (expectedType === formulaTypes.STRING) {
+      if (typeof parsedTree.value !== 'string') {
+        typeErrors.add('string type is expected')
+      }
+    }
+  } else if (parsedTree.type === jsep.IDENTIFIER) {
+    const col = columns.value.find((c) => c.title === parsedTree.name) as Record<string, any>
+    if (col === undefined) {
+      return
+    }
+    if (col.uidt === UITypes.Formula) {
+      const foundType = getRootDataType(jsep(col?.colOptions?.formula_raw))
+      if (foundType === 'N/A') {
+        typeErrors.add(`Not supported to reference column ${col.title}`)
+      } else if (expectedType !== foundType) {
+        typeErrors.add(`Type ${expectedType} is expected but found Type ${foundType}`)
+      }
+    } else {
+      switch (col.uidt) {
+        // string
+        case UITypes.SingleLineText:
+        case UITypes.LongText:
+        case UITypes.MultiSelect:
+        case UITypes.SingleSelect:
+        case UITypes.PhoneNumber:
+        case UITypes.Email:
+        case UITypes.URL:
+          if (expectedType !== formulaTypes.STRING) {
+            typeErrors.add(
+              `Column '${parsedTree.name}' with ${formulaTypes.STRING} type is found but ${expectedType} type is expected`,
+            )
+          }
+          break
+
+        // numeric
+        case UITypes.Year:
+        case UITypes.Number:
+        case UITypes.Decimal:
+        case UITypes.Rating:
+        case UITypes.Count:
+        case UITypes.AutoNumber:
+        case UITypes.Currency:
+          if (expectedType !== formulaTypes.NUMERIC) {
+            typeErrors.add(
+              `Column '${parsedTree.name}' with ${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`,
+            )
+          }
+          break
+
+        // date
+        case UITypes.Date:
+        case UITypes.DateTime:
+        case UITypes.CreateTime:
+        case UITypes.LastModifiedTime:
+          if (expectedType !== formulaTypes.DATE) {
+            typeErrors.add(
+              `Column '${parsedTree.name}' with ${formulaTypes.DATE} type is found but ${expectedType} type is expected`,
+            )
+          }
+          break
+
+        // not supported
+        case UITypes.ForeignKey:
+        case UITypes.Attachment:
+        case UITypes.ID:
+        case UITypes.Time:
+        case UITypes.Percent:
+        case UITypes.Duration:
+        case UITypes.Rollup:
+        case UITypes.Lookup:
+        case UITypes.Barcode:
+        case UITypes.Button:
+        case UITypes.Checkbox:
+        case UITypes.Collaborator:
+        default:
+          typeErrors.add(`Not supported to reference column '${parsedTree.name}'`)
+          break
+      }
+    }
+  } else if (parsedTree.type === jsep.UNARY_EXP || parsedTree.type === jsep.BINARY_EXP) {
+    if (expectedType !== formulaTypes.NUMERIC) {
+      // parsedTree.name won't be available here
+      typeErrors.add(`${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`)
+    }
+  } else if (parsedTree.type === jsep.CALL_EXP) {
+    if (formulas[parsedTree.callee.name]?.type && expectedType !== formulas[parsedTree.callee.name].type) {
+      typeErrors.add(`${expectedType} not matched with ${formulas[parsedTree.callee.name].type}`)
+    }
+  }
+  return typeErrors
+}
+
+function getRootDataType(parsedTree: any): any {
+  // given a parse tree, return the data type of it
+  if (parsedTree.type === jsep.CALL_EXP) {
+    return formulas[parsedTree.callee.name].type
+  } else if (parsedTree.type === jsep.IDENTIFIER) {
+    const col = columns.value.find((c) => c.title === parsedTree.name) as Record<string, any>
+    if (col?.uidt === UITypes.Formula) {
+      return getRootDataType(jsep(col?.colOptions?.formula_raw))
+    } else {
+      switch (col?.uidt) {
+        // string
+        case UITypes.SingleLineText:
+        case UITypes.LongText:
+        case UITypes.MultiSelect:
+        case UITypes.SingleSelect:
+        case UITypes.PhoneNumber:
+        case UITypes.Email:
+        case UITypes.URL:
+          return formulaTypes.STRING
+
+        // numeric
+        case UITypes.Year:
+        case UITypes.Number:
+        case UITypes.Decimal:
+        case UITypes.Rating:
+        case UITypes.Count:
+        case UITypes.AutoNumber:
+          return formulaTypes.NUMERIC
+
+        // date
+        case UITypes.Date:
+        case UITypes.DateTime:
+        case UITypes.CreateTime:
+        case UITypes.LastModifiedTime:
+          return formulaTypes.DATE
+
+        // not supported
+        case UITypes.ForeignKey:
+        case UITypes.Attachment:
+        case UITypes.ID:
+        case UITypes.Time:
+        case UITypes.Currency:
+        case UITypes.Percent:
+        case UITypes.Duration:
+        case UITypes.Rollup:
+        case UITypes.Lookup:
+        case UITypes.Barcode:
+        case UITypes.Button:
+        case UITypes.Checkbox:
+        case UITypes.Collaborator:
+        default:
+          return 'N/A'
+      }
+    }
+  } else if (parsedTree.type === jsep.BINARY_EXP || parsedTree.type === jsep.UNARY_EXP) {
+    return formulaTypes.NUMERIC
+  } else if (parsedTree.type === jsep.LITERAL) {
+    return typeof parsedTree.value
+  } else {
+    return 'N/A'
+  }
+}
+
 function isCurlyBracketBalanced() {
   // count number of opening curly brackets and closing curly brackets
   const cntCurlyBrackets = (formulaRef.value.$el.value.match(/\{|}/g) || []).reduce(

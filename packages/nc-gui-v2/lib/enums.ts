@@ -48,3 +48,8 @@ export enum Language {
   sl = 'Slovenščina',
   pt_BR = 'Português (Brasil)',
 }
+
+export enum NavigateDir {
+  NEXT,
+  PREV,
+}

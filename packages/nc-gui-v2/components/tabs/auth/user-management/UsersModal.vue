@@ -41,7 +41,7 @@ const validators = computed(() => {
     emails: [
       {
         validator: (rule: any, value: string, callback: (errMsg?: string) => void) => {
-          if (value.length === 0) {
+          if (!value || value.length === 0) {
             callback('Email is required')
             return
           }

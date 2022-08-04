@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { toRef } from 'vue'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { ColumnInj, MetaInj } from '~/context'
 import { provide } from '#imports'
 
-const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
+const props = defineProps<{ column: ColumnType & { meta: any } }>()
+const column = toRef(props, 'column')
 
 provide(ColumnInj, column)
 

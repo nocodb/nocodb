@@ -16,7 +16,7 @@ const column = inject(ColumnInj)
 const showWarningMessage = ref(false)
 const durationInMS = ref(0)
 const isEdited = ref(false)
-const durationType = ref(column?.meta?.duration || 0)
+const durationType = ref(column?.value?.meta?.duration || 0)
 
 const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
 const localState = computed({

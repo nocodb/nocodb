@@ -22,7 +22,7 @@ const currencyMeta = computed(() => {
   return {
     currency_locale: 'en-US',
     currency_code: 'USD',
-    ...(column && column.meta ? column.meta : {}),
+    ...(column?.value?.meta ? column?.value?.meta : {}),
   }
 })
 const currency = computed(() => {

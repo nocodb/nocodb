@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import { toRef } from 'vue'
 import { ColumnInj } from '~/context'
 import FilePhoneIcon from '~icons/mdi/file-phone'
 import { useColumn } from '#imports'
@@ -24,14 +25,15 @@ import CurrencyIcon from '~icons/mdi/currency-usd-circle-outline'
 import PercentIcon from '~icons/mdi/percent-outline'
 import DecimalIcon from '~icons/mdi/decimal'
 
-const { columnMeta } = defineProps<{ columnMeta?: ColumnType }>()
+const props = defineProps<{ columnMeta?: ColumnType }>()
 
-const column = inject(ColumnInj, columnMeta)
+const columnMeta = toRef(props, 'columnMeta')
+const column = inject(ColumnInj, ref(columnMeta))
 
-const additionalColMeta = useColumn(column as ColumnType)
+const additionalColMeta = useColumn(column.value as ColumnType)
 
 const icon = computed(() => {
-  if (column?.pk) {
+  if (column?.value?.pk) {
     return KeyIcon
   } else if (additionalColMeta.isJSON) {
     return JSONIcon

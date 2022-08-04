@@ -14,7 +14,7 @@ const columnMeta = inject(ColumnInj, null)
 const readOnlyMode = inject(ReadonlyInj, false)
 
 let isDateInvalid = $ref(false)
-const dateFormat = columnMeta?.meta?.date_format ?? 'YYYY-MM-DD'
+const dateFormat = columnMeta?.value?.meta?.date_format ?? 'YYYY-MM-DD'
 
 const localState = $computed({
   get() {

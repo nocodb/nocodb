@@ -14,12 +14,11 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'navigate'])
-const { column, modelValue: value } = props
+const { column } = props
 const active = toRef(props, 'active', false)
 const row = toRef(props, 'row')
 
 provide(ColumnInj, column)
-provide(CellValueInj, value)
 provide(ActiveCellInj, active)
 provide(RowInj, row)
 provide(CellValueInj, toRef(props, 'modelValue'))

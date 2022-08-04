@@ -18,7 +18,7 @@ const editEnabled = inject(EditModeInj, ref(false))
 const vModel = computed({
   get: () => value,
   set: (val) => {
-    if (!(column && column.meta && column.meta.validate) || isValidURL(val)) {
+    if (!column?.value?.meta?.validate || isValidURL(val)) {
       emit('update:modelValue', val)
     }
   },

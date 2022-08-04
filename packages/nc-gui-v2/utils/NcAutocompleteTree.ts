@@ -24,7 +24,7 @@ export class NcAutocompleteTree {
   }
 
   add(word: Record<string, any>) {
-    if (!this.trie) {
+    if (Object.keys(this.trie).length === 0) {
       this.trie = this.newNode()
     }
 

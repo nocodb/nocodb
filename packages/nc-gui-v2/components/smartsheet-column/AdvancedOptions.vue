@@ -77,13 +77,8 @@ formState.value.au = !!formState.value.au
       <a-input v-model="formState.dtxs" :disabled="!sqlUi.columnEditable(formState)" size="small" @input="onAlter" />
     </a-form-item>
     <a-form-item :label="$t('placeholder.defaultValue')">
-      <a-textarea
-        v-model="formState.cdf"
-        :help="sqlUi.getDefaultValueForDatatype(formState.dt)"
-        size="small"
-        auto-size
-        @input="onAlter(2, true)"
-      />
+      <a-textarea v-model:value="formState.cdf" size="small" auto-size @input="onAlter(2, true)" />
+      <span class="text-gray-400 text-xs">{{ sqlUi.getDefaultValueForDatatype(formState.dt) }}</span>
     </a-form-item>
   </div>
 </template>

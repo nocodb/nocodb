@@ -284,7 +284,7 @@ const onNavigate = (dir: NavigateDir) => {
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
               <th v-t="['c:column:add']" @click="addColumnDropdown = true">
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
-                  <div class="h-full w-full flex align-center justify-center">
+                  <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlusIcon class="text-sm" />
                   </div>
                   <template #overlay>

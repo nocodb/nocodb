@@ -31,6 +31,10 @@ const aggrFunctionsList = [
   { text: 'avgDistinct', value: 'avgDistinct' },
 ]
 
+if (!formState.fk_relation_column_id) formState.fk_relation_column_id = null
+if (!formState.fk_rollup_column_id) formState.fk_rollup_column_id = null
+if (!formState.rollup_function) formState.rollup_function = null
+
 const refTables = $computed(() => {
   if (!tables || !tables.length) {
     return []

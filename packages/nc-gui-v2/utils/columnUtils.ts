@@ -4,6 +4,7 @@ import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
 import FormatColorText from '~icons/mdi/format-color-text'
 import TextSubject from '~icons/mdi/text-subject'
 import JSONIcon from '~icons/mdi/code-json'
+import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 import Attachment from '~icons/mdi/attachment'
 import CheckboxMarkedOutline from '~icons/mdi/checkbox-marked-outline'
 import FormatListBulletedSquare from '~icons/mdi/format-list-bulleted-square'
@@ -140,7 +141,7 @@ const uiTypes = [
   },
   {
     name: UITypes.SpecificDBType,
-    icon: 'mdi-database-settings',
+    icon: SpecificDBTypeIcon,
   },
 ]
 

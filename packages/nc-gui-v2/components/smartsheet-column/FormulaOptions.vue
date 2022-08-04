@@ -436,7 +436,7 @@ formState.value.colOptions = {
       width="500px"
       class="h-full overflow-auto"
     >
-      <a-list ref="sugListRef" :data-source="suggestion">
+      <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: 'No suggested formula was found' }">
         <template #renderItem="{ item, index }">
           <a-list-item
             :ref="

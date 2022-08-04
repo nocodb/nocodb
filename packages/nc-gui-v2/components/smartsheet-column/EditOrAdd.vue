@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
-import { MetaInj } from '~/context'
+import { MetaInj, ReloadViewDataHookInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
@@ -13,11 +13,9 @@ interface Props {
 const { editColumnDropdown } = defineProps<Props>()
 
 const emit = defineEmits(['cancel'])
-
 const meta = inject(MetaInj)
-
+const reloadDataTrigger = inject(ReloadViewDataHookInj)
 const advancedOptions = ref(false)
-
 const { getMeta } = useMetas()
 
 const formulaOptionsRef = ref()
@@ -50,9 +48,10 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   ]
 })
 
-const reloadMeta = () => {
+const reloadMetaAndData = () => {
   emit('cancel')
   getMeta(meta?.value.id as string, true)
+  reloadDataTrigger?.trigger()
 }
 
 function onCancel() {
@@ -144,7 +143,7 @@ watch(
           v-model:checked="formState.meta.validate"
           class="ml-1 mb-1"
         >
-          <span class="text-xs text-gray-600">
+          <span class="text-[10px] text-gray-600">
             {{ `Accept only valid ${formState.uidt}` }}
           </span>
         </a-checkbox>
@@ -156,7 +155,12 @@ watch(
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button html-type="submit" type="primary" size="small" @click="addOrUpdate(reloadMeta), (advancedOptions = false)">
+          <a-button
+            html-type="submit"
+            type="primary"
+            size="small"
+            @click="addOrUpdate(reloadMetaAndData), (advancedOptions = false)"
+          >
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

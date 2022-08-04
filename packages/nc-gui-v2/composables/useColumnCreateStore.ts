@@ -89,7 +89,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     formState.value = { meta: {}, ...sqlUi.value.getNewColumn((meta.value.columns?.length || 0) + 1) }
   }
 
-
   const onUidtOrIdTypeChange = () => {
     const { isCurrency } = useColumn(formState.value as ColumnType)
 
@@ -174,7 +173,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
   }
 
   const addOrUpdate = async (onSuccess: () => {}) => {
-
     try {
       console.log(formState, validators)
       if (!(await validate())) return

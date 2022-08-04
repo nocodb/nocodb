@@ -309,6 +309,7 @@
     "importExcel": "Excel importeren",
     "importCSV": "Import CSV",
     "downloadCSV": "Download als CSV",
+    "downloadExcel": "Download als XLSX",
     "uploadCSV": "Upload CSV",
     "import": "Importeren",
     "importMetadata": "Importeer Metadata",

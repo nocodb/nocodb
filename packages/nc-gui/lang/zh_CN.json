@@ -309,6 +309,7 @@
     "importExcel": "导入Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "下载为CSV",
+    "downloadExcel": "下载为XLSX",
     "uploadCSV": "上传CSV",
     "import": "导入",
     "importMetadata": "导入元数据",

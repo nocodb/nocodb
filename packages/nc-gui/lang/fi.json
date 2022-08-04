@@ -309,6 +309,7 @@
     "importExcel": "Tuonti excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Lataa CSV",
+    "downloadXLSX": "Lataa XLSX",
     "uploadCSV": "Lataa CSV",
     "import": "Tuonti",
     "importMetadata": "Tuo metatieto",

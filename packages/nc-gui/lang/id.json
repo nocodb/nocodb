@@ -309,6 +309,7 @@
     "importExcel": "Impor Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Unduh sebagai CSV.",
+    "downloadExcel": "Unduh sebagai XLSX.",
     "uploadCSV": "Unggah CSV.",
     "import": "Impor",
     "importMetadata": "Impor Metadata.",

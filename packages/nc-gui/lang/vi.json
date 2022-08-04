@@ -309,6 +309,7 @@
     "importExcel": "Nhập Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Tải về dưới dạng CSV.",
+    "downloadExcel": "Tải về dưới dạng XLSX.",
     "uploadCSV": "Tải lên CSV.",
     "import": "Nhập khẩu",
     "importMetadata": "Nhập siêu dữ liệu",

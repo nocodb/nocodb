@@ -313,10 +313,13 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
 
 function isCurlyBracketBalanced() {
   // count number of opening curly brackets and closing curly brackets
-  const cntCurlyBrackets = (formulaRef.value.value.match(/\{|}/g) || []).reduce((acc: Record<number, number>, cur: number) => {
-    acc[cur] = (acc[cur] || 0) + 1
-    return acc
-  }, {})
+  const cntCurlyBrackets = (formulaRef.value.$el.value.match(/\{|}/g) || []).reduce(
+    (acc: Record<number, number>, cur: number) => {
+      acc[cur] = (acc[cur] || 0) + 1
+      return acc
+    },
+    {},
+  )
   return (cntCurlyBrackets['{'] || 0) === (cntCurlyBrackets['}'] || 0)
 }
 
@@ -324,11 +327,11 @@ function appendText(it: Record<string, any>) {
   const text = it.text
   const len = wordToComplete.value?.length || 0
   if (it.type === 'function') {
-    formula.value = insertAtCursor(formula.value, text, len, 1)
+    formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, text, len, 1)
   } else if (it.type === 'column') {
-    formula.value = insertAtCursor(formula.value, `{${text}}`, len + +!isCurlyBracketBalanced())
+    formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, `{${text}}`, len + +!isCurlyBracketBalanced())
   } else {
-    formula.value = insertAtCursor(formula.value, text, len)
+    formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
   }
   autocomplete.value = false
   suggestion.value = null
@@ -341,7 +344,7 @@ const handleInputDeb = useDebounceFn(function () {
 function handleInput() {
   selected.value = 0
   suggestion.value = null
-  const query = getWordUntilCaret(formulaRef.value)
+  const query = getWordUntilCaret(formulaRef.value.$el)
   const parts = query.split(/\W+/)
   wordToComplete.value = parts.pop() || ''
   suggestion.value = acTree.value.complete(wordToComplete.value)?.sort((x, y) => sortOrder[x.type] - sortOrder[y.type]) // TODO: check .type
@@ -421,9 +424,11 @@ formState.value.colOptions = {
       Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
       <a href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">Formulas</a>.
     </div>
+    <!-- TODO: close drawer when EditOrAdd is closed -->
     <a-drawer
       v-model:visible="formulaSuggestionDrawer"
       :closable="false"
+      :mask-closable="false"
       placement="right"
       width="500px"
       class="h-full overflow-auto"
@@ -437,7 +442,8 @@ formState.value.colOptions = {
                 sugOptionsRef[index] = el
               }
             "
-            @mousedown.prevent="appendText(item)"
+            class="cursor-pointer"
+            @mousedown.stop="appendText(item)"
           >
             <a-list-item-meta>
               <template v-if="item.type === 'function'" #description>

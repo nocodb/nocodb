@@ -1,11 +1,11 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
-import { ColumnInj } from '~/context'
+import { ColumnInj, ValueInj } from '~/context'
 import { useManyToMany } from '#imports'
 
 const column = inject(ColumnInj)
-const value = inject('value')
+const value = inject(ValueInj)
 const active = false
 const isLocked = false
 

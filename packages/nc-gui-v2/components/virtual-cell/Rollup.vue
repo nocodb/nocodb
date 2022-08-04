@@ -1,5 +1,7 @@
 <script setup lang="ts">
-const value = inject('value')
+import { ValueInj } from '~/context'
+
+const value = inject(ValueInj)
 </script>
 
 <template>

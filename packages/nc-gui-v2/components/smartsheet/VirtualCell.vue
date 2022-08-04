@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import { provide, useVirtualCell } from '#imports'
-import { ColumnInj } from '~/context'
+import { ColumnInj, ValueInj } from '~/context'
 import { NavigateDir } from '~/lib'
 
 interface Props {
@@ -14,7 +14,7 @@ const { column, modelValue: value } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'navigate'])
 
 provide(ColumnInj, column)
-provide('value', value)
+provide(ValueInj, value)
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
 </script>
@@ -31,6 +31,7 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualC
     <VirtualCellRollup v-else-if="isRollup" />
     <VirtualCellFormula v-else-if="isFormula" />
     <VirtualCellCount v-else-if="isCount" />
+    <VirtualCellLookup v-else-if="isLookup" />
   </div>
 </template>
 

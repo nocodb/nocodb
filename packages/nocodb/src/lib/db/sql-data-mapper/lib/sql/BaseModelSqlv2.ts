@@ -171,6 +171,7 @@ class BaseModelSqlv2 {
       filterArr?: Filter[];
       sortArr?: Sort[];
       sort?: string | string[];
+      nested?;
     } = {},
     ignoreFilterSort = false
   ): Promise<any> {
@@ -246,7 +247,7 @@ class BaseModelSqlv2 {
     }
 
     if (!ignoreFilterSort) applyPaginate(qb, rest);
-    const proto = await this.getProto();
+    const proto = await this.getProto(args?.nested);
     const data = await this.extractRawQueryAndExec(qb);
 
     return data?.map(d => {
@@ -358,7 +359,10 @@ class BaseModelSqlv2 {
     return await this.extractRawQueryAndExec(qb);
   }
 
-  async multipleHmList({ colId, ids }, args?: { limit?; offset? }) {
+  async multipleHmList(
+    { colId, ids, where = null, sort = null },
+    args?: { limit?; offset? }
+  ) {
     try {
       // todo: get only required fields
 
@@ -379,6 +383,9 @@ class BaseModelSqlv2 {
 
       const qb = this.dbDriver(childTable.table_name);
       await childModel.selectObject({ qb });
+      const childColObjectMap = await childTable.getAliasColObjMap();
+      await this.applyWhere(where, childColObjectMap, qb);
+      await this.applySort(sort, childColObjectMap, qb);
 
       const childQb = this.dbDriver.queryBuilder().from(
         this.dbDriver
@@ -463,7 +470,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  async hmList({ colId, id }, args?: { limit?; offset? }) {
+  async hmList(
+    { colId, id, where = null, sort = null },
+    args?: { limit?; offset? }
+  ) {
     try {
       // todo: get only required fields
 
@@ -495,6 +505,9 @@ class BaseModelSqlv2 {
       qb.offset(args?.offset || 0);
 
       await childModel.selectObject({ qb });
+      const childColObjectMap = await childTable.getAliasColObjMap();
+      await this.applyWhere(where, childColObjectMap, qb);
+      await this.applySort(sort, childColObjectMap, qb);
 
       const children = await this.extractRawQueryAndExec(qb);
 
@@ -545,7 +558,10 @@ class BaseModelSqlv2 {
     }
   }
 
-  public async multipleMmList({ colId, parentIds }, args?: { limit; offset }) {
+  public async multipleMmList(
+    { colId, parentIds, where = null, sort = null },
+    args?: { limit; offset }
+  ) {
     const relColumn = (await this.model.getColumns()).find(c => c.id === colId);
     const relColOptions = (await relColumn.getColOptions()) as LinkToAnotherRecordColumn;
 
@@ -569,6 +585,9 @@ class BaseModelSqlv2 {
     const qb = this.dbDriver(rtn).join(vtn, `${vtn}.${vrcn}`, `${rtn}.${rcn}`);
 
     await childModel.selectObject({ qb });
+    const childColObjectMap = await childTable.getAliasColObjMap();
+    await this.applyWhere(where, childColObjectMap, qb);
+    await this.applySort(sort, childColObjectMap, qb);
     const finalQb = this.dbDriver.unionAll(
       parentIds.map(id => {
         const query = qb
@@ -608,7 +627,10 @@ class BaseModelSqlv2 {
     return parentIds.map(id => gs[id] || []);
   }
 
-  public async mmList({ colId, parentId }, args?: { limit; offset }) {
+  public async mmList(
+    { colId, parentId, where = null, sort = null },
+    args?: { limit; offset }
+  ) {
     const relColumn = (await this.model.getColumns()).find(c => c.id === colId);
     const relColOptions = (await relColumn.getColOptions()) as LinkToAnotherRecordColumn;
 
@@ -640,6 +662,9 @@ class BaseModelSqlv2 {
       );
 
     await childModel.selectObject({ qb });
+    const childColObjectMap = await childTable.getAliasColObjMap();
+    await this.applyWhere(where, childColObjectMap, qb);
+    await this.applySort(sort, childColObjectMap, qb);
     // todo: sanitize
     qb.limit(args?.limit || 20);
     qb.offset(args?.offset || 0);
@@ -1006,7 +1031,7 @@ class BaseModelSqlv2 {
     });
   }
 
-  async getProto() {
+  async getProto(nested?) {
     if (this._proto) {
       return this._proto;
     }
@@ -1048,7 +1073,9 @@ class BaseModelSqlv2 {
                     const data = await this.multipleHmList(
                       {
                         colId: column.id,
-                        ids
+                        ids,
+                        where: nested?.[column.title]?.where,
+                        sort: nested?.[column.title]?.sort,
                       },
                       (listLoader as any).args
                     );
@@ -1058,7 +1085,9 @@ class BaseModelSqlv2 {
                       await this.hmList(
                         {
                           colId: column.id,
-                          id: ids[0]
+                          id: ids[0],
+                          where: nested?.[column.title]?.where,
+                          sort: nested?.[column.title]?.sort,
                         },
                         (listLoader as any).args
                       )
@@ -1092,7 +1121,9 @@ class BaseModelSqlv2 {
                     const data = await this.multipleMmList(
                       {
                         parentIds: ids,
-                        colId: column.id
+                        colId: column.id,
+                        where: nested?.[column.title]?.where,
+                        sort: nested?.[column.title]?.sort,
                       },
                       (listLoader as any).args
                     );
@@ -1103,7 +1134,9 @@ class BaseModelSqlv2 {
                       await this.mmList(
                         {
                           parentId: ids[0],
-                          colId: column.id
+                          colId: column.id,
+                          where: nested?.[column.title]?.where,
+                          sort: nested?.[column.title]?.sort,
                         },
                         (listLoader as any).args
                       )
@@ -2119,6 +2152,40 @@ class BaseModelSqlv2 {
           this.dbDriver.raw(query).wrap('(', ') __nc_alias')
         )
       : await this.dbDriver.raw(query);
+  }
+
+  /**
+   * Apply where condition to query builder
+   * @param where condition
+   * @param table table model
+   * @param queryBuilder query builder
+   * @returns {Promise<void>}
+   */
+  private async applyWhere(where, columnObjectMap, queryBuilder) {
+    if (!where) return;
+
+    await conditionV2(
+      new Filter({
+        children: extractFilterFromXwhere(where, columnObjectMap),
+        is_group: true,
+        logical_op: 'and',
+      }),
+      queryBuilder,
+      this.dbDriver
+    );
+  }
+
+  /**
+   * Apply sort to query builder
+   * @param sort sort condition
+   * @param columnObjectMap column object map of the table
+   * @param queryBuilder query builder
+   */
+  private async applySort(sort, columnObjectMap, queryBuilder) {
+    if (!sort) return;
+
+    const sorts = extractSortsObject(sort, columnObjectMap);
+    await sortV2(sorts as Sort[], queryBuilder, this.dbDriver);
   }
 }
 

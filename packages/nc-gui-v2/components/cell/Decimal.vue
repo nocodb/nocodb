@@ -31,6 +31,7 @@ const focus = (el: HTMLInputElement) => el?.focus()
     class="outline-none pa-0 border-none w-full h-full prose-sm"
     type="number"
     step="0.1"
+    @blur="editEnabled = false"
   />
   <span v-else class="prose-sm">{{ vModel }}</span>
 </template>

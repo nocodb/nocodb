@@ -30,7 +30,7 @@ const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none" />
+  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none" @blur="editEnabled = false" />
   <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="value" target="_blank">{{ value }}</nuxt-link>
   <span v-else>{{ value }}</span>
 </template>

@@ -87,6 +87,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     // actions
     const generateNewColumnMeta = () => {
       setAdditionalValidations({})
+      debugger
       formState.value = { meta: {}, ...sqlUi.value.getNewColumn((meta.value?.columns?.length || 0) + 1) }
     }
 

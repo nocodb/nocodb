@@ -162,4 +162,8 @@ function openQuickImportDialog(type: string) {
 :deep(.ant-menu-submenu::after) {
   @apply !border-none;
 }
+
+:deep(.ant-tabs-nav-add){
+  @apply !hidden;
+}
 </style>

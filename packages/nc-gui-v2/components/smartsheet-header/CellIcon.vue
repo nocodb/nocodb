@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { toRef } from 'vue'
+import { Ref, toRef } from 'vue'
 import { ColumnInj } from '~/context'
 import FilePhoneIcon from '~icons/mdi/file-phone'
 import { useColumn } from '#imports'
@@ -28,9 +28,9 @@ import DecimalIcon from '~icons/mdi/decimal'
 const props = defineProps<{ columnMeta?: ColumnType }>()
 
 const columnMeta = toRef(props, 'columnMeta')
-const column = inject(ColumnInj, ref(columnMeta))
+const column = inject(ColumnInj, columnMeta)
 
-const additionalColMeta = useColumn(column.value as ColumnType)
+const additionalColMeta = useColumn(column as Ref<ColumnType>)
 
 const icon = computed(() => {
   if (column?.value?.pk) {

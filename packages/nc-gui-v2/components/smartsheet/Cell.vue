@@ -89,7 +89,7 @@ const {
   isMultiSelect,
   isPercent,
   isPhoneNumber,
-} = useColumn(column?.value)
+} = useColumn(column)
 
 const syncAndNavigate = (dir: NavigateDir) => {
   if (changed) {

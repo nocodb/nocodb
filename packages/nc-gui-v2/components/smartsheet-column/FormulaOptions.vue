@@ -409,6 +409,10 @@ formState.value.colOptions = {
   formula_raw: '',
   ...column?.colOptions,
 }
+
+onMounted(() => {
+  jsep.plugins.register(jsepCurlyHook)
+})
 </script>
 
 <template>

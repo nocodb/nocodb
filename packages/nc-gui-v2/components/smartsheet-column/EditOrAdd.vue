@@ -65,7 +65,7 @@ function onCancel() {
 
 // create column meta if it's a new column
 watchEffect(() => {
-  if (!isEdit) {
+  if (!isEdit?.value) {
     generateNewColumnMeta()
   }
 })

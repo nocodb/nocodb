@@ -27,20 +27,36 @@ import Plugin from '../../../models/Plugin';
 export function initStrategies(router): void {
   passport.use(
     'authtoken',
-    new AuthTokenStrategy({ headerFields: ['xc-token'] }, (token, done) => {
-      ApiToken.getByToken(token)
-        .then(apiToken => {
-          if (apiToken) {
-            done(null, { roles: 'editor' });
-          } else {
-            return done({ msg: 'Invalid tok' });
+    new AuthTokenStrategy(
+      { headerFields: ['xc-token'], passReqToCallback: true },
+      async ({ ncProjectId: projectId }, token, done) => {
+        try {
+          const apiToken = await ApiToken.getByToken(token);
+          if (!apiToken) return done({ msg: 'Invalid token' });
+          if (!apiToken.user_id) return done(null, { roles: 'editor' });
+
+          const user = await User.get(apiToken.user_id);
+          if (!user) return done(new Error('User not found'));
+
+          if (!projectId) {
+            await NocoCache.set(`${CacheScope.USER}:${user.email}`, user);
+            return done(null, user);
           }
-        })
-        .catch(e => {
-          console.log(e);
-          done({ msg: 'Invalid tok' });
-        });
-    })
+
+          const projectUser = await ProjectUser.get(projectId, user.id);
+          user.roles = projectUser?.roles || 'user';
+          user.roles = user.roles === 'owner' ? 'owner,creator' : user.roles;
+
+          await NocoCache.set(
+            `${CacheScope.USER}:${user.email}___${projectId}`,
+            user
+          );
+          done(null, user);
+        } catch (err) {
+          done(err);
+        }
+      }
+    )
   );
 
   passport.serializeUser(function(

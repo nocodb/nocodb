@@ -108,6 +108,12 @@ export default class ProjectUser {
     return await queryBuilder;
   }
 
+  public static async getOwnersEmailsCSV(projectId, ncMeta = Noco.ncMeta) {
+    return this.getOwnersList({ project_id: projectId }, ncMeta).then((users) =>
+      users.map((user) => user.email).join(',')
+    );
+  }
+
   public static async getOwnersList(
     {
       project_id,

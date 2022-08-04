@@ -8,6 +8,7 @@ import * as nc_016_alter_hooklog_payload_types from './v2/nc_016_alter_hooklog_p
 import * as nc_017_add_user_token_version_column from './v2/nc_017_add_user_token_version_column';
 import * as nc_018_remove_user_token_version_column from './v2/nc_018_remove_user_token_version_column';
 import * as nc_019_cascade_relations_metadata from './v2/nc_019_cascade_relations_metadata';
+import * as nc_020_add_user_id_in_nc_api_tokens from './v2/nc_020_add_user_id_in_nc_api_tokens';
 
 // Create a custom migration source class
 export default class XcMigrationSourcev2 {
@@ -27,6 +28,7 @@ export default class XcMigrationSourcev2 {
       'nc_017_add_user_token_version_column',
       'nc_018_remove_user_token_version_column',
       'nc_019_cascade_relations_metadata',
+      'nc_020_add_user_id_in_nc_api_tokens',
     ]);
   }
 
@@ -56,6 +58,8 @@ export default class XcMigrationSourcev2 {
         return nc_018_remove_user_token_version_column;
       case 'nc_019_cascade_relations_metadata':
         return nc_019_cascade_relations_metadata;
+      case 'nc_020_add_user_id_in_nc_api_tokens':
+        return nc_020_add_user_id_in_nc_api_tokens;
     }
   }
 }

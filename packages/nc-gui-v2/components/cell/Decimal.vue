@@ -1,5 +1,6 @@
 <script lang="ts" setup>
 import { computed, inject, onMounted, ref } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
   modelValue: number | null
@@ -13,7 +14,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject<boolean>('editEnabled')
+const editEnabled = inject<boolean>(EditModeInj)
 
 const root = ref<HTMLInputElement>()
 

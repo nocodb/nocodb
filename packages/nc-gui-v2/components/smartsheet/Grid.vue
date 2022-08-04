@@ -286,6 +286,7 @@ const onNavigate = (dir: NavigateDir) => {
                     v-model="row.row[columnObj.title]"
                     :column="columnObj"
                     :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                    @update:edit-enabled="editEnabled = false"
                     @save="updateOrSaveRow(row, columnObj.title)"
                     @navigate="onNavigate"
                     @cancel="editEnabled = false"

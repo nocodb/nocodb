@@ -8,7 +8,7 @@ interface Node {
 
 export class NcAutocompleteTree {
   trie: Record<string, any>
-  suggestions: string[]
+  suggestions: Record<string, any>[]
 
   constructor() {
     this.trie = {}

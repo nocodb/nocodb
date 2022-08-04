@@ -1,9 +1,12 @@
 <script lang="ts" setup>
+import { onClickOutside } from '@vueuse/core'
 import { isVirtualCol } from 'nocodb-sdk'
+import { message } from 'ant-design-vue'
 import {
   inject,
   onKeyStroke,
   onMounted,
+  onUnmounted,
   provide,
   useGridViewColumnWidth,
   useProvideColumnCreateStore,
@@ -103,9 +106,7 @@ defineExpose({
 })
 
 // instantiate column create store
-// watchEffect(() => {
 if (meta) useProvideColumnCreateStore(meta)
-// })
 
 // reset context menu target on hide
 watch(contextMenu, () => {
@@ -113,6 +114,8 @@ watch(contextMenu, () => {
     contextMenuTarget.value = false
   }
 })
+
+const isPkAvail = $computed(() => meta?.value?.columns?.some((c) => c.pk))
 
 const clearCell = async (ctx: { row: number; col: number }) => {
   const rowObj = data.value[ctx.row]
@@ -127,8 +130,10 @@ const clearCell = async (ctx: { row: number; col: number }) => {
   await updateOrSaveRow(rowObj, columnObj.title)
 }
 
+const { copy } = useClipboard()
+
 /** handle keypress events */
-onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'], async (e: KeyboardEvent) => {
+const onKeyDown = async (e: KeyboardEvent) => {
   if (selected.row === null || selected.col === null) return
   /** on tab key press navigate through cells */
   switch (e.key) {
@@ -177,7 +182,49 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
       e.preventDefault()
       if (selected.row < data.value.length - 1) selected.row++
       break
+    default:
+      {
+        const rowObj = data.value[selected.row]
+        const columnObj = fields.value[selected.col]
+
+        if (e.metaKey || e.ctrlKey) {
+          switch (e.keyCode) {
+            // copy - ctrl/cmd +c
+            case 67:
+              await copy(rowObj.row[columnObj.title] || '')
+              break
+          }
+        }
+
+        if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
+          return
+        }
+
+        /** on letter key press make cell editable and empty */
+        if (e?.key?.length === 1) {
+          if (!isPkAvail && !rowObj.rowMeta.new) {
+            return message.info("Update not allowed for table which doesn't have primary Key")
+          }
+          rowObj.row[columnObj.title] = ''
+          editEnabled = true
+        }
+      }
+      break
   }
+}
+
+onMounted(() => {
+  document.addEventListener('keydown', onKeyDown)
+})
+onUnmounted(() => {
+  document.removeEventListener('keydown', onKeyDown)
+})
+
+/** On clicking outside of table reset active cell  */
+const smartTable = ref(null)
+onClickOutside(smartTable, (event) => {
+  selected.row = null
+  selected.col = null
 })
 
 const onNavigate = (dir: NavigateDir) => {
@@ -207,7 +254,7 @@ const onNavigate = (dir: NavigateDir) => {
   <div class="flex flex-col h-100 min-h-0 w-100">
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-primary">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
-        <table class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
+        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
             <tr class="group">
               <th>

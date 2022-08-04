@@ -163,7 +163,7 @@ function openQuickImportDialog(type: string) {
   @apply !border-none;
 }
 
-:deep(.ant-tabs-nav-add){
+:deep(.ant-tabs-nav-add) {
   @apply !hidden;
 }
 </style>

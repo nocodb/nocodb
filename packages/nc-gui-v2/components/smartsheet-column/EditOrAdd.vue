@@ -94,6 +94,7 @@ watchEffect(() => {
       <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" />
       <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" />
       <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" />
+      <SmartsheetColumnLinkedToAnotherRecordOptions v-if="formState.uidt === UITypes.LinkToAnotherRecord" />
 
       <div
         v-if="!isVirtualCol(formState.uidt)"

@@ -45,6 +45,7 @@ const clear = () => {
 
 const onSave = () => {
   isExpanded = false
+  editEnabled.value = false
   vModel = localValue
 }
 

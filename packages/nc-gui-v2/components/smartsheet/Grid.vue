@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
 import {
-  Row,
   inject,
   onKeyStroke,
   onMounted,
@@ -22,8 +21,9 @@ import {
   PaginationDataInj,
   ReloadViewDataHookInj,
 } from '~/context'
-import MdiPlusIcon from '~icons/mdi/plus'
+import { NavigateDir } from '~/lib'
 import MdiArrowExpandIcon from '~icons/mdi/arrow-expand'
+import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
@@ -42,10 +42,7 @@ const addColumnDropdown = ref(false)
 const contextMenu = ref(false)
 const contextMenuTarget = ref(false)
 
-const visibleColLength = $computed(() => {
-  const cols = fields.value
-  return cols.filter((col) => !isVirtualCol(col)).length
-})
+const visibleColLength = $computed(() => fields.value?.length)
 
 const {
   loadData,
@@ -131,57 +128,78 @@ const clearCell = async (ctx: { row: number; col: number }) => {
 
 /** handle keypress events */
 onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'], async (e: KeyboardEvent) => {
-  if (selected.row !== null && selected.col !== null) {
-    /** on tab key press navigate through cells */
-    switch (e.key) {
-      case 'Tab':
-        e.preventDefault()
-        if (e.shiftKey) {
-          if (selected.col > 0) {
-            selected.col--
-          } else if (selected.row > 0) {
-            selected.row--
-            selected.col = visibleColLength - 1
-          }
-        } else {
-          if (selected.col < visibleColLength - 1) {
-            selected.col++
-          } else if (selected.row < data.value.length - 1) {
-            selected.row++
-            selected.col = 0
-          }
+  if (selected.row === null || selected.col === null) return
+  /** on tab key press navigate through cells */
+  switch (e.key) {
+    case 'Tab':
+      e.preventDefault()
+      if (e.shiftKey) {
+        if (selected.col > 0) {
+          selected.col--
+        } else if (selected.row > 0) {
+          selected.row--
+          selected.col = visibleColLength - 1
         }
-        break
-      /** on enter key press make cell editable */
-      case 'Enter':
-        e.preventDefault()
-        editEnabled = true
-        break
-      /** on delete key press clear cell */
-      case 'Delete':
-        e.preventDefault()
-        await clearCell(selected as { row: number; col: number })
-        break
-      /** on arrow key press navigate through cells */
-      case 'ArrowRight':
-        e.preventDefault()
-        if (selected.col < visibleColLength - 1) selected.col++
-        break
-      case 'ArrowLeft':
-        e.preventDefault()
-        if (selected.col > 0) selected.col--
-        break
-      case 'ArrowUp':
-        e.preventDefault()
-        if (selected.row > 0) selected.row--
-        break
-      case 'ArrowDown':
-        e.preventDefault()
-        if (selected.row < data.value.length - 1) selected.row++
-        break
-    }
+      } else {
+        if (selected.col < visibleColLength - 1) {
+          selected.col++
+        } else if (selected.row < data.value.length - 1) {
+          selected.row++
+          selected.col = 0
+        }
+      }
+      break
+    /** on enter key press make cell editable */
+    case 'Enter':
+      e.preventDefault()
+      editEnabled = true
+      break
+    /** on delete key press clear cell */
+    case 'Delete':
+      e.preventDefault()
+      await clearCell(selected as { row: number; col: number })
+      break
+    /** on arrow key press navigate through cells */
+    case 'ArrowRight':
+      e.preventDefault()
+      if (selected.col < visibleColLength - 1) selected.col++
+      break
+    case 'ArrowLeft':
+      e.preventDefault()
+      if (selected.col > 0) selected.col--
+      break
+    case 'ArrowUp':
+      e.preventDefault()
+      if (selected.row > 0) selected.row--
+      break
+    case 'ArrowDown':
+      e.preventDefault()
+      if (selected.row < data.value.length - 1) selected.row++
+      break
   }
 })
+
+const onNavigate = (dir: NavigateDir) => {
+  if (selected.row === null || selected.col === null) return
+  switch (dir) {
+    case NavigateDir.NEXT:
+      if (selected.col < visibleColLength - 1) {
+        selected.col++
+      } else if (selected.row < data.value.length - 1) {
+        selected.row++
+        selected.col = 0
+      }
+      break
+    case NavigateDir.PREV:
+      if (selected.col > 0) {
+        selected.col--
+      } else if (selected.row > 0) {
+        selected.row--
+        selected.col = visibleColLength - 1
+      }
+      break
+  }
+}
 </script>
 
 <template>
@@ -255,15 +273,25 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
                 @dblclick="editEnabled = true"
                 @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
               >
-                <SmartsheetVirtualCell v-if="isVirtualCol(columnObj)" v-model="row.row[columnObj.title]" :column="columnObj" />
+                <div class="w-full h-full">
+                  <SmartsheetVirtualCell
+                    v-if="isVirtualCol(columnObj)"
+                    v-model="row.row[columnObj.title]"
+                    :column="columnObj"
+                    @navigate="onNavigate"
+                  />
 
-                <SmartsheetCell
-                  v-else
-                  v-model="row.row[columnObj.title]"
-                  :column="columnObj"
-                  :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
-                  @save="updateOrSaveRow(row, columnObj.title)"
-                />
+                  <SmartsheetCell
+                    v-else
+                    v-model="row.row[columnObj.title]"
+                    :column="columnObj"
+                    :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                    @update:edit-enabled="editEnabled = false"
+                    @save="updateOrSaveRow(row, columnObj.title)"
+                    @navigate="onNavigate"
+                    @cancel="editEnabled = false"
+                  />
+                </div>
               </td>
             </tr>
 
@@ -318,13 +346,13 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
-    padding: 0 5px;
+    //padding: 0 5px;
 
-    & > * {
+    & > div {
+      overflow: hidden;
       @apply flex align-center h-auto;
+      padding: 0 5px;
     }
-
-    overflow: hidden;
   }
 
   table,
@@ -360,7 +388,7 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
   }
 
   td.active::before {
-    background: #0040bc /*var(--v-primary-base)*/;
+    background: #0040bc;
     opacity: 0.1;
   }
 }

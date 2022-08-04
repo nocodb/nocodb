@@ -8,7 +8,7 @@ const formulaTypes = {
   COND_EXP: 'conditional_expression',
 }
 
-const formulas = {
+const formulas: Record<string, any> = {
   AVG: {
     type: formulaTypes.NUMERIC,
     validation: {
@@ -404,7 +404,7 @@ function insertAtCursor(myField: typeof AntInput, myValue: string, len = 0, b = 
     const sel = document.createRange() as any
     sel.text = myValue
   } // MOZILLA and others
-  else if (myField.selectionStart || myField.selectionStart == '0') {
+  else if (myField.selectionStart || myField.selectionStart === '0') {
     const startPos = myField.selectionStart
     const endPos = myField.selectionEnd
     myField.value = myField.value.substring(0, startPos - len) + myValue + myField.value.substring(endPos, myField.value.length)
@@ -452,7 +452,7 @@ function GetCaretPosition(ctrl: typeof AntInput) {
     CaretPos = Sel.text.length
   }
   // Firefox support
-  else if (ctrl.selectionStart || ctrl.selectionStart == '0') {
+  else if (ctrl.selectionStart || ctrl.selectionStart === '0') {
     CaretPos = ctrl.selectionStart
   }
   return CaretPos

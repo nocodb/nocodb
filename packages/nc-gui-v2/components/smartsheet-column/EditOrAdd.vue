@@ -92,6 +92,7 @@ watchEffect(() => {
       <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
       <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" />
       <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" />
+      <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" />
 
       <div>
         <div

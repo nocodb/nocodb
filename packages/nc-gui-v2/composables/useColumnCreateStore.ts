@@ -215,7 +215,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     addOrUpdate,
     generateNewColumnMeta,
     isEdit: !!column?.id,
-    column
+    column,
   }
 })
 

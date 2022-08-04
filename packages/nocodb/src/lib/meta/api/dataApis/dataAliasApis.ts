@@ -203,7 +203,7 @@ async function dataRead(req: Request, res: Response) {
       await getAst({ model, query: req.query, view }),
       row,
       {},
-      {}
+      req.query
     )
   );
 }

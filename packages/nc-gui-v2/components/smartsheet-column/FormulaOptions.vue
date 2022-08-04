@@ -20,6 +20,18 @@ import MdiFunctionIcon from '~icons/mdi/function'
 import MdiColumnIcon from '~icons/mdi/view-column-outline'
 import MdiOperatorIcon from '~icons/mdi/calculator'
 
+enum JSEPNode {
+  COMPOUND = 'Compound',
+  IDENTIFIER = 'Identifier',
+  MEMBER_EXP = 'MemberExpression',
+  LITERAL = 'Literal',
+  THIS_EXP = 'ThisExpression',
+  CALL_EXP = 'CallExpression',
+  UNARY_EXP = 'UnaryExpression',
+  BINARY_EXP = 'BinaryExpression',
+  ARRAY_EXP = 'ArrayExpression',
+}
+
 const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter, column } =
   useColumnCreateStoreOrThrow()
 
@@ -76,8 +88,8 @@ const suggestionsList = computed(() => {
   const unsupportedFnList = sqlUi.value.getUnsupportedFnList()
   return [
     ...availableFunctions
-      .filter((fn) => !unsupportedFnList.includes(fn))
-      .map((fn) => ({
+      .filter((fn: string) => !unsupportedFnList.includes(fn))
+      .map((fn: string) => ({
         text: `${fn}()`,
         type: 'function',
         description: formulas[fn].description,
@@ -127,7 +139,7 @@ function parseAndValidateFormula(formula: string) {
 }
 
 function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = new Set()) {
-  if (parsedTree.type === jsep.CALL_EXP) {
+  if (parsedTree.type === JSEPNode.CALL_EXP) {
     // validate function name
     if (!availableFunctions.includes(parsedTree.callee.name)) {
       errors.add(`'${parsedTree.callee.name}' function is not available`)
@@ -146,7 +158,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     parsedTree.arguments.map((arg: Record<string, any>) => validateAgainstMeta(arg, errors))
 
     // validate data type
-    if (parsedTree.callee.type === jsep.IDENTIFIER) {
+    if (parsedTree.callee.type === JSEPNode.IDENTIFIER) {
       const expectedType = formulas[parsedTree.callee.name].type
       if (expectedType === formulaTypes.NUMERIC) {
         if (parsedTree.callee.name === 'WEEKDAY') {
@@ -220,7 +232,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     }
 
     errors = new Set([...errors, ...typeErrors])
-  } else if (parsedTree.type === jsep.IDENTIFIER) {
+  } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
     if (
       columns.value
         .filter((c: Record<string, any>) => !column || column.id !== c.id)
@@ -304,15 +316,15 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
         errors.add('Can’t save field because it causes a circular reference')
       }
     }
-  } else if (parsedTree.type === jsep.BINARY_EXP) {
+  } else if (parsedTree.type === JSEPNode.BINARY_EXP) {
     if (!availableBinOps.includes(parsedTree.operator)) {
       errors.add(`'${parsedTree.operator}' operation is not available`)
     }
     validateAgainstMeta(parsedTree.left, errors)
     validateAgainstMeta(parsedTree.right, errors)
-  } else if (parsedTree.type === jsep.LITERAL || parsedTree.type === jsep.UNARY_EXP) {
+  } else if (parsedTree.type === JSEPNode.LITERAL || parsedTree.type === JSEPNode.UNARY_EXP) {
     // do nothing
-  } else if (parsedTree.type === jsep.COMPOUND) {
+  } else if (parsedTree.type === JSEPNode.COMPOUND) {
     if (parsedTree.body.length) {
       errors.add('Can’t save field because the formula is invalid')
     }
@@ -326,7 +338,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
   if (parsedTree === false || typeof parsedTree === 'undefined') {
     return typeErrors
   }
-  if (parsedTree.type === jsep.LITERAL) {
+  if (parsedTree.type === JSEPNode.LITERAL) {
     if (typeof func === 'function') {
       func(parsedTree.value)
     } else if (expectedType === formulaTypes.NUMERIC) {
@@ -338,7 +350,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
         typeErrors.add('string type is expected')
       }
     }
-  } else if (parsedTree.type === jsep.IDENTIFIER) {
+  } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
     const col = columns.value.find((c) => c.title === parsedTree.name) as Record<string, any>
     if (col === undefined) {
       return
@@ -412,12 +424,12 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
           break
       }
     }
-  } else if (parsedTree.type === jsep.UNARY_EXP || parsedTree.type === jsep.BINARY_EXP) {
+  } else if (parsedTree.type === JSEPNode.UNARY_EXP || parsedTree.type === JSEPNode.BINARY_EXP) {
     if (expectedType !== formulaTypes.NUMERIC) {
       // parsedTree.name won't be available here
       typeErrors.add(`${formulaTypes.NUMERIC} type is found but ${expectedType} type is expected`)
     }
-  } else if (parsedTree.type === jsep.CALL_EXP) {
+  } else if (parsedTree.type === JSEPNode.CALL_EXP) {
     if (formulas[parsedTree.callee.name]?.type && expectedType !== formulas[parsedTree.callee.name].type) {
       typeErrors.add(`${expectedType} not matched with ${formulas[parsedTree.callee.name].type}`)
     }
@@ -427,9 +439,9 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
 
 function getRootDataType(parsedTree: any): any {
   // given a parse tree, return the data type of it
-  if (parsedTree.type === jsep.CALL_EXP) {
+  if (parsedTree.type === JSEPNode.CALL_EXP) {
     return formulas[parsedTree.callee.name].type
-  } else if (parsedTree.type === jsep.IDENTIFIER) {
+  } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
     const col = columns.value.find((c) => c.title === parsedTree.name) as Record<string, any>
     if (col?.uidt === UITypes.Formula) {
       return getRootDataType(jsep(col?.colOptions?.formula_raw))
@@ -479,9 +491,9 @@ function getRootDataType(parsedTree: any): any {
           return 'N/A'
       }
     }
-  } else if (parsedTree.type === jsep.BINARY_EXP || parsedTree.type === jsep.UNARY_EXP) {
+  } else if (parsedTree.type === JSEPNode.BINARY_EXP || parsedTree.type === JSEPNode.UNARY_EXP) {
     return formulaTypes.NUMERIC
-  } else if (parsedTree.type === jsep.LITERAL) {
+  } else if (parsedTree.type === JSEPNode.LITERAL) {
     return typeof parsedTree.value
   } else {
     return 'N/A'
@@ -525,7 +537,9 @@ function handleInput() {
   const query = getWordUntilCaret(formulaRef.value.$el)
   const parts = query.split(/\W+/)
   wordToComplete.value = parts.pop() || ''
-  suggestion.value = acTree.value.complete(wordToComplete.value)?.sort((x, y) => sortOrder[x.type] - sortOrder[y.type]) // TODO: check .type
+  suggestion.value = acTree.value
+    .complete(wordToComplete.value)
+    ?.sort((x: Record<string, any>, y: Record<string, any>) => sortOrder[x.type] - sortOrder[y.type])
   if (!isCurlyBracketBalanced()) {
     suggestion.value = suggestion.value.filter((v: Record<string, any>) => v.type === 'column')
   }
@@ -597,7 +611,6 @@ onMounted(() => {
 
 <template>
   <div class="formula-wrapper">
-    {{ validateInfos }}
     <a-form-item v-bind="validateInfos['colOptions.formula_raw']" label="Formula">
       <a-input
         ref="formulaRef"
@@ -608,9 +621,11 @@ onMounted(() => {
         @change="handleInputDeb"
       />
     </a-form-item>
-    <div class="hint">
+    <div class="text-gray-600 mt-2 prose-sm">
       Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
-      <a href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">Formulas</a>.
+      <a class="prose-sm" href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank"
+        >Formulas</a
+      >.
     </div>
     <!-- TODO: close drawer when EditOrAdd is closed -->
     <a-drawer

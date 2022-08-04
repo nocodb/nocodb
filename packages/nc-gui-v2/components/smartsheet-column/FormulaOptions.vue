@@ -4,6 +4,9 @@ import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
 import { useColumnCreateStoreOrThrow, useDebounceFn } from '#imports'
 import { MetaInj } from '~/context'
 import { NcAutocompleteTree, formulaList, formulaTypes, formulas, getUIDTIcon, getWordUntilCaret, insertAtCursor } from '@/utils'
+import MdiFunctionIcon from '~icons/mdi/function'
+import MdiColumnIcon from '~icons/mdi/view-column-outline'
+import MdiOperatorIcon from '~icons/mdi/calculator'
 
 const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter, column } =
   useColumnCreateStoreOrThrow()
@@ -28,6 +31,8 @@ const validators = {
 }
 
 const formula = ref()
+
+const formulaSuggestionDrawer = ref(true)
 
 const availableFunctions = formulaList
 
@@ -378,6 +383,19 @@ function scrollToSelectedOption() {
   })
 }
 
+function getFormulaTypeName(type: string) {
+  switch (type) {
+    case 'function':
+      return 'Function'
+    case 'op':
+      return 'Operator'
+    case 'column':
+      return 'Column'
+    default:
+      return ''
+  }
+}
+
 // set default value
 formState.value.colOptions = {
   formula: '',
@@ -388,7 +406,6 @@ formState.value.colOptions = {
 
 <template>
   <div class="formula-wrapper">
-    {{ formState.colOptions }}
     <a-form-item v-bind="validateInfos['colOptions.formula_raw']" label="Formula">
       <a-input
         ref="formulaRef"
@@ -403,76 +420,46 @@ formState.value.colOptions = {
       Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
       <a href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">Formulas</a>.
     </div>
-    <a-card v-if="suggestion && suggestion.length" class="formula-suggestion">
-      <v-card-text>Suggestions</v-card-text>
-      <v-divider />
-      <v-list ref="sugList" dense max-height="50vh" style="overflow: auto">
-        <v-list-item-group v-model="selected" color="primary">
-          <v-list-item
-            v-for="(it, i) in suggestion"
-            :key="i"
-            ref="sugOptions"
-            dense
-            selectable
-            @mousedown.prevent="appendText(it)"
-          >
-            <!-- Function -->
-            <template v-if="it.type === 'function'">
-              <v-tooltip right offset-x nudge-right="100">
-                <template #activator="{ on }">
-                  <v-list-item-content v-on="on">
-                    <span class="caption primary--text text--lighten-2 font-weight-bold">
-                      <v-icon color="primary lighten-2" small class="mr-1"> mdi-function </v-icon>
-                      {{ it.text }}
-                    </span>
-                  </v-list-item-content>
-                  <v-list-item-action>
-                    <span class="caption"> Function </span>
-                  </v-list-item-action>
-                </template>
-                <div>
-                  {{ it.description }} <br /><br />
-                  Syntax: <br />
-                  {{ it.syntax }} <br /><br />
-                  Examples: <br />
-                  <div v-for="(example, idx) in it.examples" :key="idx">
-                    <pre>({{ idx + 1 }}): {{ example }}</pre>
+    <a-drawer
+      v-model:visible="formulaSuggestionDrawer"
+      :closable="false"
+      placement="right"
+      width="500px"
+      class="h-full overflow-auto"
+    >
+      <!-- TODO: add back v-if="suggestion && suggestion.length" -->
+      <a-list :data-source="suggestionsList" class="">
+        <template #renderItem="{ item }">
+          <a-list-item>
+            <a-list-item-meta>
+              <template v-if="item.type === 'function'" #description>
+                {{ item.description }} <br /><br />
+                Syntax: <br />
+                {{ item.syntax }} <br /><br />
+                Examples: <br />
+                <div v-for="(example, idx) of item.examples" :key="idx">
+                  <div>({{ idx + 1 }}): {{ example }}</div>
+                </div>
+              </template>
+              <template #title>
+                <div class="flex">
+                  <div class="flex-1">
+                    {{ item.text }}
+                  </div>
+                  <div class="">
+                    {{ getFormulaTypeName(item.type) }}
                   </div>
                 </div>
-              </v-tooltip>
-            </template>
-
-            <!-- Column -->
-            <template v-if="it.type === 'column'">
-              <v-list-item-content>
-                <span class="caption text--darken-3 font-weight-bold">
-                  <v-icon color="grey darken-4" small class="mr-1">
-                    {{ it.icon }}
-                  </v-icon>
-                  {{ it.text }}
-                </span>
-              </v-list-item-content>
-              <v-list-item-action>
-                <span class="caption"> Column </span>
-              </v-list-item-action>
-            </template>
-
-            <!-- Operator -->
-            <template v-if="it.type === 'op'">
-              <v-list-item-content>
-                <span class="caption indigo--text text--darken-3 font-weight-bold">
-                  <v-icon color="indigo darken-3" small class="mr-1"> mdi-calculator-variant </v-icon>
-                  {{ it.text }}
-                </span>
-              </v-list-item-content>
-
-              <v-list-item-action>
-                <span class="caption"> Operator </span>
-              </v-list-item-action>
-            </template>
-          </v-list-item>
-        </v-list-item-group>
-      </v-list>
-    </a-card>
+              </template>
+              <template #avatar>
+                <MdiFunctionIcon v-if="item.type === 'function'" class="text-lg" />
+                <MdiOperatorIcon v-if="item.type === 'op'" class="text-lg" />
+                <MdiColumnIcon v-if="item.type === 'column'" class="text-lg" />
+              </template>
+            </a-list-item-meta>
+          </a-list-item>
+        </template>
+      </a-list>
+    </a-drawer>
   </div>
 </template>

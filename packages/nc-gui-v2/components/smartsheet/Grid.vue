@@ -280,9 +280,9 @@ const onNavigate = (dir: NavigateDir) => {
                     v-if="isVirtualCol(columnObj)"
                     v-model="row.row[columnObj.title]"
                     :column="columnObj"
-                    @navigate="onNavigate"
                     :active="selected.col === colIndex && selected.row === rowIndex"
                     :row="row"
+                    @navigate="onNavigate"
                   />
 
                   <SmartsheetCell

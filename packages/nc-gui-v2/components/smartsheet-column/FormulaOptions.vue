@@ -2,10 +2,20 @@
 import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
+import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
 import { useColumnCreateStoreOrThrow, useDebounceFn } from '#imports'
 import { MetaInj } from '~/context'
-import { NcAutocompleteTree, formulaList, formulaTypes, formulas, getUIDTIcon, getWordUntilCaret, insertAtCursor } from '@/utils'
+import {
+  NcAutocompleteTree,
+  formulaList,
+  formulaTypes,
+  formulas,
+  getUIDTIcon,
+  getWordUntilCaret,
+  insertAtCursor,
+  validateDateWithUnknownFormat,
+} from '@/utils'
 import MdiFunctionIcon from '~icons/mdi/function'
 import MdiColumnIcon from '~icons/mdi/view-column-outline'
 import MdiOperatorIcon from '~icons/mdi/calculator'
@@ -22,8 +32,10 @@ const validators = {
     {
       validator: (_: any, formula: any) => {
         return new Promise<void>((resolve, reject) => {
-          if (!parseAndValidateFormula(formula)) {
-            return reject(new Error('Invalid formula'))
+          const res = parseAndValidateFormula(formula)
+          console.log(res)
+          if (res !== true) {
+            return reject(new Error(res))
           }
           resolve()
         })
@@ -105,7 +117,7 @@ function parseAndValidateFormula(formula: string) {
   try {
     const parsedTree = jsep(formula)
     const metaErrors = validateAgainstMeta(parsedTree)
-    if (metaErrors.length) {
+    if (metaErrors.size) {
       return [...metaErrors].join(', ')
     }
     return true
@@ -115,202 +127,199 @@ function parseAndValidateFormula(formula: string) {
 }
 
 function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = new Set()) {
-  return []
-  //   if (parsedTree.type === jsep.CALL_EXP) {
-  //     // validate function name
-  //     if (!this.availableFunctions.includes(parsedTree.callee.name)) {
-  //       errors.add(`'${parsedTree.callee.name}' function is not available`);
-  //     }
-  //     // validate arguments
-  //     const validation = formulas[parsedTree.callee.name] && formulas[parsedTree.callee.name].validation;
-  //     if (validation && validation.args) {
-  //       if (validation.args.rqd !== undefined && validation.args.rqd !== parsedTree.arguments.length) {
-  //         errors.add(`'${parsedTree.callee.name}' required ${validation.args.rqd} arguments`);
-  //       } else if (validation.args.min !== undefined && validation.args.min > parsedTree.arguments.length) {
-  //         errors.add(`'${parsedTree.callee.name}' required minimum ${validation.args.min} arguments`);
-  //       } else if (validation.args.max !== undefined && validation.args.max < parsedTree.arguments.length) {
-  //         errors.add(`'${parsedTree.callee.name}' required maximum ${validation.args.max} arguments`);
-  //       }
-  //     }
-  //     parsedTree.arguments.map(arg => this.validateAgainstMeta(arg, errors));
-  //
-  //     // validate data type
-  //     if (parsedTree.callee.type === jsep.IDENTIFIER) {
-  //       const expectedType = formulas[parsedTree.callee.name].type;
-  //       if (expectedType === formulaTypes.NUMERIC) {
-  //         if (parsedTree.callee.name === 'WEEKDAY') {
-  //           // parsedTree.arguments[0] = date
-  //           this.validateAgainstType(
-  //               parsedTree.arguments[0],
-  //               formulaTypes.DATE,
-  //               v => {
-  //                 if (!validateDateWithUnknownFormat(v)) {
-  //                   typeErrors.add('The first parameter of WEEKDAY() should have date value');
-  //                 }
-  //               },
-  //               typeErrors
-  //           );
-  //           // parsedTree.arguments[1] = startDayOfWeek (optional)
-  //           this.validateAgainstType(
-  //               parsedTree.arguments[1],
-  //               formulaTypes.STRING,
-  //               v => {
-  //                 if (
-  //                     typeof v !== 'string' ||
-  //                     !['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].includes(
-  //                         v.toLowerCase()
-  //                     )
-  //                 ) {
-  //                   typeErrors.add(
-  //                       'The second parameter of WEEKDAY() should have the value either "sunday", "monday", "tuesday", "wednesday", "thursday", "friday" or "saturday"'
-  //                   );
-  //                 }
-  //               },
-  //               typeErrors
-  //           );
-  //         } else {
-  //           parsedTree.arguments.map(arg => this.validateAgainstType(arg, expectedType, null, typeErrors));
-  //         }
-  //       } else if (expectedType === formulaTypes.DATE) {
-  //         if (parsedTree.callee.name === 'DATEADD') {
-  //           // parsedTree.arguments[0] = date
-  //           this.validateAgainstType(
-  //               parsedTree.arguments[0],
-  //               formulaTypes.DATE,
-  //               v => {
-  //                 if (!validateDateWithUnknownFormat(v)) {
-  //                   typeErrors.add('The first parameter of DATEADD() should have date value');
-  //                 }
-  //               },
-  //               typeErrors
-  //           );
-  //           // parsedTree.arguments[1] = numeric
-  //           this.validateAgainstType(
-  //               parsedTree.arguments[1],
-  //               formulaTypes.NUMERIC,
-  //               v => {
-  //                 if (typeof v !== 'number') {
-  //                   typeErrors.add('The second parameter of DATEADD() should have numeric value');
-  //                 }
-  //               },
-  //               typeErrors
-  //           );
-  //           // parsedTree.arguments[2] = ["day" | "week" | "month" | "year"]
-  //           this.validateAgainstType(
-  //               parsedTree.arguments[2],
-  //               formulaTypes.STRING,
-  //               v => {
-  //                 if (!['day', 'week', 'month', 'year'].includes(v)) {
-  //                   typeErrors.add(
-  //                       'The third parameter of DATEADD() should have the value either "day", "week", "month" or "year"'
-  //                   );
-  //                 }
-  //               },
-  //               typeErrors
-  //           );
-  //         }
-  //       }
-  //     }
-  //
-  //     errors = new Set([...errors, ...typeErrors]);
-  //   } else if (parsedTree.type === jsep.IDENTIFIER) {
-  //     if (
-  //         this.meta.columns.filter(c => !this.column || this.column.id !== c.id).every(c => c.title !== parsedTree.name)
-  //     ) {
-  //       errors.add(`Column '${parsedTree.name}' is not available`);
-  //     }
-  //
-  //     // check circular reference
-  //     // e.g. formula1 -> formula2 -> formula1 should return circular reference error
-  //
-  //     // get all formula columns excluding itself
-  //     const formulaPaths = this.meta.columns
-  //         .filter(c => c.id !== this.column.id && c.uidt === UITypes.Formula)
-  //         .reduce((res, c) => {
-  //           // in `formula`, get all the target neighbours
-  //           // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
-  //           const neighbours = (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(
-  //               colId => this.meta.columns.filter(col => col.id === colId && col.uidt === UITypes.Formula).length
-  //           );
-  //           if (neighbours.length > 0) {
-  //             // e.g. formula column 1 -> [formula column 2, formula column3]
-  //             res.push({ [c.id]: neighbours });
-  //           }
-  //           return res;
-  //         }, []);
-  //     // include target formula column (i.e. the one to be saved if applicable)
-  //     const targetFormulaCol = this.meta.columns.find(c => c.title === parsedTree.name && c.uidt === UITypes.Formula);
-  //     if (targetFormulaCol) {
-  //       formulaPaths.push({
-  //         [this.column.id]: [targetFormulaCol.id],
-  //       });
-  //     }
-  //     const vertices = formulaPaths.length;
-  //     if (vertices > 0) {
-  //       // perform kahn's algo for cycle detection
-  //       const adj = new Map();
-  //       const inDegrees = new Map();
-  //       // init adjacency list & indegree
-  //       for (const [_, v] of Object.entries(formulaPaths)) {
-  //         const src = Object.keys(v)[0];
-  //         const neighbours = v[src];
-  //         inDegrees.set(src, inDegrees.get(src) || 0);
-  //         for (const neighbour of neighbours) {
-  //           adj.set(src, (adj.get(src) || new Set()).add(neighbour));
-  //           inDegrees.set(neighbour, (inDegrees.get(neighbour) || 0) + 1);
-  //         }
-  //       }
-  //       const queue = [];
-  //       // put all vertices with in-degree = 0 (i.e. no incoming edges) to queue
-  //       inDegrees.forEach((inDegree, col) => {
-  //         if (inDegree === 0) {
-  //           // in-degree = 0 means we start traversing from this node
-  //           queue.push(col);
-  //         }
-  //       });
-  //       // init count of visited vertices
-  //       let visited = 0;
-  //       // BFS
-  //       while (queue.length !== 0) {
-  //         // remove a vertex from the queue
-  //         const src = queue.shift();
-  //         // if this node has neighbours, increase visited by 1
-  //         const neighbours = adj.get(src) || new Set();
-  //         if (neighbours.size > 0) {
-  //           visited += 1;
-  //         }
-  //         // iterate each neighbouring nodes
-  //         neighbours.forEach(neighbour => {
-  //           // decrease in-degree of its neighbours by 1
-  //           inDegrees.set(neighbour, inDegrees.get(neighbour) - 1);
-  //           // if in-degree becomes 0
-  //           if (inDegrees.get(neighbour) === 0) {
-  //             // then put the neighboring node to the queue
-  //             queue.push(neighbour);
-  //           }
-  //         });
-  //       }
-  //       // vertices not same as visited = cycle found
-  //       if (vertices !== visited) {
-  //         errors.add('Can’t save field because it causes a circular reference');
-  //       }
-  //     }
-  //   } else if (parsedTree.type === jsep.BINARY_EXP) {
-  //     if (!this.availableBinOps.includes(parsedTree.operator)) {
-  //       errors.add(`'${parsedTree.operator}' operation is not available`);
-  //     }
-  //     this.validateAgainstMeta(parsedTree.left, errors);
-  //     this.validateAgainstMeta(parsedTree.right, errors);
-  //   } else if (parsedTree.type === jsep.LITERAL || parsedTree.type === jsep.UNARY_EXP) {
-  //     // do nothing
-  //   } else if (parsedTree.type === jsep.COMPOUND) {
-  //     if (parsedTree.body.length) {
-  //       errors.add('Can’t save field because the formula is invalid');
-  //     }
-  //   } else {
-  //     errors.add('Can’t save field because the formula is invalid');
-  //   }
-  //   return errors;
+  if (parsedTree.type === jsep.CALL_EXP) {
+    // validate function name
+    if (!availableFunctions.includes(parsedTree.callee.name)) {
+      errors.add(`'${parsedTree.callee.name}' function is not available`)
+    }
+    // validate arguments
+    const validation = formulas[parsedTree.callee.name] && formulas[parsedTree.callee.name].validation
+    if (validation && validation.args) {
+      if (validation.args.rqd !== undefined && validation.args.rqd !== parsedTree.arguments.length) {
+        errors.add(`'${parsedTree.callee.name}' required ${validation.args.rqd} arguments`)
+      } else if (validation.args.min !== undefined && validation.args.min > parsedTree.arguments.length) {
+        errors.add(`'${parsedTree.callee.name}' required minimum ${validation.args.min} arguments`)
+      } else if (validation.args.max !== undefined && validation.args.max < parsedTree.arguments.length) {
+        errors.add(`'${parsedTree.callee.name}' required maximum ${validation.args.max} arguments`)
+      }
+    }
+    parsedTree.arguments.map((arg: Record<string, any>) => validateAgainstMeta(arg, errors))
+
+    // validate data type
+    if (parsedTree.callee.type === jsep.IDENTIFIER) {
+      const expectedType = formulas[parsedTree.callee.name].type
+      if (expectedType === formulaTypes.NUMERIC) {
+        if (parsedTree.callee.name === 'WEEKDAY') {
+          // parsedTree.arguments[0] = date
+          validateAgainstType(
+            parsedTree.arguments[0],
+            formulaTypes.DATE,
+            (v: any) => {
+              if (!validateDateWithUnknownFormat(v)) {
+                typeErrors.add('The first parameter of WEEKDAY() should have date value')
+              }
+            },
+            typeErrors,
+          )
+          // parsedTree.arguments[1] = startDayOfWeek (optional)
+          validateAgainstType(
+            parsedTree.arguments[1],
+            formulaTypes.STRING,
+            (v: any) => {
+              if (
+                typeof v !== 'string' ||
+                !['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'].includes(v.toLowerCase())
+              ) {
+                typeErrors.add(
+                  'The second parameter of WEEKDAY() should have the value either "sunday", "monday", "tuesday", "wednesday", "thursday", "friday" or "saturday"',
+                )
+              }
+            },
+            typeErrors,
+          )
+        } else {
+          parsedTree.arguments.map((arg: Record<string, any>) => validateAgainstType(arg, expectedType, null, typeErrors))
+        }
+      } else if (expectedType === formulaTypes.DATE) {
+        if (parsedTree.callee.name === 'DATEADD') {
+          // parsedTree.arguments[0] = date
+          validateAgainstType(
+            parsedTree.arguments[0],
+            formulaTypes.DATE,
+            (v: any) => {
+              if (!validateDateWithUnknownFormat(v)) {
+                typeErrors.add('The first parameter of DATEADD() should have date value')
+              }
+            },
+            typeErrors,
+          )
+          // parsedTree.arguments[1] = numeric
+          validateAgainstType(
+            parsedTree.arguments[1],
+            formulaTypes.NUMERIC,
+            (v: any) => {
+              if (typeof v !== 'number') {
+                typeErrors.add('The second parameter of DATEADD() should have numeric value')
+              }
+            },
+            typeErrors,
+          )
+          // parsedTree.arguments[2] = ["day" | "week" | "month" | "year"]
+          validateAgainstType(
+            parsedTree.arguments[2],
+            formulaTypes.STRING,
+            (v: any) => {
+              if (!['day', 'week', 'month', 'year'].includes(v)) {
+                typeErrors.add('The third parameter of DATEADD() should have the value either "day", "week", "month" or "year"')
+              }
+            },
+            typeErrors,
+          )
+        }
+      }
+    }
+
+    errors = new Set([...errors, ...typeErrors])
+  } else if (parsedTree.type === jsep.IDENTIFIER) {
+    if (
+      columns.value
+        .filter((c: Record<string, any>) => !column || column.id !== c.id)
+        .every((c: Record<string, any>) => c.title !== parsedTree.name)
+    ) {
+      errors.add(`Column '${parsedTree.name}' is not available`)
+    }
+
+    // check circular reference
+    // e.g. formula1 -> formula2 -> formula1 should return circular reference error
+
+    // get all formula columns excluding itself
+    const formulaPaths = columns.value
+      .filter((c: Record<string, any>) => c.id !== column?.id && c.uidt === UITypes.Formula)
+      .reduce((res: Record<string, any>[], c: Record<string, any>) => {
+        // in `formula`, get all the target neighbours
+        // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
+        const neighbours = (c.colOptions.formula.match(/cl_\w{14}/g) || []).filter(
+          (colId: string) => columns.value.filter((col: ColumnType) => col.id === colId && col.uidt === UITypes.Formula).length,
+        )
+        if (neighbours.length > 0) {
+          // e.g. formula column 1 -> [formula column 2, formula column3]
+          res.push({ [c.id]: neighbours })
+        }
+        return res
+      }, [])
+    // include target formula column (i.e. the one to be saved if applicable)
+    const targetFormulaCol = columns.value.find((c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula)
+    if (targetFormulaCol) {
+      formulaPaths.push({
+        [column.id]: [targetFormulaCol.id],
+      })
+    }
+    const vertices = formulaPaths.length
+    if (vertices > 0) {
+      // perform kahn's algo for cycle detection
+      const adj = new Map()
+      const inDegrees = new Map()
+      // init adjacency list & indegree
+      for (const [_, v] of Object.entries(formulaPaths)) {
+        const src = Object.keys(v)[0]
+        const neighbours = v[src]
+        inDegrees.set(src, inDegrees.get(src) || 0)
+        for (const neighbour of neighbours) {
+          adj.set(src, (adj.get(src) || new Set()).add(neighbour))
+          inDegrees.set(neighbour, (inDegrees.get(neighbour) || 0) + 1)
+        }
+      }
+      const queue: string[] = []
+      // put all vertices with in-degree = 0 (i.e. no incoming edges) to queue
+      inDegrees.forEach((inDegree, col) => {
+        if (inDegree === 0) {
+          // in-degree = 0 means we start traversing from this node
+          queue.push(col)
+        }
+      })
+      // init count of visited vertices
+      let visited = 0
+      // BFS
+      while (queue.length !== 0) {
+        // remove a vertex from the queue
+        const src = queue.shift()
+        // if this node has neighbours, increase visited by 1
+        const neighbours = adj.get(src) || new Set()
+        if (neighbours.size > 0) {
+          visited += 1
+        }
+        // iterate each neighbouring nodes
+        neighbours.forEach((neighbour: string) => {
+          // decrease in-degree of its neighbours by 1
+          inDegrees.set(neighbour, inDegrees.get(neighbour) - 1)
+          // if in-degree becomes 0
+          if (inDegrees.get(neighbour) === 0) {
+            // then put the neighboring node to the queue
+            queue.push(neighbour)
+          }
+        })
+      }
+      // vertices not same as visited = cycle found
+      if (vertices !== visited) {
+        errors.add('Can’t save field because it causes a circular reference')
+      }
+    }
+  } else if (parsedTree.type === jsep.BINARY_EXP) {
+    if (!availableBinOps.includes(parsedTree.operator)) {
+      errors.add(`'${parsedTree.operator}' operation is not available`)
+    }
+    validateAgainstMeta(parsedTree.left, errors)
+    validateAgainstMeta(parsedTree.right, errors)
+  } else if (parsedTree.type === jsep.LITERAL || parsedTree.type === jsep.UNARY_EXP) {
+    // do nothing
+  } else if (parsedTree.type === jsep.COMPOUND) {
+    if (parsedTree.body.length) {
+      errors.add('Can’t save field because the formula is invalid')
+    }
+  } else {
+    errors.add('Can’t save field because the formula is invalid')
+  }
+  return errors
 }
 
 function isCurlyBracketBalanced() {
@@ -410,6 +419,11 @@ formState.value.colOptions = {
   ...column?.colOptions,
 }
 
+// set additional validations
+setAdditionalValidations({
+  ...validators,
+})
+
 onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
@@ -417,6 +431,7 @@ onMounted(() => {
 
 <template>
   <div class="formula-wrapper">
+    {{ validateInfos }}
     <a-form-item v-bind="validateInfos['colOptions.formula_raw']" label="Formula">
       <a-input
         ref="formulaRef"

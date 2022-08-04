@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { Ref } from 'vue'
 import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
@@ -40,8 +41,6 @@ const availableFunctions = formulaList
 const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=']
 
 const autocomplete = ref(false)
-
-const suggestion = ref()
 
 const formulaRef = ref()
 
@@ -90,6 +89,9 @@ const suggestionsList = computed(() => {
     })),
   ]
 })
+
+// set default suggestion list
+const suggestion: Ref<Record<string, any>[] | null> = ref(suggestionsList.value)
 
 const acTree = computed(() => {
   const ref = new NcAutocompleteTree()
@@ -355,7 +357,7 @@ function handleInput() {
 }
 
 function selectText() {
-  if (suggestion && selected.value > -1 && selected.value < suggestion.value.length) {
+  if (suggestion.value && selected.value > -1 && selected.value < suggestion.value.length) {
     appendText(suggestion.value[selected.value])
   }
 }
@@ -428,13 +430,13 @@ formState.value.colOptions = {
     <a-drawer
       v-model:visible="formulaSuggestionDrawer"
       :closable="false"
+      :mask="false"
       :mask-closable="false"
       placement="right"
       width="500px"
       class="h-full overflow-auto"
     >
-      <!-- TODO: add back v-if="suggestion && suggestion.length" -->
-      <a-list ref="sugListRef" :data-source="suggestionsList">
+      <a-list ref="sugListRef" :data-source="suggestion">
         <template #renderItem="{ item, index }">
           <a-list-item
             :ref="

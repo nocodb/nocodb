@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useVModel } from '@vueuse/core'
+import { useVModel } from '#imports'
 import { useLTARStoreOrThrow } from '~/composables'
 import MdiReloadIcon from '~icons/mdi/reload'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { watchEffect } from '@vue/runtime-core'
-import { useVModel } from '@vueuse/core'
+import { useVModel } from '#imports'
 import { useLTARStoreOrThrow } from '~/composables'
 import MdiReloadIcon from '~icons/mdi/reload'
 

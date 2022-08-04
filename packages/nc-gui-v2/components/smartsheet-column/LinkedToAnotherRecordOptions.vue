@@ -68,7 +68,7 @@ const refTables = $computed(() => {
 
     <div v-if="advancedOptions" class="flex flex-col p-4 border-2 mt-2">
       <div class="flex flex-row space-x-2">
-        <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')" v-bind="validateInfos.onUpdate">
+        <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
           <a-select
             v-model:value="formState.onUpdate"
             :disabled="formState.virtual"
@@ -81,7 +81,7 @@ const refTables = $computed(() => {
             </a-select-option>
           </a-select>
         </a-form-item>
-        <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')" v-bind="validateInfos.onDelete">
+        <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
           <a-select
             v-model:value="formState.onDelete"
             :disabled="formState.virtual"
@@ -96,7 +96,7 @@ const refTables = $computed(() => {
         </a-form-item>
       </div>
       <div class="flex flex-row">
-        <a-form-item v-bind="validateInfos.virtual">
+        <a-form-item>
           <a-checkbox v-model:checked="formState.virtual" name="virtual" @change="onDataTypeChange">Virtual Relation</a-checkbox>
         </a-form-item>
       </div>

@@ -10,8 +10,6 @@ const { formState, validateInfos, onDataTypeChange, setAdditionalValidations } =
 const { tables, sqlUi } = $(useProject())
 const meta: TableType = $(inject(MetaInj))
 
-console.log(tables)
-
 setAdditionalValidations({
   childId: [{ required: true, message: 'Required' }],
 })

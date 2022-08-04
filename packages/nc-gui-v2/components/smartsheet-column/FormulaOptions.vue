@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
 import { useColumnCreateStoreOrThrow, useDebounceFn } from '#imports'
@@ -46,7 +47,7 @@ const formulaRef = ref()
 
 const sugListRef = ref()
 
-const sugOptionsRef = ref()
+const sugOptionsRef = ref<typeof AntListItem[]>([])
 
 const wordToComplete = ref<string | undefined>('')
 
@@ -428,9 +429,16 @@ formState.value.colOptions = {
       class="h-full overflow-auto"
     >
       <!-- TODO: add back v-if="suggestion && suggestion.length" -->
-      <a-list :data-source="suggestionsList" class="">
-        <template #renderItem="{ item }">
-          <a-list-item>
+      <a-list ref="sugListRef" :data-source="suggestionsList">
+        <template #renderItem="{ item, index }">
+          <a-list-item
+            :ref="
+              (el) => {
+                sugOptionsRef[index] = el
+              }
+            "
+            @mousedown.prevent="appendText(item)"
+          >
             <a-list-item-meta>
               <template v-if="item.type === 'function'" #description>
                 {{ item.description }} <br /><br />

@@ -390,23 +390,15 @@ formState.value.colOptions = {
   <div class="formula-wrapper">
     {{ formState.colOptions }}
     <a-form-item v-bind="validateInfos['colOptions.formula_raw']" label="Formula">
-      <a-input ref="formulaRef" v-model:value="formState.colOptions.formula_raw" @keydown.down.prevent="suggestionListDown" />
+      <a-input
+        ref="formulaRef"
+        v-model:value="formState.colOptions.formula_raw"
+        @keydown.down.prevent="suggestionListDown"
+        @keydown.up.prevent="suggestionListUp"
+        @keydown.enter.prevent="selectText"
+        @change="handleInputDeb"
+      />
     </a-form-item>
-    <!--    <a-text-field -->
-    <!--      ref="input" -->
-    <!--      v-model:value="formula.value" -->
-    <!--      dense -->
-    <!--      outlined -->
-    <!--      class="caption" -->
-    <!--      hide-details="auto" -->
-    <!--      label="Formula" -->
-    <!--      :rules="[(v) => !!v || 'Required', (v) => parseAndValidateFormula(v)]" -->
-    <!--      autocomplete="off" -->
-    <!--      @input="handleInputDeb" -->
-    <!--      @keydown.down.prevent="suggestionListDown" -->
-    <!--      @keydown.up.prevent="suggestionListUp" -->
-    <!--      @keydown.enter.prevent="selectText" -->
-    <!--    /> -->
     <div class="hint">
       Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
       <a href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">Formulas</a>.

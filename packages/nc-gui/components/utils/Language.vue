@@ -100,7 +100,7 @@ export default {
       document.body.style.direction = targetDirection
     },
     isRtlLang() {
-      return ['fa'].includes(this.language)
+      return ['fa', 'ar'].includes(this.language)
     },
     changeLan(lan) {
       this.language = lan

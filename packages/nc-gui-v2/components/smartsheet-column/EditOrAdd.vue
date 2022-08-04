@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import RollupOptions from './RollupOptions.vue'
 import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
 import { MetaInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
@@ -94,7 +93,7 @@ watchEffect(() => {
       <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" />
       <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" />
       <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" />
-      <RollupOptions v-if="formState.uidt === UITypes.Rollup" />
+      <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" />
 
       <div
         v-if="!isVirtualCol(formState.uidt)"

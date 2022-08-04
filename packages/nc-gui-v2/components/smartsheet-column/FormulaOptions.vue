@@ -2,19 +2,24 @@
 import jsep from 'jsep'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
 import { useColumnCreateStoreOrThrow, useDebounceFn } from '#imports'
-import { NcAutocompleteTree, formulaList, formulaTypes, formulas, getWordUntilCaret, insertAtCursor } from '@/utils'
+import { MetaInj } from '~/context'
+import { NcAutocompleteTree, formulaList, formulaTypes, formulas, getUIDTIcon, getWordUntilCaret, insertAtCursor } from '@/utils'
 
 const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter, column } =
   useColumnCreateStoreOrThrow()
 
+const meta = inject(MetaInj)
+
+const columns = computed(() => meta?.value?.columns || [])
+
 const validators = {
-  'colOptions.formula': [
+  'colOptions.formula_raw': [
     {
-      validator: (_: any, formual: any) => {
+      validator: (_: any, formula: any) => {
         return new Promise<void>((resolve, reject) => {
-          // if (!parseAndValidateFormula(formual)) {
-          //   return reject(new Error('Invalid formual'))
-          // }
+          if (!parseAndValidateFormula(formula)) {
+            return reject(new Error('Invalid formula'))
+          }
           resolve()
         })
       },
@@ -51,34 +56,33 @@ const sortOrder: Record<string, number> = {
 }
 
 const suggestionsList = computed(() => {
-  return []
-  // const unsupportedFnList = sqlUi.getUnsupportedFnList();
-  // return [
-  //   ...availableFunctions
-  //       .filter(fn => !unsupportedFnList.includes(fn))
-  //       .map(fn => ({
-  //         text: fn + '()',
-  //         type: 'function',
-  //         description: formulas[fn].description,
-  //         syntax: formulas[fn].syntax,
-  //         examples: formulas[fn].examples,
-  //       })),
-  //   ...meta.columns
-  //       .filter(
-  //           (c: Record<string, any>) =>
-  //               !column || (column.id !== c.id && !(c.uidt === UITypes.LinkToAnotherRecord && c.system === 1))
-  //       )
-  //       .map(c => ({
-  //         text: c.title,
-  //         type: 'column',
-  //         icon: getUIDTIcon(c.uidt),
-  //         c,
-  //       })),
-  //   ...availableBinOps.map((op: string) => ({
-  //     text: op,
-  //     type: 'op',
-  //   })),
-  // ];
+  const unsupportedFnList = sqlUi.value.getUnsupportedFnList()
+  return [
+    ...availableFunctions
+      .filter((fn) => !unsupportedFnList.includes(fn))
+      .map((fn) => ({
+        text: `${fn}()`,
+        type: 'function',
+        description: formulas[fn].description,
+        syntax: formulas[fn].syntax,
+        examples: formulas[fn].examples,
+      })),
+    ...columns.value
+      .filter(
+        (c: Record<string, any>) =>
+          !column || (column.id !== c.id && !(c.uidt === UITypes.LinkToAnotherRecord && c.system === 1)),
+      )
+      .map((c: any) => ({
+        text: c.title,
+        type: 'column',
+        icon: getUIDTIcon(c.uidt),
+        c,
+      })),
+    ...availableBinOps.map((op: string) => ({
+      text: op,
+      type: 'op',
+    })),
+  ]
 })
 
 const acTree = computed(() => {
@@ -384,8 +388,8 @@ formState.value.colOptions = {
 
 <template>
   <div class="formula-wrapper">
-    {{ formState }}
-    <a-form-item v-bind="validateInfos['meta.formula']" label="Formula">
+    {{ formState.colOptions }}
+    <a-form-item v-bind="validateInfos['colOptions.formula_raw']" label="Formula">
       <a-input ref="formulaRef" v-model:value="formState.colOptions.formula_raw" @keydown.down.prevent="suggestionListDown" />
     </a-form-item>
     <!--    <a-text-field -->
@@ -407,7 +411,7 @@ formState.value.colOptions = {
       Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
       <a href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">Formulas</a>.
     </div>
-    <v-card v-if="suggestion && suggestion.length" class="formula-suggestion">
+    <a-card v-if="suggestion && suggestion.length" class="formula-suggestion">
       <v-card-text>Suggestions</v-card-text>
       <v-divider />
       <v-list ref="sugList" dense max-height="50vh" style="overflow: auto">
@@ -477,6 +481,6 @@ formState.value.colOptions = {
           </v-list-item>
         </v-list-item-group>
       </v-list>
-    </v-card>
+    </a-card>
   </div>
 </template>

@@ -1,3 +1,4 @@
+export * from './NcAutocompleteTree'
 export * from './colorsUtils'
 export * from './dateTimeUtils'
 export * from './deepCompare'

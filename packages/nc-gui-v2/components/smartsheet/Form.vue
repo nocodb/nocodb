@@ -13,6 +13,7 @@ const formState = reactive({
   submitAnotherForm: false,
   showBlankForm: false,
   emailMe: false,
+  successMsg: '',
 })
 
 const isEditable = isUIAllowed('editFormView' as Permission)
@@ -97,6 +98,14 @@ function submitForm() {}
             {{ $t('general.submit') }}
           </a-button>
         </div>
+
+        <!-- After form is submitted -->
+        <div class="text-gray-500 mt-10 mb-4">
+          {{ $t('msg.info.afterFormSubmitted') }}
+        </div>
+        <!-- Show this message -->
+        <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
+        <a-textarea v-model="formState.successMsg" rows="3" hide-details @input="updateView" />
 
         <!-- Other options -->
         <div class="mt-4">

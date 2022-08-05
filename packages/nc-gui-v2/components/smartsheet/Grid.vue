@@ -42,6 +42,7 @@ const { xWhere } = useSmartsheetStoreOrThrow()
 const addColumnDropdown = ref(false)
 const contextMenu = ref(false)
 const contextMenuTarget = ref(false)
+const expandedFormDlg = ref(false)
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -258,7 +259,10 @@ const onNavigate = (dir: NavigateDir) => {
                   >
                     <a-checkbox v-model:checked="row.rowMeta.selected" />
                     <span class="flex-1" />
-                    <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" />
+                    <MdiArrowExpandIcon
+                      class="text-sm text-pink hidden group-hover:inline-block"
+                      @click="expandedFormDlg = true"
+                    />
                   </div>
                 </div>
               </td>
@@ -334,6 +338,7 @@ const onNavigate = (dir: NavigateDir) => {
     </div>
 
     <SmartsheetPagination />
+    <SmartsheetExpandedForm v-model="expandedFormDlg" />
   </div>
 </template>
 

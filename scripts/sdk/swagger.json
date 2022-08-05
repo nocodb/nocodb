@@ -4448,7 +4448,7 @@
                   "fk_model_id": {
                     "type": "string"
                   },
-                  "comment": {
+                  "description": {
                     "type": "string"
                   }
                 },

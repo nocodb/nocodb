@@ -54,12 +54,12 @@ const vModel = computed({
     :show-search="false"
   >
     <a-select-option v-for="op of options" :key="op.title" style="cursor: pointer">
-      <a-tag :color="op.color">
+      <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>
       </a-tag>
     </a-select-option>
     <template #tagRender="{ value: val, label, onClose }">
-      <a-tag :color="label[0].props.color" :closable="true" @close="onClose">
+      <a-tag class="rounded-tag" :color="label[0].props.color" :closable="true" @close="onClose">
         <span class="text-slate-500">{{ val }}</span>
       </a-tag>
     </template>
@@ -67,6 +67,13 @@ const vModel = computed({
 </template>
 
 <style scoped>
+.rounded-tag {
+  padding: 0px 12px;
+  border-radius: 12px;
+}
+:deep(.ant-tag) {
+  @apply "rounded-tag";
+}
 :deep(.ant-tag-close-icon) {
   @apply "text-slate-500";
 }

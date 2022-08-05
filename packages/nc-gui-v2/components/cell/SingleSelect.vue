@@ -39,14 +39,22 @@ const options = computed(() => {
     :bordered="false"
   >
     <a-select-option v-for="op of options" :key="op.title">
-      <a-tag :color="op.color">
+      <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>
       </a-tag>
     </a-select-option>
   </a-select>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.rounded-tag {
+  padding: 0px 12px;
+  border-radius: 12px;
+}
+:deep(.ant-tag) {
+  @apply "rounded-tag";
+}
+</style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

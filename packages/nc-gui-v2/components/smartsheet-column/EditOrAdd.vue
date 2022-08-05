@@ -96,6 +96,7 @@ watchEffect(() => {
       <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" />
       <SmartsheetColumnLinkedToAnotherRecordOptions v-if="formState.uidt === UITypes.LinkToAnotherRecord" />
       <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
+      <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" />
 
       <div
         v-if="!isVirtualCol(formState.uidt)"

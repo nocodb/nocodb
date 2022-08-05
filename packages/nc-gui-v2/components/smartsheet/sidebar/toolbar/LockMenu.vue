@@ -5,7 +5,6 @@ import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
-import MdiCheckIcon from '~icons/mdi/check-bold'
 
 enum LockType {
   Personal = 'personal',

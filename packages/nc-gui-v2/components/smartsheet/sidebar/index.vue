@@ -3,12 +3,8 @@ import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'noc
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
-import { computed, inject, provide, ref, useApi, useRoute, useToggle, useViews, watch } from '#imports'
+import { computed, inject, provide, ref, useApi, useRoute, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, RightSidebarInj, ViewListInj } from '~/context'
-import MdiXml from '~icons/mdi/xml'
-import MdiHook from '~icons/mdi/hook'
-import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-right-rounded'
-import MaterialSymbolsChevronLeftRounded from '~icons/material-symbols/chevron-left-rounded'
 
 const meta = inject(MetaInj, ref())
 

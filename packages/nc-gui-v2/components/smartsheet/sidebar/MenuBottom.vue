@@ -2,11 +2,6 @@
 import { ViewTypes } from 'nocodb-sdk'
 import { ref, useNuxtApp } from '#imports'
 import { viewIcons } from '~/utils'
-import MdiPlusIcon from '~icons/mdi/plus'
-import MdiXml from '~icons/mdi/xml'
-import MdiHook from '~icons/mdi/hook'
-import MdiHeartsCard from '~icons/mdi/cards-heart'
-import MdiShieldLockOutline from '~icons/mdi/shield-lock-outline'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void

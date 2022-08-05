@@ -108,7 +108,7 @@ await loadTables()
                   class="nc-project-menu-item group"
                   @click="toggleDialog(true, 'teamAndAuth')"
                 >
-                  <MdiAccountGroupIcon class="group-hover:text-pink-500" />
+                  <MdiAccountGroup class="group-hover:text-pink-500" />
                   Team & Auth
                 </div>
               </a-menu-item>

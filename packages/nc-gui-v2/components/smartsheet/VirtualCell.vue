@@ -14,7 +14,8 @@ interface Props {
 
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'navigate'])
-const { column } = props
+
+const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
 const row = toRef(props, 'row')
 

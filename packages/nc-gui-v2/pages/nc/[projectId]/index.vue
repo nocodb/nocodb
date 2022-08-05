@@ -79,7 +79,7 @@ await loadTables()
         </div>
 
         <template #overlay>
-          <a-menu class="ml-2 min-w-32 leading-8 !rounded">
+          <a-menu class="ml-2 !p-0 min-w-32 leading-8 !rounded">
             <a-menu-item-group title="Project Settings">
               <a-menu-item key="copy">
                 <div class="nc-project-menu-item group">

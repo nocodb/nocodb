@@ -3111,7 +3111,7 @@ export class Api<
      * @response `200` `void` OK
      */
     commentRow: (
-      data: { row_id: string; fk_model_id: string; comment: string },
+      data: { row_id: string; fk_model_id: string; description?: string },
       params: RequestParams = {}
     ) =>
       this.request<void, any>({

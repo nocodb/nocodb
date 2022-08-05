@@ -1,18 +1,19 @@
 <script lang="ts" setup>
 import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
-import { computed, provideSidebar, ref, useBreakpoints, useGlobal, useProject, useRouter } from '#imports'
-
+import { computed, provideSidebar, ref, useBreakpoints, useGlobal, useRoute, useRouter } from '#imports'
 /** get current breakpoints (for enabling sidebar) */
 const breakpoints = useBreakpoints(breakpointsTailwind)
 
 const { signOut, signedIn, isLoading, user } = $(useGlobal())
 
-const { project } = useProject()
-
-const { isOpen } = provideSidebar({ isOpen: signedIn && breakpoints.greater('md').value })
+const { isOpen } = provideSidebar({ isOpen: (signedIn && breakpoints.greater('md').value) || true })
 
 const router = useRouter()
+
+const route = useRoute()
+
+console.log(route.name)
 
 const sidebar = ref<HTMLDivElement>()
 
@@ -63,12 +64,19 @@ const logout = () => {
         </template>
       </a-dropdown>
 
-      <div id="sidebar" ref="sidebar" class="w-full p-2" />
+      <div id="sidebar" ref="sidebar" class="text-white flex flex-col items-center w-full">
+        <div
+          :class="[route.name.includes('nc-projectId') ? 'bg-pink-500' : '']"
+          class="flex w-full justify-center items-center h-12 group p-2"
+        >
+          <MdiDatabase class="cursor-pointer transform hover:scale-105 text-2xl" />
+        </div>
+      </div>
     </a-layout-sider>
 
     <a-layout class="!flex-col">
       <a-layout-header class="flex !bg-primary items-center text-white px-1">
-        <div v-if="project" class="w-[250px] text-xl px-4">{{ project.title }}</div>
+        <div id="header-start" class="w-[250px] px-4" />
 
         <div class="hidden flex justify-center">
           <div v-show="isLoading" class="flex items-center gap-2 ml-3">

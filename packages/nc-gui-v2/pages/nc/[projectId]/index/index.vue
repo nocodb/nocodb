@@ -36,7 +36,7 @@ function openQuickImportDialog(type: string) {
 <template>
   <div class="nc-container pt-[9px]">
     <div class="h-full w-full flex flex-col">
-      <div>
+      <div class="px-1">
         <a-tabs v-model:activeKey="activeTabIndex" type="editable-card" @edit="closeTab">
           <a-tab-pane v-for="(tab, i) in tabs" :key="i" :tab="tab.title" />
 

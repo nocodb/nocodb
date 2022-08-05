@@ -1,18 +1,20 @@
 <script setup lang="ts">
-import { useProject, useRoute, useSidebar, useTabs, useToggle } from '#imports'
+import { provideSidebar, useProject, useRoute, useSidebar, useTabs } from '#imports'
 import { TabType } from '~/composables'
 import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-right-rounded'
 import MaterialSymbolsChevronLeftRounded from '~icons/material-symbols/chevron-left-rounded'
 
 const route = useRoute()
 
-const { loadProject, loadTables } = useProject(route.params.projectId as string)
+const { project, loadProject, loadTables } = useProject(route.params.projectId as string)
 
 const { addTab, clearTabs } = useTabs()
 
-useSidebar({ hasSidebar: true, isOpen: true })
+// set old sidebar state
+useSidebar({ isOpen: true })
 
-const [isOpen, toggle] = useToggle(true)
+// create a new sidebar state
+const { isOpen, toggle } = provideSidebar({ isOpen: true })
 
 clearTabs()
 if (!route.params.type) {
@@ -36,7 +38,7 @@ await loadTables()
       theme="light"
     >
       <div
-        class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-9 right-[-0.75rem] shadow bg-gray-100 rounded-full"
+        class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-9 right-[-0.75rem] shadow bg-gray-100 rounded-full"
       >
         <MaterialSymbolsChevronLeftRounded
           v-if="isOpen"
@@ -52,6 +54,11 @@ await loadTables()
       </div>
       <DashboardTreeView />
     </a-layout-sider>
+
+    <teleport to="#header-start">
+      <a-dropdown> </a-dropdown>
+      <div v-if="project" class="text-xl">{{ project.title }}</div>
+    </teleport>
 
     <NuxtPage />
   </NuxtLayout>

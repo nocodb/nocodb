@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { provideSidebar, ref, useProject, useRoute, useSidebar, useTabs, useToggle, useUIPermission } from '#imports'
+import { provideSidebar, ref, useProject, useRoute, useSidebar, useTabs, useUIPermission } from '#imports'
 import { TabType } from '~/composables'
 
 const route = useRoute()
@@ -72,8 +72,8 @@ await loadTables()
 
     <teleport v-if="project" to="#header-start">
       <a-dropdown :trigger="['click']">
-        <div class="group cursor-pointer w-full flex justify-between items-center">
-          <div class="flex-auto text-xl truncate">{{ project.title }}</div>
+        <div class="group cursor-pointer w-full flex gap-4 items-center">
+          <div class="text-xl truncate">{{ project.title }}</div>
 
           <MdiChevronDown class="min-w-[28.5px] group-hover:text-pink-500 text-2xl" />
         </div>
@@ -81,14 +81,14 @@ await loadTables()
         <template #overlay>
           <a-menu class="ml-2 min-w-32 leading-8 !rounded">
             <a-menu-item-group title="Project Settings">
-              <a-menu-item>
+              <a-menu-item key="copy">
                 <div class="nc-project-menu-item group">
                   <MdiContentCopy class="group-hover:text-pink-500" />
                   Copy Project Info
                 </div>
               </a-menu-item>
 
-              <a-menu-item>
+              <a-menu-item key="api">
                 <a
                   v-if="isUIAllowed('apiDocs')"
                   v-t="['e:api-docs']"
@@ -101,7 +101,7 @@ await loadTables()
                 </a>
               </a-menu-item>
 
-              <a-menu-item>
+              <a-menu-item key="teamAndAuth">
                 <div
                   v-if="isUIAllowed('settings')"
                   v-t="['c:navdraw:project-settings']"
@@ -113,7 +113,7 @@ await loadTables()
                 </div>
               </a-menu-item>
 
-              <a-menu-item>
+              <a-menu-item key="appStore">
                 <div
                   v-if="isUIAllowed('settings')"
                   v-t="['c:navdraw:project-settings']"
@@ -125,7 +125,7 @@ await loadTables()
                 </div>
               </a-menu-item>
 
-              <a-menu-item>
+              <a-menu-item key="metaData">
                 <div
                   v-if="isUIAllowed('settings')"
                   v-t="['c:navdraw:project-settings']"
@@ -137,7 +137,7 @@ await loadTables()
                 </div>
               </a-menu-item>
 
-              <a-menu-item>
+              <a-menu-item key="audit">
                 <div
                   v-if="isUIAllowed('settings')"
                   v-t="['c:navdraw:project-settings']"
@@ -149,16 +149,16 @@ await loadTables()
                 </div>
               </a-menu-item>
 
-              <a-menu-item>
-                <a-sub-menu>
+              <a-sub-menu key="preview-as">
+                <template #title>
                   <div class="nc-project-menu-item group">
                     <MdiContentCopy class="group-hover:text-pink-500" />
                     Preview Project As
                   </div>
+                </template>
 
-                  <a-menu-item> Foo </a-menu-item>
-                </a-sub-menu>
-              </a-menu-item>
+                <a-menu-item> Foo </a-menu-item>
+              </a-sub-menu>
             </a-menu-item-group>
           </a-menu>
         </template>

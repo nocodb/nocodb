@@ -1,13 +1,14 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { useNuxtApp } from '#app'
-import { reactive, ref } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
+import { reactive, ref, useNuxtApp, useSidebar } from '#imports'
 import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 import MdiKeyChange from '~icons/mdi/key-change'
 
-const { $api, $state } = useNuxtApp()
+const { $api } = useNuxtApp()
+
+const { isOpen } = useSidebar()
 
 const { t } = useI18n()
 
@@ -71,10 +72,7 @@ const resetError = () => {
 
 <template>
   <a-form ref="formValidator" layout="vertical" :model="form" class="change-password h-full w-full" @finish="passwordChange">
-    <div
-      class="md:relative flex flex-col gap-2 w-full h-full p-8 lg:(max-w-1/2)"
-      :class="{ 'mx-auto': !$state.sidebarOpen.value }"
-    >
+    <div class="md:relative flex flex-col gap-2 w-full h-full p-8 lg:(max-w-1/2)" :class="{ 'mx-auto': isOpen }">
       <h1 class="prose-2xl font-bold mb-4">{{ $t('activity.changePwd') }}</h1>
 
       <Transition name="layout">

@@ -3,7 +3,7 @@ import { Modal } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import { navigateTo } from '#app'
-import { computed, onMounted } from '#imports'
+import { computed, onMounted, ref, useApi, useNuxtApp, useSidebar } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiDeleteOutline from '~icons/mdi/delete-outline'
 import MdiEditOutline from '~icons/mdi/edit-outline'
@@ -12,30 +12,31 @@ import MdiMenuDown from '~icons/mdi/menu-down'
 import MdiPlus from '~icons/mdi/plus'
 import MdiDatabaseOutline from '~icons/mdi/database-outline'
 
-const { $api, $state, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
+
+const { api, isLoading } = useApi()
+
+useSidebar({ hasSidebar: false })
+
 const toast = useToast()
 
 const filterQuery = ref('')
-const loading = ref(true)
+
 const projects = ref<ProjectType[]>()
 
 const loadProjects = async () => {
-  loading.value = true
-  const response = await $api.project.list({})
+  const response = await api.project.list({})
   projects.value = response.list
-  loading.value = false
 }
 
-const filteredProjects = computed(() => {
-  return (
+const filteredProjects = computed(
+  () =>
     projects.value?.filter(
       (project) => !filterQuery.value || project.title?.toLowerCase?.().includes(filterQuery.value.toLowerCase()),
-    ) ?? []
-  )
-})
+    ) ?? [],
+)
 
 const deleteProject = (project: ProjectType) => {
-  $e('c:project:delete')
   Modal.confirm({
     title: `Do you want to delete '${project.title}' project?`,
     okText: 'Yes',
@@ -45,9 +46,9 @@ const deleteProject = (project: ProjectType) => {
       try {
         $e('c:project:delete')
         await $api.project.delete(project.id as string)
-        projects.value?.splice(projects.value.indexOf(project), 1)
-      } catch (e) {
-        toast.error(await extractSdkResponseErrorMsg(e))
+        return projects.value?.splice(projects.value.indexOf(project), 1)
+      } catch (e: any) {
+        return toast.error(await extractSdkResponseErrorMsg(e))
       }
     },
   })
@@ -56,9 +57,6 @@ const deleteProject = (project: ProjectType) => {
 onMounted(() => {
   loadProjects()
 })
-
-// hide sidebar
-$state.sidebarOpen.value = false
 </script>
 
 <template>
@@ -114,7 +112,7 @@ $state.sidebarOpen.value = false
         </a-dropdown>
       </div>
 
-      <div v-if="loading">
+      <div v-if="isLoading">
         <a-skeleton />
       </div>
 

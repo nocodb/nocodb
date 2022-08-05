@@ -295,22 +295,23 @@ const onNavigate = (dir: NavigateDir) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
-              <td key="row-index" class="caption nc-grid-cell">
-                <div class="align-center flex w-[80px]">
+            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row">
+              <td key="row-index" class="caption nc-grid-cell group">
+                <div class="flex items-center w-[80px]">
                   <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
                   <div
                     :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                    class="group-hover:flex w-full align-center"
+                    class="group-hover:flex w-full items-center justify-between p-1"
                   >
                     <a-checkbox v-model:checked="row.rowMeta.selected" />
-                    <span class="flex-1" />
-                    <MdiArrowExpand class="text-sm text-pink hidden group-hover:inline-block" />
+                    <div class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
+                      <MdiArrowExpand class="select-none transform hover:(text-pink-500 scale-120)" />
+                    </div>
                   </div>
                 </div>
               </td>
               <td
-                v-for="(columnObj, colIndex) in fields"
+                v-for="(columnObj, colIndex) of fields"
                 :key="rowIndex + columnObj.title"
                 class="cell pointer nc-grid-cell"
                 :class="{

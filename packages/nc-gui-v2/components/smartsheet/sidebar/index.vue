@@ -68,15 +68,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 </script>
 
 <template>
-  <a-layout-sider
-    :collapsed="sidebarCollapsed"
-    collapsiple
-    collapsed-width="50"
-    width="250"
-    class="shadow !mt-[-9px]"
-    style="height: calc(100% + 9px)"
-    theme="light"
-  >
+  <a-layout-sider :collapsed="sidebarCollapsed" collapsiple collapsed-width="50" width="250" class="shadow h-full" theme="light">
     <Toolbar v-if="sidebarOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />
 
     <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">

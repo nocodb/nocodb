@@ -1,6 +1,6 @@
 import { breakpointsTailwind } from '@vueuse/core'
 import { defineNuxtPlugin } from '#app'
-import { useBreakpoints, useDark, useGlobal, watch } from '#imports'
+import { useBreakpoints, useDark, useGlobal, useSidebar, watch } from '#imports'
 
 /**
  * Initialize global state and watches for changes
@@ -19,9 +19,6 @@ export default defineNuxtPlugin((nuxtApp) => {
 
   const darkMode = useDark()
 
-  /** get current breakpoints (for enabling sidebar) */
-  const breakpoints = useBreakpoints(breakpointsTailwind)
-
   /** set i18n locale to stored language */
   nuxtApp.vueApp.i18n.locale.value = state.lang.value
 
@@ -33,7 +30,4 @@ export default defineNuxtPlugin((nuxtApp) => {
     },
     { immediate: true },
   )
-
-  /** is initial sidebar open */
-  state.sidebarOpen.value = state.signedIn.value && breakpoints.greater('md').value
 })

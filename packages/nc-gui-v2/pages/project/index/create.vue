@@ -2,17 +2,22 @@
 import { onMounted, onUpdated } from '@vue/runtime-core'
 import type { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
-import { nextTick, ref } from '#imports'
+import { nextTick, reactive, ref, useApi, useSidebar } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { projectTitleValidator } from '~/utils/validation'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
 
 const name = ref('')
-const loading = ref(false)
+
 const valid = ref(false)
 
-const { $api, $state, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
+
+const { api, isLoading } = useApi()
+
+useSidebar({ hasSidebar: false })
+
 const toast = useToast()
 
 const nameValidationRules = [
@@ -29,9 +34,8 @@ const formState = reactive({
 
 const createProject = async () => {
   $e('a:project:create:xcdb')
-  loading.value = true
   try {
-    const result = await $api.project.create({
+    const result = await api.project.create({
       title: formState.title,
     })
 
@@ -39,17 +43,13 @@ const createProject = async () => {
   } catch (e: any) {
     toast.error(await extractSdkResponseErrorMsg(e))
   }
-  loading.value = false
 }
 
 const form = ref<typeof Form>()
 
-// hide sidebar
-$state.sidebarOpen.value = false
-
 // select and focus title field on load
 onMounted(async () => {
-  nextTick(() => {
+  await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')
@@ -61,7 +61,7 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a-card class="w-[500px] mx-auto !mt-100px shadow-md">
+  <a-card :loading="isLoading" class="w-[500px] mx-auto !mt-100px shadow-md">
     <h3 class="text-3xl text-center font-semibold mb-2">{{ $t('activity.createProject') }}</h3>
 
     <a-form ref="form" :model="formState" name="basic" layout="vertical" autocomplete="off" @finish="createProject">

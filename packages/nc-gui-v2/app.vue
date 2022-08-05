@@ -1,21 +1,27 @@
 <script lang="ts" setup>
+import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
-import { useGlobal } from '#imports'
+import { computed, ref, useBreakpoints, useGlobal, useSidebar } from '#imports'
 
-const state = useGlobal()
+/** get current breakpoints (for enabling sidebar) */
+const breakpoints = useBreakpoints(breakpointsTailwind)
+
+const { signOut, signedIn, isLoading, user } = $(useGlobal())
+
+const { isOpen, hasSidebar } = useSidebar({ isOpen: signedIn && breakpoints.greater('md').value })
 
 const sidebar = ref<HTMLDivElement>()
 
-const email = computed(() => state.user.value?.email ?? '---')
+const email = computed(() => user?.email ?? '---')
 
-const signOut = () => {
-  state.signOut()
+const logout = () => {
+  signOut()
   navigateTo('/signin')
 }
 
 const sidebarCollapsed = computed({
-  get: () => !state.sidebarOpen.value,
-  set: (val) => (state.sidebarOpen.value = !val),
+  get: () => !isOpen.value,
+  set: (val) => (isOpen.value = !val),
 })
 
 const toggleSidebar = () => {
@@ -25,8 +31,8 @@ const toggleSidebar = () => {
 
 <template>
   <a-layout class="min-h-[100vh]">
-    <a-layout-header class="flex !bg-primary items-center text-white px-4 shadow-md">
-      <material-symbols-menu v-if="state.signedIn.value" class="text-xl cursor-pointer" @click="toggleSidebar" />
+    <a-layout-header class="hidden flex !bg-primary items-center text-white px-4 shadow-md">
+      <material-symbols-menu v-if="signedIn && hasSidebar" class="text-xl cursor-pointer" @click="toggleSidebar" />
 
       <div class="flex-1" />
 
@@ -38,16 +44,16 @@ const toggleSidebar = () => {
       </div>
 
       <div class="flex-1 text-left">
-        <div v-show="state.isLoading.value" class="flex items-center gap-2 ml-3">
+        <div v-show="isLoading" class="flex items-center gap-2 ml-3">
           {{ $t('general.loading') }}
-          <mdi-reload :class="{ 'animate-infinite animate-spin': state.isLoading.value }" />
+          <mdi-reload :class="{ 'animate-infinite animate-spin': isLoading }" />
         </div>
       </div>
 
       <div class="flex justify-end gap-4">
         <general-language class="mr-3" />
 
-        <template v-if="state.signedIn.value">
+        <template v-if="signedIn">
           <a-dropdown :trigger="['click']">
             <mdi-dots-vertical class="md:text-xl cursor-pointer nc-user-menu" @click.prevent />
 
@@ -63,7 +69,7 @@ const toggleSidebar = () => {
                 <a-menu-divider class="!m-0" />
 
                 <a-menu-item key="1" class="!rounded-b">
-                  <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="signOut">
+                  <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
                     <mdi-logout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
 
                     <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
@@ -78,19 +84,17 @@ const toggleSidebar = () => {
       </div>
     </a-layout-header>
 
-    <a-layout>
-      <a-layout-sider
-        v-model:collapsed="sidebarCollapsed"
-        width="300"
-        collapsed-width="0"
-        class="bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"
-        :trigger="null"
-        collapsible
-      >
-        <div id="sidebar" ref="sidebar" class="w-full h-full" />
-      </a-layout-sider>
+    <a-layout-sider
+      v-model:collapsed="sidebarCollapsed"
+      width="300"
+      collapsed-width="0"
+      class="bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"
+      :trigger="null"
+      collapsible
+    >
+      <div id="sidebar" ref="sidebar" class="w-full h-full" />
+    </a-layout-sider>
 
-      <NuxtPage />
-    </a-layout>
+    <NuxtPage />
   </a-layout>
 </template>

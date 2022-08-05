@@ -34,8 +34,8 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <div class="flex w-full h-full">
-    <div class="nc-container flex flex-col">
+  <div class="nc-container pt-[9px]">
+    <div class="h-full w-full flex flex-col">
       <div>
         <a-tabs v-model:activeKey="activeTabIndex" type="editable-card" @edit="closeTab">
           <a-tab-pane v-for="(tab, i) in tabs" :key="i" :tab="tab.title" />
@@ -129,22 +129,17 @@ function openQuickImportDialog(type: string) {
         </a-tabs>
       </div>
 
-      <div class="flex-1 min-h-0">
-        <NuxtPage />
-      </div>
-
-      <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
-      <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" :import-type="importType" />
-      <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
+      <NuxtPage class="p-2" />
     </div>
 
-    <div id="sidebar-right" class="h-full" />
+    <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
+    <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" :import-type="importType" />
+    <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
   </div>
 </template>
 
 <style scoped>
 .nc-container {
-  height: calc(100vh - var(--header-height) - 8px);
   @apply overflow-hidden;
   flex: 1 1 100%;
 }

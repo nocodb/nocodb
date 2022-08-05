@@ -143,7 +143,7 @@ const addTableTab = (table: TableType) => {
 
 <template>
   <div class="nc-treeview-container flex flex-column">
-    <div class="px-3 py-2">
+    <div class="px-2 py-[11.75px] border-b-1">
       <a-input-search
         v-model:value="filterQuery"
         size="small"

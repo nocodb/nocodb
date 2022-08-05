@@ -3,7 +3,7 @@ import { onMounted } from '@vue/runtime-core'
 import { Form, Modal } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import { useToast } from 'vue-toastification'
-import { ref } from '#imports'
+import { computed, ref, useSidebar, watch } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
 import { ClientType } from '~/lib'
 import type { ProjectCreateForm } from '~/utils'
@@ -23,8 +23,12 @@ const useForm = Form.useForm
 const loading = ref(false)
 const testSuccess = ref(false)
 
-const { $api, $e, $state } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
+
+useSidebar({ hasSidebar: false })
+
 const toast = useToast()
+
 const { t } = useI18n()
 
 const formState = $ref<ProjectCreateForm>({
@@ -66,7 +70,7 @@ const validators = computed(() => {
   }
 })
 
-const { resetFields, validate, validateInfos } = useForm(formState, validators)
+const { validate, validateInfos } = useForm(formState, validators)
 
 const onClientChange = () => {
   formState.dataSource = { ...getDefaultConnectionConfig(formState.dataSource.client) }
@@ -191,9 +195,6 @@ const testConnection = async () => {
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 }
-
-// hide sidebar
-$state.sidebarOpen.value = false
 
 // reset test status on config change
 watch(

@@ -107,7 +107,7 @@ onMounted(() => {
           :key="item.url || item.title"
           style="flex: 1 1 50px"
           :class="isImage(item.title, item.mimetype) ? '' : 'border-1 rounded'"
-          class="nc-attachment flex items-center justify-center"
+          class="nc-attachment flex items-center justify-center min-h-[50px]"
         >
           <a-tooltip placement="bottom">
             <template #title>
@@ -116,9 +116,8 @@ onMounted(() => {
 
             <nuxt-img
               v-if="isImage(item.title, item.mimetype)"
+              quality="75"
               placeholder
-              width="150"
-              height="150"
               :alt="item.title || `#${i}`"
               :src="item.url || item.data"
               class="ring-1 ring-gray-300 rounded"

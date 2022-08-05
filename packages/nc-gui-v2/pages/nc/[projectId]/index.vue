@@ -3,6 +3,7 @@ import { provideSidebar, useProject, useRoute, useSidebar, useTabs } from '#impo
 import { TabType } from '~/composables'
 import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-right-rounded'
 import MaterialSymbolsChevronLeftRounded from '~icons/material-symbols/chevron-left-rounded'
+import MdiChevronDown from '~icons/mdi/chevron-down'
 
 const route = useRoute()
 
@@ -32,7 +33,7 @@ await loadTables()
       :collapsed="!isOpen"
       width="250"
       collapsed-width="0"
-      class="relative shadow h-full"
+      class="relative shadow h-full !bg-gray-100/50"
       :trigger="null"
       collapsible
       theme="light"
@@ -55,9 +56,18 @@ await loadTables()
       <DashboardTreeView />
     </a-layout-sider>
 
-    <teleport to="#header-start">
-      <a-dropdown> </a-dropdown>
-      <div v-if="project" class="text-xl">{{ project.title }}</div>
+    <teleport v-if="project" to="#header-start">
+      <a-dropdown :trigger="['click']">
+        <div class="group cursor-pointer w-full flex justify-between items-center">
+          <div class="text-xl">{{ project.title }}</div>
+
+          <MdiChevronDown class="group-hover:text-pink-500 text-2xl" />
+        </div>
+
+        <template #overlay>
+          <div>Foo</div>
+        </template>
+      </a-dropdown>
     </teleport>
 
     <NuxtPage />

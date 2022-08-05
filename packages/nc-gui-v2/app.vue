@@ -2,6 +2,7 @@
 import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
 import { computed, provideSidebar, ref, useBreakpoints, useGlobal, useRoute, useRouter } from '#imports'
+
 /** get current breakpoints (for enabling sidebar) */
 const breakpoints = useBreakpoints(breakpointsTailwind)
 
@@ -31,13 +32,13 @@ const logout = () => {
       :collapsed="!isOpen"
       width="50"
       collapsed-width="0"
-      class="!bg-primary h-full"
+      class="!bg-primary h-full shadow-lg"
       :trigger="null"
       collapsible
       theme="light"
     >
       <a-dropdown :trigger="['click']">
-        <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105">
+        <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 border-b-1 border-r-1">
           <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
         </div>
 
@@ -71,12 +72,16 @@ const logout = () => {
         >
           <MdiDatabase class="cursor-pointer transform hover:scale-105 text-2xl" />
         </div>
+
+        <div class="flex w-full justify-center items-center h-12 group p-2">
+          <MdiLightningBoltOutline class="cursor-not-allowed text-2xl text-gray-400" />
+        </div>
       </div>
     </a-layout-sider>
 
     <a-layout class="!flex-col">
-      <a-layout-header class="flex !bg-primary items-center text-white px-1">
-        <div id="header-start" class="w-[250px] px-4" />
+      <a-layout-header class="flex !bg-primary items-center text-white !px-[1px] shadow-lg">
+        <div id="header-start" class="w-[250px] flex items-center px-4 h-full" />
 
         <div class="hidden flex justify-center">
           <div v-show="isLoading" class="flex items-center gap-2 ml-3">
@@ -86,7 +91,7 @@ const logout = () => {
         </div>
 
         <div class="flex-1 text-white">
-          <div class="flex items-center w-1/2 mx-auto gap-4">
+          <div class="flex items-center px-4 gap-4">
             <a-tooltip placement="bottom">
               <template #title> Go back </template>
 

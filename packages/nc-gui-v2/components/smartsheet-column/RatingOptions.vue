@@ -35,7 +35,8 @@ const picked = ref(formState.value.meta.color || enumColor.light[0])
 
 // set default value
 formState.value.meta = {
-  icons: {
+  iconIdx: 0,
+  icon: {
     full: 'mdi-star',
     empty: 'mdi-star-outline',
   },
@@ -43,22 +44,36 @@ formState.value.meta = {
   max: 5,
   ...formState.value.meta,
 }
+
+// antdv doesn't support object as value
+// use iconIdx as value and update back in watch
+const iconIdx = iconList.findIndex(
+  (ele) => ele.full === formState.value.meta.icon.full && ele.empty === formState.value.meta.icon.empty,
+)
+
+formState.value.meta.iconIdx = iconIdx === -1 ? 0 : iconIdx
+
+watch(
+  () => formState.value.meta.iconIdx,
+  (v) => {
+    formState.value.meta.icon = iconList[v]
+  },
+)
 </script>
 
 <template>
   <a-row>
     <a-col :span="12">
       <a-form-item label="Icon">
-        <a-select v-model:value="formState.meta.icon" size="small" class="w-52">
-          <!-- FIXME: antdv doesn't support object as value -->
-          <a-select-option v-for="(icon, i) of iconList" :key="i" :value="icon">
+        <a-select v-model:value="formState.meta.iconIdx" size="small" class="w-52">
+          <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <component
               :is="getMdiIcon(icon.full)"
+              class="mx-1"
               :style="{
                 color: formState.meta.color,
               }"
             />
-            {{ ' ' }}
             <component
               :is="getMdiIcon(icon.empty)"
               :style="{

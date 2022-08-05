@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
-import { computed, ref, useBreakpoints, useGlobal, useSidebar } from '#imports'
+import { computed, provideSidebar, ref, useBreakpoints, useGlobal } from '#imports'
 
 /** get current breakpoints (for enabling sidebar) */
 const breakpoints = useBreakpoints(breakpointsTailwind)
 
 const { signOut, signedIn, isLoading, user } = $(useGlobal())
 
-const { isOpen, toggle, hasSidebar } = useSidebar({ isOpen: signedIn && breakpoints.greater('md').value })
+const { isOpen, toggle, hasSidebar } = provideSidebar({ isOpen: signedIn && breakpoints.greater('md').value })
 
 const sidebar = ref<HTMLDivElement>()
 
@@ -21,8 +21,8 @@ const logout = () => {
 </script>
 
 <template>
-  <a-layout class="min-h-[100vh]">
-    <a-layout-header class="hidden flex !bg-primary items-center text-white px-4 shadow-md">
+  <a-layout>
+    <a-layout-header class="flex !bg-primary items-center text-white px-4 shadow-md">
       <material-symbols-menu v-if="signedIn && hasSidebar" class="text-xl cursor-pointer" @click="toggle" />
 
       <div class="flex-1" />
@@ -75,17 +75,19 @@ const logout = () => {
       </div>
     </a-layout-header>
 
-    <a-layout-sider
-      :collapsed="!isOpen"
-      width="300"
-      collapsed-width="0"
-      class="bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"
-      :trigger="null"
-      collapsible
-    >
-      <div id="sidebar" ref="sidebar" class="w-full h-full" />
-    </a-layout-sider>
+    <a-layout>
+      <a-layout-sider
+        :collapsed="!isOpen"
+        width="300"
+        collapsed-width="0"
+        class="bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"
+        :trigger="null"
+        collapsible
+      >
+        <div id="sidebar" ref="sidebar" class="w-full h-full" />
+      </a-layout-sider>
 
-    <NuxtPage />
+      <NuxtPage />
+    </a-layout>
   </a-layout>
 </template>

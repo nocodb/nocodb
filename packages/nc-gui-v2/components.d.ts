@@ -61,6 +61,11 @@ declare module '@vue/runtime-core' {
     ATooltip: typeof import('ant-design-vue/es')['Tooltip']
     ATypographyTitle: typeof import('ant-design-vue/es')['TypographyTitle']
     AUploadDragger: typeof import('ant-design-vue/es')['UploadDragger']
+    MaterialSymbolsMenu: typeof import('~icons/material-symbols/menu')['default']
+    MdiAt: typeof import('~icons/mdi/at')['default']
+    MdiDotsVertical: typeof import('~icons/mdi/dots-vertical')['default']
+    MdiLogout: typeof import('~icons/mdi/logout')['default']
+    MdiReload: typeof import('~icons/mdi/reload')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

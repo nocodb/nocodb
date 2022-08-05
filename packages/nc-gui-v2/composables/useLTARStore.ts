@@ -93,6 +93,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadChildrenList = async () => {
       try {
+        if (colOptions.type === 'bt') return
+
         childrenList.value = await $api.dbTableRow.nestedList(
           NOCO,
           project.value.id as string,
@@ -198,6 +200,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           column.title,
           getRelatedTableRowId(row) as string,
         )
+        await loadChildrenList()
       } catch (e) {
         notification.error({
           message: 'Linking failed',

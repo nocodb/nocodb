@@ -36,7 +36,7 @@ await loadRelatedTableMeta()
         @click="listItemsDlg = true"
       />
     </div>
-    <ListItems v-model="listItemsDlg"  @attach-record=" (listItemsDlg = true)"/>
+    <ListItems v-model="listItemsDlg" @attach-record="listItemsDlg = true" />
   </div>
 </template>
 

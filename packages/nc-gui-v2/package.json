@@ -25,6 +25,7 @@
     "socket.io-client": "^4.5.1",
     "sortablejs": "^1.15.0",
     "unique-names-generator": "^4.7.1",
+    "vue-dompurify-html": "^3.0.0",
     "vue-i18n": "^9.1.10",
     "vue-toastification": "^2.0.0-rc.5",
     "vuedraggable": "^4.1.0",

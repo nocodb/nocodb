@@ -2,10 +2,10 @@
 import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
 
 const props = defineProps<{ modelValue?: boolean }>()
-
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+const isForm = inject(IsFormInj, false)
 
 const {
   childrenList,
@@ -18,8 +18,8 @@ const {
   getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
-watch(vModel, (nextVal) => {
-  if (nextVal) {
+watch([vModel, isForm], (nextVal) => {
+  if (nextVal[0] || nextVal[1]) {
     loadChildrenList()
   }
 })
@@ -29,10 +29,17 @@ const unlinkRow = async (row: Record<string, any>) => {
 
   await loadChildrenList()
 }
+const container = computed(() =>
+  isForm
+    ? h('div', {
+        class: 'w-full p-2',
+      })
+    : Modal,
+)
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" :footer="null" title="Child list">
+  <component :is="container" v-model:visible="vModel" :footer="null" title="Child list">
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
       <div class="flex mb-4 align-center gap-2">
         <div class="flex-1" />
@@ -75,7 +82,7 @@ const unlinkRow = async (row: Record<string, any>) => {
       </template>
       <a-empty v-else class="my-10" />
     </div>
-  </a-modal>
+  </component>
 </template>
 
 <style scoped lang="scss">

@@ -37,7 +37,7 @@ const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : Md
 </script>
 
 <template>
-  <a-modal v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{padding:0}" :closable="false">
+  <a-modal v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
     <div class="flex p-2">
       <div class="flex-grow" />
       <component :is="drawerToggleIcon" class="" @click="commentsDrawer = !commentsDrawer" />
@@ -51,7 +51,7 @@ const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : Md
               <SmartsheetHeaderCell v-else :column="col" />
 
               <div class="!bg-white rounded px-1 min-h-[35px] flex align-center">
-                <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :column="col" />
+                <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row.row" :column="col" />
                 <SmartsheetCell
                   v-else
                   v-model="row.row[col.title]"
@@ -65,7 +65,10 @@ const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : Md
           </div>
         </div>
 
-        <div class="nc-comments-drawer pr-3 min-w-0 max-h-[calc(90vh_-_100px)] overflow-y-auto" :class="{ active: commentsDrawer }">
+        <div
+          class="nc-comments-drawer pr-3 min-w-0 max-h-[calc(90vh_-_100px)] overflow-y-auto"
+          :class="{ active: commentsDrawer }"
+        >
           <div class="w-[280px]">
             <Comments v-if="commentsDrawer" />
           </div>

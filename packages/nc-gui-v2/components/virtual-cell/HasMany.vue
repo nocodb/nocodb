@@ -7,6 +7,9 @@ import ListItems from './components/ListItems.vue'
 import { computed, inject, ref, useProvideLTARStore } from '#imports'
 import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
+import { useProvideLTARStore } from '#imports'
+import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
+
 const column = inject(ColumnInj)!
 
 const cellValue = inject(CellValueInj)!
@@ -14,6 +17,8 @@ const cellValue = inject(CellValueInj)!
 const row = inject(RowInj)!
 
 const reloadTrigger = inject(ReloadViewDataHookInj)!
+
+const isForm = inject(IsFormInj)
 
 const listItemsDlg = ref(false)
 
@@ -42,7 +47,7 @@ const cells = computed(() =>
 
 <template>
   <div class="flex align-center items-center gap-1 w-full chips-wrapper">
-    <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
+    <div v-if="!isForm" class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
       <template v-if="cellValue">
         <ItemChip v-for="(cell, i) of cells" :key="i" :value="cell.value" @unlink="unlink(cell.item)" />
 

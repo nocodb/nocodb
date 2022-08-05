@@ -83,13 +83,13 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     >
       <MaterialSymbolsChevronRightRounded
         v-if="sidebarOpen"
-        class="transform group-hover:(scale-110 text-pink-500) text-xl text-gray-400"
+        class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
         @click="sidebarOpen = false"
       />
 
       <MaterialSymbolsChevronLeftRounded
         v-else
-        class="transform group-hover:(scale-110 text-pink-500) text-xl text-gray-400"
+        class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
         @click="sidebarOpen = true"
       />
     </div>

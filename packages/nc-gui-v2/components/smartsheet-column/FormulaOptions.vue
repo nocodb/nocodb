@@ -45,7 +45,6 @@ const validators = {
       validator: (_: any, formula: any) => {
         return new Promise<void>((resolve, reject) => {
           const res = parseAndValidateFormula(formula)
-          console.log(res)
           if (res !== true) {
             return reject(new Error(res))
           }
@@ -604,6 +603,10 @@ setAdditionalValidations({
   ...validators,
 })
 
+defineExpose({
+  formulaSuggestionDrawer,
+})
+
 onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
@@ -615,6 +618,7 @@ onMounted(() => {
       <a-input
         ref="formulaRef"
         v-model:value="formState.colOptions.formula_raw"
+        class="mb-2"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"
         @keydown.enter.prevent="selectText"
@@ -627,7 +631,6 @@ onMounted(() => {
         >Formulas</a
       >.
     </div>
-    <!-- TODO: close drawer when EditOrAdd is closed -->
     <a-drawer
       v-model:visible="formulaSuggestionDrawer"
       :closable="false"

@@ -511,19 +511,25 @@ function isCurlyBracketBalanced() {
   return (cntCurlyBrackets['{'] || 0) === (cntCurlyBrackets['}'] || 0)
 }
 
-function appendText(it: Record<string, any>) {
-  const text = it.text
+function appendText(item: Record<string, any>) {
+  const text = item.text
   const len = wordToComplete.value?.length || 0
 
-  if (it.type === 'function') {
+  if (item.type === 'function') {
     formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, text, len, 1)
-  } else if (it.type === 'column') {
+  } else if (item.type === 'column') {
     formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, `{${text}}`, len + +!isCurlyBracketBalanced())
   } else {
     formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
   }
   autocomplete.value = false
-  suggestion.value = suggestionsList.value
+  if (item.type === 'function' || item.type === 'op') {
+    // if function / operator is chosen, display columns only
+    suggestion.value = suggestionsList.value.filter((f) => f.type === 'column')
+  } else {
+    // show all options if column is chosen
+    suggestion.value = suggestionsList.value
+  }
 }
 
 const handleInputDeb = useDebounceFn(function () {

@@ -5,7 +5,7 @@ import { toRef } from 'vue'
 import { $computed } from 'vue/macros'
 import type { Ref } from 'vue'
 import { useMetas } from '~/composables'
-import { ColumnInj, MetaInj } from '~/context'
+import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { provide, useProvideColumnCreateStore } from '#imports'
 
 const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean }>()
@@ -15,6 +15,7 @@ const hideMenu = toRef(props, 'hideMenu')
 provide(ColumnInj, column)
 const { metas } = useMetas()
 const meta = inject(MetaInj)
+const isForm = inject(IsFormInj, false)
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(column)
 
@@ -100,7 +101,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     <template v-if="!hideMenu">
       <v-spacer />
 
-      <SmartsheetHeaderMenu :virtual="true" />
+      <SmartsheetHeaderMenu v-if="!isForm" :virtual="true" />
     </template>
   </div>
 </template>

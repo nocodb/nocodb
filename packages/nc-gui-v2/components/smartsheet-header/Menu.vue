@@ -58,7 +58,7 @@ function onVisibleChange() {
 </script>
 
 <template>
-  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']" :on-visible-change="onVisibleChange">
+  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']" @visible-change="onVisibleChange">
     <span />
     <template #overlay>
       <SmartsheetColumnEditOrAdd @click.stop @cancel="editColumnDropdown = false" />

@@ -6,7 +6,10 @@ interface UseSidebarProps {
 }
 
 /**
- * Injection state for the left sidebar
+ * Injection state for sidebars
+ *
+ * Use `provideSidebar` to provide the injection state on current component level (will affect all childrens injection)
+ * Use `useSidebar` to use the injection state on current component level
  */
 const [setup, use] = useInjectionState((props: UseSidebarProps = {}) => {
   const [isOpen, toggle] = useToggle(props.isOpen ?? false)

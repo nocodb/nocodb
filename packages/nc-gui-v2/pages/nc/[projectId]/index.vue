@@ -25,12 +25,12 @@ await loadTables()
 </script>
 
 <template>
-  <NuxtLayout id="sidebar-right" class="flex">
+  <NuxtLayout id="content" class="flex">
     <a-layout-sider
       :collapsed="!isOpen"
       width="250"
       collapsed-width="0"
-      class="relative bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"
+      class="relative shadow h-full"
       :trigger="null"
       collapsible
       theme="light"

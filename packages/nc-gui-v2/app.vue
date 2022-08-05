@@ -1,14 +1,18 @@
 <script lang="ts" setup>
 import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
-import { computed, provideSidebar, ref, useBreakpoints, useGlobal } from '#imports'
+import { computed, provideSidebar, ref, useBreakpoints, useGlobal, useProject, useRouter } from '#imports'
 
 /** get current breakpoints (for enabling sidebar) */
 const breakpoints = useBreakpoints(breakpointsTailwind)
 
 const { signOut, signedIn, isLoading, user } = $(useGlobal())
 
-const { isOpen, toggle, hasSidebar } = provideSidebar({ isOpen: signedIn && breakpoints.greater('md').value })
+const { project } = useProject()
+
+const { isOpen } = provideSidebar({ isOpen: signedIn && breakpoints.greater('md').value })
+
+const router = useRouter()
 
 const sidebar = ref<HTMLDivElement>()
 
@@ -22,72 +26,87 @@ const logout = () => {
 
 <template>
   <a-layout>
-    <a-layout-header class="flex !bg-primary items-center text-white px-4 shadow-md">
-      <material-symbols-menu v-if="signedIn && hasSidebar" class="text-xl cursor-pointer" @click="toggle" />
-
-      <div class="flex-1" />
-
-      <div class="ml-4 flex justify-center shrink">
-        <div class="flex items-center gap-2 cursor-pointer nc-noco-brand-icon" @click="navigateTo('/')">
-          <img width="35" src="~/assets/img/icons/512x512-trans.png" />
-          <span class="prose-xl">NocoDB</span>
+    <a-layout-sider
+      :collapsed="!isOpen"
+      width="50"
+      collapsed-width="0"
+      class="!bg-primary h-full"
+      :trigger="null"
+      collapsible
+      theme="light"
+    >
+      <a-dropdown :trigger="['click']">
+        <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105">
+          <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
         </div>
-      </div>
 
-      <div class="flex-1 text-left">
-        <div v-show="isLoading" class="flex items-center gap-2 ml-3">
-          {{ $t('general.loading') }}
-          <mdi-reload :class="{ 'animate-infinite animate-spin': isLoading }" />
-        </div>
-      </div>
+        <template v-if="signedIn" #overlay>
+          <a-menu class="!py-0 nc-user-menu min-w-32 dark:(!bg-gray-800) leading-8 !rounded">
+            <a-menu-item key="0" class="!rounded-t">
+              <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
+                <MdiAt class="mt-1 group-hover:text-success" />&nbsp;
+                <span class="prose group-hover:text-black nc-user-menu-email">{{ email }}</span>
+              </nuxt-link>
+            </a-menu-item>
 
-      <div class="flex justify-end gap-4">
-        <general-language class="mr-3" />
+            <a-menu-divider class="!m-0" />
 
-        <template v-if="signedIn">
-          <a-dropdown :trigger="['click']">
-            <mdi-dots-vertical class="md:text-xl cursor-pointer nc-user-menu" @click.prevent />
-
-            <template #overlay>
-              <a-menu class="!py-0 nc-user-menu min-w-32 dark:(!bg-gray-800) leading-8 !rounded">
-                <a-menu-item key="0" class="!rounded-t">
-                  <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
-                    <MdiAt class="mt-1 group-hover:text-success" />&nbsp;
-                    <span class="prose group-hover:text-black nc-user-menu-email">{{ email }}</span>
-                  </nuxt-link>
-                </a-menu-item>
-
-                <a-menu-divider class="!m-0" />
-
-                <a-menu-item key="1" class="!rounded-b">
-                  <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
-                    <mdi-logout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
-
-                    <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
-                      {{ $t('general.signOut') }}
-                    </span>
-                  </div>
-                </a-menu-item>
-              </a-menu>
-            </template>
-          </a-dropdown>
+            <a-menu-item key="1" class="!rounded-b">
+              <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
+                <mdi-logout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
+                <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
+                  {{ $t('general.signOut') }}
+                </span>
+              </div>
+            </a-menu-item>
+          </a-menu>
         </template>
+      </a-dropdown>
+
+      <div id="sidebar" ref="sidebar" class="w-full p-2" />
+    </a-layout-sider>
+
+    <a-layout class="!flex-col">
+      <a-layout-header class="flex !bg-primary items-center text-white px-1">
+        <div v-if="project" class="w-[250px] text-xl px-4">{{ project.title }}</div>
+
+        <div class="hidden flex justify-center">
+          <div v-show="isLoading" class="flex items-center gap-2 ml-3">
+            {{ $t('general.loading') }}
+            <MdiReload :class="{ 'animate-infinite animate-spin': isLoading }" />
+          </div>
+        </div>
+
+        <div class="flex-1 text-white">
+          <div class="flex items-center w-1/2 mx-auto gap-4">
+            <a-tooltip placement="bottom">
+              <template #title> Go back </template>
+
+              <MaterialSymbolsArrowBackRounded
+                class="cursor-pointer transform hover:(scale-115 text-pink-500) text-xl"
+                @click="router.go(-1)"
+              />
+            </a-tooltip>
+
+            <a-tooltip placement="bottom">
+              <template #title>Go forward</template>
+
+              <MaterialSymbolsArrowForwardRounded
+                class="cursor-pointer transform hover:(scale-115 text-pink-500) text-xl"
+                @click="router.go(+1)"
+              />
+            </a-tooltip>
+          </div>
+        </div>
+
+        <div class="flex justify-end gap-4">
+          <general-language class="mr-3" />
+        </div>
+      </a-layout-header>
+
+      <div class="w-full h-full">
+        <NuxtPage />
       </div>
-    </a-layout-header>
-
-    <a-layout>
-      <a-layout-sider
-        :collapsed="!isOpen"
-        width="300"
-        collapsed-width="0"
-        class="bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"
-        :trigger="null"
-        collapsible
-      >
-        <div id="sidebar" ref="sidebar" class="w-full h-full" />
-      </a-layout-sider>
-
-      <NuxtPage />
     </a-layout>
   </a-layout>
 </template>

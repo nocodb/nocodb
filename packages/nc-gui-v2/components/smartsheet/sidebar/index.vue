@@ -75,21 +75,22 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     collapsiple
     collapsed-width="50"
     width="250"
+    :class="[sidebarCollapsed ? 'collapsed !bg-primary' : '!bg-white']"
     class="relative shadow h-full"
     theme="light"
   >
     <div
-      class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-9 left-[-0.75rem] shadow bg-gray-100 rounded-full"
+      class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-9 left-[-1rem] shadow bg-gray-100 rounded-full"
     >
       <MaterialSymbolsChevronRightRounded
         v-if="sidebarOpen"
-        class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+        class="toggle transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
         @click="sidebarOpen = false"
       />
 
       <MaterialSymbolsChevronLeftRounded
         v-else
-        class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+        class="toggle transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
         @click="sidebarOpen = true"
       />
     </div>
@@ -133,6 +134,10 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 </template>
 
 <style scoped>
+.collapsed :deep(.nc-icon:not(.toggle)) {
+  @apply !text-white;
+}
+
 :deep(.ant-menu-title-content) {
   @apply w-full;
 }

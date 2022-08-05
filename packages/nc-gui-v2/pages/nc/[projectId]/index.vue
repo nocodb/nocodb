@@ -79,7 +79,7 @@ await loadTables()
         </div>
 
         <template #overlay>
-          <a-menu class="ml-2 !p-0 min-w-32 leading-8 !rounded">
+          <a-menu class="ml-2 min-w-32 leading-8 !rounded">
             <a-menu-item-group title="Project Settings">
               <a-menu-item>
                 <div class="nc-project-menu-item group">
@@ -178,6 +178,10 @@ await loadTables()
 
 :deep(.ant-dropdown-menu-item-group-title) {
   @apply border-b-1;
+}
+
+:deep(.ant-dropdown-menu-item-group-list) {
+  @apply m-0;
 }
 
 :deep(.ant-dropdown-menu-item) {

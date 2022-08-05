@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
-import { computed, ref, useBreakpoints, useGlobal, useRoute, useRouter, useSidebar } from '#imports'
+import { computed, ref, useBreakpoints, useGlobal, useProject, useRoute, useRouter, useSidebar } from '#imports'
 
 /** get current breakpoints (for enabling sidebar) */
 const breakpoints = useBreakpoints(breakpointsTailwind)
@@ -9,6 +9,8 @@ const breakpoints = useBreakpoints(breakpointsTailwind)
 const { signOut, signedIn, isLoading, user } = useGlobal()
 
 const { isOpen } = useSidebar({ isOpen: signedIn.value && breakpoints.isGreater('md') })
+
+const { project } = useProject()
 
 const router = useRouter()
 
@@ -78,7 +80,7 @@ const logout = () => {
         </a-tooltip>
 
         <a-tooltip placement="right">
-          <template #title>Project {{ route.params.projectId }}</template>
+          <template v-if="project" #title>{{ project.title }}</template>
 
           <div
             :class="[route.name.includes('nc-projectId') ? 'active' : 'pointer-events-none !text-gray-400']"

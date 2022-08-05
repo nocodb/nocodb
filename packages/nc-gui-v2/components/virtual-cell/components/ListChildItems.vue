@@ -1,4 +1,7 @@
 <script lang="ts" setup>
+import { watchEffect } from '@vue/runtime-core'
+import { Modal } from 'ant-design-vue'
+import { IsFormInj } from '~/context'
 import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
 
 const props = defineProps<{ modelValue?: boolean }>()
@@ -44,7 +47,7 @@ const container = computed(() =>
       <div class="flex mb-4 align-center gap-2">
         <div class="flex-1" />
 
-        <MdiReload class="cursor-pointer text-gray-500" @click="loadChildrenList" />
+        <MdiReload  v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
 
         <a-button type="primary" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">

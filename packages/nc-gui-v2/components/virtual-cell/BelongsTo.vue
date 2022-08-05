@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
 import { inject, ref, useProvideLTARStore } from '#imports'
-import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { CellValueInj,IsFormInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
 const column = inject(ColumnInj)
 
@@ -18,7 +18,9 @@ const active = false
 
 const listItemsDlg = ref(false)
 
-const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
+const isForm = inject(IsFormInj)
+
+const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   reloadTrigger.trigger,
@@ -29,6 +31,7 @@ await loadRelatedTableMeta()
 
 <template>
   <div class="flex w-full chips-wrapper align-center" :class="{ active }">
+    <template v-if="!isForm">
     <div class="chips d-flex align-center flex-grow">
       <template v-if="cellValue">
         <ItemChip :item="cellValue" :value="cellValue[relatedTablePrimaryValueProp]" @unlink="unlink(cellValue)" />
@@ -42,6 +45,9 @@ await loadRelatedTableMeta()
     </div>
 
     <ListItems v-model="listItemsDlg" />
+    </template>
+    <ListChildItems />
+    <ListItems v-model="listItemsDlg"  @attach-record="listItemsDlg = true"/>
   </div>
 </template>
 

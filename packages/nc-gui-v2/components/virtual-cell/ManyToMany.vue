@@ -5,7 +5,7 @@ import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
 import { computed, inject, ref, useProvideLTARStore } from '#imports'
-import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { CellValueInj, ColumnInj, ReloadViewDataHookInj,IsFormInj, RowInj } from '~/context'
 
 const column = inject(ColumnInj)!
 
@@ -14,6 +14,8 @@ const row = inject(RowInj)!
 const cellValue = inject(CellValueInj)!
 
 const reloadTrigger = inject(ReloadViewDataHookInj)!
+
+const isForm = inject(IsFormInj)
 
 const listItemsDlg = ref(false)
 
@@ -42,6 +44,7 @@ const cells = computed(() =>
 
 <template>
   <div class="flex align-center gap-1 w-full h-full chips-wrapper">
+    <template v-if="!isForm">
     <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
       <template v-if="cellValue">
         <ItemChip v-for="(cell, i) of cells" :key="i" :value="cell.value" @unlink="unlink(cell.item)" />
@@ -55,6 +58,7 @@ const cells = computed(() =>
 
       <MdiPlus class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
     </div>
+    </template>
 
     <ListItems v-model="listItemsDlg" />
 

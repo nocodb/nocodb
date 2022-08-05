@@ -5,7 +5,7 @@ import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
 import { computed, inject, ref, useProvideLTARStore } from '#imports'
-import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
 import { useProvideLTARStore } from '#imports'
 import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
@@ -20,6 +20,8 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
+const isForm = inject(IsFormInj)
+
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
@@ -29,7 +31,6 @@ const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvid
   row,
   reloadTrigger.trigger,
 )
-
 await loadRelatedTableMeta()
 
 const cells = computed(() =>
@@ -62,7 +63,7 @@ const cells = computed(() =>
       <MdiPlus class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
     </div>
     <ListItems v-model="listItemsDlg" />
-    <ListChildItems v-model="childListDlg" @attach-record=";(childListDlg = false), (listItemsDlg = true)" />
+    <ListChildItems v-model="childListDlg" @attach-record="() => { childListDlg = false; listItemsDlg = true }" />
   </div>
 </template>
 

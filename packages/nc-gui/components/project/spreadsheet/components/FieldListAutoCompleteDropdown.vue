@@ -14,10 +14,10 @@
     @click.stop
     @change="$emit('change')"
   >
-    <template #selection="{item}">
-      <v-icon small class="mr-1">
-        {{ item.icon }}
-      </v-icon> {{ item.title }}
+    <template #prepend-inner>
+      <v-icon small class="mt-1">
+        {{ icons[localValue] }}
+      </v-icon>
     </template>
     <template #item="{ item }">
       <span
@@ -39,6 +39,11 @@ export default {
     columns: Array,
     value: String
   },
+  data() {
+    return {
+      icons: []
+    }
+  },
   computed: {
     localValue: {
       set(v) {
@@ -52,6 +57,7 @@ export default {
   mounted() {
     const autocompleteInput = this.$refs.field.$refs.input
     autocompleteInput.addEventListener('focus', this.onFocus, true)
+    this.icons = this.columns.reduce((acc, { icon, id }) => { acc[id] = icon; return acc })
   },
   methods: {
     onFocus(e) {

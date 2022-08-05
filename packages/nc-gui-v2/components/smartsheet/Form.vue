@@ -66,7 +66,7 @@ function submitForm() {}
             <a-form-item class="ma-0 gap-0 pa-0">
               <a-input
                 v-model:value="formState.heading"
-                class="w-full text-bold text-h3 cursor-pointer"
+                class="w-full text-bold text-h3"
                 size="large"
                 hide-details
                 placeholder="Form Title"
@@ -80,7 +80,7 @@ function submitForm() {}
           <a-form-item>
             <a-input
               v-model:value="formState.subheading"
-              class="w-full cursor-pointer"
+              class="w-full"
               size="large"
               hide-details
               :placeholder="$t('msg.info.formDesc')"

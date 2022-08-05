@@ -204,7 +204,7 @@
               :password="password"
               :is-public="isPublicView"
               :metas="metas"
-              :is-locked="isLocked"
+              :is-locked="isColumnLocked(columnObj)"
               :column="columnObj"
               :row="rowObj"
               :nodes="nodes"
@@ -245,7 +245,7 @@
               :active="selected.col === col && selected.row === row"
               :sql-ui="sqlUi"
               :db-alias="nodes.dbAlias"
-              :is-locked="isLocked || isSystemColumn(columnObj)"
+              :is-locked="isColumnLocked(columnObj)"
               :is-public="isPublicView"
               :view-id="viewId"
               @save="editEnabled = {}; onCellValueChange(col, row, columnObj, true);"
@@ -263,7 +263,7 @@
                 'primary--text': primaryValueColumn === columnObj.title,
               }"
               :selected="selected.col === col && selected.row === row"
-              :is-locked="isLocked"
+              :is-locked="isColumnLocked(col)"
               :column="columnObj"
               :meta="meta"
               :db-alias="nodes.dbAlias"
@@ -320,7 +320,7 @@
 </template>
 
 <script>
-import { isVirtualCol, isSystemColumn } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
 import HeaderCell from '../components/HeaderCell'
 import EditableCell from '../components/EditableCell'
 import EditColumn from '../components/EditColumn'
@@ -332,6 +332,7 @@ import TableCell from '~/components/project/spreadsheet/components/Cell'
 import DynamicStyle from '~/components/DynamicStyle'
 import { UITypes } from '~/components/project/spreadsheet/helpers/uiTypes'
 import { copyTextToClipboard } from '~/helpers/xutils'
+import { isColumnLocked } from '~/helpers/isColumnLocked'
 
 export default {
   name: 'XcGridView',
@@ -504,7 +505,9 @@ export default {
     document.removeEventListener('keydown', this.onKeyDown)
   },
   methods: {
-    isSystemColumn,
+    isColumnLocked(col) {
+      return isColumnLocked(this.isLocked, col)
+    },
     async loadGridViewCols() {
       if (!this.viewId) {
         return

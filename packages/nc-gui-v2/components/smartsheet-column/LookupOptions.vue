@@ -45,7 +45,6 @@ const columns = $computed(() => {
 
   return metas[selectedTable.id].columns.filter((c) => !isSystemColumn(c))
 })
-
 </script>
 
 <template>

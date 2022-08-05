@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
-import { RelationTypes, isVirtualCol, UITypes } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { useColumn } from '~/composables'
 import { ColumnInj, MetaInj, ReadonlyInj, ValueInj } from '~/context'
 
@@ -48,12 +48,14 @@ const lookupColumnMetaProps = useColumn(lookupColumn)
       <!-- Render normal cell -->
       <template v-else>
         <!-- For attachment cell avoid adding chip style -->
-        <div v-for="(v, i) in arrValue" :key="i"
-             :class="{'bg-gray-100 px-2 rounded-full':!lookupColumnMetaProps.isAttachment}">
+        <div
+          v-for="(v, i) in arrValue"
+          :key="i"
+          :class="{ 'bg-gray-100 px-2 rounded-full': !lookupColumnMetaProps.isAttachment }"
+        >
           <SmartsheetCell :model-value="v" :column="lookupColumn" :edit-enabled="false" />
         </div>
       </template>
-
     </template>
   </div>
 </template>

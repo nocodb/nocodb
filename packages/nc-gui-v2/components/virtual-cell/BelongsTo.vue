@@ -3,12 +3,12 @@ import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
 import { useProvideLTARStore } from '#imports'
-import { ColumnInj, ReloadViewDataHookInj, RowInj, ValueInj } from '~/context'
+import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
 import MdiExpandIcon from '~icons/mdi/arrow-expand'
 
 const column = inject(ColumnInj)
 const reloadTrigger = inject(ReloadViewDataHookInj)
-const value = inject(ValueInj)
+const cellValue = inject(CellValueInj)
 const row = inject(RowInj)
 const active = false
 const localState = null
@@ -25,13 +25,13 @@ await loadRelatedTableMeta()
 <template>
   <div class="flex w-full chips-wrapper align-center" :class="{ active }">
     <div class="chips d-flex align-center flex-grow">
-      <template v-if="value || localState">
-        <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlink(value || localState)" />
+      <template v-if="cellValue || localState">
+        <ItemChip :item="cellValue" :value="cellValue[relatedTablePrimaryValueProp]" @unlink="unlink(cellValue || localState)" />
       </template>
     </div>
     <div class="flex-1 flex justify-end gap-1">
       <MdiExpandIcon
-        class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none transform group-hover:(text-pink-500 scale-120)"
+        class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500)"
         @click="listItemsDlg = true"
       />
     </div>

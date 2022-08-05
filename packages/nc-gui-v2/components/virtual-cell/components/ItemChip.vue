@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useLTARStoreOrThrow } from '~/composables'
 import { ActiveCellInj, ReadonlyInj } from '~/context'
 import MdiCloseThickIcon from '~icons/mdi/close-thick'
 

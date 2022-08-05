@@ -2,7 +2,7 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { provide, toRef, useVirtualCell } from '#imports'
 import type { Row } from '~/composables'
-import { ActiveCellInj, ColumnInj, RowInj, ValueInj } from '~/context'
+import { ActiveCellInj, CellValueInj, ColumnInj, RowInj } from '~/context'
 import { NavigateDir } from '~/lib'
 
 interface Props {
@@ -19,10 +19,10 @@ const active = toRef(props, 'active', false)
 const row = toRef(props, 'row')
 
 provide(ColumnInj, column)
-provide(ValueInj, value)
+provide(CellValueInj, value)
 provide(ActiveCellInj, active)
 provide(RowInj, row)
-provide(ValueInj, toRef(props, 'modelValue'))
+provide(CellValueInj, toRef(props, 'modelValue'))
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
 </script>

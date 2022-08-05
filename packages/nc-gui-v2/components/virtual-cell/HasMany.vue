@@ -27,7 +27,7 @@ await loadRelatedTableMeta()
 
 <template>
   <div class="flex align-center gap-1 w-full min-full chips-wrapper">
-    <div v-if="!isForm">
+    <template v-if="!isForm">
       <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cellValue">
           <ItemChip v-for="(ch, i) in cellValue" :key="i" :value="ch[relatedTablePrimaryValueProp]" @unlink="unlink(ch)" />
@@ -46,7 +46,7 @@ await loadRelatedTableMeta()
           @click="listItemsDlg = true"
         />
       </div>
-    </div>
+    </template>
     <ListItems v-model="listItemsDlg" />
     <ListChildItems v-model="childListDlg" @attach-record=";(childListDlg = false), (listItemsDlg = true)" />
   </div>

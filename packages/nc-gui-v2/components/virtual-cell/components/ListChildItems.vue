@@ -1,4 +1,5 @@
 <script lang="ts" setup>
+import { watchEffect } from '@vue/runtime-core'
 import { Modal } from 'ant-design-vue'
 import { useLTARStoreOrThrow, useVModel } from '#imports'
 import { IsFormInj } from '~/context'
@@ -23,9 +24,9 @@ const {
   getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
-watch([vModel, isForm], () => {
+watchEffect(() => {
   if (vModel.value || isForm) {
-    loadChildrenList()
+    loadChildrenList?.()
   }
 })
 
@@ -48,7 +49,7 @@ const container = computed(() =>
       <div class="flex mb-4 align-center gap-2">
         <!-- <a-input v-model:value="childrenListPagination.query" class="max-w-[200px]" size="small"></a-input> -->
         <div class="flex-1" />
-        <MdiReloadIcon class="cursor-pointer text-gray-500" @click="loadChildrenList" />
+        <MdiReloadIcon v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
         <a-button type="primary" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
             <MdiUnlinkIcon class="text-xs text-white" @click="unlinkRow(row)" />

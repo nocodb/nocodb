@@ -3,7 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
 import { useProvideLTARStore } from '#imports'
-import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 import MdiExpandIcon from '~icons/mdi/arrow-expand'
 
 const column = inject(ColumnInj)
@@ -13,6 +13,7 @@ const row = inject(RowInj)
 const active = false
 const localState = null
 const listItemsDlg = ref(false)
+const isForm = inject(IsFormInj)
 
 const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Required<ColumnType>,
@@ -24,6 +25,7 @@ await loadRelatedTableMeta()
 
 <template>
   <div class="flex w-full chips-wrapper align-center" :class="{ active }">
+    <template v-if="!isForm">
     <div class="chips d-flex align-center flex-grow">
       <template v-if="cellValue || localState">
         <ItemChip :item="cellValue" :value="cellValue[relatedTablePrimaryValueProp]" @unlink="unlink(cellValue || localState)" />
@@ -35,7 +37,9 @@ await loadRelatedTableMeta()
         @click="listItemsDlg = true"
       />
     </div>
-    <ListItems v-model="listItemsDlg" />
+    </template>
+    <ListChildItems />
+    <ListItems v-model="listItemsDlg"  @attach-record=" (listItemsDlg = true)"/>
   </div>
 </template>
 

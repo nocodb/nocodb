@@ -10,6 +10,7 @@ import {
   useSmartsheetStoreOrThrow,
   useViewData,
 } from '#imports'
+import type { Row } from '~/composables'
 import {
   ActiveViewInj,
   ChangePageInj,
@@ -43,6 +44,7 @@ const addColumnDropdown = ref(false)
 const contextMenu = ref(false)
 const contextMenuTarget = ref(false)
 const expandedFormDlg = ref(false)
+const expandedFormRow = ref<Row>()
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -202,6 +204,11 @@ const onNavigate = (dir: NavigateDir) => {
       break
   }
 }
+
+const expandForm = (row: Row) => {
+  expandedFormRow.value = row
+  expandedFormDlg.value = true
+}
 </script>
 
 <template>
@@ -259,10 +266,7 @@ const onNavigate = (dir: NavigateDir) => {
                   >
                     <a-checkbox v-model:checked="row.rowMeta.selected" />
                     <span class="flex-1" />
-                    <MdiArrowExpandIcon
-                      class="text-sm text-pink hidden group-hover:inline-block"
-                      @click="expandedFormDlg = true"
-                    />
+                    <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" @click="expandForm(row)" />
                   </div>
                 </div>
               </td>
@@ -338,7 +342,7 @@ const onNavigate = (dir: NavigateDir) => {
     </div>
 
     <SmartsheetPagination />
-    <SmartsheetExpandedForm v-model="expandedFormDlg" />
+    <SmartsheetExpandedForm v-if="expandedFormRow" v-model="expandedFormDlg" :row="expandedFormRow" />
   </div>
 </template>
 

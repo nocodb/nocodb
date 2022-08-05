@@ -1,25 +1,33 @@
 <script setup lang="ts">
 import { isVirtualCol } from 'nocodb-sdk'
 import { useVModel } from '@vueuse/core'
-import { computed, provide } from 'vue'
+import { Ref, computed, provide, toRef } from 'vue'
+import Comments from '~/components/smartsheet/expanded-form/Comments.vue'
+import { useSmartsheetStoreOrThrow } from '~/composables'
 import type { Row } from '~/composables'
+import { useProvideExpandedFormStore } from '~/composables/useExpandedFormStore'
 import { FieldsInj, IsFormInj, MetaInj } from '~/context'
 import MdiDoorOpen from '~icons/mdi/door-open'
 import MdiDoorClosed from '~icons/mdi/door-closed'
 
 interface Props {
   modelValue: string | null
+  row: Row
 }
 
 const props = defineProps<Props>()
 const emits = defineEmits(['update:modelValue'])
 const fields = inject(FieldsInj, ref([]))
-const meta = inject(MetaInj)
+const row = toRef(props, 'row')
+
+const { meta } = useSmartsheetStoreOrThrow()
 
 provide(IsFormInj, true)
 
 // accept as a prop
-const row: Row = { row: {}, rowMeta: {}, oldRow: {} }
+// const row: Row = { row: {}, rowMeta: {}, oldRow: {} }
+
+const { loadComments } = useProvideExpandedFormStore(meta, row)
 
 const commentsDrawer = ref(false)
 
@@ -58,7 +66,9 @@ const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : Md
         </div>
 
         <div class="nc-comments-drawer min-w-0 h-full" :class="{ active: commentsDrawer }">
-          <div class="w-[250px]">dsdsssdsdsdd</div>
+          <div class="w-[250px]">
+            <Comments />
+          </div>
         </div>
       </div>
     </a-card>

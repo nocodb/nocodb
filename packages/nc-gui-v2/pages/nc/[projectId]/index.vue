@@ -35,7 +35,7 @@ await loadTables()
       collapsible
     >
       <div
-        class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-10 right-[-0.75rem] shadow bg-gray-200 rounded-full"
+        class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-9 right-[-0.75rem] shadow bg-gray-100 rounded-full"
       >
         <MaterialSymbolsChevronLeftRounded
           v-if="isOpen"

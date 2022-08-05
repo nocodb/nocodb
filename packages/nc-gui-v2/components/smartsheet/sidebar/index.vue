@@ -3,10 +3,12 @@ import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'noc
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
-import { computed, inject, provide, ref, useApi, useRoute, useViews, watch } from '#imports'
+import { computed, inject, provide, ref, useApi, useRoute, useToggle, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, RightSidebarInj, ViewListInj } from '~/context'
 import MdiXml from '~icons/mdi/xml'
 import MdiHook from '~icons/mdi/hook'
+import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-right-rounded'
+import MaterialSymbolsChevronLeftRounded from '~icons/material-symbols/chevron-left-rounded'
 
 const meta = inject(MetaInj, ref())
 
@@ -68,7 +70,30 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 </script>
 
 <template>
-  <a-layout-sider :collapsed="sidebarCollapsed" collapsiple collapsed-width="50" width="250" class="shadow h-full" theme="light">
+  <a-layout-sider
+    :collapsed="sidebarCollapsed"
+    collapsiple
+    collapsed-width="50"
+    width="250"
+    class="relative shadow h-full"
+    theme="light"
+  >
+    <div
+      class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-9 left-[-0.75rem] shadow bg-gray-100 rounded-full"
+    >
+      <MaterialSymbolsChevronRightRounded
+        v-if="sidebarOpen"
+        class="transform group-hover:(scale-110 text-pink-500) text-xl text-gray-400"
+        @click="sidebarOpen = false"
+      />
+
+      <MaterialSymbolsChevronLeftRounded
+        v-else
+        class="transform group-hover:(scale-110 text-pink-500) text-xl text-gray-400"
+        @click="sidebarOpen = true"
+      />
+    </div>
+
     <Toolbar v-if="sidebarOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />
 
     <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">

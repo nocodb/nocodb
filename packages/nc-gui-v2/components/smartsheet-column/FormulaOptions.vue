@@ -104,7 +104,6 @@ const suggestionsList = computed(() => {
         text: c.title,
         type: 'column',
         icon: getUIDTIcon(c.uidt),
-        c,
       })),
     ...availableBinOps.map((op: string) => ({
       text: op,
@@ -680,7 +679,7 @@ onMounted(() => {
               <template #avatar>
                 <MdiFunctionIcon v-if="item.type === 'function'" class="text-lg" />
                 <MdiOperatorIcon v-if="item.type === 'op'" class="text-lg" />
-                <MdiColumnIcon v-if="item.type === 'column'" class="text-lg" />
+                <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
               </template>
             </a-list-item-meta>
           </a-list-item>

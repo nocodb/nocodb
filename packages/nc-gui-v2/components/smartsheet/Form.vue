@@ -24,13 +24,17 @@ const columns = computed(() => meta?.value?.columns || [])
 
 const hiddenColumns = computed(() => [])
 
-function addAllColumns() {}
-
-function removeAllColumns() {}
-
 function updateView() {}
 
 function submitForm() {}
+
+function isDbRequired() {}
+
+async function addAllColumns() {}
+
+async function removeAllColumns() {}
+
+async function checkSMTPStatus() {}
 </script>
 
 <template>

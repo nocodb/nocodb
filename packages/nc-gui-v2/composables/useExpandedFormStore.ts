@@ -19,11 +19,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       if (!row.value) return
       const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
       if (!rowId) return
-      commentsAndLogs.value = await api.utils.commentList({
+      commentsAndLogs.value = (await api.utils.commentList({
         row_id: rowId,
         fk_model_id: meta.value.id as string,
         comments_only: commentsOnly.value,
-      })
+      }))?.reverse?.() || []
     }
 
     const  isYou = (email) => {
@@ -34,7 +34,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       try {
 
 
-        if (!row.value) return
+        if (!row.value || !comment.value) return
         const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
         if (!rowId) return
 

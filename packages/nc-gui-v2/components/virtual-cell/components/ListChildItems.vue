@@ -1,5 +1,7 @@
 <script lang="ts" setup>
+import { Modal } from 'ant-design-vue'
 import { useLTARStoreOrThrow, useVModel } from '#imports'
+import { IsFormInj } from '~/context'
 import MdiReloadIcon from '~icons/mdi/reload'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiUnlinkIcon from '~icons/mdi/link-variant-remove'
@@ -8,6 +10,7 @@ const props = defineProps<{ modelValue?: boolean }>()
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+const isForm = inject(IsFormInj, false)
 
 const {
   childrenList,
@@ -20,8 +23,8 @@ const {
   getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
-watch(vModel, () => {
-  if (vModel.value) {
+watch([vModel, isForm], () => {
+  if (vModel.value || isForm) {
     loadChildrenList()
   }
 })
@@ -30,10 +33,17 @@ const unlinkRow = async (row: Record<string, any>) => {
   await unlink(row)
   await loadChildrenList()
 }
+const container = computed(() =>
+  isForm
+    ? h('div', {
+        class: 'w-full p-2',
+      })
+    : Modal,
+)
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" :footer="null" title="Child list">
+  <component :is="container" v-model:visible="vModel" :footer="null" title="Child list">
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
       <div class="flex mb-4 align-center gap-2">
         <!-- <a-input v-model:value="childrenListPagination.query" class="max-w-[200px]" size="small"></a-input> -->
@@ -74,7 +84,7 @@ const unlinkRow = async (row: Record<string, any>) => {
       </template>
       <a-empty v-else class="my-10" />
     </div>
-  </a-modal>
+  </component>
 </template>
 
 <style scoped lang="scss">

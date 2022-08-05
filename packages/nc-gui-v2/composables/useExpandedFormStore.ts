@@ -1,39 +1,49 @@
-import { useNuxtApp } from '#app'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
+import { message } from 'ant-design-vue'
+import { useNuxtApp } from '#app'
 import { useInjectionState } from '#imports'
 import { useApi } from '~/composables/useApi'
+import { useViewData } from '~/composables/useViewData'
+import { ActiveViewInj } from '~/context'
 import { extractPkFromRow } from '~/utils'
-import { message } from 'ant-design-vue'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   (meta: Ref<TableType>, row: Ref<Record<string, any>>) => {
     const { $e, $state } = useNuxtApp()
     const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
     // { useGlobalInstance: true },
+    // state
     const commentsOnly = ref(false)
     const commentsAndLogs = ref([])
     const comment = ref('')
 
+    // todo
+    const activeView = inject(ActiveViewInj)
+
+    const { updateOrSaveRow, insertRow } = useViewData(meta, activeView as any)
+
+    // actions
     const loadCommentsAndLogs = async () => {
       if (!row.value) return
       const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
       if (!rowId) return
-      commentsAndLogs.value = (await api.utils.commentList({
-        row_id: rowId,
-        fk_model_id: meta.value.id as string,
-        comments_only: commentsOnly.value,
-      }))?.reverse?.() || []
+      commentsAndLogs.value =
+        (
+          await api.utils.commentList({
+            row_id: rowId,
+            fk_model_id: meta.value.id as string,
+            comments_only: commentsOnly.value,
+          })
+        )?.reverse?.() || []
     }
 
-    const  isYou = (email) => {
-      return $state.user?.value?.email === email;
+    const isYou = (email) => {
+      return $state.user?.value?.email === email
     }
 
     const saveComment = async () => {
       try {
-
-
         if (!row.value || !comment.value) return
         const rowId = extractPkFromRow(row.value.row, meta.value.columns as ColumnType[])
         if (!rowId) return
@@ -60,7 +70,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       isCommentsLoading,
       commentsError,
       saveComment,
-      comment,isYou
+      comment,
+      isYou,
     }
   },
   'expanded-form-store',

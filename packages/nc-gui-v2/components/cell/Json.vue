@@ -27,7 +27,7 @@ let localValue = $(
   computed<string | undefined>({
     get: () => localValueState,
     set: (val: undefined | string | Record<string, any>) => {
-      localValueState = typeof val === 'object' ? JSON.stringify(val) : val
+      localValueState = typeof val === 'object' ? JSON.stringify(val, null, 2) : val
     },
   }),
 )
@@ -43,9 +43,18 @@ const clear = () => {
   localValue = vModel
 }
 
+const formatJson = (json: string) => {
+  try {
+    return JSON.stringify(JSON.parse(json), null, 2)
+  } catch (e) {
+    return json
+  }
+}
+
 const onSave = () => {
   isExpanded = false
   editEnabled.value = false
+  localValue = localValue ? formatJson(localValue) : localValue
   vModel = localValue
 }
 

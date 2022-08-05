@@ -92,6 +92,8 @@ const {
 } = useColumn(column)
 
 const syncAndNavigate = (dir: NavigateDir) => {
+  if (isJSON) return
+
   if (changed) {
     emit('save')
     changed = false

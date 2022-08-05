@@ -59,7 +59,7 @@ const logout = () => {
 
               <a-menu-item key="1" class="!rounded-b">
                 <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
-                  <mdi-logout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
+                  <MdiLogout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
                   <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
                     {{ $t('general.signOut') }}
                   </span>
@@ -145,7 +145,7 @@ const logout = () => {
           <template #title> Switch language </template>
 
           <div class="flex pr-4 items-center">
-            <general-language class="cursor-pointer text-2xl" />
+            <GeneralLanguage class="cursor-pointer text-2xl" />
           </div>
         </a-tooltip>
       </a-layout-header>

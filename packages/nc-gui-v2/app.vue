@@ -73,6 +73,13 @@ const logout = () => {
           <MdiDatabase class="cursor-pointer transform hover:scale-105 text-2xl" />
         </div>
 
+        <a-tooltip placement="right">
+          <template #title> Switch language </template>
+
+          <div class="flex w-full justify-center items-center h-12 group p-2">
+            <general-language class="cursor-pointer text-2xl" />
+          </div>
+        </a-tooltip>
         <div class="flex w-full justify-center items-center h-12 group p-2">
           <MdiLightningBoltOutline class="cursor-not-allowed text-2xl text-gray-400" />
         </div>
@@ -110,10 +117,6 @@ const logout = () => {
               />
             </a-tooltip>
           </div>
-        </div>
-
-        <div class="flex justify-end gap-4">
-          <general-language class="mr-3" />
         </div>
       </a-layout-header>
 

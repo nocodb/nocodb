@@ -3,11 +3,16 @@ import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject } from '#imports'
 import { MetaInj } from '~/context'
 
+const state = useGlobal()
+
 const { isUIAllowed } = useUIPermission()
 
 const formState = reactive({
-  heading: 'TestForm1',
+  heading: '',
   subheading: '',
+  submitAnotherForm: false,
+  showBlankForm: false,
+  emailMe: false,
 })
 
 const isEditable = isUIAllowed('editFormView' as Permission)
@@ -23,6 +28,8 @@ function addAllColumns() {}
 function removeAllColumns() {}
 
 function updateView() {}
+
+function submitForm() {}
 </script>
 
 <template>
@@ -81,6 +88,38 @@ function updateView() {}
             />
           </a-form-item>
         </a-form>
+
+        <!-- TODO: Draggable Columns -->
+
+        <div class="justify-center flex">
+          <a-button class="flex items-center gap-2 !bg-primary text-white rounded" size="large" @click="submitForm">
+            <!-- Submit -->
+            {{ $t('general.submit') }}
+          </a-button>
+        </div>
+
+        <!-- Other options -->
+        <div class="mt-4">
+          <div class="my-4">
+            <!-- Show "Submit Another Form" button -->
+            <a-switch v-model:checked="formState.submitAnotherForm" v-t="[`a:form-view:submit-another-form`]" />
+            <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
+          </div>
+
+          <div class="my-4">
+            <!-- Show a blank form after 5 seconds -->
+            <a-switch v-model:checked="formState.showBlankForm" v-t="[`a:form-view:show-blank-form`]" />
+            <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
+          </div>
+
+          <div class="my-4">
+            <a-switch v-model:checked="formState.emailMe" v-t="[`a:form-view:email-me`]" />
+            <!-- Email me at <email> -->
+            <span class="ml-4">
+              {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>
+            </span>
+          </div>
+        </div>
       </a-card>
     </a-col>
   </a-row>

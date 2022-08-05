@@ -1,7 +1,7 @@
 <script setup lang="ts">
-import { ValueInj } from '~/context'
+import { CellValueInj } from '~/context'
 
-const value = inject(ValueInj)
+const value = inject(CellValueInj)
 </script>
 
 <template>

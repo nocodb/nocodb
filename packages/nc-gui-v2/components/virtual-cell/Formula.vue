@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import { computed, useProject } from '#imports'
-import { ColumnInj, ValueInj } from '~/context'
+import { CellValueInj, ColumnInj } from '~/context'
 import { handleTZ } from '~/utils/dateTimeUtils'
 import { replaceUrlsWithLink } from '~/utils/urlUtils'
 
 const column = inject(ColumnInj)
 
-const value = inject(ValueInj)
+const value = inject(CellValueInj)
 
 const { isPg } = useProject()
 

@@ -8,7 +8,7 @@ const breakpoints = useBreakpoints(breakpointsTailwind)
 
 const { signOut, signedIn, isLoading, user } = $(useGlobal())
 
-const { isOpen, hasSidebar } = useSidebar({ isOpen: signedIn && breakpoints.greater('md').value })
+const { isOpen, toggle, hasSidebar } = useSidebar({ isOpen: signedIn && breakpoints.greater('md').value })
 
 const sidebar = ref<HTMLDivElement>()
 
@@ -18,21 +18,12 @@ const logout = () => {
   signOut()
   navigateTo('/signin')
 }
-
-const sidebarCollapsed = computed({
-  get: () => !isOpen.value,
-  set: (val) => (isOpen.value = !val),
-})
-
-const toggleSidebar = () => {
-  sidebarCollapsed.value = !sidebarCollapsed.value
-}
 </script>
 
 <template>
   <a-layout class="min-h-[100vh]">
     <a-layout-header class="hidden flex !bg-primary items-center text-white px-4 shadow-md">
-      <material-symbols-menu v-if="signedIn && hasSidebar" class="text-xl cursor-pointer" @click="toggleSidebar" />
+      <material-symbols-menu v-if="signedIn && hasSidebar" class="text-xl cursor-pointer" @click="toggle" />
 
       <div class="flex-1" />
 
@@ -85,7 +76,7 @@ const toggleSidebar = () => {
     </a-layout-header>
 
     <a-layout-sider
-      v-model:collapsed="sidebarCollapsed"
+      :collapsed="!isOpen"
       width="300"
       collapsed-width="0"
       class="bg-white dark:!bg-gray-800 border-r-1 border-gray-200 dark:!border-gray-600 h-full"

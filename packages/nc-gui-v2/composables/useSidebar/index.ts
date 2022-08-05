@@ -5,6 +5,9 @@ interface UseSidebarProps {
   isOpen?: boolean
 }
 
+/**
+ * Injection state for the left sidebar
+ */
 const [setup, use] = useInjectionState((props: UseSidebarProps = {}) => {
   const [isOpen, toggle] = useToggle(props.isOpen ?? false)
   const [hasSidebar, toggleHasSidebar] = useToggle(props.hasSidebar ?? true)

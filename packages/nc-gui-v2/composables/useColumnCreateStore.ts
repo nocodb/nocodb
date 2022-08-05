@@ -198,7 +198,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       }
       onSuccess()
     } catch (e: any) {
-      toast.error(await extractSdkResponseErrorMsg(e))
+      const error = await extractSdkResponseErrorMsg(e)
+      if (error) toast.error(await extractSdkResponseErrorMsg(e))
     }
   }
 

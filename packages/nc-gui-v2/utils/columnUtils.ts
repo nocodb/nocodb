@@ -4,6 +4,7 @@ import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
 import FormatColorText from '~icons/mdi/format-color-text'
 import TextSubject from '~icons/mdi/text-subject'
 import JSONIcon from '~icons/mdi/code-json'
+import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 import Attachment from '~icons/mdi/attachment'
 import CheckboxMarkedOutline from '~icons/mdi/checkbox-marked-outline'
 import FormatListBulletedSquare from '~icons/mdi/format-list-bulleted-square'
@@ -25,7 +26,6 @@ import MovieRoll from '~icons/mdi/movie-roll'
 import Counter from '~icons/mdi/counter'
 import CalendarClock from '~icons/mdi/calendar-clock'
 import ID from '~icons/mdi/identifier'
-import DatabaseSettings from '~icons/mdi/database-settings'
 import RulerSquareCompass from '~icons/mdi/ruler-square-compass'
 
 const uiTypes = [
@@ -143,7 +143,7 @@ const uiTypes = [
   },
   {
     name: UITypes.SpecificDBType,
-    icon: DatabaseSettings,
+    icon: SpecificDBTypeIcon,
   },
 ]
 

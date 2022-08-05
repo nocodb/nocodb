@@ -6,6 +6,18 @@ export const timeAgo = (date: any) => {
   return dayjs.utc(date).fromNow()
 }
 
+export const dateFormats = [
+  'DD-MM-YYYY',
+  'MM-DD-YYYY',
+  'YYYY-MM-DD',
+  'DD/MM/YYYY',
+  'MM/DD/YYYY',
+  'YYYY/MM/DD',
+  'DD MM YYYY',
+  'MM DD YYYY',
+  'YYYY MM DD',
+]
+
 export const handleTZ = (val: any) => {
   if (!val) {
     return
@@ -21,25 +33,13 @@ export const handleTZ = (val: any) => {
   )
 }
 
-export const dateFormat = [
-  'DD-MM-YYYY',
-  'MM-DD-YYYY',
-  'YYYY-MM-DD',
-  'DD/MM/YYYY',
-  'MM/DD/YYYY',
-  'YYYY/MM/DD',
-  'DD MM YYYY',
-  'MM DD YYYY',
-  'YYYY MM DD',
-]
-
 export function validateDateFormat(v: string) {
-  return dateFormat.includes(v)
+  return dateFormats.includes(v)
 }
 
 export function validateDateWithUnknownFormat(v: string) {
   let res = 0
-  for (const format of dateFormat) {
+  for (const format of dateFormats) {
     res |= dayjs(v, format, true).isValid() as any
   }
   return res

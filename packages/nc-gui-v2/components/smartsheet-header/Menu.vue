@@ -13,7 +13,7 @@ import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
-const editColumnDropdown = $ref(false)
+const editColumnDropdown = ref(false)
 
 const column = inject(ColumnInj)
 const meta = inject(MetaInj)
@@ -49,10 +49,16 @@ const setAsPrimaryValue = async () => {
     toast.error('Failed to update primary column')
   }
 }
+
+function onVisibleChange() {
+  // only allow to close the EditOrAdd component
+  // by clicking cancel button
+  editColumnDropdown.value = true
+}
 </script>
 
 <template>
-  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']">
+  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']" :on-visible-change="onVisibleChange">
     <span />
     <template #overlay>
       <SmartsheetColumnEditOrAdd @click.stop @cancel="editColumnDropdown = false" />

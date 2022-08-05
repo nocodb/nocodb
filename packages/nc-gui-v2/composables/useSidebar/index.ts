@@ -36,6 +36,8 @@ const [setup, use] = useInjectionState((props: UseSidebarProps = {}) => {
   }
 }, 'useSidebar')
 
+export const provideSidebar = setup
+
 export function useSidebar(props: UseSidebarProps = {}) {
   const state = use()
 

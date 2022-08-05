@@ -1,9 +1,6 @@
 <script setup lang="ts">
-import { provideSidebar, useProject, useRoute, useSidebar, useTabs } from '#imports'
+import { provideSidebar, ref, useProject, useRoute, useSidebar, useTabs, useToggle, useUIPermission } from '#imports'
 import { TabType } from '~/composables'
-import MaterialSymbolsChevronRightRounded from '~icons/material-symbols/chevron-right-rounded'
-import MaterialSymbolsChevronLeftRounded from '~icons/material-symbols/chevron-left-rounded'
-import MdiChevronDown from '~icons/mdi/chevron-down'
 
 const route = useRoute()
 
@@ -11,15 +8,27 @@ const { project, loadProject, loadTables } = useProject(route.params.projectId a
 
 const { addTab, clearTabs } = useTabs()
 
+const { isUIAllowed } = useUIPermission()
+
 // set old sidebar state
 useSidebar({ isOpen: true })
 
 // create a new sidebar state
 const { isOpen, toggle } = provideSidebar({ isOpen: true })
 
+const dialogOpen = ref(false)
+
+const openDialogKey = ref<string>()
+
 clearTabs()
+
 if (!route.params.type) {
   addTab({ type: TabType.AUTH, title: 'Team & Auth' })
+}
+
+function toggleDialog(value?: boolean, key?: string) {
+  dialogOpen.value = value ?? !dialogOpen.value
+  openDialogKey.value = key
 }
 
 await loadProject(route.params.projectId as string)
@@ -33,43 +42,145 @@ await loadTables()
       :collapsed="!isOpen"
       width="250"
       collapsed-width="0"
-      class="relative shadow h-full !bg-gray-100/50"
+      class="relative shadow-md h-full"
       :trigger="null"
       collapsible
       theme="light"
     >
-      <div
-        class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-9 right-[-0.75rem] shadow bg-gray-100 rounded-full"
-      >
-        <MaterialSymbolsChevronLeftRounded
-          v-if="isOpen"
-          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-          @click="toggle(false)"
-        />
+      <a-tooltip placement="right">
+        <template #title> Toggle table list </template>
 
-        <MaterialSymbolsChevronRightRounded
-          v-else
-          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-          @click="toggle(true)"
-        />
-      </div>
+        <div
+          :class="[isOpen ? 'right-[-0.75rem]' : 'right-[-1.75rem]']"
+          class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-9 shadow-md bg-gray-100 rounded-full"
+        >
+          <MaterialSymbolsChevronLeftRounded
+            v-if="isOpen"
+            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+            @click="toggle(false)"
+          />
+
+          <MaterialSymbolsChevronRightRounded
+            v-else
+            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+            @click="toggle(true)"
+          />
+        </div>
+      </a-tooltip>
       <DashboardTreeView />
     </a-layout-sider>
 
     <teleport v-if="project" to="#header-start">
       <a-dropdown :trigger="['click']">
         <div class="group cursor-pointer w-full flex justify-between items-center">
-          <div class="text-xl">{{ project.title }}</div>
+          <div class="flex-auto text-xl truncate">{{ project.title }}</div>
 
-          <MdiChevronDown class="group-hover:text-pink-500 text-2xl" />
+          <MdiChevronDown class="min-w-[28.5px] group-hover:text-pink-500 text-2xl" />
         </div>
 
         <template #overlay>
-          <div>Foo</div>
+          <a-menu class="ml-2 !p-0 min-w-32 leading-8 !rounded">
+            <a-menu-item-group title="Project Settings">
+              <a-menu-item>
+                <div class="nc-project-menu-item group">
+                  <MdiContentCopy class="group-hover:text-pink-500" />
+                  Copy Project Info
+                </div>
+              </a-menu-item>
+
+              <a-menu-item>
+                <a
+                  v-if="isUIAllowed('apiDocs')"
+                  v-t="['e:api-docs']"
+                  :href="`/api/v1/db/meta/projects/${route.params.projectId}/swagger`"
+                  target="_blank"
+                  class="nc-project-menu-item group"
+                >
+                  <MdiApi class="group-hover:text-pink-500" />
+                  Swagger: Rest APIs
+                </a>
+              </a-menu-item>
+
+              <a-menu-item>
+                <div
+                  v-if="isUIAllowed('settings')"
+                  v-t="['c:navdraw:project-settings']"
+                  class="nc-project-menu-item group"
+                  @click="toggleDialog(true, 'teamAndAuth')"
+                >
+                  <MdiAccountGroupIcon class="group-hover:text-pink-500" />
+                  Team & Auth
+                </div>
+              </a-menu-item>
+
+              <a-menu-item>
+                <div
+                  v-if="isUIAllowed('settings')"
+                  v-t="['c:navdraw:project-settings']"
+                  class="nc-project-menu-item group"
+                  @click="toggleDialog(true, 'appStore')"
+                >
+                  <MdiStore class="group-hover:text-pink-500" />
+                  App Store
+                </div>
+              </a-menu-item>
+
+              <a-menu-item>
+                <div
+                  v-if="isUIAllowed('settings')"
+                  v-t="['c:navdraw:project-settings']"
+                  class="nc-project-menu-item group"
+                  @click="toggleDialog(true, 'metaData')"
+                >
+                  <MdiTableBorder class="group-hover:text-pink-500" />
+                  Project Metadata
+                </div>
+              </a-menu-item>
+
+              <a-menu-item>
+                <div
+                  v-if="isUIAllowed('settings')"
+                  v-t="['c:navdraw:project-settings']"
+                  class="nc-project-menu-item group"
+                  @click="toggleDialog(true, 'audit')"
+                >
+                  <MdiNotebookCheckOutline class="group-hover:text-pink-500" />
+                  Audit
+                </div>
+              </a-menu-item>
+
+              <a-menu-item>
+                <a-sub-menu>
+                  <div class="nc-project-menu-item group">
+                    <MdiContentCopy class="group-hover:text-pink-500" />
+                    Preview Project As
+                  </div>
+
+                  <a-menu-item> Foo </a-menu-item>
+                </a-sub-menu>
+              </a-menu-item>
+            </a-menu-item-group>
+          </a-menu>
         </template>
       </a-dropdown>
     </teleport>
 
+    <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
+
     <NuxtPage />
   </NuxtLayout>
 </template>
+
+<style lang="scss" scoped>
+.nc-project-menu-item {
+  @apply cursor-pointer flex items-center gap-2 py-3 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply border-b-1;
+}
+
+:deep(.ant-dropdown-menu-item) {
+  @apply !py-0 active:(ring ring-pink-500);
+}
+</style>

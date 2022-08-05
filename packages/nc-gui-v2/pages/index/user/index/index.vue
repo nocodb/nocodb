@@ -2,13 +2,11 @@
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import { reactive, ref, useNuxtApp, useSidebar } from '#imports'
+import { reactive, ref, useApi } from '#imports'
 import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 import MdiKeyChange from '~icons/mdi/key-change'
 
-const { $api } = useNuxtApp()
-
-const { isOpen } = useSidebar()
+const { api, isLoading } = useApi()
 
 const { t } = useI18n()
 
@@ -53,7 +51,7 @@ const passwordChange = async () => {
 
   error = null
   try {
-    const { msg } = await $api.auth.passwordChange({
+    const { msg } = await api.auth.passwordChange({
       currentPassword: form.currentPassword,
       newPassword: form.password,
     })
@@ -71,57 +69,61 @@ const resetError = () => {
 </script>
 
 <template>
-  <a-form ref="formValidator" layout="vertical" :model="form" class="change-password h-full w-full" @finish="passwordChange">
-    <div class="md:relative flex flex-col gap-2 w-full h-full p-8 lg:(max-w-1/2)" :class="{ 'mx-auto': isOpen }">
-      <h1 class="prose-2xl font-bold mb-4">{{ $t('activity.changePwd') }}</h1>
+  <div class="mt-4 w-1/2 mx-auto">
+    <a-form ref="formValidator" layout="vertical" :model="form" class="change-password" @finish="passwordChange">
+      <div class="md:relative flex flex-col gap-2 w-full h-full p-8 w-full">
+        <h1 class="prose-2xl font-bold mb-4">{{ $t('activity.changePwd') }}</h1>
 
-      <Transition name="layout">
-        <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
-          <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
+        <Transition name="layout">
+          <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
+            <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
+          </div>
+        </Transition>
+
+        <a-form-item :label="$t('placeholder.password.current')" name="currentPassword" :rules="formRules.currentPassword">
+          <a-input-password
+            v-model:value="form.currentPassword"
+            size="large"
+            class="password"
+            :placeholder="$t('placeholder.password.current')"
+            @focus="resetError"
+          />
+        </a-form-item>
+
+        <a-form-item :label="$t('placeholder.password.new')" name="password" :rules="formRules.password">
+          <a-input-password
+            v-model:value="form.password"
+            size="large"
+            class="password"
+            :placeholder="$t('placeholder.password.new')"
+            @focus="resetError"
+          />
+        </a-form-item>
+
+        <a-form-item :label="$t('placeholder.password.confirm')" name="passwordRepeat" :rules="formRules.passwordRepeat">
+          <a-input-password
+            v-model:value="form.passwordRepeat"
+            size="large"
+            class="password"
+            :placeholder="$t('placeholder.password.confirm')"
+            @focus="resetError"
+          />
+        </a-form-item>
+
+        <div class="flex flex-wrap gap-4 items-center mt-4 md:justify-between w-full">
+          <button class="submit" type="submit">
+            <span class="flex items-center gap-2"><MdiKeyChange /> {{ $t('activity.changePwd') }}</span>
+          </button>
         </div>
-      </Transition>
-
-      <a-form-item :label="$t('placeholder.password.current')" name="currentPassword" :rules="formRules.currentPassword">
-        <a-input-password
-          v-model:value="form.currentPassword"
-          size="large"
-          class="password"
-          :placeholder="$t('placeholder.password.current')"
-          @focus="resetError"
-        />
-      </a-form-item>
-
-      <a-form-item :label="$t('placeholder.password.new')" name="password" :rules="formRules.password">
-        <a-input-password
-          v-model:value="form.password"
-          size="large"
-          class="password"
-          :placeholder="$t('placeholder.password.new')"
-          @focus="resetError"
-        />
-      </a-form-item>
-
-      <a-form-item :label="$t('placeholder.password.confirm')" name="passwordRepeat" :rules="formRules.passwordRepeat">
-        <a-input-password
-          v-model:value="form.passwordRepeat"
-          size="large"
-          class="password"
-          :placeholder="$t('placeholder.password.confirm')"
-          @focus="resetError"
-        />
-      </a-form-item>
-
-      <div class="flex flex-wrap gap-4 items-center mt-4 md:justify-between w-full">
-        <button class="submit" type="submit">
-          <span class="flex items-center gap-2"><MdiKeyChange /> {{ $t('activity.changePwd') }}</span>
-        </button>
       </div>
-    </div>
-  </a-form>
+    </a-form>
+  </div>
 </template>
 
 <style lang="scss">
 .change-password {
+  @apply border-1 shadow-md rounded;
+
   .ant-input-affix-wrapper,
   .ant-input {
     @apply dark:(!bg-gray-700 !text-white) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;

@@ -36,7 +36,7 @@ function openQuickImportDialog(type: string) {
 <template>
   <div class="nc-container pt-[9px]">
     <div class="h-full w-full flex flex-col">
-      <div class="px-1">
+      <div class="px-2">
         <a-tabs v-model:activeKey="activeTabIndex" type="editable-card" @edit="closeTab">
           <a-tab-pane v-for="(tab, i) in tabs" :key="i" :tab="tab.title" />
 
@@ -129,7 +129,7 @@ function openQuickImportDialog(type: string) {
         </a-tabs>
       </div>
 
-      <NuxtPage class="p-2" />
+      <NuxtPage class="px-4 py-2" />
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />

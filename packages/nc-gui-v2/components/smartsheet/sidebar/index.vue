@@ -75,25 +75,28 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     collapsiple
     collapsed-width="50"
     width="250"
-    :class="[sidebarCollapsed ? 'collapsed !bg-primary' : '!bg-white']"
-    class="relative shadow h-full"
+    class="relative shadow-md h-full"
     theme="light"
   >
-    <div
-      class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-9 left-[-1rem] shadow bg-gray-100 rounded-full"
-    >
-      <MaterialSymbolsChevronRightRounded
-        v-if="sidebarOpen"
-        class="toggle transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-        @click="sidebarOpen = false"
-      />
+    <a-tooltip placement="left">
+      <template #title> Toggle sidebar </template>
 
-      <MaterialSymbolsChevronLeftRounded
-        v-else
-        class="toggle transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-        @click="sidebarOpen = true"
-      />
-    </div>
+      <div
+        class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-9 left-[-1rem] shadow bg-gray-100 rounded-full"
+      >
+        <MaterialSymbolsChevronRightRounded
+          v-if="sidebarOpen"
+          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+          @click="sidebarOpen = false"
+        />
+
+        <MaterialSymbolsChevronLeftRounded
+          v-else
+          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+          @click="sidebarOpen = true"
+        />
+      </div>
+    </a-tooltip>
 
     <Toolbar v-if="sidebarOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />
 
@@ -134,10 +137,6 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 </template>
 
 <style scoped>
-.collapsed :deep(.nc-icon:not(.toggle)) {
-  @apply !text-white;
-}
-
 :deep(.ant-menu-title-content) {
   @apply w-full;
 }

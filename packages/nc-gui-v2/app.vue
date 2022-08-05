@@ -1,24 +1,24 @@
 <script lang="ts" setup>
 import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
-import { computed, provideSidebar, ref, useBreakpoints, useGlobal, useRoute, useRouter } from '#imports'
+import { computed, ref, useBreakpoints, useGlobal, useRoute, useRouter, useSidebar } from '#imports'
 
 /** get current breakpoints (for enabling sidebar) */
 const breakpoints = useBreakpoints(breakpointsTailwind)
 
-const { signOut, signedIn, isLoading, user } = $(useGlobal())
+const { signOut, signedIn, isLoading, user } = useGlobal()
 
-const { isOpen } = provideSidebar({ isOpen: (signedIn && breakpoints.greater('md').value) || true })
+const { isOpen } = useSidebar({ isOpen: signedIn.value && breakpoints.isGreater('md') })
 
 const router = useRouter()
 
 const route = useRoute()
 
-console.log(route.name)
-
 const sidebar = ref<HTMLDivElement>()
 
-const email = computed(() => user?.email ?? '---')
+const globalSearch = ref('')
+
+const email = computed(() => user.value?.email ?? '---')
 
 const logout = () => {
   signOut()
@@ -32,63 +32,68 @@ const logout = () => {
       :collapsed="!isOpen"
       width="50"
       collapsed-width="0"
-      class="!bg-primary h-full shadow-lg"
+      class="nc-sidebar-left !bg-primary h-full"
       :trigger="null"
       collapsible
       theme="light"
     >
-      <a-dropdown :trigger="['click']">
-        <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 border-b-1 border-r-1">
+      <a-dropdown placement="bottom" :trigger="['click']">
+        <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105">
           <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
         </div>
 
         <template v-if="signedIn" #overlay>
-          <a-menu class="!py-0 nc-user-menu min-w-32 dark:(!bg-gray-800) leading-8 !rounded">
-            <a-menu-item key="0" class="!rounded-t">
-              <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
-                <MdiAt class="mt-1 group-hover:text-success" />&nbsp;
-                <span class="prose group-hover:text-black nc-user-menu-email">{{ email }}</span>
-              </nuxt-link>
-            </a-menu-item>
+          <a-menu class="ml-2 !py-0 nc-user-menu min-w-32 dark:(!bg-gray-800) leading-8 !rounded">
+            <a-menu-item-group title="User Settings">
+              <a-menu-item key="0" class="!rounded-t">
+                <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
+                  <MdiAt class="mt-1 group-hover:text-success" />
+                  &nbsp;
+                  <span class="prose group-hover:text-black nc-user-menu-email">{{ email }}</span>
+                </nuxt-link>
+              </a-menu-item>
 
-            <a-menu-divider class="!m-0" />
+              <a-menu-divider class="!m-0" />
 
-            <a-menu-item key="1" class="!rounded-b">
-              <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
-                <mdi-logout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
-                <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
-                  {{ $t('general.signOut') }}
-                </span>
-              </div>
-            </a-menu-item>
+              <a-menu-item key="1" class="!rounded-b">
+                <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
+                  <mdi-logout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
+                  <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
+                    {{ $t('general.signOut') }}
+                  </span>
+                </div>
+              </a-menu-item>
+            </a-menu-item-group>
           </a-menu>
         </template>
       </a-dropdown>
 
-      <div id="sidebar" ref="sidebar" class="text-white flex flex-col items-center w-full">
-        <div
-          :class="[route.name.includes('nc-projectId') ? 'bg-pink-500' : '']"
-          class="flex w-full justify-center items-center h-12 group p-2"
-        >
-          <MdiDatabase class="cursor-pointer transform hover:scale-105 text-2xl" />
-        </div>
-
+      <div id="sidebar" ref="sidebar" class="text-white flex-auto flex flex-col items-center w-full">
         <a-tooltip placement="right">
-          <template #title> Switch language </template>
+          <template #title>My Projects</template>
 
-          <div class="flex w-full justify-center items-center h-12 group p-2">
-            <general-language class="cursor-pointer text-2xl" />
+          <div :class="[route.name === 'index' ? 'active' : '']" class="nc-sidebar-left-item" @click="navigateTo('/')">
+            <MdiFolder class="cursor-pointer transform hover:scale-105 text-2xl" />
           </div>
         </a-tooltip>
-        <div class="flex w-full justify-center items-center h-12 group p-2">
-          <MdiLightningBoltOutline class="cursor-not-allowed text-2xl text-gray-400" />
-        </div>
+
+        <a-tooltip placement="right">
+          <template #title>Project {{ route.params.projectId }}</template>
+
+          <div
+            :class="[route.name.includes('nc-projectId') ? 'active' : 'pointer-events-none !text-gray-400']"
+            class="nc-sidebar-left-item"
+            @click="navigateTo(`/nc/${route.params.projectId}`)"
+          >
+            <MdiDatabase class="cursor-pointer transform hover:scale-105 text-2xl" />
+          </div>
+        </a-tooltip>
       </div>
     </a-layout-sider>
 
     <a-layout class="!flex-col">
       <a-layout-header class="flex !bg-primary items-center text-white !px-[1px] shadow-lg">
-        <div id="header-start" class="w-[250px] flex items-center px-4 h-full" />
+        <div id="header-start" class="w-[250px] flex items-center px-1 h-full" />
 
         <div class="hidden flex justify-center">
           <div v-show="isLoading" class="flex items-center gap-2 ml-3">
@@ -97,7 +102,9 @@ const logout = () => {
           </div>
         </div>
 
-        <div class="flex-1 text-white">
+        <div class="flex-1" />
+
+        <div v-if="signedIn" class="text-white">
           <div class="flex items-center px-4 gap-4">
             <a-tooltip placement="bottom">
               <template #title> Go back </template>
@@ -116,8 +123,29 @@ const logout = () => {
                 @click="router.go(+1)"
               />
             </a-tooltip>
+
+            <a-input
+              v-model:value="globalSearch"
+              class="nc-global-search group hover:ring active:ring-pink-500 focus:ring-pink-500 flex"
+              size="small"
+              placeholder="CMD + K"
+            >
+              <template #prefix>
+                <MdiMagnify class="transform text-gray-400 group-hover:(scale-105 text-pink-500)" />
+              </template>
+            </a-input>
           </div>
         </div>
+
+        <div class="flex-1" />
+
+        <a-tooltip placement="right">
+          <template #title> Switch language </template>
+
+          <div class="flex pr-4 items-center">
+            <general-language class="cursor-pointer text-2xl" />
+          </div>
+        </a-tooltip>
       </a-layout-header>
 
       <div class="w-full h-full">
@@ -126,3 +154,31 @@ const logout = () => {
     </a-layout>
   </a-layout>
 </template>
+
+<style lang="scss" scoped>
+.nc-sidebar-left {
+  :deep(.ant-layout-sider-children) {
+    @apply flex flex-col items-center;
+  }
+
+  .nc-sidebar-left-item {
+    @apply flex w-full justify-center items-center h-12 group p-2;
+
+    &.active {
+      @apply bg-pink-500 border-t-1 border-b-1;
+    }
+  }
+}
+
+:deep(.ant-dropdown-menu-item-group-title) {
+  @apply border-b-1;
+}
+
+:deep(.ant-dropdown-menu-item-group-list) {
+  @apply m-0;
+}
+
+.nc-global-search {
+  @apply dark:(bg-gray-700 !text-white) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;
+}
+</style>

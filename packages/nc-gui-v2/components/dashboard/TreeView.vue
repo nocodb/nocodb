@@ -2,10 +2,8 @@
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
-import SettingsModal from './settings/SettingsModal.vue'
-import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
+import { useProject, useTable, useTabs, watchEffect } from '#imports'
 import { useNuxtApp, useRoute } from '#app'
-import MdiSettingIcon from '~icons/mdi/cog'
 import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
@@ -13,15 +11,17 @@ import MdiMenuDown from '~icons/mdi/chevron-down'
 import MdiPlus from '~icons/mdi/plus-circle-outline'
 import MdiDrag from '~icons/mdi/drag-vertical'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
-import MdiAPIDocIcon from '~icons/mdi/open-in-new'
 
 const { addTab } = useTabs()
+
 const toast = useToast()
+
 const { $api, $e } = useNuxtApp()
-const { isUIAllowed } = useUIPermission()
+
 const route = useRoute()
+
 const { tables, loadTables } = useProject(route.params.projectId as string)
-const { closeTab } = useTabs()
+
 const { deleteTable } = useTable()
 
 const tablesById = $computed<Record<string, TableType>>(() =>
@@ -31,12 +31,14 @@ const tablesById = $computed<Record<string, TableType>>(() =>
   }, {}),
 )
 
-const settingsDlg = ref(false)
 const showTableList = ref(true)
+
 const tableCreateDlg = ref(false)
-const tableDeleteDlg = ref(false)
+
 const menuRef = $ref<HTMLLIElement>()
+
 let key = $ref(0)
+
 let sortable: Sortable
 
 // todo: replace with vuedraggable
@@ -103,21 +105,14 @@ const icon = (table: TableType) => {
   }
 }
 
-const apiLink = computed(
-  () =>
-    // new URL(
-    `/api/v1/db/meta/projects/${route.params.projectId}/swagger`,
-  // todo: get siteUrl
-  // this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl
-  // ),
-)
-
 const filterQuery = $ref('')
+
 const filteredTables = $computed(() => {
   return tables?.value?.filter((table) => !filterQuery || table?.title.toLowerCase()?.includes(filterQuery.toLowerCase()))
 })
 
 const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
+
 const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
@@ -125,16 +120,20 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
 }
 
 const renameTableDlg = ref(false)
+
 const renameTableMeta = ref()
+
 const showRenameTableDlg = (table: TableType, rightClick = false) => {
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
   renameTableMeta.value = table
   renameTableDlg.value = true
 }
+
 const reloadTables = async () => {
   $e('a:table:refresh:navdraw')
   await loadTables()
 }
+
 const addTableTab = (table: TableType) => {
   $e('a:table:open')
   addTab({ title: table.title, id: table.id, type: table.type as any })
@@ -173,7 +172,7 @@ const addTableTab = (table: TableType) => {
           <div class="transition-height duration-200 overflow-hidden" :class="{ 'h-100': showTableList, 'h-0': !showTableList }">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div
-                v-for="table in tables"
+                v-for="table of tables"
                 :key="table.id"
                 v-t="['a:table:open']"
                 :class="[{ hidden: !filteredTables?.includes(table) }, `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`]"
@@ -223,22 +222,7 @@ const addTableTab = (table: TableType) => {
         </a-menu>
       </template>
     </a-dropdown>
-    <div class="w-full h-[1px] bg-gray-200" />
-    <a v-if="isUIAllowed('apiDocs')" v-t="['e:api-docs']" class="nc-treeview-footer-item" :href="apiLink" target="_blank">
-      <MdiAPIDocIcon class="mr-2" />
-      <span> {{ $t('title.apiDocs') }}</span>
-    </a>
-    <div
-      v-if="isUIAllowed('settings')"
-      v-t="['c:navdraw:project-settings']"
-      class="nc-treeview-footer-item nc-team-settings"
-      @click="settingsDlg = true"
-    >
-      <MdiSettingIcon class="mr-2" />
-      <span> {{ $t('title.teamAndSettings') }}</span>
-    </div>
 
-    <SettingsModal :show="settingsDlg" @closed="settingsDlg = false" />
     <DlgTableCreate v-if="tableCreateDlg" v-model="tableCreateDlg" />
     <DlgTableRename v-if="renameTableMeta" v-model="renameTableDlg" :table-meta="renameTableMeta" />
   </div>

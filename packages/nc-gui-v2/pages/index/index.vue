@@ -16,7 +16,7 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading } = useApi()
 
-useSidebar({ hasSidebar: false })
+useSidebar({ hasSidebar: true, isOpen: true })
 
 const toast = useToast()
 

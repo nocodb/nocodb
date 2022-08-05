@@ -17,7 +17,6 @@ import {
   validateDateWithUnknownFormat,
 } from '@/utils'
 import MdiFunctionIcon from '~icons/mdi/function'
-import MdiColumnIcon from '~icons/mdi/view-column-outline'
 import MdiOperatorIcon from '~icons/mdi/calculator'
 
 enum JSEPNode {
@@ -40,7 +39,7 @@ const meta = inject(MetaInj)
 const columns = computed(() => meta?.value?.columns || [])
 
 const validators = {
-  'colOptions.formula_raw': [
+  formula_raw: [
     {
       validator: (_: any, formula: any) => {
         return new Promise<void>((resolve, reject) => {
@@ -54,8 +53,6 @@ const validators = {
     },
   ],
 }
-
-const formula = ref()
 
 const formulaSuggestionDrawer = ref(true)
 
@@ -354,7 +351,7 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
       return
     }
     if (col.uidt === UITypes.Formula) {
-      const foundType = getRootDataType(jsep(col?.colOptions?.formula_raw))
+      const foundType = getRootDataType(jsep(col?.formula_raw))
       if (foundType === 'N/A') {
         typeErrors.add(`Not supported to reference column ${col.title}`)
       } else if (expectedType !== foundType) {
@@ -442,7 +439,7 @@ function getRootDataType(parsedTree: any): any {
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
     const col = columns.value.find((c) => c.title === parsedTree.name) as Record<string, any>
     if (col?.uidt === UITypes.Formula) {
-      return getRootDataType(jsep(col?.colOptions?.formula_raw))
+      return getRootDataType(jsep(col?.formula_raw))
     } else {
       switch (col?.uidt) {
         // string
@@ -515,11 +512,11 @@ function appendText(item: Record<string, any>) {
   const len = wordToComplete.value?.length || 0
 
   if (item.type === 'function') {
-    formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, text, len, 1)
+    formState.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len, 1)
   } else if (item.type === 'column') {
-    formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, `{${text}}`, len + +!isCurlyBracketBalanced())
+    formState.value.formula_raw = insertAtCursor(formulaRef.value.$el, `{${text}}`, len + +!isCurlyBracketBalanced())
   } else {
-    formState.value.colOptions.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
+    formState.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
   }
   autocomplete.value = false
   if (item.type === 'function' || item.type === 'op') {
@@ -597,11 +594,7 @@ function getFormulaTypeName(type: string) {
 }
 
 // set default value
-formState.value.colOptions = {
-  formula: '',
-  formula_raw: '',
-  ...column?.colOptions,
-}
+formState.value.formula_raw = (column?.colOptions as Record<string, any>)?.formula_raw || ''
 
 // set additional validations
 setAdditionalValidations({
@@ -619,10 +612,10 @@ onMounted(() => {
 
 <template>
   <div class="formula-wrapper">
-    <a-form-item v-bind="validateInfos['colOptions.formula_raw']" label="Formula">
+    <a-form-item v-bind="validateInfos.formula_raw" label="Formula">
       <a-input
         ref="formulaRef"
-        v-model:value="formState.colOptions.formula_raw"
+        v-model:value="formState.formula_raw"
         class="mb-2"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"

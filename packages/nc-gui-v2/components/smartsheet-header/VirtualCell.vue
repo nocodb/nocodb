@@ -95,9 +95,11 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     <!--    <span class="caption" v-html="tooltipMsg" /> -->
 
     <!--    </v-tooltip> -->
-    <v-spacer />
+    <template v-if="!hideMenu">
+      <v-spacer />
 
-    <SmartsheetHeaderMenu :virtual="true" />
+      <SmartsheetHeaderMenu :virtual="true" />
+    </template>
   </div>
 </template>
 

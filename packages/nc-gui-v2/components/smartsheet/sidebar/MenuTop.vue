@@ -119,7 +119,6 @@ async function onSortEnd(evt: SortableEvent) {
 
 let sortable: Sortable
 
-// todo: replace with vuedraggable
 const initSortable = (el: HTMLElement) => {
   if (sortable) sortable.destroy()
 

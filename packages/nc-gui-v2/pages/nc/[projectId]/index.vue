@@ -52,7 +52,7 @@ await loadTables()
 
         <div
           :class="[isOpen ? 'right-[-0.75rem]' : 'right-[-1.75rem]']"
-          class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-9 shadow-md bg-gray-100 rounded-full"
+          class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-9 shadow bg-gray-100 rounded-full"
         >
           <MaterialSymbolsChevronLeftRounded
             v-if="isOpen"

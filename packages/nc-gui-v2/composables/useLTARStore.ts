@@ -65,39 +65,53 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     })
 
     const loadChildrenExcludedList = async () => {
-      childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
-        NOCO,
-        project.value.id as string,
-        meta.value.id,
-        rowId.value,
-        (column.colOptions as LinkToAnotherRecordType).type as 'mm' | 'hm',
-        column.title,
-        // todo: swagger type correction
-        {
-          limit: childrenExcludedListPagination.size,
-          offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
-          where:
-            childrenExcludedListPagination.query &&
-            `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
-        } as any,
-      )
+      try {
+        childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
+          NOCO,
+          project.value.id as string,
+          meta.value.id,
+          rowId.value,
+          (column.colOptions as LinkToAnotherRecordType).type as 'mm' | 'hm',
+          column.title,
+          // todo: swagger type correction
+          {
+            limit: childrenExcludedListPagination.size,
+            offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+            where:
+              childrenExcludedListPagination.query &&
+              `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
+          } as any,
+        )
+      } catch (e: any) {
+        notification.error({
+          message: 'Failed to load list',
+          description: await extractSdkResponseErrorMsg(e),
+        })
+      }
     }
 
     const loadChildrenList = async () => {
-      childrenList.value = await $api.dbTableRow.nestedList(
-        NOCO,
-        project.value.id as string,
-        meta.value.id,
-        rowId.value,
-        colOptions.type as 'mm' | 'hm',
-        column.title,
-        // todo: swagger type correction
-        {
-          limit: childrenListPagination.size,
-          offset: childrenListPagination.size * (childrenListPagination.page - 1),
-          where: childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
-        } as any,
-      )
+      try {
+        childrenList.value = await $api.dbTableRow.nestedList(
+          NOCO,
+          project.value.id as string,
+          meta.value.id,
+          rowId.value,
+          colOptions.type as 'mm' | 'hm',
+          column.title,
+          // todo: swagger type correction
+          {
+            limit: childrenListPagination.size,
+            offset: childrenListPagination.size * (childrenListPagination.page - 1),
+            where: childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
+          } as any,
+        )
+      } catch (e: any) {
+        notification.error({
+          message: 'Failed to load children list',
+          description: await extractSdkResponseErrorMsg(e),
+        })
+      }
     }
 
     const deleteRelatedRow = async (row: Record<string, any>) => {

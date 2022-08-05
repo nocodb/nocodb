@@ -6605,10 +6605,7 @@
                 "$ref": "#/components/schemas/Lookup"
               },
               {
-                "type": "array",
-                "items": {
-                  "$ref": "#/components/schemas/SelectOptions"
-                }
+                "$ref": "#/components/schemas/SelectOptions"
               },
               {
                 "type": "object"
@@ -6822,14 +6819,32 @@
         "title": "SelectOptions",
         "type": "object",
         "properties": {
+          "options": {
+            "type": "array",
+            "required": true,
+            "$ref": "#/components/schemas/SelectOption"
+          }
+        },
+        "examples": [
+          {
+            "options": [
+              {
+                "id": "string",
+                "fk_column_id": "string",
+                "title": "string",
+                "color": "string",
+                "order": 1
+              }
+            ]
+          }
+        ]
+      },
+      "SelectOption": {
+        "title": "SelectOption",
+        "type": "object",
+        "properties": {
           "id": {
             "type": "string"
-          },
-          "type": {
-            "type": "string"
-          },
-          "virtual": {
-            "type": "boolean"
           },
           "fk_column_id": {
             "type": "string"
@@ -6847,12 +6862,10 @@
         "examples": [
           {
             "id": "string",
-            "type": "string",
-            "virtual": true,
             "fk_column_id": "string",
             "title": "string",
             "color": "string",
-            "order": 0
+            "order": 1
           }
         ]
       },

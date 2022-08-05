@@ -1,9 +1,10 @@
 <script lang="ts" setup>
+import type { SelectOptionType } from '~~/../nocodb-sdk/build/main/index.js'
 import { computed, inject } from '#imports'
 import { ColumnInj } from '~/context'
 
 interface Props {
-  modelValue: string | null
+  modelValue: string | undefined
 }
 
 const { modelValue } = defineProps<Props>()
@@ -13,60 +14,39 @@ const emit = defineEmits(['update:modelValue'])
 const column = inject(ColumnInj)!
 
 const vModel = computed({
-  get: () => modelValue?.replace(/\\'/g, "'").replace(/^'|'$/g, ''),
+  get: () => modelValue,
   set: (val) => emit('update:modelValue', val),
 })
 
-const options = computed(() => column.value.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
+const options = computed(() => {
+  if (column?.colOptions) {
+    const opts = column.colOptions ? column.colOptions.options.filter((el: SelectOptionType) => el.title !== '') || [] : []
+    for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
+      op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+    }
+    return opts
+  }
+  return []
+})
 </script>
 
 <template>
-  <v-select v-model="vModel" :items="options" hide-details :clearable="!column.rqd" variation="outlined">
-    <!--    v-on="parentListeners"
-    <template #selection="{ item }">
-      <div
-        class="d-100"
-        :class="{
-          'text-center': !isForm,
-        }"
-      >
-        <v-chip small :color="enumColor.light[options.indexOf(item) % enumColor.light.length]" class="ma-1">
-          {{ item.text }}
-        </v-chip>
-      </div>
-    </template>
-    <template #item="{ item }">
-      <v-chip small :color="enumColor.light[options.indexOf(item) % enumColor.light.length]">
-        {{ item }}
-      </v-chip>
-    </template>
-    <template #append>
-      <v-icon small class="mt-1"> mdi-menu-down</v-icon>
-    </template> -->
-  </v-select>
+  <a-select
+    v-model:value="vModel"
+    class="w-full fill"
+    :allow-clear="!column.rqd"
+    placeholder="Select an option"
+    :bordered="false"
+  >
+    <a-select-option v-for="op of options" :key="op.title">
+      <a-tag :color="op.color">
+        <span class="text-slate-500">{{ op.title }}</span>
+      </a-tag>
+    </a-select-option>
+  </a-select>
 </template>
 
-<style scoped lang="scss">
-/*:deep {
-  .v-select {
-    min-width: 150px;
-  }
-
-  .v-input__slot {
-    padding-right: 0 !important;
-    padding-left: 35px !important;
-  }
-
-  .v-input__icon.v-input__icon--clear {
-    width: 15px !important;
-    min-width: 13px !important;
-
-    .v-icon {
-      font-size: 13px !important;
-    }
-  }
-}*/
-</style>
+<style scoped lang="scss"></style>
 <!--
 /**
  * @copyright Copyright (c) 2021, Xgene Cloud Ltd

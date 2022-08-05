@@ -242,7 +242,7 @@ export interface ColumnType {
     | FormulaType
     | RollupType
     | LookupType
-    | SelectOptionsType[]
+    | SelectOptionsType
     | object;
 }
 
@@ -303,9 +303,11 @@ export interface FormulaType {
 }
 
 export interface SelectOptionsType {
+  options: SelectOptionType;
+}
+
+export interface SelectOptionType {
   id?: string;
-  type?: string;
-  virtual?: boolean;
   fk_column_id?: string;
   title?: string;
   color?: string;

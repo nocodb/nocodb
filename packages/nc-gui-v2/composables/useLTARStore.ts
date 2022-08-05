@@ -11,6 +11,7 @@ interface DataApiResponse {
   pageInfo: PaginatedType
 }
 
+/** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
   (column: Required<ColumnType>, row?: Ref<Row>, reloadData = () => {}) => {
     // state

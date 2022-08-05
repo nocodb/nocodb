@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { useVModel } from '#imports'
-import { useLTARStoreOrThrow } from '~/composables'
+import { useLTARStoreOrThrow, useVModel } from '#imports'
 import MdiReloadIcon from '~icons/mdi/reload'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiUnlinkIcon from '~icons/mdi/link-variant-remove'

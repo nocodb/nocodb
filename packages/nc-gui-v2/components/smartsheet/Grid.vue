@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { ColumnType, isVirtualCol } from 'nocodb-sdk'
+import { isVirtualCol } from 'nocodb-sdk'
 import {
-  Row,
   inject,
   onKeyStroke,
   onMounted,

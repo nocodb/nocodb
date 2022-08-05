@@ -489,7 +489,7 @@ export default {
 }
 
 .v-input {
-  min-width: 100%;
+  min-width: 0;
 }
 
 </style>

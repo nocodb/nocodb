@@ -14,10 +14,10 @@
     @click.stop
     @change="$emit('change')"
   >
-    <template #selection="{item}">
-      <v-icon small class="mr-1">
-        {{ item.icon }}
-      </v-icon> {{ item.title }}
+    <template #prepend-inner>
+      <v-icon small class="mt-1">
+        {{ localValueIcon }}
+      </v-icon>
     </template>
     <template #item="{ item }">
       <span
@@ -47,6 +47,11 @@ export default {
       get() {
         return this.value
       }
+    },
+    localValueIcon: {
+      get() {
+        return this.columns.find(col => col.id === this.localValue)?.icon
+      }
     }
   },
   mounted() {
@@ -62,5 +67,4 @@ export default {
 </script>
 
 <style scoped>
-
 </style>

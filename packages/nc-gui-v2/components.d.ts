@@ -76,6 +76,7 @@ declare module '@vue/runtime-core' {
     MdiChevronDown: typeof import('~icons/mdi/chevron-down')['default']
     MdiContentCopy: typeof import('~icons/mdi/content-copy')['default']
     MdiDatabase: typeof import('~icons/mdi/database')['default']
+    MdiDatabaseOutline: typeof import('~icons/mdi/database-outline')['default']
     MdiDeleteOutline: typeof import('~icons/mdi/delete-outline')['default']
     MdiDotsVertical: typeof import('~icons/mdi/dots-vertical')['default']
     MdiDrag: typeof import('~icons/mdi/drag')['default']

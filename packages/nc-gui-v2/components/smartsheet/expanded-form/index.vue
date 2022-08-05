@@ -58,9 +58,7 @@ const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : Md
         </div>
 
         <div class="nc-comments-drawer min-w-0 h-full" :class="{ active: commentsDrawer }">
-          <div class="w-[250px]">
-            dsdsssdsdsdd
-          </div>
+          <div class="w-[250px]">dsdsssdsdsdd</div>
         </div>
       </div>
     </a-card>
@@ -73,7 +71,7 @@ const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : Md
 }
 
 :deep(.ant-modal-body) {
-  @apply !bg-gray-100
+  @apply !bg-gray-100;
 }
 
 .nc-comments-drawer {

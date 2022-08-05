@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useColumnCreateStoreOrThrow } from '#imports'
-import { dateFormats } from '~/utils/dateTimeUtils'
+import { dateFormats } from '~/utils'
 
 const { formState } = $(useColumnCreateStoreOrThrow())
 

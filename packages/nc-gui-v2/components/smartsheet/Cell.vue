@@ -102,7 +102,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 
 <template>
   <div
-    class="nc-cell"
+    class="nc-cell w-full"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up
@@ -133,35 +133,3 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellText v-else v-model="vModel" />
   </div>
 </template>
-
-<style scoped>
-textarea {
-  outline: none;
-}
-
-div {
-  width: 100%;
-  height: 100%;
-  color: var(--v-textColor-base);
-}
-
-.nc-hint {
-  font-size: 0.61rem;
-  color: grey;
-}
-
-.nc-cell {
-  @apply relative h-full;
-  width: inherit;
-  display: inherit;
-}
-
-.nc-locked-overlay {
-  position: absolute;
-  z-index: 2;
-  height: 100%;
-  width: 100%;
-  top: 0;
-  left: 0;
-}
-</style>

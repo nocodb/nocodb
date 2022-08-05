@@ -1,9 +1,11 @@
 <script setup lang="ts">
+import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject } from '#imports'
 import { MetaInj } from '~/context'
 
-// TODO: get editEnabled
-const editEnabled = ref(true)
+const { isUIAllowed } = useUIPermission()
+
+const isEditable = isUIAllowed('editFormView' as Permission)
 
 const meta = inject(MetaInj)
 
@@ -18,7 +20,7 @@ function removeAllColumns() {}
 
 <template>
   <a-row class="h-full">
-    <a-col v-if="editEnabled" :span="6" class="bg-[#f7f7f7] shadow-md pa-5">
+    <a-col v-if="isEditable" :span="6" class="bg-[#f7f7f7] shadow-md pa-5">
       <div class="flex">
         <div class="flex flex-row flex-1 text-lg">
           <span>

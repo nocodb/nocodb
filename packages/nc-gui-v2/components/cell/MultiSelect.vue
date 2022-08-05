@@ -59,7 +59,7 @@ const vModel = computed({
       </a-tag>
     </a-select-option>
     <template #tagRender="{ value: val, label, onClose }">
-      <a-tag class="rounded-tag" :color="label[0].props.color" :closable="true" @close="onClose">
+      <a-tag class="rounded-tag" :color="label[0].props.color" :closable="editEnabled" @close="onClose">
         <span class="text-slate-500">{{ val }}</span>
       </a-tag>
     </template>

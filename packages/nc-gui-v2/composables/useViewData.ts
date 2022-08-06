@@ -227,7 +227,28 @@ export function useViewData(
   const loadFormData = async () => {
     if (!viewMeta?.value?.id) return
     try {
-      formData.value = (({ columns, ...view }) => view)(await $api.dbView.formRead(viewMeta.value.id))
+      const { columns, ...view } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
+
+      const fieldById = columns.reduce(
+        (o: Record<string, any>, f: Record<string, any>) => ({
+          ...o,
+          [f.fk_column_id]: f,
+        }),
+        {},
+      )
+
+      let order = 1
+
+      formData.value = meta?.value?.columns
+        ?.map((c: Record<string, any>) => ({
+          ...c,
+          fk_column_id: c.id,
+          fk_view_id: viewMeta.value.id,
+          ...(fieldById[c.id] ? fieldById[c.id] : {}),
+          order: (fieldById[c.id] && fieldById[c.id].order) || order++,
+          id: fieldById[c.id] && fieldById[c.id].id,
+        }))
+        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>
     } catch (e: any) {
       return notification.error({
         message: 'Failed to set form data',

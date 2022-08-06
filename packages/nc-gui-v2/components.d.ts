@@ -80,6 +80,8 @@ declare module '@vue/runtime-core' {
     MdiApi: typeof import('~icons/mdi/api')['default']
     MdiArrowExpand: typeof import('~icons/mdi/arrow-expand')['default']
     MdiArrowLeftBold: typeof import('~icons/mdi/arrow-left-bold')['default']
+    MdiArrowExpand: typeof import('~icons/mdi/arrow-expand')['default']
+    MdiArrowExpandIcon: typeof import('~icons/mdi/arrow-expand-icon')['default']
     MdiAt: typeof import('~icons/mdi/at')['default']
     MdiCalculator: typeof import('~icons/mdi/calculator')['default']
     MdiCardsHeart: typeof import('~icons/mdi/cards-heart')['default']

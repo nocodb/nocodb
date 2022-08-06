@@ -3,15 +3,16 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message, notification } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import { NOCO } from '~/lib'
 import getPlainText from '../../nc-gui/components/project/spreadsheet/helpers/getPlainText'
+import { useProvideSmartsheetRowStore } from '~/composables/useSmartsheetRowStore'
+import { NOCO } from '~/lib'
 import { useNuxtApp } from '#app'
-import { useInjectionState,useProject } from '#imports'
+import { useInjectionState, useProject } from '#imports'
 import { useApi } from '~/composables/useApi'
 import type { Row } from '~/composables/useViewData'
 import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
 
-const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>, ) => {
+const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
   const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
   // { useGlobalInstance: true },
@@ -22,6 +23,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const commentsDrawer = ref(false)
   const changedColumns = ref(new Set<string>())
   const { project } = useProject()
+  const rowStore = useProvideSmartsheetRowStore(meta, row)
   // todo
   // const activeView = inject(ActiveViewInj)
 
@@ -72,7 +74,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       )?.reverse?.() || []
   }
 
-  const isYou = (email:string) => {
+  const isYou = (email: string) => {
     return $state.user?.value?.email === email
   }
 
@@ -151,8 +153,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
               value: getPlainText(updateOrInsertObj[key]),
               prev_value: getPlainText(row.value.oldRow[key]),
             })
-            .then(() => {
-            })
+            .then(() => {})
         }
       } else {
         return message.info('No columns to update')
@@ -176,6 +177,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   return {
+    ...rowStore,
     commentsOnly,
     loadCommentsAndLogs,
     commentsAndLogs,

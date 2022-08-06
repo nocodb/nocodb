@@ -329,6 +329,14 @@ const expandForm = (row: Row) => {
             </tr>
           </thead>
           <tbody>
+            <SmartsheetRow
+              v-for="(row, rowIndex) in data"
+              :key="row.id"
+              :row="row"
+              :row-index="rowIndex"
+              :selected="selected"
+              :edit-enabled="editEnabled"
+            >
             <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row">
               <td key="row-index" class="caption nc-grid-cell group">
                 <div class="flex items-center w-[80px]">
@@ -388,6 +396,7 @@ const expandForm = (row: Row) => {
                 </div>
               </td>
             </tr>
+            </SmartsheetRow>
 
             <tr v-if="!isLocked">
               <td

@@ -1,13 +1,19 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
+import type { ColumnType } from 'nocodb-sdk'
+import { useToast } from 'vue-toastification'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject } from '#imports'
-import { MetaInj } from '~/context'
-import MdiClose from '~icons/mdi/close'
+import { ActiveViewInj, FieldsInj, MetaInj } from '~/context'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiDragIcon from '~icons/mdi/drag-vertical'
 
+const toast = useToast()
+
 const state = useGlobal()
+
+const { $api } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -20,17 +26,23 @@ const formState = reactive({
   successMsg: '',
 })
 
-const options = $ref<any[]>([])
-
-const colorMenus = $ref<any>({})
-
 const isEditable = isUIAllowed('editFormView' as Permission)
 
 const meta = inject(MetaInj)
 
+const view = inject(ActiveViewInj)
+
+const { loadData, paginationData, formattedData: data, loadFormData, formData, changePage } = useViewData(meta, view as any)
+
 const columns = computed(() => meta?.value?.columns || [])
 
 const hiddenColumns = computed(() => [])
+
+const filteredColumns = computed(() => [])
+
+const fields = inject(FieldsInj, ref([]))
+
+const formView = ref({})
 
 function updateView() {}
 
@@ -43,6 +55,10 @@ async function addAllColumns() {}
 async function removeAllColumns() {}
 
 async function checkSMTPStatus() {}
+
+onMounted(async () => {
+  await loadFormData()
+})
 </script>
 
 <template>
@@ -129,9 +145,18 @@ async function checkSMTPStatus() {}
           </a-form-item>
         </a-form>
 
-        <!-- TODO: Draggable Columns -->
+        <draggable :list="columns" item-key="title" handle=".nc-child-draggable-icon">
+          <template #item="{ element, index }">
+            <!-- TODO: render columns -->
+          </template>
+          <template #footer>
+            <div v-if="!columns.length" class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
+              Drag and drop fields here to add
+            </div>
+          </template>
+        </draggable>
 
-        <div class="justify-center flex">
+        <div class="justify-center flex mt-5">
           <a-button class="flex items-center gap-2 !bg-primary text-white rounded" size="large" @click="submitForm">
             <!-- Submit -->
             {{ $t('general.submit') }}

@@ -256,6 +256,16 @@ const expandForm = (row: Row) => {
             </tr>
           </thead>
           <tbody>
+            <SmartsheetRow
+              v-for="(row, rowIndex) in data"
+              :key="row.id"
+              :row="row"
+              :row-index="rowIndex"
+              :selected="selected"
+              :edit-enabled="editEnabled"
+            />
+
+            <!--
             <tr v-for="(row, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
               <td key="row-index" class="caption nc-grid-cell">
                 <div class="align-center flex w-[80px]">
@@ -305,6 +315,7 @@ const expandForm = (row: Row) => {
                 </div>
               </td>
             </tr>
+            -->
 
             <tr v-if="!isLocked">
               <td
@@ -347,7 +358,7 @@ const expandForm = (row: Row) => {
 </template>
 
 <style scoped lang="scss">
-.nc-grid-wrapper {
+:deep(.nc-grid-wrapper) {
   width: 100%;
   // todo : proper height calculation
   height: calc(100vh - 215px);

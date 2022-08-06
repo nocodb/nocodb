@@ -43,7 +43,6 @@ const isExpanded = useVModel(props, 'modelValue', emits)
               <SmartsheetHeaderCell v-else :column="col" />
 
               <div class="!bg-white rounded px-1 min-h-[35px] flex align-center">
-
                 <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
                 <SmartsheetCell
                   v-else

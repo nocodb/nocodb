@@ -3,6 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
+import { useProvideSmartsheetRowStore, useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
 import { useProvideLTARStore } from '#imports'
 import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 import MdiExpandIcon from '~icons/mdi/arrow-expand'
@@ -17,6 +18,7 @@ const isForm = inject(IsFormInj)
 const listItemsDlg = ref(false)
 const childListDlg = ref(false)
 
+const { localState, isNew } = useSmartsheetRowStoreOrThrow()
 const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Required<ColumnType>,
   row,

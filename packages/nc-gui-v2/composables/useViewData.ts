@@ -1,4 +1,4 @@
-import type { Api, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, FormType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { notification } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
@@ -26,6 +26,7 @@ export function useViewData(
 ) {
   const formattedData = ref<Row[]>([])
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
+  const formData = ref<FormType | undefined>(undefined)
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
@@ -223,6 +224,18 @@ export function useViewData(
     }
   }
 
+  const loadFormData = async () => {
+    if (!viewMeta?.value?.id) return
+    try {
+      formData.value = (({ columns, ...view }) => view)(await $api.dbView.formRead(viewMeta.value.id))
+    } catch (e: any) {
+      return notification.error({
+        message: 'Failed to set form data',
+        description: await extractSdkResponseErrorMsg(e),
+      })
+    }
+  }
+
   return {
     loadData,
     paginationData,
@@ -235,5 +248,7 @@ export function useViewData(
     deleteSelectedRows,
     updateOrSaveRow,
     selectedAllRecords,
+    loadFormData,
+    formData,
   }
 }

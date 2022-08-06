@@ -2,13 +2,12 @@
 import { isVirtualCol } from 'nocodb-sdk'
 import { useVModel } from '@vueuse/core'
 import { Ref, computed, provide, toRef } from 'vue'
-import Comments from '~/components/smartsheet/expanded-form/Comments.vue'
+import Comments from './Comments.vue'
+import Header from './Header.vue'
 import { useSmartsheetStoreOrThrow } from '~/composables'
 import type { Row } from '~/composables'
 import { useProvideExpandedFormStore } from '~/composables/useExpandedFormStore'
 import { FieldsInj, IsFormInj, MetaInj } from '~/context'
-import MdiDoorOpen from '~icons/mdi/door-open'
-import MdiDoorClosed from '~icons/mdi/door-closed'
 
 interface Props {
   modelValue: string | null
@@ -27,21 +26,14 @@ provide(IsFormInj, true)
 // accept as a prop
 // const row: Row = { row: {}, rowMeta: {}, oldRow: {} }
 
-const { loadComments } = useProvideExpandedFormStore(meta, row)
-
-const commentsDrawer = ref(false)
+const { loadComments, commentsDrawer } = useProvideExpandedFormStore(meta, row)
 
 const isExpanded = useVModel(props, 'modelValue', emits)
-
-const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : MdiDoorClosed))
 </script>
 
 <template>
   <a-modal v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
-    <div class="flex p-2">
-      <div class="flex-grow" />
-      <component :is="drawerToggleIcon" class="" @click="commentsDrawer = !commentsDrawer" />
-    </div>
+    <Header />
     <a-card class="!bg-gray-100">
       <div class="flex">
         <div class="flex-grow">

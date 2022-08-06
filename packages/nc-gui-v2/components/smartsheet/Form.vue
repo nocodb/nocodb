@@ -20,10 +20,10 @@ const { isUIAllowed } = useUIPermission()
 const formState = reactive({
   heading: '',
   subheading: '',
-  submitAnotherForm: false,
-  showBlankForm: false,
-  emailMe: false,
-  successMsg: '',
+  submit_another_form: false,
+  show_blank_form: false,
+  email: false,
+  success_msg: '',
 })
 
 const isEditable = isUIAllowed('editFormView' as Permission)
@@ -56,14 +56,35 @@ async function removeAllColumns() {}
 
 async function checkSMTPStatus() {}
 
+function setFormData() {
+  Object.assign(formState, {
+    heading: formData.value?.heading,
+    subheading: formData.value?.subheading,
+    submit_another_form: !!formData.value?.submit_another_form,
+    show_blank_form: !!formData.value?.email,
+    email: formData.value?.submit_another_form,
+    success_msg: formData.value?.success_msg,
+  })
+}
+
 onMounted(async () => {
   await loadFormData()
+  setFormData()
 })
+
+// TODO: check if it's required
+watch(
+  () => formData,
+  (v) => {
+    setFormData()
+  },
+)
 </script>
 
 <template>
   <a-row class="h-full flex">
     <a-col v-if="isEditable" :span="6" class="bg-[#f7f7f7] shadow-md pa-5">
+      {{ formState }}
       <div class="flex">
         <div class="flex flex-row flex-1 text-lg">
           <span>
@@ -169,24 +190,24 @@ onMounted(async () => {
         </div>
         <!-- Show this message -->
         <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
-        <a-textarea v-model="formState.successMsg" rows="3" hide-details @input="updateView" />
+        <a-textarea v-model="formState.success_msg" rows="3" hide-details @input="updateView" />
 
         <!-- Other options -->
         <div class="mt-4">
           <div class="my-4">
             <!-- Show "Submit Another Form" button -->
-            <a-switch v-model:checked="formState.submitAnotherForm" v-t="[`a:form-view:submit-another-form`]" />
+            <a-switch v-model:checked="formState.submit_another_form" v-t="[`a:form-view:submit-another-form`]" />
             <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
           </div>
 
           <div class="my-4">
             <!-- Show a blank form after 5 seconds -->
-            <a-switch v-model:checked="formState.showBlankForm" v-t="[`a:form-view:show-blank-form`]" />
+            <a-switch v-model:checked="formState.show_blank_form" v-t="[`a:form-view:show-blank-form`]" />
             <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
           </div>
 
           <div class="my-4">
-            <a-switch v-model:checked="formState.emailMe" v-t="[`a:form-view:email-me`]" />
+            <a-switch v-model:checked="formState.email" v-t="[`a:form-view:email-me`]" />
             <!-- Email me at <email> -->
             <span class="ml-4">
               {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>

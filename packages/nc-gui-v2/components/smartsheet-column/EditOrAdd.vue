@@ -5,6 +5,7 @@ import { MetaInj, ReloadViewDataHookInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
+import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 interface Props {
   editColumnDropdown: boolean
@@ -37,7 +38,7 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
     ...uiTypes.filter((t) => !isEdit || !t.virtual),
-    ...(!isEdit && meta?.value?.columns?.every((c) => !c.pk)
+    ...(!isEdit?.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
             name: 'ID',
@@ -107,7 +108,7 @@ watch(
       </a-form-item>
       <a-form-item :label="$t('labels.columnType')">
         <a-select v-model:value="formState.uidt" size="small" class="nc-column-name-input" @change="onUidtOrIdTypeChange">
-          <a-select-option v-for="opt in uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
+          <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
             <div class="flex gap-1 align-center text-xs">
               <component :is="opt.icon" class="text-grey" />
               {{ opt.name }}

@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { ColumnInj } from '~/context'
+import { inject } from 'vue'
+import { ColumnInj, IsFormInj } from '~/context'
 import { provide } from '#imports'
 
 const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
 provide(ColumnInj, column)
+
+const isForm = inject(IsFormInj)
+
 // import { UITypes } from 'nocodb-sdk'
 // import { getUIDTIcon } from '../helpers/uiTypes'
 // import EditVirtualColumn from '~/components/project/spreadsheet/components/EditVirtualColumn'
@@ -146,7 +150,7 @@ provide(ColumnInj, column)
     <!--    </v-tooltip> -->
     <v-spacer />
 
-    <SmartsheetHeaderMenu :virtual="true" />
+    <SmartsheetHeaderMenu v-if="!isForm" :virtual="true" />
   </div>
 </template>
 

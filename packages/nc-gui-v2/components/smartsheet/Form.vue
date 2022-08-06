@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
-import { isVirtualCol } from 'nocodb-sdk'
-import type { ColumnType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject } from '#imports'
@@ -9,8 +8,12 @@ import { ActiveViewInj, FieldsInj, IsFormInj, MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiDragIcon from '~icons/mdi/drag-vertical'
+import MdiHideIcon from '~icons/mdi/eye-off-outline'
 
 provide(IsFormInj, true)
+
+// todo: generate hideCols based on default values
+const hiddenCols = ['created_at', 'updated_at']
 
 const toast = useToast()
 
@@ -27,6 +30,7 @@ const formState = reactive({
   show_blank_form: false,
   email: false,
   success_msg: '',
+  fields: {},
 })
 
 const isEditable = isUIAllowed('editFormView' as Permission)
@@ -45,6 +49,8 @@ const {
   updateRowProperty,
 } = useViewData(meta, view as any)
 
+const { saveOrUpdate } = useViewColumns(view, meta as any, false)
+
 const columns = computed(() => meta?.value?.columns || [])
 
 const hiddenColumns = computed(() => [])
@@ -59,9 +65,39 @@ function updateView() {}
 
 function submitForm() {}
 
-function isDbRequired() {}
+function isDbRequired(column: Record<string, any>) {
+  if (hiddenCols.includes(column.fk_column_id)) {
+    return false
+  }
 
-function saveOrUpdateOrderOrVisibility(field: any, i: any) {}
+  let isRequired =
+    // confirm column is not virtual
+    (!isVirtualCol(column) &&
+      // column required / not null
+      column.rqd &&
+      // column default value
+      !column.cdf &&
+      // confirm it's not foreign key
+      !columns.value.some(
+        (c: Record<string, any>) =>
+          c.uidt === UITypes.LinkToAnotherRecord &&
+          c?.colOptions?.type === RelationTypes.BELONGS_TO &&
+          column.fk_column_id === c.colOptions.fk_child_column_id,
+      )) ||
+    // primary column
+    (column.pk && !column.ai && !column.cdf)
+  if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions.type === RelationTypes.BELONGS_TO) {
+    const col = columns.value.find((c: Record<string, any>) => c.id === column.colOptions.fk_child_column_id) as Record<
+      string,
+      any
+    >
+    if ((col.rqd && !col.default) || formState?.fields[column.title]?.required) {
+      isRequired = true
+    }
+  }
+
+  return isRequired
+}
 
 function onMove(event: any) {
   const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
@@ -72,7 +108,7 @@ function onMove(event: any) {
 
   if (event.removed) {
     element.show = false
-    saveOrUpdateOrderOrVisibility(element, oldIndex)
+    saveOrUpdate(element, oldIndex)
   } else {
     if (!columns.value.length || columns.value.length === 1) {
       element.order = 1
@@ -83,10 +119,28 @@ function onMove(event: any) {
     } else {
       element.order = (columns.value[newIndex - 1]?.order || 0) + (columns.value[newIndex + 1].order || 0) / 2
     }
-    saveOrUpdateOrderOrVisibility(element, newIndex)
+    saveOrUpdate(element, newIndex)
   }
 
   $e('a:form-view:reorder')
+}
+
+function hideColumn(idx: number) {
+  if (isDbRequired(columns.value[idx])) {
+    toast.info("Required field can't be removed")
+    return
+  }
+
+  saveOrUpdate(
+    {
+      ...columns.value[idx],
+      show: false,
+    },
+    idx,
+  )
+  ;(columns.value[idx] as any).show = false
+
+  $e('a:form-view:hide-columns')
 }
 
 async function addAllColumns() {}
@@ -103,6 +157,11 @@ function setFormData() {
     show_blank_form: !!formData.value?.email,
     email: formData.value?.submit_another_form,
     success_msg: formData.value?.success_msg,
+    fields: fields.value.map((c: Record<string, any>) => ({
+      [c.title]: {
+        required: false,
+      },
+    })),
   })
 }
 
@@ -123,6 +182,7 @@ watch(
 <template>
   <a-row class="h-full flex overflow-auto">
     <a-col v-if="isEditable" :span="6" class="bg-[#f7f7f7] shadow-md pa-5">
+      {{ formState }}
       <div class="flex">
         <div class="flex flex-row flex-1 text-lg">
           <span>
@@ -206,11 +266,18 @@ watch(
 
         <draggable :list="fields" item-key="title" draggable=".item" group="div" class="h-100" @change="onMove($event)">
           <template #item="{ element, index }">
-            <div class="item cursor-pointer hover:bg-primary/10 pa-2">
-              <SmartsheetHeaderVirtualCell v-if="isVirtualCol(element)" :column="element" />
-              <SmartsheetHeaderCell v-else :column="element" />
+            <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3">
+              <div class="flex">
+                <div class="flex flex-1">
+                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(element)" :column="element" />
+                  <SmartsheetHeaderCell v-else :column="element" />
+                </div>
+                <div v-if="isUIAllowed('editFormView')" class="flex">
+                  <MdiHideIcon class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
+                </div>
+              </div>
               <div
-                class="!bg-white rounded px-1 min-h-[40px] mt-2 mb-4 pa-2 flex align-center border-solid border-1 border-primary"
+                class="w-full !bg-white rounded px-1 min-h-[40px] mt-2 mb-4 pa-2 flex align-center border-solid border-1 border-primary"
               >
                 <SmartsheetVirtualCell v-if="isVirtualCol(element)" v-model="formState[element.title]" :column="element" />
                 <SmartsheetCell
@@ -272,4 +339,10 @@ watch(
   </a-row>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped lang="scss">
+.nc-editable:hover {
+  .nc-field-remove-icon {
+    @apply opacity-100;
+  }
+}
+</style>

@@ -27,34 +27,33 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const { updateOrSaveRow, insertRow } = useViewData(meta, activeView as any)
 
 
-
     // getters
-   const primaryValue = computed(() => {
+    const primaryValue = computed(() => {
       if (row?.value?.row) {
-        const value= '';
-        const col = meta?.value?.columns?.find(c => c.pv);
+        const col = meta?.value?.columns?.find(c => c.pv)
         if (!col) {
-          return;
+          return
         }
-        const uidt = col.uidt;
-        if (uidt == UITypes.Date) {
-          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD');
-        } else if (uidt == UITypes.DateTime) {
-          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD HH:mm');
-        } else if (uidt == UITypes.Time) {
-          let dateTime = dayjs(value);
+        const value = row.value.row?.[col.title as string]
+        const uidt = col.uidt
+        if (uidt === UITypes.Date) {
+          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD')
+        } else if (uidt === UITypes.DateTime) {
+          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD HH:mm')
+        } else if (uidt === UITypes.Time) {
+          let dateTime = dayjs(value)
           if (!dateTime.isValid()) {
-            dateTime = dayjs(value, 'HH:mm:ss');
+            dateTime = dayjs(value, 'HH:mm:ss')
           }
           if (!dateTime.isValid()) {
-            dateTime = dayjs(`1999-01-01 ${value}`);
+            dateTime = dayjs(`1999-01-01 ${value}`)
           }
           if (!dateTime.isValid()) {
-            return value;
+            return value
           }
-          return dateTime.format('HH:mm:ss');
+          return dateTime.format('HH:mm:ss')
         }
-        return value;
+        return value
       }
     })
 
@@ -99,6 +98,17 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
 
       $e('a:row-expand:comment')
     }
+
+    const save = async () => {
+      // try {
+      //   await updateOrSaveRow(row.value.row)
+      //   message.success('Saved successfully')
+      // } catch (e: any) {
+      //   message.error(e.message)
+      // }
+    }
+
+
     return {
       commentsOnly,
       loadCommentsAndLogs,
@@ -110,7 +120,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       isYou,
       commentsDrawer,
       row,
-      primaryValue
+      primaryValue, save,
     }
   },
   'expanded-form-store',

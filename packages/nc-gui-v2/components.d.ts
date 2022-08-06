@@ -66,6 +66,7 @@ declare module '@vue/runtime-core' {
     MdiDotsVertical: typeof import('~icons/mdi/dots-vertical')['default']
     MdiLogout: typeof import('~icons/mdi/logout')['default']
     MdiReload: typeof import('~icons/mdi/reload')['default']
+    MdiTableArrowRight: typeof import('~icons/mdi/table-arrow-right')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

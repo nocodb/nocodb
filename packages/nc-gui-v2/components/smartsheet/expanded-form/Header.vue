@@ -1,13 +1,12 @@
 <script lang="ts" setup>
 import { computed } from '#imports'
-import { useExpandedFormStoreOrThrow, useSmartsheetStoreOrThrow } from '~/composables'
+import { useExpandedFormStoreOrThrow, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
 import MdiDoorOpen from '~icons/mdi/door-open'
 import MdiDoorClosed from '~icons/mdi/door-closed'
-import MdiTableArrowRightIcon from '~icons/mdi/table-arrow-right'
-import MdiTableArrowRightIcon from '~icons/mdi/table-arrow-right'
 
 const {meta} = useSmartsheetStoreOrThrow()
-const { commentsDrawer, row, primaryValue } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, row, primaryValue, save } = useExpandedFormStoreOrThrow()
+const { isUIAllowed} =useUIPermission()
 
 const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : MdiDoorClosed))
 
@@ -17,9 +16,9 @@ const iconColor =  '#1890ff'
 </script>
 
 <template>
-  <div class="flex p-2 align-center">
+  <div class="flex p-2 align-center gap-2">
     <h5 class="text-md font-weight-bold flex align-center gap-1 mb-0">
-      <MdiTableArrowRightIcon :style="{color:iconColor}"/>
+      <mdi-table-arrow-right :style="{color:iconColor}"/>
 
       <template v-if="meta">
         {{ meta.title }}
@@ -30,7 +29,16 @@ const iconColor =  '#1890ff'
       <template v-if="primaryValue">: {{ primaryValue }}</template>
     </h5>
     <div class="flex-grow" />
+    <mdi-reload/>
     <component :is="drawerToggleIcon" class="" @click="commentsDrawer = !commentsDrawer" />
+    <a-button size="small" class="!text">
+      <!-- Cancel -->
+      {{ $t('general.cancel') }}
+    </a-button>
+    <a-button size="small" :disabled="!isUIAllowed('tableRowUpdate')" type="primary" @click="save">
+      <!--Save Row-->
+      {{ $t('activity.saveRow') }}
+    </a-button>
   </div>
 </template>
 

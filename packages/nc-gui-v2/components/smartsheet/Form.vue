@@ -43,14 +43,15 @@ const {
   loadData,
   paginationData,
   formattedData: data,
-  loadFormData,
-  formData,
+  loadFormView,
+  formColumnData,
+  formViewData,
   changePage,
   updateRowProperty,
 } = useViewData(meta, view as any)
 
 const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, false, () => {
-  loadFormData()
+  loadFormView()
   setFormData()
 })
 
@@ -58,9 +59,11 @@ const columns = computed(() => meta?.value?.columns || [])
 
 const localColumns = ref<Record<string, any>>([])
 
-const hiddenColumns = computed(() => [])
+const hiddenColumns = ref<Record<string, any>>([])
 
 const availableColumns = inject(FieldsInj, ref([]))
+
+const systemFieldsIds = ref<Record<string, any>>([])
 
 const formView = ref({})
 
@@ -94,7 +97,7 @@ function isDbRequired(column: Record<string, any>) {
       string,
       any
     >
-    if ((col.rqd && !col.default) || formState?.fields[column.title]?.required) {
+    if ((col.rqd && !col.default) || (formState as Record<string, any>)?.fields[column.title]?.required) {
       isRequired = true
     }
   }
@@ -154,31 +157,38 @@ async function checkSMTPStatus() {}
 
 function setFormData() {
   Object.assign(formState, {
-    heading: formData.value?.heading,
-    subheading: formData.value?.subheading,
-    submit_another_form: !!formData.value?.submit_another_form,
-    show_blank_form: !!formData.value?.email,
-    email: formData.value?.submit_another_form,
-    success_msg: formData.value?.success_msg,
-    fields: (formData.value as Record<string, any>[])?.map((c) => ({
+    heading: formViewData.value?.heading,
+    subheading: formViewData.value?.subheading,
+    submit_another_form: !!formViewData.value?.submit_another_form,
+    show_blank_form: !!formViewData.value?.email,
+    email: formViewData.value?.submit_another_form,
+    success_msg: formViewData.value?.success_msg,
+    fields: (formColumnData.value as Record<string, any>[])?.map((c) => ({
       [c.title]: {
         required: false,
       },
     })),
   })
-  localColumns.value = (formData as Record<string, any>)?.value
+
+  const col = (formColumnData as Record<string, any>)?.value
+
+  localColumns.value = col
     .filter((f: Record<string, any>) => f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup)
     .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
+
+  systemFieldsIds.value = getSystemColumns(col).map((c: Record<string, any>) => c.fk_column_id)
+
+  hiddenColumns.value = col.filter((f: Record<string, any>) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id))
 }
 
 onMounted(async () => {
-  await loadFormData()
+  await loadFormView()
   setFormData()
 })
 
 // TODO: check if it's required
 watch(
-  () => formData,
+  () => formColumnData || formViewData,
   (v) => {
     setFormData()
   },
@@ -197,11 +207,21 @@ watch(
         </div>
         <div class="flex flex-row">
           <div class="cursor-pointer mr-2">
-            <span v-if="hiddenColumns.length" style="border-bottom: 2px solid rgb(218, 218, 218)" @click="addAllColumns()">
+            <span
+              v-if="hiddenColumns.length"
+              class="mr-2"
+              style="border-bottom: 2px solid rgb(218, 218, 218)"
+              @click="addAllColumns()"
+            >
               <!-- Add all -->
               {{ $t('general.addAll') }}
             </span>
-            <span v-if="columns.length" style="border-bottom: 2px solid rgb(218, 218, 218)" @click="removeAllColumns">
+            <span
+              v-if="localColumns.length"
+              class="ml-2"
+              style="border-bottom: 2px solid rgb(218, 218, 218)"
+              @click="removeAllColumns"
+            >
               <!-- Remove all -->
               {{ $t('general.removeAll') }}
             </span>
@@ -209,12 +229,12 @@ watch(
         </div>
       </div>
       <draggable :list="hiddenColumns" item-key="title" handle=".nc-child-draggable-icon">
-        <template #item="{ element, index }">
+        <template #item="{ element }">
           <a-card size="small" class="ma-0 pa-0 cursor-pointer">
             <div class="flex">
               <div class="flex flex-row flex-1">
-                <MdiDragIcon />
-                <label class=""> TODO: column name </label>
+                <SmartsheetHeaderVirtualCell v-if="isVirtualCol(element)" :column="element" />
+                <SmartsheetHeaderCell v-else :column="element" />
               </div>
               <div class="flex flex-row">
                 <MdiDragIcon class="flex flex-1" />

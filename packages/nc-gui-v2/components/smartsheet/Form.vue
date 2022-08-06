@@ -16,7 +16,7 @@ const toast = useToast()
 
 const state = useGlobal()
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
@@ -60,6 +60,34 @@ function updateView() {}
 function submitForm() {}
 
 function isDbRequired() {}
+
+function saveOrUpdateOrderOrVisibility(field: any, i: any) {}
+
+function onMove(event: any) {
+  const { newIndex, element, oldIndex } = event.added || event.moved || event.removed
+
+  if (event.added) {
+    element.show = true
+  }
+
+  if (event.removed) {
+    element.show = false
+    saveOrUpdateOrderOrVisibility(element, oldIndex)
+  } else {
+    if (!columns.value.length || columns.value.length === 1) {
+      element.order = 1
+    } else if (columns.value.length - 1 === newIndex) {
+      element.order = (columns.value[newIndex - 1]?.order || 0) + 1
+    } else if (newIndex === 0) {
+      element.order = (columns.value[1]?.order || 0) / 2
+    } else {
+      element.order = (columns.value[newIndex - 1]?.order || 0) + (columns.value[newIndex + 1].order || 0) / 2
+    }
+    saveOrUpdateOrderOrVisibility(element, newIndex)
+  }
+
+  $e('a:form-view:reorder')
+}
 
 async function addAllColumns() {}
 
@@ -176,9 +204,24 @@ watch(
           </a-form-item>
         </a-form>
 
-        <draggable :list="columns" item-key="title" handle=".nc-child-draggable-icon">
+        <draggable :list="fields" item-key="title" draggable=".item" group="div" class="h-100" @change="onMove($event)">
           <template #item="{ element, index }">
-            <!-- TODO: render columns -->
+            <div class="item cursor-pointer hover:bg-primary/10 pa-2">
+              <SmartsheetHeaderVirtualCell v-if="isVirtualCol(element)" :column="element" />
+              <SmartsheetHeaderCell v-else :column="element" />
+              <div
+                class="!bg-white rounded px-1 min-h-[40px] mt-2 mb-4 pa-2 flex align-center border-solid border-1 border-primary"
+              >
+                <SmartsheetVirtualCell v-if="isVirtualCol(element)" v-model="formState[element.title]" :column="element" />
+                <SmartsheetCell
+                  v-else
+                  v-model="formState[element.title]"
+                  :column="element"
+                  :edit-enabled="true"
+                  @update:modelValue="changedColumns.push(element.title)"
+                />
+              </div>
+            </div>
           </template>
           <template #footer>
             <div v-if="!columns.length" class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
@@ -186,21 +229,6 @@ watch(
             </div>
           </template>
         </draggable>
-
-        <div v-for="col in fields" :key="col.id" v-xc-ver-resize>
-          <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
-          <SmartsheetHeaderCell v-else :column="col" />
-          <div class="!bg-white rounded px-1 min-h-[40px] mt-2 mb-4 pa-2 flex align-center border-solid border-1 border-primary">
-            <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="formState[col.title]" :column="col" />
-            <SmartsheetCell
-              v-else
-              v-model="formState[col.title]"
-              :column="col"
-              :edit-enabled="true"
-              @update:modelValue="changedColumns.push(col.title)"
-            />
-          </div>
-        </div>
 
         <div class="justify-center flex mt-5">
           <a-button class="flex items-center gap-2 !bg-primary text-white rounded" size="large" @click="submitForm">

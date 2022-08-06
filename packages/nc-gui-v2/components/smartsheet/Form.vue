@@ -1,7 +1,11 @@
 <script setup lang="ts">
+import Draggable from 'vuedraggable'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject } from '#imports'
 import { MetaInj } from '~/context'
+import MdiClose from '~icons/mdi/close'
+import MdiPlusIcon from '~icons/mdi/plus'
+import MdiDragIcon from '~icons/mdi/drag-vertical'
 
 const state = useGlobal()
 
@@ -15,6 +19,10 @@ const formState = reactive({
   emailMe: false,
   successMsg: '',
 })
+
+const options = $ref<any[]>([])
+
+const colorMenus = $ref<any>({})
 
 const isEditable = isUIAllowed('editFormView' as Permission)
 
@@ -60,7 +68,34 @@ async function checkSMTPStatus() {}
           </div>
         </div>
       </div>
-      TODO: Draggable
+      <draggable :list="hiddenColumns" item-key="title" handle=".nc-child-draggable-icon">
+        <template #item="{ element, index }">
+          <a-card size="small" class="ma-0 pa-0 cursor-pointer">
+            <div class="flex">
+              <div class="flex flex-row flex-1">
+                <MdiDragIcon />
+                <label class=""> TODO: column name </label>
+              </div>
+              <div class="flex flex-row">
+                <MdiDragIcon class="flex flex-1" />
+              </div>
+            </div>
+          </a-card>
+        </template>
+        <template #footer>
+          <div class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
+            <!-- Drag and drop fields here to hide -->
+            {{ $t('msg.info.dragDropHide') }}
+          </div>
+          <a-button type="link" class="w-full caption mt-2" size="large" @click="addNewOption()">
+            <div class="flex items-center prose-sm justify-center text-gray-400">
+              <MdiPlusIcon />
+              <!-- Add new field to this table -->
+              {{ $t('activity.addField') }}
+            </div>
+          </a-button>
+        </template>
+      </draggable>
     </a-col>
     <a-col :span="isEditable ? 18 : 24">
       <a-card class="px-10 py-20 h-full">

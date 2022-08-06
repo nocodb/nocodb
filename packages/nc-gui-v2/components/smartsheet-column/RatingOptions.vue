@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { Sketch } from '@ckpack/vue-color'
 import { useColumnCreateStoreOrThrow } from '#imports'
-import { enumColor, getMdiIcon } from '@/utils'
+import { getMdiIcon } from '@/utils'
 
 const { formState } = useColumnCreateStoreOrThrow()
 
@@ -29,9 +28,12 @@ const iconList = [
   },
 ]
 
-const advanced = ref(true)
-
-const picked = ref(formState.value.meta.color || enumColor.light[0])
+const picked = computed({
+  get: () => formState.value.meta.color,
+  set: (val) => {
+    formState.value.meta.color = val
+  },
+})
 
 // set default value
 formState.value.meta = {
@@ -95,16 +97,11 @@ watch(
     </a-col>
   </a-row>
   <a-row>
-    <a-card class="w-full shadow-lg mt-2" body-style="padding: 0px">
-      <a-collapse v-model:activeKey="advanced" accordion ghost expand-icon-position="right">
-        <a-collapse-panel key="1" header="Advanced" class="">
-          <a-button class="!bg-primary text-white w-full" @click="formState.meta.color = picked.hex"> Pick Color </a-button>
-          <div class="px-7 py-3">
-            <Sketch v-model="picked" />
-          </div>
-        </a-collapse-panel>
-      </a-collapse>
-    </a-card>
+    <GeneralColorPicker
+      v-model="picked"
+      :row-size="8"
+      :colors="['#fcb401', '#faa307', '#f48c06', '#e85d04', '#dc2f02', '#d00000', '#9d0208', '#777']"
+    />
   </a-row>
 </template>
 

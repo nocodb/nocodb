@@ -227,7 +227,7 @@ export function useViewData(
   const loadFormData = async () => {
     if (!viewMeta?.value?.id) return
     try {
-      const { columns, ...view } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
+      const { columns } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
 
       const fieldById = columns.reduce(
         (o: Record<string, any>, f: Record<string, any>) => ({

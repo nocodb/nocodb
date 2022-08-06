@@ -1,3 +1,4 @@
+import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
@@ -7,6 +8,7 @@ import { useApi } from '~/composables/useApi'
 import { useViewData } from '~/composables/useViewData'
 import { ActiveViewInj } from '~/context'
 import { extractPkFromRow } from '~/utils'
+import dayjs from 'dayjs'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
   (meta: Ref<TableType>, row: Ref<Record<string, any>>) => {
@@ -23,6 +25,39 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const activeView = inject(ActiveViewInj)
 
     const { updateOrSaveRow, insertRow } = useViewData(meta, activeView as any)
+
+
+
+    // getters
+   const primaryValue = computed(() => {
+      if (row?.value?.row) {
+        const value= '';
+        const col = meta?.value?.columns?.find(c => c.pv);
+        if (!col) {
+          return;
+        }
+        const uidt = col.uidt;
+        if (uidt == UITypes.Date) {
+          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD');
+        } else if (uidt == UITypes.DateTime) {
+          return (/^\d+$/.test(value) ? dayjs(+value) : dayjs(value)).format('YYYY-MM-DD HH:mm');
+        } else if (uidt == UITypes.Time) {
+          let dateTime = dayjs(value);
+          if (!dateTime.isValid()) {
+            dateTime = dayjs(value, 'HH:mm:ss');
+          }
+          if (!dateTime.isValid()) {
+            dateTime = dayjs(`1999-01-01 ${value}`);
+          }
+          if (!dateTime.isValid()) {
+            return value;
+          }
+          return dateTime.format('HH:mm:ss');
+        }
+        return value;
+      }
+    })
+
 
     // actions
     const loadCommentsAndLogs = async () => {
@@ -58,7 +93,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
         comment.value = ''
         message.success('Comment added successfully')
         await loadCommentsAndLogs()
-      } catch (e) {
+      } catch (e: any) {
         message.error(e.message)
       }
 
@@ -74,6 +109,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       comment,
       isYou,
       commentsDrawer,
+      row,
+      primaryValue
     }
   },
   'expanded-form-store',

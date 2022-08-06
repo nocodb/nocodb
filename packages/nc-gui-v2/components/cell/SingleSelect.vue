@@ -31,13 +31,7 @@ const options = computed(() => {
 </script>
 
 <template>
-  <a-select
-    v-model:value="vModel"
-    class="w-full fill"
-    :allow-clear="!column.rqd"
-    placeholder="Select an option"
-    :bordered="false"
-  >
+  <a-select v-model:value="vModel" class="w-full" :allow-clear="!column.rqd" placeholder="Select an option" :bordered="false">
     <a-select-option v-for="op of options" :key="op.title">
       <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>

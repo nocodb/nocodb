@@ -14,6 +14,9 @@ const emit = defineEmits(['update:modelValue'])
 const { isMysql } = useProject()
 
 const column = inject(ColumnInj)
+const isForm = inject<boolean>('isForm', false)
+const editEnabled = inject(EditModeInj, ref(false))
+const selectedIds = ref<string[]>([])
 
 const options = computed(() => {
   if (column?.colOptions) {
@@ -27,20 +30,41 @@ const options = computed(() => {
 })
 
 const vModel = computed({
-  get: () =>
-    modelValue
-      ? typeof modelValue === 'string'
-        ? isMysql
-          ? modelValue.split(',').sort((a, b) => {
-              const opa = options.value.find((el: SelectOptionType) => el.title === a)
-              const opb = options.value.find((el: SelectOptionType) => el.title === b)
-              return opa.order - opb.order
-            })
-          : modelValue.split(',')
-        : modelValue
-      : [],
+  get: () => selectedIds.value.map((el) => options.value.find((op: SelectOptionType) => op.id === el).title),
   set: (val) => emit('update:modelValue', val.join(',')),
 })
+
+const selectedTitles = computed(() =>
+  modelValue
+    ? typeof modelValue === 'string'
+      ? isMysql
+        ? modelValue.split(',').sort((a, b) => {
+            const opa = options.value.find((el: SelectOptionType) => el.title === a)
+            const opb = options.value.find((el: SelectOptionType) => el.title === b)
+            if (opa && opb) {
+              return opa.order - opb.order
+            }
+            return 0
+          })
+        : modelValue.split(',')
+      : modelValue
+    : [],
+)
+
+onMounted(() => {
+  selectedIds.value = selectedTitles.value.map((el) => {
+    return options.value.find((op: SelectOptionType) => op.title === el).id
+  })
+})
+
+watch(
+  () => modelValue,
+  (n, _o) => {
+    selectedIds.value = selectedTitles.value.map((el) => {
+      return options.value.find((op: SelectOptionType) => op.title === el).id
+    })
+  },
+)
 </script>
 
 <template>
@@ -53,13 +77,19 @@ const vModel = computed({
     show-arrow
     :show-search="false"
   >
-    <a-select-option v-for="op of options" :key="op.title" style="cursor: pointer">
+    <a-select-option v-for="op of options" :key="op.id" :value="op.title" :data-color="op.color">
       <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>
       </a-tag>
     </a-select-option>
-    <template #tagRender="{ value: val, label, onClose }">
-      <a-tag class="rounded-tag" :color="label[0].props.color" :closable="editEnabled" @close="onClose">
+    <template #tagRender="{ value: val, onClose }">
+      <a-tag
+        v-if="options.find((el: SelectOptionType) => el.title === val)"
+        class="rounded-tag"
+        :color="options.find((el: SelectOptionType) => el.title === val).color"
+        :closable="editEnabled"
+        @close="onClose"
+      >
         <span class="text-slate-500">{{ val }}</span>
       </a-tag>
     </template>

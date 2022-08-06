@@ -1,13 +1,16 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
+import { isVirtualCol } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject } from '#imports'
-import { ActiveViewInj, FieldsInj, MetaInj } from '~/context'
+import { ActiveViewInj, FieldsInj, IsFormInj, MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiDragIcon from '~icons/mdi/drag-vertical'
+
+provide(IsFormInj, true)
 
 const toast = useToast()
 
@@ -32,7 +35,15 @@ const meta = inject(MetaInj)
 
 const view = inject(ActiveViewInj)
 
-const { loadData, paginationData, formattedData: data, loadFormData, formData, changePage } = useViewData(meta, view as any)
+const {
+  loadData,
+  paginationData,
+  formattedData: data,
+  loadFormData,
+  formData,
+  changePage,
+  updateRowProperty,
+} = useViewData(meta, view as any)
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -82,9 +93,8 @@ watch(
 </script>
 
 <template>
-  <a-row class="h-full flex">
+  <a-row class="h-full flex overflow-auto">
     <a-col v-if="isEditable" :span="6" class="bg-[#f7f7f7] shadow-md pa-5">
-      {{ formState }}
       <div class="flex">
         <div class="flex flex-row flex-1 text-lg">
           <span>
@@ -176,6 +186,21 @@ watch(
             </div>
           </template>
         </draggable>
+
+        <div v-for="col in fields" :key="col.id" v-xc-ver-resize>
+          <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+          <SmartsheetHeaderCell v-else :column="col" />
+          <div class="!bg-white rounded px-1 min-h-[40px] mt-2 mb-4 pa-2 flex align-center border-solid border-1 border-primary">
+            <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="formState[col.title]" :column="col" />
+            <SmartsheetCell
+              v-else
+              v-model="formState[col.title]"
+              :column="col"
+              :edit-enabled="true"
+              @update:modelValue="changedColumns.push(col.title)"
+            />
+          </div>
+        </div>
 
         <div class="justify-center flex mt-5">
           <a-button class="flex items-center gap-2 !bg-primary text-white rounded" size="large" @click="submitForm">

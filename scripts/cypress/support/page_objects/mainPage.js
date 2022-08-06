@@ -167,7 +167,7 @@ export class _mainPage {
 
     getCell = (columnHeader, cellNumber) => {
         return cy.get(
-            `tbody > :nth-child(${cellNumber}) > [data-col="${columnHeader}"]`
+            `:nth-child(${cellNumber}) > [data-title="${columnHeader}"]`
         );
     };
 

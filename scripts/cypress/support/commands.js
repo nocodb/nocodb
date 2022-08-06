@@ -166,8 +166,12 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
 
 Cypress.Commands.add("closeTableTab", (tn) => {
     cy.task("log", `[closeTableTab] ${tn}`);
-    cy.get(`.project-tab`).contains(tn).should("exist");
-    cy.get(`[href="#table||||${tn}"]`).find("button.mdi-close").click();
+    cy.get('.ant-tabs-tab-btn')
+      .contains(tn)
+      .should('exist')
+      .parent()
+      .find('button')
+      .click();
 });
 
 Cypress.Commands.add("openOrCreateGqlProject", (_args) => {

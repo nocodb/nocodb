@@ -57,14 +57,17 @@ export const genTest = (apiType, dbType) => {
         });
 
         it("Table Rename operation", () => {
+            cy.get(".nc-project-tree-tbl-City").should("exist").click();
+
             cy.renameTable("City", "CityX");
 
             // verify
             // 1. Table name in project tree has changed
-            cy.get(".nc-tbl-title").contains("CityX").should("exist");
+            // cy.get(".nc-tbl-title").contains("CityX").should("exist");
+            cy.get(".nc-project-tree-tbl-CityX").should("exist");
 
             // 2. Table tab name has changed
-            cy.get(`.project-tab:contains('CityX'):visible`).should("exist");
+            cy.get(`.ant-tabs-tab:contains('CityX'):visible`).should("exist");
 
             // 3. contents of the table are valid
             mainPage
@@ -73,28 +76,6 @@ export const genTest = (apiType, dbType) => {
                 .should("exist");
 
             cy.closeTableTab("CityX");
-
-            // 4. verify linked contents in other table
-            // 4a. Address table, has many field
-            cy.openTableTab("Address", 25);
-
-            mainPage.getCell("City", 1).scrollIntoView();
-            mainPage
-                .getCell("City", 1)
-                .find(".name")
-                .contains("Lethbridge")
-                .should("exist");
-            cy.closeTableTab("Address");
-
-            // 4b. Country table, belongs to field
-            cy.openTableTab("Country", 25);
-
-            mainPage
-                .getCell("City List", 1)
-                .find(".name")
-                .contains("Kabul")
-                .should("exist");
-            cy.closeTableTab("Country");
 
             // revert re-name operation to not impact rest of test suite
             cy.renameTable("CityX", "City");

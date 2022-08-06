@@ -17,6 +17,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
     const commentsOnly = ref(false)
     const commentsAndLogs = ref([])
     const comment = ref('')
+    const commentsDrawer = ref(false)
 
     // todo
     const activeView = inject(ActiveViewInj)
@@ -72,6 +73,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState(
       saveComment,
       comment,
       isYou,
+      commentsDrawer,
     }
   },
   'expanded-form-store',

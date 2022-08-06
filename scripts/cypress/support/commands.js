@@ -243,49 +243,25 @@ Cypress.Commands.add("getActiveContentModal", () => {
 
 Cypress.Commands.add("createTable", (name) => {
     cy.get(".nc-btn-tbl-add").click();
-    cy.getActiveMenu().contains("Add new table").should('exist').click()
-    cy.get('.nc-create-table-card .nc-table-name input[type="text"]')
-        .first()
-        .click()
-        .clear()
-        .type(name);
-
-    // cy.log(isXcdb());
-    // if (!isXcdb()) {
-    //   cy.get('.nc-create-table-card .nc-table-name-alias input[type="text"]')
-    //     .first()
-    //     .should("have.value", name.toLowerCase());
-    // }
-
-    cy.snip("CreateTable");
-    cy.snipActiveModal("Modal_CreateTable");
-
-    cy.get(".nc-create-table-card .nc-create-table-submit").first().click();
-    cy.toastWait(`Create table successful`);
-    cy.get(`.project-tab:contains(${name})`).should("exist");
-    cy.url().should("contain", `name=${name}`);
+    cy.getActiveModal().find(`input[type="text"]:visible`)
+      .click()
+      .clear()
+      .type(name)
+    cy.getActiveModal().find("button").contains("Submit").click();
+    cy.wait(2000)
+    cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
+    cy.url().should("contain", `table/${name}`);
+    cy.get(`.nc-project-tree-tbl-${name}`).should("exist");
 });
 
 Cypress.Commands.add("deleteTable", (name, dbType) => {
-    cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)")
-        .should('exist')
-        .first()
-        .click();
-    cy.get(".nc-project-tree")
-        .contains(name)
-        .should('exist')
-        .first()
-        .click({ force: true });
-    cy.get(`.project-tab:contains(${name}):visible`).should("exist");
-    cy.get(".nc-table-delete-btn:visible").click();
-    cy.snipActiveModal("Modal_DeleteTable");
-    cy.get("button:contains(Submit)").click();
+    cy.get(`.nc-project-tree-tbl-${name}`).should("exist").rightclick();
+    cy.getActiveMenu().find('[role="menuitem"]').contains("Delete").click();
+    cy.getActiveModal().find("button").contains("Yes").click();
 
     // only for postgre project
     if (dbType === "postgres") cy.toastWait(`Delete trigger successful`);
-
-    cy.toastWait(`Delete table successful`);
+    cy.toastWait(`Deleted table ${name} successfully`);
 });
 
 Cypress.Commands.add("renameTable", (oldName, newName) => {

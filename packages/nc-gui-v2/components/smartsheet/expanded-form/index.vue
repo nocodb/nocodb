@@ -26,7 +26,7 @@ provide(IsFormInj, true)
 // accept as a prop
 // const row: Row = { row: {}, rowMeta: {}, oldRow: {} }
 
-const { loadComments, commentsDrawer } = useProvideExpandedFormStore(meta, row)
+const { commentsDrawer, changedColumns } = useProvideExpandedFormStore(meta, row)
 
 const isExpanded = useVModel(props, 'modelValue', emits)
 </script>
@@ -49,8 +49,7 @@ const isExpanded = useVModel(props, 'modelValue', emits)
                   v-model="row.row[col.title]"
                   :column="col"
                   :edit-enabled="true"
-                  @update:edit-enabled="editEnabled = false"
-                  @cancel="editEnabled = false"
+                  @update:modelValue="changedColumns.push(col.title)"
                 />
               </div>
             </div>

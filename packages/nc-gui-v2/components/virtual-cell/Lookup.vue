@@ -2,7 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { useColumn } from '~/composables'
-import { ColumnInj, MetaInj, ReadonlyInj, ValueInj } from '~/context'
+import { CellValueInj, ColumnInj, MetaInj, ReadonlyInj } from '~/context'
 
 const { metas, getMeta } = useMetas()
 
@@ -10,8 +10,8 @@ provide(ReadonlyInj, true)
 
 const column = inject(ColumnInj) as ColumnType & { colOptions: LookupType }
 const meta = inject(MetaInj)
-const value = inject(ValueInj)
-const arrValue = Array.isArray(value) ? value : [value]
+const value = inject(CellValueInj)
+const arrValue = computed(() => (Array.isArray(value?.value) ? value?.value : [value?.value]))
 
 const relationColumn = meta?.value.columns?.find((c) => c.id === column.colOptions.fk_relation_column_id) as ColumnType & {
   colOptions: LinkToAnotherRecordType

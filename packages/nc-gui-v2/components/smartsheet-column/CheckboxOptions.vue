@@ -50,22 +50,36 @@ formState.value.meta = {
   color: '#777',
   ...formState.value.meta,
 }
+
+// antdv doesn't support object as value
+// use iconIdx as value and update back in watch
+const iconIdx = iconList.findIndex(
+  (ele) => ele.checked === formState.value.meta.icon.checked && ele.unchecked === formState.value.meta.icon.unchecked,
+)
+
+formState.value.meta.iconIdx = iconIdx === -1 ? 0 : iconIdx
+
+watch(
+  () => formState.value.meta.iconIdx,
+  (v) => {
+    formState.value.meta.icon = iconList[v]
+  },
+)
 </script>
 
 <template>
   <a-row>
     <a-col :span="24">
       <a-form-item label="Icon">
-        <a-select v-model:value="formState.meta.icon" size="small" class="w-52">
-          <!-- FIXME: antdv doesn't support object as value -->
-          <a-select-option v-for="(icon, i) of iconList" :key="i" :value="icon">
+        <a-select v-model:value="formState.meta.iconIdx" size="small" class="w-52">
+          <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <component
               :is="getMdiIcon(icon.checked)"
+              class="mx-1"
               :style="{
                 color: formState.meta.color,
               }"
             />
-            {{ ' ' }}
             <component
               :is="getMdiIcon(icon.unchecked)"
               :style="{

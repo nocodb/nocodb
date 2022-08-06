@@ -13,6 +13,7 @@ import {
 import {
   ActiveViewInj,
   ChangePageInj,
+  EditModeInj,
   FieldsInj,
   IsFormInj,
   IsGridInj,
@@ -278,6 +279,8 @@ const onNavigate = (dir: NavigateDir) => {
                     v-if="isVirtualCol(columnObj)"
                     v-model="row.row[columnObj.title]"
                     :column="columnObj"
+                    :active="selected.col === colIndex && selected.row === rowIndex"
+                    :row="row"
                     @navigate="onNavigate"
                   />
 

@@ -52,6 +52,7 @@ const isRowEmpty = (record: any, col: any) => {
 }
 </script>
 
+<!-- TODO: Fix scrolling -->
 <template>
   <div class="flex flex-col h-100 min-h-0 w-100">
     <div class="nc-gallery-container min-h-0 flex-1 grid grid-cols-4 gap-x-4 gap-y-4 my-4 px-3">

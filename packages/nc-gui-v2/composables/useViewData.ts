@@ -26,7 +26,8 @@ export function useViewData(
 ) {
   const formattedData = ref<Row[]>([])
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
-  const formData = ref<FormType | undefined>(undefined)
+  const formColumnData = ref<FormType | undefined>(undefined)
+  const formViewData = ref<FormType | undefined>(undefined)
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
@@ -224,10 +225,10 @@ export function useViewData(
     }
   }
 
-  const loadFormData = async () => {
+  const loadFormView = async () => {
     if (!viewMeta?.value?.id) return
     try {
-      const { columns } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
+      const { columns, ...view } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
 
       const fieldById = columns.reduce(
         (o: Record<string, any>, f: Record<string, any>) => ({
@@ -239,7 +240,9 @@ export function useViewData(
 
       let order = 1
 
-      formData.value = meta?.value?.columns
+      formViewData.value = view
+
+      formColumnData.value = meta?.value?.columns
         ?.map((c: Record<string, any>) => ({
           ...c,
           fk_column_id: c.id,
@@ -269,7 +272,8 @@ export function useViewData(
     deleteSelectedRows,
     updateOrSaveRow,
     selectedAllRecords,
-    loadFormData,
-    formData,
+    loadFormView,
+    formColumnData,
+    formViewData,
   }
 }

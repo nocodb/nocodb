@@ -6,13 +6,12 @@ import dayjs from 'dayjs'
 import { NOCO } from '~/lib'
 import getPlainText from '../../nc-gui/components/project/spreadsheet/helpers/getPlainText'
 import { useNuxtApp } from '#app'
-import { useInjectionState } from '#imports'
+import { useInjectionState,useProject } from '#imports'
 import { useApi } from '~/composables/useApi'
 import type { Row } from '~/composables/useViewData'
-import { ActiveViewInj } from '~/context'
 import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
 
-const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
+const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>, ) => {
   const { $e, $state, $api } = useNuxtApp()
   const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
   // { useGlobalInstance: true },
@@ -21,9 +20,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const commentsAndLogs = ref([])
   const comment = ref('')
   const commentsDrawer = ref(false)
-  const changedColumns = reactive(new Set<string>())
+  const changedColumns = ref(new Set<string>())
   const { project } = useProject()
-
   // todo
   // const activeView = inject(ActiveViewInj)
 
@@ -110,7 +108,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       //   }
       // }
 
-      const updateOrInsertObj = [...changedColumns].reduce((obj, col) => {
+      const updateOrInsertObj = [...changedColumns.value].reduce((obj, col) => {
         obj[col] = row.value.row[col]
         return obj
       }, {} as Record<string, any>)
@@ -166,11 +164,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       // this.$emit('update:isNew', false);
 
       notification.success({
-        message: `${this.primaryValue() || 'Row'} updated successfully.`,
+        message: `${primaryValue.value || 'Row'} updated successfully.`,
         // position: 'bottom-right',
       })
 
-      changedColumns.clear()
+      changedColumns.value = new Set()
     } catch (e: any) {
       notification.error({ message: `Failed to update row`, description: await extractSdkResponseErrorMsg(e) })
     }

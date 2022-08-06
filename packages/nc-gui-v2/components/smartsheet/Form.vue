@@ -49,15 +49,18 @@ const {
   updateRowProperty,
 } = useViewData(meta, view as any)
 
-const { saveOrUpdate } = useViewColumns(view, meta as any, false)
+const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, false, () => {
+  loadFormData()
+  setFormData()
+})
 
 const columns = computed(() => meta?.value?.columns || [])
 
+const localColumns = ref<Record<string, any>>([])
+
 const hiddenColumns = computed(() => [])
 
-const filteredColumns = computed(() => [])
-
-const fields = inject(FieldsInj, ref([]))
+const availableColumns = inject(FieldsInj, ref([]))
 
 const formView = ref({})
 
@@ -126,19 +129,19 @@ function onMove(event: any) {
 }
 
 function hideColumn(idx: number) {
-  if (isDbRequired(columns.value[idx])) {
+  if (isDbRequired(localColumns.value[idx])) {
     toast.info("Required field can't be removed")
     return
   }
 
   saveOrUpdate(
     {
-      ...columns.value[idx],
+      ...localColumns.value[idx],
       show: false,
     },
     idx,
   )
-  ;(columns.value[idx] as any).show = false
+  ;(localColumns.value[idx] as any).show = false
 
   $e('a:form-view:hide-columns')
 }
@@ -157,12 +160,15 @@ function setFormData() {
     show_blank_form: !!formData.value?.email,
     email: formData.value?.submit_another_form,
     success_msg: formData.value?.success_msg,
-    fields: fields.value.map((c: Record<string, any>) => ({
+    fields: (formData.value as Record<string, any>[])?.map((c) => ({
       [c.title]: {
         required: false,
       },
     })),
   })
+  localColumns.value = (formData as Record<string, any>)?.value
+    .filter((f: Record<string, any>) => f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup)
+    .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
 }
 
 onMounted(async () => {
@@ -182,7 +188,6 @@ watch(
 <template>
   <a-row class="h-full flex overflow-auto">
     <a-col v-if="isEditable" :span="6" class="bg-[#f7f7f7] shadow-md pa-5">
-      {{ formState }}
       <div class="flex">
         <div class="flex flex-row flex-1 text-lg">
           <span>
@@ -263,8 +268,14 @@ watch(
             />
           </a-form-item>
         </a-form>
-
-        <draggable :list="fields" item-key="title" draggable=".item" group="div" class="h-100" @change="onMove($event)">
+        <draggable
+          :list="localColumns"
+          item-key="fk_column_id"
+          draggable=".item"
+          group="div"
+          class="h-100"
+          @change="onMove($event)"
+        >
           <template #item="{ element, index }">
             <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3">
               <div class="flex">
@@ -280,13 +291,7 @@ watch(
                 class="w-full !bg-white rounded px-1 min-h-[40px] mt-2 mb-4 pa-2 flex align-center border-solid border-1 border-primary"
               >
                 <SmartsheetVirtualCell v-if="isVirtualCol(element)" v-model="formState[element.title]" :column="element" />
-                <SmartsheetCell
-                  v-else
-                  v-model="formState[element.title]"
-                  :column="element"
-                  :edit-enabled="true"
-                  @update:modelValue="changedColumns.push(element.title)"
-                />
+                <SmartsheetCell v-else v-model="formState[element.title]" :column="element" :edit-enabled="true" />
               </div>
             </div>
           </template>

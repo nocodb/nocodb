@@ -376,13 +376,14 @@ export interface FormType {
   title?: string;
   heading?: string;
   subheading?: string;
-  sucess_msg?: string;
+  success_msg?: string;
   redirect_url?: string;
   redirect_after_secs?: string;
   email?: string;
   banner_image_url?: string;
   logo_url?: string;
   submit_another_form?: boolean;
+  show_blank_form?: boolean;
   columns?: FormColumnType[];
   fk_model_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';

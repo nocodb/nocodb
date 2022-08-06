@@ -7,6 +7,7 @@ export {}
 
 declare module '@vue/runtime-core' {
   export interface GlobalComponents {
+    '(fix(gui-v2)': block user from editing pk and ai values)
     AAlert: typeof import('ant-design-vue/es')['Alert']
     AAutoComplete: typeof import('ant-design-vue/es')['AutoComplete']
     AButton: typeof import('ant-design-vue/es')['Button']
@@ -66,6 +67,7 @@ declare module '@vue/runtime-core' {
     MdiDotsVertical: typeof import('~icons/mdi/dots-vertical')['default']
     MdiLogout: typeof import('~icons/mdi/logout')['default']
     MdiReload: typeof import('~icons/mdi/reload')['default']
+    MdiTableArrowRight: typeof import('~icons/mdi/table-arrow-right')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

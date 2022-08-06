@@ -18,6 +18,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = createInjectionState((vi
 
   // getters
   const isLocked = computed(() => (view?.value as any)?.lock_type === 'locked')
+  const isPkAvail = computed(() => meta?.value?.columns?.some((c) => c.pk))
   const xWhere = computed(() => {
     let where
     const col = meta?.value?.columns?.find(({ id }) => id === search.field) || meta?.value?.columns?.find((v) => v.pv)
@@ -41,6 +42,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = createInjectionState((vi
     $api,
     search,
     xWhere,
+    isPkAvail,
   }
 })
 

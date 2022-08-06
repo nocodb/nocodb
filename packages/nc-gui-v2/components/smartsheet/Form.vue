@@ -116,14 +116,14 @@ function onMove(event: any) {
     element.show = false
     saveOrUpdate(element, oldIndex)
   } else {
-    if (!columns.value.length || columns.value.length === 1) {
+    if (!localColumns.value.length || localColumns.value.length === 1) {
       element.order = 1
-    } else if (columns.value.length - 1 === newIndex) {
-      element.order = (columns.value[newIndex - 1]?.order || 0) + 1
+    } else if (localColumns.value.length - 1 === newIndex) {
+      element.order = (localColumns.value[newIndex - 1]?.order || 0) + 1
     } else if (newIndex === 0) {
-      element.order = (columns.value[1]?.order || 0) / 2
+      element.order = (localColumns.value[1]?.order || 0) / 2
     } else {
-      element.order = (columns.value[newIndex - 1]?.order || 0) + (columns.value[newIndex + 1].order || 0) / 2
+      element.order = (localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0) / 2
     }
     saveOrUpdate(element, newIndex)
   }
@@ -149,9 +149,27 @@ function hideColumn(idx: number) {
   $e('a:form-view:hide-columns')
 }
 
-async function addAllColumns() {}
+async function addAllColumns() {
+  for (const col of (formColumnData as Record<string, any>)?.value) {
+    if (!systemFieldsIds.value.includes(col.fk_column_id)) {
+      console.log(col)
+      col.show = true
+    }
+  }
+  await showAll(systemFieldsIds.value)
+  $e('a:form-view:add-all')
+}
 
-async function removeAllColumns() {}
+async function removeAllColumns() {
+  for (const col of (formColumnData as Record<string, any>)?.value) {
+    if (isDbRequired(col)) {
+      continue
+    }
+    col.show = false
+  }
+  await hideAll((localColumns as Record<string, any>)?.value.filter(isDbRequired).map((f: Record<string, any>) => f.fk_column_id))
+  $e('a:form-view:remove-all')
+}
 
 async function checkSMTPStatus() {}
 
@@ -211,7 +229,7 @@ watch(
               v-if="hiddenColumns.length"
               class="mr-2"
               style="border-bottom: 2px solid rgb(218, 218, 218)"
-              @click="addAllColumns()"
+              @click="addAllColumns"
             >
               <!-- Add all -->
               {{ $t('general.addAll') }}

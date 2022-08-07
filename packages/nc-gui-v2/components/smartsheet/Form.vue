@@ -250,13 +250,13 @@ watch(
           </div>
         </div>
       </div>
-      <draggable :list="hiddenColumns" item-key="title" handle=".nc-child-draggable-icon">
+      <draggable :list="hiddenColumns" draggable=".item" group="a-card">
         <template #item="{ element }">
-          <a-card size="small" class="ma-0 pa-0 cursor-pointer">
+          <a-card size="small" class="ma-0 pa-0 cursor-pointer item mb-2">
             <div class="flex">
               <div class="flex flex-row flex-1">
                 <SmartsheetHeaderVirtualCell v-if="isVirtualCol(element)" :column="element" />
-                <SmartsheetHeaderCell v-else :column="element" />
+                <SmartsheetHeaderCell v-else class="w-full" :column="element" />
               </div>
               <div class="flex flex-row">
                 <MdiDragIcon class="flex flex-1" />

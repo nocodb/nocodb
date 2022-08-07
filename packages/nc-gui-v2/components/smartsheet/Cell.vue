@@ -3,7 +3,7 @@ import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
 import { provide, toRef } from 'vue'
 import { computed, useColumn, useDebounceFn, useVModel } from '#imports'
-import { ColumnInj, EditModeInj } from '~/context'
+import { ActiveCellInj, ColumnInj, EditModeInj } from '~/context'
 import { NavigateDir } from '~/lib'
 
 interface Props {
@@ -11,6 +11,7 @@ interface Props {
   modelValue: any
   editEnabled: boolean
   rowIndex: number
+  active?: boolean
 }
 
 const props = defineProps<Props>()
@@ -19,9 +20,13 @@ const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editE
 
 const column = toRef(props, 'column')
 
+const active = toRef(props, 'active', false)
+
 provide(ColumnInj, column)
 
 provide(EditModeInj, useVModel(props, 'editEnabled', emit))
+
+provide(ActiveCellInj, active)
 
 let changed = $ref(false)
 

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { SelectOptionType } from '~~/../nocodb-sdk/build/main/index.js'
 import { computed, inject } from '#imports'
-import { ColumnInj } from '~/context'
+import { ActiveCellInj, ColumnInj, EditModeInj } from '~/context'
 
 interface Props {
   modelValue: string | undefined
@@ -11,11 +11,14 @@ const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const column = inject(ColumnInj)!
+const column = inject(ColumnInj)
+const isForm = inject<boolean>('isForm', false)
+const editEnabled = inject(EditModeInj, ref(false))
+const active = inject(ActiveCellInj, ref(false))
 
 const vModel = computed({
   get: () => modelValue,
-  set: (val) => emit('update:modelValue', val),
+  set: (val) => emit('update:modelValue', val || null),
 })
 
 const options = computed(() => {
@@ -31,7 +34,13 @@ const options = computed(() => {
 </script>
 
 <template>
-  <a-select v-model:value="vModel" class="w-full" :allow-clear="!column.rqd" placeholder="Select an option" :bordered="false">
+  <a-select
+    v-model:value="vModel"
+    class="w-full"
+    :allow-clear="!column.rqd && active"
+    placeholder="Select an option"
+    :bordered="false"
+  >
     <a-select-option v-for="op of options" :key="op.title">
       <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>
@@ -47,6 +56,9 @@ const options = computed(() => {
 }
 :deep(.ant-tag) {
   @apply "rounded-tag";
+}
+:deep(.ant-select-clear) {
+  opacity: 1;
 }
 </style>
 <!--

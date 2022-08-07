@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { SelectOptionType } from '~~/../nocodb-sdk/build/main/index.js'
 import { computed, inject } from '#imports'
-import { ColumnInj } from '~/context'
+import { ActiveCellInj, ColumnInj, EditModeInj } from '~/context'
 
 interface Props {
   modelValue: string | string[] | undefined
@@ -16,6 +16,8 @@ const { isMysql } = useProject()
 const column = inject(ColumnInj)
 const isForm = inject<boolean>('isForm', false)
 const editEnabled = inject(EditModeInj, ref(false))
+const active = inject(ActiveCellInj, ref(false))
+
 const selectedIds = ref<string[]>([])
 
 const options = computed(() => {
@@ -31,7 +33,7 @@ const options = computed(() => {
 
 const vModel = computed({
   get: () => selectedIds.value.map((el) => options.value.find((op: SelectOptionType) => op.id === el).title),
-  set: (val) => emit('update:modelValue', val.join(',')),
+  set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 
 const selectedTitles = computed(() =>
@@ -59,7 +61,7 @@ onMounted(() => {
 
 watch(
   () => modelValue,
-  (n, _o) => {
+  (_n, _o) => {
     selectedIds.value = selectedTitles.value.map((el) => {
       return options.value.find((op: SelectOptionType) => op.title === el).id
     })
@@ -87,7 +89,7 @@ watch(
         v-if="options.find((el: SelectOptionType) => el.title === val)"
         class="rounded-tag"
         :color="options.find((el: SelectOptionType) => el.title === val).color"
-        :closable="editEnabled"
+        :closable="active && (vModel.length > 1 || !column?.rqd)"
         @close="onClose"
       >
         <span class="text-slate-500">{{ val }}</span>

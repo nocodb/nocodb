@@ -124,7 +124,7 @@ defineExpose({
               v-if="!filter.readOnly"
               :key="i"
               small
-              class="nc-filter-item-remove-btn text-grey"
+              class="nc-filter-item-remove-btn cursor-pointer text-grey"
               @click.stop="deleteFilter(filter, i)"
             />
             <span v-else :key="`${i}dummy`" />

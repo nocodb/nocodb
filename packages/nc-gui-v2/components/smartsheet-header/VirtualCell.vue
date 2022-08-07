@@ -19,8 +19,8 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualC
 
 const colOptions = $computed(() => column.value?.colOptions)
 const tableTile = $computed(() => meta?.value?.title)
-const relationColumn = $computed<LinkToAnotherRecordType | null>(() => {
-  if (isMm || isHm || isBt) {
+const relationColumnOptions = $computed<LinkToAnotherRecordType | null>(() => {
+  if (isMm.value || isHm.value || isBt.value) {
     return column.value?.colOptions as LinkToAnotherRecordType
   } else if ((column?.value?.colOptions as LookupType | RollupType)?.fk_relation_column_id) {
     return meta?.value?.columns?.find(
@@ -31,18 +31,18 @@ const relationColumn = $computed<LinkToAnotherRecordType | null>(() => {
 })
 
 const relatedTableMeta = $computed(
-  () => relationColumn && relationColumn?.fk_related_model_id && metas.value?.[relationColumn?.fk_related_model_id as string],
+  () => relationColumnOptions?.fk_related_model_id && metas.value?.[relationColumnOptions?.fk_related_model_id as string],
 )
 
 const relatedTableTitle = $computed(() => relatedTableMeta?.title)
 
 const childColumn = $computed(() => {
   if (relatedTableMeta?.columns) {
-    if (isRollup) {
+    if (isRollup.value) {
       const ch = relatedTableMeta?.columns.find((c: ColumnType) => c.id === (colOptions as RollupType).fk_rollup_column_id)
       return ch
     }
-    if (isLookup) {
+    if (isLookup.value) {
       const ch = relatedTableMeta?.columns.find((c: ColumnType) => c.id === (colOptions as LookupType).fk_lookup_column_id)
       return ch
     }

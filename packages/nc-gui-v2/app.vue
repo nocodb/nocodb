@@ -29,7 +29,7 @@ const logout = () => {
 </script>
 
 <template>
-  <a-layout>
+  <a-layout id="app-layout">
     <a-layout-sider
       :collapsed="true"
       width="50"

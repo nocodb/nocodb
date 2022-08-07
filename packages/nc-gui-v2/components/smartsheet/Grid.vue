@@ -5,7 +5,6 @@ import { isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
   inject,
-  onKeyStroke,
   onMounted,
   onUnmounted,
   provide,
@@ -18,7 +17,6 @@ import type { Row } from '~/composables'
 import {
   ActiveViewInj,
   ChangePageInj,
-  EditModeInj,
   FieldsInj,
   IsFormInj,
   IsGridInj,
@@ -247,19 +245,13 @@ const onNavigate = (dir: NavigateDir) => {
   if (selected.row === null || selected.col === null) return
   switch (dir) {
     case NavigateDir.NEXT:
-      if (selected.col < visibleColLength - 1) {
-        selected.col++
-      } else if (selected.row < data.value.length - 1) {
+      if (selected.row < data.value.length - 1) {
         selected.row++
-        selected.col = 0
       }
       break
     case NavigateDir.PREV:
-      if (selected.col > 0) {
-        selected.col--
-      } else if (selected.row > 0) {
+      if (selected.row > 0) {
         selected.row--
-        selected.col = visibleColLength - 1
       }
       break
   }

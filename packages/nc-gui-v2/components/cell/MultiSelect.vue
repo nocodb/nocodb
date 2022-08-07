@@ -2,6 +2,7 @@
 import type { SelectOptionType } from '~~/../nocodb-sdk/build/main/index.js'
 import { computed, inject } from '#imports'
 import { ActiveCellInj, ColumnInj, EditModeInj } from '~/context'
+import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
   modelValue: string | string[] | undefined
@@ -88,8 +89,10 @@ watch(
       <a-tag
         v-if="options.find((el: SelectOptionType) => el.title === val)"
         class="rounded-tag"
+        :style="{ display: 'flex', alignItems: 'center' }"
         :color="options.find((el: SelectOptionType) => el.title === val).color"
         :closable="active && (vModel.length > 1 || !column?.rqd)"
+        :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"
       >
         <span class="text-slate-500">{{ val }}</span>
@@ -99,6 +102,28 @@ watch(
 </template>
 
 <style scoped>
+.ms-close-icon {
+  color: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  font-style: normal;
+  height: 12px;
+  line-height: 1;
+  text-align: center;
+  text-transform: none;
+  transition: color 0.3s ease, opacity 0.15s ease;
+  width: 12px;
+  z-index: 1;
+  margin-right: -6px;
+  margin-left: 3px;
+}
+.ms-close-icon:before {
+  display: block;
+}
+.ms-close-icon:hover {
+  color: rgba(0, 0, 0, 0.45);
+}
 .rounded-tag {
   padding: 0px 12px;
   border-radius: 12px;

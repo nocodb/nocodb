@@ -297,7 +297,7 @@ const onNavigate = (dir: NavigateDir) => {
                   </div>
 
                   <template #overlay>
-                    <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
+                    <SmartsheetColumnEditOrAdd @click.stop @keydown.stop @cancel="addColumnDropdown = false" />
                   </template>
                 </a-dropdown>
               </th>

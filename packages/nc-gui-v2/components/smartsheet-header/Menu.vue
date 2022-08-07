@@ -72,6 +72,7 @@ onClickOutside(editOrAddCard, () => {
         ref="editOrAddCard"
         :edit-column-dropdown="editColumnDropdown"
         @click.stop
+        @keydown.stop
         @cancel="editColumnDropdown = false"
       />
     </template>

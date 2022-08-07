@@ -20,6 +20,8 @@ const editEnabled = inject(EditModeInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
 const selectedIds = ref<string[]>([])
+const aselect = ref<any>(null)
+const isOpen = ref(false)
 
 const options = computed(() => {
   if (column?.colOptions) {
@@ -54,10 +56,36 @@ const selectedTitles = computed(() =>
     : [],
 )
 
+const handleKeys = (e: any) => {
+  switch (e.key) {
+    case 'Escape':
+      e.preventDefault()
+      isOpen.value = false
+      break
+    case 'Enter':
+      e.stopPropagation()
+      break
+  }
+}
+
+const handleClose = (e: any) => {
+  if (aselect.value) {
+    const selectClick = aselect.value.$el.contains(e.target)
+    if (!selectClick) {
+      isOpen.value = false
+    }
+  }
+}
+
 onMounted(() => {
   selectedIds.value = selectedTitles.value.map((el) => {
     return options.value.find((op: SelectOptionType) => op.title === el).id
   })
+  document.addEventListener('click', handleClose)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClose)
 })
 
 watch(
@@ -68,10 +96,20 @@ watch(
     })
   },
 )
+
+watch(
+  () => isOpen.value,
+  (n, _o) => {
+    if (n === false) {
+      aselect.value.blur()
+    }
+  },
+)
 </script>
 
 <template>
   <a-select
+    ref="aselect"
     v-model:value="vModel"
     mode="multiple"
     class="w-full"
@@ -79,8 +117,11 @@ watch(
     :bordered="false"
     show-arrow
     :show-search="false"
+    :open="isOpen"
+    @keydown="handleKeys"
+    @click="isOpen = !isOpen"
   >
-    <a-select-option v-for="op of options" :key="op.id" :value="op.title" :data-color="op.color">
+    <a-select-option v-for="op of options" :key="op.id" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>
       </a-tag>

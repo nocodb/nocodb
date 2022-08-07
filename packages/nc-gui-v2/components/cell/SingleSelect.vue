@@ -16,6 +16,9 @@ const isForm = inject<boolean>('isForm', false)
 const editEnabled = inject(EditModeInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
+const aselect = ref<any>(null)
+const isOpen = ref(false)
+
 const vModel = computed({
   get: () => modelValue,
   set: (val) => emit('update:modelValue', val || null),
@@ -31,17 +34,58 @@ const options = computed(() => {
   }
   return []
 })
+
+const handleKeys = (e: any) => {
+  switch (e.key) {
+    case 'Escape':
+      e.preventDefault()
+      isOpen.value = false
+      break
+  }
+}
+
+const handleClose = (e: any) => {
+  if (aselect.value) {
+    const selectClick = aselect.value.$el.contains(e.target)
+    if (!selectClick) {
+      isOpen.value = false
+      aselect.value.blur()
+    }
+  }
+}
+
+onMounted(() => {
+  document.addEventListener('click', handleClose)
+})
+
+onUnmounted(() => {
+  document.removeEventListener('click', handleClose)
+})
+
+watch(
+  () => isOpen.value,
+  (n, _o) => {
+    if (n === false) {
+      aselect.value.blur()
+    }
+  },
+)
 </script>
 
 <template>
   <a-select
+    ref="aselect"
     v-model:value="vModel"
     class="w-full"
     :allow-clear="!column.rqd && active"
     placeholder="Select an option"
     :bordered="false"
+    :open="isOpen"
+    @select="isOpen = false"
+    @keydown="handleKeys"
+    @click="isOpen = !isOpen"
   >
-    <a-select-option v-for="op of options" :key="op.title">
+    <a-select-option v-for="op of options" :key="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>
       </a-tag>

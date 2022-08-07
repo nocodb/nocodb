@@ -136,7 +136,7 @@ const isForm = inject(IsFormInj)
 </script>
 
 <template>
-  <div class="d-flex align-center">
+  <div class="d-flex align-center w-full">
     <!--    <v-tooltip bottom>
           <template #activator="{ on }">
           todo: bring tooltip

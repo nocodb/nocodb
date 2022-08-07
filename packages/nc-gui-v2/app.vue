@@ -31,7 +31,7 @@ const logout = () => {
 <template>
   <a-layout>
     <a-layout-sider
-      :collapsed="!isOpen"
+      :collapsed="true"
       width="50"
       collapsed-width="0"
       class="nc-sidebar-left !bg-primary h-full"
@@ -71,7 +71,7 @@ const logout = () => {
       </a-dropdown>
 
       <div id="sidebar" ref="sidebar" class="text-white flex-auto flex flex-col items-center w-full">
-        <a-dropdown placement="right">
+        <a-dropdown :trigger="['contextmenu']" placement="right">
           <div :class="[route.name === 'index' ? 'active' : '']" class="nc-sidebar-left-item" @click="navigateTo('/')">
             <MdiFolder class="cursor-pointer transform hover:scale-105 text-2xl" />
           </div>

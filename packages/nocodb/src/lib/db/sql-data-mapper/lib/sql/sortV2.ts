@@ -207,6 +207,30 @@ export default async function sortV2(
           qb.orderBy(selectQb, sort.direction || 'asc');
         }
         break;
+      case UITypes.SingleSelect:
+        {
+          const clientType = knex.clientType();
+          if (clientType === 'mysql' || clientType === 'mysql2') {
+            qb.orderBy(sanitize(knex.raw('CONCAT(??)', [column.column_name])), sort.direction || 'asc');
+          } else if (clientType === 'mssql') {
+            qb.orderBy(sanitize(knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])), sort.direction || 'asc');
+          } else {
+            qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
+          }
+          break;
+        }
+      case UITypes.MultiSelect:
+        {
+          const clientType = knex.clientType();
+          if (clientType === 'mysql' || clientType === 'mysql2') {
+            qb.orderBy(sanitize(knex.raw('CONCAT(??)', [column.column_name])), sort.direction || 'asc');
+          } else if (clientType === 'mssql') {
+            qb.orderBy(sanitize(knex.raw('CAST(?? AS VARCHAR(MAX))', [column.column_name])), sort.direction || 'asc');
+          } else {
+            qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
+          }
+          break;
+        }
       default:
         qb.orderBy(sanitize(column.column_name), sort.direction || 'asc');
         break;

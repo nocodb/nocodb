@@ -15,6 +15,19 @@ import { importData, importLTARData } from './readAndProcessData';
 
 dayjs.extend(utc);
 
+const selectColors = {
+  "blue": "#cfdfff",
+  "cyan": "#d0f0fd",
+  "teal": "#c2f5e9",
+  "green": "#d1f7c4",
+  "orange": "#fee2d5",
+  "yellow": "#ffeab6",
+  "red": "#ffdce5",
+  "pink": "#ffdaf6",
+  "purple": "#ede2fe",
+  "gray": "#eee"
+}
+
 export default async (
   syncDB: AirtableSyncConfig,
   progress: (data: { msg?: string; level?: any }) => void
@@ -383,21 +396,37 @@ export default async (
         // prepare options list in CSV format
         // note: NC doesn't allow comma's in options
         //
-        const opt = [];
+        const options = [];
+        let order = 1;
         for (const [, value] of Object.entries(col.typeOptions.choices)) {
-          opt.push((value as any).name);
+          // replace commas with dot for multiselect
+          if (col.type === 'multiSelect') {
+            (value as any).name = (value as any).name.replace(/,/g, '.');
+          }
+          // we don't allow empty records, placeholder instead
+          if ((value as any).name === '') {
+            (value as any).name = 'nc_empty';
+          }
+          // enumerate duplicates (we don't allow them)
+          // TODO fix record mapping (this causes every record to map first option, we can't handle them using data api as they don't provide option id within data we might instead get the correct mapping from schema file )
+          let dupNo = 1;
+          const defaultName = (value as any).name;
+          while (options.find(el => el.title === (value as any).name)) {
+            (value as any).name = `${defaultName}_${dupNo++}`;
+          }
+          options.push({
+            order: order++,
+            title: (value as any).name,
+            color: selectColors[(value as any).color] ? selectColors[(value as any).color] : null
+          });
+
           sMap.addToMappingTbl(
             (value as any).id,
             undefined,
             (value as any).name
           );
         }
-        // const csvOpt = "'" + opt.join("','") + "'";
-        const optSansDuplicate = [...new Set(opt)];
-        const csvOpt = optSansDuplicate
-          .map((v) => `'${v.replace(/'/g, "\\'").replace(/,/g, '.')}'`)
-          .join(',');
-        return { type: 'select', data: csvOpt };
+        return { type: col.type, data: options };
       }
       default:
         return { type: undefined };
@@ -507,9 +536,12 @@ export default async (
 
         switch (colOptions.type) {
           case 'select':
-            ncCol.dtxp = colOptions.data;
+          case 'multiSelect':
+            ncCol.colOptions = {
+              options: [...colOptions.data]
+            }
+            ncCol.dtxp = colOptions.data.map(el => `'${el.title}'`).join(',');
             break;
-
           case undefined:
             break;
         }
@@ -1323,11 +1355,19 @@ export default async (
           break;
 
         case UITypes.SingleSelect:
-          rec[key] = value.replace(/,/g, '.');
+          if (value === '') {
+            rec[key] = 'nc_empty';
+          }
+          rec[key] = value;
           break;
 
         case UITypes.MultiSelect:
-          rec[key] = value.map((v) => `${v.replace(/,/g, '.')}`).join(',');
+          rec[key] = value.map((v) => {
+            if (v === '') {
+              return 'nc_empty';
+            }
+            return `${v.replace(/,/g, '.')}`;
+          }).join(',');
           break;
 
         case UITypes.Attachment:

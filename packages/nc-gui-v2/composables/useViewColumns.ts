@@ -99,10 +99,12 @@ export function useViewColumns(
     },
     set(v) {
       if (view?.value?.id) {
-        $api.dbView.update(view.value.id, {
-          // todo: update swagger
-          show_system_fields: v,
-        } as any)
+        $api.dbView
+          .update(view.value.id, {
+            // todo: update swagger
+            show_system_fields: v,
+          } as any)
+          .finally(() => reloadData?.())
         ;(view.value as any).show_system_fields = v
       }
     },

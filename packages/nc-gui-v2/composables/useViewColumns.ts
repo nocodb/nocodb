@@ -135,7 +135,7 @@ export function useViewColumns(
         ) {
           return false
         }
-        return c.show
+        return c.show && metaColumnById?.value?.[c.fk_column_id!]
       })
       ?.sort((a, b) => a.order - b.order)
       ?.map((c) => metaColumnById?.value?.[c.fk_column_id!]) || []) as ColumnType[]

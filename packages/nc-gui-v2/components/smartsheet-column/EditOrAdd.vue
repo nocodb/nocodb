@@ -107,7 +107,13 @@ watch(
         />
       </a-form-item>
       <a-form-item :label="$t('labels.columnType')">
-        <a-select v-model:value="formState.uidt" size="small" class="nc-column-name-input" @change="onUidtOrIdTypeChange">
+        <a-select
+          v-model:value="formState.uidt"
+          show-search
+          size="small"
+          class="nc-column-name-input"
+          @change="onUidtOrIdTypeChange"
+        >
           <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
             <div class="flex gap-1 align-center text-xs">
               <component :is="opt.icon" class="text-grey" />

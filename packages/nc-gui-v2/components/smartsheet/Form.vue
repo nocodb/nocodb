@@ -39,6 +39,8 @@ const meta = inject(MetaInj)
 
 const view = inject(ActiveViewInj)
 
+if (meta) useProvideColumnCreateStore(meta)
+
 const {
   loadData,
   paginationData,
@@ -64,6 +66,8 @@ const hiddenColumns = ref<Record<string, any>>([])
 const availableColumns = inject(FieldsInj, ref([]))
 
 const systemFieldsIds = ref<Record<string, any>>([])
+
+const showColumnDropdown = ref(false)
 
 const formView = ref({})
 
@@ -265,13 +269,17 @@ watch(
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
           </div>
-          <a-button type="link" class="w-full caption mt-2" size="large" @click="addNewOption()">
+          <a-button type="link" class="w-full caption mt-2" size="large" @click="showColumnDropdown = true">
             <div class="flex items-center prose-sm justify-center text-gray-400">
               <MdiPlusIcon />
               <!-- Add new field to this table -->
               {{ $t('activity.addField') }}
             </div>
           </a-button>
+          <!-- TODO #1: set showColumnDropdown to false after saving  -->
+          <!-- TODO #2: make the component out of sidebar  -->
+          <!-- TODO #3: reload view  -->
+          <SmartsheetColumnEditOrAdd v-if="showColumnDropdown" @click.stop @cancel="showColumnDropdown = false" />
         </template>
       </draggable>
     </a-col>

@@ -342,7 +342,7 @@ watch(
             </div>
           </template>
           <template #footer>
-            <div v-if="!columns.length" class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
+            <div v-if="!localColumns.length" class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
               Drag and drop fields here to add
             </div>
           </template>

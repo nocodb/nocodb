@@ -36,7 +36,7 @@ function changeLockType(type: LockType) {
 }
 
 const Icon = computed(() => {
-  switch ((view.value as any).lock_type) {
+  switch ((view.value as any)?.lock_type) {
     case LockType.Personal:
       return MdiAccountIcon
     case LockType.Locked:

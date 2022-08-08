@@ -289,6 +289,6 @@ defineExpose({
 }
 
 :deep(.ant-select-item-option) {
-  @apply "!min-w-min";
+  @apply "!min-w-full";
 }
 </style>

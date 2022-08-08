@@ -5,11 +5,11 @@ import { MetaInj } from '~/context'
 
 const { formState, validateInfos, onDataTypeChange, setAdditionalValidations } = $(useColumnCreateStoreOrThrow())
 
-const { tables } = $(useProject())!
+const { tables } = $(useProject())
 
 const meta = $(inject(MetaInj)!)
 
-const { metas } = $(useMetas())!
+const { metas } = $(useMetas())
 
 setAdditionalValidations({
   fk_relation_column_id: [{ required: true, message: 'Required' }],

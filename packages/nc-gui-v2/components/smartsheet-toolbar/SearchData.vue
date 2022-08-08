@@ -4,13 +4,13 @@ import { ReloadViewDataHookInj } from '~/context'
 
 const reloadData = inject(ReloadViewDataHookInj)!
 
-const { search, meta } = useSmartsheetStoreOrThrow()!
+const { search, meta } = useSmartsheetStoreOrThrow()
 
 // todo: where is this value supposed to come from? it's not in the store
 const isDropdownOpen = ref(false)
 
 const columns = computed(() =>
-  meta.value.columns?.map((c) => ({
+  meta.value?.columns?.map((c) => ({
     value: c.id,
     label: c.title,
   })),

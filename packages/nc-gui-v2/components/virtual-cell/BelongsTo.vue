@@ -10,13 +10,11 @@ const column = inject(ColumnInj)
 
 const reloadTrigger = inject(ReloadViewDataHookInj)!
 
-const cellValue = inject(CellValueInj)
+const cellValue = inject(CellValueInj, ref<any>(null))
 
 const row = inject(RowInj)
 
 const active = false
-
-const localState = null
 
 const listItemsDlg = ref(false)
 
@@ -32,8 +30,8 @@ await loadRelatedTableMeta()
 <template>
   <div class="flex w-full chips-wrapper align-center" :class="{ active }">
     <div class="chips d-flex align-center flex-grow">
-      <template v-if="cellValue || localState">
-        <ItemChip :item="cellValue" :value="cellValue[relatedTablePrimaryValueProp]" @unlink="unlink(cellValue || localState)" />
+      <template v-if="cellValue">
+        <ItemChip :item="cellValue" :value="cellValue[relatedTablePrimaryValueProp]" @unlink="unlink(cellValue)" />
       </template>
     </div>
     <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
@@ -42,6 +40,7 @@ await loadRelatedTableMeta()
         @click="listItemsDlg = true"
       />
     </div>
+
     <ListItems v-model="listItemsDlg" />
   </div>
 </template>

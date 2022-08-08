@@ -4,7 +4,7 @@ import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
-import { useColumnCreateStoreOrThrow, useDebounceFn } from '#imports'
+import { onMounted, useColumnCreateStoreOrThrow, useDebounceFn } from '#imports'
 import { MetaInj } from '~/context'
 import {
   NcAutocompleteTree,
@@ -16,8 +16,6 @@ import {
   insertAtCursor,
   validateDateWithUnknownFormat,
 } from '@/utils'
-import MdiFunctionIcon from '~icons/mdi/function'
-import MdiOperatorIcon from '~icons/mdi/calculator'
 
 enum JSEPNode {
   COMPOUND = 'Compound',
@@ -31,8 +29,7 @@ enum JSEPNode {
   ARRAY_EXP = 'ArrayExpression',
 }
 
-const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter, column } =
-  useColumnCreateStoreOrThrow()
+const { formState, validateInfos, setAdditionalValidations, sqlUi, column } = useColumnCreateStoreOrThrow()
 
 const meta = inject(MetaInj)
 
@@ -72,8 +69,6 @@ const wordToComplete = ref<string | undefined>('')
 
 const selected = ref(0)
 
-const tooltip = ref(true)
-
 const sortOrder: Record<string, number> = {
   column: 0,
   function: 1,
@@ -95,7 +90,7 @@ const suggestionsList = computed(() => {
     ...columns.value
       .filter(
         (c: Record<string, any>) =>
-          !column || (column.id !== c.id && !(c.uidt === UITypes.LinkToAnotherRecord && c.system === 1)),
+          !column || (column.value.id !== c.id && !(c.uidt === UITypes.LinkToAnotherRecord && c.system === 1)),
       )
       .map((c: any) => ({
         text: c.title,
@@ -230,7 +225,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
     if (
       columns.value
-        .filter((c: Record<string, any>) => !column || column.id !== c.id)
+        .filter((c: Record<string, any>) => !column || column.value.id !== c.id)
         .every((c: Record<string, any>) => c.title !== parsedTree.name)
     ) {
       errors.add(`Column '${parsedTree.name}' is not available`)
@@ -241,7 +236,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
 
     // get all formula columns excluding itself
     const formulaPaths = columns.value
-      .filter((c: Record<string, any>) => c.id !== column?.id && c.uidt === UITypes.Formula)
+      .filter((c: Record<string, any>) => c.id !== column?.value.id && c.uidt === UITypes.Formula)
       .reduce((res: Record<string, any>[], c: Record<string, any>) => {
         // in `formula`, get all the target neighbours
         // i.e. all column id (e.g. cl_xxxxxxxxxxxxxx) with formula type
@@ -256,9 +251,10 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
       }, [])
     // include target formula column (i.e. the one to be saved if applicable)
     const targetFormulaCol = columns.value.find((c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula)
-    if (targetFormulaCol) {
+
+    if (targetFormulaCol && column?.value.id) {
       formulaPaths.push({
-        [column.id]: [targetFormulaCol.id],
+        [column.value.id]: [targetFormulaCol.id],
       })
     }
     const vertices = formulaPaths.length
@@ -267,6 +263,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
       const adj = new Map()
       const inDegrees = new Map()
       // init adjacency list & indegree
+
       for (const [_, v] of Object.entries(formulaPaths)) {
         const src = Object.keys(v)[0]
         const neighbours = v[src]
@@ -346,12 +343,14 @@ function validateAgainstType(parsedTree: any, expectedType: string, func: any, t
       }
     }
   } else if (parsedTree.type === JSEPNode.IDENTIFIER) {
-    const col = columns.value.find((c) => c.title === parsedTree.name) as Record<string, any>
+    const col = columns.value.find((c) => c.title === parsedTree.name)
+
     if (col === undefined) {
       return
     }
+
     if (col.uidt === UITypes.Formula) {
-      const foundType = getRootDataType(jsep(col?.formula_raw))
+      const foundType = getRootDataType(jsep((col as any).formula_raw))
       if (foundType === 'N/A') {
         typeErrors.add(`Not supported to reference column ${col.title}`)
       } else if (expectedType !== foundType) {
@@ -594,7 +593,7 @@ function getFormulaTypeName(type: string) {
 }
 
 // set default value
-formState.value.formula_raw = (column?.colOptions as Record<string, any>)?.formula_raw || ''
+formState.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
 
 // set additional validations
 setAdditionalValidations({
@@ -659,19 +658,24 @@ onMounted(() => {
                   <div>({{ idx + 1 }}): {{ example }}</div>
                 </div>
               </template>
+
               <template #title>
                 <div class="flex">
                   <div class="flex-1">
                     {{ item.text }}
                   </div>
+
                   <div class="">
                     {{ getFormulaTypeName(item.type) }}
                   </div>
                 </div>
               </template>
+
               <template #avatar>
-                <MdiFunctionIcon v-if="item.type === 'function'" class="text-lg" />
-                <MdiOperatorIcon v-if="item.type === 'op'" class="text-lg" />
+                <MdiFunction v-if="item.type === 'function'" class="text-lg" />
+
+                <MdiCalculator v-if="item.type === 'op'" class="text-lg" />
+
                 <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
               </template>
             </a-list-item-meta>

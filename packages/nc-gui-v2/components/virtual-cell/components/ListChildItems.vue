@@ -41,7 +41,8 @@ const unlinkRow = async (row: Record<string, any>) => {
 
         <a-button type="primary" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
-            <MdiLinkVariantRemove class="text-xs text-white" @click="unlinkRow(row)" />
+            <!-- todo: row is not defined? @click="unlinkRow(row)" -->
+            <MdiLinkVariantRemove class="text-xs text-white" />
             Link to '{{ meta.title }}'
           </div>
         </a-button>

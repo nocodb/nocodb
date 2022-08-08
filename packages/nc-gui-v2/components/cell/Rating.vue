@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { computed, inject, useVModel } from '#imports'
+import { computed, inject } from '#imports'
 import { ColumnInj } from '~/context'
 
 interface Props {
@@ -7,13 +7,11 @@ interface Props {
   readOnly?: boolean
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  modelValue: NaN,
-})
+const { modelValue, readOnly } = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj)!
 
 const ratingMeta = computed(() => {
   return {
@@ -23,15 +21,18 @@ const ratingMeta = computed(() => {
     },
     color: '#fcb401',
     max: 5,
-    ...(column?.value?.meta || {}),
+    ...(column.value?.meta || {}),
   }
 })
 
-const vModel = useVModel(props, 'modelValue', emits)
+const vModel = computed({
+  get: () => modelValue ?? NaN,
+  set: (val) => emits('update:modelValue', val),
+})
 </script>
 
 <template>
-  <a-rate v-model:value="vModel" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`" :disabled="props.readOnly">
+  <a-rate v-model:value="vModel" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`" :disabled="readOnly">
     <template #character>
       <MdiStar v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />
       <MdiHeart v-if="ratingMeta.icon.full === 'mdi-heart'" class="text-sm" />

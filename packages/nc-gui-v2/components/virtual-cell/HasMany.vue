@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
-import { inject, ref, useProvideLTARStore } from '#imports'
+import { computed, inject, ref, useProvideLTARStore } from '#imports'
 import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
 const column = inject(ColumnInj)!
@@ -26,13 +26,26 @@ const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvid
 )
 
 await loadRelatedTableMeta()
+
+const cells = computed(() =>
+  cellValue.value.reduce((acc: any[], curr: any) => {
+    if (!relatedTablePrimaryValueProp.value) return acc
+
+    const value = curr[relatedTablePrimaryValueProp.value]
+
+    if (!value) return acc
+
+    return [...acc, { value, item: curr }]
+  }, [] as any[]),
+)
 </script>
 
 <template>
   <div class="flex align-center items-center gap-1 w-full chips-wrapper">
     <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
       <template v-if="cellValue">
-        <ItemChip v-for="(ch, i) in cellValue" :key="i" :value="ch[relatedTablePrimaryValueProp]" @unlink="unlink(ch)" />
+        <ItemChip v-for="(cell, i) of cells" :key="i" :value="cell.value" @unlink="unlink(cell.item)" />
+
         <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
       </template>
     </div>

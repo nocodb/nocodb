@@ -3,7 +3,7 @@ import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
-import { computed, inject } from '#imports'
+import { computed, inject, useDebounceFn } from '#imports'
 import { ActiveViewInj, FieldsInj, IsFormInj, MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -207,6 +207,16 @@ function setFormData() {
   hiddenColumns.value = col.filter((f: Record<string, any>) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id))
 }
 
+const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
+  if (col.id) {
+    try {
+      $api.dbView.formColumnUpdate(col.id, col)
+    } catch (e: any) {
+      toast.error(await extractSdkResponseErrorMsg(e))
+    }
+  }
+}, 250)
+
 onMounted(async () => {
   await loadFormView()
   setFormData()
@@ -345,19 +355,27 @@ watch(
               </div>
 
               <div v-if="activeRow === element.title" class="">
-                <a-input v-model:value="element.label" class="nc-input" size="large" :placeholder="$t('msg.info.formInput')">
+                <a-input
+                  v-model:value="element.label"
+                  class="nc-input"
+                  size="large"
+                  :placeholder="$t('msg.info.formInput')"
+                  @change="updateColMeta(element)"
+                >
                 </a-input>
                 <a-input
                   v-model:value="element.description"
                   class="nc-input"
                   :placeholder="$t('msg.info.formHelpText')"
                   size="large"
+                  @change="updateColMeta(element)"
                 />
                 <a-switch
                   v-model:checked="element.required"
                   class="mb-2"
                   :checked-children="$t('general.required')"
                   un-checked-children="Not Required"
+                  @change="updateColMeta(element)"
                 ></a-switch>
               </div>
             </div>

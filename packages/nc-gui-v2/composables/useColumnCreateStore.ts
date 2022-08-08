@@ -31,7 +31,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     // state
     // todo: give proper type - ColumnType
-    const formState = ref<Partial<Record<string, any>>>({
+    const formState = ref<Record<string, any>>({
       title: 'title',
       uidt: UITypes.SingleLineText,
       ...(column?.value || {}),

@@ -1,6 +1,5 @@
-import { breakpointsTailwind } from '@vueuse/core'
 import { defineNuxtPlugin } from '#app'
-import { useBreakpoints, useDark, useGlobal, useSidebar, watch } from '#imports'
+import { useDark, useGlobal, watch } from '#imports'
 
 /**
  * Initialize global state and watches for changes

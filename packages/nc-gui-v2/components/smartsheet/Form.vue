@@ -201,6 +201,7 @@ function setFormData() {
   localColumns.value = col
     .filter((f: Record<string, any>) => f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup)
     .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
+    .map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) }))
 
   systemFieldsIds.value = getSystemColumns(col).map((c: Record<string, any>) => c.fk_column_id)
 

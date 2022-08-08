@@ -8,8 +8,10 @@ import { useMetas } from '~/composables'
 import { ColumnInj, MetaInj } from '~/context'
 import { provide, useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any } }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean }>()
 const column = toRef(props, 'column')
+const hideMenu = toRef(props, 'hideMenu')
+
 provide(ColumnInj, column)
 const { metas } = useMetas()
 const meta = inject(MetaInj)

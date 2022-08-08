@@ -5,8 +5,9 @@ import { inject, toRef } from 'vue'
 import { ColumnInj, MetaInj } from '~/context'
 import { useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any } }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean }>()
 const column = toRef(props, 'column')
+const hideMenu = toRef(props, 'hideMenu')
 provide(ColumnInj, column)
 
 const meta = inject(MetaInj)

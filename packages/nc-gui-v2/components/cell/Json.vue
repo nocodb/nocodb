@@ -91,9 +91,9 @@ watch(editEnabled, () => {
         </a-button>
         <div class="flex flex-row">
           <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
-          <a-button type="primary" size="small" :disabled="!!error || localValue === vModel"
-            ><div class="text-xs" :onclick="onSave">Save</div></a-button
-          >
+          <a-button type="primary" size="small" :disabled="!!error || localValue === vModel">
+            <div class="text-xs" :onclick="onSave">Save</div>
+          </a-button>
         </div>
       </div>
       <Editor

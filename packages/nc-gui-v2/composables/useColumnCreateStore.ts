@@ -172,7 +172,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     if (cdf) formState.value.cdf = formState.value.cdf || null
   }
 
-  const addOrUpdate = async (onSuccess: () => {}) => {
+  const addOrUpdate = async (onSuccess?: () => {}) => {
     try {
       console.log(formState, validators)
       if (!(await validate())) return
@@ -196,7 +196,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
         toast.success('Column created')
       }
-      onSuccess()
+      onSuccess?.()
     } catch (e: any) {
       const error = await extractSdkResponseErrorMsg(e)
       if (error) toast.error(await extractSdkResponseErrorMsg(e))

@@ -172,7 +172,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     if (cdf) formState.value.cdf = formState.value.cdf || null
   }
 
-  const addOrUpdate = async (onSuccess?: () => {}) => {
+  const addOrUpdate = async (onSuccess?: () => void) => {
     try {
       console.log(formState, validators)
       if (!(await validate())) return

@@ -4,7 +4,13 @@ import { inject } from 'vue'
 import { ColumnInj, IsFormInj } from '~/context'
 import { provide } from '#imports'
 
-const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
+interface Props {
+  required?: boolean
+  column: ColumnType & { meta: any }
+}
+
+const { column, required } = defineProps<Props>()
+
 provide(ColumnInj, column)
 
 const isForm = inject(IsFormInj)
@@ -143,7 +149,7 @@ const isForm = inject(IsFormInj)
           -->
     <SmartsheetHeaderVirtualCellIcon v-if="column" />
     <span class="name" style="white-space: nowrap" :title="column.title"> {{ column.title }}</span>
-    <span v-if="column.rqd" class="error--text text--lighten-1">&nbsp;*</span>
+    <span v-if="column.rqd || required" class="text-red-500">&nbsp;*</span>
 
     <!--    <span class="caption" v-html="tooltipMsg" /> -->
 

@@ -5,7 +5,12 @@ import { inject } from 'vue'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { useProvideColumnCreateStore } from '#imports'
 
-const { column } = defineProps<{ column: ColumnType & { meta: any } }>()
+interface Props {
+  required?: boolean
+  column: ColumnType & { meta: any }
+}
+
+const { column, required } = defineProps<Props>()
 
 const meta = inject(MetaInj)
 
@@ -21,6 +26,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
   <div class="flex align-center w-full">
     <SmartsheetHeaderCellIcon v-if="column" />
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
+    <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
     <div class="flex-1" />
     <SmartsheetHeaderMenu v-if="!isForm" />

@@ -49,6 +49,12 @@ export function useViewData(
     )
     paginationData.value.totalRows = count
   }
+  
+  const queryParams = computed(() => ({
+    offset: (paginationData.value?.page ?? 0) - 1,
+    limit: paginationData.value?.pageSize ?? 25,
+    where: where?.value ?? '',
+  }))
 
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
     if (!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) return
@@ -246,6 +252,7 @@ export function useViewData(
   return {
     loadData,
     paginationData,
+    queryParams,
     formattedData,
     insertRow,
     updateRowProperty,

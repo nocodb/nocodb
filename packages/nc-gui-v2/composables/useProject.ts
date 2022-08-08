@@ -11,6 +11,7 @@ export function useProject(projectId?: MaybeRef<string>) {
   const _projectId = $computed(() => unref(projectId))
 
   const project = useState<ProjectType>('project')
+  const appInfo = useState<any>('appInfo')
   const tables = useState<TableType[]>('tables', () => [] as TableType[])
 
   async function loadProjectRoles() {
@@ -49,5 +50,5 @@ export function useProject(projectId?: MaybeRef<string>) {
     () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
   )
 
-  return { project, tables, loadProjectRoles, loadProject, loadTables, isMysql, isPg, sqlUi }
+  return { project, tables, loadProjectRoles, loadProject, appInfo, loadTables, isMysql, isPg, sqlUi }
 }

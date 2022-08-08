@@ -68,6 +68,7 @@
     "unplugin-vue-components": "^0.21.1",
     "vite-plugin-monaco-editor": "^1.1.0",
     "vitest": "^0.18.0",
-    "windicss": "^3.5.6"
+    "windicss": "^3.5.6",
+    "httpsnippet": "^2.0.0",
   }
 }

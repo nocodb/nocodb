@@ -329,7 +329,7 @@ const expandForm = (row: Row) => {
             </tr>
           </thead>
           <tbody>
-            <SmartsheetRow v-for="(row, rowIndex) in data" :key="rowIndex" :row="row">
+            <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
               <tr class="nc-grid-row">
                 <td key="row-index" class="caption nc-grid-cell group">
                   <div class="flex items-center w-[80px]">

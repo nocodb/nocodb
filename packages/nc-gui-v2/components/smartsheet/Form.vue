@@ -25,15 +25,7 @@ const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
-const formState = reactive({
-  heading: '',
-  subheading: '',
-  submit_another_form: false,
-  show_blank_form: false,
-  email: false,
-  success_msg: '',
-  fields: {},
-})
+const formState = reactive({})
 
 const isEditable = isUIAllowed('editFormView' as Permission)
 
@@ -53,6 +45,7 @@ const {
   formViewData,
   changePage,
   updateRowProperty,
+  updateFormView,
 } = useViewData(meta, view as any)
 
 const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, false, async () => {
@@ -82,7 +75,14 @@ const activeRow = ref('')
 
 const formView = ref({})
 
-function updateView() {}
+function updateView() {
+  if ((formViewData.value?.subheading?.length || 0) > 255) {
+    toast.error('Data too long for Form Description')
+    return
+  }
+
+  updateFormView(formViewData.value)
+}
 
 async function submitForm() {
   try {
@@ -121,7 +121,7 @@ function isDbRequired(column: Record<string, any>) {
       string,
       any
     >
-    if ((col.rqd && !col.default) || (formState as Record<string, any>)?.fields[column.title]?.required) {
+    if (col.rqd && !col.default) {
       isRequired = true
     }
   }
@@ -201,20 +201,6 @@ async function removeAllColumns() {
 async function checkSMTPStatus() {}
 
 function setFormData() {
-  Object.assign(formState, {
-    heading: formViewData.value?.heading,
-    subheading: formViewData.value?.subheading,
-    submit_another_form: !!formViewData.value?.submit_another_form,
-    show_blank_form: !!formViewData.value?.email,
-    email: formViewData.value?.submit_another_form,
-    success_msg: formViewData.value?.success_msg,
-    fields: (formColumnData.value as Record<string, any>[])?.map((c) => ({
-      [c.title]: {
-        required: false,
-      },
-    })),
-  })
-
   const col = (formColumnData as Record<string, any>)?.value
 
   localColumns.value = col
@@ -346,33 +332,34 @@ onMounted(async () => {
         </template>
       </draggable>
     </a-col>
-    <a-col :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-primary">
+    <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-primary">
       <a-card class="h-full">
         <a-form ref="formRef" :model="formState" class="bg-[#fefefe]">
           <!-- Header -->
           <div class="pb-2">
             <a-form-item class="ma-0 gap-0 pa-0">
               <a-input
-                v-model:value="formState.heading"
+                v-model:value="formViewData.heading"
                 class="w-full text-bold text-h3"
                 size="large"
                 hide-details
                 placeholder="Form Title"
                 :bordered="false"
-                @blur="updateView()"
-                @keydown.enter="updateView()"
+                @blur="updateView"
+                @keydown.enter="updateView"
               />
             </a-form-item>
           </div>
           <!-- Sub Header -->
           <a-form-item>
             <a-input
-              v-model:value="formState.subheading"
+              v-model:value="formViewData.subheading"
               class="w-full"
               size="large"
               hide-details
               :placeholder="$t('msg.info.formDesc')"
               :bordered="false"
+              @blur="updateView"
               @click="updateView"
             />
           </a-form-item>
@@ -475,24 +462,28 @@ onMounted(async () => {
         </div>
         <!-- Show this message -->
         <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
-        <a-textarea v-model="formState.success_msg" rows="3" hide-details @input="updateView" />
+        <a-textarea v-model="formViewData.success_msg" rows="3" hide-details @input="updateView" />
 
         <!-- Other options -->
         <div class="mt-4">
           <div class="my-4">
             <!-- Show "Submit Another Form" button -->
-            <a-switch v-model:checked="formState.submit_another_form" v-t="[`a:form-view:submit-another-form`]" />
+            <a-switch
+              v-model:checked="formViewData.submit_another_form"
+              v-t="[`a:form-view:submit-another-form`]"
+              @change="updateView"
+            />
             <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
           </div>
 
           <div class="my-4">
             <!-- Show a blank form after 5 seconds -->
-            <a-switch v-model:checked="formState.show_blank_form" v-t="[`a:form-view:show-blank-form`]" />
+            <a-switch v-model:checked="formViewData.show_blank_form" v-t="[`a:form-view:show-blank-form`]" @change="updateView" />
             <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
           </div>
 
           <div class="my-4">
-            <a-switch v-model:checked="formState.email" v-t="[`a:form-view:email-me`]" />
+            <a-switch v-model:checked="formViewData.email" v-t="[`a:form-view:email-me`]" @change="updateView" />
             <!-- Email me at <email> -->
             <span class="ml-4">
               {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>

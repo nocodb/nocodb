@@ -45,12 +45,12 @@ const reloadMeta = async () => {
 }
 
 async function handleSubmit() {
+  // FIXME: emit only works when putting before addOrUpdate
   await addOrUpdate(async () => {
     await reloadMeta()
-    // FIXME: emit not working
-    await emit('submit')
     advancedOptions.value = false
   })
+  emit('submit')
 }
 
 // create column meta if it's a new column

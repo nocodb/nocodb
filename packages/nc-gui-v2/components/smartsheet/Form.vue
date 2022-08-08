@@ -279,6 +279,7 @@ function onEmailChange() {
 }
 
 async function submitCallback() {
+  console.log("submitCallback")
   await loadFormView()
   setFormData()
   showColumnDropdown.value = false
@@ -408,12 +409,9 @@ onMounted(async () => {
               {{ $t('activity.addField') }}
             </div>
           </a-button>
-          <!-- TODO #1: make the component out of sidebar  -->
-          <!-- TODO #2: reload view  -->
           <SmartsheetColumnEditOrAdd
             v-if="showColumnDropdown"
             ref="editOrAddRef"
-            @click.stop
             @submit="submitCallback"
             @cancel="showColumnDropdown = false"
           />

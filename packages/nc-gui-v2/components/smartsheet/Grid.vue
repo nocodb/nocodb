@@ -270,6 +270,7 @@ const onNavigate = (dir: NavigateDir) => {
                   active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
                 }"
                 :data-col="columnObj.id"
+                :data-title="columnObj.title"
                 @click="selectCell(rowIndex, colIndex)"
                 @dblclick="editEnabled = true"
                 @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"

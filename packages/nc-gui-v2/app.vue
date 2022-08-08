@@ -1,9 +1,4 @@
 <script lang="ts" setup>
-import MdiAt from '~icons/mdi/at'
-import MdiLogout from '~icons/mdi/logout'
-import MdiDotsVertical from '~icons/mdi/dots-vertical'
-import MaterialSymbolsMenu from '~icons/material-symbols/menu'
-import MdiReload from '~icons/mdi/reload'
 import { navigateTo } from '#app'
 import { useGlobal } from '#imports'
 
@@ -31,7 +26,7 @@ const toggleSidebar = () => {
 <template>
   <a-layout class="min-h-[100vh]">
     <a-layout-header class="flex !bg-primary items-center text-white px-4 shadow-md">
-      <MaterialSymbolsMenu v-if="state.signedIn.value" class="text-xl cursor-pointer" @click="toggleSidebar" />
+      <material-symbols-menu v-if="state.signedIn.value" class="text-xl cursor-pointer" @click="toggleSidebar" />
 
       <div class="flex-1" />
 
@@ -43,7 +38,7 @@ const toggleSidebar = () => {
 
         <div v-show="state.isLoading.value" class="flex items-center gap-2 ml-3">
           {{ $t('general.loading') }}
-          <MdiReload :class="{ 'animate-infinite animate-spin': state.isLoading.value }" />
+          <mdi-reload :class="{ 'animate-infinite animate-spin': state.isLoading.value }" />
         </div>
       </div>
 
@@ -54,7 +49,7 @@ const toggleSidebar = () => {
 
         <template v-if="state.signedIn.value">
           <a-dropdown :trigger="['click']">
-            <MdiDotsVertical class="md:text-xl cursor-pointer nc-user-menu" @click.prevent />
+            <mdi-dots-vertical class="md:text-xl cursor-pointer nc-user-menu" @click.prevent />
 
             <template #overlay>
               <a-menu class="!py-0 nc-user-menu min-w-32 dark:(!bg-gray-800) leading-8 !rounded">
@@ -69,10 +64,11 @@ const toggleSidebar = () => {
 
                 <a-menu-item key="1" class="!rounded-b">
                   <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="signOut">
-                    <MdiLogout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
-                    <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">{{
-                      $t('general.signOut')
-                    }}</span>
+                    <mdi-logout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
+
+                    <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">
+                      {{ $t('general.signOut') }}
+                    </span>
                   </div>
                 </a-menu-item>
               </a-menu>

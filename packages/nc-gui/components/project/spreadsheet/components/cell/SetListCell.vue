@@ -2,10 +2,10 @@
   <div>
     <v-chip
       v-for="v in selectedValues"
-      v-show="v || setValues.includes(v)"
+      v-show="v && setValues.find(el => el.title === v)"
       :key="v"
       small
-      :color="colors[setValues.indexOf(v) % colors.length]"
+      :color="setValues.find(el => el.title === v) ? setValues.find(el => el.title === v).color : ''"
       class="set-item ma-1 py-1 px-3"
     >
       {{ v }}
@@ -14,21 +14,19 @@
 </template>
 
 <script>
-import colors from '@/mixins/colors';
-
 export default {
   name: 'SetListCell',
-  mixins: [colors],
   props: ['value', 'column'],
   computed: {
     setValues() {
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''));
+      const opts = this.column.colOptions ? this.column.colOptions.options.filter(el => el.title !== '') || [] : [];
+      for (const op of opts.filter(el => el.order === null)) {
+        op.title = op.title.replace(/^'/, '').replace(/'$/, '');
       }
-      return [];
+      return opts;
     },
     selectedValues() {
-      return this.value ? this.value.split(',').map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) : [];
+      return this.value ? this.value.split(',') : [];
     },
   },
 };

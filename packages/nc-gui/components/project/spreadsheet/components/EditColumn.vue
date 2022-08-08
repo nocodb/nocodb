@@ -132,7 +132,7 @@
                   <date-options v-model="newColumn.meta" :column="newColumn" :meta="meta" />
                 </v-col>
                 <v-col v-if="isSelect" cols="12">
-                  <custom-select-options v-model="newColumn.dtxp" @input="newColumn.altered = newColumn.altered || 2" />
+                  <custom-select-options ref="customselect" :column="newColumn" :meta="meta" v-on="$listeners" />
                 </v-col>
                 <v-col v-else-if="isRating" cols="12">
                   <rating-options v-model="newColumn.meta" :column="newColumn" :meta="meta" />
@@ -399,7 +399,7 @@
                                 <v-textarea
                                   v-model="newColumn.cdf"
                                   :label="$t('placeholder.defaultValue')"
-                                  :hint="sqlUi.getDefaultValueForDatatype(newColumn.dt)"
+                                  :hint="defaultValueHint"
                                   persistent-hint
                                   rows="3"
                                   outlined
@@ -586,6 +586,14 @@ export default {
     isDate() {
       return this.newColumn && this.newColumn.uidt === UITypes.Date;
     },
+    defaultValueHint() {
+      if (this.newColumn.uidt === UITypes.MultiSelect) {
+        return 'eg : a,b,c';
+      } else if (this.newColumn.uidt === UITypes.SingleSelect) {
+        return 'eg : a';
+      }
+      return this.sqlUi.getDefaultValueForDatatype(this.newColumn.dt);
+    },
   },
   watch: {
     column() {
@@ -644,9 +652,21 @@ export default {
         if (this.newColumn.uidt === 'Formula' && this.$refs.formula) {
           return await this.$refs.formula.save();
         }
-
         this.newColumn.table_name = this.nodes.table_name;
         this.newColumn.title = this.newColumn.column_name;
+
+        if (this.isSelect && this.$refs.customselect) {
+          if (this.column) {
+            if (await this.$refs.customselect.update()) {
+              await this.$emit('saved');
+              return this.$emit('close');
+            }
+          } else if (await this.$refs.customselect.save()) {
+            await this.$emit('saved');
+            return this.$emit('close');
+          }
+          return;
+        }
 
         if (this.editColumn) {
           await this.$api.dbTableColumn.update(this.column.id, this.newColumn);
@@ -686,11 +706,6 @@ export default {
 
       this.newColumn.dtx = 'specificType';
 
-      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect];
-      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
-        this.newColumn.dtxp = this.column.dtxp;
-      }
-
       if (this.isCurrency) {
         if (this.column?.uidt === UITypes.Currency) {
           this.newColumn.dtxp = this.column.dtxp;
@@ -721,11 +736,6 @@ export default {
 
       this.newColumn.dtxp = this.sqlUi.getDefaultLengthForDatatype(this.newColumn.dt);
       this.newColumn.dtxs = this.sqlUi.getDefaultScaleForDatatype(this.newColumn.dt);
-
-      const selectTypes = [UITypes.MultiSelect, UITypes.SingleSelect];
-      if (this.column && selectTypes.includes(this.newColumn.uidt) && selectTypes.includes(this.column.uidt)) {
-        this.newColumn.dtxp = this.column.dtxp;
-      }
 
       if (columnToValidate.includes(this.newColumn.uidt)) {
         this.newColumn.meta = {

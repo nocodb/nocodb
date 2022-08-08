@@ -1,45 +1,45 @@
 <template>
-  <v-select
-    v-model="localState"
-    solo
-    dense
-    flat
-    :items="enumValues"
-    hide-details
-    class="mt-0"
-    :clearable="!column.rqd"
-    v-on="parentListeners"
-  >
-    <template #selection="{ item }">
-      <div
-        class="d-100"
-        :class="{
-          'text-center': !isForm,
-        }"
-      >
-        <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]" class="ma-1">
-          {{ item }}
+  <div>
+    <v-select
+      v-model="localState"
+      :items="enumValues"
+      :menu-props="{ bottom: true, offsetY: true }"
+      item-value="title"
+      solo
+      dense
+      flat
+      hide-details
+      :class="`mt-0 ${isForm ? 'form-select' : ''}`"
+      :clearable="!column.rqd"
+      v-on="parentListeners"
+    >
+      <template #selection="{ item }">
+        <div
+          class="d-100"
+          :class="{
+            'text-center': !isForm,
+          }"
+        >
+          <v-chip small :color="item.color" class="ma-1">
+            {{ item.title }}
+          </v-chip>
+        </div>
+      </template>
+      <template #item="{ item }">
+        <v-chip small :color="item.color">
+          {{ item.title }}
         </v-chip>
-      </div>
-    </template>
-    <template #item="{ item }">
-      <v-chip small :color="colors[enumValues.indexOf(item) % colors.length]">
-        {{ item }}
-      </v-chip>
-    </template>
-    <template #append>
-      <v-icon small class="mt-1"> mdi-menu-down </v-icon>
-    </template>
-  </v-select>
+      </template>
+      <template #append>
+        <v-icon small class="mt-1"> mdi-menu-down </v-icon>
+      </template>
+    </v-select>
+  </div>
 </template>
 
 <script>
-import colors from '@/mixins/colors';
-
 export default {
   name: 'EnumListEditableCell',
-  mixins: [colors],
-
   props: {
     value: String,
     column: Object,
@@ -48,17 +48,18 @@ export default {
   computed: {
     localState: {
       get() {
-        return this.value && this.value.replace(/\\'/g, "'").replace(/^'|'$/g, '');
+        return this.value;
       },
       set(val) {
         this.$emit('input', val);
       },
     },
     enumValues() {
-      if (this.column && this.column.dtxp) {
-        return this.column.dtxp.split(',').map(v => v.replace(/\\'/g, "'").replace(/^'|'$/g, ''));
+      const opts = this.column.colOptions ? this.column.colOptions.options.filter(el => el.title !== '') || [] : [];
+      for (const op of opts.filter(el => el.order === null)) {
+        op.title = op.title.replace(/^'/, '').replace(/'$/, '');
       }
-      return [];
+      return opts;
     },
     parentListeners() {
       const $listeners = {};
@@ -98,6 +99,14 @@ export default {
 
     .v-icon {
       font-size: 13px !important;
+    }
+  }
+  .form-select {
+    .v-select__selections {
+      border: 1px solid rgba(127, 130, 139, 0.2);
+    }
+    input {
+      z-index: -1;
     }
   }
 }

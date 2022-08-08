@@ -4,6 +4,10 @@ import { inject, provide, useViewData } from '#imports'
 import { ActiveViewInj, ChangePageInj, FieldsInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReadonlyInj } from '~/context'
 import ImageIcon from '~icons/mdi/file-image-box'
 
+interface Attachment {
+  url: string
+}
+
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
 
@@ -25,14 +29,6 @@ const fields = inject(FieldsInj, ref([]))
 
 const coverImageColumn = $(computed(() => fields.value.find((col) => col.id === galleryData.value?.fk_cover_image_col_id)))
 
-const coverUrl = (record: any) => {
-  try {
-    return JSON.parse(record.row[coverImageColumn?.title])[0].url
-  } catch (e) {
-    return null
-  }
-}
-
 watch(
   [meta, view],
   async () => {
@@ -50,6 +46,14 @@ const isRowEmpty = (record: any, col: any) => {
 
   return Array.isArray(val) && val.length === 0
 }
+
+const attachments = (record: any): Array<Attachment> => {
+  try {
+    return JSON.parse(record.row[coverImageColumn?.title]) ?? []
+  } catch (e) {
+    return []
+  }
+}
 </script>
 
 <!-- TODO: Fix scrolling -->
@@ -59,7 +63,14 @@ const isRowEmpty = (record: any, col: any) => {
       <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col">
         <a-card hoverable class="!rounded-lg h-full">
           <template #cover>
-            <img v-if="record.row[coverImageColumn?.title]" class="h-52 rounded-t-lg" :src="coverUrl(record)" />
+            <a-carousel v-if="attachments(record).length !== 0" autoplay>
+              <img
+                v-for="(attachment, index) in attachments(record)"
+                :key="index"
+                class="h-52 rounded-t-lg"
+                :src="attachment.url"
+              />
+            </a-carousel>
             <ImageIcon v-else class="w-full h-48 my-4 text-cool-gray-200" />
           </template>
 

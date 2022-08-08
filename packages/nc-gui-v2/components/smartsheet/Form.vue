@@ -208,6 +208,22 @@ function setFormData() {
   hiddenColumns.value = col.filter((f: Record<string, any>) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id))
 }
 
+function isRequired(_columnObj: Record<string, any>, required = false) {
+  let columnObj = _columnObj
+  if (
+    columnObj.uidt === UITypes.LinkToAnotherRecord &&
+    columnObj.colOptions &&
+    columnObj.colOptions.type === RelationTypes.BELONGS_TO
+  ) {
+    columnObj = columns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<
+      string,
+      any
+    >
+  }
+
+  return required || (columnObj && columnObj.rqd && !columnObj.cdf)
+}
+
 const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
   if (col.id) {
     try {
@@ -273,8 +289,14 @@ watch(
                 <SmartsheetHeaderVirtualCell
                   v-if="isVirtualCol(element)"
                   :column="{ ...element, title: element.label || element.title }"
+                  :required="isRequired(element, element.required)"
                 />
-                <SmartsheetHeaderCell v-else class="w-full" :column="{ ...element, title: element.label || element.title }" />
+                <SmartsheetHeaderCell
+                  v-else
+                  class="w-full"
+                  :column="{ ...element, title: element.label || element.title }"
+                  :required="isRequired(element, element.required)"
+                />
               </div>
               <div class="flex flex-row">
                 <MdiDragIcon class="flex flex-1" />
@@ -349,8 +371,13 @@ watch(
                   <SmartsheetHeaderVirtualCell
                     v-if="isVirtualCol(element)"
                     :column="{ ...element, title: element.label || element.title }"
+                    :required="isRequired(element, element.required)"
                   />
-                  <SmartsheetHeaderCell v-else :column="{ ...element, title: element.label || element.title }" />
+                  <SmartsheetHeaderCell
+                    v-else
+                    :column="{ ...element, title: element.label || element.title }"
+                    :required="isRequired(element, element.required)"
+                  />
                 </div>
                 <div v-if="isUIAllowed('editFormView')" class="flex">
                   <MdiHideIcon class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />

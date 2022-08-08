@@ -5,7 +5,7 @@ import type { Row } from '~/composables/useViewData'
 
 const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   // state
-  const localState = reactive({})
+  const localState = ref({})
 
   // getters
   const isNew = computed(() => row.value?.rowMeta?.new)

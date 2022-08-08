@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { computed, inject, onMounted, ref } from '#imports'
+import type { VNodeRef } from '@vue/runtime-core'
+import { computed, inject, ref } from '#imports'
 import { ColumnInj, EditModeInj } from '~/context'
 import { isValidURL } from '~/utils'
 
@@ -18,7 +19,7 @@ const editEnabled = inject(EditModeInj, ref(false))
 const vModel = computed({
   get: () => value,
   set: (val) => {
-    if (!column?.value?.meta?.validate || isValidURL(val)) {
+    if (!column?.value?.meta?.validate || (val && isValidURL(val))) {
       emit('update:modelValue', val)
     }
   },
@@ -26,7 +27,7 @@ const vModel = computed({
 
 const isValid = computed(() => value && isValidURL(value))
 
-const focus = (el: HTMLInputElement) => el?.focus()
+const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

@@ -69,6 +69,8 @@ const systemFieldsIds = ref<Record<string, any>>([])
 
 const showColumnDropdown = ref(false)
 
+const drag = ref(false)
+
 const formView = ref({})
 
 function updateView() {}
@@ -250,7 +252,7 @@ watch(
           </div>
         </div>
       </div>
-      <draggable :list="hiddenColumns" draggable=".item" group="a-card">
+      <draggable :list="hiddenColumns" draggable=".item" group="a-card" @start="drag = true" @end="drag = false">
         <template #item="{ element }">
           <a-card size="small" class="ma-0 pa-0 cursor-pointer item mb-2">
             <div class="flex">
@@ -321,6 +323,8 @@ watch(
           group="div"
           class="h-100"
           @change="onMove($event)"
+          @start="drag = true"
+          @end="drag = false"
         >
           <template #item="{ element, index }">
             <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3">

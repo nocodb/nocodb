@@ -3,7 +3,10 @@ const baseRules = {
   'no-console': 0,
   'antfu/if-newline': 0,
   'no-unused-vars': 0,
-  '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_' }],
+  '@typescript-eslint/no-unused-vars': [
+    'error',
+    { argsIgnorePattern: '^_', varsIgnorePattern: '^_', caughtErrorsIgnorePattern: '^_' },
+  ],
   'prettier/prettier': ['error', {}, { usePrettierrc: true }],
 }
 

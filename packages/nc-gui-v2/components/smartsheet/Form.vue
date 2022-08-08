@@ -401,6 +401,7 @@ watch(
                 </div>
                 <div class="nc-input">
                   <a-form-item
+                    class="ma-0 gap-0 pa-0"
                     v-if="isVirtualCol(element)"
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"
@@ -408,6 +409,7 @@ watch(
                     <SmartsheetVirtualCell v-model="formState[element.title]" :column="element" />
                   </a-form-item>
                   <a-form-item
+                    class="ma-0 gap-0 pa-0"
                     v-else
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"

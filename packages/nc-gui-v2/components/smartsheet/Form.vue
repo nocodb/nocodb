@@ -269,8 +269,11 @@ watch(
           <a-card size="small" class="ma-0 pa-0 cursor-pointer item mb-2">
             <div class="flex">
               <div class="flex flex-row flex-1">
-                <SmartsheetHeaderVirtualCell v-if="isVirtualCol(element)" :column="element" />
-                <SmartsheetHeaderCell v-else class="w-full" :column="element" />
+                <SmartsheetHeaderVirtualCell
+                  v-if="isVirtualCol(element)"
+                  :column="{ ...element, title: element.label || element.title }"
+                />
+                <SmartsheetHeaderCell v-else class="w-full" :column="{ ...element, title: element.label || element.title }" />
               </div>
               <div class="flex flex-row">
                 <MdiDragIcon class="flex flex-1" />
@@ -342,8 +345,11 @@ watch(
             <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3" @click="activeRow = element.title">
               <div class="flex">
                 <div class="flex flex-1">
-                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(element)" :column="element" />
-                  <SmartsheetHeaderCell v-else :column="element" />
+                  <SmartsheetHeaderVirtualCell
+                    v-if="isVirtualCol(element)"
+                    :column="{ ...element, title: element.label || element.title }"
+                  />
+                  <SmartsheetHeaderCell v-else :column="{ ...element, title: element.label || element.title }" />
                 </div>
                 <div v-if="isUIAllowed('editFormView')" class="flex">
                   <MdiHideIcon class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />

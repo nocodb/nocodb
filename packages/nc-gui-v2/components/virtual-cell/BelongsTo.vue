@@ -3,23 +3,29 @@ import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
-import { useProvideLTARStore } from '#imports'
+import { inject, ref, useProvideLTARStore } from '#imports'
 import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
-import MdiExpandIcon from '~icons/mdi/arrow-expand'
 
 const column = inject(ColumnInj)
-const reloadTrigger = inject(ReloadViewDataHookInj)
+
+const reloadTrigger = inject(ReloadViewDataHookInj)!
+
 const cellValue = inject(CellValueInj)
+
 const row = inject(RowInj)
+
 const active = false
+
 const localState = null
+
 const listItemsDlg = ref(false)
 
-const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
+const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
-  () => reloadTrigger?.trigger(),
+  reloadTrigger.trigger,
 )
+
 await loadRelatedTableMeta()
 </script>
 
@@ -31,7 +37,7 @@ await loadRelatedTableMeta()
       </template>
     </div>
     <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
-      <MdiExpandIcon
+      <MdiArrowExpand
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500)"
         @click="listItemsDlg = true"
       />

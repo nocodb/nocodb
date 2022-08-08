@@ -12,14 +12,14 @@ const { modelValue: value } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj, ref(false))
 
 const vModel = computed({
   get: () => value,
   set: (val) => {
-    if (!column?.value?.meta?.validate || (val && isValidURL(val))) {
+    if (!column.value.meta?.validate || (val && isValidURL(val))) {
       emit('update:modelValue', val)
     }
   },
@@ -32,7 +32,7 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 <template>
   <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none" @blur="editEnabled = false" />
-  <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="value" target="_blank">{{ value }}</nuxt-link>
+  <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="value || ''" target="_blank">{{ value }}</nuxt-link>
   <span v-else>{{ value }}</span>
 </template>
 

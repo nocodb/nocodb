@@ -1,21 +1,11 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
 import Draggable from 'vuedraggable'
 import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-import { useViewColumns } from '#imports'
-import MdiMenuDownIcon from '~icons/mdi/menu-down'
-import MdiEyeIcon from '~icons/mdi/eye-off-outline'
-import MdiDragIcon from '~icons/mdi/drag'
+import { computed, inject, useNuxtApp, useViewColumns, watch } from '#imports'
 
-const { fieldsOrder, coverImageField, modelValue } = defineProps<{
-  coverImageField?: string
-  fieldsOrder?: string[]
-  modelValue?: Record<string, boolean>
-}>()
-
-const meta = inject(MetaInj)
-const activeView = inject(ActiveViewInj)
-const reloadDataHook = inject(ReloadViewDataHookInj)
+const meta = inject(MetaInj)!
+const activeView = inject(ActiveViewInj)!
+const reloadDataHook = inject(ReloadViewDataHookInj)!
 const rootFields = inject(FieldsInj)
 const isLocked = inject(IsLockedInj)
 
@@ -31,46 +21,45 @@ const {
   showAll,
   hideAll,
   saveOrUpdate,
-  // sortedFields,
-} = useViewColumns(activeView, meta, false, () => reloadDataHook?.trigger())
+} = useViewColumns(activeView, meta, false, () => reloadDataHook.trigger())
 
 watch(
-  () => (activeView?.value as any)?.id,
+  () => (activeView.value as any)?.id,
   async (newVal, oldVal) => {
-    if (newVal !== oldVal && meta?.value) {
+    if (newVal !== oldVal && meta.value) {
       await loadViewColumns()
     }
   },
   { immediate: true },
 )
+
 watch(
-  () => sortedAndFilteredFields.value,
+  sortedAndFilteredFields,
   (v) => {
     if (rootFields) rootFields.value = v || []
   },
   { immediate: true },
 )
 
-const isAnyFieldHidden = computed(() => {
-  return fields?.value?.some((f) => !(!showSystemFields && f.system) && !f.show)
-})
+const isAnyFieldHidden = computed(() => fields.value?.some((field) => !(!showSystemFields && field.system) && !field.show))
 
 const onMove = (event: { moved: { newIndex: number } }) => {
   // todo : sync with server
-  if (!fields?.value) return
+  if (!fields.value) return
 
   if (fields.value.length < 2) return
 
-  if (fields?.value.length - 1 === event.moved.newIndex) {
+  if (fields.value.length - 1 === event.moved.newIndex) {
     fields.value[event.moved.newIndex].order = (fields.value[event.moved.newIndex - 1].order || 1) + 1
   } else if (event.moved.newIndex === 0) {
-    fields.value[event.moved.newIndex].order = (fields?.value[1].order || 1) / 2
+    fields.value[event.moved.newIndex].order = (fields.value[1].order || 1) / 2
   } else {
     fields.value[event.moved.newIndex].order =
-      ((fields?.value[event.moved.newIndex - 1].order || 1) + (fields?.value[event.moved.newIndex + 1].order || 1)) / 2
-    // );
+      ((fields.value[event.moved.newIndex - 1].order || 1) + (fields.value[event.moved.newIndex + 1].order || 1)) / 2
   }
+
   saveOrUpdate(fields.value[event.moved.newIndex], event.moved.newIndex)
+
   $e('a:fields:reorder')
 }
 </script>
@@ -80,11 +69,12 @@ const onMove = (event: { moved: { newIndex: number } }) => {
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
       <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked" size="small">
         <div class="flex align-center gap-1">
-          <!--          <v-icon small class="mr-1" color="#777"> mdi-eye-off-outline </v-icon> -->
-          <MdiEyeIcon class="text-grey"></MdiEyeIcon>
+          <MdiEyeOffOutline class="text-grey" />
+
           <!-- Fields -->
           <span class="text-xs text-capitalize">{{ $t('objects.fields') }}</span>
-          <MdiMenuDownIcon class="text-grey"></MdiMenuDownIcon>
+
+          <MdiMenuDown class="text-grey" />
         </div>
       </a-button>
     </div>
@@ -101,7 +91,7 @@ const onMove = (event: { moved: { newIndex: number } }) => {
                   <span class="text-xs">{{ field.title }}</span>
                 </a-checkbox>
                 <div class="flex-1" />
-                <MdiDragIcon class="cursor-move" />
+                <MdiDrag class="cursor-move" />
               </div>
             </template>
           </Draggable>

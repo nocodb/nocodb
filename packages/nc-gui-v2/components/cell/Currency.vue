@@ -26,14 +26,12 @@ const currencyMeta = computed(() => {
 })
 
 const currency = computed(() => {
-  if (!vModel.value) return null
-
   try {
-    return isNaN(vModel.value)
+    return !vModel.value || isNaN(vModel.value)
       ? vModel.value
-      : new Intl.NumberFormat(currencyMeta?.value?.currency_locale || 'en-US', {
+      : new Intl.NumberFormat(currencyMeta.value.currency_locale || 'en-US', {
           style: 'currency',
-          currency: currencyMeta?.value?.currency_code || 'USD',
+          currency: currencyMeta.value.currency_code || 'USD',
         }).format(vModel.value)
   } catch (e) {
     return vModel.value

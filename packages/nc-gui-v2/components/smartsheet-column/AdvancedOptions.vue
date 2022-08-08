@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import type { UITypes } from 'nocodb-sdk'
-import { useColumnCreateStoreOrThrow } from '#imports'
+import { computed, useColumnCreateStoreOrThrow } from '#imports'
 
-const { formState, validateInfos, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
+const { formState, validateInfos, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()!
 
 // todo: 2nd argument of `getDataTypeListForUiType` is missing!
 const dataTypes = computed(() => sqlUi?.value?.getDataTypeListForUiType(formState.value as { uidt: UITypes }, '' as any))
@@ -84,5 +84,3 @@ formState.value.au = !!formState.value.au
     </a-form-item>
   </div>
 </template>
-
-<style scoped></style>

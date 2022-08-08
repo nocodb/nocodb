@@ -160,7 +160,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           column?.value?.title,
           getRelatedTableRowId(row) as string,
         )
-      } catch (e) {
+      } catch (e: any) {
         notification.error({
           message: 'Unlink failed',
           description: await extractSdkResponseErrorMsg(e),
@@ -198,7 +198,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           column?.value?.title,
           getRelatedTableRowId(row) as string,
         )
-      } catch (e) {
+      } catch (e: any) {
         notification.error({
           message: 'Linking failed',
           description: await extractSdkResponseErrorMsg(e),

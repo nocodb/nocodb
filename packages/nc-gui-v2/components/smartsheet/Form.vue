@@ -70,6 +70,8 @@ const availableColumns = inject(FieldsInj, ref([]))
 
 const rowRef = ref()
 
+const editOrAddRef = ref()
+
 const systemFieldsIds = ref<Record<string, any>>([])
 
 const showColumnDropdown = ref(false)
@@ -255,6 +257,10 @@ onClickOutside(rowRef, () => {
   activeRow.value = ''
 })
 
+onClickOutside(editOrAddRef, () => {
+  showColumnDropdown.value = false
+})
+
 onMounted(async () => {
   await loadFormView()
   setFormData()
@@ -337,10 +343,14 @@ watch(
               {{ $t('activity.addField') }}
             </div>
           </a-button>
-          <!-- TODO #1: set showColumnDropdown to false after saving  -->
           <!-- TODO #2: make the component out of sidebar  -->
           <!-- TODO #3: reload view  -->
-          <SmartsheetColumnEditOrAdd v-if="showColumnDropdown" @click.stop @cancel="showColumnDropdown = false" />
+          <SmartsheetColumnEditOrAdd
+            ref="editOrAddRef"
+            v-if="showColumnDropdown"
+            @click.stop
+            @cancel="showColumnDropdown = false"
+          />
         </template>
       </draggable>
     </a-col>

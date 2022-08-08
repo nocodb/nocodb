@@ -49,7 +49,7 @@ const isExpanded = useVModel(props, 'modelValue', emits)
                   v-model="row.row[col.title]"
                   :column="col"
                   :edit-enabled="true"
-                  @update:modelValue="changedColumns.add(col.title)"
+                  @update:model-value="changedColumns.add(col.title)"
                 />
               </div>
             </div>

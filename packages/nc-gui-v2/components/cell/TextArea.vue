@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
 import { inject, ref, useVModel } from '#imports'
 import { EditModeInj } from '~/context'
 
@@ -6,7 +7,9 @@ interface Props {
   modelValue: string | null
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: '',
+})
 
 const emits = defineEmits(['update:modelValue'])
 
@@ -14,7 +17,7 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const focus = (el: HTMLTextAreaElement) => el?.focus()
+const focus: VNodeRef = (el) => (el as HTMLTextAreaElement)?.focus()
 </script>
 
 <template>

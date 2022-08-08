@@ -381,7 +381,7 @@ async function migrateProjectModels(
     // @ts-ignore
     let queryParams: QueryParamsv1 = {};
     if (modelData.query_params) {
-      queryParams = JSON.parse(modelData.query_params);
+      queryParams = JSON.parse(modelData.query_params) ?? {};
     }
 
     if (modelData.type === 'table' || modelData.type === 'view') {
@@ -800,7 +800,7 @@ async function migrateProjectModels(
         await View.update(
           defaultView.id,
           {
-            show_system_fields: queryParams.showSystemFields,
+            show_system_fields: queryParams?.showSystemFields,
             order: modelData.view_order,
           },
           ncMeta
@@ -876,7 +876,7 @@ async function migrateProjectModelViews(
     // @ts-ignore
     let queryParams: QueryParamsv1 = {};
     if (viewData.query_params) {
-      queryParams = JSON.parse(viewData.query_params);
+      queryParams = JSON.parse(viewData.query_params)??{};
     }
 
     objViewQPRef[project.id][viewData.parent_model_title][viewData.title] =
@@ -908,24 +908,24 @@ async function migrateProjectModelViews(
       insertObj.type = ViewTypes.GALLERY;
       insertObj.fk_cover_image_col_id =
         objModelColumnAliasRef[project.id][viewData.parent_model_title][
-          queryParams.coverImageField
+          queryParams?.coverImageField
         ]?.id;
     } else if (viewData.show_as === 'form') {
       insertObj.type = ViewTypes.FORM;
-      insertObj.heading = queryParams.extraViewParams?.formParams?.name;
+      insertObj.heading = queryParams?.extraViewParams?.formParams?.name;
       insertObj.subheading =
-        queryParams.extraViewParams?.formParams?.description;
+        queryParams?.extraViewParams?.formParams?.description;
       insertObj.success_msg =
-        queryParams.extraViewParams?.formParams?.submit?.message;
+        queryParams?.extraViewParams?.formParams?.submit?.message;
       insertObj.redirect_url =
-        queryParams.extraViewParams?.formParams?.submit?.submitRedirectUrl;
+        queryParams?.extraViewParams?.formParams?.submit?.submitRedirectUrl;
       insertObj.email = JSON.stringify(
-        queryParams.extraViewParams?.formParams?.emailMe
+        queryParams?.extraViewParams?.formParams?.emailMe
       );
       insertObj.submit_another_form =
-        queryParams.extraViewParams?.formParams?.submit.showAnotherSubmit;
+        queryParams?.extraViewParams?.formParams?.submit.showAnotherSubmit;
       insertObj.show_blank_form =
-        queryParams.extraViewParams?.formParams?.submit?.showBlankForm;
+        queryParams?.extraViewParams?.formParams?.submit?.showBlankForm;
     } else throw new Error('not implemented');
 
     const view = await View.insert(insertObj, ncMeta);
@@ -994,7 +994,7 @@ async function migrateProjectModelViews(
     await View.update(
       view.id,
       {
-        show_system_fields: queryParams.showSystemFields,
+        show_system_fields: queryParams?.showSystemFields,
         order: viewData.view_order,
       },
       ncMeta
@@ -1034,7 +1034,7 @@ async function migrateViewsParams(
             ?.type as ViewType['lock_type'];
         }
         // migrate view sort list
-        for (const sort of queryParams.sortList || []) {
+        for (const sort of queryParams?.sortList || []) {
           await Sort.insert(
             {
               fk_column_id: sort.field
@@ -1051,7 +1051,7 @@ async function migrateViewsParams(
         }
 
         // migrate view filter list
-        for (const filter of queryParams.filters || []) {
+        for (const filter of queryParams?.filters || []) {
           await Filter.insert(
             {
               fk_column_id: filter.field

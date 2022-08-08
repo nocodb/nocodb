@@ -35,7 +35,6 @@ const toggleSidebar = () => {
           <img width="35" src="~/assets/img/icons/512x512-trans.png" />
           <span class="prose-xl">NocoDB</span>
         </div>
-
       </div>
 
       <div class="flex-1 text-left">

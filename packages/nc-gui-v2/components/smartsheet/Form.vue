@@ -71,6 +71,8 @@ const showColumnDropdown = ref(false)
 
 const drag = ref(false)
 
+const activeRow = ref('')
+
 const formView = ref({})
 
 function updateView() {}
@@ -327,7 +329,7 @@ watch(
           @end="drag = false"
         >
           <template #item="{ element, index }">
-            <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3">
+            <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3" @click="activeRow = element.title">
               <div class="flex">
                 <div class="flex flex-1">
                   <SmartsheetHeaderVirtualCell v-if="isVirtualCol(element)" :column="element" />
@@ -337,11 +339,26 @@ watch(
                   <MdiHideIcon class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
                 </div>
               </div>
-              <div
-                class="w-full !bg-white rounded px-1 min-h-[40px] mt-2 mb-4 pa-2 flex align-center border-solid border-1 border-primary"
-              >
+              <div class="nc-input">
                 <SmartsheetVirtualCell v-if="isVirtualCol(element)" v-model="formState[element.title]" :column="element" />
                 <SmartsheetCell v-else v-model="formState[element.title]" :column="element" :edit-enabled="true" />
+              </div>
+
+              <div v-if="activeRow === element.title" class="">
+                <a-input v-model:value="element.label" class="nc-input" size="large" :placeholder="$t('msg.info.formInput')">
+                </a-input>
+                <a-input
+                  v-model:value="element.description"
+                  class="nc-input"
+                  :placeholder="$t('msg.info.formHelpText')"
+                  size="large"
+                />
+                <a-switch
+                  v-model:checked="element.required"
+                  class="mb-2"
+                  :checked-children="$t('general.required')"
+                  un-checked-children="Not Required"
+                ></a-switch>
               </div>
             </div>
           </template>
@@ -399,5 +416,9 @@ watch(
   .nc-field-remove-icon {
     @apply opacity-100;
   }
+}
+
+.nc-input {
+  @apply w-full !bg-white rounded px-2 min-h-[40px] mt-2 mb-2 pa-2 flex align-center border-solid border-1 border-primary;
 }
 </style>

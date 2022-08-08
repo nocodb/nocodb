@@ -270,8 +270,8 @@ watch(
 </script>
 
 <template>
-  <a-row class="h-full flex overflow-auto scrollbar-thin-primary">
-    <a-col v-if="isEditable" :span="8" class="bg-[#f7f7f7] shadow-md pa-5">
+  <a-row class="h-full flex">
+    <a-col v-if="isEditable" :span="8" class="bg-[#f7f7f7] shadow-md pa-5 h-full overflow-auto scrollbar-thin-primary">
       <div class="flex">
         <div class="flex flex-row flex-1 text-lg">
           <span>
@@ -344,7 +344,7 @@ watch(
         </template>
       </draggable>
     </a-col>
-    <a-col :span="isEditable ? 16 : 24">
+    <a-col :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-primary">
       <a-card class="h-full">
         <a-form ref="formRef" :model="formState" class="bg-[#fefefe]">
           <!-- Header -->

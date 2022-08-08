@@ -55,8 +55,8 @@ const {
   updateRowProperty,
 } = useViewData(meta, view as any)
 
-const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, false, () => {
-  loadFormView()
+const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, false, async () => {
+  await loadFormView()
   setFormData()
 })
 
@@ -155,7 +155,7 @@ function onMove(event: any) {
 
 function hideColumn(idx: number) {
   if (isDbRequired(localColumns.value[idx]) || localColumns.value[idx].required) {
-    toast.info("Required field can't be removed")
+    toast.info("Required field can't be moved")
     return
   }
 
@@ -174,7 +174,6 @@ function hideColumn(idx: number) {
 async function addAllColumns() {
   for (const col of (formColumnData as Record<string, any>)?.value) {
     if (!systemFieldsIds.value.includes(col.fk_column_id)) {
-      console.log(col)
       col.show = true
     }
   }
@@ -381,6 +380,7 @@ watch(
             draggable=".item"
             group="form-inputs"
             class="h-100"
+            filter=".disable-drag"
             @change="onMove($event)"
             @start="drag = true"
             @end="drag = false"
@@ -389,6 +389,7 @@ watch(
               <div
                 ref="rowRef"
                 class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3"
+                :class="{ 'disable-drag': isDbRequired(element) || element.required }"
                 @click="activeRow = element.title"
               >
                 <div class="flex">
@@ -404,7 +405,7 @@ watch(
                       :required="isRequired(element, element.required)"
                     />
                   </div>
-                  <div v-if="isUIAllowed('editFormView')" class="flex">
+                  <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="flex">
                     <MdiHideIcon class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
                   </div>
                 </div>

@@ -1,12 +1,11 @@
 <script setup lang="ts">
 import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
-import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
 import { toRef } from 'vue'
 import { $computed } from 'vue/macros'
+import type { Ref } from 'vue'
 import { useMetas } from '~/composables'
 import { ColumnInj, MetaInj } from '~/context'
-import type { TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
 import { provide, useProvideColumnCreateStore } from '#imports'
 
 const props = defineProps<{ column: ColumnType & { meta: any } }>()
@@ -74,7 +73,6 @@ const tooltipMsg = computed(() => {
   }
   return ''
 })
-
 
 useProvideColumnCreateStore(meta as Ref<TableType>, column)
 </script>

@@ -45,7 +45,7 @@ const value = computed(() => {
   <div class="flex w-full chips-wrapper align-center" :class="{ active }">
     <div class="chips d-flex align-center flex-grow">
       <template v-if="value">
-        <ItemChip :item="value" :value="cellValue[relatedTablePrimaryValueProp]" @unlink="unlink(value)" />
+        <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlink(value)" />
       </template>
     </div>
     <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">

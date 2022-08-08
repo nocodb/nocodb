@@ -13,7 +13,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
 
   // actions
   const addLTARRef = async (value: Record<string, any>, column: ColumnType) => {
-    const { isHm, isMm } = useVirtualCell(ref(column))
+    const { isHm, isMm } = $(useVirtualCell(ref(column)))
     if (isHm || isMm) {
       state.value[column.title!] = state.value[column.title!] || []
       state.value[column.title!].push(value)

@@ -1,7 +1,4 @@
 <script setup lang="ts">
-import { computed } from 'vue'
-
-// todo: move to persisted state
 import type ColumnFilter from './ColumnFilter.vue'
 import { useState } from '#app'
 import { IsLockedInj } from '~/context'
@@ -11,19 +8,10 @@ import MdiMenuDownIcon from '~icons/mdi/menu-down'
 const autoApplyFilter = useState('autoApplyFilter', () => false)
 const isLocked = inject(IsLockedInj)
 
-const { $state } = useNuxtApp()
+const { filterAutoSave } = useGlobal()
 
 // todo: emit from child
 const filtersLength = ref(0)
-// todo: sync with store
-const autosave = computed({
-  get() {
-    return $state.filterAutoSave.value
-  },
-  set(value: boolean) {
-    $state.filterAutoSave.value = value
-  },
-})
 
 const filterComp = ref<typeof ColumnFilter>()
 
@@ -49,11 +37,11 @@ const applyChanges = async () => {
       <SmartsheetToolbarColumnFilter
         ref="filterComp"
         class="nc-table-toolbar-menu"
-        :auto-save="autosave"
+        :auto-save="filterAutoSave"
         @update:filters-length="filtersLength = $event"
       >
         <div class="d-flex align-end mt-2 min-h-[30px]" @click.stop>
-          <a-checkbox id="col-filter-checkbox" v-model:checked="autosave" class="col-filter-checkbox" hide-details dense>
+          <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSave" class="col-filter-checkbox" hide-details dense>
             <span class="text-grey text-xs">
               {{ $t('msg.info.filterAutoApply') }}
               <!-- Auto apply -->
@@ -61,7 +49,7 @@ const applyChanges = async () => {
           </a-checkbox>
 
           <div class="flex-1" />
-          <a-button v-show="!autosave" size="small" class="text-xs ml-2" @click="applyChanges"> Apply changes</a-button>
+          <a-button v-show="!filterAutoSave" size="small" class="text-xs ml-2" @click="applyChanges"> Apply changes </a-button>
         </div>
       </SmartsheetToolbarColumnFilter>
     </template>

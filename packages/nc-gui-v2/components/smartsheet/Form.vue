@@ -140,7 +140,7 @@ function onMove(event: any) {
 }
 
 function hideColumn(idx: number) {
-  if (isDbRequired(localColumns.value[idx])) {
+  if (isDbRequired(localColumns.value[idx]) || localColumns.value[idx].required) {
     toast.info("Required field can't be removed")
     return
   }
@@ -170,12 +170,16 @@ async function addAllColumns() {
 
 async function removeAllColumns() {
   for (const col of (formColumnData as Record<string, any>)?.value) {
-    if (isDbRequired(col) || col.required) {
+    if (isDbRequired(col) || !!col.required) {
       continue
     }
     col.show = false
   }
-  await hideAll((localColumns as Record<string, any>)?.value.filter(isDbRequired).map((f: Record<string, any>) => f.fk_column_id))
+  await hideAll(
+    (localColumns as Record<string, any>)?.value
+      .filter((f: Record<string, any>) => isDbRequired(f) || !!f.required)
+      .map((f: Record<string, any>) => f.fk_column_id),
+  )
   $e('a:form-view:remove-all')
 }
 
@@ -286,6 +290,7 @@ watch(
           <a-card size="small" class="ma-0 pa-0 cursor-pointer item mb-2">
             <div class="flex">
               <div class="flex flex-row flex-1">
+                {{ element.required }}
                 <SmartsheetHeaderVirtualCell
                   v-if="isVirtualCol(element)"
                   :column="{ ...element, title: element.label || element.title }"

@@ -10,6 +10,8 @@ const { commentsDrawer, row, primaryValue, save: _save } = useExpandedFormStoreO
 const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
 const { isUIAllowed } = useUIPermission()
 
+const emit = defineEmits(['cancel'])
+
 const save = async () => {
   if (isNew.value) {
     const data = await _save()
@@ -41,7 +43,7 @@ const iconColor = '#1890ff'
     <div class="flex-grow" />
     <mdi-reload />
     <component :is="drawerToggleIcon" class="" @click="commentsDrawer = !commentsDrawer" />
-    <a-button size="small" class="!text">
+    <a-button size="small" class="!text" @click="emit('cancel')">
       <!-- Cancel -->
       {{ $t('general.cancel') }}
     </a-button>

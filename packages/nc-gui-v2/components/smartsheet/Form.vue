@@ -499,7 +499,7 @@ onMounted(async () => {
         </div>
 
         <!-- After form is submitted -->
-        <div class="text-gray-500 mt-10 mb-4">
+        <div class="text-gray-500 mt-4 mb-2">
           {{ $t('msg.info.afterFormSubmitted') }}
         </div>
         <!-- Show this message -->

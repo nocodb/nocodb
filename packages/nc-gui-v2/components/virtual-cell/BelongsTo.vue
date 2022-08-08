@@ -30,7 +30,8 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, un
 )
 
 await loadRelatedTableMeta()
-const { state, isNew } = useSmartsheetRowStoreOrThrow()
+const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+
 const value = computed(() => {
   if (cellValue?.value) {
     return cellValue?.value
@@ -39,13 +40,21 @@ const value = computed(() => {
   }
   return null
 })
+
+const unlinkRef = async (rec: Record<string, any>) => {
+  if (isNew.value) {
+    removeLTARRef(rec, column?.value as ColumnType)
+  } else {
+    await unlink(rec)
+  }
+}
 </script>
 
 <template>
   <div class="flex w-full chips-wrapper align-center" :class="{ active }">
     <div class="chips d-flex align-center flex-grow">
       <template v-if="value">
-        <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlink(value)" />
+        <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
       </template>
     </div>
     <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">

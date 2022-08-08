@@ -6,7 +6,7 @@ import { useVirtualCell } from '~/composables/useVirtualCell'
 
 const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   // state
-  const state = ref<Record<string, Record<string, any> | Record<string, any>[]>>({})
+  const state = ref<Record<string, Record<string, any> | Record<string, any>[] | null>>({})
 
   // getters
   const isNew = computed(() => row.value?.rowMeta?.new)
@@ -16,9 +16,19 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const { isHm, isMm } = $(useVirtualCell(ref(column)))
     if (isHm || isMm) {
       state.value[column.title!] = state.value[column.title!] || []
-      state.value[column.title!].push(value)
+      state.value[column.title!]!.push(value)
     } else {
       state.value[column.title!] = value
+    }
+  }
+
+  // actions
+  const removeLTARRef = async (value: Record<string, any>, column: ColumnType) => {
+    const { isHm, isMm } = $(useVirtualCell(ref(column)))
+    if (isHm || isMm) {
+      state.value[column.title!]?.splice(state.value[column.title!]?.indexOf(value), 1)
+    } else {
+      state.value[column.title!] = null
     }
   }
 
@@ -28,6 +38,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     isNew,
     // todo: use better name
     addLTARRef,
+    removeLTARRef,
   }
 }, 'smartsheet-row-store')
 

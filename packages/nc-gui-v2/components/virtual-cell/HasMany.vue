@@ -36,6 +36,8 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, un
 )
 await loadRelatedTableMeta()
 
+const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+
 const localCellValue = computed(() => {
   if (cellValue?.value) {
     return cellValue?.value
@@ -56,6 +58,15 @@ const cells = computed(() =>
     return [...acc, { value, item: curr }]
   }, [] as any[]),
 )
+
+
+const unlinkRef = async (rec: Record<string, any>) => {
+  if (isNew.value) {
+    removeLTARRef(rec, column?.value as ColumnType)
+  } else {
+    await unlink(rec)
+  }
+}
 </script>
 
 <template>
@@ -63,7 +74,7 @@ const cells = computed(() =>
     <template v-if="!isForm">
       <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
-          <ItemChip v-for="(cell, i) of cells" :key="i" :value="cell.value" @unlink="unlink(cell.item)" />
+          <ItemChip v-for="(cell, i) of cells" :key="i" :value="cell.value" @unlink="unlinkRef(cell.item)" />
 
           <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true"
             >more...

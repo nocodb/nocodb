@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { watchEffect } from '@vue/runtime-core'
 import { Modal } from 'ant-design-vue'
+import type { ColumnType } from 'nocodb-sdk'
 import { useLTARStoreOrThrow, useVModel } from '#imports'
 import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
 import { ColumnInj, IsFormInj } from '~/context'
@@ -25,7 +26,7 @@ const {
   getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
-const { isNew, state } = useSmartsheetRowStoreOrThrow()
+const { isNew, state, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
 watch([vModel, isForm], (nextVal) => {
   if (nextVal[0] || nextVal[1]) {
@@ -34,10 +35,14 @@ watch([vModel, isForm], (nextVal) => {
 })
 
 const unlinkRow = async (row: Record<string, any>) => {
-  await unlink(row)
-
-  await loadChildrenList()
+  if (isNew.value) {
+    removeLTARRef(row, column?.value as ColumnType)
+  } else {
+    await unlink(row)
+    await loadChildrenList()
+  }
 }
+
 const container = computed(() =>
   isForm
     ? h('div', {

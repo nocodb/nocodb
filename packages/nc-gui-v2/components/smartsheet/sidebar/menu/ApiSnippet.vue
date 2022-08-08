@@ -1,85 +1,80 @@
 <script setup lang="ts">
 import HTTPSnippet from 'httpsnippet'
-import { ActiveViewInj, MetaInj } from '~~/context'
+import { useClipboard } from '@vueuse/core'
+import { useToast } from 'vue-toastification'
+import { ActiveViewInj, MetaInj } from '~/context'
+
+const props = defineProps<Props>()
+
+const emits = defineEmits(['update:modelValue'])
+
+const toast = useToast()
 
 interface Props {
   modelValue: boolean
 }
 
-const props = defineProps<Props>()
-
-const emits = defineEmits(['update:modelValue'])
 const { project } = $(useProject())
+const { appInfo } = $(useGlobal())
 const meta = $(inject(MetaInj))
 const view = $(inject(ActiveViewInj))
 const { xWhere } = useSmartsheetStoreOrThrow()
 const { queryParams } = $(useViewData(meta, view as any, xWhere))
+const { copy } = useClipboard()
+const { $state } = useNuxtApp()
 
-const { $state, $api } = useNuxtApp()
 let vModel = $(useVModel(props, 'modelValue', emits))
-
-const client = $ref<string | undefined>(undefined)
-
-const appInfo = await $api.utils.appInfo()
 
 const langs = [
   {
-    lang: 'shell',
+    name: 'shell',
     clients: ['curl', 'wget'],
   },
   {
-    lang: 'javascript',
+    name: 'javascript',
     clients: ['axios', 'fetch', 'jquery', 'xhr'],
   },
   {
-    lang: 'node',
+    name: 'node',
     clients: ['axios', 'fetch', 'request', 'native', 'unirest'],
   },
   {
-    lang: 'nocodb-sdk',
+    name: 'nocodb-sdk',
     clients: ['javascript', 'node'],
   },
   {
-    lang: 'php',
+    name: 'php',
   },
   {
-    lang: 'python',
+    name: 'python',
     clients: ['python3', 'requests'],
   },
   {
-    lang: 'ruby',
+    name: 'ruby',
   },
   {
-    lang: 'java',
+    name: 'java',
   },
   {
-    lang: 'c',
+    name: 'c',
   },
 ]
 
-const activeTabKey = $ref(langs[0].lang)
-const afterVisibleChange = (visible: boolean) => {
-  vModel = visible
-}
+const selectedClient = $ref<string | undefined>(langs[0].clients && langs[0].clients[0])
 
-const apiUrl = () => {
-  console.log(`/api/v1/db/data/noco/${project.id}/${meta.title}/views/${view.title}`)
-  return new URL(`/api/v1/db/data/noco/${project.id}/${meta.title}/views/${view.title}`, (appInfo && appInfo.ncSiteUrl) || '/')
-    .href
-}
+const selectedLangName = $ref(langs[0].name)
 
-// const apiUrl = $computed(() => {
-//   console.log(`/api/v1/db/data/noco/${project.id}/${meta.title}/views/${view.title}`)
-//   return new URL(`/api/v1/db/data/noco/${project.id}/${meta.title}/views/${view.title}`, (appInfo && appInfo.ncSiteUrl) || '/')
-//     .href
-// })
+const apiUrl = $computed(
+  () =>
+    new URL(`/api/v1/db/data/noco/${project.id}/${meta.title}/views/${view.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
+)
 
 const snippet = $computed(
   () =>
     new HTTPSnippet({
       method: 'GET',
       headers: [{ name: 'xc-auth', value: $state.token.value as string, comment: 'JWT Auth token' }],
-      url: apiUrl(),
+      url: apiUrl,
       queryString: Object.entries(queryParams || {}).map(([name, value]) => {
         return {
           name,
@@ -89,14 +84,11 @@ const snippet = $computed(
     }),
 )
 
-console.log('snippet.value', snippet)
+const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLangName))
 
-const activeLang = $computed(() => langs.find((lang) => lang.lang === activeTabKey))
 const code = $computed(() => {
-  if (activeLang?.lang === 'nocodb-sdk') {
-    return `
-    ${client === 'node' ? 'const { Api } require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
-
+  if (activeLang?.name === 'nocodb-sdk') {
+    return `${selectedClient === 'node' ? 'const { Api } require("nocodb-sdk");' : 'import { Api } from "nocodb-sdk";'}
 const api = new Api({
   baseURL: ${JSON.stringify(apiUrl)},
   headers: {
@@ -107,8 +99,8 @@ const api = new Api({
 api.dbViewRow.list(
   "noco",
   ${JSON.stringify(project.title)},
-  ${JSON.stringify(meta.value.title)},
-  ${JSON.stringify(view.value.title)}, ${JSON.stringify(queryParams, null, 4)}).then(function (data) {
+  ${JSON.stringify(meta.title)},
+  ${JSON.stringify(view.title)}, ${JSON.stringify(queryParams, null, 4)}).then(function (data) {
   console.log(data);
 }).catch(function (error) {
   console.error(error);
@@ -116,32 +108,72 @@ api.dbViewRow.list(
     `
   }
 
-  return snippet.convert(activeLang?.lang, client || (activeLang?.clients && activeLang?.clients[0]), {})
+  return snippet.convert(activeLang?.name, selectedClient || (activeLang?.clients && activeLang?.clients[0]), {})
 })
 
-console.log(code)
+const onCopyToClipboard = () => {
+  copy(code)
+  toast.info('Copied to clipboard')
+}
+
+const afterVisibleChange = (visible: boolean) => {
+  vModel = visible
+}
 </script>
 
 <template>
   <a-drawer
     v-model:visible="vModel"
-    class="custom-class"
+    class="h-full relative"
     style="color: red"
     placement="right"
     size="large"
     :closable="false"
     @after-visible-change="afterVisibleChange"
   >
-    <div class="flex flex-col">
+    <div class="flex flex-col w-full h-full">
       <a-typography-title :level="4">Code Snippet</a-typography-title>
-      <a-tabs v-model:activeKey="activeTabKey" class="!capitalize">
-        <a-tab-pane v-for="item in langs" :key="item.lang">
+      <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
+        <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
           <template #tab>
             <div class="capitalize select-none">
-              {{ item.lang }}
+              {{ item.name }}
             </div>
           </template>
-          Content of Tab Pane 1
+          <monaco-editor
+            class="h-[60vh] border-1 border-gray-100 py-4 rounded-sm"
+            :model-value="code"
+            :read-only="true"
+            lang="typescript"
+          />
+          <div class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
+            <a-button
+              v-t="[
+                'c:snippet:copy',
+                { client: activeLang?.clients && (selectedClient || activeLang?.clients[0]), lang: activeLang?.name },
+              ]"
+              type="primary"
+              @click="onCopyToClipboard"
+              >Copy to clipboard</a-button
+            >
+            <a-select v-if="activeLang" v-model:value="selectedClient" style="width: 6rem">
+              <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
+                {{ client }}
+              </a-select-option>
+            </a-select>
+          </div>
+
+          <div class="absolute bottom-4 flex flex-row justify-center w-[95%]">
+            <a
+              v-t="['e:hiring']"
+              class="px-4 py-3 ! rounded shadow"
+              href="https://angel.co/company/nocodb"
+              target="_blank"
+              @click.stop
+            >
+              🚀 We are Hiring! 🚀
+            </a>
+          </div>
         </a-tab-pane>
       </a-tabs>
     </div>

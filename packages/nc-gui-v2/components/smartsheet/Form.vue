@@ -73,6 +73,8 @@ const showColumnDropdown = ref(false)
 
 const drag = ref(false)
 
+const emailMe = ref(false)
+
 const submitted = ref(false)
 
 const activeRow = ref('')
@@ -203,7 +205,15 @@ async function removeAllColumns() {
   $e('a:form-view:remove-all')
 }
 
-async function checkSMTPStatus() {}
+async function checkSMTPStatus() {
+  if (emailMe.value) {
+    const emailPluginActive = await $api.plugin.status('SMTP')
+    if (!emailPluginActive) {
+      emailMe.value = false
+      toast.info('Please activate SMTP plugin in App store for enabling email notification')
+    }
+  }
+}
 
 function setFormData() {
   const col = (formColumnData as Record<string, any>)?.value
@@ -212,6 +222,17 @@ function setFormData() {
     ...formViewData.value,
     submit_another_form: !!(formViewData?.value?.submit_another_form ?? 0),
     show_blank_form: !!(formViewData?.value?.show_blank_form ?? 0),
+  }
+
+  {
+    // email me
+    let data: Record<string, boolean> = {}
+    try {
+      data = JSON.parse(formViewData.value.email as string) || {}
+    } catch (e) {}
+    data[state.user.value?.email as string] = emailMe.value
+    formViewData.value.email = JSON.stringify(data)
+    checkSMTPStatus()
   }
 
   localColumns.value = col
@@ -238,6 +259,11 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   }
 
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)
+}
+
+function onEmailChange() {
+  updateView()
+  checkSMTPStatus()
 }
 
 const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
@@ -524,7 +550,7 @@ onMounted(async () => {
             <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
           </div>
           <div class="my-4">
-            <a-switch v-model:checked="formViewData.email" v-t="[`a:form-view:email-me`]" @change="updateView" />
+            <a-switch v-model:checked="emailMe" v-t="[`a:form-view:email-me`]" @change="onEmailChange" />
             <!-- Email me at <email> -->
             <span class="ml-4">
               {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>

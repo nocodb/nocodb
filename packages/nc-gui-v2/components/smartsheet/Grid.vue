@@ -236,7 +236,7 @@ onUnmounted(() => {
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
-onClickOutside(smartTable, (event) => {
+onClickOutside(smartTable, () => {
   selected.row = null
   selected.col = null
 })

@@ -18,8 +18,8 @@ export interface TabItem {
 function getPredicate(key: Partial<TabItem>) {
   return (tab: TabItem) =>
     (!('id' in key) || tab.id === key.id) &&
-    (!('title' in key) || tab.title === key.id) &&
-    (!('type' in key) || tab.type === key.id)
+    (!('title' in key) || tab.title === key.title) &&
+    (!('type' in key) || tab.type === key.type)
 }
 
 export function useTabs() {

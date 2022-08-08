@@ -462,7 +462,7 @@ onMounted(async () => {
         </div>
         <!-- Show this message -->
         <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
-        <a-textarea v-model="formViewData.success_msg" rows="3" hide-details @input="updateView" />
+        <a-textarea v-model:value="formViewData.success_msg" rows="3" hide-details @change="updateView" />
 
         <!-- Other options -->
         <div class="mt-4">

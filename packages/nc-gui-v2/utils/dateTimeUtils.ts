@@ -1,4 +1,6 @@
 import dayjs from 'dayjs'
+import customParseFormat from 'dayjs/plugin/customParseFormat'
+dayjs.extend(customParseFormat)
 
 export const timeAgo = (date: any) => {
   return dayjs.utc(date).fromNow()
@@ -29,4 +31,16 @@ export const handleTZ = (val: any) => {
       return dayjs(v).format('YYYY-MM-DD HH:mm')
     },
   )
+}
+
+export function validateDateFormat(v: string) {
+  return dateFormats.includes(v)
+}
+
+export function validateDateWithUnknownFormat(v: string) {
+  let res = 0
+  for (const format of dateFormats) {
+    res |= dayjs(v, format, true).isValid() as any
+  }
+  return res
 }

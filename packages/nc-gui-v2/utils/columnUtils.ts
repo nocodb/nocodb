@@ -25,6 +25,8 @@ import MathIntegral from '~icons/mdi/math-integral'
 import MovieRoll from '~icons/mdi/movie-roll'
 import Counter from '~icons/mdi/counter'
 import CalendarClock from '~icons/mdi/calendar-clock'
+import ID from '~icons/mdi/identifier'
+import RulerSquareCompass from '~icons/mdi/ruler-square-compass'
 
 const uiTypes = [
   {
@@ -133,7 +135,7 @@ const uiTypes = [
   },
   {
     name: UITypes.Geometry,
-    icon: 'mdi-ruler-square-compass',
+    icon: RulerSquareCompass,
   },
   {
     name: UITypes.JSON,
@@ -151,15 +153,15 @@ const getUIDTIcon = (uidt: UITypes) => {
       ...uiTypes,
       {
         name: UITypes.CreateTime,
-        icon: 'mdi-calendar-clock',
+        icon: CalendarClock,
       },
       {
         name: UITypes.ID,
-        icon: 'mdi-identifier',
+        icon: ID,
       },
       {
         name: UITypes.ForeignKey,
-        icon: 'mdi-link-variant',
+        icon: LinkVariant,
       },
     ].find((t) => t.name === uidt) || {}
   ).icon

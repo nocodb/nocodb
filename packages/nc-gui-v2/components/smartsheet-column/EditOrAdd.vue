@@ -6,10 +6,21 @@ import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
+interface Props {
+  editColumnDropdown: boolean
+}
+
+const { editColumnDropdown } = defineProps<Props>()
+
 const emit = defineEmits(['cancel'])
+
 const meta = inject(MetaInj)
+
 const advancedOptions = ref(false)
+
 const { getMeta } = useMetas()
+
+const formulaOptionsRef = ref()
 
 const {
   formState,
@@ -44,6 +55,14 @@ const reloadMeta = () => {
   getMeta(meta?.value.id as string, true)
 }
 
+function onCancel() {
+  emit('cancel')
+  if (formState.value.uidt === UITypes.Formula) {
+    // close formula drawer
+    formulaOptionsRef.value.formulaSuggestionDrawer = false
+  }
+}
+
 // create column meta if it's a new column
 watchEffect(() => {
   if (!isEdit) {
@@ -62,6 +81,17 @@ watchEffect(() => {
     }, 300)
   }
 })
+
+watch(
+  () => editColumnDropdown,
+  (v) => {
+    if (v) {
+      if (formState.value.uidt === UITypes.Formula) {
+        formulaOptionsRef.value.formulaSuggestionDrawer = true
+      }
+    }
+  },
+)
 </script>
 
 <template>
@@ -87,6 +117,7 @@ watchEffect(() => {
         </a-select>
       </a-form-item>
 
+      <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" ref="formulaOptionsRef" />
       <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" />
       <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
       <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
@@ -121,7 +152,7 @@ watchEffect(() => {
       </div>
       <a-form-item>
         <div class="flex justify-end gap-1 mt-4">
-          <a-button html-type="button" size="small" @click="emit('cancel')">
+          <a-button html-type="button" size="small" @click="onCancel">
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>

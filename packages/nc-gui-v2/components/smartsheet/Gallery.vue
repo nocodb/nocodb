@@ -58,8 +58,8 @@ const attachments = (record: any): Array<Attachment> => {
 
 <!-- TODO: Fix scrolling -->
 <template>
-  <div class="flex flex-col h-100 min-h-0 w-100">
-    <div class="nc-gallery-container min-h-0 flex-1 grid grid-cols-4 gap-x-4 gap-y-4 my-4 px-3">
+  <div class="flex flex-col h-full min-h-0 w-full">
+    <div class="nc-gallery-container min-h-0 flex-1 grid grid-cols-4 gap-4 my-4 px-3">
       <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col">
         <a-card hoverable class="!rounded-lg h-full">
           <template #cover>

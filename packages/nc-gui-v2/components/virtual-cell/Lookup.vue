@@ -1,26 +1,35 @@
 <script lang="ts" setup>
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { useColumn } from '~/composables'
+import type { Ref } from 'vue'
 import { CellValueInj, ColumnInj, MetaInj, ReadonlyInj } from '~/context'
+import { computed, inject, provide, useColumn, useMetas } from '#imports'
 
 const { metas, getMeta } = useMetas()
 
 provide(ReadonlyInj, true)
 
-const column = inject(ColumnInj) as ColumnType & { colOptions: LookupType }
+const column = inject(ColumnInj)! as Ref<ColumnType & { colOptions: LookupType }>
 const meta = inject(MetaInj)
 const value = inject(CellValueInj)
 const arrValue = computed(() => (Array.isArray(value?.value) ? value?.value : [value?.value]))
 
-const relationColumn = meta?.value.columns?.find((c) => c.id === column.colOptions.fk_relation_column_id) as ColumnType & {
+const relationColumn = meta?.value.columns?.find((c) => c.id === column.value.colOptions?.fk_relation_column_id) as ColumnType & {
   colOptions: LinkToAnotherRecordType
 }
-await getMeta(relationColumn.colOptions.fk_related_model_id as string)
-const lookupTableMeta = metas?.value[relationColumn.colOptions.fk_related_model_id as string]
-const lookupColumn = lookupTableMeta?.columns?.find((c) => c.id === column.colOptions.fk_lookup_column_id) as ColumnType
 
-provide(MetaInj, ref(lookupTableMeta))
+await getMeta(relationColumn.colOptions.fk_related_model_id!)
+
+const lookupTableMeta = computed(() => metas.value[relationColumn.colOptions.fk_related_model_id!])
+
+const lookupColumn = computed(
+  () =>
+    lookupTableMeta.value.columns?.find(
+      (c: Record<string, any>) => c.id === column.value.colOptions?.fk_lookup_column_id,
+    ) as ColumnType,
+)
+
+provide(MetaInj, lookupTableMeta)
 
 const lookupColumnMetaProps = useColumn(lookupColumn)
 </script>

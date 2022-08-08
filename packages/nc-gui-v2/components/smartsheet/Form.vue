@@ -27,6 +27,8 @@ const { isUIAllowed } = useUIPermission()
 
 const formState = reactive({})
 
+const secondsRemain = ref(0)
+
 const isEditable = isUIAllowed('editFormView' as Permission)
 
 const meta = inject(MetaInj)
@@ -71,6 +73,8 @@ const showColumnDropdown = ref(false)
 
 const drag = ref(false)
 
+const submitted = ref(false)
+
 const activeRow = ref('')
 
 const formView = ref({})
@@ -93,6 +97,7 @@ async function submitForm() {
   }
 
   insertRow(formState)
+  submitted.value = true
 }
 
 function isDbRequired(column: Record<string, any>) {
@@ -203,6 +208,12 @@ async function checkSMTPStatus() {}
 function setFormData() {
   const col = (formColumnData as Record<string, any>)?.value
 
+  formViewData.value = {
+    ...formViewData.value,
+    submit_another_form: !!(formViewData?.value?.submit_another_form ?? 0),
+    show_blank_form: !!(formViewData?.value?.show_blank_form ?? 0),
+  }
+
   localColumns.value = col
     .filter((f: Record<string, any>) => f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup)
     .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
@@ -239,6 +250,18 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
   }
 }, 250)
 
+watch(submitted, (v) => {
+  if (v && formViewData?.value?.show_blank_form) {
+    secondsRemain.value = 5
+    const intvl = setInterval(() => {
+      if (--secondsRemain.value < 0) {
+        submitted.value = false
+        clearInterval(intvl)
+      }
+    }, 1000)
+  }
+})
+
 onClickOutside(draggableRef, () => {
   activeRow.value = ''
 })
@@ -254,7 +277,26 @@ onMounted(async () => {
 </script>
 
 <template>
-  <a-row class="h-full flex">
+  <a-row v-if="submitted" class="h-full">
+    <a-col :span="24">
+      <div v-if="formViewData" class="align-center justify-center text-center mt-2">
+        <a-alert type="success">
+          <template #message>
+            <div class="text-center">{{ formViewData.success_msg || 'Successfully submitted form data' }}</div>
+          </template>
+        </a-alert>
+        <div class="mt-4">
+          <div v-if="formViewData.show_blank_form" class="text-gray-400 mt-4">
+            New form will be loaded after {{ secondsRemain }} seconds
+          </div>
+          <div v-if="formViewData.submit_another_form" class="text-center">
+            <a-button type="primary" size="large" @click="submitted = false"> Submit Another Form </a-button>
+          </div>
+        </div>
+      </div>
+    </a-col>
+  </a-row>
+  <a-row v-else class="h-full flex">
     <a-col v-if="isEditable" :span="8" class="bg-[#f7f7f7] shadow-md pa-5 h-full overflow-auto scrollbar-thin-primary">
       <div class="flex">
         <div class="flex flex-row flex-1 text-lg">
@@ -481,7 +523,6 @@ onMounted(async () => {
             <a-switch v-model:checked="formViewData.show_blank_form" v-t="[`a:form-view:show-blank-form`]" @change="updateView" />
             <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
           </div>
-
           <div class="my-4">
             <a-switch v-model:checked="formViewData.email" v-t="[`a:form-view:email-me`]" @change="updateView" />
             <!-- Email me at <email> -->

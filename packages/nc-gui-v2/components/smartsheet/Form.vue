@@ -3,7 +3,7 @@ import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
-import { computed, inject, useDebounceFn } from '#imports'
+import { computed, inject, onClickOutside, useDebounceFn } from '#imports'
 import { ActiveViewInj, FieldsInj, IsFormInj, MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -67,6 +67,8 @@ const localColumns = ref<Record<string, any>>([])
 const hiddenColumns = ref<Record<string, any>>([])
 
 const availableColumns = inject(FieldsInj, ref([]))
+
+const rowRef = ref()
 
 const systemFieldsIds = ref<Record<string, any>>([])
 
@@ -250,6 +252,10 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
   }
 }, 250)
 
+onClickOutside(rowRef, () => {
+  activeRow.value = ''
+})
+
 onMounted(async () => {
   await loadFormView()
   setFormData()
@@ -297,12 +303,11 @@ watch(
           </div>
         </div>
       </div>
-      <draggable :list="hiddenColumns" draggable=".item" group="a-card" @start="drag = true" @end="drag = false">
+      <draggable :list="hiddenColumns" draggable=".item" group="form-inputs" @start="drag = true" @end="drag = false">
         <template #item="{ element }">
           <a-card size="small" class="ma-0 pa-0 cursor-pointer item mb-2">
             <div class="flex">
               <div class="flex flex-row flex-1">
-                {{ element.required }}
                 <SmartsheetHeaderVirtualCell
                   v-if="isVirtualCol(element)"
                   :column="{ ...element, title: element.label || element.title }"
@@ -374,14 +379,18 @@ watch(
             :list="localColumns"
             item-key="fk_column_id"
             draggable=".item"
-            group="div"
+            group="form-inputs"
             class="h-100"
             @change="onMove($event)"
             @start="drag = true"
             @end="drag = false"
           >
             <template #item="{ element, index }">
-              <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3" @click="activeRow = element.title">
+              <div
+                ref="rowRef"
+                class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3"
+                @click="activeRow = element.title"
+              >
                 <div class="flex">
                   <div class="flex flex-1">
                     <SmartsheetHeaderVirtualCell
@@ -401,16 +410,16 @@ watch(
                 </div>
                 <div class="nc-input">
                   <a-form-item
-                    class="ma-0 gap-0 pa-0"
                     v-if="isVirtualCol(element)"
+                    class="ma-0 gap-0 pa-0"
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"
                   >
                     <SmartsheetVirtualCell v-model="formState[element.title]" :column="element" />
                   </a-form-item>
                   <a-form-item
-                    class="ma-0 gap-0 pa-0"
                     v-else
+                    class="ma-0 gap-0 pa-0"
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"
                   >

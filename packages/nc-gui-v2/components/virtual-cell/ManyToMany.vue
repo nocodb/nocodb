@@ -36,7 +36,7 @@ await loadRelatedTableMeta()
         <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
       </template>
     </div>
-    <div class="flex-1 flex justify-end gap-1">
+    <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
       <MdiExpandIcon class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
       <MdiPlusIcon class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
     </div>

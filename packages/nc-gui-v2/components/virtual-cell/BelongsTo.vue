@@ -30,7 +30,7 @@ await loadRelatedTableMeta()
         <ItemChip :item="cellValue" :value="cellValue[relatedTablePrimaryValueProp]" @unlink="unlink(cellValue || localState)" />
       </template>
     </div>
-    <div class="flex-1 flex justify-end gap-1">
+    <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
       <MdiExpandIcon
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500)"
         @click="listItemsDlg = true"

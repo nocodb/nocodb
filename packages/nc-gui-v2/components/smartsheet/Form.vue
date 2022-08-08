@@ -481,6 +481,6 @@ watch(
 }
 
 .nc-input {
-  @apply w-full !bg-white rounded px-2 min-h-[40px] mt-2 mb-2 pa-2 flex align-center border-solid border-1 border-primary;
+  @apply w-full !bg-white rounded px-2 py-2 min-h-[40px] mt-2 mb-2 flex align-center border-solid border-1 border-primary;
 }
 </style>

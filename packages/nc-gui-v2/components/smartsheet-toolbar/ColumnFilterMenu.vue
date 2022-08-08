@@ -1,21 +1,33 @@
 <script setup lang="ts">
+import { watchEffect } from '@vue/runtime-core'
 import type ColumnFilter from './ColumnFilter.vue'
 import { useState } from '#app'
-import { IsLockedInj } from '~/context'
+import { ActiveViewInj, IsLockedInj } from '~/context'
 import MdiFilterIcon from '~icons/mdi/filter-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const autoApplyFilter = useState('autoApplyFilter', () => false)
 const isLocked = inject(IsLockedInj)
+const activeView = inject(ActiveViewInj)
 
 const { filterAutoSave } = useGlobal()
 
-// todo: emit from child
-const filtersLength = ref(0)
+// todo: avoid duplicate api call by keeping a filter store
+const { filters, loadFilters } = useViewFilters(
+  activeView,
+  undefined,
+  computed(() => false),
+)
 
+const filtersLength = ref(0)
+watchEffect(async () => {
+  if (activeView?.value) {
+    await loadFilters()
+    filtersLength.value = filters?.value?.length ?? 0
+  }
+})
 const filterComp = ref<typeof ColumnFilter>()
 
-// todo: implement
 const applyChanges = async () => {
   await filterComp?.value?.applyChanges()
 }

@@ -85,7 +85,7 @@ export function useViewData(
         .map((c) => row[c.title as string])
         .join('___') as string
 
-      return $api.dbViewRow.update(
+      return await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
         meta?.value.id as string,

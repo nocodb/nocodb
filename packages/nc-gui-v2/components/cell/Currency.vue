@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
 import { computed, inject, ref, useVModel } from '#imports'
 import { ColumnInj, EditModeInj } from '~/context'
 
@@ -10,11 +11,9 @@ const props = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj, ref(false))
-
-const root = ref<HTMLInputElement>()
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -22,10 +21,13 @@ const currencyMeta = computed(() => {
   return {
     currency_locale: 'en-US',
     currency_code: 'USD',
-    ...(column?.value?.meta ? column?.value?.meta : {}),
+    ...(column.value.meta ? column.value.meta : {}),
   }
 })
+
 const currency = computed(() => {
+  if (!vModel.value) return null
+
   try {
     return isNaN(vModel.value)
       ? vModel.value
@@ -38,7 +40,7 @@ const currency = computed(() => {
   }
 })
 
-const focus = (el: HTMLInputElement) => el?.focus()
+const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

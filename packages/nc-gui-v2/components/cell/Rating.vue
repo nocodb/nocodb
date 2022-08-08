@@ -1,18 +1,15 @@
 <script setup lang="ts">
-import { computed, inject } from '#imports'
+import { computed, inject, useVModel } from '#imports'
 import { ColumnInj } from '~/context'
-import MdiStarIcon from '~icons/mdi/star'
-import MdiHeartIcon from '~icons/mdi/heart'
-import MdiMoonFullIcon from '~icons/mdi/moon-full'
-import MdiThumbUpIcon from '~icons/mdi/thumb-up'
-import MdiFlagIcon from '~icons/mdi/flag'
 
 interface Props {
   modelValue?: number | null
   readOnly?: boolean
 }
 
-const props = defineProps<Props>()
+const props = withDefaults(defineProps<Props>(), {
+  modelValue: NaN,
+})
 
 const emits = defineEmits(['update:modelValue'])
 
@@ -36,11 +33,11 @@ const vModel = useVModel(props, 'modelValue', emits)
 <template>
   <a-rate v-model:value="vModel" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`" :disabled="props.readOnly">
     <template #character>
-      <MdiStarIcon v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />
-      <MdiHeartIcon v-if="ratingMeta.icon.full === 'mdi-heart'" class="text-sm" />
-      <MdiMoonFullIcon v-if="ratingMeta.icon.full === 'mdi-moon-full'" class="text-sm" />
-      <MdiThumbUpIcon v-if="ratingMeta.icon.full === 'mdi-thumb-up'" class="text-sm" />
-      <MdiFlagIcon v-if="ratingMeta.icon.full === 'mdi-flag'" class="text-sm" />
+      <MdiStar v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />
+      <MdiHeart v-if="ratingMeta.icon.full === 'mdi-heart'" class="text-sm" />
+      <MdiMoonFull v-if="ratingMeta.icon.full === 'mdi-moon-full'" class="text-sm" />
+      <MdiThumbUp v-if="ratingMeta.icon.full === 'mdi-thumb-up'" class="text-sm" />
+      <MdiFlag v-if="ratingMeta.icon.full === 'mdi-flag'" class="text-sm" />
     </template>
   </a-rate>
 </template>

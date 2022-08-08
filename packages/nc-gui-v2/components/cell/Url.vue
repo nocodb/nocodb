@@ -4,7 +4,7 @@ import { ColumnInj, EditModeInj } from '~/context'
 import { isValidURL } from '~/utils'
 
 interface Props {
-  modelValue: string
+  modelValue: string | null
 }
 
 const { modelValue: value } = defineProps<Props>()
@@ -18,7 +18,7 @@ const editEnabled = inject(EditModeInj, ref(false))
 const vModel = computed({
   get: () => value,
   set: (val) => {
-    if (!(column && column.meta && column.meta.validate) || isValidURL(val)) {
+    if (!column?.value?.meta?.validate || isValidURL(val)) {
       emit('update:modelValue', val)
     }
   },
@@ -30,7 +30,7 @@ const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none" />
+  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none" @blur="editEnabled = false" />
   <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="value" target="_blank">{{ value }}</nuxt-link>
   <span v-else>{{ value }}</span>
 </template>

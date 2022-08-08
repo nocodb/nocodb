@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
 import { useProvideLTARStore } from '#imports'
@@ -15,7 +16,7 @@ const localState = null
 const listItemsDlg = ref(false)
 
 const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
-  column as Required<ColumnType>,
+  column as Ref<Required<ColumnType>>,
   row,
   () => reloadTrigger?.trigger(),
 )

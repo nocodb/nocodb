@@ -25,13 +25,13 @@ const { getMeta } = useMetas()
 
 const deleteColumn = () =>
   Modal.confirm({
-    title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [column?.title]), ' column ?']),
+    title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [column?.value?.title]), ' column ?']),
     okText: t('general.delete'),
     okType: 'danger',
     cancelText: t('general.cancel'),
     async onOk() {
       try {
-        await $api.dbTableColumn.delete(column?.id as string)
+        await $api.dbTableColumn.delete(column?.value?.id as string)
         getMeta(meta?.value?.id as string, true)
       } catch (e) {
         toast.error(await extractSdkResponseErrorMsg(e))
@@ -41,7 +41,7 @@ const deleteColumn = () =>
 
 const setAsPrimaryValue = async () => {
   try {
-    await $api.dbTableColumn.primaryColumnSet(column?.id as string)
+    await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
     getMeta(meta?.value?.id as string, true)
     toast.success('Successfully updated as primary column')
   } catch (e) {

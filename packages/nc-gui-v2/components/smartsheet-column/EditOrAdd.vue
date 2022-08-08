@@ -1,10 +1,11 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
-import { MetaInj } from '~/context'
+import { MetaInj, ReloadViewDataHookInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
+import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 interface Props {
   editColumnDropdown: boolean
@@ -13,11 +14,9 @@ interface Props {
 const { editColumnDropdown } = defineProps<Props>()
 
 const emit = defineEmits(['cancel'])
-
 const meta = inject(MetaInj)
-
+const reloadDataTrigger = inject(ReloadViewDataHookInj)
 const advancedOptions = ref(false)
-
 const { getMeta } = useMetas()
 
 const formulaOptionsRef = ref()
@@ -38,21 +37,23 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => !isEdit || !t.virtual),
-    ...(!isEdit && meta?.value?.columns?.every((c) => !c.pk)
+    ...uiTypes.filter((t) => !isEdit.value || !t.virtual),
+    ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
-            name: 'ID',
-            icon: 'mdi-identifier',
+            name: UITypes.ID,
+            icon: MdiIdentifierIcon,
+            virtual: 0,
           },
         ]
       : []),
   ]
 })
 
-const reloadMeta = () => {
+const reloadMetaAndData = () => {
   emit('cancel')
   getMeta(meta?.value.id as string, true)
+  reloadDataTrigger?.trigger()
 }
 
 function onCancel() {
@@ -65,7 +66,7 @@ function onCancel() {
 
 // create column meta if it's a new column
 watchEffect(() => {
-  if (!isEdit) {
+  if (!isEdit.value) {
     generateNewColumnMeta()
   }
 })
@@ -107,8 +108,14 @@ watch(
         />
       </a-form-item>
       <a-form-item :label="$t('labels.columnType')">
-        <a-select v-model:value="formState.uidt" size="small" class="nc-column-name-input" @change="onUidtOrIdTypeChange">
-          <a-select-option v-for="opt in uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
+        <a-select
+          v-model:value="formState.uidt"
+          show-search
+          size="small"
+          class="nc-column-name-input"
+          @change="onUidtOrIdTypeChange"
+        >
+          <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
             <div class="flex gap-1 align-center text-xs">
               <component :is="opt.icon" class="text-grey" />
               {{ opt.name }}
@@ -144,7 +151,7 @@ watch(
           v-model:checked="formState.meta.validate"
           class="ml-1 mb-1"
         >
-          <span class="text-xs text-gray-600">
+          <span class="text-[10px] text-gray-600">
             {{ `Accept only valid ${formState.uidt}` }}
           </span>
         </a-checkbox>
@@ -156,7 +163,17 @@ watch(
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button html-type="submit" type="primary" size="small" @click="addOrUpdate(reloadMeta), (advancedOptions = false)">
+          <a-button
+            html-type="submit"
+            type="primary"
+            size="small"
+            @click="
+              () => {
+                addOrUpdate(reloadMetaAndData)
+                advancedOptions = false
+              }
+            "
+          >
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

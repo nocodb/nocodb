@@ -4,9 +4,10 @@ import { TabType } from '~/composables'
 
 const route = useRoute()
 const { loadProject, loadTables } = useProject(route.params.projectId as string)
-const { addTab } = useTabs()
+const { addTab, clearTabs } = useTabs()
 const { $state } = useNuxtApp()
 
+clearTabs()
 if (!route.params.type) {
   addTab({ type: TabType.AUTH, title: 'Team & Auth' })
 }

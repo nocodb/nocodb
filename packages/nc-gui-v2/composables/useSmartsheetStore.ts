@@ -1,11 +1,12 @@
 import { computed } from '@vue/reactivity'
-import { createInjectionState } from '@vueuse/core'
+import { ViewTypes } from 'nocodb-sdk'
 import type { TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
+import { useInjectionState } from '~/composables/useInjectionState'
 
-const [useProvideSmartsheetStore, useSmartsheetStore] = createInjectionState((view: Ref<ViewType>, meta: Ref<TableType>) => {
+const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState((view: Ref<ViewType>, meta: Ref<TableType>) => {
   const { $api } = useNuxtApp()
   const { sqlUi } = useProject()
 
@@ -18,6 +19,10 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = createInjectionState((vi
 
   // getters
   const isLocked = computed(() => (view?.value as any)?.lock_type === 'locked')
+  const isPkAvail = computed(() => meta?.value?.columns?.some((c) => c.pk))
+  const isGrid = computed(() => (view?.value as any)?.type === ViewTypes.GRID)
+  const isForm = computed(() => (view?.value as any)?.type === ViewTypes.FORM)
+  const isGallery = computed(() => (view?.value as any)?.type === ViewTypes.GALLERY)
   const xWhere = computed(() => {
     let where
     const col = meta?.value?.columns?.find(({ id }) => id === search.field) || meta?.value?.columns?.find((v) => v.pv)
@@ -41,8 +46,12 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = createInjectionState((vi
     $api,
     search,
     xWhere,
+    isPkAvail,
+    isForm,
+    isGrid,
+    isGallery,
   }
-})
+}, 'smartsheet-store')
 
 export { useProvideSmartsheetStore }
 

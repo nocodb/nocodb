@@ -8,7 +8,7 @@ import MdiThumbUpIcon from '~icons/mdi/thumb-up'
 import MdiFlagIcon from '~icons/mdi/flag'
 
 interface Props {
-  modelValue?: number
+  modelValue?: number | null
   readOnly?: boolean
 }
 
@@ -26,7 +26,7 @@ const ratingMeta = computed(() => {
     },
     color: '#fcb401',
     max: 5,
-    ...(column?.meta || {}),
+    ...(column?.value?.meta || {}),
   }
 })
 

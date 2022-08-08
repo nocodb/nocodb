@@ -1,8 +1,9 @@
 <script lang="ts" setup>
 import { computed, inject, onMounted, ref } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: number | null
+  modelValue: number | null | string
 }
 
 interface Emits {
@@ -13,25 +14,24 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject<boolean>('editEnabled')
+const editEnabled = inject<boolean>(EditModeInj)
 
 const root = ref<HTMLInputElement>()
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-onMounted(() => {
-  root.value?.focus()
-})
+const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>
   <input
     v-if="editEnabled"
-    ref="root"
+    :ref="focus"
     v-model="vModel"
     class="outline-none pa-0 border-none w-full h-full prose-sm"
     type="number"
     step="0.1"
+    @blur="editEnabled = false"
   />
   <span v-else class="prose-sm">{{ vModel }}</span>
 </template>

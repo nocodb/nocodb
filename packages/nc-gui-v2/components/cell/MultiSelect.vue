@@ -3,7 +3,7 @@ import { computed, inject } from '#imports'
 import { ColumnInj, EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string
+  modelValue: string | null
 }
 
 const { modelValue } = defineProps<Props>()
@@ -14,7 +14,7 @@ const column = inject(ColumnInj)
 const isForm = inject<boolean>('isForm', false)
 const editEnabled = inject(EditModeInj, ref(false))
 
-const options = computed(() => column?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
+const options = computed(() => column?.value?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
 
 const localState = computed({
   get() {

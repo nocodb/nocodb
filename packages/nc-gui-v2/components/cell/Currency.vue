@@ -3,7 +3,7 @@ import { computed, inject, ref, useVModel } from '#imports'
 import { ColumnInj, EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: number
+  modelValue: number | null
 }
 
 const props = defineProps<Props>()
@@ -22,7 +22,7 @@ const currencyMeta = computed(() => {
   return {
     currency_locale: 'en-US',
     currency_code: 'USD',
-    ...(column && column.meta ? column.meta : {}),
+    ...(column?.value?.meta ? column?.value?.meta : {}),
   }
 })
 const currency = computed(() => {
@@ -37,10 +37,18 @@ const currency = computed(() => {
     return vModel.value
   }
 })
+
+const focus = (el: HTMLInputElement) => el?.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" ref="root" v-model="vModel" />
+  <input
+    v-if="editEnabled"
+    :ref="focus"
+    v-model="vModel"
+    class="w-full h-full border-none outline-none"
+    @blur="editEnabled = false"
+  />
   <span v-else-if="vModel">{{ currency }}</span>
   <span v-else />
 </template>

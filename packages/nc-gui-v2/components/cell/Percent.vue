@@ -4,7 +4,7 @@ import { ColumnInj } from '~/context'
 import { getPercentStep, isValidPercent, renderPercent } from '@/utils/percentUtils'
 
 interface Props {
-  modelValue: number | string
+  modelValue: number | string | null
 }
 
 const { modelValue } = defineProps<Props>()
@@ -17,7 +17,7 @@ const percent = ref()
 
 const isEdited = ref(false)
 
-const percentType = computed(() => column?.meta?.precision || 0)
+const percentType = computed(() => column?.value?.meta?.precision || 0)
 
 const percentStep = computed(() => getPercentStep(percentType.value))
 
@@ -27,7 +27,7 @@ const localState = computed({
   },
   set: (val) => {
     if (val === null) val = 0
-    if (isValidPercent(val, column?.meta?.negative)) {
+    if (isValidPercent(val, column?.value?.meta?.negative)) {
       percent.value = val / 100
     }
   },

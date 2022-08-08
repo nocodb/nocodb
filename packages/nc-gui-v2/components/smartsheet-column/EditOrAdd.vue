@@ -167,7 +167,12 @@ watch(
             html-type="submit"
             type="primary"
             size="small"
-            @click="addOrUpdate(reloadMetaAndData), (advancedOptions = false)"
+            @click="
+              () => {
+                addOrUpdate(reloadMetaAndData)
+                advancedOptions = false
+              }
+            "
           >
             <!-- Save -->
             {{ $t('general.save') }}

@@ -24,12 +24,14 @@ const {
   relatedTablePrimaryValueProp,
   unlink,
   getRelatedTableRowId,
+  relatedTableMeta,
 } = useLTARStoreOrThrow()
 
 const { isNew, state, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
 watch([vModel, isForm], (nextVal) => {
   if (nextVal[0] || nextVal[1]) {
+    debugger
     loadChildrenList()
   }
 })
@@ -50,6 +52,9 @@ const container = computed(() =>
       })
     : Modal,
 )
+
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref()
 </script>
 
 <template>
@@ -73,6 +78,12 @@ const container = computed(() =>
             v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
             :key="i"
             class="ma-2 hover:(!bg-gray-200/50 shadow-md)"
+            @click="
+              () => {
+                expandedFormRow = row
+                expandedFormDlg = true
+              }
+            "
           >
             <div class="flex align-center">
               <div class="flex-grow overflow-hidden min-w-0">
@@ -81,8 +92,11 @@ const container = computed(() =>
               </div>
               <div class="flex-1"></div>
               <div class="flex gap-2">
-                <MdiLinkVariantRemove class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="unlinkRow(row)" />
-                <MdiDeleteOutline class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="deleteRelatedRow(row)" />
+                <MdiLinkVariantRemove class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click.stop="unlinkRow(row)" />
+                <MdiDeleteOutline
+                  class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
+                  @click.stop="deleteRelatedRow(row)"
+                />
               </div>
             </div>
           </a-card>
@@ -99,6 +113,15 @@ const container = computed(() =>
       </template>
       <a-empty v-else class="my-10" />
     </div>
+
+    <SmartsheetExpandedForm
+      v-if="expandedFormDlg && expandedFormRow"
+      v-model="expandedFormDlg"
+      :row="{ row: expandedFormRow }"
+      :meta="relatedTableMeta"
+      load-row
+      use-meta-fields
+    />
   </component>
 </template>
 

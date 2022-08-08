@@ -1,5 +1,7 @@
 <script lang="ts" setup>
-import type { ColumnType } from 'nocodb-sdk'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { computed } from 'vue'
 import { useLTARStoreOrThrow, useVModel } from '#imports'
 import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
 import { ColumnInj } from '~/context'
@@ -19,6 +21,9 @@ const {
   relatedTablePrimaryValueProp,
   link,
   getRelatedTableRowId,
+  relatedTableMeta,
+  meta,
+  row,
 } = useLTARStoreOrThrow()
 
 const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
@@ -37,6 +42,42 @@ watch(vModel, () => {
     loadChildrenExcludedList()
   }
 })
+
+const expandedFormDlg = ref(false)
+
+/** populate initial state for a new row which is parent/child of current record */
+const newRowState = computed(() => {
+  const colOpt = (column?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
+  const colInRelatedTable: ColumnType = relatedTableMeta.value?.columns?.find((col) => {
+    if (col.uidt !== UITypes.LinkToAnotherRecord) return false
+    if (col?.colOptions?.fk_related_model_id !== meta.value.id) return false
+
+    if (colOpt.type === RelationTypes.MANY_TO_MANY && col?.colOptions?.type === RelationTypes.MANY_TO_MANY) {
+      return (
+        colOpt.fk_parent_column_id === col.colOptions.fk_child_column_id &&
+        colOpt.fk_child_column_id === col.colOptions.fk_parent_column_id
+      )
+    } else {
+      return (
+        colOpt.fk_parent_column_id === col.colOptions.fk_parent_column_id &&
+        colOpt.fk_child_column_id === col.colOptions.fk_child_column_id
+      )
+    }
+    return false
+  })
+  const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
+  if (!relatedTableColOpt) return {}
+
+  if (relatedTableColOpt.type === RelationTypes.BELONGS_TO) {
+    return {
+      [colInRelatedTable.title as string]: row,
+    }
+  } else {
+    return {
+      [colInRelatedTable.title as string]: [row],
+    }
+  }
+})
 </script>
 
 <template>
@@ -51,7 +92,7 @@ watch(vModel, () => {
         ></a-input>
         <div class="flex-1" />
         <MdiReload class="cursor-pointer text-gray-500" @click="loadChildrenExcludedList" />
-        <a-button type="primary" size="small" @click="emit('addNewRecord')">Add new record</a-button>
+        <a-button type="primary" size="small" @click="expandedFormDlg = true">Add new record</a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0">
@@ -78,6 +119,16 @@ watch(vModel, () => {
         />
       </template>
       <a-empty v-else class="my-10" />
+
+      <SmartsheetExpandedForm
+        v-if="expandedFormDlg"
+        v-model="expandedFormDlg"
+        :meta="relatedTableMeta"
+        :row="{ row: {}, oldRow: {}, rowMeta: {new:true} }"
+        :state="newRowState"
+        load-row
+        use-meta-fields
+      />
     </div>
   </a-modal>
 </template>

@@ -29,7 +29,7 @@ const expandedFormDlg = ref(false)
   >
     <span class="name">{{ value }}</span>
     <div v-show="active || isForm" v-if="!readonly" class="flex align-center">
-      <MdiCloseThickIcon class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click="emit('unlink')" />
+      <MdiCloseThickIcon class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
     </div>
 
     <SmartsheetExpandedForm

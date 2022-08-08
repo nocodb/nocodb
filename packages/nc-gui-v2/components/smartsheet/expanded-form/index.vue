@@ -20,7 +20,7 @@ interface Props {
   meta: TableType
   loadRow?: boolean
 
-  useMetaFields ?:boolean
+  useMetaFields?: boolean
 }
 
 const props = defineProps<Props>()
@@ -38,6 +38,8 @@ const fields = computed(() => {
 })
 
 provide(MetaInj, meta)
+
+const { commentsDrawer, changedColumns, state: rowState } = useProvideExpandedFormStore(meta, row)
 
 const { $api } = useNuxtApp()
 if (props.loadRow) {
@@ -58,8 +60,6 @@ provide(IsFormInj, true)
 
 // accept as a prop
 // const row: Row = { row: {}, rowMeta: {}, oldRow: {} }
-
-const { commentsDrawer, changedColumns, state: rowState } = useProvideExpandedFormStore(meta, row)
 
 watch(
   state,

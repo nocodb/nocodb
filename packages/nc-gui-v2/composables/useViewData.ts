@@ -260,6 +260,18 @@ export function useViewData(
     }
   }
 
+  const updateFormView = async (view: FormType | undefined) => {
+    try {
+      if (!viewMeta?.value?.id || !view) return
+      await $api.dbView.formUpdate(viewMeta.value.id, view)
+    } catch (e: any) {
+      return notification.error({
+        message: 'Failed to update form view',
+        description: await extractSdkResponseErrorMsg(e),
+      })
+    }
+  }
+
   return {
     loadData,
     paginationData,
@@ -275,5 +287,6 @@ export function useViewData(
     loadFormView,
     formColumnData,
     formViewData,
+    updateFormView,
   }
 }

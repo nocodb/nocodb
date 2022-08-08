@@ -46,6 +46,7 @@ const {
   paginationData,
   formattedData: data,
   loadFormView,
+  insertRow,
   formColumnData,
   formViewData,
   changePage,
@@ -77,7 +78,10 @@ const formView = ref({})
 
 function updateView() {}
 
-function submitForm() {}
+function submitForm() {
+  // TODO: validation
+  insertRow(formState)
+}
 
 function isDbRequired(column: Record<string, any>) {
   if (hiddenCols.includes(column.fk_column_id)) {

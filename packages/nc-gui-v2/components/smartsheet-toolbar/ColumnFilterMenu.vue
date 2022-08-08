@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { watchEffect } from '@vue/runtime-core'
 import type ColumnFilter from './ColumnFilter.vue'
 import { useState } from '#app'
 import { ActiveViewInj, IsLockedInj } from '~/context'
@@ -17,8 +18,14 @@ const { filters, loadFilters } = useViewFilters(
   undefined,
   computed(() => false),
 )
-await loadFilters()
-const filtersLength = ref(filters?.value?.length ?? 0)
+
+const filtersLength = ref(0)
+watchEffect(async () => {
+  if (activeView?.value) {
+    await loadFilters()
+    filtersLength.value = filters?.value?.length ?? 0
+  }
+})
 const filterComp = ref<typeof ColumnFilter>()
 
 const applyChanges = async () => {

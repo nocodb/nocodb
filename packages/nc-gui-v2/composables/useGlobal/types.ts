@@ -17,6 +17,7 @@ export interface StoredState {
   lang: string
   darkMode: boolean
   feedbackForm: FeedbackForm
+  filterAutoSave :boolean
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {

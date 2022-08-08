@@ -37,12 +37,13 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => !isEdit || !t.virtual),
-    ...(!isEdit?.value && meta?.value?.columns?.every((c) => !c.pk)
+    ...uiTypes.filter((t) => !isEdit.value || !t.virtual),
+    ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
-            name: 'ID',
-            icon: 'mdi-identifier',
+            name: UITypes.ID,
+            icon: MdiIdentifierIcon,
+            virtual: 0,
           },
         ]
       : []),
@@ -65,7 +66,7 @@ function onCancel() {
 
 // create column meta if it's a new column
 watchEffect(() => {
-  if (!isEdit?.value) {
+  if (!isEdit.value) {
     generateNewColumnMeta()
   }
 })

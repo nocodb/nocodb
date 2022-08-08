@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import { Modal, notification } from 'ant-design-vue'
 import { useInjectionState, useMetas, useProject } from '#imports'
 import { NOCO } from '~/lib'
@@ -13,7 +13,7 @@ interface DataApiResponse {
 
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
-  (column: Ref<Required<ColumnType>>, row?: Ref<Row>, reloadData = () => {}) => {
+  (column: Ref<Required<ColumnType>>, row?: Ref<Row>, isNewRow: ComputedRef<boolean>, reloadData = () => {}) => {
     // state
     const { metas, getMeta } = useMetas()
     const { project } = useProject()
@@ -69,10 +69,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       return (meta?.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
 
-    const loadChildrenExcludedList = async (isNewRow = false) => {
+    const loadChildrenExcludedList = async () => {
       try {
         /** if new row load all records */
-        if (isNewRow) {
+        if (isNewRow?.value) {
           childrenExcludedList.value = await $api.dbTableRow.list(
             NOCO,
             project.value.id as string,

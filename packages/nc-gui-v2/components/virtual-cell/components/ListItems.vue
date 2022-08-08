@@ -34,7 +34,7 @@ const linkRow = async (row: Record<string, any>) => {
 
 watch(vModel, () => {
   if (vModel.value) {
-    loadChildrenExcludedList(isNew.value)
+    loadChildrenExcludedList()
   }
 })
 </script>

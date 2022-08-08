@@ -23,14 +23,15 @@ const listItemsDlg = ref(false)
 
 const isForm = inject(IsFormInj)
 
+const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
+  isNew,
   reloadTrigger.trigger,
 )
 
 await loadRelatedTableMeta()
-const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
 const value = computed(() => {
   if (cellValue?.value) {

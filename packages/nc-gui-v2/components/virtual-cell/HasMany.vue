@@ -4,10 +4,9 @@ import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
-import { useProvideSmartsheetRowStore, useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
+import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
 import { computed, inject, ref, useProvideLTARStore } from '#imports'
 import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
-
 import { useProvideLTARStore } from '#imports'
 import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
@@ -27,16 +26,14 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
-const { state, isNew } = useSmartsheetRowStoreOrThrow()
-
+const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
+  isNew,
   reloadTrigger.trigger,
 )
 await loadRelatedTableMeta()
-
-const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
 const localCellValue = computed(() => {
   if (cellValue?.value) {

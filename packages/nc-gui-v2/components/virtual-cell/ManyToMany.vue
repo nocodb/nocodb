@@ -24,15 +24,15 @@ const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
+const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
+  isNew,
   reloadTrigger.trigger,
 )
 
 await loadRelatedTableMeta()
-
-const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
 const localCellValue = computed(() => {
   if (cellValue?.value) {

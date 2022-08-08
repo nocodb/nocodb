@@ -311,13 +311,11 @@ onMounted(async () => {
             <div class="text-center">{{ formViewData.success_msg || 'Successfully submitted form data' }}</div>
           </template>
         </a-alert>
-        <div class="mt-4">
-          <div v-if="formViewData.show_blank_form" class="text-gray-400 mt-4">
-            New form will be loaded after {{ secondsRemain }} seconds
-          </div>
-          <div v-if="formViewData.submit_another_form" class="text-center">
-            <a-button type="primary" size="large" @click="submitted = false"> Submit Another Form </a-button>
-          </div>
+        <div v-if="formViewData.show_blank_form" class="text-gray-400 mt-4">
+          New form will be loaded after {{ secondsRemain }} seconds
+        </div>
+        <div v-if="formViewData.submit_another_form" class="text-center mt-4">
+          <a-button type="primary" size="large" @click="submitted = false"> Submit Another Form </a-button>
         </div>
       </div>
     </a-col>

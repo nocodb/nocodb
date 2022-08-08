@@ -40,19 +40,17 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
 })
 
 const reloadMeta = async () => {
-  // FIXME: this not working
-  console.log('HEREEEE')
   emit('cancel')
   await getMeta(meta?.value.id as string, true)
 }
 
 async function handleSubmit() {
-  // FIXME: await addOrUpdate(reloadMeta)
-  await addOrUpdate()
-  await reloadMeta()
-  // FIXME: emit fails
-  emit('submit')
-  advancedOptions.value = false
+  await addOrUpdate(async () => {
+    await reloadMeta()
+    // FIXME: emit not working
+    await emit('submit')
+    advancedOptions.value = false
+  })
 }
 
 // create column meta if it's a new column

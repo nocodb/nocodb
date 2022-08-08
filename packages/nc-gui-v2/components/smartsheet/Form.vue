@@ -68,7 +68,7 @@ const hiddenColumns = ref<Record<string, any>>([])
 
 const availableColumns = inject(FieldsInj, ref([]))
 
-const rowRef = ref()
+const draggableRef = ref()
 
 const editOrAddRef = ref()
 
@@ -253,7 +253,7 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
   }
 }, 250)
 
-onClickOutside(rowRef, () => {
+onClickOutside(draggableRef, () => {
   activeRow.value = ''
 })
 
@@ -265,14 +265,6 @@ onMounted(async () => {
   await loadFormView()
   setFormData()
 })
-
-// TODO: check if it's required
-watch(
-  () => formColumnData || formViewData,
-  (v) => {
-    setFormData()
-  },
-)
 </script>
 
 <template>
@@ -346,8 +338,8 @@ watch(
           <!-- TODO #2: make the component out of sidebar  -->
           <!-- TODO #3: reload view  -->
           <SmartsheetColumnEditOrAdd
-            ref="editOrAddRef"
             v-if="showColumnDropdown"
+            ref="editOrAddRef"
             @click.stop
             @cancel="showColumnDropdown = false"
           />
@@ -385,19 +377,20 @@ watch(
             />
           </a-form-item>
           <draggable
+            ref="draggableRef"
             :list="localColumns"
             item-key="fk_column_id"
             draggable=".item"
             group="form-inputs"
             class="h-100"
             filter=".disable-drag"
+            :prevent-on-filter="false"
             @change="onMove($event)"
             @start="drag = true"
             @end="drag = false"
           >
             <template #item="{ element, index }">
               <div
-                ref="rowRef"
                 class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3"
                 :class="{ 'disable-drag': isDbRequired(element) || element.required }"
                 @click="activeRow = element.title"
@@ -419,29 +412,25 @@ watch(
                     <MdiHideIcon class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
                   </div>
                 </div>
-                <div class="nc-input">
-                  <a-form-item
-                    v-if="isVirtualCol(element)"
-                    class="ma-0 gap-0 pa-0"
-                    :name="element.title"
-                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
-                  >
-                    <SmartsheetVirtualCell v-model="formState[element.title]" :column="element" />
-                  </a-form-item>
-                  <a-form-item
-                    v-else
-                    class="ma-0 gap-0 pa-0"
-                    :name="element.title"
-                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
-                  >
-                    <SmartsheetCell v-model="formState[element.title]" :column="element" :edit-enabled="true" />
-                  </a-form-item>
-                </div>
-
-                <div v-if="activeRow === element.title" class="">
+                <a-form-item
+                  v-if="isVirtualCol(element)"
+                  class="ma-0 gap-0 pa-0"
+                  :name="element.title"
+                  :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                >
+                  <SmartsheetVirtualCell v-model="formState[element.title]" class="nc-input" :column="element" />
+                </a-form-item>
+                <a-form-item
+                  v-else
+                  class="ma-0 gap-0 pa-0"
+                  :name="element.title"
+                  :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                >
+                  <SmartsheetCell v-model="formState[element.title]" class="nc-input" :column="element" :edit-enabled="true" />
+                </a-form-item>
+                <div v-if="activeRow === element.title">
                   <a-input
                     v-model:value="element.label"
-                    class="nc-input"
                     size="large"
                     :placeholder="$t('msg.info.formInput')"
                     @change="updateColMeta(element)"
@@ -460,7 +449,7 @@ watch(
                     :checked-children="$t('general.required')"
                     un-checked-children="Not Required"
                     @change="updateColMeta(element)"
-                  ></a-switch>
+                  />
                 </div>
                 <span class="text-gray-500">{{ element.description }}</span>
               </div>

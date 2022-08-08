@@ -384,6 +384,7 @@ watch(
                   @change="updateColMeta(element)"
                 ></a-switch>
               </div>
+              <span class="text-gray-500">{{ element.description }}</span>
             </div>
           </template>
           <template #footer>

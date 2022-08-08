@@ -115,21 +115,18 @@ onMounted(() => {
   }
 })
 
-watch(
-  () => vModel,
-  (v) => {
-    if (!editor || !v) return
+watch($$(vModel), (v) => {
+  if (!editor || !v) return
 
-    const editorValue = editor?.getValue()
-    if (!disableDeepCompare) {
-      if (!editorValue || !deepCompare(JSON.parse(v), JSON.parse(editorValue))) {
-        editor.setValue(v)
-      }
-    } else {
-      if (editorValue !== v) editor.setValue(v)
+  const editorValue = editor?.getValue()
+  if (!disableDeepCompare) {
+    if (!editorValue || !deepCompare(JSON.parse(v), JSON.parse(editorValue))) {
+      editor.setValue(v)
     }
-  },
-)
+  } else {
+    if (editorValue !== v) editor.setValue(v)
+  }
+})
 </script>
 
 <template>

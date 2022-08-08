@@ -3,7 +3,7 @@ import { Modal as AModal } from 'ant-design-vue'
 import Editor from '~/components/monaco/Editor.vue'
 import FullScreenIcon from '~icons/cil/fullscreen'
 import FullScreenExitIcon from '~icons/cil/fullscreen-exit'
-import { inject, onMounted } from '#imports'
+import { inject } from '#imports'
 import { EditModeInj } from '~/context'
 
 interface Props {
@@ -58,36 +58,27 @@ const onSave = () => {
   vModel = localValue
 }
 
-onMounted(() => {
-  localValue = vModel
-})
-
 watch(
-  () => vModel,
+  $$(vModel),
   (val) => {
     localValue = val
   },
+  { immediate: true },
 )
 
-watch(
-  () => localValue,
-  (val) => {
-    try {
-      JSON.parse(val)
-      error = undefined
-    } catch (e: any) {
-      error = e
-    }
-  },
-)
+watch($$(localValue), (val) => {
+  try {
+    JSON.parse(val)
+    error = undefined
+  } catch (e: any) {
+    error = e
+  }
+})
 
-watch(
-  () => editEnabled,
-  () => {
-    isExpanded = false
-    localValue = vModel
-  },
-)
+watch(editEnabled, () => {
+  isExpanded = false
+  localValue = vModel
+})
 </script>
 
 <template>

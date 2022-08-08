@@ -1,12 +1,11 @@
 <script lang="ts" setup>
-import { onClickOutside } from '@vueuse/core'
+import { onClickOutside, useEventListener } from '@vueuse/core'
 import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
   inject,
   onMounted,
-  onUnmounted,
   provide,
   useGridViewColumnWidth,
   useProvideColumnCreateStore,
@@ -227,12 +226,7 @@ const onKeyDown = async (e: KeyboardEvent) => {
   }
 }
 
-onMounted(() => {
-  document.addEventListener('keydown', onKeyDown)
-})
-onUnmounted(() => {
-  document.removeEventListener('keydown', onKeyDown)
-})
+useEventListener(document, 'keydown', onKeyDown)
 
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)

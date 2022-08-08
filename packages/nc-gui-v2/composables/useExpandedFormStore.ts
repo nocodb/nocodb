@@ -101,7 +101,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const save = async () => {
-    let data;
+    let data
     try {
       // todo:
       // if (this.presetValues) {
@@ -117,7 +117,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       }, {} as Record<string, any>)
 
       if (row.value.rowMeta.new) {
-         data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
+        data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
 
         /* todo:
            // save hasmany and manytomany relations from local state

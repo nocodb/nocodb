@@ -75,12 +75,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       if (isHm || isMm) {
         const relatedRows = (state.value?.[column.title!] ?? []) as Record<string, any>[]
         for (const relatedRow of relatedRows) {
-          await linkRecord(
-            id,
-            extractPkFromRow(relatedRow, relatedTableMeta.columns as ColumnType[]),
-            column,
-            colOptions.type,
-          )
+          await linkRecord(id, extractPkFromRow(relatedRow, relatedTableMeta.columns as ColumnType[]), column, colOptions.type)
         }
       } else if (isBt && state.value?.[column.title!]) {
         await linkRecord(

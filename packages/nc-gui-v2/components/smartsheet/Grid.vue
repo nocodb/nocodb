@@ -436,6 +436,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
       v-model="expandedFormDlg"
       :row="expandedFormRow"
       :state="expandedFormRowState"
+      :meta="meta"
     />
   </div>
 </template>

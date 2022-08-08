@@ -1,10 +1,14 @@
 <script setup lang="ts">
+import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 import { useVModel } from '@vueuse/core'
-import { Ref, computed, provide, toRef, watch } from 'vue'
+import { computed, provide, toRef, watch } from 'vue'
 import Comments from './Comments.vue'
 import Header from './Header.vue'
-import { useSmartsheetStoreOrThrow } from '~/composables'
+import { NOCO } from '~/lib'
+import { extractPkFromRow } from '~/utils'
+import { useNuxtApp } from '#app'
+import { useProvideSmartsheetStore, useSmartsheetStoreOrThrow } from '~/composables'
 import type { Row } from '~/composables'
 import { useProvideExpandedFormStore } from '~/composables/useExpandedFormStore'
 import { FieldsInj, IsFormInj, MetaInj } from '~/context'
@@ -13,15 +17,42 @@ interface Props {
   modelValue: string | null
   row: Row
   state?: Record<string, any> | null
+  meta: TableType
+  loadRow?: boolean
+
+  useMetaFields ?:boolean
 }
 
 const props = defineProps<Props>()
 const emits = defineEmits(['update:modelValue'])
-const fields = inject(FieldsInj, ref([]))
+const _fields = inject(FieldsInj, ref([]))
 const row = toRef(props, 'row')
 const state = toRef(props, 'state')
+const meta = toRef(props, 'meta')
 
-const { meta } = useSmartsheetStoreOrThrow()
+const fields = computed(() => {
+  if (props.useMetaFields) {
+    return meta.value.columns ?? []
+  }
+  return _fields.value
+})
+
+provide(MetaInj, meta)
+
+const { $api } = useNuxtApp()
+if (props.loadRow) {
+  const { project } = useProject()
+  row.value.row = await $api.dbTableRow.read(
+    NOCO,
+    project.value.id as string,
+    meta.value.title,
+    extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
+  )
+  row.value.oldRow = { ...row.value.row }
+  row.value.rowMeta = {}
+}
+
+useProvideSmartsheetStore(ref({}) as any, meta)
 
 provide(IsFormInj, true)
 
@@ -47,7 +78,7 @@ const isExpanded = useVModel(props, 'modelValue', emits)
 
 <template>
   <a-modal v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
-    <Header  @cancel="isExpanded = false" />
+    <Header @cancel="isExpanded = false" />
     <a-card class="!bg-gray-100">
       <div class="flex">
         <div class="flex-grow">

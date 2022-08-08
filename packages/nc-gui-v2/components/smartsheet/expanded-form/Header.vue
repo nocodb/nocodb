@@ -5,12 +5,11 @@ import { useExpandedFormStoreOrThrow } from '~/composables/useExpandedFormStore'
 import MdiDoorOpen from '~icons/mdi/door-open'
 import MdiDoorClosed from '~icons/mdi/door-closed'
 
+const emit = defineEmits(['cancel'])
 const { meta } = useSmartsheetStoreOrThrow()
 const { commentsDrawer, row, primaryValue, save: _save } = useExpandedFormStoreOrThrow()
 const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
 const { isUIAllowed } = useUIPermission()
-
-const emit = defineEmits(['cancel'])
 
 const save = async () => {
   if (isNew.value) {
@@ -41,8 +40,8 @@ const iconColor = '#1890ff'
       <template v-if="primaryValue">: {{ primaryValue }}</template>
     </h5>
     <div class="flex-grow" />
-    <mdi-reload />
-    <component :is="drawerToggleIcon" class="" @click="commentsDrawer = !commentsDrawer" />
+    <mdi-reload class="cursor-pointer select-none" />
+    <component :is="drawerToggleIcon" class="cursor-pointer select-none" @click="commentsDrawer = !commentsDrawer" />
     <a-button size="small" class="!text" @click="emit('cancel')">
       <!-- Cancel -->
       {{ $t('general.cancel') }}

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject, onClickOutside, useDebounceFn } from '#imports'
 import { ActiveViewInj, FieldsInj, IsFormInj, MetaInj } from '~/context'
@@ -14,8 +14,6 @@ provide(IsFormInj, true)
 
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
-
-const toast = useToast()
 
 const state = useGlobal()
 
@@ -83,7 +81,10 @@ const formView = ref({})
 
 function updateView() {
   if ((formViewData.value?.subheading?.length || 0) > 255) {
-    toast.error('Data too long for Form Description')
+    notification.error({
+      message: 'Data too long for Form Description',
+      duration: 3,
+    })
     return
   }
 
@@ -94,7 +95,12 @@ async function submitForm() {
   try {
     await formRef.value?.validateFields()
   } catch (e: any) {
-    e.errorFields.map((f: Record<string, any>) => toast.error(f.errors.join(',')))
+    e.errorFields.map((f: Record<string, any>) =>
+      notification.error({
+        message: f.errors.join(','),
+        duration: 3,
+      }),
+    )
     return
   }
 
@@ -164,7 +170,10 @@ function onMove(event: any) {
 
 function hideColumn(idx: number) {
   if (isDbRequired(localColumns.value[idx]) || localColumns.value[idx].required) {
-    toast.info("Required field can't be moved")
+    notification.info({
+      message: "Required field can't be moved",
+      duration: 3,
+    })
     return
   }
 
@@ -210,7 +219,10 @@ async function checkSMTPStatus() {
     const emailPluginActive = await $api.plugin.status('SMTP')
     if (!emailPluginActive) {
       emailMe.value = false
-      toast.info('Please activate SMTP plugin in App store for enabling email notification')
+      notification.info({
+        message: 'Please activate SMTP plugin in App store for enabling email notification',
+        duration: 3,
+      })
     }
   }
 }
@@ -277,7 +289,10 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
     try {
       $api.dbView.formColumnUpdate(col.id, col)
     } catch (e: any) {
-      toast.error(await extractSdkResponseErrorMsg(e))
+      notification.error({
+        message: await extractSdkResponseErrorMsg(e),
+        duration: 3,
+      })
     }
   }
 }, 250)

@@ -12,9 +12,9 @@ const emit = defineEmits(['expandForm', 'selectCell', 'updateOrSaveRow', 'naviga
 const row = toRef(props, 'row')
 
 const { meta } = useSmartsheetStoreOrThrow()
-const { isNew, localState } = useProvideSmartsheetRowStore(meta, row)
+const { isNew, state } = useProvideSmartsheetRowStore(meta, row)
 watch(row, () => {
-  localState.value = {}
+  state.value = {}
 })
 </script>
 

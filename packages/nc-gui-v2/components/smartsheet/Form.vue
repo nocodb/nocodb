@@ -266,6 +266,12 @@ function onEmailChange() {
   checkSMTPStatus()
 }
 
+async function submitCallback() {
+  await loadFormView()
+  setFormData()
+  showColumnDropdown.value = false
+}
+
 const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
   if (col.id) {
     try {
@@ -387,12 +393,13 @@ onMounted(async () => {
               {{ $t('activity.addField') }}
             </div>
           </a-button>
-          <!-- TODO #2: make the component out of sidebar  -->
-          <!-- TODO #3: reload view  -->
+          <!-- TODO #1: make the component out of sidebar  -->
+          <!-- TODO #2: reload view  -->
           <SmartsheetColumnEditOrAdd
             v-if="showColumnDropdown"
             ref="editOrAddRef"
             @click.stop
+            @submit="submitCallback"
             @cancel="showColumnDropdown = false"
           />
         </template>

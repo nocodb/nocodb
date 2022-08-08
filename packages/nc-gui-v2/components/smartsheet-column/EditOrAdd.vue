@@ -6,7 +6,7 @@ import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
-const emit = defineEmits(['cancel'])
+const emit = defineEmits(['cancel', 'submit'])
 const meta = inject(MetaInj)
 const advancedOptions = ref(false)
 const { getMeta } = useMetas()
@@ -39,9 +39,20 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   ]
 })
 
-const reloadMeta = () => {
+const reloadMeta = async () => {
+  // FIXME: this not working
+  console.log('HEREEEE')
   emit('cancel')
-  getMeta(meta?.value.id as string, true)
+  await getMeta(meta?.value.id as string, true)
+}
+
+async function handleSubmit() {
+  // FIXME: await addOrUpdate(reloadMeta)
+  await addOrUpdate()
+  await reloadMeta()
+  // FIXME: emit fails
+  emit('submit')
+  advancedOptions.value = false
 }
 
 // create column meta if it's a new column
@@ -125,7 +136,7 @@ watchEffect(() => {
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button html-type="submit" type="primary" size="small" @click="addOrUpdate(reloadMeta), (advancedOptions = false)">
+          <a-button html-type="submit" type="primary" size="small" @click="handleSubmit">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

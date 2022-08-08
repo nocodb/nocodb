@@ -60,6 +60,7 @@ const contextMenu = ref(false)
 const contextMenuTarget = ref(false)
 const expandedFormDlg = ref(false)
 const expandedFormRow = ref<Row>()
+const expandedFormRowState = ref<Record<string, any>>()
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -274,8 +275,9 @@ const onNavigate = (dir: NavigateDir) => {
   }
 }
 
-const expandForm = (row: Row) => {
+const expandForm = (row: Row, state: Record<string, any>) => {
   expandedFormRow.value = row
+  expandedFormRowState.value = state
   expandedFormDlg.value = true
 }
 </script>
@@ -330,6 +332,7 @@ const expandForm = (row: Row) => {
           </thead>
           <tbody>
             <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
+              <template #default="{ state }">
               <tr class="nc-grid-row">
                 <td key="row-index" class="caption nc-grid-cell group">
                   <div class="flex items-center w-[80px]">
@@ -343,7 +346,7 @@ const expandForm = (row: Row) => {
                       <div class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
                         <MdiArrowExpand
                           class="select-none transform hover:(text-pink-500 scale-120)"
-                          @click="expandedFormDlg = true"
+                          @click="expandForm(row, state)"
                         />
                       </div>
                     </div>
@@ -389,6 +392,7 @@ const expandForm = (row: Row) => {
                   </div>
                 </td>
               </tr>
+              </template>
             </SmartsheetRow>
 
             <tr v-if="!isLocked">
@@ -427,7 +431,12 @@ const expandForm = (row: Row) => {
     </div>
 
     <SmartsheetPagination />
-    <SmartsheetExpandedForm v-if="expandedFormRow" v-model="expandedFormDlg" :row="expandedFormRow" />
+    <SmartsheetExpandedForm
+      v-if="expandedFormRow"
+      v-model="expandedFormDlg"
+      :row="expandedFormRow"
+      :state="expandedFormRowState"
+    />
   </div>
 </template>
 

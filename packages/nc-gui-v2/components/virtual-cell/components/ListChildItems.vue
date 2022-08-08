@@ -60,7 +60,7 @@ const container = computed(() =>
 
         <MdiReload  v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
 
-        <a-button type="primary" size="small" @click="emit('attachRecord')">
+        <a-button type="primary" class="!text-xs" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
             <MdiLinkVariantRemove class="text-xs text-white" @click="unlinkRow(row)" />
             Link to '{{ meta.title }}'

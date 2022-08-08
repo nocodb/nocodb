@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { isVirtualCol } from 'nocodb-sdk'
 import { useVModel } from '@vueuse/core'
-import { Ref, computed, provide, toRef } from 'vue'
+import { Ref, computed, provide, toRef, watch } from 'vue'
 import Comments from './Comments.vue'
 import Header from './Header.vue'
 import { useSmartsheetStoreOrThrow } from '~/composables'
@@ -12,12 +12,14 @@ import { FieldsInj, IsFormInj, MetaInj } from '~/context'
 interface Props {
   modelValue: string | null
   row: Row
+  state?: Record<string, any> | null
 }
 
 const props = defineProps<Props>()
 const emits = defineEmits(['update:modelValue'])
 const fields = inject(FieldsInj, ref([]))
 const row = toRef(props, 'row')
+const state = toRef(props, 'state')
 
 const { meta } = useSmartsheetStoreOrThrow()
 
@@ -26,7 +28,19 @@ provide(IsFormInj, true)
 // accept as a prop
 // const row: Row = { row: {}, rowMeta: {}, oldRow: {} }
 
-const { commentsDrawer, changedColumns } = useProvideExpandedFormStore(meta, row)
+const { commentsDrawer, changedColumns, state: rowState } = useProvideExpandedFormStore(meta, row)
+
+watch(
+  state,
+  () => {
+    if (state.value) {
+      rowState.value = state.value
+    } else {
+      rowState.value = {}
+    }
+  },
+  { immediate: true },
+)
 
 const isExpanded = useVModel(props, 'modelValue', emits)
 </script>

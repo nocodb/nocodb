@@ -101,6 +101,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   }
 
   const save = async () => {
+    let data;
     try {
       // todo:
       // if (this.presetValues) {
@@ -116,7 +117,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       }, {} as Record<string, any>)
 
       if (row.value.rowMeta.new) {
-        const data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
+         data = await $api.dbTableRow.create('noco', project.value.title as string, meta.value.title, updateOrInsertObj)
 
         /* todo:
            // save hasmany and manytomany relations from local state
@@ -127,7 +128,6 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
                 }
               }
             } */
-
         row.value = {
           row: data,
           rowMeta: {},
@@ -174,6 +174,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       notification.error({ message: `Failed to update row`, description: await extractSdkResponseErrorMsg(e) })
     }
     $e('a:row-expand:add')
+    return data
   }
 
   return {

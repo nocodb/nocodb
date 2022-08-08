@@ -1,11 +1,23 @@
 <script lang="ts" setup>
-import { computed, useExpandedFormStoreOrThrow, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
+import { computed, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
+import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
+import { useExpandedFormStoreOrThrow } from '~/composables/useExpandedFormStore'
 import MdiDoorOpen from '~icons/mdi/door-open'
 import MdiDoorClosed from '~icons/mdi/door-closed'
 
 const { meta } = useSmartsheetStoreOrThrow()
-const { commentsDrawer, row, primaryValue, save } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, row, primaryValue, save: _save } = useExpandedFormStoreOrThrow()
+const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
 const { isUIAllowed } = useUIPermission()
+
+const save = async () => {
+  if (isNew.value) {
+    const data = await _save()
+    await syncLTARRefs(data)
+  } else {
+    await _save()
+  }
+}
 
 const drawerToggleIcon = computed(() => (commentsDrawer.value ? MdiDoorOpen : MdiDoorClosed))
 

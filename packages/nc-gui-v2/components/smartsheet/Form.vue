@@ -170,7 +170,7 @@ async function addAllColumns() {
 
 async function removeAllColumns() {
   for (const col of (formColumnData as Record<string, any>)?.value) {
-    if (isDbRequired(col)) {
+    if (isDbRequired(col) || col.required) {
       continue
     }
     col.show = false

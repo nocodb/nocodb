@@ -61,28 +61,49 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const relatedTablePrimaryValueProp = computed(() => {
       return (relatedTableMeta?.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
+
+    const relatedTablePrimaryKeyProps = computed(() => {
+      return relatedTableMeta?.value?.columns?.filter((c) => c.pk)?.map((c) => c.title) ?? []
+    })
     const primaryValueProp = computed(() => {
       return (meta?.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
 
-    const loadChildrenExcludedList = async () => {
+    const loadChildrenExcludedList = async (isNewRow = false) => {
       try {
-        childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
-          NOCO,
-          project.value.id as string,
-          meta.value.id,
-          rowId.value,
-          colOptions.type as 'mm' | 'hm',
-          column?.value?.title,
-          // todo: swagger type correction
-          {
-            limit: childrenExcludedListPagination.size,
-            offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
-            where:
-              childrenExcludedListPagination.query &&
-              `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
-          } as any,
-        )
+        /** if new row load all records */
+        if (isNewRow) {
+          childrenExcludedList.value = await $api.dbTableRow.list(
+            NOCO,
+            project.value.id as string,
+            relatedTableMeta?.value?.id as string,
+            {
+              limit: childrenExcludedListPagination.size,
+              offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+              where:
+                childrenExcludedListPagination.query &&
+                `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
+              fields: [relatedTablePrimaryValueProp.value, ...relatedTablePrimaryKeyProps.value],
+            } as any,
+          )
+        } else {
+          childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
+            NOCO,
+            project.value.id as string,
+            meta.value.id,
+            rowId.value,
+            colOptions.type as 'mm' | 'hm',
+            column?.value?.title,
+            // todo: swagger type correction
+            {
+              limit: childrenExcludedListPagination.size,
+              offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+              where:
+                childrenExcludedListPagination.query &&
+                `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
+            } as any,
+          )
+        }
       } catch (e: any) {
         notification.error({
           message: 'Failed to load list',

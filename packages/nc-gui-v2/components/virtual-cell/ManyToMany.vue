@@ -4,6 +4,9 @@ import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
+import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
+import { useProvideLTARStore } from '#imports'
+import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 import { computed, inject, ref, useProvideLTARStore } from '#imports'
 import { CellValueInj, ColumnInj, ReloadViewDataHookInj,IsFormInj, RowInj } from '~/context'
 
@@ -29,8 +32,19 @@ const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvid
 
 await loadRelatedTableMeta()
 
+const { state, isNew } = useSmartsheetRowStoreOrThrow()
+
+const localCellValue = computed(() => {
+  if (cellValue?.value) {
+    return cellValue?.value
+  } else if (isNew.value) {
+    return state?.value?.[column?.value.title as string]
+  }
+  return []
+})
+
 const cells = computed(() =>
-  cellValue.value.reduce((acc: any[], curr: any) => {
+  localCellValue.value.reduce((acc: any[], curr: any) => {
     if (!relatedTablePrimaryValueProp.value) return acc
 
     const value = curr[relatedTablePrimaryValueProp.value]
@@ -45,24 +59,24 @@ const cells = computed(() =>
 <template>
   <div class="flex align-center gap-1 w-full h-full chips-wrapper">
     <template v-if="!isForm">
-    <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
-      <template v-if="cellValue">
-        <ItemChip v-for="(cell, i) of cells" :key="i" :value="cell.value" @unlink="unlink(cell.item)" />
+      <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
+        <template v-if="cells">
+          <ItemChip v-for="(cell, i) of cells" :key="i" :value="cell.value" @unlink="unlink(cell.item)" />
 
-        <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
-      </template>
-    </div>
+          <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
+        </template>
+      </div>
 
-    <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
-      <MdiArrowExpand class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
+      <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
+        <MdiArrowExpand class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
 
-      <MdiPlus class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
-    </div>
+        <MdiPlus class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+      </div>
     </template>
 
     <ListItems v-model="listItemsDlg" />
 
-    <ListChildItems v-model="childListDlg" @attach-record=";(childListDlg = false), (listItemsDlg = true)" />
+    <ListChildItems v-model="childListDlg" @attach-record="() => { childListDlg = false; listItemsDlg = true; }" />
   </div>
 </template>
 

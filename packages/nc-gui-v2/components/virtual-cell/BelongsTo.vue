@@ -3,6 +3,9 @@ import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
+import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
+import { useProvideLTARStore } from '#imports'
+import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 import { inject, ref, useProvideLTARStore } from '#imports'
 import { CellValueInj,IsFormInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
@@ -27,13 +30,22 @@ const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, un
 )
 
 await loadRelatedTableMeta()
+const { state, isNew } = useSmartsheetRowStoreOrThrow()
+const value = computed(() => {
+  if (cellValue?.value) {
+    return cellValue?.value
+  } else if (isNew.value) {
+    return state?.value?.[column?.value.title as string]
+  }
+  return null
+})
 </script>
 
 <template>
   <div class="flex w-full chips-wrapper align-center" :class="{ active }">
     <div class="chips d-flex align-center flex-grow">
-      <template v-if="cellValue">
-        <ItemChip :item="cellValue" :value="cellValue[relatedTablePrimaryValueProp]" @unlink="unlink(cellValue)" />
+      <template v-if="value">
+        <ItemChip :item="value" :value="cellValue[relatedTablePrimaryValueProp]" @unlink="unlink(value)" />
       </template>
     </div>
     <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">

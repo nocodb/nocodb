@@ -1,6 +1,9 @@
 <script lang="ts" setup>
 import { watchEffect } from '@vue/runtime-core'
 import { Modal } from 'ant-design-vue'
+import { useLTARStoreOrThrow, useVModel } from '#imports'
+import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
+import { ColumnInj, IsFormInj } from '~/context'
 import { IsFormInj } from '~/context'
 import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
 
@@ -9,6 +12,7 @@ const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 const isForm = inject(IsFormInj, false)
+const column = inject(ColumnInj)
 
 const {
   childrenList,
@@ -20,6 +24,8 @@ const {
   unlink,
   getRelatedTableRowId,
 } = useLTARStoreOrThrow()
+
+const { isNew, state } = useSmartsheetRowStoreOrThrow()
 
 watch([vModel, isForm], (nextVal) => {
   if (nextVal[0] || nextVal[1]) {
@@ -51,15 +57,18 @@ const container = computed(() =>
 
         <a-button type="primary" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
-            <!-- todo: row is not defined? @click="unlinkRow(row)" -->
-            <MdiLinkVariantRemove class="text-xs text-white" />
+            <MdiLinkVariantRemove class="text-xs text-white" @click="unlinkRow(row)" />
             Link to '{{ meta.title }}'
           </div>
         </a-button>
       </div>
-      <template v-if="childrenList?.pageInfo?.totalRows">
+      <template v-if="(isNew && state?.[column?.title]?.length) || childrenList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0">
-          <a-card v-for="(row, i) of childrenList?.list ?? []" :key="i" class="ma-2 hover:(!bg-gray-200/50 shadow-md)">
+          <a-card
+            v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
+            :key="i"
+            class="ma-2 hover:(!bg-gray-200/50 shadow-md)"
+          >
             <div class="flex align-center">
               <div class="flex-grow overflow-hidden min-w-0">
                 {{ row[relatedTablePrimaryValueProp]
@@ -74,7 +83,7 @@ const container = computed(() =>
           </a-card>
         </div>
         <a-pagination
-          v-if="childrenList?.pageInfo"
+          v-if="!isNew && childrenList?.pageInfo"
           v-model:current="childrenListPagination.page"
           v-model:page-size="childrenListPagination.size"
           class="mt-2 mx-auto"

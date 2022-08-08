@@ -1,11 +1,16 @@
 <script lang="ts" setup>
-import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
+import type { ColumnType } from 'nocodb-sdk'
+import { useLTARStoreOrThrow, useVModel } from '#imports'
+import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
+import { ColumnInj } from '~/context'
 
 const props = defineProps<{ modelValue: boolean }>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+
+const column = inject(ColumnInj)
 
 const {
   childrenExcludedList,
@@ -16,16 +21,22 @@ const {
   getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
-watch(vModel, (nextVal) => {
-  if (nextVal) {
-    loadChildrenExcludedList()
-  }
-})
+const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
 
 const linkRow = async (row: Record<string, any>) => {
-  await link(row)
+  if (isNew.value) {
+    addLTARRef(row, column?.value as ColumnType)
+  } else {
+    await link(row)
+  }
   vModel.value = false
 }
+
+watch(vModel, () => {
+  if (vModel.value) {
+    loadChildrenExcludedList(isNew.value)
+  }
+})
 </script>
 
 <template>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { computed, inject, ref, useArrayMap, useSmartsheetStoreOrThrow } from '#imports'
+import { computed, inject, ref, useSmartsheetStoreOrThrow } from '#imports'
 import { ReloadViewDataHookInj } from '~/context'
 
 const reloadData = inject(ReloadViewDataHookInj)!

@@ -1,8 +1,7 @@
 <script setup lang="ts">
-import { IsFormInj, IsGridInj } from '~/context'
+import { useSmartsheetStoreOrThrow } from '~/composables'
 
-const isForm = inject(IsFormInj)
-const isGrid = inject(IsGridInj)
+const { isGrid, isForm } = useSmartsheetStoreOrThrow()
 </script>
 
 <template>

@@ -37,7 +37,7 @@ provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
 provide(RightSidebarInj, ref(true))
 
-useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
+const { isGallery, isGrid, isForm } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 
 watch(tabMeta, async (newTabMeta, oldTabMeta) => {
   if (newTabMeta !== oldTabMeta && newTabMeta?.id) await getMeta(newTabMeta.id)
@@ -52,11 +52,11 @@ watch(tabMeta, async (newTabMeta, oldTabMeta) => {
       <template v-if="meta">
         <div class="flex flex-1 min-h-0">
           <div v-if="activeView" class="h-full flex-grow min-w-0 min-h-0">
-            <SmartsheetGrid v-if="activeView.type === ViewTypes.GRID" :ref="el" />
+            <SmartsheetGrid v-if="isGrid" :ref="el" />
 
-            <SmartsheetGallery v-else-if="activeView.type === ViewTypes.GALLERY" />
+            <SmartsheetGallery v-else-if="isGallery" />
 
-            <SmartsheetForm v-else-if="activeView.type === ViewTypes.FORM" />
+            <SmartsheetForm v-else-if="isForm" />
           </div>
         </div>
 

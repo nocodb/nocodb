@@ -354,17 +354,13 @@ const onNavigate = (dir: NavigateDir) => {
                 class="text-left pointer nc-grid-add-new-cell"
                 @click="addEmptyRow()"
               >
-                <a-tooltip top left>
-                  <div class="w-full flex align-center">
-                    <MdiPlus class="text-pint-500 text-xs" />
-                    <span class="ml-1 caption grey--text">
-                      {{ $t('activity.addRow') }}
-                    </span>
-                  </div>
-                  <template #title>
-                    <span class="caption"> Add new row</span>
-                  </template>
-                </a-tooltip>
+                <div class="w-full flex align-center">
+                  <MdiPlus class="text-pint-500 text-xs" />
+
+                  <span class="ml-1">
+                    {{ $t('activity.addRow') }}
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>

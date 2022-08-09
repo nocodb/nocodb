@@ -194,7 +194,10 @@ function onDeleted() {
       :key="view.id"
       :view="view"
       class="transition-all ease-in duration-300"
-      :class="[isMarked === view.id ? 'bg-gray-200' : '', route.params.viewTitle.includes(view.title) ? 'bg-blue-500/15' : '']"
+      :class="[
+        isMarked === view.id ? 'bg-gray-200' : '',
+        route.params.viewTitle && route.params.viewTitle.includes(view.title) ? 'active' : '',
+      ]"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="onDelete"
@@ -230,6 +233,14 @@ function onDeleted() {
 
   .sortable-chosen {
     @apply !bg-primary/25 text-primary;
+  }
+
+  .active {
+    @apply bg-blue-500/15;
+
+    .nc-icon {
+      @apply !text-pink-500;
+    }
   }
 }
 </style>

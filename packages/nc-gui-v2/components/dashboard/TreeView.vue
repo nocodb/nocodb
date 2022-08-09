@@ -159,7 +159,7 @@ const addTableTab = (table: TableType) => {
           @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
         >
-          <MdiTable class="mr-1 text-blue" />
+          <MdiTable class="mr-1 text-gray-500" />
 
           <span class="flex-grow text-bold nc-project-tree">
             {{ $t('objects.tables') }}

@@ -13,15 +13,10 @@ import Reload from './Reload.vue'
 
     <div class="dot" />
 
-    <Reload />
-
-    <div class="dot" />
-
     <AddRow />
 
     <div class="dot" />
-
-    <DeleteTable />
+    <Reload />
 
     <slot name="end" />
   </div>

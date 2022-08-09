@@ -67,12 +67,12 @@ const onMove = (event: { moved: { newIndex: number } }) => {
 <template>
   <a-dropdown :trigger="['click']">
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
-      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked" size="small">
+      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex align-center gap-1">
           <MdiEyeOffOutline class="text-grey" />
 
           <!-- Fields -->
-          <span class="text-xs text-capitalize">{{ $t('objects.fields') }}</span>
+          <span class="!text-sm font-weight-regular text-capitalize">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
         </div>

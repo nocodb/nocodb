@@ -19,7 +19,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
 <template>
   <div class="flex align-center w-full">
     <SmartsheetHeaderCellIcon v-if="column" />
-    <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
+    <span v-if="column" class="name text-xs font-weight-regular text-gray-500" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
 
     <template v-if="!hideMenu">
       <div class="flex-1" />

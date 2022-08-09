@@ -34,11 +34,11 @@ const applyChanges = async () => {
 <template>
   <a-dropdown :trigger="['click']">
     <div :class="{ 'nc-badge nc-active-btn': filtersLength }">
-      <a-button v-t="['c:filter']" class="text-xs nc-filter-menu-btn nc-toolbar-btn" :disabled="isLocked" size="small">
+      <a-button v-t="['c:filter']" class=" nc-filter-menu-btn nc-toolbar-btn " :disabled="isLocked" >
         <div class="flex align-center gap-1">
           <MdiFilterIcon class="text-grey" />
           <!-- Filter -->
-          <span class="text-capitalize">{{ $t('activity.filter') }}</span>
+          <span class="text-capitalize !text-sm font-weight-regular">{{ $t('activity.filter') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>

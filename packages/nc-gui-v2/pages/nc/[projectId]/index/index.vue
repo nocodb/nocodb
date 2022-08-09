@@ -123,7 +123,7 @@ function openQuickImportDialog(type: string) {
         </a-tabs>
       </div>
 
-      <NuxtPage class="px-4 pt-2" />
+      <NuxtPage/>
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
@@ -154,5 +154,9 @@ function openQuickImportDialog(type: string) {
 
 :deep(.ant-tabs-nav-add) {
   @apply !hidden;
+}
+
+:deep(.ant-tabs-tab-active){
+  @apply font-weight-bold;
 }
 </style>

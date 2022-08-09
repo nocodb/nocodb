@@ -134,10 +134,12 @@ const activeTable = computed(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <div class="px-2 py-[11.75px] border-b-1">
-      <a-input-search
+    <div class="ml-5 px-2 py-[11.75px] flex align-center">
+      <mdi-search class="text-gray-300"/>
+      <a-input
         v-model:value="filterQuery"
         size="small"
+        :bordered="false"
         class="nc-filter-input"
         :placeholder="$t('placeholder.searchProjectTree')"
       />
@@ -296,17 +298,17 @@ const activeTable = computed(() => {
 }
 
 .nc-tree-item svg {
-  @apply text-gray-500;
+  @apply text-gray-400;
 }
 
 .nc-tree-item.active {
-  @apply !text-primary after:(!opacity-5);
+  @apply !text-primary font-weight-bold after:(!opacity-15);
   svg {
     @apply !text-primary;
   }
 }
 
 .nc-tree-item:hover {
-  @apply !text-grey after:(!opacity-2);
+  @apply !text-grey after:(!opacity-5);
 }
 </style>

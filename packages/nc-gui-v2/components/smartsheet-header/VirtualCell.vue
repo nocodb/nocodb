@@ -90,7 +90,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
       <template #title>
         {{ tooltipMsg }}
       </template>
-      <span class="name" style="white-space: nowrap" :title="column.title"> {{ column.title }}</span>
+      <span class="name text-xs font-weight-regular text-gray-500" style="white-space: nowrap" :title="column.title"> {{ column.title }}</span>
     </a-tooltip>
     <span v-if="column.rqd" class="error--text text--lighten-1">&nbsp;*</span>
 

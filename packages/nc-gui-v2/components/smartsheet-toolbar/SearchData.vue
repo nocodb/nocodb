@@ -18,27 +18,30 @@ const columns = computed(() =>
 </script>
 
 <template>
+<div class="flex align-center">
+  <div class="flex align-center relative px-2" @click="isDropdownOpen = true">
+    <MdiMagnify class="text-grey" />
+    <MdiMenuDown class="text-grey" />
+
+    <a-select
+      v-model:value="search.field"
+      size="small"
+      :dropdown-match-select-width="false"
+      :options="columns"
+      class="!absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
+    >
+    </a-select>
+  </div>
   <a-input
+    :bordered="false"
     v-model:value="search.query"
     size="small"
-    class="max-w-[200px]"
+    class="max-w-[200px] bg-gray-100/20"
     placeholder="Filter query"
     @press-enter="reloadData.trigger(null)"
-  >
-    <template #addonBefore>
-      <div class="flex align-center relative" @click="isDropdownOpen = true">
-        <MdiMagnify class="text-grey" />
-        <MdiMenuDown class="text-grey" />
+  >  </a-input>
 
-        <a-select
-          v-model:value="search.field"
-          size="small"
-          :dropdown-match-select-width="false"
-          :options="columns"
-          class="!absolute top-0 left-0 w-full h-full z-10 !text-xs opacity-0"
-        >
-        </a-select>
-      </div>
-    </template>
-  </a-input>
+</div>
+<!--    <template #addonBefore>-->
+<!--    </template>-->
 </template>

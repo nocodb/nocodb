@@ -103,10 +103,11 @@ const exportCsv = async () => {
     <a-dropdown>
       <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-1 align-center">
-          <MdiFlashIcon class="text-grey" />
-          <!-- More -->
-          {{ $t('general.more') }}
-          <MdiMenuDownIcon class="text-grey" />
+<!--          <MdiFlashIcon class="text-grey" />-->
+<!--          &lt;!&ndash; More &ndash;&gt;-->
+<!--          {{ $t('general.more') }}-->
+<!--          <MdiMenuDownIcon class="text-grey" />-->
+          <mdi-dots-horizontal class="text-gray-500"/>
         </div>
       </a-button>
       <template #overlay>

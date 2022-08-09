@@ -52,6 +52,12 @@ watch(activeView, (nextActiveView) => {
   }
 })
 
+watch(views, (nextViews) => {
+  if (nextViews?.length && !route.params?.viewTitle) {
+    selected.value = [nextViews[0].id]
+  }
+} , { immediate: true })
+
 /** shortly mark an item after sorting */
 function markItem(id: string) {
   isMarked = id
@@ -110,7 +116,7 @@ async function onSortEnd(evt: SortableEvent) {
     nextOrder = (parseFloat(previousItem.order) + parseFloat(nextItem.order)) / 2
   }
 
-  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder.toString() : oldIndex.toString()
+  const _nextOrder = !isNaN(Number(nextOrder)) ? nextOrder : oldIndex
 
   currentItem.order = _nextOrder
 
@@ -184,8 +190,7 @@ function onDeleted() {
 </script>
 
 <template>
-  <h3 class="pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
-
+  <h3 class="pt-3 px-3 text-xs font-semibold text-gray-500">{{ $t('objects.views') }}</h3>
   <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu" :selected-keys="selected">
     <RenameableMenuItem
       v-for="view of views"
@@ -235,7 +240,7 @@ function onDeleted() {
   }
 
   .active {
-    @apply bg-blue-500/15;
+    @apply font-weight-bold bg-primary/15;
 
     .nc-icon {
       @apply !text-pink-500;

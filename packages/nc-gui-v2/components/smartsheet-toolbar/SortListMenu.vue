@@ -36,11 +36,11 @@ watch(
 <template>
   <a-dropdown offset-y class="" :trigger="['click']">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
-      <a-button v-t="['c:sort']" size="small" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
+      <a-button v-t="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
         ><div class="flex align-center gap-1">
           <MdiSortIcon class="text-grey" />
           <!-- Sort -->
-          <span class="text-capitalize">{{ $t('activity.sort') }}</span>
+          <span class="text-capitalize !text-sm font-weight-regular">{{ $t('activity.sort') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>

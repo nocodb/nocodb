@@ -44,7 +44,7 @@ watch(tabMeta, async (newTabMeta, oldTabMeta) => {
 </script>
 
 <template>
-  <div class="nc-container flex h-full">
+  <div class="nc-container flex h-full px-2">
     <div class="flex flex-col h-full flex-1 min-w-0">
       <SmartsheetToolbar />
 

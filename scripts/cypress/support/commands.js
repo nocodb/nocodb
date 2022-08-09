@@ -157,11 +157,18 @@ Cypress.Commands.add("openTableTab", (tn, rc) => {
     cy.get(`.nc-project-tree-tbl-${tn}`, { timeout: 10000 }).should("exist")
       .first()
       .click({ force: true });
-    //
-    // // wait for page rendering to complete
-    // if (rc != 0) {
-    //     cy.get(".nc-grid-row").should("have.length", rc);
-    // }
+
+    // kludge to make new tab active
+    cy.get('.ant-tabs-tab-btn')
+      .contains(tn)
+      .should('exist')
+      .click({ force: true });
+    cy.get('.xc-row-table.nc-grid').should('exist');
+
+    // wait for page rendering to complete
+    if (rc != 0) {
+        cy.get(".nc-grid-row").should("have.length", rc);
+    }
 });
 
 Cypress.Commands.add("closeTableTab", (tn) => {
@@ -241,6 +248,10 @@ Cypress.Commands.add("getActivePopUp", () => {
     return cy.get(".ant-menu-submenu-popup:visible").last();
 })
 
+Cypress.Commands.add("getActiveSelection", () => {
+    return cy.get(".ant-select-dropdown:visible").last();
+})
+
 Cypress.Commands.add("getActiveContentModal", () => {
     return cy.get(".v-dialog__content--active").last();
 });
@@ -252,7 +263,7 @@ Cypress.Commands.add("createTable", (name) => {
       .clear()
       .type(name)
     cy.getActiveModal().find("button").contains("Submit").click();
-    cy.wait(2000)
+    cy.get('.xc-row-table.nc-grid').should('exist');
     cy.get('.ant-tabs-tab-active > .ant-tabs-tab-btn').contains(name).should("exist");
     cy.url().should("contain", `table/${name}`);
     cy.get(`.nc-project-tree-tbl-${name}`).should("exist");

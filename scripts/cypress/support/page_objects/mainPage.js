@@ -187,39 +187,50 @@ export class _mainPage {
     };
 
     addColumn = (colName, tableName) => {
-        cy.get(".v-window-item--active .nc-grid  tr > th:last button").click({
+        cy.get(".nc-grid  tr > th:last .nc-icon").click({
             force: true,
         });
-        cy.get(".nc-column-name-input input", { timeout: 3000 })
-            .clear()
-            .type(colName);
-        cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-        cy.toastWait(`Update table successful`);
+
+        cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+          .should('exist')
+          .clear()
+          .type(colName);
+        cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+        cy.toastWait(`Column created`);
+        cy.get(`th[data-title="${colName}"]`).should("exist");
     };
 
     addColumnWithType = (colName, colType, tableName) => {
-        cy.get(".v-window-item--active .nc-grid  tr > th:last button").click({
+        cy.get(".nc-grid  tr > th:last .nc-icon").click({
             force: true,
         });
-        cy.get(".nc-column-name-input input", { timeout: 3000 })
-            .clear()
-            .type(colName);
 
-        // Column data type: to be set to lookup in this context
-        cy.get(".nc-ui-dt-dropdown").click();
-        cy.getActiveMenu().contains(colType).click();
+        cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+          .should('exist')
+          .clear()
+          .type(colName);
 
-        cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-        cy.toastWait(`Update table successful`);
+        // change column type and verify
+        cy.get(".nc-column-type-input").last().click();
+        cy.getActiveSelection().find('.ant-select-item-option').contains(colType).click();
+        cy.get(".ant-btn-primary:visible").contains("Save").click();
+
+        cy.toastWait(`Column created`);
+        cy.get(`th[data-title="${colName}"]`).should("exist");
     };
 
     deleteColumn = (colName) => {
-        cy.get(`th:contains(${colName}) .mdi-menu-down`)
-            .trigger("mouseover")
-            .click();
+        cy.get(`th:contains(${colName})`).should("exist");
 
-        cy.get(".nc-column-delete", { timeout: 5000 }).click();
-        cy.get("button:contains(Confirm)").click();
+        cy.get(`th:contains(${colName}) .nc-icon.ant-dropdown-trigger`)
+          .trigger("mouseover", { force: true })
+          .click({ force: true });
+
+        cy.get(".nc-column-delete").click();
+        cy.get(".nc-column-delete").should("not.be.visible");
+        cy.get(".ant-btn-dangerous:visible").contains("Delete").click();
+
+        cy.get(`th:contains(${colName})`).should("not.exist");
     };
 
     getAuthToken = () => {

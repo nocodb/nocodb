@@ -34,59 +34,56 @@ export const genTest = (apiType, dbType) => {
             cy.createTable(name);
         });
 
+        beforeEach(() => {
+          cy.fileHook();
+        })
+
         // delete table
         after(() => {
             cy.deleteTable(name, dbType);
         });
 
         it("Create Table Column", () => {
-            cy.get(`.project-tab:contains(${name}):visible`).should("exist");
             mainPage.addColumn(colName, name);
-
-            cy.get(`th:contains(${colName})`).should("exist");
         });
 
         // edit the newly created column
         it("Edit table column - change datatype", () => {
+
             if (!isXcdb()) {
-                cy.get(`th:contains(${colName}) .mdi-menu-down`)
+                cy.get(`th:contains(${colName}) .nc-icon.ant-dropdown-trigger`)
                     .trigger("mouseover", { force: true })
                     .click({ force: true });
 
                 cy.get(".nc-column-edit").click();
+                cy.get(".nc-column-edit").should("not.be.visible");
 
                 // change column type and verify
-                cy.get(".nc-ui-dt-dropdown").click();
-                cy.contains("LongText").click();
-                cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+                cy.get(".nc-column-type-input").last().click();
+                cy.getActiveSelection().find('.ant-select-item-option').contains("LongText").click();
+                cy.get(".ant-btn-primary:visible").contains("Save").click();
 
-                cy.toastWait("Update table successful");
-
-                cy.get(`th[data-col="${colName}"] .mdi-text-subject`).should(
-                    "exist"
-                );
-
-                cy.get(`th:contains(${colName}) .mdi-menu-down`)
-                    .trigger("mouseover", { force: true })
-                    .click({ force: true });
-
-                cy.get(".nc-column-edit").click();
+                cy.toastWait("Column updated");
             }
         });
 
         // edit the newly created column
         it("Edit table column - rename", () => {
-            cy.get(`th:contains(${colName}) .mdi-menu-down`)
-                .trigger("mouseover", { force: true })
-                .click({ force: true });
+            cy.get(`th:contains(${colName}) .nc-icon.ant-dropdown-trigger`)
+              .trigger("mouseover", { force: true })
+              .click({ force: true });
 
             cy.get(".nc-column-edit").click();
+            cy.get(".nc-column-edit").should("not.be.visible");
 
             // rename column and verify
-            cy.get(".nc-column-name-input input").clear().type(updatedColName);
-            cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+              .should('exist')
+              .clear()
+              .type(updatedColName);
+            cy.get(".ant-btn-primary:visible").contains("Save").click();
 
-            cy.toastWait("Update table successful");
+            cy.toastWait("Column updated");
 
             cy.get(`th:contains(${colName})`).should("not.exist");
             cy.get(`th:contains(${updatedColName})`).should("exist");
@@ -94,17 +91,7 @@ export const genTest = (apiType, dbType) => {
 
         // delete the newly created column
         it("Delete table column", () => {
-            cy.get(`th:contains(${updatedColName})`).should("exist");
-
-            cy.get(`th:contains(${updatedColName}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
-
-            cy.get(".nc-column-delete").click();
-            cy.get("button:contains(Confirm)").click();
-            cy.toastWait("Update table successful");
-
-            cy.get(`th:contains(${updatedColName})`).should("not.exist");
+            mainPage.deleteColumn(updatedColName);
         });
 
         it("Add new row", () => {

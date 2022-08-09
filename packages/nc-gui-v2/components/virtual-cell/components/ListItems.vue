@@ -69,11 +69,11 @@ const newRowState = computed(() => {
 
   if (relatedTableColOpt.type === RelationTypes.BELONGS_TO) {
     return {
-      [colInRelatedTable.title as string]: row,
+      [colInRelatedTable.title as string]: row?.value?.row,
     }
   } else {
     return {
-      [colInRelatedTable.title as string]: [row],
+      [colInRelatedTable.title as string]: row?.value && [row.value.row],
     }
   }
 })
@@ -125,7 +125,6 @@ const newRowState = computed(() => {
         :meta="relatedTableMeta"
         :row="{ row: {}, oldRow: {}, rowMeta: { new: true } }"
         :state="newRowState"
-        load-row
         use-meta-fields
       />
     </div>

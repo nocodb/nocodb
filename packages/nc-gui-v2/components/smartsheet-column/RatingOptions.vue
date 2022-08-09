@@ -3,7 +3,7 @@ import { Sketch } from '@ckpack/vue-color'
 import { useColumnCreateStoreOrThrow } from '#imports'
 import { enumColor, getMdiIcon } from '@/utils'
 
-const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
+const { formState } = useColumnCreateStoreOrThrow()
 
 // cater existing v1 cases
 const iconList = [

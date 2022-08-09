@@ -21,17 +21,8 @@ const { getMeta } = useMetas()
 
 const formulaOptionsRef = ref()
 
-const {
-  formState,
-  resetFields,
-  validate,
-  validateInfos,
-  onUidtOrIdTypeChange,
-  onAlter,
-  addOrUpdate,
-  generateNewColumnMeta,
-  isEdit,
-} = useColumnCreateStoreOrThrow()
+const { formState, validateInfos, onUidtOrIdTypeChange, onAlter, addOrUpdate, generateNewColumnMeta, isEdit } =
+  useColumnCreateStoreOrThrow()
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { onMounted, onUpdated } from '@vue/runtime-core'
+import { onMounted } from '@vue/runtime-core'
 import type { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
 import { nextTick, reactive, ref, useApi, useSidebar } from '#imports'
@@ -7,10 +7,6 @@ import { navigateTo, useNuxtApp } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { projectTitleValidator } from '~/utils/validation'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
-
-const name = ref('')
-
-const valid = ref(false)
 
 const { $e } = useNuxtApp()
 

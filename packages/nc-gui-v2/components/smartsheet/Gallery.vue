@@ -12,10 +12,7 @@ const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
 
 // todo: get from parent ( inject or use prop )
-const isPublicView = false
-
-const selected = reactive<{ row?: number | null; col?: number | null }>({})
-const editEnabled = ref(false)
+// const isPublicView = false
 
 const { loadData, paginationData, formattedData: data, loadGalleryData, galleryData, changePage } = useViewData(meta, view as any)
 

@@ -3,7 +3,6 @@ import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { useToast } from 'vue-toastification'
 import { message } from 'ant-design-vue'
-import { useRoute } from '#app'
 import { onMounted, useSmartsheetStoreOrThrow } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
@@ -20,18 +19,17 @@ interface SharedViewType {
   showPassword?: boolean
 }
 
-const { view, $api, meta } = useSmartsheetStoreOrThrow()
+const { $api, meta } = useSmartsheetStoreOrThrow()
 const { copy } = useClipboard()
 const toast = useToast()
-const route = useRoute()
 const { dashboardUrl } = useDashboard()
 
-let isLoading = $ref(false)
+// let isLoading = $ref(false)
 // let activeSharedView = $ref(null)
 const sharedViewList = ref<SharedViewType[]>()
 
 const loadSharedViewsList = async () => {
-  isLoading = true
+  // isLoading = true
   const list = await $api.dbViewShare.list(meta.value?.id as string)
 
   console.log(unref(sharedViewList))
@@ -50,7 +48,7 @@ const loadSharedViewsList = async () => {
   //   activeSharedView = null
   // }
 
-  isLoading = false
+  // isLoading = false
 }
 
 onMounted(loadSharedViewsList)

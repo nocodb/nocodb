@@ -18,10 +18,10 @@ const sharedViewListDlg = ref(false)
 // todo : replace with inject
 const publicViewId = null
 
-// TODO:: identify based on meta
-const isView = ref(false)
-
-const { isUIAllowed } = useUIPermission()
+// // TODO:: identify based on meta
+// const isView = ref(false)
+//
+// const { isUIAllowed } = useUIPermission()
 
 const { project } = useProject()
 

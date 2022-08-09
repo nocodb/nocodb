@@ -28,9 +28,9 @@ const dialogShow = computed({
 
 const { updateTab } = useTabs()
 const { loadTables } = useProject()
-const { project, tables } = useProject()
+const { tables } = useProject()
 
-const prefix = computed(() => project?.value?.prefix || '')
+// const prefix = computed(() => project?.value?.prefix || '')
 
 const inputEl = $ref<any>()
 let loading = $ref(false)
@@ -60,7 +60,7 @@ const validators = computed(() => {
     ],
   }
 })
-const { resetFields, validate, validateInfos } = useForm(formState, validators)
+const { validateInfos } = useForm(formState, validators)
 
 watchEffect(() => {
   if (tableMeta?.title) formState.title = tableMeta?.title

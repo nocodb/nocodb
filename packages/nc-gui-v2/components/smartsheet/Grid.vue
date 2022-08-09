@@ -126,7 +126,7 @@ const makeEditable = (row: Row, col: ColumnType) => {
     return
   }
   if (!isPkAvail.value && !row.rowMeta.new) {
-    message.info('Update not allowed for table which doesn\'t have primary Key')
+    message.info("Update not allowed for table which doesn't have primary Key")
     return
   }
   if (col.ai) {
@@ -259,8 +259,7 @@ const onNavigate = (dir: NavigateDir) => {
   <div class="flex flex-col h-100 min-h-0 w-100">
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
-        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault"
-               @contextmenu.prevent="contextMenu = true">
+        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
             <tr class="group">
               <th>
@@ -323,8 +322,8 @@ const onNavigate = (dir: NavigateDir) => {
                 :key="rowIndex + columnObj.title"
                 class="cell pointer nc-grid-cell"
                 :class="{
-                    active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
-                  }"
+                  active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
+                }"
                 :data-col="columnObj.id"
                 :data-title="columnObj.title"
                 @click="selectCell(rowIndex, colIndex)"

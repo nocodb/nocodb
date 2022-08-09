@@ -1,15 +1,23 @@
 <script setup lang="ts">
+import { useNuxtApp, useRoute } from '#app'
+import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
-import { useProject, useTable, useTabs, watchEffect } from '#imports'
-import { useNuxtApp, useRoute } from '#app'
+import { TabType } from '~/composables'
 import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiMenuDown from '~icons/mdi/chevron-down'
-import MdiPlus from '~icons/mdi/plus-circle-outline'
+import MdiSettingIcon from '~icons/mdi/cog'
+import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiDrag from '~icons/mdi/drag-vertical'
+import MdiView from '~icons/mdi/eye-circle-outline'
+import MdiAPIDocIcon from '~icons/mdi/open-in-new'
+import MdiPlus from '~icons/mdi/plus-circle-outline'
+import MdiTable from '~icons/mdi/table'
+import MdiTableLarge from '~icons/mdi/table-large'
+import SettingsModal from './settings/SettingsModal.vue'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 
 const { addTab } = useTabs()
@@ -21,8 +29,9 @@ const { $api, $e } = useNuxtApp()
 const route = useRoute()
 
 const { tables, loadTables } = useProject(route.params.projectId as string)
-
+const { closeTab, activeTab } = useTabs()
 const { deleteTable } = useTable()
+
 
 const tablesById = $computed<Record<string, TableType>>(() =>
   tables?.value?.reduce((acc: Record<string, TableType>, table: TableType) => {
@@ -31,14 +40,12 @@ const tablesById = $computed<Record<string, TableType>>(() =>
   }, {}),
 )
 
+const settingsDlg = ref(false)
 const showTableList = ref(true)
-
 const tableCreateDlg = ref(false)
-
+const tableDeleteDlg = ref(false)
 const menuRef = $ref<HTMLLIElement>()
-
 let key = $ref(0)
-
 let sortable: Sortable
 
 // todo: replace with vuedraggable
@@ -106,13 +113,11 @@ const icon = (table: TableType) => {
 }
 
 const filterQuery = $ref('')
-
 const filteredTables = $computed(() => {
   return tables?.value?.filter((table) => !filterQuery || table?.title.toLowerCase()?.includes(filterQuery.toLowerCase()))
 })
 
 const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
-
 const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
@@ -120,24 +125,25 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
 }
 
 const renameTableDlg = ref(false)
-
 const renameTableMeta = ref()
-
 const showRenameTableDlg = (table: TableType, rightClick = false) => {
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
   renameTableMeta.value = table
   renameTableDlg.value = true
 }
-
 const reloadTables = async () => {
   $e('a:table:refresh:navdraw')
   await loadTables()
 }
-
 const addTableTab = (table: TableType) => {
   $e('a:table:open')
   addTab({ title: table.title, id: table.id, type: table.type as any })
 }
+
+const activeTable = computed(() => {
+  return [TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null
+})
+
 </script>
 
 <template>
@@ -185,12 +191,9 @@ const addTableTab = (table: TableType) => {
                 v-for="table of tables"
                 :key="table.id"
                 v-t="['a:table:open']"
-                :class="[
-                  { hidden: !filteredTables?.includes(table) },
-                  `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-                  route.params.title && route.params.title.includes(table.title) ? 'bg-blue-500/15' : '',
-                ]"
-                class="pl-5 pr-3 py-2 text-sm cursor-pointer group"
+                :class="[{ hidden: !filteredTables?.includes(table),
+                 'active': activeTable === table.title,}, `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,]"
+                class="nc-tree-item pl-5 pr-3 py-2 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTableTab(table)"
@@ -299,4 +302,17 @@ const addTableTab = (table: TableType) => {
     @apply !bg-primary/25 text-primary;
   }
 }
+
+.nc-tree-item{
+  @apply relative  cursor-pointer after:(content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+}
+
+.nc-tree-item.active{
+  @apply !text-primary after:(!opacity-10);
+}
+
+.nc-tree-item:hover{
+  @apply !text-grey after:(!opacity-5);
+}
+
 </style>

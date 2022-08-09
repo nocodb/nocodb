@@ -66,6 +66,11 @@ function onCancel() {
   }
 }
 
+async function onSubmit() {
+  await addOrUpdate(reloadMetaAndData)
+  advancedOptions.value = false
+}
+
 // create column meta if it's a new column
 watchEffect(() => {
   if (!isEdit.value) {
@@ -171,17 +176,7 @@ watch(
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button
-            html-type="submit"
-            type="primary"
-            size="small"
-            @click="
-              () => {
-                addOrUpdate(reloadMetaAndData)
-                advancedOptions = false
-              }
-            "
-          >
+          <a-button html-type="submit" type="primary" size="small" @click="onSubmit">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

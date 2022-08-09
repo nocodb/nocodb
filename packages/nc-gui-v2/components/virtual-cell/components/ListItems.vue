@@ -48,23 +48,22 @@ const expandedFormDlg = ref(false)
 /** populate initial state for a new row which is parent/child of current record */
 const newRowState = computed(() => {
   const colOpt = (column?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
-  const colInRelatedTable: ColumnType = relatedTableMeta.value?.columns?.find((col) => {
+  const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
     if (col.uidt !== UITypes.LinkToAnotherRecord) return false
-    if (col?.colOptions?.fk_related_model_id !== meta.value.id) return false
+    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
+    if (colOpt1?.fk_related_model_id !== meta.value.id) return false
 
-    if (colOpt.type === RelationTypes.MANY_TO_MANY && col?.colOptions?.type === RelationTypes.MANY_TO_MANY) {
+    if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
       return (
-        colOpt.fk_parent_column_id === col.colOptions.fk_child_column_id &&
-        colOpt.fk_child_column_id === col.colOptions.fk_parent_column_id
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id && colOpt.fk_child_column_id === colOpt1.fk_parent_column_id
       )
     } else {
       return (
-        colOpt.fk_parent_column_id === col.colOptions.fk_parent_column_id &&
-        colOpt.fk_child_column_id === col.colOptions.fk_child_column_id
+        colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
       )
     }
-    return false
   })
+  if (!colInRelatedTable) return {}
   const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
   if (!relatedTableColOpt) return {}
 
@@ -97,14 +96,14 @@ const newRowState = computed(() => {
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0">
           <a-card
-            v-for="(row, i) in childrenExcludedList?.list ?? []"
+            v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
             class="ma-2 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
-            @click="linkRow(row)"
+            @click="linkRow(refRow)"
           >
-            {{ row[relatedTablePrimaryValueProp]
+            {{ refRow[relatedTablePrimaryValueProp]
             }}<span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1"
-              >(Primary key : {{ getRelatedTableRowId(row) }})</span
+              >(Primary key : {{ getRelatedTableRowId(refRow) }})</span
             >
           </a-card>
         </div>

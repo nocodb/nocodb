@@ -54,9 +54,9 @@ watch(
     <div class="border-1 my-2 w-full ml-6" />
     <div class="p-0">
       <div class="flex justify-center">
-      <a-checkbox v-model:checked="commentsOnly" @change="loadCommentsAndLogs"
-        ><span class="text-[11px]">Comments only</span>
-      </a-checkbox>
+        <a-checkbox v-model:checked="commentsOnly" @change="loadCommentsAndLogs"
+          ><span class="text-[11px]">Comments only</span>
+        </a-checkbox>
       </div>
       <div class="flex-shrink-1 mt-2 d-flex pl-4">
         <a-input
@@ -70,7 +70,7 @@ watch(
         >
           <template #addonBefore>
             <div class="flex align-center">
-            <mdi-account-circle class="text-lg  text-pink-300" small @click="saveComment" />
+              <mdi-account-circle class="text-lg text-pink-300" small @click="saveComment" />
             </div>
           </template>
           <template #suffix>

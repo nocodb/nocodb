@@ -1,37 +1,27 @@
 <script setup lang="ts">
-import { useNuxtApp, useRoute } from '#app'
-import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
+import { useNuxtApp, useRoute } from '#app'
+import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
 import { TabType } from '~/composables'
 import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiMenuDown from '~icons/mdi/chevron-down'
-import MdiSettingIcon from '~icons/mdi/cog'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiDrag from '~icons/mdi/drag-vertical'
-import MdiView from '~icons/mdi/eye-circle-outline'
-import MdiAPIDocIcon from '~icons/mdi/open-in-new'
 import MdiPlus from '~icons/mdi/plus-circle-outline'
-import MdiTable from '~icons/mdi/table'
-import MdiTableLarge from '~icons/mdi/table-large'
-import SettingsModal from './settings/SettingsModal.vue'
-import MdiMenuIcon from '~icons/mdi/dots-vertical'
 
 const { addTab } = useTabs()
-
-const toast = useToast()
 
 const { $api, $e } = useNuxtApp()
 
 const route = useRoute()
 
 const { tables, loadTables } = useProject(route.params.projectId as string)
-const { closeTab, activeTab } = useTabs()
+const { activeTab } = useTabs()
 const { deleteTable } = useTable()
-
 
 const tablesById = $computed<Record<string, TableType>>(() =>
   tables?.value?.reduce((acc: Record<string, TableType>, table: TableType) => {
@@ -40,10 +30,8 @@ const tablesById = $computed<Record<string, TableType>>(() =>
   }, {}),
 )
 
-const settingsDlg = ref(false)
 const showTableList = ref(true)
 const tableCreateDlg = ref(false)
-const tableDeleteDlg = ref(false)
 const menuRef = $ref<HTMLLIElement>()
 let key = $ref(0)
 let sortable: Sortable
@@ -143,7 +131,6 @@ const addTableTab = (table: TableType) => {
 const activeTable = computed(() => {
   return [TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null
 })
-
 </script>
 
 <template>
@@ -191,8 +178,10 @@ const activeTable = computed(() => {
                 v-for="table of tables"
                 :key="table.id"
                 v-t="['a:table:open']"
-                :class="[{ hidden: !filteredTables?.includes(table),
-                 'active': activeTable === table.title,}, `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,]"
+                :class="[
+                  { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
+                  `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
+                ]"
                 class="nc-tree-item pl-5 pr-3 py-2 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"

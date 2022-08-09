@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onClickOutside, useEventListener } from '@vueuse/core'
 import type { ColumnType } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
   inject,
@@ -190,34 +190,35 @@ const onKeyDown = async (e: KeyboardEvent) => {
       e.preventDefault()
       if (selected.row < data.value.length - 1) selected.row++
       break
-    default: {
-      const rowObj = data.value[selected.row]
-      const columnObj = fields.value[selected.col]
+    default:
+      {
+        const rowObj = data.value[selected.row]
+        const columnObj = fields.value[selected.col]
 
-      if (e.metaKey || e.ctrlKey) {
-        switch (e.keyCode) {
-          // copy - ctrl/cmd +c
-          case 67:
-            await copy(rowObj.row[columnObj.title] || '')
-            break
+        if (e.metaKey || e.ctrlKey) {
+          switch (e.keyCode) {
+            // copy - ctrl/cmd +c
+            case 67:
+              await copy(rowObj.row[columnObj.title] || '')
+              break
+          }
+        }
+
+        if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
+          return
+        }
+
+        /** on letter key press make cell editable and empty */
+        if (e?.key?.length === 1) {
+          if (!isPkAvail && !rowObj.rowMeta.new) {
+            return message.info("Update not allowed for table which doesn't have primary Key")
+          }
+          if (makeEditable(rowObj, columnObj)) {
+            rowObj.row[columnObj.title] = ''
+          }
+          // editEnabled = true
         }
       }
-
-      if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
-        return
-      }
-
-      /** on letter key press make cell editable and empty */
-      if (e?.key?.length === 1) {
-        if (!isPkAvail && !rowObj.rowMeta.new) {
-          return message.info('Update not allowed for table which doesn\'t have primary Key')
-        }
-        if (makeEditable(rowObj, columnObj)) {
-          rowObj.row[columnObj.title] = ''
-        }
-        // editEnabled = true
-      }
-    }
       break
   }
 }
@@ -227,6 +228,12 @@ useEventListener(document, 'keydown', onKeyDown)
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 onClickOutside(smartTable, () => {
+  if (selected.col === null) return
+
+  const activeCol = fields.value[selected.col]
+
+  if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
+
   selected.row = null
   selected.col = null
 })
@@ -295,7 +302,7 @@ const onNavigate = (dir: NavigateDir) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row">
+            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row group">
               <td key="row-index" class="caption nc-grid-cell group">
                 <div class="flex items-center w-[80px]">
                   <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
@@ -316,8 +323,8 @@ const onNavigate = (dir: NavigateDir) => {
                 :key="rowIndex + columnObj.title"
                 class="cell pointer nc-grid-cell"
                 :class="{
-                  active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
-                }"
+                    active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
+                  }"
                 :data-col="columnObj.id"
                 :data-title="columnObj.title"
                 @click="selectCell(rowIndex, colIndex)"

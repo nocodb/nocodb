@@ -51,14 +51,18 @@ await loadTables()
         <div style="height: var(--header-height)" class="flex items-center !bg-primary text-white px-1 gap-2">
           <div
             v-if="isOpen"
-            class="w-[50px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
+            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
             @click="navigateTo('/')"
           >
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
 
           <a-dropdown :trigger="['click']">
-            <div :class="[isOpen ? '' : 'justify-center']" class="group cursor-pointer w-full flex-1 flex gap-4 items-center">
+            <div
+              style="width: calc(100% - 40px)"
+              :class="[isOpen ? '' : 'justify-center']"
+              class="group cursor-pointer pr-2 flex gap-4 items-center"
+            >
               <template v-if="isOpen">
                 <div class="text-xl font-semibold truncate">{{ project.title }}</div>
 

@@ -51,16 +51,17 @@ const localValue = computed({
 } */
 const options = computed<SelectProps['options']>(() =>
   meta?.value?.columns
-    ?.filter(
-      (c: ColumnType) =>
-        c &&
-        (isSort
-          ? !(
-              c.uidt === UITypes.LinkToAnotherRecord &&
-              (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
-            )
-          : !c.colOptions || !c.system),
-    )
+    ?.filter((c: ColumnType) => {
+      /** ignore hasmany and manytomany relations if it's using within sort menu */
+      if (isSort) {
+        return (
+          c.uidt === UITypes.LinkToAnotherRecord && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
+        )
+        /** ignore vutual fields which are system fields ( mm relation ) */
+      } else {
+        return !c.colOptions || !c.system
+      }
+    })
     .map((c: ColumnType) => ({
       value: c.id,
       label: c.title,

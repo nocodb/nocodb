@@ -8,8 +8,10 @@ import { useMetas } from '~/composables'
 import { ColumnInj, MetaInj } from '~/context'
 import { provide, useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any } }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean }>()
 const column = toRef(props, 'column')
+const hideMenu = toRef(props, 'hideMenu')
+
 provide(ColumnInj, column)
 const { metas } = useMetas()
 const meta = inject(MetaInj)
@@ -95,9 +97,11 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     <!--    <span class="caption" v-html="tooltipMsg" /> -->
 
     <!--    </v-tooltip> -->
-    <v-spacer />
+    <template v-if="!hideMenu">
+      <v-spacer />
 
-    <SmartsheetHeaderMenu :virtual="true" />
+      <SmartsheetHeaderMenu :virtual="true" />
+    </template>
   </div>
 </template>
 

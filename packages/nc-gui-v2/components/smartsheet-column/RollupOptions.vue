@@ -63,11 +63,18 @@ const columns = $computed(() => {
   <div class="p-4 w-full flex flex-col border-2 mb-2 mt-4">
     <div class="w-full flex flex-row space-x-2">
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.childTable')" v-bind="validateInfos.fk_relation_column_id">
-        <a-select v-model:value="formState.fk_relation_column_id" size="small" @change="onDataTypeChange">
+        <a-select
+          v-model:value="formState.fk_relation_column_id"
+          size="small"
+          dropdown-class-name="!w-64"
+          @change="onDataTypeChange"
+        >
           <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.col.fk_column_id">
-            <div class="flex flex-row items-center space-x-0.5">
-              <div class="font-weight-bold text-xs">{{ table.column.title }}</div>
-              <div class="text-[0.45rem]">({{ relationNames[table.col.type] }} {{ table.title || table.table_name }})</div>
+            <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
+              <div class="font-semibold text-xs">{{ table.column.title }}</div>
+              <div class="text-[0.65rem] text-gray-600">
+                ({{ relationNames[table.col.type] }} {{ table.title || table.table_name }})
+              </div>
             </div>
           </a-select-option>
         </a-select>

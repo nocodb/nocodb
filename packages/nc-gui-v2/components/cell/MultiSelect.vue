@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import type { SelectOptionType } from '~~/../nocodb-sdk/build/main/index.js'
+import type { Select as AntSelect } from 'ant-design-vue'
+import type { SelectOptionType } from 'nocodb-sdk'
 import { computed, inject } from '#imports'
 import { ActiveCellInj, ColumnInj } from '~/context'
 import MdiCloseCircle from '~icons/mdi/close-circle'
@@ -20,7 +21,7 @@ const column = inject(ColumnInj)
 const active = inject(ActiveCellInj, ref(false))
 
 const selectedIds = ref<string[]>([])
-const aselect = ref<any>(null)
+const aselect = ref<typeof AntSelect>()
 const isOpen = ref(false)
 
 const options = computed(() => {
@@ -58,7 +59,7 @@ const selectedTitles = computed(() =>
     : [],
 )
 
-const handleKeys = (e: any) => {
+const handleKeys = (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Escape':
       e.preventDefault()
@@ -70,12 +71,9 @@ const handleKeys = (e: any) => {
   }
 }
 
-const handleClose = (e: any) => {
-  if (aselect.value) {
-    const selectClick = aselect.value.$el.contains(e.target)
-    if (!selectClick) {
-      isOpen.value = false
-    }
+const handleClose = (e: MouseEvent) => {
+  if (aselect.value && !aselect.value.$el.contains(e.target)) {
+    isOpen.value = false
   }
 }
 
@@ -83,12 +81,9 @@ onMounted(() => {
   selectedIds.value = selectedTitles.value.map((el) => {
     return options.value.find((op: SelectOptionType) => op.title === el).id
   })
-  document.addEventListener('click', handleClose)
 })
 
-onUnmounted(() => {
-  document.removeEventListener('click', handleClose)
-})
+useEventListener(document, 'click', handleClose)
 
 watch(
   () => modelValue,
@@ -99,14 +94,11 @@ watch(
   },
 )
 
-watch(
-  () => isOpen.value,
-  (n, _o) => {
-    if (n === false) {
-      aselect.value.blur()
-    }
-  },
-)
+watch(isOpen, (n, _o) => {
+  if (n === false) {
+    aselect.value.blur()
+  }
+})
 </script>
 
 <template>

@@ -1,5 +1,6 @@
 <script lang="ts" setup>
-import type { SelectOptionType } from '~~/../nocodb-sdk/build/main/index.js'
+import type { Select as AntSelect } from 'ant-design-vue'
+import type { SelectOptionType } from 'nocodb-sdk'
 import { computed, inject } from '#imports'
 import { ActiveCellInj, ColumnInj } from '~/context'
 
@@ -16,7 +17,7 @@ const column = inject(ColumnInj)
 // const editEnabled = inject(EditModeInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
-const aselect = ref<any>(null)
+const aselect = ref<typeof AntSelect>()
 const isOpen = ref(false)
 
 const vModel = computed({
@@ -37,7 +38,7 @@ const options = computed(() => {
   return []
 })
 
-const handleKeys = (e: any) => {
+const handleKeys = (e: KeyboardEvent) => {
   switch (e.key) {
     case 'Escape':
       e.preventDefault()
@@ -46,32 +47,20 @@ const handleKeys = (e: any) => {
   }
 }
 
-const handleClose = (e: any) => {
-  if (aselect.value) {
-    const selectClick = aselect.value.$el.contains(e.target)
-    if (!selectClick) {
-      isOpen.value = false
-      aselect.value.blur()
-    }
+const handleClose = (e: MouseEvent) => {
+  if (aselect.value && !aselect.value.$el.contains(e.target)) {
+    isOpen.value = false
+    aselect.value.blur()
   }
 }
 
-onMounted(() => {
-  document.addEventListener('click', handleClose)
-})
+useEventListener(document, 'click', handleClose)
 
-onUnmounted(() => {
-  document.removeEventListener('click', handleClose)
+watch(isOpen, (n, _o) => {
+  if (n === false) {
+    aselect.value.blur()
+  }
 })
-
-watch(
-  () => isOpen.value,
-  (n, _o) => {
-    if (n === false) {
-      aselect.value.blur()
-    }
-  },
-)
 </script>
 
 <template>

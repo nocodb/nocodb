@@ -1334,7 +1334,7 @@
                 "type": "object",
                 "properties": {
                   "order": {
-                    "type": "string"
+                    "type": "number"
                   }
                 }
               }
@@ -1506,7 +1506,7 @@
                 "type": "object",
                 "properties": {
                   "order": {
-                    "type": "string"
+                    "type": "number"
                   },
                   "title": {
                     "type": "string"
@@ -6011,7 +6011,8 @@
             "type": "string"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "required": true
           },
           "deleted": {
             "type": "boolean"

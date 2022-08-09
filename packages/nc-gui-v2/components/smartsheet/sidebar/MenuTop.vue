@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
+import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import { notification } from 'ant-design-vue'
@@ -45,7 +45,7 @@ let isMarked = $ref<string | false>(false)
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
-  const _nextActiveView = nextActiveView as GridType | FormType | KanbanType
+  const _nextActiveView = nextActiveView as ViewType
 
   if (_nextActiveView && _nextActiveView.id) {
     selected.value = [_nextActiveView.id]
@@ -140,7 +140,7 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
 }
 
 /** Rename a view */
-async function onRename(view: Record<string, any>) {
+async function onRename(view: ViewType) {
   const valid = validate(view.title)
 
   if (valid !== true) {
@@ -152,7 +152,7 @@ async function onRename(view: Record<string, any>) {
 
   try {
     // todo typing issues, order and id do not exist on all members of ViewTypes (Kanban, Gallery, Form, Grid)
-    await api.dbView.update(view.id, {
+    await api.dbView.update(view.id!, {
       title: view.title,
       order: view.order,
     })

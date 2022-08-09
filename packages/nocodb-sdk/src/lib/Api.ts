@@ -122,7 +122,7 @@ export interface TableType {
 
 export interface ViewType {
   id?: string;
-  title?: string;
+  title: string;
   deleted?: boolean;
   order?: number;
   fk_model_id?: string;
@@ -1518,7 +1518,7 @@ export class Api<
      */
     reorder: (
       tableId: string,
-      data: { order?: string },
+      data: { order?: number },
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -1632,7 +1632,7 @@ export class Api<
     update: (
       viewId: string,
       data: {
-        order?: string;
+        order?: number;
         title?: string;
         show_system_fields?: boolean;
         lock_type?: 'collaborative' | 'locked' | 'personal';

@@ -192,9 +192,9 @@ const activeTable = computed(() => {
               >
                 <div class="flex align-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
                   <MdiDrag
-                    :class="`transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move nc-child-draggable-icon-${table.title}`"
+                    :class="`transition-opacity opacity-0 group-hover:opacity-100 nc-drag-icon cursor-move nc-child-draggable-icon-${table.title}`"
                   />
-                  <component :is="icon(table)" class="text-[10px] text-gray-500" />
+                  <component :is="icon(table)" class="text-[10px]" />
 
                   <span class="nc-tbl-title text-xs flex-1 ml-2">{{ table.title }}</span>
                   <a-dropdown :trigger="['click']" @click.stop>
@@ -252,7 +252,7 @@ const activeTable = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
 }
@@ -277,11 +277,18 @@ const activeTable = computed(() => {
   @apply relative  cursor-pointer after:(content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
+.nc-tree-item svg{
+  @apply text-gray-500
+}
+
 .nc-tree-item.active {
-  @apply !text-primary after:(!opacity-10);
+  @apply !text-primary after:(!opacity-5);
+  svg {
+    @apply !text-primary
+  }
 }
 
 .nc-tree-item:hover {
-  @apply !text-grey after:(!opacity-5);
+  @apply !text-grey after:(!opacity-2);
 }
 </style>

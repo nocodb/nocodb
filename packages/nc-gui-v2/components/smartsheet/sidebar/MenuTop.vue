@@ -6,9 +6,9 @@ import { notification } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { inject, onMounted, ref, useApi, useTabs, watch } from '#imports'
+import { inject, onMounted, ref, useApi, useRouter, watch } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
+import { ActiveViewInj, ViewListInj } from '~/context'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void
@@ -21,10 +21,6 @@ const emits = defineEmits<Emits>()
 const activeView = inject(ActiveViewInj, ref())
 
 const views = inject<Ref<any[]>>(ViewListInj, ref([]))
-
-const meta = inject(MetaInj)
-
-const { addTab } = useTabs()
 
 const { api } = useApi()
 

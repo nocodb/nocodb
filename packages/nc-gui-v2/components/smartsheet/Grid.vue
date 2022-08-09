@@ -25,8 +25,6 @@ import {
   ReloadViewDataHookInj,
 } from '~/context'
 import { NavigateDir } from '~/lib'
-import MdiArrowExpandIcon from '~icons/mdi/arrow-expand'
-import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
@@ -40,7 +38,6 @@ const isView = false
 
 const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
 let editEnabled = $ref(false)
-const { sqlUi } = useProject()
 const { xWhere, isPkAvail } = useSmartsheetStoreOrThrow()
 const addColumnDropdown = ref(false)
 const contextMenu = ref(false)
@@ -288,7 +285,7 @@ const onNavigate = (dir: NavigateDir) => {
               <th v-t="['c:column:add']" @click="addColumnDropdown = true">
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
-                    <MdiPlusIcon class="text-sm" />
+                    <MdiPlus class="text-sm" />
                   </div>
                   <template #overlay>
                     <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
@@ -308,7 +305,7 @@ const onNavigate = (dir: NavigateDir) => {
                   >
                     <a-checkbox v-model:checked="row.rowMeta.selected" />
                     <span class="flex-1" />
-                    <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" />
+                    <MdiArrowExpand class="text-sm text-pink hidden group-hover:inline-block" />
                   </div>
                 </div>
               </td>
@@ -357,8 +354,8 @@ const onNavigate = (dir: NavigateDir) => {
                 @click="addEmptyRow()"
               >
                 <a-tooltip top left>
-                  <div class="w-min flex align-center">
-                    <MdiPlusIcon class="text-pint-500 text-xs" />
+                  <div class="w-full flex align-center">
+                    <MdiPlus class="text-pint-500 text-xs" />
                     <span class="ml-1 caption grey--text">
                       {{ $t('activity.addRow') }}
                     </span>

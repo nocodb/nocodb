@@ -4,11 +4,6 @@ import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import { ref, useDropZone, useUIPermission } from '#imports'
 import { isImage, openLink } from '~/utils'
-import MaterialSymbolsAttachFile from '~icons/material-symbols/attach-file'
-import MdiCloseCircle from '~icons/mdi/close-circle'
-import MdiDownload from '~icons/mdi/download'
-import MaterialSymbolsFileCopyOutline from '~icons/material-symbols/file-copy-outline'
-import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
 const { isUIAllowed } = useUIPermission()
 

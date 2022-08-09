@@ -3,7 +3,7 @@ import { useToast } from 'vue-toastification'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { Form } from 'ant-design-vue'
-import { tableColumns } from './utils'
+import { srcDestMappingColumns, tableColumns } from './utils'
 import { computed, onMounted } from '#imports'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiStringIcon from '~icons/mdi/alpha-a'
@@ -19,6 +19,7 @@ interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
   projectTemplate: Record<string, any>
   importData: any[]
+  importOnly: boolean
 }
 
 interface Option {
@@ -26,7 +27,7 @@ interface Option {
   value: string
 }
 
-const { quickImportType, projectTemplate, importData } = defineProps<Props>()
+const { quickImportType, projectTemplate, importData, importOnly } = defineProps<Props>()
 
 const emit = defineEmits(['import'])
 
@@ -286,7 +287,69 @@ defineExpose({
 
 <template>
   <a-spin :spinning="isImporting" :tip="importingTip" size="large">
-    <a-card>
+    <a-card v-if="importOnly">
+      {{ data }}
+      <a-form :model="data" name="import-data-only">
+        <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
+          {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
+          available for import
+        </p>
+      </a-form>
+      <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" class="template-collapse" accordion>
+        <a-collapse-panel v-for="(table, tableIdx) in data.tables" :key="tableIdx">
+          <template #header>
+            <span class="font-weight-bold text-lg flex items-center gap-2">
+              <MdiTableIcon class="text-primary" />
+              {{ table.ref_table_name }}
+            </span>
+          </template>
+          <a-table
+            v-if="table.columns.length"
+            class="template-form"
+            row-class-name="template-form-row"
+            :data-source="table.columns"
+            :columns="srcDestMappingColumns"
+            :pagination="false"
+          >
+            <template #headerCell="{ column }">
+              <template v-if="column.key === 'source_column' || column.key === 'destination_column'">
+                <span>
+                  {{ column.name }}
+                </span>
+              </template>
+              <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
+                <span>
+                  <!-- TODO: i18n -->
+                  Options
+                </span>
+              </template>
+            </template>
+            <template #bodyCell="{ column, record, index }">
+              <template v-if="column.key === 'source_column'">
+                <span>{{ record.column_name }}</span>
+              </template>
+              <template v-else-if="column.key === 'destination_column'">
+                <a-form-item>
+                  <!-- TODO: Use current model columns -->
+                  <a-select
+                    v-model:value="record.uidt"
+                    class="w-52"
+                    show-search
+                    :options="uiTypeOptions"
+                    :filter-option="filterOption"
+                  />
+                </a-form-item>
+              </template>
+
+              <template v-if="column.key === 'action'">
+                <!--                <a-checkbox v-model:checked="record.uidt" /> -->
+              </template>
+            </template>
+          </a-table>
+        </a-collapse-panel>
+      </a-collapse>
+    </a-card>
+    <a-card v-else>
       <a-form :model="data" name="template-editor-form" @keydown.enter="emit('import')">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}

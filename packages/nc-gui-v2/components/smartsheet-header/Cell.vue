@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { inject } from 'vue'
+import { inject, toRef } from 'vue'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { useProvideColumnCreateStore } from '#imports'
 
@@ -10,11 +10,13 @@ interface Props {
   column: ColumnType
 }
 
-const { column, required } = defineProps<Props>()
+const props = defineProps<{ column: ColumnType & { meta: any }; required: boolean }>()
 
 const meta = inject(MetaInj)
 
 const isForm = inject(IsFormInj)
+
+const column = toRef(props, 'column')
 
 provide(ColumnInj, column)
 

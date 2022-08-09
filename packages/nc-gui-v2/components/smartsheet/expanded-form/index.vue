@@ -80,8 +80,8 @@ const isExpanded = useVModel(props, 'modelValue', emits)
   <a-modal v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
     <Header @cancel="isExpanded = false" />
     <a-card class="!bg-gray-100">
-      <div class="flex h-full nc-form-wrapper">
-        <div class="flex-grow f-full overflow-auto">
+      <div class="flex h-full nc-form-wrapper items-stretch">
+        <div class="flex-grow overflow-auto">
           <div class="w-[500px] mx-auto">
             <div v-for="col in fields" :key="col.title" class="mt-2">
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
@@ -102,10 +102,10 @@ const isExpanded = useVModel(props, 'modelValue', emits)
         </div>
 
         <div
-          class="nc-comments-drawer pr-3 min-w-0 max-h-[calc(90vh_-_100px)] overflow-y-auto"
+          class="nc-comments-drawer min-w-0 min-h-full max-h-full"
           :class="{ active: commentsDrawer }"
         >
-          <div class="w-[280px]">
+          <div class="h-full">
             <Comments v-if="commentsDrawer" />
           </div>
         </div>

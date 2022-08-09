@@ -6233,6 +6233,9 @@
           "order": {
             "type": "number"
           },
+          "mm": {
+            "type": "boolean"
+          },
           "columns": {
             "type": "array",
             "items": {

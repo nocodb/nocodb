@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import { useColumnCreateStoreOrThrow } from '#imports'
 import { MetaInj } from '~/context'
@@ -28,13 +29,16 @@ const refTables = $computed(() => {
   }
 
   return meta.columns
-    .filter((c) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions.type !== 'bt' && !c.system)
-    .map((c) => ({
+    .filter((c: ColumnType) => c.uidt === UITypes.LinkToAnotherRecord && !c.system)
+    .map<TableType & { col: LinkToAnotherRecordType; column: ColumnType }>((c: ColumnType) => ({
       col: c.colOptions,
       column: c,
-      ...tables.find((t) => t.id === c.colOptions.fk_related_model_id),
+      ...tables.find((t) => t.id === (c.colOptions as LinkToAnotherRecordType).fk_related_model_id),
     }))
-    .filter((table) => table.col.fk_related_model_id === table.id && !table.mm)
+    .filter(
+      (table: TableType & { col: LinkToAnotherRecordType; column: ColumnType }) =>
+        table.col.fk_related_model_id === table.id && !table.mm,
+    )
 })
 
 const columns = $computed(() => {

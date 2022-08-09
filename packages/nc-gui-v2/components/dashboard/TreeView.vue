@@ -152,8 +152,9 @@ const addTableTab = (table: TableType) => {
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
-      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-primary">
+      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-primary" style="direction: rtl">
         <div
+          style="direction: ltr"
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
           @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
@@ -168,7 +169,7 @@ const addTableTab = (table: TableType) => {
             :class="{ 'transform rotate-180': showTableList }"
           />
         </div>
-        <div class="flex-1">
+        <div style="direction: ltr" class="flex-1">
           <div class="transition-height duration-200 overflow-hidden" :class="{ 'h-100': showTableList, 'h-0': !showTableList }">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div

@@ -255,7 +255,7 @@ const onNavigate = (dir: NavigateDir) => {
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
-            <tr class="group">
+            <tr>
               <th>
                 <div class="flex align-center w-[80px]">
                   <div class="group-hover:hidden" :class="{ hidden: selectedAllRecords }">#</div>
@@ -264,6 +264,7 @@ const onNavigate = (dir: NavigateDir) => {
                     class="group-hover:flex w-full align-center"
                   >
                     <a-checkbox v-model:checked="selectedAllRecords" />
+
                     <span class="flex-1" />
                   </div>
                 </div>
@@ -279,6 +280,7 @@ const onNavigate = (dir: NavigateDir) => {
                 @xcresized="resizingCol = null"
               >
                 <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+
                 <SmartsheetHeaderCell v-else :column="col" />
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
@@ -287,6 +289,7 @@ const onNavigate = (dir: NavigateDir) => {
                   <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlus class="text-sm" />
                   </div>
+
                   <template #overlay>
                     <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
                   </template>
@@ -313,10 +316,11 @@ const onNavigate = (dir: NavigateDir) => {
               <td
                 v-for="(columnObj, colIndex) of fields"
                 :key="rowIndex + columnObj.title"
-                class="cell pointer nc-grid-cell"
+                class="cell relative cursor-pointer nc-grid-cell"
                 :class="{
                   active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
                 }"
+                :data-key="rowIndex + columnObj.id"
                 :data-col="columnObj.id"
                 :data-title="columnObj.title"
                 @click="selectCell(rowIndex, colIndex)"
@@ -338,6 +342,7 @@ const onNavigate = (dir: NavigateDir) => {
                     v-model="row.row[columnObj.title]"
                     :column="columnObj"
                     :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                    :row-index="rowIndex"
                     @update:edit-enabled="editEnabled = false"
                     @save="updateOrSaveRow(row, columnObj.title)"
                     @navigate="onNavigate"

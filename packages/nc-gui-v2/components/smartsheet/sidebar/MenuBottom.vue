@@ -2,11 +2,6 @@
 import { ViewTypes } from 'nocodb-sdk'
 import { ref, useNuxtApp } from '#imports'
 import { viewIcons } from '~/utils'
-import MdiPlusIcon from '~icons/mdi/plus'
-import MdiXml from '~icons/mdi/xml'
-import MdiHook from '~icons/mdi/hook'
-import MdiHeartsCard from '~icons/mdi/cards-heart'
-import MdiShieldLockOutline from '~icons/mdi/shield-lock-outline'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void
@@ -42,7 +37,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         <template #title>
           {{ $t('msg.info.onlyCreator') }}
         </template>
-        <MdiShieldLockOutline class="text-pink-500" />
+        <mdi-shield-lock-outline class="text-pink-500" />
       </a-tooltip>
     </h3>
 
@@ -59,7 +54,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <MdiPlusIcon class="group-hover:text-primary" />
+          <mdi-plus class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -77,7 +72,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <MdiPlusIcon class="group-hover:text-primary" />
+          <mdi-plus class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -95,7 +90,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <MdiPlusIcon class="group-hover:text-primary" />
+          <mdi-plus class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -105,14 +100,14 @@ function onOpenModal(type: ViewTypes, title = '') {
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
         @click="onApiSnippet"
       >
-        <MdiXml />Get API Snippet
+        <mdi-xml />Get API Snippet
       </button>
 
       <button
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
         @click="onWebhooks"
       >
-        <MdiHook />{{ $t('objects.webhooks') }}
+        <mdi-hook />{{ $t('objects.webhooks') }}
       </button>
     </div>
 
@@ -143,7 +138,7 @@ function onOpenModal(type: ViewTypes, title = '') {
           class="group flex items-center gap-2 w-full mx-3 px-4 py-2 rounded-l !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg !opacity-100) transition duration-150 ease"
           @click.stop
         >
-          <MdiHeartsCard class="text-red-500" />
+          <mdi-cards-heart class="text-red-500" />
           {{ $t('activity.sponsorUs') }}
         </a>
       </template>

@@ -1,11 +1,14 @@
 <script setup lang="ts">
 import { UITypes, isSystemColumn, isVirtualCol } from 'nocodb-sdk'
-import { useColumnCreateStoreOrThrow } from '#imports'
+import { inject, useColumnCreateStoreOrThrow, useMetas, useProject } from '#imports'
 import { MetaInj } from '~/context'
 
 const { formState, validateInfos, onDataTypeChange, setAdditionalValidations } = $(useColumnCreateStoreOrThrow())
+
 const { tables } = $(useProject())
-const meta = $(inject(MetaInj))
+
+const meta = $(inject(MetaInj)!)
+
 const { metas } = $(useMetas())
 
 setAdditionalValidations({
@@ -40,22 +43,25 @@ const refTables = $computed(() => {
     return []
   }
 
-  return meta.columns
-    .filter((c) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions.type !== 'bt' && !c.system)
-    .map((c) => ({
-      col: c.colOptions,
-      column: c,
-      ...tables.find((t) => t.id === c.colOptions.fk_related_model_id),
-    }))
+  return (
+    meta.columns
+      ?.filter((c: any) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions.type !== 'bt' && !c.system)
+      .map((c) => ({
+        col: c.colOptions,
+        column: c,
+        ...tables.find((t) => t.id === (c.colOptions as any)?.fk_related_model_id),
+      })) ?? []
+  )
 })
 
 const columns = $computed(() => {
   const selectedTable = refTables.find((t) => t.column.id === formState.fk_relation_column_id)
+
   if (!selectedTable?.id) {
     return []
   }
 
-  return metas[selectedTable.id].columns.filter((c) => !isVirtualCol(c.uidt) && !isSystemColumn(c))
+  return metas[selectedTable.id].columns.filter((c: any) => !isVirtualCol(c.uidt) && !isSystemColumn(c))
 })
 </script>
 
@@ -64,7 +70,7 @@ const columns = $computed(() => {
     <div class="w-full flex flex-row space-x-2">
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.childTable')" v-bind="validateInfos.fk_relation_column_id">
         <a-select v-model:value="formState.fk_relation_column_id" size="small" @change="onDataTypeChange">
-          <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.col.fk_column_id">
+          <a-select-option v-for="(table, index) of refTables" :key="index" :value="table.col.fk_column_id">
             <div class="flex flex-row items-center space-x-0.5">
               <div class="font-weight-bold text-xs">{{ table.column.title }}</div>
               <div class="text-[0.45rem]">({{ relationNames[table.col.type] }} {{ table.title || table.table_name }})</div>
@@ -79,7 +85,7 @@ const columns = $computed(() => {
           size="small"
           @change="onDataTypeChange"
         >
-          <a-select-option v-for="(column, index) in columns" :key="index" :value="column.id">
+          <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
             {{ column.title }}
           </a-select-option>
         </a-select>
@@ -87,12 +93,10 @@ const columns = $computed(() => {
     </div>
     <a-form-item label="Aggregate function" v-bind="validateInfos.rollup_function">
       <a-select v-model:value="formState.rollup_function" size="small" @change="onDataTypeChange">
-        <a-select-option v-for="(func, index) in aggrFunctionsList" :key="index" :value="func.value">
+        <a-select-option v-for="(func, index) of aggrFunctionsList" :key="index" :value="func.value">
           {{ func.text }}
         </a-select-option>
       </a-select>
     </a-form-item>
   </div>
 </template>
-
-<style scoped></style>

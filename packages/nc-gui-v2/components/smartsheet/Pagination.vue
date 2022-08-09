@@ -15,37 +15,10 @@ const page = computed({
   get: () => paginatedData?.value?.page ?? 1,
   set: (p) => changePage?.(p),
 })
-/*
-export default {
-  name: 'Pagination',
-  props: {
-    count: [Number, String],
-    value: [Number, String],
-    size: [Number, String],
-  },
-  data: () => ({
-    page: 1,
-  }),
-  watch: {
-    value(v) {
-      this.page = v
-    },
-    count(c) {
-      const page = Math.max(1, Math.min(this.page, Math.ceil(c / this.size)))
-      if (this.value !== page) {
-        this.$emit('input', page)
-      }
-    },
-  },
-  mounted() {
-    this.page = this.value
-  },
-}
-*/
 </script>
 
 <template>
-  <div class="flex items-center mb-2">
+  <div class="flex items-center">
     <span v-if="count !== null && count !== Infinity" class="caption ml-2"> {{ count }} record{{ count !== 1 ? 's' : '' }} </span>
 
     <div class="flex-1" />

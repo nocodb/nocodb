@@ -1,9 +1,7 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
-import { onMounted } from '@vue/runtime-core'
 import { MetaInj } from '~/context'
-import MdiHookIcon from '~icons/mdi/hook'
-import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
+import { inject, onMounted, ref, useNuxtApp } from '#imports'
 
 const emit = defineEmits(['edit'])
 
@@ -75,7 +73,7 @@ onMounted(() => {
               </template>
               <template #avatar>
                 <div class="mt-4">
-                  <MdiHookIcon class="text-xl" />
+                  <MdiHook class="text-xl" />
                 </div>
               </template>
             </a-list-item-meta>
@@ -84,7 +82,7 @@ onMounted(() => {
                 <!-- Notify Via -->
                 <div class="mr-2">{{ $t('labels.notifyVia') }} : {{ item?.notification?.type }}</div>
                 <div class="float-right pt-2 pr-1">
-                  <MdiDeleteOutlineIcon class="text-xl" @click.stop="deleteHook(item, index)" />
+                  <MdiDeleteOutline class="text-xl" @click.stop="deleteHook(item, index)" />
                 </div>
               </div>
             </template>

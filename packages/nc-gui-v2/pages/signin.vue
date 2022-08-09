@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { definePageMeta } from '#imports'
+import { definePageMeta, useSidebar } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { navigateTo, useNuxtApp } from '#app'
 import { isEmail } from '~/utils/validation'
@@ -11,6 +11,8 @@ import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 const { $api, $state } = $(useNuxtApp())
 
 const { t } = useI18n()
+
+useSidebar({ hasSidebar: false })
 
 definePageMeta({
   requiresAuth: false,

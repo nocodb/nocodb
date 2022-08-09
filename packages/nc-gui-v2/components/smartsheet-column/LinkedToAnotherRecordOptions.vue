@@ -1,14 +1,13 @@
 <script setup lang="ts">
-import type { TableType } from 'nocodb-sdk'
 import { ModelTypes, MssqlUi, SqliteUi } from 'nocodb-sdk'
-import { useColumnCreateStoreOrThrow } from '#imports'
+import { inject, useColumnCreateStoreOrThrow, useProject } from '#imports'
 import { MetaInj } from '~/context'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 
 const { formState, validateInfos, onDataTypeChange, setAdditionalValidations } = $(useColumnCreateStoreOrThrow())
 const { tables, sqlUi } = $(useProject())
-const meta: TableType = $(inject(MetaInj))
+const meta = $(inject(MetaInj)!)
 
 setAdditionalValidations({
   childId: [{ required: true, message: 'Required' }],
@@ -103,5 +102,3 @@ const refTables = $computed(() => {
     </div>
   </div>
 </template>
-
-<style scoped></style>

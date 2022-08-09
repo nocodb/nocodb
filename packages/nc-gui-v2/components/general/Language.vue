@@ -1,15 +1,13 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
-import MaterialSymbolsTranslate from '~icons/material-symbols/translate'
-import { Language } from '~/lib/enums'
+import { Language } from '~/lib'
+import { useNuxtApp } from '#imports'
 
 const { $e, $state } = useNuxtApp()
 
 const { availableLocales = ['en'], locale } = useI18n()
 
-const languages = $computed(() => {
-  return availableLocales.sort()
-})
+const languages = $computed(() => availableLocales.sort())
 
 const isRtlLang = $computed(() => ['fa'].includes($state.lang.value))
 
@@ -36,12 +34,13 @@ onMounted(() => {
 <template>
   <v-menu class="select-none">
     <template #activator="{ props }">
-      <MaterialSymbolsTranslate class="md:text-xl cursor-pointer nc-menu-translate" @click="props.onClick" />
+      <MaterialSymbolsTranslate v-bind="$attrs" class="md:text-xl cursor-pointer nc-menu-translate" @click="props.onClick" />
     </template>
+
     <v-list class="scrollbar min-w-50 max-h-90vh overflow-auto !py-0 dark:(!bg-gray-800 !text-white)">
       <v-list-item
         v-for="lang of languages"
-        :key="lang.value"
+        :key="lang"
         :class="lang === locale ? '!bg-primary/10 text-primary dark:(!bg-gray-700 !text-secondary)' : ''"
         class="!min-h-8 group"
         :value="lang"

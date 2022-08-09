@@ -4,13 +4,12 @@ import MdiCloseThickIcon from '~icons/mdi/close-thick'
 
 interface Props {
   value?: string | number | boolean
-  item?: any
 }
 
-const { value, item } = defineProps<Props>()
+const { value } = defineProps<Props>()
 const emit = defineEmits(['unlink'])
 const readonly = inject(ReadonlyInj, false)
-const active = inject(ActiveCellInj, false)
+const active = inject(ActiveCellInj, ref(false))
 </script>
 
 <template>

@@ -2,7 +2,7 @@
 @import 'ant-design-vue/dist/antd.min.css';
 
 :root {
-  --header-height: 56px;
+  --header-height: 50px;
 }
 
 .ant-layout-header {
@@ -18,7 +18,7 @@ main {
 }
 
 main {
-  @apply flex-0 w-full relative scrollbar-thin-primary;
+  @apply flex-0 w-full relative scrollbar-thin-dull;
   overflow-x: hidden;
 }
 
@@ -75,7 +75,7 @@ html {
 
 // menu item styling
 .nc-menu-item {
-  @apply cursor-pointer text-xs flex align-center gap-2 px-4 py-3 relative after:(content-[''] absolute top-0 left-0  w-full h-full right 0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+  @apply cursor-pointer text-xs flex items-center gap-2 px-4 py-3 after:(content-[''] absolute top-0 left-0 bottom-0 w-full h-full right-0 bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
 }
 
 .nc-sidebar-right-item {
@@ -106,5 +106,5 @@ html {
 }
 
 .ant-modal-wrap {
-  @apply !scrollbar-thin-primary;
+  @apply !scrollbar-thin-dull;
 }

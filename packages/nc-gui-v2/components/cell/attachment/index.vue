@@ -60,7 +60,7 @@ onKeyDown('Escape', () => {
 /** if possible, on mounted we try to fetch the relevant `td` cell to use as a dropzone */
 onMounted(() => {
   if (typeof document !== 'undefined') {
-    dropZoneRef.value = document.querySelector(`td[data-col="${column.id}"]`) as HTMLTableDataCellElement
+    dropZoneRef.value = document.querySelector(`td[data-col="${column.value.id}"]`) as HTMLTableDataCellElement
   }
 })
 </script>
@@ -100,14 +100,14 @@ onMounted(() => {
     </div>
 
     <template v-if="visibleItems.length">
-      <div ref="sortableRef" :class="{ dragging }" class="flex flex-wrap gap-2 p-1 scrollbar-thin-primary">
+      <div ref="sortableRef" :class="{ dragging }" class="flex flex-wrap gap-2 p-1 scrollbar-thin-dull">
         <div
           v-for="(item, i) of visibleItems"
           :id="item.url"
           :key="item.url || item.title"
           style="flex: 1 1 50px"
           :class="isImage(item.title, item.mimetype) ? '' : 'border-1 rounded'"
-          class="nc-attachment flex items-center justify-center"
+          class="nc-attachment flex items-center justify-center min-h-[50px]"
         >
           <a-tooltip placement="bottom">
             <template #title>
@@ -116,9 +116,8 @@ onMounted(() => {
 
             <nuxt-img
               v-if="isImage(item.title, item.mimetype)"
+              quality="75"
               placeholder
-              width="150"
-              height="150"
               :alt="item.title || `#${i}`"
               :src="item.url || item.data"
               class="ring-1 ring-gray-300 rounded"

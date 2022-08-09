@@ -54,7 +54,11 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
+          <<<<<<< HEAD
           <mdi-plus class="group-hover:text-primary" />
+          =======
+          <MdiPlus class="group-hover:text-primary" />
+          >>>>>>> develop
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -72,7 +76,11 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
+          <<<<<<< HEAD
           <mdi-plus class="group-hover:text-primary" />
+          =======
+          <MdiPlus class="group-hover:text-primary" />
+          >>>>>>> develop
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -90,7 +98,11 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
+          <<<<<<< HEAD
           <mdi-plus class="group-hover:text-primary" />
+          =======
+          <MdiPlus class="group-hover:text-primary" />
+          >>>>>>> develop
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -138,7 +150,11 @@ function onOpenModal(type: ViewTypes, title = '') {
           class="group flex items-center gap-2 w-full mx-3 px-4 py-2 rounded-l !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg !opacity-100) transition duration-150 ease"
           @click.stop
         >
+          <<<<<<< HEAD
           <mdi-cards-heart class="text-red-500" />
+          =======
+          <MdiCardsHeart class="text-red-500" />
+          >>>>>>> develop
           {{ $t('activity.sponsorUs') }}
         </a>
       </template>

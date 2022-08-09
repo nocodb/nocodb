@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
-import { viewIcons } from '~/utils/viewUtils'
-import { h, useNuxtApp, useProject } from '#imports'
-import MdiReload from '~icons/mdi/reload'
-import MdiContentSave from '~icons/mdi/content-save'
-import MdiMagnify from '~icons/mdi/magnify'
+import { viewIcons } from '~/utils'
+import { computed, h, useNuxtApp, useProject } from '#imports'
 
 const { $api, $e } = useNuxtApp()
+
 const { project } = useProject()
+
 const toast = useToast()
 
 const roles = $ref<string[]>(['editor', 'commenter', 'viewer'])
+
 let isLoading = $ref(false)
+
 let tables = $ref<any[]>([])
+
 const searchInput = $ref('')
 
 const filteredTables = computed(() =>
@@ -30,7 +32,7 @@ async function loadTableList() {
     isLoading = true
     // TODO includeM2M
     tables = await $api.project.modelVisibilityList(project.value?.id, {
-      includeM2M: '',
+      includeM2M: true,
     })
   } catch (e) {
     console.error(e)

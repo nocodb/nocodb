@@ -152,20 +152,29 @@ const addTableTab = (table: TableType) => {
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
-      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-primary" style="direction: rtl">
+      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull" style="direction: rtl">
         <div
           style="direction: ltr"
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
           @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
         >
-          <MdiTable class="mr-1 text-gray-500" />
-          <span class="flex-grow text-bold nc-project-tree"
-            >{{ $t('objects.tables') }} <template v-if="tables?.length">({{ tables.length }})</template></span
-          >
-          <MdiPlus v-t="['c:table:create:navdraw']" class="text-gray-500 nc-btn-tbl-add" @click.stop="tableCreateDlg = true" />
+          <MdiTable class="mr-1 text-blue" />
+
+          <span class="flex-grow text-bold nc-project-tree">
+            {{ $t('objects.tables') }}
+
+            <template v-if="tables?.length"> ({{ tables.length }}) </template>
+          </span>
+
+          <MdiPlus
+            v-t="['c:table:create:navdraw']"
+            class="transform text-gray-500 hover:(text-pink-500 scale-105) nc-btn-tbl-add"
+            @click.stop="tableCreateDlg = true"
+          />
+
           <MdiMenuDown
-            class="transition-transform !duration-100 text-gray-500"
+            class="transition-transform !duration-100 text-gray-500 hover:text-pink-500"
             :class="{ 'transform rotate-180': showTableList }"
           />
         </div>
@@ -177,23 +186,31 @@ const addTableTab = (table: TableType) => {
                 :key="table.id"
                 v-t="['a:table:open']"
                 :class="[{ hidden: !filteredTables?.includes(table) }, `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`]"
-                class="!pl-1 py-1 !h-[28px] !my-0 text-sm cursor-pointer group"
+                class="pl-5 pr-3 py-2 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTableTab(table)"
               >
-                <div class="flex align-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
-                  <MdiDrag
-                    :class="`transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move nc-child-draggable-icon-${table.title}`"
-                  />
-                  <component :is="icon(table)" class="text-[10px] text-gray-500" />
+                <div class="flex align-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+                  <div class="flex w-auto">
+                    <MdiDrag
+                      :class="`nc-child-draggable-icon-${table.title}`"
+                      class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
+                      @click.stop.prevent
+                    />
 
-                  <span class="nc-tbl-title text-xs flex-1 ml-2">{{ table.title }}</span>
+                    <component :is="icon(table)" class="nc-view-icon group-hover:hidden text-xs text-pink-500" />
+                  </div>
+
+                  <div class="nc-tbl-title text-xs flex-1">{{ table.title }}</div>
+
                   <a-dropdown :trigger="['click']" @click.stop>
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
+
                     <template #overlay>
                       <a-menu class="cursor-pointer">
                         <a-menu-item v-t="" class="!text-xs" @click="showRenameTableDlg(table)"><div>Rename</div></a-menu-item>
+
                         <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
                       </a-menu>
                     </template>
@@ -229,7 +246,7 @@ const addTableTab = (table: TableType) => {
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
 }
@@ -248,5 +265,30 @@ const addTableTab = (table: TableType) => {
 
 :deep(.ant-input-group-addon:last-child) {
   @apply top-[-0.5px];
+}
+
+.nc-treeview-container {
+  .ghost,
+  .ghost > * {
+    @apply !pointer-events-none;
+  }
+
+  &.dragging {
+    .nc-icon {
+      @apply !hidden;
+    }
+
+    .nc-view-icon {
+      @apply !block;
+    }
+  }
+
+  .ant-menu-item:not(.sortable-chosen) {
+    @apply color-transition hover:!bg-transparent;
+  }
+
+  .sortable-chosen {
+    @apply !bg-primary/25 text-primary;
+  }
 }
 </style>

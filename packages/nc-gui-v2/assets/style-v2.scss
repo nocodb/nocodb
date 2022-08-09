@@ -18,7 +18,7 @@ main {
 }
 
 main {
-  @apply flex-0 w-full relative scrollbar-thin-primary;
+  @apply flex-0 w-full relative scrollbar-thin-dull;
   overflow-x: hidden;
 }
 
@@ -106,5 +106,5 @@ html {
 }
 
 .ant-modal-wrap {
-  @apply !scrollbar-thin-primary;
+  @apply !scrollbar-thin-dull;
 }

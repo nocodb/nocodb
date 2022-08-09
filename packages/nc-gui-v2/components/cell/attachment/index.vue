@@ -100,7 +100,7 @@ onMounted(() => {
     </div>
 
     <template v-if="visibleItems.length">
-      <div ref="sortableRef" :class="{ dragging }" class="flex flex-wrap gap-2 p-1 scrollbar-thin-primary">
+      <div ref="sortableRef" :class="{ dragging }" class="flex flex-wrap gap-2 p-1 scrollbar-thin-dull">
         <div
           v-for="(item, i) of visibleItems"
           :id="item.url"

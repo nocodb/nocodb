@@ -112,7 +112,7 @@ watch(
         />
       </a-form-item>
       <a-form-item
-        v-if="!editColumnDropdown && onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt)"
+        v-if="!(editColumnDropdown && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
         :label="$t('labels.columnType')"
       >
         <a-select

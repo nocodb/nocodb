@@ -55,7 +55,7 @@ watch(
     <div class="p-0">
       <div class="flex justify-center">
         <a-checkbox v-model:checked="commentsOnly" @change="loadCommentsAndLogs"
-          ><span class="text-[11px]">Comments only</span>
+          ><span class="text-[11px] text-gray-500">Comments only</span>
         </a-checkbox>
       </div>
       <div class="flex-shrink-1 mt-2 d-flex pl-4">

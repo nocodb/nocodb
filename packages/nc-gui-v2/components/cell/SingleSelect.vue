@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { SelectOptionType } from '~~/../nocodb-sdk/build/main/index.js'
 import { computed, inject } from '#imports'
-import { ActiveCellInj, ColumnInj, EditModeInj } from '~/context'
+import { ActiveCellInj, ColumnInj } from '~/context'
 
 interface Props {
   modelValue: string | undefined
@@ -12,8 +12,8 @@ const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
-const isForm = inject<boolean>('isForm', false)
-const editEnabled = inject(EditModeInj, ref(false))
+// const isForm = inject<boolean>('isForm', false)
+// const editEnabled = inject(EditModeInj, ref(false))
 const active = inject(ActiveCellInj, ref(false))
 
 const aselect = ref<any>(null)
@@ -25,8 +25,10 @@ const vModel = computed({
 })
 
 const options = computed(() => {
-  if (column?.colOptions) {
-    const opts = column.colOptions ? column.colOptions.options.filter((el: SelectOptionType) => el.title !== '') || [] : []
+  if (column?.value.colOptions) {
+    const opts = column.value.colOptions
+      ? column.value.colOptions.options.filter((el: SelectOptionType) => el.title !== '') || []
+      : []
     for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
     }

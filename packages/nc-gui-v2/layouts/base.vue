@@ -53,7 +53,7 @@ const logout = () => {
             <MdiDotsVertical class="md:text-xl cursor-pointer nc-user-menu" @click.prevent />
 
             <template #overlay>
-              <a-menu class="!py-0 nc-user-menu min-w-32 dark:(!bg-gray-800) leading-8 !rounded">
+              <a-menu class="!py-0 nc-user-menu dark:(!bg-gray-800) leading-8 !rounded">
                 <a-menu-item key="0" class="!rounded-t">
                   <nuxt-link v-t="['c:navbar:user:email']" class="group flex items-center no-underline py-2" to="/user">
                     <MdiAt class="mt-1 group-hover:text-success" />&nbsp;
@@ -65,7 +65,7 @@ const logout = () => {
                 <a-menu-divider class="!m-0" />
 
                 <a-menu-item key="1" class="!rounded-b">
-                  <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="signOut">
+                  <div v-t="['a:navbar:user:sign-out']" class="group flex items-center py-2" @click="logout">
                     <MdiLogout class="dark:text-white group-hover:(!text-red-500)" />&nbsp;
 
                     <span class="prose font-semibold text-gray-500 group-hover:text-black nc-user-menu-signout">

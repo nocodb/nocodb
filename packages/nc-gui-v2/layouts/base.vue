@@ -26,7 +26,11 @@ const logout = () => {
 
     <a-layout class="!flex-col">
       <a-layout-header class="flex !bg-primary items-center text-white pl-1 pr-4 shadow-lg">
-        <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105" @click="navigateTo('/')">
+        <div
+          v-if="route.name === 'index'"
+          class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105"
+          @click="navigateTo('/')"
+        >
           <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
         </div>
 

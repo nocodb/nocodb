@@ -66,7 +66,7 @@ function validate(value?: string) {
     return 'View name is required'
   }
 
-  if (views.value.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== value)) {
+  if (views.value.every((v1) => v1.title !== value)) {
     return 'View name should be unique'
   }
 
@@ -134,10 +134,9 @@ const initSortable = (el: HTMLElement) => {
 
 onMounted(() => menuRef && initSortable(menuRef.$el))
 
-// todo: fix view type, alias is missing for some reason?
 /** Navigate to view by changing url param */
 function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
-  router.push({ params: { viewTitle: (view.alias ?? view.title) || '' } })
+  router.push({ params: { viewTitle: view.title || '' } })
 }
 
 /** Rename a view */

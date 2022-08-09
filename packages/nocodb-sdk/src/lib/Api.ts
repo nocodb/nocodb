@@ -163,6 +163,7 @@ export interface TableReqType {
   pinned?: boolean;
   deleted?: boolean;
   order?: number;
+  mm?: boolean;
   columns?: ColumnType[];
 }
 

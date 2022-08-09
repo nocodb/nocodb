@@ -373,14 +373,14 @@ const onNavigate = (dir: NavigateDir) => {
           </tbody>
         </table>
         <template #overlay>
-          <div class="bg-white shadow" @click="contextMenu = false">
-            <div v-if="contextMenuTarget" class="nc-menu-item" @click="deleteRow(contextMenuTarget.row)">Delete row</div>
-            <div class="nc-menu-item" @click="deleteSelectedRows">Delete all selected rows</div>
-            <div v-if="contextMenuTarget" class="nc-menu-item" @click="clearCell(contextMenuTarget)">Clear cell</div>
-            <div v-if="contextMenuTarget" class="nc-menu-item" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              Insert new row
-            </div>
-          </div>
+          <a-menu class="bg-white shadow" @click="contextMenu = false">
+            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)"><span class="text-xs">Delete row</span></a-menu-item>
+            <a-menu-item @click="deleteSelectedRows"><span class="text-xs">Delete all selected rows</span></a-menu-item>
+            <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)"><span class="text-xs">Clear cell</span></a-menu-item>
+            <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
+              <span class="text-xs">Insert new row</span>
+            </a-menu-item>
+          </a-menu>
         </template>
       </a-dropdown>
     </div>

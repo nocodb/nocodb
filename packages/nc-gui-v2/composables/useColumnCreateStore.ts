@@ -31,7 +31,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     // state
     // todo: give proper type - ColumnType
-    const formState = ref<Partial<Record<string, any>>>({
+    const formState = ref<Record<string, any>>({
       title: 'title',
       uidt: UITypes.SingleLineText,
       ...(column?.value || {}),
@@ -168,6 +168,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       formState.value.altered = formState.value.altered || 2
     }
 
+    // todo: type of onAlter is wrong, the first argument is `CheckboxChangeEvent` not a number.
     const onAlter = (val = 2, cdf = false) => {
       formState.value.altered = formState.value.altered || val
       if (cdf) formState.value.cdf = formState.value.cdf || null

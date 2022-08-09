@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { ReloadViewDataHookInj, RightSidebarInj } from '~/context'
-import MdiReloadIcon from '~icons/mdi/reload'
 import { inject, ref } from '#imports'
 
-const reloadTri = inject(ReloadViewDataHookInj)
+const reloadHook = inject(ReloadViewDataHookInj)!
 
 const sidebarOpen = inject(RightSidebarInj, ref(true))
+
+const onClick = () => reloadHook.trigger()
 </script>
 
 <template>
@@ -13,9 +14,7 @@ const sidebarOpen = inject(RightSidebarInj, ref(true))
     <template #title> {{ $t('general.reload') }} </template>
 
     <div class="nc-sidebar-right-item hover:after:bg-green-500 group">
-      <MdiReloadIcon class="group-hover:(!text-white)" @click="reloadTri.trigger()" />
+      <MdiReload class="group-hover:(!text-white)" @click="onClick" />
     </div>
   </a-tooltip>
 </template>
-
-<style scoped></style>

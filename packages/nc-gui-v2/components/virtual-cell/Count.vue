@@ -1,5 +1,5 @@
 <script setup lang="ts">
-// TODO: wait for Count Column implementation
+// To be implemented
 </script>
 
 <template>

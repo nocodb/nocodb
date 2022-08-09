@@ -1,4 +1,4 @@
-import type { Api, FormType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { notification } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
@@ -28,6 +28,7 @@ export function useViewData(
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const formColumnData = ref<FormType | undefined>(undefined)
   const formViewData = ref<FormType | undefined>(undefined)
+  const galleryData = ref<GalleryType | undefined>(undefined)
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
@@ -60,6 +61,13 @@ export function useViewData(
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
   }
+
+  const loadGalleryData = async () => {
+    if (!viewMeta?.value?.id) return
+
+    galleryData.value = await $api.dbView.galleryRead(viewMeta.value.id)
+  }
+
   const insertRow = async (row: Record<string, any>, rowIndex = formattedData.value?.length) => {
     try {
       const insertObj = meta?.value?.columns?.reduce((o: any, col) => {
@@ -297,6 +305,8 @@ export function useViewData(
     updateOrSaveRow,
     selectedAllRecords,
     syncCount,
+    galleryData,
+    loadGalleryData,
     loadFormView,
     formColumnData,
     formViewData,

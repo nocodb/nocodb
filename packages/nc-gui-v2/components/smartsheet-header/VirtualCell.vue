@@ -8,11 +8,9 @@ import { useMetas } from '~/composables'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { provide, useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; required: boolean }>()
-
-const isForm = inject(IsFormInj)
-
+const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required: boolean }>()
 const column = toRef(props, 'column')
+const hideMenu = toRef(props, 'hideMenu')
 
 provide(ColumnInj, column)
 
@@ -102,9 +100,11 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     <!--    <span class="caption" v-html="tooltipMsg" /> -->
 
     <!--    </v-tooltip> -->
-    <v-spacer />
+    <template v-if="!hideMenu">
+      <v-spacer />
 
-    <SmartsheetHeaderMenu v-if="!isForm" :virtual="true" />
+      <SmartsheetHeaderMenu :virtual="true" />
+    </template>
   </div>
 </template>
 

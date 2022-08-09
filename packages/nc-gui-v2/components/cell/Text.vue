@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { VNodeRef } from '@vue/runtime-core'
 import { inject, ref, useVModel } from '#imports'
 import { EditModeInj } from '~/context'
 
@@ -14,7 +15,7 @@ const editEnabled = inject(EditModeInj, ref(false))
 
 const vModel = useVModel(props, 'modelValue', emits)
 
-const focus = (el: HTMLInputElement) => el?.focus()
+const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>

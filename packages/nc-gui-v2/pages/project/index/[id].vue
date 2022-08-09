@@ -8,11 +8,14 @@ import { navigateTo, useNuxtApp, useRoute } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { projectTitleValidator } from '~/utils/validation'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
+import { nextTick, reactive, useSidebar } from '#imports'
 
-const loading = ref(false)
+const { api, isLoading } = useApi()
 
-const { $api, $state } = useNuxtApp()
+useSidebar({ hasSidebar: false })
+
 const toast = useToast()
+
 const route = useRoute()
 
 const nameValidationRules = [
@@ -35,27 +38,24 @@ const getProject = async () => {
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 }
+
 const renameProject = async () => {
-  loading.value = true
   try {
-    await $api.project.update(route.params.id as string, formState)
+    await api.project.update(route.params.id as string, formState)
 
     navigateTo(`/nc/${route.params.id}`)
   } catch (e: any) {
     toast.error(await extractSdkResponseErrorMsg(e))
   }
-  loading.value = false
 }
 
 const form = ref<typeof Form>()
 
-// hide sidebar
-$state.sidebarOpen.value = false
-
 // select and focus title field on load
 onMounted(async () => {
   await getProject()
-  nextTick(() => {
+
+  await nextTick(() => {
     // todo: replace setTimeout and follow better approach
     setTimeout(() => {
       const input = form.value?.$el?.querySelector('input[type=text]')

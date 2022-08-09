@@ -2,10 +2,8 @@
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
-import SettingsModal from './settings/SettingsModal.vue'
-import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
+import { useProject, useTable, useTabs, watchEffect } from '#imports'
 import { useNuxtApp, useRoute } from '#app'
-import MdiSettingIcon from '~icons/mdi/cog'
 import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
@@ -13,15 +11,17 @@ import MdiMenuDown from '~icons/mdi/chevron-down'
 import MdiPlus from '~icons/mdi/plus-circle-outline'
 import MdiDrag from '~icons/mdi/drag-vertical'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
-import MdiAPIDocIcon from '~icons/mdi/open-in-new'
 
 const { addTab } = useTabs()
+
 const toast = useToast()
+
 const { $api, $e } = useNuxtApp()
-const { isUIAllowed } = useUIPermission()
+
 const route = useRoute()
+
 const { tables, loadTables } = useProject(route.params.projectId as string)
-const { closeTab } = useTabs()
+
 const { deleteTable } = useTable()
 
 const tablesById = $computed<Record<string, TableType>>(() =>
@@ -31,12 +31,14 @@ const tablesById = $computed<Record<string, TableType>>(() =>
   }, {}),
 )
 
-const settingsDlg = ref(false)
 const showTableList = ref(true)
+
 const tableCreateDlg = ref(false)
-const tableDeleteDlg = ref(false)
+
 const menuRef = $ref<HTMLLIElement>()
+
 let key = $ref(0)
+
 let sortable: Sortable
 
 // todo: replace with vuedraggable
@@ -103,21 +105,14 @@ const icon = (table: TableType) => {
   }
 }
 
-const apiLink = computed(
-  () =>
-    // new URL(
-    `/api/v1/db/meta/projects/${route.params.projectId}/swagger`,
-  // todo: get siteUrl
-  // this.$store.state.project.appInfo && this.$store.state.project.appInfo.ncSiteUrl
-  // ),
-)
-
 const filterQuery = $ref('')
+
 const filteredTables = $computed(() => {
   return tables?.value?.filter((table) => !filterQuery || table?.title.toLowerCase()?.includes(filterQuery.toLowerCase()))
 })
 
 const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
+
 const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
@@ -125,16 +120,20 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
 }
 
 const renameTableDlg = ref(false)
+
 const renameTableMeta = ref()
+
 const showRenameTableDlg = (table: TableType, rightClick = false) => {
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
   renameTableMeta.value = table
   renameTableDlg.value = true
 }
+
 const reloadTables = async () => {
   $e('a:table:refresh:navdraw')
   await loadTables()
 }
+
 const addTableTab = (table: TableType) => {
   $e('a:table:open')
   addTab({ title: table.title, id: table.id, type: table.type as any })
@@ -142,8 +141,8 @@ const addTableTab = (table: TableType) => {
 </script>
 
 <template>
-  <div class="nc-treeview-container flex flex-column">
-    <div class="px-3 py-2">
+  <div class="nc-treeview-container flex flex-col">
+    <div class="px-2 py-[11.75px] border-b-1">
       <a-input-search
         v-model:value="filterQuery"
         size="small"
@@ -153,47 +152,73 @@ const addTableTab = (table: TableType) => {
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
-      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-primary">
+      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull" style="direction: rtl">
         <div
+          style="direction: ltr"
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
           @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
         >
           <MdiTable class="mr-1 text-gray-500" />
-          <span class="flex-grow text-bold nc-project-tree"
-            >{{ $t('objects.tables') }} <template v-if="tables?.length">({{ tables.length }})</template></span
-          >
-          <MdiPlus v-t="['c:table:create:navdraw']" class="text-gray-500 nc-btn-tbl-add" @click.stop="tableCreateDlg = true" />
+
+          <span class="flex-grow text-bold nc-project-tree">
+            {{ $t('objects.tables') }}
+
+            <template v-if="tables?.length"> ({{ tables.length }}) </template>
+          </span>
+
+          <MdiPlus
+            v-t="['c:table:create:navdraw']"
+            class="transform text-gray-500 hover:(text-pink-500 scale-105) nc-btn-tbl-add"
+            @click.stop="tableCreateDlg = true"
+          />
+
           <MdiMenuDown
-            class="transition-transform !duration-100 text-gray-500"
+            class="transition-transform !duration-100 text-gray-500 hover:text-pink-500"
             :class="{ 'transform rotate-180': showTableList }"
           />
         </div>
-        <div class="flex-1">
+        <div style="direction: ltr" class="flex-1">
           <div class="transition-height duration-200 overflow-hidden" :class="{ 'h-100': showTableList, 'h-0': !showTableList }">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div
-                v-for="table in tables"
+                v-for="table of tables"
                 :key="table.id"
                 v-t="['a:table:open']"
-                :class="[{ hidden: !filteredTables?.includes(table) }, `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`]"
-                class="!pl-1 py-1 !h-[28px] !my-0 text-sm cursor-pointer group"
+                :class="[
+                  { hidden: !filteredTables?.includes(table) },
+                  `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
+                  route.params.title && route.params.title.includes(table.title) ? 'bg-blue-500/15' : '',
+                ]"
+                class="pl-5 pr-3 py-2 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTableTab(table)"
               >
-                <div class="flex align-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
-                  <MdiDrag
-                    :class="`transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move nc-child-draggable-icon-${table.title}`"
-                  />
-                  <component :is="icon(table)" class="text-[10px] text-gray-500" />
+                <div class="flex align-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
+                  <div class="flex w-auto">
+                    <MdiDrag
+                      :class="`nc-child-draggable-icon-${table.title}`"
+                      class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
+                      @click.stop.prevent
+                    />
 
-                  <span class="nc-tbl-title text-xs flex-1 ml-2">{{ table.title }}</span>
+                    <component
+                      :is="icon(table)"
+                      :class="route.params.title && route.params.title.includes(table.title) ? 'text-pink-500' : 'text-gray-500'"
+                      class="nc-view-icon group-hover:hidden text-xs"
+                    />
+                  </div>
+
+                  <div class="nc-tbl-title text-xs flex-1">{{ table.title }}</div>
+
                   <a-dropdown :trigger="['click']" @click.stop>
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
+
                     <template #overlay>
                       <a-menu class="cursor-pointer">
                         <a-menu-item v-t="" class="!text-xs" @click="showRenameTableDlg(table)"><div>Rename</div></a-menu-item>
+
                         <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
                       </a-menu>
                     </template>
@@ -223,28 +248,13 @@ const addTableTab = (table: TableType) => {
         </a-menu>
       </template>
     </a-dropdown>
-    <div class="w-full h-[1px] bg-gray-200" />
-    <a v-if="isUIAllowed('apiDocs')" v-t="['e:api-docs']" class="nc-treeview-footer-item" :href="apiLink" target="_blank">
-      <MdiAPIDocIcon class="mr-2" />
-      <span> {{ $t('title.apiDocs') }}</span>
-    </a>
-    <div
-      v-if="isUIAllowed('settings')"
-      v-t="['c:navdraw:project-settings']"
-      class="nc-treeview-footer-item nc-team-settings"
-      @click="settingsDlg = true"
-    >
-      <MdiSettingIcon class="mr-2" />
-      <span> {{ $t('title.teamAndSettings') }}</span>
-    </div>
 
-    <SettingsModal :show="settingsDlg" @closed="settingsDlg = false" />
     <DlgTableCreate v-if="tableCreateDlg" v-model="tableCreateDlg" />
     <DlgTableRename v-if="renameTableMeta" v-model="renameTableDlg" :table-meta="renameTableMeta" />
   </div>
 </template>
 
-<style scoped>
+<style lang="scss" scoped>
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
 }
@@ -263,5 +273,30 @@ const addTableTab = (table: TableType) => {
 
 :deep(.ant-input-group-addon:last-child) {
   @apply top-[-0.5px];
+}
+
+.nc-treeview-container {
+  .ghost,
+  .ghost > * {
+    @apply !pointer-events-none;
+  }
+
+  &.dragging {
+    .nc-icon {
+      @apply !hidden;
+    }
+
+    .nc-view-icon {
+      @apply !block;
+    }
+  }
+
+  .ant-menu-item:not(.sortable-chosen) {
+    @apply color-transition hover:!bg-transparent;
+  }
+
+  .sortable-chosen {
+    @apply !bg-primary/25 text-primary;
+  }
 }
 </style>

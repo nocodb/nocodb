@@ -5,7 +5,7 @@ import { MetaInj } from '~/context'
 
 const { formState, validateInfos, onDataTypeChange, setAdditionalValidations } = $(useColumnCreateStoreOrThrow())
 const { tables } = $(useProject())
-const meta = $(inject(MetaInj))
+const meta = $(inject(MetaInj)!)
 const { metas } = $(useMetas())
 
 setAdditionalValidations({
@@ -27,14 +27,17 @@ const refTables = $computed(() => {
     return []
   }
 
-  return meta.columns
-    .filter((c) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions.type !== 'bt' && !c.system)
-    .map((c) => ({
-      col: c.colOptions,
-      column: c,
-      ...tables.find((t) => t.id === c.colOptions.fk_related_model_id),
-    }))
-    .filter((table) => table.col.fk_related_model_id === table.id && !table.mm)
+  // todo: type issues with ColumnType so we have to cast to any
+  return (
+    meta.columns
+      ?.filter((c: any) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions?.type !== 'bt' && !c.system)
+      .map((c) => ({
+        col: c.colOptions,
+        column: c,
+        ...tables.find((t) => t.id === (c.colOptions as any)?.fk_related_model_id),
+      }))
+      .filter((table: any) => table.col?.fk_related_model_id === table.id && !table.mm) ?? []
+  )
 })
 
 const columns = $computed(() => {
@@ -43,7 +46,7 @@ const columns = $computed(() => {
     return []
   }
 
-  return metas[selectedTable.id].columns.filter((c) => !isSystemColumn(c))
+  return metas[selectedTable.id].columns.filter((c: any) => !isSystemColumn(c))
 })
 </script>
 
@@ -52,14 +55,16 @@ const columns = $computed(() => {
     <div class="w-full flex flex-row space-x-2">
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.childTable')" v-bind="validateInfos.fk_relation_column_id">
         <a-select v-model:value="formState.fk_relation_column_id" size="small" @change="onDataTypeChange">
-          <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.col.fk_column_id">
+          <a-select-option v-for="(table, index) of refTables" :key="index" :value="table.col.fk_column_id">
             <div class="flex flex-row items-center space-x-0.5 h-full">
               <div class="font-weight-bold text-[0.7rem]">{{ table.column.title }}</div>
+
               <div class="text-[0.5rem]">({{ relationNames[table.col.type] }} {{ table.title || table.table_name }})</div>
             </div>
           </a-select-option>
         </a-select>
       </a-form-item>
+
       <a-form-item class="flex w-1/2" :label="$t('labels.childColumn')" v-bind="validateInfos.fk_lookup_column_id">
         <a-select
           v-model:value="formState.fk_lookup_column_id"
@@ -67,7 +72,7 @@ const columns = $computed(() => {
           size="small"
           @change="onDataTypeChange"
         >
-          <a-select-option v-for="(column, index) in columns" :key="index" :value="column.id">
+          <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
             {{ column.title }}
           </a-select-option>
         </a-select>

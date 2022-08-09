@@ -1,10 +1,8 @@
 <script lang="ts" setup>
-import { useLTARStoreOrThrow, useVModel } from '#imports'
-import MdiReloadIcon from '~icons/mdi/reload'
-import MdiDeleteIcon from '~icons/mdi/delete-outline'
-import MdiUnlinkIcon from '~icons/mdi/link-variant-remove'
+import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
 
 const props = defineProps<{ modelValue?: boolean }>()
+
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
@@ -20,14 +18,15 @@ const {
   getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
-watch(vModel, () => {
-  if (vModel.value) {
+watch(vModel, (nextVal) => {
+  if (nextVal) {
     loadChildrenList()
   }
 })
 
 const unlinkRow = async (row: Record<string, any>) => {
   await unlink(row)
+
   await loadChildrenList()
 }
 </script>
@@ -36,12 +35,14 @@ const unlinkRow = async (row: Record<string, any>) => {
   <a-modal v-model:visible="vModel" :footer="null" title="Child list">
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
       <div class="flex mb-4 align-center gap-2">
-        <!-- <a-input v-model:value="childrenListPagination.query" class="max-w-[200px]" size="small"></a-input> -->
         <div class="flex-1" />
-        <MdiReloadIcon class="cursor-pointer text-gray-500" @click="loadChildrenList" />
+
+        <MdiReload class="cursor-pointer text-gray-500" @click="loadChildrenList" />
+
         <a-button type="primary" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
-            <MdiUnlinkIcon class="text-xs text-white" @click="unlinkRow(row)" />
+            <!-- todo: row is not defined? @click="unlinkRow(row)" -->
+            <MdiLinkVariantRemove class="text-xs text-white" />
             Link to '{{ meta.title }}'
           </div>
         </a-button>
@@ -56,8 +57,8 @@ const unlinkRow = async (row: Record<string, any>) => {
               </div>
               <div class="flex-1"></div>
               <div class="flex gap-2">
-                <MdiUnlinkIcon class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="unlinkRow(row)" />
-                <MdiDeleteIcon class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="deleteRelatedRow(row)" />
+                <MdiLinkVariantRemove class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="unlinkRow(row)" />
+                <MdiDeleteOutline class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="deleteRelatedRow(row)" />
               </div>
             </div>
           </a-card>

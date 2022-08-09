@@ -60,7 +60,7 @@ watch(tabMeta, async (newTabMeta, oldTabMeta) => {
           </div>
         </div>
 
-        <teleport to="#sidebar-right">
+        <teleport to="#content">
           <SmartsheetSidebar />
         </teleport>
       </template>

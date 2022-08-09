@@ -33,7 +33,7 @@
     "xlsx": "^0.17.3"
   },
   "devDependencies": {
-    "@antfu/eslint-config": "^0.25.2",
+    "@antfu/eslint-config": "^0.26.0",
     "@iconify-json/cil": "^1.1.2",
     "@iconify-json/clarity": "^1.1.4",
     "@iconify-json/eva": "^1.1.2",
@@ -61,7 +61,7 @@
     "happy-dom": "^6.0.3",
     "less": "^4.1.3",
     "nuxt": "3.0.0-rc.4",
-    "nuxt-windicss": "^2.4.2",
+    "nuxt-windicss": "^2.5.0",
     "prettier": "^2.7.1",
     "sass": "^1.53.0",
     "unplugin-icons": "^0.14.7",

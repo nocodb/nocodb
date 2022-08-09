@@ -1,12 +1,10 @@
 <script lang="ts" setup>
-import { computed } from '@vue/reactivity'
 import { useToast } from 'vue-toastification'
-import { useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { computed, useSmartsheetStoreOrThrow } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
-import MdiCheckIcon from '~icons/mdi/check-bold'
 
 enum LockType {
   Personal = 'personal',
@@ -25,19 +23,19 @@ function changeLockType(type: LockType) {
     return toast.info('Coming soon', { timeout: 3000 })
   }
   try {
-    view.value.lock_type = type
+    ;(view.value as any).lock_type = type
     $api.dbView.update(view.value.id as string, {
       lock_type: type,
     })
 
     toast.success(`Successfully Switched to ${type} view`, { timeout: 3000 })
-  } catch (e) {
+  } catch (e: any) {
     toast.error(extractSdkResponseErrorMsg(e))
   }
 }
 
 const Icon = computed(() => {
-  switch (view?.value?.lock_type) {
+  switch ((view.value as any)?.lock_type) {
     case LockType.Personal:
       return MdiAccountIcon
     case LockType.Locked:
@@ -60,7 +58,7 @@ const Icon = computed(() => {
         <div>
           <div class="nc-menu-item" @click="changeLockType(LockType.Collaborative)">
             <div>
-              <MdiCheckIcon v-if="!view?.lock_type || view?.lock_type === LockType.Collaborative" />
+              <MdiCheck v-if="!view?.lock_type || view?.lock_type === LockType.Collaborative" />
               <span v-else />
               <div>
                 <MdiAccountGroupIcon />
@@ -71,7 +69,7 @@ const Icon = computed(() => {
           </div>
           <div class="nc-menu-item" @click="changeLockType(LockType.Locked)">
             <div>
-              <MdiCheckIcon v-if="view.lock_type === LockType.Locked" />
+              <MdiCheck v-if="view.lock_type === LockType.Locked" />
               <span v-else />
               <div>
                 <MdiLockOutlineIcon />
@@ -82,7 +80,7 @@ const Icon = computed(() => {
           </div>
           <div class="nc-menu-item" @click="changeLockType(LockType.Personal)">
             <div>
-              <MdiCheckIcon v-if="view.lock_type === LockType.Personal" />
+              <MdiCheck v-if="view.lock_type === LockType.Personal" />
               <span v-else />
               <div>
                 <MdiAccountIcon />

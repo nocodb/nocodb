@@ -294,6 +294,7 @@ export interface FormulaType {
   virtual?: boolean;
   fk_column_id?: string;
   formula?: string;
+  formula_raw?: string;
   deleted?: string;
   order?: string;
 }

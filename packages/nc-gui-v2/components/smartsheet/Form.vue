@@ -401,19 +401,18 @@ onMounted(async () => {
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
           </div>
-          <a-button type="link" class="w-full caption mt-2" size="large" @click="showColumnDropdown = true">
-            <div class="flex items-center prose-sm justify-center text-gray-400">
-              <MdiPlusIcon />
-              <!-- Add new field to this table -->
-              {{ $t('activity.addField') }}
-            </div>
-          </a-button>
-          <SmartsheetColumnEditOrAdd
-            v-show="showColumnDropdown"
-            ref="editOrAddRef"
-            @submit="submitCallback"
-            @cancel="showColumnDropdown = false"
-          />
+          <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
+            <a-button type="link" class="w-full caption mt-2" size="large" @click="showColumnDropdown = true">
+              <div class="flex items-center prose-sm justify-center text-gray-400">
+                <MdiPlusIcon />
+                <!-- Add new field to this table -->
+                {{ $t('activity.addField') }}
+              </div>
+            </a-button>
+            <template #overlay>
+              <SmartsheetColumnEditOrAdd ref="editOrAddRef" @submit="submitCallback" @cancel="showColumnDropdown = false" />
+            </template>
+          </a-dropdown>
         </template>
       </draggable>
     </a-col>

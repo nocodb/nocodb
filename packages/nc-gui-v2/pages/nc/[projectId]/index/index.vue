@@ -129,7 +129,7 @@ function openQuickImportDialog(type: string) {
         </a-tabs>
       </div>
 
-      <NuxtPage class="px-4 py-2" />
+      <NuxtPage class="px-4 pt-2" />
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
@@ -140,6 +140,7 @@ function openQuickImportDialog(type: string) {
 
 <style scoped>
 .nc-container {
+  height: calc(100% - var(--header-height));
   flex: 1 1 100%;
 }
 

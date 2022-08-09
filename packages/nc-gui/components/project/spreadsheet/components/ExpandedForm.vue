@@ -133,6 +133,7 @@
                       :is-new="isNew"
                       :is-form="true"
                       :breadcrumbs="localBreadcrumbs"
+                      :is-locked="isColumnLocked(col)"
                       @updateCol="updateCol"
                       @newRecordsSaved="$listeners.loadTableData || reload"
                     />
@@ -170,7 +171,7 @@
                       :meta="meta"
                       :sql-ui="sqlUi"
                       :is-form="true"
-                      :is-locked="isLocked"
+                      :is-locked="isColumnLocked(col)"
                       @focus="active = col.title"
                       @blur="active = ''"
                       @input="$set(changedColumns, col.title, true)"
@@ -318,8 +319,7 @@
 <script>
 import dayjs from 'dayjs'
 import {
-  AuditOperationSubTypes,
-  AuditOperationTypes, isSystemColumn,
+  isSystemColumn,
   isVirtualCol,
   UITypes
 } from 'nocodb-sdk'
@@ -330,6 +330,7 @@ import colors from '@/mixins/colors'
 import VirtualCell from '~/components/project/spreadsheet/components/VirtualCell'
 import VirtualHeaderCell from '~/components/project/spreadsheet/components/VirtualHeaderCell'
 import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText'
+import { isColumnLocked } from '~/helpers/isColumnLocked'
 
 const relativeTime = require('dayjs/plugin/relativeTime')
 const utc = require('dayjs/plugin/utc')
@@ -457,6 +458,9 @@ export default {
     }
   },
   methods: {
+    isColumnLocked(col) {
+      return isColumnLocked(this.isLocked, col)
+    },
     updateCol(_row, _cn, pid) {
       this.$set(this.localState, _cn, pid)
       this.$set(this.changedColumns, _cn, true)

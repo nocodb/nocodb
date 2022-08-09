@@ -246,7 +246,7 @@ const activeTable = computed(() => {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
 }
@@ -296,11 +296,11 @@ const activeTable = computed(() => {
   @apply relative  cursor-pointer after:(content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
-.nc-tree-item.active{
+.nc-tree-item.active {
   @apply !text-primary after:(!opacity-10);
 }
 
-.nc-tree-item:hover{
+.nc-tree-item:hover {
   @apply !text-grey after:(!opacity-5);
 }
 

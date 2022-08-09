@@ -142,6 +142,8 @@ const afterVisibleChange = (visible: boolean) => {
             :model-value="code"
             :read-only="true"
             lang="typescript"
+            :validate="false"
+            :disable-deep-compare="true"
           />
           <div class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
             <a-button

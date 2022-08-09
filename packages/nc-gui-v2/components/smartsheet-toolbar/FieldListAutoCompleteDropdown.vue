@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { SelectProps } from 'ant-design-vue'
-import { isVirtualCol } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { computed } from 'vue'
 import { MetaInj } from '~/context'
 import VirtualCellIcon from '~/components/smartsheet-header/VirtualCellIcon.vue'
@@ -8,9 +9,10 @@ import CellIcon from '~/components/smartsheet-header/CellIcon.vue'
 
 interface Props {
   modelValue?: string
+  isSort?: boolean
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, isSort } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -48,14 +50,25 @@ const localValue = computed({
   },
 } */
 const options = computed<SelectProps['options']>(() =>
-  meta?.value?.columns?.map((c) => ({
-    value: c.id,
-    label: c.title,
-    icon: h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
-      columnMeta: c,
-    }),
-    c,
-  })),
+  meta?.value?.columns
+    ?.filter(
+      (c: ColumnType) =>
+        c &&
+        (isSort
+          ? !(
+              c.uidt === UITypes.LinkToAnotherRecord &&
+              (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
+            )
+          : !c.colOptions || !c.system),
+    )
+    .map((c: ColumnType) => ({
+      value: c.id,
+      label: c.title,
+      icon: h(isVirtualCol(c) ? VirtualCellIcon : CellIcon, {
+        columnMeta: c,
+      }),
+      c,
+    })),
 )
 
 const filterOption = (input: string, option: any) => {
@@ -75,7 +88,8 @@ const filterOption = (input: string, option: any) => {
   >
     <a-select-option v-for="option in options" :key="option.value" :value="option.value">
       <div class="flex gap-2 text-xs items-center align-center h-full">
-        <component :is="option.icon" class="min-w-5 !mx-0" /> <span class="min-w-0"> {{ option.label }}</span>
+        <component :is="option.icon" class="min-w-5 !mx-0" />
+        <span class="min-w-0"> {{ option.label }}</span>
       </div>
     </a-select-option>
   </a-select>

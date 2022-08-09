@@ -296,12 +296,19 @@ const activeTable = computed(() => {
   @apply relative  cursor-pointer after:(content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
+.nc-tree-item svg{
+  @apply text-gray-500
+}
+
 .nc-tree-item.active {
-  @apply !text-primary after:(!opacity-10);
+  @apply !text-primary after:(!opacity-5);
+  svg {
+    @apply !text-primary
+  }
 }
 
 .nc-tree-item:hover {
-  @apply !text-grey after:(!opacity-5);
+  @apply !text-grey after:(!opacity-2);
 }
 
 </style>

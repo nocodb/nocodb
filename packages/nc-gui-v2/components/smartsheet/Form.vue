@@ -279,7 +279,7 @@ function onEmailChange() {
 }
 
 async function submitCallback() {
-  console.log("submitCallback")
+  console.log('submitCallback')
   await loadFormView()
   setFormData()
   showColumnDropdown.value = false

@@ -5,24 +5,19 @@ import { toRef } from 'vue'
 import { $computed } from 'vue/macros'
 import type { Ref } from 'vue'
 import { useMetas } from '~/composables'
-import { ColumnInj, MetaInj, IsFormInj } from '~/context'
+import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { provide, useProvideColumnCreateStore } from '#imports'
 
-interface Props {
-  required?: boolean
-  column: ColumnType & { meta: any }
-}
-
-const { column, required } = defineProps<Props>()
-
-provide(ColumnInj, column)
+const props = defineProps<{ column: ColumnType & { meta: any }; required: boolean }>()
 
 const isForm = inject(IsFormInj)
 
-const props = defineProps<{ column: ColumnType & { meta: any } }>()
-const column = toRef(column, 'column')
+const column = toRef(props, 'column')
+
 provide(ColumnInj, column)
+
 const { metas } = useMetas()
+
 const meta = inject(MetaInj)
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)

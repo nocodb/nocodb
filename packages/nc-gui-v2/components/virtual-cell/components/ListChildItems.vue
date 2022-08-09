@@ -31,7 +31,6 @@ const { isNew, state, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
 watch([vModel, isForm], (nextVal) => {
   if (nextVal[0] || nextVal[1]) {
-    debugger
     loadChildrenList()
   }
 })

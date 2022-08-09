@@ -124,7 +124,7 @@ const newRowState = computed(() => {
         v-if="expandedFormDlg"
         v-model="expandedFormDlg"
         :meta="relatedTableMeta"
-        :row="{ row: {}, oldRow: {}, rowMeta: {new:true} }"
+        :row="{ row: {}, oldRow: {}, rowMeta: { new: true } }"
         :state="newRowState"
         load-row
         use-meta-fields

@@ -68,7 +68,6 @@ const unlinkRef = async (rec: Record<string, any>) => {
 
 <template>
   <div class="flex align-center items-center gap-1 w-full chips-wrapper">
-    {{isNew}}
     <template v-if="!isForm">
       <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">

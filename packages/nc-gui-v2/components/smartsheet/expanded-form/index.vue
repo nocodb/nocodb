@@ -80,9 +80,9 @@ const isExpanded = useVModel(props, 'modelValue', emits)
   <a-modal v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
     <Header @cancel="isExpanded = false" />
     <a-card class="!bg-gray-100">
-      <div class="flex">
-        <div class="flex-grow">
-          <div class="h-550px overflow-auto w-[500px] mx-auto">
+      <div class="flex h-full nc-form-wrapper">
+        <div class="flex-grow f-full overflow-auto">
+          <div class="w-[500px] mx-auto">
             <div v-for="col in fields" :key="col.title" class="mt-2">
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
               <SmartsheetHeaderCell v-else :column="col" />
@@ -130,5 +130,10 @@ const isExpanded = useVModel(props, 'modelValue', emits)
   &.active {
     @apply w-[250px] border-left-1;
   }
+}
+
+.nc-form-wrapper {
+  max-height: max(calc(90vh - 100px), 600px);
+  height: max-content !important;
 }
 </style>

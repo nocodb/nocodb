@@ -23,7 +23,7 @@ export default defineNuxtPlugin(async (nuxtApp) => {
   nuxtApp.vueApp.i18n.locale.value = state.lang.value
 
   try {
-    state.appInfo = await $api.utils.appInfo()
+    state.appInfo.value = await $api.utils.appInfo()
   } catch (e) {
     console.error(e)
   }

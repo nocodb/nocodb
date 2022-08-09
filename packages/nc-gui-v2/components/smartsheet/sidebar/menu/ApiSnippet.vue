@@ -1,27 +1,24 @@
 <script setup lang="ts">
 import HTTPSnippet from 'httpsnippet'
 import { useClipboard } from '@vueuse/core'
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import { ActiveViewInj, MetaInj } from '~/context'
 
 const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
-const toast = useToast()
-
 interface Props {
   modelValue: boolean
 }
 
 const { project } = $(useProject())
-const { appInfo } = $(useGlobal())
+const { appInfo, token } = $(useGlobal())
 const meta = $(inject(MetaInj))
 const view = $(inject(ActiveViewInj))
 const { xWhere } = useSmartsheetStoreOrThrow()
 const { queryParams } = $(useViewData(meta, view as any, xWhere))
 const { copy } = useClipboard()
-const { $state } = useNuxtApp()
 
 let vModel = $(useVModel(props, 'modelValue', emits))
 
@@ -73,7 +70,7 @@ const snippet = $computed(
   () =>
     new HTTPSnippet({
       method: 'GET',
-      headers: [{ name: 'xc-auth', value: $state.token.value as string, comment: 'JWT Auth token' }],
+      headers: [{ name: 'xc-auth', value: token as string, comment: 'JWT Auth token' }],
       url: apiUrl,
       queryString: Object.entries(queryParams || {}).map(([name, value]) => {
         return {
@@ -92,7 +89,7 @@ const code = $computed(() => {
 const api = new Api({
   baseURL: ${JSON.stringify(apiUrl)},
   headers: {
-    "xc-auth": ${JSON.stringify($state.token.value as string)}
+    "xc-auth": ${JSON.stringify(token as string)}
   }
 })
 
@@ -113,7 +110,7 @@ api.dbViewRow.list(
 
 const onCopyToClipboard = () => {
   copy(code)
-  toast.info('Copied to clipboard')
+  notification.info({ message: 'Copied to clipboard' })
 }
 
 const afterVisibleChange = (visible: boolean) => {

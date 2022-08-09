@@ -1,7 +1,7 @@
 import { usePreferredLanguages, useStorage } from '@vueuse/core'
 import { useJwt } from '@vueuse/integrations/useJwt'
 import type { JwtPayload } from 'jwt-decode'
-import type { State, StoredState } from './types'
+import type { AppInfo, State, StoredState } from './types'
 import { computed, ref, toRefs, useCounter, useNuxtApp, useTimestamp } from '#imports'
 import type { User } from '~/lib'
 
@@ -71,6 +71,8 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     set: (val) => (storage.value.token = val),
   })
 
+  const appInfo = ref<AppInfo>({ ncSiteUrl: 'localhost:8080' })
+
   /** reactive token payload */
   const { payload } = useJwt<JwtPayload & User>(token)
 
@@ -88,5 +90,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     timestamp,
     runningRequests,
     error,
+    appInfo,
   }
 }

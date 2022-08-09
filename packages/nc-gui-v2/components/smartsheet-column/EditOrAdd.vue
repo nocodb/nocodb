@@ -171,7 +171,7 @@ watch(
               () => {
                 addOrUpdate(reloadMetaAndData)
                 advancedOptions = false
-                emit('cancel')
+                emit('submit')
               }
             "
           >

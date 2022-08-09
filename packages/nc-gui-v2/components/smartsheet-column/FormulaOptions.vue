@@ -16,8 +16,6 @@ import {
   insertAtCursor,
   validateDateWithUnknownFormat,
 } from '@/utils'
-import MdiFunctionIcon from '~icons/mdi/function'
-import MdiOperatorIcon from '~icons/mdi/calculator'
 
 enum JSEPNode {
   COMPOUND = 'Compound',
@@ -665,8 +663,8 @@ onMounted(() => {
                 </div>
               </template>
               <template #avatar>
-                <MdiFunctionIcon v-if="item.type === 'function'" class="text-lg" />
-                <MdiOperatorIcon v-if="item.type === 'op'" class="text-lg" />
+                <mdi-function v-if="item.type === 'function'" class="text-lg" />
+                <mdi-calculator v-if="item.type === 'op'" class="text-lg" />
                 <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
               </template>
             </a-list-item-meta>

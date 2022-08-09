@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { navigateTo, provideSidebar, ref, useProject, useRoute, useSidebar, useTabs, useUIPermission } from '#imports'
 import { TabType } from '~/composables'
+import { openLink } from '~/utils'
 
 const route = useRoute()
 
@@ -75,7 +76,7 @@ await loadTables()
             </div>
 
             <template #overlay>
-              <a-menu class="ml-6 !w-[300px] !p-0 !rounded">
+              <a-menu class="ml-6 !w-[300px] !text-sm !p-0 !rounded">
                 <a-menu-item-group>
                   <template #title>
                     <div class="group select-none flex items-center gap-4 py-1">
@@ -97,16 +98,15 @@ await loadTables()
                   </a-menu-item>
 
                   <a-menu-item key="api">
-                    <a
+                    <div
                       v-if="isUIAllowed('apiDocs')"
                       v-t="['e:api-docs']"
-                      :href="`/api/v1/db/meta/projects/${route.params.projectId}/swagger`"
-                      target="_blank"
                       class="nc-project-menu-item group"
+                      @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`)"
                     >
                       <MdiApi class="group-hover:text-pink-500" />
                       Swagger: Rest APIs
-                    </a>
+                    </div>
                   </a-menu-item>
 
                   <a-menu-divider />

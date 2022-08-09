@@ -12,10 +12,6 @@ interface Props {
   editEnabled: boolean
 }
 
-// interface Emits {
-//   (event: 'update:modelValue', value: any): void
-// }
-
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled'])
 const column = toRef(props, 'column')

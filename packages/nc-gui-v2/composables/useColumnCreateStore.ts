@@ -198,7 +198,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           /** if LTAR column then force reload related table meta */
           if (formState.value.uidt === UITypes.LinkToAnotherRecord && meta.value.id !== formState.value.childId) {
-            getMeta(formState.value.childId, true)
+            getMeta(formState.value.childId, true).then(() => {})
           }
 
           toast.success('Column created')

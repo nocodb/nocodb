@@ -23,7 +23,7 @@ const activeKey = ref(0)
 
 watch(
   () => hook?.operation,
-  async (_v) => {
+  async () => {
     await loadSampleData()
   },
 )

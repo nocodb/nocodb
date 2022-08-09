@@ -379,8 +379,8 @@ const onNavigate = (dir: NavigateDir) => {
             >
             <a-menu-item @click="deleteSelectedRows"><span class="text-xs">Delete all selected rows</span></a-menu-item>
             <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)"
-              ><span class="text-xs">Clear cell</span></a-menu-item
-            >
+              ><span class="text-xs">Clear cell</span>
+            </a-menu-item>
             <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
               <span class="text-xs">Insert new row</span>
             </a-menu-item>

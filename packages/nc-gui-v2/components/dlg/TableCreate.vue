@@ -31,18 +31,9 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTable(as
   dialogShow.value = false
 })
 
-// const prefix = computed(() => project?.value?.prefix || '')
-
 const validateDuplicateAlias = (v: string) => {
   return (tables?.value || []).every((t) => t.title !== (v || '')) || 'Duplicate table alias'
 }
-// const validateLeadingOrTrailingWhiteSpace = (v: string) => {
-//   return !/^\s+|\s+$/.test(v) || 'Leading or trailing whitespace not allowed in table name'
-// }
-// const validateDuplicate = (v: string) => {
-//   return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
-// }
-
 const inputEl = ref<HTMLInputElement>()
 
 const useForm = Form.useForm

@@ -24,12 +24,9 @@ const { copy } = useClipboard()
 const toast = useToast()
 const { dashboardUrl } = useDashboard()
 
-// let isLoading = $ref(false)
-// let activeSharedView = $ref(null)
 const sharedViewList = ref<SharedViewType[]>()
 
 const loadSharedViewsList = async () => {
-  // isLoading = true
   const list = await $api.dbViewShare.list(meta.value?.id as string)
 
   console.log(unref(sharedViewList))
@@ -47,8 +44,6 @@ const loadSharedViewsList = async () => {
   // } else {
   //   activeSharedView = null
   // }
-
-  // isLoading = false
 }
 
 onMounted(loadSharedViewsList)

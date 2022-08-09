@@ -1,10 +1,6 @@
 <script lang="ts" setup>
-// import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
 import { computed, useGlobal, useRoute } from '#imports'
-
-/** get current breakpoints (for enabling sidebar) */
-// const breakpoints = useBreakpoints(breakpointsTailwind)
 
 const { signOut, signedIn, isLoading, user } = useGlobal()
 

@@ -31,8 +31,10 @@ const tablesById = $computed<Record<string, TableType>>(() =>
 
 const showTableList = ref(true)
 const tableCreateDlg = ref(false)
-const menuRef = $ref<HTMLLIElement>()
 let key = $ref(0)
+
+const menuRef = $ref<HTMLLIElement>()
+
 let sortable: Sortable
 
 // todo: replace with vuedraggable

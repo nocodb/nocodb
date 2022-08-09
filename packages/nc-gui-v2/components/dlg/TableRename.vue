@@ -30,8 +30,6 @@ const { updateTab } = useTabs()
 const { loadTables } = useProject()
 const { tables } = useProject()
 
-// const prefix = computed(() => project?.value?.prefix || '')
-
 const inputEl = $ref<any>()
 let loading = $ref(false)
 const useForm = Form.useForm

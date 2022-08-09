@@ -3,17 +3,18 @@ import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
 import SettingsModal from './settings/SettingsModal.vue'
-import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
 import { useNuxtApp, useRoute } from '#app'
-import MdiSettingIcon from '~icons/mdi/cog'
-import MdiTable from '~icons/mdi/table'
-import MdiView from '~icons/mdi/eye-circle-outline'
-import MdiTableLarge from '~icons/mdi/table-large'
+import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
+import { TabType } from '~/composables'
 import MdiMenuDown from '~icons/mdi/chevron-down'
-import MdiPlus from '~icons/mdi/plus-circle-outline'
-import MdiDrag from '~icons/mdi/drag-vertical'
+import MdiSettingIcon from '~icons/mdi/cog'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
+import MdiDrag from '~icons/mdi/drag-vertical'
+import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAPIDocIcon from '~icons/mdi/open-in-new'
+import MdiPlus from '~icons/mdi/plus-circle-outline'
+import MdiTable from '~icons/mdi/table'
+import MdiTableLarge from '~icons/mdi/table-large'
 
 const { addTab } = useTabs()
 const toast = useToast()
@@ -21,7 +22,7 @@ const { $api, $e } = useNuxtApp()
 const { isUIAllowed } = useUIPermission()
 const route = useRoute()
 const { tables, loadTables } = useProject(route.params.projectId as string)
-const { closeTab } = useTabs()
+const { closeTab, activeTab } = useTabs()
 const { deleteTable } = useTable()
 
 const tablesById = $computed<Record<string, TableType>>(() =>
@@ -139,6 +140,10 @@ const addTableTab = (table: TableType) => {
   $e('a:table:open')
   addTab({ title: table.title, id: table.id, type: table.type as any })
 }
+
+const activeTable = computed(() => {
+  return [TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null
+})
 </script>
 
 <template>
@@ -176,17 +181,20 @@ const addTableTab = (table: TableType) => {
                 v-for="table in tables"
                 :key="table.id"
                 v-t="['a:table:open']"
-                :class="[{ hidden: !filteredTables?.includes(table) }, `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`]"
-                class="!pl-1 py-1 !h-[28px] !my-0 text-sm cursor-pointer group"
+                :class="[
+                  { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
+                  `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
+                ]"
+                class="nc-tree-item !pl-1 py-1 !h-[28px] !my-0 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTableTab(table)"
               >
                 <div class="flex align-center gap-1 h-full" @contextmenu="setMenuContext('table', table)">
                   <MdiDrag
-                    :class="`transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 nc-drag-icon cursor-move nc-child-draggable-icon-${table.title}`"
+                    :class="`transition-opacity opacity-0 group-hover:opacity-100 nc-drag-icon cursor-move nc-child-draggable-icon-${table.title}`"
                   />
-                  <component :is="icon(table)" class="text-[10px] text-gray-500" />
+                  <component :is="icon(table)" class="text-[10px]" />
 
                   <span class="nc-tbl-title text-xs flex-1 ml-2">{{ table.title }}</span>
                   <a-dropdown :trigger="['click']" @click.stop>
@@ -244,7 +252,7 @@ const addTableTab = (table: TableType) => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
 }
@@ -263,5 +271,24 @@ const addTableTab = (table: TableType) => {
 
 :deep(.ant-input-group-addon:last-child) {
   @apply top-[-0.5px];
+}
+
+.nc-tree-item {
+  @apply relative  cursor-pointer after:(content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+}
+
+.nc-tree-item svg {
+  @apply text-gray-500;
+}
+
+.nc-tree-item.active {
+  @apply !text-primary after:(!opacity-5);
+  svg {
+    @apply !text-primary;
+  }
+}
+
+.nc-tree-item:hover {
+  @apply !text-grey after:(!opacity-2);
 }
 </style>

@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onClickOutside, useEventListener } from '@vueuse/core'
 import type { ColumnType } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
   inject,
@@ -231,6 +231,12 @@ useEventListener(document, 'keydown', onKeyDown)
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 onClickOutside(smartTable, () => {
+  if (selected.col === null) return
+
+  const activeCol = fields.value[selected.col]
+
+  if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
+
   selected.row = null
   selected.col = null
 })
@@ -355,17 +361,12 @@ const onNavigate = (dir: NavigateDir) => {
                 class="text-left pointer nc-grid-add-new-cell"
                 @click="addEmptyRow()"
               >
-                <a-tooltip top left>
-                  <div class="w-min flex align-center">
-                    <MdiPlusIcon class="text-pint-500 text-xs" />
-                    <span class="ml-1 caption grey--text">
-                      {{ $t('activity.addRow') }}
-                    </span>
-                  </div>
-                  <template #title>
-                    <span class="caption"> Add new row</span>
-                  </template>
-                </a-tooltip>
+                <div class="flex align-center">
+                  <MdiPlusIcon class="text-pint-500 text-xs" />
+                  <span class="ml-1 caption grey--text">
+                    {{ $t('activity.addRow') }}
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>

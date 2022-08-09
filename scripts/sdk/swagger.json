@@ -6579,6 +6579,13 @@
           "order": {
             "type": "number"
           },
+          "system": {
+            "type": [
+              "number",
+              "boolean"
+            ]
+          },
+          "meta": {},
           "colOptions": {
             "oneOf": [
               {

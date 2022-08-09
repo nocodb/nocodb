@@ -65,7 +65,7 @@ function onVisibleChange() {
     </template>
   </a-dropdown>
   <a-dropdown :trigger="['hover']">
-    <MdiMenuDownIcon class="text-grey" />
+    <MdiMenuDownIcon class="text-grey nc-ui-dt-dropdown" />
     <template #overlay>
       <div class="shadow bg-white">
         <div class="nc-column-edit nc-menu-item" @click="editColumnDropdown = true">

@@ -276,6 +276,7 @@ const onNavigate = (dir: NavigateDir) => {
                 :key="col.title"
                 v-xc-ver-resize
                 :data-col="col.id"
+                :data-title="col.title"
                 @xcresize="onresize(col.id, $event)"
                 @xcresizing="onXcResizing(col.title, $event)"
                 @xcresized="resizingCol = null"

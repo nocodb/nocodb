@@ -6778,7 +6778,7 @@
         }
       },
       "Formula": {
-        "title": "Lookup",
+        "title": "Formula",
         "type": "object",
         "properties": {
           "id": {
@@ -6794,6 +6794,9 @@
             "type": "string"
           },
           "formula": {
+            "type": "string"
+          },
+          "formula_raw": {
             "type": "string"
           },
           "deleted": {

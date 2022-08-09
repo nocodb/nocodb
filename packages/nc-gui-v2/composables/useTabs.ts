@@ -18,15 +18,15 @@ export interface TabItem {
 function getPredicate(key: Partial<TabItem>) {
   return (tab: TabItem) =>
     (!('id' in key) || tab.id === key.id) &&
-    (!('title' in key) || tab.title === key.id) &&
-    (!('type' in key) || tab.type === key.id)
+    (!('title' in key) || tab.title === key.title) &&
+    (!('type' in key) || tab.type === key.type)
 }
 
 export function useTabs() {
   const tabs = useState<TabItem[]>('tabs', () => [])
 
   const route = useRoute()
-
+  const router = useRouter()
   const { tables } = useProject()
 
   const activeTabIndex: WritableComputedRef<number> = computed({
@@ -35,6 +35,8 @@ export function useTabs() {
         const tab: Partial<TabItem> = { type: route.params.type as TabType, title: route.params.title as string }
 
         const id = tables.value?.find((t) => t.title === tab.title)?.id
+
+        if (!id) return -1
 
         tab.id = id as string
 
@@ -108,7 +110,14 @@ export function useTabs() {
   const updateTab = (key: number | Partial<TabItem>, newTabItemProps: Partial<TabItem>) => {
     const tab = typeof key === 'number' ? tabs.value[key] : tabs.value.find(getPredicate(key))
     if (tab) {
+      const isActive = tabs.value.indexOf(tab) === activeTabIndex.value
       Object.assign(tab, newTabItemProps)
+      if (isActive && tab.title)
+        router.replace({
+          params: {
+            title: tab.title,
+          },
+        })
     }
   }
 

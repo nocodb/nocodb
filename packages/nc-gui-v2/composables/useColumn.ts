@@ -1,16 +1,17 @@
 import type { ColumnType } from 'nocodb-sdk'
 import { SqlUiFactory, UITypes, isVirtualCol } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import { useProject } from '#imports'
 
-export function useColumn(column: ColumnType) {
+export function useColumn(column: Ref<ColumnType>) {
   const { project } = useProject()
 
-  const uiDatatype: UITypes = (column && column.uidt) as UITypes
-  const abstractType = isVirtualCol(column)
+  const uiDatatype: UITypes = column?.value?.uidt as UITypes
+  const abstractType = isVirtualCol(column?.value)
     ? null
-    : SqlUiFactory.create(project.value?.bases?.[0]?.config || { client: 'mysql2' }).getAbstractType(column)
+    : SqlUiFactory.create(project.value?.bases?.[0]?.config || { client: 'mysql2' }).getAbstractType(column?.value)
 
-  const dataTypeLow = column && column.dt && column.dt.toLowerCase()
+  const dataTypeLow = column?.value?.dt?.toLowerCase()
   const isBoolean = abstractType === 'boolean'
   const isString = abstractType === 'string'
   const isTextArea = uiDatatype === UITypes.LongText

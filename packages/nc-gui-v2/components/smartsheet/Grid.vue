@@ -1,8 +1,10 @@
 <script lang="ts" setup>
+import { onClickOutside, useEventListener } from '@vueuse/core'
+import type { ColumnType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
+import { message } from 'ant-design-vue'
 import {
   inject,
-  onKeyStroke,
   onMounted,
   provide,
   useGridViewColumnWidth,
@@ -10,10 +12,10 @@ import {
   useSmartsheetStoreOrThrow,
   useViewData,
 } from '#imports'
+import type { Row } from '~/composables'
 import {
   ActiveViewInj,
   ChangePageInj,
-  EditModeInj,
   FieldsInj,
   IsFormInj,
   IsGridInj,
@@ -34,11 +36,12 @@ const fields = inject(FieldsInj, ref([]))
 const isLocked = inject(IsLockedInj, false)
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
+const isView = false
 
 const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
 let editEnabled = $ref(false)
 const { sqlUi } = useProject()
-const { xWhere } = useSmartsheetStoreOrThrow()
+const { xWhere, isPkAvail } = useSmartsheetStoreOrThrow()
 const addColumnDropdown = ref(false)
 const contextMenu = ref(false)
 const contextMenuTarget = ref(false)
@@ -74,12 +77,6 @@ const selectCell = (row: number, col: number) => {
   selected.col = col
 }
 
-onKeyStroke(['Enter'], (e) => {
-  if (selected.row !== null && selected.col !== null) {
-    editEnabled = true
-  }
-})
-
 watch(
   () => (view?.value as any)?.id,
   async (n?: string, o?: string) => {
@@ -103,9 +100,7 @@ defineExpose({
 })
 
 // instantiate column create store
-// watchEffect(() => {
 if (meta) useProvideColumnCreateStore(meta)
-// })
 
 // reset context menu target on hide
 watch(contextMenu, () => {
@@ -127,8 +122,29 @@ const clearCell = async (ctx: { row: number; col: number }) => {
   await updateOrSaveRow(rowObj, columnObj.title)
 }
 
+const { copy } = useClipboard()
+
+const makeEditable = (row: Row, col: ColumnType) => {
+  if (isPublicView || editEnabled || isView) {
+    return
+  }
+  if (!isPkAvail.value && !row.rowMeta.new) {
+    message.info("Update not allowed for table which doesn't have primary Key")
+    return
+  }
+  if (col.ai) {
+    message.info('Auto Increment field is not editable')
+    return
+  }
+  if (col.pk && !row.rowMeta.new) {
+    message.info('Editing primary key not supported')
+    return
+  }
+  return (editEnabled = true)
+}
+
 /** handle keypress events */
-onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLeft', 'ArrowRight'], async (e: KeyboardEvent) => {
+const onKeyDown = async (e: KeyboardEvent) => {
   if (selected.row === null || selected.col === null) return
   /** on tab key press navigate through cells */
   switch (e.key) {
@@ -153,7 +169,7 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
     /** on enter key press make cell editable */
     case 'Enter':
       e.preventDefault()
-      editEnabled = true
+      makeEditable(data.value[selected.row], fields.value[selected.col])
       break
     /** on delete key press clear cell */
     case 'Delete':
@@ -177,26 +193,59 @@ onKeyStroke(['Tab', 'Shift', 'Enter', 'Delete', 'ArrowDown', 'ArrowUp', 'ArrowLe
       e.preventDefault()
       if (selected.row < data.value.length - 1) selected.row++
       break
+    default:
+      {
+        const rowObj = data.value[selected.row]
+        const columnObj = fields.value[selected.col]
+
+        if (e.metaKey || e.ctrlKey) {
+          switch (e.keyCode) {
+            // copy - ctrl/cmd +c
+            case 67:
+              await copy(rowObj.row[columnObj.title] || '')
+              break
+          }
+        }
+
+        if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
+          return
+        }
+
+        /** on letter key press make cell editable and empty */
+        if (e?.key?.length === 1) {
+          if (!isPkAvail && !rowObj.rowMeta.new) {
+            return message.info("Update not allowed for table which doesn't have primary Key")
+          }
+          if (makeEditable(rowObj, columnObj)) {
+            rowObj.row[columnObj.title] = ''
+          }
+          // editEnabled = true
+        }
+      }
+      break
   }
+}
+
+useEventListener(document, 'keydown', onKeyDown)
+
+/** On clicking outside of table reset active cell  */
+const smartTable = ref(null)
+onClickOutside(smartTable, () => {
+  selected.row = null
+  selected.col = null
 })
 
 const onNavigate = (dir: NavigateDir) => {
   if (selected.row === null || selected.col === null) return
   switch (dir) {
     case NavigateDir.NEXT:
-      if (selected.col < visibleColLength - 1) {
-        selected.col++
-      } else if (selected.row < data.value.length - 1) {
+      if (selected.row < data.value.length - 1) {
         selected.row++
-        selected.col = 0
       }
       break
     case NavigateDir.PREV:
-      if (selected.col > 0) {
-        selected.col--
-      } else if (selected.row > 0) {
+      if (selected.row > 0) {
         selected.row--
-        selected.col = visibleColLength - 1
       }
       break
   }
@@ -207,7 +256,7 @@ const onNavigate = (dir: NavigateDir) => {
   <div class="flex flex-col h-100 min-h-0 w-100">
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-primary">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
-        <table class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
+        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
             <tr class="group">
               <th>
@@ -237,7 +286,7 @@ const onNavigate = (dir: NavigateDir) => {
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
               <th v-t="['c:column:add']" @click="addColumnDropdown = true">
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
-                  <div class="h-full w-full flex align-center justify-center">
+                  <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlusIcon class="text-sm" />
                   </div>
                   <template #overlay>
@@ -272,7 +321,7 @@ const onNavigate = (dir: NavigateDir) => {
                 :data-col="columnObj.id"
                 :data-title="columnObj.title"
                 @click="selectCell(rowIndex, colIndex)"
-                @dblclick="editEnabled = true"
+                @dblclick="makeEditable(row, columnObj)"
                 @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
               >
                 <div class="w-full h-full">
@@ -371,7 +420,6 @@ const onNavigate = (dir: NavigateDir) => {
 
   td {
     text-overflow: ellipsis;
-    white-space: nowrap;
   }
 
   td.active::after,

@@ -13,7 +13,7 @@ interface DataApiResponse {
 
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
-  (column: Required<ColumnType>, row?: Ref<Row>, reloadData = () => {}) => {
+  (column: Ref<Required<ColumnType>>, row?: Ref<Row>, reloadData = () => {}) => {
     // state
     const { metas, getMeta } = useMetas()
     const { project } = useProject()
@@ -31,12 +31,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       size: 10,
     })
 
-    const colOptions = column.colOptions as LinkToAnotherRecordType
+    const colOptions = $computed(() => column?.value.colOptions as LinkToAnotherRecordType)
 
     // getters
-    const meta = computed(() => metas?.value?.[column.fk_model_id as string])
+    const meta = computed(() => metas?.value?.[column?.value?.fk_model_id as string])
     const relatedTableMeta = computed<TableType>(() => {
-      return metas.value?.[(column.colOptions as any)?.fk_related_model_id as string]
+      return metas.value?.[colOptions?.fk_related_model_id as string]
     })
 
     const rowId = computed(() =>
@@ -72,8 +72,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           project.value.id as string,
           meta.value.id,
           rowId.value,
-          (column.colOptions as LinkToAnotherRecordType).type as 'mm' | 'hm',
-          column.title,
+          colOptions.type as 'mm' | 'hm',
+          column?.value?.title,
           // todo: swagger type correction
           {
             limit: childrenExcludedListPagination.size,
@@ -99,7 +99,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           meta.value.id,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          column.title,
+          column?.value?.title,
           // todo: swagger type correction
           {
             limit: childrenListPagination.size,
@@ -157,7 +157,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           meta.value.title,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          column.title,
+          column?.value?.title,
           getRelatedTableRowId(row) as string,
         )
       } catch (e) {
@@ -195,7 +195,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           meta.value.title as string,
           rowId.value,
           colOptions.type as 'mm' | 'hm',
-          column.title,
+          column?.value?.title,
           getRelatedTableRowId(row) as string,
         )
       } catch (e) {

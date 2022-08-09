@@ -13,7 +13,7 @@ import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
-const editColumnDropdown = $ref(false)
+const editColumnDropdown = ref(false)
 
 const column = inject(ColumnInj)
 const meta = inject(MetaInj)
@@ -25,13 +25,13 @@ const { getMeta } = useMetas()
 
 const deleteColumn = () =>
   Modal.confirm({
-    title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [column?.title]), ' column ?']),
+    title: h('div', ['Do you want to delete ', h('span', { class: 'font-weight-bold' }, [column?.value?.title]), ' column ?']),
     okText: t('general.delete'),
     okType: 'danger',
     cancelText: t('general.cancel'),
     async onOk() {
       try {
-        await $api.dbTableColumn.delete(column?.id as string)
+        await $api.dbTableColumn.delete(column?.value?.id as string)
         getMeta(meta?.value?.id as string, true)
       } catch (e) {
         toast.error(await extractSdkResponseErrorMsg(e))
@@ -41,7 +41,7 @@ const deleteColumn = () =>
 
 const setAsPrimaryValue = async () => {
   try {
-    await $api.dbTableColumn.primaryColumnSet(column?.id as string)
+    await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
     getMeta(meta?.value?.id as string, true)
     toast.success('Successfully updated as primary column')
   } catch (e) {
@@ -49,20 +49,26 @@ const setAsPrimaryValue = async () => {
     toast.error('Failed to update primary column')
   }
 }
+
+function onVisibleChange() {
+  // only allow to close the EditOrAdd component
+  // by clicking cancel button
+  editColumnDropdown.value = true
+}
 </script>
 
 <template>
-  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']">
+  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']" @visible-change="onVisibleChange">
     <span />
     <template #overlay>
-      <SmartsheetColumnEditOrAdd @click.stop @cancel="editColumnDropdown = false" />
+      <SmartsheetColumnEditOrAdd :edit-column-dropdown="editColumnDropdown" @click.stop @cancel="editColumnDropdown = false" />
     </template>
   </a-dropdown>
   <a-dropdown :trigger="['hover']">
     <MdiMenuDownIcon class="text-grey" />
     <template #overlay>
       <div class="shadow bg-white">
-        <div v-if="!virtual" class="nc-column-edit nc-menu-item" @click="editColumnDropdown = true">
+        <div class="nc-column-edit nc-menu-item" @click="editColumnDropdown = true">
           <MdiEditIcon class="text-primary" />
           <!-- Edit -->
           {{ $t('general.edit') }}

@@ -16,9 +16,9 @@ interface Emits {
   (event: 'update:modelValue', value: any): void
 }
 
-const { column, ...props } = defineProps<Props>()
-
+const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled'])
+const column = toRef(props, 'column')
 
 provide(ColumnInj, column)
 
@@ -44,11 +44,11 @@ const isAutoSaved = $computed(() => {
     UITypes.AutoNumber,
     UITypes.SpecificDBType,
     UITypes.Geometry,
-  ].includes(column.uidt as UITypes)
+  ].includes(column?.value?.uidt as UITypes)
 })
 
 const isManualSaved = $computed(() => {
-  return [UITypes.Currency, UITypes.Year, UITypes.Time, UITypes.Duration].includes(column.uidt as UITypes)
+  return [UITypes.Currency, UITypes.Year, UITypes.Time, UITypes.Duration].includes(column?.value?.uidt as UITypes)
 })
 
 const vModel = computed({
@@ -92,6 +92,8 @@ const {
 } = useColumn(column)
 
 const syncAndNavigate = (dir: NavigateDir) => {
+  if (isJSON) return
+
   if (changed) {
     emit('save')
     changed = false
@@ -102,7 +104,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 
 <template>
   <div
-    class="nc-cell"
+    class="nc-cell w-full-h-full"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up
@@ -130,6 +132,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellFloat v-else-if="isFloat" v-model="vModel" />
     <CellText v-else-if="isString" v-model="vModel" />
     <CellPercent v-else-if="isPercent" v-model="vModel" />
+    <CellJson v-else-if="isJSON" v-model="vModel" />
     <CellText v-else v-model="vModel" />
   </div>
 </template>

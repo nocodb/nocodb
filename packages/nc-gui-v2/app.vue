@@ -30,19 +30,19 @@ const toggleSidebar = () => {
 
       <div class="flex-1" />
 
-      <div class="ml-4 flex justify-center flex-1">
+      <div class="ml-4 flex justify-center shrink">
         <div class="flex items-center gap-2 cursor-pointer nc-noco-brand-icon" @click="navigateTo('/')">
           <img width="35" src="~/assets/img/icons/512x512-trans.png" />
           <span class="prose-xl">NocoDB</span>
         </div>
+      </div>
 
+      <div class="flex-1 text-left">
         <div v-show="state.isLoading.value" class="flex items-center gap-2 ml-3">
           {{ $t('general.loading') }}
           <mdi-reload :class="{ 'animate-infinite animate-spin': state.isLoading.value }" />
         </div>
       </div>
-
-      <div class="flex-1" />
 
       <div class="flex justify-end gap-4">
         <general-language class="mr-3" />

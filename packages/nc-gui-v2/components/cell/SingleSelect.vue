@@ -3,7 +3,7 @@ import { computed, inject } from '#imports'
 import { ColumnInj, EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string
+  modelValue: string | null
 }
 
 const { modelValue } = defineProps<Props>()
@@ -19,7 +19,7 @@ const vModel = computed({
   set: (val) => emit('update:modelValue', val),
 })
 
-const options = computed(() => column?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
+const options = computed(() => column?.value?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
 </script>
 
 <template>

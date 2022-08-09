@@ -41,6 +41,16 @@ export function useViewData(
     },
   })
 
+  const syncCount = async () => {
+    const { count } = await $api.dbViewRow.count(
+      NOCO,
+      project?.value?.title as string,
+      meta?.value?.id as string,
+      viewMeta?.value?.id as string,
+    )
+    paginationData.value.totalRows = count
+  }
+
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
     if (!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) return
     const response = await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, {
@@ -72,6 +82,7 @@ export function useViewData(
         rowMeta: {},
         oldRow: { ...insertedData },
       })
+      syncCount()
     } catch (error: any) {
       notification.error({
         message: 'Row insert failed',
@@ -87,7 +98,7 @@ export function useViewData(
         .map((c) => row[c.title as string])
         .join('___') as string
 
-      return $api.dbViewRow.update(
+      return await $api.dbViewRow.update(
         NOCO,
         project?.value.id as string,
         meta?.value.id as string,
@@ -169,7 +180,6 @@ export function useViewData(
       })
       return false
     }
-
     return true
   }
 
@@ -188,6 +198,7 @@ export function useViewData(
         }
       }
       formattedData.value.splice(rowIndex, 1)
+      syncCount()
     } catch (e: any) {
       notification.error({
         message: 'Failed to delete row',
@@ -223,6 +234,7 @@ export function useViewData(
         })
       }
     }
+    syncCount()
   }
 
   const loadFormView = async () => {
@@ -284,6 +296,7 @@ export function useViewData(
     deleteSelectedRows,
     updateOrSaveRow,
     selectedAllRecords,
+    syncCount,
     loadFormView,
     formColumnData,
     formViewData,

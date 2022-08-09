@@ -32,6 +32,7 @@ function onKeyDown(evt: KeyboardEvent) {
     v-model="vModel"
     class="outline-none pa-0 border-none w-full h-full prose-sm"
     type="number"
+    @blur="editEnabled = false"
     @keydown="onKeyDown"
   />
   <span v-else class="prose-sm">{{ vModel }}</span>

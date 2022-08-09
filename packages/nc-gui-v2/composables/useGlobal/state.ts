@@ -56,10 +56,11 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
       createdAt: new Date('2020-01-01T00:00:00.000Z').toISOString(),
       isHidden: false,
     },
+    filterAutoSave: true,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */
-  const storage = useStorage<StoredState>(storageKey, initialState)
+  const storage = useStorage<StoredState>(storageKey, initialState, localStorage, { mergeDefaults: true })
 
   /** force turn off of dark mode, regardless of previously stored settings */
   storage.value.darkMode = false

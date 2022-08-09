@@ -7,7 +7,7 @@ import { useProvideColumnCreateStore } from '#imports'
 
 interface Props {
   required?: boolean
-  column: ColumnType & { meta: any }
+  column: ColumnType
 }
 
 const { column, required } = defineProps<Props>()

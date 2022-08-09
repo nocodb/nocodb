@@ -43,19 +43,24 @@ export function useViewFilters(
   }
 
   const deleteFilter = async (filter: FilterType & { status: string }, i: number) => {
+    // if shared or sync permission not allowed simply remove it from array
     if (shared || !isUIAllowed('filterSync')) {
-      const _filters = unref(filters.value)
-      _filters.splice(i, 1)
-      filters.value = _filters
-    } else if (filter.id) {
-      if (!autoApply?.value) {
-        filter.status = 'delete'
+      filters.value.splice(i, 1)
+      reloadData?.()
+    } else {
+      if (filter.id) {
+        // if auto-apply disabled mark it as disabled
+        if (!autoApply?.value) {
+          filter.status = 'delete'
+          // if auto-apply enabled invoke delete api and remove from array
+        } else {
+          await $api.dbTableFilter.delete(filter.id)
+          reloadData?.()
+          filters.value.splice(i, 1)
+        }
+        // if not synced yet remove it from array
       } else {
-        await $api.dbTableFilter.delete(filter.id)
-        const _filters = unref(filters.value)
-        _filters.splice(i, 1)
-        filters.value = _filters
-        reloadData?.()
+        filters.value.splice(i, 1)
       }
     }
   }

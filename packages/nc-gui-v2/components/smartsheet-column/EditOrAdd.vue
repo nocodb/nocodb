@@ -1,15 +1,25 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
-import { MetaInj } from '~/context'
+import { MetaInj, ReloadViewDataHookInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
+import MdiIdentifierIcon from '~icons/mdi/identifier'
+
+interface Props {
+  editColumnDropdown: boolean
+}
+
+const { editColumnDropdown } = defineProps<Props>()
 
 const emit = defineEmits(['cancel', 'submit'])
 const meta = inject(MetaInj)
+const reloadDataTrigger = inject(ReloadViewDataHookInj)
 const advancedOptions = ref(false)
 const { getMeta } = useMetas()
+
+const formulaOptionsRef = ref()
 
 const {
   formState,
@@ -27,35 +37,36 @@ const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
-    ...uiTypes.filter((t) => !isEdit || !t.virtual),
-    ...(!isEdit && meta?.value?.columns?.every((c) => !c.pk)
+    ...uiTypes.filter((t) => !isEdit.value || !t.virtual),
+    ...(!isEdit.value && meta?.value?.columns?.every((c) => !c.pk)
       ? [
           {
-            name: 'ID',
-            icon: 'mdi-identifier',
+            name: UITypes.ID,
+            icon: MdiIdentifierIcon,
+            virtual: 0,
           },
         ]
       : []),
   ]
 })
 
-const reloadMeta = async () => {
+const reloadMetaAndData = () => {
   emit('cancel')
-  await getMeta(meta?.value.id as string, true)
+  getMeta(meta?.value.id as string, true)
+  reloadDataTrigger?.trigger()
 }
 
-async function handleSubmit() {
-  // FIXME: emit only works when putting before addOrUpdate
-  await addOrUpdate(async () => {
-    await reloadMeta()
-    advancedOptions.value = false
-  })
-  emit('submit')
+function onCancel() {
+  emit('cancel')
+  if (formState.value.uidt === UITypes.Formula) {
+    // close formula drawer
+    formulaOptionsRef.value.formulaSuggestionDrawer = false
+  }
 }
 
 // create column meta if it's a new column
 watchEffect(() => {
-  if (!isEdit) {
+  if (!isEdit.value) {
     generateNewColumnMeta()
   }
 })
@@ -71,6 +82,17 @@ watchEffect(() => {
     }, 300)
   }
 })
+
+watch(
+  () => editColumnDropdown,
+  (v) => {
+    if (v) {
+      if (formState.value.uidt === UITypes.Formula) {
+        formulaOptionsRef.value.formulaSuggestionDrawer = true
+      }
+    }
+  },
+)
 </script>
 
 <template>
@@ -86,8 +108,14 @@ watchEffect(() => {
         />
       </a-form-item>
       <a-form-item :label="$t('labels.columnType')">
-        <a-select v-model:value="formState.uidt" size="small" class="nc-column-name-input" @change="onUidtOrIdTypeChange">
-          <a-select-option v-for="opt in uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
+        <a-select
+          v-model:value="formState.uidt"
+          show-search
+          size="small"
+          class="nc-column-name-input"
+          @change="onUidtOrIdTypeChange"
+        >
+          <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
             <div class="flex gap-1 align-center text-xs">
               <component :is="opt.icon" class="text-grey" />
               {{ opt.name }}
@@ -96,6 +124,7 @@ watchEffect(() => {
         </a-select>
       </a-form-item>
 
+      <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" ref="formulaOptionsRef" />
       <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" />
       <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
       <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
@@ -122,7 +151,7 @@ watchEffect(() => {
           v-model:checked="formState.meta.validate"
           class="ml-1 mb-1"
         >
-          <span class="text-xs text-gray-600">
+          <span class="text-[10px] text-gray-600">
             {{ `Accept only valid ${formState.uidt}` }}
           </span>
         </a-checkbox>
@@ -130,11 +159,22 @@ watchEffect(() => {
       </div>
       <a-form-item>
         <div class="flex justify-end gap-1 mt-4">
-          <a-button html-type="button" size="small" @click="emit('cancel')">
+          <a-button html-type="button" size="small" @click="onCancel">
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button html-type="submit" type="primary" size="small" @click="handleSubmit">
+          <a-button
+            html-type="submit"
+            type="primary"
+            size="small"
+            @click="
+              () => {
+                addOrUpdate(reloadMetaAndData)
+                advancedOptions = false
+                emit('cancel')
+              }
+            "
+          >
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

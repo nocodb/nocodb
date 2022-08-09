@@ -1,22 +1,33 @@
 <script setup lang="ts">
-// todo: move to persisted state
+import { watchEffect } from '@vue/runtime-core'
 import type ColumnFilter from './ColumnFilter.vue'
 import { useState } from '#app'
-import { IsLockedInj } from '~/context'
+import { ActiveViewInj, IsLockedInj } from '~/context'
 import MdiFilterIcon from '~icons/mdi/filter-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const autoApplyFilter = useState('autoApplyFilter', () => false)
 const isLocked = inject(IsLockedInj)
+const activeView = inject(ActiveViewInj)
 
-// todo: emit from child
+const { filterAutoSave } = useGlobal()
+
+// todo: avoid duplicate api call by keeping a filter store
+const { filters, loadFilters } = useViewFilters(
+  activeView,
+  undefined,
+  computed(() => false),
+)
+
 const filtersLength = ref(0)
-// todo: sync with store
-const autosave = ref(true)
-
+watchEffect(async () => {
+  if (activeView?.value) {
+    await loadFilters()
+    filtersLength.value = filters?.value?.length ?? 0
+  }
+})
 const filterComp = ref<typeof ColumnFilter>()
 
-// todo: implement
 const applyChanges = async () => {
   await filterComp?.value?.applyChanges()
 }
@@ -38,11 +49,11 @@ const applyChanges = async () => {
       <SmartsheetToolbarColumnFilter
         ref="filterComp"
         class="nc-table-toolbar-menu"
-        :auto-save="autosave"
+        :auto-save="filterAutoSave"
         @update:filters-length="filtersLength = $event"
       >
         <div class="d-flex align-end mt-2 min-h-[30px]" @click.stop>
-          <a-checkbox id="col-filter-checkbox" v-model:checked="autosave" class="col-filter-checkbox" hide-details dense>
+          <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSave" class="col-filter-checkbox" hide-details dense>
             <span class="text-grey text-xs">
               {{ $t('msg.info.filterAutoApply') }}
               <!-- Auto apply -->
@@ -50,7 +61,7 @@ const applyChanges = async () => {
           </a-checkbox>
 
           <div class="flex-1" />
-          <a-button v-show="!autosave" size="small" class="text-xs ml-2" @click="applyChanges"> Apply changes </a-button>
+          <a-button v-show="!filterAutoSave" size="small" class="text-xs ml-2" @click="applyChanges"> Apply changes </a-button>
         </div>
       </SmartsheetToolbarColumnFilter>
     </template>

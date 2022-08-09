@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
+import { toRef } from 'vue'
 import { ColumnInj } from '~/context'
 import GenericIcon from '~icons/mdi/square-rounded'
 import HMIcon from '~icons/mdi/table-arrow-right'
@@ -11,14 +12,15 @@ import RollupIcon from '~icons/mdi/movie-roll'
 import CountIcon from '~icons/mdi/counter'
 import SpecificDBTypeIcon from '~icons/mdi/database-settings'
 
-const { columnMeta } = defineProps<{ columnMeta?: ColumnType }>()
+const props = defineProps<{ columnMeta?: ColumnType }>()
+const columnMeta = toRef(props, 'columnMeta')
 
-const column = inject(ColumnInj, columnMeta)
+const column = inject(ColumnInj, ref(columnMeta))
 
 const icon = computed(() => {
-  switch (column?.uidt) {
+  switch (column?.value?.uidt) {
     case UITypes.LinkToAnotherRecord:
-      switch ((column?.colOptions as LinkToAnotherRecordType)?.type) {
+      switch ((column?.value?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
           return MMIcon
         case RelationTypes.HAS_MANY:

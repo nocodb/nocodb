@@ -93,6 +93,11 @@ watch(
     }
   },
 )
+
+// for cases like formula
+if (!formState.value?.column_name) {
+  formState.value.column_name = formState.value?.title
+}
 </script>
 
 <template>

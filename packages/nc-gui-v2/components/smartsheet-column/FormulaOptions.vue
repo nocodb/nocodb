@@ -93,7 +93,7 @@ const suggestionsList = computed(() => {
     ...columns.value
       .filter(
         (c: Record<string, any>) =>
-          !column || (column.id !== c.id && !(c.uidt === UITypes.LinkToAnotherRecord && c.system === 1)),
+          !column || (column.value.id !== c.id && !(c.uidt === UITypes.LinkToAnotherRecord && c.system === 1)),
       )
       .map((c: any) => ({
         text: c.title,
@@ -257,7 +257,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
     const targetFormulaCol = columns.value.find((c: ColumnType) => c.title === parsedTree.name && c.uidt === UITypes.Formula)
     if (targetFormulaCol) {
       formulaPaths.push({
-        [column.id]: [targetFormulaCol.id],
+        [column?.value?.id as string]: [targetFormulaCol.id],
       })
     }
     const vertices = formulaPaths.length

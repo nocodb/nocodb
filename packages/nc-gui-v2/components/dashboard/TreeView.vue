@@ -1,9 +1,10 @@
 <script setup lang="ts">
-import { useNuxtApp, useRoute } from '#app'
-import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { useToast } from 'vue-toastification'
+import SettingsModal from './settings/SettingsModal.vue'
+import { useNuxtApp, useRoute } from '#app'
+import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
 import { TabType } from '~/composables'
 import MdiMenuDown from '~icons/mdi/chevron-down'
 import MdiSettingIcon from '~icons/mdi/cog'
@@ -14,7 +15,6 @@ import MdiAPIDocIcon from '~icons/mdi/open-in-new'
 import MdiPlus from '~icons/mdi/plus-circle-outline'
 import MdiTable from '~icons/mdi/table'
 import MdiTableLarge from '~icons/mdi/table-large'
-import SettingsModal from './settings/SettingsModal.vue'
 
 const { addTab } = useTabs()
 const toast = useToast()
@@ -24,7 +24,6 @@ const route = useRoute()
 const { tables, loadTables } = useProject(route.params.projectId as string)
 const { closeTab, activeTab } = useTabs()
 const { deleteTable } = useTable()
-
 
 const tablesById = $computed<Record<string, TableType>>(() =>
   tables?.value?.reduce((acc: Record<string, TableType>, table: TableType) => {
@@ -145,7 +144,6 @@ const addTableTab = (table: TableType) => {
 const activeTable = computed(() => {
   return [TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null
 })
-
 </script>
 
 <template>
@@ -183,8 +181,10 @@ const activeTable = computed(() => {
                 v-for="table in tables"
                 :key="table.id"
                 v-t="['a:table:open']"
-                :class="[{ hidden: !filteredTables?.includes(table),
-                 'active': activeTable === table.title,}, `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,]"
+                :class="[
+                  { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
+                  `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
+                ]"
                 class="nc-tree-item !pl-1 py-1 !h-[28px] !my-0 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
@@ -273,16 +273,15 @@ const activeTable = computed(() => {
   @apply top-[-0.5px];
 }
 
-.nc-tree-item{
+.nc-tree-item {
   @apply relative  cursor-pointer after:(content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
-.nc-tree-item.active{
+.nc-tree-item.active {
   @apply !text-primary after:(!opacity-10);
 }
 
-.nc-tree-item:hover{
+.nc-tree-item:hover {
   @apply !text-grey after:(!opacity-5);
 }
-
 </style>

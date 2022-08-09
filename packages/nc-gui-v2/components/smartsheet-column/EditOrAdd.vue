@@ -50,10 +50,11 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   ]
 })
 
-const reloadMetaAndData = () => {
+const reloadMetaAndData = async () => {
   emit('cancel')
-  getMeta(meta?.value.id as string, true)
+  await getMeta(meta?.value.id as string, true)
   reloadDataTrigger?.trigger()
+  emit('submit')
 }
 
 function onCancel() {
@@ -170,8 +171,7 @@ watch(
             @click="
               () => {
                 addOrUpdate(reloadMetaAndData)
-                advancedOptions = false
-                emit('submit')
+                advancedOptions.value = false
               }
             "
           >

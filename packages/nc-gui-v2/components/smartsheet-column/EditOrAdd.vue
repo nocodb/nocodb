@@ -8,7 +8,7 @@ import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 interface Props {
-  editColumnDropdown: boolean
+  editColumnDropdown?: boolean
 }
 
 const { editColumnDropdown } = defineProps<Props>()

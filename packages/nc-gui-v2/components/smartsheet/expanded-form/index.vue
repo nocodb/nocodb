@@ -81,7 +81,7 @@ const isExpanded = useVModel(props, 'modelValue', emits)
     <Header @cancel="isExpanded = false" />
     <a-card class="!bg-gray-100">
       <div class="flex h-full nc-form-wrapper items-stretch">
-        <div class="flex-grow overflow-auto">
+        <div class="flex-grow overflow-auto scrollbar-thin-primary">
           <div class="w-[500px] mx-auto">
             <div v-for="col in fields" :key="col.title" class="mt-2">
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
@@ -101,10 +101,7 @@ const isExpanded = useVModel(props, 'modelValue', emits)
           </div>
         </div>
 
-        <div
-          class="nc-comments-drawer min-w-0 min-h-full max-h-full"
-          :class="{ active: commentsDrawer }"
-        >
+        <div class="nc-comments-drawer min-w-0 min-h-full max-h-full" :class="{ active: commentsDrawer }">
           <div class="h-full">
             <Comments v-if="commentsDrawer" />
           </div>

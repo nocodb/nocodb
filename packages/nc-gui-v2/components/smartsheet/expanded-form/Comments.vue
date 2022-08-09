@@ -1,8 +1,6 @@
 <script setup lang="ts">
-import { useExpandedFormStoreOrThrow } from '#imports'
-import { nextTick } from '#imports'
+import { nextTick, useExpandedFormStoreOrThrow } from '#imports'
 import { enumColor, timeAgo } from '~/utils'
-import MdiKeyboardReturnIcon from '~icons/mdi/keyboard-return'
 import MdiAccountIcon from '~icons/mdi/account-circle'
 
 const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment, row } =
@@ -10,23 +8,22 @@ const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, s
 
 const commentsWrapperEl = ref<HTMLDivElement>()
 
-
 await loadCommentsAndLogs()
 
 watch(
   commentsAndLogs,
   () => {
-  nextTick(() => {
-    if (commentsWrapperEl.value)
-      commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
-  })
-}, { immediate: true })
-
+    nextTick(() => {
+      if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
+    })
+  },
+  { immediate: true },
+)
 </script>
 
 <template>
   <div class="h-full d-flex flex-column w-full">
-    <div class="flex-grow-1 min-h-[100px] overflow-y-auto p-2" ref="commentsWrapperEl">
+    <div ref="commentsWrapperEl" class="flex-grow-1 min-h-[100px] overflow-y-auto scrollbar-thin-primary p-2">
       <v-skeleton-loader v-if="isCommentsLoading && !commentsAndLogs" type="list-item-avatar-two-line@8" />
 
       <template v-else>
@@ -55,22 +52,29 @@ watch(
       </template>
     </div>
     <div class="border-1 my-2 w-full ml-6" />
-    <div class="p-2">
+    <div class="p-0">
+      <div class="flex justify-center">
       <a-checkbox v-model:checked="commentsOnly" @change="loadCommentsAndLogs"
-      ><span class="text-xs">Comments only</span>
+        ><span class="text-[11px]">Comments only</span>
       </a-checkbox>
+      </div>
       <div class="flex-shrink-1 mt-2 d-flex pl-4">
-        <v-icon color="pink lighten-2" class="mr-2"> mdi-account-circle</v-icon>
         <a-input
           v-model:value="comment"
-          class="caption comment-box"
+          class="!text-xs"
+          ghost
           :class="{ focus: showborder }"
           @focusin="showborder = true"
           @focusout="showborder = false"
           @keyup.enter.prevent="saveComment"
         >
+          <template #addonBefore>
+            <div class="flex align-center">
+            <mdi-account-circle class="text-lg  text-pink-300" small @click="saveComment" />
+            </div>
+          </template>
           <template #suffix>
-            <MdiKeyboardReturnIcon v-if="comment" class="text-sm" small @click="saveComment" />
+            <mdi-keyboard-return v-if="comment" class="text-sm" small @click="saveComment" />
           </template>
         </a-input>
       </div>

@@ -432,7 +432,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
 
     <SmartsheetPagination />
     <SmartsheetExpandedForm
-      v-if="expandedFormRow"
+      v-if="expandedFormRow && expandedFormDlg"
       v-model="expandedFormDlg"
       :row="expandedFormRow"
       :state="expandedFormRowState"

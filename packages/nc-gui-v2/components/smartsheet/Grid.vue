@@ -354,7 +354,7 @@ const onNavigate = (dir: NavigateDir) => {
                 class="text-left pointer nc-grid-add-new-cell"
                 @click="addEmptyRow()"
               >
-                <div class="w-full flex align-center">
+                <div class="px-2 w-full flex items-center">
                   <MdiPlus class="text-pint-500 text-xs" />
 
                   <span class="ml-1">

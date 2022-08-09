@@ -59,9 +59,9 @@ await loadTables()
 
           <a-dropdown :trigger="['click']">
             <div
-              style="width: calc(100% - 40px)"
+              :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
-              class="group cursor-pointer pr-2 flex gap-4 items-center"
+              class="group cursor-pointer flex gap-4 items-center"
             >
               <template v-if="isOpen">
                 <div class="text-xl font-semibold truncate">{{ project.title }}</div>

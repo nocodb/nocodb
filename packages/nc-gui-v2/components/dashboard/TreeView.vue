@@ -277,14 +277,14 @@ const activeTable = computed(() => {
   @apply relative  cursor-pointer after:(content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
-.nc-tree-item svg{
-  @apply text-gray-500
+.nc-tree-item svg {
+  @apply text-gray-500;
 }
 
 .nc-tree-item.active {
   @apply !text-primary after:(!opacity-5);
   svg {
-    @apply !text-primary
+    @apply !text-primary;
   }
 }
 

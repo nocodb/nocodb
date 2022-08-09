@@ -59,6 +59,7 @@ watch(
               v-model="sort.fk_column_id"
               class="caption nc-sort-field-select"
               :columns="columns"
+              is-sort
               @click.stop
               @update:model-value="saveOrUpdate(sort, i)"
             />

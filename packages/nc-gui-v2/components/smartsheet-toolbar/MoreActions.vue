@@ -35,6 +35,8 @@ const selectedView = inject(ActiveViewInj)
 
 const showWebhookDrawer = ref(false)
 
+const quickImportDialog = ref(false)
+
 const exportCsv = async () => {
   let offset = 0
   let c = 1
@@ -117,7 +119,7 @@ const exportCsv = async () => {
               <!-- Download as CSV -->
               {{ $t('activity.downloadCSV') }}
             </div>
-            <div class="nc-menu-item" @click.stop>
+            <div class="nc-menu-item" @click="quickImportDialog = true">
               <MdiUploadIcon />
               <!-- Upload CSV -->
               {{ $t('activity.uploadCSV') }}
@@ -137,6 +139,7 @@ const exportCsv = async () => {
       </template>
     </a-dropdown>
 
+    <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
     <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">

@@ -18,9 +18,15 @@ const { $e } = useNuxtApp()
 
 const isView = ref(false)
 
+const showWebhookDrawer = ref(false)
+
 function onApiSnippet() {
   // get API snippet
   $e('a:view:api-snippet')
+}
+
+function onWebhooks() {
+  showWebhookDrawer.value = true
 }
 
 function onOpenModal(type: ViewTypes, title = '') {
@@ -104,7 +110,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
       <button
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
-        @click="onApiSnippet"
+        @click="onWebhooks"
       >
         <MdiHook />{{ $t('objects.webhooks') }}
       </button>
@@ -142,5 +148,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         </a>
       </template>
     </general-flipping-card>
+
+    <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
   </a-menu>
 </template>

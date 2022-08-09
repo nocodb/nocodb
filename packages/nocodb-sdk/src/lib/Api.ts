@@ -234,6 +234,8 @@ export interface ColumnType {
   deleted?: boolean;
   visible?: boolean;
   order?: number;
+  system?: number | boolean;
+  meta?: any;
   colOptions?:
     | LinkToAnotherRecordType
     | FormulaType
@@ -294,6 +296,7 @@ export interface FormulaType {
   virtual?: boolean;
   fk_column_id?: string;
   formula?: string;
+  formula_raw?: string;
   deleted?: string;
   order?: string;
 }

@@ -14,7 +14,7 @@ export function useInjectionState<Arguments extends any[], Return>(
     return providedState
   }
 
-  const useInjectedState = () => inject(key)
+  const useInjectedState = () => inject(key, undefined)
 
   return [useProvidingState, useInjectedState]
 }

@@ -10,9 +10,11 @@ import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
 import NootbookOutline from '~icons/mdi/notebook-outline'
+import { useVModel, watch } from '#imports'
 
 interface Props {
-  show: boolean
+  modelValue: boolean
+  openKey?: string
 }
 
 interface SubTabGroup {
@@ -30,9 +32,11 @@ interface TabGroup {
   }
 }
 
-const { show } = defineProps<Props>()
+const props = defineProps<Props>()
 
-const emits = defineEmits(['closed'])
+const emits = defineEmits(['update:modelValue'])
+
+const vModel = useVModel(props, 'modelValue', emits)
 
 const tabsInfo: TabGroup = {
   teamAndAuth: {
@@ -41,11 +45,11 @@ const tabsInfo: TabGroup = {
     subTabs: {
       usersManagement: {
         title: 'Users Management',
-        body: () => UserManagement,
+        body: UserManagement,
       },
       apiTokenManagement: {
         title: 'API Token Management',
-        body: () => ApiTokenManagement,
+        body: ApiTokenManagement,
       },
     },
   },
@@ -55,7 +59,7 @@ const tabsInfo: TabGroup = {
     subTabs: {
       new: {
         title: 'Apps',
-        body: () => AppStore,
+        body: AppStore,
       },
     },
   },
@@ -65,11 +69,11 @@ const tabsInfo: TabGroup = {
     subTabs: {
       metaData: {
         title: 'Metadata',
-        body: () => Metadata,
+        body: Metadata,
       },
       acl: {
         title: 'UI Access Control',
-        body: () => UIAcl,
+        body: UIAcl,
       },
     },
   },
@@ -79,7 +83,7 @@ const tabsInfo: TabGroup = {
     subTabs: {
       audit: {
         title: 'Audit',
-        body: () => AuditTab,
+        body: AuditTab,
       },
     },
   },
@@ -88,7 +92,7 @@ const tabsInfo: TabGroup = {
 const firstKeyOfObject = (obj: object) => Object.keys(obj)[0]
 
 // Array of keys of tabs which are selected. In our case will be only one.
-const selectedTabKeys = $ref<string[]>([firstKeyOfObject(tabsInfo)])
+let selectedTabKeys = $ref<string[]>([firstKeyOfObject(tabsInfo)])
 const selectedTab = $computed(() => tabsInfo[selectedTabKeys[0]])
 
 let selectedSubTabKeys = $ref<string[]>([firstKeyOfObject(selectedTab.subTabs)])
@@ -100,18 +104,27 @@ watch(
     selectedSubTabKeys = [firstKeyOfObject(tabsInfo[newTabKey].subTabs)]
   },
 )
+
+watch(
+  () => props.openKey,
+  (nextOpenKey) => {
+    selectedTabKeys = [Object.keys(tabsInfo).find((key) => key === nextOpenKey) || firstKeyOfObject(tabsInfo)]
+  },
+)
 </script>
 
 <template>
-  <a-modal :footer="null" :visible="show" width="max(90vw, 600px)" @cancel="emits('closed')">
+  <a-modal v-model:visible="vModel" :footer="null" width="max(90vw, 600px)" @cancel="emits('update:modelValue', false)">
     <a-typography-title class="ml-4 mb-2 select-none" type="secondary" :level="5">SETTINGS</a-typography-title>
-    <a-layout class="mt-3 modal-body">
+
+    <a-layout class="mt-3 modal-body flex">
       <!-- Side tabs -->
       <a-layout-sider theme="light">
-        <a-menu v-model:selectedKeys="selectedTabKeys" class="h-full" mode="inline" :open-keys="[]">
+        <a-menu v-model:selected-keys="selectedTabKeys" class="h-full" mode="inline" :open-keys="[]">
           <a-menu-item v-for="(tab, key) of tabsInfo" :key="key">
             <div class="flex flex-row items-center space-x-2">
               <component :is="tab.icon" class="flex" />
+
               <div class="flex select-none">
                 {{ tab.title }}
               </div>
@@ -121,14 +134,14 @@ watch(
       </a-layout-sider>
 
       <!-- Sub Tabs -->
-      <a-layout-content class="h-full px-4 scrollbar-thumb-gray-500">
+      <a-layout-content class="h-auto px-4 scrollbar-thumb-gray-500">
         <a-menu v-model:selectedKeys="selectedSubTabKeys" :open-keys="[]" mode="horizontal">
           <a-menu-item v-for="(tab, key) of selectedTab.subTabs" :key="key" class="select-none">
             {{ tab.title }}
           </a-menu-item>
         </a-menu>
 
-        <component :is="selectedSubTab.body()" class="px-2 py-6" />
+        <component :is="selectedSubTab.body" class="px-2 py-6" />
       </a-layout-content>
     </a-layout>
   </a-modal>
@@ -136,6 +149,6 @@ watch(
 
 <style scoped>
 .modal-body {
-  @apply h-[70vh];
+  @apply min-h-[75vh];
 }
 </style>

@@ -5,7 +5,6 @@ import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
 import MdiAccountIcon from '~icons/mdi/account'
 import MdiAccountGroupIcon from '~icons/mdi/account-group'
-import MdiCheckIcon from '~icons/mdi/check-bold'
 
 enum LockType {
   Personal = 'personal',
@@ -59,7 +58,7 @@ const Icon = computed(() => {
         <div>
           <div class="nc-menu-item" @click="changeLockType(LockType.Collaborative)">
             <div>
-              <MdiCheckIcon v-if="!view?.lock_type || view?.lock_type === LockType.Collaborative" />
+              <MdiCheck v-if="!view?.lock_type || view?.lock_type === LockType.Collaborative" />
               <span v-else />
               <div>
                 <MdiAccountGroupIcon />
@@ -70,7 +69,7 @@ const Icon = computed(() => {
           </div>
           <div class="nc-menu-item" @click="changeLockType(LockType.Locked)">
             <div>
-              <MdiCheckIcon v-if="view.lock_type === LockType.Locked" />
+              <MdiCheck v-if="view.lock_type === LockType.Locked" />
               <span v-else />
               <div>
                 <MdiLockOutlineIcon />
@@ -81,7 +80,7 @@ const Icon = computed(() => {
           </div>
           <div class="nc-menu-item" @click="changeLockType(LockType.Personal)">
             <div>
-              <MdiCheckIcon v-if="view.lock_type === LockType.Personal" />
+              <MdiCheck v-if="view.lock_type === LockType.Personal" />
               <span v-else />
               <div>
                 <MdiAccountIcon />

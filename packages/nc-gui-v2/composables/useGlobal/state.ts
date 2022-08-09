@@ -74,9 +74,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
   /** reactive token payload */
   const { payload } = useJwt<JwtPayload & User>(token)
 
-  /** is sidebar open */
-  const sidebarOpen = ref(false)
-
   /** currently running requests */
   const runningRequests = useCounter()
 
@@ -88,7 +85,6 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     storage,
     token,
     jwtPayload: payload,
-    sidebarOpen,
     timestamp,
     runningRequests,
     error,

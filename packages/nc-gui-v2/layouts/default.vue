@@ -18,11 +18,13 @@ export default {
 </script>
 
 <template>
-  <a-layout-content class="pl-2 pt-2">
-    <teleport v-if="$slots.sidebar" to="#sidebar">
+  <div class="w-full h-full">
+    <teleport v-if="$slots.sidebar" to="#nc-sidebar-left">
       <slot name="sidebar" />
     </teleport>
 
-    <slot />
-  </a-layout-content>
+    <a-layout-content>
+      <slot />
+    </a-layout-content>
+  </div>
 </template>

@@ -6,7 +6,7 @@ import { notification } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { inject, onMounted, ref, useApi, useRouter, watch } from '#imports'
+import { inject, onMounted, ref, useApi, useRoute, useRouter, watch } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ActiveViewInj, ViewListInj } from '~/context'
 
@@ -25,6 +25,8 @@ const views = inject<Ref<any[]>>(ViewListInj, ref([]))
 const { api } = useApi()
 
 const router = useRouter()
+
+const route = useRoute()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -119,7 +121,6 @@ async function onSortEnd(evt: SortableEvent) {
 
 let sortable: Sortable
 
-// todo: replace with vuedraggable
 const initSortable = (el: HTMLElement) => {
   if (sortable) sortable.destroy()
 
@@ -193,7 +194,10 @@ function onDeleted() {
       :key="view.id"
       :view="view"
       class="transition-all ease-in duration-300"
-      :class="[isMarked === view.id ? 'bg-gray-200' : '']"
+      :class="[
+        isMarked === view.id ? 'bg-gray-200' : '',
+        route.params.viewTitle && route.params.viewTitle.includes(view.title) ? 'active' : '',
+      ]"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="onDelete"
@@ -206,7 +210,7 @@ function onDeleted() {
 
 <style lang="scss">
 .nc-views-menu {
-  @apply flex-1 max-h-[20vh] overflow-y-scroll scrollbar-thin-primary;
+  @apply flex-1 max-h-[30vh] overflow-y-scroll scrollbar-thin-dull;
 
   .ghost,
   .ghost > * {
@@ -229,6 +233,14 @@ function onDeleted() {
 
   .sortable-chosen {
     @apply !bg-primary/25 text-primary;
+  }
+
+  .active {
+    @apply bg-blue-500/15;
+
+    .nc-icon {
+      @apply !text-pink-500;
+    }
   }
 }
 </style>

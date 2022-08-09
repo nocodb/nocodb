@@ -10,14 +10,13 @@ interface Props {
   column: ColumnType
   modelValue: any
   editEnabled: boolean
-}
-
-interface Emits {
-  (event: 'update:modelValue', value: any): void
+  rowIndex: number
 }
 
 const props = defineProps<Props>()
+
 const emit = defineEmits(['update:modelValue', 'save', 'navigate', 'update:editEnabled'])
+
 const column = toRef(props, 'column')
 
 provide(ColumnInj, column)
@@ -25,6 +24,7 @@ provide(ColumnInj, column)
 provide(EditModeInj, useVModel(props, 'editEnabled', emit))
 
 let changed = $ref(false)
+
 const syncValue = useDebounceFn(function () {
   changed = false
   emit('save')
@@ -114,7 +114,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
   >
     <CellTextArea v-if="isTextArea" v-model="vModel" />
     <CellCheckbox v-else-if="isBoolean" v-model="vModel" />
-    <CellAttachment v-else-if="isAttachment" v-model="vModel" />
+    <CellAttachment v-else-if="isAttachment" v-model="vModel" :row-index="props.rowIndex" />
     <CellSingleSelect v-else-if="isSingleSelect" v-model="vModel" />
     <CellMultiSelect v-else-if="isMultiSelect" v-model="vModel" />
     <CellDatePicker v-else-if="isDate" v-model="vModel" />

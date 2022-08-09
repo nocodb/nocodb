@@ -2,9 +2,6 @@
 import type { ViewTypes } from 'nocodb-sdk'
 import { viewIcons } from '~/utils'
 import { useDebounceFn, useNuxtApp, useVModel } from '#imports'
-import MdiTrashCan from '~icons/mdi/trash-can'
-import MdiContentCopy from '~icons/mdi/content-copy'
-import MdiDrag from '~icons/mdi/drag-vertical'
 
 interface Props {
   view: Record<string, any>

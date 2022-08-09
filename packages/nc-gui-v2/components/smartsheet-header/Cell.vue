@@ -5,8 +5,9 @@ import { inject, toRef } from 'vue'
 import { ColumnInj, MetaInj } from '~/context'
 import { useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any } }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean }>()
 const column = toRef(props, 'column')
+const hideMenu = toRef(props, 'hideMenu')
 provide(ColumnInj, column)
 
 const meta = inject(MetaInj)
@@ -20,8 +21,10 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     <SmartsheetHeaderCellIcon v-if="column" />
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
 
-    <div class="flex-1" />
-    <SmartsheetHeaderMenu />
+    <template v-if="!hideMenu">
+      <div class="flex-1" />
+      <SmartsheetHeaderMenu />
+    </template>
   </div>
 </template>
 

@@ -3,7 +3,6 @@ import AddRow from './AddRow.vue'
 import DeleteTable from './DeleteTable.vue'
 import LockMenu from './LockMenu.vue'
 import Reload from './Reload.vue'
-import ToggleDrawer from './ToggleDrawer.vue'
 </script>
 
 <template>
@@ -23,10 +22,6 @@ import ToggleDrawer from './ToggleDrawer.vue'
     <div class="dot" />
 
     <DeleteTable />
-
-    <div class="dot" />
-
-    <ToggleDrawer />
 
     <slot name="end" />
   </div>

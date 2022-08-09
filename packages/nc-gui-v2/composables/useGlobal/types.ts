@@ -24,7 +24,6 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   storage: Ref<StoredState>
   token: WritableComputedRef<StoredState['token']>
   jwtPayload: ComputedRef<(JwtPayload & User) | null>
-  sidebarOpen: Ref<boolean>
   timestamp: Ref<number>
   runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>

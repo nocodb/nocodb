@@ -25,8 +25,6 @@ import {
   ReloadViewDataHookInj,
 } from '~/context'
 import { NavigateDir } from '~/lib'
-import MdiArrowExpandIcon from '~icons/mdi/arrow-expand'
-import MdiPlusIcon from '~icons/mdi/plus'
 
 const meta = inject(MetaInj)
 const view = inject(ActiveViewInj)
@@ -40,7 +38,6 @@ const isView = false
 
 const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
 let editEnabled = $ref(false)
-const { sqlUi } = useProject()
 const { xWhere, isPkAvail } = useSmartsheetStoreOrThrow()
 const addColumnDropdown = ref(false)
 const contextMenu = ref(false)
@@ -254,7 +251,7 @@ const onNavigate = (dir: NavigateDir) => {
 
 <template>
   <div class="flex flex-col h-100 min-h-0 w-100">
-    <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-primary">
+    <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
@@ -276,6 +273,7 @@ const onNavigate = (dir: NavigateDir) => {
                 :key="col.title"
                 v-xc-ver-resize
                 :data-col="col.id"
+                :data-title="col.title"
                 @xcresize="onresize(col.id, $event)"
                 @xcresizing="onXcResizing(col.title, $event)"
                 @xcresized="resizingCol = null"
@@ -287,7 +285,7 @@ const onNavigate = (dir: NavigateDir) => {
               <th v-t="['c:column:add']" @click="addColumnDropdown = true">
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
-                    <MdiPlusIcon class="text-sm" />
+                    <MdiPlus class="text-sm" />
                   </div>
                   <template #overlay>
                     <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
@@ -297,22 +295,23 @@ const onNavigate = (dir: NavigateDir) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, rowIndex) in data" :key="rowIndex" class="nc-grid-row group">
-              <td key="row-index" class="caption nc-grid-cell">
-                <div class="align-center flex w-[80px]">
+            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row">
+              <td key="row-index" class="caption nc-grid-cell group">
+                <div class="flex items-center w-[80px]">
                   <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
                   <div
                     :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                    class="group-hover:flex w-full align-center"
+                    class="group-hover:flex w-full items-center justify-between p-1"
                   >
                     <a-checkbox v-model:checked="row.rowMeta.selected" />
-                    <span class="flex-1" />
-                    <MdiArrowExpandIcon class="text-sm text-pink hidden group-hover:inline-block" />
+                    <div class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
+                      <MdiArrowExpand class="select-none transform hover:(text-pink-500 scale-120)" />
+                    </div>
                   </div>
                 </div>
               </td>
               <td
-                v-for="(columnObj, colIndex) in fields"
+                v-for="(columnObj, colIndex) of fields"
                 :key="rowIndex + columnObj.title"
                 class="cell pointer nc-grid-cell"
                 :class="{
@@ -355,17 +354,13 @@ const onNavigate = (dir: NavigateDir) => {
                 class="text-left pointer nc-grid-add-new-cell"
                 @click="addEmptyRow()"
               >
-                <a-tooltip top left>
-                  <div class="w-min flex align-center">
-                    <MdiPlusIcon class="text-pint-500 text-xs" />
-                    <span class="ml-1 caption grey--text">
-                      {{ $t('activity.addRow') }}
-                    </span>
-                  </div>
-                  <template #title>
-                    <span class="caption"> Add new row</span>
-                  </template>
-                </a-tooltip>
+                <div class="px-2 w-full flex items-center">
+                  <MdiPlus class="text-pint-500 text-xs" />
+
+                  <span class="ml-1">
+                    {{ $t('activity.addRow') }}
+                  </span>
+                </div>
               </td>
             </tr>
           </tbody>

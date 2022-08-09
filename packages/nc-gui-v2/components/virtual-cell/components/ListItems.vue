@@ -1,9 +1,9 @@
 <script lang="ts" setup>
-import { useLTARStoreOrThrow, useVModel } from '#imports'
-import MdiReloadIcon from '~icons/mdi/reload'
+import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
 
 const props = defineProps<{ modelValue: boolean }>()
-const emit = defineEmits(['update:modelValue'])
+
+const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -16,8 +16,8 @@ const {
   getRelatedTableRowId,
 } = useLTARStoreOrThrow()
 
-watch(vModel, () => {
-  if (vModel.value) {
+watch(vModel, (nextVal) => {
+  if (nextVal) {
     loadChildrenExcludedList()
   }
 })
@@ -25,7 +25,6 @@ watch(vModel, () => {
 const linkRow = async (row: Record<string, any>) => {
   await link(row)
   vModel.value = false
-  // await loadChildrenExcludedList()
 }
 </script>
 
@@ -40,7 +39,7 @@ const linkRow = async (row: Record<string, any>) => {
           size="small"
         ></a-input>
         <div class="flex-1" />
-        <MdiReloadIcon class="cursor-pointer text-gray-500" @click="loadChildrenExcludedList" />
+        <MdiReload class="cursor-pointer text-gray-500" @click="loadChildrenExcludedList" />
         <a-button type="primary" size="small" @click="emit('addNewRecord')">Add new record</a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">

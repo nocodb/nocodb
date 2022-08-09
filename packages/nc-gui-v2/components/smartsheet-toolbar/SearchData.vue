@@ -1,14 +1,16 @@
 <script lang="ts" setup>
-import { useProvideSmartsheetStore, useSmartsheetStoreOrThrow } from '~/composables/useSmartsheetStore'
-import { MetaInj, ReloadViewDataHookInj } from '~/context'
-import MdiSearchIcon from '~icons/mdi/magnify'
-import MdiMenuDownIcon from '~icons/mdi/menu-down'
+import { computed, inject, ref, useSmartsheetStoreOrThrow } from '#imports'
+import { ReloadViewDataHookInj } from '~/context'
 
-const reloadData = inject(ReloadViewDataHookInj)
+const reloadData = inject(ReloadViewDataHookInj)!
+
 const { search, meta } = useSmartsheetStoreOrThrow()
 
+// todo: where is this value supposed to come from? it's not in the store
+const isDropdownOpen = ref(false)
+
 const columns = computed(() =>
-  meta?.value?.columns?.map((c) => ({
+  meta.value?.columns?.map((c) => ({
     value: c.id,
     label: c.title,
   })),
@@ -21,12 +23,13 @@ const columns = computed(() =>
     size="small"
     class="max-w-[200px]"
     placeholder="Filter query"
-    @press-enter="reloadData.trigger()"
+    @press-enter="reloadData.trigger(null)"
   >
     <template #addonBefore>
       <div class="flex align-center relative" @click="isDropdownOpen = true">
-        <MdiSearchIcon class="text-grey" />
-        <MdiMenuDownIcon class="text-grey" />
+        <MdiMagnify class="text-grey" />
+        <MdiMenuDown class="text-grey" />
+
         <a-select
           v-model:value="search.field"
           size="small"
@@ -39,5 +42,3 @@ const columns = computed(() =>
     </template>
   </a-input>
 </template>
-
-<style scoped></style>

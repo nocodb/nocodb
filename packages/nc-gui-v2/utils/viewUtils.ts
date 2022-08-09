@@ -9,7 +9,6 @@ import MdiEyeIcon from '~icons/mdi/eye-circle-outline'
 
 export const viewIcons = {
   [ViewTypes.GRID]: { icon: MdiGridIcon, color: 'blue' },
-  // [ViewTypes.GRID]: { icon: "mdi-grid-large", color: "blue" },
   [ViewTypes.FORM]: { icon: MdiFormIcon, color: 'pink' },
   calendar: { icon: MdiCalendarIcon, color: 'purple' },
   [ViewTypes.GALLERY]: { icon: MdiGalleryIcon, color: 'orange' },

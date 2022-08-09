@@ -1,9 +1,11 @@
 <script setup lang="ts">
-import { useColumnCreateStoreOrThrow } from '#imports'
+import type { UITypes } from 'nocodb-sdk'
+import { computed, useColumnCreateStoreOrThrow } from '#imports'
 
-const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
+const { formState, validateInfos, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()!
 
-const dataTypes = computed(() => sqlUi?.value?.getDataTypeListForUiType(formState))
+// todo: 2nd argument of `getDataTypeListForUiType` is missing!
+const dataTypes = computed(() => sqlUi?.value?.getDataTypeListForUiType(formState.value as { uidt: UITypes }, '' as any))
 
 // to avoid type error with checkbox
 formState.value.rqd = !!formState.value.rqd
@@ -21,7 +23,7 @@ formState.value.au = !!formState.value.au
           v-model:checked="formState.rqd"
           :disabled="formState.pk || !sqlUi.columnEditable(formState)"
           size="small"
-          class="nc-column-name-input"
+          class="nc-column-checkbox-NN"
           @change="onAlter"
         />
       </a-form-item>
@@ -30,7 +32,7 @@ formState.value.au = !!formState.value.au
           v-model:checked="formState.pk"
           :disabled="!sqlUi.columnEditable(formState)"
           size="small"
-          class="nc-column-name-input"
+          class="nc-column-checkbox-PK"
           @change="onAlter"
         />
       </a-form-item>
@@ -39,7 +41,7 @@ formState.value.au = !!formState.value.au
           v-model:checked="formState.ai"
           :disabled="sqlUi.colPropUNDisabled(formState) || !sqlUi.columnEditable(formState)"
           size="small"
-          class="nc-column-name-input"
+          class="nc-column-checkbox-AI"
           @change="onAlter"
         />
       </a-form-item>
@@ -48,14 +50,14 @@ formState.value.au = !!formState.value.au
         :disabled="sqlUi.colPropUNDisabled(formState) || !sqlUi.columnEditable(formState)"
         @change="onAlter"
       >
-        <a-checkbox v-model:checked="formState.un" size="small" class="nc-column-name-input" />
+        <a-checkbox v-model:checked="formState.un" size="small" class="nc-column-checkbox-UN" />
       </a-form-item>
       <a-form-item
         label="AU"
         :disabled="sqlUi.colPropAuDisabled(formState) || !sqlUi.columnEditable(formState)"
         @change="onAlter"
       >
-        <a-checkbox v-model:checked="formState.au" size="small" class="nc-column-name-input" />
+        <a-checkbox v-model:checked="formState.au" size="small" class="nc-column-checkbox-AU" />
       </a-form-item>
     </div>
     <a-form-item :label="$t('labels.databaseType')" v-bind="validateInfos.dt">
@@ -82,5 +84,3 @@ formState.value.au = !!formState.value.au
     </a-form-item>
   </div>
 </template>
-
-<style scoped></style>

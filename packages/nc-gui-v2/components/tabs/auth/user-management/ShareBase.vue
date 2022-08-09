@@ -1,13 +1,8 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
-import { useClipboard } from '@vueuse/core'
-import OpenInNewIcon from '~icons/mdi/open-in-new'
-import { dashboardUrl } from '~/utils/urlUtils'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import MdiReload from '~icons/mdi/reload'
-import DownIcon from '~icons/ic/round-keyboard-arrow-down'
-import ContentCopyIcon from '~icons/mdi/content-copy'
-import MdiXmlIcon from '~icons/mdi/xml'
+import { onMounted, useClipboard, useNuxtApp, useProject } from '#imports'
+import { dashboardUrl, extractSdkResponseErrorMsg } from '~/utils'
+
 const toast = useToast()
 
 interface ShareBase {
@@ -22,9 +17,13 @@ enum ShareBaseRole {
 }
 
 const { $api, $e } = useNuxtApp()
+
 let base = $ref<null | ShareBase>(null)
+
 const showEditBaseDropdown = $ref(false)
+
 const { project } = useProject()
+
 const { copy } = useClipboard()
 
 const url = $computed(() => (base && base.uuid ? `${dashboardUrl()}#/nc/base/${base.uuid}` : null))
@@ -33,7 +32,8 @@ const loadBase = async () => {
   try {
     if (!project.value.id) return
 
-    const res = await $api.project.sharedBaseGet(project.value.id)
+    // todo: result is missing roles in return-type
+    const res: any = await $api.project.sharedBaseGet(project.value.id)
     base = {
       uuid: res.uuid,
       url: res.url,
@@ -41,6 +41,7 @@ const loadBase = async () => {
     }
   } catch (e: any) {
     console.error(e)
+
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 }
@@ -49,16 +50,19 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
   try {
     if (!project.value.id) return
 
-    const res = await $api.project.sharedBaseUpdate(project.value.id, {
+    // todo: returns void?
+    const res: any = await $api.project.sharedBaseUpdate(project.value.id, {
       roles: role,
     })
 
-    base = res || {}
-    base.role = role
+    base = res ?? {}
+    base!.role = role
   } catch (e: any) {
     console.error(e)
+
     toast.error(await extractSdkResponseErrorMsg(e))
   }
+
   $e('a:shared-base:enable', { role })
 }
 
@@ -83,10 +87,13 @@ const recreate = async () => {
     const sharedBase = await $api.project.sharedBaseCreate(project.value.id, {
       roles: base?.role || ShareBaseRole.Viewer,
     })
+
     const newBase = sharedBase || {}
+
     base = { ...newBase, role: base?.role }
   } catch (e: any) {
     console.error(e)
+
     toast.error(await extractSdkResponseErrorMsg(e))
   }
 
@@ -96,7 +103,8 @@ const recreate = async () => {
 const copyUrl = async () => {
   if (!url) return
 
-  copy(url)
+  await copy(url)
+
   toast.success('Copied shareable base url to clipboard!')
 
   $e('c:shared-base:copy-url')
@@ -135,7 +143,8 @@ onMounted(() => {
 <template>
   <div class="flex flex-col w-full">
     <div class="flex flex-row items-center space-x-0.5 pl-2 h-[0.8rem]">
-      <OpenInNewIcon />
+      <MdiOpenInNew />
+
       <div class="text-xs">Shared Base Link</div>
     </div>
     <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
@@ -157,7 +166,7 @@ onMounted(() => {
           </template>
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="copyUrl">
             <template #icon>
-              <ContentCopyIcon class="flex mx-auto text-gray-600" />
+              <MdiContentCopy class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -167,7 +176,7 @@ onMounted(() => {
           </template>
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="navigateToSharedBase">
             <template #icon>
-              <OpenInNewIcon class="flex mx-auto text-gray-600" />
+              <MdiOpenInNew class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -177,7 +186,7 @@ onMounted(() => {
           </template>
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="generateEmbeddableIframe">
             <template #icon>
-              <MdiXmlIcon class="flex mx-auto text-gray-600" />
+              <MdiXml class="flex mx-auto text-gray-600" />
             </template>
           </a-button>
         </a-tooltip>
@@ -190,7 +199,7 @@ onMounted(() => {
           <div class="flex flex-row items-center space-x-2">
             <div v-if="base?.uuid">Anyone with the link</div>
             <div v-else>Disable shared base</div>
-            <DownIcon class="h-[1rem]" />
+            <IcRoundKeyboardArrowDown class="h-[1rem]" />
           </div>
         </a-button>
 
@@ -207,7 +216,7 @@ onMounted(() => {
       <a-select v-if="base?.uuid" v-model:value="base.role" class="flex">
         <template #suffixIcon>
           <div class="flex flex-row">
-            <DownIcon class="text-black -mt-0.5 h-[1rem]" />
+            <IcRoundKeyboardArrowDown class="text-black -mt-0.5 h-[1rem]" />
           </div>
         </template>
         <a-select-option
@@ -225,5 +234,3 @@ onMounted(() => {
     </div>
   </div>
 </template>
-
-<style scoped></style>

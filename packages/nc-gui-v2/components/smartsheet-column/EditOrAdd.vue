@@ -117,7 +117,7 @@ if (!formState.value?.column_name) {
           v-model:value="formState.uidt"
           show-search
           size="small"
-          class="nc-column-name-input"
+          class="nc-column-type-input"
           @change="onUidtOrIdTypeChange"
         >
           <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">

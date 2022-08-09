@@ -1,6 +1,7 @@
 export * from './useApi'
 export * from './useGlobal'
 export * from './useInjectionState'
+export * from './useSidebar'
 export * from './useUIPermission'
 export * from './useAttachment'
 export * from './useColors'

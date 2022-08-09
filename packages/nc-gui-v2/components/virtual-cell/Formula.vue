@@ -1,10 +1,10 @@
 <script lang="ts" setup>
-import { computed, useProject } from '#imports'
+import { computed, inject, ref, useProject } from '#imports'
 import { CellValueInj, ColumnInj } from '~/context'
-import { handleTZ } from '~/utils/dateTimeUtils'
-import { replaceUrlsWithLink } from '~/utils/urlUtils'
+import { handleTZ, replaceUrlsWithLink } from '~/utils'
 
-const column = inject(ColumnInj)
+// todo: column type doesn't have required property `error` - throws in typecheck
+const column: any = inject(ColumnInj)
 
 const value = inject(CellValueInj)
 
@@ -14,6 +14,7 @@ const showEditFormulaWarning = ref(false)
 
 const showEditFormulaWarningMessage = () => {
   showEditFormulaWarning.value = true
+
   setTimeout(() => {
     showEditFormulaWarning.value = false
   }, 3000)
@@ -32,6 +33,7 @@ const urls = computed(() => replaceUrlsWithLink(result.value))
       </template>
       <span>ERR!</span>
     </a-tooltip>
+
     <div class="pa-2" @dblclick="showEditFormulaWarningMessage">
       <div v-if="urls" v-html="urls" />
       <div v-else>{{ result }}</div>
@@ -42,5 +44,3 @@ const urls = computed(() => replaceUrlsWithLink(result.value))
     </div>
   </div>
 </template>
-
-<style scoped></style>

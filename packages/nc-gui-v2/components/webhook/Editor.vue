@@ -2,20 +2,8 @@
 import { Form } from 'ant-design-vue'
 import { useToast } from 'vue-toastification'
 import { MetaInj } from '~/context'
-import MdiContentSaveIcon from '~icons/mdi/content-save'
-import MdiLinkIcon from '~icons/mdi/link'
-import MdiEmailIcon from '~icons/mdi/email'
-import MdiSlackIcon from '~icons/mdi/slack'
-import MdiMicrosoftTeamsIcon from '~icons/mdi/microsoft-teams'
-import MdiDiscordIcon from '~icons/mdi/discord'
-import MdiChatIcon from '~icons/mdi/chat'
-import MdiWhatsAppIcon from '~icons/mdi/whatsapp'
-import MdiCellPhoneMessageIcon from '~icons/mdi/cellphone-message'
-import MdiGestureDoubleTapIcon from '~icons/mdi/gesture-double-tap'
-import MdiInformationIcon from '~icons/mdi/information'
-import MdiArrowLeftBoldIcon from '~icons/mdi/arrow-left-bold'
-import { fieldRequiredValidator } from '~/utils/validation'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg, fieldRequiredValidator } from '~/utils'
+import { inject, reactive, useApi, useNuxtApp } from '#imports'
 
 interface Option {
   label: string
@@ -24,7 +12,9 @@ interface Option {
 
 const emit = defineEmits(['backToList', 'editOrAdd'])
 
-const { $state, $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
+
+const { api, isLoading: loading } = useApi()
 
 const toast = useToast()
 
@@ -32,12 +22,12 @@ const meta = inject(MetaInj)
 
 const useForm = Form.useForm
 
-const hook = reactive({
+const hook = reactive<Record<string, any>>({
   id: '',
   title: '',
   event: '',
   operation: '',
-  eventOperation: undefined,
+  eventOperation: '',
   notification: {
     type: 'URL',
     payload: {
@@ -45,7 +35,7 @@ const hook = reactive({
       body: '{{ json data }}',
       headers: [{}],
       parameters: [{}],
-    } as any,
+    },
   },
   condition: false,
 })
@@ -63,8 +53,6 @@ const teamsChannels = ref<Record<string, any>[]>([])
 const discordChannels = ref<Record<string, any>[]>([])
 
 const mattermostChannels = ref<Record<string, any>[]>([])
-
-const loading = ref(false)
 
 const filters = ref([])
 
@@ -218,7 +206,7 @@ const validators = computed(() => {
     }),
   }
 })
-const { resetFields, validate, validateInfos } = useForm(hook, validators)
+const { validate, validateInfos } = useForm(hook, validators)
 
 function onNotTypeChange() {
   hook.notification.payload = {} as any
@@ -258,7 +246,7 @@ function setHook(newHook: any) {
 }
 
 async function onEventChange() {
-  const { notification: { payload = {}, type = {} } = {}, ...rest } = hook
+  const { notification: { payload = {}, type = {} } = {} } = hook
 
   Object.assign(hook, {
     ...hook,
@@ -305,7 +293,7 @@ async function onEventChange() {
 
 async function loadPluginList() {
   try {
-    const plugins = (await $api.plugin.list()).list as any
+    const plugins = (await api.plugin.list()).list as any
     apps.value = plugins.reduce((o: Record<string, any>[], p: Record<string, any>) => {
       p.tags = p.tags ? p.tags.split(',') : []
       p.parsedInput = p.input && JSON.parse(p.input)
@@ -327,31 +315,30 @@ async function saveHooks() {
     await validate()
   } catch (_: any) {
     toast.error('Invalid Form')
+
     loading.value = false
+
     return
   }
 
   try {
     let res
     if (hook.id) {
-      res = await $api.dbTableWebhook.update(hook.id, {
+      res = await api.dbTableWebhook.update(hook.id, {
+        ...hook,
+        notification: {
+          ...hook.notification,
+          payload: hook.notification.payload,
+        },
+      })
+    } else {
+      res = await api.dbTableWebhook.create(meta!.value.id!, {
         ...hook,
         notification: {
           ...hook.notification,
           payload: hook.notification.payload,
         },
       } as any)
-    } else {
-      res = await $api.dbTableWebhook.create(
-        meta?.value.id as string,
-        {
-          ...hook,
-          notification: {
-            ...hook.notification,
-            payload: hook.notification.payload,
-          },
-        } as any,
-      )
     }
 
     if (!hook.id && res) {
@@ -371,6 +358,7 @@ async function saveHooks() {
   } finally {
     loading.value = false
   }
+
   $e('a:webhook:add', {
     operation: hook.operation,
     condition: hook.condition,
@@ -389,7 +377,9 @@ defineExpose({
 
 watch(
   () => hook.eventOperation,
-  (v) => {
+  () => {
+    if (!hook.eventOperation) return
+
     const [event, operation] = hook.eventOperation.split(' ')
     hook.event = event
     hook.operation = operation
@@ -405,21 +395,21 @@ onMounted(() => {
   <div class="mb-4">
     <div class="float-left mt-2">
       <div class="flex items-center">
-        <MdiArrowLeftBoldIcon class="mr-3 text-xl cursor-pointer" @click="emit('backToList')" />
+        <MdiArrowLeftBold class="mr-3 text-xl cursor-pointer" @click="emit('backToList')" />
         <span class="inline text-xl font-bold">{{ meta.title }} : {{ hook.title || 'Webhooks' }} </span>
       </div>
     </div>
     <div class="float-right mb-5">
       <a-button class="mr-3" size="large" @click="testWebhook">
         <div class="flex items-center">
-          <MdiGestureDoubleTapIcon class="mr-2" />
+          <MdiGestureDoubleTap class="mr-2" />
           <!-- TODO: i18n -->
           Test Webhook
         </div>
       </a-button>
       <a-button type="primary" size="large" @click.prevent="saveHooks">
         <div class="flex items-center">
-          <MdiContentSaveIcon class="mr-2" />
+          <MdiContentSave class="mr-2" />
           <!-- Save -->
           {{ $t('general.save') }}
         </div>
@@ -456,14 +446,22 @@ onMounted(() => {
             >
               <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
                 <div class="flex items-center">
-                  <MdiLinkIcon v-if="notificationOption.type === 'URL'" class="mr-2" />
-                  <MdiEmailIcon v-if="notificationOption.type === 'Email'" class="mr-2" />
-                  <MdiSlackIcon v-if="notificationOption.type === 'Slack'" class="mr-2" />
-                  <MdiMicrosoftTeamsIcon v-if="notificationOption.type === 'Microsoft Teams'" class="mr-2" />
-                  <MdiDiscordIcon v-if="notificationOption.type === 'Discord'" class="mr-2" />
-                  <MdiChatIcon v-if="notificationOption.type === 'Mattermost'" class="mr-2" />
-                  <MdiWhatsAppIcon v-if="notificationOption.type === 'Whatsapp Twilio'" class="mr-2" />
-                  <MdiCellPhoneMessageIcon v-if="notificationOption.type === 'Twilio'" class="mr-2" />
+                  <MdiLink v-if="notificationOption.type === 'URL'" class="mr-2" />
+
+                  <MdiEmail v-if="notificationOption.type === 'Email'" class="mr-2" />
+
+                  <MdiSlack v-if="notificationOption.type === 'Slack'" class="mr-2" />
+
+                  <MdiMicrosoftTeams v-if="notificationOption.type === 'Microsoft Teams'" class="mr-2" />
+
+                  <MdiDiscord v-if="notificationOption.type === 'Discord'" class="mr-2" />
+
+                  <MdiChat v-if="notificationOption.type === 'Mattermost'" class="mr-2" />
+
+                  <MdiWhatsapp v-if="notificationOption.type === 'Whatsapp Twilio'" class="mr-2" />
+
+                  <MdiCellphoneMessage v-if="notificationOption.type === 'Twilio'" class="mr-2" />
+
                   {{ notificationOption.type }}
                 </div>
               </a-select-option>
@@ -471,17 +469,20 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
+
       <a-row v-if="hook.notification.type === 'URL'" class="mb-5" type="flex" :gutter="[16, 0]">
         <a-col :span="6">
           <a-select v-model:value="hook.notification.payload.method" size="large">
             <a-select-option v-for="(method, i) in methodList" :key="i" :value="method.title">{{ method.title }}</a-select-option>
           </a-select>
         </a-col>
+
         <a-col :span="18">
           <a-form-item v-bind="validateInfos['notification.payload.path']">
             <a-input v-model:value="hook.notification.payload.path" size="large" placeholder="http://example.com" />
           </a-form-item>
         </a-col>
+
         <a-col :span="24">
           <a-tabs v-model:activeKey="urlTabKey" centered>
             <a-tab-pane key="body" tab="Body">
@@ -503,6 +504,7 @@ onMounted(() => {
           </a-tabs>
         </a-col>
       </a-row>
+
       <a-row v-if="hook.notification.type === 'Slack'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
@@ -516,6 +518,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
+
       <a-row v-if="hook.notification.type === 'Microsoft Teams'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
@@ -529,6 +532,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
+
       <a-row v-if="hook.notification.type === 'Discord'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
@@ -542,6 +546,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
+
       <a-row v-if="hook.notification.type === 'Mattermost'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
@@ -555,6 +560,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
+
       <a-row v-if="formInput[hook.notification.type] && hook.notification.payload" type="flex">
         <a-col v-for="(input, i) in formInput[hook.notification.type]" :key="i" :span="24">
           <a-form-item v-if="input.type === 'LongText'" v-bind="validateInfos[`notification.payload.${input.key}`]">
@@ -565,6 +571,7 @@ onMounted(() => {
           </a-form-item>
         </a-col>
       </a-row>
+
       <a-row class="mb-5" type="flex">
         <a-col :span="24">
           <a-card>
@@ -573,6 +580,7 @@ onMounted(() => {
           </a-card>
         </a-col>
       </a-row>
+
       <a-row>
         <a-col :span="24">
           <div class="text-gray-600">
@@ -582,7 +590,7 @@ onMounted(() => {
               <template #title>
                 <span> <strong>data</strong> : Row data <br /> </span>
               </template>
-              <MdiInformationIcon class="ml-2" />
+              <MdiInformation class="ml-2" />
             </a-tooltip>
 
             <div class="mt-3">

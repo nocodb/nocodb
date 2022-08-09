@@ -99,7 +99,7 @@ onMounted(() => {
       <div
         ref="sortableRef"
         :class="{ dragging }"
-        class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull"
+        class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-scroll"
       >
         <div
           v-for="(item, i) of visibleItems"

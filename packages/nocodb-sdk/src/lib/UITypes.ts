@@ -51,7 +51,7 @@ export function isVirtualCol(
     UITypes.Formula,
     UITypes.Rollup,
     UITypes.Lookup,
-    UITypes.Count,
+    // UITypes.Count,
   ].includes(<UITypes>(typeof col === 'object' ? col?.uidt : col));
 }
 

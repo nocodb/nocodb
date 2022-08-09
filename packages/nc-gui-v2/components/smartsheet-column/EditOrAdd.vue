@@ -96,7 +96,7 @@ watch(
 </script>
 
 <template>
-  <div class="max-w-[450px] min-w-[350px] w-max max-h-[95vh] bg-white shadow p-4 overflow-auto" @click.stop>
+  <div class="min-w-[350px] w-max max-h-[95vh] bg-white shadow p-4 overflow-auto" @click.stop>
     <a-form v-model="formState" name="column-create-or-edit" layout="vertical">
       <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.column_name">
         <a-input

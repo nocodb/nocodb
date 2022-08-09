@@ -140,7 +140,6 @@ function openQuickImportDialog(type: string) {
 
 <style scoped>
 .nc-container {
-  @apply overflow-hidden;
   flex: 1 1 100%;
 }
 

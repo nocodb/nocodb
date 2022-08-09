@@ -79,7 +79,7 @@ const logout = () => {
         </template>
       </a-layout-header>
 
-      <div class="w-full h-full">
+      <div class="w-full" style="height: calc(100% - var(--header-height))">
         <slot />
       </div>
     </a-layout>

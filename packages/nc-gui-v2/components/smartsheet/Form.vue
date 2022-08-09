@@ -373,7 +373,7 @@ onMounted(async () => {
           </div>
         </div>
       </div>
-      <draggable :list="hiddenColumns" draggable=".item" group="form-inputs" @start="drag = true" @end="drag = false">
+      <Draggable :list="hiddenColumns" draggable=".item" group="form-inputs" @start="drag = true" @end="drag = false">
         <template #item="{ element }">
           <a-card size="small" class="ma-0 pa-0 cursor-pointer item mb-2">
             <div class="flex">
@@ -382,12 +382,14 @@ onMounted(async () => {
                   v-if="isVirtualCol(element)"
                   :column="{ ...element, title: element.label || element.title }"
                   :required="isRequired(element, element.required)"
+                  :hide-menu="true"
                 />
                 <SmartsheetHeaderCell
                   v-else
                   class="w-full"
                   :column="{ ...element, title: element.label || element.title }"
                   :required="isRequired(element, element.required)"
+                  :hide-menu="true"
                 />
               </div>
               <div class="flex flex-row">
@@ -414,7 +416,7 @@ onMounted(async () => {
             </template>
           </a-dropdown>
         </template>
-      </draggable>
+      </Draggable>
     </a-col>
     <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-primary">
       <a-card class="h-full">
@@ -447,7 +449,7 @@ onMounted(async () => {
               @click="updateView"
             />
           </a-form-item>
-          <draggable
+          <Draggable
             ref="draggableRef"
             :list="localColumns"
             item-key="fk_column_id"
@@ -472,11 +474,13 @@ onMounted(async () => {
                       v-if="isVirtualCol(element)"
                       :column="{ ...element, title: element.label || element.title }"
                       :required="isRequired(element, element.required)"
+                      :hide-menu="true"
                     />
                     <SmartsheetHeaderCell
                       v-else
                       :column="{ ...element, title: element.label || element.title }"
                       :required="isRequired(element, element.required)"
+                      :hide-menu="true"
                     />
                   </div>
                   <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="flex">
@@ -530,7 +534,7 @@ onMounted(async () => {
                 Drag and drop fields here to add
               </div>
             </template>
-          </draggable>
+          </Draggable>
         </a-form>
 
         <div class="justify-center flex mt-5">

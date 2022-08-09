@@ -34,7 +34,7 @@ function openQuickImportDialog(type: string) {
 </script>
 
 <template>
-  <div class="nc-container pt-[9px]">
+  <div class="h-full w-full nc-container pt-[9px]">
     <div class="h-full w-full flex flex-col">
       <div class="px-2">
         <a-tabs v-model:activeKey="activeTabIndex" type="editable-card" @edit="closeTab">

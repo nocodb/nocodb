@@ -18,13 +18,13 @@ export default {
 </script>
 
 <template>
-  <NuxtLayout name="base">
-    <template #sidebar>
+  <div class="w-full h-full">
+    <teleport v-if="$slots.sidebar" to="#nc-sidebar-left">
       <slot name="sidebar" />
-    </template>
+    </teleport>
 
     <a-layout-content>
       <slot />
     </a-layout-content>
-  </NuxtLayout>
+  </div>
 </template>

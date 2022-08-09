@@ -78,7 +78,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
       <template #title> Toggle sidebar </template>
 
       <div
-        class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-9 left-[-1rem] shadow bg-gray-100 rounded-full"
+        class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-1/2 left-[-1rem] shadow bg-gray-100 rounded-full"
       >
         <MaterialSymbolsChevronRightRounded
           v-if="sidebarOpen"

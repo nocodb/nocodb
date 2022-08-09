@@ -60,7 +60,7 @@ onKeyDown('Escape', () => {
 /** if possible, on mounted we try to fetch the relevant `td` cell to use as a dropzone */
 onMounted(() => {
   if (typeof document !== 'undefined') {
-    dropZoneRef.value = document.querySelector(`td[data-col="${column.id}"]`) as HTMLTableDataCellElement
+    dropZoneRef.value = document.querySelector(`td[data-col="${column.value.id}"]`) as HTMLTableDataCellElement
   }
 })
 </script>

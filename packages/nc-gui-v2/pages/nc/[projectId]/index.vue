@@ -42,17 +42,23 @@ await loadTables()
       <a-layout-sider
         :collapsed="!isOpen"
         width="250"
-        collapsed-width="0"
-        class="relative shadow-md h-full"
+        collapsed-width="50"
+        class="relative shadow-md h-full z-1"
         :trigger="null"
         collapsible
         theme="light"
       >
         <a-dropdown :trigger="['click']">
-          <div class="group cursor-pointer w-full flex gap-4 items-center">
-            <div class="text-xl truncate">{{ project.title }}</div>
+          <div style="height: var(--header-height)" class="border-b-1 group cursor-pointer w-full flex gap-4 items-center px-3">
+            <template v-if="isOpen">
+              <div class="text-xl font-semibold truncate">{{ project.title }}</div>
 
-            <MdiChevronDown class="min-w-[28.5px] group-hover:text-pink-500 text-2xl" />
+              <MdiChevronDown class="min-w-[28.5px] group-hover:text-pink-500 text-2xl" />
+            </template>
+
+            <template v-else>
+              <MdiFolder class="text-pink-500 cursor-pointer transform hover:scale-105 text-2xl" />
+            </template>
           </div>
 
           <template #overlay>
@@ -77,6 +83,8 @@ await loadTables()
                     Swagger: Rest APIs
                   </a>
                 </a-menu-item>
+
+                <a-menu-divider />
 
                 <a-menu-item key="teamAndAuth">
                   <div
@@ -126,6 +134,8 @@ await loadTables()
                   </div>
                 </a-menu-item>
 
+                <a-menu-divider />
+
                 <a-sub-menu key="preview-as">
                   <template #title>
                     <div class="nc-project-menu-item group">
@@ -145,8 +155,7 @@ await loadTables()
           <template #title> Toggle table list </template>
 
           <div
-            :class="[isOpen ? 'right-[-0.75rem]' : 'right-[-1.75rem]']"
-            class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-9 shadow bg-gray-100 rounded-full"
+            class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"
           >
             <MaterialSymbolsChevronLeftRounded
               v-if="isOpen"
@@ -161,7 +170,8 @@ await loadTables()
             />
           </div>
         </a-tooltip>
-        <DashboardTreeView />
+
+        <DashboardTreeView v-show="isOpen" />
       </a-layout-sider>
     </template>
 

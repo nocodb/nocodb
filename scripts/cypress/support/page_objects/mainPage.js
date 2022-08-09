@@ -287,19 +287,19 @@ export class _mainPage {
     };
 
     hideField = (field) => {
-        cy.get(".nc-grid-header-cell").contains(field).should("be.visible");
+        cy.get(`th[data-title="${field}"]`).should("be.visible");
         cy.get(".nc-fields-menu-btn").click();
         cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
         cy.get(".nc-fields-menu-btn").click();
-        cy.get(".nc-grid-header-cell").contains(field).should("not.be.visible");
+        cy.get(`th[data-title="${field}"]`).should("not.exist");
     };
 
     unhideField = (field) => {
-        cy.get(".nc-grid-header-cell").contains(field).should("not.be.visible");
+        cy.get(`th[data-title="${field}"]`).should("not.exist");
         cy.get(".nc-fields-menu-btn").click();
         cy.getActiveMenu().find(`.nc-fields-list label:contains(${field}):visible`).click();
         cy.get(".nc-fields-menu-btn").click();
-        cy.get(".nc-grid-header-cell").contains(field).should("be.visible");
+        cy.get(`th[data-title="${field}"]`).should("be.visible");
     };
 
     sortField = (field, criteria) => {
@@ -476,6 +476,8 @@ export class _mainPage {
         // option-2
         // cy.openTableTab("Country", 0);
         // cy.get(".mdi-close").click({ multiple: true });
+        cy.get("button.ant-tabs-tab-remove").click({ multiple: true });
+        cy.get('.ant-tabs-tab-remove').should('not.exist')
     }
 }
 

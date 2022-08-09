@@ -341,24 +341,16 @@ Cypress.Commands.add("toastWait", (msg) => {
 Cypress.Commands.add("openViewsTab", (vn, rc) => {
     cy.task("log", `[openViewsTab] ${vn} ${rc}`);
 
-    cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)")
-        .should("exist")
-        .first()
-        .click({ force: true });
+    cy.get(`.nc-project-tree-tbl-${vn}`, { timeout: 10000 }).should("exist")
+      .first()
+      .click({ force: true });
 
-    cy.get(".nc-project-tree")
-        .contains(vn, { timeout: 6000 })
-        .first()
-        .click({ force: true });
-
-    cy.get(`.project-tab`).contains(vn).should("exist");
-
-    cy.get(".nc-project-tree")
-        .find(".v-list-item__title:contains(Tables)")
-        .should('exist')
-        .first()
-        .click({ force: true });
+    // kludge to make new tab active
+    cy.get('.ant-tabs-tab-btn')
+      .contains(vn)
+      .should('exist')
+      .click({ force: true });
+    cy.get('.xc-row-table.nc-grid').should('exist');
 
     // wait for page rendering to complete
     if (rc != 0) {
@@ -368,10 +360,12 @@ Cypress.Commands.add("openViewsTab", (vn, rc) => {
 
 Cypress.Commands.add("closeViewsTab", (vn) => {
     cy.task("log", `[closeViewsTab] ${vn}`);
-    cy.get(`.project-tab`).contains(vn).should("exist");
-    cy.get(`[href="#view||||${vn}"]`)
-        .find("button.mdi-close")
-        .click({ force: true });
+    cy.get('.ant-tabs-tab-btn')
+      .contains(vn)
+      .should('exist')
+      .parent()
+      .find('button')
+      .click();
 });
 
 // Support for screen-shots

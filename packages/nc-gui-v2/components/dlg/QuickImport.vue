@@ -16,9 +16,10 @@ import { useProject } from '#imports'
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
+  importOnly: boolean
 }
 
-const { importType, ...rest } = defineProps<Props>()
+const { importType, importOnly, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
@@ -265,6 +266,7 @@ function getAdapter(name: string, val: any) {
         ref="templateEditorRef"
         :project-template="templateData"
         :import-data="importData"
+        :import-only="importOnly"
         :quick-import-type="importType"
         @import="handleImport"
       />

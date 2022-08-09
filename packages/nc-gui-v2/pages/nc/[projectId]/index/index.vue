@@ -134,7 +134,7 @@ function openQuickImportDialog(type: string) {
       </div>
 
       <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
-      <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" :import-type="importType" />
+      <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" :import-type="importType" :import-only="false" />
       <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
     </div>
 

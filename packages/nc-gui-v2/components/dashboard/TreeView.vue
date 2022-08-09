@@ -185,7 +185,11 @@ const addTableTab = (table: TableType) => {
                 v-for="table of tables"
                 :key="table.id"
                 v-t="['a:table:open']"
-                :class="[{ hidden: !filteredTables?.includes(table) }, `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`]"
+                :class="[
+                  { hidden: !filteredTables?.includes(table) },
+                  `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
+                  route.params.title.includes(table.title) ? 'bg-blue-500/15' : '',
+                ]"
                 class="pl-5 pr-3 py-2 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
@@ -199,7 +203,11 @@ const addTableTab = (table: TableType) => {
                       @click.stop.prevent
                     />
 
-                    <component :is="icon(table)" class="nc-view-icon group-hover:hidden text-xs text-pink-500" />
+                    <component
+                      :is="icon(table)"
+                      :class="route.params.title.includes(table.title) ? 'text-pink-500' : 'text-gray-500'"
+                      class="nc-view-icon group-hover:hidden text-xs"
+                    />
                   </div>
 
                   <div class="nc-tbl-title text-xs flex-1">{{ table.title }}</div>

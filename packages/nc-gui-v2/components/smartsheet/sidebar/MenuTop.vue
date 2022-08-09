@@ -6,7 +6,7 @@ import { notification } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
-import { inject, onMounted, ref, useApi, useRouter, watch } from '#imports'
+import { inject, onMounted, ref, useApi, useRoute, useRouter, watch } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { ActiveViewInj, ViewListInj } from '~/context'
 
@@ -25,6 +25,8 @@ const views = inject<Ref<any[]>>(ViewListInj, ref([]))
 const { api } = useApi()
 
 const router = useRouter()
+
+const route = useRoute()
 
 /** Selected view(s) for menu */
 const selected = ref<string[]>([])
@@ -192,7 +194,7 @@ function onDeleted() {
       :key="view.id"
       :view="view"
       class="transition-all ease-in duration-300"
-      :class="[isMarked === view.id ? 'bg-gray-200' : '']"
+      :class="[isMarked === view.id ? 'bg-gray-200' : '', route.params.viewTitle.includes(view.title) ? 'bg-blue-500/15' : '']"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"
       @delete="onDelete"

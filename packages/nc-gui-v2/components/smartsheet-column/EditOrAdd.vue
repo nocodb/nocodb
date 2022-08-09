@@ -82,9 +82,8 @@ watchEffect(() => {
       antInput.value.focus()
       antInput.value.select()
     }, 300)
-
-    advancedOptions.value = false
   }
+  advancedOptions.value = false
 })
 
 watch(
@@ -139,7 +138,9 @@ watch(
       <SmartsheetColumnLookupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Lookup" />
       <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" />
       <SmartsheetColumnRollupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Rollup" />
-      <SmartsheetColumnLinkedToAnotherRecordOptions v-if="formState.uidt === UITypes.LinkToAnotherRecord" />
+      <SmartsheetColumnLinkedToAnotherRecordOptions
+        v-if="!editColumnDropdown && formState.uidt === UITypes.LinkToAnotherRecord"
+      />
       <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
       <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" />
 

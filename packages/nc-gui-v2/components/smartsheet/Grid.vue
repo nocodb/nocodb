@@ -126,7 +126,7 @@ const makeEditable = (row: Row, col: ColumnType) => {
     return
   }
   if (!isPkAvail.value && !row.rowMeta.new) {
-    message.info("Update not allowed for table which doesn't have primary Key")
+    message.info('Update not allowed for table which doesn\'t have primary Key')
     return
   }
   if (col.ai) {
@@ -190,35 +190,34 @@ const onKeyDown = async (e: KeyboardEvent) => {
       e.preventDefault()
       if (selected.row < data.value.length - 1) selected.row++
       break
-    default:
-      {
-        const rowObj = data.value[selected.row]
-        const columnObj = fields.value[selected.col]
+    default: {
+      const rowObj = data.value[selected.row]
+      const columnObj = fields.value[selected.col]
 
-        if (e.metaKey || e.ctrlKey) {
-          switch (e.keyCode) {
-            // copy - ctrl/cmd +c
-            case 67:
-              await copy(rowObj.row[columnObj.title] || '')
-              break
-          }
-        }
-
-        if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
-          return
-        }
-
-        /** on letter key press make cell editable and empty */
-        if (e?.key?.length === 1) {
-          if (!isPkAvail && !rowObj.rowMeta.new) {
-            return message.info("Update not allowed for table which doesn't have primary Key")
-          }
-          if (makeEditable(rowObj, columnObj)) {
-            rowObj.row[columnObj.title] = ''
-          }
-          // editEnabled = true
+      if (e.metaKey || e.ctrlKey) {
+        switch (e.keyCode) {
+          // copy - ctrl/cmd +c
+          case 67:
+            await copy(rowObj.row[columnObj.title] || '')
+            break
         }
       }
+
+      if (editEnabled || e.ctrlKey || e.altKey || e.metaKey) {
+        return
+      }
+
+      /** on letter key press make cell editable and empty */
+      if (e?.key?.length === 1) {
+        if (!isPkAvail && !rowObj.rowMeta.new) {
+          return message.info('Update not allowed for table which doesn\'t have primary Key')
+        }
+        if (makeEditable(rowObj, columnObj)) {
+          rowObj.row[columnObj.title] = ''
+        }
+        // editEnabled = true
+      }
+    }
       break
   }
 }
@@ -253,7 +252,8 @@ const onNavigate = (dir: NavigateDir) => {
   <div class="flex flex-col h-100 min-h-0 w-100">
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
-        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
+        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault"
+               @contextmenu.prevent="contextMenu = true">
           <thead>
             <tr class="group">
               <th>
@@ -304,6 +304,7 @@ const onNavigate = (dir: NavigateDir) => {
                     class="group-hover:flex w-full items-center justify-between p-1"
                   >
                     <a-checkbox v-model:checked="row.rowMeta.selected" />
+                    <span class="flex-1" />
                     <div class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
                       <MdiArrowExpand class="select-none transform hover:(text-pink-500 scale-120)" />
                     </div>

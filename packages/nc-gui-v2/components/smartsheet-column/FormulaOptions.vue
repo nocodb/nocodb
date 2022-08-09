@@ -593,7 +593,7 @@ function getFormulaTypeName(type: string) {
 }
 
 // set default value
-formState.value.formula_raw = (column?.colOptions as Record<string, any>)?.formula_raw || ''
+formState.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
 
 // set additional validations
 setAdditionalValidations({

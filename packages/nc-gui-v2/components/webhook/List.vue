@@ -4,13 +4,13 @@ import { MetaInj } from '~/context'
 import { inject, onMounted, ref, useNuxtApp } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
-const emit = defineEmits(['edit'])
+const emit = defineEmits(['edit', 'add'])
 
 const { $api, $e } = useNuxtApp()
 
 const hooks = ref<Record<string, any>[]>([])
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj)!
 
 async function loadHooksList() {
   try {

@@ -69,6 +69,8 @@ const systemFieldsIds = ref<Record<string, any>>([])
 
 const showColumnDropdown = ref(false)
 
+const moved = ref(false)
+
 const drag = ref(false)
 
 const emailMe = ref(false)
@@ -309,6 +311,15 @@ watch(submitted, (v) => {
   }
 })
 
+function handleMouseUp(col: Record<string, any>) {
+  if (!moved.value) {
+    const index = localColumns.value.length
+    col.order = (index ? localColumns.value[index - 1].order : 0) + 1
+    col.show = true
+    saveOrUpdate(col, index)
+  }
+}
+
 onClickOutside(draggableRef, () => {
   activeRow.value = ''
 })
@@ -375,7 +386,13 @@ onMounted(async () => {
       </div>
       <Draggable :list="hiddenColumns" draggable=".item" group="form-inputs" @start="drag = true" @end="drag = false">
         <template #item="{ element }">
-          <a-card size="small" class="ma-0 pa-0 cursor-pointer item mb-2">
+          <a-card
+            size="small"
+            class="ma-0 pa-0 cursor-pointer item mb-2"
+            @mousedown="moved = false"
+            @mousemove="moved = false"
+            @mouseup="handleMouseUp(element)"
+          >
             <div class="flex">
               <div class="flex flex-row flex-1">
                 <SmartsheetHeaderVirtualCell

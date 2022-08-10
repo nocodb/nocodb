@@ -139,6 +139,7 @@ watch(
       />
       <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
       <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" />
+      <SmartsheetColumnSelectOptions v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect" />
 
       <div
         v-if="!isVirtualCol(formState.uidt)"

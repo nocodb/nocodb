@@ -297,7 +297,7 @@ const onNavigate = (dir: NavigateDir) => {
                   </div>
 
                   <template #overlay>
-                    <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
+                    <SmartsheetColumnEditOrAdd @click.stop @keydown.stop @cancel="addColumnDropdown = false" />
                   </template>
                 </a-dropdown>
               </th>
@@ -350,6 +350,7 @@ const onNavigate = (dir: NavigateDir) => {
                     :column="columnObj"
                     :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
                     :row-index="rowIndex"
+                    :active="selected.col === colIndex && selected.row === rowIndex"
                     @update:edit-enabled="editEnabled = false"
                     @save="updateOrSaveRow(row, columnObj.title)"
                     @navigate="onNavigate"

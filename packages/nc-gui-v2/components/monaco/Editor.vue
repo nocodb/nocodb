@@ -12,9 +12,10 @@ interface Props {
   lang?: string
   validate?: boolean
   disableDeepCompare?: boolean
+  readOnly?: boolean
 }
 
-const { hideMinimap, lang = 'json', validate = true, disableDeepCompare = false, modelValue } = defineProps<Props>()
+const { hideMinimap, lang = 'json', validate = true, disableDeepCompare = false, modelValue, readOnly } = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
@@ -92,6 +93,7 @@ onMounted(() => {
       },
       tabSize: 2,
       automaticLayout: true,
+      readOnly,
       minimap: {
         enabled: !hideMinimap,
       },

@@ -38,7 +38,7 @@ const options = computed(() => {
 })
 
 const vModel = computed({
-  get: () => selectedIds.value.map((el) => options.value.find((op: SelectOptionType) => op.id === el).title),
+  get: () => selectedIds.value.map((el) => options.value.find((op: SelectOptionType) => op.id === el)?.title),
   set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 

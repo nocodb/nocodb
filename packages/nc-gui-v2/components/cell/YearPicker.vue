@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { ReadonlyInj } from '~/context'
 
@@ -39,6 +40,19 @@ const localState = $computed({
     }
   },
 })
+
+const open = ref(false)
+
+const randonClass = `picker_${Math.floor(Math.random() * 99999)}`
+watch(
+  open,
+  (next) => {
+    if (next) {
+      onClickOutside(document.querySelector(`.${randonClass}`)! as HTMLDivElement, () => (open.value = false))
+    }
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
@@ -50,7 +64,10 @@ const localState = $computed({
     :placeholder="isYearInvalid ? 'Invalid year' : !readOnlyMode ? 'Select year' : ''"
     :allow-clear="!readOnlyMode"
     :input-read-only="true"
-    :open="readOnlyMode ? false : undefined"
+    :open="readOnlyMode ? false : open"
+    :dropdown-class-name="randonClass"
+    @click="open = !open"
+    @change="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

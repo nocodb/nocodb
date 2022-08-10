@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { ReadonlyInj } from '~/context'
 
@@ -80,6 +81,7 @@ watch(
     :open="readOnlyMode ? false : open"
     :dropdown-class-name="randonClass"
     @click="open = !open"
+    @ok="open = !open"
   >
     <template #suffixIcon></template>
   </a-time-picker>

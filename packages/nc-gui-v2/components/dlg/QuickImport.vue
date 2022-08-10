@@ -10,7 +10,13 @@ import MdiLinkVariantIcon from '~icons/mdi/link-variant'
 import MdiCodeJSONIcon from '~icons/mdi/code-json'
 import { fieldRequiredValidator, importCsvUrlValidator, importExcelUrlValidator, importUrlValidator } from '~/utils/validation'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { ExcelTemplateAdapter, ExcelUrlTemplateAdapter, JSONTemplateAdapter, JSONUrlTemplateAdapter } from '~/utils/parsers'
+import {
+  CSVTemplateAdapter,
+  ExcelTemplateAdapter,
+  ExcelUrlTemplateAdapter,
+  JSONTemplateAdapter,
+  JSONUrlTemplateAdapter,
+} from '~/utils/parsers'
 import { useProject } from '#imports'
 
 interface Props {
@@ -40,6 +46,8 @@ const loading = ref(false)
 const templateData = ref()
 
 const importData = ref()
+
+const importColumns = ref([])
 
 const templateEditorModal = ref(false)
 
@@ -157,6 +165,7 @@ async function parseAndExtractData(val: any, name: string) {
   try {
     templateData.value = null
     importData.value = null
+    importColumns.value = []
     const templateGenerator: any = getAdapter(name, val)
     if (!templateGenerator) {
       toast.error('Template Generator cannot be found!')
@@ -167,6 +176,7 @@ async function parseAndExtractData(val: any, name: string) {
     templateData.value = templateGenerator.getTemplate()
     templateData.value.tables[0].table_name = populateUniqueTableName()
     importData.value = templateGenerator.getData()
+    if (importOnly) importColumns.value = templateGenerator.getColumns()
     templateEditorModal.value = true
   } catch (e: any) {
     console.log(e)
@@ -266,6 +276,7 @@ function getAdapter(name: string, val: any) {
         ref="templateEditorRef"
         :project-template="templateData"
         :import-data="importData"
+        :import-columns="importColumns"
         :import-only="importOnly"
         :quick-import-type="importType"
         @import="handleImport"

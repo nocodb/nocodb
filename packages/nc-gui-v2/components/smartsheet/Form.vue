@@ -6,9 +6,6 @@ import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject, onClickOutside, useDebounceFn } from '#imports'
 import { ActiveViewInj, IsFormInj, MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import MdiPlusIcon from '~icons/mdi/plus'
-import MdiDragIcon from '~icons/mdi/drag-vertical'
-import MdiHideIcon from '~icons/mdi/eye-off-outline'
 
 provide(IsFormInj, true)
 
@@ -395,7 +392,7 @@ onMounted(async () => {
                 />
               </div>
               <div class="flex flex-row">
-                <MdiDragIcon class="flex flex-1" />
+                <mdi-drag-vertical class="flex flex-1" />
               </div>
             </div>
           </a-card>
@@ -408,7 +405,7 @@ onMounted(async () => {
           <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
             <a-button type="link" class="w-full caption mt-2" size="large" @click="showColumnDropdown = true">
               <div class="flex items-center prose-sm justify-center text-gray-400">
-                <MdiPlusIcon />
+                <mdi-plus />
                 <!-- Add new field to this table -->
                 {{ $t('activity.addField') }}
               </div>
@@ -486,7 +483,7 @@ onMounted(async () => {
                     />
                   </div>
                   <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="flex">
-                    <MdiHideIcon class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
+                    <mdi-eye-off-outline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
                   </div>
                 </div>
                 <a-form-item

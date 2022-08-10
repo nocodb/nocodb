@@ -18,7 +18,7 @@ export const replaceUrlsWithLink = (text: string): boolean | string => {
 }
 
 export const dashboardUrl = () => {
-  return `${location.origin}${location.pathname || ''}`
+  return `${location.origin}`
 }
 
 // ref : https://stackoverflow.com/a/5717133

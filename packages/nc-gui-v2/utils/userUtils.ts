@@ -1,8 +1,8 @@
 import { ProjectRole } from '~/lib/enums'
 
 export const projectRoleTagColors = {
-  [ProjectRole.Owner]: '#cfdffe',
+  [ProjectRole.Creator]: '#d0f1fd',
   [ProjectRole.Editor]: '#c2f5e8',
-  [ProjectRole.User]: '#4caf50',
-  [ProjectRole.Guest]: '#9e9e9e',
+  [ProjectRole.Commenter]: '#ffdaf6',
+  [ProjectRole.Viewer]: '#ffdce5',
 }

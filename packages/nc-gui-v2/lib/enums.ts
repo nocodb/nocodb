@@ -5,10 +5,10 @@ export enum Role {
 }
 
 export enum ProjectRole {
-  Owner = 'owner',
+  Creator = 'creator',
   Editor = 'editor',
-  User = 'user',
-  Guest = 'guest',
+  Commenter = 'commenter',
+  Viewer = 'viewer',
 }
 
 export enum ClientType {

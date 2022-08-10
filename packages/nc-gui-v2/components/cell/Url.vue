@@ -27,12 +27,20 @@ const vModel = computed({
 
 const isValid = computed(() => value && isValidURL(value))
 
+const url = computed<string | null>(() => {
+  if (!value || !isValidURL(value)) return null
+  /** add url scheme if missing */
+  if (/^https?:\/\//.test(value)) return value
+  return `https://${value}`
+})
+
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
   <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none" @blur="editEnabled = false" />
-  <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="value || ''" target="_blank">{{ value }}</nuxt-link>
+  <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="url" target="_blank">{{ value }}
+  </nuxt-link>
   <span v-else>{{ value }}</span>
 </template>
 

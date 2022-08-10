@@ -1,25 +1,24 @@
 <script lang="ts" setup>
 import type { Row } from '~/composables'
-import { useSmartsheetStoreOrThrow } from '~/composables'
-import { useProvideSmartsheetRowStore } from '~/composables/useSmartsheetRowStore'
+import { useProvideSmartsheetRowStore, useSmartsheetStoreOrThrow } from '#imports'
 
 interface Props {
   row: Row
 }
 
 const props = defineProps<Props>()
-const row = toRef(props, 'row')
+const currentRow = toRef(props, 'row')
 
 const { meta } = useSmartsheetStoreOrThrow()
-const { isNew, state, syncLTARRefs } = useProvideSmartsheetRowStore(meta, row)
+const { isNew, state, syncLTARRefs } = useProvideSmartsheetRowStore(meta, currentRow)
 
 // on changing isNew(new record insert) status sync LTAR cell values
 watch(isNew, async (nextVal, prevVal) => {
   if (prevVal && !nextVal) {
-    await syncLTARRefs(row.value.row)
+    await syncLTARRefs(currentRow.value.row)
     // update row values without invoking api
-    row.value.row = { ...row.value.row, ...state.value }
-    row.value.oldRow = { ...row.value.row, ...state.value }
+    currentRow.value.row = { ...currentRow.value.row, ...state.value }
+    currentRow.value.oldRow = { ...currentRow.value.row, ...state.value }
   }
 })
 </script>

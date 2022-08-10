@@ -1,16 +1,14 @@
 <script setup lang="ts">
+import { computedInject } from '@vueuse/core'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
-import { useVModel } from '@vueuse/core'
-import { computed, provide, toRef, watch } from 'vue'
 import Comments from './Comments.vue'
 import Header from './Header.vue'
+import { provide, toRef, useProvideExpandedFormStore, useProvideSmartsheetStore, useVModel, watch } from '#imports'
 import { NOCO } from '~/lib'
 import { extractPkFromRow } from '~/utils'
 import { useNuxtApp } from '#app'
-import { useProvideSmartsheetStore } from '~/composables'
 import type { Row } from '~/composables'
-import { useProvideExpandedFormStore } from '~/composables/useExpandedFormStore'
 import { FieldsInj, IsFormInj, MetaInj } from '~/context'
 
 interface Props {
@@ -25,16 +23,15 @@ interface Props {
 
 const props = defineProps<Props>()
 const emits = defineEmits(['update:modelValue'])
-const _fields = inject(FieldsInj, ref([]))
 const row = toRef(props, 'row')
 const state = toRef(props, 'state')
 const meta = toRef(props, 'meta')
 
-const fields = computed(() => {
+const _fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     return meta.value.columns ?? []
   }
-  return _fields.value
+  return _fields?.value ?? []
 })
 
 provide(MetaInj, meta)

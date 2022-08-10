@@ -1,7 +1,11 @@
 <script lang="ts" setup>
-import { computed, useSmartsheetStoreOrThrow, useUIPermission } from '#imports'
-import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
-import { useExpandedFormStoreOrThrow } from '~/composables/useExpandedFormStore'
+import {
+  computed,
+  useExpandedFormStoreOrThrow,
+  useSmartsheetRowStoreOrThrow,
+  useSmartsheetStoreOrThrow,
+  useUIPermission,
+} from '#imports'
 import MdiDoorOpen from '~icons/mdi/door-open'
 import MdiDoorClosed from '~icons/mdi/door-closed'
 

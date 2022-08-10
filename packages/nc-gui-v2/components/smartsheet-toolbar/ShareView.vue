@@ -10,7 +10,6 @@ import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 
-const { isUIAllowed } = useUIPermission()
 const { view, $api } = useSmartsheetStoreOrThrow()
 
 const { copy } = useClipboard()

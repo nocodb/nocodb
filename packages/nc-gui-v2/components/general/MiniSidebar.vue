@@ -1,12 +1,8 @@
 <script lang="ts" setup>
-import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
-import { computed, useBreakpoints, useGlobal, useProject, useRoute, useSidebar } from '#imports'
+import { computed, useGlobal, useProject, useRoute, useSidebar } from '#imports'
 
-/** get current breakpoints (for enabling sidebar) */
-const breakpoints = useBreakpoints(breakpointsTailwind)
-
-const { signOut, signedIn, isLoading, user } = useGlobal()
+const { signOut, signedIn, user } = useGlobal()
 
 const { isOpen } = useSidebar({ isOpen: true })
 
@@ -33,7 +29,7 @@ const logout = () => {
     theme="light"
   >
     <a-dropdown placement="bottom" :trigger="['click']">
-      <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105">
+      <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon">
         <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
       </div>
 

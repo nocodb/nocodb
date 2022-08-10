@@ -1,14 +1,8 @@
 <script lang="ts" setup>
-import { breakpointsTailwind } from '@vueuse/core'
 import { navigateTo } from '#app'
-import { computed, useBreakpoints, useGlobal, useProject, useRoute } from '#imports'
-
-/** get current breakpoints (for enabling sidebar) */
-const breakpoints = useBreakpoints(breakpointsTailwind)
+import { computed, useGlobal, useRoute } from '#imports'
 
 const { signOut, signedIn, isLoading, user } = useGlobal()
-
-const { project } = useProject()
 
 const route = useRoute()
 
@@ -83,7 +77,7 @@ const logout = () => {
         </template>
       </a-layout-header>
 
-      <div class="w-full" style="height: calc(100% - var(--header-height))">
+      <div class="w-full overflow-hidden" style="height: calc(100% - var(--header-height))">
         <slot />
       </div>
     </a-layout>

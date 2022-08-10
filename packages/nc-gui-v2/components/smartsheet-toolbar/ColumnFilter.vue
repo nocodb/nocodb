@@ -5,7 +5,7 @@ import FieldListAutoCompleteDropdown from './FieldListAutoCompleteDropdown.vue'
 import { useNuxtApp } from '#app'
 import { inject, useViewFilters } from '#imports'
 import { comparisonOpList } from '~/utils/filterUtils'
-import { ActiveViewInj, IsLockedInj, MetaInj, ReloadViewDataHookInj } from '~/context'
+import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
 
@@ -16,7 +16,6 @@ const emit = defineEmits(['update:filtersLength'])
 const meta = inject(MetaInj)
 const activeView = inject(ActiveViewInj)
 const reloadDataHook = inject(ReloadViewDataHookInj)
-const isLocked = inject(IsLockedInj)
 
 // todo: replace with inject or get from state
 const shared = ref(false)

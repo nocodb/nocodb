@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { computed, inject } from '#imports'
-import { ColumnInj, EditModeInj } from '~/context'
+import { ColumnInj } from '~/context'
 
 interface Props {
   modelValue: string | null
@@ -11,8 +11,6 @@ const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
-const isForm = inject<boolean>('isForm', false)
-const editEnabled = inject(EditModeInj, ref(false))
 
 const options = computed(() => column?.value?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
 

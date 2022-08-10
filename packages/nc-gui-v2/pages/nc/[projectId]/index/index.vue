@@ -21,12 +21,6 @@ const currentMenu = ref<string[]>(['addORImport'])
 
 provide(TabMetaInj, activeTab)
 
-function onEdit(targetKey: number, action: string) {
-  if (action !== 'add') {
-    closeTab(targetKey)
-  }
-}
-
 function openQuickImportDialog(type: string) {
   quickImportDialog.value = true
   importType.value = type

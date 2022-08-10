@@ -10,7 +10,7 @@ interface Props {
 
 const { hook } = defineProps<Props>()
 
-const { $state, $api, $e } = useNuxtApp()
+const { $api } = useNuxtApp()
 
 const toast = useToast()
 
@@ -23,7 +23,7 @@ const activeKey = ref(0)
 
 watch(
   () => hook?.operation,
-  async (v) => {
+  async () => {
     await loadSampleData()
   },
 )

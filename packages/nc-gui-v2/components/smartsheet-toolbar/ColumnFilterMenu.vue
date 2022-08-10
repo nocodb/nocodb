@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import { watchEffect } from '@vue/runtime-core'
 import type ColumnFilter from './ColumnFilter.vue'
-import { useState } from '#app'
 import { ActiveViewInj, IsLockedInj } from '~/context'
 import MdiFilterIcon from '~icons/mdi/filter-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
-const autoApplyFilter = useState('autoApplyFilter', () => false)
 const isLocked = inject(IsLockedInj)
 const activeView = inject(ActiveViewInj)
 

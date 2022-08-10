@@ -1,14 +1,13 @@
-import { computed } from '@vue/reactivity'
 import { ViewTypes } from 'nocodb-sdk'
 import type { TableType, ViewType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { useNuxtApp } from '#app'
-import { useProject } from '#imports'
-import { useInjectionState } from '~/composables/useInjectionState'
+import { computed, reactive, useInjectionState, useNuxtApp, useProject, useTemplateRefsList } from '#imports'
 
 const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState((view: Ref<ViewType>, meta: Ref<TableType>) => {
   const { $api } = useNuxtApp()
   const { sqlUi } = useProject()
+
+  const cellRefs = useTemplateRefsList<HTMLTableDataCellElement>()
 
   // state
   // todo: move to grid view store
@@ -37,8 +36,6 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState((view:
     return where
   })
 
-  // actions
-
   return {
     view,
     meta,
@@ -50,6 +47,7 @@ const [useProvideSmartsheetStore, useSmartsheetStore] = useInjectionState((view:
     isForm,
     isGrid,
     isGallery,
+    cellRefs,
   }
 }, 'smartsheet-store')
 

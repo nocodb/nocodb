@@ -1,16 +1,20 @@
 <script lang="ts" setup>
-import { onClickOutside, useEventListener } from '@vueuse/core'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
   inject,
+  onClickOutside,
   onMounted,
   provide,
+  reactive,
+  ref,
+  useEventListener,
   useGridViewColumnWidth,
   useProvideColumnCreateStore,
   useSmartsheetStoreOrThrow,
   useViewData,
+  watch,
 } from '#imports'
 import type { Row } from '~/composables'
 import {
@@ -27,20 +31,32 @@ import {
 import { NavigateDir } from '~/lib'
 
 const meta = inject(MetaInj)
+
 const view = inject(ActiveViewInj)
+
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
+
 const isLocked = inject(IsLockedInj, false)
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
+
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
+
 const isView = false
 
 const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
+
 let editEnabled = $ref(false)
-const { xWhere, isPkAvail } = useSmartsheetStoreOrThrow()
+
+const { xWhere, isPkAvail, cellRefs } = useSmartsheetStoreOrThrow()
+
 const addColumnDropdown = ref(false)
+
 const contextMenu = ref(false)
+
 const contextMenuTarget = ref(false)
 
 const visibleColLength = $computed(() => fields.value?.length)
@@ -56,7 +72,9 @@ const {
   deleteSelectedRows,
   selectedAllRecords,
 } = useViewData(meta, view as any, xWhere)
+
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
+
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, false)
@@ -64,7 +82,6 @@ provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
 reloadViewDataHook?.on(() => {
   loadData()
 })
@@ -87,6 +104,7 @@ watch(
 const onresize = (colID: string, event: any) => {
   updateWidth(colID, event.detail)
 }
+
 const onXcResizing = (cn: string, event: any) => {
   resizingCol.value = cn
   resizingColWidth.value = event.detail
@@ -304,7 +322,7 @@ const onNavigate = (dir: NavigateDir) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row group">
+            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row">
               <td key="row-index" class="caption nc-grid-cell group">
                 <div class="flex items-center w-[80px]">
                   <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
@@ -322,7 +340,8 @@ const onNavigate = (dir: NavigateDir) => {
               </td>
               <td
                 v-for="(columnObj, colIndex) of fields"
-                :key="rowIndex + columnObj.title"
+                :ref="cellRefs.set"
+                :key="columnObj.id"
                 class="cell relative cursor-pointer nc-grid-cell"
                 :class="{
                   active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,

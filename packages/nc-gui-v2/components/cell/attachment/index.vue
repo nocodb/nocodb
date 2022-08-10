@@ -1,10 +1,10 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
-import Modal from './Modal.vue'
 import { useSortable } from './sort'
+import Modal from './Modal.vue'
 import Carousel from './Carousel.vue'
-import { onMounted, ref, useDropZone, watch } from '#imports'
+import { computed, ref, useDropZone, useSmartsheetStoreOrThrow, watch } from '#imports'
 import { isImage, openLink } from '~/utils'
 
 interface Props {
@@ -20,16 +20,18 @@ const { modelValue, rowIndex } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const dropZoneRef = ref<HTMLTableDataCellElement>()
-
 const sortableRef = ref<HTMLDivElement>()
+
+const { cellRefs } = useSmartsheetStoreOrThrow()!
 
 const { column, modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, selectedImage, isReadonly } =
   useProvideAttachmentCell(updateModelValue)
 
+const currentCellRef = computed(() => cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`))
+
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 
-const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
+const { isOverDropZone } = useDropZone(currentCellRef, onDrop)
 
 /** on new value, reparse our stored attachments */
 watch(
@@ -52,24 +54,17 @@ onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
 })
-
-/** if possible, on mounted we try to fetch the relevant `td` cell to use as a dropzone */
-onMounted(() => {
-  if (typeof document !== 'undefined') {
-    dropZoneRef.value = document.querySelector(`td[data-key="${rowIndex}${column.value.id}"]`) as HTMLTableDataCellElement
-  }
-})
 </script>
 
 <template>
   <div class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1">
     <Carousel />
 
-    <template v-if="!isReadonly && !dragging && dropZoneRef">
+    <template v-if="!isReadonly && !dragging && !!currentCellRef">
       <general-overlay
         v-model="isOverDropZone"
         inline
-        :target="`td[data-key='${rowIndex}${column.id}']`"
+        :target="currentCellRef"
         class="text-white text-lg ring ring-pink-500 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
         <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here
@@ -99,7 +94,7 @@ onMounted(() => {
       <div
         ref="sortableRef"
         :class="{ dragging }"
-        class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-scroll"
+        class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
       >
         <div
           v-for="(item, i) of visibleItems"

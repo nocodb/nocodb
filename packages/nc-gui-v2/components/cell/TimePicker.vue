@@ -3,7 +3,7 @@ import dayjs from 'dayjs'
 import { ReadonlyInj } from '~/context'
 
 interface Props {
-  modelValue: string | null
+  modelValue?: string | null
 }
 
 const { modelValue } = defineProps<Props>()
@@ -50,10 +50,26 @@ const localState = $computed({
     }
   },
 })
+
+
+
+const open = ref(false)
+
+const randonClass = `picker_${Math.floor(Math.random() * 99999)}`
+watch(
+  open,
+  (next) => {
+    if (next) {
+      onClickOutside(document.querySelector(`.${randonClass}`)! as HTMLDivElement, () => (open.value = false))
+    }
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
   <a-time-picker
+    @click="open = !open"
     v-model:value="localState"
     autofocus
     :show-time="true"
@@ -64,7 +80,8 @@ const localState = $computed({
     :placeholder="isTimeInvalid ? 'Invalid time' : !readOnlyMode ? 'Select time' : ''"
     :allow-clear="!readOnlyMode"
     :input-read-only="true"
-    :open="readOnlyMode ? false : undefined"
+    :open="readOnlyMode ? false : open"
+    :dropdown-class-name="randonClass"
   >
     <template #suffixIcon></template>
   </a-time-picker>

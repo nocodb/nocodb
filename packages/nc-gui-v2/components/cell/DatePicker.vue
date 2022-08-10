@@ -1,13 +1,15 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { vOnClickOutside } from '@vueuse/components'
 import { ColumnInj, ReadonlyInj } from '~/context'
+
+const { modelValue } = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue'])
 
 interface Props {
   modelValue: string | null
 }
-const { modelValue } = defineProps<Props>()
-
-const emit = defineEmits(['update:modelValue'])
 
 const columnMeta = inject(ColumnInj, null)
 const readOnlyMode = inject(ReadonlyInj, false)
@@ -39,10 +41,23 @@ const localState = $computed({
     }
   },
 })
+const open = ref(false)
+
+const randonClass = `picker_${Math.floor(Math.random() * 99999)}`
+watch(
+  open,
+  (next) => {
+    if (next) {
+      onClickOutside(document.querySelector(`.${randonClass}`)! as HTMLDivElement, () => (open.value = false))
+    }
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
   <a-date-picker
+    @click="open = !open"
     v-model:value="localState"
     :bordered="false"
     class="!w-full px-1"
@@ -50,7 +65,8 @@ const localState = $computed({
     :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date' : ''"
     :allow-clear="!readOnlyMode"
     :input-read-only="true"
-    :open="readOnlyMode ? false : undefined"
+    :dropdown-class-name="randonClass"
+    :open="readOnlyMode ? false : open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

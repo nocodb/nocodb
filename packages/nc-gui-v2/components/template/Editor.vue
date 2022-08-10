@@ -21,6 +21,7 @@ interface Props {
   importData: Record<string, any>[]
   importColumns: any[]
   importOnly: boolean
+  maxRowsToParse: number
 }
 
 interface Option {
@@ -28,7 +29,7 @@ interface Option {
   value: string
 }
 
-const { quickImportType, projectTemplate, importData, importColumns, importOnly } = defineProps<Props>()
+const { quickImportType, projectTemplate, importData, importColumns, importOnly, maxRowsToParse } = defineProps<Props>()
 
 const emit = defineEmits(['import'])
 
@@ -211,7 +212,6 @@ function atLeastOneEnabledValidation() {
 }
 
 function fieldsValidation(table: Record<string, any>, record: Record<string, any>) {
-  console.log(importData[table.ref_table_name].slice(0, 500))
   // if it is not selected, then pass validation
   if (!record.enabled) {
     return true
@@ -231,7 +231,7 @@ function fieldsValidation(table: Record<string, any>, record: Record<string, any
   if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
     if (
       importData[table.ref_table_name]
-        .slice(0, 500)
+        .slice(0, maxRowsToParse)
         .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
     ) {
       notification.error({
@@ -245,7 +245,7 @@ function fieldsValidation(table: Record<string, any>, record: Record<string, any
     case UITypes.Number:
       if (
         importData[table.ref_table_name]
-          .slice(0, 500)
+          .slice(0, maxRowsToParse)
           .some(
             (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
           )
@@ -259,7 +259,7 @@ function fieldsValidation(table: Record<string, any>, record: Record<string, any
       break
     case UITypes.Checkbox:
       if (
-        importData[table.ref_table_name].slice(0, 500).some((r: Record<string, any>) => {
+        importData[table.ref_table_name].slice(0, maxRowsToParse).some((r: Record<string, any>) => {
           if ((r: Record<string, any>) => r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
             let input = r[record.srcCn]
             if (typeof input === 'string') {
@@ -292,7 +292,6 @@ function fieldsValidation(table: Record<string, any>, record: Record<string, any
 }
 
 async function importTemplate() {
-  console.log('importTemplate')
   if (importOnly) {
     // validate required columns
     if (!missingRequiredColumnsValidation()) return
@@ -301,13 +300,13 @@ async function importTemplate() {
 
     try {
       isImporting.value = true
-      console.log(importData)
       const data = importData[meta?.value?.title as string]
-      console.log(srcDestMapping.value)
-      for (let i = 0, progress = 0; i < data.length; i += 500) {
-        const batchData = data.slice(i, i + 500).map((row: Record<string, any>) =>
+      const projectName = project.value.title as string
+      const tableName = meta?.value.title as string
+      const total = data.length
+      for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
+        const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
           srcDestMapping.value.reduce((res: Record<string, any>, col: Record<string, any>) => {
-            console.log(col)
             if (col.enabled && col.destCn) {
               const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
               let input = row[col.srcCn]
@@ -333,10 +332,9 @@ async function importTemplate() {
             return res
           }, {}),
         )
-        await $api.dbTableRow.bulkCreate('noco', project.value.title as string, meta?.value.title as string, batchData)
+        await $api.dbTableRow.bulkCreate('noco', projectName, tableName, batchData)
+        importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
         progress += batchData.length
-        // this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${data.length}`);
-        // this.$store.commit('loader/MutProgress', Math.round((100 * progress) / data.length));
       }
 
       // reload table
@@ -415,7 +413,7 @@ async function importTemplate() {
       if (importData) {
         let total = 0
         let progress = 0
-        const offset = 500
+        const offset = maxRowsToParse
         const projectName = project.value.title as string
         await Promise.all(
           data.tables.map((table: Record<string, any>) =>

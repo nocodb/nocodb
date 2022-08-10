@@ -279,6 +279,7 @@ function getAdapter(name: string, val: any) {
         :import-columns="importColumns"
         :import-only="importOnly"
         :quick-import-type="importType"
+        :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
         @import="handleImport"
       />
       <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">

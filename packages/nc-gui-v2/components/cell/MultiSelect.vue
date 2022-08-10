@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { SelectOptionType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, computed, inject } from '#imports'
+import { ActiveCellInj, ColumnInj, computed, h, inject, onMounted, ref, useEventListener, useProject, watch } from '#imports'
 import { EditModeInj } from '~/context'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
@@ -32,9 +31,9 @@ const isOpen = ref(false)
 const options = computed(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
-      ? column.value.colOptions.options.filter((el: SelectOptionType) => el.title !== '') || []
+      ? (column.value.colOptions as any).options.filter((el: any) => el.title !== '') || []
       : []
-    for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
+    for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
     }
     return opts
@@ -43,7 +42,7 @@ const options = computed(() => {
 })
 
 const vModel = computed({
-  get: () => selectedIds.value.map((el) => options.value.find((op: SelectOptionType) => op.id === el)?.title),
+  get: () => selectedIds.value.map((el) => options.value.find((op: any) => op.id === el)?.title),
   set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 
@@ -52,8 +51,8 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el: SelectOptionType) => el.title === a)
-            const opb = options.value.find((el: SelectOptionType) => el.title === b)
+            const opa = options.value.find((el: any) => el.title === a)
+            const opb = options.value.find((el: any) => el.title === b)
             if (opa && opb) {
               return opa.order - opb.order
             }
@@ -83,25 +82,21 @@ const handleClose = (e: MouseEvent) => {
 }
 
 onMounted(() => {
-  selectedIds.value = selectedTitles.value.map((el) => {
-    return options.value.find((op: SelectOptionType) => op.title === el).id
-  })
+  selectedIds.value = selectedTitles.value.map((el) => options.value.find((op: any) => op.title === el).id)
 })
 
 useEventListener(document, 'click', handleClose)
 
 watch(
   () => modelValue,
-  (_n, _o) => {
-    selectedIds.value = selectedTitles.value.map((el) => {
-      return options.value.find((op: SelectOptionType) => op.title === el).id
-    })
+  () => {
+    selectedIds.value = selectedTitles.value.map((el) => options.value.find((op: any) => op.title === el).id)
   },
 )
 
 watch(isOpen, (n, _o) => {
-  if (n === false) {
-    aselect.value.blur()
+  if (!n) {
+    aselect.value?.blur()
   }
 })
 </script>
@@ -128,10 +123,10 @@ watch(isOpen, (n, _o) => {
     </a-select-option>
     <template #tagRender="{ value: val, onClose }">
       <a-tag
-        v-if="options.find((el: SelectOptionType) => el.title === val)"
+        v-if="options.find((el) => el.title === val)"
         class="rounded-tag"
         :style="{ display: 'flex', alignItems: 'center' }"
-        :color="options.find((el: SelectOptionType) => el.title === val).color"
+        :color="options.find((el) => el.title === val).color"
         :closable="active && (vModel.length > 1 || !column?.rqd)"
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"

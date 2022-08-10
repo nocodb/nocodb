@@ -3,6 +3,7 @@ import HTTPSnippet from 'httpsnippet'
 import { useClipboard } from '@vueuse/core'
 import { message } from 'ant-design-vue'
 import { ActiveViewInj, MetaInj } from '~/context'
+import { inject, useGlobal, useProject, useSmartsheetStoreOrThrow, useVModel, useViewData } from '#imports'
 
 const props = defineProps<Props>()
 
@@ -13,11 +14,17 @@ interface Props {
 }
 
 const { project } = $(useProject())
+
 const { appInfo, token } = $(useGlobal())
-const meta = $(inject(MetaInj))
-const view = $(inject(ActiveViewInj))
+
+const meta = $(inject(MetaInj)!)
+
+const view = $(inject(ActiveViewInj)!)
+
 const { xWhere } = useSmartsheetStoreOrThrow()
-const { queryParams } = $(useViewData(meta, view as any, xWhere))
+
+const { queryParams } = $(useViewData($$(meta), view as any, xWhere))
+
 const { copy } = useClipboard()
 
 let vModel = $(useVModel(props, 'modelValue', emits))

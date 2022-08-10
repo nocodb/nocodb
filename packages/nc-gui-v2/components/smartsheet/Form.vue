@@ -4,7 +4,7 @@ import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-s
 import { notification } from 'ant-design-vue'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject, onClickOutside, useDebounceFn } from '#imports'
-import { ActiveViewInj, FieldsInj, IsFormInj, MetaInj } from '~/context'
+import { ActiveViewInj, IsFormInj, MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiDragIcon from '~icons/mdi/drag-vertical'
@@ -35,18 +35,7 @@ const view = inject(ActiveViewInj)
 
 if (meta) useProvideColumnCreateStore(meta)
 
-const {
-  loadData,
-  paginationData,
-  formattedData: data,
-  loadFormView,
-  insertRow,
-  formColumnData,
-  formViewData,
-  changePage,
-  updateRowProperty,
-  updateFormView,
-} = useViewData(meta, view as any)
+const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view as any)
 
 const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, false, async () => {
   await loadFormView()
@@ -58,8 +47,6 @@ const columns = computed(() => meta?.value?.columns || [])
 const localColumns = ref<Record<string, any>>([])
 
 const hiddenColumns = ref<Record<string, any>>([])
-
-const availableColumns = inject(FieldsInj, ref([]))
 
 const draggableRef = ref()
 
@@ -78,8 +65,6 @@ const emailMe = ref(false)
 const submitted = ref(false)
 
 const activeRow = ref('')
-
-const formView = ref({})
 
 function updateView() {
   if ((formViewData.value?.subheading?.length || 0) > 255) {

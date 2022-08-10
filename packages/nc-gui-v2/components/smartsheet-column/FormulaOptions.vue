@@ -659,7 +659,7 @@ onMounted(() => {
                       </div>
                     </div>
                     <div v-if="item.type === 'column'" class="float-right mr-5 -mt-2">
-                      <a-badge-ribbon :text="item.uidt" color="gray"/>
+                      <a-badge-ribbon :text="item.uidt" color="gray" />
                     </div>
                   </a-col>
                 </div>

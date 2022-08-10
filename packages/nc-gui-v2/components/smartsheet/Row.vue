@@ -8,7 +8,6 @@ interface Props {
 }
 
 const props = defineProps<Props>()
-const emit = defineEmits(['expandForm', 'selectCell', 'updateOrSaveRow', 'navigate'])
 const row = toRef(props, 'row')
 
 const { meta } = useSmartsheetStoreOrThrow()

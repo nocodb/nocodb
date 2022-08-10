@@ -4,10 +4,8 @@ import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
 import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
-import { useProvideLTARStore } from '#imports'
-import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 import { inject, ref, useProvideLTARStore } from '#imports'
-import { CellValueInj,IsFormInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
 const column = inject(ColumnInj)
 
@@ -21,10 +19,8 @@ const active = false
 
 const listItemsDlg = ref(false)
 
-const isForm = inject(IsFormInj)
-
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
-const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
+const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,

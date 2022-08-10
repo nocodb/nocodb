@@ -86,7 +86,7 @@ watch(inputs, () => {
 
 <template>
   <div class="w-full">
-    <draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
+    <Draggable :list="options" item-key="id" handle=".nc-child-draggable-icon">
       <template #item="{ element, index }">
         <div class="flex py-1 align-center">
           <MdiDragIcon small class="nc-child-draggable-icon handle" />
@@ -105,7 +105,7 @@ watch(inputs, () => {
           <div class="flex align-center"><MdiPlusIcon /><span class="flex-auto">Add option</span></div>
         </a-button>
       </template>
-    </draggable>
+    </Draggable>
   </div>
 </template>
 

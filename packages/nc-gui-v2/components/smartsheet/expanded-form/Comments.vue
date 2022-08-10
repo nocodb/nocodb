@@ -3,7 +3,7 @@ import { nextTick, useExpandedFormStoreOrThrow } from '#imports'
 import { enumColor, timeAgo } from '~/utils'
 import MdiAccountIcon from '~icons/mdi/account-circle'
 
-const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment, row } =
+const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment } =
   useExpandedFormStoreOrThrow()
 
 const commentsWrapperEl = ref<HTMLDivElement>()

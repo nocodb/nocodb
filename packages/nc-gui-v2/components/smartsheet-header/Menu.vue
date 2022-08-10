@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { onClickOutside } from '@vueuse/core'
 import { Modal } from 'ant-design-vue'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'

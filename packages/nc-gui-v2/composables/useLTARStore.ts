@@ -13,7 +13,7 @@ interface DataApiResponse {
 
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
-  (column: Ref<Required<ColumnType>>, row?: Ref<Row>, isNewRow: ComputedRef<boolean>, reloadData = () => {}) => {
+  (column: Ref<Required<ColumnType>>, row?: Ref<Row>, isNewRow: ComputedRef<boolean> | Ref<boolean>, reloadData = () => {}) => {
     // state
     const { metas, getMeta } = useMetas()
     const { project } = useProject()

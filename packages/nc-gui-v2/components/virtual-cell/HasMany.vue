@@ -7,8 +7,6 @@ import ListItems from './components/ListItems.vue'
 import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
 import { computed, inject, ref, useProvideLTARStore } from '#imports'
 import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
-import { useProvideLTARStore } from '#imports'
-import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
 const column = inject(ColumnInj)!
 
@@ -20,14 +18,12 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
-const isForm = inject(IsFormInj)
-
 const listItemsDlg = ref(false)
 
 const childListDlg = ref(false)
 
 const { state, isNew, removeLTARRef } = useSmartsheetRowStoreOrThrow()
-const { relatedTableMeta, loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
+const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvideLTARStore(
   column as Ref<Required<ColumnType>>,
   row,
   isNew,
@@ -56,7 +52,6 @@ const cells = computed(() =>
   }, [] as any[]),
 )
 
-
 const unlinkRef = async (rec: Record<string, any>) => {
   if (isNew.value) {
     removeLTARRef(rec, column?.value as ColumnType)
@@ -71,12 +66,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
     <template v-if="!isForm">
       <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
-          <ItemChip
-            v-for="(cell, i) of cells"
-            :key="i"
-            :item="ch"
-            :value="cell.value"
-            @unlink="unlinkRef(cell.item)" />
+          <ItemChip v-for="(cell, i) of cells" :key="i" :item="ch" :value="cell.value" @unlink="unlinkRef(cell.item)" />
           <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true"
             >more...
           </span>
@@ -87,14 +77,19 @@ const unlinkRef = async (rec: Record<string, any>) => {
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
           @click="childListDlg = true"
         />
-        <MdiPlus
-          class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
-          @click="listItemsDlg = true"
-        />
+        <MdiPlus class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
       </div>
     </template>
     <ListItems v-model="listItemsDlg" />
-    <ListChildItems v-model="childListDlg" @attach-record="() => { childListDlg = false; listItemsDlg = true }" />
+    <ListChildItems
+      v-model="childListDlg"
+      @attach-record="
+        () => {
+          childListDlg = false
+          listItemsDlg = true
+        }
+      "
+    />
   </div>
 </template>
 

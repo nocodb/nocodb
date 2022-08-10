@@ -20,7 +20,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
   const state = ref<Record<string, Record<string, any> | Record<string, any>[] | null>>({})
 
   // getters
-  const isNew = computed(() => row.value?.rowMeta?.new)
+  const isNew = computed(() => row.value?.rowMeta?.new ?? false)
 
   // actions
   const addLTARRef = async (value: Record<string, any>, column: ColumnType) => {
@@ -54,7 +54,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         column.title as string,
         relatedRowId,
       )
-    } catch (e) {
+    } catch (e: any) {
       notification.error({
         message: 'Linking failed',
         description: await extractSdkResponseErrorMsg(e),
@@ -77,10 +77,10 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         for (const relatedRow of relatedRows) {
           await linkRecord(id, extractPkFromRow(relatedRow, relatedTableMeta.columns as ColumnType[]), column, colOptions.type)
         }
-      } else if (isBt && state.value?.[column.title!]) {
+      } else if (isBt && state?.value?.[column.title!]) {
         await linkRecord(
           id,
-          extractPkFromRow(state.value?.[column.title!], relatedTableMeta.columns as ColumnType[]),
+          extractPkFromRow(state.value?.[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[]),
           column,
           colOptions.type,
         )

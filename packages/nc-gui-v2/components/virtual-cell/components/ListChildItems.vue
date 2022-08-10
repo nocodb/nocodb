@@ -1,12 +1,9 @@
 <script lang="ts" setup>
-import { watchEffect } from '@vue/runtime-core'
 import { Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
-import { useLTARStoreOrThrow, useVModel } from '#imports'
+import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
 import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
 import { ColumnInj, IsFormInj } from '~/context'
-import { IsFormInj } from '~/context'
-import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
 
 const props = defineProps<{ modelValue?: boolean }>()
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
@@ -62,7 +59,7 @@ const expandedFormRow = ref()
       <div class="flex mb-4 align-center gap-2">
         <div class="flex-1" />
 
-        <MdiReload  v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
+        <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
 
         <a-button type="primary" class="!text-xs" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
@@ -91,7 +88,10 @@ const expandedFormRow = ref()
               </div>
               <div class="flex-1"></div>
               <div class="flex gap-2">
-                <MdiLinkVariantRemove class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click.stop="unlinkRow(row)" />
+                <MdiLinkVariantRemove
+                  class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
+                  @click.stop="unlinkRow(row)"
+                />
                 <MdiDeleteOutline
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
                   @click.stop="deleteRelatedRow(row)"

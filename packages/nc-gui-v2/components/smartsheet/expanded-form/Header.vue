@@ -7,7 +7,7 @@ import MdiDoorClosed from '~icons/mdi/door-closed'
 
 const emit = defineEmits(['cancel'])
 const { meta } = useSmartsheetStoreOrThrow()
-const { commentsDrawer, row, primaryValue, save: _save } = useExpandedFormStoreOrThrow()
+const { commentsDrawer, primaryValue, save: _save } = useExpandedFormStoreOrThrow()
 const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
 const { isUIAllowed } = useUIPermission()
 

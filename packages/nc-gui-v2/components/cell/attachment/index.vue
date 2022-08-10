@@ -57,6 +57,7 @@ onKeyDown('Escape', () => {
 onMounted(() => {
   if (typeof document !== 'undefined') {
     dropZoneRef.value = document.querySelector(`td[data-key="${rowIndex}${column.value.id}"]`) as HTMLTableDataCellElement
+    console.log(dropZoneRef.value)
   }
 })
 </script>
@@ -99,7 +100,7 @@ onMounted(() => {
       <div
         ref="sortableRef"
         :class="{ dragging }"
-        class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-scroll"
+        class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
       >
         <div
           v-for="(item, i) of visibleItems"

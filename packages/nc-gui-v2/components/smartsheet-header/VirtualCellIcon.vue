@@ -11,6 +11,7 @@ import FormulaIcon from '~icons/mdi/math-integral'
 import RollupIcon from '~icons/mdi/movie-roll'
 import CountIcon from '~icons/mdi/counter'
 import SpecificDBTypeIcon from '~icons/mdi/database-settings'
+import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
 
 const props = defineProps<{ columnMeta?: ColumnType }>()
 const columnMeta = toRef(props, 'columnMeta')
@@ -34,7 +35,7 @@ const icon = computed(() => {
     case UITypes.Formula:
       return FormulaIcon
     case UITypes.Lookup:
-      return GenericIcon
+      return TableColumnPlusBefore
     case UITypes.Rollup:
       return RollupIcon
     case UITypes.Count:

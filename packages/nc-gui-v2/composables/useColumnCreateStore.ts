@@ -24,7 +24,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
   (meta: Ref<TableType>, column?: Ref<ColumnType>) => {
     const { sqlUi } = useProject()
     const { $api } = useNuxtApp()
-
+    const { getMeta } = useMetas()
     const toast = useToast()
 
     const idType = null
@@ -195,6 +195,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             // }
           }
           await $api.dbTableColumn.create(meta.value.id as string, formState.value)
+
+          /** if LTAR column then force reload related table meta */
+          if (formState.value.uidt === UITypes.LinkToAnotherRecord && meta.value.id !== formState.value.childId) {
+            getMeta(formState.value.childId, true).then(() => {})
+          }
 
           toast.success('Column created')
         }

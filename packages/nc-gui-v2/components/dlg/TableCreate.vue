@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { Form } from 'ant-design-vue'
-import { useToast } from 'vue-toastification'
 import { onMounted, useProject, useTable, useTabs } from '#imports'
 import { validateTableName } from '~/utils/validation'
 import { TabType } from '~/composables'
@@ -14,12 +13,6 @@ const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const dialogShow = useVModel(props, 'modelValue', emit)
-
-const toast = useToast()
-
-const valid = ref(false)
-
-const isIdToggleAllowed = ref(false)
 
 const isAdvanceOptVisible = ref(false)
 
@@ -38,18 +31,9 @@ const { table, createTable, generateUniqueTitle, tables, project } = useTable(as
   dialogShow.value = false
 })
 
-const prefix = computed(() => project?.value?.prefix || '')
-
 const validateDuplicateAlias = (v: string) => {
   return (tables?.value || []).every((t) => t.title !== (v || '')) || 'Duplicate table alias'
 }
-const validateLeadingOrTrailingWhiteSpace = (v: string) => {
-  return !/^\s+|\s+$/.test(v) || 'Leading or trailing whitespace not allowed in table name'
-}
-const validateDuplicate = (v: string) => {
-  return (tables?.value || []).every((t) => t.table_name.toLowerCase() !== (v || '').toLowerCase()) || 'Duplicate table name'
-}
-
 const inputEl = ref<HTMLInputElement>()
 
 const useForm = Form.useForm
@@ -60,7 +44,7 @@ const validators = computed(() => {
     table_name: [validateTableName],
   }
 })
-const { resetFields, validate, validateInfos } = useForm(table, validators)
+const { validateInfos } = useForm(table, validators)
 
 onMounted(() => {
   generateUniqueTitle()

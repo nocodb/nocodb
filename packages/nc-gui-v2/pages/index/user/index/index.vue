@@ -6,7 +6,7 @@ import { reactive, ref, useApi } from '#imports'
 import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 import MdiKeyChange from '~icons/mdi/key-change'
 
-const { api, isLoading } = useApi()
+const { api } = useApi()
 
 const { t } = useI18n()
 
@@ -34,7 +34,7 @@ const formRules = {
     { required: true, message: t('msg.error.signUpRules.passwdRequired') },
     // Passwords match
     {
-      validator: (_: unknown, v: string) => {
+      validator: (_: unknown, _v: string) => {
         return new Promise((resolve, reject) => {
           if (form.password === form.passwordRepeat) return resolve(true)
           reject(new Error(t('msg.error.signUpRules.passwdMismatch')))

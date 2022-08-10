@@ -8,7 +8,7 @@ import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
 interface Props {
-  editColumnDropdown: boolean
+  editColumnDropdown?: boolean
 }
 
 const { editColumnDropdown } = defineProps<Props>()
@@ -21,19 +21,12 @@ const { getMeta } = useMetas()
 
 const formulaOptionsRef = ref()
 
-const {
-  formState,
-  resetFields,
-  validate,
-  validateInfos,
-  onUidtOrIdTypeChange,
-  onAlter,
-  addOrUpdate,
-  generateNewColumnMeta,
-  isEdit,
-} = useColumnCreateStoreOrThrow()
+const { formState, validateInfos, onUidtOrIdTypeChange, onAlter, addOrUpdate, generateNewColumnMeta, isEdit } =
+  useColumnCreateStoreOrThrow()
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
+
+const onlyNameUpdateOnEditColumns = [UITypes.LinkToAnotherRecord, UITypes.Lookup, UITypes.Rollup]
 
 const uiTypesOptions = computed<typeof uiTypes>(() => {
   return [
@@ -65,6 +58,11 @@ function onCancel() {
   }
 }
 
+async function onSubmit() {
+  await addOrUpdate(reloadMetaAndData)
+  advancedOptions.value = false
+}
+
 // create column meta if it's a new column
 watchEffect(() => {
   if (!isEdit.value) {
@@ -82,6 +80,7 @@ watchEffect(() => {
       antInput.value.select()
     }, 300)
   }
+  advancedOptions.value = false
 })
 
 watch(
@@ -97,7 +96,7 @@ watch(
 </script>
 
 <template>
-  <div class="max-w-[450px] min-w-[350px] w-max max-h-[95vh] bg-white shadow p-4 overflow-auto" @click.stop>
+  <div class="max-w-[550px] min-w-[450px] w-max max-h-[95vh] bg-white shadow p-4 overflow-auto" @click.stop>
     <a-form v-model="formState" name="column-create-or-edit" layout="vertical">
       <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.column_name">
         <a-input
@@ -108,7 +107,10 @@ watch(
           @input="onAlter(8)"
         />
       </a-form-item>
-      <a-form-item :label="$t('labels.columnType')">
+      <a-form-item
+        v-if="!(editColumnDropdown && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
+        :label="$t('labels.columnType')"
+      >
         <a-select
           v-model:value="formState.uidt"
           show-search
@@ -130,10 +132,12 @@ watch(
       <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
       <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
       <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" />
-      <SmartsheetColumnLookupOptions v-if="formState.uidt === UITypes.Lookup" />
+      <SmartsheetColumnLookupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Lookup" />
       <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" />
-      <SmartsheetColumnRollupOptions v-if="formState.uidt === UITypes.Rollup" />
-      <SmartsheetColumnLinkedToAnotherRecordOptions v-if="formState.uidt === UITypes.LinkToAnotherRecord" />
+      <SmartsheetColumnRollupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Rollup" />
+      <SmartsheetColumnLinkedToAnotherRecordOptions
+        v-if="!editColumnDropdown && formState.uidt === UITypes.LinkToAnotherRecord"
+      />
       <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
       <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" />
 
@@ -164,17 +168,7 @@ watch(
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button
-            html-type="submit"
-            type="primary"
-            size="small"
-            @click="
-              () => {
-                addOrUpdate(reloadMetaAndData)
-                advancedOptions.value = false
-              }
-            "
-          >
+          <a-button html-type="submit" type="primary" size="small" @click="onSubmit">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

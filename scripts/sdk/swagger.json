@@ -1334,7 +1334,7 @@
                 "type": "object",
                 "properties": {
                   "order": {
-                    "type": "string"
+                    "type": "number"
                   }
                 }
               }
@@ -1506,7 +1506,7 @@
                 "type": "object",
                 "properties": {
                   "order": {
-                    "type": "string"
+                    "type": "number"
                   },
                   "title": {
                     "type": "string"
@@ -6011,7 +6011,8 @@
             "type": "string"
           },
           "title": {
-            "type": "string"
+            "type": "string",
+            "required": true
           },
           "deleted": {
             "type": "boolean"
@@ -6232,6 +6233,9 @@
           },
           "order": {
             "type": "number"
+          },
+          "mm": {
+            "type": "boolean"
           },
           "columns": {
             "type": "array",
@@ -6579,6 +6583,13 @@
           "order": {
             "type": "number"
           },
+          "system": {
+            "type": [
+              "number",
+              "boolean"
+            ]
+          },
+          "meta": {},
           "colOptions": {
             "oneOf": [
               {

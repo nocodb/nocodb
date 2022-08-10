@@ -18,7 +18,7 @@ const { metas } = useMetas()
 
 const meta = inject(MetaInj)
 
-const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualCell(column)
+const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(column)
 
 const colOptions = $computed(() => column.value?.colOptions)
 const tableTile = $computed(() => meta?.value?.title)

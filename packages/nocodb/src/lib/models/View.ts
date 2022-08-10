@@ -23,7 +23,7 @@ import extractProps from '../meta/helpers/extractProps';
 const { v4: uuidv4 } = require('uuid');
 export default class View implements ViewType {
   id?: string;
-  title?: string;
+  title: string;
   uuid?: string;
   password?: string;
   show: boolean;

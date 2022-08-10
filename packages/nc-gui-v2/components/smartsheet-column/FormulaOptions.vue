@@ -519,6 +519,7 @@ function appendText(item: Record<string, any>) {
     formState.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
   }
   autocomplete.value = false
+  wordToComplete.value = ''
   if (item.type === 'function' || item.type === 'op') {
     // if function / operator is chosen, display columns only
     suggestion.value = suggestionsList.value.filter((f) => f.type === 'column')
@@ -658,7 +659,7 @@ onMounted(() => {
                       </div>
                     </div>
                     <div v-if="item.type === 'column'" class="float-right mr-5 -mt-2">
-                      <a-badge-ribbon :text="item.uidt" />
+                      <a-badge-ribbon :text="item.uidt" color="gray"/>
                     </div>
                   </a-col>
                 </div>

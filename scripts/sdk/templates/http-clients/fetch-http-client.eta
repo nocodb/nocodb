@@ -24,7 +24,7 @@ export interface FullRequestParams extends Omit<RequestInit, "body"> {
   cancelToken?: CancelToken;
 }
 
-export type RequestParams = Omit<FullRequestParams, "body" | "method" | "query" | "path">
+export type RequestParams = Omit<FullRequestParams, "body" | "method" | "path">
 
 
 export interface ApiConfig<SecurityDataType = unknown> {
@@ -68,7 +68,7 @@ export class HttpClient<SecurityDataType = unknown> {
     public setSecurityData = (data: SecurityDataType | null) => {
         this.securityData = data;
     }
-    
+
     private encodeQueryParam(key: string, value: any) {
         const encodedKey = encodeURIComponent(key);
         return `${encodedKey}=${encodeURIComponent(typeof value === "number" ? value : `${value}`)}`;

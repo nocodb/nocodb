@@ -10,10 +10,9 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
     const _meta = unref(meta)
 
     if (_meta && _meta.id) {
-      // todo: swagger type correction
-      const response = (await $api.dbView.list(_meta.id)).list as any[]
+      const response = (await $api.dbView.list(_meta.id)).list
       if (response) {
-        views = response.sort((a, b) => a.order - b.order)
+        views = response.sort((a, b) => a.order! - b.order!)
       }
     }
   }

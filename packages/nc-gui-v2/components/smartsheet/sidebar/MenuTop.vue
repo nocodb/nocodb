@@ -151,7 +151,6 @@ async function onRename(view: ViewType) {
   }
 
   try {
-    // todo typing issues, order and id do not exist on all members of ViewTypes (Kanban, Gallery, Form, Grid)
     await api.dbView.update(view.id!, {
       title: view.title,
       order: view.order,

@@ -916,6 +916,9 @@
                     },
                     "url": {
                       "type": "string"
+                    },
+                    "roles": {
+                      "type": "string"
                     }
                   }
                 }
@@ -939,25 +942,27 @@
       "post": {
         "summary": "",
         "operationId": "project-shared-base-create",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {
-                    "url": {
-                      "type": "string"
-                    },
-                    "uuid": {
-                      "type": "string"
-                    }
+        "responses": {  "200": {
+          "description": "OK",
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "object",
+                "properties": {
+                  "uuid": {
+                    "type": "string"
+                  },
+                  "url": {
+                    "type": "string"
+                  },
+                  "roles": {
+                    "type": "string"
                   }
                 }
               }
             }
           }
+        }
         },
         "tags": [
           "Project"
@@ -985,7 +990,25 @@
         "operationId": "project-shared-base-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "roles": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -5444,7 +5467,7 @@
         "description": "",
         "examples": [
           {
-            "id": 142,
+            "id": "142",
             "firstName": "Alice",
             "lastName": "Smith",
             "email": "alice.smith@gmail.com",
@@ -5456,7 +5479,7 @@
         "x-internal": false,
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "description": "Unique identifier for the given user."
           },
           "firstname": {
@@ -5466,6 +5489,10 @@
             "type": "string"
           },
           "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "roles": {
             "type": "string",
             "format": "email"
           },
@@ -6025,6 +6052,9 @@
           },
           "slug": {
             "type": "string"
+          },
+          "show_system_fields": {
+            "type": "boolean"
           },
           "lock_type": {
             "type": "string",
@@ -7356,20 +7386,10 @@
         },
         "properties": {
           "list": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Grid"
-              },
-              {
-                "$ref": "#/components/schemas/Form"
-              },
-              {
-                "$ref": "#/components/schemas/Kanban"
-              },
-              {
-                "$ref": "#/components/schemas/Gallery"
-              }
-            ]
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
           },
           "pageInfo": {
             "$ref": "#/components/schemas/Paginated"

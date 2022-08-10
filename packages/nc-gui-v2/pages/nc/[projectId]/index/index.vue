@@ -129,17 +129,7 @@ function openQuickImportDialog(type: string) {
         </a-tabs>
       </div>
 
-      <<<<<<< HEAD
-      <div class="flex-1 min-h-0">
-        <NuxtPage />
-      </div>
-
-      <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
-      <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" :import-type="importType" :import-only="false" />
-      <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
-      =======
       <NuxtPage class="px-4 pt-2" />
-      >>>>>>> develop
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />

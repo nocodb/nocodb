@@ -59,7 +59,11 @@ function onCancel() {
 
 async function onSubmit() {
   await addOrUpdate(reloadMetaAndData)
-  advancedOptions.value = false
+
+  // add delay to complete the minimize transition
+  setTimeout(() => {
+    advancedOptions.value = false
+  }, 500)
 }
 
 // create column meta if it's a new column

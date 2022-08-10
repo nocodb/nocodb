@@ -84,7 +84,7 @@ onMounted(() => {
           <MdiDragIcon small class="nc-child-draggable-icon handle" />
           <a-dropdown v-model:visible="colorMenus[index]" :trigger="['click']">
             <template #overlay>
-              <GeneralColorPicker v-model="element.color" @update:model-value="colorMenus[index] = false" />
+              <GeneralColorPicker v-model="element.color" :pick-button="true" @update:model-value="colorMenus[index] = false" />
             </template>
             <MdiArrowDownDropCircle :style="{ 'font-size': '1.5em', 'color': element.color }" class="mr-2" />
           </a-dropdown>

@@ -3,10 +3,11 @@ import { Chrome } from '@ckpack/vue-color'
 import { enumColor } from '@/utils'
 
 interface Props {
-  modelValue: String
-  colors?: String[]
+  modelValue: string | any
+  colors?: string[]
   rowSize?: number
   advanced?: Boolean
+  pickButton?: Boolean
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -14,14 +15,21 @@ const props = withDefaults(defineProps<Props>(), {
   colors: () => enumColor.light.concat(enumColor.dark),
   rowSize: () => 10,
   advanced: () => true,
+  pickButton: () => false,
 })
 
 const emit = defineEmits(['update:modelValue'])
-const vModel = useVModel(props, 'modelValue', emit)
+
+const vModel = computed({
+  get: () => props.modelValue,
+  set: (val) => {
+    emit('update:modelValue', val.hex ? val.hex : val || null)
+  },
+})
 
 const picked = ref(props.modelValue || enumColor.light[0])
 
-const select = (color: any) => {
+const selectColor = (color: any) => {
   picked.value = color.hex ? color.hex : color
   vModel.value = color.hex ? color.hex : color
 }
@@ -32,6 +40,12 @@ const compare = (colorA: String, colorB: String) => {
   }
   return false
 }
+
+watch(picked, (n, _o) => {
+  if (!props.pickButton) {
+    vModel.value = n.hex ? n.hex : n
+  }
+})
 </script>
 
 <template>
@@ -43,17 +57,19 @@ const compare = (colorA: String, colorB: String) => {
         class="color-selector"
         :class="compare(picked, color) ? 'selected' : ''"
         :style="{ 'background-color': `${color}` }"
-        @click="select(color)"
+        @click="selectColor(color)"
       >
         {{ compare(picked, color) ? '&#10003;' : '' }}
       </button>
     </div>
-    <a-card v-if="props.advanced" class="w-full shadow-lg mt-2" :body-style="{ padding: '0px' }">
+    <a-card v-if="props.advanced" class="w-full mt-2" :body-style="{ padding: '0px' }" :bordered="false">
       <a-collapse accordion ghost expand-icon-position="right">
         <a-collapse-panel key="1" header="Advanced" class="">
-          <a-button class="!bg-primary text-white w-full" @click="select(picked)"> Pick Color </a-button>
+          <a-button v-if="props.pickButton" class="!bg-primary text-white w-full" @click="selectColor(picked)">
+            Pick Color
+          </a-button>
           <div class="flex justify-center py-4">
-            <Chrome v-model="picked" />
+            <Chrome v-model="picked" class="!w-full !shadow-none" />
           </div>
         </a-collapse-panel>
       </a-collapse>

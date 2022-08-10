@@ -93,7 +93,7 @@ watch(
       </a-form-item>
     </a-col>
   </a-row>
-  <a-row>
+  <a-row class="w-full justify-center">
     <GeneralColorPicker
       v-model="picked"
       :row-size="8"

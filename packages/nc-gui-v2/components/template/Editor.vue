@@ -12,13 +12,14 @@ import MdiNumericIcon from '~icons/mdi/numeric'
 import MdiPlusIcon from '~icons/mdi/plus'
 import MdiKeyStarIcon from '~icons/mdi/key-star'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { fieldRequiredValidator } from '~/utils/validation'
+import { extractSdkResponseErrorMsg, fieldRequiredValidator, getUIDTIcon } from '~/utils'
+import { MetaInj } from '~/context'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
   projectTemplate: Record<string, any>
   importData: any[]
+  importColumns: any[]
   importOnly: boolean
 }
 
@@ -27,9 +28,13 @@ interface Option {
   value: string
 }
 
-const { quickImportType, projectTemplate, importData, importOnly } = defineProps<Props>()
+const { quickImportType, projectTemplate, importData, importColumns, importOnly } = defineProps<Props>()
 
 const emit = defineEmits(['import'])
+
+const meta = inject(MetaInj)
+
+const columns = computed(() => meta?.value?.columns || [])
 
 const useForm = Form.useForm
 
@@ -97,6 +102,8 @@ const validators = computed(() =>
     return acc
   }, {}),
 )
+
+const srcDestMapping = ref<Record<string, any>[]>([])
 
 const { validate, validateInfos } = useForm(data, validators)
 
@@ -279,17 +286,41 @@ const isValid = computed(() => {
   return true
 })
 
+function mapDefaultColumns() {
+  srcDestMapping.value = []
+  for (const col of importColumns[0]) {
+    const o = { srcCn: col.column_name, destCn: '', enabled: true }
+    if (columns.value) {
+      const tableColumn = columns.value.find((c: Record<string, any>) => c.title === col.column_name)
+      if (tableColumn) {
+        o.destCn = tableColumn.title as string
+      } else {
+        o.enabled = false
+      }
+    }
+    srcDestMapping.value.push(o)
+  }
+  nextTick(() => {
+    // TODO: validate
+  })
+}
+
 defineExpose({
   importTemplate,
   isValid,
+})
+
+onMounted(() => {
+  if (importOnly) {
+    mapDefaultColumns()
+  }
 })
 </script>
 
 <template>
   <a-spin :spinning="isImporting" :tip="importingTip" size="large">
     <a-card v-if="importOnly">
-      {{ data }}
-      <a-form :model="data" name="import-data-only">
+      <a-form :model="data" name="import-only">
         <p v-if="data.tables && quickImportType === 'excel'" class="text-center">
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
           available for import
@@ -304,45 +335,37 @@ defineExpose({
             </span>
           </template>
           <a-table
-            v-if="table.columns.length"
+            v-if="srcDestMapping"
             class="template-form"
             row-class-name="template-form-row"
-            :data-source="table.columns"
+            :data-source="srcDestMapping"
             :columns="srcDestMappingColumns"
             :pagination="false"
           >
             <template #headerCell="{ column }">
-              <template v-if="column.key === 'source_column' || column.key === 'destination_column'">
-                <span>
-                  {{ column.name }}
-                </span>
-              </template>
-              <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
-                <span>
-                  <!-- TODO: i18n -->
-                  Options
-                </span>
-              </template>
+              <span v-if="column.key === 'source_column' || column.key === 'destination_column'">
+                {{ column.name }}
+              </span>
             </template>
             <template #bodyCell="{ column, record, index }">
               <template v-if="column.key === 'source_column'">
-                <span>{{ record.column_name }}</span>
+                <span>{{ record.srcCn }}</span>
               </template>
               <template v-else-if="column.key === 'destination_column'">
                 <a-form-item>
-                  <!-- TODO: Use current model columns -->
-                  <a-select
-                    v-model:value="record.uidt"
-                    class="w-52"
-                    show-search
-                    :options="uiTypeOptions"
-                    :filter-option="filterOption"
-                  />
+                  <a-select v-model:value="record.destCn" class="w-52" show-search :filter-option="filterOption">
+                    <a-select-option v-for="(column, i) of columns" :key="i" :value="column.title">
+                      <div class="flex items-center">
+                        <component :is="getUIDTIcon(column.uidt)" />
+                        <span class="ml-2">{{ column.title }}</span>
+                      </div>
+                    </a-select-option>
+                  </a-select>
                 </a-form-item>
               </template>
 
               <template v-if="column.key === 'action'">
-                <!--                <a-checkbox v-model:checked="record.uidt" /> -->
+                <a-checkbox v-model:checked="record.enabled" />
               </template>
             </template>
           </a-table>

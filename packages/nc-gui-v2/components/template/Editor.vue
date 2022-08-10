@@ -211,10 +211,20 @@ function atLeastOneEnabledValidation() {
   return true
 }
 
-function fieldsValidation(table: Record<string, any>, record: Record<string, any>) {
+function fieldsValidation(record: Record<string, any>) {
   // if it is not selected, then pass validation
   if (!record.enabled) {
     return true
+  }
+
+  const tableName = meta?.value.title || ''
+
+  if (!record.destCn) {
+    notification.error({
+      message: `Cannot find the destination column for ${record.srcCn}`,
+      duration: 3,
+    })
+    return false
   }
 
   if (srcDestMapping.value.filter((v) => v.destCn === record.destCn).length > 1) {
@@ -230,7 +240,7 @@ function fieldsValidation(table: Record<string, any>, record: Record<string, any
   // check if the input contains null value for a required column
   if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
     if (
-      importData[table.ref_table_name]
+      importData[tableName]
         .slice(0, maxRowsToParse)
         .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
     ) {
@@ -244,7 +254,7 @@ function fieldsValidation(table: Record<string, any>, record: Record<string, any
   switch (v.uidt) {
     case UITypes.Number:
       if (
-        importData[table.ref_table_name]
+        importData[tableName]
           .slice(0, maxRowsToParse)
           .some(
             (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
@@ -259,7 +269,7 @@ function fieldsValidation(table: Record<string, any>, record: Record<string, any
       break
     case UITypes.Checkbox:
       if (
-        importData[table.ref_table_name].slice(0, maxRowsToParse).some((r: Record<string, any>) => {
+        importData[tableName].slice(0, maxRowsToParse).some((r: Record<string, any>) => {
           if ((r: Record<string, any>) => r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
             let input = r[record.srcCn]
             if (typeof input === 'string') {
@@ -300,9 +310,9 @@ async function importTemplate() {
 
     try {
       isImporting.value = true
-      const data = importData[meta?.value?.title as string]
-      const projectName = project.value.title as string
       const tableName = meta?.value.title as string
+      const data = importData[tableName]
+      const projectName = project.value.title as string
       const total = data.length
       for (let i = 0, progress = 0; i < total; i += maxRowsToParse) {
         const batchData = data.slice(i, i + maxRowsToParse).map((row: Record<string, any>) =>
@@ -447,10 +457,18 @@ async function importTemplate() {
 }
 
 const isValid = computed(() => {
-  for (const [_, o] of Object.entries(validateInfos)) {
-    if (o?.validateStatus) {
-      if (o.validateStatus === 'error') {
+  if (importOnly) {
+    for (const record of srcDestMapping.value) {
+      if (!fieldsValidation(record)) {
         return false
+      }
+    }
+  } else {
+    for (const [_, o] of Object.entries(validateInfos)) {
+      if (o?.validateStatus) {
+        if (o.validateStatus === 'error') {
+          return false
+        }
       }
     }
   }
@@ -471,9 +489,6 @@ function mapDefaultColumns() {
     }
     srcDestMapping.value.push(o)
   }
-  nextTick(() => {
-    // TODO: validate
-  })
 }
 
 defineExpose({
@@ -528,7 +543,6 @@ onMounted(() => {
                   class="w-52"
                   show-search
                   :filter-option="filterOption"
-                  @change="fieldsValidation(table, record)"
                 >
                   <a-select-option v-for="(column, i) of columns" :key="i" :value="column.title">
                     <div class="flex items-center">
@@ -540,7 +554,7 @@ onMounted(() => {
               </template>
 
               <template v-if="column.key === 'action'">
-                <a-checkbox v-model:checked="record.enabled" @change="fieldsValidation(table, record)" />
+                <a-checkbox v-model:checked="record.enabled" />
               </template>
             </template>
           </a-table>

@@ -194,7 +194,7 @@ function missingRequiredColumnsValidation() {
 }
 
 function atLeastOneEnabledValidation() {
-  if (srcDestMapping.value.filter((v) => v.enabled === true).length == 0) {
+  if (srcDestMapping.value.filter((v) => v.enabled === true).length === 0) {
     notification.error({
       message: 'At least one column has to be selected',
       duration: 3,
@@ -263,22 +263,22 @@ function fieldsValidation(record: Record<string, any>) {
     case UITypes.Checkbox:
       if (
         importData[tableName].slice(0, maxRowsToParse).some((r: Record<string, any>) => {
-          if ((r: Record<string, any>) => r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
+          if (r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
             let input = r[record.srcCn]
             if (typeof input === 'string') {
               input = input.replace(/["']/g, '').toLowerCase().trim()
               return !(
-                input == 'false' ||
-                input == 'no' ||
-                input == 'n' ||
-                input == '0' ||
-                input == 'true' ||
-                input == 'yes' ||
-                input == 'y' ||
-                input == '1'
+                input === 'false' ||
+                input === 'no' ||
+                input === 'n' ||
+                input === '0' ||
+                input === 'true' ||
+                input === 'yes' ||
+                input === 'y' ||
+                input === '1'
               )
             }
-            return input != 1 && input != 0 && input != true && input != false
+            return input !== 1 && input !== 0 && input !== true && input !== false
           }
           return false
         })

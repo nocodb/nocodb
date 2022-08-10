@@ -10,13 +10,7 @@ import MdiLinkVariantIcon from '~icons/mdi/link-variant'
 import MdiCodeJSONIcon from '~icons/mdi/code-json'
 import { fieldRequiredValidator, importCsvUrlValidator, importExcelUrlValidator, importUrlValidator } from '~/utils/validation'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import {
-  CSVTemplateAdapter,
-  ExcelTemplateAdapter,
-  ExcelUrlTemplateAdapter,
-  JSONTemplateAdapter,
-  JSONUrlTemplateAdapter,
-} from '~/utils/parsers'
+import { ExcelTemplateAdapter, ExcelUrlTemplateAdapter, JSONTemplateAdapter, JSONUrlTemplateAdapter } from '~/utils/parsers'
 import { useProject } from '#imports'
 
 interface Props {
@@ -77,7 +71,7 @@ const validators = computed(() => {
   }
 })
 
-const { resetFields, validate, validateInfos } = useForm(importState, validators)
+const { validate, validateInfos } = useForm(importState, validators)
 
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {

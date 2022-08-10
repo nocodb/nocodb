@@ -554,6 +554,7 @@ export default class View implements ViewType {
   ): Promise<Array<GridViewColumn | any>> {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
+    console.log(table);
 
     const existingCol = await ncMeta.metaGet2(null, null, table, {
       fk_view_id: viewId,
@@ -573,7 +574,7 @@ export default class View implements ViewType {
       );
       return { ...existingCol, ...colData };
     } else {
-      return await ncMeta.metaInsert2(null, null, table, {
+      return await ncMeta.metaInsert2(view.project_id, view.base_id, table, {
         fk_view_id: viewId,
         fk_column_id: fkColId,
         order: colData.order,

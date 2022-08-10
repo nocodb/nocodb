@@ -13,12 +13,12 @@ import MdiPlusIcon from '~icons/mdi/plus'
 import MdiKeyStarIcon from '~icons/mdi/key-star'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import { extractSdkResponseErrorMsg, fieldRequiredValidator, getUIDTIcon } from '~/utils'
-import { MetaInj } from '~/context'
+import { MetaInj, ReloadViewDataHookInj } from '~/context'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
   projectTemplate: Record<string, any>
-  importData: any[]
+  importData: Record<string, any>[]
   importColumns: any[]
   importOnly: boolean
 }
@@ -35,6 +35,8 @@ const emit = defineEmits(['import'])
 const meta = inject(MetaInj)
 
 const columns = computed(() => meta?.value?.columns || [])
+
+const reloadHook = inject(ReloadViewDataHookInj)!
 
 const useForm = Form.useForm
 
@@ -297,7 +299,61 @@ async function importTemplate() {
     // validate at least one column needs to be selected
     if (!atLeastOneEnabledValidation()) return
 
-    // TODO: ok
+    try {
+      isImporting.value = true
+      console.log(importData)
+      const data = importData[meta?.value?.title as string]
+      console.log(srcDestMapping.value)
+      for (let i = 0, progress = 0; i < data.length; i += 500) {
+        const batchData = data.slice(i, i + 500).map((row: Record<string, any>) =>
+          srcDestMapping.value.reduce((res: Record<string, any>, col: Record<string, any>) => {
+            console.log(col)
+            if (col.enabled && col.destCn) {
+              const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
+              let input = row[col.srcCn]
+              // parse potential boolean values
+              if (v.uidt == UITypes.Checkbox) {
+                input = input.replace(/["']/g, '').toLowerCase().trim()
+                if (input == 'false' || input == 'no' || input == 'n') {
+                  input = '0'
+                } else if (input == 'true' || input == 'yes' || input == 'y') {
+                  input = '1'
+                }
+              } else if (v.uidt === UITypes.Number) {
+                if (input == '') {
+                  input = null
+                }
+              } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
+                if (input == '') {
+                  input = null
+                }
+              }
+              res[col.destCn] = input
+            }
+            return res
+          }, {}),
+        )
+        await $api.dbTableRow.bulkCreate('noco', project.value.title as string, meta?.value.title as string, batchData)
+        progress += batchData.length
+        // this.$store.commit('loader/MutMessage', `Importing data : ${progress}/${data.length}`);
+        // this.$store.commit('loader/MutProgress', Math.round((100 * progress) / data.length));
+      }
+
+      // reload table
+      reloadHook.trigger()
+
+      notification.success({
+        message: 'Successfully imported table data',
+        duration: 3,
+      })
+    } catch (e: any) {
+      notification.error({
+        message: e.message,
+        duration: 3,
+      })
+    } finally {
+      isImporting.value = false
+    }
   } else {
     // check if form is valid
     try {

@@ -8,16 +8,17 @@ import MdiArrowDownDropCircle from '~icons/mdi/arrow-down-drop-circle'
 import MdiClose from '~icons/mdi/close'
 import MdiPlusIcon from '~icons/mdi/plus'
 
-const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
+const { formState, setAdditionalValidations } = useColumnCreateStoreOrThrow()
 
 let options = $ref<any[]>([])
 const colorMenus = $ref<any>({})
 const colors = $ref(enumColor.light)
+const inputs = ref()
 
 const validators = {
   'colOptions.options': [
     {
-      validator: (_: any, opt: any) => {
+      validator: (_: any, _opt: any) => {
         return new Promise<void>((resolve, reject) => {
           for (const opt of options) {
             if (!opt.title.length) {
@@ -74,6 +75,13 @@ onMounted(() => {
     op.title = op.title.replace(/^'/, '').replace(/'$/, '')
   }
 })
+
+// focus last created input
+watch(inputs, () => {
+  if (inputs.value?.$el) {
+    inputs.value.$el.focus()
+  }
+})
 </script>
 
 <template>
@@ -88,7 +96,7 @@ onMounted(() => {
             </template>
             <MdiArrowDownDropCircle :style="{ 'font-size': '1.5em', 'color': element.color }" class="mr-2" />
           </a-dropdown>
-          <a-input v-model:value="element.title" class="caption" />
+          <a-input ref="inputs" v-model:value="element.title" class="caption" />
           <MdiClose class="ml-2" :style="{ color: 'red' }" @click="removeOption(index)" />
         </div>
       </template>

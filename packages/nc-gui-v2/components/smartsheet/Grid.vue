@@ -304,7 +304,7 @@ const onNavigate = (dir: NavigateDir) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row group">
+            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row">
               <td key="row-index" class="caption nc-grid-cell group">
                 <div class="flex items-center w-[80px]">
                   <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>

@@ -1,9 +1,7 @@
 <script lang="ts" setup>
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
-import { computed } from 'vue'
-import { useLTARStoreOrThrow, useVModel } from '#imports'
-import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
+import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel } from '#imports'
 import { ColumnInj } from '~/context'
 
 const props = defineProps<{ modelValue: boolean }>()

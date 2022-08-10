@@ -1,13 +1,10 @@
 import { notification } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
-import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, RelationTypes, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useNuxtApp } from '#app'
-import { useInjectionState } from '#imports'
-import { useMetas } from '~/composables/useMetas'
-import { useProject } from '~/composables/useProject'
+import { useInjectionState, useMetas, useProject, useVirtualCell } from '#imports'
 import type { Row } from '~/composables/useViewData'
-import { useVirtualCell } from '~/composables/useVirtualCell'
 import { NOCO } from '~/lib'
 import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
 
@@ -43,7 +40,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     }
   }
 
-  const linkRecord = async (rowId: string, relatedRowId: string, column: ColumnType, type) => {
+  const linkRecord = async (rowId: string, relatedRowId: string, column: ColumnType, type: RelationTypes) => {
     try {
       await $api.dbTableRow.nestedAdd(
         NOCO,

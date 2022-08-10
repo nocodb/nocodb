@@ -17,7 +17,6 @@ interface Props {
   state?: Record<string, any> | null
   meta: TableType
   loadRow?: boolean
-
   useMetaFields?: boolean
 }
 

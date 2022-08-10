@@ -3,8 +3,7 @@ import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
-import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
-import { inject, ref, useProvideLTARStore } from '#imports'
+import { inject, ref, useProvideLTARStore, useSmartsheetRowStoreOrThrow } from '#imports'
 import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
 const column = inject(ColumnInj)

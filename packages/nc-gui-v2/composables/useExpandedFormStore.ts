@@ -3,12 +3,9 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message, notification } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import getPlainText from '../../nc-gui/components/project/spreadsheet/helpers/getPlainText'
-import { useProvideSmartsheetRowStore } from '~/composables/useSmartsheetRowStore'
+import { useApi, useInjectionState, useProject, useProvideSmartsheetRowStore } from '#imports'
 import { NOCO } from '~/lib'
 import { useNuxtApp } from '#app'
-import { useInjectionState, useProject } from '#imports'
-import { useApi } from '~/composables/useApi'
 import type { Row } from '~/composables/useViewData'
 import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
 
@@ -87,8 +84,9 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       await api.utils.commentRow({
         fk_model_id: meta.value?.id as string,
         row_id: rowId,
+        // todo: swagger type correction
         description: comment.value,
-      })
+      } as any)
 
       comment.value = ''
       message.success('Comment added successfully')
@@ -201,4 +199,11 @@ export function useExpandedFormStoreOrThrow() {
   const expandedFormStore = useExpandedFormStore()
   if (expandedFormStore == null) throw new Error('Please call `useExpandedFormStore` on the appropriate parent component')
   return expandedFormStore
+}
+
+// todo: move to utils
+function getPlainText(htmlString: string) {
+  const div = document.createElement('div')
+  div.textContent = htmlString || ''
+  return div.innerHTML
 }

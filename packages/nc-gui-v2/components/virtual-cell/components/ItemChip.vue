@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { useLTARStoreOrThrow } from '~/composables'
+import { useLTARStoreOrThrow } from '#imports'
 import { ActiveCellInj, IsFormInj, ReadonlyInj } from '~/context'
-import MdiCloseThickIcon from '~icons/mdi/close-thick'
 
 interface Props {
   value?: string | number | boolean
@@ -29,7 +28,7 @@ const expandedFormDlg = ref(false)
   >
     <span class="name">{{ value }}</span>
     <div v-show="active || isForm" v-if="!readonly" class="flex align-center">
-      <MdiCloseThickIcon class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
+      <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
     </div>
 
     <SmartsheetExpandedForm

@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
-import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
-import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
+import { useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel, watch } from '#imports'
 import { ColumnInj, IsFormInj } from '~/context'
 
 const props = defineProps<{ modelValue?: boolean }>()

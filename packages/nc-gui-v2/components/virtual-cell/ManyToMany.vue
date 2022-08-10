@@ -4,8 +4,7 @@ import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
-import { useSmartsheetRowStoreOrThrow } from '~/composables/useSmartsheetRowStore'
-import { computed, inject, ref, useProvideLTARStore } from '#imports'
+import { computed, inject, ref, useProvideLTARStore, useSmartsheetRowStoreOrThrow } from '#imports'
 import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
 const column = inject(ColumnInj)!

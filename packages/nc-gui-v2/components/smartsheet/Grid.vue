@@ -1,18 +1,18 @@
 <script lang="ts" setup>
-import { onClickOutside, useEventListener } from '@vueuse/core'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
   inject,
+  onClickOutside,
   onMounted,
   provide,
   reactive,
   ref,
+  useEventListener,
   useGridViewColumnWidth,
   useProvideColumnCreateStore,
   useSmartsheetStoreOrThrow,
-  useTemplateRefsList,
   useViewData,
   watch,
 } from '#imports'
@@ -341,7 +341,7 @@ const onNavigate = (dir: NavigateDir) => {
               <td
                 v-for="(columnObj, colIndex) of fields"
                 :ref="cellRefs.set"
-                :key="rowIndex + columnObj.title"
+                :key="columnObj.id"
                 class="cell relative cursor-pointer nc-grid-cell"
                 :class="{
                   active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,

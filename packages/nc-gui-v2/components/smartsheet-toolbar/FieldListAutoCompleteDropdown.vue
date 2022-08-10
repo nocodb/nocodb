@@ -54,7 +54,7 @@ const options = computed<SelectProps['options']>(() =>
     ?.filter((c: ColumnType) => {
       /** ignore hasmany and manytomany relations if it's using within sort menu */
       if (isSort) {
-        return (
+        return !(
           c.uidt === UITypes.LinkToAnotherRecord && (c.colOptions as LinkToAnotherRecordType).type !== RelationTypes.BELONGS_TO
         )
         /** ignore vutual fields which are system fields ( mm relation ) */

@@ -748,13 +748,13 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       // MultiSelect to SingleSelect
       if (column.uidt === UITypes.MultiSelect && colBody.uidt === UITypes.SingleSelect) {
         if (driverType === 'mysql' || driverType === 'mysql2') {
-          await dbDriver.raw(`UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`, [table.table_name, column.title, column.title, column.title]);
+          await dbDriver.raw(`UPDATE ?? SET ?? = SUBSTRING_INDEX(??, ',', 1) WHERE ?? LIKE '%,%';`, [table.table_name, column.column_name, column.column_name, column.column_name]);
         } else if (driverType === 'pg') {
-          await dbDriver.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [table.table_name, column.title, column.title]);
+          await dbDriver.raw(`UPDATE ?? SET ?? = split_part(??, ',', 1);`, [table.table_name, column.column_name, column.column_name]);
         } else if (driverType === 'mssql') {
-          await dbDriver.raw(`UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`, [table.table_name, column.title, column.title, column.title, column.title]);
+          await dbDriver.raw(`UPDATE ?? SET ?? = LEFT(cast(?? as varchar(max)), CHARINDEX(',', ??) - 1) WHERE CHARINDEX(',', ??) > 0;`, [table.table_name, column.column_name, column.column_name, column.column_name, column.column_name]);
         } else if (driverType === 'sqlite3') {
-          await dbDriver.raw(`UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`, [table.table_name, column.title, column.title, column.title, column.title]);
+          await dbDriver.raw(`UPDATE ?? SET ?? = substr(??, 1, instr(??, ',') - 1) WHERE ?? LIKE '%,%';`, [table.table_name, column.column_name, column.column_name, column.column_name, column.column_name]);
         }
       }
 
@@ -811,19 +811,19 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         }
         if (column.uidt === UITypes.SingleSelect) { 
           if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [table.table_name, column.title, column.title, option.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = NULL WHERE ?? LIKE ?`, [table.table_name, column.column_name, column.column_name, option.title]);
           } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.title},eq,${option.title})` }, { [column.title]: null });
+            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: null });
           }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.title, column.title, option.title, option.title, column.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), ',')) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, option.title, option.title, column.column_name]);
           } else if (driverType === 'pg') {
-            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`, [table.table_name, column.title, column.title, option.title]);
+            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_remove(string_to_array(??, ','), ?), ',')`, [table.table_name, column.column_name, column.column_name, option.title]);
           } else if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`, [table.table_name, column.title, column.title, option.title, column.title, option.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), ','), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), ',')) - 2)`, [table.table_name, column.column_name, column.column_name, option.title, column.column_name, option.title]);
           } else if (driverType === 'sqlite3') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`, [table.table_name, column.title, column.title, option.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ','), ',')`, [table.table_name, column.column_name, column.column_name, option.title]);
           }
         }
       }
@@ -909,19 +909,19 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
 
         if (column.uidt === UITypes.SingleSelect) { 
           if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.title, newOp.title, column.title, option.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.column_name, newOp.title, column.column_name, option.title]);
           } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.title},eq,${option.title})` }, { [column.title]: newOp.title });
+            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${option.title})` }, { [column.column_name]: newOp.title });
           }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.title, column.title, option.title, newOp.title, option.title, column.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title, option.title, column.column_name]);
           } else if (driverType === 'pg') {
-            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`, [table.table_name, column.title, column.title, option.title, newOp.title]);
+            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title]);
           } else if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.title, column.title, option.title, newOp.title, column.title, option.title, newOp.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title, column.column_name, option.title, newOp.title]);
           } else if (driverType === 'sqlite3') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.title, column.title, option.title, newOp.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.column_name, column.column_name, option.title, newOp.title]);
           }
         }
       }
@@ -930,19 +930,19 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
         let newOp = ch.def_option;
         if (column.uidt === UITypes.SingleSelect) { 
           if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.title, newOp.title, column.title, ch.temp_title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = ? WHERE ?? LIKE ?`, [table.table_name, column.column_name, newOp.title, column.column_name, ch.temp_title]);
           } else {
-            await baseModel.bulkUpdateAll({ where: `(${column.title},eq,${ch.temp_title})` }, { [column.title]: newOp.title });
+            await baseModel.bulkUpdateAll({ where: `(${column.column_name},eq,${ch.temp_title})` }, { [column.column_name]: newOp.title });
           }
         } else if (column.uidt === UITypes.MultiSelect) {
           if (driverType === 'mysql' || driverType === 'mysql2') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.title, column.title, ch.temp_title, newOp.title, ch.temp_title, column.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(BOTH ',' FROM REPLACE(CONCAT(',', ??, ','), CONCAT(',', ?, ','), CONCAT(',', ?, ','))) WHERE FIND_IN_SET(?, ??)`, [table.table_name, column.column_name, column.column_name, ch.temp_title, newOp.title, ch.temp_title, column.column_name]);
           } else if (driverType === 'pg') {
-            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`, [table.table_name, column.title, column.title, ch.temp_title, newOp.title]);
+            await dbDriver.raw(`UPDATE ?? SET ??  = array_to_string(array_replace(string_to_array(??, ','), ?, ?), ',')`, [table.table_name, column.column_name, column.column_name, ch.temp_title, newOp.title]);
           } else if (driverType === 'mssql') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.title, column.title, ch.temp_title, newOp.title, column.title, ch.temp_title, newOp.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = substring(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ',')), 2, len(replace(concat(',', ??, ','), concat(',', ?, ','), concat(',', ?, ','))) - 2)`, [table.table_name, column.column_name, column.column_name, ch.temp_title, newOp.title, column.column_name, ch.temp_title, newOp.title]);
           } else if (driverType === 'sqlite3') {
-            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.title, column.title, ch.temp_title, newOp.title]);
+            await dbDriver.raw(`UPDATE ?? SET ?? = TRIM(REPLACE(',' || ?? || ',', ',' || ? || ',', ',' || ? || ','), ',')`, [table.table_name, column.column_name, column.column_name, ch.temp_title, newOp.title]);
           }
         }
       }

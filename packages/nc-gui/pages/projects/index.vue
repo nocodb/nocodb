@@ -82,6 +82,26 @@
                     </div>
                   </template>
                   <v-list dense>
+                    <span v-if="canCreateProjectWithoutExternalDB">
+                      <v-list-item class="create-xc-db-project nc-create-xc-db-project" @click="onCreateProject('xcdb')">
+                        <v-list-item-icon class="mr-2">
+                          <v-icon small> mdi-plus </v-icon>
+                        </v-list-item-icon>
+                        <v-list-item-title>
+                          <!-- Create -->
+                          <span class="caption font-weight-regular">{{ $t('general.create') }}</span>
+                        </v-list-item-title>
+                        <v-spacer />
+                        <v-tooltip right>
+                          <template #activator="{ on }">
+                            <v-icon x-small color="grey" class="ml-4" v-on="on"> mdi-information-outline </v-icon>
+                          </template>
+                          <!-- Create a new project -->
+                          <span class="caption">{{ $t('tooltip.xcDB') }}</span>
+                        </v-tooltip>
+                      </v-list-item>
+                      <v-divider />
+                    </span>
                     <v-list-item
                       title
                       class="pt-2 create-external-db-project nc-create-external-db-project"
@@ -114,7 +134,7 @@
                 </v-menu>
               </template>
               <x-btn
-                v-else-if="_isUIAllowed('projectCreate', true)"
+                v-else-if="_isUIAllowed('projectCreate', true) && canCreateProjectWithoutExternalDB"
                 v-ge="['home', 'project-new']"
                 outlined
                 data-v-step="1"
@@ -509,6 +529,13 @@ export default {
         this.$store.state.project &&
         this.$store.state.project.appInfo &&
         this.$store.state.project.appInfo.connectToExternalDB
+      )
+    },
+    canCreateProjectWithoutExternalDB() {
+      return (
+        this.$store.state.project &&
+        this.$store.state.project.appInfo &&
+        this.$store.state.project.appInfo.canCreateProjectWithoutExternalDB
       )
     }
   },

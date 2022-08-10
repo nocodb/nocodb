@@ -28,6 +28,8 @@ export async function appInfo(req: Request, res: Response) {
     ),
     oneClick: !!process.env.NC_ONE_CLICK,
     connectToExternalDB: !process.env.NC_CONNECT_TO_EXTERNAL_DB_DISABLED,
+    canCreateProjectWithoutExternalDB:
+      !process.env.NC_PROJECT_WITHOUT_EXTERNAL_DB_DISABLED,
     version: packageVersion,
     defaultLimit: Math.max(
       Math.min(

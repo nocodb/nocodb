@@ -294,7 +294,7 @@ const activeTable = computed(() => {
 }
 
 .nc-tree-item {
-  @apply relative  cursor-pointer after:(content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+  @apply relative  cursor-pointer after:(pointer-events-none content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
 }
 
 .nc-tree-item svg {

@@ -144,7 +144,7 @@ function onMove(event: any) {
     } else if (newIndex === 0) {
       element.order = (localColumns.value[1]?.order || 0) / 2
     } else {
-      element.order = (localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0) / 2
+      element.order = ((localColumns.value[newIndex - 1]?.order || 0) + (localColumns.value[newIndex + 1].order || 0)) / 2
     }
     saveOrUpdate(element, newIndex)
   }
@@ -503,27 +503,32 @@ onMounted(async () => {
                   <SmartsheetCell v-model="formState[element.title]" class="nc-input" :column="element" :edit-enabled="true" />
                 </a-form-item>
                 <div v-if="activeRow === element.title">
-                  <a-input
-                    v-model:value="element.label"
-                    size="large"
-                    :placeholder="$t('msg.info.formInput')"
-                    @change="updateColMeta(element)"
-                  >
-                  </a-input>
-                  <a-input
-                    v-model:value="element.description"
-                    class="nc-input"
-                    :placeholder="$t('msg.info.formHelpText')"
-                    size="large"
-                    @change="updateColMeta(element)"
-                  />
-                  <a-switch
-                    v-model:checked="element.required"
-                    class="mb-2"
-                    :checked-children="$t('general.required')"
-                    un-checked-children="Not Required"
-                    @change="updateColMeta(element)"
-                  />
+                  <a-form-item class="my-0 w-1/2">
+                    <a-input
+                      v-model:value="element.label"
+                      class="form-meta-input !bg-[#dbdbdb]"
+                      :placeholder="$t('msg.info.formInput')"
+                      @change="updateColMeta(element)"
+                    >
+                    </a-input>
+                  </a-form-item>
+                  <a-form-item class="mt-2 mb-0 w-1/2">
+                    <a-input
+                      v-model:value="element.description"
+                      class="form-meta-input !bg-[#dbdbdb]"
+                      :placeholder="$t('msg.info.formHelpText')"
+                      @change="updateColMeta(element)"
+                    />
+                  </a-form-item>
+                  <div>
+                    <a-switch
+                      v-model:checked="element.required"
+                      class="my-2"
+                      :checked-children="$t('general.required')"
+                      un-checked-children="Not Required"
+                      @change="updateColMeta(element)"
+                    />
+                  </div>
                 </div>
                 <span class="text-gray-500">{{ element.description }}</span>
               </div>
@@ -590,5 +595,9 @@ onMounted(async () => {
 
 .nc-input {
   @apply w-full !bg-white rounded px-2 py-2 min-h-[40px] mt-2 mb-2 flex align-center border-solid border-1 border-primary;
+}
+
+.form-meta-input::placeholder {
+  @apply text-[#3d3d3d] italic;
 }
 </style>

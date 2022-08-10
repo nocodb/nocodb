@@ -9,6 +9,7 @@ declare module '@vue/runtime-core' {
   export interface GlobalComponents {
     AAlert: typeof import('ant-design-vue/es')['Alert']
     AAutoComplete: typeof import('ant-design-vue/es')['AutoComplete']
+    ABadgeRibbon: typeof import('ant-design-vue/es')['BadgeRibbon']
     AButton: typeof import('ant-design-vue/es')['Button']
     ACard: typeof import('ant-design-vue/es')['Card']
     ACarousel: typeof import('ant-design-vue/es')['Carousel']
@@ -114,6 +115,7 @@ declare module '@vue/runtime-core' {
     MdiMoonFull: typeof import('~icons/mdi/moon-full')['default']
     MdiNotebookCheckOutline: typeof import('~icons/mdi/notebook-check-outline')['default']
     MdiOpenInNew: typeof import('~icons/mdi/open-in-new')['default']
+    MdiOperator: typeof import('~icons/mdi/operator')['default']
     MdiPlus: typeof import('~icons/mdi/plus')['default']
     MdiPlusOutline: typeof import('~icons/mdi/plus-outline')['default']
     MdiReload: typeof import('~icons/mdi/reload')['default']

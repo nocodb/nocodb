@@ -1,5 +1,5 @@
 import { isSystemColumn } from 'nocodb-sdk'
-import type { ColumnType, FormType, GalleryType, GridType, TableType, ViewType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'

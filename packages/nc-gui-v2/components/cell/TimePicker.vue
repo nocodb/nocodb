@@ -51,8 +51,6 @@ const localState = $computed({
   },
 })
 
-
-
 const open = ref(false)
 
 const randonClass = `picker_${Math.floor(Math.random() * 99999)}`
@@ -69,7 +67,6 @@ watch(
 
 <template>
   <a-time-picker
-    @click="open = !open"
     v-model:value="localState"
     autofocus
     :show-time="true"
@@ -82,6 +79,7 @@ watch(
     :input-read-only="true"
     :open="readOnlyMode ? false : open"
     :dropdown-class-name="randonClass"
+    @click="open = !open"
   >
     <template #suffixIcon></template>
   </a-time-picker>

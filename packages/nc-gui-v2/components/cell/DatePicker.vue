@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { vOnClickOutside } from '@vueuse/components'
 import { ColumnInj, ReadonlyInj } from '~/context'
 
 const { modelValue } = defineProps<Props>()
@@ -57,7 +56,6 @@ watch(
 
 <template>
   <a-date-picker
-    @click="open = !open"
     v-model:value="localState"
     :bordered="false"
     class="!w-full px-1"
@@ -67,6 +65,7 @@ watch(
     :input-read-only="true"
     :dropdown-class-name="randonClass"
     :open="readOnlyMode ? false : open"
+    @click="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

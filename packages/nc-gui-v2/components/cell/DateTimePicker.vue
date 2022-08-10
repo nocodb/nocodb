@@ -58,7 +58,6 @@ watch(
 
 <template>
   <a-date-picker
-    @click="open = !open"
     v-model:value="localState"
     :show-time="true"
     :bordered="false"
@@ -69,6 +68,7 @@ watch(
     :input-read-only="true"
     :dropdown-class-name="randonClass"
     :open="readOnlyMode ? false : open"
+    @click="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

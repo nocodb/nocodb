@@ -43,7 +43,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     const validators = computed(() => {
       return {
-        column_name: [
+        title: [
           {
             required: true,
             message: 'Column name is required',
@@ -88,6 +88,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const generateNewColumnMeta = () => {
       setAdditionalValidations({})
       formState.value = { meta: {}, ...sqlUi.value.getNewColumn((meta.value?.columns?.length || 0) + 1) }
+      formState.value.title = formState.value.title || formState.value.column_name
     }
 
     const onUidtOrIdTypeChange = () => {
@@ -180,7 +181,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         if (!(await validate())) return
 
         formState.value.table_name = meta.value.table_name
-        formState.value.title = formState.value.column_name
+        // formState.value.title = formState.value.column_name
         if (column?.value) {
           await $api.dbTableColumn.update(column?.value?.id as string, formState.value)
           toast.success('Column updated')
@@ -209,6 +210,12 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         if (error) toast.error(await extractSdkResponseErrorMsg(e))
       }
     }
+
+    /** set column name same as title which is actual name in db */
+    watch(
+      () => formState.value?.title,
+      (newTitle) => (formState.value.column_name = newTitle),
+    )
 
     return {
       formState,

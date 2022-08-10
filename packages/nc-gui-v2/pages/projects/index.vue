@@ -56,8 +56,6 @@ const deleteProject = (project: ProjectType) => {
     },
   })
 }
-
-const visible = ref(true)
 </script>
 
 <template>

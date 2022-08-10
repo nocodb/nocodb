@@ -7,7 +7,7 @@ interface Option {
   value: string
 }
 
-const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
+const { formState, validateInfos, setAdditionalValidations } = useColumnCreateStoreOrThrow()
 
 const validators = {
   'meta.currency_locale': [

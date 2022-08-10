@@ -2,7 +2,7 @@
 import { useColumnCreateStoreOrThrow } from '#imports'
 import { durationOptions } from '@/utils'
 
-const { formState, validateInfos, setAdditionalValidations, sqlUi, onDataTypeChange, onAlter } = useColumnCreateStoreOrThrow()
+const { formState } = useColumnCreateStoreOrThrow()
 
 const durationOptionList =
   durationOptions.map((o) => ({

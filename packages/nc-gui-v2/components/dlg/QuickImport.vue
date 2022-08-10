@@ -68,7 +68,7 @@ const validators = computed(() => {
   }
 })
 
-const { resetFields, validate, validateInfos } = useForm(importState, validators)
+const { validate, validateInfos } = useForm(importState, validators)
 
 const importMeta = computed(() => {
   if (IsImportTypeExcel.value) {

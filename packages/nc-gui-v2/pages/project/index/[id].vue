@@ -4,13 +4,13 @@ import type { Form } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { ref } from 'vue'
 import { useToast } from 'vue-toastification'
-import { navigateTo, useNuxtApp, useRoute } from '#app'
+import { navigateTo, useRoute } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { projectTitleValidator } from '~/utils/validation'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
 import { nextTick, reactive, useSidebar } from '#imports'
 
-const { api, isLoading } = useApi()
+const { api } = useApi()
 
 useSidebar({ hasSidebar: false })
 

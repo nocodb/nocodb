@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
 import { useColumnCreateStoreOrThrow } from '#imports'
 import { MetaInj } from '~/context'
@@ -27,17 +28,17 @@ const refTables = $computed(() => {
     return []
   }
 
-  // todo: type issues with ColumnType so we have to cast to any
-  return (
-    meta.columns
-      ?.filter((c: any) => c.uidt === UITypes.LinkToAnotherRecord && c.colOptions?.type !== 'bt' && !c.system)
-      .map((c) => ({
-        col: c.colOptions,
-        column: c,
-        ...tables.find((t) => t.id === (c.colOptions as any)?.fk_related_model_id),
-      }))
-      .filter((table: any) => table.col?.fk_related_model_id === table.id && !table.mm) ?? []
-  )
+  return meta.columns
+    .filter((c: ColumnType) => c.uidt === UITypes.LinkToAnotherRecord && !c.system)
+    .map<TableType & { col: LinkToAnotherRecordType; column: ColumnType }>((c: ColumnType) => ({
+      col: c.colOptions,
+      column: c,
+      ...tables.find((t) => t.id === (c.colOptions as LinkToAnotherRecordType).fk_related_model_id),
+    }))
+    .filter(
+      (table: TableType & { col: LinkToAnotherRecordType; column: ColumnType }) =>
+        table.col.fk_related_model_id === table.id && !table.mm,
+    )
 })
 
 const columns = $computed(() => {
@@ -46,7 +47,7 @@ const columns = $computed(() => {
     return []
   }
 
-  return metas[selectedTable.id].columns.filter((c: any) => !isSystemColumn(c))
+  return metas[selectedTable.id].columns.filter((c) => !isSystemColumn(c))
 })
 </script>
 
@@ -54,17 +55,22 @@ const columns = $computed(() => {
   <div class="p-4 w-full flex flex-col border-2 mb-2 mt-4">
     <div class="w-full flex flex-row space-x-2">
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.childTable')" v-bind="validateInfos.fk_relation_column_id">
-        <a-select v-model:value="formState.fk_relation_column_id" size="small" @change="onDataTypeChange">
-          <a-select-option v-for="(table, index) of refTables" :key="index" :value="table.col.fk_column_id">
-            <div class="flex flex-row items-center space-x-0.5 h-full">
-              <div class="font-weight-bold text-[0.7rem]">{{ table.column.title }}</div>
-
-              <div class="text-[0.5rem]">({{ relationNames[table.col.type] }} {{ table.title || table.table_name }})</div>
+        <a-select
+          v-model:value="formState.fk_relation_column_id"
+          size="small"
+          dropdown-class-name="!w-64"
+          @change="onDataTypeChange"
+        >
+          <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.col.fk_column_id">
+            <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
+              <div class="font-semibold text-xs">{{ table.column.title }}</div>
+              <div class="text-[0.65rem] text-gray-600">
+                {{ relationNames[table.col.type] }} {{ table.title || table.table_name }}
+              </div>
             </div>
           </a-select-option>
         </a-select>
       </a-form-item>
-
       <a-form-item class="flex w-1/2" :label="$t('labels.childColumn')" v-bind="validateInfos.fk_lookup_column_id">
         <a-select
           v-model:value="formState.fk_lookup_column_id"

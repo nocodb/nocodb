@@ -56,12 +56,6 @@ function onVisibleChange() {
   // by clicking cancel button
   editColumnDropdown.value = true
 }
-
-const editOrAddCard = ref()
-
-onClickOutside(editOrAddCard, () => {
-  editColumnDropdown.value = false
-})
 </script>
 
 <template>
@@ -69,7 +63,6 @@ onClickOutside(editOrAddCard, () => {
     <span />
     <template #overlay>
       <SmartsheetColumnEditOrAdd
-        ref="editOrAddCard"
         :edit-column-dropdown="editColumnDropdown"
         @click.stop
         @keydown.stop

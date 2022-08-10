@@ -29,6 +29,7 @@ import {
   ReloadViewDataHookInj,
 } from '~/context'
 import { NavigateDir } from '~/lib'
+import { enumColor } from '~/utils'
 
 const meta = inject(MetaInj)
 
@@ -58,6 +59,9 @@ const addColumnDropdown = ref(false)
 const contextMenu = ref(false)
 
 const contextMenuTarget = ref(false)
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref<Row>()
+const expandedFormRowState = ref<Record<string, any>>()
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -71,6 +75,7 @@ const {
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
+  loadAggCommentsCount,
 } = useViewData(meta, view as any, xWhere)
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
@@ -82,8 +87,9 @@ provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 
-reloadViewDataHook?.on(() => {
-  loadData()
+reloadViewDataHook?.on(async () => {
+  await loadData()
+  loadAggCommentsCount()
 })
 
 const selectCell = (row: number, col: number) => {
@@ -271,6 +277,12 @@ const onNavigate = (dir: NavigateDir) => {
       break
   }
 }
+
+const expandForm = (row: Row, state: Record<string, any>) => {
+  expandedFormRow.value = row
+  expandedFormRowState.value = state
+  expandedFormDlg.value = true
+}
 </script>
 
 <template>
@@ -281,7 +293,7 @@ const onNavigate = (dir: NavigateDir) => {
           <thead>
             <tr>
               <th>
-                <div class="flex align-center w-[80px]">
+                <div class="flex align-center w-[80px] px-1">
                   <div class="group-hover:hidden" :class="{ hidden: selectedAllRecords }">#</div>
                   <div
                     :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
@@ -322,62 +334,76 @@ const onNavigate = (dir: NavigateDir) => {
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row">
-              <td key="row-index" class="caption nc-grid-cell group">
-                <div class="flex items-center w-[80px]">
-                  <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
-                  <div
-                    :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                    class="group-hover:flex w-full items-center justify-between p-1"
-                  >
-                    <a-checkbox v-model:checked="row.rowMeta.selected" />
-                    <span class="flex-1" />
-                    <div class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
-                      <MdiArrowExpand class="select-none transform hover:(text-pink-500 scale-120)" />
+            <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
+              <template #default="{ state }">
+                <tr class="nc-grid-row group">
+                  <td key="row-index" class="caption nc-grid-cell">
+                    <div class="align-center flex w-[80px]">
+                      <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                      <div
+                        :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
+                        class="group-hover:flex w-full items-center justify-between p-1"
+                      >
+                        <a-checkbox v-model:checked="row.rowMeta.selected" />
+                        <span class="flex-1" />
+                        <span
+                          v-if="row.rowMeta?.commentCount"
+                          class="py-1 px-3 rounded-full text-xs"
+                          :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                          @click="expandForm(row, state)"
+                          >{{ row.rowMeta.commentCount }}</span
+                        >
+                        <div class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
+                          <MdiArrowExpand
+                            class="select-none transform hover:(text-pink-500 scale-120)"
+                            @click="expandForm(row, state)"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </td>
-              <td
-                v-for="(columnObj, colIndex) of fields"
-                :ref="cellRefs.set"
-                :key="columnObj.id"
-                class="cell relative cursor-pointer nc-grid-cell"
-                :class="{
-                  active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
-                }"
-                :data-key="rowIndex + columnObj.id"
-                :data-col="columnObj.id"
-                :data-title="columnObj.title"
-                @click="selectCell(rowIndex, colIndex)"
-                @dblclick="makeEditable(row, columnObj)"
-                @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
-              >
-                <div class="w-full h-full">
-                  <SmartsheetVirtualCell
-                    v-if="isVirtualCol(columnObj)"
-                    v-model="row.row[columnObj.title]"
-                    :column="columnObj"
-                    :active="selected.col === colIndex && selected.row === rowIndex"
-                    :row="row"
-                    @navigate="onNavigate"
-                  />
+                  </td>
+                  <td
+                    v-for="(columnObj, colIndex) of fields"
+                    :ref="cellRefs.set"
+                    :key="columnObj.id"
+                    class="cell relative cursor-pointer nc-grid-cell"
+                    :class="{
+                      active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
+                    }"
+                    :data-key="rowIndex + columnObj.id"
+                    :data-col="columnObj.id"
+                    :data-title="columnObj.title"
+                    @click="selectCell(rowIndex, colIndex)"
+                    @dblclick="makeEditable(row, columnObj)"
+                    @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
+                  >
+                    <div class="w-full h-full">
+                      <SmartsheetVirtualCell
+                        v-if="isVirtualCol(columnObj)"
+                        v-model="row.row[columnObj.title]"
+                        :column="columnObj"
+                        :active="selected.col === colIndex && selected.row === rowIndex"
+                        :row="row"
+                        @navigate="onNavigate"
+                      />
 
-                  <SmartsheetCell
-                    v-else
-                    v-model="row.row[columnObj.title]"
-                    :column="columnObj"
-                    :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
-                    :row-index="rowIndex"
-                    :active="selected.col === colIndex && selected.row === rowIndex"
-                    @update:edit-enabled="editEnabled = false"
-                    @save="updateOrSaveRow(row, columnObj.title)"
-                    @navigate="onNavigate"
-                    @cancel="editEnabled = false"
-                  />
-                </div>
-              </td>
-            </tr>
+                      <SmartsheetCell
+                        v-else
+                        v-model="row.row[columnObj.title]"
+                        :column="columnObj"
+                        :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                        :row-index="rowIndex"
+                        :active="selected.col === colIndex && selected.row === rowIndex"
+                        @update:edit-enabled="editEnabled = false"
+                        @save="updateOrSaveRow(row, columnObj.title)"
+                        @navigate="onNavigate"
+                        @cancel="editEnabled = false"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </SmartsheetRow>
 
             <tr v-if="!isLocked">
               <td
@@ -415,6 +441,14 @@ const onNavigate = (dir: NavigateDir) => {
     </div>
 
     <SmartsheetPagination />
+
+    <SmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :row="expandedFormRow"
+      :state="expandedFormRowState"
+      :meta="meta"
+    />
   </div>
 </template>
 
@@ -430,13 +464,11 @@ const onNavigate = (dir: NavigateDir) => {
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
-    //padding: 0 5px;
+  }
 
-    & > div {
-      overflow: hidden;
-      @apply flex align-center h-auto;
-      padding: 0 5px;
-    }
+  td > div {
+    overflow: hidden;
+    @apply flex align-center h-auto px-1;
   }
 
   table,

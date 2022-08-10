@@ -2,7 +2,7 @@
 import { useToast } from 'vue-toastification'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { Form } from 'ant-design-vue'
+import { Form, notification } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import { computed, onMounted } from '#imports'
 import MdiTableIcon from '~icons/mdi/table'
@@ -182,96 +182,213 @@ function remapColNames(batchData: any[], columns: ColumnType[]) {
   )
 }
 
-async function importTemplate() {
-  // check if form is valid
-  try {
-    await validate()
-  } catch (errorInfo) {
-    isImporting.value = false
-    throw new Error('Please fill all the required values')
+function missingRequiredColumnsValidation() {
+  const missingRequiredColumns = columns.value.filter(
+    (c: Record<string, any>) =>
+      (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) && !srcDestMapping.value.some((r) => r.destCn === c.title),
+  )
+  if (missingRequiredColumns.length) {
+    notification.error({
+      message: `Following columns are required : ${missingRequiredColumns.map((c) => c.title).join(', ')}`,
+      duration: 3,
+    })
+    return false
+  }
+  return true
+}
+
+function atLeastOneEnabledValidation() {
+  if (srcDestMapping.value.filter((v) => v.enabled === true).length == 0) {
+    notification.error({
+      message: 'At least one column has to be selected',
+      duration: 3,
+    })
+    return false
+  }
+  return true
+}
+
+function fieldsValidation(table: Record<string, any>, record: Record<string, any>) {
+  console.log(importData[table.ref_table_name].slice(0, 500))
+  // if it is not selected, then pass validation
+  if (!record.enabled) {
+    return true
   }
 
-  try {
-    isImporting.value = true
-    // tab info to be used to show the tab after successful import
-    const tab = {
-      id: '',
-      title: '',
+  if (srcDestMapping.value.filter((v) => v.destCn === record.destCn).length > 1) {
+    notification.error({
+      message: 'Duplicate mapping found, please remove one of the mapping',
+      duration: 3,
+    })
+    return false
+  }
+
+  const v = columns.value.find((c) => c.title === record.destCn) as Record<string, any>
+
+  // check if the input contains null value for a required column
+  if (v.pk ? !v.ai && !v.cdf : !v.cdf && v.rqd) {
+    if (
+      importData[table.ref_table_name]
+        .slice(0, 500)
+        .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
+    ) {
+      notification.error({
+        message: 'null value violates not-null constraint',
+        duration: 3,
+      })
+    }
+  }
+
+  switch (v.uidt) {
+    case UITypes.Number:
+      if (
+        importData[table.ref_table_name]
+          .slice(0, 500)
+          .some(
+            (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
+          )
+      ) {
+        notification.error({
+          message: 'Source data contains some invalid numbers',
+          duration: 3,
+        })
+        return false
+      }
+      break
+    case UITypes.Checkbox:
+      if (
+        importData[table.ref_table_name].slice(0, 500).some((r: Record<string, any>) => {
+          if ((r: Record<string, any>) => r[record.srcCn] !== null && r[record.srcCn] !== undefined) {
+            let input = r[record.srcCn]
+            if (typeof input === 'string') {
+              input = input.replace(/["']/g, '').toLowerCase().trim()
+              return !(
+                input == 'false' ||
+                input == 'no' ||
+                input == 'n' ||
+                input == '0' ||
+                input == 'true' ||
+                input == 'yes' ||
+                input == 'y' ||
+                input == '1'
+              )
+            }
+            return input != 1 && input != 0 && input != true && input != false
+          }
+          return false
+        })
+      ) {
+        notification.error({
+          message: 'Source data contains some invalid boolean values',
+          duration: 3,
+        })
+        return false
+      }
+      break
+  }
+  return true
+}
+
+async function importTemplate() {
+  console.log('importTemplate')
+  if (importOnly) {
+    // validate required columns
+    if (!missingRequiredColumnsValidation()) return
+    // validate at least one column needs to be selected
+    if (!atLeastOneEnabledValidation()) return
+
+    // TODO: ok
+  } else {
+    // check if form is valid
+    try {
+      await validate()
+    } catch (errorInfo) {
+      isImporting.value = false
+      throw new Error('Please fill all the required values')
     }
 
-    // create tables
-    for (const table of data.tables) {
-      // enrich system fields if not provided
-      // e.g. id, created_at, updated_at
-      const systemColumns = sqlUi?.value.getNewTableColumns().filter((c: ColumnType) => c.column_name !== 'title')
-      for (const systemColumn of systemColumns) {
-        if (!table.columns?.some((c) => c.column_name?.toLowerCase() === systemColumn.column_name.toLowerCase())) {
-          table.columns?.push(systemColumn)
-        }
+    try {
+      isImporting.value = true
+      // tab info to be used to show the tab after successful import
+      const tab = {
+        id: '',
+        title: '',
       }
 
-      // set pk & rqd if ID is provided
-      if (table.columns) {
-        for (const column of table.columns) {
-          if (column.column_name?.toLowerCase() === 'id' && !('pk' in column)) {
-            column.pk = true
-            column.rqd = true
-            break
+      // create tables
+      for (const table of data.tables) {
+        // enrich system fields if not provided
+        // e.g. id, created_at, updated_at
+        const systemColumns = sqlUi?.value.getNewTableColumns().filter((c: ColumnType) => c.column_name !== 'title')
+        for (const systemColumn of systemColumns) {
+          if (!table.columns?.some((c) => c.column_name?.toLowerCase() === systemColumn.column_name.toLowerCase())) {
+            table.columns?.push(systemColumn)
           }
         }
-      }
-      const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
-        table_name: table.table_name,
-        // leave title empty to get a generated one based on table_name
-        title: '',
-        columns: table.columns,
-      })
-      table.title = tableMeta.title
 
-      // open the first table after import
-      if (tab.id === '' && tab.title === '') {
-        tab.id = tableMeta.id as string
-        tab.title = tableMeta.title as string
-      }
-
-      // set primary value
-      if (tableMeta?.columns?.[0]?.id) {
-        await $api.dbTableColumn.primaryColumnSet(tableMeta.columns[0].id as string)
-      }
-    }
-    // bulk insert data
-    if (importData) {
-      let total = 0
-      let progress = 0
-      const offset = 500
-      const projectName = project.value.title as string
-      await Promise.all(
-        data.tables.map((table: Record<string, any>) =>
-          (async (tableMeta) => {
-            const data = importData[tableMeta.ref_table_name]
-            if (data) {
-              total += data.length
-              for (let i = 0; i < data.length; i += offset) {
-                importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
-                const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
-                await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.title, batchData)
-                progress += batchData.length
-              }
+        // set pk & rqd if ID is provided
+        if (table.columns) {
+          for (const column of table.columns) {
+            if (column.column_name?.toLowerCase() === 'id' && !('pk' in column)) {
+              column.pk = true
+              column.rqd = true
+              break
             }
-          })(table),
-        ),
-      )
+          }
+        }
+        const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
+          table_name: table.table_name,
+          // leave title empty to get a generated one based on table_name
+          title: '',
+          columns: table.columns,
+        })
+        table.title = tableMeta.title
+
+        // open the first table after import
+        if (tab.id === '' && tab.title === '') {
+          tab.id = tableMeta.id as string
+          tab.title = tableMeta.title as string
+        }
+
+        // set primary value
+        if (tableMeta?.columns?.[0]?.id) {
+          await $api.dbTableColumn.primaryColumnSet(tableMeta.columns[0].id as string)
+        }
+      }
+      // bulk insert data
+      if (importData) {
+        let total = 0
+        let progress = 0
+        const offset = 500
+        const projectName = project.value.title as string
+        await Promise.all(
+          data.tables.map((table: Record<string, any>) =>
+            (async (tableMeta) => {
+              const data = importData[tableMeta.ref_table_name]
+              if (data) {
+                total += data.length
+                for (let i = 0; i < data.length; i += offset) {
+                  importingTip.value = `Importing data to ${projectName}: ${progress}/${total} records`
+                  const batchData = remapColNames(data.slice(i, i + offset), tableMeta.columns)
+                  await $api.dbTableRow.bulkCreate('noco', projectName, tableMeta.title, batchData)
+                  progress += batchData.length
+                }
+              }
+            })(table),
+          ),
+        )
+      }
+      // reload table list
+      await loadTables()
+      addTab({
+        ...tab,
+        type: 'table',
+      })
+    } catch (e: any) {
+      toast.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      isImporting.value = false
     }
-    // reload table list
-    await loadTables()
-    addTab({
-      ...tab,
-      type: 'table',
-    })
-  } catch (e: any) {
-    toast.error(await extractSdkResponseErrorMsg(e))
-  } finally {
-    isImporting.value = false
   }
 }
 
@@ -352,20 +469,24 @@ onMounted(() => {
                 <span>{{ record.srcCn }}</span>
               </template>
               <template v-else-if="column.key === 'destination_column'">
-                <a-form-item>
-                  <a-select v-model:value="record.destCn" class="w-52" show-search :filter-option="filterOption">
-                    <a-select-option v-for="(column, i) of columns" :key="i" :value="column.title">
-                      <div class="flex items-center">
-                        <component :is="getUIDTIcon(column.uidt)" />
-                        <span class="ml-2">{{ column.title }}</span>
-                      </div>
-                    </a-select-option>
-                  </a-select>
-                </a-form-item>
+                <a-select
+                  v-model:value="record.destCn"
+                  class="w-52"
+                  show-search
+                  :filter-option="filterOption"
+                  @change="fieldsValidation(table, record)"
+                >
+                  <a-select-option v-for="(column, i) of columns" :key="i" :value="column.title">
+                    <div class="flex items-center">
+                      <component :is="getUIDTIcon(column.uidt)" />
+                      <span class="ml-2">{{ column.title }}</span>
+                    </div>
+                  </a-select-option>
+                </a-select>
               </template>
 
               <template v-if="column.key === 'action'">
-                <a-checkbox v-model:checked="record.enabled" />
+                <a-checkbox v-model:checked="record.enabled" @change="fieldsValidation(table, record)" />
               </template>
             </template>
           </a-table>

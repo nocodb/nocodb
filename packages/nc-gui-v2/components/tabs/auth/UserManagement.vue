@@ -211,7 +211,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
           {{ user.email }}
         </div>
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
-          <div class="rounded-full px-2 py-1" :style="{ backgroundColor: projectRoleTagColors[role] }">
+          <div class="rounded-full px-2 py-1" :style="{ backgroundColor: projectRoleTagColors[user.roles as String] }">
             {{ user.roles }}
           </div>
         </div>

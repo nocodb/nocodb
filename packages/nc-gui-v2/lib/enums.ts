@@ -5,6 +5,7 @@ export enum Role {
 }
 
 export enum ProjectRole {
+  Owner = 'owner',
   Creator = 'creator',
   Editor = 'editor',
   Commenter = 'commenter',

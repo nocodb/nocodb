@@ -5,13 +5,6 @@ import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { Form, notification } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import { computed, onMounted } from '#imports'
-import MdiTableIcon from '~icons/mdi/table'
-import MdiStringIcon from '~icons/mdi/alpha-a'
-import MdiLongTextIcon from '~icons/mdi/text'
-import MdiNumericIcon from '~icons/mdi/numeric'
-import MdiPlusIcon from '~icons/mdi/plus'
-import MdiKeyStarIcon from '~icons/mdi/key-star'
-import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import { extractSdkResponseErrorMsg, fieldRequiredValidator, getUIDTIcon } from '~/utils'
 import { MetaInj, ReloadViewDataHookInj } from '~/context'
 
@@ -516,7 +509,7 @@ onMounted(() => {
         <a-collapse-panel v-for="(table, tableIdx) in data.tables" :key="tableIdx">
           <template #header>
             <span class="font-weight-bold text-lg flex items-center gap-2">
-              <MdiTableIcon class="text-primary" />
+              <mdi-table class="text-primary" />
               {{ table.ref_table_name }}
             </span>
           </template>
@@ -538,12 +531,7 @@ onMounted(() => {
                 <span>{{ record.srcCn }}</span>
               </template>
               <template v-else-if="column.key === 'destination_column'">
-                <a-select
-                  v-model:value="record.destCn"
-                  class="w-52"
-                  show-search
-                  :filter-option="filterOption"
-                >
+                <a-select v-model:value="record.destCn" class="w-52" show-search :filter-option="filterOption">
                   <a-select-option v-for="(column, i) of columns" :key="i" :value="column.title">
                     <div class="flex items-center">
                       <component :is="getUIDTIcon(column.uidt)" />
@@ -587,7 +575,7 @@ onMounted(() => {
                 />
               </a-form-item>
               <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
-                <MdiTableIcon class="text-primary" />
+                <mdi-table class="text-primary" />
                 {{ table.table_name }}
               </span>
             </template>
@@ -597,7 +585,7 @@ onMounted(() => {
                   <!-- TODO: i18n -->
                   <span>Delete Table</span>
                 </template>
-                <MdiDeleteOutlineIcon v-if="data.tables.length > 1" class="text-lg mr-8" @click.stop="deleteTable(tableIdx)" />
+                <mdi-delete-outline v-if="data.tables.length > 1" class="text-lg mr-8" @click.stop="deleteTable(tableIdx)" />
               </a-tooltip>
             </template>
 
@@ -665,7 +653,7 @@ onMounted(() => {
                       <span>Primary Value</span>
                     </template>
                     <div class="flex items-center float-right mr-4">
-                      <MdiKeyStarIcon class="text-lg" />
+                      <mdi-key-star class="text-lg" />
                     </div>
                   </a-tooltip>
                   <a-tooltip v-else>
@@ -676,7 +664,7 @@ onMounted(() => {
 
                     <a-button type="text" @click="deleteTableColumn(tableIdx, record.key)">
                       <div class="flex items-center">
-                        <MdiDeleteOutlineIcon class="text-lg" />
+                        <mdi-delete-outline class="text-lg" />
                       </div>
                     </a-button>
                   </a-tooltip>
@@ -692,7 +680,7 @@ onMounted(() => {
 
                 <a-button @click="addNewColumnRow(table, 'Number')">
                   <div class="flex items-center">
-                    <MdiNumericIcon class="text-lg" />
+                    <mdi-numeric class="text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -704,7 +692,7 @@ onMounted(() => {
                 </template>
                 <a-button @click="addNewColumnRow(table, 'SingleLineText')">
                   <div class="flex items-center">
-                    <MdiStringIcon class="text-lg" />
+                    <mdi-alpha-a class="text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -716,7 +704,7 @@ onMounted(() => {
                 </template>
                 <a-button @click="addNewColumnRow(table, 'LongText')">
                   <div class="flex items-center">
-                    <MdiLongTextIcon class="text-lg" />
+                    <mdi-text class="text-lg" />
                   </div>
                 </a-button>
               </a-tooltip>
@@ -728,7 +716,7 @@ onMounted(() => {
                 </template>
                 <a-button @click="addNewColumnRow(table, 'SingleLineText')">
                   <div class="flex items-center">
-                    <MdiPlusIcon class="text-lg" />
+                    <mdi-plus class="text-lg" />
                     Column
                   </div>
                 </a-button>

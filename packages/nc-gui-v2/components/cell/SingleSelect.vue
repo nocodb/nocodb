@@ -76,7 +76,7 @@ watch(isOpen, (n, _o) => {
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >
-    <a-select-option v-for="op of options" :key="op.title" @click.stop>
+    <a-select-option v-for="op of options" :key="op.title" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>
       </a-tag>

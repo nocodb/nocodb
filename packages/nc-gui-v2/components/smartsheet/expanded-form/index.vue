@@ -1,13 +1,20 @@
 <script setup lang="ts">
-import { computedInject } from '@vueuse/core'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
 import Comments from './Comments.vue'
 import Header from './Header.vue'
-import { provide, toRef, useProvideExpandedFormStore, useProvideSmartsheetStore, useVModel, watch } from '#imports'
+import {
+  computedInject,
+  provide,
+  toRef,
+  useNuxtApp,
+  useProvideExpandedFormStore,
+  useProvideSmartsheetStore,
+  useVModel,
+  watch,
+} from '#imports'
 import { NOCO } from '~/lib'
 import { extractPkFromRow } from '~/utils'
-import { useNuxtApp } from '#app'
 import type { Row } from '~/composables'
 import { FieldsInj, IsFormInj, MetaInj } from '~/context'
 

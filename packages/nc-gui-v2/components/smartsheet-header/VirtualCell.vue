@@ -1,12 +1,9 @@
 <script setup lang="ts">
 import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
-import { toRef } from 'vue'
-import { $computed } from 'vue/macros'
 import type { Ref } from 'vue'
-import { useMetas } from '~/composables'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
-import { provide, useProvideColumnCreateStore } from '#imports'
+import { provide, toRef, useMetas, useProvideColumnCreateStore } from '#imports'
 
 const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean }>()
 const column = toRef(props, 'column')

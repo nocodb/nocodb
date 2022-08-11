@@ -213,7 +213,6 @@
     "sqlOutput": "SQL izvade",
     "addOption": "Pievienot iespēju",
     "aggregateFunction": "Agregācijas funkcija",
-    "database": "Datubāze",
     "dbCreateIfNotExists": "Datubāze : izveidotm ja neeksistē",
     "clientKey": "Klienta atslēga",
     "clientCert": "Klienta sertifikāts",
@@ -310,6 +309,7 @@
     "importExcel": "Importēt Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Lejupielādēt kā CSV",
+    "downloadExcel": "Lejupielādēt kā XLSX",
     "uploadCSV": "Augšupielādēt CSV",
     "import": "Importēt",
     "importMetadata": "Importēt metadatus",
@@ -413,7 +413,7 @@
       "deleteProject": "Vai tu vēlies dzēst projektu?",
       "shareBasePrivate": "Izveidot koplietojamu saiti",
       "shareBasePublic": "Jebkurš ar šo saiti varēs skatīt",
-      "userInviteNoSMTP": "E-pasta nosūtītājs vēl nav konfigurēts! Lūdzu kopējiet uzaicinājuma saiti augstāk un nosūtiet to",
+      "userInviteNoSMTP": "E-pasta nosūtītājs vēl nav konfigurēts! \\n Lūdzu kopējiet uzaicinājuma saiti augstāk un nosūtiet to",
       "dragDropHide": "Vilkt un nomest laukus šeit lai noņemtu",
       "formInput": "Ievadiet formas ievades lauka birku",
       "formHelpText": "Pievienot norādījumus",
@@ -497,8 +497,7 @@
         "emailReqd": "E-pasts ir obligāts",
         "emailInvalid": "E-pastam ir jābūt korektam",
         "passwdRequired": "Parole ir obligāta",
-        "passwdLength": "Parolei jābūt vismaz 8 simboli",
-        "passwdMismatch": "Paroles nesakrīt"
+        "passwdLength": "Parolei jābūt vismaz 8 simboli"
       }
     },
     "toast": {

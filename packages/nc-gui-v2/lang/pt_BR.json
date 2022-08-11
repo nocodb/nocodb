@@ -213,7 +213,6 @@
     "sqlOutput": "Saída SQL.",
     "addOption": "Adicionar opção",
     "aggregateFunction": "Função agregada",
-    "database": "Base de dados",
     "dbCreateIfNotExists": "Base de Dados : criar se não existir",
     "clientKey": "Chave do Cliente",
     "clientCert": "Certificado do Cliente",
@@ -310,6 +309,7 @@
     "importExcel": "Importar Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Baixe como CSV.",
+    "downloadExcel": "Baixe como XLSX.",
     "uploadCSV": "Carregar CSV.",
     "import": "Importar",
     "importMetadata": "Importar Metadados",
@@ -413,7 +413,7 @@
       "deleteProject": "Você quer excluir o projeto?",
       "shareBasePrivate": "Gerar base readonly compartilhável publicamente",
       "shareBasePublic": "Qualquer pessoa na internet com este link pode ver",
-      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer! por favor copie o link acima do convite e envie-o para",
+      "userInviteNoSMTP": "Parece que você ainda não configurou o mailer!\npor favor copie o link acima do convite e envie-o para",
       "dragDropHide": "Arraste e solte os campos aqui para se esconder",
       "formInput": "Digite a etiqueta de entrada do formulário",
       "formHelpText": "Adicione um texto de ajuda",
@@ -497,8 +497,7 @@
         "emailReqd": "O Email é obrigatório",
         "emailInvalid": "O Email deve ser válido",
         "passwdRequired": "A Palavra-passe é obrigatória",
-        "passwdLength": "A sua palavra-passe deve conter pelo menos 8 caracteres",
-        "passwdMismatch": "As senhas não coincidem"
+        "passwdLength": "A sua palavra-passe deve conter pelo menos 8 caracteres"
       }
     },
     "toast": {

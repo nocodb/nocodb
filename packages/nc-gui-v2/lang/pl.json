@@ -213,7 +213,6 @@
     "sqlOutput": "Wyjście SQL.",
     "addOption": "Dodaj opcję.",
     "aggregateFunction": "Funkcja kruszywa",
-    "database": "Baza danych",
     "dbCreateIfNotExists": "Baza danych: Utwórz, jeśli nie istnieje",
     "clientKey": "Klucz klienta",
     "clientCert": "Cert Client.",
@@ -310,6 +309,7 @@
     "importExcel": "Importuj Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Pobierz jako CSV.",
+    "downloadExcel": "Pobierz jako XLSX.",
     "uploadCSV": "Prześlij CSV.",
     "import": "Import",
     "importMetadata": "Importuj metadane",
@@ -413,7 +413,7 @@
       "deleteProject": "Czy chcesz usunąć projekt?",
       "shareBasePrivate": "Wygeneruj publicznie do readonly bazy",
       "shareBasePublic": "Każdy w Internecie z tym linkiem może przeglądać",
-      "userInviteNoSMTP": "Wygląda na to, że nie skonfigurowałeś jeszcze mailera! Proszę skopiować powyżej zaproś link i wyślij go",
+      "userInviteNoSMTP": "Wygląda na to, że nie skonfigurowałeś jeszcze mailera! n Proszę skopiować powyżej zaproś link i wyślij go",
       "dragDropHide": "Przeciągnij i upuść pola tutaj, aby się ukryć",
       "formInput": "Wprowadź etykietę wejściową formularza",
       "formHelpText": "Dodaj trochę pomocy",
@@ -497,8 +497,7 @@
         "emailReqd": "Email jest wymagany",
         "emailInvalid": "Adres email musi być poprawny",
         "passwdRequired": "Wymagane jest hasło",
-        "passwdLength": "Użytkownik musi być co najmniej 8 znaków",
-        "passwdMismatch": "Hasła nie pasują do siebie"
+        "passwdLength": "Użytkownik musi być co najmniej 8 znaków"
       }
     },
     "toast": {

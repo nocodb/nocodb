@@ -213,7 +213,6 @@
     "sqlOutput": "Sortie SQL",
     "addOption": "Ajouter une option",
     "aggregateFunction": "Fonction agrégée",
-    "database": "Base de données",
     "dbCreateIfNotExists": "Base de données : la créer si elle n'existe pas",
     "clientKey": "Clé client",
     "clientCert": "Certificat client",
@@ -230,7 +229,7 @@
       "bookDemo": "Planifier une démonstration gratuite",
       "getAnswered": "Obtenir des réponses à vos questions",
       "joinDiscord": "Rejoindre le serveur Discord",
-      "joinCommunity": "Join NocoDB Community",
+      "joinCommunity": "Rejoindre la communauté NocoDB",
       "joinReddit": "Rejoindre /r/NocoDB",
       "followNocodb": "Suivre NocoDB"
     },
@@ -310,6 +309,7 @@
     "importExcel": "Importer depuis Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Télécharger comme CSV",
+    "downloadExcel": "Télécharger comme XLSX",
     "uploadCSV": "Téléverser un CSV",
     "import": "Importer",
     "importMetadata": "Importer les métadonnées",
@@ -413,7 +413,7 @@
       "deleteProject": "Voulez-vous supprimer le projet ?",
       "shareBasePrivate": "Générer une base partagée en lecture seule",
       "shareBasePublic": "Toute personne avec ce lien peut consulter",
-      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer!\\nMerci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
+      "userInviteNoSMTP": "On dirait que vous n'avez pas encore configuré Mailer! \\ n Merci de copier-coller le lien d'invitation ci-dessous et l'envoyer à",
       "dragDropHide": "Glisser et déposer des champs ici pour les masquer",
       "formInput": "Entrer le libellé du formulaire",
       "formHelpText": "Ajouter un texte d'aide",
@@ -497,8 +497,7 @@
         "emailReqd": "Adresse mail requise",
         "emailInvalid": "L'adresse mail doit être valide",
         "passwdRequired": "Mot de passe requis",
-        "passwdLength": "Votre mot de passe doit contenir au moins 8 caractères",
-        "passwdMismatch": "Les mots de passe ne correspondent pas"
+        "passwdLength": "Votre mot de passe doit contenir au moins 8 caractères"
       }
     },
     "toast": {

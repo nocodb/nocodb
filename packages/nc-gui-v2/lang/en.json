@@ -213,7 +213,6 @@
     "sqlOutput": "SQL Output",
     "addOption": "Add option",
     "aggregateFunction": "Aggregate function",
-    "database": "Database",
     "dbCreateIfNotExists": "Database : create if not exists",
     "clientKey": "Client Key",
     "clientCert": "Client Cert",
@@ -310,6 +309,7 @@
     "importExcel": "Import Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Download as CSV",
+    "downloadExcel": "Download as XLSX",
     "uploadCSV": "Upload CSV",
     "import": "Import",
     "importMetadata": "Import Metadata",
@@ -413,7 +413,7 @@
       "deleteProject": "Do you want to delete the project?",
       "shareBasePrivate": "Generate publicly shareable readonly base",
       "shareBasePublic": "Anyone on the internet with this link can view",
-      "userInviteNoSMTP": "Looks like you have not configured mailer yet! Please copy above invite link and send it to",
+      "userInviteNoSMTP": "Looks like you have not configured mailer yet!\nPlease copy above invite link and send it to",
       "dragDropHide": "Drag and drop fields here to hide",
       "formInput": "Enter form input label",
       "formHelpText": "Add some help text",
@@ -497,8 +497,7 @@
         "emailReqd": "E-mail is required",
         "emailInvalid": "E-mail must be valid",
         "passwdRequired": "Password is required",
-        "passwdLength": "You password must be atleast 8 characters",
-        "passwdMismatch": "Passwords do not match"
+        "passwdLength": "You password must be atleast 8 characters"
       }
     },
     "toast": {

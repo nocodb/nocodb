@@ -213,7 +213,6 @@
     "sqlOutput": "SQL输出",
     "addOption": "添加选项",
     "aggregateFunction": "汇总功能",
-    "database": "数据库",
     "dbCreateIfNotExists": "数据库 : 如果不存在则创建",
     "clientKey": "客户端 Key",
     "clientCert": "客户端 Cert",
@@ -310,6 +309,7 @@
     "importExcel": "导入Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "下载为CSV",
+    "downloadExcel": "下载为XLSX",
     "uploadCSV": "上传CSV",
     "import": "导入",
     "importMetadata": "导入元数据",
@@ -497,8 +497,7 @@
         "emailReqd": "邮箱必填",
         "emailInvalid": "邮箱格式无效",
         "passwdRequired": "密码必填",
-        "passwdLength": "您的密码必须至少为8个字符",
-        "passwdMismatch": "密码不匹配"
+        "passwdLength": "您的密码必须至少为8个字符"
       }
     },
     "toast": {

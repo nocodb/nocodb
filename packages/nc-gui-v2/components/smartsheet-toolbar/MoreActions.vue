@@ -1,7 +1,8 @@
 <script lang="ts" setup>
+import * as XLSX from 'xlsx'
 import { ExportTypes } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
 import FileSaver from 'file-saver'
+import { notification } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
 import { ActiveViewInj, MetaInj } from '~/context'
@@ -15,14 +16,21 @@ import MdiViewListIcon from '~icons/mdi/view-list-outline'
 
 const sharedViewListDlg = ref(false)
 
-// todo : replace with inject
 const publicViewId = null
+
+// TODO: pending for shared view
+
+// interface Props {
+//   publicViewId?: string
+//   queryParams?: Record<string, any>
+//   reqPayload?: Record<string, any>
+// }
+
+// const { publicViewId, queryParams, reqPayload } = defineProps<Props>()
 
 const { project } = useProject()
 
 const { $api } = useNuxtApp()
-
-const toast = useToast()
 
 const meta = inject(MetaInj)
 
@@ -30,65 +38,75 @@ const selectedView = inject(ActiveViewInj)
 
 const showWebhookDrawer = ref(false)
 
-const exportCsv = async () => {
+const quickImportDialog = ref(false)
+
+const exportFile = async (exportType: ExportTypes.EXCEL | ExportTypes.CSV) => {
   let offset = 0
   let c = 1
-
+  const responseType = exportType === ExportTypes.EXCEL ? 'base64' : 'blob'
   try {
     while (!isNaN(offset) && offset > -1) {
       let res
       if (publicViewId) {
-        /* res = await this.$api.public.csvExport(this.publicViewId, ExportTypes.CSV, {
-          responseType: 'blob',
-          query: {
-            fields:
-              this.queryParams &&
-              this.queryParams.fieldsOrder &&
-              this.queryParams.fieldsOrder.filter(c => this.queryParams.showFields[c]),
-            offset,
-            sortArrJson: JSON.stringify(
-              this.reqPayload &&
-              this.reqPayload.sorts &&
-              this.reqPayload.sorts.map(({ fk_column_id, direction }) => ({
-                direction,
-                fk_column_id,
-              }))
-            ),
-            filterArrJson: JSON.stringify(this.reqPayload && this.reqPayload.filters),
-          },
-          headers: {
-            'xc-password': this.reqPayload && this.reqPayload.password,
-          },
-        });
-   */
+        // TODO: pending for shared view
+        // const { data, headers } = await $api.public.csvExport(publicViewId, exportType, {
+        //   format: responseType,
+        //   query: {
+        //     fields:
+        //       queryParams && queryParams.fieldsOrder && queryParams.fieldsOrder.filter((c: number) => queryParams.showFields[c]),
+        //     offset,
+        //     sortArrJson: JSON.stringify(
+        //       reqPayload &&
+        //         reqPayload.sorts &&
+        //         reqPayload.sorts.map(({ fk_column_id, direction }) => ({
+        //           direction,
+        //           fk_column_id,
+        //         })),
+        //     ),
+        //     filterArrJson: JSON.stringify(reqPayload && reqPayload.filters),
+        //   },
+        //   headers: {
+        //     'xc-password': reqPayload && reqPayload.password,
+        //   },
+        // } as Record<string, any>)
       } else {
         res = await $api.dbViewRow.export(
           'noco',
           project?.value.title as string,
           meta?.value.title as string,
           selectedView?.value.title as string,
-          ExportTypes.CSV,
+          exportType,
           {
-            responseType: 'blob',
+            responseType,
             query: {
               offset,
             },
           } as any,
         )
       }
-      const { data } = res
-
-      offset = +res.headers['nc-export-offset']
-      const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
-      FileSaver.saveAs(blob, `${meta?.value.title}_exported_${c++}.csv`)
+      const { data, headers } = res
+      if (exportType === ExportTypes.EXCEL) {
+        const workbook = XLSX.read(data, { type: 'base64' })
+        XLSX.writeFile(workbook, `${meta?.value.title}_exported_${c++}.xlsx`)
+      } else if (exportType === ExportTypes.CSV) {
+        const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
+        FileSaver.saveAs(blob, `${meta?.value.title}_exported_${c++}.csv`)
+      }
+      offset = +headers['nc-export-offset']
       if (offset > -1) {
-        toast.info('Downloading more files')
+        notification.info({
+          message: 'Downloading more files',
+        })
       } else {
-        toast.success('Successfully exported all table data')
+        notification.success({
+          message: 'Successfully exported all table data',
+        })
       }
     }
   } catch (e: any) {
-    toast.error(extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 </script>
@@ -107,12 +125,17 @@ const exportCsv = async () => {
       <template #overlay>
         <div class="bg-white shadow">
           <div>
-            <div class="nc-menu-item" @click="exportCsv">
+            <div class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
               <MdiDownloadIcon />
               <!-- Download as CSV -->
               {{ $t('activity.downloadCSV') }}
             </div>
-            <div class="nc-menu-item" @click.stop>
+            <div class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
+              <MdiDownloadIcon />
+              <!-- Download as XLSX -->
+              {{ $t('activity.downloadExcel') }}
+            </div>
+            <div class="nc-menu-item" @click="quickImportDialog = true">
               <MdiUploadIcon />
               <!-- Upload CSV -->
               {{ $t('activity.uploadCSV') }}
@@ -132,6 +155,7 @@ const exportCsv = async () => {
       </template>
     </a-dropdown>
 
+    <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
     <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">

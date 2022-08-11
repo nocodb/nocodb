@@ -74,6 +74,7 @@ declare module '@vue/runtime-core' {
     MaterialSymbolsTranslate: typeof import('~icons/material-symbols/translate')['default']
     MdiAccountCircle: typeof import('~icons/mdi/account-circle')['default']
     MdiAccountGroup: typeof import('~icons/mdi/account-group')['default']
+    MdiAccountIcon: typeof import('~icons/mdi/account-icon')['default']
     MdiAlphaA: typeof import('~icons/mdi/alpha-a')['default']
     MdiApi: typeof import('~icons/mdi/api')['default']
     MdiArrowExpand: typeof import('~icons/mdi/arrow-expand')['default']

@@ -44,12 +44,12 @@ const localState = $computed({
 
 const open = ref(false)
 
-const randonClass = `picker_${Math.floor(Math.random() * 99999)}`
+const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 watch(
   open,
   (next) => {
     if (next) {
-      onClickOutside(document.querySelector(`.${randonClass}`)! as HTMLDivElement, () => (open.value = false))
+      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
     }
   },
   { flush: 'post' },
@@ -66,7 +66,7 @@ watch(
     :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date and time' : ''"
     :allow-clear="!readOnlyMode"
     :input-read-only="true"
-    :dropdown-class-name="randonClass"
+    :dropdown-class-name="randomClass"
     :open="readOnlyMode ? false : open"
     @click="open = !open"
   >

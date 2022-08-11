@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
 import { inject, ref, useProvideLTARStore, useSmartsheetRowStoreOrThrow } from '#imports'
-import {ActiveCellInj,  CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { ActiveCellInj, CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
 import MdiArrowExpand from '~icons/mdi/arrow-expand'
 import MdiPlus from '~icons/mdi/plus'
 

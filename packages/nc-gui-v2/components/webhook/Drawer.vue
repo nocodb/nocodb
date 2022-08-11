@@ -23,10 +23,12 @@ async function editHook(hook: Record<string, any>) {
 </script>
 
 <template>
-  <a-drawer v-model:visible="vModel" :closable="false" placement="right" width="700px" @keydown.esc="vModel = false">
-    <WebhookEditor v-if="editOrAdd" ref="webhookEditorRef" @back-to-list="editOrAdd = false" />
-    <WebhookList v-else @edit="editHook" @add="editOrAdd = true" />
-    <div class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center">
+  <a-drawer v-model:visible="vModel" :closable="false" placement="right" width="700px" @keydown.esc="vModel = false"
+            :body-style="{background:'#fcfcfc',padding:'50px'}">
+    <WebhookEditor v-if="editOrAdd" ref="webhookEditorRef" @back-to-list="editOrAdd = false"/>
+    <WebhookList v-else @edit="editHook" @add="editOrAdd = true"/>
+    <div
+        class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center">
       <a-button v-t="['e:hiring']" href="https://angel.co/company/nocodb" target="_blank" size="large">
         🚀 We are Hiring! 🚀
       </a-button>

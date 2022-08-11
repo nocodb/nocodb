@@ -17,7 +17,7 @@ await loadSharedView()
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(MetaInj, meta)
 provide(ActiveViewInj, sharedView)
-provide(FieldsInj, ref(columns))
+provide(FieldsInj, columns)
 provide(IsPublicInj, ref(true))
 
 const { isGrid } = useProvideSmartsheetStore(sharedView as Ref<TableType>, meta)
@@ -25,6 +25,7 @@ const { isGrid } = useProvideSmartsheetStore(sharedView as Ref<TableType>, meta)
 
 <template>
   <NuxtLayout id="content" class="flex">
+    <SmartsheetToolbar />
     <SmartsheetGrid :is-public-view="true" />
   </NuxtLayout>
 </template>

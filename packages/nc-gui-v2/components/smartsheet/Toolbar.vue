@@ -1,18 +1,20 @@
 <script setup lang="ts">
 import { useSmartsheetStoreOrThrow } from '~/composables'
+import { IsPublicInj } from '~/context'
 
 const { isGrid, isForm, isGallery } = useSmartsheetStoreOrThrow()
+const isPublic = inject(IsPublicInj, ref(false))
 </script>
 
 <template>
   <div class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[48px] px-2 border-b" style="z-index: 7">
-    <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery" :show-system-fields="false" class="ml-1" />
+    <SmartsheetToolbarFieldsMenu v-if="(isGrid && !isPublic) || isGallery" :show-system-fields="false" class="ml-1" />
 
     <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery" />
 
-    <SmartsheetToolbarSortListMenu v-if="isGrid || isGallery" />
+    <SmartsheetToolbarSortListMenu v-if="(isGrid && !isPublic) || isGallery" />
 
-    <SmartsheetToolbarShareView v-if="isForm || isGrid" />
+    <SmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
 
     <SmartsheetToolbarMoreActions v-if="isGrid" />
     <div class="flex-1" />

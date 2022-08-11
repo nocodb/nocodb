@@ -100,8 +100,10 @@ provide(ChangePageInj, changePage)
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
+  if (!isPublicView) {
+    loadAggCommentsCount()
+  }
   await loadData()
-  loadAggCommentsCount()
 })
 
 const selectCell = (row: number, col: number) => {

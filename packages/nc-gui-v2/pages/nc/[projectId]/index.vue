@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { navigateTo, provideSidebar, ref, useProject, useRoute, useSidebar, useTabs, useUIPermission } from '#imports'
+import PreviewAs from '~/components/general/PreviewAs.vue'
 import { TabType } from '~/composables'
 import { openLink } from '~/utils'
 

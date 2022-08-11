@@ -48,7 +48,12 @@ watch(previewAs, () => window.location.reload())
 </script>
 
 <template>
-  <div v-if="float" class="floating-reset-btn nc-floating-preview-btn px-2" :style="{ top: position.y, left: position.x }">
+  <div
+    v-if="float"
+    v-show="previewAs"
+    class="floating-reset-btn nc-floating-preview-btn px-2"
+    :style="{ top: position.y, left: position.x }"
+  >
     <MdiDrag style="cursor: move" class="text-white" @mousedown="mouseDown" />
     <div class="divider" />
 
@@ -95,7 +100,7 @@ watch(previewAs, () => window.location.reload())
 
 <style scoped>
 .floating-reset-btn {
-  @apply bg-primary/80 z-1000 index-100 fixed text-white py-1 pr-3 text-xs font-weight-bold
+  @apply bg-primary/90 z-1000 index-100 fixed text-white py-1 pr-3 text-xs font-weight-bold
   @apply flex items-center overflow-hidden whitespace-nowrap gap-2 rounded shadow-md;
 }
 

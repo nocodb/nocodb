@@ -72,6 +72,7 @@ watch(isOpen, (n, _o) => {
     placeholder="Select an option"
     :bordered="false"
     :open="isOpen"
+    :show-arrow="active || vModel === null"
     @select="isOpen = false"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"

@@ -80,7 +80,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
 </script>
 
 <template>
-  <div class="d-flex align-center w-full">
+  <div class="d-flex align-center w-full text-xs font-weight-regular">
     <!--    <v-tooltip bottom>
           <template #activator="{ on }">
           todo: bring tooltip

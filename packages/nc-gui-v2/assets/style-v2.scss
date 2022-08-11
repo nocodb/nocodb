@@ -102,7 +102,7 @@ html {
 
 // for highlighting toolbar menu item
 .nc-active-btn > .ant-btn{
-  @apply bg-primary/20;
+  @apply bg-primary/20 hover:(bg-primary/20);
 }
 
 .ant-modal-wrap {

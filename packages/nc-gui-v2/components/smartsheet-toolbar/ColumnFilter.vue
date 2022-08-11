@@ -112,7 +112,7 @@ defineExpose({
 
 <template>
   <div
-    class="pa-2 menu-filter-dropdown bg-gray-50"
+    class="p-6 menu-filter-dropdown bg-gray-50"
     :class="{ 'shadow-xl min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
   >
     <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
@@ -132,13 +132,12 @@ defineExpose({
               <a-select
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"
-                size="small"
-                class="flex-shrink-1 flex-grow-0 elevation-0 caption !text-xs"
+                class="flex-shrink-1 flex-grow-0 elevation-0 caption"
                 placeholder="Group op"
                 @click.stop
                 @change="saveOrUpdate(filter, i)"
               >
-                <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="!text-xs">
+                <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="">
                   {{ op.text }}
                 </a-select-option>
               </a-select>
@@ -173,20 +172,19 @@ defineExpose({
             />
             <span v-else />
 
-            <span v-if="!i" class="text-xs d-flex align-center">{{ $t('labels.where') }}</span>
+            <span v-if="!i" class="d-flex align-center">{{ $t('labels.where') }}</span>
 
             <a-select
               v-else
               v-model:value="filter.logical_op"
               :dropdown-match-select-width="false"
-              size="small"
-              class="h-full !text-xs"
+              class="h-full"
               hide-details
               :disabled="filter.readOnly"
               @click.stop
               @change="filterUpdateCondition(filter, i)"
             >
-              <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="!text-xs">
+              <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="">
                 {{ op.text }}
               </a-select-option>
             </a-select>
@@ -194,7 +192,7 @@ defineExpose({
             <FieldListAutoCompleteDropdown
               :key="`${i}_6`"
               v-model="filter.fk_column_id"
-              class="caption nc-filter-field-select"
+              class="nc-filter-field-select"
               :columns="columns"
               :disabled="filter.readOnly"
               @click.stop
@@ -204,8 +202,7 @@ defineExpose({
             <a-select
               v-model:value="filter.comparison_op"
               :dropdown-match-select-width="false"
-              size="small"
-              class="caption nc-filter-operation-select !text-xs"
+              class="caption nc-filter-operation-select"
               :placeholder="$t('labels.operation')"
               density="compact"
               variant="solo"
@@ -213,7 +210,7 @@ defineExpose({
               hide-details
               @change="filterUpdateCondition(filter, i)"
             >
-              <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="!text-xs">
+              <a-select-option v-for="compOp in comparisonOpList" :key="compOp.value" :value="compOp.value" class="">
                 {{ compOp.text }}
               </a-select-option>
             </a-select>
@@ -232,7 +229,6 @@ defineExpose({
             <a-checkbox
               v-else-if="types[filter.field] === 'boolean'"
               v-model:checked="filter.value"
-              size="small"
               dense
               :disabled="filter.readOnly"
               @change="saveOrUpdate(filter, i)"
@@ -241,8 +237,7 @@ defineExpose({
               v-else
               :key="`${i}_7`"
               v-model:value="filter.value"
-              size="small"
-              class="caption nc-filter-value-select"
+              class="nc-filter-value-select"
               :disabled="filter.readOnly"
               @click.stop
               @input="saveOrUpdate(filter, i)"
@@ -252,8 +247,8 @@ defineExpose({
       </template>
     </div>
 
-    <div class="flex gap-2 my-2">
-      <a-button size="small" class="elevation-0 text-capitalize text-grey" @click.stop="addFilter">
+    <div class="flex gap-2 mb-2 mt-4">
+      <a-button class="elevation-0 text-capitalize" @click.stop="addFilter">
         <div class="flex align-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiAddIcon />
@@ -261,7 +256,7 @@ defineExpose({
           {{ $t('activity.addFilter') }}
         </div>
       </a-button>
-      <a-button size="small" class="elevation-0 text-capitalize text-grey" @click.stop="addFilterGroup">
+      <a-button class="elevation-0 text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex align-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiAddIcon />
@@ -278,13 +273,9 @@ defineExpose({
 .nc-filter-grid {
   display: grid;
   grid-template-columns: 18px 70px auto auto auto;
-  column-gap: 6px;
-  row-gap: 6px;
+  column-gap: 12px;
+  row-gap: 12px;
   align-items: center;
-}
-
-:deep(.ant-btn, .ant-select, .ant-input) {
-  @apply "!text-xs";
 }
 
 :deep(.ant-select-item-option) {

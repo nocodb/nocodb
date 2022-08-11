@@ -293,7 +293,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
           <thead>
             <tr>
               <th>
-                <div class="flex align-center w-[80px] px-1">
+                <div class="w-full h-full bg-gray-100 flex w-[80px] px-1 items-center">
                   <div class="group-hover:hidden" :class="{ hidden: selectedAllRecords }">#</div>
                   <div
                     :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
@@ -315,9 +315,11 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 @xcresizing="onXcResizing(col.title, $event)"
                 @xcresized="resizingCol = null"
               >
-                <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+                <div class="w-full h-full bg-gray-100 flex items-center">
+                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
 
-                <SmartsheetHeaderCell v-else :column="col" />
+                  <SmartsheetHeaderCell v-else :column="col" />
+                </div>
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
               <th v-t="['c:column:add']" @click="addColumnDropdown = true">

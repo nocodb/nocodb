@@ -185,7 +185,7 @@ function onDeleted() {
 </script>
 
 <template>
-  <h3 class="pt-3 px-3 text-xs font-semibold">{{ $t('objects.views') }}</h3>
+  <h3 class="pt-3 px-3 text-xs text-gray-500 font-semibold">{{ $t('objects.views') }}</h3>
 
   <a-menu ref="menuRef" :class="{ dragging }" class="nc-views-menu" :selected-keys="selected">
     <RenameableMenuItem
@@ -236,10 +236,10 @@ function onDeleted() {
   }
 
   .active {
-    @apply bg-blue-500/15;
+    @apply bg-primary/20 text-primary font-weight-medium;
 
     .nc-icon {
-      @apply !text-pink-500;
+      //@apply !text-pink-500;
     }
   }
 }

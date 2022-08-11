@@ -1,4 +1,6 @@
 <script setup lang="ts">
+import type { TabItem } from '~/composables'
+import { TabType } from '~/composables'
 import { TabMetaInj } from '~/context'
 import { useTabs, useUIPermission } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -8,6 +10,8 @@ import MdiExcelIcon from '~icons/mdi/file-excel'
 import MdiJSONIcon from '~icons/mdi/code-json'
 import MdiAirTableIcon from '~icons/mdi/table-large'
 import MdiRequestDataSourceIcon from '~icons/mdi/open-in-new'
+import MdiView from '~icons/mdi/eye-circle-outline'
+import MdiAccountGroup from '~icons/mdi/account-group'
 
 const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
@@ -25,14 +29,32 @@ function openQuickImportDialog(type: string) {
   quickImportDialog.value = true
   importType.value = type
 }
+
+const icon = (tab: TabItem) => {
+  switch (tab.type) {
+    case TabType.TABLE:
+      return MdiAirTableIcon
+    case TabType.VIEW:
+      return MdiView
+    case TabType.AUTH:
+      return MdiAccountGroup
+  }
+}
 </script>
 
 <template>
   <div class="h-full w-full nc-container pt-[9px]">
     <div class="h-full w-full flex flex-col">
-      <div class="px-2">
+      <div class="">
         <a-tabs v-model:activeKey="activeTabIndex" type="editable-card" @edit="closeTab">
-          <a-tab-pane v-for="(tab, i) in tabs" :key="i" :tab="tab.title" />
+          <a-tab-pane v-for="(tab, i) in tabs" :key="i">
+            <template #tab>
+              <div class="flex align-center gap-2">
+                <component :is="icon(tab)" class="text-sm"></component>
+                {{ tab.title }}
+              </div>
+            </template>
+          </a-tab-pane>
 
           <template #leftExtra>
             <a-menu v-model:selectedKeys="currentMenu" class="border-0" mode="horizontal">
@@ -123,7 +145,7 @@ function openQuickImportDialog(type: string) {
         </a-tabs>
       </div>
 
-      <NuxtPage class="px-4 pt-2" />
+      <NuxtPage class="" />
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
@@ -154,5 +176,13 @@ function openQuickImportDialog(type: string) {
 
 :deep(.ant-tabs-nav-add) {
   @apply !hidden;
+}
+
+:deep(.ant-tabs-tab-active) {
+  @apply font-weight-medium;
+}
+
+:deep(.ant-tabs-tab:not(.ant-tabs-tab-active)) {
+  @apply bg-gray-100;
 }
 </style>

@@ -21,7 +21,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
 </script>
 
 <template>
-  <div class="flex align-center w-full">
+  <div class="flex align-center w-full text-xs font-weight-regular">
     <SmartsheetHeaderCellIcon v-if="column" />
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>

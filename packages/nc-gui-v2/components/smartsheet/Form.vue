@@ -459,18 +459,12 @@ onMounted(async () => {
                 draggable=".item"
                 group="form-inputs"
                 class="h-100"
-                filter=".disable-drag"
-                :prevent-on-filter="false"
                 @change="onMove($event)"
                 @start="drag = true"
                 @end="drag = false"
               >
                 <template #item="{ element, index }">
-                  <div
-                    class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3"
-                    :class="{ 'disable-drag': isDbRequired(element) || element.required }"
-                    @click="activeRow = element.title"
-                  >
+                  <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3" @click="activeRow = element.title">
                     <div class="flex">
                       <div class="flex flex-1">
                         <SmartsheetHeaderVirtualCell

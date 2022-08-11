@@ -41,7 +41,7 @@ onMounted(() => {
     <MaterialSymbolsTranslate v-bind="$attrs" class="md:text-xl cursor-pointer nc-menu-translate" />
 
     <template #overlay>
-      <a-menu class="scrollbar min-w-50 max-h-90vh overflow-auto !py-0 dark:(!bg-gray-800 !text-white)">
+      <a-menu class="scrollbar-thin-dull min-w-50 max-h-90vh overflow-auto !py-0 dark:(!bg-gray-800 !text-white)">
         <a-menu-item
           v-for="lang of languages"
           :key="lang"
@@ -71,9 +71,3 @@ onMounted(() => {
     </template>
   </a-dropdown>
 </template>
-
-<style scoped>
-.scrollbar {
-  @apply scrollbar scrollbar-thin scrollbar-thumb-rounded scrollbar-thumb-primary scrollbar-track-white dark:(!scrollbar-track-gray-900);
-}
-</style>

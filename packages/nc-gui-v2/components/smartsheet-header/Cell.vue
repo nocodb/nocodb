@@ -5,13 +5,16 @@ import { inject, toRef } from 'vue'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean }>()
-const column = toRef(props, 'column')
+const props = defineProps<{ column: ColumnType & { meta: any }; required: boolean; hideMenu?: boolean }>()
+
 const hideMenu = toRef(props, 'hideMenu')
-provide(ColumnInj, column)
 
 const meta = inject(MetaInj)
-const isForm = inject(IsFormInj, false)
+const isForm = inject(IsFormInj, ref(false))
+
+const column = toRef(props, 'column')
+
+provide(ColumnInj, column)
 
 // instantiate column update store
 useProvideColumnCreateStore(meta as Ref<TableType>, column)
@@ -21,6 +24,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
   <div class="flex align-center w-full">
     <SmartsheetHeaderCellIcon v-if="column" />
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
+    <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
 
     <template v-if="!hideMenu">
       <div class="flex-1" />

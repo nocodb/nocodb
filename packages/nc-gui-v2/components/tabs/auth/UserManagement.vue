@@ -38,7 +38,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     if (!project.value?.id) return
 
     // TODO: Types of api is not correct
-    const response = await $api.auth.projectUserList(project.value?.id, {
+    const response: any = await $api.auth.projectUserList(project.value?.id, {
       query: {
         limit,
         offset: searchText.value.length === 0 ? (page - 1) * limit : 0,

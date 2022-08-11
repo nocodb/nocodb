@@ -213,7 +213,6 @@
     "sqlOutput": "SQL出力",
     "addOption": "オプションを追加",
     "aggregateFunction": "集約関数",
-    "database": "データベース",
     "dbCreateIfNotExists": "データベース：存在しない場合は作成",
     "clientKey": "クライアントキー",
     "clientCert": "クライアント証明書",
@@ -310,6 +309,7 @@
     "importExcel": "エクセルファイルをインポート",
     "importCSV": "Import CSV",
     "downloadCSV": "CSVをダウンロード",
+    "downloadExcel": "XLSXをダウンロード",
     "uploadCSV": "CSVをアップロード",
     "import": "インポート",
     "importMetadata": "メタデータをインポート",
@@ -497,8 +497,7 @@
         "emailReqd": "メールアドレスが必要です",
         "emailInvalid": "有効なメールアドレスを入力してください",
         "passwdRequired": "パスワードが必要です",
-        "passwdLength": "パスワードは8文字以上にしてください",
-        "passwdMismatch": "パスワードが一致していません"
+        "passwdLength": "パスワードは8文字以上にしてください"
       }
     },
     "toast": {

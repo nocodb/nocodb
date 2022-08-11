@@ -4,7 +4,9 @@ import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
 import { inject, ref, useProvideLTARStore, useSmartsheetRowStoreOrThrow } from '#imports'
-import { CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { ActiveCellInj, CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import MdiArrowExpand from '~icons/mdi/arrow-expand'
+import MdiPlus from '~icons/mdi/plus'
 
 const column = inject(ColumnInj)
 
@@ -14,7 +16,7 @@ const cellValue = inject(CellValueInj, ref<any>(null))
 
 const row = inject(RowInj)
 
-const active = false
+const active = inject(ActiveCellInj)
 
 const listItemsDlg = ref(false)
 
@@ -27,6 +29,8 @@ const { loadRelatedTableMeta, relatedTablePrimaryValueProp, unlink } = useProvid
 )
 
 await loadRelatedTableMeta()
+
+const addIcon = computed(() => (cellValue?.value ? MdiArrowExpand : MdiPlus))
 
 const value = computed(() => {
   if (cellValue?.value) {
@@ -54,7 +58,8 @@ const unlinkRef = async (rec: Record<string, any>) => {
       </template>
     </div>
     <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
-      <MdiArrowExpand
+      <component
+        :is="addIcon"
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500)"
         @click="listItemsDlg = true"
       />
@@ -63,12 +68,15 @@ const unlinkRef = async (rec: Record<string, any>) => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-action-icon {
   @apply hidden cursor-pointer;
 }
 
-.chips-wrapper:hover .nc-action-icon {
-  @apply inline-block;
+.chips-wrapper:hover,
+.chips-wrapper.active {
+  .nc-action-icon {
+    @apply inline-block;
+  }
 }
 </style>

@@ -1,19 +1,20 @@
-import type { FilterType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
+import type { FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp, useUIPermission } from '#imports'
+import { useMetas } from '~/composables/useMetas'
 
 export function useViewFilters(
-  view: Ref<(GridType | KanbanType | GalleryType) & { id?: string }> | undefined,
+  view: Ref<ViewType> | undefined,
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
   shared = false,
 ) {
-  // todo: update swagger
   const filters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
   const { $api } = useNuxtApp()
   const { isUIAllowed } = useUIPermission()
+  const { metas } = useMetas()
 
   const loadFilters = async () => {
     if (parentId) {
@@ -77,11 +78,10 @@ export function useViewFilters(
         fk_parent_id: parentId,
       })
     } else {
-      // todo: return type correction
-      filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+      filters.value[i] = await $api.dbTableFilter.create(view?.value?.id as string, {
         ...filter,
         fk_parent_id: parentId,
-      })) as any
+      })
     }
     reloadData?.()
   }
@@ -105,6 +105,22 @@ export function useViewFilters(
     const index = filters.value.length - 1
     await saveOrUpdate(filters.value[index], index, true)
   }
+
+  /** on column delete reload filters, identify by checking columns count */
+  watch(
+    () => {
+      if (!view?.value || !metas?.value?.[view?.value?.fk_model_id as string]) {
+        return 0
+      }
+
+      return metas?.value?.[view?.value?.fk_model_id as string]?.columns?.length || 0
+    },
+    async (nextColsLength, oldColsLength) => {
+      if (nextColsLength < oldColsLength) {
+        await loadFilters()
+      }
+    },
+  )
 
   return { filters, loadFilters, sync, deleteFilter, saveOrUpdate, addFilter, addFilterGroup }
 }

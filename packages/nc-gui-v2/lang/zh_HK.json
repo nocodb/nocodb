@@ -213,7 +213,6 @@
     "sqlOutput": "SQL輸出",
     "addOption": "添加選項",
     "aggregateFunction": "匯總功能",
-    "database": "數據庫",
     "dbCreateIfNotExists": "數據庫：創建如果不存在",
     "clientKey": "client條key",
     "clientCert": "client張cert",
@@ -310,6 +309,7 @@
     "importExcel": "導入Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "下載為CSV.",
+    "downloadExcel": "下載為XLSX.",
     "uploadCSV": "上傳CSV.",
     "import": "導出去file",
     "importMetadata": "import metadata",
@@ -497,8 +497,7 @@
         "emailReqd": "E-mail 必須填",
         "emailInvalid": "E-mail 唔valid",
         "passwdRequired": "密碼必須填",
-        "passwdLength": "你嗰密碼至少要8個字",
-        "passwdMismatch": "密碼不匹配"
+        "passwdLength": "你嗰密碼至少要8個字"
       }
     },
     "toast": {

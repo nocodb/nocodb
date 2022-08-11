@@ -916,6 +916,9 @@
                     },
                     "url": {
                       "type": "string"
+                    },
+                    "roles": {
+                      "type": "string"
                     }
                   }
                 }
@@ -947,10 +950,13 @@
                 "schema": {
                   "type": "object",
                   "properties": {
+                    "uuid": {
+                      "type": "string"
+                    },
                     "url": {
                       "type": "string"
                     },
-                    "uuid": {
+                    "roles": {
                       "type": "string"
                     }
                   }
@@ -985,7 +991,25 @@
         "operationId": "project-shared-base-update",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "roles": {
+                      "type": "string"
+                    }
+                  }
+                }
+              }
+            }
           }
         },
         "requestBody": {
@@ -1703,7 +1727,8 @@
                 "properties": {
                   "password": {
                     "type": "string"
-                  }
+                  },
+                  "meta": {}
                 }
               }
             }
@@ -1828,11 +1853,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "uuid": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string"
+                    "sorts": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Sort"
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -1968,7 +1998,14 @@
         "operationId": "db-table-filter-create",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Filter"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -3808,17 +3845,30 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
           }
         ]
       }
@@ -4012,17 +4062,30 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
           }
         ]
       }
@@ -5444,7 +5507,7 @@
         "description": "",
         "examples": [
           {
-            "id": 142,
+            "id": "142",
             "firstName": "Alice",
             "lastName": "Smith",
             "email": "alice.smith@gmail.com",
@@ -5456,7 +5519,7 @@
         "x-internal": false,
         "properties": {
           "id": {
-            "type": "integer",
+            "type": "string",
             "description": "Unique identifier for the given user."
           },
           "firstname": {
@@ -5466,6 +5529,10 @@
             "type": "string"
           },
           "email": {
+            "type": "string",
+            "format": "email"
+          },
+          "roles": {
             "type": "string",
             "format": "email"
           },
@@ -6025,6 +6092,9 @@
           },
           "slug": {
             "type": "string"
+          },
+          "show_system_fields": {
+            "type": "boolean"
           },
           "lock_type": {
             "type": "string",
@@ -7079,7 +7149,7 @@
           "subheading": {
             "type": "string"
           },
-          "sucess_msg": {
+          "success_msg": {
             "type": "string"
           },
           "redirect_url": {
@@ -7098,6 +7168,9 @@
             "type": "string"
           },
           "submit_another_form": {
+            "type": "boolean"
+          },
+          "show_blank_form": {
             "type": "boolean"
           },
           "columns": {
@@ -7356,20 +7429,10 @@
         },
         "properties": {
           "list": {
-            "oneOf": [
-              {
-                "$ref": "#/components/schemas/Grid"
-              },
-              {
-                "$ref": "#/components/schemas/Form"
-              },
-              {
-                "$ref": "#/components/schemas/Kanban"
-              },
-              {
-                "$ref": "#/components/schemas/Gallery"
-              }
-            ]
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/View"
+            }
           },
           "pageInfo": {
             "$ref": "#/components/schemas/Paginated"

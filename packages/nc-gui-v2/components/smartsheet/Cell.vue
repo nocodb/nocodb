@@ -53,7 +53,7 @@ const isAutoSaved = $computed(() => {
 })
 
 const isManualSaved = $computed(() => {
-  return [UITypes.Currency, UITypes.Year, UITypes.Time, UITypes.Duration].includes(column?.value?.uidt as UITypes)
+  return [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes)
 })
 
 const vModel = computed({

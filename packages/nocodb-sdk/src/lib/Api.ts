@@ -11,12 +11,15 @@
 
 export interface UserType {
   /** Unique identifier for the given user. */
-  id: number;
+  id: string;
   firstname: string;
   lastname: string;
 
   /** @format email */
   email: string;
+
+  /** @format email */
+  roles?: string;
 
   /**
    * @format date
@@ -127,6 +130,7 @@ export interface ViewType {
   order?: number;
   fk_model_id?: string;
   slug?: string;
+  show_system_fields?: boolean;
   lock_type?: 'collaborative' | 'locked' | 'personal';
 }
 
@@ -382,13 +386,14 @@ export interface FormType {
   title?: string;
   heading?: string;
   subheading?: string;
-  sucess_msg?: string;
+  success_msg?: string;
   redirect_url?: string;
   redirect_after_secs?: string;
   email?: string;
   banner_image_url?: string;
   logo_url?: string;
   submit_another_form?: boolean;
+  show_blank_form?: boolean;
   columns?: FormColumnType[];
   fk_model_id?: string;
   lock_type?: 'collaborative' | 'locked' | 'personal';
@@ -436,7 +441,7 @@ export interface SharedViewListType {
 }
 
 export interface ViewListType {
-  list?: GridType | FormType | KanbanType | GalleryType;
+  list?: ViewType[];
   pageInfo?: PaginatedType;
 }
 
@@ -661,10 +666,7 @@ export interface FullRequestParams
   body?: unknown;
 }
 
-export type RequestParams = Omit<
-  FullRequestParams,
-  'body' | 'method' | 'query' | 'path'
->;
+export type RequestParams = Omit<FullRequestParams, 'body' | 'method' | 'path'>;
 
 export interface ApiConfig<SecurityDataType = unknown>
   extends Omit<AxiosRequestConfig, 'data' | 'cancelToken'> {
@@ -1271,10 +1273,10 @@ export class Api<
      * @tags Project
      * @name SharedBaseGet
      * @request GET:/api/v1/db/meta/projects/{projectId}/shared
-     * @response `200` `{ uuid?: string, url?: string }` OK
+     * @response `200` `{ uuid?: string, url?: string, roles?: string }` OK
      */
     sharedBaseGet: (projectId: string, params: RequestParams = {}) =>
-      this.request<{ uuid?: string; url?: string }, any>({
+      this.request<{ uuid?: string; url?: string; roles?: string }, any>({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'GET',
         format: 'json',
@@ -1302,14 +1304,14 @@ export class Api<
      * @tags Project
      * @name SharedBaseCreate
      * @request POST:/api/v1/db/meta/projects/{projectId}/shared
-     * @response `200` `{ url?: string, uuid?: string }` OK
+     * @response `200` `{ uuid?: string, url?: string, roles?: string }` OK
      */
     sharedBaseCreate: (
       projectId: string,
       data: { roles?: string; password?: string },
       params: RequestParams = {}
     ) =>
-      this.request<{ url?: string; uuid?: string }, any>({
+      this.request<{ uuid?: string; url?: string; roles?: string }, any>({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'POST',
         body: data,
@@ -1324,18 +1326,19 @@ export class Api<
      * @tags Project
      * @name SharedBaseUpdate
      * @request PATCH:/api/v1/db/meta/projects/{projectId}/shared
-     * @response `200` `void` OK
+     * @response `200` `{ uuid?: string, url?: string, roles?: string }` OK
      */
     sharedBaseUpdate: (
       projectId: string,
       data: { roles?: string; password?: string },
       params: RequestParams = {}
     ) =>
-      this.request<void, any>({
+      this.request<{ uuid?: string; url?: string; roles?: string }, any>({
         path: `/api/v1/db/meta/projects/${projectId}/shared`,
         method: 'PATCH',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -1936,7 +1939,7 @@ export class Api<
      */
     update: (
       viewId: string,
-      data: { password?: string },
+      data: { password?: string; meta?: any },
       params: RequestParams = {}
     ) =>
       this.request<SharedViewType, any>({
@@ -2024,10 +2027,10 @@ export class Api<
      * @tags DB table sort
      * @name List
      * @request GET:/api/v1/db/meta/views/{viewId}/sorts
-     * @response `200` `{ uuid?: string, url?: string }` OK
+     * @response `200` `{ sorts?: { list?: (SortType)[] } }` OK
      */
     list: (viewId: string, params: RequestParams = {}) =>
-      this.request<{ uuid?: string; url?: string }, any>({
+      this.request<{ sorts?: { list?: SortType[] } }, any>({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'GET',
         format: 'json',
@@ -2122,14 +2125,15 @@ export class Api<
      * @tags DB table filter
      * @name Create
      * @request POST:/api/v1/db/meta/views/{viewId}/filters
-     * @response `200` `void` OK
+     * @response `200` `FilterType` OK
      */
     create: (viewId: string, data: FilterType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<FilterType, any>({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -2592,7 +2596,11 @@ export class Api<
       rowId: string,
       relationType: 'mm' | 'hm',
       columnName: string,
-      query?: { limit?: string; offset?: string },
+      query?: {
+        limit?: string | number;
+        offset?: string | number;
+        where?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -2673,7 +2681,11 @@ export class Api<
       rowId: string,
       relationType: 'mm' | 'hm',
       columnName: string,
-      query?: { limit?: string; offset?: string },
+      query?: {
+        limit?: string | number;
+        offset?: string | number;
+        where?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

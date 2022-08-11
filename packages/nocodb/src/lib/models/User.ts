@@ -4,7 +4,7 @@ import Noco from '../Noco';
 import extractProps from '../meta/helpers/extractProps';
 import NocoCache from '../cache/NocoCache';
 export default class User implements UserType {
-  id: number;
+  id: string;
 
   /** @format email */
   email: string;

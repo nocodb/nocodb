@@ -67,7 +67,6 @@ async function saveAllowCSVDownload() {
   try {
     const meta = shared.value.meta && typeof shared.value.meta === 'string' ? JSON.parse(shared.value.meta) : shared.value.meta
 
-    // todo: update swagger
     await $api.dbViewShare.update(shared.value.id, {
       meta,
     } as any)

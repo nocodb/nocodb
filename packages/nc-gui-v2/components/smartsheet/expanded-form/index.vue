@@ -33,7 +33,7 @@ const row = toRef(props, 'row')
 const state = toRef(props, 'state')
 const meta = toRef(props, 'meta')
 
-const _fields = computedInject(FieldsInj, (_fields) => {
+const fields = computedInject(FieldsInj, (_fields) => {
   if (props.useMetaFields) {
     return meta.value.columns ?? []
   }
@@ -59,7 +59,7 @@ if (props.loadRow) {
 
 useProvideSmartsheetStore(ref({}) as any, meta)
 
-provide(IsFormInj, true)
+provide(IsFormInj, ref(true))
 
 // accept as a prop
 // const row: Row = { row: {}, rowMeta: {}, oldRow: {} }

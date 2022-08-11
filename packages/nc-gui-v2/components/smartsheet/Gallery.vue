@@ -13,7 +13,7 @@ const view = inject(ActiveViewInj)
 
 const { loadData, paginationData, formattedData: data, loadGalleryData, galleryData, changePage } = useViewData(meta, view as any)
 
-provide(IsFormInj, false)
+provide(IsFormInj, ref(false))
 provide(IsGridInj, false)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)

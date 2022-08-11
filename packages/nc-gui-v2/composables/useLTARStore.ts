@@ -94,14 +94,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             rowId.value,
             colOptions.type as 'mm' | 'hm',
             column?.value?.title,
-            // todo: swagger type correction
             {
               limit: childrenExcludedListPagination.size,
               offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
-            } as any,
+            },
           )
         }
       } catch (e: any) {
@@ -123,12 +122,11 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           rowId.value,
           colOptions.type as 'mm' | 'hm',
           column?.value?.title,
-          // todo: swagger type correction
           {
             limit: childrenListPagination.size,
             offset: childrenListPagination.size * (childrenListPagination.page - 1),
             where: childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
-          } as any,
+          },
         )
       } catch (e: any) {
         notification.error({

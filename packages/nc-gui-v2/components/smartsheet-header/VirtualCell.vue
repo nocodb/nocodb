@@ -5,14 +5,16 @@ import type { Ref } from 'vue'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { provide, toRef, useMetas, useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required: boolean }>()
 const column = toRef(props, 'column')
 const hideMenu = toRef(props, 'hideMenu')
 
 provide(ColumnInj, column)
+
 const { metas } = useMetas()
+
 const meta = inject(MetaInj)
-const isForm = inject(IsFormInj, false)
+const isForm = inject(IsFormInj, ref(false))
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(column)
 
@@ -78,19 +80,20 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
 </script>
 
 <template>
-  <div class="d-flex align-center">
+  <div class="d-flex align-center w-full">
     <!--    <v-tooltip bottom>
           <template #activator="{ on }">
           todo: bring tooltip
           -->
     <SmartsheetHeaderVirtualCellIcon v-if="column" />
+
     <a-tooltip placement="bottom">
       <template #title>
         {{ tooltipMsg }}
       </template>
       <span class="name" style="white-space: nowrap" :title="column.title"> {{ column.title }}</span>
     </a-tooltip>
-    <span v-if="column.rqd" class="error--text text--lighten-1">&nbsp;*</span>
+    <span v-if="column.rqd || required" class="text-red-500">&nbsp;*</span>
 
     <!--    <span class="caption" v-html="tooltipMsg" /> -->
 

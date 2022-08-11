@@ -213,7 +213,6 @@
     "sqlOutput": "SQL Output",
     "addOption": "Tambahkan opsi",
     "aggregateFunction": "Fungsi agregat.",
-    "database": "Basis Data",
     "dbCreateIfNotExists": "Basis Data: Buat jika tidak ada",
     "clientKey": "Kunci klien",
     "clientCert": "Sertifikat klien",
@@ -310,6 +309,7 @@
     "importExcel": "Impor Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Unduh sebagai CSV.",
+    "downloadExcel": "Unduh sebagai XLSX.",
     "uploadCSV": "Unggah CSV.",
     "import": "Impor",
     "importMetadata": "Impor Metadata.",
@@ -413,7 +413,7 @@
       "deleteProject": "Apakah Anda ingin menghapus proyek?",
       "shareBasePrivate": "Menghasilkan basis readonly yang dapat dibagikan secara publik",
       "shareBasePublic": "Siapa pun di Internet dengan tautan ini dapat dilihat",
-      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer! Harap salin tautan undangan di atas dan kirimkan ke",
+      "userInviteNoSMTP": "Sepertinya Anda belum mengonfigurasi mailer!\nHarap salin tautan undangan di atas dan kirimkan ke",
       "dragDropHide": "Seret dan jatuhkan bidang di sini untuk bersembunyi",
       "formInput": "Masukkan label input formulir",
       "formHelpText": "Tambahkan beberapa teks bantuan",
@@ -497,8 +497,7 @@
         "emailReqd": "E-mail diperlukan",
         "emailInvalid": "E-mail harus valid",
         "passwdRequired": "katakunci dibutuhkan",
-        "passwdLength": "Kata sandi Anda harus minimal 8 karakter",
-        "passwdMismatch": "Sandi tidak cocok"
+        "passwdLength": "Kata sandi Anda harus minimal 8 karakter"
       }
     },
     "toast": {

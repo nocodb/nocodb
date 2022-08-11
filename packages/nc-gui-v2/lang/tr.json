@@ -213,7 +213,6 @@
     "sqlOutput": "SQL Çıktısı",
     "addOption": "Seçenek ekle",
     "aggregateFunction": "Birleştirme fonksiyonu",
-    "database": "Veritabanı",
     "dbCreateIfNotExists": "Veritabanı : yoksa oluştur",
     "clientKey": "Müşteri Anahtarı",
     "clientCert": "Müşteri Sertifikası",
@@ -310,6 +309,7 @@
     "importExcel": "Excel'i içe aktar",
     "importCSV": "Import CSV",
     "downloadCSV": "CSV olarak indir",
+    "downloadExcel": "XLSX olarak indir",
     "uploadCSV": "CSV yükle",
     "import": "İçe aktar",
     "importMetadata": "Meta verilerini içe aktar",
@@ -413,7 +413,7 @@
       "deleteProject": "Projeyi silmek istediğinize emin misiniz?",
       "shareBasePrivate": "Herkese açık paylaşılabilir salt-okunur bağlantı",
       "shareBasePublic": "Bu link ile internetteki herkes görüntüleyebilir",
-      "userInviteNoSMTP": "Henüz mail ayarları yapılmamış gibi görünüyor! Lütfen yukarıdaki davet linkini kopyalayın ve gönderin",
+      "userInviteNoSMTP": "Henüz mail ayarları yapılmamış gibi görünüyor! \\n Lütfen yukarıdaki davet linkini kopyalayın ve gönderin",
       "dragDropHide": "Gizlemek için sütunları buraya sürükleyip bırakın",
       "formInput": "Form girdi etiketini girin",
       "formHelpText": "Yardım metni ekleyin",
@@ -497,8 +497,7 @@
         "emailReqd": "E-posta gerekli",
         "emailInvalid": "E-posta geçerli olmalı",
         "passwdRequired": "Şifre gerekli",
-        "passwdLength": "Şifreniz en az 8 karakter olmalıdır",
-        "passwdMismatch": "Parolalar uyuşmuyor"
+        "passwdLength": "Şifreniz en az 8 karakter olmalıdır"
       }
     },
     "toast": {

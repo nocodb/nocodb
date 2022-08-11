@@ -51,22 +51,22 @@ watch(previewAs, () => window.location.reload())
   <div
     v-if="float"
     v-show="previewAs"
-    class="floating-reset-btn nc-floating-preview-btn px-2"
+    class="floating-reset-btn nc-floating-preview-btn p-4"
     :style="{ top: position.y, left: position.x }"
   >
     <MdiDrag style="cursor: move" class="text-white" @mousedown="mouseDown" />
     <div class="divider" />
 
-    <div class="pointer flex items-center gap-2">
+    <div class="pointer flex items-center gap-4">
       <span>Preview as :</span>
 
       <a-radio-group v-model:value="previewAs" name="radioGroup">
-        <a-radio v-for="role in roleList" :key="role.title" class="!text-xs !text-white" :value="role.title"
+        <a-radio v-for="role in roleList" :key="role.title" class="capitalize !text-white" :value="role.title"
           >{{ role.title }}
         </a-radio>
       </a-radio-group>
 
-      <div class="divider" />
+      <div class="divider -ml-4" />
 
       <div class="flex items-center gap-2 cursor-pointer" @click="previewAs = null">
         <MdiExitToApp />
@@ -81,7 +81,7 @@ watch(previewAs, () => window.location.reload())
         <div class="p-1 flex gap-2 items-center">
           <component :is="roleIcon[role.title]" />
 
-          <span class="text-capitalize text-xs" :class="{ 'x-active--text': role.title === previewAs }">{{ role.title }}</span>
+          <span class="capitalize" :class="{ 'x-active--text': role.title === previewAs }">{{ role.title }}</span>
         </div>
       </a-menu-item>
     </template>
@@ -100,8 +100,9 @@ watch(previewAs, () => window.location.reload())
 
 <style scoped>
 .floating-reset-btn {
-  @apply bg-primary/90 z-1000 index-100 fixed text-white py-1 pr-3 text-xs font-weight-bold
-  @apply flex items-center overflow-hidden whitespace-nowrap gap-2 rounded shadow-md;
+  @apply z-1000 index-100 fixed text-white
+  @apply flex items-center overflow-hidden whitespace-nowrap gap-4 rounded shadow-md;
+  background-color: #4351e7;
 }
 
 :deep(.ant-radio) {

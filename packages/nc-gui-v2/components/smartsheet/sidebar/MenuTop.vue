@@ -179,6 +179,8 @@ function onDeleted() {
   emits('deleted')
   toDelete = undefined
   deleteModalVisible = false
+  // return to the default view
+  activeView.value = views.value[0]
 }
 </script>
 

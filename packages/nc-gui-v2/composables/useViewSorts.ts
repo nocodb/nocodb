@@ -12,8 +12,7 @@ export function useViewSorts(
 
   const loadSorts = async () => {
     if (!view?.value) return
-    // todo: api correction
-    sorts.value = ((await $api.dbTableSort.list(view?.value?.id as string)) as any)?.sorts?.list as any[]
+    sorts.value = ((await $api.dbTableSort.list(view?.value?.id as string)) as any)?.sorts?.list
   }
 
   const saveOrUpdate = async (sort: SortType, i: number) => {

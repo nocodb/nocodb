@@ -14,7 +14,7 @@ provide(ColumnInj, column)
 const { metas } = useMetas()
 
 const meta = inject(MetaInj)
-const isForm = inject(IsFormInj, false)
+const isForm = inject(IsFormInj, ref(false))
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(column)
 

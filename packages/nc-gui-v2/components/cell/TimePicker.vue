@@ -1,9 +1,10 @@
 <script setup lang="ts">
+import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
 import { ReadonlyInj } from '~/context'
 
 interface Props {
-  modelValue: string | null
+  modelValue?: string | null
 }
 
 const { modelValue } = defineProps<Props>()
@@ -50,6 +51,19 @@ const localState = $computed({
     }
   },
 })
+
+const open = ref(false)
+
+const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
+watch(
+  open,
+  (next) => {
+    if (next) {
+      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+    }
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
@@ -64,7 +78,10 @@ const localState = $computed({
     :placeholder="isTimeInvalid ? 'Invalid time' : !readOnlyMode ? 'Select time' : ''"
     :allow-clear="!readOnlyMode"
     :input-read-only="true"
-    :open="readOnlyMode ? false : undefined"
+    :open="readOnlyMode ? false : open"
+    :dropdown-class-name="randomClass"
+    @click="open = !open"
+    @ok="open = !open"
   >
     <template #suffixIcon></template>
   </a-time-picker>

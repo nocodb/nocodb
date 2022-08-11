@@ -10,7 +10,7 @@ const props = defineProps<{ column: ColumnType & { meta: any }; required: boolea
 const hideMenu = toRef(props, 'hideMenu')
 
 const meta = inject(MetaInj)
-const isForm = inject(IsFormInj, false)
+const isForm = inject(IsFormInj, ref(false))
 
 const column = toRef(props, 'column')
 

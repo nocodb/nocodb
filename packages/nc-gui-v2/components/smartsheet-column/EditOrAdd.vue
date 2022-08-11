@@ -60,7 +60,11 @@ function onCancel() {
 
 async function onSubmit() {
   await addOrUpdate(reloadMetaAndData)
-  advancedOptions.value = false
+
+  // add delay to complete the minimize transition
+  setTimeout(() => {
+    advancedOptions.value = false
+  }, 500)
 }
 
 // create column meta if it's a new column
@@ -103,15 +107,10 @@ if (!formState.value?.column_name) {
 <template>
   <div class="min-w-[350px] w-max max-h-[95vh] bg-white shadow p-4 overflow-auto" @click.stop>
     <a-form v-model="formState" name="column-create-or-edit" layout="vertical">
-      <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.column_name">
-        <a-input
-          ref="antInput"
-          v-model:value="formState.column_name"
-          size="small"
-          class="nc-column-name-input"
-          @input="onAlter(8)"
-        />
+      <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
+        <a-input ref="antInput" v-model:value="formState.title" size="small" class="nc-column-name-input" @input="onAlter(8)" />
       </a-form-item>
+
       <a-form-item
         v-if="!(editColumnDropdown && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
         :label="$t('labels.columnType')"

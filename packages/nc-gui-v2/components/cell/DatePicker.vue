@@ -5,6 +5,7 @@ import { ColumnInj, ReadonlyInj } from '~/context'
 interface Props {
   modelValue: string | null
 }
+
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
@@ -39,6 +40,18 @@ const localState = $computed({
     }
   },
 })
+const open = ref(false)
+
+const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
+watch(
+  open,
+  (next) => {
+    if (next) {
+      onClickOutside(document.querySelector(`.${randomClass}`)! as HTMLDivElement, () => (open.value = false))
+    }
+  },
+  { flush: 'post' },
+)
 </script>
 
 <template>
@@ -50,7 +63,9 @@ const localState = $computed({
     :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date' : ''"
     :allow-clear="!readOnlyMode"
     :input-read-only="true"
-    :open="readOnlyMode ? false : undefined"
+    :dropdown-class-name="randomClass"
+    :open="readOnlyMode ? false : open"
+    @click="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

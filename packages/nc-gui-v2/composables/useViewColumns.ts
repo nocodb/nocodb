@@ -1,11 +1,11 @@
 import { isSystemColumn } from 'nocodb-sdk'
-import type { ColumnType, FormType, GalleryType, GridType, TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
 
 export function useViewColumns(
-  view: Ref<(GridType | FormType | GalleryType) & { id?: string }> | undefined,
+  view: Ref<ViewType> | undefined,
   meta: ComputedRef<TableType>,
   isPublic = false,
   reloadData?: () => void,
@@ -110,16 +110,14 @@ export function useViewColumns(
 
   const showSystemFields = computed({
     get() {
-      // todo: update swagger
-      return (view?.value as any)?.show_system_fields || false
+      return view?.value?.show_system_fields || false
     },
-    set(v) {
+    set(v: boolean) {
       if (view?.value?.id) {
         $api.dbView
           .update(view.value.id, {
-            // todo: update swagger
             show_system_fields: v,
-          } as any)
+          })
           .finally(() => reloadData?.())
         ;(view.value as any).show_system_fields = v
       }

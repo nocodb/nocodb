@@ -1,4 +1,4 @@
-import type { Api, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { notification } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
@@ -18,6 +18,7 @@ export interface Row {
   oldRow: Record<string, any>
   rowMeta: {
     new?: boolean
+    selected?: boolean
     commentCount?: number
   }
 }
@@ -33,7 +34,7 @@ export function useViewData(
 
   const formattedData = ref<Row[]>([])
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
-  const aggCommentCount = ref<Record<string, number>>({})
+  const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType | undefined>(undefined)
   const formColumnData = ref<FormType | undefined>(undefined)
   const formViewData = ref<FormType | undefined>(undefined)
@@ -43,10 +44,10 @@ export function useViewData(
 
   const selectedAllRecords = computed({
     get() {
-      return formattedData.value.every((row) => row.rowMeta.selected)
+      return formattedData.value.every((row: Row) => row.rowMeta.selected)
     },
-    set(selected) {
-      formattedData.value.forEach((row) => (row.rowMeta.selected = selected))
+    set(selected: boolean) {
+      formattedData.value.forEach((row: Row) => (row.rowMeta.selected = selected))
     },
   })
 
@@ -208,7 +209,7 @@ export function useViewData(
 
   const deleteRowById = async (id: string) => {
     if (!id) {
-      throw new Error("Delete not allowed for table which doesn't have primary Key")
+      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
     }
 
     const res: any = await $api.dbViewRow.delete(

@@ -61,15 +61,7 @@ export function useTabs() {
         const tab = tabs.value[index]
 
         if (!tab) return
-
-        switch (tab.type) {
-          case TabType.TABLE:
-            return navigateTo(`/nc/${route.params.projectId}/table/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
-          case TabType.VIEW:
-            return navigateTo(`/nc/${route.params.projectId}/view/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
-          case TabType.AUTH:
-            return navigateTo(`/nc/${route.params.projectId}/auth`)
-        }
+        return navigateToTab(tab)
       }
     },
   })
@@ -101,10 +93,21 @@ export function useTabs() {
       if (newTabIndex === -1) {
         await navigateTo(`/nc/${route.params.projectId}`)
       } else {
-        await navigateTo(`/nc/${route.params.projectId}/table/${tabs.value?.[newTabIndex]?.title}`)
+        await navigateToTab(tabs.value?.[newTabIndex])
       }
     }
     tabs.value.splice(index, 1)
+  }
+
+  function navigateToTab(tab: TabItem) {
+    switch (tab.type) {
+      case TabType.TABLE:
+        return navigateTo(`/nc/${route.params.projectId}/table/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
+      case TabType.VIEW:
+        return navigateTo(`/nc/${route.params.projectId}/view/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
+      case TabType.AUTH:
+        return navigateTo(`/nc/${route.params.projectId}/auth`)
+    }
   }
 
   const updateTab = (key: number | Partial<TabItem>, newTabItemProps: Partial<TabItem>) => {

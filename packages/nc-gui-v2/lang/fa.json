@@ -213,7 +213,6 @@
     "sqlOutput": "خروجی SQL",
     "addOption": "افزودن گزینه",
     "aggregateFunction": "تابع جمع",
-    "database": "بخش پایگاه داده",
     "dbCreateIfNotExists": "پایگاه داده: ایجاد در صورت عدم وجود",
     "clientKey": "کلید Client",
     "clientCert": "گواهینامه Client",
@@ -310,6 +309,7 @@
     "importExcel": "وارد کردن فایل Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "دانلود به‌عنوان CSV",
+    "downloadXLSX": "دانلود به‌عنوان XLSX",
     "uploadCSV": "بارگذاری CSV",
     "import": "وارد کردن",
     "importMetadata": "وارد کردن فراداده",
@@ -497,8 +497,7 @@
         "emailReqd": "پست الکترونیکی مورد نیاز است",
         "emailInvalid": "پست الکترونیکی باید معتبر باشد",
         "passwdRequired": "کلمه عبور مورد نیاز است",
-        "passwdLength": "کلمه عبور شما باید حداقل 8 کاراکتر داشته باشد",
-        "passwdMismatch": "رمزهای ورود مطابقت ندارند"
+        "passwdLength": "کلمه عبور شما باید حداقل 8 کاراکتر داشته باشد"
       }
     },
     "toast": {

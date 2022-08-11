@@ -213,7 +213,6 @@
     "sqlOutput": "Output SQL",
     "addOption": "Aggiungi opzione",
     "aggregateFunction": "Aggrega funzione",
-    "database": "Database",
     "dbCreateIfNotExists": "Database: crea se non esiste",
     "clientKey": "Chiave client",
     "clientCert": "Certificato client",
@@ -310,6 +309,7 @@
     "importExcel": "Importa Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Scarica come CSV.",
+    "downloadExcel": "Scarica come XLSX.",
     "uploadCSV": "Carica CSV.",
     "import": "Importa",
     "importMetadata": "Importa metadati",
@@ -413,7 +413,7 @@
       "deleteProject": "Vuoi cancellare il progetto?",
       "shareBasePrivate": "Genera base readonly condivisibile pubblicamente",
       "shareBasePublic": "Chiunque su Internet con questo link può visualizzare",
-      "userInviteNoSMTP": "Sembra che non abbia ancora configurato il mailer! Manda il link d'invito sopra a",
+      "userInviteNoSMTP": "Sembra che non abbia ancora configurato il mailer! \\n Manda il link d'invito sopra a",
       "dragDropHide": "Rilascia qui i campi da nascondere",
       "formInput": "Inserisci l'etichetta di input del modulo",
       "formHelpText": "Aggiungi testo di aiuto",
@@ -497,8 +497,7 @@
         "emailReqd": "L'e-mail è richiesta",
         "emailInvalid": "L'email deve essere valida",
         "passwdRequired": "È richiesta la password",
-        "passwdLength": "La tua password deve essere di almeno 8 caratteri",
-        "passwdMismatch": "le passwords non corrispondono"
+        "passwdLength": "La tua password deve essere di almeno 8 caratteri"
       }
     },
     "toast": {

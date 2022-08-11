@@ -213,7 +213,6 @@
     "sqlOutput": "SQL-utgang",
     "addOption": "Legg til alternativ",
     "aggregateFunction": "Samlet funksjon",
-    "database": "Database",
     "dbCreateIfNotExists": "Database: Opprett hvis ikke eksisterer",
     "clientKey": "Klientnøkkel",
     "clientCert": "Klientsertifikat",
@@ -310,6 +309,7 @@
     "importExcel": "Importer Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Last ned som CSV.",
+    "downloadExcel": "Last ned som XLSX.",
     "uploadCSV": "Last opp CSV.",
     "import": "Importer",
     "importMetadata": "Importer metadata",
@@ -413,7 +413,7 @@
       "deleteProject": "Ønsker du å slette prosjektet?",
       "shareBasePrivate": "Generer offentlig delbar readonly base",
       "shareBasePublic": "Alle på Internett med denne lenken kan se",
-      "userInviteNoSMTP": "Ser ut som om du ikke har konfigurert mailer ennå! Vennligst kopier over Inviter Link og send den til",
+      "userInviteNoSMTP": "Ser ut som om du ikke har konfigurert mailer ennå!\nVennligst kopier over Inviter Link og send den til",
       "dragDropHide": "Dra og slipp felt her for å skjule",
       "formInput": "Skriv inn skjema inngangsetikett",
       "formHelpText": "Legg til litt hjelpetekst",
@@ -497,8 +497,7 @@
         "emailReqd": "E-post er nødvendig",
         "emailInvalid": "E-post må være gyldig",
         "passwdRequired": "Passord er påkrevd",
-        "passwdLength": "Ditt passord må være minst 8 tegn",
-        "passwdMismatch": "passordene er ikke like"
+        "passwdLength": "Ditt passord må være minst 8 tegn"
       }
     },
     "toast": {

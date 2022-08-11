@@ -213,7 +213,6 @@
     "sqlOutput": "Đầu ra SQL.",
     "addOption": "Thêm tùy chọn",
     "aggregateFunction": "Chức năng tổng hợp",
-    "database": "Cơ sở dữ liệu",
     "dbCreateIfNotExists": "Cơ sở dữ liệu: Tạo nếu không tồn tại",
     "clientKey": "Khóa khách",
     "clientCert": "Chứng chỉ khách hàng.",
@@ -310,6 +309,7 @@
     "importExcel": "Nhập Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Tải về dưới dạng CSV.",
+    "downloadExcel": "Tải về dưới dạng XLSX.",
     "uploadCSV": "Tải lên CSV.",
     "import": "Nhập khẩu",
     "importMetadata": "Nhập siêu dữ liệu",
@@ -413,7 +413,7 @@
       "deleteProject": "Bạn có muốn xóa dự án?",
       "shareBasePrivate": "Tạo cơ sở chỉ đọc chia sẻ công khai",
       "shareBasePublic": "Bất cứ ai trên Internet với liên kết này có thể xem",
-      "userInviteNoSMTP": "Có vẻ như bạn chưa định cấu hình Mailer! Vui lòng sao chép liên kết mời trên và gửi nó đến",
+      "userInviteNoSMTP": "Có vẻ như bạn chưa định cấu hình Mailer!\nVui lòng sao chép liên kết mời trên và gửi nó đến",
       "dragDropHide": "Kéo và thả các trường ở đây để ẩn",
       "formInput": "Nhập nhãn đầu vào Mẫu",
       "formHelpText": "Thêm một số văn bản trợ giúp",
@@ -497,8 +497,7 @@
         "emailReqd": "Email thì cần thiết",
         "emailInvalid": "Email phải hợp lệ",
         "passwdRequired": "Mật khẩu là bắt buộc",
-        "passwdLength": "Mật khẩu của bạn phải có ít nhất 8 ký tự",
-        "passwdMismatch": "mất khẩu không hợp lệ"
+        "passwdLength": "Mật khẩu của bạn phải có ít nhất 8 ký tự"
       }
     },
     "toast": {

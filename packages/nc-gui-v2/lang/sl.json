@@ -213,7 +213,6 @@
     "sqlOutput": "SQL izhod",
     "addOption": "Dodaj možnost",
     "aggregateFunction": "Agregatna funkcija",
-    "database": "Baza podatkov",
     "dbCreateIfNotExists": "Baza podatkov: Ustvari, če ne obstaja",
     "clientKey": "Odjemalski ključ",
     "clientCert": "Potrdilo odjemalca",
@@ -310,6 +309,7 @@
     "importExcel": "Uvoz Excel.",
     "importCSV": "Import CSV",
     "downloadCSV": "Prenesite kot CSV.",
+    "downloadExcel": "Prenesite kot XLSX.",
     "uploadCSV": "Upload CSV.",
     "import": "Uvozi",
     "importMetadata": "Uvozi metapodatkov",
@@ -413,7 +413,7 @@
       "deleteProject": "Želite izbrisati projekt?",
       "shareBasePrivate": "Ustvarite javno rasno redno osnovo",
       "shareBasePublic": "Vsak na internetu s to povezavo lahko prikaže",
-      "userInviteNoSMTP": "Izgleda, da še niste konfigurirali pošiljatelja! Prosimo, kopirajte zgornjo povezavo in jo pošljite",
+      "userInviteNoSMTP": "Izgleda, da še niste konfigurirali pošiljatelja! n Prosimo, kopirajte zgornjo povezavo in jo pošljite",
       "dragDropHide": "Povlecite in spustite polja, da se skrijete",
       "formInput": "Vnesite nalepko vnosa obrazca",
       "formHelpText": "Dodajte nekaj besedila pomoči",
@@ -497,8 +497,7 @@
         "emailReqd": "Potrebna je e-pošta",
         "emailInvalid": "E-pošta mora biti veljavna",
         "passwdRequired": "zahtevano je geslo",
-        "passwdLength": "Geslo mora biti vsaj 8 znakov",
-        "passwdMismatch": "geslo se ne ujema"
+        "passwdLength": "Geslo mora biti vsaj 8 znakov"
       }
     },
     "toast": {

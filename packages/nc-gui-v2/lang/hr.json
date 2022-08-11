@@ -213,7 +213,6 @@
     "sqlOutput": "SQL izlaz",
     "addOption": "Dodajte opciju",
     "aggregateFunction": "Agregatna funkcija",
-    "database": "Baza podataka",
     "dbCreateIfNotExists": "Baza podataka: stvoriti ako ne postoji",
     "clientKey": "Ključ klijenta",
     "clientCert": "Klijent cert",
@@ -310,6 +309,7 @@
     "importExcel": "Uvoz Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Preuzmite kao CSV",
+    "downloadExcel": "Preuzmite kao XLSX",
     "uploadCSV": "Prenesite CSV",
     "import": "Uvoz",
     "importMetadata": "Uvoz metapodataka",
@@ -413,7 +413,7 @@
       "deleteProject": "Želite li izbrisati projekt?",
       "shareBasePrivate": "Generirajte javno zajedničko upravljanje",
       "shareBasePublic": "Svatko na internetu s ovom linkom može vidjeti",
-      "userInviteNoSMTP": "Izgleda da još niste konfigurirali mailer! Molimo kopirajte iznad poziva veze i pošaljite ga na",
+      "userInviteNoSMTP": "Izgleda da još niste konfigurirali mailer! n Molimo kopirajte iznad poziva veze i pošaljite ga na",
       "dragDropHide": "Povucite i ispustite polja za skrivanje",
       "formInput": "Unesite oznaku ulazne obrasce",
       "formHelpText": "Dodajte neki tekst pomoći",
@@ -497,8 +497,7 @@
         "emailReqd": "Potrebna je e-pošta",
         "emailInvalid": "E-pošta mora biti valjana",
         "passwdRequired": "potrebna je lozinka",
-        "passwdLength": "Vi lozinka mora biti najmanje 8 znakova",
-        "passwdMismatch": "Lozinke se ne podudaraju"
+        "passwdLength": "Vi lozinka mora biti najmanje 8 znakova"
       }
     },
     "toast": {

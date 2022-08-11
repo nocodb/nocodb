@@ -213,7 +213,6 @@
     "sqlOutput": "Вывод SQL",
     "addOption": "Добавить настройку",
     "aggregateFunction": "Агрегатная функция",
-    "database": "База данных",
     "dbCreateIfNotExists": "База данных: создать, если не существует",
     "clientKey": "Ключ клиента",
     "clientCert": "Сертификат клиента",
@@ -230,7 +229,6 @@
       "bookDemo": "Забронировать бесплатное демо",
       "getAnswered": "Получите ответы на ваши вопросы",
       "joinDiscord": "Присоединиться к",
-      "joinCommunity": "Join NocoDB Community",
       "joinReddit": "Присоединиться /r/NocoDB",
       "followNocodb": "Следите за NocoDB"
     },
@@ -310,6 +308,7 @@
     "importExcel": "Импорт из Excel",
     "importCSV": "Import CSV",
     "downloadCSV": "Скачать как CSV.",
+    "downloadExcel": "Скачать как XLSX.",
     "uploadCSV": "Загрузить CSV.",
     "import": "Импортировать",
     "importMetadata": "Импорт метаданных",
@@ -497,8 +496,7 @@
         "emailReqd": "Требуется E-mail",
         "emailInvalid": "Электронная почта должна быть действительной",
         "passwdRequired": "необходим пароль",
-        "passwdLength": "Ваш пароль должен быть не короче 8 символов",
-        "passwdMismatch": "Пароли не совпадают"
+        "passwdLength": "Ваш пароль должен быть не короче 8 символов"
       }
     },
     "toast": {

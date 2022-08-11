@@ -133,7 +133,6 @@
                       :is-new="isNew"
                       :is-form="true"
                       :breadcrumbs="localBreadcrumbs"
-                      :is-locked="isColumnLocked(col)"
                       @updateCol="updateCol"
                       @newRecordsSaved="$listeners.loadTableData || reload"
                     />
@@ -171,7 +170,7 @@
                       :meta="meta"
                       :sql-ui="sqlUi"
                       :is-form="true"
-                      :is-locked="isColumnLocked(col)"
+                      :is-locked="isLocked"
                       @focus="active = col.title"
                       @blur="active = ''"
                       @input="$set(changedColumns, col.title, true)"
@@ -249,7 +248,7 @@
                       />
 
                       <p class="time text-right mb-0">
-                        {{ calculateDiff(log.created_at) }}
+                        {{ formatDateToLocal(log.created_at) }}
                       </p>
                     </div>
                   </v-list-item>
@@ -319,7 +318,8 @@
 <script>
 import dayjs from 'dayjs'
 import {
-  isSystemColumn,
+  AuditOperationSubTypes,
+  AuditOperationTypes, isSystemColumn,
   isVirtualCol,
   UITypes
 } from 'nocodb-sdk'
@@ -330,7 +330,7 @@ import colors from '@/mixins/colors'
 import VirtualCell from '~/components/project/spreadsheet/components/VirtualCell'
 import VirtualHeaderCell from '~/components/project/spreadsheet/components/VirtualHeaderCell'
 import getPlainText from '~/components/project/spreadsheet/helpers/getPlainText'
-import { isColumnLocked } from '~/helpers/isColumnLocked'
+import { formatDateToLocal } from '~/helpers'
 
 const relativeTime = require('dayjs/plugin/relativeTime')
 const utc = require('dayjs/plugin/utc')
@@ -458,9 +458,7 @@ export default {
     }
   },
   methods: {
-    isColumnLocked(col) {
-      return isColumnLocked(this.isLocked, col)
-    },
+    formatDateToLocal,
     updateCol(_row, _cn, pid) {
       this.$set(this.localState, _cn, pid)
       this.$set(this.changedColumns, _cn, true)
@@ -598,9 +596,6 @@ export default {
         id,
         { query: this.queryParams || {} }
       )
-    },
-    calculateDiff(date) {
-      return dayjs.utc(date).fromNow()
     },
     async saveComment() {
       try {

@@ -9,6 +9,10 @@ export function calculateDiff(date) {
   return dayjs.utc(date).fromNow()
 }
 
+export function formatDateToLocal(date) {
+  return dayjs.utc(date).local().format()
+}
+
 export const isEmail = v => /^(([^<>()[\].,;:\s@"]+(\.[^<>()[\].,;:\s@"]+)*)|(".+"))@(([^<>()[\].,;:\s@"]+\.)+[^<>()[\].,;:\s@"]{2,})$/i.test(v)
 
 // ref : https://stackoverflow.com/a/5717133

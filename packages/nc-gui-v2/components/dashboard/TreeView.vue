@@ -1,27 +1,25 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
-import { useToast } from 'vue-toastification'
-import { useProject, useTable, useTabs, watchEffect } from '#imports'
 import { useNuxtApp, useRoute } from '#app'
+import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
+import { TabType } from '~/composables'
 import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiMenuDown from '~icons/mdi/chevron-down'
-import MdiPlus from '~icons/mdi/plus-circle-outline'
-import MdiDrag from '~icons/mdi/drag-vertical'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
+import MdiDrag from '~icons/mdi/drag-vertical'
+import MdiPlus from '~icons/mdi/plus-circle-outline'
 
 const { addTab } = useTabs()
-
-const toast = useToast()
 
 const { $api, $e } = useNuxtApp()
 
 const route = useRoute()
 
 const { tables, loadTables } = useProject(route.params.projectId as string)
-
+const { activeTab } = useTabs()
 const { deleteTable } = useTable()
 
 const tablesById = $computed<Record<string, TableType>>(() =>
@@ -32,12 +30,10 @@ const tablesById = $computed<Record<string, TableType>>(() =>
 )
 
 const showTableList = ref(true)
-
 const tableCreateDlg = ref(false)
+let key = $ref(0)
 
 const menuRef = $ref<HTMLLIElement>()
-
-let key = $ref(0)
 
 let sortable: Sortable
 
@@ -106,13 +102,11 @@ const icon = (table: TableType) => {
 }
 
 const filterQuery = $ref('')
-
 const filteredTables = $computed(() => {
   return tables?.value?.filter((table) => !filterQuery || table?.title.toLowerCase()?.includes(filterQuery.toLowerCase()))
 })
 
 const contextMenuTarget = reactive<{ type?: 'table' | 'main'; value?: any }>({})
-
 const setMenuContext = (type: 'table' | 'main', value?: any) => {
   contextMenuTarget.type = type
   contextMenuTarget.value = value
@@ -120,24 +114,24 @@ const setMenuContext = (type: 'table' | 'main', value?: any) => {
 }
 
 const renameTableDlg = ref(false)
-
 const renameTableMeta = ref()
-
 const showRenameTableDlg = (table: TableType, rightClick = false) => {
   $e(rightClick ? 'c:table:rename:navdraw:right-click' : 'c:table:rename:navdraw:options')
   renameTableMeta.value = table
   renameTableDlg.value = true
 }
-
 const reloadTables = async () => {
   $e('a:table:refresh:navdraw')
   await loadTables()
 }
-
 const addTableTab = (table: TableType) => {
   $e('a:table:open')
   addTab({ title: table.title, id: table.id, type: table.type as any })
 }
+
+const activeTable = computed(() => {
+  return [TabType.TABLE, TabType.VIEW].includes(activeTab.value?.type) ? activeTab.value.title : null
+})
 </script>
 
 <template>
@@ -186,11 +180,10 @@ const addTableTab = (table: TableType) => {
                 :key="table.id"
                 v-t="['a:table:open']"
                 :class="[
-                  { hidden: !filteredTables?.includes(table) },
+                  { hidden: !filteredTables?.includes(table), active: activeTable === table.title },
                   `nc-project-tree-tbl nc-project-tree-tbl-${table.title}`,
-                  route.params.title && route.params.title.includes(table.title) ? 'bg-blue-500/15' : '',
                 ]"
-                class="pl-5 pr-3 py-2 text-sm cursor-pointer group"
+                class="nc-tree-item pl-5 pr-3 py-2 text-sm cursor-pointer group"
                 :data-order="table.order"
                 :data-id="table.id"
                 @click="addTableTab(table)"
@@ -254,7 +247,7 @@ const addTableTab = (table: TableType) => {
   </div>
 </template>
 
-<style lang="scss" scoped>
+<style scoped>
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
 }
@@ -298,5 +291,24 @@ const addTableTab = (table: TableType) => {
   .sortable-chosen {
     @apply !bg-primary/25 text-primary;
   }
+}
+
+.nc-tree-item {
+  @apply relative  cursor-pointer after:(pointer-events-none content-[''] absolute top-0 left-0  w-full h-full right-0 !bg-current transition transition-opactity duration-100 opacity-0);
+}
+
+.nc-tree-item svg {
+  @apply text-gray-500;
+}
+
+.nc-tree-item.active {
+  @apply !text-primary after:(!opacity-5);
+  svg {
+    @apply !text-primary;
+  }
+}
+
+.nc-tree-item:hover {
+  @apply !text-grey after:(!opacity-2);
 }
 </style>

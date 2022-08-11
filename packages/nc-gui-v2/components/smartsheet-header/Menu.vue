@@ -61,32 +61,49 @@ function onVisibleChange() {
   <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']" @visible-change="onVisibleChange">
     <span />
     <template #overlay>
-      <SmartsheetColumnEditOrAdd :edit-column-dropdown="editColumnDropdown" @click.stop @cancel="editColumnDropdown = false" />
+      <SmartsheetColumnEditOrAdd
+        :edit-column-dropdown="editColumnDropdown"
+        @click.stop
+        @keydown.stop
+        @cancel="editColumnDropdown = false"
+      />
     </template>
   </a-dropdown>
   <a-dropdown :trigger="['hover']">
     <MdiMenuDownIcon class="text-grey nc-ui-dt-dropdown" />
     <template #overlay>
-      <div class="shadow bg-white">
-        <div class="nc-column-edit nc-menu-item" @click="editColumnDropdown = true">
-          <MdiEditIcon class="text-primary" />
-          <!-- Edit -->
-          {{ $t('general.edit') }}
-        </div>
-        <div v-if="!virtual" v-t="['a:column:set-primary']" class="nc-menu-item" @click="setAsPrimaryValue">
-          <MdiStarIcon class="text-primary" />
+      <a-menu class="shadow bg-white">
+        <a-menu-item @click="editColumnDropdown = true">
+          <div class="nc-column-edit nc-header-menu-item">
+            <MdiEditIcon class="text-primary" />
+            <!-- Edit -->
+            {{ $t('general.edit') }}
+          </div>
+        </a-menu-item>
+        <a-menu-item v-if="!virtual" v-t="['a:column:set-primary']" @click="setAsPrimaryValue">
+          <div class="nc-column-edit nc-header-menu-item">
+            <MdiStarIcon class="text-primary" />
 
-          <!--       todo : tooltip -->
-          <!-- Set as Primary value -->
-          {{ $t('activity.setPrimary') }}
+            <!--       todo : tooltip -->
+            <!-- Set as Primary value -->
+            {{ $t('activity.setPrimary') }}
+          </div>
           <!--        <span class="caption font-weight-bold">Primary value will be shown in place of primary key</span> -->
-        </div>
-        <div class="nc-column-delete nc-menu-item" @click="deleteColumn">
-          <MdiDeleteIcon class="text-error" />
-          <!-- Delete -->
-          {{ $t('general.delete') }}
-        </div>
-      </div>
+        </a-menu-item>
+        <a-menu-item @click="deleteColumn">
+          <div class="nc-column-delete nc-header-menu-item">
+            <MdiDeleteIcon class="text-error" />
+            <!-- Delete -->
+            {{ $t('general.delete') }}
+          </div>
+        </a-menu-item>
+      </a-menu>
     </template>
   </a-dropdown>
 </template>
+
+<style scoped>
+.nc-header-menu-item {
+  @apply text-xs flex items-center px-1 py-2 gap-1;
+}
+</style>

@@ -11,6 +11,10 @@ export interface FeedbackForm {
   lastFormPollDate?: string
 }
 
+export interface AppInfo {
+  ncSiteUrl: string
+}
+
 export interface StoredState {
   token: string | null
   user: User | null
@@ -27,6 +31,7 @@ export type State = ToRefs<Omit<StoredState, 'token'>> & {
   timestamp: Ref<number>
   runningRequests: ReturnType<typeof useCounter>
   error: Ref<any>
+  appInfo: Ref<AppInfo>
 }
 
 export interface Getters {

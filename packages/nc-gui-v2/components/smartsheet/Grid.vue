@@ -1,16 +1,20 @@
 <script lang="ts" setup>
-import { onClickOutside, useEventListener } from '@vueuse/core'
 import type { ColumnType } from 'nocodb-sdk'
-import { isVirtualCol } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import {
   inject,
+  onClickOutside,
   onMounted,
   provide,
+  reactive,
+  ref,
+  useEventListener,
   useGridViewColumnWidth,
   useProvideColumnCreateStore,
   useSmartsheetStoreOrThrow,
   useViewData,
+  watch,
 } from '#imports'
 import type { Row } from '~/composables'
 import {
@@ -25,23 +29,39 @@ import {
   ReloadViewDataHookInj,
 } from '~/context'
 import { NavigateDir } from '~/lib'
+import { enumColor } from '~/utils'
 
 const meta = inject(MetaInj)
+
 const view = inject(ActiveViewInj)
+
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
+
 const isLocked = inject(IsLockedInj, false)
+
+const reloadViewDataHook = inject(ReloadViewDataHookInj)
+
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
+
 const isView = false
 
 const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
+
 let editEnabled = $ref(false)
-const { xWhere, isPkAvail } = useSmartsheetStoreOrThrow()
+
+const { xWhere, isPkAvail, cellRefs } = useSmartsheetStoreOrThrow()
+
 const addColumnDropdown = ref(false)
+
 const contextMenu = ref(false)
+
 const contextMenuTarget = ref(false)
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref<Row>()
+const expandedFormRowState = ref<Record<string, any>>()
 
 const visibleColLength = $computed(() => fields.value?.length)
 
@@ -55,8 +75,11 @@ const {
   deleteRow,
   deleteSelectedRows,
   selectedAllRecords,
+  loadAggCommentsCount,
 } = useViewData(meta, view as any, xWhere)
+
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
+
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, false)
@@ -64,9 +87,9 @@ provide(IsGridInj, true)
 provide(PaginationDataInj, paginationData)
 provide(ChangePageInj, changePage)
 
-const reloadViewDataHook = inject(ReloadViewDataHookInj)
-reloadViewDataHook?.on(() => {
-  loadData()
+reloadViewDataHook?.on(async () => {
+  await loadData()
+  loadAggCommentsCount()
 })
 
 const selectCell = (row: number, col: number) => {
@@ -87,6 +110,7 @@ watch(
 const onresize = (colID: string, event: any) => {
   updateWidth(colID, event.detail)
 }
+
 const onXcResizing = (cn: string, event: any) => {
   resizingCol.value = cn
   resizingColWidth.value = event.detail
@@ -228,6 +252,12 @@ useEventListener(document, 'keydown', onKeyDown)
 /** On clicking outside of table reset active cell  */
 const smartTable = ref(null)
 onClickOutside(smartTable, () => {
+  if (selected.col === null) return
+
+  const activeCol = fields.value[selected.col]
+
+  if (editEnabled && (isVirtualCol(activeCol) || activeCol.uidt === UITypes.JSON)) return
+
   selected.row = null
   selected.col = null
 })
@@ -247,6 +277,12 @@ const onNavigate = (dir: NavigateDir) => {
       break
   }
 }
+
+const expandForm = (row: Row, state: Record<string, any>) => {
+  expandedFormRow.value = row
+  expandedFormRowState.value = state
+  expandedFormDlg.value = true
+}
 </script>
 
 <template>
@@ -255,15 +291,16 @@ const onNavigate = (dir: NavigateDir) => {
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
-            <tr class="group">
+            <tr>
               <th>
-                <div class="flex align-center w-[80px]">
+                <div class="flex align-center w-[80px] px-1">
                   <div class="group-hover:hidden" :class="{ hidden: selectedAllRecords }">#</div>
                   <div
                     :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
                     class="group-hover:flex w-full align-center"
                   >
                     <a-checkbox v-model:checked="selectedAllRecords" />
+
                     <span class="flex-1" />
                   </div>
                 </div>
@@ -279,6 +316,7 @@ const onNavigate = (dir: NavigateDir) => {
                 @xcresized="resizingCol = null"
               >
                 <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+
                 <SmartsheetHeaderCell v-else :column="col" />
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
@@ -287,65 +325,85 @@ const onNavigate = (dir: NavigateDir) => {
                   <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlus class="text-sm" />
                   </div>
+
                   <template #overlay>
-                    <SmartsheetColumnEditOrAdd @click.stop @cancel="addColumnDropdown = false" />
+                    <SmartsheetColumnEditOrAdd @click.stop @keydown.stop @cancel="addColumnDropdown = false" />
                   </template>
                 </a-dropdown>
               </th>
             </tr>
           </thead>
           <tbody>
-            <tr v-for="(row, rowIndex) of data" :key="rowIndex" class="nc-grid-row">
-              <td key="row-index" class="caption nc-grid-cell group">
-                <div class="flex items-center w-[80px]">
-                  <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
-                  <div
-                    :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                    class="group-hover:flex w-full items-center justify-between p-1"
-                  >
-                    <a-checkbox v-model:checked="row.rowMeta.selected" />
-                    <div class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
-                      <MdiArrowExpand class="select-none transform hover:(text-pink-500 scale-120)" />
+            <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
+              <template #default="{ state }">
+                <tr class="nc-grid-row group">
+                  <td key="row-index" class="caption nc-grid-cell">
+                    <div class="align-center flex w-[80px]">
+                      <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                      <div
+                        :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
+                        class="group-hover:flex w-full items-center justify-between p-1"
+                      >
+                        <a-checkbox v-model:checked="row.rowMeta.selected" />
+                        <span class="flex-1" />
+                        <span
+                          v-if="row.rowMeta?.commentCount"
+                          class="py-1 px-3 rounded-full text-xs"
+                          :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                          @click="expandForm(row, state)"
+                          >{{ row.rowMeta.commentCount }}</span
+                        >
+                        <div class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
+                          <MdiArrowExpand
+                            class="select-none transform hover:(text-pink-500 scale-120)"
+                            @click="expandForm(row, state)"
+                          />
+                        </div>
+                      </div>
                     </div>
-                  </div>
-                </div>
-              </td>
-              <td
-                v-for="(columnObj, colIndex) of fields"
-                :key="rowIndex + columnObj.title"
-                class="cell pointer nc-grid-cell"
-                :class="{
-                  active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
-                }"
-                :data-col="columnObj.id"
-                :data-title="columnObj.title"
-                @click="selectCell(rowIndex, colIndex)"
-                @dblclick="makeEditable(row, columnObj)"
-                @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
-              >
-                <div class="w-full h-full">
-                  <SmartsheetVirtualCell
-                    v-if="isVirtualCol(columnObj)"
-                    v-model="row.row[columnObj.title]"
-                    :column="columnObj"
-                    :active="selected.col === colIndex && selected.row === rowIndex"
-                    :row="row"
-                    @navigate="onNavigate"
-                  />
+                  </td>
+                  <td
+                    v-for="(columnObj, colIndex) of fields"
+                    :ref="cellRefs.set"
+                    :key="columnObj.id"
+                    class="cell relative cursor-pointer nc-grid-cell"
+                    :class="{
+                      active: !isPublicView && selected.col === colIndex && selected.row === rowIndex,
+                    }"
+                    :data-key="rowIndex + columnObj.id"
+                    :data-col="columnObj.id"
+                    :data-title="columnObj.title"
+                    @click="selectCell(rowIndex, colIndex)"
+                    @dblclick="makeEditable(row, columnObj)"
+                    @contextmenu="contextMenuTarget = { row: rowIndex, col: colIndex }"
+                  >
+                    <div class="w-full h-full">
+                      <SmartsheetVirtualCell
+                        v-if="isVirtualCol(columnObj)"
+                        v-model="row.row[columnObj.title]"
+                        :column="columnObj"
+                        :active="selected.col === colIndex && selected.row === rowIndex"
+                        :row="row"
+                        @navigate="onNavigate"
+                      />
 
-                  <SmartsheetCell
-                    v-else
-                    v-model="row.row[columnObj.title]"
-                    :column="columnObj"
-                    :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
-                    @update:edit-enabled="editEnabled = false"
-                    @save="updateOrSaveRow(row, columnObj.title)"
-                    @navigate="onNavigate"
-                    @cancel="editEnabled = false"
-                  />
-                </div>
-              </td>
-            </tr>
+                      <SmartsheetCell
+                        v-else
+                        v-model="row.row[columnObj.title]"
+                        :column="columnObj"
+                        :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                        :row-index="rowIndex"
+                        :active="selected.col === colIndex && selected.row === rowIndex"
+                        @update:edit-enabled="editEnabled = false"
+                        @save="updateOrSaveRow(row, columnObj.title)"
+                        @navigate="onNavigate"
+                        @cancel="editEnabled = false"
+                      />
+                    </div>
+                  </td>
+                </tr>
+              </template>
+            </SmartsheetRow>
 
             <tr v-if="!isLocked">
               <td
@@ -366,19 +424,31 @@ const onNavigate = (dir: NavigateDir) => {
           </tbody>
         </table>
         <template #overlay>
-          <div class="bg-white shadow" @click="contextMenu = false">
-            <div v-if="contextMenuTarget" class="nc-menu-item" @click="deleteRow(contextMenuTarget.row)">Delete row</div>
-            <div class="nc-menu-item" @click="deleteSelectedRows">Delete all selected rows</div>
-            <div v-if="contextMenuTarget" class="nc-menu-item" @click="clearCell(contextMenuTarget)">Clear cell</div>
-            <div v-if="contextMenuTarget" class="nc-menu-item" @click="addEmptyRow(contextMenuTarget.row + 1)">
-              Insert new row
-            </div>
-          </div>
+          <a-menu class="bg-white shadow" @click="contextMenu = false">
+            <a-menu-item v-if="contextMenuTarget" @click="deleteRow(contextMenuTarget.row)"
+              ><span class="text-xs">Delete row</span></a-menu-item
+            >
+            <a-menu-item @click="deleteSelectedRows"><span class="text-xs">Delete all selected rows</span></a-menu-item>
+            <a-menu-item v-if="contextMenuTarget" @click="clearCell(contextMenuTarget)"
+              ><span class="text-xs">Clear cell</span>
+            </a-menu-item>
+            <a-menu-item v-if="contextMenuTarget" @click="addEmptyRow(contextMenuTarget.row + 1)">
+              <span class="text-xs">Insert new row</span>
+            </a-menu-item>
+          </a-menu>
         </template>
       </a-dropdown>
     </div>
 
     <SmartsheetPagination />
+
+    <SmartsheetExpandedForm
+      v-if="expandedFormRow && expandedFormDlg"
+      v-model="expandedFormDlg"
+      :row="expandedFormRow"
+      :state="expandedFormRowState"
+      :meta="meta"
+    />
   </div>
 </template>
 
@@ -394,13 +464,11 @@ const onNavigate = (dir: NavigateDir) => {
     min-height: 41px !important;
     height: 41px !important;
     position: relative;
-    //padding: 0 5px;
+  }
 
-    & > div {
-      overflow: hidden;
-      @apply flex align-center h-auto;
-      padding: 0 5px;
-    }
+  td > div {
+    overflow: hidden;
+    @apply flex align-center h-auto px-1;
   }
 
   table,

@@ -12,11 +12,13 @@ const emits = defineEmits<Emits>()
 const { $e } = useNuxtApp()
 
 const isView = ref(false)
+let showApiSnippet = $ref(false)
 
 const showWebhookDrawer = ref(false)
 
 function onApiSnippet() {
   // get API snippet
+  showApiSnippet = true
   $e('a:view:api-snippet')
 }
 
@@ -95,6 +97,7 @@ function onOpenModal(type: ViewTypes, title = '') {
       </a-tooltip>
     </a-menu-item>
 
+    <SmartsheetSidebarMenuApiSnippet v-model="showApiSnippet" />
     <div class="flex-auto justify-end flex flex-col gap-4 mt-4">
       <button
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"

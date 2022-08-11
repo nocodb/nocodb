@@ -122,7 +122,7 @@ export interface TableType {
 
 export interface ViewType {
   id?: string;
-  title?: string;
+  title: string;
   deleted?: boolean;
   order?: number;
   fk_model_id?: string;
@@ -163,6 +163,7 @@ export interface TableReqType {
   pinned?: boolean;
   deleted?: boolean;
   order?: number;
+  mm?: boolean;
   columns?: ColumnType[];
 }
 
@@ -234,12 +235,14 @@ export interface ColumnType {
   deleted?: boolean;
   visible?: boolean;
   order?: number;
+  system?: number | boolean;
+  meta?: any;
   colOptions?:
     | LinkToAnotherRecordType
     | FormulaType
     | RollupType
     | LookupType
-    | SelectOptionsType[]
+    | SelectOptionsType
     | object;
 }
 
@@ -300,9 +303,11 @@ export interface FormulaType {
 }
 
 export interface SelectOptionsType {
+  options: SelectOptionType;
+}
+
+export interface SelectOptionType {
   id?: string;
-  type?: string;
-  virtual?: boolean;
   fk_column_id?: string;
   title?: string;
   color?: string;
@@ -1515,7 +1520,7 @@ export class Api<
      */
     reorder: (
       tableId: string,
-      data: { order?: string },
+      data: { order?: number },
       params: RequestParams = {}
     ) =>
       this.request<void, any>({
@@ -1629,7 +1634,7 @@ export class Api<
     update: (
       viewId: string,
       data: {
-        order?: string;
+        order?: number;
         title?: string;
         show_system_fields?: boolean;
         lock_type?: 'collaborative' | 'locked' | 'personal';
@@ -3106,7 +3111,7 @@ export class Api<
      * @response `200` `void` OK
      */
     commentRow: (
-      data: { row_id: string; fk_model_id: string; comment: string },
+      data: { row_id: string; fk_model_id: string; description?: string },
       params: RequestParams = {}
     ) =>
       this.request<void, any>({

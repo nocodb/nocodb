@@ -25,9 +25,7 @@ const { $state } = useNuxtApp()
 
 const toast = useToast()
 
-const { sqlUi, project, loadTables } = useProject()
-
-const loading = ref(false)
+const { project, loadTables } = useProject()
 
 const showGoToDashboardButton = ref(false)
 
@@ -78,7 +76,7 @@ const dialogShow = computed({
 
 const useForm = Form.useForm
 
-const { resetFields, validate, validateInfos } = useForm(syncSource, validators)
+const { validateInfos } = useForm(syncSource, validators)
 
 const disableImportButton = computed(() => {
   return !syncSource.value.details.apiKey || !syncSource.value.details.syncSourceUrlOrId

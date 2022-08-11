@@ -1,5 +1,5 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import type { ComputedRef, Ref } from 'vue'
 import { Modal, notification } from 'ant-design-vue'
 import { useInjectionState, useMetas, useProject } from '#imports'
 import { NOCO } from '~/lib'
@@ -13,7 +13,7 @@ interface DataApiResponse {
 
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
-  (column: Ref<Required<ColumnType>>, row?: Ref<Row>, reloadData = () => {}) => {
+  (column: Ref<Required<ColumnType>>, row?: Ref<Row>, isNewRow: ComputedRef<boolean> | Ref<boolean>, reloadData = () => {}) => {
     // state
     const { metas, getMeta } = useMetas()
     const { project } = useProject()
@@ -61,28 +61,49 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const relatedTablePrimaryValueProp = computed(() => {
       return (relatedTableMeta?.value?.columns?.find((c) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
+
+    const relatedTablePrimaryKeyProps = computed(() => {
+      return relatedTableMeta?.value?.columns?.filter((c) => c.pk)?.map((c) => c.title) ?? []
+    })
     const primaryValueProp = computed(() => {
       return (meta?.value?.columns?.find((c: Required<ColumnType>) => c.pv) || relatedTableMeta?.value?.columns?.[0])?.title
     })
 
     const loadChildrenExcludedList = async () => {
       try {
-        childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
-          NOCO,
-          project.value.id as string,
-          meta.value.id,
-          rowId.value,
-          colOptions.type as 'mm' | 'hm',
-          column?.value?.title,
-          // todo: swagger type correction
-          {
-            limit: childrenExcludedListPagination.size,
-            offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
-            where:
-              childrenExcludedListPagination.query &&
-              `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
-          } as any,
-        )
+        /** if new row load all records */
+        if (isNewRow?.value) {
+          childrenExcludedList.value = await $api.dbTableRow.list(
+            NOCO,
+            project.value.id as string,
+            relatedTableMeta?.value?.id as string,
+            {
+              limit: childrenExcludedListPagination.size,
+              offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+              where:
+                childrenExcludedListPagination.query &&
+                `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
+              fields: [relatedTablePrimaryValueProp.value, ...relatedTablePrimaryKeyProps.value],
+            } as any,
+          )
+        } else {
+          childrenExcludedList.value = await $api.dbTableRow.nestedChildrenExcludedList(
+            NOCO,
+            project.value.id as string,
+            meta.value.id,
+            rowId.value,
+            colOptions.type as 'mm' | 'hm',
+            column?.value?.title,
+            // todo: swagger type correction
+            {
+              limit: childrenExcludedListPagination.size,
+              offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+              where:
+                childrenExcludedListPagination.query &&
+                `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
+            } as any,
+          )
+        }
       } catch (e: any) {
         notification.error({
           message: 'Failed to load list',
@@ -93,6 +114,8 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
 
     const loadChildrenList = async () => {
       try {
+        if (colOptions.type === 'bt') return
+
         childrenList.value = await $api.dbTableRow.nestedList(
           NOCO,
           project.value.id as string,
@@ -198,6 +221,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           column?.value?.title,
           getRelatedTableRowId(row) as string,
         )
+        await loadChildrenList()
       } catch (e: any) {
         notification.error({
           message: 'Linking failed',

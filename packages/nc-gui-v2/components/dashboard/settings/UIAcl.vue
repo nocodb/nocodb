@@ -32,7 +32,7 @@ async function loadTableList() {
     isLoading = true
     // TODO includeM2M
     tables = await $api.project.modelVisibilityList(project.value?.id, {
-      includeM2M: true,
+      includeM2M: false,
     })
   } catch (e) {
     console.error(e)

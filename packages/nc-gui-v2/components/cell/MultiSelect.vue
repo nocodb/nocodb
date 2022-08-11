@@ -1,78 +1,196 @@
 <script lang="ts" setup>
+import type { Select as AntSelect } from 'ant-design-vue'
+import type { SelectOptionType } from 'nocodb-sdk'
 import { computed, inject } from '#imports'
-import { ColumnInj, EditModeInj } from '~/context'
+import { ActiveCellInj, ColumnInj } from '~/context'
+import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue: string | null
+  modelValue: string | string[] | undefined
 }
 
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const { isMysql } = useProject()
+
 const column = inject(ColumnInj)
-const isForm = inject<boolean>('isForm', false)
-const editEnabled = inject(EditModeInj, ref(false))
+// const isForm = inject<boolean>('isForm', false)
+// const editEnabled = inject(EditModeInj, ref(false))
+const active = inject(ActiveCellInj, ref(false))
 
-const options = computed(() => column?.value?.dtxp?.split(',').map((v) => v.replace(/\\'/g, "'").replace(/^'|'$/g, '')) || [])
+const selectedIds = ref<string[]>([])
+const aselect = ref<typeof AntSelect>()
+const isOpen = ref(false)
 
-const localState = computed({
-  get() {
-    return modelValue?.match(/(?:[^',]|\\')+(?='?(?:,|$))/g)?.map((v: string) => v.replace(/\\'/g, "'"))
+const options = computed(() => {
+  if (column?.value.colOptions) {
+    const opts = column.value.colOptions
+      ? column.value.colOptions.options.filter((el: SelectOptionType) => el.title !== '') || []
+      : []
+    for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
+      op.title = op.title.replace(/^'/, '').replace(/'$/, '')
+    }
+    return opts
+  }
+  return []
+})
+
+const vModel = computed({
+  get: () => selectedIds.value.map((el) => options.value.find((op: SelectOptionType) => op.id === el).title),
+  set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
+})
+
+const selectedTitles = computed(() =>
+  modelValue
+    ? typeof modelValue === 'string'
+      ? isMysql
+        ? modelValue.split(',').sort((a, b) => {
+            const opa = options.value.find((el: SelectOptionType) => el.title === a)
+            const opb = options.value.find((el: SelectOptionType) => el.title === b)
+            if (opa && opb) {
+              return opa.order - opb.order
+            }
+            return 0
+          })
+        : modelValue.split(',')
+      : modelValue
+    : [],
+)
+
+const handleKeys = (e: KeyboardEvent) => {
+  switch (e.key) {
+    case 'Escape':
+      e.preventDefault()
+      isOpen.value = false
+      break
+    case 'Enter':
+      e.stopPropagation()
+      break
+  }
+}
+
+const handleClose = (e: MouseEvent) => {
+  if (aselect.value && !aselect.value.$el.contains(e.target)) {
+    isOpen.value = false
+  }
+}
+
+onMounted(() => {
+  selectedIds.value = selectedTitles.value.map((el) => {
+    return options.value.find((op: SelectOptionType) => op.title === el).id
+  })
+})
+
+useEventListener(document, 'click', handleClose)
+
+watch(
+  () => modelValue,
+  (_n, _o) => {
+    selectedIds.value = selectedTitles.value.map((el) => {
+      return options.value.find((op: SelectOptionType) => op.title === el).id
+    })
   },
-  set(val?: string[]) {
-    emit('update:modelValue', val?.filter((v) => options.value.includes(v)).join(','))
-  },
+)
+
+watch(isOpen, (n, _o) => {
+  if (n === false) {
+    aselect.value.blur()
+  }
 })
 </script>
 
 <template>
-  <!--
-  <v-select
-    v-model="localState"
-    :items="options"
-    hide-details
-    :clearable="!column.rqd"
-    variation="outlined"
-    multiple
-  />
--->
-
-  <v-combobox
-    v-model="localState"
-    :items="options"
-    multiple
-    chips
-    flat
-    dense
-    solo
-    hide-details
-    deletable-chips
-    class="text-center mt-0"
+  <a-select
+    ref="aselect"
+    v-model:value="vModel"
+    mode="multiple"
+    class="w-full"
+    placeholder="Select an option"
+    :bordered="false"
+    show-arrow
+    :show-search="false"
+    :open="isOpen"
+    @keydown="handleKeys"
+    @click="isOpen = !isOpen"
   >
-    <!--    <template #selection="data"> -->
-    <!--      <v-chip -->
-    <!--        :key="data.item" -->
-    <!--        small -->
-    <!--        class="ma-1 " -->
-    <!--        :color="colors[setValues.indexOf(data.item) % colors.length]" -->
-    <!--        @click:close="data.parent.selectItem(data.item)" -->
-    <!--      > -->
-    <!--        {{ data.item }} -->
-    <!--      </v-chip> -->
-    <!--    </template> -->
-
-    <!--    <template #item="{item}"> -->
-    <!--      <v-chip small :color="colors[setValues.indexOf(item) % colors.length]"> -->
-    <!--        {{ item }} -->
-    <!--      </v-chip> -->
-    <!--    </template> -->
-    <!--    <template #append> -->
-    <!--      <v-icon small class="mt-2"> -->
-    <!--        mdi-menu-down -->
-    <!--      </v-icon> -->
-    <!--    </template> -->
-  </v-combobox>
+    <a-select-option v-for="op of options" :key="op.id" :value="op.title" @click.stop>
+      <a-tag class="rounded-tag" :color="op.color">
+        <span class="text-slate-500">{{ op.title }}</span>
+      </a-tag>
+    </a-select-option>
+    <template #tagRender="{ value: val, onClose }">
+      <a-tag
+        v-if="options.find((el: SelectOptionType) => el.title === val)"
+        class="rounded-tag"
+        :style="{ display: 'flex', alignItems: 'center' }"
+        :color="options.find((el: SelectOptionType) => el.title === val).color"
+        :closable="active && (vModel.length > 1 || !column?.rqd)"
+        :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
+        @close="onClose"
+      >
+        <span class="text-slate-500">{{ val }}</span>
+      </a-tag>
+    </template>
+  </a-select>
 </template>
 
-<style scoped></style>
+<style scoped>
+.ms-close-icon {
+  color: rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  display: flex;
+  font-size: 12px;
+  font-style: normal;
+  height: 12px;
+  line-height: 1;
+  text-align: center;
+  text-transform: none;
+  transition: color 0.3s ease, opacity 0.15s ease;
+  width: 12px;
+  z-index: 1;
+  margin-right: -6px;
+  margin-left: 3px;
+}
+.ms-close-icon:before {
+  display: block;
+}
+.ms-close-icon:hover {
+  color: rgba(0, 0, 0, 0.45);
+}
+.rounded-tag {
+  padding: 0px 12px;
+  border-radius: 12px;
+}
+:deep(.ant-tag) {
+  @apply "rounded-tag";
+}
+:deep(.ant-tag-close-icon) {
+  @apply "text-slate-500";
+}
+</style>
+<!--
+/**
+ * @copyright Copyright (c) 2021, Xgene Cloud Ltd
+ *
+ * @author Naveen MR <oof1lab@gmail.com>
+ * @author Pranav C Balan <pranavxc@gmail.com>
+ *
+ * @license GNU AGPL version 3 or any later version
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as
+ * published by the Free Software Foundation, either version 3 of the
+ * License, or (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program. If not, see <http://www.gnu.org/licenses/>.
+ *
+ */
+-->

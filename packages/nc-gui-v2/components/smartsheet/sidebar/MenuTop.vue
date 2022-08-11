@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
+import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
 import { notification } from 'ant-design-vue'
@@ -45,7 +45,7 @@ let isMarked = $ref<string | false>(false)
 
 /** Watch currently active view, so we can mark it in the menu */
 watch(activeView, (nextActiveView) => {
-  const _nextActiveView = nextActiveView as GridType | FormType | KanbanType
+  const _nextActiveView = nextActiveView as ViewType
 
   if (_nextActiveView && _nextActiveView.id) {
     selected.value = [_nextActiveView.id]
@@ -66,7 +66,7 @@ function validate(value?: string) {
     return 'View name is required'
   }
 
-  if (views.value.every((v1) => ((v1 as GridType | KanbanType | GalleryType).alias || v1.title) !== value)) {
+  if (views.value.every((v1) => v1.title !== value)) {
     return 'View name should be unique'
   }
 
@@ -134,14 +134,13 @@ const initSortable = (el: HTMLElement) => {
 
 onMounted(() => menuRef && initSortable(menuRef.$el))
 
-// todo: fix view type, alias is missing for some reason?
 /** Navigate to view by changing url param */
 function changeView(view: { id: string; alias?: string; title?: string; type: ViewTypes }) {
-  router.push({ params: { viewTitle: (view.alias ?? view.title) || '' } })
+  router.push({ params: { viewTitle: view.title || '' } })
 }
 
 /** Rename a view */
-async function onRename(view: Record<string, any>) {
+async function onRename(view: ViewType) {
   const valid = validate(view.title)
 
   if (valid !== true) {
@@ -153,7 +152,7 @@ async function onRename(view: Record<string, any>) {
 
   try {
     // todo typing issues, order and id do not exist on all members of ViewTypes (Kanban, Gallery, Form, Grid)
-    await api.dbView.update(view.id, {
+    await api.dbView.update(view.id!, {
       title: view.title,
       order: view.order,
     })

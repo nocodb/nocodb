@@ -1,39 +1,37 @@
 <script setup lang="ts">
 import { onKeyDown } from '@vueuse/core'
 import { useProvideAttachmentCell } from './utils'
-import Modal from './Modal.vue'
 import { useSortable } from './sort'
+import Modal from './Modal.vue'
 import Carousel from './Carousel.vue'
-import { onMounted, ref, useDropZone, watch } from '#imports'
+import { computed, ref, useDropZone, useSmartsheetStoreOrThrow, watch } from '#imports'
 import { isImage, openLink } from '~/utils'
-import MaterialSymbolsAttachFile from '~icons/material-symbols/attach-file'
-import MaterialArrowExpandIcon from '~icons/mdi/arrow-expand'
-import MaterialSymbolsFileCopyOutline from '~icons/material-symbols/file-copy-outline'
-import MdiReload from '~icons/mdi/reload'
-import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
 interface Props {
   modelValue: string | Record<string, any>[] | null
+  rowIndex: number
 }
 
 interface Emits {
   (event: 'update:modelValue', value: string | Record<string, any>): void
 }
 
-const { modelValue } = defineProps<Props>()
+const { modelValue, rowIndex } = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const dropZoneRef = ref<HTMLTableDataCellElement>()
-
 const sortableRef = ref<HTMLDivElement>()
+
+const { cellRefs } = useSmartsheetStoreOrThrow()!
 
 const { column, modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, selectedImage, isReadonly } =
   useProvideAttachmentCell(updateModelValue)
 
+const currentCellRef = computed(() => cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`))
+
 const { dragging } = useSortable(sortableRef, visibleItems, updateModelValue, isReadonly)
 
-const { isOverDropZone } = useDropZone(dropZoneRef, onDrop)
+const { isOverDropZone } = useDropZone(currentCellRef, onDrop)
 
 /** on new value, reparse our stored attachments */
 watch(
@@ -56,24 +54,17 @@ onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
 })
-
-/** if possible, on mounted we try to fetch the relevant `td` cell to use as a dropzone */
-onMounted(() => {
-  if (typeof document !== 'undefined') {
-    dropZoneRef.value = document.querySelector(`td[data-col="${column.value.id}"]`) as HTMLTableDataCellElement
-  }
-})
 </script>
 
 <template>
   <div class="nc-attachment-cell relative flex-1 color-transition flex items-center justify-between gap-1">
     <Carousel />
 
-    <template v-if="!isReadonly && !dragging && dropZoneRef">
+    <template v-if="!isReadonly && !dragging && !!currentCellRef">
       <general-overlay
         v-model="isOverDropZone"
         inline
-        :target="`td[data-col='${column.id}']`"
+        :target="currentCellRef"
         class="text-white text-lg ring ring-pink-500 bg-gray-700/75 flex items-center justify-center gap-2 backdrop-blur-xl"
       >
         <MaterialSymbolsFileCopyOutline class="text-pink-500" /> Drop here
@@ -100,12 +91,15 @@ onMounted(() => {
     </div>
 
     <template v-if="visibleItems.length">
-      <div ref="sortableRef" :class="{ dragging }" class="flex flex-wrap gap-2 p-1 scrollbar-thin-dull">
+      <div
+        ref="sortableRef"
+        :class="{ dragging }"
+        class="flex justify-center items-center flex-wrap gap-2 p-1 scrollbar-thin-dull max-h-[150px] overflow-auto"
+      >
         <div
           v-for="(item, i) of visibleItems"
           :id="item.url"
           :key="item.url || item.title"
-          style="flex: 1 1 50px"
           :class="isImage(item.title, item.mimetype) ? '' : 'border-1 rounded'"
           class="nc-attachment flex items-center justify-center min-h-[50px]"
         >
@@ -120,7 +114,7 @@ onMounted(() => {
               placeholder
               :alt="item.title || `#${i}`"
               :src="item.url || item.data"
-              class="ring-1 ring-gray-300 rounded"
+              class="ring-1 ring-gray-300 rounded max-h-[50px] max-w-[50px]"
               @click="selectedImage = item"
             />
 
@@ -137,10 +131,7 @@ onMounted(() => {
         <a-tooltip v-else placement="bottom">
           <template #title> View attachments </template>
 
-          <MaterialArrowExpandIcon
-            class="select-none transform group-hover:(text-pink-500 scale-120)"
-            @click.stop="modalVisible = true"
-          />
+          <MdiArrowExpand class="select-none transform group-hover:(text-pink-500 scale-120)" @click.stop="modalVisible = true" />
         </a-tooltip>
       </div>
     </template>
@@ -152,6 +143,10 @@ onMounted(() => {
 <style lang="scss">
 .nc-cell {
   .nc-attachment-cell {
+    .nc-attachment {
+      @apply w-[50px] h-[50px] min-h-[50px] min-w-[50px];
+    }
+
     .ghost,
     .ghost > * {
       @apply !pointer-events-none;

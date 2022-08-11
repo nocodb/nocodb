@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { FunctionalComponent, SVGAttributes } from 'vue'
+import { useI18n } from 'vue-i18n'
 import AuditTab from './AuditTab.vue'
 import AppStore from './AppStore.vue'
 import Metadata from './Metadata.vue'
@@ -10,7 +11,7 @@ import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
 import NootbookOutline from '~icons/mdi/notebook-outline'
-import { useVModel, watch } from '#imports'
+import { useVModel, useUIPermission, watch } from '#imports'
 
 interface Props {
   modelValue: boolean
@@ -38,19 +39,29 @@ const emits = defineEmits(['update:modelValue'])
 
 const vModel = useVModel(props, 'modelValue', emits)
 
+const { isUIAllowed } = useUIPermission()
+
+const { t } = useI18n()
+
 const tabsInfo: TabGroup = {
   teamAndAuth: {
     title: 'Team and Auth',
     icon: TeamFillIcon,
     subTabs: {
-      usersManagement: {
-        title: 'Users Management',
-        body: UserManagement,
-      },
-      apiTokenManagement: {
-        title: 'API Token Management',
-        body: ApiTokenManagement,
-      },
+      ...(isUIAllowed('userMgmtTab') && {
+        usersManagement: {
+          // Users Management
+          title: t('title.userMgmt'),
+          body: UserManagement,
+        },
+      }),
+      ...(isUIAllowed('apiTokenTab') && {
+        apiTokenManagement: {
+          // API Tokens Management
+          title: t('title.apiTokenMgmt'),
+          body: ApiTokenManagement,
+        },
+      }),
     },
   },
   appStore: {

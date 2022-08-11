@@ -8,7 +8,7 @@ import MidAccountIcon from '~icons/mdi/account-outline'
 import ContentCopyIcon from '~icons/mdi/content-copy'
 import type { User } from '~/lib/types'
 import { ProjectRole } from '~/lib/enums'
-import { extractSdkResponseErrorMsg, projectRoles, isEmail, projectRoleTagColors } from '~/utils'
+import { extractSdkResponseErrorMsg, isEmail, projectRoleTagColors, projectRoles } from '~/utils'
 
 interface Props {
   show: boolean

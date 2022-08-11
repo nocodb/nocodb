@@ -209,7 +209,7 @@ export function useViewData(
 
   const deleteRowById = async (id: string) => {
     if (!id) {
-      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
+      throw new Error("Delete not allowed for table which doesn't have primary Key")
     }
 
     const res: any = await $api.dbViewRow.delete(

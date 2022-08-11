@@ -1,8 +1,21 @@
 <script setup lang="ts">
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { definePageMeta, extractSdkResponseErrorMsg, isEmail, navigateTo, useI18n, useNuxtApp, useSidebar } from '#imports'
+import {
+  definePageMeta,
+  extractSdkResponseErrorMsg,
+  isEmail,
+  navigateTo,
+  reactive,
+  ref,
+  useApi,
+  useGlobal,
+  useI18n,
+  useSidebar,
+} from '#imports'
 
-const { $api, $state } = $(useNuxtApp())
+const { signIn: _signIn } = useGlobal()
+
+const { api, isLoading } = useApi()
 
 const { t } = useI18n()
 
@@ -45,12 +58,16 @@ const formRules: Record<string, RuleObject[]> = {
 
 const signIn = async () => {
   const valid = formValidator.value.validate()
+
   if (!valid) return
 
   error = null
+
   try {
-    const { token } = await $api.auth.signin(form)
-    $state.signIn(token!)
+    const { token } = await api.auth.signin(form)
+
+    _signIn(token!)
+
     await navigateTo('/')
   } catch (e: any) {
     // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
@@ -59,9 +76,7 @@ const signIn = async () => {
 }
 
 const resetError = () => {
-  if (error) {
-    error = null
-  }
+  if (error) error = null
 }
 </script>
 
@@ -71,14 +86,17 @@ const resetError = () => {
       ref="formValidator"
       :model="form"
       layout="vertical"
-      class="signin h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center nc-form-signin"
+      class="signin h-full min-h-[600px] flex justify-center items-center nc-form-signin"
       @finish="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap items-center pt-[100px]">
         <div
           class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
-          <general-noco-icon />
+          <general-noco-icon
+            class="color-transition hover:(ring ring-pink-500)"
+            :class="[isLoading ? 'animated-bg-gradient' : '']"
+          />
 
           <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
@@ -158,6 +176,10 @@ const resetError = () => {
 
     &:hover::after {
       @apply transform scale-110 ring ring-pink-500;
+    }
+
+    &:active::after {
+      @apply ring ring-pink-500;
     }
   }
 }

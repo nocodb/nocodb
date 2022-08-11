@@ -1,20 +1,23 @@
 <script setup lang="ts">
-import { definePageMeta } from '#imports'
+import { definePageMeta, useGlobal } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
 })
 
-const { appInfo } = useGlobal()
+const { appInfo, isLoading } = useGlobal()
 </script>
 
 <template>
   <NuxtLayout>
-    <div class="signup h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center nc-form-signup">
+    <div class="signup h-full min-h-[600px] flex justify-center items-center nc-form-signup">
       <div
         class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
-        <general-noco-icon />
+        <general-noco-icon
+          class="color-transition hover:(ring ring-pink-500)"
+          :class="[isLoading ? 'animated-bg-gradient' : '']"
+        />
 
         <h1 class="prose-2xl font-bold self-center my-4">
           {{ $t('general.signUp') }}
@@ -60,6 +63,10 @@ const { appInfo } = useGlobal()
 
     &:hover::after {
       @apply transform scale-110 ring ring-pink-500;
+    }
+
+    &:active::after {
+      @apply ring ring-pink-500;
     }
   }
 }

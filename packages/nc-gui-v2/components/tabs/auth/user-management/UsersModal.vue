@@ -9,7 +9,7 @@ import MidAccountIcon from '~icons/mdi/account-outline'
 import ContentCopyIcon from '~icons/mdi/content-copy'
 import type { User } from '~/lib/types'
 import { ProjectRole } from '~/lib/enums'
-import { projectRoleTagColors } from '~/utils/userUtils'
+import { projectRoleTagColors, projectRoles } from '~/utils/userUtils'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import { isEmail } from '~/utils/validation'
 
@@ -31,8 +31,9 @@ const toast = useToast()
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()
 const { copy } = useClipboard()
+const { dashboardUrl } = $(useDashboard())
 
-const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Guest, invitationToken: undefined })
+const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
 const formRef = ref()
 
 const useForm = Form.useForm
@@ -100,9 +101,7 @@ const saveUser = async () => {
 }
 
 const inviteUrl = $computed(() =>
-  usersData.invitationToken
-    ? `${location.origin}${location.pathname}#/user/authentication/signup/${usersData.invitationToken}`
-    : null,
+  usersData.invitationToken ? `${dashboardUrl}/user/authentication/signup/${usersData.invitationToken}` : null,
 )
 
 const copyUrl = async () => {
@@ -117,7 +116,7 @@ const copyUrl = async () => {
 const clickInviteMore = () => {
   $e('c:user:invite-more')
   usersData.invitationToken = undefined
-  usersData.role = ProjectRole.Guest
+  usersData.role = ProjectRole.Viewer
   usersData.emails = undefined
 }
 </script>
@@ -126,7 +125,7 @@ const clickInviteMore = () => {
   <a-modal :footer="null" centered :visible="show" :closable="false" width="max(50vw, 44rem)" @cancel="emit('closed')">
     <div class="flex flex-col">
       <div class="flex flex-row justify-between items-center pb-1.5 mb-2 border-b-1 w-full">
-        <a-typography-title class="select-none" :level="4"> Share: {{ project.title }} </a-typography-title>
+        <a-typography-title class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
             <CloseIcon class="flex mx-auto" />
@@ -144,11 +143,11 @@ const clickInviteMore = () => {
 
             <a-alert class="mt-1" type="success" show-icon>
               <template #message>
-                <div class="flex flex-row w-full justify-between items-center">
-                  <div class="flex pl-2 text-green-700">
+                <div class="flex flex-row justify-between items-center py-1">
+                  <div class="flex pl-2 text-green-700 text-xs">
                     {{ inviteUrl }}
                   </div>
-                  <a-button type="text" class="!rounded-md mr-1" @click="copyUrl">
+                  <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
                       <ContentCopyIcon class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
@@ -156,15 +155,16 @@ const clickInviteMore = () => {
                 </div>
               </template>
             </a-alert>
+
             <div class="flex text-xs text-gray-500 mt-2 justify-start ml-2">
-              Looks like you have not configured mailer yet! Please copy above invite link and send it to
+              {{ $t('msg.info.userInviteNoSMTP') }}
               {{ usersData.invitationToken && usersData.emails }}
             </div>
             <div class="flex flex-row justify-start mt-4 ml-2">
               <a-button size="small" outlined @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
                   <SendIcon class="flex mx-auto text-gray-600 h-[0.8rem]" />
-                  <div class="text-xs text-gray-600">Invite more</div>
+                  <div class="text-xs text-gray-600">{{ $t('activity.inviteMore') }}</div>
                 </div>
               </a-button>
             </div>
@@ -195,18 +195,21 @@ const clickInviteMore = () => {
                     <a-input
                       v-model:value="usersData.emails"
                       validate-trigger="onBlur"
-                      placeholder="Email"
+                      :placeholder="$t('labels.email')"
                       :disabled="!!selectedUser"
                     />
                   </a-form-item>
                 </div>
                 <div class="flex flex-col w-1/4">
                   <a-form-item name="role" :rules="[{ required: true, message: 'Role required' }]">
-                    <div class="ml-1 mb-1 text-xs text-gray-500">Select User Role:</div>
+                    <div class="ml-1 mb-1 text-xs text-gray-500">{{ $t('labels.selectUserRole') }}</div>
                     <a-select v-model:value="usersData.role">
-                      <a-select-option v-for="(role, index) in Object.keys(projectRoleTagColors)" :key="index" :value="role">
+                      <a-select-option v-for="(role, index) in projectRoles" :key="index" :value="role">
                         <div class="flex flex-row h-full justify-start items-center">
-                          <div :class="`px-2 py-1 flex rounded-full text-xs bg-[${projectRoleTagColors[role]}]`">
+                          <div
+                            class="px-2 py-1 flex rounded-full text-xs"
+                            :style="{ backgroundColor: projectRoleTagColors[role] }"
+                          >
                             {{ role }}
                           </div>
                         </div>
@@ -217,10 +220,10 @@ const clickInviteMore = () => {
               </div>
               <div class="flex flex-row justify-center">
                 <a-button type="primary" html-type="submit">
-                  <div v-if="selectedUser">Save</div>
+                  <div v-if="selectedUser">{{ $t('general.save') }}</div>
                   <div v-else class="flex flex-row justify-center items-center space-x-1.5">
                     <SendIcon class="flex h-[0.8rem]" />
-                    <div>Invite</div>
+                    <div>{{ $t('activity.invite') }}</div>
                   </div>
                 </a-button>
               </div>

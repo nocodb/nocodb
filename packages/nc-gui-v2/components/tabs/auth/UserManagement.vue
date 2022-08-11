@@ -22,6 +22,8 @@ const toast = useToast()
 const { $api, $e } = useNuxtApp()
 const { project } = useProject()
 const { copy } = useClipboard()
+const { isUIAllowed } = useUIPermission()
+const { dashboardUrl } = $(useDashboard())
 
 let users = $ref<null | User[]>(null)
 let selectedUser = $ref<null | User>(null)
@@ -80,6 +82,7 @@ const deleteUser = async () => {
     await loadUsers()
     showUserDeleteModal = false
   } catch (e: any) {
+    showUserDeleteModal = false
     console.error(e)
     toast.error(await extractSdkResponseErrorMsg(e))
   }
@@ -120,7 +123,7 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = (user: User) => {
   if (!user.invite_token) return
 
-  const getInviteUrl = (token: string) => `${location.origin}${location.pathname}#/user/authentication/signup/${token}`
+  const getInviteUrl = (token: string) => `${dashboardUrl}/user/authentication/signup/${token}`
 
   copy(getInviteUrl(user.invite_token))
   toast.success('Invite url copied to clipboard')
@@ -158,8 +161,8 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
           This action will remove this user from this project
         </div>
         <div class="flex mt-6 justify-center space-x-2">
-          <a-button @click="showUserDeleteModal = false"> Cancel </a-button>
-          <a-button type="primary" danger @click="deleteUser"> Confirm </a-button>
+          <a-button @click="showUserDeleteModal = false"> {{ $t('general.cancel') }} </a-button>
+          <a-button type="primary" danger @click="deleteUser"> {{ $t('general.confirm') }} </a-button>
         </div>
       </div>
     </a-modal>
@@ -179,10 +182,10 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <div class="text-gray-500">Reload</div>
           </div>
         </a-button>
-        <a-button size="middle" @click="onInvite">
+        <a-button v-if="isUIAllowed('newUser')" size="middle" @click="onInvite">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MidAccountIcon />
-            <div>Invite Team</div>
+            <div>{{ $t('activity.inviteTeam') }}</div>
           </div>
         </a-button>
       </div>
@@ -192,15 +195,15 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
           <EmailIcon class="flex text-gray-500 -mt-0.5" />
 
-          <div class="text-gray-600 text-xs space-x-1">E-mail</div>
+          <div class="text-gray-600 text-xs space-x-1">{{ $t('labels.email') }}</div>
         </div>
         <div class="flex flex-row justify-center w-1/6 space-x-1 items-center pl-1">
           <RolesIcon class="flex text-gray-500 -mt-0.5" />
 
-          <div class="text-gray-600 text-xs">Role</div>
+          <div class="text-gray-600 text-xs">{{ $t('objects.role') }}</div>
         </div>
         <div class="flex flex-row w-1/6 justify-end items-center pl-1">
-          <div class="text-gray-600 text-xs">Actions</div>
+          <div class="text-gray-600 text-xs">{{ $t('labels.actions') }}</div>
         </div>
       </div>
 
@@ -209,14 +212,14 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
           {{ user.email }}
         </div>
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
-          <div :class="`rounded-full px-2 py-1 bg-[${projectRoleTagColors[user.roles]}]`">
+          <div class="rounded-full px-2 py-1" :style="{ backgroundColor: projectRoleTagColors[user.roles as String] }">
             {{ user.roles }}
           </div>
         </div>
         <div class="flex w-1/6 flex-wrap justify-end">
           <a-tooltip v-if="user.project_id" placement="bottom">
             <template #title>
-              <span>Edit user</span>
+              <span>{{ $t('activity.editUser') }}</span>
             </template>
             <a-button type="text" class="!rounded-md" @click="onEdit(user)">
               <template #icon>
@@ -265,7 +268,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="copyInviteUrl(user)">
                     <MdiContentCopyIcon class="flex h-[1rem]" />
-                    <div class="text-xs pl-2">Copy invite URL</div>
+                    <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                   </div>
                 </a-menu-item>
               </a-menu>

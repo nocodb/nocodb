@@ -17,6 +17,7 @@ const rolePermissions = {
     csvImport: true,
     apiDocs: true,
     projectSettings: true,
+    newUser: false,
   },
   commenter: {
     smartSheet: true,

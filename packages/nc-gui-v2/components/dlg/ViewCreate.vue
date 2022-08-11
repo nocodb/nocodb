@@ -14,6 +14,7 @@ interface Props {
   modelValue: boolean
   type: ViewTypes
   title?: string
+  selectedViewId?: string
 }
 
 interface Emits {
@@ -85,6 +86,10 @@ watch(
 
 function init() {
   form.title = generateUniqueTitle(capitalize(ViewTypes[props.type].toLowerCase()), viewList?.value || [], 'title')
+
+  if (props.selectedViewId) {
+    form.copy_from_id = props.selectedViewId
+  }
 
   nextTick(() => {
     const el = inputEl?.$el as HTMLInputElement

@@ -11,7 +11,7 @@ import { extractSdkResponseErrorMsg } from '~/utils'
 import { ActiveViewInj, ViewListInj } from '~/context'
 
 interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string }): void
+  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
   (event: 'deleted'): void
   (event: 'sorted'): void
 }

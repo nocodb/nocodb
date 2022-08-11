@@ -29,6 +29,9 @@ let viewCreateType = $ref<ViewTypes>()
 /** View title to create from modal (when duplicating) */
 let viewCreateTitle = $ref('')
 
+/** selected view id for copying view meta */
+let selectedViewId = $ref('')
+
 /** is view creation modal open */
 let modalOpen = $ref(false)
 
@@ -51,10 +54,11 @@ watch(
 )
 
 /** Open view creation modal */
-function openModal({ type, title = '' }: { type: ViewTypes; title: string }) {
+function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title: string; copyViewId: string }) {
   modalOpen = true
   viewCreateType = type
   viewCreateTitle = title
+  selectedViewId = copyViewId
 }
 
 /** Handle view creation */
@@ -129,7 +133,14 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
       <MenuBottom @open-modal="openModal" />
     </div>
 
-    <dlg-view-create v-if="views" v-model="modalOpen" :title="viewCreateTitle" :type="viewCreateType" @created="onCreate" />
+    <dlg-view-create
+      v-if="views"
+      v-model="modalOpen"
+      :title="viewCreateTitle"
+      :type="viewCreateType"
+      :selected-view-id="selectedViewId"
+      @created="onCreate"
+    />
   </a-layout-sider>
 </template>
 

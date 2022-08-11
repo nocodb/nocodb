@@ -92,7 +92,10 @@ await loadTables()
                       <div class="flex flex-col">
                         <div class="text-lg group-hover:(!text-primary) font-semibold truncate">{{ project.title }}</div>
 
-                        <div class="text-xs group-hover:text-pink-500 truncate font-italic">{{ project.id }}</div>
+                        <div class="flex items-center gap-1">
+                          <div class="group-hover:(!text-primary)">ID:</div>
+                          <div class="text-xs group-hover:text-pink-500 truncate font-italic">{{ project.id }}</div>
+                        </div>
                       </div>
                     </div>
                   </template>

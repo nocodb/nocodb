@@ -19,7 +19,7 @@ const logout = () => {
     <div id="nc-sidebar-left" />
 
     <a-layout class="!flex-col">
-      <a-layout-header class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg">
+      <a-layout-header v-if="signedIn" class="flex !bg-primary items-center text-white pl-4 pr-5 shadow-lg">
         <div
           v-if="route.name === 'index' || route.name === 'project-index-create' || route.name === 'project-index-create-external'"
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105"
@@ -77,7 +77,18 @@ const logout = () => {
         </template>
       </a-layout-header>
 
-      <div class="w-full overflow-hidden" style="height: calc(100% - var(--header-height))">
+      <a-tooltip>
+        <template #title> Switch language </template>
+
+        <div
+          v-if="!signedIn"
+          class="color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white hover:(ring ring-pink-500)"
+        >
+          <GeneralLanguage />
+        </div>
+      </a-tooltip>
+
+      <div class="w-full h-full overflow-hidden">
         <slot />
       </div>
     </a-layout>

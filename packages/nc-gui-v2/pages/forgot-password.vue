@@ -63,7 +63,7 @@ function resetError() {
       ref="formValidator"
       layout="vertical"
       :model="form"
-      class="forgot-password h-full min-h-[600px] flex justify-center items-center"
+      class="bg-primary/5 forgot-password h-full min-h-[600px] flex justify-center items-center"
       @finish="resetPassword"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">

@@ -84,7 +84,7 @@ function resetError() {
       ref="formValidator"
       :model="form"
       layout="vertical"
-      class="signin h-full min-h-[600px] flex justify-center items-center nc-form-signin"
+      class="bg-primary/5 signin h-full min-h-[600px] flex justify-center items-center nc-form-signin"
       @finish="signIn"
     >
       <div class="h-full w-full flex flex-col flex-wrap items-center pt-[100px]">

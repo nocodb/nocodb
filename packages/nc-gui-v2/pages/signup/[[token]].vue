@@ -90,7 +90,7 @@ function resetError() {
 
 <template>
   <NuxtLayout>
-    <div class="signup h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signup">
+    <div class="bg-primary/5 signup h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signup">
       <div
         class="bg-white dark:(!bg-gray-900 !text-white) mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >

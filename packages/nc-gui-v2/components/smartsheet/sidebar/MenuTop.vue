@@ -148,12 +148,14 @@ async function onRename(view: ViewType) {
       message: valid,
       duration: 2,
     })
+
+    return
   }
 
   try {
     await api.dbView.update(view.id!, {
       title: view.title,
-      order: view.order,
+      order: String(view.order),
     })
 
     notification.success({

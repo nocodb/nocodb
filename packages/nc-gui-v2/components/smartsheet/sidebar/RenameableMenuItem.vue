@@ -8,11 +8,11 @@ interface Props {
 }
 
 interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string }): void
   (event: 'update:view', data: Record<string, any>): void
   (event: 'changeView', view: Record<string, any>): void
   (event: 'rename', view: Record<string, any>): void
   (event: 'delete', view: Record<string, any>): void
+  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
 }
 
 const props = defineProps<Props>()

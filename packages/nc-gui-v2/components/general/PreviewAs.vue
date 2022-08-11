@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { onUnmounted } from '@vue/runtime-core'
+import { onUnmounted, useEventListener, useGlobal, watch } from '#imports'
 import { useState } from '#app'
-import { useEventListener, useGlobal, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
 import MdiAccountEdit from '~icons/mdi/account-edit'

@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import { navigateTo, provideSidebar, ref, useProject, useRoute, useSidebar, useTabs, useUIPermission } from '#imports'
-import PreviewAs from '~/components/general/PreviewAs.vue'
 import { TabType } from '~/composables'
 import { openLink } from '~/utils'
 
@@ -178,7 +177,7 @@ await loadTables()
 
                     <template #expandIcon></template>
 
-                    <PreviewAs />
+                    <GeneralPreviewAs />
                   </a-sub-menu>
                 </a-menu-item-group>
               </a-menu>
@@ -214,7 +213,7 @@ await loadTables()
 
     <NuxtPage />
 
-    <PreviewAs float />
+    <GeneralPreviewAs float />
   </NuxtLayout>
 </template>
 

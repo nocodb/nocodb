@@ -1,7 +1,6 @@
-import { Modal } from 'ant-design-vue'
+import { Modal, notification } from 'ant-design-vue'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
 import { useProject } from './useProject'
 import { TabType } from '~/composables/useTabs'
 import { extractSdkResponseErrorMsg } from '~/utils'
@@ -15,7 +14,6 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
   })
 
   const { $e, $api } = useNuxtApp()
-  const toast = useToast()
   const { getMeta, removeMeta } = useMetas()
   const { loadTables } = useProject()
   const { closeTab } = useTabs()
@@ -78,13 +76,13 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
                 return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
               }),
             )
-            toast.info(
-              h('div', {
+            notification.info({
+              message: h('div', {
                 innerHTML: `<div style="padding:10px 4px">Unable to delete tables because of the following.
                 <br><br>${refColMsgs.join('<br>')}<br><br>
                 Delete them & try again</div>`,
               }),
-            )
+            })
             return
           }
 
@@ -99,10 +97,14 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
           await loadTables()
 
           removeMeta(table.id as string)
-          toast.info(`Deleted table ${table.title} successfully`)
+          notification.info({
+            message: `Deleted table ${table.title} successfully`,
+          })
           $e('a:table:delete')
         } catch (e: any) {
-          toast.error(await extractSdkResponseErrorMsg(e))
+          notification.error({
+            message: await extractSdkResponseErrorMsg(e),
+          })
         }
       },
     })

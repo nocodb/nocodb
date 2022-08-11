@@ -2,23 +2,25 @@
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { computed } from 'vue'
-import { message } from 'ant-design-vue'
-import { useToast } from 'vue-toastification'
+import { message, notification } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
 import { useSmartsheetStoreOrThrow } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiOpenInNewIcon from '~icons/mdi/open-in-new'
 import MdiCopyIcon from '~icons/mdi/content-copy'
 
 const { view, $api } = useSmartsheetStoreOrThrow()
 
 const { copy } = useClipboard()
+
 const { $e } = useNuxtApp()
-const toast = useToast()
+
 const { dashboardUrl } = useDashboard()
 
 let showShareModel = $ref(false)
+
 const passwordProtected = $ref(false)
+
 const shared = ref()
 
 const allowCSVDownload = computed({
@@ -69,9 +71,13 @@ async function saveAllowCSVDownload() {
     await $api.dbViewShare.update(shared.value.id, {
       meta,
     } as any)
-    toast.success('Successfully updated')
-  } catch (e) {
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.success({
+      message: 'Successfully updated',
+    })
+  } catch (e: any) {
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
   if (allowCSVDownload?.value) {
     $e('a:view:share:enable-csv-download')
@@ -85,9 +91,13 @@ const saveShareLinkPassword = async () => {
     await $api.dbViewShare.update(shared.value.id, {
       password: shared.value.password,
     })
-    toast.success('Successfully updated')
-  } catch (e) {
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.success({
+      message: 'Successfully updated',
+    })
+  } catch (e: any) {
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:view:share:enable-pwd')

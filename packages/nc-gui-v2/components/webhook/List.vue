@@ -1,13 +1,12 @@
 <script setup lang="ts">
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import { MetaInj } from '~/context'
 import { inject, onMounted, ref, useNuxtApp } from '#imports'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 const emit = defineEmits(['edit'])
 
 const { $api, $e } = useNuxtApp()
-
-const toast = useToast()
 
 const hooks = ref<Record<string, any>[]>([])
 
@@ -21,7 +20,9 @@ async function loadHooksList() {
       return hook
     })
   } catch (e: any) {
-    toast.error(e.message)
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 
@@ -33,12 +34,16 @@ async function deleteHook(item: Record<string, any>, index: number) {
     } else {
       hooks.value.splice(index, 1)
     }
-    toast.success('Hook deleted successfully')
+    notification.success({
+      message: 'Hook deleted successfully',
+    })
     if (!hooks.value.length) {
       hooks.value = []
     }
   } catch (e: any) {
-    toast.error(e.message)
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:webhook:delete')

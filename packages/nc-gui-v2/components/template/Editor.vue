@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { useToast } from 'vue-toastification'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { Form, notification } from 'ant-design-vue'
@@ -68,8 +67,6 @@ const data = reactive<{ title: string | null; name: string; tables: TableType[] 
   name: 'Project Name',
   tables: [],
 })
-
-const toast = useToast()
 
 const { addTab } = useTabs()
 
@@ -314,19 +311,19 @@ async function importTemplate() {
               const v = columns.value.find((c: Record<string, any>) => c.title === col.destCn) as Record<string, any>
               let input = row[col.srcCn]
               // parse potential boolean values
-              if (v.uidt == UITypes.Checkbox) {
+              if (v.uidt === UITypes.Checkbox) {
                 input = input.replace(/["']/g, '').toLowerCase().trim()
-                if (input == 'false' || input == 'no' || input == 'n') {
+                if (input === 'false' || input === 'no' || input === 'n') {
                   input = '0'
-                } else if (input == 'true' || input == 'yes' || input == 'y') {
+                } else if (input === 'true' || input === 'yes' || input === 'y') {
                   input = '1'
                 }
               } else if (v.uidt === UITypes.Number) {
-                if (input == '') {
+                if (input === '') {
                   input = null
                 }
               } else if (v.uidt === UITypes.SingleSelect || v.uidt === UITypes.MultiSelect) {
-                if (input == '') {
+                if (input === '') {
                   input = null
                 }
               }
@@ -442,7 +439,9 @@ async function importTemplate() {
         type: 'table',
       })
     } catch (e: any) {
-      toast.error(await extractSdkResponseErrorMsg(e))
+      notification.error({
+        message: await extractSdkResponseErrorMsg(e),
+      })
     } finally {
       isImporting.value = false
     }
@@ -526,16 +525,16 @@ onMounted(() => {
                 {{ column.name }}
               </span>
             </template>
-            <template #bodyCell="{ column, record, index }">
+            <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'source_column'">
                 <span>{{ record.srcCn }}</span>
               </template>
               <template v-else-if="column.key === 'destination_column'">
                 <a-select v-model:value="record.destCn" class="w-52" show-search :filter-option="filterOption">
-                  <a-select-option v-for="(column, i) of columns" :key="i" :value="column.title">
+                  <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
                     <div class="flex items-center">
-                      <component :is="getUIDTIcon(column.uidt)" />
-                      <span class="ml-2">{{ column.title }}</span>
+                      <component :is="getUIDTIcon(col.uidt)" />
+                      <span class="ml-2">{{ col.title }}</span>
                     </div>
                   </a-select-option>
                 </a-select>

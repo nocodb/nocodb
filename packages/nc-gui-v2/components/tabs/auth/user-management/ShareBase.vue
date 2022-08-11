@@ -1,9 +1,7 @@
 <script setup lang="ts">
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import { onMounted, useClipboard, useNuxtApp, useProject } from '#imports'
 import { dashboardUrl, extractSdkResponseErrorMsg } from '~/utils'
-
-const toast = useToast()
 
 interface ShareBase {
   uuid?: string
@@ -40,9 +38,9 @@ const loadBase = async () => {
       role: res.roles,
     }
   } catch (e: any) {
-    console.error(e)
-
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 
@@ -58,9 +56,9 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
     base = res ?? {}
     base!.role = role
   } catch (e: any) {
-    console.error(e)
-
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:shared-base:enable', { role })
@@ -73,8 +71,9 @@ const disableSharedBase = async () => {
     await $api.project.sharedBaseDisable(project.value.id)
     base = null
   } catch (e: any) {
-    console.error(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:shared-base:disable')
@@ -92,9 +91,9 @@ const recreate = async () => {
 
     base = { ...newBase, role: base?.role }
   } catch (e: any) {
-    console.error(e)
-
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:shared-base:recreate')
@@ -105,7 +104,9 @@ const copyUrl = async () => {
 
   await copy(url)
 
-  toast.success('Copied shareable base url to clipboard!')
+  notification.success({
+    message: 'Copied shareable base url to clipboard!',
+  })
 
   $e('c:shared-base:copy-url')
 }
@@ -128,7 +129,10 @@ frameborder="0"
 width="100%"
 height="700"
 style="background: transparent; border: 1px solid #ddd"></iframe>`)
-  toast.success('Copied embeddable html code!')
+
+  notification.success({
+    message: 'Copied embeddable html code!',
+  })
 
   $e('c:shared-base:copy-embed-frame')
 }

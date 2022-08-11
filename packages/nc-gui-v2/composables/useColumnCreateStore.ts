@@ -1,9 +1,8 @@
 import { createInjectionState } from '@vueuse/core'
-import { Form } from 'ant-design-vue'
+import { Form, notification } from 'ant-design-vue'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { useToast } from 'vue-toastification'
 import { useColumn } from './useColumn'
 import { computed } from '#imports'
 import { useNuxtApp } from '#app'
@@ -25,7 +24,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const { sqlUi } = useProject()
     const { $api } = useNuxtApp()
     const { getMeta } = useMetas()
-    const toast = useToast()
 
     const idType = null
 
@@ -178,12 +176,21 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       try {
         console.log(formState, validators)
         if (!(await validate())) return
+      } catch (e) {
+        notification.error({
+          message: 'Form validation failed',
+        })
+        return
+      }
 
+      try {
         formState.value.table_name = meta.value.table_name
         formState.value.title = formState.value.column_name
         if (column?.value) {
           await $api.dbTableColumn.update(column?.value?.id as string, formState.value)
-          toast.success('Column updated')
+          notification.success({
+            message: 'Column updated',
+          })
         } else {
           // todo : set additional meta for auto generated string id
           if (formState.value.uidt === UITypes.ID) {
@@ -201,12 +208,15 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             getMeta(formState.value.childId, true).then(() => {})
           }
 
-          toast.success('Column created')
+          notification.success({
+            message: 'Column created',
+          })
         }
         onSuccess()
       } catch (e: any) {
-        const error = await extractSdkResponseErrorMsg(e)
-        if (error) toast.error(await extractSdkResponseErrorMsg(e))
+        notification.error({
+          message: await extractSdkResponseErrorMsg(e),
+        })
       }
     }
 

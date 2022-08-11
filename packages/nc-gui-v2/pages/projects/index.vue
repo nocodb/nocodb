@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { Modal } from 'ant-design-vue'
+import { Modal, notification } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
 import { navigateTo } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MaterialSymbolsFormatListBulletedRounded from '~icons/material-symbols/format-list-bulleted-rounded'
@@ -33,7 +32,6 @@ const navDrawerOptions = [
 const route = useRoute()
 
 const { $api } = useNuxtApp()
-const toast = useToast()
 
 const response = await $api.project.list({})
 const projects = $ref(response.list)
@@ -50,8 +48,10 @@ const deleteProject = (project: ProjectType) => {
       try {
         await $api.project.delete(project.id as string)
         projects.splice(projects.indexOf(project), 1)
-      } catch (e) {
-        toast.error(await extractSdkResponseErrorMsg(e))
+      } catch (e: any) {
+        notification.error({
+          message: await extractSdkResponseErrorMsg(e),
+        })
       }
     },
   })

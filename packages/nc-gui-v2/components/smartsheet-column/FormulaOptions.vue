@@ -581,19 +581,6 @@ function scrollToSelectedOption() {
   })
 }
 
-function getFormulaTypeName(type: string) {
-  switch (type) {
-    case 'function':
-      return 'Function'
-    case 'op':
-      return 'Operator'
-    case 'column':
-      return 'Column'
-    default:
-      return ''
-  }
-}
-
 // set default value
 formState.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
 

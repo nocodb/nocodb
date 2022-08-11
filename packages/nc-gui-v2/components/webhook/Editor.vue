@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { Form } from 'ant-design-vue'
-import { useToast } from 'vue-toastification'
+import { Form, notification } from 'ant-design-vue'
 import { MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg, fieldRequiredValidator } from '~/utils'
 import { inject, reactive, useApi, useNuxtApp } from '#imports'
@@ -15,8 +14,6 @@ const emit = defineEmits(['backToList', 'editOrAdd'])
 const { $e } = useNuxtApp()
 
 const { api, isLoading: loading } = useApi()
-
-const toast = useToast()
 
 const meta = inject(MetaInj)
 
@@ -305,7 +302,9 @@ async function loadPluginList() {
       hook.eventOperation = `${hook.event} ${hook.operation}`
     }
   } catch (e: any) {
-    toast.error(extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 
@@ -314,7 +313,9 @@ async function saveHooks() {
   try {
     await validate()
   } catch (_: any) {
-    toast.error('Invalid Form')
+    notification.error({
+      message: 'Invalid Form',
+    })
 
     loading.value = false
 
@@ -352,9 +353,13 @@ async function saveHooks() {
     //   });
     // }
 
-    toast.success('Webhook details updated successfully')
+    notification.success({
+      message: 'Webhook details updated successfully',
+    })
   } catch (e: any) {
-    toast.error(extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   } finally {
     loading.value = false
   }

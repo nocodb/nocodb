@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import AppInstall from './app-store/AppInstall.vue'
 import MdiEditIcon from '~icons/ic/round-edit'
 import MdiCloseCircleIcon from '~icons/mdi/close-circle-outline'
 import MdiPlusIcon from '~icons/mdi/plus'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 const { $api, $e } = useNuxtApp()
-const toast = useToast()
 
 let apps = $ref<null | Array<any>>(null)
 let showPluginUninstallModal = $ref(false)
@@ -22,9 +22,10 @@ const fetchPluginApps = async () => {
       tags: p.tags ? p.tags.split(',') : [],
       parsedInput: p.input && JSON.parse(p.input),
     }))
-  } catch (e) {
-    console.error(e)
-    toast.error('Something went wrong')
+  } catch (e: any) {
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 
@@ -34,12 +35,15 @@ const resetPlugin = async () => {
       input: undefined,
       active: false,
     })
-    toast.success('Plugin uninstalled successfully')
+    notification.success({
+      message: 'Plugin uninstalled successfully',
+    })
     showPluginUninstallModal = false
     await fetchPluginApps()
   } catch (e: any) {
-    console.log(e)
-    toast.error(e.message)
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:appstore:reset', { app: pluginApp.title })

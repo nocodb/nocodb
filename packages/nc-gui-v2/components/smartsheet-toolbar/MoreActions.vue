@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { ExportTypes } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import FileSaver from 'file-saver'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
@@ -21,8 +21,6 @@ const publicViewId = null
 const { project } = useProject()
 
 const { $api } = useNuxtApp()
-
-const toast = useToast()
 
 const meta = inject(MetaInj)
 
@@ -84,13 +82,19 @@ const exportCsv = async () => {
       const blob = new Blob([data], { type: 'text/plain;charset=utf-8' })
       FileSaver.saveAs(blob, `${meta?.value.title}_exported_${c++}.csv`)
       if (offset > -1) {
-        toast.info('Downloading more files')
+        notification.info({
+          message: 'Downloading more files',
+        })
       } else {
-        toast.success('Successfully exported all table data')
+        notification.success({
+          message: 'Successfully exported all table data',
+        })
       }
     }
   } catch (e: any) {
-    toast.error(extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 </script>

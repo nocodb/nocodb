@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useToast } from 'vue-toastification'
-import { Form } from 'ant-design-vue'
+import { Form, notification } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -135,7 +134,9 @@ async function handlePreImport() {
       await validate()
       await parseAndExtractData(importState.url, '')
     } catch (e: any) {
-      toast.error(await extractSdkResponseErrorMsg(e))
+      notification.error({
+        message: await extractSdkResponseErrorMsg(e),
+      })
     }
   } else if (activeKey.value === 'jsonEditorTab') {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor), '')
@@ -148,7 +149,9 @@ async function handleImport() {
     loading.value = true
     await templateEditorRef.value.importTemplate()
   } catch (e: any) {
-    return toast.error(await extractSdkResponseErrorMsg(e))
+    return notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   } finally {
     loading.value = false
   }
@@ -174,7 +177,9 @@ async function parseAndExtractData(val: any, name: string) {
     templateEditorModal.value = true
   } catch (e: any) {
     console.log(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 

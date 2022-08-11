@@ -92,6 +92,7 @@ declare module '@vue/runtime-core' {
     MdiDotsVertical: typeof import('~icons/mdi/dots-vertical')['default']
     MdiDownload: typeof import('~icons/mdi/download')['default']
     MdiDrag: typeof import('~icons/mdi/drag')['default']
+    MdiDragVertical: typeof import('~icons/mdi/drag-vertical')['default']
     MdiEmail: typeof import('~icons/mdi/email')['default']
     MdiEyeOffOutline: typeof import('~icons/mdi/eye-off-outline')['default']
     MdiFlag: typeof import('~icons/mdi/flag')['default']

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import { useClipboard } from '@vueuse/core'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -10,9 +10,7 @@ import VisibilityOpenIcon from '~icons/material-symbols/visibility'
 import VisibilityCloseIcon from '~icons/material-symbols/visibility-off'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import MdiContentCopyIcon from '~icons/mdi/content-copy'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-
-const toast = useToast()
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 interface ApiToken extends ApiTokenType {
   show?: boolean
@@ -42,7 +40,9 @@ const copyToken = (token: string | undefined) => {
   if (!token) return
 
   copy(token)
-  toast.info('Copied to clipboard')
+  notification.info({
+    message: 'Copied to clipboard',
+  })
 
   $e('c:api-token:copy')
 }
@@ -53,12 +53,15 @@ const generateToken = async () => {
 
     await $api.apiToken.create(project.id, selectedTokenData)
     showNewTokenModal = false
-    toast.success('Token generated successfully')
+    notification.success({
+      message: 'Token generated successfullyd',
+    })
     selectedTokenData = {}
     await loadApiTokens()
   } catch (e: any) {
-    console.error(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:api-token:generate')
@@ -70,12 +73,15 @@ const deleteToken = async () => {
 
     await $api.apiToken.delete(project.id, selectedTokenData.token)
 
-    toast.success('Token deleted successfully')
+    notification.success({
+      message: 'Token deleted successfully',
+    })
     await loadApiTokens()
     showDeleteTokenModal = false
   } catch (e: any) {
-    console.error(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:api-token:delete')

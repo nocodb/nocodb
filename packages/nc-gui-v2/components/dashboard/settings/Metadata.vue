@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import { h, useNuxtApp, useProject } from '#imports'
 import MdiReload from '~icons/mdi/reload'
 import MdiDatabaseSync from '~icons/mdi/database-sync'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 const { $api } = useNuxtApp()
 const { project } = useProject()
-const toast = useToast()
 
 let isLoading = $ref(false)
 let isDifferent = $ref(false)
@@ -38,14 +38,14 @@ async function syncMetaDiff() {
 
     isLoading = true
     await $api.project.metaDiffSync(project.value.id)
-    toast.info(`Table metadata recreated successfully`)
+    notification.info({
+      message: 'Table metadata recreated successfully',
+    })
     await loadMetaDiff()
   } catch (e: any) {
-    if (e.response?.status === 402) {
-      toast.info(e.message)
-    } else {
-      toast.error(e.message)
-    }
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   } finally {
     isLoading = false
   }

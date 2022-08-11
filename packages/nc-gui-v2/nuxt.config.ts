@@ -106,4 +106,9 @@ export default defineNuxtConfig({
   image: {
     dir: 'assets/',
   },
+
+  autoImports: {
+    dirs: ['./context', './utils', './lib'],
+    imports: [{ name: 'useI18n', from: 'vue-i18n' }],
+  },
 })

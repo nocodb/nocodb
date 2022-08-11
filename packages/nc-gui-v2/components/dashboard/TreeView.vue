@@ -295,7 +295,7 @@ const activeTable = computed(() => {
 }
 
 .nc-tree-item.active {
-  @apply !text-primary font-weight-medium after:(!opacity-20);
+  @apply !text-primary font-weight-bold after:(!opacity-20);
   svg {
     @apply !text-primary;
   }

@@ -5,7 +5,7 @@ import { inject, toRef } from 'vue'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; required: boolean; hideMenu?: boolean }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; required?: boolean; hideMenu?: boolean }>()
 
 const hideMenu = toRef(props, 'hideMenu')
 

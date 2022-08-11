@@ -1,12 +1,6 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
 import type { RuleObject } from 'ant-design-vue/es/form'
-import { definePageMeta, useSidebar } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { navigateTo, useNuxtApp } from '#app'
-import { isEmail } from '~/utils/validation'
-import MdiLogin from '~icons/mdi/login'
-import MaterialSymbolsWarning from '~icons/material-symbols/warning'
+import { definePageMeta, extractSdkResponseErrorMsg, isEmail, navigateTo, useI18n, useNuxtApp, useSidebar } from '#imports'
 
 const { $api, $state } = $(useNuxtApp())
 

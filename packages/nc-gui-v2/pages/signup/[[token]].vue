@@ -1,18 +1,25 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { navigateTo } from '#app'
-import { isEmail } from '~/utils/validation'
-import MaterialSymbolsWarning from '~icons/material-symbols/warning'
-import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
-
-const { $api, $state } = useNuxtApp()
-
-const { t } = useI18n()
+import {
+  definePageMeta,
+  extractSdkResponseErrorMsg,
+  isEmail,
+  navigateTo,
+  reactive,
+  ref,
+  useGlobal,
+  useI18n,
+  useNuxtApp,
+} from '#imports'
 
 definePageMeta({
   requiresAuth: false,
 })
+
+const { signIn, appInfo } = useGlobal()
+
+const { $api } = useNuxtApp()
+
+const { t } = useI18n()
 
 const formValidator = ref()
 let error = $ref<string | null>(null)
@@ -46,12 +53,16 @@ const formRules = {
 
 const signUp = async () => {
   const valid = formValidator.value.validate()
+
   if (!valid) return
 
   error = null
+
   try {
     const { token } = await $api.auth.signup(form)
-    $state.signIn(token!)
+
+    signIn(token!)
+
     await navigateTo('/')
   } catch (e: any) {
     error = await extractSdkResponseErrorMsg(e)
@@ -59,9 +70,7 @@ const signUp = async () => {
 }
 
 const resetError = () => {
-  if (error) {
-    error = null
-  }
+  if (error) error = null
 }
 </script>
 
@@ -80,7 +89,15 @@ const resetError = () => {
         >
           <general-noco-icon />
 
-          <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signUp') }}</h1>
+          <h1 class="prose-2xl font-bold self-center my-4">
+            {{ $t('general.signUp') }}
+            {{ $route.query.redirect_to === '/referral' ? '& REFER' : '' }}
+            {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
+          </h1>
+
+          <h2 v-if="appInfo.firstUser" class="prose !text-primary font-semibold self-center my-4">
+            {{ $t('msg.info.signUp.superAdmin') }}
+          </h2>
 
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">

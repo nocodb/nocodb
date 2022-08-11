@@ -61,12 +61,12 @@ function markItem(id: string) {
 }
 
 /** validate view title */
-function validate(value?: string) {
-  if (!value || value.trim().length < 0) {
+function validate(view: Record<string, any>) {
+  if (!view.title || view.title.trim().length < 0) {
     return 'View name is required'
   }
 
-  if (views.value.every((v1) => v1.title !== value)) {
+  if (views.value.some((v) => v.title === view.title && v.id !== view.id)) {
     return 'View name should be unique'
   }
 
@@ -141,17 +141,6 @@ function changeView(view: { id: string; alias?: string; title?: string; type: Vi
 
 /** Rename a view */
 async function onRename(view: ViewType) {
-  const valid = validate(view.title)
-
-  if (valid !== true) {
-    notification.error({
-      message: valid,
-      duration: 2,
-    })
-
-    return
-  }
-
   try {
     await api.dbView.update(view.id!, {
       title: view.title,
@@ -195,6 +184,7 @@ function onDeleted() {
       :id="view.id"
       :key="view.id"
       :view="view"
+      :on-validate="validate"
       class="transition-all ease-in duration-300"
       :class="[
         isMarked === view.id ? 'bg-gray-200' : '',

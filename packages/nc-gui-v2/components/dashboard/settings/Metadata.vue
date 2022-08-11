@@ -88,6 +88,7 @@ const columns = [
       </div>
       <a-table
         class="w-full"
+        size="small"
         :custom-row="
           (record) => ({
             class: `nc-metasync-row nc-metasync-row-${record.title}`,

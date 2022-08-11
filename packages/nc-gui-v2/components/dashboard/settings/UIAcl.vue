@@ -122,6 +122,7 @@ const columns = [
       </div>
       <a-table
         class="w-full"
+        size="small"
         :data-source="filteredTables"
         :columns="columns"
         :pagination="false"

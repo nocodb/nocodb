@@ -82,7 +82,7 @@ const logout = () => {
 
         <div
           v-if="!signedIn"
-          class="color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white hover:(ring ring-pink-500)"
+          class="color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white active:(ring ring-pink-500) hover:(ring ring-pink-500)"
         >
           <GeneralLanguage />
         </div>

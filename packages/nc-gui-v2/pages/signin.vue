@@ -101,7 +101,7 @@ const resetError = () => {
           <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
 
           <Transition name="layout">
-            <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
+            <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
             </div>
           </Transition>

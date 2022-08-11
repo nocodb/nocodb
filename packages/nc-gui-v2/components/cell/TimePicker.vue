@@ -79,7 +79,7 @@ watch(
     :allow-clear="!readOnlyMode"
     :input-read-only="true"
     :open="readOnlyMode ? false : open"
-    :dropdown-class-name="randomClass"
+    :popup-class-name="randomClass"
     @click="open = !open"
     @ok="open = !open"
   >

@@ -237,4 +237,8 @@ export default class ExcelTemplateAdapter extends TemplateGenerator {
   getData() {
     return this.data
   }
+
+  getColumns() {
+    return this.project.tables.map((t: Record<string, any>) => t.columns)
+  }
 }

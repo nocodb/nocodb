@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import io from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
-import { Form } from 'ant-design-vue'
+import { Form, notification } from 'ant-design-vue'
 import type { Card as AntCard } from 'ant-design-vue'
-import { useToast } from 'vue-toastification'
-import { fieldRequiredValidator } from '~/utils/validation'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg, fieldRequiredValidator } from '~/utils'
 import MdiCloseCircleOutlineIcon from '~icons/mdi/close-circle-outline'
 import MdiCurrencyUsdIcon from '~icons/mdi/currency-usd'
 import MdiLoadingIcon from '~icons/mdi/loading'
@@ -22,8 +20,6 @@ const emit = defineEmits(['update:modelValue'])
 const baseURL = 'http://localhost:8080' // this.$axios.defaults.baseURL
 
 const { $state } = useNuxtApp()
-
-const toast = useToast()
 
 const { project, loadTables } = useProject()
 
@@ -107,7 +103,9 @@ async function createOrUpdate() {
       syncSource.value = data
     }
   } catch (e: any) {
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 
@@ -158,8 +156,9 @@ async function sync() {
       },
     })
   } catch (e: any) {
-    console.log(e)
-    toast.error(e)
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 

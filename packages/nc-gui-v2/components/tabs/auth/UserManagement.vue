@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useClipboard, watchDebounced } from '@vueuse/core'
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import UsersModal from './user-management/UsersModal.vue'
 import FeedbackForm from './user-management/FeedbackForm.vue'
 import KebabIcon from '~icons/ic/baseline-more-vert'
@@ -17,7 +17,6 @@ import MdiContentCopyIcon from '~icons/mdi/content-copy'
 import MdiEmailSendIcon from '~icons/mdi/email-arrow-right-outline'
 import RolesIcon from '~icons/mdi/drama-masks'
 import type { User } from '~/lib/types'
-const toast = useToast()
 
 const { $api, $e } = useNuxtApp()
 const { project } = useProject()
@@ -53,8 +52,9 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     totalRows = response.users.pageInfo.totalRows ?? 0
     users = response.users.list as User[]
   } catch (e: any) {
-    console.error(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 
@@ -63,11 +63,14 @@ const inviteUser = async (user: User) => {
     if (!project.value?.id) return
 
     await $api.auth.projectUserAdd(project.value.id, user)
-    toast.success('Successfully added user to project')
+    notification.success({
+      message: 'Successfully added user to project',
+    })
     await loadUsers()
   } catch (e: any) {
-    console.error(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:user:add')
@@ -78,13 +81,17 @@ const deleteUser = async () => {
     if (!project.value?.id || !selectedUser?.id) return
 
     await $api.auth.projectUserRemove(project.value.id, selectedUser.id)
-    toast.success('Successfully deleted user from project')
+    notification.success({
+      message: 'Successfully deleted user from project',
+    })
     await loadUsers()
     showUserDeleteModal = false
   } catch (e: any) {
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
+  } finally {
     showUserDeleteModal = false
-    console.error(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:user:delete')
@@ -110,11 +117,14 @@ const resendInvite = async (user: User) => {
 
   try {
     await $api.auth.projectUserResendInvite(project.value.id, user.id)
-    toast.success('Invite email sent successfully')
+    notification.success({
+      message: 'Invite email sent successfully',
+    })
     await loadUsers()
   } catch (e: any) {
-    console.error(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 
   $e('a:user:resend-invite')
@@ -126,7 +136,9 @@ const copyInviteUrl = (user: User) => {
   const getInviteUrl = (token: string) => `${dashboardUrl}/user/authentication/signup/${token}`
 
   copy(getInviteUrl(user.invite_token))
-  toast.success('Invite url copied to clipboard')
+  notification.success({
+    message: 'Invite url copied to clipboard',
+  })
 }
 
 onMounted(async () => {

@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { onMounted } from '@vue/runtime-core'
-import { Form, Modal } from 'ant-design-vue'
+import { Form, Modal, notification } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
-import { useToast } from 'vue-toastification'
 import { computed, ref, useSidebar, watch } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
 import { ClientType } from '~/lib'
@@ -26,8 +25,6 @@ const testSuccess = ref(false)
 const { $api, $e } = useNuxtApp()
 
 useSidebar({ hasSidebar: false })
-
-const toast = useToast()
 
 const { t } = useI18n()
 
@@ -145,8 +142,9 @@ const createProject = async () => {
     $e('a:project:create:extdb')
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
-    // todo: toast
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
   loading.value = false
 }
@@ -187,12 +185,16 @@ const testConnection = async () => {
         })
       } else {
         testSuccess.value = false
-        toast.error(`${t('msg.error.dbConnectionFailed')} ${result.message}`)
+        notification.error({
+          message: `${t('msg.error.dbConnectionFailed')} ${result.message}`,
+        })
       }
     }
   } catch (e: any) {
     testSuccess.value = false
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 

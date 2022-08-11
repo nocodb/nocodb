@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useToast } from 'vue-toastification'
-import { Form } from 'ant-design-vue'
+import { Form, notification } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -16,17 +15,16 @@ import { useProject } from '#imports'
 interface Props {
   modelValue: boolean
   importType: 'csv' | 'json' | 'excel'
+  importOnly: boolean
 }
 
-const { importType, ...rest } = defineProps<Props>()
+const { importType, importOnly, ...rest } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
 const { t } = useI18n()
 
 const { tables } = useProject()
-
-const toast = useToast()
 
 const activeKey = ref('uploadTab')
 
@@ -39,6 +37,8 @@ const loading = ref(false)
 const templateData = ref()
 
 const importData = ref()
+
+const importColumns = ref([])
 
 const templateEditorModal = ref(false)
 
@@ -132,7 +132,9 @@ async function handlePreImport() {
       await validate()
       await parseAndExtractData(importState.url, '')
     } catch (e: any) {
-      toast.error(await extractSdkResponseErrorMsg(e))
+      notification.error({
+        message: await extractSdkResponseErrorMsg(e),
+      })
     }
   } else if (activeKey.value === 'jsonEditorTab') {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor), '')
@@ -145,7 +147,9 @@ async function handleImport() {
     loading.value = true
     await templateEditorRef.value.importTemplate()
   } catch (e: any) {
-    return toast.error(await extractSdkResponseErrorMsg(e))
+    return notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   } finally {
     loading.value = false
   }
@@ -156,9 +160,12 @@ async function parseAndExtractData(val: any, name: string) {
   try {
     templateData.value = null
     importData.value = null
+    importColumns.value = []
     const templateGenerator: any = getAdapter(name, val)
     if (!templateGenerator) {
-      toast.error('Template Generator cannot be found!')
+      notification.error({
+        message: 'Template Generator cannot be found!',
+      })
       return
     }
     await templateGenerator.init()
@@ -166,16 +173,21 @@ async function parseAndExtractData(val: any, name: string) {
     templateData.value = templateGenerator.getTemplate()
     templateData.value.tables[0].table_name = populateUniqueTableName()
     importData.value = templateGenerator.getData()
+    if (importOnly) importColumns.value = templateGenerator.getColumns()
     templateEditorModal.value = true
   } catch (e: any) {
     console.log(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 
 function rejectDrop(fileList: any[]) {
   fileList.map((file) => {
-    return toast.error(`Failed to upload file ${file.name}`)
+    return notification.error({
+      message: `Failed to upload file ${file.name}`,
+    })
   })
 }
 
@@ -192,9 +204,13 @@ function handleChange(info: UploadChangeParam) {
     reader.readAsArrayBuffer(info.file.originFileObj)
   }
   if (status === 'done') {
-    toast.success(`Uploaded file ${info.file.name} successfully`)
+    notification.success({
+      message: `Uploaded file ${info.file.name} successfully`,
+    })
   } else if (status === 'error') {
-    toast.error(`Failed to upload file ${info.file.name}`)
+    notification.error({
+      message: `Failed to upload file ${info.file.name}`,
+    })
   }
 }
 
@@ -265,7 +281,10 @@ function getAdapter(name: string, val: any) {
         ref="templateEditorRef"
         :project-template="templateData"
         :import-data="importData"
+        :import-columns="importColumns"
+        :import-only="importOnly"
         :quick-import-type="importType"
+        :max-rows-to-parse="importState.parserConfig.maxRowsToParse"
         @import="handleImport"
       />
       <a-tabs v-else v-model:activeKey="activeKey" hide-add type="editable-card" :tab-position="top">

@@ -14,10 +14,16 @@ const { $e } = useNuxtApp()
 const isView = ref(false)
 let showApiSnippet = $ref(false)
 
+const showWebhookDrawer = ref(false)
+
 function onApiSnippet() {
   // get API snippet
   showApiSnippet = true
   $e('a:view:api-snippet')
+}
+
+function onWebhooks() {
+  showWebhookDrawer.value = true
 }
 
 function onOpenModal(type: ViewTypes, title = '') {
@@ -33,7 +39,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         <template #title>
           {{ $t('msg.info.onlyCreator') }}
         </template>
-        <MdiShieldLockOutline class="text-pink-500" />
+        <mdi-shield-lock-outline class="text-pink-500" />
       </a-tooltip>
     </h3>
 
@@ -50,7 +56,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <MdiPlus class="group-hover:text-primary" />
+          <mdi-plus class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -68,7 +74,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <MdiPlus class="group-hover:text-primary" />
+          <mdi-plus class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -86,7 +92,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
           <div class="flex-1" />
 
-          <MdiPlus class="group-hover:text-primary" />
+          <mdi-plus class="group-hover:text-primary" />
         </div>
       </a-tooltip>
     </a-menu-item>
@@ -97,14 +103,14 @@ function onOpenModal(type: ViewTypes, title = '') {
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
         @click="onApiSnippet"
       >
-        <MdiXml />Get API Snippet
+        <mdi-xml />Get API Snippet
       </button>
 
       <button
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
-        @click="onApiSnippet"
+        @click="onWebhooks"
       >
-        <MdiHook />{{ $t('objects.webhooks') }}
+        <mdi-hook />{{ $t('objects.webhooks') }}
       </button>
     </div>
 
@@ -135,10 +141,12 @@ function onOpenModal(type: ViewTypes, title = '') {
           class="group flex items-center gap-2 w-full mx-3 px-4 py-2 rounded-l !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg !opacity-100) transition duration-150 ease"
           @click.stop
         >
-          <MdiCardsHeart class="text-red-500" />
+          <mdi-cards-heart class="text-red-500" />
           {{ $t('activity.sponsorUs') }}
         </a>
       </template>
     </general-flipping-card>
+
+    <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
   </a-menu>
 </template>

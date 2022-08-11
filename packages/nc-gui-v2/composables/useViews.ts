@@ -3,7 +3,7 @@ import type { MaybeRef } from '@vueuse/core'
 import { useNuxtApp } from '#app'
 
 export function useViews(meta: MaybeRef<TableType | undefined>) {
-  let views = $ref<ViewType[]>([])
+  const views = $ref<ViewType[]>([])
   const { $api } = useNuxtApp()
 
   const loadViews = async () => {
@@ -12,7 +12,7 @@ export function useViews(meta: MaybeRef<TableType | undefined>) {
     if (_meta && _meta.id) {
       const response = (await $api.dbView.list(_meta.id)).list
       if (response) {
-        views = response.sort((a, b) => a.order! - b.order!)
+        // views = response.sort((a, b) => a.order! - b.order!)
       }
     }
   }

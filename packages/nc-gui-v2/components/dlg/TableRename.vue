@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { watchEffect } from '@vue/runtime-core'
-import { Form } from 'ant-design-vue'
+import { Form, notification } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
 import { useProject, useTabs } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { validateTableName } from '~/utils/validation'
+import { extractSdkResponseErrorMsg, validateTableName } from '~/utils'
 import { useNuxtApp } from '#app'
 
 interface Props {
@@ -16,7 +14,6 @@ interface Props {
 const { modelValue = false, tableMeta } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue', 'updated'])
 const { $e, $api } = useNuxtApp()
-const toast = useToast()
 const dialogShow = computed({
   get() {
     return modelValue
@@ -79,11 +76,15 @@ const renameTable = async () => {
     dialogShow.value = false
     loadTables()
     updateTab({ id: tableMeta?.id }, { title: formState.title })
-    toast.success('Table renamed successfully')
+    notification.success({
+      message: 'Table renamed successfully',
+    })
     $e('a:table:rename')
     dialogShow.value = false
   } catch (e) {
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
   loading = false
 }

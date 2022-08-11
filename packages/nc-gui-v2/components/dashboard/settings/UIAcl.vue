@@ -1,13 +1,11 @@
 <script setup lang="ts">
-import { useToast } from 'vue-toastification'
-import { viewIcons } from '~/utils'
+import { notification } from 'ant-design-vue'
+import { extractSdkResponseErrorMsg, viewIcons } from '~/utils'
 import { computed, h, useNuxtApp, useProject } from '#imports'
 
 const { $api, $e } = useNuxtApp()
 
 const { project } = useProject()
-
-const toast = useToast()
 
 const roles = $ref<string[]>(['editor', 'commenter', 'viewer'])
 
@@ -49,9 +47,13 @@ async function saveUIAcl() {
       project.value.id,
       tables.filter((t) => t.edited),
     )
-    toast.success('Updated UI ACL for tables successfully')
+    notification.success({
+      message: 'Updated UI ACL for tables successfully',
+    })
   } catch (e: any) {
-    toast.error(e?.message)
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
   $e('a:proj-meta:ui-acl')
 }

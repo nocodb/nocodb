@@ -89,7 +89,7 @@ export function useViewData(
 
     for (const row of formattedData.value) {
       const id = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
-      row.rowMeta.commentCount = aggCommentCount.value?.find((c) => c.row_id === id)?.count || 0
+      row.rowMeta.commentCount = aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
     }
   }
 
@@ -262,7 +262,7 @@ export function useViewData(
     let row = formattedData.value.length
     while (row--) {
       try {
-        const { row: rowObj, rowMeta } = formattedData.value[row]
+        const { row: rowObj, rowMeta } = formattedData.value[row] as Record<string, any>
         if (!rowMeta.selected) {
           continue
         }

@@ -3,18 +3,15 @@ import { onMounted } from '@vue/runtime-core'
 import type { Form } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { ref } from 'vue'
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import { navigateTo, useRoute } from '#app'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { projectTitleValidator } from '~/utils/validation'
+import { extractSdkResponseErrorMsg, projectTitleValidator } from '~/utils'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
 import { nextTick, reactive, useSidebar } from '#imports'
 
 const { api } = useApi()
 
 useSidebar({ hasSidebar: false })
-
-const toast = useToast()
 
 const route = useRoute()
 
@@ -32,10 +29,12 @@ const formState = reactive({
 
 const getProject = async () => {
   try {
-    const result: ProjectType = await $api.project.read(route.params.id as string)
+    const result: ProjectType = await api.project.read(route.params.id as string)
     formState.title = result.title as string
   } catch (e: any) {
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 
@@ -45,7 +44,9 @@ const renameProject = async () => {
 
     navigateTo(`/nc/${route.params.id}`)
   } catch (e: any) {
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 

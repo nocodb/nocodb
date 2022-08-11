@@ -1,26 +1,28 @@
 <script lang="ts" setup>
-import { Modal } from 'ant-design-vue'
+import { Modal, notification } from 'ant-design-vue'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { useToast } from 'vue-toastification'
 import { useNuxtApp } from '#app'
 import { useMetas } from '#imports'
 import { ColumnInj, MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiEditIcon from '~icons/mdi/pencil'
 import MdiStarIcon from '~icons/mdi/star'
 import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
+
 const editColumnDropdown = ref(false)
 
 const column = inject(ColumnInj)
+
 const meta = inject(MetaInj)
 
 const { $api } = useNuxtApp()
+
 const { t } = useI18n()
-const toast = useToast()
+
 const { getMeta } = useMetas()
 
 const deleteColumn = () =>
@@ -34,7 +36,9 @@ const deleteColumn = () =>
         await $api.dbTableColumn.delete(column?.value?.id as string)
         getMeta(meta?.value?.id as string, true)
       } catch (e) {
-        toast.error(await extractSdkResponseErrorMsg(e))
+        notification.error({
+          message: await extractSdkResponseErrorMsg(e),
+        })
       }
     },
   })
@@ -43,10 +47,13 @@ const setAsPrimaryValue = async () => {
   try {
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
     getMeta(meta?.value?.id as string, true)
-    toast.success('Successfully updated as primary column')
+    notification.success({
+      message: 'Successfully updated as primary column',
+    })
   } catch (e) {
-    console.log(e)
-    toast.error('Failed to update primary column')
+    notification.error({
+      message: 'Failed to update primary column',
+    })
   }
 }
 

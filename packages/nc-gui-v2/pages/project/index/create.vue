@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { onMounted } from '@vue/runtime-core'
 import type { Form } from 'ant-design-vue'
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import { nextTick, reactive, ref, useApi, useSidebar } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
@@ -13,8 +13,6 @@ const { $e } = useNuxtApp()
 const { api, isLoading } = useApi()
 
 useSidebar({ hasSidebar: false })
-
-const toast = useToast()
 
 const nameValidationRules = [
   {
@@ -37,7 +35,9 @@ const createProject = async () => {
 
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 

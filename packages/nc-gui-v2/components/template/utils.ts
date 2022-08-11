@@ -23,3 +23,23 @@ export const tableColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex
     align: 'right',
   },
 ]
+
+export const srcDestMappingColumns: (Omit<ColumnGroupType<any>, 'children'> & { dataIndex?: string; name: string })[] = [
+  {
+    name: 'Source column',
+    dataIndex: 'source_column',
+    key: 'source_column',
+    width: 400,
+  },
+  {
+    name: 'Destination column',
+    dataIndex: 'destination_column',
+    key: 'destination_column',
+    width: 400,
+  },
+  {
+    name: 'Action',
+    key: 'action',
+    align: 'right',
+  },
+]

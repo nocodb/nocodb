@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import type { PluginType } from 'nocodb-sdk'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import CloseIcon from '~icons/material-symbols/close-rounded'
@@ -24,8 +24,6 @@ enum Action {
   Save = 'save',
   Test = 'test',
 }
-
-const toast = useToast()
 
 const { $api } = useNuxtApp()
 
@@ -55,10 +53,13 @@ const saveSettings = async () => {
     })
 
     emits('saved')
-    toast.success(plugin?.formDetails.msgOnInstall || 'Plugin settings saved successfully')
-  } catch (_e: any) {
-    const e = await extractSdkResponseErrorMsg(_e)
-    toast.error(e.message)
+    notification.success({
+      message: plugin?.formDetails.msgOnInstall || 'Plugin settings saved successfully',
+    })
+  } catch (e: any) {
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   } finally {
     loadingAction = null
   }
@@ -76,13 +77,18 @@ const testSettings = async () => {
     })
 
     if (res) {
-      toast.success('Successfully tested plugin settings')
+      notification.success({
+        message: 'Successfully tested plugin settings',
+      })
     } else {
-      toast.info('Invalid credentials')
+      notification.info({
+        message: 'Invalid credentials',
+      })
     }
-  } catch (_e: any) {
-    const e = await extractSdkResponseErrorMsg(_e)
-    toast.error(e.message)
+  } catch (e: any) {
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   } finally {
     loadingAction = null
   }

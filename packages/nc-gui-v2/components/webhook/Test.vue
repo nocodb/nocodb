@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import { MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
@@ -11,8 +11,6 @@ interface Props {
 const { hook } = defineProps<Props>()
 
 const { $api } = useNuxtApp()
-
-const toast = useToast()
 
 const meta = inject(MetaInj)
 
@@ -41,9 +39,13 @@ async function testWebhook() {
       payload: sampleData.value,
     })
 
-    toast.success('Webhook tested successfully')
+    notification.success({
+      message: 'Webhook tested successfully',
+    })
   } catch (e: any) {
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 

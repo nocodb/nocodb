@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { useToast } from 'vue-toastification'
+import { notification } from 'ant-design-vue'
 import { computed, useSmartsheetStoreOrThrow } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
@@ -13,14 +13,16 @@ enum LockType {
 }
 
 const { view, $api } = useSmartsheetStoreOrThrow()
-const { $e } = useNuxtApp()
-const toast = useToast()
 
-function changeLockType(type: LockType) {
+const { $e } = useNuxtApp()
+
+async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })
 
   if (type === 'personal') {
-    return toast.info('Coming soon', { timeout: 3000 })
+    return notification.info({
+      message: 'Coming soon',
+    })
   }
   try {
     ;(view.value as any).lock_type = type
@@ -28,9 +30,13 @@ function changeLockType(type: LockType) {
       lock_type: type,
     })
 
-    toast.success(`Successfully Switched to ${type} view`, { timeout: 3000 })
+    notification.success({
+      message: `Successfully Switched to ${type} view`,
+    })
   } catch (e: any) {
-    toast.error(extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 

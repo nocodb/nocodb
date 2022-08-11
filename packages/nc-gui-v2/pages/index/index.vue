@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { Modal } from 'ant-design-vue'
+import { Modal, notification } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
 import { navigateTo } from '#app'
 import { computed, onMounted, ref, useApi, useNuxtApp, useSidebar } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
@@ -17,8 +16,6 @@ const { $e } = useNuxtApp()
 const { api, isLoading } = useApi()
 
 useSidebar({ hasSidebar: true, isOpen: true })
-
-const toast = useToast()
 
 const filterQuery = ref('')
 
@@ -45,10 +42,12 @@ const deleteProject = (project: ProjectType) => {
     async onOk() {
       try {
         $e('c:project:delete')
-        await $api.project.delete(project.id as string)
+        await api.project.delete(project.id as string)
         return projects.value?.splice(projects.value.indexOf(project), 1)
       } catch (e: any) {
-        return toast.error(await extractSdkResponseErrorMsg(e))
+        return notification.error({
+          message: await extractSdkResponseErrorMsg(e),
+        })
       }
     },
   })

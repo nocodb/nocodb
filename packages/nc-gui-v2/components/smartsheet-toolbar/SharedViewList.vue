@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
-import { useToast } from 'vue-toastification'
-import { message } from 'ant-design-vue'
+import { message, notification } from 'ant-design-vue'
 import { onMounted, useSmartsheetStoreOrThrow } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
@@ -20,8 +19,9 @@ interface SharedViewType {
 }
 
 const { $api, meta } = useSmartsheetStoreOrThrow()
+
 const { copy } = useClipboard()
-const toast = useToast()
+
 const { dashboardUrl } = useDashboard()
 
 const sharedViewList = ref<SharedViewType[]>()
@@ -80,10 +80,14 @@ const copyLink = (view: SharedViewType) => {
 const deleteLink = async (id: string) => {
   try {
     await $api.dbViewShare.delete(id)
-    toast.success('Deleted shared view successfully')
+    notification.success({
+      message: 'Deleted shared view successfully',
+    })
     await loadSharedViewsList()
-  } catch (e) {
-    toast.error(await extractSdkResponseErrorMsg(e))
+  } catch (e: any) {
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 </script>

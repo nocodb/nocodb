@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useToast } from 'vue-toastification'
-import { Form } from 'ant-design-vue'
+import { Form, notification } from 'ant-design-vue'
 import { useClipboard } from '@vueuse/core'
 import ShareBase from './ShareBase.vue'
 import SendIcon from '~icons/material-symbols/send-outline'
@@ -9,9 +8,7 @@ import MidAccountIcon from '~icons/mdi/account-outline'
 import ContentCopyIcon from '~icons/mdi/content-copy'
 import type { User } from '~/lib/types'
 import { ProjectRole } from '~/lib/enums'
-import { projectRoleTagColors, projectRoles } from '~/utils/userUtils'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { isEmail } from '~/utils/validation'
+import { extractSdkResponseErrorMsg, isEmail, projectRoleTagColors, projectRoles } from '~/utils'
 
 interface Props {
   show: boolean
@@ -26,7 +23,6 @@ interface Users {
 
 const { show, selectedUser } = defineProps<Props>()
 const emit = defineEmits(['closed', 'reload'])
-const toast = useToast()
 
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()
@@ -93,10 +89,14 @@ const saveUser = async () => {
       })
       usersData.invitationToken = res.invite_token
     }
-    toast.success('Successfully updated the user details')
+    notification.success({
+      message: 'Successfully updated the user details',
+    })
   } catch (e: any) {
     console.error(e)
-    toast.error(await extractSdkResponseErrorMsg(e))
+    notification.error({
+      message: await extractSdkResponseErrorMsg(e),
+    })
   }
 }
 
@@ -108,7 +108,9 @@ const copyUrl = async () => {
   if (!inviteUrl) return
 
   copy(inviteUrl)
-  toast.success('Copied shareable base url to clipboard!')
+  notification.success({
+    message: 'Copied shareable base url to clipboard!',
+  })
 
   $e('c:shared-base:copy-url')
 }

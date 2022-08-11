@@ -177,7 +177,7 @@ await loadTables()
 
                     <template #expandIcon></template>
 
-                    <a-menu-item> Foo </a-menu-item>
+                    <PreviewAs />
                   </a-sub-menu>
                 </a-menu-item-group>
               </a-menu>
@@ -212,6 +212,8 @@ await loadTables()
     <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
 
     <NuxtPage />
+
+    <PreviewAs float />
   </NuxtLayout>
 </template>
 

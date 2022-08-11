@@ -502,7 +502,7 @@ onMounted(() => {
             </a-tab-pane>
             <a-tab-pane key="auth" tab="Auth">
               <MonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />
-              <span class="text-gray-500 prose-sm">
+              <span class="text-gray-500 prose-sm p-2">
                 For more about auth option refer
                 <a class="prose-sm" href="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.
               </span>

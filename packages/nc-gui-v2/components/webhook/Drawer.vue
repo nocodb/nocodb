@@ -24,7 +24,7 @@ async function editHook(hook: Record<string, any>) {
 
 <template>
   <a-drawer v-model:visible="vModel" :closable="false" placement="right" width="700px" @keydown.esc="vModel = false"
-            :body-style="{background:'#fcfcfc',padding:'50px'}">
+            :body-style="{background:'rgba(67, 81, 232, 0.05)',padding:'50px'}">
     <WebhookEditor v-if="editOrAdd" ref="webhookEditorRef" @back-to-list="editOrAdd = false"/>
     <WebhookList v-else @edit="editHook" @add="editOrAdd = true"/>
     <div

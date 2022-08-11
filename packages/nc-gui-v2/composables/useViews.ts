@@ -3,7 +3,7 @@ import type { MaybeRef } from '@vueuse/core'
 import { useNuxtApp } from '#app'
 
 export function useViews(meta: MaybeRef<TableType | undefined>) {
-  const views = $ref<ViewType[]>([])
+  let views = $ref<ViewType[]>([])
   const { $api } = useNuxtApp()
 
   const loadViews = async () => {

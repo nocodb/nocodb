@@ -203,7 +203,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
           toast.success('Column created')
         }
-        onSuccess()
+        onSuccess?.()
       } catch (e: any) {
         const error = await extractSdkResponseErrorMsg(e)
         if (error) toast.error(await extractSdkResponseErrorMsg(e))

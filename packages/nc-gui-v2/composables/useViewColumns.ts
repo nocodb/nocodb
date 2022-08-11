@@ -58,14 +58,30 @@ export function useViewColumns(
     }
   }
 
-  const showAll = async () => {
-    if (view?.value?.id) await $api.dbView.showAllColumn(view.value.id)
+  const showAll = async (ignoreIds?: any) => {
+    if (view?.value?.id) {
+      if (ignoreIds) {
+        await $api.dbView.showAllColumn(view.value.id, {
+          ignoreIds,
+        })
+      } else {
+        await $api.dbView.showAllColumn(view.value.id)
+      }
+    }
 
     await loadViewColumns()
     reloadData?.()
   }
-  const hideAll = async () => {
-    if (view?.value?.id) await $api.dbView.hideAllColumn(view.value.id)
+  const hideAll = async (ignoreIds?: any) => {
+    if (view?.value?.id) {
+      if (ignoreIds) {
+        await $api.dbView.hideAllColumn(view.value.id, {
+          ignoreIds,
+        })
+      } else {
+        await $api.dbView.hideAllColumn(view.value.id)
+      }
+    }
 
     await loadViewColumns()
     reloadData?.()

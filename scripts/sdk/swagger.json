@@ -7079,7 +7079,7 @@
           "subheading": {
             "type": "string"
           },
-          "sucess_msg": {
+          "success_msg": {
             "type": "string"
           },
           "redirect_url": {
@@ -7098,6 +7098,9 @@
             "type": "string"
           },
           "submit_another_form": {
+            "type": "boolean"
+          },
+          "show_blank_form": {
             "type": "boolean"
           },
           "columns": {

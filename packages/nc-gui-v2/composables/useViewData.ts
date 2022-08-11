@@ -1,4 +1,4 @@
-import type { Api, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { notification } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
@@ -35,6 +35,8 @@ export function useViewData(
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<Record<string, number>>({})
   const galleryData = ref<GalleryType | undefined>(undefined)
+  const formColumnData = ref<FormType | undefined>(undefined)
+  const formViewData = ref<FormType | undefined>(undefined)
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
@@ -285,6 +287,53 @@ export function useViewData(
     syncCount()
   }
 
+  const loadFormView = async () => {
+    if (!viewMeta?.value?.id) return
+    try {
+      const { columns, ...view } = (await $api.dbView.formRead(viewMeta.value.id)) as Record<string, any>
+
+      const fieldById = columns.reduce(
+        (o: Record<string, any>, f: Record<string, any>) => ({
+          ...o,
+          [f.fk_column_id]: f,
+        }),
+        {},
+      )
+
+      let order = 1
+
+      formViewData.value = view
+
+      formColumnData.value = meta?.value?.columns
+        ?.map((c: Record<string, any>) => ({
+          ...c,
+          fk_column_id: c.id,
+          fk_view_id: viewMeta.value.id,
+          ...(fieldById[c.id] ? fieldById[c.id] : {}),
+          order: (fieldById[c.id] && fieldById[c.id].order) || order++,
+          id: fieldById[c.id] && fieldById[c.id].id,
+        }))
+        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>
+    } catch (e: any) {
+      return notification.error({
+        message: 'Failed to set form data',
+        description: await extractSdkResponseErrorMsg(e),
+      })
+    }
+  }
+
+  const updateFormView = async (view: FormType | undefined) => {
+    try {
+      if (!viewMeta?.value?.id || !view) return
+      await $api.dbView.formUpdate(viewMeta.value.id, view)
+    } catch (e: any) {
+      return notification.error({
+        message: 'Failed to update form view',
+        description: await extractSdkResponseErrorMsg(e),
+      })
+    }
+  }
+
   return {
     loadData,
     paginationData,
@@ -301,6 +350,10 @@ export function useViewData(
     syncCount,
     galleryData,
     loadGalleryData,
+    loadFormView,
+    formColumnData,
+    formViewData,
+    updateFormView,
     aggCommentCount,
     loadAggCommentsCount,
   }

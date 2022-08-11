@@ -551,9 +551,10 @@ export default class View implements ViewType {
       show: boolean;
     },
     ncMeta = Noco.ncMeta
-  ): Promise<Array<GridViewColumn | any>> {
+  ): Promise<GridViewColumn | FormViewColumn | GalleryViewColumn | any> {
     const view = await this.get(viewId);
     const table = this.extractViewColumnsTableName(view);
+    console.log(table);
 
     const existingCol = await ncMeta.metaGet2(null, null, table, {
       fk_view_id: viewId,
@@ -573,7 +574,39 @@ export default class View implements ViewType {
       );
       return { ...existingCol, ...colData };
     } else {
-      return await ncMeta.metaInsert2(null, null, table, {
+      switch (view.type) {
+        case ViewTypes.GRID:
+          return await GridViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
+        case ViewTypes.GALLERY:
+          return await GalleryViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
+        case ViewTypes.KANBAN:
+          // TODO: Use the following when KanbanViewColumn is ready to avoid cache issue
+          // return await KanbanViewColumn.insert({
+          //   fk_view_id: viewId,
+          //   fk_column_id: fkColId,
+          //   order: colData.order,
+          //   show: colData.show,
+          // });
+          break;
+        case ViewTypes.FORM:
+          return await FormViewColumn.insert({
+            fk_view_id: viewId,
+            fk_column_id: fkColId,
+            order: colData.order,
+            show: colData.show,
+          });
+      }
+      return await ncMeta.metaInsert2(view.project_id, view.base_id, table, {
         fk_view_id: viewId,
         fk_column_id: fkColId,
         order: colData.order,

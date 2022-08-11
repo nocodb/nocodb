@@ -13,7 +13,7 @@ interface Props {
 
 const { editColumnDropdown } = defineProps<Props>()
 
-const emit = defineEmits(['cancel'])
+const emit = defineEmits(['cancel', 'submit'])
 const meta = inject(MetaInj)
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 const advancedOptions = ref(false)
@@ -43,10 +43,11 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
   ]
 })
 
-const reloadMetaAndData = () => {
+const reloadMetaAndData = async () => {
   emit('cancel')
-  getMeta(meta?.value.id as string, true)
+  await getMeta(meta?.value.id as string, true)
   reloadDataTrigger?.trigger()
+  emit('submit')
 }
 
 function onCancel() {

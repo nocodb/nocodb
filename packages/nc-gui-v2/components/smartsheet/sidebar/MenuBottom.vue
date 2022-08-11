@@ -33,14 +33,8 @@ function onOpenModal(type: ViewTypes, title = '') {
 
 <template>
   <a-menu :selected-keys="[]" class="flex-1 flex flex-col">
-    <h3 class="px-3 py-1 text-xs font-semibold flex items-center gap-4">
+    <h3 class="px-3 py-1 text-xs font-semibold flex items-center gap-4 text-gray-500">
       {{ $t('activity.createView') }}
-      <a-tooltip>
-        <template #title>
-          {{ $t('msg.info.onlyCreator') }}
-        </template>
-        <mdi-shield-lock-outline class="text-pink-500" />
-      </a-tooltip>
     </h3>
 
     <a-menu-item key="grid" class="group !flex !items-center !my-0 !h-[30px]" @click="onOpenModal(ViewTypes.GRID)">
@@ -100,17 +94,17 @@ function onOpenModal(type: ViewTypes, title = '') {
     <SmartsheetSidebarMenuApiSnippet v-model="showApiSnippet" />
     <div class="flex-auto justify-end flex flex-col gap-4 mt-4">
       <button
-        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
-        @click="onApiSnippet"
-      >
-        <mdi-xml />Get API Snippet
-      </button>
-
-      <button
-        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease"
+        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs"
         @click="onWebhooks"
       >
         <mdi-hook />{{ $t('objects.webhooks') }}
+      </button>
+
+      <button
+        class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs"
+        @click="onApiSnippet"
+      >
+        <mdi-xml />Get API Snippet
       </button>
     </div>
 
@@ -122,7 +116,7 @@ function onOpenModal(type: ViewTypes, title = '') {
           <div>
             <a
               v-t="['e:hiring']"
-              class="px-4 py-3 !bg-primary rounded shadow text-white"
+              class="px-4 py-3 rounded border text-xs text-current"
               href="https://angel.co/company/nocodb"
               target="_blank"
               @click.stop
@@ -138,7 +132,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         <a
           href="https://github.com/sponsors/nocodb"
           target="_blank"
-          class="group flex items-center gap-2 w-full mx-3 px-4 py-2 rounded-l !bg-primary text-white transform translate-x-4 hover:(translate-x-0 shadow-lg !opacity-100) transition duration-150 ease"
+          class="group flex items-center gap-2 w-full mx-3 px-4 py-3 rounded-l border transform translate-x-4 hover:(translate-x-0 shadow-lg !opacity-100) transition duration-150 ease !text-xs text-current"
           @click.stop
         >
           <mdi-cards-heart class="text-red-500" />

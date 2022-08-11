@@ -36,17 +36,17 @@ watch(
 <template>
   <a-dropdown offset-y class="" :trigger="['click']">
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
-      <a-button v-t="['c:sort']" size="small" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
+      <a-button v-t="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
         ><div class="flex align-center gap-1">
           <MdiSortIcon class="text-grey" />
           <!-- Sort -->
-          <span class="text-capitalize">{{ $t('activity.sort') }}</span>
+          <span class="text-capitalize !text-sm font-weight-regular">{{ $t('activity.sort') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>
     </div>
     <template #overlay>
-      <div class="bg-gray-50 shadow p-2 menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto">
+      <div class="bg-gray-50 p-6 shadow-lg menu-filter-dropdown min-w-[400px] max-h-[max(80vh,500px)] overflow-auto">
         <div v-if="sorts?.length" class="sort-grid mb-2" @click.stop>
           <template v-for="(sort, i) in sorts || []" :key="i">
             <!--          <v-icon :key="`${i}icon`" class="nc-sort-item-remove-btn" small @click.stop="deleteSort(sort)"> mdi-close-box </v-icon> -->
@@ -65,7 +65,6 @@ watch(
             />
             <a-select
               v-model:value="sort.direction"
-              size="small"
               class="flex-shrink-1 flex-grow-0 caption nc-sort-dir-select !text-xs"
               :label="$t('labels.operation')"
               @click.stop
@@ -76,7 +75,7 @@ watch(
                 :key="j"
                 :value="option.value"
               >
-                <span class="text-xs">{{ option.text }}</span>
+                <span>{{ option.text }}</span>
               </a-select-option>
             </a-select>
             <!--            <template #item="{ item }"> -->
@@ -85,7 +84,7 @@ watch(
             <!--          </v-select> -->
           </template>
         </div>
-        <a-button size="small" class="text-xs text-grey text-capitalize my-2" @click.stop="addSort">
+        <a-button class="text-capitalize mb-1 mt-4" @click.stop="addSort">
           <div class="flex gap-1 align-center">
             <MdiAddIcon />
             <!-- Add Sort Option -->
@@ -101,11 +100,6 @@ watch(
 .sort-grid {
   display: grid;
   grid-template-columns: 22px auto 150px;
-  column-gap: 6px;
-  row-gap: 6px;
-}
-
-:deep(.ant-btn, .ant-select, .ant-input, ::placeholder) {
-  @apply "!text-xs";
+  @apply gap-[12px];
 }
 </style>

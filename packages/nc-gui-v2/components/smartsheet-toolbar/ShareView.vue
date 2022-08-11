@@ -110,11 +110,11 @@ const copyLink = () => {
 
 <template>
   <div>
-    <a-button v-t="['c:view:share']" outlined class="nc-btn-share-view nc-toolbar-btn" size="small">
+    <a-button v-t="['c:view:share']" outlined class="nc-btn-share-view nc-toolbar-btn">
       <div class="flex align-center gap-1" @click="genShareLink">
         <MdiOpenInNewIcon class="text-grey" />
         <!-- Share View -->
-        {{ $t('activity.shareView') }}
+        <span class="!text-sm font-weight-regular"> {{ $t('activity.shareView') }}</span>
       </div>
     </a-button>
 

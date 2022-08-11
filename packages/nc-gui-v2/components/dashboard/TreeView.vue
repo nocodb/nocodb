@@ -4,7 +4,6 @@ import Sortable from 'sortablejs'
 import { useNuxtApp, useRoute } from '#app'
 import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
 import { TabType } from '~/composables'
-import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiMenuDown from '~icons/mdi/chevron-down'
@@ -153,9 +152,7 @@ const activeTable = computed(() => {
           @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
         >
-          <MdiTable class="mr-1 text-gray-500" />
-
-          <span class="flex-grow text-bold nc-project-tree">
+          <span class="flex-grow text-bold nc-project-tree text-gray-500">
             {{ $t('objects.tables') }}
 
             <template v-if="tables?.length"> ({{ tables.length }}) </template>
@@ -196,14 +193,10 @@ const activeTable = computed(() => {
                       @click.stop.prevent
                     />
 
-                    <component
-                      :is="icon(table)"
-                      :class="route.params.title && route.params.title.includes(table.title) ? 'text-pink-500' : 'text-gray-500'"
-                      class="nc-view-icon group-hover:hidden text-xs"
-                    />
+                    <component :is="icon(table)" class="nc-view-icon group-hover:hidden text-xs group-hover:text-gray-500" />
                   </div>
 
-                  <div class="nc-tbl-title text-xs flex-1">{{ table.title }}</div>
+                  <div class="nc-tbl-title flex-1">{{ table.title }}</div>
 
                   <a-dropdown :trigger="['click']" @click.stop>
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
@@ -298,17 +291,17 @@ const activeTable = computed(() => {
 }
 
 .nc-tree-item svg {
-  @apply text-gray-500;
+  @apply text-primary/60;
 }
 
 .nc-tree-item.active {
-  @apply !text-primary after:(!opacity-5);
+  @apply !text-primary font-weight-medium after:(!opacity-20);
   svg {
     @apply !text-primary;
   }
 }
 
 .nc-tree-item:hover {
-  @apply !text-grey after:(!opacity-2);
+  @apply !text-grey after:(!opacity-5);
 }
 </style>

@@ -67,19 +67,19 @@ const onMove = (event: { moved: { newIndex: number } }) => {
 <template>
   <a-dropdown :trigger="['click']">
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
-      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked" size="small">
+      <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex align-center gap-1">
           <MdiEyeOffOutline class="text-grey" />
 
           <!-- Fields -->
-          <span class="text-xs text-capitalize">{{ $t('objects.fields') }}</span>
+          <span class="text-capitalize !text-sm font-weight-regular">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
         </div>
       </a-button>
     </div>
     <template #overlay>
-      <div class="pt-0 min-w-[280px] bg-gray-50 shadow nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto" @click.stop>
+      <div class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto" @click.stop>
         <div class="p-1" @click.stop>
           <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
         </div>
@@ -88,7 +88,7 @@ const onMove = (event: { moved: { newIndex: number } }) => {
             <template #item="{ element: field }">
               <div v-show="filteredFieldList.includes(field)" :key="field.id" class="px-2 py-1 flex" @click.stop>
                 <a-checkbox v-model:checked="field.show" class="flex-shrink" @change="saveOrUpdate(field, i)">
-                  <span class="text-xs">{{ field.title }}</span>
+                  <span class="">{{ field.title }}</span>
                 </a-checkbox>
                 <div class="flex-1" />
                 <MdiDrag class="cursor-move" />
@@ -121,8 +121,5 @@ const onMove = (event: { moved: { newIndex: number } }) => {
 <style scoped lang="scss">
 :deep(.ant-checkbox-inner) {
   @apply transform scale-60;
-}
-:deep(::placeholder) {
-  @apply !text-xs;
 }
 </style>

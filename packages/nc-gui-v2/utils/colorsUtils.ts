@@ -33,7 +33,7 @@ export const enumColor = {
 export const themeColors = {
   'background': '#FFFFFF',
   'surface': '#FFFFFF',
-  'primary': '#1348ba',
+  'primary': '#4351e8',
   'secondary': '#03DAC6',
   'secondary-darken-1': '#018786',
   'error': '#B00020',

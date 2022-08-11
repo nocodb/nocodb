@@ -122,7 +122,4 @@ const onMove = (event: { moved: { newIndex: number } }) => {
 :deep(.ant-checkbox-inner) {
   @apply transform scale-60;
 }
-:deep(::placeholder) {
-  //@apply !text-xs;
-}
 </style>

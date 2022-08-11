@@ -100,7 +100,6 @@ watch(
 .sort-grid {
   display: grid;
   grid-template-columns: 22px auto 150px;
-  column-gap: 12px;
-  row-gap: 12px;
+  @apply gap-[12px];
 }
 </style>

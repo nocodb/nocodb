@@ -6,7 +6,7 @@ const { isGrid, isForm } = useSmartsheetStoreOrThrow()
 
 <template>
   <div class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[48px] px-2" style="z-index: 7">
-    <SmartsheetToolbarSearchData v-if="isGrid" class="flex-shrink mr-2" />
+    <SmartsheetToolbarSearchData v-if="isGrid" class="shrink mr-2" />
 
     <SmartsheetToolbarFieldsMenu v-if="isGrid" :show-system-fields="false" />
 

@@ -45,7 +45,7 @@ const icon = (tab: TabItem) => {
 <template>
   <div class="h-full w-full nc-container pt-[9px]">
     <div class="h-full w-full flex flex-col">
-      <div class="">
+      <div>
         <a-tabs v-model:activeKey="activeTabIndex" type="editable-card" @edit="closeTab">
           <a-tab-pane v-for="(tab, i) in tabs" :key="i">
             <template #tab>
@@ -145,7 +145,7 @@ const icon = (tab: TabItem) => {
         </a-tabs>
       </div>
 
-      <NuxtPage class="" />
+      <NuxtPage />
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />

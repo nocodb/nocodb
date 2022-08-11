@@ -273,8 +273,7 @@ defineExpose({
 .nc-filter-grid {
   display: grid;
   grid-template-columns: 18px 70px auto auto auto;
-  column-gap: 12px;
-  row-gap: 12px;
+  @apply gap-[12px]
   align-items: center;
 }
 

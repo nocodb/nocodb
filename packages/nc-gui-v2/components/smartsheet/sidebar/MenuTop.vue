@@ -237,10 +237,6 @@ function onDeleted() {
 
   .active {
     @apply bg-primary/20 text-primary font-weight-medium;
-
-    .nc-icon {
-      //@apply !text-pink-500;
-    }
   }
 }
 </style>

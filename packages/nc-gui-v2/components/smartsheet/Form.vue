@@ -467,6 +467,9 @@ onMounted(async () => {
                   <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3" @click="activeRow = element.title">
                     <div class="flex">
                       <div class="flex flex-1">
+                        <div class="flex flex-row">
+                          <mdi-drag-vertical class="flex flex-1" />
+                        </div>
                         <SmartsheetHeaderVirtualCell
                           v-if="isVirtualCol(element)"
                           :column="{ ...element, title: element.label || element.title }"

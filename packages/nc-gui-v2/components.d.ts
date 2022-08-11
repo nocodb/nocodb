@@ -84,6 +84,7 @@ declare module '@vue/runtime-core' {
     MdiChat: typeof import('~icons/mdi/chat')['default']
     MdiCheck: typeof import('~icons/mdi/check')['default']
     MdiChevronDown: typeof import('~icons/mdi/chevron-down')['default']
+    MdiClose: typeof import('~icons/mdi/close')['default']
     MdiCloseCircle: typeof import('~icons/mdi/close-circle')['default']
     MdiCloseThick: typeof import('~icons/mdi/close-thick')['default']
     MdiContentCopy: typeof import('~icons/mdi/content-copy')['default']

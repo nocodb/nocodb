@@ -1,6 +1,7 @@
 <script lang="ts" setup>
+import { onUnmounted } from '@vue/runtime-core'
 import { useState } from '#app'
-import { useGlobal, watch } from '#imports'
+import { useEventListener, useGlobal, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
 import MdiAccountEdit from '~icons/mdi/account-edit'
@@ -32,19 +33,22 @@ const mouseUp = () => {
   window.removeEventListener('mousemove', divMove, true)
 }
 
-window.addEventListener('mouseup', mouseUp, false)
+useEventListener(window, 'mouseup', mouseUp, false)
 
 const mouseDown = () => {
   window.addEventListener('mousemove', divMove, true)
 }
+
+onUnmounted(() => {
+  window.removeEventListener('mousemove', divMove, true)
+})
 
 /** reload page on previewas change */
 watch(previewAs, () => window.location.reload())
 </script>
 
 <template>
-  <div v-if="float" class="floating-reset-btn nc-floating-preview-btn px-2"
-       :style="{ top: position.y, left: position.x }">
+  <div v-if="float" class="floating-reset-btn nc-floating-preview-btn px-2" :style="{ top: position.y, left: position.x }">
     <MdiDrag style="cursor: move" class="text-white" @mousedown="mouseDown" />
     <div class="divider" />
 
@@ -52,14 +56,17 @@ watch(previewAs, () => window.location.reload())
       <span>Preview as :</span>
 
       <a-radio-group v-model:value="previewAs" name="radioGroup">
-        <a-radio v-for="role in roleList" :key="role.title" class="!text-xs !text-white" :value="role.title">{{ role.title }}
+        <a-radio v-for="role in roleList" :key="role.title" class="!text-xs !text-white" :value="role.title"
+          >{{ role.title }}
         </a-radio>
       </a-radio-group>
 
       <div class="divider" />
 
-      <div class="flex items-center gap-2 cursor-pointer" @click="previewAs= null"> <MdiExitToApp/> Exit</div>
-
+      <div class="flex items-center gap-2 cursor-pointer" @click="previewAs = null">
+        <MdiExitToApp />
+        Exit
+      </div>
     </div>
   </div>
 
@@ -69,8 +76,17 @@ watch(previewAs, () => window.location.reload())
         <div class="p-1 flex gap-2 items-center">
           <component :is="roleIcon[role.title]" />
 
-          <span class="text-capitalize text-xs" :class="{ 'x-active--text': role.title === previewAs }">{{ role.title
-            }}</span>
+          <span class="text-capitalize text-xs" :class="{ 'x-active--text': role.title === previewAs }">{{ role.title }}</span>
+        </div>
+      </a-menu-item>
+    </template>
+
+    <template v-if="previewAs">
+      <a-menu-item @click="previewAs = null">
+        <div class="p-1 flex gap-2 items-center">
+          <mdi-close />
+          <!-- Reset Preview -->
+          <span class="text-capitalize text-xs whitespace-nowrap">{{ $t('activity.resetReview') }}</span>
         </div>
       </a-menu-item>
     </template>
@@ -79,15 +95,15 @@ watch(previewAs, () => window.location.reload())
 
 <style scoped>
 .floating-reset-btn {
-  @apply bg-primary z-1000 index-100 fixed text-white py-1 pr-3 text-xs font-weight-bold
-  @apply flex items-center overflow-hidden whitespace-nowrap gap-2
+  @apply bg-primary/80 z-1000 index-100 fixed text-white py-1 pr-3 text-xs font-weight-bold
+  @apply flex items-center overflow-hidden whitespace-nowrap gap-2 rounded shadow-md;
 }
 
 :deep(.ant-radio) {
   @apply transform scale-80;
 }
 
-.divider{
-  @apply h-5 w-2px bg-white/50
+.divider {
+  @apply h-5 w-2px bg-white/50;
 }
 </style>

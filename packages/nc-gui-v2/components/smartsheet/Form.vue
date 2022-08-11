@@ -523,12 +523,11 @@ onMounted(async () => {
                           @change="updateColMeta(element)"
                         />
                       </a-form-item>
-                      <div>
+                      <div class="items-center flex">
+                        <span class="text-sm text-gray-500 mr-2">{{ $t('general.required') }}</span>
                         <a-switch
                           v-model:checked="element.required"
                           class="my-2"
-                          :checked-children="$t('general.required')"
-                          un-checked-children="Not Required"
                           @change="updateColMeta(element)"
                         />
                       </div>

@@ -7,7 +7,7 @@ export function useUIPermission() {
   const { $state } = useNuxtApp()
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
 
-  const isUIAllowed = (permission: Permission, _skipPreviewAs = false) => {
+  const isUIAllowed = (permission: Permission, skipPreviewAs = false) => {
     const user = $state.user
     let userRoles = user?.value?.roles || {}
     // if string populate key-value paired object
@@ -19,17 +19,16 @@ export function useUIPermission() {
     }
 
     // merge user role and project specific user roles
-    const roles = {
+    let roles = {
       ...userRoles,
       ...(projectRoles?.value || {}),
     }
 
-    // todo: handle preview as
-    // if (state.previewAs && !skipPreviewAs) {
-    //   roles = {
-    //     [state.previewAs]: true
-    //   };
-    // }
+    if ($state.previewAs.value && !skipPreviewAs) {
+      roles = {
+        [$state.previewAs.value]: true,
+      }
+    }
 
     return Object.entries<boolean>(roles).some(([role, hasRole]) => {
       const rolePermission = rolePermissions[role as keyof typeof rolePermissions] as '*' | Record<Permission, true>

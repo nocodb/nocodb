@@ -3,7 +3,7 @@ import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'noc
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
-import { computed, inject, provide, ref, useRoute, useViews, watch } from '#imports'
+import { computed, inject, provide, ref, useRoute, useRouter, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, RightSidebarInj, ViewListInj } from '~/context'
 
 const meta = inject(MetaInj, ref())
@@ -11,6 +11,8 @@ const meta = inject(MetaInj, ref())
 const activeView = inject(ActiveViewInj, ref())
 
 const { views, loadViews } = useViews(meta)
+
+const router = useRouter()
 
 const route = useRoute()
 
@@ -59,6 +61,7 @@ function openModal({ type, title = '' }: { type: ViewTypes; title: string }) {
 function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
   views.value.push(view)
   activeView.value = view
+  router.push({ params: { viewTitle: view.title || '' } })
   modalOpen = false
 }
 </script>

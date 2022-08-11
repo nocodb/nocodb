@@ -1,4 +1,4 @@
-import type { Api, FormType, ColumnType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { notification } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
@@ -209,7 +209,7 @@ export function useViewData(
 
   const deleteRowById = async (id: string) => {
     if (!id) {
-      throw new Error('Delete not allowed for table which doesn\'t have primary Key')
+      throw new Error("Delete not allowed for table which doesn't have primary Key")
     }
 
     const res: any = await $api.dbViewRow.delete(

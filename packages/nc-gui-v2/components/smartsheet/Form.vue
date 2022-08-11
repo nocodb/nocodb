@@ -232,13 +232,17 @@ function setFormData() {
   }
 
   localColumns.value = col
-    .filter((f: Record<string, any>) => f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup)
+    .filter(
+      (f: Record<string, any>) => f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
+    )
     .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
     .map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) }))
 
   systemFieldsIds.value = getSystemColumns(col).map((c: Record<string, any>) => c.fk_column_id)
 
-  hiddenColumns.value = col.filter((f: Record<string, any>) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id))
+  hiddenColumns.value = col.filter(
+    (f: Record<string, any>) => !f.show && !systemFieldsIds.value.includes(f.fk_column_id) && f.uidt !== UITypes.Formula,
+  )
 }
 
 function isRequired(_columnObj: Record<string, any>, required = false) {

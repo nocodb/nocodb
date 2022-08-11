@@ -26,8 +26,6 @@ const { t } = useI18n()
 
 const { tables } = useProject()
 
-const toast = useToast()
-
 const activeKey = ref('uploadTab')
 
 const jsonEditorRef = ref()
@@ -165,7 +163,9 @@ async function parseAndExtractData(val: any, name: string) {
     importColumns.value = []
     const templateGenerator: any = getAdapter(name, val)
     if (!templateGenerator) {
-      toast.error('Template Generator cannot be found!')
+      notification.error({
+        message: 'Template Generator cannot be found!',
+      })
       return
     }
     await templateGenerator.init()
@@ -185,7 +185,9 @@ async function parseAndExtractData(val: any, name: string) {
 
 function rejectDrop(fileList: any[]) {
   fileList.map((file) => {
-    return toast.error(`Failed to upload file ${file.name}`)
+    return notification.error({
+      message: `Failed to upload file ${file.name}`,
+    })
   })
 }
 
@@ -202,9 +204,13 @@ function handleChange(info: UploadChangeParam) {
     reader.readAsArrayBuffer(info.file.originFileObj)
   }
   if (status === 'done') {
-    toast.success(`Uploaded file ${info.file.name} successfully`)
+    notification.success({
+      message: `Uploaded file ${info.file.name} successfully`,
+    })
   } else if (status === 'error') {
-    toast.error(`Failed to upload file ${info.file.name}`)
+    notification.error({
+      message: `Failed to upload file ${info.file.name}`,
+    })
   }
 }
 

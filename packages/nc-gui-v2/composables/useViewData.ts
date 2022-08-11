@@ -1,10 +1,10 @@
-import type { Api, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, PaginatedType, FormType, GalleryType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { notification } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
 import { NOCO } from '~/lib'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -16,7 +16,10 @@ const formatData = (list: Record<string, any>[]) =>
 export interface Row {
   row: Record<string, any>
   oldRow: Record<string, any>
-  rowMeta?: any
+  rowMeta: {
+    new?: boolean
+    commentCount?: number
+  }
 }
 
 export function useViewData(
@@ -24,11 +27,16 @@ export function useViewData(
   viewMeta: Ref<ViewType & { id: string }> | ComputedRef<ViewType & { id: string }> | undefined,
   where?: ComputedRef<string | undefined>,
 ) {
+  if (!meta) {
+    throw new Error('Table meta is not available')
+  }
+
   const formattedData = ref<Row[]>([])
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
+  const aggCommentCount = ref<Record<string, number>>({})
+  const galleryData = ref<GalleryType | undefined>(undefined)
   const formColumnData = ref<FormType | undefined>(undefined)
   const formViewData = ref<FormType | undefined>(undefined)
-  const galleryData = ref<GalleryType | undefined>(undefined)
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
@@ -52,6 +60,38 @@ export function useViewData(
     paginationData.value.totalRows = count
   }
 
+  const queryParams = computed(() => ({
+    offset: (paginationData.value?.page ?? 0) - 1,
+    limit: paginationData.value?.pageSize ?? 25,
+    where: where?.value ?? '',
+  }))
+
+  /** load row comments count */
+  const loadAggCommentsCount = async () => {
+    // todo: handle in public api
+    // if (this.isPublicView) {
+    //   return;
+    // }
+
+    const ids = formattedData.value
+      ?.filter(({ rowMeta: { new: isNew } }) => !isNew)
+      ?.map(({ row }) => {
+        return extractPkFromRow(row, meta?.value?.columns as ColumnType[])
+      })
+
+    if (!ids?.length) return
+
+    aggCommentCount.value = await $api.utils.commentCount({
+      ids,
+      fk_model_id: meta.value.id as string,
+    })
+
+    for (const row of formattedData.value) {
+      const id = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
+      row.rowMeta.commentCount = aggCommentCount.value?.find((c) => c.row_id === id)?.count || 0
+    }
+  }
+
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
     if (!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) return
     const response = await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, {
@@ -60,6 +100,8 @@ export function useViewData(
     })
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
+
+    loadAggCommentsCount()
   }
 
   const loadGalleryData = async () => {
@@ -295,6 +337,7 @@ export function useViewData(
   return {
     loadData,
     paginationData,
+    queryParams,
     formattedData,
     insertRow,
     updateRowProperty,
@@ -311,5 +354,7 @@ export function useViewData(
     formColumnData,
     formViewData,
     updateFormView,
+    aggCommentCount,
+    loadAggCommentsCount,
   }
 }

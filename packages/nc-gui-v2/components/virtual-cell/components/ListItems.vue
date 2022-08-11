@@ -1,11 +1,16 @@
 <script lang="ts" setup>
-import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
+import { RelationTypes, UITypes } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel } from '#imports'
+import { ColumnInj } from '~/context'
 
 const props = defineProps<{ modelValue: boolean }>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+
+const column = inject(ColumnInj)
 
 const {
   childrenExcludedList,
@@ -14,18 +19,62 @@ const {
   relatedTablePrimaryValueProp,
   link,
   getRelatedTableRowId,
+  relatedTableMeta,
+  meta,
+  row,
 } = useLTARStoreOrThrow()
 
-watch(vModel, (nextVal) => {
-  if (nextVal) {
+const { addLTARRef, isNew } = useSmartsheetRowStoreOrThrow()
+
+const linkRow = async (row: Record<string, any>) => {
+  if (isNew.value) {
+    addLTARRef(row, column?.value as ColumnType)
+  } else {
+    await link(row)
+  }
+  vModel.value = false
+}
+
+watch(vModel, () => {
+  if (vModel.value) {
     loadChildrenExcludedList()
   }
 })
 
-const linkRow = async (row: Record<string, any>) => {
-  await link(row)
-  vModel.value = false
-}
+const expandedFormDlg = ref(false)
+
+/** populate initial state for a new row which is parent/child of current record */
+const newRowState = computed(() => {
+  const colOpt = (column?.value as ColumnType)?.colOptions as LinkToAnotherRecordType
+  const colInRelatedTable: ColumnType | undefined = relatedTableMeta?.value?.columns?.find((col) => {
+    if (col.uidt !== UITypes.LinkToAnotherRecord) return false
+    const colOpt1 = col?.colOptions as LinkToAnotherRecordType
+    if (colOpt1?.fk_related_model_id !== meta.value.id) return false
+
+    if (colOpt.type === RelationTypes.MANY_TO_MANY && colOpt1?.type === RelationTypes.MANY_TO_MANY) {
+      return (
+        colOpt.fk_parent_column_id === colOpt1.fk_child_column_id && colOpt.fk_child_column_id === colOpt1.fk_parent_column_id
+      )
+    } else {
+      return (
+        colOpt.fk_parent_column_id === colOpt1.fk_parent_column_id && colOpt.fk_child_column_id === colOpt1.fk_child_column_id
+      )
+    }
+  })
+  if (!colInRelatedTable) return {}
+  const relatedTableColOpt = colInRelatedTable?.colOptions as LinkToAnotherRecordType
+  if (!relatedTableColOpt) return {}
+
+  if (relatedTableColOpt.type === RelationTypes.BELONGS_TO) {
+    return {
+      [colInRelatedTable.title as string]: row?.value?.row,
+    }
+  } else {
+    return {
+      [colInRelatedTable.title as string]: row?.value && [row.value.row],
+    }
+  }
+})
 </script>
 
 <template>
@@ -40,19 +89,19 @@ const linkRow = async (row: Record<string, any>) => {
         ></a-input>
         <div class="flex-1" />
         <MdiReload class="cursor-pointer text-gray-500" @click="loadChildrenExcludedList" />
-        <a-button type="primary" size="small" @click="emit('addNewRecord')">Add new record</a-button>
+        <a-button type="primary" size="small" @click="expandedFormDlg = true">Add new record</a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0">
           <a-card
-            v-for="(row, i) in childrenExcludedList?.list ?? []"
+            v-for="(refRow, i) in childrenExcludedList?.list ?? []"
             :key="i"
             class="ma-2 cursor-pointer hover:(!bg-gray-200/50 shadow-md) group"
-            @click="linkRow(row)"
+            @click="linkRow(refRow)"
           >
-            {{ row[relatedTablePrimaryValueProp]
+            {{ refRow[relatedTablePrimaryValueProp]
             }}<span class="hidden group-hover:(inline) text-gray-400 text-[11px] ml-1"
-              >(Primary key : {{ getRelatedTableRowId(row) }})</span
+              >(Primary key : {{ getRelatedTableRowId(refRow) }})</span
             >
           </a-card>
         </div>
@@ -67,6 +116,15 @@ const linkRow = async (row: Record<string, any>) => {
         />
       </template>
       <a-empty v-else class="my-10" />
+
+      <SmartsheetExpandedForm
+        v-if="expandedFormDlg"
+        v-model="expandedFormDlg"
+        :meta="relatedTableMeta"
+        :row="{ row: {}, oldRow: {}, rowMeta: { new: true } }"
+        :state="newRowState"
+        use-meta-fields
+      />
     </div>
   </a-modal>
 </template>

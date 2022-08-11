@@ -1,11 +1,15 @@
 <script lang="ts" setup>
-import { useLTARStoreOrThrow, useVModel, watch } from '#imports'
+import { Modal } from 'ant-design-vue'
+import type { ColumnType } from 'nocodb-sdk'
+import { useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel, watch } from '#imports'
+import { ColumnInj, IsFormInj } from '~/context'
 
 const props = defineProps<{ modelValue?: boolean }>()
-
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+const isForm = inject(IsFormInj, false)
+const column = inject(ColumnInj)
 
 const {
   childrenList,
@@ -16,40 +20,66 @@ const {
   relatedTablePrimaryValueProp,
   unlink,
   getRelatedTableRowId,
+  relatedTableMeta,
 } = useLTARStoreOrThrow()
 
-watch(vModel, (nextVal) => {
-  if (nextVal) {
+const { isNew, state, removeLTARRef } = useSmartsheetRowStoreOrThrow()
+
+watch([vModel, isForm], (nextVal) => {
+  if (nextVal[0] || nextVal[1]) {
     loadChildrenList()
   }
 })
 
 const unlinkRow = async (row: Record<string, any>) => {
-  await unlink(row)
-
-  await loadChildrenList()
+  if (isNew.value) {
+    removeLTARRef(row, column?.value as ColumnType)
+  } else {
+    await unlink(row)
+    await loadChildrenList()
+  }
 }
+
+const container = computed(() =>
+  isForm
+    ? h('div', {
+        class: 'w-full p-2',
+      })
+    : Modal,
+)
+
+const expandedFormDlg = ref(false)
+const expandedFormRow = ref()
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" :footer="null" title="Child list">
+  <component :is="container" v-model:visible="vModel" :footer="null" title="Child list">
     <div class="max-h-[max(calc(100vh_-_300px)_,500px)] flex flex-col">
       <div class="flex mb-4 align-center gap-2">
         <div class="flex-1" />
 
-        <MdiReload class="cursor-pointer text-gray-500" @click="loadChildrenList" />
+        <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
 
-        <a-button type="primary" size="small" @click="emit('attachRecord')">
+        <a-button type="primary" class="!text-xs" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
-            <!-- todo: row is not defined? @click="unlinkRow(row)" -->
-            <MdiLinkVariantRemove class="text-xs text-white" />
+            <MdiLinkVariantRemove class="text-xs text-white" @click="unlinkRow(row)" />
             Link to '{{ meta.title }}'
           </div>
         </a-button>
       </div>
-      <template v-if="childrenList?.pageInfo?.totalRows">
+      <template v-if="(isNew && state?.[column?.title]?.length) || childrenList?.pageInfo?.totalRows">
         <div class="flex-1 overflow-auto min-h-0">
-          <a-card v-for="(row, i) of childrenList?.list ?? []" :key="i" class="ma-2 hover:(!bg-gray-200/50 shadow-md)">
+          <a-card
+            v-for="(row, i) of childrenList?.list ?? state?.[column?.title] ?? []"
+            :key="i"
+            class="ma-2 hover:(!bg-gray-200/50 shadow-md)"
+            @click="
+              () => {
+                expandedFormRow = row
+                expandedFormDlg = true
+              }
+            "
+          >
             <div class="flex align-center">
               <div class="flex-grow overflow-hidden min-w-0">
                 {{ row[relatedTablePrimaryValueProp]
@@ -57,14 +87,20 @@ const unlinkRow = async (row: Record<string, any>) => {
               </div>
               <div class="flex-1"></div>
               <div class="flex gap-2">
-                <MdiLinkVariantRemove class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="unlinkRow(row)" />
-                <MdiDeleteOutline class="text-xs text-grey hover:(!text-red-500) cursor-pointer" @click="deleteRelatedRow(row)" />
+                <MdiLinkVariantRemove
+                  class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
+                  @click.stop="unlinkRow(row)"
+                />
+                <MdiDeleteOutline
+                  class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
+                  @click.stop="deleteRelatedRow(row)"
+                />
               </div>
             </div>
           </a-card>
         </div>
         <a-pagination
-          v-if="childrenList?.pageInfo"
+          v-if="!isNew && childrenList?.pageInfo"
           v-model:current="childrenListPagination.page"
           v-model:page-size="childrenListPagination.size"
           class="mt-2 mx-auto"
@@ -75,7 +111,16 @@ const unlinkRow = async (row: Record<string, any>) => {
       </template>
       <a-empty v-else class="my-10" />
     </div>
-  </a-modal>
+
+    <SmartsheetExpandedForm
+      v-if="expandedFormDlg && expandedFormRow"
+      v-model="expandedFormDlg"
+      :row="{ row: expandedFormRow }"
+      :meta="relatedTableMeta"
+      load-row
+      use-meta-fields
+    />
+  </component>
 </template>
 
 <style scoped lang="scss">

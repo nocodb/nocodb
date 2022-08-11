@@ -96,6 +96,7 @@ const suggestionsList = computed(() => {
         text: c.title,
         type: 'column',
         icon: getUIDTIcon(c.uidt),
+        uidt: c.uidt,
       })),
     ...availableBinOps.map((op: string) => ({
       text: op,
@@ -254,7 +255,7 @@ function validateAgainstMeta(parsedTree: any, errors = new Set(), typeErrors = n
 
     if (targetFormulaCol && column?.value.id) {
       formulaPaths.push({
-        [column.value.id]: [targetFormulaCol.id],
+        [column?.value?.id as string]: [targetFormulaCol.id],
       })
     }
     const vertices = formulaPaths.length
@@ -518,6 +519,7 @@ function appendText(item: Record<string, any>) {
     formState.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
   }
   autocomplete.value = false
+  wordToComplete.value = ''
   if (item.type === 'function' || item.type === 'op') {
     // if function / operator is chosen, display columns only
     suggestion.value = suggestionsList.value.filter((f) => f.type === 'column')
@@ -612,7 +614,7 @@ onMounted(() => {
 <template>
   <div class="formula-wrapper">
     <a-form-item v-bind="validateInfos.formula_raw" label="Formula">
-      <a-input
+      <a-textarea
         ref="formulaRef"
         v-model:value="formState.formula_raw"
         class="mb-2"
@@ -622,21 +624,13 @@ onMounted(() => {
         @change="handleInputDeb"
       />
     </a-form-item>
-    <div class="text-gray-600 mt-2 prose-sm">
+    <div class="text-gray-600 mt-2 mb-4 prose-sm">
       Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
       <a class="prose-sm" href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank"
         >Formulas</a
       >.
     </div>
-    <a-drawer
-      v-model:visible="formulaSuggestionDrawer"
-      :closable="false"
-      :mask="false"
-      :mask-closable="false"
-      placement="right"
-      width="500px"
-      class="h-full overflow-auto"
-    >
+    <div class="h-[250px] overflow-auto scrollbar-thin-primary">
       <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: 'No suggested formula was found' }">
         <template #renderItem="{ item, index }">
           <a-list-item
@@ -649,39 +643,37 @@ onMounted(() => {
             @click.prevent.stop="appendText(item)"
           >
             <a-list-item-meta>
-              <template v-if="item.type === 'function'" #description>
-                {{ item.description }} <br /><br />
-                Syntax: <br />
-                {{ item.syntax }} <br /><br />
-                Examples: <br />
-                <div v-for="(example, idx) of item.examples" :key="idx">
-                  <div>({{ idx + 1 }}): {{ example }}</div>
-                </div>
-              </template>
-
               <template #title>
                 <div class="flex">
-                  <div class="flex-1">
-                    {{ item.text }}
-                  </div>
-
-                  <div class="">
-                    {{ getFormulaTypeName(item.type) }}
-                  </div>
+                  <a-col :span="6">
+                    <span class="prose-sm text-gray-600">{{ item.text }}</span>
+                  </a-col>
+                  <a-col :span="18">
+                    <div v-if="item.type === 'function'" class="text-xs text-gray-500">
+                      {{ item.description }} <br /><br />
+                      Syntax: <br />
+                      {{ item.syntax }} <br /><br />
+                      Examples: <br />
+                      <div v-for="(example, idx) of item.examples" :key="idx">
+                        <div>({{ idx + 1 }}): {{ example }}</div>
+                      </div>
+                    </div>
+                    <div v-if="item.type === 'column'" class="float-right mr-5 -mt-2">
+                      <a-badge-ribbon :text="item.uidt" color="gray" />
+                    </div>
+                  </a-col>
                 </div>
               </template>
 
               <template #avatar>
-                <MdiFunction v-if="item.type === 'function'" class="text-lg" />
-
-                <MdiCalculator v-if="item.type === 'op'" class="text-lg" />
-
+                <mdi-function v-if="item.type === 'function'" class="text-lg" />
+                <mdi-calculator v-if="item.type === 'op'" class="text-lg" />
                 <component :is="item.icon" v-if="item.type === 'column'" class="text-lg" />
               </template>
             </a-list-item-meta>
           </a-list-item>
         </template>
       </a-list>
-    </a-drawer>
+    </div>
   </div>
 </template>

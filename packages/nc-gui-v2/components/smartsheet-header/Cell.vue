@@ -2,7 +2,7 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { inject, toRef } from 'vue'
-import { ColumnInj, MetaInj } from '~/context'
+import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { useProvideColumnCreateStore } from '#imports'
 
 const props = defineProps<{ column: ColumnType & { meta: any }; required: boolean; hideMenu?: boolean }>()
@@ -10,6 +10,7 @@ const props = defineProps<{ column: ColumnType & { meta: any }; required: boolea
 const hideMenu = toRef(props, 'hideMenu')
 
 const meta = inject(MetaInj)
+const isForm = inject(IsFormInj, false)
 
 const column = toRef(props, 'column')
 
@@ -27,7 +28,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
 
     <template v-if="!hideMenu">
       <div class="flex-1" />
-      <SmartsheetHeaderMenu />
+      <SmartsheetHeaderMenu v-if="!isForm" />
     </template>
   </div>
 </template>

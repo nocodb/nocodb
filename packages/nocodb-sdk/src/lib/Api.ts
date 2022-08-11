@@ -242,7 +242,7 @@ export interface ColumnType {
     | FormulaType
     | RollupType
     | LookupType
-    | SelectOptionsType[]
+    | SelectOptionsType
     | object;
 }
 
@@ -303,9 +303,11 @@ export interface FormulaType {
 }
 
 export interface SelectOptionsType {
+  options: SelectOptionType;
+}
+
+export interface SelectOptionType {
   id?: string;
-  type?: string;
-  virtual?: boolean;
   fk_column_id?: string;
   title?: string;
   color?: string;
@@ -3110,7 +3112,7 @@ export class Api<
      * @response `200` `void` OK
      */
     commentRow: (
-      data: { row_id: string; fk_model_id: string; comment: string },
+      data: { row_id: string; fk_model_id: string; description?: string },
       params: RequestParams = {}
     ) =>
       this.request<void, any>({

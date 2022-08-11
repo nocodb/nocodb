@@ -29,7 +29,7 @@ const logout = () => {
     theme="light"
   >
     <a-dropdown placement="bottom" :trigger="['click']">
-      <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105">
+      <div class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105 nc-noco-brand-icon">
         <img width="35" alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
       </div>
 

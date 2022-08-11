@@ -1,5 +1,4 @@
 <script lang="ts" setup>
-import { onClickOutside } from '@vueuse/core'
 import { Modal } from 'ant-design-vue'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
@@ -56,12 +55,6 @@ function onVisibleChange() {
   // by clicking cancel button
   editColumnDropdown.value = true
 }
-
-const editOrAddCard = ref()
-
-onClickOutside(editOrAddCard, () => {
-  editColumnDropdown.value = false
-})
 </script>
 
 <template>
@@ -69,9 +62,9 @@ onClickOutside(editOrAddCard, () => {
     <span />
     <template #overlay>
       <SmartsheetColumnEditOrAdd
-        ref="editOrAddCard"
         :edit-column-dropdown="editColumnDropdown"
         @click.stop
+        @keydown.stop
         @cancel="editColumnDropdown = false"
       />
     </template>

@@ -3,6 +3,7 @@ import type { ColumnType, GridColumnType, GridType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useMetas } from './useMetas'
 import { useUIPermission } from './useUIPermission'
+import { IsPublicInj } from '~/context'
 
 export function useGridViewColumnWidth(view: Ref<(GridType & { id?: string }) | undefined>) {
   const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
@@ -13,6 +14,7 @@ export function useGridViewColumnWidth(view: Ref<(GridType & { id?: string }) | 
   const gridViewCols = ref<Record<string, GridColumnType>>({})
   const resizingCol = ref('')
   const resizingColWidth = ref('200px')
+  const isPublic = inject(IsPublicInj, ref(false))
 
   const columns = computed<ColumnType[]>(() => metas?.value?.[(view?.value as any)?.fk_model_id as string]?.columns)
 
@@ -34,9 +36,9 @@ export function useGridViewColumnWidth(view: Ref<(GridType & { id?: string }) | 
     { deep: true, immediate: true },
   )
 
-  const loadGridViewColumns = async () => {
-    if (!view.value?.id) return
-    const colsData: GridColumnType[] = await $api.dbView.gridColumnsList(view.value.id)
+  const loadGridViewColumns = async (cols?: GridColumnType[] | undefined) => {
+    if (!view.value?.id && !cols) return
+    const colsData: GridColumnType[] = cols ?? (await $api.dbView.gridColumnsList(view.value.id))
     gridViewCols.value = colsData.reduce<Record<string, GridColumnType>>(
       (o, col) => ({
         ...o,
@@ -56,7 +58,7 @@ export function useGridViewColumnWidth(view: Ref<(GridType & { id?: string }) | 
     }
 
     // sync with server if allowed
-    if (isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
+    if (!isPublic.value && isUIAllowed('gridColUpdate') && gridViewCols.value[id]?.id) {
       $api.dbView.gridColumnUpdate(gridViewCols.value[id].id as string, {
         width,
       })

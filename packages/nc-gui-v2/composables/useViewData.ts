@@ -1,7 +1,7 @@
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { NOCO, computed, extractPkFromRow, extractSdkResponseErrorMsg, ref, useNuxtApp, useProject } from '#imports'
+import { IsPublicInj, NOCO, computed, extractPkFromRow, extractSdkResponseErrorMsg, ref, useNuxtApp, useProject } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -39,6 +39,7 @@ export function useViewData(
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
+  const isPublic = inject(IsPublicInj, ref(false))
 
   const selectedAllRecords = computed({
     get() {
@@ -57,6 +58,14 @@ export function useViewData(
       viewMeta?.value?.id as string,
     )
     paginationData.value.totalRows = count
+  }
+
+  const loadPublicData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
+    const { data } = await $api.public.dataList(viewMeta?.value?.uuid, {
+      ...params,
+    })
+    formattedData.value = formatData(data.list)
+    paginationData.value = data.pageInfo
   }
 
   const queryParams = computed(() => ({
@@ -92,7 +101,13 @@ export function useViewData(
   }
 
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
+    if (isPublic.value) {
+      loadPublicData(params)
+      return
+    }
+
     if (!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) return
+
     const response = await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, {
       ...params,
       where: where?.value,

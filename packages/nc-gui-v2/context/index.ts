@@ -6,6 +6,7 @@ import type { Row } from '~/composables'
 import type { TabItem } from '~/composables/useTabs'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
+export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
 export const ColumnInj: InjectionKey<Ref<ColumnType & { meta: any }>> = Symbol('column-injection')
 export const MetaInj: InjectionKey<ComputedRef<TableType>> = Symbol('meta-injection')

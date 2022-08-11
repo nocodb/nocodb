@@ -11,7 +11,7 @@ const hideMenu = toRef(props, 'hideMenu')
 provide(ColumnInj, column)
 
 const meta = inject(MetaInj)
-const isForm = inject(IsFormInj, false)
+const isForm = inject(IsFormInj, ref(false))
 
 // instantiate column update store
 useProvideColumnCreateStore(meta as Ref<TableType>, column)

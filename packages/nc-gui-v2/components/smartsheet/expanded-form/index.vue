@@ -59,7 +59,7 @@ if (props.loadRow) {
 
 useProvideSmartsheetStore(ref({}) as any, meta)
 
-provide(IsFormInj, true)
+provide(IsFormInj, ref(true))
 
 // accept as a prop
 // const row: Row = { row: {}, rowMeta: {}, oldRow: {} }

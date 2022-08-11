@@ -8,7 +8,7 @@ const props = defineProps<{ modelValue?: boolean }>()
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
-const isForm = ref(inject(IsFormInj, false))
+const isForm = inject(IsFormInj, ref(false))
 const column = inject(ColumnInj)
 
 const {

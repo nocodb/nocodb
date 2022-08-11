@@ -14,7 +14,7 @@ export const TabMetaInj: InjectionKey<ComputedRef<TabItem>> = Symbol('tab-meta-i
 export const PaginationDataInj: InjectionKey<ReturnType<typeof useViewData>['paginationData']> =
   Symbol('pagination-data-injection')
 export const ChangePageInj: InjectionKey<ReturnType<typeof useViewData>['changePage']> = Symbol('pagination-data-injection')
-export const IsFormInj: InjectionKey<boolean> = Symbol('is-form-injection')
+export const IsFormInj: InjectionKey<Ref<boolean>> = Symbol('is-form-injection')
 export const IsGridInj: InjectionKey<boolean> = Symbol('is-grid-injection')
 export const IsLockedInj: InjectionKey<boolean> = Symbol('is-locked-injection')
 export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection')

@@ -66,9 +66,9 @@ const unlinkRef = async (rec: Record<string, any>) => {
     <template v-if="!isForm">
       <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
-          <ItemChip v-for="(cell, i) of cells" :key="i" :item="ch" :value="cell.value" @unlink="unlinkRef(cell.item)" />
+          <ItemChip v-for="(cell, i) of cells" :key="i" :item="cell.item" :value="cell.value" @unlink="unlinkRef(cell.item)" />
 
-          <span v-if="value?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
+          <span v-if="cells?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">more... </span>
         </template>
       </div>
 

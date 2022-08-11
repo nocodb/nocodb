@@ -1,14 +1,14 @@
 <script lang="ts" setup>
 import { Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
-import { useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel, watch } from '#imports'
+import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel, watch } from '#imports'
 import { ColumnInj, IsFormInj } from '~/context'
 
 const props = defineProps<{ modelValue?: boolean }>()
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
-const isForm = inject(IsFormInj, false)
+const isForm = ref(inject(IsFormInj, false))
 const column = inject(ColumnInj)
 
 const {
@@ -25,11 +25,15 @@ const {
 
 const { isNew, state, removeLTARRef } = useSmartsheetRowStoreOrThrow()
 
-watch([vModel, isForm], (nextVal) => {
-  if (nextVal[0] || nextVal[1]) {
-    loadChildrenList()
-  }
-})
+watch(
+  [vModel, isForm],
+  (nextVal) => {
+    if (nextVal[0] || nextVal[1]) {
+      loadChildrenList()
+    }
+  },
+  { immediate: true },
+)
 
 const unlinkRow = async (row: Record<string, any>) => {
   if (isNew.value) {
@@ -41,7 +45,7 @@ const unlinkRow = async (row: Record<string, any>) => {
 }
 
 const container = computed(() =>
-  isForm
+  isForm?.value
     ? h('div', {
         class: 'w-full p-2',
       })

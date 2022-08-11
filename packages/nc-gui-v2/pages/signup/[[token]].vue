@@ -76,32 +76,31 @@ const resetError = () => {
 
 <template>
   <NuxtLayout>
-    <a-form
-      ref="formValidator"
-      :model="form"
-      layout="vertical"
-      class="signup h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center nc-form-signup"
-      @finish="signUp"
-    >
-      <div class="h-full w-full flex flex-col flex-wrap pt-[100px]">
-        <div
-          class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
-        >
-          <general-noco-icon />
+    <div class="signup h-[calc(100%_+_90px)] min-h-[600px] flex justify-center items-center nc-form-signup">
+      <div
+        class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      >
+        <general-noco-icon />
 
-          <h1 class="prose-2xl font-bold self-center my-4">
-            {{ $t('general.signUp') }}
-            {{ $route.query.redirect_to === '/referral' ? '& REFER' : '' }}
-            {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
-          </h1>
+        <h1 class="prose-2xl font-bold self-center my-4">
+          {{ $t('general.signUp') }}
+          {{ $route.query.redirect_to === '/referral' ? '& REFER' : '' }}
+          {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
+        </h1>
 
-          <h2 v-if="appInfo.firstUser" class="prose !text-primary font-semibold self-center my-4">
-            {{ $t('msg.info.signUp.superAdmin') }}
-          </h2>
+        <h2 v-if="appInfo.firstUser" class="prose !text-primary font-semibold self-center my-4">
+          {{ $t('msg.info.signUp.superAdmin') }}
+        </h2>
 
+        <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
-              <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
+              <div class="flex items-center gap-2 justify-center">
+                <div class="w-[25px]">
+                  <MaterialSymbolsWarning />
+                </div>
+                <div class="break-words">{{ error }}</div>
+              </div>
             </div>
           </Transition>
 
@@ -119,20 +118,24 @@ const resetError = () => {
             />
           </a-form-item>
 
-          <div
-            class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full"
-          >
+          <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
             <button class="submit" type="submit">
-              <span class="flex items-center gap-2"><MaterialSymbolsRocketLaunchOutline /> {{ $t('general.signUp') }}</span>
+              <span class="flex items-center gap-2">
+                <MaterialSymbolsRocketLaunchOutline />
+
+                {{ $t('general.signUp') }}
+              </span>
             </button>
+
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}
+
               <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
             </div>
           </div>
-        </div>
+        </a-form>
       </div>
-    </a-form>
+    </div>
   </NuxtLayout>
 </template>
 
@@ -154,7 +157,17 @@ const resetError = () => {
   }
 
   .submit {
-    @apply ml-1 border border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+    @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white bg-primary;
+
+    &::after {
+      @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+      content: '';
+      z-index: -1;
+    }
+
+    &:hover::after {
+      @apply transform scale-110 ring ring-pink-500;
+    }
   }
 }
 </style>

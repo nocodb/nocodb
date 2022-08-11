@@ -108,18 +108,17 @@ const resetError = () => {
             />
           </a-form-item>
 
-          <div class="hidden md:block self-end mx-8">
+          <div class="hidden md:block self-end">
             <nuxt-link class="prose-sm" to="/forgot-password">
               {{ $t('msg.info.signUp.forgotPassword') }}
             </nuxt-link>
           </div>
 
-          <div
-            class="self-center flex flex-column flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full"
-          >
+          <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
             <button class="submit" type="submit">
               <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
             </button>
+
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.dontHaveAccount') }}
               <nuxt-link to="/signup">{{ $t('general.signUp') }}</nuxt-link>
@@ -155,7 +154,17 @@ const resetError = () => {
   }
 
   .submit {
-    @apply ml-1 border border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+    @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white bg-primary;
+
+    &::after {
+      @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+      content: '';
+      z-index: -1;
+    }
+
+    &:hover::after {
+      @apply transform scale-110 ring ring-pink-500;
+    }
   }
 }
 </style>

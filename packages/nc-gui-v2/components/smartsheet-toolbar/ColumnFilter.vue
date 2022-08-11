@@ -132,7 +132,7 @@ defineExpose({
               <a-select
                 v-model:value="filter.logical_op"
                 :dropdown-match-select-width="false"
-                class="flex-shrink-1 flex-grow-0 elevation-0 caption"
+                class="shrink grow-0"
                 placeholder="Group op"
                 @click.stop
                 @change="saveOrUpdate(filter, i)"
@@ -172,7 +172,7 @@ defineExpose({
             />
             <span v-else />
 
-            <span v-if="!i" class="d-flex align-center">{{ $t('labels.where') }}</span>
+            <span v-if="!i" class="flex items-center">{{ $t('labels.where') }}</span>
 
             <a-select
               v-else
@@ -184,7 +184,7 @@ defineExpose({
               @click.stop
               @change="filterUpdateCondition(filter, i)"
             >
-              <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value" class="">
+              <a-select-option v-for="op in logicalOps" :key="op.value" :value="op.value">
                 {{ op.text }}
               </a-select-option>
             </a-select>
@@ -256,7 +256,7 @@ defineExpose({
           {{ $t('activity.addFilter') }}
         </div>
       </a-button>
-      <a-button class="elevation-0 text-capitalize !text-gray-500" @click.stop="addFilterGroup">
+      <a-button class="text-capitalize !text-gray-500" @click.stop="addFilterGroup">
         <div class="flex align-center gap-1">
           <!--      <v-icon small color="grey"> mdi-plus </v-icon> -->
           <MdiAddIcon />

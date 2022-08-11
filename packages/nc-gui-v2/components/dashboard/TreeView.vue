@@ -135,7 +135,7 @@ const activeTable = computed(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <div class="px-2 py-[11.75px] border-b-1">
+    <div class="px-6 py-[11.75px] border-b-1">
       <a-input-search
         v-model:value="filterQuery"
         size="small"
@@ -145,14 +145,14 @@ const activeTable = computed(() => {
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
-      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull" style="direction: rtl">
+      <div class="p-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull" style="direction: rtl">
         <div
           style="direction: ltr"
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
           @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
         >
-          <span class="flex-grow text-bold nc-project-tree text-gray-500">
+          <span class="flex-grow text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
             {{ $t('objects.tables') }}
 
             <template v-if="tables?.length"> ({{ tables.length }}) </template>
@@ -170,7 +170,7 @@ const activeTable = computed(() => {
           />
         </div>
         <div style="direction: ltr" class="flex-1">
-          <div class="transition-height duration-200 overflow-hidden" :class="{ 'h-100': showTableList, 'h-0': !showTableList }">
+          <div v-if="tables.length" class="transition-height duration-200 overflow-hidden" :class="{ 'h-100': showTableList, 'h-0': !showTableList }">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div
                 v-for="table of tables"

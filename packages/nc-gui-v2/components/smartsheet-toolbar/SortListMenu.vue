@@ -38,9 +38,9 @@ watch(
     <div :class="{ 'nc-badge nc-active-btn': sorts?.length }">
       <a-button v-t="['c:sort']" class="nc-sort-menu-btn nc-toolbar-btn" :disabled="isLocked"
         ><div class="flex align-center gap-1">
-          <MdiSortIcon class="text-grey" />
+          <MdiSortIcon />
           <!-- Sort -->
-          <span class="text-capitalize !text-sm font-weight-regular">{{ $t('activity.sort') }}</span>
+          <span class="text-capitalize !text-sm font-weight-medium">{{ $t('activity.sort') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>

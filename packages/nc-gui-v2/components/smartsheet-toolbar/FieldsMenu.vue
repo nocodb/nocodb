@@ -69,10 +69,10 @@ const onMove = (event: { moved: { newIndex: number } }) => {
     <div :class="{ 'nc-badge nc-active-btn': isAnyFieldHidden }">
       <a-button v-t="['c:fields']" class="nc-fields-menu-btn nc-toolbar-btn" :disabled="isLocked">
         <div class="flex align-center gap-1">
-          <MdiEyeOffOutline class="text-grey" />
+          <MdiEyeOffOutline />
 
           <!-- Fields -->
-          <span class="text-capitalize !text-sm font-weight-regular">{{ $t('objects.fields') }}</span>
+          <span class="text-capitalize !text-sm font-weight-medium">{{ $t('objects.fields') }}</span>
 
           <MdiMenuDown class="text-grey" />
         </div>

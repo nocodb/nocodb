@@ -116,9 +116,9 @@ const exportFile = async (exportType: ExportTypes.EXCEL | ExportTypes.CSV) => {
     <a-dropdown>
       <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-1 align-center">
-          <MdiFlashIcon class="text-grey" />
+          <MdiFlashIcon />
           <!-- More -->
-          <span class="!text-sm font-weight-regular">{{ $t('general.more') }}</span>
+          <span class="!text-sm font-weight-medium">{{ $t('general.more') }}</span>
           <MdiMenuDownIcon class="text-grey" />
         </div>
       </a-button>

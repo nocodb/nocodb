@@ -1938,7 +1938,7 @@ export class Api<
      */
     update: (
       viewId: string,
-      data: { password?: string },
+      data: { password?: string; meta?: any },
       params: RequestParams = {}
     ) =>
       this.request<SharedViewType, any>({
@@ -2026,10 +2026,10 @@ export class Api<
      * @tags DB table sort
      * @name List
      * @request GET:/api/v1/db/meta/views/{viewId}/sorts
-     * @response `200` `{ uuid?: string, url?: string }` OK
+     * @response `200` `{ sorts?: { list?: (SortType)[] } }` OK
      */
     list: (viewId: string, params: RequestParams = {}) =>
-      this.request<{ uuid?: string; url?: string }, any>({
+      this.request<{ sorts?: { list?: SortType[] } }, any>({
         path: `/api/v1/db/meta/views/${viewId}/sorts`,
         method: 'GET',
         format: 'json',
@@ -2124,14 +2124,15 @@ export class Api<
      * @tags DB table filter
      * @name Create
      * @request POST:/api/v1/db/meta/views/{viewId}/filters
-     * @response `200` `void` OK
+     * @response `200` `FilterType` OK
      */
     create: (viewId: string, data: FilterType, params: RequestParams = {}) =>
-      this.request<void, any>({
+      this.request<FilterType, any>({
         path: `/api/v1/db/meta/views/${viewId}/filters`,
         method: 'POST',
         body: data,
         type: ContentType.Json,
+        format: 'json',
         ...params,
       }),
 
@@ -2594,7 +2595,11 @@ export class Api<
       rowId: string,
       relationType: 'mm' | 'hm',
       columnName: string,
-      query?: { limit?: string; offset?: string },
+      query?: {
+        limit?: string | number;
+        offset?: string | number;
+        where?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({
@@ -2675,7 +2680,11 @@ export class Api<
       rowId: string,
       relationType: 'mm' | 'hm',
       columnName: string,
-      query?: { limit?: string; offset?: string },
+      query?: {
+        limit?: string | number;
+        offset?: string | number;
+        where?: string;
+      },
       params: RequestParams = {}
     ) =>
       this.request<any, any>({

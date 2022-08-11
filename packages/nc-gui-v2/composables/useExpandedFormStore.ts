@@ -84,9 +84,8 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       await api.utils.commentRow({
         fk_model_id: meta.value?.id as string,
         row_id: rowId,
-        // todo: swagger type correction
         description: comment.value,
-      } as any)
+      })
 
       comment.value = ''
       message.success('Comment added successfully')

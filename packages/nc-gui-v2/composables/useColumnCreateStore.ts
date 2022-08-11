@@ -35,8 +35,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
       title: 'title',
       uidt: UITypes.SingleLineText,
       ...(column?.value || {}),
-      // todo: swagger json update - include meta
-      meta: (column?.value as any)?.meta || {},
+      meta: column?.value?.meta || {},
     })
 
     const additionalValidations = ref<Record<string, any>>({})

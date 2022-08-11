@@ -4,7 +4,6 @@ import type { Ref } from 'vue'
 import { useMetas } from './useMetas'
 import { useUIPermission } from './useUIPermission'
 
-// todo: update swagger
 export function useGridViewColumnWidth(view: Ref<(GridType & { id?: string }) | undefined>) {
   const { css, load: loadCss, unload: unloadCss } = useStyleTag('')
   const { isUIAllowed } = useUIPermission()
@@ -18,7 +17,6 @@ export function useGridViewColumnWidth(view: Ref<(GridType & { id?: string }) | 
   const columns = computed<ColumnType[]>(() => metas?.value?.[(view?.value as any)?.fk_model_id as string]?.columns)
 
   watch(
-    // todo : update type in swagger
     [gridViewCols, resizingCol, resizingColWidth],
     () => {
       let style = ''

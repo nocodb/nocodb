@@ -942,27 +942,28 @@
       "post": {
         "summary": "",
         "operationId": "project-shared-base-create",
-        "responses": {  "200": {
-          "description": "OK",
-          "content": {
-            "application/json": {
-              "schema": {
-                "type": "object",
-                "properties": {
-                  "uuid": {
-                    "type": "string"
-                  },
-                  "url": {
-                    "type": "string"
-                  },
-                  "roles": {
-                    "type": "string"
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "uuid": {
+                      "type": "string"
+                    },
+                    "url": {
+                      "type": "string"
+                    },
+                    "roles": {
+                      "type": "string"
+                    }
                   }
                 }
               }
             }
           }
-        }
         },
         "tags": [
           "Project"
@@ -1726,7 +1727,8 @@
                 "properties": {
                   "password": {
                     "type": "string"
-                  }
+                  },
+                  "meta": {}
                 }
               }
             }
@@ -1851,11 +1853,16 @@
                 "schema": {
                   "type": "object",
                   "properties": {
-                    "uuid": {
-                      "type": "string"
-                    },
-                    "url": {
-                      "type": "string"
+                    "sorts": {
+                      "type": "object",
+                      "properties": {
+                        "list": {
+                          "type": "array",
+                          "items": {
+                            "$ref": "#/components/schemas/Sort"
+                          }
+                        }
+                      }
                     }
                   }
                 }
@@ -1991,7 +1998,14 @@
         "operationId": "db-table-filter-create",
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Filter"
+                }
+              }
+            }
           }
         },
         "tags": [
@@ -3831,17 +3845,30 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
           }
         ]
       }
@@ -4035,17 +4062,30 @@
         "parameters": [
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "limit"
           },
           {
             "schema": {
-              "type": "string"
+              "type": [
+                "string",
+                "number"
+              ]
             },
             "in": "query",
             "name": "offset"
+          },
+          {
+            "schema": {
+              "type": "string"
+            },
+            "in": "query",
+            "name": "where"
           }
         ]
       }

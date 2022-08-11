@@ -10,7 +10,6 @@ export function useViewFilters(
   reloadData?: () => void,
   shared = false,
 ) {
-  // todo: update swagger
   const filters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
   const { $api } = useNuxtApp()
@@ -79,11 +78,10 @@ export function useViewFilters(
         fk_parent_id: parentId,
       })
     } else {
-      // todo: return type correction
-      filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+      filters.value[i] = await $api.dbTableFilter.create(view?.value?.id as string, {
         ...filter,
         fk_parent_id: parentId,
-      })) as any
+      })
     }
     reloadData?.()
   }

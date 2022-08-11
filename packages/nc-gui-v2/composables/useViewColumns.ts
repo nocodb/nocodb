@@ -94,16 +94,14 @@ export function useViewColumns(
 
   const showSystemFields = computed({
     get() {
-      // todo: update swagger
-      return (view?.value as any)?.show_system_fields || false
+      return view?.value?.show_system_fields || false
     },
-    set(v) {
+    set(v: boolean) {
       if (view?.value?.id) {
         $api.dbView
           .update(view.value.id, {
-            // todo: update swagger
             show_system_fields: v,
-          } as any)
+          })
           .finally(() => reloadData?.())
         ;(view.value as any).show_system_fields = v
       }

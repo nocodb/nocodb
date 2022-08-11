@@ -1,9 +1,10 @@
 <script setup lang="ts">
 import { useToast } from 'vue-toastification'
 import { onMounted, useClipboard, useNuxtApp, useProject } from '#imports'
-import { dashboardUrl, extractSdkResponseErrorMsg } from '~/utils'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 const toast = useToast()
+const { dashboardUrl } = $(useDashboard())
 
 interface ShareBase {
   uuid?: string
@@ -26,7 +27,7 @@ const { project } = useProject()
 
 const { copy } = useClipboard()
 
-const url = $computed(() => (base && base.uuid ? `${dashboardUrl()}/nc/base/${base.uuid}` : null))
+const url = $computed(() => (base && base.uuid ? `${dashboardUrl}/nc/base/${base.uuid}` : null))
 
 const loadBase = async () => {
   try {

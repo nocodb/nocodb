@@ -31,6 +31,7 @@ const toast = useToast()
 const { project } = useProject()
 const { $api, $e } = useNuxtApp()
 const { copy } = useClipboard()
+const { dashboardUrl } = $(useDashboard())
 
 const usersData = $ref<Users>({ emails: undefined, role: ProjectRole.Viewer, invitationToken: undefined })
 const formRef = ref()
@@ -100,7 +101,7 @@ const saveUser = async () => {
 }
 
 const inviteUrl = $computed(() =>
-  usersData.invitationToken ? `${location.origin}/user/authentication/signup/${usersData.invitationToken}` : null,
+  usersData.invitationToken ? `${dashboardUrl}/user/authentication/signup/${usersData.invitationToken}` : null,
 )
 
 const copyUrl = async () => {

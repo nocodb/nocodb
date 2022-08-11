@@ -23,6 +23,7 @@ const { $api, $e } = useNuxtApp()
 const { project } = useProject()
 const { copy } = useClipboard()
 const { isUIAllowed } = useUIPermission()
+const { dashboardUrl } = $(useDashboard())
 
 let users = $ref<null | User[]>(null)
 let selectedUser = $ref<null | User>(null)
@@ -122,7 +123,7 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = (user: User) => {
   if (!user.invite_token) return
 
-  const getInviteUrl = (token: string) => `${location.origin}${location.pathname}#/user/authentication/signup/${token}`
+  const getInviteUrl = (token: string) => `${dashboardUrl}/user/authentication/signup/${token}`
 
   copy(getInviteUrl(user.invite_token))
   toast.success('Invite url copied to clipboard')

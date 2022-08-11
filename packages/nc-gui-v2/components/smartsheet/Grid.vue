@@ -354,8 +354,9 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                             class="py-1 px-3 rounded-full text-xs"
                             :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
                             @click="expandForm(row, state)"
-                            >{{ row.rowMeta.commentCount }}</span
                           >
+                            {{ row.rowMeta.commentCount }}
+                          </span>
                           <div
                             v-else
                             class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10"

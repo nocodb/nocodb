@@ -3,7 +3,7 @@ import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'noc
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
-import { computed, inject, provide, ref, useRoute, useViews, watch } from '#imports'
+import { computed, inject, provide, ref, useRoute, useRouter, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, RightSidebarInj, ViewListInj } from '~/context'
 
 const meta = inject(MetaInj, ref())
@@ -11,6 +11,8 @@ const meta = inject(MetaInj, ref())
 const activeView = inject(ActiveViewInj, ref())
 
 const { views, loadViews } = useViews(meta)
+
+const router = useRouter()
 
 const route = useRoute()
 
@@ -26,6 +28,9 @@ let viewCreateType = $ref<ViewTypes>()
 
 /** View title to create from modal (when duplicating) */
 let viewCreateTitle = $ref('')
+
+/** selected view id for copying view meta */
+let selectedViewId = $ref('')
 
 /** is view creation modal open */
 let modalOpen = $ref(false)
@@ -49,16 +54,18 @@ watch(
 )
 
 /** Open view creation modal */
-function openModal({ type, title = '' }: { type: ViewTypes; title: string }) {
+function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title: string; copyViewId: string }) {
   modalOpen = true
   viewCreateType = type
   viewCreateTitle = title
+  selectedViewId = copyViewId
 }
 
 /** Handle view creation */
 function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
   views.value.push(view)
   activeView.value = view
+  router.push({ params: { viewTitle: view.title || '' } })
   modalOpen = false
 }
 </script>
@@ -126,7 +133,14 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
       <MenuBottom @open-modal="openModal" />
     </div>
 
-    <dlg-view-create v-if="views" v-model="modalOpen" :title="viewCreateTitle" :type="viewCreateType" @created="onCreate" />
+    <dlg-view-create
+      v-if="views"
+      v-model="modalOpen"
+      :title="viewCreateTitle"
+      :type="viewCreateType"
+      :selected-view-id="selectedViewId"
+      @created="onCreate"
+    />
   </a-layout-sider>
 </template>
 

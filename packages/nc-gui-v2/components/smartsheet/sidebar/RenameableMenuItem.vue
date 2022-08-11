@@ -85,7 +85,7 @@ function focusInput(el: HTMLInputElement) {
 /** Duplicate a view */
 // todo: This is not really a duplication, maybe we need to implement a true duplication?
 function onDuplicate() {
-  emits('openModal', { type: vModel.value.type, title: vModel.value.title })
+  emits('openModal', { type: vModel.value.type, title: vModel.value.title, copyViewId: vModel.value.id })
 
   $e('c:view:copy', { view: vModel.value.type })
 }

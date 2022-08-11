@@ -467,6 +467,9 @@ onMounted(async () => {
                   <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3" @click="activeRow = element.title">
                     <div class="flex">
                       <div class="flex flex-1">
+                        <div class="flex flex-row">
+                          <mdi-drag-vertical class="flex flex-1" />
+                        </div>
                         <SmartsheetHeaderVirtualCell
                           v-if="isVirtualCol(element)"
                           :column="{ ...element, title: element.label || element.title }"
@@ -523,14 +526,9 @@ onMounted(async () => {
                           @change="updateColMeta(element)"
                         />
                       </a-form-item>
-                      <div>
-                        <a-switch
-                          v-model:checked="element.required"
-                          class="my-2"
-                          :checked-children="$t('general.required')"
-                          un-checked-children="Not Required"
-                          @change="updateColMeta(element)"
-                        />
+                      <div class="items-center flex">
+                        <span class="text-sm text-gray-500 mr-2">{{ $t('general.required') }}</span>
+                        <a-switch v-model:checked="element.required" class="my-2" @change="updateColMeta(element)" />
                       </div>
                     </div>
                     <span class="text-gray-500">{{ element.description }}</span>

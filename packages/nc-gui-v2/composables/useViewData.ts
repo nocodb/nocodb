@@ -1,4 +1,4 @@
-import type { Api, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
+import type { Api, FormType, ColumnType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { notification } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
@@ -33,7 +33,7 @@ export function useViewData(
 
   const formattedData = ref<Row[]>([])
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
-  const aggCommentCount = ref<Record<string, number>>({})
+  const aggCommentCount = ref<Record<string, number>[]>([])
   const galleryData = ref<GalleryType | undefined>(undefined)
   const formColumnData = ref<FormType | undefined>(undefined)
   const formViewData = ref<FormType | undefined>(undefined)
@@ -43,10 +43,10 @@ export function useViewData(
 
   const selectedAllRecords = computed({
     get() {
-      return formattedData.value.every((row) => row.rowMeta.selected)
+      return formattedData.value.every((row: Record<string, any>) => row.rowMeta.selected)
     },
     set(selected) {
-      formattedData.value.forEach((row) => (row.rowMeta.selected = selected))
+      formattedData.value.forEach((row: Record<string, any>) => (row.rowMeta.selected = selected))
     },
   })
 
@@ -88,7 +88,7 @@ export function useViewData(
 
     for (const row of formattedData.value) {
       const id = extractPkFromRow(row.row, meta?.value?.columns as ColumnType[])
-      row.rowMeta.commentCount = aggCommentCount.value?.find((c) => c.row_id === id)?.count || 0
+      row.rowMeta.commentCount = aggCommentCount.value?.find((c: Record<string, any>) => c.row_id === id)?.count || 0
     }
   }
 
@@ -261,7 +261,7 @@ export function useViewData(
     let row = formattedData.value.length
     while (row--) {
       try {
-        const { row: rowObj, rowMeta } = formattedData.value[row]
+        const { row: rowObj, rowMeta } = formattedData.value[row] as Record<string, any>
         if (!rowMeta.selected) {
           continue
         }

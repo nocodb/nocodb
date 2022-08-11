@@ -42,7 +42,7 @@ const deleteProject = (project: ProjectType) => {
     async onOk() {
       try {
         $e('c:project:delete')
-        await $api.project.delete(project.id as string)
+        await api.project.delete(project.id as string)
         return projects.value?.splice(projects.value.indexOf(project), 1)
       } catch (e: any) {
         return notification.error({

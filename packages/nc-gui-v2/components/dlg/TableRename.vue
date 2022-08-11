@@ -3,7 +3,7 @@ import { watchEffect } from '@vue/runtime-core'
 import { Form, notification } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
 import { useProject, useTabs } from '#imports'
-import { extractSdkResponseErrorMsg, validateTableName } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg, validateTableName } from '~/utils'
 import { useNuxtApp } from '#app'
 
 interface Props {

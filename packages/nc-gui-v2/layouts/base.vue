@@ -80,10 +80,7 @@ const logout = () => {
       <a-tooltip>
         <template #title> Switch language </template>
 
-        <div
-          v-if="!signedIn"
-          class="color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white active:(ring ring-pink-500) hover:(ring ring-pink-500)"
-        >
+        <div v-if="!signedIn" class="nc-lang-btn">
           <GeneralLanguage />
         </div>
       </a-tooltip>
@@ -102,5 +99,23 @@ const logout = () => {
 
 :deep(.ant-dropdown-menu-item-group-list) {
   @apply m-0;
+}
+
+.nc-lang-btn {
+  @apply color-transition flex items-center justify-center fixed bottom-10 right-10 z-99 w-12 h-12 rounded-full shadow-md shadow-gray-500 p-2 !bg-primary text-white active:(ring ring-pink-500) hover:(ring ring-pink-500);
+
+  &::after {
+    @apply rounded-full absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+    content: '';
+    z-index: -1;
+  }
+
+  &:hover::after {
+    @apply transform scale-110 ring ring-pink-500;
+  }
+
+  &:active::after {
+    @apply ring ring-pink-500;
+  }
 }
 </style>

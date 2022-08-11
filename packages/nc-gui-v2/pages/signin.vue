@@ -56,26 +56,24 @@ const formRules: Record<string, RuleObject[]> = {
   ],
 }
 
-const signIn = async () => {
-  const valid = formValidator.value.validate()
+async function signIn() {
+  if (!formValidator.value.validate()) return
 
-  if (!valid) return
+  resetError()
 
-  error = null
-
-  try {
-    const { token } = await api.auth.signin(form)
-
-    _signIn(token!)
-
-    await navigateTo('/')
-  } catch (e: any) {
-    // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
-    error = await extractSdkResponseErrorMsg(e)
-  }
+  api.auth
+    .signin(form)
+    .then(async ({ token }) => {
+      _signIn(token!)
+      await navigateTo('/')
+    })
+    .catch(async (err) => {
+      // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
+      error = await extractSdkResponseErrorMsg(err)
+    })
 }
 
-const resetError = () => {
+function resetError() {
   if (error) error = null
 }
 </script>
@@ -94,7 +92,7 @@ const resetError = () => {
           class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
           <general-noco-icon
-            class="color-transition hover:(ring ring-pink-500)"
+            class="!rounded-full color-transition hover:(ring ring-pink-500)"
             :class="[isLoading ? 'animated-bg-gradient' : '']"
           />
 
@@ -102,7 +100,10 @@ const resetError = () => {
 
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
-              <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
+              <div class="flex items-center gap-2 justify-center">
+                <MaterialSymbolsWarning />
+                <div style="flex: 0 0 auto" class="break-words">{{ error }}</div>
+              </div>
             </div>
           </Transition>
 

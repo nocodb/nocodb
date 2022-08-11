@@ -9,11 +9,14 @@ import {
   useApi,
   useGlobal,
   useI18n,
+  useRoute,
 } from '#imports'
 
 definePageMeta({
   requiresAuth: false,
 })
+
+const route = useRoute()
 
 const { appInfo, signIn } = useGlobal()
 
@@ -22,7 +25,10 @@ const { api, isLoading } = useApi()
 const { t } = useI18n()
 
 const formValidator = ref()
+
 let error = $ref<string | null>(null)
+
+const subscribe = ref(false)
 
 const form = reactive({
   email: '',
@@ -51,34 +57,42 @@ const formRules = {
   ],
 }
 
-const signUp = async () => {
-  const valid = formValidator.value.validate()
+async function signUp() {
+  if (!formValidator.value.validate()) return
 
-  if (!valid) return
+  resetError()
 
-  error = null
-
-  try {
-    const { token } = await api.auth.signup(form)
-
-    signIn(token!)
-
-    await navigateTo('/')
-  } catch (e: any) {
-    error = await extractSdkResponseErrorMsg(e)
+  const data: any = {
+    ...form,
+    token: route.params.token,
   }
+
+  if (subscribe.value) {
+    data.ignore_subscribe = !subscribe.value
+  }
+
+  api.auth
+    .signup(data)
+    .then(async ({ token }) => {
+      signIn(token!)
+
+      await navigateTo('/')
+    })
+    .catch(async (err) => {
+      error = await extractSdkResponseErrorMsg(err)
+    })
 }
 
-const resetError = () => {
+function resetError() {
   if (error) error = null
 }
 </script>
 
 <template>
   <NuxtLayout>
-    <div class="signup h-full min-h-[600px] flex justify-center items-center nc-form-signup">
+    <div class="signup h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signup">
       <div
-        class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+        class="bg-white dark:(!bg-gray-900 !text-white) mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
       >
         <general-noco-icon
           class="color-transition hover:(ring ring-pink-500)"
@@ -99,10 +113,8 @@ const resetError = () => {
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
-                <div class="w-[25px]">
-                  <MaterialSymbolsWarning />
-                </div>
-                <div class="flex-auto break-words">{{ error }}</div>
+                <MaterialSymbolsWarning />
+                <div style="flex: 0 0 auto" class="break-words">{{ error }}</div>
               </div>
             </div>
           </Transition>
@@ -130,6 +142,15 @@ const resetError = () => {
               </span>
             </button>
 
+            <div class="flex items-center gap-2">
+              <a-switch
+                v-model:checked="subscribe"
+                size="small"
+                class="my-1 hover:(ring ring-pink-500) focus:(!ring !ring-pink-500)"
+              />
+              <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
+            </div>
+
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}
 
@@ -137,6 +158,11 @@ const resetError = () => {
             </div>
           </div>
         </a-form>
+      </div>
+
+      <div class="prose-sm mt-4 text-gray-500">
+        By signing up, you agree to
+        <a class="prose-sm text-pink-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">Terms of Service</a>
       </div>
     </div>
   </NuxtLayout>

@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { navigateTo, provideSidebar, ref, useProject, useRoute, useSidebar, useTabs, useUIPermission } from '#imports'
+import { navigateTo, onKeyStroke, provideSidebar, ref, useProject, useRoute, useTabs, useUIPermission } from '#imports'
 import { TabType } from '~/composables'
 import { openLink } from '~/utils'
 
@@ -11,15 +11,22 @@ const { addTab, clearTabs } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
-// set old sidebar state
-useSidebar({ isOpen: true })
-
 // create a new sidebar state
 const { isOpen, toggle } = provideSidebar({ isOpen: true })
 
 const dialogOpen = ref(false)
 
 const openDialogKey = ref<string>()
+
+const dropdownOpen = ref(false)
+
+onKeyStroke(
+  'Escape',
+  () => {
+    dropdownOpen.value = false
+  },
+  { eventName: 'keydown' },
+)
 
 clearTabs()
 
@@ -58,7 +65,7 @@ await loadTables()
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
 
-          <a-dropdown :trigger="['click']">
+          <a-dropdown v-model:visible="dropdownOpen" :trigger="['click']">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -85,7 +92,10 @@ await loadTables()
                       <div class="flex flex-col">
                         <div class="text-lg group-hover:(!text-primary) font-semibold truncate">{{ project.title }}</div>
 
-                        <div class="text-xs group-hover:text-pink-500 truncate font-italic">{{ project.id }}</div>
+                        <div class="flex items-center gap-1">
+                          <div class="group-hover:(!text-primary)">ID:</div>
+                          <div class="text-xs group-hover:text-pink-500 truncate font-italic">{{ project.id }}</div>
+                        </div>
                       </div>
                     </div>
                   </template>

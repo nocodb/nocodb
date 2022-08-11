@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { notification } from 'ant-design-vue'
 import { onMounted, useClipboard, useNuxtApp, useProject } from '#imports'
-import { dashboardUrl, extractSdkResponseErrorMsg } from '~/utils'
+import { extractSdkResponseErrorMsg } from '~/utils'
 
 interface ShareBase {
   uuid?: string
@@ -14,6 +14,8 @@ enum ShareBaseRole {
   Viewer = 'viewer',
 }
 
+const { dashboardUrl } = $(useDashboard())
+
 const { $api, $e } = useNuxtApp()
 
 let base = $ref<null | ShareBase>(null)
@@ -24,7 +26,7 @@ const { project } = useProject()
 
 const { copy } = useClipboard()
 
-const url = $computed(() => (base && base.uuid ? `${dashboardUrl()}#/nc/base/${base.uuid}` : null))
+const url = $computed(() => (base && base.uuid ? `${dashboardUrl}/nc/base/${base.uuid}` : null))
 
 const loadBase = async () => {
   try {
@@ -147,14 +149,14 @@ onMounted(() => {
     <div class="flex flex-row items-center space-x-0.5 pl-2 h-[0.8rem]">
       <MdiOpenInNew />
 
-      <div class="text-xs">Shared Base Link</div>
+      <div class="text-xs">{{ $t('activity.shareBase.link') }}</div>
     </div>
     <div v-if="base?.uuid" class="flex flex-row mt-2 bg-red-50 py-4 mx-1 px-2 items-center rounded-sm w-full justify-between">
       <span class="flex text-xs overflow-x-hidden overflow-ellipsis text-gray-700 pl-2">{{ url }}</span>
       <div class="flex border-l-1 pt-1 pl-1">
         <a-tooltip placement="bottom">
           <template #title>
-            <span>Reload</span>
+            <span>{{ $t('general.reload') }}</span>
           </template>
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="recreate">
             <template #icon>
@@ -164,7 +166,7 @@ onMounted(() => {
         </a-tooltip>
         <a-tooltip placement="bottom">
           <template #title>
-            <span>Copy URL</span>
+            <span>{{ $t('activity.copyUrl') }}</span>
           </template>
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="copyUrl">
             <template #icon>
@@ -174,7 +176,7 @@ onMounted(() => {
         </a-tooltip>
         <a-tooltip placement="bottom">
           <template #title>
-            <span>Open new tab</span>
+            <span>{{ $t('activity.openTab') }}</span>
           </template>
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="navigateToSharedBase">
             <template #icon>
@@ -184,7 +186,7 @@ onMounted(() => {
         </a-tooltip>
         <a-tooltip placement="bottom">
           <template #title>
-            <span>Copy embeddable HTML code</span>
+            <span>{{ $t('activity.iFrame') }}</span>
           </template>
           <a-button type="text" class="!rounded-md mr-1 -mt-1.5 h-[1rem]" @click="generateEmbeddableIframe">
             <template #icon>
@@ -199,8 +201,8 @@ onMounted(() => {
       <a-dropdown v-model="showEditBaseDropdown" class="flex">
         <a-button>
           <div class="flex flex-row items-center space-x-2">
-            <div v-if="base?.uuid">Anyone with the link</div>
-            <div v-else>Disable shared base</div>
+            <div v-if="base?.uuid">{{ $t('activity.shareBase.enable') }}</div>
+            <div v-else>{{ $t('activity.shareBase.disable') }}</div>
             <IcRoundKeyboardArrowDown class="h-[1rem]" />
           </div>
         </a-button>
@@ -208,8 +210,8 @@ onMounted(() => {
         <template #overlay>
           <a-menu>
             <a-menu-item>
-              <div v-if="base?.uuid" @click="disableSharedBase">Disable shared base</div>
-              <div v-else @click="createShareBase(ShareBaseRole.Viewer)">Anyone with the link</div>
+              <div v-if="base?.uuid" @click="disableSharedBase">{{ $t('activity.shareBase.disable') }}</div>
+              <div v-else @click="createShareBase(ShareBaseRole.Viewer)">{{ $t('activity.shareBase.enable') }}</div>
             </a-menu-item>
           </a-menu>
         </template>

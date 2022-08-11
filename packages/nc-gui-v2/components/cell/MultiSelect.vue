@@ -6,7 +6,7 @@ import { ActiveCellInj, ColumnInj } from '~/context'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue: string | string[] | undefined
+  modelValue?: string | string[]
 }
 
 const { modelValue } = defineProps<Props>()

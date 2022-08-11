@@ -5,7 +5,7 @@ import { computed, inject } from '#imports'
 import { ActiveCellInj, ColumnInj } from '~/context'
 
 interface Props {
-  modelValue: string | undefined
+  modelValue?: string
 }
 
 const { modelValue } = defineProps<Props>()

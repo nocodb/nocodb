@@ -109,7 +109,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 
 <template>
   <div
-    class="nc-cell w-full-h-full"
+    class="nc-cell w-full h-full"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up

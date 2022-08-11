@@ -291,13 +291,13 @@ const expandForm = (row: Row, state: Record<string, any>) => {
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
-            <tr>
+            <tr class="nc-grid-header">
               <th>
                 <div class="w-full h-full bg-gray-100 flex w-[80px] px-1 items-center">
-                  <div class="group-hover:hidden" :class="{ hidden: selectedAllRecords }">#</div>
+                  <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                   <div
                     :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
-                    class="group-hover:flex w-full align-center"
+                    class="nc-check-all w-full align-center"
                   >
                     <a-checkbox v-model:checked="selectedAllRecords" />
 
@@ -338,28 +338,33 @@ const expandForm = (row: Row, state: Record<string, any>) => {
           <tbody>
             <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
               <template #default="{ state }">
-                <tr class="nc-grid-row group">
+                <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell">
                     <div class="align-center flex w-[80px]">
-                      <div class="group-hover:hidden" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                      <div class="nc-row-no" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
                       <div
                         :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
-                        class="group-hover:flex w-full items-center justify-between p-1"
+                        class="nc-row-expand-and-checkbox"
                       >
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                         <span class="flex-1" />
-                        <span
-                          v-if="row.rowMeta?.commentCount"
-                          class="py-1 px-3 rounded-full text-xs"
-                          :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
-                          @click="expandForm(row, state)"
-                          >{{ row.rowMeta.commentCount }}</span
-                        >
-                        <div class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
-                          <MdiArrowExpand
-                            class="select-none transform hover:(text-pink-500 scale-120)"
+                        <div class="nc-expand">
+                          <span
+                            v-if="row.rowMeta?.commentCount"
+                            class="py-1 px-3 rounded-full text-xs"
+                            :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
                             @click="expandForm(row, state)"
-                          />
+                            >{{ row.rowMeta.commentCount }}</span
+                          >
+                          <div
+                            v-else
+                            class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10"
+                          >
+                            <MdiArrowExpand
+                              class="select-none transform hover:(text-pink-500 scale-120)"
+                              @click="expandForm(row, state)"
+                            />
+                          </div>
                         </div>
                       </div>
                     </div>
@@ -517,6 +522,41 @@ const expandForm = (row: Row, state: Record<string, any>) => {
     // todo: replace with primary color
     @apply bg-blue-500/50;
     cursor: col-resize;
+  }
+}
+
+.nc-grid-row {
+  .nc-row-expand-and-checkbox {
+    @apply w-full items-center justify-between p-1;
+  }
+  .nc-expand {
+    @apply hidden;
+  }
+
+  &:hover {
+    .nc-row-no {
+      @apply hidden;
+    }
+
+    .nc-expand {
+      @apply flex;
+    }
+
+    .nc-row-expand-and-checkbox {
+      @apply flex;
+    }
+  }
+}
+
+.nc-grid-header {
+  &:hover {
+    .nc-no-label {
+      @apply hidden;
+    }
+
+    .nc-check-all {
+      @apply flex;
+    }
   }
 }
 </style>

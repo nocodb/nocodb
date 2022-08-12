@@ -1,5 +1,5 @@
+import type { FilterType } from 'nocodb-sdk'
 import type { Role } from './enums'
-
 export interface User {
   id: string
   email: string
@@ -22,3 +22,5 @@ export interface ProjectMetaInfo {
 }
 
 export type Roles = Record<Role, boolean>
+
+export type Filter = FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string; readOnly?: boolean }

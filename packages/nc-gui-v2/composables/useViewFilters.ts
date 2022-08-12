@@ -1,20 +1,22 @@
-import type { FilterType, ViewType } from 'nocodb-sdk'
+import type { ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp, useUIPermission } from '#imports'
 import { useMetas } from '~/composables/useMetas'
 import { IsPublicInj, ReloadViewDataHookInj } from '~/context'
+import type { Filter } from '~/lib'
 
 export function useViewFilters(
   view: Ref<ViewType> | undefined,
   parentId?: string,
   autoApply?: ComputedRef<boolean>,
   reloadData?: () => void,
+  siblingFilters?: Filter[],
 ) {
-  const { filters: sharedViewFilter } = useSharedView()
+  const { nestedFilters } = useSharedView()
 
   const reloadHook = inject(ReloadViewDataHookInj)
 
-  const _filters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
+  const _filters = ref<Filter[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
   const { $api } = useNuxtApp()
@@ -22,16 +24,28 @@ export function useViewFilters(
   const { metas } = useMetas()
 
   const filters = computed({
-    get: () => (isPublic.value ? sharedViewFilter.value : _filters.value),
+    get: () => (isPublic.value ? siblingFilters || nestedFilters.value : _filters.value),
     set: (value) => {
       if (isPublic.value) {
-        sharedViewFilter.value = value
+        if (siblingFilters) {
+          siblingFilters = value
+        } else {
+          nestedFilters.value = value
+        }
+        nestedFilters.value = [...nestedFilters.value]
         reloadHook?.trigger()
       } else {
         _filters.value = value
       }
     },
   })
+
+  const placeholderFilter: Filter = {
+    comparison_op: 'eq',
+    value: '',
+    status: 'create',
+    logical_op: 'and',
+  }
 
   const loadFilters = async (hookId?: string) => {
     if (isPublic.value) return
@@ -78,7 +92,7 @@ export function useViewFilters(
     reloadData?.()
   }
 
-  const deleteFilter = async (filter: FilterType & { status: string }, i: number) => {
+  const deleteFilter = async (filter: Filter, i: number) => {
     // if shared or sync permission not allowed simply remove it from array
     if (isPublic.value || !isUIAllowed('filterSync')) {
       filters.value.splice(i, 1)
@@ -101,9 +115,14 @@ export function useViewFilters(
     }
   }
 
-  const saveOrUpdate = async (filter: FilterType & { status?: string }, i: number, force = false) => {
+  const saveOrUpdate = async (filter: Filter, i: number, force = false) => {
+    if (isPublic.value) {
+      filters.value[i] = { ...filter } as any
+      filters.value = [...filters.value]
+      return
+    }
     if (!view?.value) return
-    if (isPublic.value || !isUIAllowed('filterSync')) {
+    if (!isUIAllowed('filterSync')) {
       // skip
     } else if (!autoApply?.value && !force) {
       filter.status = filter.id ? 'update' : 'create'
@@ -123,21 +142,19 @@ export function useViewFilters(
   }
 
   const addFilter = () => {
-    filters.value.push({
-      comparison_op: 'eq',
-      value: '',
-      status: 'create',
-      logical_op: 'and',
-    })
+    filters.value.push(placeholderFilter)
   }
 
   const addFilterGroup = async () => {
-    filters.value.push({
-      parentId,
+    const child = placeholderFilter
+    const placeHolderGroupFilter: Filter = {
       is_group: true,
       status: 'create',
       logical_op: 'and',
-    })
+    }
+    if (isPublic.value) placeHolderGroupFilter.children = [child]
+
+    filters.value.push(placeHolderGroupFilter)
     const index = filters.value.length - 1
     await saveOrUpdate(filters.value[index], index, true)
   }

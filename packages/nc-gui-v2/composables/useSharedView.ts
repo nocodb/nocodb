@@ -1,7 +1,7 @@
 import type { ColumnType, FilterType, PaginatedType, SortType, TableType, ViewType } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
-const filters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
+const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
 const sharedView = ref<ViewType>()
 const sorts = ref<SortType[]>([])
@@ -32,12 +32,12 @@ export function useSharedView() {
 
     const { data } = await $api.public.dataList(sharedView?.value?.uuid, {
       offset: (page - 1) * pageSize,
-      filterArrJson: JSON.stringify(filters.value),
+      filterArrJson: JSON.stringify(nestedFilters.value),
       sortArrJson: JSON.stringify(sorts.value),
     } as any)
 
     return data
   }
 
-  return { sharedView, loadSharedView, meta, columns, filters, fetchSharedViewData, paginationData, sorts }
+  return { sharedView, loadSharedView, meta, columns, nestedFilters, fetchSharedViewData, paginationData, sorts }
 }

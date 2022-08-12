@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ApiTokenType } from 'nocodb-sdk'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { useClipboard } from '@vueuse/core'
 import KebabIcon from '~icons/ic/baseline-more-vert'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -45,9 +45,7 @@ const copyToken = (token: string | undefined) => {
   if (!token) return
 
   copy(token)
-  notification.info({
-    message: 'Copied to clipboard',
-  })
+  message.info('Copied to clipboard')
 
   $e('c:api-token:copy')
 }
@@ -58,15 +56,11 @@ const generateToken = async () => {
 
     await $api.apiToken.create(project.id, selectedTokenData)
     showNewTokenModal = false
-    notification.success({
-      message: 'Token generated successfullyd',
-    })
+    message.success('Token generated successfully')
     selectedTokenData = {}
     await loadApiTokens()
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:api-token:generate')
@@ -78,15 +72,11 @@ const deleteToken = async () => {
 
     await $api.apiToken.delete(project.id, selectedTokenData.token)
 
-    notification.success({
-      message: 'Token deleted successfully',
-    })
+    message.success('Token deleted successfully')
     await loadApiTokens()
     showDeleteTokenModal = false
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:api-token:delete')
@@ -139,7 +129,7 @@ onMounted(() => {
             <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
-        <a-button size="middle" @click="openNewTokenModal">
+        <a-button size="middle" type="primary" ghost @click="openNewTokenModal">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiPlusIcon />
             <div>Add New Token</div>

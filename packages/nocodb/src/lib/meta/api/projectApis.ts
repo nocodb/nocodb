@@ -50,6 +50,11 @@ export async function projectUpdate(
   const data: any = {
     title: DOMPurify.sanitize(req?.body?.title),
   };
+
+  if (await Project.getByTitle(data.title)) {
+    NcError.badRequest('Project title already in use');
+  }
+
   const result = await Project.update(req.params.projectId, data);
   Tele.emit('evt', { evt_type: 'project:update' });
   res.json(result);

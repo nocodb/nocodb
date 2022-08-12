@@ -83,9 +83,9 @@ onKeyDown('Escape', () => {
         <template #title> Click or drop a file into cell </template>
 
         <div class="flex items-center gap-2">
-          <MaterialSymbolsAttachFile class="transform group-hover:(text-pink-500 scale-120)" />
+          <MaterialSymbolsAttachFile class="transform group-hover:(text-pink-500 scale-120) text-gray-500 text-[10px]" />
 
-          <div v-if="!visibleItems.length" class="group-hover:text-primary">Add file(s)</div>
+          <div v-if="!visibleItems.length" class="group-hover:text-primary text-gray-500 text-xs">Add file(s)</div>
         </div>
       </a-tooltip>
     </div>
@@ -131,7 +131,10 @@ onKeyDown('Escape', () => {
         <a-tooltip v-else placement="bottom">
           <template #title> View attachments </template>
 
-          <MdiArrowExpand class="select-none transform group-hover:(text-pink-500 scale-120)" @click.stop="modalVisible = true" />
+          <MdiArrowExpand
+            class="select-none transform group-hover:(text-pink-500 scale-120) text-[10px] text-gray-500"
+            @click.stop="modalVisible = true"
+          />
         </a-tooltip>
       </div>
     </template>

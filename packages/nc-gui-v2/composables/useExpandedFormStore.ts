@@ -1,7 +1,7 @@
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { message, notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
 import { useApi, useInjectionState, useProject, useProvideSmartsheetRowStore } from '#imports'
 import { NOCO } from '~/lib'
@@ -161,14 +161,11 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       // this.$emit('input', this.localState);
       // this.$emit('update:isNew', false);
 
-      notification.success({
-        message: `${primaryValue.value || 'Row'} updated successfully.`,
-        // position: 'bottom-right',
-      })
+      message.success(`${primaryValue.value || 'Row'} updated successfully.`)
 
       changedColumns.value = new Set()
     } catch (e: any) {
-      notification.error({ message: `Failed to update row`, description: await extractSdkResponseErrorMsg(e) })
+      message.error(`Failed to update row: ${await extractSdkResponseErrorMsg(e)}`)
     }
     $e('a:row-expand:add')
     return data

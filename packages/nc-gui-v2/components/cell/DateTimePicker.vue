@@ -69,6 +69,7 @@ watch(
     :dropdown-class-name="randomClass"
     :open="readOnlyMode ? false : open"
     @click="open = !open"
+    @ok="open = !open"
   >
     <template #suffixIcon></template>
   </a-date-picker>

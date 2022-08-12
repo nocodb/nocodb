@@ -2,7 +2,7 @@
 import type { ViewType, ViewTypes } from 'nocodb-sdk'
 import type { SortableEvent } from 'sortablejs'
 import type { Menu as AntMenu } from 'ant-design-vue'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { Ref } from 'vue'
 import Sortable from 'sortablejs'
 import RenameableMenuItem from './RenameableMenuItem.vue'
@@ -147,15 +147,9 @@ async function onRename(view: ViewType) {
       order: String(view.order),
     })
 
-    notification.success({
-      message: 'View renamed successfully',
-      duration: 3,
-    })
+    message.success('View renamed successfully')
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-      duration: 3,
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

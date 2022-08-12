@@ -1,14 +1,20 @@
 <script setup lang="ts">
-import { Form, notification } from 'ant-design-vue'
-import { useClipboard } from '@vueuse/core'
+import { Form, message } from 'ant-design-vue'
 import ShareBase from './ShareBase.vue'
-import SendIcon from '~icons/material-symbols/send-outline'
-import CloseIcon from '~icons/material-symbols/close-rounded'
-import MidAccountIcon from '~icons/mdi/account-outline'
-import ContentCopyIcon from '~icons/mdi/content-copy'
-import type { User } from '~/lib/types'
-import { ProjectRole } from '~/lib/enums'
-import { extractSdkResponseErrorMsg, isEmail, projectRoleTagColors, projectRoles } from '~/utils'
+import {
+  computed,
+  extractSdkResponseErrorMsg,
+  isEmail,
+  onMounted,
+  projectRoles,
+  ref,
+  useClipboard,
+  useDashboard,
+  useNuxtApp,
+  useProject,
+} from '#imports'
+import type { User } from '~/lib'
+import { ProjectRole } from '~/lib'
 
 interface Props {
   show: boolean
@@ -22,6 +28,7 @@ interface Users {
 }
 
 const { show, selectedUser } = defineProps<Props>()
+
 const emit = defineEmits(['closed', 'reload'])
 
 const { project } = useProject()
@@ -89,28 +96,21 @@ const saveUser = async () => {
       })
       usersData.invitationToken = res.invite_token
     }
-    notification.success({
-      message: 'Successfully updated the user details',
-    })
+    message.success('Successfully updated the user details')
   } catch (e: any) {
     console.error(e)
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
-const inviteUrl = $computed(() =>
-  usersData.invitationToken ? `${dashboardUrl}/user/authentication/signup/${usersData.invitationToken}` : null,
-)
+const inviteUrl = $computed(() => (usersData.invitationToken ? `${dashboardUrl}/signup/${usersData.invitationToken}` : null))
 
 const copyUrl = async () => {
   if (!inviteUrl) return
 
-  copy(inviteUrl)
-  notification.success({
-    message: 'Copied shareable base url to clipboard!',
-  })
+  await copy(inviteUrl)
+
+  message.success('Copied shareable base url to clipboard!')
 
   $e('c:shared-base:copy-url')
 }
@@ -130,7 +130,7 @@ const clickInviteMore = () => {
         <a-typography-title class="select-none" :level="4"> {{ $t('activity.share') }}: {{ project.title }} </a-typography-title>
         <a-button type="text" class="!rounded-md mr-1 -mt-1.5" @click="emit('closed')">
           <template #icon>
-            <CloseIcon class="flex mx-auto" />
+            <MaterialSymbolsCloseRounded class="flex mx-auto" />
           </template>
         </a-button>
       </div>
@@ -139,7 +139,7 @@ const clickInviteMore = () => {
         <template v-if="usersData.invitationToken">
           <div class="flex flex-col mt-1 border-b-1 pb-5">
             <div class="flex flex-row items-center pl-1.5 pb-1 h-[1.1rem]">
-              <MidAccountIcon />
+              <MdiAccountOutline />
               <div class="text-xs ml-0.5 mt-0.5">Copy Invite Token</div>
             </div>
 
@@ -151,7 +151,7 @@ const clickInviteMore = () => {
                   </div>
                   <a-button type="text" class="!rounded-md -mt-0.5" @click="copyUrl">
                     <template #icon>
-                      <ContentCopyIcon class="flex mx-auto text-green-700 h-[1rem]" />
+                      <MdiContentCopy class="flex mx-auto text-green-700 h-[1rem]" />
                     </template>
                   </a-button>
                 </div>
@@ -165,7 +165,7 @@ const clickInviteMore = () => {
             <div class="flex flex-row justify-start mt-4 ml-2">
               <a-button size="small" outlined @click="clickInviteMore">
                 <div class="flex flex-row justify-center items-center space-x-0.5">
-                  <SendIcon class="flex mx-auto text-gray-600 h-[0.8rem]" />
+                  <MaterialSymbolsSendOutline class="flex mx-auto text-gray-600 h-[0.8rem]" />
                   <div class="text-xs text-gray-600">{{ $t('activity.inviteMore') }}</div>
                 </div>
               </a-button>
@@ -174,7 +174,7 @@ const clickInviteMore = () => {
         </template>
         <div v-else class="flex flex-col pb-4">
           <div class="flex flex-row items-center pl-2 pb-1 h-[1rem]">
-            <MidAccountIcon />
+            <MdiAccountOutline />
             <div class="text-xs ml-0.5 mt-0.5">{{ selectedUser ? 'Edit User' : 'Invite Team' }}</div>
           </div>
           <div class="border-1 py-3 px-4 rounded-md mt-1">
@@ -224,7 +224,7 @@ const clickInviteMore = () => {
                 <a-button type="primary" html-type="submit">
                   <div v-if="selectedUser">{{ $t('general.save') }}</div>
                   <div v-else class="flex flex-row justify-center items-center space-x-1.5">
-                    <SendIcon class="flex h-[0.8rem]" />
+                    <MaterialSymbolsSendOutline class="flex h-[0.8rem]" />
                     <div>{{ $t('activity.invite') }}</div>
                   </div>
                 </a-button>

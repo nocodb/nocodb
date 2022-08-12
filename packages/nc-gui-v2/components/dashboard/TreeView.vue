@@ -1,15 +1,14 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
+import { Empty } from 'ant-design-vue'
 import { useNuxtApp, useRoute } from '#app'
 import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
 import { TabType } from '~/composables'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
-import MdiMenuDown from '~icons/mdi/chevron-down'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiDrag from '~icons/mdi/drag-vertical'
-import MdiPlus from '~icons/mdi/plus-circle-outline'
 
 const { addTab } = useTabs()
 
@@ -141,13 +140,15 @@ const activeTable = computed(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <div class="px-6 py-[11.75px] border-b-1">
-      <a-input-search
-        v-model:value="filterQuery"
-        size="small"
-        class="nc-filter-input"
-        :placeholder="$t('placeholder.searchProjectTree')"
-      />
+    <div class="px-6 py-[8.75px] border-b-1 nc-filter-input">
+      <div class="flex items-center bg-gray-50 rounded relative">
+        <a-input
+          v-model:value="filterQuery"
+          class="nc-filter-input !bg-transparent"
+          :placeholder="$t('placeholder.searchProjectTree')"
+        />
+        <MdiSearch class="nc-filter-input-icon text-gray-400 mx-3 absolute right-[-4px] top-[7px]" />
+      </div>
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
@@ -155,7 +156,6 @@ const activeTable = computed(() => {
         <div
           style="direction: ltr"
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
-          @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
         >
           <span class="flex-grow text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
@@ -163,7 +163,6 @@ const activeTable = computed(() => {
 
             <template v-if="tables?.length"> ({{ tables.length }}) </template>
           </span>
-
           <MdiPlus
             v-if="isUIAllowed('treeview-add-button')"
             v-t="['c:table:create:navdraw']"
@@ -177,11 +176,7 @@ const activeTable = computed(() => {
           />
         </div>
         <div style="direction: ltr" class="flex-1">
-          <div
-            v-if="tables.length"
-            class="transition-height duration-200 overflow-hidden"
-            :class="{ 'h-100': showTableList, 'h-0': !showTableList }"
-          >
+          <div v-if="tables.length" class="transition-height duration-200 overflow-hidden">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div
                 v-for="table of tables"
@@ -242,6 +237,14 @@ const activeTable = computed(() => {
               </div>
             </div>
           </div>
+
+          <a-card v-else class="mt-4 mx-4 !bg-gray-50">
+            <div class="flex flex-col align-center">
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+
+              <a-button type="primary" @click.stop="tableCreateDlg = true">{{ $t('tooltip.addTable') }}</a-button>
+            </div>
+          </a-card>
         </div>
       </div>
 
@@ -279,7 +282,7 @@ const activeTable = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
 }
@@ -306,7 +309,7 @@ const activeTable = computed(() => {
     @apply !pointer-events-none;
   }
 
-  &.dragging {
+  & .dragging {
     .nc-icon {
       @apply !hidden;
     }
@@ -335,6 +338,7 @@ const activeTable = computed(() => {
 
 .nc-tree-item.active {
   @apply !text-primary font-weight-bold after:(!opacity-20);
+
   svg {
     @apply !text-primary;
   }
@@ -342,5 +346,11 @@ const activeTable = computed(() => {
 
 .nc-tree-item:hover {
   @apply !text-grey after:(!opacity-5);
+}
+
+:deep(.nc-filter-input) {
+  .ant-input {
+    @apply pr-6 !border-0;
+  }
 }
 </style>

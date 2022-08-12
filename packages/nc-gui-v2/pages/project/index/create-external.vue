@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted } from '@vue/runtime-core'
-import { Form, Modal, notification } from 'ant-design-vue'
+import { Form, Modal, message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import { computed, ref, useSidebar, watch } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
@@ -142,9 +142,7 @@ const createProject = async () => {
     $e('a:project:create:extdb')
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
   loading.value = false
 }
@@ -185,16 +183,12 @@ const testConnection = async () => {
         })
       } else {
         testSuccess.value = false
-        notification.error({
-          message: `${t('msg.error.dbConnectionFailed')} ${result.message}`,
-        })
+        message.error(`${t('msg.error.dbConnectionFailed')} ${result.message}`)
       }
     }
   } catch (e: any) {
     testSuccess.value = false
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -219,11 +213,11 @@ onMounted(() => {
 </script>
 
 <template>
-  <a-card
-    class="max-w-[600px] mx-auto !mt-15 !mb-5 !shadow-md"
-    :title="$t('activity.createProject')"
-    :head-style="{ textAlign: 'center', fontWeight: '700' }"
-  >
+  <a-card class="max-w-[600px] mx-auto !mt-100px !mb-5 !shadow-md">
+    <GeneralNocoIcon />
+
+    <h3 class="text-3xl text-center font-semibold mt-8 mb-4">{{ $t('activity.createProject') }}</h3>
+
     <a-form
       ref="form"
       :model="formState"

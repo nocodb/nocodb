@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import type { ViewTypes } from 'nocodb-sdk'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { viewIcons } from '~/utils'
 import { onKeyStroke, useDebounceFn, useNuxtApp, useVModel } from '#imports'
 
@@ -104,10 +104,7 @@ async function onRename() {
   const isValid = props.onValidate(vModel.value)
 
   if (isValid !== true) {
-    notification.error({
-      message: isValid,
-      duration: 2,
-    })
+    message.error(isValid)
 
     onCancel()
     return

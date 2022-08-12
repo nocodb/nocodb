@@ -86,7 +86,7 @@ const isExpanded = useVModel(props, 'modelValue', emits)
       <div class="flex h-full nc-form-wrapper items-stretch">
         <div class="flex-grow overflow-auto scrollbar-thin-primary">
           <div class="w-[500px] mx-auto">
-            <div v-for="col in fields" :key="col.title" class="mt-2">
+            <div v-for="col in fields" :key="col.title" class="mt-2 py-2">
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
               <SmartsheetHeaderCell v-else :column="col" />
 

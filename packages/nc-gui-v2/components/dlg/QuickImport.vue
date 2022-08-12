@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, notification } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -132,9 +132,7 @@ async function handlePreImport() {
       await validate()
       await parseAndExtractData(importState.url, '')
     } catch (e: any) {
-      notification.error({
-        message: await extractSdkResponseErrorMsg(e),
-      })
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   } else if (activeKey.value === 'jsonEditorTab') {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor), '')
@@ -147,9 +145,7 @@ async function handleImport() {
     loading.value = true
     await templateEditorRef.value.importTemplate()
   } catch (e: any) {
-    return notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    return message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     loading.value = false
   }
@@ -163,9 +159,7 @@ async function parseAndExtractData(val: any, name: string) {
     importColumns.value = []
     const templateGenerator: any = getAdapter(name, val)
     if (!templateGenerator) {
-      notification.error({
-        message: 'Template Generator cannot be found!',
-      })
+      message.error('Template Generator cannot be found!')
       return
     }
     await templateGenerator.init()
@@ -176,18 +170,13 @@ async function parseAndExtractData(val: any, name: string) {
     if (importOnly) importColumns.value = templateGenerator.getColumns()
     templateEditorModal.value = true
   } catch (e: any) {
-    console.log(e)
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 function rejectDrop(fileList: any[]) {
   fileList.map((file) => {
-    return notification.error({
-      message: `Failed to upload file ${file.name}`,
-    })
+    return message.error(`Failed to upload file ${file.name}`)
   })
 }
 
@@ -204,13 +193,9 @@ function handleChange(info: UploadChangeParam) {
     reader.readAsArrayBuffer(info.file.originFileObj)
   }
   if (status === 'done') {
-    notification.success({
-      message: `Uploaded file ${info.file.name} successfully`,
-    })
+    message.success(`Uploaded file ${info.file.name} successfully`)
   } else if (status === 'error') {
-    notification.error({
-      message: `Failed to upload file ${info.file.name}`,
-    })
+    message.error(`Failed to upload file ${info.file.name}`)
   }
 }
 
@@ -250,7 +235,7 @@ function getAdapter(name: string, val: any) {
 
 <template>
   <a-modal v-model:visible="dialogShow" :width="modalWidth" :mask-closable="false" @keydown.esc="dialogShow = false">
-    <a-typography-title class="ml-5 mt-5 mb-5" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
+    <span class="prose-xl font-weight-bold ml-5 mt-5 mb-5" type="secondary" :level="5">{{ importMeta.header }}</span>
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
       <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
@@ -275,7 +260,7 @@ function getAdapter(name: string, val: any) {
         $t('activity.import')
       }}</a-button>
     </template>
-    <div class="ml-5 mr-5">
+    <div class="ml-5 mr-5 mt-5">
       <TemplateEditor
         v-if="templateEditorModal"
         ref="templateEditorRef"
@@ -345,7 +330,7 @@ function getAdapter(name: string, val: any) {
     <div v-if="!templateEditorModal" class="ml-5 mr-5">
       <a-divider />
       <div class="mb-4">
-        <span class="prose-xl font-bold">Advanced Settings</span>
+        <span class="prose-lg">Advanced Settings</span>
         <a-form-item class="mt-4 mb-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
           <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
         </a-form-item>

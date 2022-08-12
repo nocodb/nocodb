@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject, onClickOutside, useDebounceFn } from '#imports'
 import { ActiveViewInj, IsFormInj, MetaInj } from '~/context'
@@ -65,10 +65,7 @@ const activeRow = ref('')
 
 function updateView() {
   if ((formViewData.value?.subheading?.length || 0) > 255) {
-    notification.error({
-      message: 'Data too long for Form Description',
-      duration: 3,
-    })
+    message.error('Data too long for Form Description')
     return
   }
 
@@ -79,12 +76,7 @@ async function submitForm() {
   try {
     await formRef.value?.validateFields()
   } catch (e: any) {
-    e.errorFields.map((f: Record<string, any>) =>
-      notification.error({
-        message: f.errors.join(','),
-        duration: 3,
-      }),
-    )
+    e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     return
   }
 
@@ -154,10 +146,7 @@ function onMove(event: any) {
 
 function hideColumn(idx: number) {
   if (isDbRequired(localColumns.value[idx]) || localColumns.value[idx].required) {
-    notification.info({
-      message: "Required field can't be moved",
-      duration: 3,
-    })
+    message.info("Required field can't be moved")
     return
   }
 
@@ -203,10 +192,7 @@ async function checkSMTPStatus() {
     const emailPluginActive = await $api.plugin.status('SMTP')
     if (!emailPluginActive) {
       emailMe.value = false
-      notification.info({
-        message: 'Please activate SMTP plugin in App store for enabling email notification',
-        duration: 3,
-      })
+      message.info('Please activate SMTP plugin in App store for enabling email notification')
     }
   }
 }
@@ -277,10 +263,7 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
     try {
       $api.dbView.formColumnUpdate(col.id, col)
     } catch (e: any) {
-      notification.error({
-        message: await extractSdkResponseErrorMsg(e),
-        duration: 3,
-      })
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 }, 250)
@@ -333,7 +316,7 @@ onMounted(async () => {
           New form will be loaded after {{ secondsRemain }} seconds
         </div>
         <div v-if="formViewData.submit_another_form" class="text-center mt-4">
-          <a-button type="primary" size="large" @click="submitted = false"> Submit Another Form </a-button>
+          <a-button type="primary" size="large" @click="submitted = false"> Submit Another Form</a-button>
         </div>
       </div>
     </a-col>
@@ -423,9 +406,9 @@ onMounted(async () => {
     </a-col>
     <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-primary">
       <div class="h-[200px]">
-        <a-card class="h-full !bg-[#dbdad7] ma-0 rounded-b-0">
+        <a-card class="h-full !bg-[#dbdad7] ma-0 rounded-b-0 pa-8">
           <a-form ref="formRef" :model="formState">
-            <a-card class="rounded ma-10">
+            <a-card class="rounded ma-6 pb-10 px-15">
               <!-- Header -->
               <a-form-item class="ma-0 gap-0 pa-0">
                 <a-input
@@ -512,6 +495,7 @@ onMounted(async () => {
                       <a-form-item class="my-0 w-1/2">
                         <a-input
                           v-model:value="element.label"
+                          size="small"
                           class="form-meta-input !bg-[#dbdbdb]"
                           :placeholder="$t('msg.info.formInput')"
                           @change="updateColMeta(element)"
@@ -521,14 +505,15 @@ onMounted(async () => {
                       <a-form-item class="mt-2 mb-0 w-1/2">
                         <a-input
                           v-model:value="element.description"
-                          class="form-meta-input !bg-[#dbdbdb]"
+                          size="small"
+                          class="form-meta-input !bg-[#dbdbdb] text-sm"
                           :placeholder="$t('msg.info.formHelpText')"
                           @change="updateColMeta(element)"
                         />
                       </a-form-item>
                       <div class="items-center flex">
                         <span class="text-sm text-gray-500 mr-2">{{ $t('general.required') }}</span>
-                        <a-switch v-model:checked="element.required" class="my-2" @change="updateColMeta(element)" />
+                        <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
                       </div>
                     </div>
                     <span class="text-gray-500">{{ element.description }}</span>
@@ -543,51 +528,55 @@ onMounted(async () => {
                   </div>
                 </template>
               </Draggable>
+
+              <div class="justify-center flex mt-10">
+                <a-button class="flex items-center gap-2 !bg-primary text-white rounded" size="large" @click="submitForm">
+                  <!-- Submit -->
+                  {{ $t('general.submit') }}
+                </a-button>
+              </div>
             </a-card>
           </a-form>
 
-          <div class="justify-center flex mt-5">
-            <a-button class="flex items-center gap-2 !bg-primary text-white rounded" size="large" @click="submitForm">
-              <!-- Submit -->
-              {{ $t('general.submit') }}
-            </a-button>
-          </div>
-
-          <!-- After form is submitted -->
-          <div class="text-gray-500 mt-4 mb-2">
-            {{ $t('msg.info.afterFormSubmitted') }}
-          </div>
-          <!-- Show this message -->
-          <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
-          <a-textarea v-model:value="formViewData.success_msg" rows="3" hide-details @change="updateView" />
-
-          <!-- Other options -->
-          <div class="mt-4">
-            <div class="my-4">
-              <!-- Show "Submit Another Form" button -->
-              <a-switch
-                v-model:checked="formViewData.submit_another_form"
-                v-t="[`a:form-view:submit-another-form`]"
-                @change="updateView"
-              />
-              <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
+          <div class="mx-10 px-10">
+            <!-- After form is submitted -->
+            <div class="text-gray-500 mt-4 mb-2">
+              {{ $t('msg.info.afterFormSubmitted') }}
             </div>
+            <!-- Show this message -->
+            <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
+            <a-textarea v-model:value="formViewData.success_msg" rows="3" hide-details @change="updateView" />
 
-            <div class="my-4">
-              <!-- Show a blank form after 5 seconds -->
-              <a-switch
-                v-model:checked="formViewData.show_blank_form"
-                v-t="[`a:form-view:show-blank-form`]"
-                @change="updateView"
-              />
-              <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
-            </div>
-            <div class="my-4">
-              <a-switch v-model:checked="emailMe" v-t="[`a:form-view:email-me`]" @change="onEmailChange" />
-              <!-- Email me at <email> -->
-              <span class="ml-4">
-                {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>
-              </span>
+            <!-- Other options -->
+            <div class="mt-4">
+              <div class="my-4">
+                <!-- Show "Submit Another Form" button -->
+                <a-switch
+                  v-model:checked="formViewData.submit_another_form"
+                  v-t="[`a:form-view:submit-another-form`]"
+                  size="small"
+                  @change="updateView"
+                />
+                <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
+              </div>
+
+              <div class="my-4">
+                <!-- Show a blank form after 5 seconds -->
+                <a-switch
+                  v-model:checked="formViewData.show_blank_form"
+                  v-t="[`a:form-view:show-blank-form`]"
+                  size="small"
+                  @change="updateView"
+                />
+                <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
+              </div>
+              <div class="my-4">
+                <a-switch v-model:checked="emailMe" v-t="[`a:form-view:email-me`]" size="small" @change="onEmailChange" />
+                <!-- Email me at <email> -->
+                <span class="ml-4">
+                  {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>
+                </span>
+              </div>
             </div>
           </div>
         </a-card>

@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Modal, notification } from 'ant-design-vue'
+import { Modal, message } from 'ant-design-vue'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNuxtApp } from '#app'
@@ -12,8 +12,7 @@ import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
-
-const editColumnDropdown = ref(false)
+const emit = defineEmits(['edit'])
 
 const column = inject(ColumnInj)
 
@@ -36,9 +35,7 @@ const deleteColumn = () =>
         await $api.dbTableColumn.delete(column?.value?.id as string)
         getMeta(meta?.value?.id as string, true)
       } catch (e) {
-        notification.error({
-          message: await extractSdkResponseErrorMsg(e),
-        })
+        message.error(await extractSdkResponseErrorMsg(e))
       }
     },
   })
@@ -47,40 +44,19 @@ const setAsPrimaryValue = async () => {
   try {
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
     getMeta(meta?.value?.id as string, true)
-    notification.success({
-      message: 'Successfully updated as primary column',
-    })
+    message.success('Successfully updated as primary column')
   } catch (e) {
-    notification.error({
-      message: 'Failed to update primary column',
-    })
+    message.error('Failed to update primary column')
   }
-}
-
-function onVisibleChange() {
-  // only allow to close the EditOrAdd component
-  // by clicking cancel button
-  editColumnDropdown.value = true
 }
 </script>
 
 <template>
-  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']" @visible-change="onVisibleChange">
-    <span />
-    <template #overlay>
-      <SmartsheetColumnEditOrAdd
-        :edit-column-dropdown="editColumnDropdown"
-        @click.stop
-        @keydown.stop
-        @cancel="editColumnDropdown = false"
-      />
-    </template>
-  </a-dropdown>
-  <a-dropdown :trigger="['hover']">
+  <a-dropdown placement="bottomRight" :trigger="['hover']">
     <MdiMenuDownIcon class="text-grey nc-ui-dt-dropdown" />
     <template #overlay>
       <a-menu class="shadow bg-white">
-        <a-menu-item @click="editColumnDropdown = true">
+        <a-menu-item @click="emit('edit')">
           <div class="nc-column-edit nc-header-menu-item">
             <MdiEditIcon class="text-primary" />
             <!-- Edit -->

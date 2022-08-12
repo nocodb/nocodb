@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import AppInstall from './app-store/AppInstall.vue'
 import MdiEditIcon from '~icons/ic/round-edit'
 import MdiCloseCircleIcon from '~icons/mdi/close-circle-outline'
@@ -23,9 +23,7 @@ const fetchPluginApps = async () => {
       parsedInput: p.input && JSON.parse(p.input),
     }))
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -35,15 +33,11 @@ const resetPlugin = async () => {
       input: undefined,
       active: false,
     })
-    notification.success({
-      message: 'Plugin uninstalled successfully',
-    })
+    message.success('Plugin uninstalled successfully')
     showPluginUninstallModal = false
     await fetchPluginApps()
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:appstore:reset', { app: pluginApp.title })
@@ -116,7 +110,7 @@ onMounted(async () => {
             <div class="flex ml-0.5">Reset</div>
           </div>
         </a-button>
-        <a-button v-else size="small" outlined @click="showInstallPluginModal(app)">
+        <a-button v-else size="small" outlined type="primary" ghost @click="showInstallPluginModal(app)">
           <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-install">
             <MdiPlusIcon />
             Install

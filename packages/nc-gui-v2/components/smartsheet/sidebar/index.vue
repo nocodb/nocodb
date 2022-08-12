@@ -12,6 +12,8 @@ const activeView = inject(ActiveViewInj, ref())
 
 const { views, loadViews } = useViews(meta)
 
+const { isUIAllowed } = useUIPermission()
+
 const router = useRouter()
 
 const route = useRoute()
@@ -128,7 +130,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     <div v-if="sidebarOpen" class="flex-1 flex flex-col">
       <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 
-      <a-divider class="my-2" />
+      <a-divider v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="my-2" />
 
       <MenuBottom @open-modal="openModal" />
     </div>

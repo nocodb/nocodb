@@ -21,7 +21,7 @@ const logout = () => {
     <a-layout class="!flex-col">
       <a-layout-header class="flex !bg-primary items-center text-white pl-1 pr-4 shadow-lg">
         <div
-          v-if="route.name === 'index'"
+          v-if="route.name === 'index' || route.name === 'project-index-create' || route.name === 'project-index-create-external'"
           class="transition-all duration-200 p-2 cursor-pointer transform hover:scale-105"
           @click="navigateTo('/')"
         >

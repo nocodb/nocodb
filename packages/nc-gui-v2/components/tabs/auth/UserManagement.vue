@@ -4,6 +4,7 @@ import UsersModal from './user-management/UsersModal.vue'
 import FeedbackForm from './user-management/FeedbackForm.vue'
 import {
   extractSdkResponseErrorMsg,
+  onMounted,
   projectRoleTagColors,
   ref,
   useApi,
@@ -134,21 +135,16 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = (user: User) => {
   if (!user.invite_token) return
 
-  const getInviteUrl = (token: string) => `${dashboardUrl}/signup/${token}`
-
-  copy(getInviteUrl(user.invite_token))
+  copy(`${dashboardUrl}/signup/${user.invite_token}`)
 
     message.success('Invite url copied to clipboard')
 }
 
-onMounted(async () => {
+onMounted(() => {
   if (!users) {
     isLoading = true
-    try {
-      await loadUsers()
-    } finally {
-      isLoading = false
-    }
+
+    loadUsers().finally(() => (isLoading = false))
   }
 })
 

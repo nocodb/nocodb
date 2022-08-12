@@ -32,7 +32,7 @@ export function useProject(projectId?: MaybeRef<string>) {
   }
 
   async function loadProject() {
-    if(unref(projectId)){
+    if (unref(projectId)) {
       _projectId = unref(projectId)!
     } else if (projectType === 'base') {
       const baseData = await $api.public.sharedBaseGet(route.params.projectId as string)
@@ -44,7 +44,7 @@ export function useProject(projectId?: MaybeRef<string>) {
   }
 
   watchEffect(async () => {
-    if (project?.value ) {
+    if (project?.value) {
       await loadProjectRoles()
       await loadTables()
     }

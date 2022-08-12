@@ -9,6 +9,8 @@ const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boole
 const column = toRef(props, 'column')
 const hideMenu = toRef(props, 'hideMenu')
 
+const editColumnDropdown = ref(false)
+
 provide(ColumnInj, column)
 
 const { metas } = useMetas()
@@ -76,6 +78,12 @@ const tooltipMsg = computed(() => {
   return ''
 })
 
+function onVisibleChange() {
+  // only allow to close the EditOrAdd component
+  // by clicking cancel button
+  editColumnDropdown.value = true
+}
+
 useProvideColumnCreateStore(meta as Ref<TableType>, column)
 </script>
 
@@ -101,8 +109,26 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     <template v-if="!hideMenu">
       <v-spacer />
 
-      <SmartsheetHeaderMenu v-if="!isForm" :virtual="true" />
+      <SmartsheetHeaderMenu v-if="!isForm" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
+
+    <a-dropdown
+      v-model:visible="editColumnDropdown"
+      :trigger="['click']"
+      placement="bottomRight"
+      @visible-change="onVisibleChange"
+    >
+      <div />
+      <template #overlay>
+        <SmartsheetColumnEditOrAdd
+          class="w-full"
+          :edit-column-dropdown="editColumnDropdown"
+          @click.stop
+          @keydown.stop
+          @cancel="editColumnDropdown = false"
+        />
+      </template>
+    </a-dropdown>
   </div>
 </template>
 

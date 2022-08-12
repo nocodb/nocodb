@@ -16,6 +16,14 @@ const column = toRef(props, 'column')
 
 provide(ColumnInj, column)
 
+const editColumnDropdown = ref(false)
+
+function onVisibleChange() {
+  // only allow to close the EditOrAdd component
+  // by clicking cancel button
+  editColumnDropdown.value = true
+}
+
 // instantiate column update store
 useProvideColumnCreateStore(meta as Ref<TableType>, column)
 </script>
@@ -28,8 +36,26 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
 
     <template v-if="!hideMenu">
       <div class="flex-1" />
-      <SmartsheetHeaderMenu v-if="!isForm" />
+      <SmartsheetHeaderMenu v-if="!isForm" @edit="editColumnDropdown = true" />
     </template>
+
+    <a-dropdown
+      v-model:visible="editColumnDropdown"
+      :trigger="['click']"
+      placement="bottomRight"
+      @visible-change="onVisibleChange"
+    >
+      <div />
+      <template #overlay>
+        <SmartsheetColumnEditOrAdd
+          class="w-full"
+          :edit-column-dropdown="editColumnDropdown"
+          @click.stop
+          @keydown.stop
+          @cancel="editColumnDropdown = false"
+        />
+      </template>
+    </a-dropdown>
   </div>
 </template>
 

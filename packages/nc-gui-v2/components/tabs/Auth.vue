@@ -26,10 +26,10 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKey])
 
 <template>
   <div>
-    <a-tabs v-model:active-key="selectedTabKey" class="" :open-keys="[]" mode="horizontal">
+    <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs mx-6">
       <a-tabs-tab-pane v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
         <template #tab>
-          <span class="mx-3">
+          <span>
             {{ tab.title }}
           </span>
         </template>
@@ -41,3 +41,9 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKey])
     </div>
   </div>
 </template>
+
+<style scoped>
+:deep(.nc-auth-tabs .ant-tabs-nav::before) {
+  @apply !border-none;
+}
+</style>

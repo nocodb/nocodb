@@ -65,7 +65,7 @@ await loadTables()
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
 
-          <a-dropdown v-model:visible="dropdownOpen" :trigger="['click']">
+          <a-dropdown v-model:visible="dropdownOpen" :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"

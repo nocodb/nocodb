@@ -105,7 +105,7 @@ if (!formState.value?.column_name) {
 </script>
 
 <template>
-  <div class="min-w-[400px] w-max max-h-[95vh] bg-white shadow p-6 overflow-auto" @click.stop>
+  <div class="min-w-[400px] max-h-[95vh] bg-white shadow p-6 overflow-auto" @click.stop>
     <a-form v-model="formState" name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">

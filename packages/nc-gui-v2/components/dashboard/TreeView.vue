@@ -133,13 +133,15 @@ const activeTable = computed(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <div class="px-6 py-[11.75px] border-b-1">
-      <a-input-search
-        v-model:value="filterQuery"
-        size="small"
-        class="nc-filter-input"
-        :placeholder="$t('placeholder.searchProjectTree')"
-      />
+    <div class="px-6 py-[8.75px] border-b-1 nc-filter-input">
+      <div class="flex items-center bg-gray-50 rounded relative">
+        <a-input
+          v-model:value="filterQuery"
+          class="nc-filter-input !bg-transparent"
+          :placeholder="$t('placeholder.searchProjectTree')"
+        />
+        <MdiSearch class="nc-filter-input-icon text-gray-400 mx-3 absolute right-[-4px] top-[7px]" />
+      </div>
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
@@ -156,10 +158,7 @@ const activeTable = computed(() => {
           </span>
         </div>
         <div style="direction: ltr" class="flex-1">
-          <div
-            v-if="tables.length"
-            class="transition-height duration-200 overflow-hidden"
-          >
+          <div v-if="tables.length" class="transition-height duration-200 overflow-hidden">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div
                 v-for="table of tables"
@@ -239,7 +238,7 @@ const activeTable = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
 }
@@ -303,5 +302,11 @@ const activeTable = computed(() => {
 
 .nc-tree-item:hover {
   @apply !text-grey after:(!opacity-5);
+}
+
+:deep(.nc-filter-input) {
+  .ant-input {
+    @apply pr-6 !border-0;
+  }
 }
 </style>

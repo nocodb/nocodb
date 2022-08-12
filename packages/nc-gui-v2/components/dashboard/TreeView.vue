@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
+import { Empty } from 'ant-design-vue'
 import { useNuxtApp, useRoute } from '#app'
 import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
 import { TabType } from '~/composables'
@@ -207,7 +208,9 @@ const activeTable = computed(() => {
 
                     <template #overlay>
                       <a-menu class="cursor-pointer">
-                        <a-menu-item v-t="" class="!text-xs" @click="showRenameTableDlg(table)"><div>Rename</div></a-menu-item>
+                        <a-menu-item v-t="" class="!text-xs" @click="showRenameTableDlg(table)">
+                          <div>Rename</div>
+                        </a-menu-item>
 
                         <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
                       </a-menu>
@@ -217,6 +220,14 @@ const activeTable = computed(() => {
               </div>
             </div>
           </div>
+
+          <a-card v-else class="mt-4 mx-4 !bg-gray-50">
+            <div class="flex flex-col align-center">
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+
+              <a-button type="primary" @click.stop="tableCreateDlg = true">{{ $t('tooltip.addTable') }}</a-button>
+            </div>
+          </a-card>
         </div>
       </div>
 
@@ -271,7 +282,7 @@ const activeTable = computed(() => {
     @apply !pointer-events-none;
   }
 
-  &.dragging {
+  & .dragging {
     .nc-icon {
       @apply !hidden;
     }
@@ -300,6 +311,7 @@ const activeTable = computed(() => {
 
 .nc-tree-item.active {
   @apply !text-primary font-weight-bold after:(!opacity-20);
+
   svg {
     @apply !text-primary;
   }

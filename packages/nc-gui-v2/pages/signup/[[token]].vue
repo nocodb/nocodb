@@ -114,7 +114,7 @@ function resetError() {
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
                 <MaterialSymbolsWarning />
-                <div style="flex: 0 0 auto" class="break-words">{{ error }}</div>
+                <div class="break-words">{{ error }}</div>
               </div>
             </div>
           </Transition>

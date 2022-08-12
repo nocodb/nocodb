@@ -415,7 +415,11 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               </template>
             </SmartsheetRow>
 
-            <tr v-if="!isLocked">
+            <!-- 
+              TODO: add relationType !== 'bt' ?
+              v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'"> 
+            -->
+            <tr v-if="!isView && !isLocked && !isPublicView && isUIAllowed('xcDatatableEditable')">
               <td
                 v-t="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"

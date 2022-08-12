@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
+import { Empty } from 'ant-design-vue'
 import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel, watch } from '#imports'
 import { ColumnInj, IsFormInj } from '~/context'
 
@@ -64,7 +65,7 @@ const expandedFormRow = ref()
 
         <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
 
-        <a-button type="primary" class="!text-xs" size="small" @click="emit('attachRecord')">
+        <a-button type="primary" ghost class="!text-xs" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
             <MdiLinkVariantRemove class="text-xs text-white" @click="unlinkRow(row)" />
             Link to '{{ meta.title }}'
@@ -113,7 +114,7 @@ const expandedFormRow = ref()
           show-less-items
         />
       </template>
-      <a-empty v-else class="my-10" />
+      <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE"/>
     </div>
 
     <SmartsheetExpandedForm

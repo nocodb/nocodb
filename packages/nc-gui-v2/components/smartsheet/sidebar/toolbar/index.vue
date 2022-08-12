@@ -19,10 +19,6 @@ import Reload from './Reload.vue'
 
     <AddRow />
 
-    <div class="dot" />
-
-    <DeleteTable />
-
     <slot name="end" />
   </div>
 </template>

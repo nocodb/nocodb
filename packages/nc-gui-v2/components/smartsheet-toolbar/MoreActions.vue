@@ -117,7 +117,7 @@ const exportFile = async (exportType: ExportTypes.EXCEL | ExportTypes.CSV) => {
         </div>
       </a-button>
       <template #overlay>
-        <div class="bg-white shadow-lg">
+        <div class="bg-white shadow-lg !border">
           <div>
             <div class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
               <MdiDownloadIcon />

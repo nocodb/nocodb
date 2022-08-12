@@ -15,10 +15,10 @@ const { isGrid, isForm } = useSmartsheetStoreOrThrow()
     <SmartsheetToolbarShareView v-if="isForm || isGrid" />
 
     <SmartsheetToolbarMoreActions v-if="isGrid" />
-
-    <SmartsheetToolbarSearchData v-if="isGrid" class="shrink ml-2" />
-
     <div class="flex-1" />
+    <SmartsheetToolbarSearchData v-if="isGrid" class="shrink mr-2" />
+
+
   </div>
 </template>
 

@@ -112,7 +112,7 @@ defineExpose({
 
 <template>
   <div
-    class="p-6 menu-filter-dropdown bg-gray-50"
+    class="p-6 menu-filter-dropdown bg-gray-50 !border"
     :class="{ 'shadow-xl min-w-[430px] max-w-[630px] max-h-[max(80vh,500px)] overflow-auto': !nested, 'border-1 w-full': nested }"
   >
     <div v-if="filters && filters.length" class="nc-filter-grid mb-2" @click.stop>
@@ -272,7 +272,7 @@ defineExpose({
 <style scoped>
 .nc-filter-grid {
   display: grid;
-  grid-template-columns: 18px 70px auto auto auto;
+  grid-template-columns: 18px 75px auto auto auto;
   @apply gap-[12px]
   align-items: center;
 }

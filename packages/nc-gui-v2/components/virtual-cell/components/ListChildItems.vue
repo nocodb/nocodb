@@ -67,7 +67,7 @@ const expandedFormRow = ref()
 
         <a-button type="primary" ghost class="!text-xs" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
-            <MdiLinkVariantRemove class="text-xs text-white" @click="unlinkRow(row)" />
+            <MdiLinkVariantRemove class="text-xs" type="primary" @click="unlinkRow(row)" />
             Link to '{{ meta.title }}'
           </div>
         </a-button>

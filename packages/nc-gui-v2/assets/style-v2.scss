@@ -108,3 +108,48 @@ html {
 .ant-modal-wrap {
   @apply !scrollbar-thin-dull;
 }
+
+.animated-bg-gradient {
+  background: linear-gradient(122deg, #6f3381, #81c7d4, #fedfe1, #9ee59e);
+  background-size: 800% 800%;
+
+  -webkit-animation: gradient 4s ease infinite;
+  -moz-animation: gradient 4s ease infinite;
+  animation: gradient 4s ease infinite;
+}
+
+@-webkit-keyframes gradient {
+  0% {
+    background-position: 0% 22%
+  }
+  50% {
+    background-position: 100% 79%
+  }
+  100% {
+    background-position: 0% 22%
+  }
+}
+
+@-moz-keyframes gradient {
+  0% {
+    background-position: 0% 22%
+  }
+  50% {
+    background-position: 100% 79%
+  }
+  100% {
+    background-position: 0% 22%
+  }
+}
+
+@keyframes gradient {
+  0% {
+    background-position: 0% 22%
+  }
+  50% {
+    background-position: 100% 79%
+  }
+  100% {
+    background-position: 0% 22%
+  }
+}

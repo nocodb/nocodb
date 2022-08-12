@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { RuleObject } from 'ant-design-vue/es/form'
 import {
   definePageMeta,
   extractSdkResponseErrorMsg,
@@ -10,32 +9,33 @@ import {
   useApi,
   useGlobal,
   useI18n,
-  useSidebar,
+  useRoute,
 } from '#imports'
 
-const { signIn: _signIn } = useGlobal()
+definePageMeta({
+  requiresAuth: false,
+})
+
+const route = useRoute()
+
+const { appInfo, signIn } = useGlobal()
 
 const { api, isLoading } = useApi()
 
 const { t } = useI18n()
 
-useSidebar({ hasSidebar: false })
-
-definePageMeta({
-  requiresAuth: false,
-  title: 'title.headLogin',
-})
-
 const formValidator = ref()
 
 let error = $ref<string | null>(null)
+
+const subscribe = ref(false)
 
 const form = reactive({
   email: '',
   password: '',
 })
 
-const formRules: Record<string, RuleObject[]> = {
+const formRules = {
   email: [
     // E-mail is required
     { required: true, message: t('msg.error.signUpRules.emailReqd') },
@@ -43,7 +43,7 @@ const formRules: Record<string, RuleObject[]> = {
     {
       validator: (_: unknown, v: string) => {
         return new Promise((resolve, reject) => {
-          if (isEmail(v)) return resolve()
+          if (isEmail(v)) return resolve(true)
           reject(new Error(t('msg.error.signUpRules.emailInvalid')))
         })
       },
@@ -53,22 +53,32 @@ const formRules: Record<string, RuleObject[]> = {
   password: [
     // Password is required
     { required: true, message: t('msg.error.signUpRules.passwdRequired') },
+    { min: 8, message: t('msg.error.signUpRules.passwdLength') },
   ],
 }
 
-async function signIn() {
+async function signUp() {
   if (!formValidator.value.validate()) return
 
   resetError()
 
+  const data: any = {
+    ...form,
+    token: route.params.token,
+  }
+
+  if (subscribe.value) {
+    data.ignore_subscribe = !subscribe.value
+  }
+
   api.auth
-    .signin(form)
+    .signup(data)
     .then(async ({ token }) => {
-      _signIn(token!)
+      signIn(token!)
+
       await navigateTo('/')
     })
     .catch(async (err) => {
-      // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
       error = await extractSdkResponseErrorMsg(err)
     })
 }
@@ -80,24 +90,26 @@ function resetError() {
 
 <template>
   <NuxtLayout>
-    <a-form
-      ref="formValidator"
-      :model="form"
-      layout="vertical"
-      class="bg-primary/5 signin h-full min-h-[600px] flex justify-center items-center nc-form-signin"
-      @finish="signIn"
-    >
-      <div class="h-full w-full flex flex-col flex-wrap items-center pt-[100px]">
-        <div
-          class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
-        >
-          <general-noco-icon
-            class="!rounded-full color-transition hover:(ring ring-pink-500)"
-            :class="[isLoading ? 'animated-bg-gradient' : '']"
-          />
+    <div class="bg-primary/5 signup h-full min-h-[600px] flex flex-col justify-center items-center nc-form-signup">
+      <div
+        class="bg-white dark:(!bg-gray-900 !text-white) mt-[60px] relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
+      >
+        <general-noco-icon
+          class="color-transition hover:(ring ring-pink-500)"
+          :class="[isLoading ? 'animated-bg-gradient' : '']"
+        />
 
-          <h1 class="prose-2xl font-bold self-center my-4">{{ $t('general.signIn') }}</h1>
+        <h1 class="prose-2xl font-bold self-center my-4">
+          {{ $t('general.signUp') }}
+          {{ $route.query.redirect_to === '/referral' ? '& REFER' : '' }}
+          {{ $route.query.redirect_to === '/pricing' ? '& BUY' : '' }}
+        </h1>
 
+        <h2 v-if="appInfo.firstUser" class="prose !text-primary font-semibold self-center my-4">
+          {{ $t('msg.info.signUp.superAdmin') }}
+        </h2>
+
+        <a-form ref="formValidator" :model="form" layout="vertical" no-style @finish="signUp">
           <Transition name="layout">
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
@@ -121,36 +133,43 @@ function resetError() {
             />
           </a-form-item>
 
-          <div class="hidden md:block self-end">
-            <nuxt-link class="prose-sm" to="/forgot-password">
-              {{ $t('msg.info.signUp.forgotPassword') }}
-            </nuxt-link>
-          </div>
-
-          <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4 justify-center">
+          <div class="self-center flex flex-col flex-wrap gap-4 items-center mt-4">
             <button class="submit" type="submit">
-              <span class="flex items-center gap-2"><MdiLogin /> {{ $t('general.signIn') }}</span>
+              <span class="flex items-center gap-2">
+                <MaterialSymbolsRocketLaunchOutline />
+
+                {{ $t('general.signUp') }}
+              </span>
             </button>
 
-            <div class="text-end prose-sm">
-              {{ $t('msg.info.signUp.dontHaveAccount') }}
-              <nuxt-link to="/signup">{{ $t('general.signUp') }}</nuxt-link>
+            <div class="flex items-center gap-2">
+              <a-switch
+                v-model:checked="subscribe"
+                size="small"
+                class="my-1 hover:(ring ring-pink-500) focus:(!ring !ring-pink-500)"
+              />
+              <div class="prose-xs text-gray-500">Subscribe to our weekly newsletter</div>
             </div>
 
-            <div class="md:hidden">
-              <nuxt-link class="prose-sm" to="/forgot-password">
-                {{ $t('msg.info.signUp.forgotPassword') }}
-              </nuxt-link>
+            <div class="text-end prose-sm">
+              {{ $t('msg.info.signUp.alreadyHaveAccount') }}
+
+              <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
             </div>
           </div>
-        </div>
+        </a-form>
       </div>
-    </a-form>
+
+      <div class="prose-sm mt-4 text-gray-500">
+        By signing up, you agree to the
+        <a class="prose-sm text-pink-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">Terms of Service</a>
+      </div>
+    </div>
   </NuxtLayout>
 </template>
 
 <style lang="scss">
-.signin {
+.signup {
   .ant-input-affix-wrapper,
   .ant-input {
     @apply dark:(bg-gray-700 !text-white) !appearance-none my-1 border-1 border-solid border-primary/50 rounded;

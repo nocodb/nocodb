@@ -13,6 +13,18 @@ export interface FeedbackForm {
 
 export interface AppInfo {
   ncSiteUrl: string
+  authType: 'jwt' | 'masterKey' | 'none'
+  connectToExternalDB: boolean
+  defaultLimit: number
+  firstUser: boolean
+  githubAuthEnabled: boolean
+  googleAuthEnabled: boolean
+  ncMin: boolean
+  oneClick: boolean
+  projectHasAdmin: boolean
+  teleEnabled: boolean
+  type: string
+  version: string
 }
 
 export interface StoredState {

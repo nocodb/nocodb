@@ -1,14 +1,7 @@
 <script setup lang="ts">
-import { useI18n } from 'vue-i18n'
-import { definePageMeta } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { useNuxtApp } from '#app'
-import { isEmail } from '~/utils/validation'
-import MdiLogin from '~icons/mdi/login'
-import MaterialSymbolsWarning from '~icons/material-symbols/warning'
-import ClaritySuccessLine from '~icons/clarity/success-line'
+import { definePageMeta, extractSdkResponseErrorMsg, isEmail, reactive, ref, useApi, useI18n } from '#imports'
 
-const { $api } = $(useNuxtApp())
+const { api, isLoading } = useApi()
 
 const { t } = useI18n()
 
@@ -18,6 +11,7 @@ definePageMeta({
 })
 
 let error = $ref<string | null>(null)
+
 let success = $ref(false)
 
 const formValidator = ref()
@@ -43,13 +37,14 @@ const formRules = {
   ],
 }
 
-const resetPassword = async () => {
-  const valid = formValidator.value.validate()
-  if (!valid) return
+async function resetPassword() {
+  if (!formValidator.value.validate()) return
 
-  error = null
+  resetError()
+
   try {
-    await $api.auth.passwordForgot(form)
+    await api.auth.passwordForgot(form)
+
     success = true
   } catch (e: any) {
     // todo: errors should not expose what was wrong (i.e. do not show "Password is wrong" messages)
@@ -57,10 +52,8 @@ const resetPassword = async () => {
   }
 }
 
-const resetError = () => {
-  if (error) {
-    error = null
-  }
+function resetError() {
+  if (error) error = null
 }
 </script>
 
@@ -70,34 +63,41 @@ const resetError = () => {
       ref="formValidator"
       layout="vertical"
       :model="form"
-      class="forgot-password h-full min-h-[600px] flex justify-center items-center"
+      class="bg-primary/5 forgot-password h-full min-h-[600px] flex justify-center items-center"
       @finish="resetPassword"
     >
       <div class="h-full w-full flex flex-col flex-wrap justify-center items-center">
         <div
           class="color-transition bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
-          <general-noco-icon />
+          <general-noco-icon
+            class="color-transition hover:(ring ring-pink-500)"
+            :class="[isLoading ? 'animated-bg-gradient' : '']"
+          />
 
-          <div class="self-center flex flex-col justify-center items-center text-center gap-4">
+          <div class="self-center flex flex-col justify-center items-center text-center gap-2">
             <h1 class="prose-2xl font-bold my-4 w-full">{{ $t('title.resetPassword') }}</h1>
 
             <template v-if="!success">
-              <p class="prose-sm">{{ $t('msg.info.passwordRecovery.message_1') }}</p>
-              <p class="prose-sm mb-4">{{ $t('msg.info.passwordRecovery.message_2') }}</p>
+              <div class="prose-sm">{{ $t('msg.info.passwordRecovery.message_1') }}</div>
+              <div class="prose-sm mb-4">{{ $t('msg.info.passwordRecovery.message_2') }}</div>
             </template>
+
             <template v-else>
-              <p class="prose-sm text-success flex items-center leading-8 gap-2">
+              <div class="prose-sm text-success flex items-center leading-8 gap-2">
                 {{ $t('msg.info.passwordRecovery.success') }} <ClaritySuccessLine />
-              </p>
+              </div>
 
               <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
             </template>
           </div>
 
           <Transition name="layout">
-            <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 p-1">
-              <div class="flex items-center gap-2 justify-center"><MaterialSymbolsWarning /> {{ error }}</div>
+            <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
+              <div class="flex items-center gap-2 justify-center">
+                <MaterialSymbolsWarning />
+                <div style="flex: 0 0 auto" class="break-words">{{ error }}</div>
+              </div>
             </div>
           </Transition>
 
@@ -105,10 +105,11 @@ const resetError = () => {
             <a-input v-model:value="form.email" size="large" :placeholder="$t('labels.email')" @focus="resetError" />
           </a-form-item>
 
-          <div class="self-center flex flex-wrap gap-4 items-center mt-4 md:mx-8 md:justify-between justify-center w-full">
+          <div class="self-center flex flex-col gap-4 items-center justify-center w-full">
             <button class="submit" type="submit">
               <span class="flex items-center gap-2"><MdiLogin /> {{ $t('activity.sendEmail') }}</span>
             </button>
+
             <div class="text-end prose-sm">
               {{ $t('msg.info.signUp.alreadyHaveAccount') }}
               <nuxt-link to="/signin">{{ $t('general.signIn') }}</nuxt-link>
@@ -128,7 +129,21 @@ const resetError = () => {
   }
 
   .submit {
-    @apply ml-1 border border-gray-300 rounded-lg p-4 bg-gray-100/50 text-white bg-primary hover:bg-primary/75 dark:(!bg-secondary/75 hover:!bg-secondary/50);
+    @apply z-1 relative color-transition border border-gray-300 rounded-md p-3 bg-gray-100/50 text-white bg-primary;
+
+    &::after {
+      @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out bg-primary;
+      content: '';
+      z-index: -1;
+    }
+
+    &:hover::after {
+      @apply transform scale-110 ring ring-pink-500;
+    }
+
+    &:active::after {
+      @apply ring ring-pink-500;
+    }
   }
 }
 </style>

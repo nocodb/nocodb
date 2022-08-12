@@ -62,6 +62,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     if (!response.users) return
 
     totalRows = response.users.pageInfo.totalRows ?? 0
+
     users = response.users.list as User[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -74,7 +75,7 @@ const inviteUser = async (user: User) => {
 
     await api.auth.projectUserAdd(project.value.id, user)
 
-        message.success('Successfully added user to project')
+    message.success('Successfully added user to project')
     await loadUsers()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -89,7 +90,8 @@ const deleteUser = async () => {
 
     await api.auth.projectUserRemove(project.value.id, selectedUser.id)
 
-        message.success('Successfully deleted user from project')
+    message.success('Successfully deleted user from project')
+
     await loadUsers()
 
     showUserDeleteModal = false
@@ -137,7 +139,7 @@ const copyInviteUrl = (user: User) => {
 
   copy(`${dashboardUrl}/signup/${user.invite_token}`)
 
-    message.success('Invite url copied to clipboard')
+  message.success('Invite url copied to clipboard')
 }
 
 onMounted(() => {
@@ -298,12 +300,3 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
     </div>
   </div>
 </template>
-
-<style scoped>
-.users-table {
-  /* equally spaced columns in table */
-  table-layout: fixed;
-
-  width: 100%;
-}
-</style>

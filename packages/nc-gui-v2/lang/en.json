@@ -194,6 +194,7 @@
     "username": "Username",
     "password": "Password",
     "schemaName": "Schema name",
+    "database": "Database",
     "action": "Action",
     "actions": "Actions",
     "operation": "Operation",

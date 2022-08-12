@@ -130,7 +130,7 @@ watch(isOpen, (n, _o) => {
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"
       >
-        <span class="text-slate-500">{{ val }}</span>
+        <span class="w-full text-slate-500">{{ val }}</span>
       </a-tag>
     </template>
   </a-select>
@@ -168,6 +168,10 @@ watch(isOpen, (n, _o) => {
 }
 :deep(.ant-tag-close-icon) {
   @apply "text-slate-500";
+}
+
+:deep(.ant-select-selection-overflow-item) {
+  @apply "flex overflow-hidden";
 }
 </style>
 <!--

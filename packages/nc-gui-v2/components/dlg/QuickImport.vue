@@ -175,8 +175,8 @@ async function parseAndExtractData(val: any, name: string) {
 }
 
 function rejectDrop(fileList: any[]) {
-  fileList.map((_) => {
-    return message.error('Template Generator cannot be found!')
+  fileList.map((file) => {
+    return message.error(`Failed to upload file ${file.name}`)
   })
 }
 

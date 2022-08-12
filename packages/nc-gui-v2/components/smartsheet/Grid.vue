@@ -43,6 +43,8 @@ const isLocked = inject(IsLockedInj, false)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
+const { isUIAllowed } = useUIPermission()
+
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
 
@@ -322,7 +324,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 </div>
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
-              <th v-t="['c:column:add']" @click="addColumnDropdown = true">
+              <th v-if="isUIAllowed('add-column')" v-t="['c:column:add']" @click="addColumnDropdown = true">
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlus class="text-sm" />

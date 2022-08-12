@@ -764,16 +764,21 @@ export async function columnUpdate(req: Request, res: Response<TableType>) {
       }
 
       // Handle default values
+      const optionTitles = colBody.colOptions.options.map(el => el.title);
       if (colBody.cdf) {
-        
-        if (driverType === 'mysql' || driverType === 'mysql2') {
-          
-        } else if (driverType === 'pg') {
-          
-        } else if (driverType === 'mssql') {
-          
-        } else if (driverType === 'sqlite3') {
-          
+        if (colBody.uidt === UITypes.SingleSelect) {
+          if (!optionTitles.includes(colBody.cdf)) {
+            NcError.badRequest(`Default value '${colBody.cdf}' is not a select option.`);
+          }
+        } else {
+          for (const cdf of colBody.cdf.split(',')) {
+            if (!optionTitles.includes(cdf)) {
+              NcError.badRequest(`Default value '${cdf}' is not a select option.`);
+            }
+          }
+        }
+        if (driverType === 'pg') {
+          colBody.cdf = `'${colBody.cdf}'`;
         }
       }
       

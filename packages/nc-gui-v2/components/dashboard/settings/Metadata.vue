@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { h, useNuxtApp, useProject } from '#imports'
 import MdiReload from '~icons/mdi/reload'
 import MdiDatabaseSync from '~icons/mdi/database-sync'
@@ -38,14 +38,10 @@ async function syncMetaDiff() {
 
     isLoading = true
     await $api.project.metaDiffSync(project.value.id)
-    notification.info({
-      message: 'Table metadata recreated successfully',
-    })
+    message.info('Table metadata recreated successfully')
     await loadMetaDiff()
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     isLoading = false
   }

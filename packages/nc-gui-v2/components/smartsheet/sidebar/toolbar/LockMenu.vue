@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { computed, useSmartsheetStoreOrThrow } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import MdiLockOutlineIcon from '~icons/mdi/lock-outline'
@@ -20,9 +20,7 @@ async function changeLockType(type: LockType) {
   $e('a:grid:lockmenu', { lockType: type })
 
   if (type === 'personal') {
-    return notification.info({
-      message: 'Coming soon',
-    })
+    return message.info('Coming soon')
   }
   try {
     ;(view.value as any).lock_type = type
@@ -30,13 +28,9 @@ async function changeLockType(type: LockType) {
       lock_type: type,
     })
 
-    notification.success({
-      message: `Successfully Switched to ${type} view`,
-    })
+    message.success(`Successfully Switched to ${type} view`)
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

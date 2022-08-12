@@ -3,7 +3,7 @@ import { onMounted } from '@vue/runtime-core'
 import type { Form } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { ref } from 'vue'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { navigateTo, useRoute } from '#app'
 import { extractSdkResponseErrorMsg, projectTitleValidator } from '~/utils'
 import MaterialSymbolsRocketLaunchOutline from '~icons/material-symbols/rocket-launch-outline'
@@ -32,9 +32,7 @@ const getProject = async () => {
     const result: ProjectType = await api.project.read(route.params.id as string)
     formState.title = result.title as string
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -44,9 +42,7 @@ const renameProject = async () => {
 
     navigateTo(`/nc/${route.params.id}`)
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

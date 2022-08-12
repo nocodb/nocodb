@@ -1,4 +1,4 @@
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RelationTypes, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -52,10 +52,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         relatedRowId,
       )
     } catch (e: any) {
-      notification.error({
-        message: 'Linking failed',
-        description: await extractSdkResponseErrorMsg(e),
-      })
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 

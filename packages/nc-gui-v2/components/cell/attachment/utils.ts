@@ -1,4 +1,4 @@
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import FileSaver from 'file-saver'
 import { computed, inject, ref, useApi, useFileDialog, useInjectionState, useProject, watch } from '#imports'
 import { ColumnInj, EditModeInj, MetaInj, ReadonlyInj } from '~/context'
@@ -88,9 +88,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
           newAttachments.push(...data)
         } catch (e: any) {
-          notification.error({
-            message: e.message || 'Some internal error occurred',
-          })
+          message.error(e.message || 'Some internal error occurred')
         }
       }
 

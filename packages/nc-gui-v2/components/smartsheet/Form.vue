@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import { computed, inject, onClickOutside, useDebounceFn } from '#imports'
 import { ActiveViewInj, IsFormInj, MetaInj } from '~/context'
@@ -65,10 +65,7 @@ const activeRow = ref('')
 
 function updateView() {
   if ((formViewData.value?.subheading?.length || 0) > 255) {
-    notification.error({
-      message: 'Data too long for Form Description',
-      duration: 3,
-    })
+    message.error('Data too long for Form Description')
     return
   }
 
@@ -79,12 +76,7 @@ async function submitForm() {
   try {
     await formRef.value?.validateFields()
   } catch (e: any) {
-    e.errorFields.map((f: Record<string, any>) =>
-      notification.error({
-        message: f.errors.join(','),
-        duration: 3,
-      }),
-    )
+    e.errorFields.map((f: Record<string, any>) => message.error(f.errors.join(',')))
     return
   }
 
@@ -154,10 +146,7 @@ function onMove(event: any) {
 
 function hideColumn(idx: number) {
   if (isDbRequired(localColumns.value[idx]) || localColumns.value[idx].required) {
-    notification.info({
-      message: "Required field can't be moved",
-      duration: 3,
-    })
+    message.info("Required field can't be moved")
     return
   }
 
@@ -203,10 +192,7 @@ async function checkSMTPStatus() {
     const emailPluginActive = await $api.plugin.status('SMTP')
     if (!emailPluginActive) {
       emailMe.value = false
-      notification.info({
-        message: 'Please activate SMTP plugin in App store for enabling email notification',
-        duration: 3,
-      })
+      message.info('Please activate SMTP plugin in App store for enabling email notification')
     }
   }
 }
@@ -277,10 +263,7 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
     try {
       $api.dbView.formColumnUpdate(col.id, col)
     } catch (e: any) {
-      notification.error({
-        message: await extractSdkResponseErrorMsg(e),
-        duration: 3,
-      })
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   }
 }, 250)

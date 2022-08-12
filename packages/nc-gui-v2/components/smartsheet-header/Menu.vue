@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Modal, notification } from 'ant-design-vue'
+import { Modal, message } from 'ant-design-vue'
 import { inject } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useNuxtApp } from '#app'
@@ -36,9 +36,7 @@ const deleteColumn = () =>
         await $api.dbTableColumn.delete(column?.value?.id as string)
         getMeta(meta?.value?.id as string, true)
       } catch (e) {
-        notification.error({
-          message: await extractSdkResponseErrorMsg(e),
-        })
+        message.error(await extractSdkResponseErrorMsg(e))
       }
     },
   })
@@ -47,13 +45,9 @@ const setAsPrimaryValue = async () => {
   try {
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
     getMeta(meta?.value?.id as string, true)
-    notification.success({
-      message: 'Successfully updated as primary column',
-    })
+    message.success('Successfully updated as primary column')
   } catch (e) {
-    notification.error({
-      message: 'Failed to update primary column',
-    })
+    message.error('Failed to update primary column')
   }
 }
 

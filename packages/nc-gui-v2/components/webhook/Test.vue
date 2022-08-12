@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onMounted } from '@vue/runtime-core'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
@@ -39,13 +39,9 @@ async function testWebhook() {
       payload: sampleData.value,
     })
 
-    notification.success({
-      message: 'Webhook tested successfully',
-    })
+    message.success('Webhook tested successfully')
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

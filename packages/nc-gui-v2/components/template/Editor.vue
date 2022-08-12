@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { Form, notification } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
 import { computed, onMounted } from '#imports'
 import { extractSdkResponseErrorMsg, fieldRequiredValidator, getUIDTIcon } from '~/utils'
@@ -181,10 +181,7 @@ function missingRequiredColumnsValidation() {
       (c.pk ? !c.ai && !c.cdf : !c.cdf && c.rqd) && !srcDestMapping.value.some((r) => r.destCn === c.title),
   )
   if (missingRequiredColumns.length) {
-    notification.error({
-      message: `Following columns are required : ${missingRequiredColumns.map((c) => c.title).join(', ')}`,
-      duration: 3,
-    })
+    message.error(`Following columns are required : ${missingRequiredColumns.map((c) => c.title).join(', ')}`)
     return false
   }
   return true
@@ -192,10 +189,7 @@ function missingRequiredColumnsValidation() {
 
 function atLeastOneEnabledValidation() {
   if (srcDestMapping.value.filter((v) => v.enabled === true).length === 0) {
-    notification.error({
-      message: 'At least one column has to be selected',
-      duration: 3,
-    })
+    message.error('At least one column has to be selected')
     return false
   }
   return true
@@ -210,18 +204,12 @@ function fieldsValidation(record: Record<string, any>) {
   const tableName = meta?.value.title || ''
 
   if (!record.destCn) {
-    notification.error({
-      message: `Cannot find the destination column for ${record.srcCn}`,
-      duration: 3,
-    })
+    message.error(`Cannot find the destination column for ${record.srcCn}`)
     return false
   }
 
   if (srcDestMapping.value.filter((v) => v.destCn === record.destCn).length > 1) {
-    notification.error({
-      message: 'Duplicate mapping found, please remove one of the mapping',
-      duration: 3,
-    })
+    message.error('Duplicate mapping found, please remove one of the mapping')
     return false
   }
 
@@ -234,10 +222,7 @@ function fieldsValidation(record: Record<string, any>) {
         .slice(0, maxRowsToParse)
         .some((r: Record<string, any>) => r[record.srcCn] === null || r[record.srcCn] === undefined || r[record.srcCn] === '')
     ) {
-      notification.error({
-        message: 'null value violates not-null constraint',
-        duration: 3,
-      })
+      message.error('null value violates not-null constraint')
     }
   }
 
@@ -250,10 +235,7 @@ function fieldsValidation(record: Record<string, any>) {
             (r: Record<string, any>) => r[record.sourceCn] !== null && r[record.srcCn] !== undefined && isNaN(+r[record.srcCn]),
           )
       ) {
-        notification.error({
-          message: 'Source data contains some invalid numbers',
-          duration: 3,
-        })
+        message.error('Source data contains some invalid numbers')
         return false
       }
       break
@@ -280,10 +262,7 @@ function fieldsValidation(record: Record<string, any>) {
           return false
         })
       ) {
-        notification.error({
-          message: 'Source data contains some invalid boolean values',
-          duration: 3,
-        })
+        message.error('Source data contains some invalid boolean values')
         return false
       }
       break
@@ -340,15 +319,9 @@ async function importTemplate() {
       // reload table
       reloadHook.trigger()
 
-      notification.success({
-        message: 'Successfully imported table data',
-        duration: 3,
-      })
+      message.success('Successfully imported table data')
     } catch (e: any) {
-      notification.error({
-        message: e.message,
-        duration: 3,
-      })
+      message.error(e.message)
     } finally {
       isImporting.value = false
     }
@@ -439,9 +412,7 @@ async function importTemplate() {
         type: 'table',
       })
     } catch (e: any) {
-      notification.error({
-        message: await extractSdkResponseErrorMsg(e),
-      })
+      message.error(await extractSdkResponseErrorMsg(e))
     } finally {
       isImporting.value = false
     }

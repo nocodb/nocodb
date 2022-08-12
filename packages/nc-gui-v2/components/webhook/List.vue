@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { MetaInj } from '~/context'
 import { inject, onMounted, ref, useNuxtApp } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
@@ -20,9 +20,7 @@ async function loadHooksList() {
       return hook
     })
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -34,16 +32,12 @@ async function deleteHook(item: Record<string, any>, index: number) {
     } else {
       hooks.value.splice(index, 1)
     }
-    notification.success({
-      message: 'Hook deleted successfully',
-    })
+    message.success('Hook deleted successfully')
     if (!hooks.value.length) {
       hooks.value = []
     }
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:webhook:delete')

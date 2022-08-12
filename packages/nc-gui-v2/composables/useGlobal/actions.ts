@@ -1,4 +1,4 @@
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { Actions, State } from './types'
 import { useNuxtApp } from '#imports'
 
@@ -40,12 +40,7 @@ export function useGlobalActions(state: State): Actions {
         }
       })
       .catch((err) => {
-        notification.error({
-          // todo: add translation
-          message: err.message || 'You have been signed out.',
-        })
-        console.error(err)
-
+        message.error(err.message || 'You have been signed out.')
         signOut()
       })
   }

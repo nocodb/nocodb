@@ -13,8 +13,8 @@ export function addAxiosInterceptors(api: Api<any>) {
 
     if (state.token.value) config.headers['xc-auth'] = state.token.value
 
-    if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
-      // config.headers['xc-preview'] = store.state.users.previewAs
+    if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles') && state.previewAs?.value) {
+      config.headers['xc-preview'] = state.previewAs.value
     }
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {

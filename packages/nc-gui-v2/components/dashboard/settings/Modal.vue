@@ -160,6 +160,7 @@ watch(
 
 <style scoped>
 .modal-body {
-  @apply min-h-[75vh];
+  @apply h-[75vh];
+  @apply overflow-y-auto;
 }
 </style>

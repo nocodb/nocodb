@@ -69,7 +69,7 @@ async function onSubmit() {
 
 // create column meta if it's a new column
 watchEffect(() => {
-  if (!isEdit.value) {
+  if (!isEdit.value && formState.value.altered !== 1) {
     generateNewColumnMeta()
   }
 })

@@ -489,7 +489,8 @@ onMounted(() => {
         </a-col>
 
         <a-col :span="24">
-          <a-tabs v-model:activeKey="urlTabKey" centered>
+          <a-tabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="shadow-sm">
+
             <a-tab-pane key="body" tab="Body">
               <MonacoEditor v-model="hook.notification.payload.body" :validate="false" class="min-h-60 max-h-80" />
             </a-tab-pane>
@@ -501,7 +502,7 @@ onMounted(() => {
             </a-tab-pane>
             <a-tab-pane key="auth" tab="Auth">
               <MonacoEditor v-model="hook.notification.payload.auth" class="min-h-60 max-h-80" />
-              <span class="text-gray-600 prose-sm">
+              <span class="text-gray-500 prose-sm p-2">
                 For more about auth option refer
                 <a class="prose-sm" href="https://github.com/axios/axios#request-config" target="_blank">axios docs</a>.
               </span>

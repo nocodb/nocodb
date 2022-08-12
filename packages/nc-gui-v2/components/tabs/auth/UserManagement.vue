@@ -235,7 +235,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             </template>
             <a-button type="text" class="!rounded-md" @click="onEdit(user)">
               <template #icon>
-                <MdiEditIcon class="flex mx-auto h-[1rem]" />
+                <MdiEditIcon class="flex mx-auto h-[1rem] text-gray-500" />
               </template>
             </a-button>
           </a-tooltip>
@@ -245,7 +245,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             </template>
             <a-button type="text" class="!rounded-md" @click="inviteUser(user)">
               <template #icon>
-                <MdiPlusIcon class="flex mx-auto h-[1.1rem]" />
+                <MdiPlusIcon class="flex mx-auto h-[1.1rem] text-gray-500" />
               </template>
             </a-button>
           </a-tooltip>
@@ -256,7 +256,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             </template>
             <a-button type="text" class="!rounded-md" @click="onDelete(user)">
               <template #icon>
-                <MdiDeleteOutlineIcon class="flex mx-auto h-[1.1rem]" />
+                <MdiDeleteOutlineIcon class="flex mx-auto h-[1.1rem] text-gray-500 " />
               </template>
             </a-button>
           </a-tooltip>
@@ -273,13 +273,13 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
               <a-menu>
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="resendInvite(user)">
-                    <MdiEmailSendIcon class="flex h-[1rem]" />
+                    <MdiEmailSendIcon class="flex h-[1rem] text-gray-500" />
                     <div class="text-xs pl-2">Resend invite email</div>
                   </div>
                 </a-menu-item>
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="copyInviteUrl(user)">
-                    <MdiContentCopyIcon class="flex h-[1rem]" />
+                    <MdiContentCopyIcon class="flex h-[1rem] text-gray-500"  />
                     <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                   </div>
                 </a-menu-item>

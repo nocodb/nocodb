@@ -6,6 +6,7 @@ import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'
 import { AntDesignVueResolver } from 'unplugin-vue-components/resolvers'
 import monacoEditorPlugin from 'vite-plugin-monaco-editor'
+import { themeColors } from './utils/colorsUtils'
 
 // https://v3.nuxtjs.org/api/configuration/nuxt.config
 export default defineNuxtConfig({
@@ -50,7 +51,7 @@ export default defineNuxtConfig({
     css: {
       preprocessorOptions: {
         less: {
-          modifyVars: { 'primary-color': '#1348ba', 'text-color': 'rgba(61, 61, 61, 1)' },
+          modifyVars: { 'primary-color': themeColors.primary, 'text-color': 'rgba(61, 61, 61, 1)' },
           javascriptEnabled: true,
         },
       },
@@ -105,5 +106,10 @@ export default defineNuxtConfig({
 
   image: {
     dir: 'assets/',
+  },
+
+  autoImports: {
+    dirs: ['./context', './utils', './lib'],
+    imports: [{ name: 'useI18n', from: 'vue-i18n' }],
   },
 })

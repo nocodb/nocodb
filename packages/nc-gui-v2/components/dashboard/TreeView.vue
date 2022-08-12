@@ -4,7 +4,6 @@ import Sortable from 'sortablejs'
 import { useNuxtApp, useRoute } from '#app'
 import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
 import { TabType } from '~/composables'
-import MdiTable from '~icons/mdi/table'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiMenuDown from '~icons/mdi/chevron-down'
@@ -136,7 +135,7 @@ const activeTable = computed(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <div class="px-2 py-[11.75px] border-b-1">
+    <div class="px-6 py-[11.75px] border-b-1">
       <a-input-search
         v-model:value="filterQuery"
         size="small"
@@ -146,16 +145,14 @@ const activeTable = computed(() => {
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
-      <div class="p-1 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull" style="direction: rtl">
+      <div class="p-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull" style="direction: rtl">
         <div
           style="direction: ltr"
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
           @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
         >
-          <MdiTable class="mr-1 text-gray-500" />
-
-          <span class="flex-grow text-bold nc-project-tree">
+          <span class="flex-grow text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
             {{ $t('objects.tables') }}
 
             <template v-if="tables?.length"> ({{ tables.length }}) </template>
@@ -173,7 +170,7 @@ const activeTable = computed(() => {
           />
         </div>
         <div style="direction: ltr" class="flex-1">
-          <div class="transition-height duration-200 overflow-hidden" :class="{ 'h-100': showTableList, 'h-0': !showTableList }">
+          <div v-if="tables.length" class="transition-height duration-200 overflow-hidden" :class="{ 'h-100': showTableList, 'h-0': !showTableList }">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div
                 v-for="table of tables"
@@ -196,14 +193,10 @@ const activeTable = computed(() => {
                       @click.stop.prevent
                     />
 
-                    <component
-                      :is="icon(table)"
-                      :class="route.params.title && route.params.title.includes(table.title) ? 'text-pink-500' : 'text-gray-500'"
-                      class="nc-view-icon group-hover:hidden text-xs"
-                    />
+                    <component :is="icon(table)" class="nc-view-icon group-hover:hidden text-xs group-hover:text-gray-500" />
                   </div>
 
-                  <div class="nc-tbl-title text-xs flex-1">{{ table.title }}</div>
+                  <div class="nc-tbl-title flex-1">{{ table.title }}</div>
 
                   <a-dropdown :trigger="['click']" @click.stop>
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
@@ -298,17 +291,17 @@ const activeTable = computed(() => {
 }
 
 .nc-tree-item svg {
-  @apply text-gray-500;
+  @apply text-primary/60;
 }
 
 .nc-tree-item.active {
-  @apply !text-primary after:(!opacity-5);
+  @apply !text-primary font-weight-bold after:(!opacity-20);
   svg {
     @apply !text-primary;
   }
 }
 
 .nc-tree-item:hover {
-  @apply !text-grey after:(!opacity-2);
+  @apply !text-grey after:(!opacity-5);
 }
 </style>

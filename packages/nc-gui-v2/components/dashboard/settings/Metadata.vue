@@ -86,19 +86,22 @@ const columns = [
           </div>
         </a-button>
       </div>
-      <a-table
-        class="w-full"
-        :custom-row="
-          (record) => ({
-            class: `nc-metasync-row nc-metasync-row-${record.title}`,
-          })
-        "
-        :data-source="metadiff ?? []"
-        :columns="columns"
-        :pagination="false"
-        :loading="isLoading"
-        bordered
-      />
+      <div class="max-h-600px overflow-y-auto">
+        <a-table
+          class="w-full"
+          size="small"
+          :custom-row="
+            (record) => ({
+              class: `nc-metasync-row nc-metasync-row-${record.title}`,
+            })
+          "
+          :data-source="metadiff ?? []"
+          :columns="columns"
+          :pagination="false"
+          :loading="isLoading"
+          bordered
+        />
+      </div>
     </div>
     <div class="flex place-content-center w-2/5">
       <div v-if="isDifferent">

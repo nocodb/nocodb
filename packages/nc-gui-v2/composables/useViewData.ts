@@ -44,7 +44,7 @@ export function useViewData(
 
   const selectedAllRecords = computed({
     get() {
-      return formattedData.value.every((row: Row) => row.rowMeta.selected)
+      return !!formattedData.value.length && formattedData.value.every((row: Row) => row.rowMeta.selected)
     },
     set(selected: boolean) {
       formattedData.value.forEach((row: Row) => (row.rowMeta.selected = selected))

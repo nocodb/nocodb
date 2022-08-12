@@ -15,6 +15,8 @@ const { $e } = useNuxtApp()
 
 const { api, isLoading } = useApi()
 
+const { isUIAllowed } = useUIPermission()
+
 useSidebar({ hasSidebar: true, isOpen: true })
 
 const filterQuery = ref('')
@@ -34,6 +36,7 @@ const filteredProjects = computed(
 )
 
 const deleteProject = (project: ProjectType) => {
+  $e('c:project:delete')
   Modal.confirm({
     title: `Do you want to delete '${project.title}' project?`,
     okText: 'Yes',
@@ -41,8 +44,8 @@ const deleteProject = (project: ProjectType) => {
     cancelText: 'No',
     async onOk() {
       try {
-        $e('c:project:delete')
         await api.project.delete(project.id as string)
+        $e('a:project:delete')
         return projects.value?.splice(projects.value.indexOf(project), 1)
       } catch (e: any) {
         return notification.error({
@@ -80,7 +83,7 @@ onMounted(() => {
         ></a-input-search>
         <div class="flex-grow"></div>
 
-        <a-dropdown @click.stop>
+        <a-dropdown v-if="isUIAllowed('projectCreate', true)" @click.stop>
           <a-button class="nc-new-project-menu !shadow">
             <div class="flex align-center">
               {{ $t('title.newProj') }}
@@ -128,7 +131,7 @@ onMounted(() => {
         :data-source="filteredProjects"
         :pagination="{ position: ['bottomCenter'] }"
       >
-        <!--        Title -->
+        <!-- Title -->
         <a-table-column key="title" :title="$t('general.title')" data-index="title">
           <template #default="{ text }">
             <div class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap nc-project-row" :title="text">
@@ -136,7 +139,7 @@ onMounted(() => {
             </div>
           </template>
         </a-table-column>
-        <!--        Actions -->
+        <!-- Actions -->
         <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
           <template #default="{ text, record }">
             <div class="flex align-center">

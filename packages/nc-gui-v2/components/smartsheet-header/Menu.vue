@@ -12,8 +12,7 @@ import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
-
-const editColumnDropdown = ref(false)
+const emit = defineEmits(['edit'])
 
 const column = inject(ColumnInj)
 
@@ -50,31 +49,14 @@ const setAsPrimaryValue = async () => {
     message.error('Failed to update primary column')
   }
 }
-
-function onVisibleChange() {
-  // only allow to close the EditOrAdd component
-  // by clicking cancel button
-  editColumnDropdown.value = true
-}
 </script>
 
 <template>
-  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']" @visible-change="onVisibleChange">
-    <span />
-    <template #overlay>
-      <SmartsheetColumnEditOrAdd
-        :edit-column-dropdown="editColumnDropdown"
-        @click.stop
-        @keydown.stop
-        @cancel="editColumnDropdown = false"
-      />
-    </template>
-  </a-dropdown>
-  <a-dropdown :trigger="['hover']">
+  <a-dropdown placement="bottomRight" :trigger="['hover']">
     <MdiMenuDownIcon class="text-grey nc-ui-dt-dropdown" />
     <template #overlay>
       <a-menu class="shadow bg-white">
-        <a-menu-item @click="editColumnDropdown = true">
+        <a-menu-item @click="emit('edit')">
           <div class="nc-column-edit nc-header-menu-item">
             <MdiEditIcon class="text-primary" />
             <!-- Edit -->

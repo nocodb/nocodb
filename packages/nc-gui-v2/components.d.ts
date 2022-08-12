@@ -110,6 +110,8 @@ declare module '@vue/runtime-core' {
     MdiInformation: typeof import('~icons/mdi/information')['default']
     MdiKeyboardReturn: typeof import('~icons/mdi/keyboard-return')['default']
     MdiKeyStar: typeof import('~icons/mdi/key-star')['default']
+    MdiLens: typeof import('~icons/mdi/lens')['default']
+    MdiLense: typeof import('~icons/mdi/lense')['default']
     MdiLink: typeof import('~icons/mdi/link')['default']
     MdiLinkVariantRemove: typeof import('~icons/mdi/link-variant-remove')['default']
     MdiLogout: typeof import('~icons/mdi/logout')['default']
@@ -136,6 +138,9 @@ declare module '@vue/runtime-core' {
     MdiTrashCan: typeof import('~icons/mdi/trash-can')['default']
     MdiWhatsapp: typeof import('~icons/mdi/whatsapp')['default']
     MdiXml: typeof import('~icons/mdi/xml')['default']
+    MdiZomm: typeof import('~icons/mdi/zomm')['default']
+    MdiZoom: typeof import('~icons/mdi/zoom')['default']
+    MdiZoomIn: typeof import('~icons/mdi/zoom-in')['default']
     RouterLink: typeof import('vue-router')['RouterLink']
     RouterView: typeof import('vue-router')['RouterView']
   }

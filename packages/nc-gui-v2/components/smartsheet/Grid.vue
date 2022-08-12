@@ -482,10 +482,10 @@ const expandForm = (row: Row, state: Record<string, any>) => {
   table,
   td,
   th {
-    border-right: 1px solid #7f828b33 !important;
-    border-left: 1px solid #7f828b33 !important;
-    border-bottom: 1px solid #7f828b33 !important;
-    border-top: 1px solid #7f828b33 !important;
+    border-right: 1px solid #f0f0f0 !important;
+    border-left: 1px solid #f0f0f0 !important;
+    border-bottom: 1px solid #f0f0f0 !important;
+    border-top: 1px solid #f0f0f0 !important;
     border-collapse: collapse;
   }
 

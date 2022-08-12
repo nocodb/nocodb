@@ -16,13 +16,12 @@ formState.value.au = !!formState.value.au
 </script>
 
 <template>
-  <div class="p-4 border-[2px] radius-1 border-grey w-full">
+  <div class="p-4 border-[2px] radius-1 border-grey w-full flex flex-col gap-2">
     <div class="flex justify-space-between">
       <a-form-item label="NN">
         <a-checkbox
           v-model:checked="formState.rqd"
           :disabled="formState.pk || !sqlUi.columnEditable(formState)"
-          size="small"
           class="nc-column-checkbox-NN"
           @change="onAlter"
         />
@@ -31,7 +30,6 @@ formState.value.au = !!formState.value.au
         <a-checkbox
           v-model:checked="formState.pk"
           :disabled="!sqlUi.columnEditable(formState)"
-          size="small"
           class="nc-column-checkbox-PK"
           @change="onAlter"
         />
@@ -40,7 +38,6 @@ formState.value.au = !!formState.value.au
         <a-checkbox
           v-model:checked="formState.ai"
           :disabled="sqlUi.colPropUNDisabled(formState) || !sqlUi.columnEditable(formState)"
-          size="small"
           class="nc-column-checkbox-AI"
           @change="onAlter"
         />
@@ -50,18 +47,18 @@ formState.value.au = !!formState.value.au
         :disabled="sqlUi.colPropUNDisabled(formState) || !sqlUi.columnEditable(formState)"
         @change="onAlter"
       >
-        <a-checkbox v-model:checked="formState.un" size="small" class="nc-column-checkbox-UN" />
+        <a-checkbox v-model:checked="formState.un" class="nc-column-checkbox-UN" />
       </a-form-item>
       <a-form-item
         label="AU"
         :disabled="sqlUi.colPropAuDisabled(formState) || !sqlUi.columnEditable(formState)"
         @change="onAlter"
       >
-        <a-checkbox v-model:checked="formState.au" size="small" class="nc-column-checkbox-AU" />
+        <a-checkbox v-model:checked="formState.au" class="nc-column-checkbox-AU" />
       </a-form-item>
     </div>
     <a-form-item :label="$t('labels.databaseType')" v-bind="validateInfos.dt">
-      <a-select v-model:value="formState.dt" size="small" @change="onDataTypeChange">
+      <a-select v-model:value="formState.dt" @change="onDataTypeChange">
         <a-select-option v-for="type in dataTypes" :key="type" :value="type">
           {{ type }}
         </a-select-option>
@@ -71,15 +68,14 @@ formState.value.au = !!formState.value.au
       <a-input
         v-model:value="formState.dtxp"
         :disabled="sqlUi.getDefaultLengthIsDisabled(formState.dt) || !sqlUi.columnEditable(formState)"
-        size="small"
         @input="onAlter"
       />
     </a-form-item>
     <a-form-item v-if="sqlUi.showScale(formState)" label="Scale">
-      <a-input v-model="formState.dtxs" :disabled="!sqlUi.columnEditable(formState)" size="small" @input="onAlter" />
+      <a-input v-model="formState.dtxs" :disabled="!sqlUi.columnEditable(formState)" @input="onAlter" />
     </a-form-item>
     <a-form-item :label="$t('placeholder.defaultValue')">
-      <a-textarea v-model:value="formState.cdf" size="small" auto-size @input="onAlter(2, true)" />
+      <a-textarea v-model:value="formState.cdf" auto-size @input="onAlter(2, true)" />
       <span class="text-gray-400 text-xs">{{ sqlUi.getDefaultValueForDatatype(formState.dt) }}</span>
     </a-form-item>
   </div>

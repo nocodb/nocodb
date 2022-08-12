@@ -65,15 +65,10 @@ const columns = $computed(() => {
 </script>
 
 <template>
-  <div class="p-4 w-full flex flex-col border-2 mb-2 mt-4">
+  <div class="p-6 w-full flex flex-col border-2 mb-2 mt-4">
     <div class="w-full flex flex-row space-x-2">
       <a-form-item class="flex w-1/2 pb-2" :label="$t('labels.childTable')" v-bind="validateInfos.fk_relation_column_id">
-        <a-select
-          v-model:value="formState.fk_relation_column_id"
-          size="small"
-          dropdown-class-name="!w-64"
-          @change="onDataTypeChange"
-        >
+        <a-select v-model:value="formState.fk_relation_column_id" dropdown-class-name="!w-64" @change="onDataTypeChange">
           <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.col.fk_column_id">
             <div class="flex flex-row space-x-0.5 h-full pb-0.5 items-center justify-between">
               <div class="font-semibold text-xs">{{ table.column.title }}</div>
@@ -85,12 +80,7 @@ const columns = $computed(() => {
         </a-select>
       </a-form-item>
       <a-form-item class="flex w-1/2" :label="$t('labels.childColumn')" v-bind="validateInfos.fk_rollup_column_id">
-        <a-select
-          v-model:value="formState.fk_rollup_column_id"
-          name="fk_rollup_column_id"
-          size="small"
-          @change="onDataTypeChange"
-        >
+        <a-select v-model:value="formState.fk_rollup_column_id" name="fk_rollup_column_id" @change="onDataTypeChange">
           <a-select-option v-for="(column, index) of columns" :key="index" :value="column.id">
             {{ column.title }}
           </a-select-option>
@@ -98,7 +88,7 @@ const columns = $computed(() => {
       </a-form-item>
     </div>
     <a-form-item label="Aggregate function" v-bind="validateInfos.rollup_function">
-      <a-select v-model:value="formState.rollup_function" size="small" @change="onDataTypeChange">
+      <a-select v-model:value="formState.rollup_function" @change="onDataTypeChange">
         <a-select-option v-for="(func, index) of aggrFunctionsList" :key="index" :value="func.value">
           {{ func.text }}
         </a-select-option>

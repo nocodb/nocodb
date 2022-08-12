@@ -41,7 +41,7 @@ const refTables = $computed(() => {
 
 <template>
   <div class="w-full flex flex-col mb-2 mt-4">
-    <div class="border-2 p-4">
+    <div class="border-2 p-6">
       <a-form-item v-bind="validateInfos.type">
         <a-radio-group v-model:value="formState.type" name="type" v-bind="validateInfos.type">
           <a-radio value="hm">Has Many</a-radio>
@@ -49,7 +49,7 @@ const refTables = $computed(() => {
         </a-radio-group>
       </a-form-item>
       <a-form-item class="flex w-full pb-2 mt-4" :label="$t('labels.childTable')" v-bind="validateInfos.childId">
-        <a-select v-model:value="formState.childId" size="small" @change="onDataTypeChange">
+        <a-select v-model:value="formState.childId" @change="onDataTypeChange">
           <a-select-option v-for="(table, index) in refTables" :key="index" :value="table.id">
             {{ table.title }}
           </a-select-option>
@@ -65,29 +65,17 @@ const refTables = $computed(() => {
       <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
     </div>
 
-    <div v-if="advancedOptions" class="flex flex-col p-4 border-2 mt-2">
+    <div v-if="advancedOptions" class="flex flex-col p-6 gap-4 border-2 mt-2">
       <div class="flex flex-row space-x-2">
         <a-form-item class="flex w-1/2" :label="$t('labels.onUpdate')">
-          <a-select
-            v-model:value="formState.onUpdate"
-            :disabled="formState.virtual"
-            name="onUpdate"
-            size="small"
-            @change="onDataTypeChange"
-          >
+          <a-select v-model:value="formState.onUpdate" :disabled="formState.virtual" name="onUpdate" @change="onDataTypeChange">
             <a-select-option v-for="(option, index) in onUpdateDeleteOptions" :key="index" :value="option">
               {{ option }}
             </a-select-option>
           </a-select>
         </a-form-item>
         <a-form-item class="flex w-1/2" :label="$t('labels.onDelete')">
-          <a-select
-            v-model:value="formState.onDelete"
-            :disabled="formState.virtual"
-            name="onDelete"
-            size="small"
-            @change="onDataTypeChange"
-          >
+          <a-select v-model:value="formState.onDelete" :disabled="formState.virtual" name="onDelete" @change="onDataTypeChange">
             <a-select-option v-for="(option, index) in onUpdateDeleteOptions" :key="index" :value="option">
               {{ option }}
             </a-select-option>

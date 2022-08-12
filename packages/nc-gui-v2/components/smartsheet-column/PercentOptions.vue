@@ -11,10 +11,10 @@ if (!formState.meta?.default) formState.meta.default = null
 </script>
 
 <template>
-  <div class="flex flex-col mt-2">
+  <div class="flex flex-col mt-2 gap-2">
     <div class="flex flex-row space-x-2">
       <a-form-item class="flex w-1/2" label="Precision">
-        <a-select v-model:value="formState.meta.precision" size="small">
+        <a-select v-model:value="formState.meta.precision">
           <a-select-option v-for="(precision, i) of precisions" :key="i" :value="precision.id">
             <div class="flex flex-row items-center">
               <div class="text-xs">
@@ -25,7 +25,7 @@ if (!formState.meta?.default) formState.meta.default = null
         </a-select>
       </a-form-item>
       <a-form-item label="Default Number (%)">
-        <a-input v-model:value="formState.meta.default" size="small" name="default" type="number" />
+        <a-input v-model:value="formState.meta.default" name="default" type="number" />
       </a-form-item>
     </div>
     <div class="flex flex-row mt-2">

@@ -124,7 +124,7 @@ onMounted(() => {
             <div class="text-gray-500">Reload</div>
           </div>
         </a-button>
-        <a-button size="middle" @click="openNewTokenModal">
+        <a-button size="middle" type="primary" ghost @click="openNewTokenModal">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiPlusIcon />
             <div>Add New Token</div>

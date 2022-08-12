@@ -56,7 +56,7 @@ await loadTables()
         collapsible
         theme="light"
       >
-        <div style="height: var(--header-height)" class="flex items-center !bg-primary text-white px-1 gap-2">
+        <div style="height: var(--header-height)" class="flex items-center !bg-primary text-white px-1 pl-5 gap-2">
           <div
             v-if="isOpen"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
@@ -65,7 +65,7 @@ await loadTables()
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
 
-          <a-dropdown v-model:visible="dropdownOpen" :trigger="['click']">
+          <a-dropdown v-model:visible="dropdownOpen" :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"

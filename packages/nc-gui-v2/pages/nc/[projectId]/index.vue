@@ -30,7 +30,7 @@ onKeyStroke(
 
 clearTabs()
 
-if (!route.params.type) {
+if (!route.params.type && isUIAllowed('teamAndAuth')) {
   addTab({ type: TabType.AUTH, title: 'Team & Auth' })
 }
 

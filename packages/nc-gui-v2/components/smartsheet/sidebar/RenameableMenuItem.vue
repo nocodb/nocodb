@@ -1,18 +1,20 @@
 <script lang="ts" setup>
 import type { ViewTypes } from 'nocodb-sdk'
+import { notification } from 'ant-design-vue'
 import { viewIcons } from '~/utils'
-import { useDebounceFn, useNuxtApp, useVModel } from '#imports'
+import { onKeyStroke, useDebounceFn, useNuxtApp, useVModel } from '#imports'
 
 interface Props {
   view: Record<string, any>
+  onValidate: (view: Record<string, any>) => boolean | string
 }
 
 interface Emits {
-  (event: 'openModal', data: { type: ViewTypes; title?: string }): void
   (event: 'update:view', data: Record<string, any>): void
   (event: 'changeView', view: Record<string, any>): void
   (event: 'rename', view: Record<string, any>): void
   (event: 'delete', view: Record<string, any>): void
+  (event: 'openModal', data: { type: ViewTypes; title?: string; copyViewId?: string }): void
 }
 
 const props = defineProps<Props>()
@@ -98,6 +100,18 @@ async function onDelete() {
 /** Rename a view */
 async function onRename() {
   if (!isEditing) return
+
+  const isValid = props.onValidate(vModel.value)
+
+  if (isValid !== true) {
+    notification.error({
+      message: isValid,
+      duration: 2,
+    })
+
+    onCancel()
+    return
+  }
 
   if (vModel.value.title === '' || vModel.value.title === originalTitle) {
     onCancel()

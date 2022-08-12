@@ -256,7 +256,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             </template>
             <a-button type="text" class="!rounded-md" @click="onDelete(user)">
               <template #icon>
-                <MdiDeleteOutlineIcon class="flex mx-auto h-[1.1rem] text-gray-500 " />
+                <MdiDeleteOutlineIcon class="flex mx-auto h-[1.1rem] text-gray-500" />
               </template>
             </a-button>
           </a-tooltip>
@@ -279,7 +279,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
                 </a-menu-item>
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="copyInviteUrl(user)">
-                    <MdiContentCopyIcon class="flex h-[1rem] text-gray-500"  />
+                    <MdiContentCopyIcon class="flex h-[1rem] text-gray-500" />
                     <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                   </div>
                 </a-menu-item>

@@ -11,7 +11,7 @@ import StoreFrontOutline from '~icons/mdi/storefront-outline'
 import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
 import NootbookOutline from '~icons/mdi/notebook-outline'
-import { useVModel, useUIPermission, watch } from '#imports'
+import { useUIPermission, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: boolean

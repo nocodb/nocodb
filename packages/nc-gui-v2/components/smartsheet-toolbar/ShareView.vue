@@ -17,6 +17,8 @@ const { $e } = useNuxtApp()
 
 const { dashboardUrl } = useDashboard()
 
+const { isUIAllowed } = useUIPermission()
+
 let showShareModel = $ref(false)
 
 const passwordProtected = $ref(false)
@@ -110,7 +112,7 @@ const copyLink = () => {
 
 <template>
   <div>
-    <a-button v-t="['c:view:share']" outlined class="nc-btn-share-view nc-toolbar-btn">
+    <a-button v-if="isUIAllowed('share-view')" v-t="['c:view:share']" outlined class="nc-btn-share-view nc-toolbar-btn">
       <div class="flex align-center gap-1" @click="genShareLink">
         <MdiOpenInNewIcon />
         <!-- Share View -->

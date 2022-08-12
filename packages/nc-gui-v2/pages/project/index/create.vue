@@ -58,7 +58,9 @@ onMounted(async () => {
 
 <template>
   <a-card :loading="isLoading" class="w-[500px] mx-auto !mt-100px shadow-md">
-    <h3 class="text-3xl text-center font-semibold mb-2">{{ $t('activity.createProject') }}</h3>
+    <GeneralNocoIcon />
+
+    <h3 class="text-3xl text-center font-semibold mt-8 mb-2">{{ $t('activity.createProject') }}</h3>
 
     <a-form ref="form" :model="formState" name="basic" layout="vertical" autocomplete="off" @finish="createProject">
       <a-form-item :label="$t('labels.projName')" name="title" :rules="nameValidationRules" class="my-10 mx-10">

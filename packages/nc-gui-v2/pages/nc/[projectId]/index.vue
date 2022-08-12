@@ -123,8 +123,8 @@ await loadTables()
 
                   <a-menu-item key="teamAndAuth">
                     <div
-                      v-if="isUIAllowed('settings')"
-                      v-t="['c:navdraw:project-settings']"
+                      v-if="isUIAllowed('teamAndAuth')"
+                      v-t="['c:navdraw:team-and-auth']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'teamAndAuth')"
                     >
@@ -135,8 +135,8 @@ await loadTables()
 
                   <a-menu-item key="appStore">
                     <div
-                      v-if="isUIAllowed('settings')"
-                      v-t="['c:navdraw:project-settings']"
+                      v-if="isUIAllowed('appStore')"
+                      v-t="['c:navdraw:app-store']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'appStore')"
                     >
@@ -147,8 +147,8 @@ await loadTables()
 
                   <a-menu-item key="metaData">
                     <div
-                      v-if="isUIAllowed('settings')"
-                      v-t="['c:navdraw:project-settings']"
+                      v-if="isUIAllowed('projectMetadata')"
+                      v-t="['c:navdraw:project-metadata']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'metaData')"
                     >
@@ -159,8 +159,8 @@ await loadTables()
 
                   <a-menu-item key="audit">
                     <div
-                      v-if="isUIAllowed('settings')"
-                      v-t="['c:navdraw:project-settings']"
+                      v-if="isUIAllowed('audit')"
+                      v-t="['c:navdraw:audit']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'audit')"
                     >
@@ -171,7 +171,7 @@ await loadTables()
 
                   <a-menu-divider />
 
-                  <a-sub-menu key="preview-as">
+                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
                     <template #title>
                       <div class="nc-project-menu-item group">
                         <MdiContentCopy class="group-hover:text-pink-500" />

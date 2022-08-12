@@ -105,57 +105,51 @@ if (!formState.value?.column_name) {
 </script>
 
 <template>
-  <div class="min-w-[350px] w-max max-h-[95vh] bg-white shadow p-4 overflow-auto" @click.stop>
+  <div class="min-w-[400px] w-max max-h-[95vh] bg-white shadow p-6 overflow-auto" @click.stop>
     <a-form v-model="formState" name="column-create-or-edit" layout="vertical">
-      <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
-        <a-input ref="antInput" v-model:value="formState.title" size="small" class="nc-column-name-input" @input="onAlter(8)" />
-      </a-form-item>
+      <div class="flex flex-col gap-2">
+        <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
+          <a-input ref="antInput" v-model:value="formState.title" class="nc-column-name-input" @input="onAlter(8)" />
+        </a-form-item>
 
-      <a-form-item
-        v-if="!(editColumnDropdown && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
-        :label="$t('labels.columnType')"
-      >
-        <a-select
-          v-model:value="formState.uidt"
-          show-search
-          size="small"
-          class="nc-column-type-input"
-          @change="onUidtOrIdTypeChange"
+        <a-form-item
+          v-if="!(editColumnDropdown && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
+          :label="$t('labels.columnType')"
         >
-          <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
-            <div class="flex gap-1 align-center text-xs">
-              <component :is="opt.icon" class="text-grey" />
-              {{ opt.name }}
-            </div>
-          </a-select-option>
-        </a-select>
-      </a-form-item>
-
-      <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" ref="formulaOptionsRef" />
-      <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" />
-      <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
-      <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
-      <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" />
-      <SmartsheetColumnLookupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Lookup" />
-      <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" />
-      <SmartsheetColumnRollupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Rollup" />
-      <SmartsheetColumnLinkedToAnotherRecordOptions
-        v-if="!editColumnDropdown && formState.uidt === UITypes.LinkToAnotherRecord"
-      />
-      <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-      <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" />
-      <SmartsheetColumnSelectOptions v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect" />
-
+          <a-select v-model:value="formState.uidt" show-search class="nc-column-type-input" @change="onUidtOrIdTypeChange">
+            <a-select-option v-for="opt of uiTypesOptions" :key="opt.name" :value="opt.name" v-bind="validateInfos.uidt">
+              <div class="flex gap-1 align-center">
+                <component :is="opt.icon" class="text-grey" />
+                {{ opt.name }}
+              </div>
+            </a-select-option>
+          </a-select>
+        </a-form-item>
+        <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" ref="formulaOptionsRef" />
+        <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" />
+        <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
+        <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
+        <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" />
+        <SmartsheetColumnLookupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Lookup" />
+        <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" />
+        <SmartsheetColumnRollupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Rollup" />
+        <SmartsheetColumnLinkedToAnotherRecordOptions
+          v-if="!editColumnDropdown && formState.uidt === UITypes.LinkToAnotherRecord"
+        />
+        <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
+        <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" />
+        <SmartsheetColumnSelectOptions v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect" />
+      </div>
       <div
         v-if="!isVirtualCol(formState.uidt)"
-        class="text-xs cursor-pointer text-grey nc-more-options my-2 flex align-center gap-1 justify-end"
+        class="text-xs cursor-pointer text-grey nc-more-options mb-1 mt-4 flex align-center gap-1 justify-end"
         @click="advancedOptions = !advancedOptions"
       >
         {{ advancedOptions ? $t('general.hideAll') : $t('general.showMore') }}
         <component :is="advancedOptions ? MdiMinusIcon : MdiPlusIcon" />
       </div>
 
-      <div class="overflow-hidden" :class="advancedOptions ? 'h-min' : 'h-0'">
+      <div class="overflow-hidden" :class="advancedOptions ? 'h-min mb-2' : 'h-0'">
         <a-checkbox
           v-if="formState.meta && columnToValidate.includes(formState.uidt)"
           v-model:checked="formState.meta.validate"
@@ -169,11 +163,11 @@ if (!formState.value?.column_name) {
       </div>
       <a-form-item>
         <div class="flex justify-end gap-1 mt-4">
-          <a-button html-type="button" size="small" @click="onCancel">
+          <a-button html-type="button" @click="onCancel">
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button html-type="submit" type="primary" size="small" @click="onSubmit">
+          <a-button html-type="submit" type="primary" @click="onSubmit">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

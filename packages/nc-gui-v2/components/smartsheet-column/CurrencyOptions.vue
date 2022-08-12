@@ -67,12 +67,11 @@ formState.value.meta = {
 </script>
 
 <template>
-  <a-row>
+  <a-row gutter="8">
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.currency_locale']" label="Currency Locale">
         <a-select
           v-model:value="formState.meta.currency_locale"
-          size="small"
           class="w-52"
           show-search
           :filter-option="filterOption"
@@ -91,7 +90,6 @@ formState.value.meta = {
           class="w-52"
           show-search
           :filter-option="filterOption"
-          size="small"
           :disabled="isMoney && isPg"
         >
           <a-select-option v-for="(currencyCode, i) of currencyList" :key="i" :value="currencyCode">

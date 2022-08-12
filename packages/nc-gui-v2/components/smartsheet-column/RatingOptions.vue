@@ -64,31 +64,33 @@ watch(
 </script>
 
 <template>
-  <a-row>
+  <a-row :gutter="8">
     <a-col :span="12">
       <a-form-item label="Icon">
-        <a-select v-model:value="formState.meta.iconIdx" size="small" class="w-52">
+        <a-select v-model:value="formState.meta.iconIdx" class="w-52">
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
-            <component
-              :is="getMdiIcon(icon.full)"
-              class="mx-1"
-              :style="{
-                color: formState.meta.color,
-              }"
-            />
-            <component
-              :is="getMdiIcon(icon.empty)"
-              :style="{
-                color: formState.meta.color,
-              }"
-            />
+            <div class="flex items-center">
+              <component
+                :is="getMdiIcon(icon.full)"
+                class="mx-1"
+                :style="{
+                  color: formState.meta.color,
+                }"
+              />
+              <component
+                :is="getMdiIcon(icon.empty)"
+                :style="{
+                  color: formState.meta.color,
+                }"
+              />
+            </div>
           </a-select-option>
         </a-select>
       </a-form-item>
     </a-col>
     <a-col :span="12">
       <a-form-item label="Max">
-        <a-select v-model:value="formState.meta.max" class="w-52" size="small">
+        <a-select v-model:value="formState.meta.max" class="w-52">
           <a-select-option v-for="(v, i) in [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]" :key="i" :value="v">
             {{ v }}
           </a-select-option>

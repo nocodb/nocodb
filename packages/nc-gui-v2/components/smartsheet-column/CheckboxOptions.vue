@@ -73,21 +73,23 @@ watch(
   <a-row>
     <a-col :span="24">
       <a-form-item label="Icon">
-        <a-select v-model:value="formState.meta.iconIdx" size="small" class="w-52">
+        <a-select v-model:value="formState.meta.iconIdx" class="w-52">
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
-            <component
-              :is="getMdiIcon(icon.checked)"
-              class="mx-1"
-              :style="{
-                color: formState.meta.color,
-              }"
-            />
-            <component
-              :is="getMdiIcon(icon.unchecked)"
-              :style="{
-                color: formState.meta.color,
-              }"
-            />
+            <div class="flex items-center">
+              <component
+                :is="getMdiIcon(icon.checked)"
+                class="mx-1"
+                :style="{
+                  color: formState.meta.color,
+                }"
+              />
+              <component
+                :is="getMdiIcon(icon.unchecked)"
+                :style="{
+                  color: formState.meta.color,
+                }"
+              />
+            </div>
           </a-select-option>
         </a-select>
       </a-form-item>

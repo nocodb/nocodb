@@ -6,6 +6,8 @@ import FileSaver from 'file-saver'
 import { message } from 'ant-design-vue'
 import {
   ActiveViewInj,
+  FieldsInj,
+  IsPublicInj,
   MetaInj,
   extractSdkResponseErrorMsg,
   inject,
@@ -22,7 +24,7 @@ enum ExportTypes {
 
 const sharedViewListDlg = ref(false)
 
-const publicViewId = null
+const isPublicView = inject(IsPublicInj, ref(false))
 
 const isView = false
 
@@ -33,7 +35,7 @@ const { project } = useProject()
 const { $api } = useNuxtApp()
 
 const meta = inject(MetaInj)
-
+const fields = inject(FieldsInj, ref([]))
 const selectedView = inject(ActiveViewInj)
 
 const showWebhookDrawer = ref(false)
@@ -46,31 +48,12 @@ const exportFile = async (exportType: ExportTypes) => {
   let offset = 0
   let c = 1
   const responseType = exportType === ExportTypes.EXCEL ? 'base64' : 'blob'
+
   try {
     while (!isNaN(offset) && offset > -1) {
       let res
-      if (publicViewId) {
-        // TODO: pending for shared view
-        // const { data, headers } = await $api.public.csvExport(publicViewId, exportType, {
-        //   format: responseType,
-        //   query: {
-        //     fields:
-        //       queryParams && queryParams.fieldsOrder && queryParams.fieldsOrder.filter((c: number) => queryParams.showFields[c]),
-        //     offset,
-        //     sortArrJson: JSON.stringify(
-        //       reqPayload &&
-        //         reqPayload.sorts &&
-        //         reqPayload.sorts.map(({ fk_column_id, direction }) => ({
-        //           direction,
-        //           fk_column_id,
-        //         })),
-        //     ),
-        //     filterArrJson: JSON.stringify(reqPayload && reqPayload.filters),
-        //   },
-        //   headers: {
-        //     'xc-password': reqPayload && reqPayload.password,
-        //   },
-        // } as Record<string, any>)
+      if (isPublicView.value) {
+        res = await exportFile(fields.value, offset, exportType, responseType)
       } else {
         res = await $api.dbViewRow.export(
           'noco',
@@ -137,7 +120,7 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
 
             <div
-              v-if="isUIAllowed('csvImport') && !isView"
+              v-if="isUIAllowed('csvImport') && !isView && !isPublicView"
               v-t="['a:actions:upload-csv']"
               class="nc-menu-item"
               @click="quickImportDialog = true"
@@ -148,7 +131,7 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
 
             <div
-              v-if="isUIAllowed('SharedViewList') && !isView"
+              v-if="isUIAllowed('SharedViewList') && !isView && !isPublicView"
               v-t="['a:actions:shared-view-list']"
               class="nc-menu-item"
               @click="sharedViewListDlg = true"
@@ -159,7 +142,7 @@ const exportFile = async (exportType: ExportTypes) => {
             </div>
 
             <div
-              v-if="isUIAllowed('webhook') && !isView"
+              v-if="isUIAllowed('webhook') && !isView && !isPublicView"
               v-t="['c:actions:webhook']"
               class="nc-menu-item"
               @click="showWebhookDrawer = true"

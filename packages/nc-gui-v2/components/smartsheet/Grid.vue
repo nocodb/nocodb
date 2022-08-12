@@ -26,6 +26,7 @@ import {
   IsPublicInj,
   MetaInj,
   PaginationDataInj,
+  ReadonlyInj,
   ReloadViewDataHookInj,
 } from '~/context'
 import { NavigateDir } from '~/lib'
@@ -40,7 +41,7 @@ const isPublicView = inject(IsPublicInj, ref(false))
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
-
+const readonly = inject(ReadonlyInj, ref(false))
 const isLocked = inject(IsLockedInj, false)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
@@ -325,14 +326,14 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 @xcresized="resizingCol = null"
               >
                 <div class="w-full h-full bg-gray-100 flex items-center">
-                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readonly" />
 
-                  <SmartsheetHeaderCell v-else :column="col" />
+                  <SmartsheetHeaderCell v-else :column="col" :hide-menu="readonly" />
                 </div>
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
               <th
-                v-if="isUIAllowed('add-column')"
+                v-if="!readonly && isUIAllowed('add-column')"
                 v-t="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"

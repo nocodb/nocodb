@@ -10,13 +10,15 @@ export function useViewSorts(
 
   const { $api } = useNuxtApp()
 
+  const { isUIAllowed } = useUIPermission()
+
   const loadSorts = async () => {
     if (!view?.value) return
     sorts.value = ((await $api.dbTableSort.list(view?.value?.id as string)) as any)?.sorts?.list
   }
 
   const saveOrUpdate = async (sort: SortType, i: number) => {
-    if (!sorts?.value) return
+    if (!isUIAllowed('sortSync') || !sorts?.value) return
     if (sort.id) {
       await $api.dbTableSort.update(sort.id, sort)
     } else {
@@ -32,6 +34,7 @@ export function useViewSorts(
 
   const deleteSort = async (sort: SortType, i: number) => {
     // if (!this.shared && sort.id && this._isUIAllowed('sortSync')) {
+    if (!isUIAllowed('sortSync')) return
     if (sort.id) {
       await $api.dbTableSort.delete(sort.id)
     }

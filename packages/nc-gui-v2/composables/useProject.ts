@@ -1,17 +1,19 @@
 import { SqlUiFactory } from 'nocodb-sdk'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
-import { useNuxtApp, useState } from '#app'
+import { useNuxtApp, useRoute, useState } from '#app'
 import { USER_PROJECT_ROLES } from '~/lib'
 
 export function useProject(projectId?: MaybeRef<string>) {
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
   const { $api } = useNuxtApp()
-
-  const _projectId = $computed(() => unref(projectId))
+  let _projectId = $ref('')
 
   const project = useState<ProjectType>('project')
   const tables = useState<TableType[]>('tables', () => [] as TableType[])
+  const route = useRoute()
+
+  const projectType = $computed(() => route.params.projectType as string)
 
   async function loadProjectRoles() {
     projectRoles.value = {}
@@ -29,14 +31,21 @@ export function useProject(projectId?: MaybeRef<string>) {
     }
   }
 
-  async function loadProject(id: string) {
-    project.value = await $api.project.read(id)
-    await loadProjectRoles()
+  async function loadProject() {
+    if(unref(projectId)){
+      _projectId = unref(projectId)!
+    } else if (projectType === 'base') {
+      const baseData = await $api.public.sharedBaseGet(route.params.projectId as string)
+      _projectId = baseData.project_id!
+    } else {
+      _projectId = route.params.projectId as string
+    }
+    project.value = await $api.project.read(_projectId!)
   }
 
   watchEffect(async () => {
-    if (_projectId) {
-      await loadProject(_projectId)
+    if (project?.value ) {
+      await loadProjectRoles()
       await loadTables()
     }
   })

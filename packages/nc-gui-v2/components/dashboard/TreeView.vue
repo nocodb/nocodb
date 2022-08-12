@@ -16,7 +16,7 @@ const { $api, $e } = useNuxtApp()
 
 const route = useRoute()
 
-const { tables, loadTables } = useProject(route.params.projectId as string)
+const { tables, loadTables } = useProject()
 const { activeTab } = useTabs()
 const { deleteTable } = useTable()
 

@@ -18,7 +18,7 @@ export function addAxiosInterceptors(api: Api<any>) {
     }
 
     if (!config.url?.endsWith('/user/me') && !config.url?.endsWith('/admin/roles')) {
-      if (route && route.params && route.params.shared_base_id) config.headers['xc-shared-base-id'] = route.params.shared_base_id
+      if (route && route.params && route.params.projectType === 'base') config.headers['xc-shared-base-id'] = route.params.projectId
     }
 
     return config

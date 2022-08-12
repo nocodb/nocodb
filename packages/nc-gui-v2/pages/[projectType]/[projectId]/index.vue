@@ -5,7 +5,7 @@ import { openLink } from '~/utils'
 
 const route = useRoute()
 
-const { project, loadProject, loadTables } = useProject(route.params.projectId as string)
+const { project, loadProject, loadTables } = useProject()
 
 const { addTab, clearTabs } = useTabs()
 
@@ -39,7 +39,7 @@ function toggleDialog(value?: boolean, key?: string) {
   openDialogKey.value = key
 }
 
-await loadProject(route.params.projectId as string)
+await loadProject()
 
 await loadTables()
 </script>

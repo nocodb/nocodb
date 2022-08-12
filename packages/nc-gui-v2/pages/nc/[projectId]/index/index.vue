@@ -60,7 +60,7 @@ const icon = (tab: TabItem) => {
             <a-menu v-model:selectedKeys="currentMenu" class="border-0" mode="horizontal">
               <a-sub-menu key="addORImport">
                 <template #title>
-                  <div class="text-sm flex items-center gap-2">
+                  <div class="text-sm flex items-center gap-2 pt-[8px] pb-3">
                     <MdiPlusIcon />
                     Add / Import
                   </div>

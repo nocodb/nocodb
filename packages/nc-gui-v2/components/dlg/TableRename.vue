@@ -56,18 +56,20 @@ const validators = computed(() => {
         },
       },
       {
-        validator: (rule: any, value: any, callback: (errMsg?: string) => void) => {
-          if (/^\s+|\s+$/.test(value)) {
-            callback('Leading or trailing whitespace not allowed in table name')
-          }
-          if (
-            !(tables?.value || []).every(
-              (t) => t.id === tableMeta.id || t.table_name.toLowerCase() !== (value || '').toLowerCase(),
-            )
-          ) {
-            callback('Duplicate table alias')
-          }
-          callback()
+        validator: (rule: any, value: any) => {
+          return new Promise<void>((resolve, reject) => {
+            if (/^\s+|\s+$/.test(value)) {
+              return reject(new Error('Leading or trailing whitespace not allowed in table name'))
+            }
+            if (
+              !(tables?.value || []).every(
+                (t) => t.id === tableMeta.id || t.table_name.toLowerCase() !== (value || '').toLowerCase(),
+              )
+            ) {
+              return reject(new Error('Duplicate table alias'))
+            }
+            resolve()
+          })
         },
       },
     ],

@@ -18,6 +18,8 @@ const sharedViewListDlg = ref(false)
 
 const publicViewId = null
 
+const isView = false
+
 // TODO: pending for shared view
 
 // interface Props {
@@ -39,6 +41,8 @@ const selectedView = inject(ActiveViewInj)
 const showWebhookDrawer = ref(false)
 
 const quickImportDialog = ref(false)
+
+const { isUIAllowed } = useUIPermission()
 
 const exportFile = async (exportType: ExportTypes.EXCEL | ExportTypes.CSV) => {
   let offset = 0
@@ -125,30 +129,44 @@ const exportFile = async (exportType: ExportTypes.EXCEL | ExportTypes.CSV) => {
       <template #overlay>
         <div class="bg-white shadow-lg">
           <div>
-            <div class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
+            <div v-t="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
               <MdiDownloadIcon />
               <!-- Download as CSV -->
               {{ $t('activity.downloadCSV') }}
             </div>
-            <div class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
+            <div v-t="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
               <MdiDownloadIcon />
               <!-- Download as XLSX -->
               {{ $t('activity.downloadExcel') }}
             </div>
-            <div class="nc-menu-item" @click="quickImportDialog = true">
+            <div
+              v-if="isUIAllowed('csvImport') && !isView"
+              v-t="['a:actions:upload-csv']"
+              class="nc-menu-item"
+              @click="quickImportDialog = true"
+            >
               <MdiUploadIcon />
               <!-- Upload CSV -->
               {{ $t('activity.uploadCSV') }}
             </div>
-            <div class="nc-menu-item" @click="sharedViewListDlg = true">
+            <div
+              v-if="isUIAllowed('SharedViewList') && !isView"
+              v-t="['a:actions:shared-view-list']"
+              class="nc-menu-item"
+              @click="sharedViewListDlg = true"
+            >
               <MdiViewListIcon />
               <!-- Shared View List -->
               {{ $t('activity.listSharedView') }}
             </div>
-            <div class="nc-menu-item" @click="showWebhookDrawer = true">
+            <div
+              v-if="isUIAllowed('webhook') && !isView"
+              v-t="['c:actions:webhook']"
+              class="nc-menu-item"
+              @click="showWebhookDrawer = true"
+            >
               <MdiHookIcon />
-              <!-- todo: i18n -->
-              Webhook
+              {{ $t('objects.webhooks') }}
             </div>
           </div>
         </div>

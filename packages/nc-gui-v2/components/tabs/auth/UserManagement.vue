@@ -176,7 +176,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
       </div>
     </a-modal>
-    <div class="flex flex-row mb-4 mx-4 justify-between">
+    <div class="flex flex-row mb-4 mx-4 justify-between pb-2">
       <div class="flex w-1/3">
         <a-input v-model:value="searchText" placeholder="Filter by email">
           <template #prefix>
@@ -194,7 +194,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </a-button>
         <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost @click="onInvite">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-            <MdiAccountOutline />
+            <MdiAccountPlusOutline class="mr-1"/>
             <div>{{ $t('activity.inviteTeam') }}</div>
           </div>
         </a-button>

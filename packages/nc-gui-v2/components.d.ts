@@ -85,6 +85,7 @@ declare module '@vue/runtime-core' {
     MdiAccountGroup: typeof import('~icons/mdi/account-group')['default']
     MdiAccountIcon: typeof import('~icons/mdi/account-icon')['default']
     MdiAccountOutline: typeof import('~icons/mdi/account-outline')['default']
+    MdiAccountPlusOutline: typeof import('~icons/mdi/account-plus-outline')['default']
     MdiAlphaA: typeof import('~icons/mdi/alpha-a')['default']
     MdiApi: typeof import('~icons/mdi/api')['default']
     MdiArrowExpand: typeof import('~icons/mdi/arrow-expand')['default']

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { ComponentPublicInstance } from '@vue/runtime-core'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { Form as AntForm } from 'ant-design-vue'
 import { capitalize, inject } from '@vue/runtime-core'
 import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
@@ -125,16 +125,12 @@ async function onSubmit() {
       }
 
       if (data) {
-        notification.success({
-          message: 'View created successfully',
-        })
+        message.success('View created successfully')
 
         emits('created', data)
       }
     } catch (e: any) {
-      notification.error({
-        message: e.message,
-      })
+      message.error(e.message)
     }
 
     vModel.value = false

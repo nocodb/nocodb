@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useClipboard, watchDebounced } from '@vueuse/core'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import UsersModal from './user-management/UsersModal.vue'
 import FeedbackForm from './user-management/FeedbackForm.vue'
 import KebabIcon from '~icons/ic/baseline-more-vert'
@@ -52,9 +52,7 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     totalRows = response.users.pageInfo.totalRows ?? 0
     users = response.users.list as User[]
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -63,14 +61,10 @@ const inviteUser = async (user: User) => {
     if (!project.value?.id) return
 
     await $api.auth.projectUserAdd(project.value.id, user)
-    notification.success({
-      message: 'Successfully added user to project',
-    })
+    message.success('Successfully added user to project')
     await loadUsers()
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:user:add')
@@ -81,15 +75,11 @@ const deleteUser = async () => {
     if (!project.value?.id || !selectedUser?.id) return
 
     await $api.auth.projectUserRemove(project.value.id, selectedUser.id)
-    notification.success({
-      message: 'Successfully deleted user from project',
-    })
+    message.success('Successfully deleted user from project')
     await loadUsers()
     showUserDeleteModal = false
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     showUserDeleteModal = false
   }
@@ -117,14 +107,10 @@ const resendInvite = async (user: User) => {
 
   try {
     await $api.auth.projectUserResendInvite(project.value.id, user.id)
-    notification.success({
-      message: 'Invite email sent successfully',
-    })
+    message.success('Invite email sent successfully')
     await loadUsers()
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:user:resend-invite')
@@ -136,9 +122,7 @@ const copyInviteUrl = (user: User) => {
   const getInviteUrl = (token: string) => `${dashboardUrl}/user/authentication/signup/${token}`
 
   copy(getInviteUrl(user.invite_token))
-  notification.success({
-    message: 'Invite url copied to clipboard',
-  })
+  message.success('Invite url copied to clipboard')
 }
 
 onMounted(async () => {

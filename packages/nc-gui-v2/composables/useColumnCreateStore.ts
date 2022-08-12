@@ -1,5 +1,5 @@
 import { createInjectionState } from '@vueuse/core'
-import { Form, notification } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
@@ -177,9 +177,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         console.log(formState, validators)
         if (!(await validate())) return
       } catch (e) {
-        notification.error({
-          message: 'Form validation failed',
-        })
+        message.error('Form validation failed')
         return
       }
 
@@ -188,9 +186,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         // formState.value.title = formState.value.column_name
         if (column?.value) {
           await $api.dbTableColumn.update(column?.value?.id as string, formState.value)
-          notification.success({
-            message: 'Column updated',
-          })
+          message.success('Column updated')
         } else {
           // todo : set additional meta for auto generated string id
           if (formState.value.uidt === UITypes.ID) {
@@ -208,15 +204,11 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
             getMeta(formState.value.childId, true).then(() => {})
           }
 
-          notification.success({
-            message: 'Column created',
-          })
+          message.success('Column created')
         }
         onSuccess?.()
       } catch (e: any) {
-        notification.error({
-          message: await extractSdkResponseErrorMsg(e),
-        })
+        message.error(await extractSdkResponseErrorMsg(e))
       }
     }
 

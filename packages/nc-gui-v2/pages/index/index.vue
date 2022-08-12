@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { Modal, notification } from 'ant-design-vue'
+import { Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
 import { navigateTo } from '#app'
 import { computed, onMounted, ref, useApi, useNuxtApp, useSidebar } from '#imports'
@@ -45,9 +45,7 @@ const deleteProject = (project: ProjectType) => {
         await api.project.delete(project.id as string)
         return projects.value?.splice(projects.value.indexOf(project), 1)
       } catch (e: any) {
-        return notification.error({
-          message: await extractSdkResponseErrorMsg(e),
-        })
+        return message.error(await extractSdkResponseErrorMsg(e))
       }
     },
   })

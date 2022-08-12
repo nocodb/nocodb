@@ -1,6 +1,6 @@
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
 import { NOCO } from '~/lib'
@@ -135,10 +135,7 @@ export function useViewData(
       })
       syncCount()
     } catch (error: any) {
-      notification.error({
-        message: 'Row insert failed',
-        description: await extractSdkResponseErrorMsg(error),
-      })
+      message.error(await extractSdkResponseErrorMsg(error))
     }
   }
 
@@ -180,10 +177,7 @@ export function useViewData(
               .then(() => {})
           */
     } catch (error: any) {
-      notification.error({
-        message: 'Row update failed',
-        description: await extractSdkResponseErrorMsg(error),
-      })
+      message.error(`Row update failed ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
 
@@ -221,14 +215,13 @@ export function useViewData(
     )
 
     if (res.message) {
-      notification.info({
-        message: 'Row delete failed',
-        description: h('div', {
+      message.info(
+        `Row delete failed: ${h('div', {
           innerHTML: `<div style="padding:10px 4px">Unable to delete row with ID ${id} because of the following:
-                <br><br>${res.message.join('<br>')}<br><br>
-                Clear the data first & try again</div>`,
-        }),
-      })
+              <br><br>${res.message.join('<br>')}<br><br>
+              Clear the data first & try again</div>`,
+        })}`,
+      )
       return false
     }
     return true
@@ -251,10 +244,7 @@ export function useViewData(
       formattedData.value.splice(rowIndex, 1)
       syncCount()
     } catch (e: any) {
-      notification.error({
-        message: 'Failed to delete row',
-        description: await extractSdkResponseErrorMsg(e),
-      })
+      message.error(`Failed to delete row: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
 
@@ -279,10 +269,7 @@ export function useViewData(
         }
         formattedData.value.splice(row, 1)
       } catch (e: any) {
-        return notification.error({
-          message: 'Failed to delete row',
-          description: await extractSdkResponseErrorMsg(e),
-        })
+        return message.error(`Failed to delete row: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
     syncCount()
@@ -316,10 +303,7 @@ export function useViewData(
         }))
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order) as Record<string, any>
     } catch (e: any) {
-      return notification.error({
-        message: 'Failed to set form data',
-        description: await extractSdkResponseErrorMsg(e),
-      })
+      return message.error(`Failed to set form data: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
 
@@ -328,10 +312,7 @@ export function useViewData(
       if (!viewMeta?.value?.id || !view) return
       await $api.dbView.formUpdate(viewMeta.value.id, view)
     } catch (e: any) {
-      return notification.error({
-        message: 'Failed to update form view',
-        description: await extractSdkResponseErrorMsg(e),
-      })
+      return message.error(`Failed to update form view: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
 

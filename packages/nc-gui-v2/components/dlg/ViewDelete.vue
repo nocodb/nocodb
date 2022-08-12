@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg } from '~/utils'
 import { onKeyStroke, useApi, useNuxtApp, useVModel } from '#imports'
 
@@ -34,15 +34,9 @@ async function onDelete() {
   try {
     await api.dbView.delete(props.view.id)
 
-    notification.success({
-      message: 'View deleted successfully',
-      duration: 3,
-    })
+    message.success('View deleted successfully')
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-      duration: 3,
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   emits('deleted')

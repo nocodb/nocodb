@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import type { PluginType } from 'nocodb-sdk'
 import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
 import CloseIcon from '~icons/material-symbols/close-rounded'
@@ -53,13 +53,9 @@ const saveSettings = async () => {
     })
 
     emits('saved')
-    notification.success({
-      message: plugin?.formDetails.msgOnInstall || 'Plugin settings saved successfully',
-    })
+    message.success(plugin?.formDetails.msgOnInstall || 'Plugin settings saved successfully')
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     loadingAction = null
   }
@@ -77,18 +73,12 @@ const testSettings = async () => {
     })
 
     if (res) {
-      notification.success({
-        message: 'Successfully tested plugin settings',
-      })
+      message.success('Successfully tested plugin settings')
     } else {
-      notification.info({
-        message: 'Invalid credentials',
-      })
+      message.info('Invalid credentials')
     }
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     loadingAction = null
   }

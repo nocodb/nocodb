@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, notification } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import { MetaInj } from '~/context'
 import { extractSdkResponseErrorMsg, fieldRequiredValidator } from '~/utils'
 import { inject, reactive, useApi, useNuxtApp } from '#imports'
@@ -302,9 +302,7 @@ async function loadPluginList() {
       hook.eventOperation = `${hook.event} ${hook.operation}`
     }
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -313,9 +311,7 @@ async function saveHooks() {
   try {
     await validate()
   } catch (_: any) {
-    notification.error({
-      message: 'Invalid Form',
-    })
+    message.error('Invalid Form')
 
     loading.value = false
 
@@ -353,13 +349,9 @@ async function saveHooks() {
     //   });
     // }
 
-    notification.success({
-      message: 'Webhook details updated successfully',
-    })
+    message.success('Webhook details updated successfully')
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     loading.value = false
   }

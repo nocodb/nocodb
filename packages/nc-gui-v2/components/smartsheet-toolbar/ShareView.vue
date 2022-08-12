@@ -2,7 +2,7 @@
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
 import { computed } from 'vue'
-import { message, notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
 import { useSmartsheetStoreOrThrow } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
@@ -70,13 +70,9 @@ async function saveAllowCSVDownload() {
     await $api.dbViewShare.update(shared.value.id, {
       meta,
     } as any)
-    notification.success({
-      message: 'Successfully updated',
-    })
+    message.success('Successfully updated')
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
   if (allowCSVDownload?.value) {
     $e('a:view:share:enable-csv-download')
@@ -90,13 +86,9 @@ const saveShareLinkPassword = async () => {
     await $api.dbViewShare.update(shared.value.id, {
       password: shared.value.password,
     })
-    notification.success({
-      message: 'Successfully updated',
-    })
+    message.success('Successfully updated')
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:view:share:enable-pwd')

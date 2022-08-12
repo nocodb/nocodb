@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { watchEffect } from '@vue/runtime-core'
-import { Form, notification } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
 import { useProject, useTabs } from '#imports'
 import { extractSdkResponseErrorMsg, validateTableName } from '~/utils'
@@ -76,15 +76,11 @@ const renameTable = async () => {
     dialogShow.value = false
     loadTables()
     updateTab({ id: tableMeta?.id }, { title: formState.title })
-    notification.success({
-      message: 'Table renamed successfully',
-    })
+    message.success('Table renamed successfully')
     $e('a:table:rename')
     dialogShow.value = false
-  } catch (e) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+  } catch (e: any) {
+    message.error(await extractSdkResponseErrorMsg(e))
   }
   loading = false
 }

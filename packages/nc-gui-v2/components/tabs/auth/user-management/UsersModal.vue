@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, notification } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import { useClipboard } from '@vueuse/core'
 import ShareBase from './ShareBase.vue'
 import SendIcon from '~icons/material-symbols/send-outline'
@@ -89,14 +89,10 @@ const saveUser = async () => {
       })
       usersData.invitationToken = res.invite_token
     }
-    notification.success({
-      message: 'Successfully updated the user details',
-    })
+    message.success('Successfully updated the user details')
   } catch (e: any) {
     console.error(e)
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -108,9 +104,7 @@ const copyUrl = async () => {
   if (!inviteUrl) return
 
   copy(inviteUrl)
-  notification.success({
-    message: 'Copied shareable base url to clipboard!',
-  })
+  message.success('Copied shareable base url to clipboard!')
 
   $e('c:shared-base:copy-url')
 }

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import HTTPSnippet from 'httpsnippet'
 import { useClipboard } from '@vueuse/core'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { ActiveViewInj, MetaInj } from '~/context'
 
 const props = defineProps<Props>()
@@ -110,7 +110,7 @@ api.dbViewRow.list(
 
 const onCopyToClipboard = () => {
   copy(code)
-  notification.info({ message: 'Copied to clipboard' })
+  message.info('Copied to clipboard')
 }
 
 const afterVisibleChange = (visible: boolean) => {

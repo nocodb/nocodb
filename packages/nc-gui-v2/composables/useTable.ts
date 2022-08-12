@@ -1,4 +1,4 @@
-import { Modal, notification } from 'ant-design-vue'
+import { Modal, message } from 'ant-design-vue'
 import type { LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import { useProject } from './useProject'
@@ -76,13 +76,13 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
                 return `${i + 1}. ${c.title} is a LinkToAnotherRecord of ${(refMeta && refMeta.title) || c.title}`
               }),
             )
-            notification.info({
-              message: h('div', {
+            message.info(
+              h('div', {
                 innerHTML: `<div style="padding:10px 4px">Unable to delete tables because of the following.
-                <br><br>${refColMsgs.join('<br>')}<br><br>
-                Delete them & try again</div>`,
+              <br><br>${refColMsgs.join('<br>')}<br><br>
+              Delete them & try again</div>`,
               }),
-            })
+            )
             return
           }
 
@@ -97,14 +97,10 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
           await loadTables()
 
           removeMeta(table.id as string)
-          notification.info({
-            message: `Deleted table ${table.title} successfully`,
-          })
+          message.info(`Deleted table ${table.title} successfully`)
           $e('a:table:delete')
         } catch (e: any) {
-          notification.error({
-            message: await extractSdkResponseErrorMsg(e),
-          })
+          message.error(await extractSdkResponseErrorMsg(e))
         }
       },
     })

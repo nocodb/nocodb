@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Form, notification } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import type { TableType } from 'nocodb-sdk'
 import type { UploadChangeParam } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
@@ -132,9 +132,7 @@ async function handlePreImport() {
       await validate()
       await parseAndExtractData(importState.url, '')
     } catch (e: any) {
-      notification.error({
-        message: await extractSdkResponseErrorMsg(e),
-      })
+      message.error(await extractSdkResponseErrorMsg(e))
     }
   } else if (activeKey.value === 'jsonEditorTab') {
     await parseAndExtractData(JSON.stringify(importState.jsonEditor), '')
@@ -147,9 +145,7 @@ async function handleImport() {
     loading.value = true
     await templateEditorRef.value.importTemplate()
   } catch (e: any) {
-    return notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    return message.error(await extractSdkResponseErrorMsg(e))
   } finally {
     loading.value = false
   }
@@ -163,9 +159,7 @@ async function parseAndExtractData(val: any, name: string) {
     importColumns.value = []
     const templateGenerator: any = getAdapter(name, val)
     if (!templateGenerator) {
-      notification.error({
-        message: 'Template Generator cannot be found!',
-      })
+      message.error('Template Generator cannot be found!')
       return
     }
     await templateGenerator.init()
@@ -176,18 +170,13 @@ async function parseAndExtractData(val: any, name: string) {
     if (importOnly) importColumns.value = templateGenerator.getColumns()
     templateEditorModal.value = true
   } catch (e: any) {
-    console.log(e)
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
 function rejectDrop(fileList: any[]) {
-  fileList.map((file) => {
-    return notification.error({
-      message: `Failed to upload file ${file.name}`,
-    })
+  fileList.map((_) => {
+    return message.error('Template Generator cannot be found!')
   })
 }
 
@@ -204,13 +193,9 @@ function handleChange(info: UploadChangeParam) {
     reader.readAsArrayBuffer(info.file.originFileObj)
   }
   if (status === 'done') {
-    notification.success({
-      message: `Uploaded file ${info.file.name} successfully`,
-    })
+    message.success(`Uploaded file ${info.file.name} successfully`)
   } else if (status === 'error') {
-    notification.error({
-      message: `Failed to upload file ${info.file.name}`,
-    })
+    message.error(`Failed to upload file ${info.file.name}`)
   }
 }
 

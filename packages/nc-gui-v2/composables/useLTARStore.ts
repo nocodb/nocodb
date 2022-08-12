@@ -1,6 +1,6 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { Modal, notification } from 'ant-design-vue'
+import { Modal, message } from 'ant-design-vue'
 import { useInjectionState, useMetas, useProject } from '#imports'
 import { NOCO } from '~/lib'
 import type { Row } from '~/composables'
@@ -104,10 +104,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           )
         }
       } catch (e: any) {
-        notification.error({
-          message: 'Failed to load list',
-          description: await extractSdkResponseErrorMsg(e),
-        })
+        message.error(`Failed to load list: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
 
@@ -129,10 +126,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           },
         )
       } catch (e: any) {
-        notification.error({
-          message: 'Failed to load children list',
-          description: await extractSdkResponseErrorMsg(e),
-        })
+        message.error(`Failed to load children list: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
 
@@ -147,10 +141,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             reloadData?.()
             await loadChildrenList()
           } catch (e: any) {
-            notification.error({
-              message: 'Delete failed',
-              description: await extractSdkResponseErrorMsg(e),
-            })
+            message.error(`Delete failed: ${await extractSdkResponseErrorMsg(e)}`)
           }
         },
       })
@@ -182,10 +173,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           getRelatedTableRowId(row) as string,
         )
       } catch (e: any) {
-        notification.error({
-          message: 'Unlink failed',
-          description: await extractSdkResponseErrorMsg(e),
-        })
+        message.error(`Unlink failed: ${await extractSdkResponseErrorMsg(e)}`)
       }
       reloadData?.()
       // todo: reload table data and children list
@@ -221,10 +209,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
         )
         await loadChildrenList()
       } catch (e: any) {
-        notification.error({
-          message: 'Linking failed',
-          description: await extractSdkResponseErrorMsg(e),
-        })
+        message.error(`Linking failed: ${await extractSdkResponseErrorMsg(e)}`)
       }
 
       // todo: reload table data and child list

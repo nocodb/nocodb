@@ -2,7 +2,7 @@
 import * as XLSX from 'xlsx'
 import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
 import { useProject } from '#imports'
 import { ActiveViewInj, MetaInj } from '~/context'
@@ -94,19 +94,13 @@ const exportFile = async (exportType: ExportTypes.EXCEL | ExportTypes.CSV) => {
       }
       offset = +headers['nc-export-offset']
       if (offset > -1) {
-        notification.info({
-          message: 'Downloading more files',
-        })
+        message.info('Downloading more files')
       } else {
-        notification.success({
-          message: 'Successfully exported all table data',
-        })
+        message.success('Successfully exported all table data')
       }
     }
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 </script>

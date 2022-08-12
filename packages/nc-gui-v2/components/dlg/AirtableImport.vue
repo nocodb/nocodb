@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import io from 'socket.io-client'
 import type { Socket } from 'socket.io-client'
-import { Form, notification } from 'ant-design-vue'
+import { Form, message } from 'ant-design-vue'
 import type { Card as AntCard } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg, fieldRequiredValidator } from '~/utils'
 import MdiCloseCircleOutlineIcon from '~icons/mdi/close-circle-outline'
@@ -103,9 +103,7 @@ async function createOrUpdate() {
       syncSource.value = data
     }
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -156,9 +154,7 @@ async function sync() {
       },
     })
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

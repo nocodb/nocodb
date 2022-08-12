@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { onMounted, useClipboard, useNuxtApp, useProject } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
@@ -39,9 +39,7 @@ const loadBase = async () => {
       role: res.roles,
     }
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 
@@ -56,9 +54,7 @@ const createShareBase = async (role = ShareBaseRole.Viewer) => {
     base = res ?? {}
     base!.role = role
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:shared-base:enable', { role })
@@ -71,9 +67,7 @@ const disableSharedBase = async () => {
     await $api.project.sharedBaseDisable(project.value.id)
     base = null
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:shared-base:disable')
@@ -91,9 +85,7 @@ const recreate = async () => {
 
     base = { ...newBase, role: base?.role }
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 
   $e('a:shared-base:recreate')
@@ -104,9 +96,7 @@ const copyUrl = async () => {
 
   await copy(url)
 
-  notification.success({
-    message: 'Copied shareable base url to clipboard!',
-  })
+  message.success('Copied shareable base url to clipboard!')
 
   $e('c:shared-base:copy-url')
 }
@@ -130,9 +120,7 @@ width="100%"
 height="700"
 style="background: transparent; border: 1px solid #ddd"></iframe>`)
 
-  notification.success({
-    message: 'Copied embeddable html code!',
-  })
+  message.success('Copied embeddable html code!')
 
   $e('c:shared-base:copy-embed-frame')
 }

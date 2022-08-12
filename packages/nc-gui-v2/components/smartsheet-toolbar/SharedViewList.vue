@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import { useClipboard } from '@vueuse/core'
 import { ViewTypes } from 'nocodb-sdk'
-import { message, notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { onMounted, useSmartsheetStoreOrThrow } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
 import MdiVisibilityOnIcon from '~icons/mdi/visibility'
@@ -80,14 +80,10 @@ const copyLink = (view: SharedViewType) => {
 const deleteLink = async (id: string) => {
   try {
     await $api.dbViewShare.delete(id)
-    notification.success({
-      message: 'Deleted shared view successfully',
-    })
+    message.success('Deleted shared view successfully')
     await loadSharedViewsList()
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 </script>

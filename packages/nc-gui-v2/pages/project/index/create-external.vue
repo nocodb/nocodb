@@ -1,6 +1,6 @@
 <script lang="ts" setup>
 import { onMounted } from '@vue/runtime-core'
-import { Form, Modal, notification } from 'ant-design-vue'
+import { Form, Modal, message } from 'ant-design-vue'
 import { useI18n } from 'vue-i18n'
 import { computed, ref, useSidebar, watch } from '#imports'
 import { navigateTo, useNuxtApp } from '#app'
@@ -142,9 +142,7 @@ const createProject = async () => {
     $e('a:project:create:extdb')
     await navigateTo(`/nc/${result.id}`)
   } catch (e: any) {
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
   loading.value = false
 }
@@ -185,16 +183,12 @@ const testConnection = async () => {
         })
       } else {
         testSuccess.value = false
-        notification.error({
-          message: `${t('msg.error.dbConnectionFailed')} ${result.message}`,
-        })
+        message.error(`${t('msg.error.dbConnectionFailed')} ${result.message}`)
       }
     }
   } catch (e: any) {
     testSuccess.value = false
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 

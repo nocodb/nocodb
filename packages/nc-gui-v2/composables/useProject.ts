@@ -44,10 +44,11 @@ export function useProject(projectId?: MaybeRef<string>) {
   const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
 
   const isMysql = computed(() => ['mysql', 'mysql2'].includes(projectBaseType))
+  const isMssql = computed(() => projectBaseType === 'mssql')
   const isPg = computed(() => projectBaseType === 'pg')
   const sqlUi = computed(
     () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
   )
 
-  return { project, tables, loadProjectRoles, loadProject, loadTables, isMysql, isPg, sqlUi }
+  return { project, tables, loadProjectRoles, loadProject, loadTables, isMysql, isMssql, isPg, sqlUi }
 }

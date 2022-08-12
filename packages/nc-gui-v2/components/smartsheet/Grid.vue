@@ -100,9 +100,7 @@ provide(ChangePageInj, changePage)
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
-  if (!isPublicView) {
-    loadAggCommentsCount()
-  }
+  loadAggCommentsCount()
   await loadData()
 })
 

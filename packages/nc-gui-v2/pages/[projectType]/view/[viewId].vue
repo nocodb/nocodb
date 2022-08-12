@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
 import type { TableType } from 'nocodb-sdk/build/main'
-import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReloadViewDataHookInj } from '~/context'
+import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadViewDataHookInj } from '~/context'
 
 definePageMeta({
   requiresAuth: false,
@@ -19,6 +19,7 @@ provide(MetaInj, meta)
 provide(ActiveViewInj, sharedView)
 provide(FieldsInj, columns)
 provide(IsPublicInj, ref(true))
+provide(ReadonlyInj, ref(true))
 
 const { isGrid } = useProvideSmartsheetStore(sharedView as Ref<TableType>, meta)
 </script>

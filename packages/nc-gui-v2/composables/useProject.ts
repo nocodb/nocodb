@@ -41,14 +41,9 @@ export function useProject(projectId?: MaybeRef<string>) {
       _projectId = route.params.projectId as string
     }
     project.value = await $api.project.read(_projectId!)
+    await loadProjectRoles()
+    await loadTables()
   }
-
-  watchEffect(async () => {
-    if (project?.value) {
-      await loadProjectRoles()
-      await loadTables()
-    }
-  })
 
   const projectBaseType = $computed(() => project.value?.bases?.[0]?.type || '')
 

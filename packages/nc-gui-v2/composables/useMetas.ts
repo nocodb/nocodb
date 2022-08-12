@@ -1,6 +1,8 @@
+import { message } from 'ant-design-vue'
 import type { WatchStopHandle } from 'vue'
 import type { TableInfoType, TableType } from 'nocodb-sdk'
 import { useProject } from './useProject'
+import { extractSdkResponseErrorMsg } from '~/utils'
 import { useNuxtApp, useState } from '#app'
 
 export function useMetas() {
@@ -11,53 +13,62 @@ export function useMetas() {
   const loadingState = useState<Record<string, boolean>>('metas-loading-state', () => ({}))
 
   const getMeta = async (tableIdOrTitle: string, force = false): Promise<TableType | TableInfoType | null> => {
-    if (!force && metas.value[tableIdOrTitle]) return metas.value[tableIdOrTitle]
-
-    const modelId = (tables.value.find((t) => t.title === tableIdOrTitle || t.id === tableIdOrTitle) || {}).id
-
-    if (!modelId) {
-      console.warn(`Table '${tableIdOrTitle}' is not found in the table list`)
-      return null
-    }
-
     /** wait until loading is finished if requesting same meta */
-    if (!force) {
+    if (!force && loadingState.value[tableIdOrTitle]) {
       await new Promise((resolve) => {
         let unwatch: WatchStopHandle
 
+        // set maximum 20sec timeout to wait loading meta
         const timeout = setTimeout(() => {
           unwatch?.()
           clearTimeout(timeout)
           resolve(null)
-        }, 20000)
+        }, 10000)
 
+        // watch for loading state change
         unwatch = watch(
-          () => loadingState.value[modelId],
+          () => !!loadingState.value[tableIdOrTitle],
           (isLoading) => {
             if (!isLoading) {
               clearTimeout(timeout)
-              resolve(null)
               unwatch?.()
+              resolve(null)
             }
           },
           { immediate: true },
         )
       })
-      if (metas.value[modelId]) return metas.value[modelId]
+      if (metas.value[tableIdOrTitle]) {
+        return metas.value[tableIdOrTitle]
+      }
     }
+    loadingState.value[tableIdOrTitle] = true
+    try {
+      if (!force && metas.value[tableIdOrTitle]) {
+        return metas.value[tableIdOrTitle]
+      }
 
-    loadingState.value[modelId] = true
+      const modelId = tableIdOrTitle.startsWith('md_') ? tableIdOrTitle : tables.value.find((t) => t.title === tableIdOrTitle)?.id
 
-    const model = await $api.dbTable.read(modelId)
-    metas.value = {
-      ...metas.value,
-      [model.id!]: model,
-      [model.title]: model,
+      if (!modelId) {
+        console.warn(`Table '${tableIdOrTitle}' is not found in the table list`)
+        return null
+      }
+
+      const model = await $api.dbTable.read(modelId)
+      metas.value = {
+        ...metas.value,
+        [model.id!]: model,
+        [model.title]: model,
+      }
+
+      return model
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+    } finally {
+      delete loadingState.value[tableIdOrTitle]
     }
-
-    loadingState.value[modelId] = false
-
-    return model
+    return null
   }
 
   const clearAllMeta = () => {

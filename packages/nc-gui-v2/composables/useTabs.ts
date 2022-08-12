@@ -1,5 +1,4 @@
 import type { WritableComputedRef } from '@vue/reactivity'
-import type { RouterConfig } from '@nuxt/schema'
 import { navigateTo, useProject, useRoute, useState } from '#imports'
 
 export enum TabType {

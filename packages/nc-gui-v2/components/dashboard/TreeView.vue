@@ -2,7 +2,7 @@
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { Empty } from 'ant-design-vue'
-import { useNuxtApp, useRoute } from '#app'
+import { useNuxtApp } from '#app'
 import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
 import { TabType } from '~/composables'
 import MdiView from '~icons/mdi/eye-circle-outline'
@@ -13,8 +13,6 @@ import MdiDrag from '~icons/mdi/drag-vertical'
 const { addTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
-
-const route = useRoute()
 
 const { tables, loadTables } = useProject()
 const { activeTab } = useTabs()

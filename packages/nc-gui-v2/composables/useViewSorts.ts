@@ -31,7 +31,6 @@ export function useViewSorts(
 
   const loadSorts = async () => {
     if (isPublic.value) {
-      console.log('load sorts public', sharedView.value?.sorts)
       const sharedSorts = sharedView.value?.sorts || []
       sorts.value = [...sharedSorts]
       return

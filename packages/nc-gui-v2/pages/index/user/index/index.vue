@@ -1,14 +1,17 @@
 <script lang="ts" setup>
 import { useI18n } from 'vue-i18n'
 import { message } from 'ant-design-vue'
+import { navigateTo } from '#app'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import { reactive, ref, useApi } from '#imports'
+import { reactive, ref, useApi, useGlobal } from '#imports'
 import MaterialSymbolsWarning from '~icons/material-symbols/warning'
 import MdiKeyChange from '~icons/mdi/key-change'
 
 const { api } = useApi()
 
 const { t } = useI18n()
+
+const { signOut } = useGlobal()
 
 const formValidator = ref()
 let error = $ref<string | null>(null)
@@ -51,11 +54,13 @@ const passwordChange = async () => {
 
   error = null
   try {
-    const { msg } = await api.auth.passwordChange({
+    await api.auth.passwordChange({
       currentPassword: form.currentPassword,
       newPassword: form.password,
     })
-    message.success(msg)
+    message.success('Password changed successfully. Please login again.')
+    signOut()
+    navigateTo('/signin')
   } catch (e: any) {
     error = await extractSdkResponseErrorMsg(e)
   }

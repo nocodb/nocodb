@@ -31,12 +31,16 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
       return table.columns.includes(col.column_name)
     })
 
-    const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
-      ...table,
-      columns,
-    })
-
-    onTableCreate?.(tableMeta)
+    try {
+      const tableMeta = await $api.dbTable.create(project?.value?.id as string, {
+        ...table,
+        columns,
+      })
+      onTableCreate?.(tableMeta)
+    } catch (e: any) {
+      message.error(await extractSdkResponseErrorMsg(e))
+      return
+    }
   }
 
   watch(

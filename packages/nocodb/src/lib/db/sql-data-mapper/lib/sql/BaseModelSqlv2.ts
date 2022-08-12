@@ -1611,6 +1611,13 @@ class BaseModelSqlv2 {
     }
   }
 
+  deletePrimaryKeyFromData(data) {
+    const { primaryKey } = this.model;
+    if (primaryKey) {
+      delete data[primaryKey.title];
+    }
+  }
+
   async bulkUpdate(datas: any[]) {
     let transaction;
     try {
@@ -1623,12 +1630,14 @@ class BaseModelSqlv2 {
       // await this.beforeUpdateb(updateDatas, transaction);
       const res = [];
       for (const d of updateDatas) {
-        await this.validate(d);
         const pkValues = await this._extractPksValues(d);
         if (!pkValues) {
           // pk not specified - bypass
           continue;
         }
+        // removing primary key from data because it's not an updateable column
+        this.deletePrimaryKeyFromData(d);
+        await this.validate(d);
         const wherePk = await this._wherePk(pkValues);
         const response = await transaction(this.model.table_name)
           .update(d)

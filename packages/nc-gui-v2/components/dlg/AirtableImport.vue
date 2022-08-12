@@ -224,7 +224,7 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" :mask-closable="false" @keydown.esc="dialogShow = false">
+  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" :mask-closable="false" @keydown.esc="dialogShow = false" class="pa-2">
     <template #footer>
       <div v-if="step === 1">
         <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
@@ -239,15 +239,15 @@ onBeforeUnmount(() => {
         </a-button>
       </div>
     </template>
-    <a-typography-title class="ml-5 mt-5" type="secondary" :level="5">QUICK IMPORT - AIRTABLE</a-typography-title>
+    <span class="ml-5 mt-5 prose-xl font-weight-bold" type="secondary" :level="5">QUICK IMPORT - AIRTABLE</span>
     <div class="ml-5 mr-5">
-      <a-divider />
+
       <div v-if="step === 1">
         <div class="mb-4">
-          <span class="prose-xl font-bold mr-3">Credentials</span>
+          <span class="mr-3 pt-2 text-gray-500 text-xs">Credentials</span>
           <a
             href="https://docs.nocodb.com/setup-and-usages/import-airtable-to-sql-database-within-a-minute-for-free/#get-airtable-credentials"
-            class="prose-sm underline text-grey"
+            class="prose-sm underline text-grey text-xs"
             target="_blank"
             >Where to find this?
           </a>
@@ -269,7 +269,7 @@ onBeforeUnmount(() => {
               size="large"
             />
           </a-form-item>
-          <span class="prose-xl font-bold self-center my-4">Advanced Settings</span>
+          <span class="prose-lg self-center my-4 text-gray-500">Advanced Settings</span>
           <a-divider class="mt-2 mb-5" />
           <div class="mt-0 my-2">
             <a-checkbox v-model:checked="syncSource.details.options.syncData">Import Data</a-checkbox>

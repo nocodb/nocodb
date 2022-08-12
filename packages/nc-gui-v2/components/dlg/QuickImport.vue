@@ -235,7 +235,7 @@ function getAdapter(name: string, val: any) {
 
 <template>
   <a-modal v-model:visible="dialogShow" :width="modalWidth" :mask-closable="false" @keydown.esc="dialogShow = false">
-    <a-typography-title class="ml-5 mt-5 mb-5" type="secondary" :level="5">{{ importMeta.header }}</a-typography-title>
+    <span class="prose-xl font-weight-bold ml-5 mt-5 mb-5" type="secondary" :level="5">{{ importMeta.header }}</span>
     <template #footer>
       <a-button v-if="templateEditorModal" key="back" @click="templateEditorModal = false">Back</a-button>
       <a-button v-else key="cancel" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
@@ -260,7 +260,7 @@ function getAdapter(name: string, val: any) {
         $t('activity.import')
       }}</a-button>
     </template>
-    <div class="ml-5 mr-5">
+    <div class="ml-5 mr-5 mt-5">
       <TemplateEditor
         v-if="templateEditorModal"
         ref="templateEditorRef"
@@ -330,7 +330,7 @@ function getAdapter(name: string, val: any) {
     <div v-if="!templateEditorModal" class="ml-5 mr-5">
       <a-divider />
       <div class="mb-4">
-        <span class="prose-xl font-bold">Advanced Settings</span>
+        <span class="prose-lg">Advanced Settings</span>
         <a-form-item class="mt-4 mb-2" :label="t('msg.info.footMsg')" v-bind="validateInfos.maxRowsToParse">
           <a-input-number v-model:value="importState.parserConfig.maxRowsToParse" :min="1" :max="50000" />
         </a-form-item>

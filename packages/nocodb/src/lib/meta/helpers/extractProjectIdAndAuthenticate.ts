@@ -109,13 +109,17 @@ export default async (req, res, next) => {
                 session: false,
                 optional: false
               },
-              (_err, user, _info) => {
+              async (_err, user, _info) => {
                 // if (_err) return reject(_err);
                 if (user) {
                   return resolve({
                     ...user,
                     isAuthorized: true,
-                    roles: user.roles === 'owner' ? 'owner,creator' : user.roles
+                    roles:
+                      user.roles === 'owner' ||
+                      (await User.isSuperAdmin(user.id))
+                        ? 'owner,creator'
+                        : user.roles,
                   });
                 } else {
                   resolve({ roles: 'guest' });

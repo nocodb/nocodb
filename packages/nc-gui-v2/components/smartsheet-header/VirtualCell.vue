@@ -6,20 +6,27 @@ import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { provide, toRef, useMetas, useProvideColumnCreateStore } from '#imports'
 
 const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required: boolean }>()
+
 const column = toRef(props, 'column')
+
 const hideMenu = toRef(props, 'hideMenu')
 
 provide(ColumnInj, column)
 
 const { metas } = useMetas()
 
+const { isUIAllowed } = useUIPermission()
+
 const meta = inject(MetaInj)
+
 const isForm = inject(IsFormInj, ref(false))
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(column)
 
 const colOptions = $computed(() => column.value?.colOptions)
+
 const tableTile = $computed(() => meta?.value?.title)
+
 const relationColumnOptions = $computed<LinkToAnotherRecordType | null>(() => {
   if (isMm.value || isHm.value || isBt.value) {
     return column.value?.colOptions as LinkToAnotherRecordType

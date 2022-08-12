@@ -91,7 +91,8 @@ const renameTable = async () => {
   loading = true
   try {
     await $api.dbTable.update(tableMeta?.id as string, {
-      title: formState.title,
+      project_id: project?.value?.id as string,
+      table_name: formState.title,
     })
     dialogShow.value = false
     loadTables()

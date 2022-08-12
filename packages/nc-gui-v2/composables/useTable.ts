@@ -39,7 +39,6 @@ export function useTable(onTableCreate?: (tableMeta: TableType) => void) {
       onTableCreate?.(tableMeta)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
-      return
     }
   }
 

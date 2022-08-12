@@ -37,7 +37,7 @@ export function useViewData(
   // todo: missing properties on FormType (success_msg, show_blank_form,
   const formViewData = ref<FormType & { success_msg?: string; show_blank_form?: boolean }>()
 
-  let isPublic = inject(IsPublicInj, ref(false))
+  const isPublic = inject(IsPublicInj, ref(false))
   const { project } = useProject()
   const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
   const { $api } = useNuxtApp()
@@ -102,8 +102,7 @@ export function useViewData(
     }
   }
 
-  const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, isPublicMode = false) => {
-    isPublic = isPublic ?? ref(isPublicMode)
+  const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
     const response = !isPublic.value

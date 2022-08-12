@@ -2,7 +2,7 @@ import type { FilterType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp, useUIPermission } from '#imports'
 import { useMetas } from '~/composables/useMetas'
-import { IsPublicInj, MetaInj } from '~/context'
+import { IsPublicInj, ReloadViewDataHookInj } from '~/context'
 
 export function useViewFilters(
   view: Ref<ViewType> | undefined,
@@ -11,15 +11,27 @@ export function useViewFilters(
   reloadData?: () => void,
 ) {
   const { filters: sharedViewFilter } = useSharedView()
-  const meta = inject(MetaInj)
-  const { loadData } = useViewData(meta, view)
 
-  const filters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
+  const reloadHook = inject(ReloadViewDataHookInj)
+
+  const _filters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
   const { $api } = useNuxtApp()
   const { isUIAllowed } = useUIPermission()
   const { metas } = useMetas()
+
+  const filters = computed({
+    get: () => (isPublic.value ? sharedViewFilter.value : _filters.value),
+    set: (value) => {
+      if (isPublic.value) {
+        sharedViewFilter.value = value
+        reloadHook?.trigger()
+      } else {
+        _filters.value = value
+      }
+    },
+  })
 
   const loadFilters = async (hookId?: string) => {
     if (isPublic.value) return
@@ -111,27 +123,21 @@ export function useViewFilters(
   }
 
   const addFilter = () => {
-    filters.value = [
-      ...filters.value,
-      {
-        comparison_op: 'eq',
-        value: '',
-        status: 'create',
-        logical_op: 'and',
-      },
-    ]
+    filters.value.push({
+      comparison_op: 'eq',
+      value: '',
+      status: 'create',
+      logical_op: 'and',
+    })
   }
 
   const addFilterGroup = async () => {
-    filters.value = [
-      ...filters.value,
-      {
-        parentId,
-        is_group: true,
-        status: 'create',
-        logical_op: 'and',
-      },
-    ]
+    filters.value.push({
+      parentId,
+      is_group: true,
+      status: 'create',
+      logical_op: 'and',
+    })
     const index = filters.value.length - 1
     await saveOrUpdate(filters.value[index], index, true)
   }
@@ -149,16 +155,6 @@ export function useViewFilters(
       if (nextColsLength < oldColsLength) {
         await loadFilters()
       }
-    },
-  )
-
-  watch(
-    () => filters.value,
-    () => {
-      if (!isPublic.value) return
-
-      sharedViewFilter.value = filters.value
-      loadData()
     },
   )
 

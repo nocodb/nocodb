@@ -10,7 +10,7 @@ const isPublic = inject(IsPublicInj, ref(false))
   <div class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[48px] px-2 border-b" style="z-index: 7">
     <SmartsheetToolbarFieldsMenu v-if="(isGrid && !isPublic) || isGallery" :show-system-fields="false" class="ml-1" />
 
-    <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery" />
+    <SmartsheetToolbarColumnFilterMenu v-if="(isGrid && !isPublic) || isGallery" />
 
     <SmartsheetToolbarSortListMenu v-if="(isGrid && !isPublic) || isGallery" />
 

@@ -19,6 +19,7 @@ export interface Row {
     commentCount?: number
   }
 }
+const formattedData = ref<Row[]>([])
 
 export function useViewData(
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
@@ -29,7 +30,6 @@ export function useViewData(
     throw new Error('Table meta is not available')
   }
 
-  const formattedData = ref<Row[]>([])
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
   const galleryData = ref<GalleryType>()
@@ -38,8 +38,9 @@ export function useViewData(
   const formViewData = ref<FormType & { success_msg?: string; show_blank_form?: boolean }>()
 
   const { project } = useProject()
+  const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
   const { $api } = useNuxtApp()
-  const isPublic = inject(IsPublicInj, ref(false))
+  let isPublic = inject(IsPublicInj, ref(false))
 
   const selectedAllRecords = computed({
     get() {
@@ -60,14 +61,6 @@ export function useViewData(
     paginationData.value.totalRows = count
   }
 
-  const loadPublicData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
-    const { data } = await $api.public.dataList(viewMeta?.value?.uuid, {
-      ...params,
-    })
-    formattedData.value = formatData(data.list)
-    paginationData.value = data.pageInfo
-  }
-
   const queryParams = computed(() => ({
     offset: (paginationData.value?.page ?? 0) - 1,
     limit: paginationData.value?.pageSize ?? 25,
@@ -77,9 +70,7 @@ export function useViewData(
   /** load row comments count */
   const loadAggCommentsCount = async () => {
     // todo: handle in public api
-    // if (this.isPublicView) {
-    //   return;
-    // }
+    if (isPublic.value) return
 
     const ids = formattedData.value
       ?.filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -100,18 +91,16 @@ export function useViewData(
     }
   }
 
-  const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
-    if (isPublic.value) {
-      loadPublicData(params)
-      return
-    }
+  const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}, isPublicMode = false) => {
+    isPublic = isPublic ?? ref(isPublicMode)
+    if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
-    if (!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) return
-
-    const response = await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, {
-      ...params,
-      where: where?.value,
-    })
+    const response = !isPublic.value
+      ? await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, {
+          ...params,
+          where: where?.value,
+        })
+      : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
 
@@ -332,6 +321,15 @@ export function useViewData(
       return message.error(`Failed to update form view: ${await extractSdkResponseErrorMsg(e)}`)
     }
   }
+
+  watch(
+    () => paginationData.value,
+    () => {
+      if (!isPublic.value) return
+
+      sharedPaginationData.value = paginationData.value
+    },
+  )
 
   return {
     loadData,

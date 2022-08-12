@@ -10,9 +10,9 @@ definePageMeta({
 const route = useRoute()
 
 const reloadEventHook = createEventHook<void>()
-const { sharedView, loadSharedView, meta, columns } = useSharedView(route.params.viewId as string)
+const { sharedView, loadSharedView, meta, columns } = useSharedView()
 
-await loadSharedView()
+await loadSharedView(route.params.viewId as string)
 
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(MetaInj, meta)

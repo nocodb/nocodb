@@ -12,7 +12,7 @@ const sidebarOpen = inject(RightSidebarInj, ref(true))
     <template #title> {{ $t('activity.addRow') }} </template>
 
     <div class="nc-sidebar-right-item hover:after:bg-primary/75 group">
-      <MdiPlusOutline class="group-hover:(!text-white)" @click="emits('addRow')" />
+      <MdiPlusOutline class="cursor-pointer group-hover:(!text-white)" @click="emits('addRow')" />
     </div>
   </a-tooltip>
 </template>

@@ -14,7 +14,7 @@ const onClick = () => reloadHook.trigger()
     <template #title> {{ $t('general.reload') }} </template>
 
     <div class="nc-sidebar-right-item hover:after:bg-green-500 group">
-      <MdiReload class="group-hover:(!text-white)" @click="onClick" />
+      <MdiReload class="cursor-pointer group-hover:(!text-white)" @click="onClick" />
     </div>
   </a-tooltip>
 </template>

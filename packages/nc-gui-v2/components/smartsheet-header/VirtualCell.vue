@@ -101,7 +101,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     <template v-if="!hideMenu">
       <v-spacer />
 
-      <SmartsheetHeaderMenu v-if="!isForm" :virtual="true" />
+      <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" />
     </template>
   </div>
 </template>

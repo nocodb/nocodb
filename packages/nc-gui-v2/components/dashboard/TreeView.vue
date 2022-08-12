@@ -197,19 +197,24 @@ const activeTable = computed(() => {
                 @click="addTableTab(table)"
               >
                 <div class="flex align-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
-                  <div v-if="isUIAllowed('treeview-drag-n-drop')" class="flex w-auto">
+                  <div class="flex w-auto">
                     <MdiDrag
+                      v-if="isUIAllowed('treeview-drag-n-drop')"
                       :class="`nc-child-draggable-icon-${table.title}`"
                       class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
                       @click.stop.prevent
                     />
 
-                    <component :is="icon(table)" class="nc-view-icon group-hover:hidden text-xs group-hover:text-gray-500" />
+                    <component
+                      :is="icon(table)"
+                      class="nc-view-icon text-xs"
+                      :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                    />
                   </div>
 
                   <div class="nc-tbl-title flex-1">{{ table.title }}</div>
 
-                  <a-dropdown :trigger="['click']" @click.stop>
+                  <a-dropdown v-if="isUIAllowed('table-rename') || isUIAllowed('table-delete')" :trigger="['click']" @click.stop>
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
 
                     <template #overlay>

@@ -176,7 +176,7 @@ export function useViewData(
               })
               .then(() => {})
           */
-    } catch (error: any) {
+    } catch (e: any) {
       message.error(`Row update failed ${await extractSdkResponseErrorMsg(e)}`)
     }
   }

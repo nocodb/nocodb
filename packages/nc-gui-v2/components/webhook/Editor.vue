@@ -490,7 +490,6 @@ onMounted(() => {
 
         <a-col :span="24">
           <a-tabs v-model:activeKey="urlTabKey" type="card" closeable="false" class="shadow-sm">
-
             <a-tab-pane key="body" tab="Body">
               <MonacoEditor v-model="hook.notification.payload.body" :validate="false" class="min-h-60 max-h-80" />
             </a-tab-pane>

@@ -170,7 +170,11 @@ const activeTable = computed(() => {
           />
         </div>
         <div style="direction: ltr" class="flex-1">
-          <div v-if="tables.length" class="transition-height duration-200 overflow-hidden" :class="{ 'h-100': showTableList, 'h-0': !showTableList }">
+          <div
+            v-if="tables.length"
+            class="transition-height duration-200 overflow-hidden"
+            :class="{ 'h-100': showTableList, 'h-0': !showTableList }"
+          >
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div
                 v-for="table of tables"

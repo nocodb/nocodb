@@ -7,10 +7,8 @@ import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
 import { TabType } from '~/composables'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
-import MdiMenuDown from '~icons/mdi/chevron-down'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiDrag from '~icons/mdi/drag-vertical'
-import MdiPlus from '~icons/mdi/plus-circle-outline'
 
 const { addTab } = useTabs()
 
@@ -29,7 +27,6 @@ const tablesById = $computed<Record<string, TableType>>(() =>
   }, {}),
 )
 
-const showTableList = ref(true)
 const tableCreateDlg = ref(false)
 let key = $ref(0)
 
@@ -150,7 +147,6 @@ const activeTable = computed(() => {
         <div
           style="direction: ltr"
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
-          @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
         >
           <span class="flex-grow text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
@@ -158,23 +154,11 @@ const activeTable = computed(() => {
 
             <template v-if="tables?.length"> ({{ tables.length }}) </template>
           </span>
-
-          <MdiPlus
-            v-t="['c:table:create:navdraw']"
-            class="transform text-gray-500 hover:(text-pink-500 scale-105) nc-btn-tbl-add"
-            @click.stop="tableCreateDlg = true"
-          />
-
-          <MdiMenuDown
-            class="transition-transform !duration-100 text-gray-500 hover:text-pink-500"
-            :class="{ 'transform rotate-180': showTableList }"
-          />
         </div>
         <div style="direction: ltr" class="flex-1">
           <div
             v-if="tables.length"
             class="transition-height duration-200 overflow-hidden"
-            :class="{ 'h-100': showTableList, 'h-0': !showTableList }"
           >
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div

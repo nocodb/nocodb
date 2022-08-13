@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import { ColumnInj, ReadonlyInj, computed, getPercentStep, inject, isValidPercent, renderPercent } from '#imports'
+import { ColumnInj, computed, getPercentStep, inject, isValidPercent, renderPercent } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
   modelValue: number | string | null | undefined
@@ -9,7 +10,7 @@ const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const column = inject(ColumnInj)
 

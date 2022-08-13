@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ColumnInj, ReadonlyInj } from '#imports'
+import { ColumnInj } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
   modelValue: string | null | undefined
@@ -12,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const columnMeta = inject(ColumnInj, null)
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 let isDateInvalid = $ref(false)
 

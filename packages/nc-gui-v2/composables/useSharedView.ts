@@ -1,5 +1,5 @@
 import type { ColumnType, ExportTypes, FilterType, PaginatedType, SortType, TableType, ViewType } from 'nocodb-sdk'
-import { UITypes, isVirtualCol } from 'nocodb-sdk'
+import { UITypes } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
 const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
@@ -9,8 +9,8 @@ const sorts = ref<SortType[]>([])
 const password = ref<string | undefined>()
 
 export function useSharedView() {
-  const meta = ref<TableType>(() => sharedView.value?.model)
-  const columns = ref<ColumnType[]>(() => sharedView.value?.model?.columns ?? [])
+  const meta = ref<TableType>(sharedView.value?.model)
+  const columns = ref<ColumnType[]>(sharedView.value?.model?.columns)
   const formColumns = computed(
     () =>
       columns.value
@@ -25,8 +25,14 @@ export function useSharedView() {
   const { $api } = useNuxtApp()
   const { setMeta } = useMetas()
 
-  const loadSharedView = async (viewId: string) => {
-    const viewMeta = await $api.public.sharedViewMetaGet(viewId)
+  const loadSharedView = async (viewId: string, localPassword: string | undefined = undefined) => {
+    const viewMeta = await $api.public.sharedViewMetaGet(viewId, {
+      headers: {
+        'xc-password': localPassword ?? password.value,
+      },
+    })
+
+    if (localPassword) password.value = localPassword
     sharedView.value = viewMeta
 
     meta.value = viewMeta.model
@@ -42,11 +48,19 @@ export function useSharedView() {
     const page = paginationData.value.page || 1
     const pageSize = paginationData.value.pageSize || 25
 
-    const { data } = await $api.public.dataList(sharedView?.value?.uuid, {
-      offset: (page - 1) * pageSize,
-      filterArrJson: JSON.stringify(nestedFilters.value),
-      sortArrJson: JSON.stringify(sorts.value),
-    } as any)
+    const { data } = await $api.public.dataList(
+      sharedView?.value?.uuid,
+      {
+        offset: (page - 1) * pageSize,
+        filterArrJson: JSON.stringify(nestedFilters.value),
+        sortArrJson: JSON.stringify(sorts.value),
+      } as any,
+      {
+        headers: {
+          'xc-password': password.value,
+        },
+      },
+    )
 
     return data
   }
@@ -67,7 +81,7 @@ export function useSharedView() {
         filterArrJson: JSON.stringify(nestedFilters.value),
       },
       headers: {
-        'xc-password': password,
+        'xc-password': password.value,
       },
     })
   }

@@ -83,11 +83,7 @@ const {
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
 onMounted(() => {
-  if (!isPublicView.value) {
-    loadGridViewColumns()
-  } else {
-    loadGridViewColumns(fields.value)
-  }
+  loadGridViewColumns()
 })
 
 provide(IsFormInj, ref(false))

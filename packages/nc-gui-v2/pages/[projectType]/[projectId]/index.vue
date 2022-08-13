@@ -5,7 +5,7 @@ import { openLink } from '~/utils'
 
 const route = useRoute()
 
-const { project, loadProject, loadTables } = useProject()
+const { project, loadProject, loadTables, isSharedBase } = useProject()
 
 const { addTab, clearTabs } = useTabs()
 
@@ -65,7 +65,16 @@ await loadTables()
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
 
-          <a-dropdown :trigger="['click']" placement="bottom">
+          <div v-if="isSharedBase">
+            <template v-if="isOpen">
+              <div class="text-xl font-semibold truncate">{{ project.title }}</div>
+            </template>
+            <template v-else>
+              <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
+            </template>
+          </div>
+
+          <a-dropdown v-else :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -220,7 +229,6 @@ await loadTables()
     </template>
 
     <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
-
     <NuxtPage />
 
     <GeneralPreviewAs float />

@@ -1,37 +1,36 @@
 <script lang="ts" setup>
-import MdiHeartsCard from '~icons/mdi/cards-heart'
-
 interface Props {
   nav?: boolean
-  img?: boolean
 }
 
-const { nav = false, img = true } = defineProps<Props>()
+const { nav = false } = defineProps<Props>()
 </script>
 
 <template>
-  <v-card :rounded="0" class="dark:bg-gray-900" href="https://github.com/sponsors/nocodb" target="_blank">
-    <v-img v-if="img" src="/ants-leaf-cutter.jpeg" :cover="true" :aspect-ratio="1" :height="nav ? 80 : ''" />
+  <a-card class="w-[300px] ma-10 shadow-lg rounded-lg" href="https://github.com/sponsors/nocodb" target="_blank">
+    <template #cover>
+      <img class="max-h-[180px]" alt="cover" src="/ants-leaf-cutter.jpeg" />
+    </template>
 
-    <v-card-title v-if="!nav" class="pb-2">
-      {{ $t('msg.info.sponsor.header') }}
-    </v-card-title>
+    <a-card-meta>
+      <template #title>
+        <span v-if="!nav" class="text-xl pb-4">
+          {{ $t('msg.info.sponsor.header') }}
+        </span>
+      </template>
+    </a-card-meta>
 
-    <v-card-text v-if="!nav" class="pb-0">
+    <div v-if="!nav" class="py-5 text-sm">
       {{ $t('msg.info.sponsor.message') }}
-    </v-card-text>
+    </div>
 
-    <v-card-actions class="justify-center">
-      <v-btn color="primary" class="dark:(!text-white)">
-        <MdiHeartsCard class="text-red-500 mr-2" />
-        {{ $t('activity.sponsorUs') }}
-      </v-btn>
-    </v-card-actions>
-  </v-card>
+    <div class="flex justify-center">
+      <a-button class="!shadow" size="large">
+        <div class="flex items-center">
+          <mdi-cards-heart class="text-red-500 mr-2" />
+          {{ $t('activity.sponsorUs') }}
+        </div>
+      </a-button>
+    </div>
+  </a-card>
 </template>
-
-<style>
-a img {
-  margin: 0 !important;
-}
-</style>

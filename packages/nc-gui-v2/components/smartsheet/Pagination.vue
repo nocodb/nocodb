@@ -19,7 +19,9 @@ const page = computed({
 
 <template>
   <div class="flex items-center">
-    <span v-if="count !== null && count !== Infinity" class="caption ml-2 text-gray-500"> {{ count }} record{{ count !== 1 ? 's' : '' }} </span>
+    <span v-if="count !== null && count !== Infinity" class="caption ml-2 text-gray-500">
+      {{ count }} record{{ count !== 1 ? 's' : '' }}
+    </span>
 
     <div class="flex-1" />
 
@@ -55,7 +57,7 @@ const page = computed({
   line-height: 21px !important;
   @apply text-sm text-gray-500;
 }
-:deep(.ant-pagination-item-link){
+:deep(.ant-pagination-item-link) {
   @apply text-gray-500;
 }
 </style>

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
-import { TabType, useProject } from '~/composables'
+import { TabType } from '~/composables'
 import { TabMetaInj } from '~/context'
 import { useTabs, useUIPermission } from '#imports'
 import MdiPlusIcon from '~icons/mdi/plus'
@@ -144,9 +144,9 @@ const icon = (tab: TabItem) => {
           </template>
         </a-tabs>
       </div>
-<div class="w-full min-h-[300px] grow">
-      <NuxtPage />
-</div>
+      <div class="w-full min-h-[300px] grow">
+        <NuxtPage />
+      </div>
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />

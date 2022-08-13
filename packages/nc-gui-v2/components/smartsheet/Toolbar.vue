@@ -3,6 +3,7 @@ import { useSmartsheetStoreOrThrow } from '~/composables'
 import { IsPublicInj } from '~/context'
 
 const { isGrid, isForm, isGallery } = useSmartsheetStoreOrThrow()
+const { allowCSVDownload } = useSharedView()
 const isPublic = inject(IsPublicInj, ref(false))
 </script>
 
@@ -16,7 +17,8 @@ const isPublic = inject(IsPublicInj, ref(false))
 
     <SmartsheetToolbarShareView v-if="(isForm || isGrid) && !isPublic" />
 
-    <SmartsheetToolbarMoreActions v-if="isGrid" />
+    <SmartsheetToolbarMoreActions v-if="(isGrid && !isPublic) || (isGrid && isPublic && allowCSVDownload)" />
+
     <div class="flex-1" />
     <SmartsheetToolbarSearchData v-if="isGrid || isGallery" class="shrink mr-2" />
   </div>

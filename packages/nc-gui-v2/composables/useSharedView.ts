@@ -7,6 +7,7 @@ const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
 const sharedView = ref<ViewType>()
 const sorts = ref<SortType[]>([])
 const password = ref<string | undefined>()
+const allowCSVDownload = ref<boolean>(false)
 
 export function useSharedView() {
   const meta = ref<TableType>(sharedView.value?.model)
@@ -31,6 +32,8 @@ export function useSharedView() {
         'xc-password': localPassword ?? password.value,
       },
     })
+
+    allowCSVDownload.value = JSON.parse(viewMeta.meta).allowCSVDownload
 
     if (localPassword) password.value = localPassword
     sharedView.value = viewMeta
@@ -97,5 +100,6 @@ export function useSharedView() {
     sorts,
     exportFile,
     formColumns,
+    allowCSVDownload,
   }
 }

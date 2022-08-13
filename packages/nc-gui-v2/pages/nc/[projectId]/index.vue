@@ -69,7 +69,7 @@ await loadTables()
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
-              class="group cursor-pointer flex gap-4 items-center"
+              class="group cursor-pointer flex gap-4 items-center nc-project-menu"
             >
               <template v-if="isOpen">
                 <div class="text-xl font-semibold truncate">{{ project.title }}</div>
@@ -102,7 +102,7 @@ await loadTables()
 
                   <a-menu-item key="copy">
                     <div class="nc-project-menu-item group">
-                      <MdiContentCopy class="group-hover:text-pink-500" />
+                      <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
                       Copy Project Info
                     </div>
                   </a-menu-item>
@@ -114,7 +114,7 @@ await loadTables()
                       class="nc-project-menu-item group"
                       @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`)"
                     >
-                      <MdiApi class="group-hover:text-pink-500" />
+                      <MdiApi class="group-hover:text-pink-500 nc-swagger-api-docs" />
                       Swagger: Rest APIs
                     </div>
                   </a-menu-item>
@@ -128,7 +128,7 @@ await loadTables()
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'teamAndAuth')"
                     >
-                      <MdiAccountGroup class="group-hover:text-pink-500" />
+                      <MdiAccountGroup class="group-hover:text-pink-500 nc-team-and-auth" />
                       Team & Auth
                     </div>
                   </a-menu-item>
@@ -140,7 +140,7 @@ await loadTables()
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'appStore')"
                     >
-                      <MdiStore class="group-hover:text-pink-500" />
+                      <MdiStore class="group-hover:text-pink-500 nc-app-store" />
                       App Store
                     </div>
                   </a-menu-item>
@@ -152,7 +152,7 @@ await loadTables()
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'metaData')"
                     >
-                      <MdiTableBorder class="group-hover:text-pink-500" />
+                      <MdiTableBorder class="group-hover:text-pink-500 nc-meta-data" />
                       Project Metadata
                     </div>
                   </a-menu-item>
@@ -164,7 +164,7 @@ await loadTables()
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'audit')"
                     >
-                      <MdiNotebookCheckOutline class="group-hover:text-pink-500" />
+                      <MdiNotebookCheckOutline class="group-hover:text-pink-500 nc-audit" />
                       Audit
                     </div>
                   </a-menu-item>
@@ -174,7 +174,7 @@ await loadTables()
                   <a-sub-menu key="preview-as">
                     <template #title>
                       <div class="nc-project-menu-item group">
-                        <MdiContentCopy class="group-hover:text-pink-500" />
+                        <MdiContentCopy class="group-hover:text-pink-500 nc-project-preview" />
                         Preview Project As
 
                         <div class="flex-1" />

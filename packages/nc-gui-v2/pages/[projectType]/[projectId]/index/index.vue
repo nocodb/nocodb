@@ -144,8 +144,9 @@ const icon = (tab: TabItem) => {
           </template>
         </a-tabs>
       </div>
-
+<div class="w-full min-h-[300px] grow">
       <NuxtPage />
+</div>
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />

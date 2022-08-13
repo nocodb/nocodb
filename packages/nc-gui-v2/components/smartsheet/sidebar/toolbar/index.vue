@@ -30,7 +30,14 @@ async function exportCache() {
   }
 }
 
-function deleteCache() {}
+async function deleteCache() {
+  try {
+    await api.utils.cacheDelete()
+    message.info('Deleted Cache Successfully')
+  } catch (e: any) {
+    message.error(e.message)
+  }
+}
 </script>
 
 <template>

@@ -194,7 +194,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </a-button>
         <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost @click="onInvite">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-            <MdiAccountPlusOutline class="mr-1"/>
+            <MdiAccountPlusOutline class="mr-1" />
             <div>{{ $t('activity.inviteTeam') }}</div>
           </div>
         </a-button>

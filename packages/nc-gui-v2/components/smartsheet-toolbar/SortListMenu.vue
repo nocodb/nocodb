@@ -84,7 +84,7 @@ watch(
             <!--          </v-select> -->
           </template>
         </div>
-        <a-button class="text-capitalize mb-1 mt-4" @click.stop="addSort" type="primary" ghost>
+        <a-button class="text-capitalize mb-1 mt-4" type="primary" ghost @click.stop="addSort">
           <div class="flex gap-1 align-center">
             <MdiAddIcon />
             <!-- Add Sort Option -->

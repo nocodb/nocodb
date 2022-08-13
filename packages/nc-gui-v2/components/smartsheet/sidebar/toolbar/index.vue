@@ -1,6 +1,5 @@
 <script lang="ts" setup>
 import AddRow from './AddRow.vue'
-import DeleteTable from './DeleteTable.vue'
 import LockMenu from './LockMenu.vue'
 import Reload from './Reload.vue'
 </script>

@@ -1,7 +1,6 @@
 <script lang="ts" setup>
-import { Modal } from 'ant-design-vue'
+import { Empty, Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
-import { Empty } from 'ant-design-vue'
 import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel, watch } from '#imports'
 import { ColumnInj, IsFormInj } from '~/context'
 
@@ -114,7 +113,7 @@ const expandedFormRow = ref()
           show-less-items
         />
       </template>
-      <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE"/>
+      <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
     </div>
 
     <SmartsheetExpandedForm

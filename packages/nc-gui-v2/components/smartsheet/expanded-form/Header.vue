@@ -44,7 +44,7 @@ const iconColor = '#1890ff'
       <template v-if="primaryValue">: {{ primaryValue }}</template>
     </h5>
     <div class="flex-grow" />
-    <mdi-reload class="cursor-pointer select-none"  />
+    <mdi-reload class="cursor-pointer select-none" />
     <component :is="drawerToggleIcon" class="cursor-pointer select-none" @click="commentsDrawer = !commentsDrawer" />
     <a-button class="!text" @click="emit('cancel')">
       <!-- Cancel -->

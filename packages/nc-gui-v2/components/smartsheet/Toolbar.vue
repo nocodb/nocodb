@@ -17,8 +17,6 @@ const { isGrid, isForm } = useSmartsheetStoreOrThrow()
     <SmartsheetToolbarMoreActions v-if="isGrid" />
     <div class="flex-1" />
     <SmartsheetToolbarSearchData v-if="isGrid" class="shrink mr-2" />
-
-
   </div>
 </template>
 

@@ -131,7 +131,10 @@ onKeyDown('Escape', () => {
         <a-tooltip v-else placement="bottom">
           <template #title> View attachments </template>
 
-          <MdiArrowExpand class="select-none transform group-hover:(text-pink-500 scale-120) text-[10px] text-gray-500" @click.stop="modalVisible = true" />
+          <MdiArrowExpand
+            class="select-none transform group-hover:(text-pink-500 scale-120) text-[10px] text-gray-500"
+            @click.stop="modalVisible = true"
+          />
         </a-tooltip>
       </div>
     </template>

@@ -116,7 +116,7 @@ const newRowState = computed(() => {
           show-less-items
         />
       </template>
-      <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE"/>
+      <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
       <SmartsheetExpandedForm
         v-if="expandedFormDlg"

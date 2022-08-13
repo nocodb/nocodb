@@ -224,7 +224,13 @@ onBeforeUnmount(() => {
 </script>
 
 <template>
-  <a-modal v-model:visible="dialogShow" width="max(30vw, 600px)" :mask-closable="false" @keydown.esc="dialogShow = false" class="pa-2">
+  <a-modal
+    v-model:visible="dialogShow"
+    width="max(30vw, 600px)"
+    :mask-closable="false"
+    class="pa-2"
+    @keydown.esc="dialogShow = false"
+  >
     <template #footer>
       <div v-if="step === 1">
         <a-button key="back" @click="dialogShow = false">{{ $t('general.cancel') }}</a-button>
@@ -241,7 +247,6 @@ onBeforeUnmount(() => {
     </template>
     <span class="ml-5 mt-5 prose-xl font-weight-bold" type="secondary" :level="5">QUICK IMPORT - AIRTABLE</span>
     <div class="ml-5 mr-5">
-
       <div v-if="step === 1">
         <div class="mb-4">
           <span class="mr-3 pt-2 text-gray-500 text-xs">Credentials</span>

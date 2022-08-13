@@ -5,7 +5,7 @@ import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
 import { computed, inject, ref, useProvideLTARStore, useSmartsheetRowStoreOrThrow } from '#imports'
-import { CellValueInj, ColumnInj, IsFormInj, ReadonlyInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { CellValueInj, ColumnInj, EditModeInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
 const column = inject(ColumnInj)!
 
@@ -17,7 +17,7 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const listItemsDlg = ref(false)
 

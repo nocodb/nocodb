@@ -2,7 +2,7 @@
 import { Empty, Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel, watch } from '#imports'
-import { ColumnInj, IsFormInj, ReadonlyInj } from '~/context'
+import { ColumnInj, EditModeInj, IsFormInj } from '~/context'
 
 const props = defineProps<{ modelValue?: boolean }>()
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
@@ -13,7 +13,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const column = inject(ColumnInj)
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const {
   childrenList,

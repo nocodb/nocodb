@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, ReadonlyInj, computed, inject, isValidURL } from '#imports'
+import { ColumnInj, computed, inject, isValidURL } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
   modelValue: string | null | undefined
@@ -12,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const vModel = computed({
   get: () => value,

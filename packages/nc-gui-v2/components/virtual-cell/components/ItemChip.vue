@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { useLTARStoreOrThrow } from '#imports'
-import { ActiveCellInj, IsFormInj, ReadonlyInj } from '~/context'
+import { ActiveCellInj, EditModeInj, IsFormInj } from '~/context'
 
 interface Props {
   value?: string | number | boolean
@@ -13,7 +13,7 @@ const emit = defineEmits(['unlink'])
 
 const { relatedTableMeta } = useLTARStoreOrThrow()
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const active = inject(ActiveCellInj, ref(false))
 

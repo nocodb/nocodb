@@ -18,11 +18,14 @@ export function useViewSorts(
   }
 
   const saveOrUpdate = async (sort: SortType, i: number) => {
-    if (!isUIAllowed('sortSync') || !sorts?.value) return
-    if (sort.id) {
-      await $api.dbTableSort.update(sort.id, sort)
-    } else {
-      sorts.value[i] = (await $api.dbTableSort.create(view?.value?.id as string, sort)) as any
+    // TODO:
+    // if (!this.shared && this._isUIAllowed('sortSync')) {
+    if (isUIAllowed('sortSync')) {
+      if (sort.id) {
+        await $api.dbTableSort.update(sort.id, sort)
+      } else {
+        sorts.value[i] = (await $api.dbTableSort.create(view?.value?.id as string, sort)) as any
+      }
     }
     reloadData?.()
   }
@@ -33,12 +36,13 @@ export function useViewSorts(
   }
 
   const deleteSort = async (sort: SortType, i: number) => {
+    // TOOD:
     // if (!this.shared && sort.id && this._isUIAllowed('sortSync')) {
-    if (!isUIAllowed('sortSync')) return
-    if (sort.id) {
+    if (isUIAllowed('sortSync') && sort.id) {
       await $api.dbTableSort.delete(sort.id)
+    } else {
+      sorts.value.splice(i, 1)
     }
-    sorts.value.splice(i, 1)
   }
   return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate }
 }

@@ -3,17 +3,22 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import dayjs from 'dayjs'
-import { useApi, useInjectionState, useProject, useProvideSmartsheetRowStore } from '#imports'
-import { NOCO } from '~/lib'
-import { useNuxtApp } from '#app'
-import type { Row } from '~/composables/useViewData'
-import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
+import {
+  NOCO,
+  extractPkFromRow,
+  extractSdkResponseErrorMsg,
+  useApi,
+  useInjectionState,
+  useNuxtApp,
+  useProject,
+  useProvideSmartsheetRowStore,
+} from '#imports'
+import type { Row } from '~/composables'
 
 const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $e, $state, $api } = useNuxtApp()
   const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
-  // { useGlobalInstance: true },
-  // state
+
   const commentsOnly = ref(false)
   const commentsAndLogs = ref([])
   const comment = ref('')
@@ -84,11 +89,14 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
       await api.utils.commentRow({
         fk_model_id: meta.value?.id as string,
         row_id: rowId,
+        // todo: description missing from argument type
         description: comment.value,
-      })
+      } as any)
 
       comment.value = ''
+
       message.success('Comment added successfully')
+
       await loadCommentsAndLogs()
     } catch (e: any) {
       message.error(e.message)

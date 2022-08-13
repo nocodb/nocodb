@@ -113,7 +113,8 @@ export function useViewColumns(
 
   const showSystemFields = computed({
     get() {
-      return view?.value?.show_system_fields || false
+      // todo: show_system_fields missing from ViewType
+      return (view?.value as any)?.show_system_fields || false
     },
     set(v: boolean) {
       if (view?.value?.id) {

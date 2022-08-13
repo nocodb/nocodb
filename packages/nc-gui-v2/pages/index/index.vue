@@ -156,8 +156,13 @@ onMounted(() => {
           </a-table>
         </a-card>
       </a-col>
-      <a-col :span="8" class="col-sm-12 col-lg-3 d-sm-none d-md-flex justify-center justify-lg-end align-start">
-        <GeneralSponsors />
+      <a-col :span="8" class="">
+        <div class="justify-end flex">
+          <GeneralSponsors />
+        </div>
+        <div class="justify-end flex">
+          <GeneralSocialCard />
+        </div>
       </a-col>
     </a-row>
   </NuxtLayout>

@@ -8,6 +8,10 @@ const route = useRoute()
 
 const email = computed(() => user.value?.email ?? '---')
 
+const { isUIAllowed } = useUIPermission()
+
+const showUserModal = $ref(false)
+
 const logout = () => {
   signOut()
   navigateTo('/signin')
@@ -40,6 +44,22 @@ const logout = () => {
           </div>
 
           <div class="flex-1" />
+
+          <div class="flex items-center mr-4">
+            <a-button
+              v-if="isUIAllowed('newUser')"
+              size="middle"
+              type="primary"
+              class="!bg-white !text-primary rounded"
+              @click="showUserModal = true"
+            >
+              <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
+                <mdi-account-supervisor-outline class="mr-1" />
+                <div>{{ $t('activity.share') }}</div>
+              </div>
+            </a-button>
+            <TabsAuthUserManagementUsersModal :key="showUserModal" :show="showUserModal" @closed="showUserModal = false" />
+          </div>
 
           <a-tooltip placement="left">
             <template #title> Switch language </template>

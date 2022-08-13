@@ -53,7 +53,8 @@ const exportFile = async (exportType: ExportTypes) => {
     while (!isNaN(offset) && offset > -1) {
       let res
       if (isPublicView.value) {
-        res = await exportFile(fields.value, offset, exportType, responseType)
+        const { exportFile: sharedViewExportFile } = useSharedView()
+        res = await sharedViewExportFile(fields.value, offset, exportType, responseType)
       } else {
         res = await $api.dbViewRow.export(
           'noco',

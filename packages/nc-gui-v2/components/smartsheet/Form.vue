@@ -406,9 +406,9 @@ onMounted(async () => {
     </a-col>
     <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-primary">
       <div class="h-[200px]">
-        <a-card class="h-full !bg-[#dbdad7] ma-0 rounded-b-0 pa-8">
+        <a-card class="h-full !bg-[#dbdad7] ma-0 rounded-b-0 pa-8" body-style="max-width: 700px; margin: 0 auto;">
           <a-form ref="formRef" :model="formState">
-            <a-card class="rounded ma-6 pb-10 px-15">
+            <a-card class="rounded ma-2 pb-10 px-5">
               <!-- Header -->
               <a-form-item class="ma-0 gap-0 pa-0">
                 <a-input
@@ -538,7 +538,7 @@ onMounted(async () => {
             </a-card>
           </a-form>
 
-          <div class="mx-10 px-10">
+          <div v-if="isEditable" class="mx-10 px-10">
             <!-- After form is submitted -->
             <div class="text-gray-500 mt-4 mb-2">
               {{ $t('msg.info.afterFormSubmitted') }}

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ColumnInj, ReadonlyInj } from '~/context'
+import { ColumnInj, ReadonlyInj } from '#imports'
 
 interface Props {
   modelValue: string | null

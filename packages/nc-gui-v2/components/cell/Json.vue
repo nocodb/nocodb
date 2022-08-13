@@ -1,8 +1,7 @@
 <script setup lang="ts">
 import { Modal as AModal } from 'ant-design-vue'
 import Editor from '~/components/monaco/Editor.vue'
-import { computed, inject, ref, useVModel, watch } from '#imports'
-import { EditModeInj } from '~/context'
+import { ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any> | undefined

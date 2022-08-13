@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { ReadonlyInj } from '~/context'
+import { ReadonlyInj } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -13,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(ReadonlyInj)
 
 let isTimeInvalid = $ref(false)
 

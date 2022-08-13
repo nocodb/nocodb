@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { computed, inject, ref } from '#imports'
-import { EditModeInj } from '~/context'
+import { ReadonlyInj, computed, inject } from '#imports'
 
 interface Props {
   modelValue: string | null

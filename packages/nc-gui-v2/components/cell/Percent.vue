@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { computed, inject } from '#imports'
-import { ColumnInj } from '~/context'
-import { getPercentStep, isValidPercent, renderPercent } from '@/utils/percentUtils'
+import { ColumnInj, ReadonlyInj, computed, getPercentStep, inject, isValidPercent, renderPercent } from '#imports'
 
 interface Props {
   modelValue: number | string | null

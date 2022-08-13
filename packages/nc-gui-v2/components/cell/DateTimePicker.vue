@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj } from '~/context'
+import { ReadonlyInj } from '#imports'
 
 interface Props {
   modelValue: string | null
@@ -64,11 +64,12 @@ watch(
     :bordered="false"
     class="!w-full px-1"
     format="YYYY-MM-DD HH:mm"
-    :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date and time' : ''"
+    :placeholder="isDateInvalid ? 'Invalid date' : !editEnabled ? 'Select date and time' : ''"
     :allow-clear="!editEnabled"
     :input-read-only="true"
     :dropdown-class-name="randomClass"
     :open="editEnabled ? false : open"
+    :disabled="!editEnabled"
     @click="open = !open"
     @ok="open = !open"
   >

@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { ReadonlyInj } from '~/context'
+import { ReadonlyInj } from '#imports'
 
 interface Props {
   modelValue: number | string | null
@@ -11,7 +11,7 @@ const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(ReadonlyInj)
 
 let isYearInvalid = $ref(false)
 

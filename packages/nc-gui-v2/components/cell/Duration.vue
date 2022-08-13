@@ -1,7 +1,14 @@
 <script setup lang="ts">
-import { computed, inject, ref } from '#imports'
-import {ColumnInj, ReadonlyInj} from '~/context'
-import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils'
+import {
+  ColumnInj,
+  ReadonlyInj,
+  computed,
+  convertDurationToSeconds,
+  convertMS2Duration,
+  durationOptions,
+  inject,
+  ref,
+} from '#imports'
 
 interface Props {
   modelValue: number | string | null
@@ -65,7 +72,7 @@ const submitDuration = () => {
 <template>
   <div class="duration-cell-wrapper">
     <input
-        v-if="editEnabled"
+      v-if="editEnabled"
       ref="durationInput"
       v-model="localState"
       :placeholder="durationPlaceholder"

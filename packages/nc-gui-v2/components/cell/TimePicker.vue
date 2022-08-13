@@ -4,7 +4,7 @@ import dayjs from 'dayjs'
 import { ReadonlyInj } from '#imports'
 
 interface Props {
-  modelValue?: string | null
+  modelValue?: string | null | undefined
 }
 
 const { modelValue } = defineProps<Props>()

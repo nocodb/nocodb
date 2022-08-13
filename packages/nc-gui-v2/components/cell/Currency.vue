@@ -3,7 +3,7 @@ import type { VNodeRef } from '@vue/runtime-core'
 import { ColumnInj, ReadonlyInj, computed, inject, useVModel } from '#imports'
 
 interface Props {
-  modelValue: number | null
+  modelValue: number | null | undefined
 }
 
 const props = defineProps<Props>()

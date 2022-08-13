@@ -144,7 +144,7 @@ const icon = (tab: TabItem) => {
           </template>
         </a-tabs>
       </div>
-      <div class="w-full min-h-[300px] grow">
+      <div class="w-full min-h-[300px] flex-grow">
         <NuxtPage />
       </div>
     </div>
@@ -174,7 +174,7 @@ const icon = (tab: TabItem) => {
         @apply font-weight-medium;
       }
       & > .ant-tabs-tab:not(.ant-tabs-tab-active) {
-        @apply bg-gray-100;
+        @apply bg-gray-100 text-gray-500;
       }
     }
   }

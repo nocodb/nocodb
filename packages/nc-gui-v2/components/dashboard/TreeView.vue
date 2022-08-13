@@ -29,8 +29,6 @@ const tablesById = $computed<Record<string, TableType>>(() =>
   }, {}),
 )
 
-const showTableList = ref(true)
-
 const tableCreateDlg = ref(false)
 
 let key = $ref(0)
@@ -165,17 +163,6 @@ const activeTable = computed(() => {
 
             <template v-if="tables?.length"> ({{ tables.length }}) </template>
           </span>
-          <MdiPlus
-            v-if="isUIAllowed('treeview-add-button')"
-            v-t="['c:table:create:navdraw']"
-            class="transform text-gray-500 hover:(text-pink-500 scale-105) nc-btn-tbl-add"
-            @click.stop="tableCreateDlg = true"
-          />
-
-          <MdiMenuDown
-            class="transition-transform !duration-100 text-gray-500 hover:text-pink-500"
-            :class="{ 'transform rotate-180': showTableList }"
-          />
         </div>
         <div style="direction: ltr" class="flex-1">
           <div v-if="tables.length" class="transition-height duration-200 overflow-hidden">

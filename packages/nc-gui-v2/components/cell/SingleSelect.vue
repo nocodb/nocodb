@@ -4,7 +4,7 @@ import type { SelectOptionType } from 'nocodb-sdk'
 import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject } from '#imports'
 
 interface Props {
-  modelValue?: string
+  modelValue?: string | undefined
 }
 
 const { modelValue } = defineProps<Props>()

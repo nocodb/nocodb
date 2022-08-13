@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, computed, inject } from '#imports'
+import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -18,8 +18,7 @@ const column = inject(ColumnInj)
 
 // const isForm = inject<boolean>('isForm', false)
 
-// FIXME: use editEnabled to control the UI permission
-// const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(ReadonlyInj)
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -117,6 +116,7 @@ watch(isOpen, (n, _o) => {
     show-arrow
     :show-search="false"
     :open="isOpen"
+    :disabled="!editEnabled"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >

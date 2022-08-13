@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, computed, inject } from '#imports'
+import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject } from '#imports'
 
 interface Props {
   modelValue: string | undefined
@@ -15,8 +15,7 @@ const column = inject(ColumnInj)
 
 // const isForm = inject<boolean>('isForm', false)
 
-// FIXME: use editEnabled to control the UI permission
-// const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(ReadonlyInj)
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -76,6 +75,7 @@ watch(isOpen, (n, _o) => {
     placeholder="Select an option"
     :bordered="false"
     :open="isOpen"
+    :disabled="!editEnabled"
     @select="isOpen = false"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"

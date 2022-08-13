@@ -11,7 +11,10 @@ const emits = defineEmits<Emits>()
 
 const { $e } = useNuxtApp()
 
+const { isUIAllowed } = useUIPermission()
+
 const isView = ref(false)
+
 let showApiSnippet = $ref(false)
 
 const showWebhookDrawer = ref(false)
@@ -33,67 +36,76 @@ function onOpenModal(type: ViewTypes, title = '') {
 
 <template>
   <a-menu :selected-keys="[]" class="flex-1 flex flex-col">
-    <h3 class="px-3 py-1 text-xs font-semibold flex items-center gap-4 text-gray-500">
-      {{ $t('activity.createView') }}
-    </h3>
+    <div v-if="isUIAllowed('virtualViewsCreateOrEdit')">
+      <h3 class="px-3 py-1 text-xs font-semibold flex items-center gap-4 text-gray-500">
+        {{ $t('activity.createView') }}
+      </h3>
 
-    <a-menu-item key="grid" class="group !flex !items-center !my-0 !h-[30px]" @click="onOpenModal(ViewTypes.GRID)">
-      <a-tooltip placement="left">
-        <template #title>
-          {{ $t('msg.info.addView.grid') }}
-        </template>
+      <a-menu-item key="grid" class="group !flex !items-center !my-0 !h-[30px]" @click="onOpenModal(ViewTypes.GRID)">
+        <a-tooltip placement="left">
+          <template #title>
+            {{ $t('msg.info.addView.grid') }}
+          </template>
 
-        <div class="text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color}`" />
+          <div class="text-xs flex items-center h-full w-full gap-2">
+            <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color}`" />
 
-          <div>{{ $t('objects.viewType.grid') }}</div>
+            <div>{{ $t('objects.viewType.grid') }}</div>
 
-          <div class="flex-1" />
+            <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
-        </div>
-      </a-tooltip>
-    </a-menu-item>
+            <mdi-plus class="group-hover:text-primary" />
+          </div>
+        </a-tooltip>
+      </a-menu-item>
 
-    <a-menu-item key="gallery" class="group !flex !items-center !-my0 !h-[30px]" @click="onOpenModal(ViewTypes.GALLERY)">
-      <a-tooltip placement="left">
-        <template #title>
-          {{ $t('msg.info.addView.gallery') }}
-        </template>
+      <a-menu-item key="gallery" class="group !flex !items-center !-my0 !h-[30px]" @click="onOpenModal(ViewTypes.GALLERY)">
+        <a-tooltip placement="left">
+          <template #title>
+            {{ $t('msg.info.addView.gallery') }}
+          </template>
 
-        <div class="text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color}`" />
+          <div class="text-xs flex items-center h-full w-full gap-2">
+            <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color}`" />
 
-          <div>{{ $t('objects.viewType.gallery') }}</div>
+            <div>{{ $t('objects.viewType.gallery') }}</div>
 
-          <div class="flex-1" />
+            <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
-        </div>
-      </a-tooltip>
-    </a-menu-item>
+            <mdi-plus class="group-hover:text-primary" />
+          </div>
+        </a-tooltip>
+      </a-menu-item>
 
-    <a-menu-item v-if="!isView" key="form" class="group !flex !items-center !my-0 !h-[30px]" @click="onOpenModal(ViewTypes.FORM)">
-      <a-tooltip placement="left">
-        <template #title>
-          {{ $t('msg.info.addView.form') }}
-        </template>
+      <a-menu-item
+        v-if="!isView"
+        key="form"
+        class="group !flex !items-center !my-0 !h-[30px]"
+        @click="onOpenModal(ViewTypes.FORM)"
+      >
+        <a-tooltip placement="left">
+          <template #title>
+            {{ $t('msg.info.addView.form') }}
+          </template>
 
-        <div class="text-xs flex items-center h-full w-full gap-2">
-          <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color}`" />
+          <div class="text-xs flex items-center h-full w-full gap-2">
+            <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color}`" />
 
-          <div>{{ $t('objects.viewType.form') }}</div>
+            <div>{{ $t('objects.viewType.form') }}</div>
 
-          <div class="flex-1" />
+            <div class="flex-1" />
 
-          <mdi-plus class="group-hover:text-primary" />
-        </div>
-      </a-tooltip>
-    </a-menu-item>
+            <mdi-plus class="group-hover:text-primary" />
+          </div>
+        </a-tooltip>
+      </a-menu-item>
+    </div>
 
     <SmartsheetSidebarMenuApiSnippet v-model="showApiSnippet" />
+
     <div class="flex-auto justify-end flex flex-col gap-4 mt-4">
       <button
+        v-if="isUIAllowed('virtualViewsCreateOrEdit')"
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs"
         @click="onWebhooks"
       >

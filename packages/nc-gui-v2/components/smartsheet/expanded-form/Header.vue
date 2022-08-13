@@ -10,9 +10,13 @@ import MdiDoorOpen from '~icons/mdi/door-open'
 import MdiDoorClosed from '~icons/mdi/door-closed'
 
 const emit = defineEmits(['cancel'])
+
 const { meta } = useSmartsheetStoreOrThrow()
+
 const { commentsDrawer, primaryValue, save: _save } = useExpandedFormStoreOrThrow()
+
 const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
+
 const { isUIAllowed } = useUIPermission()
 
 const save = async () => {
@@ -45,7 +49,12 @@ const iconColor = '#1890ff'
     </h5>
     <div class="flex-grow" />
     <mdi-reload class="cursor-pointer select-none" />
-    <component :is="drawerToggleIcon" class="cursor-pointer select-none" @click="commentsDrawer = !commentsDrawer" />
+    <component
+      :is="drawerToggleIcon"
+      v-if="isUIAllowed('rowComments')"
+      class="cursor-pointer select-none"
+      @click="commentsDrawer = !commentsDrawer"
+    />>
     <a-button class="!text" @click="emit('cancel')">
       <!-- Cancel -->
       {{ $t('general.cancel') }}

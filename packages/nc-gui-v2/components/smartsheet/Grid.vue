@@ -43,6 +43,8 @@ const isLocked = inject(IsLockedInj, false)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
+const { isUIAllowed } = useUIPermission()
+
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
 
@@ -83,9 +85,14 @@ const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useG
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
+
 provide(IsGridInj, true)
+
 provide(PaginationDataInj, paginationData)
+
 provide(ChangePageInj, changePage)
+
+provide(ReadonlyInj, isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
   await loadData()
@@ -322,7 +329,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 </div>
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
-              <th v-t="['c:column:add']" @click="addColumnDropdown = true">
+              <th v-if="isUIAllowed('add-column')" v-t="['c:column:add']" @click="addColumnDropdown = true">
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlus class="text-sm" />
@@ -413,7 +420,11 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               </template>
             </SmartsheetRow>
 
-            <tr v-if="!isLocked">
+            <!-- 
+              TODO: add relationType !== 'bt' ?
+              v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'"> 
+            -->
+            <tr v-if="!isView && !isLocked && !isPublicView && isUIAllowed('xcDatatableEditable')">
               <td
                 v-t="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"

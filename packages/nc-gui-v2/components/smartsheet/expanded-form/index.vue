@@ -82,7 +82,7 @@ const isExpanded = useVModel(props, 'modelValue', emits)
 <template>
   <a-modal v-model:visible="isExpanded" :footer="null" width="min(90vw,1000px)" :body-style="{ padding: 0 }" :closable="false">
     <Header @cancel="isExpanded = false" />
-    <a-card class="!bg-gray-100">
+    <a-card class="!bg-gray-100 min-h-[70vh]">
       <div class="flex h-full nc-form-wrapper items-stretch">
         <div class="flex-grow overflow-auto scrollbar-thin-primary">
           <div class="w-[500px] mx-auto">

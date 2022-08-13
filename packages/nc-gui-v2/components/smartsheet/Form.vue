@@ -405,182 +405,181 @@ onMounted(async () => {
       </Draggable>
     </a-col>
     <a-col v-if="formViewData" :span="isEditable ? 16 : 24" class="h-full overflow-auto scrollbar-thin-primary">
-      <div class="h-[200px]">
-        <a-card class="h-full !bg-[#dbdad7] ma-0 rounded-b-0 pa-8">
-          <a-form ref="formRef" :model="formState">
-            <a-card class="rounded ma-6 pb-10 px-15">
-              <!-- Header -->
-              <a-form-item class="ma-0 gap-0 pa-0">
-                <a-input
-                  v-model:value="formViewData.heading"
-                  class="w-full text-bold text-h3"
-                  size="large"
-                  hide-details
-                  placeholder="Form Title"
-                  :bordered="false"
-                  @blur="updateView"
-                  @keydown.enter="updateView"
-                />
-              </a-form-item>
-              <!-- Sub Header -->
-              <a-form-item>
-                <a-input
-                  v-model:value="formViewData.subheading"
-                  class="w-full"
-                  size="large"
-                  hide-details
-                  :placeholder="$t('msg.info.formDesc')"
-                  :bordered="false"
-                  @blur="updateView"
-                  @click="updateView"
-                />
-              </a-form-item>
-              <Draggable
-                ref="draggableRef"
-                :list="localColumns"
-                item-key="fk_column_id"
-                draggable=".item"
-                group="form-inputs"
-                class="h-100"
-                @change="onMove($event)"
-                @start="drag = true"
-                @end="drag = false"
-              >
-                <template #item="{ element, index }">
-                  <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3" @click="activeRow = element.title">
-                    <div class="flex">
-                      <div class="flex flex-1">
-                        <div class="flex flex-row">
-                          <mdi-drag-vertical class="flex flex-1" />
-                        </div>
-                        <SmartsheetHeaderVirtualCell
-                          v-if="isVirtualCol(element)"
-                          :column="{ ...element, title: element.label || element.title }"
-                          :required="isRequired(element, element.required)"
-                          :hide-menu="true"
-                        />
-                        <SmartsheetHeaderCell
-                          v-else
-                          :column="{ ...element, title: element.label || element.title }"
-                          :required="isRequired(element, element.required)"
-                          :hide-menu="true"
-                        />
+      <div class="h-[200px] !bg-[#dbdad7]">
+        <!-- for future implementation of cover image -->
+      </div>
+      <a-card class="h-full ma-0 rounded-b-0 pa-4" body-style="max-width: 700px; margin: 0 auto; margin-top: -200px;">
+        <a-form ref="formRef" :model="formState">
+          <a-card class="rounded ma-2 py-10 px-5">
+            <!-- Header -->
+            <a-form-item v-if="isEditable" class="ma-0 gap-0 pa-0">
+              <a-input
+                v-model:value="formViewData.heading"
+                class="w-full text-bold text-h3"
+                size="large"
+                hide-details
+                placeholder="Form Title"
+                :bordered="false"
+                @blur="updateView"
+                @keydown.enter="updateView"
+              />
+            </a-form-item>
+            <div v-else class="ml-3 w-full text-bold text-h3">{{ formViewData.heading }}</div>
+            <!-- Sub Header -->
+            <a-form-item v-if="isEditable" class="ma-0 gap-0 pa-0">
+              <a-input
+                v-model:value="formViewData.subheading"
+                class="w-full"
+                size="large"
+                hide-details
+                :placeholder="$t('msg.info.formDesc')"
+                :bordered="false"
+                :disabled="!isEditable"
+                @blur="updateView"
+                @click="updateView"
+              />
+            </a-form-item>
+            <div v-else class="ml-3 mb-5 w-full text-bold text-h3">{{ formViewData.subheading }}</div>
+            <Draggable
+              ref="draggableRef"
+              :list="localColumns"
+              item-key="fk_column_id"
+              draggable=".item"
+              group="form-inputs"
+              class="h-100"
+              @change="onMove($event)"
+              @start="drag = true"
+              @end="drag = false"
+            >
+              <template #item="{ element, index }">
+                <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3" @click="activeRow = element.title">
+                  <div class="flex">
+                    <div class="flex flex-1">
+                      <div class="flex flex-row">
+                        <mdi-drag-vertical class="flex flex-1" />
                       </div>
-                      <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="flex">
-                        <mdi-eye-off-outline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
-                      </div>
+                      <SmartsheetHeaderVirtualCell
+                        v-if="isVirtualCol(element)"
+                        :column="{ ...element, title: element.label || element.title }"
+                        :required="isRequired(element, element.required)"
+                        :hide-menu="true"
+                      />
+                      <SmartsheetHeaderCell
+                        v-else
+                        :column="{ ...element, title: element.label || element.title }"
+                        :required="isRequired(element, element.required)"
+                        :hide-menu="true"
+                      />
                     </div>
-                    <a-form-item
-                      v-if="isVirtualCol(element)"
-                      class="ma-0 gap-0 pa-0"
-                      :name="element.title"
-                      :rules="[{ required: element.required, message: `${element.title} is required` }]"
-                    >
-                      <SmartsheetVirtualCell v-model="formState[element.title]" class="nc-input" :column="element" />
+                    <div v-if="isUIAllowed('editFormView') && !isRequired(element, element.required)" class="flex">
+                      <mdi-eye-off-outline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
+                    </div>
+                  </div>
+                  <a-form-item
+                    v-if="isVirtualCol(element)"
+                    class="ma-0 gap-0 pa-0"
+                    :name="element.title"
+                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                  >
+                    <SmartsheetVirtualCell v-model="formState[element.title]" class="nc-input" :column="element" />
+                  </a-form-item>
+                  <a-form-item
+                    v-else
+                    class="ma-0 gap-0 pa-0"
+                    :name="element.title"
+                    :rules="[{ required: element.required, message: `${element.title} is required` }]"
+                  >
+                    <SmartsheetCell v-model="formState[element.title]" class="nc-input" :column="element" :edit-enabled="true" />
+                  </a-form-item>
+                  <div v-if="activeRow === element.title">
+                    <a-form-item class="my-0 w-1/2">
+                      <a-input
+                        v-model:value="element.label"
+                        size="small"
+                        class="form-meta-input !bg-[#dbdbdb]"
+                        :placeholder="$t('msg.info.formInput')"
+                        @change="updateColMeta(element)"
+                      >
+                      </a-input>
                     </a-form-item>
-                    <a-form-item
-                      v-else
-                      class="ma-0 gap-0 pa-0"
-                      :name="element.title"
-                      :rules="[{ required: element.required, message: `${element.title} is required` }]"
-                    >
-                      <SmartsheetCell
-                        v-model="formState[element.title]"
-                        class="nc-input"
-                        :column="element"
-                        :edit-enabled="true"
+                    <a-form-item class="mt-2 mb-0 w-1/2">
+                      <a-input
+                        v-model:value="element.description"
+                        size="small"
+                        class="form-meta-input !bg-[#dbdbdb] text-sm"
+                        :placeholder="$t('msg.info.formHelpText')"
+                        @change="updateColMeta(element)"
                       />
                     </a-form-item>
-                    <div v-if="activeRow === element.title">
-                      <a-form-item class="my-0 w-1/2">
-                        <a-input
-                          v-model:value="element.label"
-                          size="small"
-                          class="form-meta-input !bg-[#dbdbdb]"
-                          :placeholder="$t('msg.info.formInput')"
-                          @change="updateColMeta(element)"
-                        >
-                        </a-input>
-                      </a-form-item>
-                      <a-form-item class="mt-2 mb-0 w-1/2">
-                        <a-input
-                          v-model:value="element.description"
-                          size="small"
-                          class="form-meta-input !bg-[#dbdbdb] text-sm"
-                          :placeholder="$t('msg.info.formHelpText')"
-                          @change="updateColMeta(element)"
-                        />
-                      </a-form-item>
-                      <div class="items-center flex">
-                        <span class="text-sm text-gray-500 mr-2">{{ $t('general.required') }}</span>
-                        <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
-                      </div>
+                    <div class="items-center flex">
+                      <span class="text-sm text-gray-500 mr-2">{{ $t('general.required') }}</span>
+                      <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
                     </div>
-                    <span class="text-gray-500">{{ element.description }}</span>
                   </div>
-                </template>
-                <template #footer>
-                  <div
-                    v-if="!localColumns.length"
-                    class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center"
-                  >
-                    Drag and drop fields here to add
-                  </div>
-                </template>
-              </Draggable>
+                  <span class="text-gray-500">{{ element.description }}</span>
+                </div>
+              </template>
+              <template #footer>
+                <div
+                  v-if="!localColumns.length"
+                  class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center"
+                >
+                  Drag and drop fields here to add
+                </div>
+              </template>
+            </Draggable>
 
-              <div class="justify-center flex mt-10">
-                <a-button class="flex items-center gap-2 !bg-primary text-white rounded" size="large" @click="submitForm">
-                  <!-- Submit -->
-                  {{ $t('general.submit') }}
-                </a-button>
-              </div>
-            </a-card>
-          </a-form>
-
-          <div class="mx-10 px-10">
-            <!-- After form is submitted -->
-            <div class="text-gray-500 mt-4 mb-2">
-              {{ $t('msg.info.afterFormSubmitted') }}
+            <div class="justify-center flex mt-10">
+              <a-button class="flex items-center gap-2 !bg-primary text-white rounded" size="large" @click="submitForm">
+                <!-- Submit -->
+                {{ $t('general.submit') }}
+              </a-button>
             </div>
-            <!-- Show this message -->
-            <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
-            <a-textarea v-model:value="formViewData.success_msg" rows="3" hide-details @change="updateView" />
+          </a-card>
+        </a-form>
 
-            <!-- Other options -->
-            <div class="mt-4">
-              <div class="my-4">
-                <!-- Show "Submit Another Form" button -->
-                <a-switch
-                  v-model:checked="formViewData.submit_another_form"
-                  v-t="[`a:form-view:submit-another-form`]"
-                  size="small"
-                  @change="updateView"
-                />
-                <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
-              </div>
+        <div v-if="isEditable" class="mx-10 px-10">
+          <!-- After form is submitted -->
+          <div class="text-gray-500 mt-4 mb-2">
+            {{ $t('msg.info.afterFormSubmitted') }}
+          </div>
+          <!-- Show this message -->
+          <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
+          <a-textarea v-model:value="formViewData.success_msg" rows="3" hide-details @change="updateView" />
 
-              <div class="my-4">
-                <!-- Show a blank form after 5 seconds -->
-                <a-switch
-                  v-model:checked="formViewData.show_blank_form"
-                  v-t="[`a:form-view:show-blank-form`]"
-                  size="small"
-                  @change="updateView"
-                />
-                <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
-              </div>
-              <div class="my-4">
-                <a-switch v-model:checked="emailMe" v-t="[`a:form-view:email-me`]" size="small" @change="onEmailChange" />
-                <!-- Email me at <email> -->
-                <span class="ml-4">
-                  {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>
-                </span>
-              </div>
+          <!-- Other options -->
+          <div class="mt-4">
+            <div class="my-4">
+              <!-- Show "Submit Another Form" button -->
+              <a-switch
+                v-model:checked="formViewData.submit_another_form"
+                v-t="[`a:form-view:submit-another-form`]"
+                size="small"
+                @change="updateView"
+              />
+              <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
+            </div>
+
+            <div class="my-4">
+              <!-- Show a blank form after 5 seconds -->
+              <a-switch
+                v-model:checked="formViewData.show_blank_form"
+                v-t="[`a:form-view:show-blank-form`]"
+                size="small"
+                @change="updateView"
+              />
+              <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
+            </div>
+            <div class="my-4">
+              <a-switch v-model:checked="emailMe" v-t="[`a:form-view:email-me`]" size="small" @change="onEmailChange" />
+              <!-- Email me at <email> -->
+              <span class="ml-4">
+                {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>
+              </span>
             </div>
           </div>
-        </a-card>
-      </div>
+        </div>
+      </a-card>
     </a-col>
   </a-row>
 </template>

@@ -106,7 +106,7 @@ const logout = () => {
         <div
           :class="[route.name.includes('nc-projectId') ? 'active' : 'pointer-events-none !text-gray-400']"
           class="nc-mini-sidebar-item"
-          @click="navigateTo(`/nc/${route.params.projectId}`)"
+          @click="navigateTo(`/${route.params.projectType}/${route.params.projectId}`)"
         >
           <MdiDatabase class="cursor-pointer transform hover:scale-105 text-2xl" />
         </div>

@@ -10,9 +10,12 @@ const props = defineProps<{ column: ColumnType & { meta: any }; required?: boole
 const hideMenu = toRef(props, 'hideMenu')
 
 const meta = inject(MetaInj)
+
 const isForm = inject(IsFormInj, ref(false))
 
 const column = toRef(props, 'column')
+
+const { isUIAllowed } = useUIPermission()
 
 provide(ColumnInj, column)
 
@@ -36,7 +39,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
 
     <template v-if="!hideMenu">
       <div class="flex-1" />
-      <SmartsheetHeaderMenu v-if="!isForm" @edit="editColumnDropdown = true" />
+      <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" @edit="editColumnDropdown = true" />
     </template>
 
     <a-dropdown

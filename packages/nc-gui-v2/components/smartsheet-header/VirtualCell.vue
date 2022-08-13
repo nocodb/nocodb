@@ -5,8 +5,10 @@ import type { Ref } from 'vue'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { provide, toRef, useMetas, useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required: boolean }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required?: boolean }>()
+
 const column = toRef(props, 'column')
+
 const hideMenu = toRef(props, 'hideMenu')
 
 const editColumnDropdown = ref(false)
@@ -15,13 +17,18 @@ provide(ColumnInj, column)
 
 const { metas } = useMetas()
 
+const { isUIAllowed } = useUIPermission()
+
 const meta = inject(MetaInj)
+
 const isForm = inject(IsFormInj, ref(false))
 
 const { isLookup, isBt, isRollup, isMm, isHm, isFormula } = useVirtualCell(column)
 
 const colOptions = $computed(() => column.value?.colOptions)
+
 const tableTile = $computed(() => meta?.value?.title)
+
 const relationColumnOptions = $computed<LinkToAnotherRecordType | null>(() => {
   if (isMm.value || isHm.value || isBt.value) {
     return column.value?.colOptions as LinkToAnotherRecordType
@@ -108,8 +115,7 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     <!--    </v-tooltip> -->
     <template v-if="!hideMenu">
       <v-spacer />
-
-      <SmartsheetHeaderMenu v-if="!isForm" :virtual="true" @edit="editColumnDropdown = true" />
+      <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 
     <a-dropdown

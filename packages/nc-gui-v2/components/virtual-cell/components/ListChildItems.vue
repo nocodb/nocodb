@@ -2,14 +2,18 @@
 import { Empty, Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel, watch } from '#imports'
-import { ColumnInj, IsFormInj } from '~/context'
+import { ColumnInj, IsFormInj, ReadonlyInj } from '~/context'
 
 const props = defineProps<{ modelValue?: boolean }>()
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
 
 const vModel = useVModel(props, 'modelValue', emit)
+
 const isForm = inject(IsFormInj, ref(false))
+
 const column = inject(ColumnInj)
+
+const editEnabled = inject(ReadonlyInj)
 
 const {
   childrenList,
@@ -64,7 +68,7 @@ const expandedFormRow = ref()
 
         <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
 
-        <a-button type="primary" ghost class="!text-xs" size="small" @click="emit('attachRecord')">
+        <a-button v-if="editEnabled" type="primary" ghost class="!text-xs" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
             <MdiLinkVariantRemove class="text-xs" type="primary" @click="unlinkRow(row)" />
             Link to '{{ meta.title }}'
@@ -90,7 +94,7 @@ const expandedFormRow = ref()
                 }}<span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>
               <div class="flex-1"></div>
-              <div class="flex gap-2">
+              <div v-if="editEnabled" class="flex gap-2">
                 <MdiLinkVariantRemove
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
                   @click.stop="unlinkRow(row)"

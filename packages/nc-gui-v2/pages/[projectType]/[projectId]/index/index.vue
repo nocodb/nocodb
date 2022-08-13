@@ -57,7 +57,7 @@ const icon = (tab: TabItem) => {
           </a-tab-pane>
 
           <template #leftExtra>
-            <a-menu v-model:selectedKeys="currentMenu" class="border-0" mode="horizontal">
+            <a-menu v-if="isUIAllowed('addOrImport')" v-model:selectedKeys="currentMenu" class="border-0" mode="horizontal">
               <a-sub-menu key="addORImport">
                 <template #title>
                   <div class="text-sm flex items-center gap-2 pt-[8px] pb-3">
@@ -144,8 +144,9 @@ const icon = (tab: TabItem) => {
           </template>
         </a-tabs>
       </div>
-
-      <NuxtPage />
+      <div class="w-full min-h-[300px] grow">
+        <NuxtPage />
+      </div>
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
@@ -156,7 +157,7 @@ const icon = (tab: TabItem) => {
 
 <style scoped lang="scss">
 .nc-container {
-  height: calc(100% - var(--header-height));
+  height: calc(100vh - var(--header-height));
   flex: 1 1 100%;
 }
 

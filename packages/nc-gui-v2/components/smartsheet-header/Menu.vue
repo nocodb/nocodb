@@ -65,7 +65,7 @@ const setAsPrimaryValue = async () => {
           </div>
         </a-menu-item>
         <a-menu-item v-if="!virtual" @click="setAsPrimaryValue">
-          <div class="nc-column-edit nc-header-menu-item">
+          <div class="nc-column-set-primary nc-header-menu-item">
             <MdiStarIcon class="text-primary" />
 
             <!--       todo : tooltip -->

@@ -1,4 +1,5 @@
 import { createInjectionState } from '@vueuse/core'
+import clone from 'just-clone'
 import { Form, message } from 'ant-design-vue'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
@@ -25,18 +26,28 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     const { $api } = useNuxtApp()
     const { getMeta } = useMetas()
 
+    const isEdit = computed(() => !!column?.value?.id)
+
     const idType = null
 
-    // state
-    // todo: give proper type - ColumnType
+    const additionalValidations = ref<Record<string, any>>({})
+
+    const setAdditionalValidations = (validations: Record<string, any>) => {
+      additionalValidations.value = validations
+    }
+
     const formState = ref<Record<string, any>>({
       title: 'title',
       uidt: UITypes.SingleLineText,
-      ...(column?.value || {}),
-      meta: column?.value?.meta || {},
+      ...clone(column?.value || {}),
     })
 
-    const additionalValidations = ref<Record<string, any>>({})
+    // actions
+    const generateNewColumnMeta = () => {
+      setAdditionalValidations({})
+      formState.value = { meta: {}, ...sqlUi.value.getNewColumn((meta.value?.columns?.length || 0) + 1) }
+      formState.value.title = formState.value.column_name
+    }
 
     const validators = computed(() => {
       return {
@@ -76,17 +87,6 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
     })
 
     const { resetFields, validate, validateInfos } = useForm(formState, validators)
-
-    const setAdditionalValidations = (validations: Record<string, any>) => {
-      additionalValidations.value = validations
-    }
-
-    // actions
-    const generateNewColumnMeta = () => {
-      setAdditionalValidations({})
-      formState.value = { meta: {}, ...sqlUi.value.getNewColumn((meta.value?.columns?.length || 0) + 1) }
-      formState.value.title = formState.value.title || formState.value.column_name
-    }
 
     const onUidtOrIdTypeChange = () => {
       const { isCurrency } = useColumn(ref(formState.value as ColumnType))
@@ -177,6 +177,8 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         console.log(formState, validators)
         if (!(await validate())) return
       } catch (e) {
+        console.log(e)
+        console.trace()
         message.error('Form validation failed')
         return
       }
@@ -220,18 +222,18 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
 
     return {
       formState,
+      generateNewColumnMeta,
+      addOrUpdate,
+      onAlter,
+      onDataTypeChange,
+      onUidtOrIdTypeChange,
+      setAdditionalValidations,
       resetFields,
       validate,
       validateInfos,
-      setAdditionalValidations,
-      onUidtOrIdTypeChange,
-      sqlUi,
-      onDataTypeChange,
-      onAlter,
-      addOrUpdate,
-      generateNewColumnMeta,
-      isEdit: computed(() => !!column?.value?.id),
+      isEdit,
       column,
+      sqlUi,
     }
   },
 )

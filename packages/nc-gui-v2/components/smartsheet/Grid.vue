@@ -11,7 +11,6 @@ import {
   ref,
   useEventListener,
   useGridViewColumnWidth,
-  useProvideColumnCreateStore,
   useSmartsheetStoreOrThrow,
   useViewData,
   watch,
@@ -126,9 +125,6 @@ const onXcResizing = (cn: string, event: any) => {
 defineExpose({
   loadData,
 })
-
-// instantiate column create store
-if (meta) useProvideColumnCreateStore(meta)
 
 // reset context menu target on hide
 watch(contextMenu, () => {
@@ -329,14 +325,20 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 </div>
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
-              <th v-if="isUIAllowed('add-column')" v-t="['c:column:add']" @click="addColumnDropdown = true">
+              <th v-if="isUIAllowed('add-column')" v-t="['c:column:add']" @click.stop="addColumnDropdown = true">
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlus class="text-sm" />
                   </div>
 
                   <template #overlay>
-                    <SmartsheetColumnEditOrAdd @click.stop @keydown.stop @cancel="addColumnDropdown = false" />
+                    <SmartsheetColumnEditOrAddProvider
+                      v-if="addColumnDropdown"
+                      @submit="addColumnDropdown = false"
+                      @cancel="addColumnDropdown = false"
+                      @click.stop
+                      @keydown.stop
+                    />
                   </template>
                 </a-dropdown>
               </th>

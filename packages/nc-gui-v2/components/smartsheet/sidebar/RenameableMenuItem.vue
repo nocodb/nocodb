@@ -25,6 +25,8 @@ const vModel = useVModel(props, 'view', emits)
 
 const { $e } = useNuxtApp()
 
+const { isUIAllowed } = useUIPermission()
+
 /** Is editing the view name enabled */
 let isEditing = $ref<boolean>(false)
 
@@ -161,7 +163,7 @@ function onStopEdit() {
 
       <div class="flex-1" />
 
-      <template v-if="!isEditing">
+      <template v-if="!isEditing && isUIAllowed('virtualViewsCreateOrEdit')">
         <div class="flex items-center gap-1">
           <a-tooltip placement="left">
             <template #title>

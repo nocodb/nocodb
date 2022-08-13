@@ -1,22 +1,12 @@
-import { createInjectionState } from '@vueuse/core'
 import clone from 'just-clone'
 import { Form, message } from 'ant-design-vue'
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import { useColumn } from './useColumn'
-import { computed } from '#imports'
-import { useNuxtApp } from '#app'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { computed, createInjectionState, extractSdkResponseErrorMsg, useNuxtApp } from '#imports'
 
 const useForm = Form.useForm
-
-// enum ColumnAlterType {
-//   NEW=4,
-//   EDIT=2,
-//   RENAME=8,
-//   DELETE=0,
-// }
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 

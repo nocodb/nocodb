@@ -78,10 +78,11 @@ export function useViewFilters(
         fk_parent_id: parentId,
       })
     } else {
-      filters.value[i] = await $api.dbTableFilter.create(view?.value?.id as string, {
+      // todo: return type of dbTableFilter is void?
+      filters.value[i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
         ...filter,
         fk_parent_id: parentId,
-      })
+      })) as any
     }
     reloadData?.()
   }

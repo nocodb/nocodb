@@ -32,7 +32,7 @@ const iconColor = '#1890ff'
 
 <template>
   <div class="flex p-2 align-center gap-2 p-4">
-    <h5 class="text-lg font-weight-medium flex align-center gap-1 mb-0">
+    <h5 class="text-lg font-weight-medium flex align-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
       <mdi-table-arrow-right :style="{ color: iconColor }" />
 
       <template v-if="meta">

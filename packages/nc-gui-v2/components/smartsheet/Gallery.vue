@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, provide, useViewData } from '#imports'
+import Row from '~/components/smartsheet/Row.vue'
 import { ActiveViewInj, ChangePageInj, FieldsInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReadonlyInj } from '~/context'
 import ImageIcon from '~icons/mdi/file-image-box'
 
@@ -50,11 +51,11 @@ const attachments = (record: any): Array<Attachment> => {
 }
 </script>
 
-<!-- TODO: Fix scrolling -->
 <template>
-  <div class="flex flex-col h-full min-h-0 w-full">
-    <div class="nc-gallery-container min-h-0 flex-1 grid grid-cols-4 gap-4 my-4 px-3">
+  <div class="flex flex-col h-full w-full">
+    <div class="nc-gallery-container min-h-0 flex-1 grid grid-cols-4 gap-4 my-4 px-3 overflow-auto">
       <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col">
+        <Row :row="record">
         <a-card hoverable class="!rounded-lg h-full">
           <template #cover>
             <a-carousel v-if="attachments(record).length !== 0" autoplay>
@@ -89,6 +90,7 @@ const attachments = (record: any): Array<Attachment> => {
             </div>
           </div>
         </a-card>
+        </Row>
       </div>
     </div>
     <SmartsheetPagination />
@@ -97,7 +99,6 @@ const attachments = (record: any): Array<Attachment> => {
 
 <style scoped>
 .nc-gallery-container {
-  height: calc(100vh - 250px);
   overflow: auto;
 }
 </style>

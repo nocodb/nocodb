@@ -13,6 +13,7 @@ export function useMetas() {
   const loadingState = useState<Record<string, boolean>>('metas-loading-state', () => ({}))
 
   const getMeta = async (tableIdOrTitle: string, force = false): Promise<TableType | TableInfoType | null> => {
+    if (!tableIdOrTitle) return null
     /** wait until loading is finished if requesting same meta */
     if (!force && loadingState.value[tableIdOrTitle]) {
       await new Promise((resolve) => {

@@ -13,6 +13,7 @@ export function useProject(projectId?: MaybeRef<string>) {
   const tables = useState<TableType[]>('tables', () => [] as TableType[])
   const route = useRoute()
 
+  // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
 
   async function loadProjectRoles() {
@@ -52,6 +53,7 @@ export function useProject(projectId?: MaybeRef<string>) {
   const sqlUi = computed(
     () => SqlUiFactory.create({ client: projectBaseType }) as Exclude<ReturnType<typeof SqlUiFactory['create']>, typeof OracleUi>,
   )
+  const isSharedBase = computed(() => projectType === 'base')
 
-  return { project, tables, loadProjectRoles, loadProject, loadTables, isMysql, isPg, sqlUi }
+  return { project, tables, loadProjectRoles, loadProject, loadTables, isMysql, isPg, sqlUi, isSharedBase }
 }

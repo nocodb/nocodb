@@ -18,7 +18,7 @@ const column = inject(ColumnInj)
 
 const meta = inject(MetaInj)
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -45,6 +45,7 @@ const setAsPrimaryValue = async () => {
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
     getMeta(meta?.value?.id as string, true)
     message.success('Successfully updated as primary column')
+    $e('a:column:set-primary')
   } catch (e) {
     message.error('Failed to update primary column')
   }
@@ -63,8 +64,8 @@ const setAsPrimaryValue = async () => {
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
-        <a-menu-item v-if="!virtual" v-t="['a:column:set-primary']" @click="setAsPrimaryValue">
-          <div class="nc-column-edit nc-header-menu-item">
+        <a-menu-item v-if="!virtual" @click="setAsPrimaryValue">
+          <div class="nc-column-set-primary nc-header-menu-item">
             <MdiStarIcon class="text-primary" />
 
             <!--       todo : tooltip -->

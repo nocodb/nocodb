@@ -4,7 +4,7 @@ import type { SelectOptionType } from 'nocodb-sdk'
 import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject } from '#imports'
 
 interface Props {
-  modelValue: string | undefined
+  modelValue?: string
 }
 
 const { modelValue } = defineProps<Props>()
@@ -76,11 +76,12 @@ watch(isOpen, (n, _o) => {
     :bordered="false"
     :open="isOpen"
     :disabled="!editEnabled"
+    :show-arrow="active || vModel === null"
     @select="isOpen = false"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >
-    <a-select-option v-for="op of options" :key="op.title" @click.stop>
+    <a-select-option v-for="op of options" :key="op.title" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>
       </a-tag>

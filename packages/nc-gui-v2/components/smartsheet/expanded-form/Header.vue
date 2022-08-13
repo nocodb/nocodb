@@ -54,7 +54,7 @@ const iconColor = '#1890ff'
       v-if="isUIAllowed('rowComments')"
       class="cursor-pointer select-none"
       @click="commentsDrawer = !commentsDrawer"
-    />
+    />>
     <a-button class="!text" @click="emit('cancel')">
       <!-- Cancel -->
       {{ $t('general.cancel') }}

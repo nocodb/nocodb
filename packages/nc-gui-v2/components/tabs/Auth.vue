@@ -27,13 +27,13 @@ const selectedTab = $computed(() => tabsInfo[selectedTabKey])
 <template>
   <div>
     <a-tabs v-model:active-key="selectedTabKey" :open-keys="[]" mode="horizontal" class="nc-auth-tabs mx-6">
-      <a-tabs-tab-pane v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
+      <a-tab-pane v-for="(tab, key) of tabsInfo" :key="key" class="select-none">
         <template #tab>
           <span>
             {{ tab.title }}
           </span>
         </template>
-      </a-tabs-tab-pane>
+      </a-tab-pane>
     </a-tabs>
 
     <div class="mx-4 py-6 mt-2">

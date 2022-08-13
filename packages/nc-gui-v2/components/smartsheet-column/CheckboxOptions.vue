@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { useColumnCreateStoreOrThrow } from '#imports'
 import { getMdiIcon } from '@/utils'
 
-const { formState } = useColumnCreateStoreOrThrow()
+interface Props {
+  value: Record<string, any>
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits(['update:value'])
+const vModel = useVModel(props, 'value', emit)
 
 // cater existing v1 cases
 const iconList = [
@@ -37,34 +42,34 @@ const iconList = [
 ]
 
 const picked = computed({
-  get: () => formState.value.meta.color,
+  get: () => vModel.value.meta.color,
   set: (val) => {
-    formState.value.meta.color = val
+    vModel.value.meta.color = val
   },
 })
 
 // set default value
-formState.value.meta = {
+vModel.value.meta = {
   icon: {
     checked: 'mdi-check-bold',
     unchecked: 'mdi-crop-square',
   },
   color: '#777',
-  ...formState.value.meta,
+  ...vModel.value.meta,
 }
 
 // antdv doesn't support object as value
 // use iconIdx as value and update back in watch
 const iconIdx = iconList.findIndex(
-  (ele) => ele.checked === formState.value.meta.icon.checked && ele.unchecked === formState.value.meta.icon.unchecked,
+  (ele) => ele.checked === vModel.value.meta.icon.checked && ele.unchecked === vModel.value.meta.icon.unchecked,
 )
 
-formState.value.meta.iconIdx = iconIdx === -1 ? 0 : iconIdx
+vModel.value.meta.iconIdx = iconIdx === -1 ? 0 : iconIdx
 
 watch(
-  () => formState.value.meta.iconIdx,
+  () => vModel.value.meta.iconIdx,
   (v) => {
-    formState.value.meta.icon = iconList[v]
+    vModel.value.meta.icon = iconList[v]
   },
 )
 </script>
@@ -73,20 +78,20 @@ watch(
   <a-row>
     <a-col :span="24">
       <a-form-item label="Icon">
-        <a-select v-model:value="formState.meta.iconIdx" class="w-52">
+        <a-select v-model:value="vModel.meta.iconIdx" class="w-52">
           <a-select-option v-for="(icon, i) of iconList" :key="i" :value="i">
             <div class="flex items-center">
               <component
                 :is="getMdiIcon(icon.checked)"
                 class="mx-1"
                 :style="{
-                  color: formState.meta.color,
+                  color: vModel.meta.color,
                 }"
               />
               <component
                 :is="getMdiIcon(icon.unchecked)"
                 :style="{
-                  color: formState.meta.color,
+                  color: vModel.meta.color,
                 }"
               />
             </div>

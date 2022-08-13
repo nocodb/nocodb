@@ -1,28 +1,26 @@
 <script lang="ts" setup>
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
-import { computed, inject, useColumnCreateStoreOrThrow, useMetas, watchEffect } from '#imports'
+import { computed, inject, useMetas, watchEffect } from '#imports'
 import { MetaInj, ReloadViewDataHookInj } from '~/context'
 import { uiTypes } from '~/utils/columnUtils'
 import MdiPlusIcon from '~icons/mdi/plus-circle-outline'
 import MdiMinusIcon from '~icons/mdi/minus-circle-outline'
 import MdiIdentifierIcon from '~icons/mdi/identifier'
 
-interface Props {
-  editColumnDropdown?: boolean
-}
+const emit = defineEmits(['submit', 'cancel'])
 
-const { editColumnDropdown } = defineProps<Props>()
-
-const emit = defineEmits(['cancel', 'submit'])
 const meta = inject(MetaInj)
+
+const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeChange, validateInfos, isEdit } =
+  useColumnCreateStoreOrThrow()
+
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
+
 const advancedOptions = ref(false)
 const { getMeta } = useMetas()
 
 const formulaOptionsRef = ref()
-
-const { formState, validateInfos, onUidtOrIdTypeChange, onAlter, addOrUpdate, generateNewColumnMeta, isEdit } =
-  useColumnCreateStoreOrThrow()
+const editOrAddRef = ref<HTMLElement>()
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
 
@@ -44,18 +42,8 @@ const uiTypesOptions = computed<typeof uiTypes>(() => {
 })
 
 const reloadMetaAndData = async () => {
-  emit('cancel')
   await getMeta(meta?.value.id as string, true)
   reloadDataTrigger?.trigger()
-  emit('submit')
-}
-
-function onCancel() {
-  emit('cancel')
-  if (formState.value.uidt === UITypes.Formula) {
-    // close formula drawer
-    formulaOptionsRef.value.formulaSuggestionDrawer = false
-  }
 }
 
 async function onSubmit() {
@@ -65,14 +53,8 @@ async function onSubmit() {
   setTimeout(() => {
     advancedOptions.value = false
   }, 500)
+  emit('submit')
 }
-
-// create column meta if it's a new column
-watchEffect(() => {
-  if (!isEdit.value && formState.value.altered !== 1) {
-    generateNewColumnMeta()
-  }
-})
 
 // focus and select the column name field
 const antInput = ref()
@@ -80,40 +62,60 @@ watchEffect(() => {
   if (antInput.value && formState.value) {
     // todo: replace setTimeout
     setTimeout(() => {
-      antInput.value.focus()
-      antInput.value.select()
+      antInput.value?.focus()
+      antInput.value?.select()
     }, 300)
   }
   advancedOptions.value = false
 })
 
-watch(
-  () => editColumnDropdown,
-  (v) => {
-    if (v) {
-      if (formState.value.uidt === UITypes.Formula) {
-        formulaOptionsRef.value.formulaSuggestionDrawer = true
-      }
-    }
-  },
-)
+onMounted(() => {
+  if (isEdit.value === false) {
+    generateNewColumnMeta()
+  }
 
-// for cases like formula
-if (!formState.value?.column_name) {
-  formState.value.column_name = formState.value?.title
+  if (formState.value.uidt === UITypes.Formula) {
+    formulaOptionsRef.value.formulaSuggestionDrawer = true
+  }
+
+  // for cases like formula
+  if (formState.value && !formState.value.column_name) {
+    formState.value.column_name = formState.value?.title
+  }
+})
+
+onUnmounted(() => {
+  if (formState.value.uidt === UITypes.Formula) {
+    // close formula drawer
+    formulaOptionsRef.value.formulaSuggestionDrawer = false
+  }
+})
+
+const handleClose = (e: MouseEvent) => {
+  if (
+    e.target &&
+    editOrAddRef?.value &&
+    !editOrAddRef.value.contains(e.target) &&
+    !e.target.closest('.ant-dropdown') &&
+    !e.target.closest('.ant-select') &&
+    !e.target.closest('.ant-select-item')
+  ) {
+    emit('cancel')
+  }
 }
+useEventListener(document, 'click', handleClose)
 </script>
 
 <template>
-  <div class="min-w-[400px] max-h-[95vh] bg-white shadow p-6 overflow-auto" @click.stop>
-    <a-form v-model="formState" name="column-create-or-edit" layout="vertical">
+  <div ref="editOrAddRef" class="min-w-[400px] max-h-[95vh] bg-white shadow p-6 overflow-auto" @click.stop>
+    <a-form v-if="formState" v-model="formState" name="column-create-or-edit" layout="vertical">
       <div class="flex flex-col gap-2">
         <a-form-item :label="$t('labels.columnName')" v-bind="validateInfos.title">
           <a-input ref="antInput" v-model:value="formState.title" class="nc-column-name-input" @input="onAlter(8)" />
         </a-form-item>
 
         <a-form-item
-          v-if="!(editColumnDropdown && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
+          v-if="!(isEdit && !!onlyNameUpdateOnEditColumns.find((col) => col === formState.uidt))"
           :label="$t('labels.columnType')"
         >
           <a-select v-model:value="formState.uidt" show-search class="nc-column-type-input" @change="onUidtOrIdTypeChange">
@@ -125,20 +127,28 @@ if (!formState.value?.column_name) {
             </a-select-option>
           </a-select>
         </a-form-item>
-        <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" ref="formulaOptionsRef" />
-        <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" />
-        <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" />
-        <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" />
-        <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" />
-        <SmartsheetColumnLookupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Lookup" />
-        <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" />
-        <SmartsheetColumnRollupOptions v-if="!editColumnDropdown && formState.uidt === UITypes.Rollup" />
+        <SmartsheetColumnFormulaOptions
+          v-if="formState.uidt === UITypes.Formula"
+          ref="formulaOptionsRef"
+          v-model:value="formState"
+        />
+        <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
+        <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
+        <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />
+        <SmartsheetColumnCheckboxOptions v-if="formState.uidt === UITypes.Checkbox" v-model:value="formState" />
+        <SmartsheetColumnLookupOptions v-if="!isEdit && formState.uidt === UITypes.Lookup" v-model:value="formState" />
+        <SmartsheetColumnDateOptions v-if="formState.uidt === UITypes.Date" v-model:value="formState" />
+        <SmartsheetColumnRollupOptions v-if="!isEdit && formState.uidt === UITypes.Rollup" v-model:value="formState" />
         <SmartsheetColumnLinkedToAnotherRecordOptions
-          v-if="!editColumnDropdown && formState.uidt === UITypes.LinkToAnotherRecord"
+          v-if="!isEdit && formState.uidt === UITypes.LinkToAnotherRecord"
+          v-model:value="formState"
         />
         <SmartsheetColumnSpecificDBTypeOptions v-if="formState.uidt === UITypes.SpecificDBType" />
-        <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" />
-        <SmartsheetColumnSelectOptions v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect" />
+        <SmartsheetColumnPercentOptions v-if="formState.uidt === UITypes.Percent" v-model:value="formState" />
+        <SmartsheetColumnSelectOptions
+          v-if="formState.uidt === UITypes.SingleSelect || formState.uidt === UITypes.MultiSelect"
+          v-model:value="formState"
+        />
       </div>
       <div
         v-if="!isVirtualCol(formState.uidt)"
@@ -159,15 +169,15 @@ if (!formState.value?.column_name) {
             {{ `Accept only valid ${formState.uidt}` }}
           </span>
         </a-checkbox>
-        <SmartsheetColumnAdvancedOptions />
+        <SmartsheetColumnAdvancedOptions v-model:value="formState" />
       </div>
       <a-form-item>
         <div class="flex justify-end gap-1 mt-4">
-          <a-button html-type="button" @click="onCancel">
+          <a-button html-type="button" @click="emit('cancel')">
             <!-- Cancel -->
             {{ $t('general.cancel') }}
           </a-button>
-          <a-button html-type="submit" type="primary" @click="onSubmit">
+          <a-button html-type="submit" type="primary" @click.prevent="onSubmit">
             <!-- Save -->
             {{ $t('general.save') }}
           </a-button>

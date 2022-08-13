@@ -19,7 +19,6 @@ export interface Row {
     commentCount?: number
   }
 }
-const formattedData = ref<Row[]>([])
 
 export function useViewData(
   meta: Ref<TableType> | ComputedRef<TableType> | undefined,
@@ -36,6 +35,7 @@ export function useViewData(
   const formColumnData = ref<FormType>()
   // todo: missing properties on FormType (success_msg, show_blank_form,
   const formViewData = ref<FormType & { success_msg?: string; show_blank_form?: boolean }>()
+  const formattedData = ref<Row[]>([])
 
   const isPublic = inject(IsPublicInj, ref(false))
   const { project } = useProject()

@@ -2,7 +2,7 @@
 import type { Ref } from 'vue'
 import type { TableType } from 'nocodb-sdk/build/main'
 
-import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadViewDataHookInj } from '~/context'
+import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 
 import { useRoute } from '#imports'
 definePageMeta({
@@ -12,25 +12,24 @@ definePageMeta({
 const route = useRoute()
 
 const reloadEventHook = createEventHook<void>()
-const { sharedView, loadSharedView, meta, columns } = useSharedView()
-
+const { sharedView, loadSharedView, meta, formColumns } = useSharedView()
+console.log(sharedView)
 await loadSharedView(route.params.viewId as string)
 
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(MetaInj, meta)
 provide(ActiveViewInj, sharedView)
-provide(FieldsInj, columns)
+provide(FieldsInj, formColumns)
 provide(IsPublicInj, ref(true))
-provide(ReadonlyInj, ref(true))
 
 useProvideSmartsheetStore(sharedView as Ref<TableType>, meta)
+// useSmartsheetRowStore()
 </script>
 
 <template>
   <NuxtLayout id="content" class="flex">
     <div class="nc-container flex flex-col h-full mt-2 px-6">
-      <SmartsheetToolbar />
-      <SmartsheetGrid :is-public-view="true" />
+      <SharedViewForm />
     </div>
   </NuxtLayout>
 </template>

@@ -1,4 +1,5 @@
 import type { ColumnType, ExportTypes, FilterType, PaginatedType, SortType, TableType, ViewType } from 'nocodb-sdk'
+import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
 const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
@@ -10,6 +11,16 @@ const password = ref<string | undefined>()
 export function useSharedView() {
   const meta = ref<TableType>(() => sharedView.value?.model)
   const columns = ref<ColumnType[]>(() => sharedView.value?.model?.columns ?? [])
+  const formColumns = computed(
+    () =>
+      columns.value
+        .filter(
+          (f: Record<string, any>) =>
+            f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
+        )
+        .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
+        .map((c: Record<string, any>) => ({ ...c, required: !!(c.required || 0) })) ?? [],
+  )
 
   const { $api } = useNuxtApp()
   const { setMeta } = useMetas()
@@ -61,5 +72,16 @@ export function useSharedView() {
     })
   }
 
-  return { sharedView, loadSharedView, meta, columns, nestedFilters, fetchSharedViewData, paginationData, sorts, exportFile }
+  return {
+    sharedView,
+    loadSharedView,
+    meta,
+    columns,
+    nestedFilters,
+    fetchSharedViewData,
+    paginationData,
+    sorts,
+    exportFile,
+    formColumns,
+  }
 }

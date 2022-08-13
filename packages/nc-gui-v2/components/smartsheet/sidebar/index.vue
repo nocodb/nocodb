@@ -105,7 +105,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 
     <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
       <template #start>
-        <a-tooltip placement="left">
+        <a-tooltip v-if="isUIAllowed('virtualViewsCreateOrEdit')" placement="left">
           <template #title> {{ $t('objects.webhooks') }}</template>
 
           <div class="nc-sidebar-right-item hover:after:bg-gray-300">

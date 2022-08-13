@@ -29,6 +29,7 @@
     "url": "^0.11.0",
     "util": "^0.12.4",
     "vue-dompurify-html": "^3.0.0",
+    "vue-github-button": "^3.0.3",
     "vue-i18n": "^9.1.10",
     "vuedraggable": "^4.1.0",
     "vuetify": "^3.0.0-alpha.13",

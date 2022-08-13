@@ -14,7 +14,7 @@ const { addTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
-const { tables, loadTables } = useProject()
+const { tables, loadTables, isSharedBase } = useProject()
 const { activeTab } = useTabs()
 const { deleteTable } = useTable()
 
@@ -143,7 +143,11 @@ const activeTable = computed(() => {
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
-      <div class="p-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull" style="direction: rtl">
+      <div
+        class="p-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull"
+        :class="{ 'mb-[20px]': isSharedBase }"
+        style="direction: rtl"
+      >
         <div
           style="direction: ltr"
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"

@@ -298,7 +298,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
-            <tr class="nc-grid-header">
+            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
               <th>
                 <div class="w-full h-full bg-gray-100 flex w-[80px] px-1 items-center">
                   <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
@@ -420,9 +420,9 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               </template>
             </SmartsheetRow>
 
-            <!-- 
+            <!--
               TODO: add relationType !== 'bt' ?
-              v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'"> 
+              v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
             -->
             <tr v-if="!isView && !isLocked && !isPublicView && isUIAllowed('xcDatatableEditable')">
               <td
@@ -554,6 +554,11 @@ const expandForm = (row: Row, state: Record<string, any>) => {
 }
 
 .nc-grid-header {
+  position: sticky;
+  top:-1px;
+
+  @apply z-1;
+
   &:hover {
     .nc-no-label {
       @apply hidden;

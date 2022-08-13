@@ -92,7 +92,7 @@ provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
 
-provide(ReadonlyInj, isUIAllowed('xcDatatableEditable'))
+provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
   await loadData()

@@ -2,7 +2,7 @@
 import { ColumnInj, ReadonlyInj, computed, inject } from '#imports'
 
 interface Props {
-  modelValue?: number | null
+  modelValue?: number | null | undefined
 }
 
 const { modelValue } = defineProps<Props>()

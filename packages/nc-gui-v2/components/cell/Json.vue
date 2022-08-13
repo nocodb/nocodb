@@ -2,6 +2,7 @@
 import { Modal as AModal } from 'ant-design-vue'
 import Editor from '~/components/monaco/Editor.vue'
 import { ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
   modelValue: string | Record<string, any> | undefined
@@ -15,7 +16,9 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj, ref(false))
+
+const readonly = inject(ReadonlyInj)
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -87,7 +90,7 @@ watch(editEnabled, () => {
 
 <template>
   <component :is="isExpanded ? AModal : 'div'" v-model:visible="isExpanded" :closable="false" centered :footer="null">
-    <div v-if="editEnabled" class="flex flex-col w-full">
+    <div v-if="editEnabled && !readonly" class="flex flex-col w-full">
       <div class="flex flex-row justify-between pt-1 pb-2">
         <a-button type="text" size="small" @click="isExpanded = !isExpanded">
           <CilFullscreenExit v-if="isExpanded" class="h-2.5" />

@@ -2,7 +2,7 @@
 import { ColumnInj, ReadonlyInj, computed, getPercentStep, inject, isValidPercent, renderPercent } from '#imports'
 
 interface Props {
-  modelValue: number | string | null
+  modelValue: number | string | null | undefined
 }
 
 const { modelValue } = defineProps<Props>()

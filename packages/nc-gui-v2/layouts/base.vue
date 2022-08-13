@@ -4,6 +4,8 @@ import { computed, useGlobal, useRoute } from '#imports'
 
 const { signOut, signedIn, isLoading, user } = useGlobal()
 
+const { isSharedBase } = useProject()
+
 const route = useRoute()
 
 const email = computed(() => user.value?.email ?? '---')
@@ -49,7 +51,7 @@ const logout = () => {
             </div>
           </a-tooltip>
 
-          <template v-if="signedIn">
+          <template v-if="signedIn && !isSharedBase">
             <a-dropdown :trigger="['click']">
               <MdiDotsVertical class="md:text-xl cursor-pointer nc-user-menu" @click.prevent />
 

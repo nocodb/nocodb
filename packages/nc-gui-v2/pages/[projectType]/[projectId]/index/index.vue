@@ -144,8 +144,9 @@ const icon = (tab: TabItem) => {
           </template>
         </a-tabs>
       </div>
-
-      <NuxtPage />
+      <div class="w-full min-h-[300px] grow">
+        <NuxtPage />
+      </div>
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
@@ -156,7 +157,7 @@ const icon = (tab: TabItem) => {
 
 <style scoped lang="scss">
 .nc-container {
-  height: calc(100% - var(--header-height));
+  height: calc(100vh - var(--header-height));
   flex: 1 1 100%;
 }
 

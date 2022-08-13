@@ -5,7 +5,7 @@ import type { Ref } from 'vue'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { provide, toRef, useMetas, useProvideColumnCreateStore } from '#imports'
 
-const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required: boolean }>()
+const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required?: boolean }>()
 
 const column = toRef(props, 'column')
 

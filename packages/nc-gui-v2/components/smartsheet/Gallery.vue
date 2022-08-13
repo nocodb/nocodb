@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { isVirtualCol } from 'nocodb-sdk'
 import { inject, provide, useViewData } from '#imports'
+import Row from '~/components/smartsheet/Row.vue'
 import { ActiveViewInj, ChangePageInj, FieldsInj, IsFormInj, IsGridInj, MetaInj, PaginationDataInj, ReadonlyInj } from '~/context'
 import ImageIcon from '~icons/mdi/file-image-box'
 
@@ -50,45 +51,46 @@ const attachments = (record: any): Array<Attachment> => {
 }
 </script>
 
-<!-- TODO: Fix scrolling -->
 <template>
-  <div class="flex flex-col h-full min-h-0 w-full">
-    <div class="nc-gallery-container min-h-0 flex-1 grid grid-cols-4 gap-4 my-4 px-3">
+  <div class="flex flex-col h-full w-full">
+    <div class="nc-gallery-container min-h-0 flex-1 grid grid-cols-4 gap-4 my-4 px-3 overflow-auto">
       <div v-for="(record, recordIndex) in data" :key="recordIndex" class="flex flex-col">
-        <a-card hoverable class="!rounded-lg h-full">
-          <template #cover>
-            <a-carousel v-if="attachments(record).length !== 0" autoplay>
-              <img
-                v-for="(attachment, index) in attachments(record)"
-                :key="index"
-                class="h-52 rounded-t-lg"
-                :src="attachment.url"
-              />
-            </a-carousel>
-            <ImageIcon v-else class="w-full h-48 my-4 text-cool-gray-200" />
-          </template>
+        <Row :row="record">
+          <a-card hoverable class="!rounded-lg h-full">
+            <template #cover>
+              <a-carousel v-if="attachments(record).length !== 0" autoplay>
+                <img
+                  v-for="(attachment, index) in attachments(record)"
+                  :key="index"
+                  class="h-52 rounded-t-lg"
+                  :src="attachment.url"
+                />
+              </a-carousel>
+              <ImageIcon v-else class="w-full h-48 my-4 text-cool-gray-200" />
+            </template>
 
-          <div
-            v-for="(col, colIndex) in fields"
-            :key="colIndex"
-            class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
-          >
-            <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
-              <div class="w-full text-gray-600">
-                <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
-                <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+            <div
+              v-for="(col, colIndex) in fields"
+              :key="colIndex"
+              class="flex flex-col space-y-1 px-4 mb-6 bg-gray-50 rounded-lg w-full"
+            >
+              <div class="flex flex-row w-full justify-start border-b-1 border-gray-100 py-2.5">
+                <div class="w-full text-gray-600">
+                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="true" />
+                  <SmartsheetHeaderCell v-else :column="col" :hide-menu="true" />
+                </div>
+              </div>
+
+              <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
+                <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
+                <template v-else>
+                  <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="record.row[col.title]" :column="col" />
+                  <SmartsheetCell v-else v-model="record.row[col.title]" :column="col" :edit-enabled="false" />
+                </template>
               </div>
             </div>
-
-            <div class="flex flex-row w-full pb-3 pt-2 pl-2 items-center justify-start">
-              <div v-if="isRowEmpty(record, col)" class="h-3 bg-gray-200 px-5 rounded-lg"></div>
-              <template v-else>
-                <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="record.row[col.title]" :column="col" />
-                <SmartsheetCell v-else v-model="record.row[col.title]" :column="col" :edit-enabled="false" />
-              </template>
-            </div>
-          </div>
-        </a-card>
+          </a-card>
+        </Row>
       </div>
     </div>
     <SmartsheetPagination />
@@ -97,7 +99,6 @@ const attachments = (record: any): Array<Attachment> => {
 
 <style scoped>
 .nc-gallery-container {
-  height: calc(100vh - 250px);
   overflow: auto;
 }
 </style>

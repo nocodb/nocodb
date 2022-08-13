@@ -473,10 +473,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
 
 <style scoped lang="scss">
 .nc-grid-wrapper {
-  width: 100%;
-  // todo : proper height calculation
-  height: calc(100vh - 215px);
-  overflow: auto;
+  @apply h-full w-full overflow-auto;
 
   td,
   th {
@@ -493,10 +490,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
   table,
   td,
   th {
-    border-right: 1px solid #f0f0f0 !important;
-    border-left: 1px solid #f0f0f0 !important;
-    border-bottom: 1px solid #f0f0f0 !important;
-    border-top: 1px solid #f0f0f0 !important;
+    @apply !border-1;
     border-collapse: collapse;
   }
 
@@ -522,8 +516,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
   }
 
   td.active::before {
-    background: #0040bc;
-    opacity: 0.1;
+    @apply bg-primary/5;
   }
 }
 

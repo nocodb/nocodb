@@ -5,7 +5,7 @@ import { openLink } from '~/utils'
 
 const route = useRoute()
 
-const { project, loadProject, loadTables } = useProject(route.params.projectId as string)
+const { project, loadProject, loadTables, isSharedBase } = useProject()
 
 const { addTab, clearTabs } = useTabs()
 
@@ -39,7 +39,7 @@ function toggleDialog(value?: boolean, key?: string) {
   openDialogKey.value = key
 }
 
-await loadProject(route.params.projectId as string)
+await loadProject()
 
 await loadTables()
 </script>
@@ -58,14 +58,31 @@ await loadTables()
       >
         <div style="height: var(--header-height)" class="flex items-center !bg-primary text-white px-1 pl-5 gap-2">
           <div
-            v-if="isOpen"
+            v-if="isOpen && !isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
             @click="navigateTo('/')"
           >
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
+          <a
+            v-if="isOpen && isSharedBase"
+            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
+            href="https://github.com/nocodb/nocodb"
+            target="_blank"
+          >
+            <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+          </a>
 
-          <a-dropdown :trigger="['click']" placement="bottom">
+          <div v-if="isSharedBase">
+            <template v-if="isOpen">
+              <div class="text-xl font-semibold truncate">{{ project.title }}</div>
+            </template>
+            <template v-else>
+              <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
+            </template>
+          </div>
+
+          <a-dropdown v-else :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -220,7 +237,6 @@ await loadTables()
     </template>
 
     <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
-
     <NuxtPage />
 
     <GeneralPreviewAs float />

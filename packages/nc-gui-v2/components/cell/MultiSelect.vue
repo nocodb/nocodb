@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { computed, inject } from '#imports'
-import { ActiveCellInj, ColumnInj } from '~/context'
+import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject } from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
@@ -16,12 +15,17 @@ const emit = defineEmits(['update:modelValue'])
 const { isMysql } = useProject()
 
 const column = inject(ColumnInj)
+
 // const isForm = inject<boolean>('isForm', false)
-// const editEnabled = inject(EditModeInj, ref(false))
+
+const editEnabled = inject(ReadonlyInj)
+
 const active = inject(ActiveCellInj, ref(false))
 
 const selectedIds = ref<string[]>([])
+
 const aselect = ref<typeof AntSelect>()
+
 const isOpen = ref(false)
 
 const options = computed(() => {
@@ -112,6 +116,7 @@ watch(isOpen, (n, _o) => {
     show-arrow
     :show-search="false"
     :open="isOpen"
+    :disabled="!editEnabled"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >

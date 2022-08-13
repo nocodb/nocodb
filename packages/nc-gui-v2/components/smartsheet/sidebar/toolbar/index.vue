@@ -2,13 +2,15 @@
 import AddRow from './AddRow.vue'
 import LockMenu from './LockMenu.vue'
 import Reload from './Reload.vue'
+
+const { isUIAllowed } = useUIPermission()
 </script>
 
 <template>
   <div class="flex gap-2">
     <slot name="start" />
 
-    <LockMenu />
+    <LockMenu v-if="isUIAllowed('view-type')" />
 
     <div class="dot" />
 
@@ -16,7 +18,7 @@ import Reload from './Reload.vue'
 
     <div class="dot" />
 
-    <AddRow />
+    <AddRow v-if="isUIAllowed('xcDatatableEditable')" />
 
     <slot name="end" />
   </div>

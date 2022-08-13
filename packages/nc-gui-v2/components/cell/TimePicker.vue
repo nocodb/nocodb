@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { ReadonlyInj } from '~/context'
+import { ReadonlyInj } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -13,9 +13,10 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
-const readOnlyMode = inject(ReadonlyInj, false)
+const editEnabled = inject(ReadonlyInj)
 
 let isTimeInvalid = $ref(false)
+
 const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
 const localState = $computed({
@@ -76,9 +77,9 @@ watch(
     format="HH:mm"
     class="!w-full px-1"
     :placeholder="isTimeInvalid ? 'Invalid time' : !readOnlyMode ? 'Select time' : ''"
-    :allow-clear="!readOnlyMode"
+    :allow-clear="!editEnabled"
     :input-read-only="true"
-    :open="readOnlyMode ? false : open"
+    :open="editEnabled ? false : open"
     :popup-class-name="randomClass"
     @click="open = !open"
     @ok="open = !open"

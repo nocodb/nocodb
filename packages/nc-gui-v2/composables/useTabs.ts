@@ -29,9 +29,11 @@ export function useTabs() {
   const router = useRouter()
   const { tables } = useProject()
 
+  const projectType = $computed(() => route.params.projectType as string)
+
   const activeTabIndex: WritableComputedRef<number> = computed({
     get() {
-      if ((route.name as string)?.startsWith('nc-projectId-index-index-type-title-viewTitle') && tables.value?.length) {
+      if ((route.name as string)?.startsWith('projectType-projectId-index-index-type-title-viewTitle') && tables.value?.length) {
         const tab: Partial<TabItem> = { type: route.params.type as TabType, title: route.params.title as string }
 
         const id = tables.value?.find((t) => t.title === tab.title)?.id
@@ -56,7 +58,7 @@ export function useTabs() {
     },
     set(index: number) {
       if (index === -1) {
-        navigateTo(`/nc/${route.params.projectId}`)
+        navigateTo(`/${projectType}/${route.params.projectId}`)
       } else {
         const tab = tabs.value[index]
 
@@ -91,7 +93,7 @@ export function useTabs() {
       let newTabIndex = index - 1
       if (newTabIndex < 0 && tabs.value?.length > 1) newTabIndex = index + 1
       if (newTabIndex === -1) {
-        await navigateTo(`/nc/${route.params.projectId}`)
+        await navigateTo(`/${projectType}/${route.params.projectId}`)
       } else {
         await navigateToTab(tabs.value?.[newTabIndex])
       }
@@ -102,11 +104,15 @@ export function useTabs() {
   function navigateToTab(tab: TabItem) {
     switch (tab.type) {
       case TabType.TABLE:
-        return navigateTo(`/nc/${route.params.projectId}/table/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
+        return navigateTo(
+          `/${projectType}/${route.params.projectId}/table/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
+        )
       case TabType.VIEW:
-        return navigateTo(`/nc/${route.params.projectId}/view/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`)
+        return navigateTo(
+          `/${projectType}/${route.params.projectId}/view/${tab?.title}${tab.viewTitle ? `/${tab.viewTitle}` : ''}`,
+        )
       case TabType.AUTH:
-        return navigateTo(`/nc/${route.params.projectId}/auth`)
+        return navigateTo(`/${projectType}/${route.params.projectId}/auth`)
     }
   }
 

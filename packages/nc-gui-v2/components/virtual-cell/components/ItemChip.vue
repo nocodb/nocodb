@@ -13,8 +13,10 @@ const emit = defineEmits(['unlink'])
 
 const { relatedTableMeta } = useLTARStoreOrThrow()
 
-const readonly = inject(ReadonlyInj, false)
+const editEnabled = inject(ReadonlyInj)
+
 const active = inject(ActiveCellInj, ref(false))
+
 const isForm = inject(IsFormInj)
 
 const expandedFormDlg = ref(false)
@@ -27,12 +29,12 @@ const expandedFormDlg = ref(false)
     @click="expandedFormDlg = true"
   >
     <span class="name">{{ value }}</span>
-    <div v-show="active || isForm" v-if="!readonly" class="flex align-center">
+    <div v-show="active || isForm" v-if="editEnabled" class="flex align-center">
       <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
     </div>
 
     <SmartsheetExpandedForm
-      v-if="expandedFormDlg"
+      v-if="expandedFormDlg && editEnabled"
       v-model="expandedFormDlg"
       :row="{ row: item }"
       :meta="relatedTableMeta"

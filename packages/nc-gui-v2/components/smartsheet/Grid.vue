@@ -43,6 +43,8 @@ const isLocked = inject(IsLockedInj, false)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
 
+const { isUIAllowed } = useUIPermission()
+
 // todo: get from parent ( inject or use prop )
 const isPublicView = false
 
@@ -83,9 +85,14 @@ const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useG
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
+
 provide(IsGridInj, true)
+
 provide(PaginationDataInj, paginationData)
+
 provide(ChangePageInj, changePage)
+
+provide(ReadonlyInj, isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
   await loadData()
@@ -322,7 +329,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 </div>
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
-              <th v-t="['c:column:add']" @click="addColumnDropdown = true">
+              <th v-if="isUIAllowed('add-column')" v-t="['c:column:add']" @click="addColumnDropdown = true">
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlus class="text-sm" />
@@ -413,7 +420,11 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               </template>
             </SmartsheetRow>
 
-            <tr v-if="!isLocked">
+            <!-- 
+              TODO: add relationType !== 'bt' ?
+              v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'"> 
+            -->
+            <tr v-if="!isView && !isLocked && !isPublicView && isUIAllowed('xcDatatableEditable')">
               <td
                 v-t="['c:row:add:grid-bottom']"
                 :colspan="visibleColLength + 1"
@@ -462,10 +473,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
 
 <style scoped lang="scss">
 .nc-grid-wrapper {
-  width: 100%;
-  // todo : proper height calculation
-  height: calc(100vh - 215px);
-  overflow: auto;
+  @apply h-full w-full overflow-auto;
 
   td,
   th {
@@ -482,10 +490,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
   table,
   td,
   th {
-    border-right: 1px solid #f0f0f0 !important;
-    border-left: 1px solid #f0f0f0 !important;
-    border-bottom: 1px solid #f0f0f0 !important;
-    border-top: 1px solid #f0f0f0 !important;
+    @apply !border-1;
     border-collapse: collapse;
   }
 
@@ -511,8 +516,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
   }
 
   td.active::before {
-    background: #0040bc;
-    opacity: 0.1;
+    @apply bg-primary/5;
   }
 }
 

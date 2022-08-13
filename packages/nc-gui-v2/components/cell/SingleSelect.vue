@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { computed, inject } from '#imports'
-import { ActiveCellInj, ColumnInj } from '~/context'
+import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject } from '#imports'
 
 interface Props {
   modelValue?: string
@@ -13,11 +12,15 @@ const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
+
 // const isForm = inject<boolean>('isForm', false)
-// const editEnabled = inject(EditModeInj, ref(false))
+
+const editEnabled = inject(ReadonlyInj)
+
 const active = inject(ActiveCellInj, ref(false))
 
 const aselect = ref<typeof AntSelect>()
+
 const isOpen = ref(false)
 
 const vModel = computed({
@@ -72,6 +75,7 @@ watch(isOpen, (n, _o) => {
     placeholder="Select an option"
     :bordered="false"
     :open="isOpen"
+    :disabled="!editEnabled"
     :show-arrow="active || vModel === null"
     @select="isOpen = false"
     @keydown="handleKeys"

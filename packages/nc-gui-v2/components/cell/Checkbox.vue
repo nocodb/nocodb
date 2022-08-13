@@ -14,10 +14,14 @@ interface Emits {
 const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
-const vModel = $(useVModel(props, 'modelValue', emits))
+
+let vModel = $(useVModel(props, 'modelValue', emits))
 
 const column = inject(ColumnInj)
+
 const isForm = inject(IsFormInj)
+
+const editEnabled = inject(ReadonlyInj)
 
 const checkboxMeta = $computed(() => {
   return {
@@ -29,11 +33,17 @@ const checkboxMeta = $computed(() => {
     ...(column?.value?.meta || {}),
   }
 })
+
+function onClick() {
+  if (editEnabled) {
+    vModel = !vModel
+  }
+}
 </script>
 
 <template>
   <div class="flex" :class="{ 'justify-center': !isForm, 'nc-cell-hover-show': !vModel }">
-    <div class="px-1 pt-1 rounded-full items-center" :class="{ 'bg-gray-100': !vModel }" @click="vModel = !vModel">
+    <div class="px-1 pt-1 rounded-full items-center" :class="{ 'bg-gray-100': !vModel }" @click="onClick">
       <component
         :is="getMdiIcon(vModel ? checkboxMeta.icon.checked : checkboxMeta.icon.unchecked)"
         :style="{

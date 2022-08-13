@@ -85,9 +85,14 @@ const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useG
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
+
 provide(IsGridInj, true)
+
 provide(PaginationDataInj, paginationData)
+
 provide(ChangePageInj, changePage)
+
+provide(ReadonlyInj, isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
   await loadData()

@@ -11,6 +11,8 @@ const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
+const editEnabled = inject(ReadonlyInj)
+
 const column = inject(ColumnInj)
 
 const percent = ref()
@@ -63,5 +65,6 @@ function onKeyDownEnter() {
     @blur="onBlur"
     @keydown.enter="onKeyDownEnter"
   />
-  <input v-else v-model="localState" type="text" @focus="isEdited = true" />
+  <input v-if="editEnabled" v-model="localState" type="text" @focus="isEdited = true" />
+  <span v-else>{{ localState }}</span>
 </template>

@@ -16,7 +16,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject(EditModeInj, ref(false))
+const editEnabled = inject(ReadonlyInj)
 
 const vModel = useVModel(props, 'modelValue', emits)
 

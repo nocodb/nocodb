@@ -13,11 +13,16 @@ const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
+
 // const isForm = inject<boolean>('isForm', false)
-// const editEnabled = inject(EditModeInj, ref(false))
+
+// FIXME: use editEnabled to control the UI permission
+const editEnabled = inject(ReadonlyInj)
+
 const active = inject(ActiveCellInj, ref(false))
 
 const aselect = ref<typeof AntSelect>()
+
 const isOpen = ref(false)
 
 const vModel = computed({

@@ -11,9 +11,11 @@ const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const columnMeta = inject(ColumnInj, null)
-const readOnlyMode = inject(ReadonlyInj, false)
+
+const editEnabled = inject(ReadonlyInj)
 
 let isDateInvalid = $ref(false)
+
 const dateFormat = columnMeta?.value?.meta?.date_format ?? 'YYYY-MM-DD'
 
 const localState = $computed({
@@ -61,10 +63,10 @@ watch(
     class="!w-full px-1"
     :format="dateFormat"
     :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date' : ''"
-    :allow-clear="!readOnlyMode"
+    :allow-clear="!editEnabled"
     :input-read-only="true"
     :dropdown-class-name="randomClass"
-    :open="readOnlyMode ? false : open"
+    :open="editEnabled ? false : open"
     @click="open = !open"
   >
     <template #suffixIcon></template>

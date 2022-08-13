@@ -14,7 +14,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj, ref(false))
+const editEnabled = inject(EditModeInj)
 
 const vModel = computed({
   get: () => value,

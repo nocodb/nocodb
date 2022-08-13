@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { computed, inject, ref } from '#imports'
-import { ColumnInj } from '~/context'
+import {ColumnInj, ReadonlyInj} from '~/context'
 import { convertDurationToSeconds, convertMS2Duration, durationOptions } from '~/utils'
 
 interface Props {
@@ -13,12 +13,18 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
+const editEnabled = inject(ReadonlyInj)
+
 const showWarningMessage = ref(false)
+
 const durationInMS = ref(0)
+
 const isEdited = ref(false)
+
 const durationType = ref(column?.value?.meta?.duration || 0)
 
 const durationPlaceholder = computed(() => durationOptions[durationType.value].title)
+
 const localState = computed({
   get: () => convertMS2Duration(modelValue, durationType.value),
   set: (val) => {
@@ -59,6 +65,7 @@ const submitDuration = () => {
 <template>
   <div class="duration-cell-wrapper">
     <input
+        v-if="editEnabled"
       ref="durationInput"
       v-model="localState"
       :placeholder="durationPlaceholder"
@@ -66,6 +73,7 @@ const submitDuration = () => {
       @keypress="checkDurationFormat($event)"
       @keydown.enter="submitDuration"
     />
+    <span v-else> {{ localState }}</span>
     <div v-if="showWarningMessage" class="duration-warning">
       <!-- TODO: i18n -->
       Please enter a number

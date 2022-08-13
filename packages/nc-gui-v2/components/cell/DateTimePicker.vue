@@ -12,9 +12,10 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
-const readOnlyMode = inject(ReadonlyInj, false)
+const editEnabled = inject(ReadonlyInj)
 
 let isDateInvalid = $ref(false)
+
 const dateFormat = isMysql ? 'YYYY-MM-DD HH:mm:ss' : 'YYYY-MM-DD HH:mm:ssZ'
 
 const localState = $computed({
@@ -64,10 +65,10 @@ watch(
     class="!w-full px-1"
     format="YYYY-MM-DD HH:mm"
     :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date and time' : ''"
-    :allow-clear="!readOnlyMode"
+    :allow-clear="!editEnabled"
     :input-read-only="true"
     :dropdown-class-name="randomClass"
-    :open="readOnlyMode ? false : open"
+    :open="editEnabled ? false : open"
     @click="open = !open"
     @ok="open = !open"
   >

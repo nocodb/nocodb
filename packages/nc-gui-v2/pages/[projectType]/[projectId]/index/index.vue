@@ -17,8 +17,6 @@ const { tabs, activeTabIndex, activeTab, closeTab } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
 
-const { isSharedBase } = useProject()
-
 const tableCreateDialog = ref(false)
 const airtableImportDialog = ref(false)
 const quickImportDialog = ref(false)
@@ -45,7 +43,7 @@ const icon = (tab: TabItem) => {
 </script>
 
 <template>
-  <div class="h-full w-full nc-container pt-[9px]" :class="{ shared: isSharedBase }">
+  <div class="h-full w-full nc-container pt-[9px]">
     <div class="h-full w-full flex flex-col">
       <div>
         <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="closeTab">
@@ -160,9 +158,6 @@ const icon = (tab: TabItem) => {
 .nc-container {
   height: calc(100vh - var(--header-height));
   flex: 1 1 100%;
-  &.shared {
-    height: calc(100vh - var(--header-height) - 20px);
-  }
 }
 
 :deep(.nc-root-tabs) {

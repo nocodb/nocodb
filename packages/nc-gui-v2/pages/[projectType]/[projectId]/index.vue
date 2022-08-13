@@ -58,12 +58,20 @@ await loadTables()
       >
         <div style="height: var(--header-height)" class="flex items-center !bg-primary text-white px-1 pl-5 gap-2">
           <div
-            v-if="isOpen"
+            v-if="isOpen && !isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
             @click="navigateTo('/')"
           >
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
+          <a
+            v-if="isOpen && isSharedBase"
+            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
+            href="https://github.com/nocodb/nocodb"
+            target="_blank"
+          >
+            <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+          </a>
 
           <div v-if="isSharedBase">
             <template v-if="isOpen">

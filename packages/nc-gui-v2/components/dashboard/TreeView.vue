@@ -29,8 +29,6 @@ const tablesById = $computed<Record<string, TableType>>(() =>
   }, {}),
 )
 
-const showTableList = ref(true)
-
 const tableCreateDlg = ref(false)
 
 let key = $ref(0)

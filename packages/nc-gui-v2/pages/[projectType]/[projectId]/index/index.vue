@@ -144,7 +144,7 @@ const icon = (tab: TabItem) => {
           </template>
         </a-tabs>
       </div>
-      <div class="w-full min-h-[300px] grow">
+      <div class="w-full min-h-[300px] flex-grow">
         <NuxtPage />
       </div>
     </div>

@@ -174,7 +174,7 @@ const icon = (tab: TabItem) => {
         @apply font-weight-medium;
       }
       & > .ant-tabs-tab:not(.ant-tabs-tab-active) {
-        @apply bg-gray-100;
+        @apply bg-gray-100 text-gray-500;
       }
     }
   }

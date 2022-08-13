@@ -3,20 +3,30 @@ import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
-import { inject, ref, useProvideLTARStore, useSmartsheetRowStoreOrThrow } from '#imports'
-import { ActiveCellInj, CellValueInj, ColumnInj, EditModeInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import {
+  ActiveCellInj,
+  CellValueInj,
+  ColumnInj,
+  EditModeInj,
+  ReloadViewDataHookInj,
+  RowInj,
+  inject,
+  ref,
+  useProvideLTARStore,
+  useSmartsheetRowStoreOrThrow,
+} from '#imports'
 import MdiArrowExpand from '~icons/mdi/arrow-expand'
 import MdiPlus from '~icons/mdi/plus'
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj)!
 
 const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const cellValue = inject(CellValueInj, ref<any>(null))
 
-const row = inject(RowInj)
+const row = inject(RowInj)!
 
-const active = inject(ActiveCellInj)
+const active = inject(ActiveCellInj)!
 
 const editEnabled = inject(EditModeInj)
 

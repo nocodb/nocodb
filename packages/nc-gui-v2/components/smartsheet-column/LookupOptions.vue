@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { UITypes, isSystemColumn } from 'nocodb-sdk'
-import { MetaInj } from '~/context'
+import { MetaInj } from '#imports'
 
 interface Props {
   value: Record<string, any>
@@ -39,7 +39,7 @@ const refTables = $computed(() => {
   }
 
   return meta.columns
-    .filter((c: ColumnType) => c.uidt === UITypes.LinkToAnotherRecord && !c.system)
+    ?.filter((c: ColumnType) => c.uidt === UITypes.LinkToAnotherRecord && !c.system)
     .map<TableType & { col: LinkToAnotherRecordType; column: ColumnType }>((c: ColumnType) => ({
       col: c.colOptions,
       column: c,
@@ -52,7 +52,7 @@ const refTables = $computed(() => {
 })
 
 const columns = $computed(() => {
-  const selectedTable = refTables.find((t) => t.column.id === vModel.value.fk_relation_column_id)
+  const selectedTable = refTables?.find((t) => t.column.id === vModel.value.fk_relation_column_id)
   if (!selectedTable?.id) {
     return []
   }

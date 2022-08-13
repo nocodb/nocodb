@@ -113,7 +113,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
           </div>
         </a-tooltip>
 
-        <div class="dot" />
+        <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="dot" />
 
         <a-tooltip placement="left">
           <template #title> Get API Snippet</template>

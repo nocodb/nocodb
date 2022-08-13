@@ -12,7 +12,7 @@ const { isUIAllowed } = useUIPermission()
 
     <LockMenu v-if="isUIAllowed('view-type')" />
 
-    <div class="dot" />
+    <div v-if="isUIAllowed('view-type')" class="dot" />
 
     <Reload />
 

@@ -36,8 +36,8 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none" @blur="editEnabled = false" />
-  <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="url" target="_blank">{{ value }} </nuxt-link>
+  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm" @blur="editEnabled = false" />
+  <nuxt-link v-else-if="isValid" class="text-sm underline hover:opacity-75" :to="url" target="_blank">{{ value }} </nuxt-link>
   <span v-else>{{ value }}</span>
 </template>
 

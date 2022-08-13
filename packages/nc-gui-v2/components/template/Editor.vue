@@ -3,14 +3,26 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import { UITypes, isVirtualCol } from 'nocodb-sdk'
 import { Form, message } from 'ant-design-vue'
 import { srcDestMappingColumns, tableColumns } from './utils'
-import { computed, onMounted } from '#imports'
-import { extractSdkResponseErrorMsg, fieldRequiredValidator, getUIDTIcon } from '~/utils'
-import { MetaInj, ReloadViewDataHookInj } from '~/context'
+import {
+  MetaInj,
+  ReloadViewDataHookInj,
+  computed,
+  extractSdkResponseErrorMsg,
+  fieldRequiredValidator,
+  getUIDTIcon,
+  nextTick,
+  onMounted,
+  reactive,
+  ref,
+  useProject,
+  useTabs,
+} from '#imports'
+import { TabType } from '~/composables'
 
 interface Props {
   quickImportType: 'csv' | 'excel' | 'json'
   projectTemplate: Record<string, any>
-  importData: Record<string, any>[]
+  importData: Record<string, any>
   importColumns: any[]
   importOnly: boolean
   maxRowsToParse: number
@@ -74,6 +86,7 @@ const { sqlUi, project, loadTables } = useProject()
 
 onMounted(() => {
   parseAndLoadTemplate()
+
   nextTick(() => {
     inputRefs.value[0]?.focus()
   })
@@ -409,7 +422,7 @@ async function importTemplate() {
       await loadTables()
       addTab({
         ...tab,
-        type: 'table',
+        type: TabType.TABLE,
       })
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
@@ -476,7 +489,7 @@ onMounted(() => {
         </p>
       </a-form>
       <a-collapse v-if="data.tables && data.tables.length" v-model:activeKey="expansionPanel" class="template-collapse" accordion>
-        <a-collapse-panel v-for="(table, tableIdx) in data.tables" :key="tableIdx">
+        <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
           <template #header>
             <span class="font-weight-bold text-lg flex items-center gap-2">
               <mdi-table class="text-primary" />

@@ -3,11 +3,26 @@ import Draggable from 'vuedraggable'
 import { RelationTypes, UITypes, getSystemColumns, isVirtualCol } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
-import { computed, inject, onClickOutside, useDebounceFn } from '#imports'
-import { ActiveViewInj, IsFormInj, MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import {
+  ActiveViewInj,
+  IsFormInj,
+  MetaInj,
+  computed,
+  extractSdkResponseErrorMsg,
+  inject,
+  onClickOutside,
+  provide,
+  reactive,
+  ref,
+  useDebounceFn,
+  useGlobal,
+  useNuxtApp,
+  useUIPermission,
+  useViewData,
+  watch,
+} from '#imports'
 
-provide(IsFormInj, true)
+provide(IsFormInj, ref(true))
 
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
@@ -76,7 +91,8 @@ async function submitForm() {
     return
   }
 
-  insertRow(formState)
+  await insertRow(formState)
+
   submitted.value = true
 }
 
@@ -199,17 +215,23 @@ function setFormData() {
   formViewData.value = {
     ...formViewData.value,
     submit_another_form: !!(formViewData?.value?.submit_another_form ?? 0),
-    show_blank_form: !!(formViewData?.value?.show_blank_form ?? 0),
-  }
+    // todo: show_blank_form missing from FormType
+    show_blank_form: !!((formViewData?.value as any)?.show_blank_form ?? 0),
+  } as any
 
   {
     // email me
     let data: Record<string, boolean> = {}
     try {
-      data = JSON.parse(formViewData.value.email as string) || {}
-    } catch (e) {}
+      data = JSON.parse(formViewData.value?.email || '') || {}
+    } catch (e) {
+      // noop
+    }
+
     data[state.user.value?.email as string] = emailMe.value
-    formViewData.value.email = JSON.stringify(data)
+
+    formViewData.value!.email = JSON.stringify(data)
+
     checkSMTPStatus()
   }
 
@@ -265,7 +287,7 @@ const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
 }, 250)
 
 watch(submitted, (v) => {
-  if (v && formViewData?.value?.show_blank_form) {
+  if (v && (formViewData?.value as any)?.show_blank_form) {
     secondsRemain.value = 5
     const intvl = setInterval(() => {
       if (--secondsRemain.value < 0) {

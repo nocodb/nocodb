@@ -20,7 +20,7 @@ const [useProvideExpandedFormStore, useExpandedFormStore] = useInjectionState((m
   const { api, isLoading: isCommentsLoading, error: commentsError } = useApi()
 
   const commentsOnly = ref(false)
-  const commentsAndLogs = ref([])
+  const commentsAndLogs = ref<any[]>([])
   const comment = ref('')
   const commentsDrawer = ref(false)
   const changedColumns = ref(new Set<string>())

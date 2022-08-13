@@ -118,7 +118,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         }
       }
 
-      if (isCurrency) {
+      if (isCurrency.value) {
         if (column?.value?.uidt === UITypes.Currency) {
           formState.value.dtxp = column.value.dtxp
           formState.value.dtxs = column.value.dtxs
@@ -151,7 +151,7 @@ const [useProvideColumnCreateStore, useColumnCreateStore] = createInjectionState
         formState.value.dtxp = column?.value.dtxp
       }
 
-      if (isCurrency) {
+      if (isCurrency.value) {
         if (column?.value?.uidt === UITypes.Currency) {
           formState.value.dtxp = column.value.dtxp
           formState.value.dtxs = column.value.dtxs

@@ -1,14 +1,21 @@
 <script setup lang="ts">
 import Draggable from 'vuedraggable'
 import { UITypes } from 'nocodb-sdk'
-import { useColumnCreateStoreOrThrow } from '#imports'
 import { enumColor } from '@/utils'
 import MdiDragIcon from '~icons/mdi/drag-vertical'
 import MdiArrowDownDropCircle from '~icons/mdi/arrow-down-drop-circle'
 import MdiClose from '~icons/mdi/close'
 import MdiPlusIcon from '~icons/mdi/plus'
 
-const { formState, setAdditionalValidations } = useColumnCreateStoreOrThrow()
+interface Props {
+  value: Record<string, any>
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits(['update:value'])
+const vModel = useVModel(props, 'value', emit)
+
+const { setAdditionalValidations } = useColumnCreateStoreOrThrow()
 
 let options = $ref<any[]>([])
 const colorMenus = $ref<any>({})
@@ -24,7 +31,7 @@ const validators = {
             if (!opt.title.length) {
               return reject(new Error("Select options can't be null"))
             }
-            if (formState.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
+            if (vModel.value.uidt === UITypes.MultiSelect && opt.title.includes(',')) {
               return reject(new Error("MultiSelect columns can't have commas(',')"))
             }
             if (options.filter((el) => el.title === opt.title).length !== 1) {
@@ -64,12 +71,12 @@ const removeOption = (index: number) => {
 }
 
 onMounted(() => {
-  if (!formState.value.colOptions?.options) {
-    formState.value.colOptions = {
+  if (!vModel.value.colOptions?.options) {
+    vModel.value.colOptions = {
       options: [],
     }
   }
-  options = formState.value.colOptions.options
+  options = vModel.value.colOptions.options
   // Support for older options
   for (const op of options.filter((el) => el.order === null)) {
     op.title = op.title.replace(/^'/, '').replace(/'$/, '')

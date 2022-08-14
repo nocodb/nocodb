@@ -1,11 +1,10 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { computed, inject, ref } from '#imports'
-import { ColumnInj, EditModeInj } from '~/context'
-import { isValidURL } from '~/utils'
+import { ColumnInj, computed, inject, isValidURL } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string | null
+  modelValue: string | null | undefined
 }
 
 const { modelValue: value } = defineProps<Props>()
@@ -14,7 +13,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj, ref(false))
+const editEnabled = inject(EditModeInj)
 
 const vModel = computed({
   get: () => value,
@@ -38,8 +37,8 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none" @blur="editEnabled = false" />
-  <nuxt-link v-else-if="isValid" class="py-2 underline hover:opacity-75" :to="url" target="_blank">{{ value }} </nuxt-link>
+  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm" @blur="editEnabled = false" />
+  <nuxt-link v-else-if="isValid" class="text-sm underline hover:opacity-75" :to="url" target="_blank">{{ value }} </nuxt-link>
   <span v-else>{{ value }}</span>
 </template>
 

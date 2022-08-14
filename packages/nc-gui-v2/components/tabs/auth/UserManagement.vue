@@ -1,38 +1,50 @@
 <script setup lang="ts">
-import { useClipboard, watchDebounced } from '@vueuse/core'
 import { message } from 'ant-design-vue'
 import UsersModal from './user-management/UsersModal.vue'
 import FeedbackForm from './user-management/FeedbackForm.vue'
-import KebabIcon from '~icons/ic/baseline-more-vert'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
-import { projectRoleTagColors } from '~/utils/userUtils'
-import MidAccountIcon from '~icons/mdi/account-outline'
-import ReloadIcon from '~icons/mdi/reload'
-import MdiEditIcon from '~icons/ic/round-edit'
-import SearchIcon from '~icons/ic/round-search'
-import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
-import EmailIcon from '~icons/eva/email-outline'
-import MdiPlusIcon from '~icons/mdi/plus'
-import MdiContentCopyIcon from '~icons/mdi/content-copy'
-import MdiEmailSendIcon from '~icons/mdi/email-arrow-right-outline'
-import RolesIcon from '~icons/mdi/drama-masks'
-import type { User } from '~/lib/types'
+import {
+  extractSdkResponseErrorMsg,
+  onMounted,
+  projectRoleTagColors,
+  ref,
+  useApi,
+  useClipboard,
+  useDashboard,
+  useNuxtApp,
+  useProject,
+  useUIPermission,
+  watchDebounced,
+} from '#imports'
+import type { User } from '~/lib'
 
-const { $api, $e } = useNuxtApp()
+const { $e } = useNuxtApp()
+
+const { api } = useApi()
+
 const { project } = useProject()
+
 const { copy } = useClipboard()
+
 const { isUIAllowed } = useUIPermission()
+
 const { dashboardUrl } = $(useDashboard())
 
 let users = $ref<null | User[]>(null)
+
 let selectedUser = $ref<null | User>(null)
+
 let showUserModal = $ref(false)
+
 let showUserDeleteModal = $ref(false)
+
 let isLoading = $ref(false)
 
 let totalRows = $ref(0)
+
 const currentPage = $ref(1)
+
 const currentLimit = $ref(10)
+
 const searchText = ref<string>('')
 
 const loadUsers = async (page = currentPage, limit = currentLimit) => {
@@ -40,16 +52,17 @@ const loadUsers = async (page = currentPage, limit = currentLimit) => {
     if (!project.value?.id) return
 
     // TODO: Types of api is not correct
-    const response: any = await $api.auth.projectUserList(project.value?.id, {
+    const response: any = await api.auth.projectUserList(project.value?.id, {
       query: {
         limit,
         offset: searchText.value.length === 0 ? (page - 1) * limit : 0,
         query: searchText.value,
       },
-    })
+    } as any)
     if (!response.users) return
 
     totalRows = response.users.pageInfo.totalRows ?? 0
+
     users = response.users.list as User[]
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -60,7 +73,8 @@ const inviteUser = async (user: User) => {
   try {
     if (!project.value?.id) return
 
-    await $api.auth.projectUserAdd(project.value.id, user)
+    await api.auth.projectUserAdd(project.value.id, user)
+
     message.success('Successfully added user to project')
     await loadUsers()
   } catch (e: any) {
@@ -74,9 +88,12 @@ const deleteUser = async () => {
   try {
     if (!project.value?.id || !selectedUser?.id) return
 
-    await $api.auth.projectUserRemove(project.value.id, selectedUser.id)
+    await api.auth.projectUserRemove(project.value.id, selectedUser.id)
+
     message.success('Successfully deleted user from project')
+
     await loadUsers()
+
     showUserDeleteModal = false
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
@@ -106,7 +123,8 @@ const resendInvite = async (user: User) => {
   if (!project.value?.id) return
 
   try {
-    await $api.auth.projectUserResendInvite(project.value.id, user.id)
+    await api.auth.projectUserResendInvite(project.value.id, user.id, null)
+
     message.success('Invite email sent successfully')
     await loadUsers()
   } catch (e: any) {
@@ -119,20 +137,16 @@ const resendInvite = async (user: User) => {
 const copyInviteUrl = (user: User) => {
   if (!user.invite_token) return
 
-  const getInviteUrl = (token: string) => `${dashboardUrl}/user/authentication/signup/${token}`
+  copy(`${dashboardUrl}/signup/${user.invite_token}`)
 
-  copy(getInviteUrl(user.invite_token))
   message.success('Invite url copied to clipboard')
 }
 
-onMounted(async () => {
+onMounted(() => {
   if (!users) {
     isLoading = true
-    try {
-      await loadUsers()
-    } finally {
-      isLoading = false
-    }
+
+    loadUsers().finally(() => (isLoading = false))
   }
 })
 
@@ -162,11 +176,11 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
       </div>
     </a-modal>
-    <div class="flex flex-row mb-4 mx-4 justify-between">
+    <div class="flex flex-row mb-4 mx-4 justify-between pb-2">
       <div class="flex w-1/3">
         <a-input v-model:value="searchText" placeholder="Filter by email">
           <template #prefix>
-            <SearchIcon class="text-gray-400" />
+            <IcRoundSearch class="text-gray-400" />
           </template>
         </a-input>
       </div>
@@ -174,13 +188,13 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
       <div class="flex flex-row space-x-1">
         <a-button size="middle" type="text" @click="loadUsers()">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-            <ReloadIcon class="text-gray-500" />
+            <MdiReload class="text-gray-500" />
             <div class="text-gray-500">Reload</div>
           </div>
         </a-button>
-        <a-button v-if="isUIAllowed('newUser')" size="middle" @click="onInvite">
+        <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost @click="onInvite">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
-            <MidAccountIcon />
+            <MdiAccountPlusOutline class="mr-1" />
             <div>{{ $t('activity.inviteTeam') }}</div>
           </div>
         </a-button>
@@ -189,12 +203,12 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
     <div class="px-5">
       <div class="flex flex-row border-b-1 pb-2 px-2">
         <div class="flex flex-row w-4/6 space-x-1 items-center pl-1">
-          <EmailIcon class="flex text-gray-500 -mt-0.5" />
+          <EvaEmailOutline class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs space-x-1">{{ $t('labels.email') }}</div>
         </div>
         <div class="flex flex-row justify-center w-1/6 space-x-1 items-center pl-1">
-          <RolesIcon class="flex text-gray-500 -mt-0.5" />
+          <MdiDramaMasks class="flex text-gray-500 -mt-0.5" />
 
           <div class="text-gray-600 text-xs">{{ $t('objects.role') }}</div>
         </div>
@@ -203,12 +217,13 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
       </div>
 
-      <div v-for="(user, index) in users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2">
+      <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2">
         <div class="flex w-4/6 flex-wrap">
           {{ user.email }}
         </div>
+
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
-          <div class="rounded-full px-2 py-1" :style="{ backgroundColor: projectRoleTagColors[user.roles as String] }">
+          <div class="rounded-full px-2 py-1" :style="{ backgroundColor: projectRoleTagColors[user.roles] }">
             {{ user.roles }}
           </div>
         </div>
@@ -219,7 +234,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             </template>
             <a-button type="text" class="!rounded-md" @click="onEdit(user)">
               <template #icon>
-                <MdiEditIcon class="flex mx-auto h-[1rem] text-gray-500" />
+                <IcRoundEdit class="flex mx-auto h-[1rem] text-gray-500" />
               </template>
             </a-button>
           </a-tooltip>
@@ -229,7 +244,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             </template>
             <a-button type="text" class="!rounded-md" @click="inviteUser(user)">
               <template #icon>
-                <MdiPlusIcon class="flex mx-auto h-[1.1rem] text-gray-500" />
+                <MdiPlus class="flex mx-auto h-[1.1rem] text-gray-500" />
               </template>
             </a-button>
           </a-tooltip>
@@ -240,7 +255,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             </template>
             <a-button type="text" class="!rounded-md" @click="onDelete(user)">
               <template #icon>
-                <MdiDeleteOutlineIcon class="flex mx-auto h-[1.1rem] text-gray-500" />
+                <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
               </template>
             </a-button>
           </a-tooltip>
@@ -249,7 +264,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <div class="flex flex-row items-center">
               <a-button type="text" class="!px-0">
                 <div class="flex flex-row items-center h-[1.2rem]">
-                  <KebabIcon />
+                  <IcBaselineMoreVert />
                 </div>
               </a-button>
             </div>
@@ -257,13 +272,13 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
               <a-menu>
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="resendInvite(user)">
-                    <MdiEmailSendIcon class="flex h-[1rem] text-gray-500" />
+                    <MdiEmailArrowRightOutline class="flex h-[1rem] text-gray-500" />
                     <div class="text-xs pl-2">Resend invite email</div>
                   </div>
                 </a-menu-item>
                 <a-menu-item>
                   <div class="flex flex-row items-center py-1" @click="copyInviteUrl(user)">
-                    <MdiContentCopyIcon class="flex h-[1rem] text-gray-500" />
+                    <MdiContentCopy class="flex h-[1rem] text-gray-500" />
                     <div class="text-xs pl-2">{{ $t('activity.copyInviteURL') }}</div>
                   </div>
                 </a-menu-item>
@@ -285,12 +300,3 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
     </div>
   </div>
 </template>
-
-<style scoped>
-.users-table {
-  /* equally spaced columns in table */
-  table-layout: fixed;
-
-  width: 100%;
-}
-</style>

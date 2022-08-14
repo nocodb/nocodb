@@ -19,7 +19,9 @@ const page = computed({
 
 <template>
   <div class="flex items-center">
-    <span v-if="count !== null && count !== Infinity" class="caption ml-2"> {{ count }} record{{ count !== 1 ? 's' : '' }} </span>
+    <span v-if="count !== null && count !== Infinity" class="caption ml-2 text-gray-500">
+      {{ count }} record{{ count !== 1 ? 's' : '' }}
+    </span>
 
     <div class="flex-1" />
 
@@ -34,21 +36,12 @@ const page = computed({
       :show-size-changer="false"
     />
     <div v-else class="mx-auto d-flex align-center mt-n1" style="max-width: 250px">
-      <span class="caption" style="white-space: nowrap"> Change page:</span>
-      <v-text-field
-        :value="page"
-        class="ml-1 caption"
-        :full-width="false"
-        outlined
-        dense
-        hide-details
-        type="number"
-        @keydown.enter="changePage(page)"
-      >
-        <template #append>
+      <span class="text-xs" style="white-space: nowrap"> Change page:</span>
+      <a-input :value="page" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(page)">
+        <template #suffix>
           <MdiKeyboardIcon class="mt-1" @click="changePage(page)" />
         </template>
-      </v-text-field>
+      </a-input>
     </div>
 
     <div class="flex-1" />
@@ -59,5 +52,12 @@ const page = computed({
 :deep(.ant-pagination-item a) {
   line-height: 21px !important;
   @apply text-sm;
+}
+:deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {
+  line-height: 21px !important;
+  @apply text-sm text-gray-500;
+}
+:deep(.ant-pagination-item-link) {
+  @apply text-gray-500;
 }
 </style>

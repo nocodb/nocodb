@@ -110,7 +110,7 @@ onMounted(async () => {
             <div class="flex ml-0.5">Reset</div>
           </div>
         </a-button>
-        <a-button v-else size="small" outlined @click="showInstallPluginModal(app)">
+        <a-button v-else size="small" outlined type="primary" ghost @click="showInstallPluginModal(app)">
           <div class="flex flex-row justify-center items-center caption capitalize nc-app-store-card-install">
             <MdiPlusIcon />
             Install

@@ -1,17 +1,18 @@
 <script setup lang="ts">
-import { computed, inject } from '#imports'
-import { ColumnInj } from '~/context'
+import { ColumnInj, computed, inject } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue?: number | null
-  readOnly?: boolean
+  modelValue?: number | null | undefined
 }
 
-const { modelValue, readOnly } = defineProps<Props>()
+const { modelValue } = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
+
+const editEnabled = inject(EditModeInj)
 
 const ratingMeta = computed(() => {
   return {
@@ -32,7 +33,7 @@ const vModel = computed({
 </script>
 
 <template>
-  <a-rate v-model:value="vModel" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`" :disabled="readOnly">
+  <a-rate v-model:value="vModel" :count="ratingMeta.max" :style="`color: ${ratingMeta.color}`" :disabled="!editEnabled">
     <template #character>
       <MdiStar v-if="ratingMeta.icon.full === 'mdi-star'" class="text-sm" />
       <MdiHeart v-if="ratingMeta.icon.full === 'mdi-heart'" class="text-sm" />

@@ -12,14 +12,13 @@ import MdiDeleteIcon from '~icons/mdi/delete-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const { virtual = false } = defineProps<{ virtual?: boolean }>()
-
-const editColumnDropdown = ref(false)
+const emit = defineEmits(['edit'])
 
 const column = inject(ColumnInj)
 
 const meta = inject(MetaInj)
 
-const { $api } = useNuxtApp()
+const { $api, $e } = useNuxtApp()
 
 const { t } = useI18n()
 
@@ -46,43 +45,27 @@ const setAsPrimaryValue = async () => {
     await $api.dbTableColumn.primaryColumnSet(column?.value?.id as string)
     getMeta(meta?.value?.id as string, true)
     message.success('Successfully updated as primary column')
+    $e('a:column:set-primary')
   } catch (e) {
     message.error('Failed to update primary column')
   }
 }
-
-function onVisibleChange() {
-  // only allow to close the EditOrAdd component
-  // by clicking cancel button
-  editColumnDropdown.value = true
-}
 </script>
 
 <template>
-  <a-dropdown v-model:visible="editColumnDropdown" :trigger="['click']" @visible-change="onVisibleChange">
-    <span />
-    <template #overlay>
-      <SmartsheetColumnEditOrAdd
-        :edit-column-dropdown="editColumnDropdown"
-        @click.stop
-        @keydown.stop
-        @cancel="editColumnDropdown = false"
-      />
-    </template>
-  </a-dropdown>
-  <a-dropdown :trigger="['hover']">
+  <a-dropdown placement="bottomRight" :trigger="['hover']">
     <MdiMenuDownIcon class="text-grey nc-ui-dt-dropdown" />
     <template #overlay>
       <a-menu class="shadow bg-white">
-        <a-menu-item @click="editColumnDropdown = true">
+        <a-menu-item @click="emit('edit')">
           <div class="nc-column-edit nc-header-menu-item">
             <MdiEditIcon class="text-primary" />
             <!-- Edit -->
             {{ $t('general.edit') }}
           </div>
         </a-menu-item>
-        <a-menu-item v-if="!virtual" v-t="['a:column:set-primary']" @click="setAsPrimaryValue">
-          <div class="nc-column-edit nc-header-menu-item">
+        <a-menu-item v-if="!virtual" @click="setAsPrimaryValue">
+          <div class="nc-column-set-primary nc-header-menu-item">
             <MdiStarIcon class="text-primary" />
 
             <!--       todo : tooltip -->

@@ -17,12 +17,17 @@ interface ApiToken extends ApiTokenType {
 }
 
 const { $api, $e } = useNuxtApp()
+
 const { project } = $(useProject())
+
 const { copy } = useClipboard()
 
 let tokensInfo = $ref<ApiToken[] | undefined>([])
+
 let showNewTokenModal = $ref(false)
+
 let showDeleteTokenModal = $ref(false)
+
 let selectedTokenData = $ref<ApiToken>({})
 
 const loadApiTokens = async () => {
@@ -110,8 +115,8 @@ onMounted(() => {
     <div class="flex flex-col h-full">
       <div class="flex flex-row justify-center mt-2 text-center w-full text-base">This action will remove this API Token</div>
       <div class="flex mt-6 justify-center space-x-2">
-        <a-button @click="showDeleteTokenModal = false"> Cancel </a-button>
-        <a-button type="primary" danger @click="deleteToken()"> Confirm </a-button>
+        <a-button @click="showDeleteTokenModal = false"> {{ $t('general.cancel') }} </a-button>
+        <a-button type="primary" danger @click="deleteToken()"> {{ $t('general.confirm') }} </a-button>
       </div>
     </div>
   </a-modal>
@@ -121,10 +126,10 @@ onMounted(() => {
         <a-button size="middle" type="text" @click="loadApiTokens()">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <ReloadIcon class="text-gray-500" />
-            <div class="text-gray-500">Reload</div>
+            <div class="text-gray-500">{{ $t('general.reload') }}</div>
           </div>
         </a-button>
-        <a-button size="middle" @click="openNewTokenModal">
+        <a-button size="middle" type="primary" ghost @click="openNewTokenModal">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiPlusIcon />
             <div>Add New Token</div>
@@ -134,9 +139,9 @@ onMounted(() => {
     </div>
     <div v-if="tokensInfo" class="w-full flex flex-col mt-2 px-1">
       <div class="flex flex-row border-b-1 text-gray-600 text-xs pb-2 pt-2">
-        <div class="flex w-4/10 pl-2">Description</div>
-        <div class="flex w-4/10 justify-center">Token</div>
-        <div class="flex w-2/10 justify-end pr-2">Actions</div>
+        <div class="flex w-4/10 pl-2">{{ $t('labels.description') }}</div>
+        <div class="flex w-4/10 justify-center">{{ $t('labels.token') }}</div>
+        <div class="flex w-2/10 justify-end pr-2">{{ $t('labels.action') }}</div>
       </div>
       <div v-for="(item, index) in tokensInfo" :key="index" class="flex flex-col">
         <div class="flex flex-row border-b-1 items-center px-2 py-2">

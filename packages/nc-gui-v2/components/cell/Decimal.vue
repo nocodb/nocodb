@@ -1,10 +1,10 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { inject, ref, useVModel } from '#imports'
+import { inject, useVModel } from '#imports'
 import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: number | null | string
+  modelValue: number | null | string | undefined
 }
 
 interface Emits {
@@ -15,7 +15,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject(EditModeInj, ref(false))
+const editEnabled = inject(EditModeInj)
 
 const vModel = useVModel(props, 'modelValue', emits)
 

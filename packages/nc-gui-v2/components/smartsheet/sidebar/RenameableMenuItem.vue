@@ -25,6 +25,8 @@ const vModel = useVModel(props, 'view', emits)
 
 const { $e } = useNuxtApp()
 
+const { isUIAllowed } = useUIPermission()
+
 /** Is editing the view name enabled */
 let isEditing = $ref<boolean>(false)
 
@@ -141,7 +143,11 @@ function onStopEdit() {
 </script>
 
 <template>
-  <a-menu-item class="select-none group !flex !items-center !my-0" @dblclick.stop="onDblClick" @click.stop="onClick">
+  <a-menu-item
+    class="select-none group !flex !items-center !my-0"
+    @dblclick.stop="isUIAllowed('virtualViewsCreateOrEdit') && onDblClick"
+    @click.stop="onClick"
+  >
     <div v-t="['a:view:open', { view: vModel.type }]" class="text-xs flex items-center w-full gap-2">
       <div class="flex w-auto">
         <MdiDrag
@@ -161,7 +167,7 @@ function onStopEdit() {
 
       <div class="flex-1" />
 
-      <template v-if="!isEditing">
+      <template v-if="!isEditing && isUIAllowed('virtualViewsCreateOrEdit')">
         <div class="flex items-center gap-1">
           <a-tooltip placement="left">
             <template #title>

@@ -1,17 +1,17 @@
 <script setup lang="ts">
 import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { ReadonlyInj } from '~/context'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: number | string | null
+  modelValue: number | string | null | undefined
 }
 
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const readOnlyMode = inject(ReadonlyInj, false)
+const editEnabled = inject(EditModeInj)
 
 let isYearInvalid = $ref(false)
 
@@ -62,9 +62,9 @@ watch(
     :bordered="false"
     class="!w-full px-1"
     :placeholder="isYearInvalid ? 'Invalid year' : !readOnlyMode ? 'Select year' : ''"
-    :allow-clear="!readOnlyMode"
+    :allow-clear="!editEnabled"
     :input-read-only="true"
-    :open="readOnlyMode ? false : open"
+    :open="editEnabled ? false : open"
     :dropdown-class-name="randomClass"
     @click="open = !open"
     @change="open = !open"

@@ -1,15 +1,16 @@
 <script setup lang="ts">
-import { computed, inject } from '#imports'
-import { ColumnInj } from '~/context'
-import { getPercentStep, isValidPercent, renderPercent } from '@/utils/percentUtils'
+import { ColumnInj, computed, getPercentStep, inject, isValidPercent, renderPercent } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: number | string | null
+  modelValue: number | string | null | undefined
 }
 
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
+
+const editEnabled = inject(EditModeInj)
 
 const column = inject(ColumnInj)
 
@@ -63,5 +64,6 @@ function onKeyDownEnter() {
     @blur="onBlur"
     @keydown.enter="onKeyDownEnter"
   />
-  <input v-else v-model="localState" type="text" @focus="isEdited = true" />
+  <input v-if="editEnabled" v-model="localState" type="text" @focus="isEdited = true" />
+  <span v-else>{{ localState }}</span>
 </template>

@@ -79,7 +79,10 @@ const onMove = (event: { moved: { newIndex: number } }) => {
       </a-button>
     </div>
     <template #overlay>
-      <div class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto" @click.stop>
+      <div
+        class="p-3 min-w-[280px] bg-gray-50 shadow-lg nc-table-toolbar-menu max-h-[max(80vh,500px)] overflow-auto !border"
+        @click.stop
+      >
         <div class="p-1" @click.stop>
           <a-input v-model:value="filterQuery" size="small" :placeholder="$t('placeholder.searchFields')" />
         </div>
@@ -104,11 +107,11 @@ const onMove = (event: { moved: { newIndex: number } }) => {
           </a-checkbox>
         </div>
         <div class="p-2 flex gap-2" @click.stop>
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="showAll">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="showAll()">
             <!-- Show All -->
             {{ $t('general.showAll') }}
           </a-button>
-          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="hideAll">
+          <a-button size="small" class="!text-xs text-gray-500 text-capitalize" @click.stop="hideAll()">
             <!-- Hide All -->
             {{ $t('general.hideAll') }}
           </a-button>

@@ -4,7 +4,7 @@ import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
-import { onMounted, useColumnCreateStoreOrThrow, useDebounceFn } from '#imports'
+import { onMounted, useDebounceFn } from '#imports'
 import { MetaInj } from '~/context'
 import {
   NcAutocompleteTree,
@@ -17,6 +17,16 @@ import {
   validateDateWithUnknownFormat,
 } from '@/utils'
 
+interface Props {
+  value: Record<string, any>
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits(['update:value'])
+const vModel = useVModel(props, 'value', emit)
+
+const { setAdditionalValidations, validateInfos, sqlUi, column } = useColumnCreateStoreOrThrow()
+
 enum JSEPNode {
   COMPOUND = 'Compound',
   IDENTIFIER = 'Identifier',
@@ -28,8 +38,6 @@ enum JSEPNode {
   BINARY_EXP = 'BinaryExpression',
   ARRAY_EXP = 'ArrayExpression',
 }
-
-const { formState, validateInfos, setAdditionalValidations, sqlUi, column } = useColumnCreateStoreOrThrow()
 
 const meta = inject(MetaInj)
 
@@ -512,11 +520,11 @@ function appendText(item: Record<string, any>) {
   const len = wordToComplete.value?.length || 0
 
   if (item.type === 'function') {
-    formState.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len, 1)
+    vModel.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len, 1)
   } else if (item.type === 'column') {
-    formState.value.formula_raw = insertAtCursor(formulaRef.value.$el, `{${text}}`, len + +!isCurlyBracketBalanced())
+    vModel.value.formula_raw = insertAtCursor(formulaRef.value.$el, `{${text}}`, len + +!isCurlyBracketBalanced())
   } else {
-    formState.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
+    vModel.value.formula_raw = insertAtCursor(formulaRef.value.$el, text, len)
   }
   autocomplete.value = false
   wordToComplete.value = ''
@@ -582,7 +590,7 @@ function scrollToSelectedOption() {
 }
 
 // set default value
-formState.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
+vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.formula_raw || ''
 
 // set additional validations
 setAdditionalValidations({
@@ -603,7 +611,7 @@ onMounted(() => {
     <a-form-item v-bind="validateInfos.formula_raw" label="Formula">
       <a-textarea
         ref="formulaRef"
-        v-model:value="formState.formula_raw"
+        v-model:value="vModel.formula_raw"
         class="mb-2"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"

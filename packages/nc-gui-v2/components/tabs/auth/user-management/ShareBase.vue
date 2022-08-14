@@ -26,7 +26,7 @@ const { project } = useProject()
 
 const { copy } = useClipboard()
 
-const url = $computed(() => (base && base.uuid ? `${dashboardUrl}/nc/base/${base.uuid}` : null))
+const url = $computed(() => (base && base.uuid ? `${dashboardUrl}/base/${base.uuid}` : null))
 
 const loadBase = async () => {
   try {

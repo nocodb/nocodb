@@ -1,25 +1,26 @@
 <script setup lang="ts">
 import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
-import { useNuxtApp, useRoute } from '#app'
+import { Empty } from 'ant-design-vue'
+import { useNuxtApp } from '#app'
 import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
 import { TabType } from '~/composables'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
-import MdiMenuDown from '~icons/mdi/chevron-down'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiDrag from '~icons/mdi/drag-vertical'
-import MdiPlus from '~icons/mdi/plus-circle-outline'
 
 const { addTab } = useTabs()
 
 const { $api, $e } = useNuxtApp()
 
-const route = useRoute()
+const { tables, loadTables, isSharedBase } = useProject()
 
-const { tables, loadTables } = useProject(route.params.projectId as string)
 const { activeTab } = useTabs()
+
 const { deleteTable } = useTable()
+
+const { isUIAllowed } = useUIPermission()
 
 const tablesById = $computed<Record<string, TableType>>(() =>
   tables?.value?.reduce((acc: Record<string, TableType>, table: TableType) => {
@@ -28,8 +29,8 @@ const tablesById = $computed<Record<string, TableType>>(() =>
   }, {}),
 )
 
-const showTableList = ref(true)
 const tableCreateDlg = ref(false)
+
 let key = $ref(0)
 
 const menuRef = $ref<HTMLLIElement>()
@@ -135,21 +136,26 @@ const activeTable = computed(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <div class="px-6 py-[11.75px] border-b-1">
-      <a-input-search
-        v-model:value="filterQuery"
-        size="small"
-        class="nc-filter-input"
-        :placeholder="$t('placeholder.searchProjectTree')"
-      />
+    <div class="px-6 py-[8.75px] border-b-1 nc-filter-input">
+      <div class="flex items-center bg-gray-50 rounded relative">
+        <a-input
+          v-model:value="filterQuery"
+          class="nc-filter-input !bg-transparent"
+          :placeholder="$t('placeholder.searchProjectTree')"
+        />
+        <MdiSearch class="nc-filter-input-icon text-gray-400 mx-3 absolute right-[-4px] top-[7px]" />
+      </div>
     </div>
 
     <a-dropdown :trigger="['contextmenu']">
-      <div class="p-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull" style="direction: rtl">
+      <div
+        class="p-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull"
+        :class="{ 'mb-[20px]': isSharedBase }"
+        style="direction: rtl"
+      >
         <div
           style="direction: ltr"
           class="py-1 px-3 flex w-full align-center gap-1 cursor-pointer"
-          @click="showTableList = !showTableList"
           @contextmenu="setMenuContext('main')"
         >
           <span class="flex-grow text-bold uppercase nc-project-tree text-gray-500 font-weight-bold">
@@ -157,24 +163,9 @@ const activeTable = computed(() => {
 
             <template v-if="tables?.length"> ({{ tables.length }}) </template>
           </span>
-
-          <MdiPlus
-            v-t="['c:table:create:navdraw']"
-            class="transform text-gray-500 hover:(text-pink-500 scale-105) nc-btn-tbl-add"
-            @click.stop="tableCreateDlg = true"
-          />
-
-          <MdiMenuDown
-            class="transition-transform !duration-100 text-gray-500 hover:text-pink-500"
-            :class="{ 'transform rotate-180': showTableList }"
-          />
         </div>
         <div style="direction: ltr" class="flex-1">
-          <div
-            v-if="tables.length"
-            class="transition-height duration-200 overflow-hidden"
-            :class="{ 'h-100': showTableList, 'h-0': !showTableList }"
-          >
+          <div v-if="tables.length" class="transition-height duration-200 overflow-hidden">
             <div :key="key" ref="menuRef" class="border-none sortable-list">
               <div
                 v-for="table of tables"
@@ -192,24 +183,42 @@ const activeTable = computed(() => {
                 <div class="flex align-center gap-2 h-full" @contextmenu="setMenuContext('table', table)">
                   <div class="flex w-auto">
                     <MdiDrag
+                      v-if="isUIAllowed('treeview-drag-n-drop')"
                       :class="`nc-child-draggable-icon-${table.title}`"
                       class="nc-drag-icon text-xs hidden group-hover:block transition-opacity opacity-0 group-hover:opacity-100 text-gray-500 cursor-move"
                       @click.stop.prevent
                     />
 
-                    <component :is="icon(table)" class="nc-view-icon group-hover:hidden text-xs group-hover:text-gray-500" />
+                    <component
+                      :is="icon(table)"
+                      class="nc-view-icon text-xs"
+                      :class="{ 'group-hover:hidden group-hover:text-gray-500': isUIAllowed('treeview-drag-n-drop') }"
+                    />
                   </div>
 
                   <div class="nc-tbl-title flex-1">{{ table.title }}</div>
 
-                  <a-dropdown :trigger="['click']" @click.stop>
+                  <a-dropdown v-if="isUIAllowed('table-rename') || isUIAllowed('table-delete')" :trigger="['click']" @click.stop>
                     <MdiMenuIcon class="transition-opacity opacity-0 group-hover:opacity-100" />
 
                     <template #overlay>
                       <a-menu class="cursor-pointer">
-                        <a-menu-item v-t="" class="!text-xs" @click="showRenameTableDlg(table)"><div>Rename</div></a-menu-item>
+                        <a-menu-item
+                          v-if="isUIAllowed('table-rename')"
+                          v-t="['c:table:rename']"
+                          class="!text-xs"
+                          @click="showRenameTableDlg(table)"
+                          ><div>Rename</div></a-menu-item
+                        >
 
-                        <a-menu-item class="!text-xs" @click="deleteTable(table)"> Delete</a-menu-item>
+                        <a-menu-item
+                          v-if="isUIAllowed('table-delete')"
+                          v-t="['c:table:delete']"
+                          class="!text-xs"
+                          @click="deleteTable(table)"
+                        >
+                          Delete</a-menu-item
+                        >
                       </a-menu>
                     </template>
                   </a-dropdown>
@@ -217,21 +226,39 @@ const activeTable = computed(() => {
               </div>
             </div>
           </div>
+
+          <a-card v-else class="mt-4 mx-4 !bg-gray-50">
+            <div class="flex flex-col align-center">
+              <a-empty :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+
+              <a-button type="primary" @click.stop="tableCreateDlg = true">{{ $t('tooltip.addTable') }}</a-button>
+            </div>
+          </a-card>
         </div>
       </div>
 
       <template #overlay>
         <a-menu class="cursor-pointer">
           <template v-if="contextMenuTarget.type === 'table'">
-            <a-menu-item class="!text-xs" @click="showRenameTableDlg(contextMenuTarget.value)">
+            <a-menu-item
+              v-if="isUIAllowed('table-rename')"
+              v-t="['c:table:rename']"
+              class="!text-xs"
+              @click="showRenameTableDlg(contextMenuTarget.value)"
+            >
               {{ $t('general.rename') }}
             </a-menu-item>
-            <a-menu-item class="!text-xs" @click="deleteTable(contextMenuTarget.value)">
+            <a-menu-item
+              v-if="isUIAllowed('table-delete')"
+              v-t="['c:table:delete']"
+              class="!text-xs"
+              @click="deleteTable(contextMenuTarget.value)"
+            >
               {{ $t('general.delete') }}
             </a-menu-item>
           </template>
           <template v-else>
-            <a-menu-item class="!text-xs" @click="reloadTables">
+            <a-menu-item v-t="['c:table:reload']" class="!text-xs" @click="reloadTables">
               {{ $t('general.reload') }}
             </a-menu-item>
           </template>
@@ -244,7 +271,7 @@ const activeTable = computed(() => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-treeview-container {
   @apply h-[calc(100vh_-_var(--header-height))];
 }
@@ -271,7 +298,7 @@ const activeTable = computed(() => {
     @apply !pointer-events-none;
   }
 
-  &.dragging {
+  & .dragging {
     .nc-icon {
       @apply !hidden;
     }
@@ -300,6 +327,7 @@ const activeTable = computed(() => {
 
 .nc-tree-item.active {
   @apply !text-primary font-weight-bold after:(!opacity-20);
+
   svg {
     @apply !text-primary;
   }
@@ -307,5 +335,11 @@ const activeTable = computed(() => {
 
 .nc-tree-item:hover {
   @apply !text-grey after:(!opacity-5);
+}
+
+:deep(.nc-filter-input) {
+  .ant-input {
+    @apply pr-6 !border-0;
+  }
 }
 </style>

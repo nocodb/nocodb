@@ -5,7 +5,7 @@ import ItemChip from './components/ItemChip.vue'
 import ListChildItems from './components/ListChildItems.vue'
 import ListItems from './components/ListItems.vue'
 import { computed, inject, ref, useProvideLTARStore, useSmartsheetRowStoreOrThrow } from '#imports'
-import { CellValueInj, ColumnInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { CellValueInj, ColumnInj, EditModeInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
 
 const column = inject(ColumnInj)!
 
@@ -16,6 +16,8 @@ const row = inject(RowInj)!
 const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
+
+const editEnabled = inject(EditModeInj)
 
 const listItemsDlg = ref(false)
 
@@ -76,7 +78,11 @@ const unlinkRef = async (rec: Record<string, any>) => {
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
           @click="childListDlg = true"
         />
-        <MdiPlus class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="listItemsDlg = true" />
+        <MdiPlus
+          v-if="editEnabled"
+          class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
+          @click="listItemsDlg = true"
+        />
       </div>
     </template>
     <ListItems v-model="listItemsDlg" />

@@ -4,7 +4,7 @@ import type { Ref } from 'vue'
 import ItemChip from './components/ItemChip.vue'
 import ListItems from './components/ListItems.vue'
 import { inject, ref, useProvideLTARStore, useSmartsheetRowStoreOrThrow } from '#imports'
-import { ActiveCellInj, CellValueInj, ColumnInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import { ActiveCellInj, CellValueInj, ColumnInj, EditModeInj, ReloadViewDataHookInj, RowInj } from '~/context'
 import MdiArrowExpand from '~icons/mdi/arrow-expand'
 import MdiPlus from '~icons/mdi/plus'
 
@@ -17,6 +17,8 @@ const cellValue = inject(CellValueInj, ref<any>(null))
 const row = inject(RowInj)
 
 const active = inject(ActiveCellInj)
+
+const editEnabled = inject(EditModeInj)
 
 const listItemsDlg = ref(false)
 
@@ -57,7 +59,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
         <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
       </template>
     </div>
-    <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
+    <div v-if="editEnabled" class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
       <component
         :is="addIcon"
         class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500)"

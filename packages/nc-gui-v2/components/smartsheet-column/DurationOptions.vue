@@ -1,8 +1,13 @@
 <script setup lang="ts">
-import { useColumnCreateStoreOrThrow } from '#imports'
 import { durationOptions } from '@/utils'
 
-const { formState } = useColumnCreateStoreOrThrow()
+interface Props {
+  value: Record<string, any>
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits(['update:value'])
+const vModel = useVModel(props, 'value', emit)
 
 const durationOptionList =
   durationOptions.map((o) => ({
@@ -12,9 +17,9 @@ const durationOptionList =
   })) || []
 
 // set default value
-formState.value.meta = {
+vModel.value.meta = {
   duration: 0,
-  ...formState.value.meta,
+  ...vModel.value.meta,
 }
 </script>
 
@@ -25,7 +30,7 @@ formState.value.meta = {
     </a-col>
     <a-col :span="24">
       <a-form-item label="Duration Format">
-        <a-select v-model:value="formState.meta.duration" size="small" class="w-52">
+        <a-select v-model:value="vModel.meta.duration" class="w-52">
           <a-select-option v-for="(duration, i) of durationOptionList" :key="i" :value="duration.id">
             {{ duration.title }}
           </a-select-option>

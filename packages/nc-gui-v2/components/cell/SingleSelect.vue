@@ -1,11 +1,11 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { computed, inject } from '#imports'
-import { ActiveCellInj, ColumnInj } from '~/context'
+import { ActiveCellInj, ColumnInj, computed, inject } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string | undefined
+  modelValue?: string | undefined
 }
 
 const { modelValue } = defineProps<Props>()
@@ -13,11 +13,15 @@ const { modelValue } = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
+
 // const isForm = inject<boolean>('isForm', false)
-// const editEnabled = inject(EditModeInj, ref(false))
+
+const editEnabled = inject(EditModeInj)
+
 const active = inject(ActiveCellInj, ref(false))
 
 const aselect = ref<typeof AntSelect>()
+
 const isOpen = ref(false)
 
 const vModel = computed({
@@ -72,11 +76,13 @@ watch(isOpen, (n, _o) => {
     placeholder="Select an option"
     :bordered="false"
     :open="isOpen"
+    :disabled="!editEnabled"
+    :show-arrow="active || vModel === null"
     @select="isOpen = false"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >
-    <a-select-option v-for="op of options" :key="op.title" @click.stop>
+    <a-select-option v-for="op of options" :key="op.title" :value="op.title" @click.stop>
       <a-tag class="rounded-tag" :color="op.color">
         <span class="text-slate-500">{{ op.title }}</span>
       </a-tag>

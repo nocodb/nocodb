@@ -1,9 +1,9 @@
 import type { AxiosError, AxiosResponse } from 'axios'
 import { Api } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { addAxiosInterceptors } from './interceptors'
 import type { CreateApiOptions, UseApiProps, UseApiReturn } from './types'
-import { createEventHook, ref, unref, useCounter, useGlobal, useNuxtApp } from '#imports'
+import { addAxiosInterceptors } from './interceptors'
+import { createEventHook, ref, unref, useCounter, useNuxtApp } from '#imports'
 
 export function createApiInstance<SecurityDataType = any>(options: CreateApiOptions = {}): Api<SecurityDataType> {
   return addAxiosInterceptors(
@@ -33,8 +33,6 @@ export function useApi<Data = any, RequestConfig = any>({
   apiOptions,
   axiosConfig,
 }: UseApiProps<Data> = {}): UseApiReturn<Data, RequestConfig> {
-  const state = useGlobal()
-
   /**
    * Local state of running requests, do not confuse with global state of running requests
    * This state is only counting requests made by this instance of `useApi` and not by other instances.
@@ -54,11 +52,10 @@ export function useApi<Data = any, RequestConfig = any>({
 
   const responseHook = createEventHook<AxiosResponse<Data, RequestConfig>>()
 
-  /** global api instance */
-  const $api = useNuxtApp().$api
+  const nuxtApp = useNuxtApp()
 
   /** api instance - with interceptors for token refresh already bound */
-  const api = useGlobalInstance && !!$api ? $api : createApiInstance(apiOptions)
+  const api = useGlobalInstance && !!nuxtApp.$api ? nuxtApp.$api : createApiInstance(apiOptions)
 
   /** set loading to true and increment local and global request counter */
   function onRequestStart() {
@@ -68,7 +65,7 @@ export function useApi<Data = any, RequestConfig = any>({
     inc()
 
     /** global count */
-    state.runningRequests.inc()
+    nuxtApp.$state.runningRequests.inc()
   }
 
   /** decrement local and global request counter and check if we can stop loading */
@@ -76,7 +73,7 @@ export function useApi<Data = any, RequestConfig = any>({
     /** local count */
     dec()
     /** global count */
-    state.runningRequests.dec()
+    nuxtApp.$state.runningRequests.dec()
 
     /** try to stop loading */
     stopLoading()

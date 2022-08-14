@@ -128,8 +128,8 @@ const afterVisibleChange = (visible: boolean) => {
     :closable="false"
     @after-visible-change="afterVisibleChange"
   >
-    <div class="flex flex-col w-full h-full">
-      <a-typography-title :level="4">Code Snippet</a-typography-title>
+    <div class="flex flex-col w-full h-full p-4">
+      <a-typography-title :level="4" class="pb-1">Code Snippet</a-typography-title>
       <a-tabs v-model:activeKey="selectedLangName" class="!h-full">
         <a-tab-pane v-for="item in langs" :key="item.name" class="!h-full">
           <template #tab>
@@ -146,6 +146,11 @@ const afterVisibleChange = (visible: boolean) => {
             :disable-deep-compare="true"
           />
           <div class="flex flex-row w-full justify-end space-x-3 mt-4 uppercase">
+            <a-select v-if="activeLang" v-model:value="selectedClient" style="width: 6rem">
+              <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
+                {{ client }}
+              </a-select-option>
+            </a-select>
             <a-button
               v-t="[
                 'c:snippet:copy',
@@ -155,11 +160,6 @@ const afterVisibleChange = (visible: boolean) => {
               @click="onCopyToClipboard"
               >Copy to clipboard</a-button
             >
-            <a-select v-if="activeLang" v-model:value="selectedClient" style="width: 6rem">
-              <a-select-option v-for="(client, i) in activeLang?.clients" :key="i" class="!w-full uppercase" :value="client">
-                {{ client }}
-              </a-select-option>
-            </a-select>
           </div>
 
           <div class="absolute bottom-4 flex flex-row justify-center w-[95%]">

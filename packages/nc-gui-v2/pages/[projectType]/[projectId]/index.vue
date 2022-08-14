@@ -5,7 +5,7 @@ import { openLink } from '~/utils'
 
 const route = useRoute()
 
-const { project, loadProject, loadTables } = useProject(route.params.projectId as string)
+const { project, loadProject, loadTables, isSharedBase } = useProject()
 
 const { addTab, clearTabs } = useTabs()
 
@@ -30,7 +30,7 @@ onKeyStroke(
 
 clearTabs()
 
-if (!route.params.type) {
+if (!route.params.type && isUIAllowed('teamAndAuth')) {
   addTab({ type: TabType.AUTH, title: 'Team & Auth' })
 }
 
@@ -39,7 +39,7 @@ function toggleDialog(value?: boolean, key?: string) {
   openDialogKey.value = key
 }
 
-await loadProject(route.params.projectId as string)
+await loadProject()
 
 await loadTables()
 </script>
@@ -56,20 +56,37 @@ await loadTables()
         collapsible
         theme="light"
       >
-        <div style="height: var(--header-height)" class="flex items-center !bg-primary text-white px-1 gap-2">
+        <div style="height: var(--header-height)" class="flex items-center !bg-primary text-white px-1 pl-5 gap-2">
           <div
-            v-if="isOpen"
+            v-if="isOpen && !isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
             @click="navigateTo('/')"
           >
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
+          <a
+            v-if="isOpen && isSharedBase"
+            class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
+            href="https://github.com/nocodb/nocodb"
+            target="_blank"
+          >
+            <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
+          </a>
 
-          <a-dropdown v-model:visible="dropdownOpen" :trigger="['click']">
+          <div v-if="isSharedBase">
+            <template v-if="isOpen">
+              <div class="text-xl font-semibold truncate">{{ project.title }}</div>
+            </template>
+            <template v-else>
+              <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
+            </template>
+          </div>
+
+          <a-dropdown v-else :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
-              class="group cursor-pointer flex gap-4 items-center"
+              class="group cursor-pointer flex gap-4 items-center nc-project-menu"
             >
               <template v-if="isOpen">
                 <div class="text-xl font-semibold truncate">{{ project.title }}</div>
@@ -102,7 +119,7 @@ await loadTables()
 
                   <a-menu-item key="copy">
                     <div class="nc-project-menu-item group">
-                      <MdiContentCopy class="group-hover:text-pink-500" />
+                      <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
                       Copy Project Info
                     </div>
                   </a-menu-item>
@@ -114,7 +131,7 @@ await loadTables()
                       class="nc-project-menu-item group"
                       @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`)"
                     >
-                      <MdiApi class="group-hover:text-pink-500" />
+                      <MdiApi class="group-hover:text-pink-500 nc-swagger-api-docs" />
                       Swagger: Rest APIs
                     </div>
                   </a-menu-item>
@@ -123,58 +140,58 @@ await loadTables()
 
                   <a-menu-item key="teamAndAuth">
                     <div
-                      v-if="isUIAllowed('settings')"
-                      v-t="['c:navdraw:project-settings']"
+                      v-if="isUIAllowed('teamAndAuth')"
+                      v-t="['c:navdraw:team-and-auth']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'teamAndAuth')"
                     >
-                      <MdiAccountGroup class="group-hover:text-pink-500" />
+                      <MdiAccountGroup class="group-hover:text-pink-500 nc-team-and-auth" />
                       Team & Auth
                     </div>
                   </a-menu-item>
 
                   <a-menu-item key="appStore">
                     <div
-                      v-if="isUIAllowed('settings')"
-                      v-t="['c:navdraw:project-settings']"
+                      v-if="isUIAllowed('appStore')"
+                      v-t="['c:navdraw:app-store']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'appStore')"
                     >
-                      <MdiStore class="group-hover:text-pink-500" />
+                      <MdiStore class="group-hover:text-pink-500 nc-app-store" />
                       App Store
                     </div>
                   </a-menu-item>
 
                   <a-menu-item key="metaData">
                     <div
-                      v-if="isUIAllowed('settings')"
-                      v-t="['c:navdraw:project-settings']"
+                      v-if="isUIAllowed('projectMetadata')"
+                      v-t="['c:navdraw:project-metadata']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'metaData')"
                     >
-                      <MdiTableBorder class="group-hover:text-pink-500" />
+                      <MdiTableBorder class="group-hover:text-pink-500 nc-meta-data" />
                       Project Metadata
                     </div>
                   </a-menu-item>
 
                   <a-menu-item key="audit">
                     <div
-                      v-if="isUIAllowed('settings')"
-                      v-t="['c:navdraw:project-settings']"
+                      v-if="isUIAllowed('audit')"
+                      v-t="['c:navdraw:audit']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'audit')"
                     >
-                      <MdiNotebookCheckOutline class="group-hover:text-pink-500" />
+                      <MdiNotebookCheckOutline class="group-hover:text-pink-500 nc-audit" />
                       Audit
                     </div>
                   </a-menu-item>
 
                   <a-menu-divider />
 
-                  <a-sub-menu key="preview-as">
+                  <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
                     <template #title>
                       <div class="nc-project-menu-item group">
-                        <MdiContentCopy class="group-hover:text-pink-500" />
+                        <MdiContentCopy class="group-hover:text-pink-500 nc-project-preview" />
                         Preview Project As
 
                         <div class="flex-1" />
@@ -220,7 +237,6 @@ await loadTables()
     </template>
 
     <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
-
     <NuxtPage />
 
     <GeneralPreviewAs float />

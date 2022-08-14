@@ -1,12 +1,12 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { computed, inject } from '#imports'
-import { ActiveCellInj, ColumnInj } from '~/context'
+import { ActiveCellInj, ColumnInj, computed, inject } from '#imports'
+import { EditModeInj } from '~/context'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue: string | string[] | undefined
+  modelValue?: string | string[] | undefined
 }
 
 const { modelValue } = defineProps<Props>()
@@ -16,12 +16,17 @@ const emit = defineEmits(['update:modelValue'])
 const { isMysql } = useProject()
 
 const column = inject(ColumnInj)
+
 // const isForm = inject<boolean>('isForm', false)
-// const editEnabled = inject(EditModeInj, ref(false))
+
+const editEnabled = inject(EditModeInj)
+
 const active = inject(ActiveCellInj, ref(false))
 
 const selectedIds = ref<string[]>([])
+
 const aselect = ref<typeof AntSelect>()
+
 const isOpen = ref(false)
 
 const options = computed(() => {
@@ -38,7 +43,7 @@ const options = computed(() => {
 })
 
 const vModel = computed({
-  get: () => selectedIds.value.map((el) => options.value.find((op: SelectOptionType) => op.id === el).title),
+  get: () => selectedIds.value.map((el) => options.value.find((op: SelectOptionType) => op.id === el)?.title),
   set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 
@@ -112,6 +117,7 @@ watch(isOpen, (n, _o) => {
     show-arrow
     :show-search="false"
     :open="isOpen"
+    :disabled="!editEnabled"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >
@@ -130,7 +136,7 @@ watch(isOpen, (n, _o) => {
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"
       >
-        <span class="text-slate-500">{{ val }}</span>
+        <span class="w-full text-slate-500">{{ val }}</span>
       </a-tag>
     </template>
   </a-select>
@@ -168,6 +174,10 @@ watch(isOpen, (n, _o) => {
 }
 :deep(.ant-tag-close-icon) {
   @apply "text-slate-500";
+}
+
+:deep(.ant-select-selection-overflow-item) {
+  @apply "flex overflow-hidden";
 }
 </style>
 <!--

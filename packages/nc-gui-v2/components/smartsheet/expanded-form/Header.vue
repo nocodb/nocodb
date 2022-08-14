@@ -10,9 +10,13 @@ import MdiDoorOpen from '~icons/mdi/door-open'
 import MdiDoorClosed from '~icons/mdi/door-closed'
 
 const emit = defineEmits(['cancel'])
+
 const { meta } = useSmartsheetStoreOrThrow()
+
 const { commentsDrawer, primaryValue, save: _save } = useExpandedFormStoreOrThrow()
+
 const { isNew, syncLTARRefs } = useSmartsheetRowStoreOrThrow()
+
 const { isUIAllowed } = useUIPermission()
 
 const save = async () => {
@@ -31,8 +35,8 @@ const iconColor = '#1890ff'
 </script>
 
 <template>
-  <div class="flex p-2 align-center gap-2">
-    <h5 class="text-lg font-weight-medium flex align-center gap-1 mb-0">
+  <div class="flex p-2 align-center gap-2 p-4">
+    <h5 class="text-lg font-weight-medium flex align-center gap-1 mb-0 min-w-0 overflow-x-hidden truncate">
       <mdi-table-arrow-right :style="{ color: iconColor }" />
 
       <template v-if="meta">
@@ -45,12 +49,17 @@ const iconColor = '#1890ff'
     </h5>
     <div class="flex-grow" />
     <mdi-reload class="cursor-pointer select-none" />
-    <component :is="drawerToggleIcon" class="cursor-pointer select-none" @click="commentsDrawer = !commentsDrawer" />
-    <a-button size="small" class="!text" @click="emit('cancel')">
+    <component
+      :is="drawerToggleIcon"
+      v-if="isUIAllowed('rowComments')"
+      class="cursor-pointer select-none"
+      @click="commentsDrawer = !commentsDrawer"
+    />
+    <a-button class="!text" @click="emit('cancel')">
       <!-- Cancel -->
       {{ $t('general.cancel') }}
     </a-button>
-    <a-button size="small" :disabled="!isUIAllowed('tableRowUpdate')" type="primary" @click="save">
+    <a-button :disabled="!isUIAllowed('tableRowUpdate')" type="primary" @click="save">
       <!-- Save Row -->
       {{ $t('activity.saveRow') }}
     </a-button>

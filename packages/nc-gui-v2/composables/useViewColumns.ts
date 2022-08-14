@@ -24,6 +24,8 @@ export function useViewColumns(
 
   const { $api } = useNuxtApp()
 
+  const { isUIAllowed } = useUIPermission()
+
   const loadViewColumns = async () => {
     if (!meta || !view) return
 
@@ -39,7 +41,6 @@ export function useViewColumns(
           [curr.fk_column_id]: curr,
         }
       }, {})
-
       fields.value = meta.value?.columns
         ?.map((column) => {
           const currentColumnField = fieldById[column.id!] || {}
@@ -88,10 +89,12 @@ export function useViewColumns(
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
-    if (field.id && view?.value?.id) {
-      await $api.dbViewColumn.update(view.value.id, field.id, field)
-    } else if (view?.value?.id) {
-      if (fields.value) fields.value[index] = (await $api.dbViewColumn.create(view.value.id, field)) as any
+    if (isUIAllowed('fieldsSync')) {
+      if (field.id && view?.value?.id) {
+        await $api.dbViewColumn.update(view.value.id, field.id, field)
+      } else if (view?.value?.id) {
+        if (fields.value) fields.value[index] = (await $api.dbViewColumn.create(view.value.id, field)) as any
+      }
     }
 
     reloadData?.()

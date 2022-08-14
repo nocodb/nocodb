@@ -46,7 +46,7 @@ const icon = (tab: TabItem) => {
   <div class="h-full w-full nc-container pt-[9px]">
     <div class="h-full w-full flex flex-col">
       <div>
-        <a-tabs v-model:activeKey="activeTabIndex" type="editable-card" @edit="closeTab">
+        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="closeTab">
           <a-tab-pane v-for="(tab, i) in tabs" :key="i">
             <template #tab>
               <div class="flex align-center gap-2">
@@ -57,7 +57,7 @@ const icon = (tab: TabItem) => {
           </a-tab-pane>
 
           <template #leftExtra>
-            <a-menu v-model:selectedKeys="currentMenu" class="border-0" mode="horizontal">
+            <a-menu v-if="isUIAllowed('addOrImport')" v-model:selectedKeys="currentMenu" class="border-0" mode="horizontal">
               <a-sub-menu key="addORImport">
                 <template #title>
                   <div class="text-sm flex items-center gap-2 pt-[8px] pb-3">
@@ -144,8 +144,9 @@ const icon = (tab: TabItem) => {
           </template>
         </a-tabs>
       </div>
-
-      <NuxtPage />
+      <div class="w-full min-h-[300px] flex-grow">
+        <NuxtPage />
+      </div>
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
@@ -154,14 +155,29 @@ const icon = (tab: TabItem) => {
   </div>
 </template>
 
-<style scoped>
+<style scoped lang="scss">
 .nc-container {
-  height: calc(100% - var(--header-height));
+  height: calc(100vh - var(--header-height));
   flex: 1 1 100%;
 }
 
-:deep(.ant-tabs-nav) {
-  @apply !mb-0;
+:deep(.nc-root-tabs) {
+  & > .ant-tabs-nav {
+    @apply !mb-0;
+
+    & > .ant-tabs-nav-wrap > .ant-tabs-nav-list {
+      & > .ant-tabs-nav-add {
+        @apply !hidden;
+      }
+
+      & > .ant-tabs-tab-active {
+        @apply font-weight-medium;
+      }
+      & > .ant-tabs-tab:not(.ant-tabs-tab-active) {
+        @apply bg-gray-100 text-gray-500;
+      }
+    }
+  }
 }
 
 :deep(.ant-menu-item-selected) {
@@ -172,17 +188,5 @@ const icon = (tab: TabItem) => {
 :deep(.ant-menu-item::after),
 :deep(.ant-menu-submenu::after) {
   @apply !border-none;
-}
-
-:deep(.ant-tabs-nav-add) {
-  @apply !hidden;
-}
-
-:deep(.ant-tabs-tab-active) {
-  @apply font-weight-medium;
-}
-
-:deep(.ant-tabs-tab:not(.ant-tabs-tab-active)) {
-  @apply bg-gray-100;
 }
 </style>

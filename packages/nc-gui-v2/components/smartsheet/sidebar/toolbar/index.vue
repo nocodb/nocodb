@@ -1,27 +1,24 @@
 <script lang="ts" setup>
 import AddRow from './AddRow.vue'
-import DeleteTable from './DeleteTable.vue'
 import LockMenu from './LockMenu.vue'
 import Reload from './Reload.vue'
+
+const { isUIAllowed } = useUIPermission()
 </script>
 
 <template>
   <div class="flex gap-2">
     <slot name="start" />
 
-    <LockMenu />
+    <LockMenu v-if="isUIAllowed('view-type')" />
 
-    <div class="dot" />
+    <div v-if="isUIAllowed('view-type')" class="dot" />
 
     <Reload />
 
     <div class="dot" />
 
-    <AddRow />
-
-    <div class="dot" />
-
-    <DeleteTable />
+    <AddRow v-if="isUIAllowed('xcDatatableEditable')" />
 
     <slot name="end" />
   </div>

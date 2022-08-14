@@ -1,6 +1,7 @@
 <script lang="ts" setup>
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import { Empty } from 'ant-design-vue'
 import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel } from '#imports'
 import { ColumnInj } from '~/context'
 
@@ -115,7 +116,7 @@ const newRowState = computed(() => {
           show-less-items
         />
       </template>
-      <a-empty v-else class="my-10" />
+      <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
       <SmartsheetExpandedForm
         v-if="expandedFormDlg"

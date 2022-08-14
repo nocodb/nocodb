@@ -8,7 +8,7 @@ export const genTest = (apiType, dbType) => {
         // to retrieve few v-input nodes from their label
         //
         const fetchParentFromLabel = (label) => {
-            cy.get("label").contains(label).parents(".v-input").click();
+            cy.get("label").contains(label).parents(".ant-row").click();
         };
 
         // Run once before test- create project (rest/graphql)
@@ -19,6 +19,10 @@ export const genTest = (apiType, dbType) => {
             // open a table to work on views
             //
             cy.openTableTab("Country", 25);
+        });
+
+        beforeEach(() => {
+            cy.fileHook();
         });
 
         after(() => {
@@ -33,56 +37,38 @@ export const genTest = (apiType, dbType) => {
             childCol,
             aggregateFunc
         ) => {
-            // (+) icon at end of column header (to add a new column)
-            // opens up a pop up window
-            //
-            cy.get(".new-column-header").click();
 
-            // Column name
-            cy.get(".nc-column-name-input input").clear().type(`${columnName}`);
+            cy.get(".nc-grid  tr > th:last .nc-icon").click({
+                force: true,
+            });
 
-            // Column data type: to be set to rollup in this context
-            // Type 'Rollup' ensures item outside view is also listed (note, rollup is at bottom of scroll list)
-            cy.get(".nc-ui-dt-dropdown").click().type("Rollup");
-            cy.getActiveMenu().contains("Rollup").click({ force: true });
+            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+              .should('exist')
+              .clear()
+              .type(childCol);
+            cy.get(".nc-column-type-input").last().click().type("Rollup");
+            cy.getActiveSelection().find('.ant-select-item-option').contains("Rollup").click();
 
             // Configure Child table & column names
             fetchParentFromLabel("Child table");
-            cy.getActiveMenu().contains(childTable).click();
+            cy.getActiveSelection().find('.ant-select-item-option').contains(childTable).click();
 
             fetchParentFromLabel("Child column");
-            cy.getActiveMenu().contains(childCol).click();
+            cy.getActiveSelection().find('.ant-select-item-option').contains(childCol).click();
 
             fetchParentFromLabel("Aggregate function");
-            cy.getActiveMenu().contains(aggregateFunc).click();
+            cy.getActiveSelection().find('.ant-select-item-option').contains(aggregateFunc).click();
 
-            cy.snipActiveMenu("RollUp");
+            cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            cy.toastWait(`Column created`);
 
-            // click on Save
-            cy.get(".nc-col-create-or-edit-card").contains("Save").click();
-
-            // Verify if column exists.
-            //
-            cy.get(`th:contains(${columnName})`).should("exist");
+            cy.get(`th[data-title="${childCol}"]`).should("exist");
         };
 
         // routine to delete column
         //
         const deleteColumnByName = (columnName) => {
-            // verify if column exists before delete
-            cy.get(`th:contains(${columnName})`).should("exist");
-
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${columnName}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
-
-            // delete/ confirm on pop-up
-            cy.get(".nc-column-delete").click();
-            cy.getActiveModal().find("button:contains(Confirm)").click();
-
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${columnName})`).should("not.exist");
+            mainPage.deleteColumn(columnName);
         };
 
         // routine to edit column
@@ -116,14 +102,12 @@ export const genTest = (apiType, dbType) => {
 
             // Verify first entry, will be displayed as alias here 'childColumn (from childTable)'
             // intentionally verifying 4th item, as initial items are being masked out by list scroll down
-            // to be fixed
-            //
-            cy.get(`tbody > :nth-child(4) > [data-col="RollUpCol_2"]`)
-                .contains("2")
-                .should("exist");
+            mainPage.getCell("RollUpCol_2", 4)
+              .contains("2")
+              .should("exist");
 
-            editColumnByName("RollUpCol_2", "RollUpCol_New");
-            deleteColumnByName("RollUpCol_New");
+            // editColumnByName("RollUpCol_2", "RollUpCol_New");
+            deleteColumnByName("RollUpCol_2");
         });
 
         it.skip("Add Rollup column (City, CountryId, count) & Delete", () => {

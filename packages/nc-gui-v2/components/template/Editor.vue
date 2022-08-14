@@ -16,6 +16,7 @@ import {
   ref,
   useProject,
   useTabs,
+  useTemplateRefsList,
 } from '#imports'
 import { TabType } from '~/composables'
 
@@ -53,7 +54,7 @@ const expansionPanel = ref<number[]>([])
 
 const editableTn = ref<boolean[]>([])
 
-const inputRefs = ref<HTMLInputElement[]>([])
+const inputRefs = useTemplateRefsList<HTMLInputElement>()
 
 const isImporting = ref(false)
 
@@ -493,9 +494,11 @@ onMounted(() => {
           <template #header>
             <span class="font-weight-bold text-lg flex items-center gap-2">
               <mdi-table class="text-primary" />
+
               {{ table.ref_table_name }}
             </span>
           </template>
+
           <a-table
             v-if="srcDestMapping"
             class="template-form"
@@ -509,10 +512,12 @@ onMounted(() => {
                 {{ column.name }}
               </span>
             </template>
+
             <template #bodyCell="{ column, record }">
               <template v-if="column.key === 'source_column'">
                 <span>{{ record.srcCn }}</span>
               </template>
+
               <template v-else-if="column.key === 'destination_column'">
                 <a-select v-model:value="record.destCn" class="w-52" show-search :filter-option="filterOption">
                   <a-select-option v-for="(col, i) of columns" :key="i" :value="col.title">
@@ -538,13 +543,14 @@ onMounted(() => {
           {{ data.tables.length }} sheet{{ data.tables.length > 1 ? 's' : '' }}
           available for import
         </p>
+
         <a-collapse
           v-if="data.tables && data.tables.length"
           v-model:activeKey="expansionPanel"
           class="template-collapse"
           accordion
         >
-          <a-collapse-panel v-for="(table, tableIdx) in data.tables" :key="tableIdx">
+          <a-collapse-panel v-for="(table, tableIdx) of data.tables" :key="tableIdx">
             <template #header>
               <a-form-item v-if="editableTn[tableIdx]" v-bind="validateInfos[`tables.${tableIdx}.table_name`]" no-style>
                 <a-input
@@ -552,16 +558,18 @@ onMounted(() => {
                   class="max-w-xs"
                   size="large"
                   hide-details
-                  @click="(e) => e.stopPropagation()"
+                  @click="$event.stopPropagation()"
                   @blur="setEditableTn(tableIdx, false)"
                   @keydown.enter="setEditableTn(tableIdx, false)"
                 />
               </a-form-item>
+
               <span v-else class="font-weight-bold text-lg flex items-center gap-2" @click="setEditableTn(tableIdx, true)">
                 <mdi-table class="text-primary" />
                 {{ table.table_name }}
               </span>
             </template>
+
             <template #extra>
               <a-tooltip bottom>
                 <template #title>
@@ -573,7 +581,7 @@ onMounted(() => {
             </template>
 
             <a-table
-              v-if="table.columns.length"
+              v-if="table.columns && table.columns.length"
               class="template-form"
               row-class-name="template-form-row"
               :data-source="table.columns"
@@ -586,11 +594,13 @@ onMounted(() => {
                     {{ $t('labels.columnName') }}
                   </span>
                 </template>
+
                 <template v-else-if="column.key === 'uidt'">
                   <span>
                     {{ $t('labels.columnType') }}
                   </span>
                 </template>
+
                 <template v-else-if="column.key === 'dtxp' && hasSelectColumn[tableIdx]">
                   <span>
                     <!-- TODO: i18n -->
@@ -598,19 +608,14 @@ onMounted(() => {
                   </span>
                 </template>
               </template>
+
               <template #bodyCell="{ column, record }">
                 <template v-if="column.key === 'column_name'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
-                    <a-input
-                      :ref="
-                        (el) => {
-                          inputRefs[record.key] = el
-                        }
-                      "
-                      v-model:value="record.column_name"
-                    />
+                    <a-input :ref="inputRefs.set" v-model:value="record.column_name" />
                   </a-form-item>
                 </template>
+
                 <template v-else-if="column.key === 'uidt'">
                   <a-form-item v-bind="validateInfos[`tables.${tableIdx}.columns.${record.key}.${column.key}`]">
                     <a-select
@@ -635,6 +640,7 @@ onMounted(() => {
                       <!-- TODO: i18n -->
                       <span>Primary Value</span>
                     </template>
+
                     <div class="flex items-center float-right mr-4">
                       <mdi-key-star class="text-lg" />
                     </div>

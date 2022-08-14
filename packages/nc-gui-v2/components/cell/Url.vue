@@ -1,10 +1,9 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ColumnInj, computed, inject, isValidURL } from '#imports'
-import { EditModeInj } from '~/context'
+import { ColumnInj, EditModeInj, computed, inject, isValidURL } from '#imports'
 
 interface Props {
-  modelValue: string | null | undefined
+  modelValue?: string | null
 }
 
 const { modelValue: value } = defineProps<Props>()
@@ -13,7 +12,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj)!
 
 const vModel = computed({
   get: () => value,
@@ -26,10 +25,12 @@ const vModel = computed({
 
 const isValid = computed(() => value && isValidURL(value))
 
-const url = computed<string | null>(() => {
-  if (!value || !isValidURL(value)) return null
+const url = computed(() => {
+  if (!value || !isValidURL(value)) return ''
+
   /** add url scheme if missing */
   if (/^https?:\/\//.test(value)) return value
+
   return `https://${value}`
 })
 
@@ -38,7 +39,9 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 
 <template>
   <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm" @blur="editEnabled = false" />
+
   <nuxt-link v-else-if="isValid" class="text-sm underline hover:opacity-75" :to="url" target="_blank">{{ value }} </nuxt-link>
+
   <span v-else>{{ value }}</span>
 </template>
 

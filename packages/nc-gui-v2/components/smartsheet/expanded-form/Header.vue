@@ -42,23 +42,31 @@ const iconColor = '#1890ff'
       <template v-if="meta">
         {{ meta.title }}
       </template>
+
+      <!-- todo: table doesn't exist?
       <template v-else>
         {{ table }}
       </template>
+      -->
       <template v-if="primaryValue">: {{ primaryValue }}</template>
     </h5>
+
     <div class="flex-grow" />
+
     <mdi-reload class="cursor-pointer select-none" />
+
     <component
       :is="drawerToggleIcon"
       v-if="isUIAllowed('rowComments')"
       class="cursor-pointer select-none"
       @click="commentsDrawer = !commentsDrawer"
     />
+
     <a-button class="!text" @click="emit('cancel')">
       <!-- Cancel -->
       {{ $t('general.cancel') }}
     </a-button>
+
     <a-button :disabled="!isUIAllowed('tableRowUpdate')" type="primary" @click="save">
       <!-- Save Row -->
       {{ $t('activity.saveRow') }}

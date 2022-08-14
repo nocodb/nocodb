@@ -10,7 +10,7 @@ interface Props {
   column: ColumnType
   modelValue: any
   editEnabled: boolean
-  rowIndex: number
+  rowIndex?: number
   active?: boolean
 }
 

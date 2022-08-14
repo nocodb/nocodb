@@ -19,7 +19,7 @@ const page = computed({
 
 <template>
   <div class="flex items-center">
-    <span v-if="count !== null && count !== Infinity" class="caption ml-2 text-gray-500">
+    <span v-if="count !== null && count !== Infinity" class="caption ml-5 text-gray-500">
       {{ count }} record{{ count !== 1 ? 's' : '' }}
     </span>
 

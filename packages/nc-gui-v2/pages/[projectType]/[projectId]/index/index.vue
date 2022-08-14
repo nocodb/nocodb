@@ -3,7 +3,7 @@ import type { TabItem } from '~/composables'
 import { TabType } from '~/composables'
 import { TabMetaInj } from '~/context'
 import { useTabs, useUIPermission } from '#imports'
-import MdiPlusIcon from '~icons/mdi/plus'
+import MdiPlusBoxOutline from '~icons/mdi/plus-box-outline'
 import MdiTableIcon from '~icons/mdi/table'
 import MdiCsvIcon from '~icons/mdi/file-document-outline'
 import MdiExcelIcon from '~icons/mdi/file-excel'
@@ -61,7 +61,7 @@ const icon = (tab: TabItem) => {
               <a-sub-menu key="addORImport">
                 <template #title>
                   <div class="text-sm flex items-center gap-2 pt-[8px] pb-3">
-                    <MdiPlusIcon />
+                    <MdiPlusBoxOutline/>
                     Add / Import
                   </div>
                 </template>

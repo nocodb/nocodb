@@ -430,8 +430,8 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 class="text-left pointer nc-grid-add-new-cell"
                 @click="addEmptyRow()"
               >
-                <div class="px-2 w-full flex items-center">
-                  <MdiPlus class="text-pint-500 text-xs" />
+                <div class="px-2 w-full flex items-center text-gray-500">
+                  <MdiPlus class="text-pint-500 text-xs ml-2" />
 
                   <span class="ml-1">
                     {{ $t('activity.addRow') }}

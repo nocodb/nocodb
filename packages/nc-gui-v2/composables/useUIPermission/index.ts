@@ -1,13 +1,12 @@
 import type { Permission } from './rolePermissions'
 import rolePermissions from './rolePermissions'
-import { useState } from '#app'
-import { USER_PROJECT_ROLES } from '~/lib/constants'
+import { USER_PROJECT_ROLES, useNuxtApp, useState } from '#imports'
 
 export function useUIPermission() {
   const { $state } = useNuxtApp()
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
 
-  const isUIAllowed = (permission: Permission, skipPreviewAs = false) => {
+  const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
     const user = $state.user
     let userRoles = user?.value?.roles || {}
     // if string populate key-value paired object
@@ -33,7 +32,7 @@ export function useUIPermission() {
     return Object.entries<boolean>(roles).some(([role, hasRole]) => {
       const rolePermission = rolePermissions[role as keyof typeof rolePermissions] as '*' | Record<Permission, true>
 
-      return hasRole && (rolePermission === '*' || rolePermission?.[permission])
+      return hasRole && (rolePermission === '*' || rolePermission?.[permission as Permission])
     })
   }
 

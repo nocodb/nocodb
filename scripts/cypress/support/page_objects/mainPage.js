@@ -441,7 +441,7 @@ export class _mainPage {
         // open Project metadata tab
         //
         settingsPage.openMenu(settingsPage.PROJ_METADATA)
-        settingsPage.openTab(settingsPage.METADATA)
+        // settingsPage.openTab(settingsPage.METADATA)
     }
 
     closeMetaTab() {

@@ -29,6 +29,10 @@ export const genTest = (apiType, dbType) => {
             mainPage.openMetaTab();
         });
 
+        beforeEach(() => {
+            cy.fileHook();
+        });
+
         after(() => {
             mainPage.closeMetaTab();
         });

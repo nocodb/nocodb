@@ -55,7 +55,7 @@ const logout = () => {
               class="!bg-white !text-primary rounded"
               @click="showUserModal = true"
             >
-              <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
+              <div class="flex items-center space-x-1">
                 <mdi-account-supervisor-outline class="mr-1" />
                 <div>{{ $t('activity.share') }}</div>
               </div>

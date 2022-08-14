@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import ItemChip from './components/ItemChip.vue'
-import ListItems from './components/ListItems.vue'
 import {
   ActiveCellInj,
   CellValueInj,
@@ -10,6 +8,7 @@ import {
   EditModeInj,
   ReloadViewDataHookInj,
   RowInj,
+  defineAsyncComponent,
   inject,
   ref,
   useProvideLTARStore,
@@ -17,6 +16,10 @@ import {
 } from '#imports'
 import MdiArrowExpand from '~icons/mdi/arrow-expand'
 import MdiPlus from '~icons/mdi/plus'
+
+const ItemChip = defineAsyncComponent(() => import('./components/ItemChip.vue'))
+
+const ListItems = defineAsyncComponent(() => import('./components/ListItems.vue'))
 
 const column = inject(ColumnInj)!
 
@@ -65,7 +68,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
 <template>
   <div class="flex w-full chips-wrapper align-center" :class="{ active }">
     <div class="chips d-flex align-center flex-grow">
-      <template v-if="value">
+      <template v-if="value && relatedTablePrimaryValueProp">
         <ItemChip :item="value" :value="value[relatedTablePrimaryValueProp]" @unlink="unlinkRef(value)" />
       </template>
     </div>

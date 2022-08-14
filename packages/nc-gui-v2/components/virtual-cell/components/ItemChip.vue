@@ -1,6 +1,5 @@
-<script setup lang="ts">
-import { inject, ref, useLTARStoreOrThrow } from '#imports'
-import { ActiveCellInj, EditModeInj, IsFormInj } from '~/context'
+<script lang="ts" setup>
+import { ActiveCellInj, EditModeInj, IsFormInj, defineAsyncComponent, inject, ref, useLTARStoreOrThrow } from '#imports'
 
 interface Props {
   value?: string | number | boolean
@@ -11,6 +10,8 @@ const { value, item } = defineProps<Props>()
 
 const emit = defineEmits(['unlink'])
 
+const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/expanded-form/index.vue'))
+
 const { relatedTableMeta } = useLTARStoreOrThrow()!
 
 const editEnabled = inject(EditModeInj)!
@@ -20,6 +21,12 @@ const active = inject(ActiveCellInj, ref(false))
 const isForm = inject(IsFormInj)!
 
 const expandedFormDlg = ref(false)
+</script>
+
+<script lang="ts">
+export default {
+  name: 'ItemChip',
+}
 </script>
 
 <template>
@@ -34,14 +41,16 @@ const expandedFormDlg = ref(false)
       <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
     </div>
 
-    <SmartsheetExpandedForm
-      v-if="expandedFormDlg && editEnabled"
-      v-model="expandedFormDlg"
-      :row="{ row: item }"
-      :meta="relatedTableMeta"
-      load-row
-      use-meta-fields
-    />
+    <Suspense>
+      <ExpandedForm
+        v-if="editEnabled"
+        v-model="expandedFormDlg"
+        :row="{ row: item }"
+        :meta="relatedTableMeta"
+        load-row
+        use-meta-fields
+      />
+    </Suspense>
   </div>
 </template>
 

@@ -2,8 +2,7 @@
 import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { CellValueInj, ColumnInj, MetaInj, ReadonlyInj } from '~/context'
-import { computed, inject, provide, useColumn, useMetas } from '#imports'
+import { CellValueInj, ColumnInj, MetaInj, ReadonlyInj, computed, inject, provide, useColumn, useMetas } from '#imports'
 
 const { metas, getMeta } = useMetas()
 

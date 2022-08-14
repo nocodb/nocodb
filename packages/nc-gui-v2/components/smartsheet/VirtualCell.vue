@@ -1,9 +1,26 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { provide, toRef, useVirtualCell } from '#imports'
+import { ActiveCellInj, CellValueInj, ColumnInj, RowInj, provide, toRef, useVirtualCell } from '#imports'
 import type { Row } from '~/composables'
-import { ActiveCellInj, CellValueInj, ColumnInj, RowInj } from '~/context'
 import { NavigateDir } from '~/lib'
+
+const props = defineProps<Props>()
+
+const emit = defineEmits(['update:modelValue', 'navigate'])
+
+const HasMany = defineAsyncComponent(() => import('../virtual-cell/HasMany.vue'))
+
+const ManyToMany = defineAsyncComponent(() => import('../virtual-cell/ManyToMany.vue'))
+
+const BelongsTo = defineAsyncComponent(() => import('../virtual-cell/BelongsTo.vue'))
+
+const Rollup = defineAsyncComponent(() => import('../virtual-cell/HasMany.vue'))
+
+const Formula = defineAsyncComponent(() => import('../virtual-cell/ManyToMany.vue'))
+
+const Count = defineAsyncComponent(() => import('../virtual-cell/BelongsTo.vue'))
+
+const Lookup = defineAsyncComponent(() => import('../virtual-cell/BelongsTo.vue'))
 
 interface Props {
   column: ColumnType
@@ -11,9 +28,6 @@ interface Props {
   row: Row
   active?: boolean
 }
-
-const props = defineProps<Props>()
-const emit = defineEmits(['update:modelValue', 'navigate'])
 
 const column = toRef(props, 'column')
 const active = toRef(props, 'active', false)
@@ -33,12 +47,12 @@ const { isLookup, isBt, isRollup, isMm, isHm, isFormula, isCount } = useVirtualC
     @keydown.stop.enter.exact="emit('navigate', NavigateDir.NEXT)"
     @keydown.stop.shift.enter.exact="emit('navigate', NavigateDir.PREV)"
   >
-    <VirtualCellHasMany v-if="isHm" />
-    <VirtualCellManyToMany v-else-if="isMm" />
-    <VirtualCellBelongsTo v-else-if="isBt" />
-    <VirtualCellRollup v-else-if="isRollup" />
-    <VirtualCellFormula v-else-if="isFormula" />
-    <VirtualCellCount v-else-if="isCount" />
-    <VirtualCellLookup v-else-if="isLookup" />
+    <HasMany v-if="isHm" />
+    <ManyToMany v-else-if="isMm" />
+    <BelongsTo v-else-if="isBt" />
+    <Rollup v-else-if="isRollup" />
+    <Formula v-else-if="isFormula" />
+    <Count v-else-if="isCount" />
+    <Lookup v-else-if="isLookup" />
   </div>
 </template>

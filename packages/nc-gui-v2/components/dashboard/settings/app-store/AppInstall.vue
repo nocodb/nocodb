@@ -1,11 +1,7 @@
 <script setup lang="ts">
-import { ref } from 'vue'
 import { message } from 'ant-design-vue'
 import type { PluginType } from 'nocodb-sdk'
-import MdiDeleteOutlineIcon from '~icons/mdi/delete-outline'
-import CloseIcon from '~icons/material-symbols/close-rounded'
-import MdiPlusIcon from '~icons/mdi/plus'
-import { extractSdkResponseErrorMsg } from '~/utils/errorUtils'
+import { extractSdkResponseErrorMsg, ref, useNuxtApp } from '#imports'
 
 interface Props {
   id: string
@@ -139,7 +135,7 @@ onMounted(async () => {
             class="mr-1 flex items-center justify-center"
             :class="[plugin.title === 'SES' ? 'p-2 bg-[#242f3e]' : '']"
           >
-            <img :src="`/${plugin.logo}`" class="h-6" />
+            <img :alt="plugin.title || 'plugin'" :src="`/${plugin.logo}`" class="h-6" />
           </div>
 
           <span class="font-semibold text-lg">{{ plugin.formDetails.title }}</span>
@@ -147,7 +143,7 @@ onMounted(async () => {
         <div class="absolute -right-2 -top-0.5">
           <a-button type="text" class="!rounded-md mr-1" @click="emits('close')">
             <template #icon>
-              <CloseIcon class="flex mx-auto" />
+              <MaterialSymbolsCloseRounded class="flex mx-auto" />
             </template>
           </a-button>
         </div>
@@ -194,7 +190,7 @@ onMounted(async () => {
                       v-if="itemIndex !== 0 && columnIndex === plugin.formDetails.items.length - 1"
                       class="absolute flex flex-col justify-start mt-2 -right-6 top-0"
                     >
-                      <MdiDeleteOutlineIcon class="hover:text-red-400 cursor-pointer" @click="deleteFormRow(itemIndex)" />
+                      <MdiDeleteOutline class="hover:text-red-400 cursor-pointer" @click="deleteFormRow(itemIndex)" />
                     </div>
                   </a-form-item>
                 </td>
@@ -205,7 +201,7 @@ onMounted(async () => {
               <td :colspan="plugin.formDetails.items.length" class="text-center">
                 <a-button type="default" class="!bg-gray-100 rounded-md border-none mr-1" @click="addSetting">
                   <template #icon>
-                    <MdiPlusIcon class="flex mx-auto" />
+                    <MdiPlus class="flex mx-auto" />
                   </template>
                 </a-button>
               </td>

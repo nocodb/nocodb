@@ -1,8 +1,19 @@
 <script setup lang="ts">
-import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
 import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
-import { ColumnInj, IsFormInj, MetaInj } from '~/context'
-import { provide, toRef, useMetas } from '#imports'
+import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
+import {
+  ColumnInj,
+  IsFormInj,
+  MetaInj,
+  computed,
+  inject,
+  provide,
+  ref,
+  toRef,
+  useMetas,
+  useUIPermission,
+  useVirtualCell,
+} from '#imports'
 
 const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required?: boolean }>()
 
@@ -48,12 +59,10 @@ const relatedTableTitle = $computed(() => relatedTableMeta?.title)
 const childColumn = $computed(() => {
   if (relatedTableMeta?.columns) {
     if (isRollup.value) {
-      const ch = relatedTableMeta?.columns.find((c: ColumnType) => c.id === (colOptions as RollupType).fk_rollup_column_id)
-      return ch
+      return relatedTableMeta?.columns.find((c: ColumnType) => c.id === (colOptions as RollupType).fk_rollup_column_id)
     }
     if (isLookup.value) {
-      const ch = relatedTableMeta?.columns.find((c: ColumnType) => c.id === (colOptions as LookupType).fk_lookup_column_id)
-      return ch
+      return relatedTableMeta?.columns.find((c: ColumnType) => c.id === (colOptions as LookupType).fk_lookup_column_id)
     }
   }
   return ''
@@ -92,11 +101,7 @@ function onVisibleChange() {
 </script>
 
 <template>
-  <div class="d-flex align-center w-full text-xs font-weight-regular">
-    <!--    <v-tooltip bottom>
-          <template #activator="{ on }">
-          todo: bring tooltip
-          -->
+  <div class="flex items-center w-full text-xs text-normal">
     <SmartsheetHeaderVirtualCellIcon v-if="column" />
 
     <a-tooltip placement="bottom">
@@ -105,13 +110,10 @@ function onVisibleChange() {
       </template>
       <span class="name" style="white-space: nowrap" :title="column.title"> {{ column.title }}</span>
     </a-tooltip>
+
     <span v-if="column.rqd || required" class="text-red-500">&nbsp;*</span>
 
-    <!--    <span class="caption" v-html="tooltipMsg" /> -->
-
-    <!--    </v-tooltip> -->
     <template v-if="!hideMenu">
-      <v-spacer />
       <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 

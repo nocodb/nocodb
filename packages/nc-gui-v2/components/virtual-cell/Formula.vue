@@ -1,7 +1,5 @@
 <script lang="ts" setup>
-import { computed, inject, ref, useProject } from '#imports'
-import { CellValueInj, ColumnInj } from '~/context'
-import { handleTZ, replaceUrlsWithLink } from '~/utils'
+import { CellValueInj, ColumnInj, computed, handleTZ, inject, ref, replaceUrlsWithLink, useProject } from '#imports'
 
 // todo: column type doesn't have required property `error` - throws in typecheck
 const column: any = inject(ColumnInj)

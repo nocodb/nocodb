@@ -29,7 +29,7 @@ const page = computed({
       v-if="count !== Infinity"
       v-model:current="page"
       size="small"
-      class="!text-xs !m-1"
+      class="!text-xs !m-1 nc-pagination"
       :total="count"
       :page-size="size"
       show-less-items

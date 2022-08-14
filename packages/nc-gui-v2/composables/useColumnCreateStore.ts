@@ -232,6 +232,6 @@ export { useProvideColumnCreateStore }
 
 export function useColumnCreateStoreOrThrow() {
   const columnCreateStore = useColumnCreateStore()
-  if (columnCreateStore == null) throw new Error('Please call `useColumnCreateStore` on the appropriate parent component')
+  if (columnCreateStore == null) throw new Error('Please call `useProvideColumnCreateStore` on the appropriate parent component')
   return columnCreateStore
 }

@@ -1,6 +1,6 @@
 import path from 'path'
 import { defineNuxtConfig } from 'nuxt'
-import vueI18n from '@intlify/vite-plugin-vue-i18n'
+import { vueI18n } from '@intlify/vite-plugin-vue-i18n'
 import Icons from 'unplugin-icons/vite'
 import IconsResolver from 'unplugin-icons/resolver'
 import Components from 'unplugin-vue-components/vite'

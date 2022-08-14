@@ -12,7 +12,7 @@ export const genTest = (apiType, dbType) => {
         // to retrieve few v-input nodes from their label
         //
         const fetchParentFromLabel = (label) => {
-            cy.get("label").contains(label).parents(".v-input").click();
+            cy.get("label").contains(label).parents(".ant-row").first().click();
         };
 
         // Run once before test- create table
@@ -23,6 +23,10 @@ export const genTest = (apiType, dbType) => {
             cy.createTable(tableName);
         });
 
+        beforeEach(() => {
+            cy.fileHook();
+        });
+
         after(() => {
             cy.deleteTable(tableName);
         });
@@ -30,75 +34,59 @@ export const genTest = (apiType, dbType) => {
         // Routine to create a new look up column
         //
         const addDurationColumn = (columnName, durationFormat) => {
-            // (+) icon at end of column header (to add a new column)
-            // opens up a pop up window
-            //
-            cy.get(".new-column-header").click();
 
-            // Column name
-            cy.get(".nc-column-name-input input").clear().type(`${columnName}`);
+            cy.get(".nc-grid  tr > th:last .nc-icon").click({
+                force: true,
+            });
 
-            // Column data type
-            cy.get(".nc-ui-dt-dropdown").click();
-            cy.getActiveMenu().contains("Duration").click();
+            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+              .should('exist')
+              .clear()
+              .type(columnName);
+            cy.get(".nc-column-type-input").last().click().type("Duration");
+            cy.getActiveSelection().find('.ant-select-item-option').contains("Duration").click();
 
-            // Configure Child table & column names
+            // Configure Duration format
             fetchParentFromLabel("Duration Format");
-            cy.getActiveMenu().contains(durationFormat).click();
+            cy.getActiveSelection().find('.ant-select-item-option').contains(durationFormat).click();
+            // cy.getActiveMenu().contains(durationFormat).click();
 
-            // click on Save
-            cy.get(".nc-col-create-or-edit-card").contains("Save").click();
+            cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            cy.toastWait(`Column created`);
 
-            // Verify if column exists.
-            //
-            cy.get(`th:contains(${columnName})`).should("exist");
+            cy.get(`th[data-title="${columnName}"]`).should("exist");
         };
 
         // routine to delete column
         //
         const deleteColumnByName = (columnName) => {
-            // verify if column exists before delete
-            cy.get(`th:contains(${columnName})`).should("exist");
-
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${columnName}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
-
-            // delete/ confirm on pop-up
-            cy.get(".nc-column-delete").click();
-            cy.getActiveModal().find("button:contains(Confirm)").click();
-
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${columnName})`).should("not.exist");
+            mainPage.deleteColumn(columnName);
         };
 
         // routine to edit column
         //
         const editColumnByName = (oldName, newName, newDurationFormat) => {
-            // verify if column exists before delete
-            cy.get(`th:contains(${oldName})`).should("exist");
 
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${oldName}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
+            cy.get(`th:contains(${oldName}) .nc-icon.ant-dropdown-trigger`)
+              .trigger("mouseover", { force: true })
+              .click({ force: true });
 
-            // edit/ save on pop-up
             cy.get(".nc-column-edit").click();
-            cy.get(".nc-column-name-input input").clear().type(newName);
+            cy.get(".nc-column-edit").should("not.be.visible");
 
-            // Configure Child table & column names
+            // rename column and verify
+            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+              .should('exist')
+              .clear()
+              .type(newName);
+            // Configure Duration format
             fetchParentFromLabel("Duration Format");
-            cy.getActiveMenu().contains(newDurationFormat).click();
+            cy.getActiveSelection().find('.ant-select-item-option').contains(newDurationFormat).click();
 
-            cy.get(".nc-col-create-or-edit-card")
-                .contains("Save")
-                .click({ force: true });
+            cy.get(".ant-btn-primary:visible").contains("Save").click();
 
-            cy.toastWait("Duration column updated successfully");
+            cy.toastWait("Column updated");
 
-            // validate if deleted (column shouldnt exist)
             cy.get(`th:contains(${oldName})`).should("not.exist");
             cy.get(`th:contains(${newName})`).should("exist");
         };

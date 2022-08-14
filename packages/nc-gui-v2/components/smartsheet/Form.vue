@@ -18,6 +18,7 @@ import {
   useGlobal,
   useNuxtApp,
   useUIPermission,
+  useViewColumns,
   useViewData,
   watch,
 } from '#imports'
@@ -35,7 +36,7 @@ const { $api, $e } = useNuxtApp()
 
 const { isUIAllowed } = useUIPermission()
 
-const formState = reactive({})
+const formState: Record<any, any> = reactive({})
 
 const secondsRemain = ref(0)
 
@@ -54,13 +55,13 @@ const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, fal
 
 const columns = computed(() => meta?.value?.columns || [])
 
-const localColumns = ref<Record<string, any>>([])
+const localColumns = ref<Record<string, any>[]>([])
 
-const hiddenColumns = ref<Record<string, any>>([])
+const hiddenColumns = ref<Record<string, any>[]>([])
 
 const draggableRef = ref()
 
-const systemFieldsIds = ref<Record<string, any>>([])
+const systemFieldsIds = ref<Record<string, any>[]>([])
 
 const showColumnDropdown = ref(false)
 
@@ -279,7 +280,7 @@ async function submitCallback() {
 const updateColMeta = useDebounceFn(async (col: Record<string, any>) => {
   if (col.id) {
     try {
-      $api.dbView.formColumnUpdate(col.id, col)
+      await $api.dbView.formColumnUpdate(col.id, col)
     } catch (e: any) {
       message.error(await extractSdkResponseErrorMsg(e))
     }
@@ -428,7 +429,14 @@ onMounted(async () => {
       <div class="h-[200px] !bg-[#dbdad7]">
         <!-- for future implementation of cover image -->
       </div>
-      <a-card class="h-full ma-0 rounded-b-0 pa-4" body-style="max-width: 700px; margin: 0 auto; margin-top: -200px;">
+      <a-card
+        class="h-full ma-0 rounded-b-0 pa-4"
+        :body-style="{
+          maxWidth: '700px',
+          margin: '0 auto',
+          marginTop: '-200px',
+        }"
+      >
         <a-form ref="formRef" :model="formState">
           <a-card class="rounded ma-2 py-10 px-5">
             <!-- Header -->
@@ -444,7 +452,9 @@ onMounted(async () => {
                 @keydown.enter="updateView"
               />
             </a-form-item>
+
             <div v-else class="ml-3 w-full text-bold text-h3">{{ formViewData.heading }}</div>
+
             <!-- Sub Header -->
             <a-form-item v-if="isEditable" class="ma-0 gap-0 pa-0">
               <a-input
@@ -459,7 +469,9 @@ onMounted(async () => {
                 @click="updateView"
               />
             </a-form-item>
+
             <div v-else class="ml-3 mb-5 w-full text-bold text-h3">{{ formViewData.subheading }}</div>
+
             <Draggable
               ref="draggableRef"
               :list="localColumns"
@@ -495,6 +507,7 @@ onMounted(async () => {
                       <mdi-eye-off-outline class="opacity-0 nc-field-remove-icon" @click.stop="hideColumn(index)" />
                     </div>
                   </div>
+
                   <a-form-item
                     v-if="isVirtualCol(element)"
                     class="ma-0 gap-0 pa-0"
@@ -503,6 +516,7 @@ onMounted(async () => {
                   >
                     <SmartsheetVirtualCell v-model="formState[element.title]" class="nc-input" :column="element" />
                   </a-form-item>
+
                   <a-form-item
                     v-else
                     class="ma-0 gap-0 pa-0"
@@ -511,6 +525,7 @@ onMounted(async () => {
                   >
                     <SmartsheetCell v-model="formState[element.title]" class="nc-input" :column="element" :edit-enabled="true" />
                   </a-form-item>
+
                   <div v-if="activeRow === element.title">
                     <a-form-item class="my-0 w-1/2">
                       <a-input
@@ -522,6 +537,7 @@ onMounted(async () => {
                       >
                       </a-input>
                     </a-form-item>
+
                     <a-form-item class="mt-2 mb-0 w-1/2">
                       <a-input
                         v-model:value="element.description"
@@ -531,14 +547,18 @@ onMounted(async () => {
                         @change="updateColMeta(element)"
                       />
                     </a-form-item>
+
                     <div class="items-center flex">
                       <span class="text-sm text-gray-500 mr-2">{{ $t('general.required') }}</span>
+
                       <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
                     </div>
                   </div>
+
                   <span class="text-gray-500">{{ element.description }}</span>
                 </div>
               </template>
+
               <template #footer>
                 <div
                   v-if="!localColumns.length"
@@ -563,9 +583,11 @@ onMounted(async () => {
           <div class="text-gray-500 mt-4 mb-2">
             {{ $t('msg.info.afterFormSubmitted') }}
           </div>
+
           <!-- Show this message -->
           <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
-          <a-textarea v-model:value="formViewData.success_msg" rows="3" hide-details @change="updateView" />
+
+          <a-textarea v-model:value="formViewData.success_msg" :rows="3" hide-details @change="updateView" />
 
           <!-- Other options -->
           <div class="mt-4">
@@ -590,6 +612,7 @@ onMounted(async () => {
               />
               <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
             </div>
+
             <div class="my-4">
               <a-switch v-model:checked="emailMe" v-t="[`a:form-view:email-me`]" size="small" @change="onEmailChange" />
               <!-- Email me at <email> -->

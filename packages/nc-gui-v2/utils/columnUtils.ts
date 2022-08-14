@@ -147,7 +147,7 @@ const uiTypes = [
   },
 ]
 
-const getUIDTIcon = (uidt: UITypes) => {
+const getUIDTIcon = (uidt: UITypes | string) => {
   return (
     [
       ...uiTypes,

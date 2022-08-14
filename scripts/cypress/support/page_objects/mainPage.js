@@ -170,7 +170,7 @@ export class _mainPage {
     getCell = (columnHeader, cellNumber) => {
         return cy.get(
             `:nth-child(${cellNumber}) > [data-title="${columnHeader}"]`
-        );
+        ).last();
     };
 
     getPagination = (pageNumber) => {

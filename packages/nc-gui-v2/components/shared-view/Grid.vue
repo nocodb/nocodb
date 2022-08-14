@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { TableType } from 'nocodb-sdk/build/main'
+import type { TableType } from 'nocodb-sdk'
 
 import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReadonlyInj, ReloadViewDataHookInj } from '~/context'
 

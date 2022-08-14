@@ -18,6 +18,10 @@ export const genTest = (apiType, dbType) => {
             cy.openTableTab("City", 25);
         });
 
+        beforeEach(() => {
+            cy.fileHook();
+        });
+
         after(() => {
             cy.closeTableTab("City");
         });
@@ -28,106 +32,67 @@ export const genTest = (apiType, dbType) => {
         //
         const rowValidation = (rowName, result) => {
             // scroll back
-            cy.get(
-                `tbody > :nth-child(1) > [data-col="City"]`
-            ).scrollIntoView();
+            // cy.get(
+            //     `tbody > :nth-child(1) > [data-col="City"]`
+            // ).scrollIntoView();
 
             // for (let i = 0; i < 10; i++)
-            for (let i = 3; i < 6; i++)
-                cy.get(`tbody > :nth-child(${i + 1}) > [data-col="${rowName}"]`)
-                    .contains(result[i].toString())
-                    .should("exist");
+            for (let i = 3; i < 5; i++)
+                mainPage.getCell(rowName, i+1).contains(result[i].toString()).should("exist");
+                // cy.get(`tbody > :nth-child(${i + 1}) > [data-col="${rowName}"]`)
+                //     .contains(result[i].toString())
+                //     .should("exist");
         };
 
         // Routine to create a new look up column
         //
         const addFormulaBasedColumn = (columnName, formula) => {
-            // (+) icon at end of column header (to add a new column)
-            // opens up a pop up window
-            //
-            cy.get(".new-column-header").click();
+            cy.get(".nc-grid  tr > th:last .nc-icon").click({
+                force: true,
+            });
 
-            // Column name
-            cy.get(".nc-column-name-input input").clear().type(`${columnName}`);
+            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+              .should('exist')
+              .clear()
+              .type(columnName);
+            cy.get(".nc-column-type-input").last().click().type("Formula");
+            cy.getActiveSelection().find('.ant-select-item-option').contains("Formula").click();
+            cy.get('textarea.nc-formula-input').click().type(formula, { parseSpecialCharSequences: false });
+            cy.get(".ant-btn-primary").contains("Save").should('exist').click();
 
-            // Column data type: to be set to formula in this context
-            cy.get(".nc-ui-dt-dropdown").click().type("Formula");
-
-            cy.snipActiveMenu("Formula");
-
-            cy.getActiveMenu().contains("Formula").click({ force: true });
-
-            // Configure formula
-            cy.get("label")
-                .contains("Formula")
-                .parent()
-                .click()
-                .type(formula, { parseSpecialCharSequences: false })
-                .click();
-
-            // click on Save
-            cy.get(".nc-col-create-or-edit-card")
-                .contains("Save")
-                .click({ force: true });
-
-            cy.toastWait("Formula column saved successfully");
-
-            // Verify if column exists.
-            //
-            cy.get(`th:contains(${columnName})`).should("exist");
+            // cy.toastWait(`Column created`);
+            cy.closeTableTab("City");
+            cy.openTableTab("City", 25);
+            cy.get(`th[data-title="${columnName}"]`).should("exist");
         };
 
         // routine to delete column
         //
         const deleteColumnByName = (columnName) => {
-            // verify if column exists before delete
-            cy.get(`th:contains(${columnName})`).should("exist");
-
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${columnName}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
-
-            // delete/ confirm on pop-up
-            cy.get(".nc-column-delete").click();
-            cy.getActiveModal().find("button:contains(Confirm)").click();
-
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${columnName})`).should("not.exist");
+            mainPage.deleteColumn(columnName);
         };
 
         // routine to edit column
         //
         const editColumnByName = (oldName, newName, newFormula) => {
-            // verify if column exists before delete
-            cy.get(`th:contains(${oldName})`).should("exist");
 
-            // delete opiton visible on mouse-over
-            cy.get(`th:contains(${oldName}) .mdi-menu-down`)
-                .trigger("mouseover")
-                .click();
+            cy.get(`th:contains(${oldName}) .nc-icon.ant-dropdown-trigger`)
+              .trigger("mouseover", { force: true })
+              .click({ force: true });
 
-            // edit/ save on pop-up
             cy.get(".nc-column-edit").click();
-            cy.get(".nc-column-name-input input").clear().type(newName);
+            cy.get(".nc-column-edit").should("not.be.visible");
 
-            cy.get("label")
-                .contains("Formula")
-                .parent()
-                .find("input")
-                .clear()
-                .type(newFormula, { parseSpecialCharSequences: false })
-                .click();
+            cy.getActiveMenu().find('input.nc-column-name-input', { timeout: 3000 })
+              .should('exist')
+              .clear()
+              .type(newName);
 
-            cy.get(".nc-col-create-or-edit-card")
-                .contains("Save")
-                .click({ force: true });
-
-            cy.toastWait("Formula column updated successfully");
-
-            // validate if deleted (column shouldnt exist)
-            cy.get(`th:contains(${oldName})`).should("not.exist");
-            cy.get(`th:contains(${newName})`).should("exist");
+            cy.get('textarea.nc-formula-input').click().clear().type(newFormula);
+            cy.get(".ant-btn-primary").contains("Save").should('exist').click();
+            cy.toastWait(`Column created`);
+            cy.get(`th[data-title="${oldName}"]`).should("not.exist");
+            cy.get(`th[data-title="${newName}"]`).should("exist");
         };
 
         ///////////////////////////////////////////////////

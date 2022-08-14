@@ -1,11 +1,23 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import { ActiveCellInj, ColumnInj, computed, h, inject, onMounted, ref, useEventListener, useProject, watch } from '#imports'
-import { EditModeInj } from '~/context'
+import type { SelectOptionsType } from 'nocodb-sdk'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  EditModeInj,
+  computed,
+  h,
+  inject,
+  onMounted,
+  ref,
+  useEventListener,
+  useProject,
+  watch,
+} from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue?: string | string[] | undefined
+  modelValue?: string | string[]
 }
 
 const { modelValue } = defineProps<Props>()
@@ -14,11 +26,9 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj)!
 
-// const isForm = inject<boolean>('isForm', false)
-
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj)!
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -28,7 +38,7 @@ const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
 
-const options = computed(() => {
+const options = computed<SelectOptionsType[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? (column.value.colOptions as any).options.filter((el: any) => el.title !== '') || []
@@ -42,7 +52,7 @@ const options = computed(() => {
 })
 
 const vModel = computed({
-  get: () => selectedIds.value.map((el) => options.value.find((op: any) => op.id === el)?.title),
+  get: () => selectedIds.value.map((el) => options.value.find((op) => op.id === el)?.title),
   set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 
@@ -51,10 +61,10 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el: any) => el.title === a)
-            const opb = options.value.find((el: any) => el.title === b)
+            const opa = options.value.find((el) => el.title === a)
+            const opb = options.value.find((el) => el.title === b)
             if (opa && opb) {
-              return opa.order - opb.order
+              return opa.order! - opb.order!
             }
             return 0
           })
@@ -82,7 +92,14 @@ const handleClose = (e: MouseEvent) => {
 }
 
 onMounted(() => {
-  selectedIds.value = selectedTitles.value.map((el) => options.value.find((op: any) => op.title === el).id)
+  selectedIds.value = selectedTitles.value.flatMap((el) => {
+    const item = options.value.find((op) => op.title === el)?.id
+    if (item) {
+      return [item]
+    }
+
+    return []
+  })
 })
 
 useEventListener(document, 'click', handleClose)
@@ -90,14 +107,19 @@ useEventListener(document, 'click', handleClose)
 watch(
   () => modelValue,
   () => {
-    selectedIds.value = selectedTitles.value.map((el) => options.value.find((op: any) => op.title === el).id)
+    selectedIds.value = selectedIds.value = selectedTitles.value.flatMap((el) => {
+      const item = options.value.find((op) => op.title === el)?.id
+      if (item) {
+        return [item]
+      }
+
+      return []
+    })
   },
 )
 
 watch(isOpen, (n, _o) => {
-  if (!n) {
-    aselect.value?.blur()
-  }
+  if (!n) aselect.value?.$el.blur()
 })
 </script>
 

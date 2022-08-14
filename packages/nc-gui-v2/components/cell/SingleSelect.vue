@@ -1,7 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import { ActiveCellInj, ColumnInj, computed, inject, ref, useEventListener, watch } from '#imports'
-import { EditModeInj } from '~/context'
+import type { SelectOptionsType } from 'nocodb-sdk'
+import { ActiveCellInj, ColumnInj, EditModeInj, computed, inject, ref, useEventListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | undefined
@@ -11,9 +11,9 @@ const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj)!
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -26,11 +26,11 @@ const vModel = computed({
   set: (val) => emit('update:modelValue', val || null),
 })
 
-const options = computed(() => {
+const options = computed<SelectOptionsType[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
       ? // todo: fix colOptions type, options does not exist as a property
-        (column.value.colOptions as any).options.filter((el: any) => el.title !== '') || []
+        (column.value.colOptions as any).options.filter((el: SelectOptionsType) => el.title !== '') || []
       : []
     for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
@@ -59,9 +59,7 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose)
 
 watch(isOpen, (n, _o) => {
-  if (!n) {
-    aselect.value?.blur()
-  }
+  if (!n) aselect.value?.$el.blur()
 })
 </script>
 

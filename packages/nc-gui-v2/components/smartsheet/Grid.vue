@@ -369,7 +369,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                         </span>
                         <div v-else class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
                           <MdiArrowExpand
-                            class="select-none transform hover:(text-pink-500 scale-120)"
+                            class="select-none transform hover:(text-pink-500 scale-120) nc-row-expand"
                             @click="expandForm(row, state)"
                           />
                         </div>

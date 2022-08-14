@@ -12,6 +12,10 @@ export const genTest = (apiType, dbType) => {
             // cy.get(".mdi-close").click({ multiple: true });
         });
 
+        beforeEach(() => {
+            cy.fileHook();
+        });
+
         after(() => {
             // cy.get(".mdi-close").click({ multiple: true, force: true });
         });
@@ -29,13 +33,12 @@ export const genTest = (apiType, dbType) => {
         });
 
         const getAuditCell = (row, col) => {
-            return cy.get("table > tbody > tr").eq(row).find("td").eq(col);
+            return cy.get("tbody > tr").eq(row).find("td.ant-table-cell").eq(col);
         };
 
         it("Open Audit tab", () => {
             // mainPage.navigationDraw(mainPage.AUDIT).click();
             settingsPage.openMenu(settingsPage.AUDIT);
-            settingsPage.openTab(settingsPage.AUDIT_LOG);
             // wait for column headers to appear
             //
             cy.get("thead > tr > th.ant-table-cell").should("have.length", 5);

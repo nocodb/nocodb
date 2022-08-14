@@ -30,13 +30,15 @@ export class _settingsPage {
 
     openMenu(menuId) {
         // open settings tab
-        cy.get('.nc-team-settings').should('exist').click()
-        cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
+        // cy.get('.nc-team-settings').should('exist').click()
+        // cy.get(`[data-menu-id=${menuId}]`).should('exist').click()
+        cy.get('.nc-project-menu').should('exist').click()
+        cy.getActiveMenu().find(`[data-menu-id=${menuId}]`).should('exist').click()
     }
 
-    openTab(tabId) {
-        cy.get(`[data-menu-id=${tabId}]`).should('exist').last().click()
-    }
+    // openTab(tabId) {
+    //     cy.get(`[data-menu-id=${tabId}]`).should('exist').last().click()
+    // }
 
     closeMenu() {
         cy.getActiveModal().find('.ant-modal-close-x').click({ force: true });

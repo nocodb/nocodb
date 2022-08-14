@@ -177,6 +177,7 @@ Cypress.Commands.add("closeTableTab", (tn) => {
       .contains(tn)
       .should('exist')
       .parent()
+      .parent()
       .find('button')
       .click();
 });
@@ -257,7 +258,11 @@ Cypress.Commands.add("getActiveContentModal", () => {
 });
 
 Cypress.Commands.add("createTable", (name) => {
-    cy.get(".nc-btn-tbl-add").click();
+    // cy.get(".nc-btn-tbl-add").click();
+
+    cy.get(`[data-menu-id="addORImport"]`).click();
+    cy.getActivePopUp().contains("Add new table").should('exist').click();
+
     cy.getActiveModal().find(`input[type="text"]:visible`)
       .click()
       .clear()
@@ -325,9 +330,8 @@ Cypress.Commands.add("createColumn", (table, columnName) => {
 });
 
 Cypress.Commands.add("toastWait", (msg) => {
-    cy.get('.Vue-Toastification__toast:visible', { timout: 12000 }).contains(msg).should('exist')
-    cy.get('.Vue-Toastification__toast:visible', { timout: 12000 }).find('button').click();
-    cy.get('.Vue-Toastification__toast:visible', { timout: 12000 }).should('not.exist')
+    cy.get('.ant-message-notice-content:visible', { timout: 12000 }).contains(msg).should('exist')
+    cy.get('.ant-message-notice-content:visible', { timout: 12000 }).should('not.exist')
 
     // cy.get(".toasted:visible", { timout: 12000 }).contains(msg).should("exist");
     // cy.get(".toasted:visible", { timout: 12000 })

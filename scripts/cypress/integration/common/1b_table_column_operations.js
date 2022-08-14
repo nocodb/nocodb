@@ -11,7 +11,6 @@ export const genTest = (apiType, dbType) => {
         cy.get(".nc-add-new-row-btn:visible").should("exist");
         cy.get(".nc-add-new-row-btn").click({ force: true });
         cy.get("#data-table-form-Title > input").first().type(cellValue);
-        cy.snipActiveModal("Modal_AddNewRow");
         cy.getActiveModal()
             .find("button")
             .contains("Save row")
@@ -101,18 +100,24 @@ export const genTest = (apiType, dbType) => {
         it("Update row", () => {
             mainPage
                 .getRow(1)
-                .find(".nc-row-expand-icon")
+                .find('.nc-row-no').should('exist').eq(0).trigger('mouseover', { force: true })
+            cy.get(".nc-row-expand")
                 .click({ force: true });
-            cy.get("#data-table-form-Title > input")
+
+            cy.get(".nc-expand-col-Title").find(".nc-cell > input")
+                .should("exist")
                 .first()
                 .clear()
                 .type(updatedRandVal);
+
             cy.getActiveModal()
                 .find("button")
                 .contains("Save row")
                 .click({ force: true });
 
+            // partial toast message
             cy.toastWait("updated successfully");
+            cy.get("body").type("{esc}");
 
             mainPage.getCell("Title", 1).contains(randVal).should("not.exist");
             mainPage
@@ -129,10 +134,9 @@ export const genTest = (apiType, dbType) => {
 
             // delete row
             cy.getActiveMenu()
-                .find('.v-list-item:contains("Delete Row")')
+                .find('.ant-dropdown-menu-item:contains("Delete row")')
                 .first()
                 .click({ force: true });
-            // cy.toastWait('Deleted row successfully')
             cy.get("td").contains(randVal).should("not.exist");
         });
 
@@ -144,16 +148,14 @@ export const genTest = (apiType, dbType) => {
             addNewRow(4, "a4");
             addNewRow(5, "a5");
 
-            // check-box, select-all. 0 indicates table header
-            mainPage
-                .getRow(0)
-                .find(".mdi-checkbox-blank-outline")
-                .click({ force: true });
+            cy.get('.nc-no-label').should('exist').eq(0).trigger('mouseover', { force: true })
+            cy.get(".ant-checkbox").should('exist')
+              .eq(0).click({ force: true });
 
             // delete selected rows
-            mainPage.getCell("Title", 1).rightclick({ force: true });
+            mainPage.getCell("Title", 3).rightclick({ force: true });
             cy.getActiveMenu()
-                .contains("Delete Selected Row")
+                .contains("Delete all selected rows")
                 .click({ force: true });
 
             // verify if everything is wiped off

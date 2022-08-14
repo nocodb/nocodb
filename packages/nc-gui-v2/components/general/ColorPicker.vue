@@ -4,7 +4,7 @@ import { enumColor } from '@/utils'
 import { computed, ref, watch } from '#imports'
 
 interface Props {
-  modelValue: string | any
+  modelValue?: string | any
   colors?: string[]
   rowSize?: number
   advanced?: boolean
@@ -28,18 +28,18 @@ const vModel = computed({
   },
 })
 
-const picked = ref(props.modelValue || enumColor.light[0])
+const picked = ref<string | Record<string, any>>(props.modelValue || enumColor.light[0])
 
-const selectColor = (color: Record<string, any>) => {
-  picked.value = color.hex ? color.hex : color
-  vModel.value = color.hex ? color.hex : color
+const selectColor = (color: string | Record<string, any>) => {
+  picked.value = typeof color === 'string' ? color : color.hex ? color.hex : color
+  vModel.value = typeof color === 'string' ? color : color.hex ? color.hex : color
 }
 
 const compare = (colorA: string, colorB: string) => colorA.toLowerCase() === colorB.toLowerCase()
 
 watch(picked, (n, _o) => {
   if (!props.pickButton) {
-    vModel.value = n.hex ? n.hex : n
+    vModel.value = typeof n === 'string' ? n : n.hex ? n.hex : n
   }
 })
 </script>
@@ -48,7 +48,7 @@ watch(picked, (n, _o) => {
   <div class="color-picker">
     <div v-for="colId in Math.ceil(props.colors.length / props.rowSize)" :key="colId" class="color-picker-row">
       <button
-        v-for="(color, i) in colors.slice((colId - 1) * rowSize, colId * rowSize)"
+        v-for="(color, i) of colors.slice((colId - 1) * rowSize, colId * rowSize)"
         :key="`color-${colId}-${i}`"
         class="color-selector"
         :class="compare(picked, color) ? 'selected' : ''"

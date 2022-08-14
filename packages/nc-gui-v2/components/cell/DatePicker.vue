@@ -1,19 +1,18 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ColumnInj } from '#imports'
-import { EditModeInj } from '~/context'
+import { ColumnInj, EditModeInj, computed, inject, ref, watch } from '#imports'
 
 interface Props {
-  modelValue: string | null | undefined
+  modelValue?: string | null
 }
 
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const columnMeta = inject(ColumnInj, null)
+const columnMeta = inject(ColumnInj, null)!
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj)!
 
 let isDateInvalid = $ref(false)
 
@@ -43,7 +42,7 @@ const localState = $computed({
     }
   },
 })
-const open = ref(false)
+const open = ref<boolean>(false)
 
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 watch(
@@ -55,6 +54,8 @@ watch(
   },
   { flush: 'post' },
 )
+
+const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : editEnabled.value ? 'Select date' : ''))
 </script>
 
 <template>
@@ -63,7 +64,7 @@ watch(
     :bordered="false"
     class="!w-full px-1"
     :format="dateFormat"
-    :placeholder="isDateInvalid ? 'Invalid date' : !readOnlyMode ? 'Select date' : ''"
+    :placeholder="placeholder"
     :allow-clear="!editEnabled"
     :input-read-only="true"
     :dropdown-class-name="randomClass"

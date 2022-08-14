@@ -144,15 +144,15 @@ export const genTest = (apiType, dbType) => {
             cy.openViewsTab("CustomerList", 25);
             cy.closeViewsTab("CustomerList");
 
-            cy.openViewsTab("FilmList", 25);
-            cy.closeViewsTab("FilmList");
+            // cy.openViewsTab("FilmList", 25);
+            // cy.closeViewsTab("FilmList");
 
-            cy.openViewsTab("SalesByFilmCategory", 16);
-            cy.closeViewsTab("SalesByFilmCategory");
+            // cy.openViewsTab("SalesByFilmCategory", 16);
+            // cy.closeViewsTab("SalesByFilmCategory");
 
             if (!isXcdb()) {
-                cy.openViewsTab("NicerButSlowerFilmList", 25);
-                cy.closeViewsTab("NicerButSlowerFilmList");
+                // cy.openViewsTab("NicerButSlowerFilmList", 25);
+                // cy.closeViewsTab("NicerButSlowerFilmList");
 
                 // SalesByStore && StaffList contain no entries. Hence marking row count to 0
                 cy.openViewsTab("SalesByStore", 0);

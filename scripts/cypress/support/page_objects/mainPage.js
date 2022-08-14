@@ -309,9 +309,9 @@ export class _mainPage {
         cy.getActiveMenu().contains("Add Sort Option").click();
         // cy.get(".nc-sort-field-select div").first().click().type(field);
         cy.get(".nc-sort-field-select div").first().click();
-        cy.get('.ant-select-dropdown').find(`.ant-select-item`).contains(field).should('exist').click();
+        cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(field).should('exist').click();
         cy.get(".nc-sort-dir-select div").first().click();
-        cy.get('.ant-select-dropdown').find(`.ant-select-item`).contains(criteria).should('exist').click();
+        cy.get('.ant-select-dropdown:visible').find(`.ant-select-item`).contains(criteria).should('exist').click();
         cy.get(".nc-sort-menu-btn").click();
     };
 
@@ -326,10 +326,10 @@ export class _mainPage {
         cy.contains("Add Filter").click();
         // cy.get(".nc-filter-field-select").should("exist").last().click().type(field);
         cy.get(".nc-filter-field-select").should("exist").last().click();
-        cy.get('.ant-select-dropdown').find(`.ant-select-item`).contains(field).should('exist').click();
+        cy.get('.ant-select-dropdown:visible').should('exist').find(`.ant-select-item`).contains(field).should('exist').click();
         cy.wait(1000);
         cy.get(".nc-filter-operation-select").should("exist").last().click();
-        cy.get('.ant-select-dropdown').find(`.ant-select-item`).contains(operation).should('exist').click();
+        cy.get('.ant-select-dropdown:visible').should('exist').find(`.ant-select-item`).contains(operation).should('exist').click();
         if (operation != "is null" && operation != "is not null") {
             cy.get(".nc-filter-value-select")
                 .should("exist")
@@ -478,8 +478,8 @@ export class _mainPage {
         // option-2
         // cy.openTableTab("Country", 0);
         // cy.get(".mdi-close").click({ multiple: true });
-        cy.get("button.ant-tabs-tab-remove").click({ multiple: true });
-        cy.get('.ant-tabs-tab-remove').should('not.exist')
+        // cy.get("button.ant-tabs-tab-remove").click({ multiple: true });
+        // cy.get('.ant-tabs-tab-remove').should('not.exist')
     }
 }
 

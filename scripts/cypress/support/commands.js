@@ -354,10 +354,10 @@ Cypress.Commands.add("openViewsTab", (vn, rc) => {
       .contains(vn)
       .should('exist')
       .click({ force: true });
-    cy.get('.xc-row-table.nc-grid').should('exist');
 
     // wait for page rendering to complete
     if (rc != 0) {
+        cy.get('.xc-row-table.nc-grid').should('exist');
         cy.get(".nc-grid-row").should("have.length", rc);
     }
 });
@@ -367,6 +367,7 @@ Cypress.Commands.add("closeViewsTab", (vn) => {
     cy.get('.ant-tabs-tab-btn')
       .contains(vn)
       .should('exist')
+      .parent()
       .parent()
       .find('button')
       .click();

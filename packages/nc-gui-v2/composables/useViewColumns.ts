@@ -55,6 +55,15 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
   }
 
   const showAll = async (ignoreIds?: any) => {
+    if (isPublic.value) {
+      fields.value = fields.value?.map((field) => ({
+        ...field,
+        show: true,
+      }))
+      reloadData?.()
+      return
+    }
+
     if (view?.value?.id) {
       if (ignoreIds) {
         await $api.dbView.showAllColumn(view.value.id, {
@@ -69,6 +78,14 @@ export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRe
     reloadData?.()
   }
   const hideAll = async (ignoreIds?: any) => {
+    if (isPublic.value) {
+      fields.value = fields.value?.map((field) => ({
+        ...field,
+        show: false,
+      }))
+      reloadData?.()
+      return
+    }
     if (view?.value?.id) {
       if (ignoreIds) {
         await $api.dbView.hideAllColumn(view.value.id, {

@@ -82,9 +82,7 @@ const {
 } = useViewData(meta, view as any, xWhere)
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
-onMounted(() => {
-  loadGridViewColumns()
-})
+onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
 
@@ -97,8 +95,8 @@ provide(ChangePageInj, changePage)
 provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
-  loadAggCommentsCount()
   await loadData()
+  loadAggCommentsCount()
 })
 
 const selectCell = (row: number, col: number) => {

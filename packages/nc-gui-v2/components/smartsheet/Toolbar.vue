@@ -8,7 +8,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 </script>
 
 <template>
-  <div class="nc-table-toolbar w-full py-1 flex gap-1 items-center" style="z-index: 7">
+  <div class="nc-table-toolbar w-full py-1 flex gap-1 items-center h-[48px] px-2 border-b" style="z-index: 7">
     <SmartsheetToolbarFieldsMenu v-if="isGrid || isGallery" :show-system-fields="false" class="ml-1" />
 
     <SmartsheetToolbarColumnFilterMenu v-if="isGrid || isGallery" />
@@ -19,7 +19,7 @@ const isPublic = inject(IsPublicInj, ref(false))
 
     <SmartsheetToolbarMoreActions v-if="(isGrid && !isPublic) || (isGrid && isPublic && allowCSVDownload)" />
     <div class="flex-1" />
-    <SmartsheetToolbarSearchData v-if="isGrid || isGallery" class="shrink mr-2" />
+    <SmartsheetToolbarSearchData v-if="(isGrid || isGallery) && !isPublic" class="shrink mr-2" />
   </div>
 </template>
 

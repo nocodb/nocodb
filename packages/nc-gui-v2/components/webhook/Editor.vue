@@ -1,8 +1,6 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
-import { MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg, fieldRequiredValidator } from '~/utils'
-import { inject, reactive, useApi, useNuxtApp } from '#imports'
+import { inject, reactive, useApi, useNuxtApp, extractSdkResponseErrorMsg, fieldRequiredValidator, MetaInj } from '#imports'
 
 const emit = defineEmits(['backToList', 'editOrAdd'])
 

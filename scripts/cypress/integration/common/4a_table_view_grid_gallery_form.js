@@ -1,6 +1,8 @@
 import { mainPage } from "../../support/page_objects/mainPage";
 import { isTestSuiteActive } from "../../support/page_objects/projectConstants";
 
+let viewTypeString = ["", "Form", "Gallery", "Grid"];
+
 export const genTest = (apiType, dbType) => {
     if (!isTestSuiteActive(apiType, dbType)) return;
 
@@ -17,6 +19,10 @@ export const genTest = (apiType, dbType) => {
             cy.openTableTab("Country", 25);
         });
 
+        beforeEach(() => {
+            cy.fileHook();
+        });
+
         after(() => {
             cy.closeTableTab("Country");
         });
@@ -30,23 +36,23 @@ export const genTest = (apiType, dbType) => {
                 cy.get(`.nc-create-${viewType}-view`).click();
 
                 // Pop up window, click Submit (accepting default name for view)
-                cy.getActiveModal().find("button:contains(Submit)").click();
+                // cy.getActiveModal().find("button:contains(Submit)").click();
+                cy.getActiveModal().find(".ant-btn-primary").click();
                 cy.toastWait("View created successfully");
 
-                // validate if view was creted && contains default name 'Country1'
+                // validate if view was created && contains default name 'Country1'
                 cy.get(`.nc-${viewType}-view-item`)
-                    .contains("Country1")
+                    .contains(`${viewTypeString[viewType]}-1`)
                     .should("exist");
-
-                cy.snip(`View_${viewType}`);
             });
 
-            it(`Edit ${viewType} view name`, () => {
+            it.skip(`Edit ${viewType} view name`, () => {
                 // click on edit-icon (becomes visible on hovering mouse)
-                cy.get(".nc-view-edit-icon").last().click({
-                    force: true,
-                    timeout: 1000,
-                });
+                // cy.get(".nc-view-edit-icon").last().click({
+                //     force: true,
+                //     timeout: 1000,
+                // });
+                cy.get(`.nc-${viewType}-view-item`).last().dblclick();
 
                 // feed new name
                 cy.get(`.nc-${viewType}-view-item input`).type(
@@ -65,7 +71,9 @@ export const genTest = (apiType, dbType) => {
                 cy.get(".nc-view-item").its("length").should("eq", 2);
 
                 // click on delete icon (becomes visible on hovering mouse)
-                cy.get(".nc-view-delete-icon").click({ force: true });
+                cy.get(`.nc-${viewType}-view-item`).last().trigger("mouseover").click();
+                cy.get(".nc-view-delete-icon").should('exist').click({ force: true });
+                cy.getActiveModal().find(".ant-btn-dangerous").click();
                 cy.toastWait("View deleted successfully");
 
                 // confirm if the number of veiw entries is reduced by 1
@@ -74,10 +82,9 @@ export const genTest = (apiType, dbType) => {
         };
 
         // below four scenario's will be invoked twice, once for rest & then for graphql
-        viewTest("grid");
-        viewTest("gallery");
-        viewTest("form");
-        // viewTest("kanban");
+        viewTest("3");  // grid view
+        viewTest("2");  // gallery view
+        viewTest("1");  // form view
     });
 };
 

@@ -19,7 +19,9 @@ const page = computed({
 
 <template>
   <div class="flex items-center">
-    <span v-if="count !== null && count !== Infinity" class="caption ml-2"> {{ count }} record{{ count !== 1 ? 's' : '' }} </span>
+    <span v-if="count !== null && count !== Infinity" class="caption ml-5 text-gray-500">
+      {{ count }} record{{ count !== 1 ? 's' : '' }}
+    </span>
 
     <div class="flex-1" />
 
@@ -27,7 +29,7 @@ const page = computed({
       v-if="count !== Infinity"
       v-model:current="page"
       size="small"
-      class="!text-xs !m-1"
+      class="!text-xs !m-1 nc-pagination"
       :total="count"
       :page-size="size"
       show-less-items
@@ -50,5 +52,12 @@ const page = computed({
 :deep(.ant-pagination-item a) {
   line-height: 21px !important;
   @apply text-sm;
+}
+:deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {
+  line-height: 21px !important;
+  @apply text-sm text-gray-500;
+}
+:deep(.ant-pagination-item-link) {
+  @apply text-gray-500;
 }
 </style>

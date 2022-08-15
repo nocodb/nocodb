@@ -183,6 +183,7 @@ function onDeleted() {
       :class="[
         isMarked === view.id ? 'bg-gray-200' : '',
         route.params.viewTitle && route.params.viewTitle.includes(view.title) ? 'active' : '',
+        `nc-view-item nc-${view.type}-view-item`,
       ]"
       @change-view="changeView"
       @open-modal="$emit('openModal', $event)"

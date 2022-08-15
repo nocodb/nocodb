@@ -36,47 +36,47 @@ const additionalColMeta = useColumn(column as Ref<ColumnType>)
 const icon = computed(() => {
   if (column?.value?.pk) {
     return KeyIcon
-  } else if (additionalColMeta.isJSON) {
+  } else if (additionalColMeta.isJSON.value) {
     return JSONIcon
-  } else if (additionalColMeta.isDate) {
+  } else if (additionalColMeta.isDate.value) {
     return CalendarIcon
-  } else if (additionalColMeta.isDateTime) {
+  } else if (additionalColMeta.isDateTime.value) {
     return DatetimeIcon
-  } else if (additionalColMeta.isSet) {
+  } else if (additionalColMeta.isSet.value) {
     return MultiSelectIcon
-  } else if (additionalColMeta.isSingleSelect) {
+  } else if (additionalColMeta.isSingleSelect.value) {
     return SingleSelectIcon
-  } else if (additionalColMeta.isBoolean) {
+  } else if (additionalColMeta.isBoolean.value) {
     return BooleanIcon
-  } else if (additionalColMeta.isTextArea) {
+  } else if (additionalColMeta.isTextArea.value) {
     return TextAreaIcon
-  } else if (additionalColMeta.isEmail) {
+  } else if (additionalColMeta.isEmail.value) {
     return EmailIcon
-  } else if (additionalColMeta.isYear) {
+  } else if (additionalColMeta.isYear.value) {
     return CalendarIcon
-  } else if (additionalColMeta.isTime) {
+  } else if (additionalColMeta.isTime.value) {
     return ClockIcon
-  } else if (additionalColMeta.isRating) {
+  } else if (additionalColMeta.isRating.value) {
     return RatingIcon
-  } else if (additionalColMeta.isAttachment) {
+  } else if (additionalColMeta.isAttachment.value) {
     return AttachmentIcon
-  } else if (additionalColMeta.isDecimal) {
+  } else if (additionalColMeta.isDecimal.value) {
     return DecimalIcon
-  } else if (additionalColMeta.isPhoneNumber) {
+  } else if (additionalColMeta.isPhoneNumber.value) {
     return FilePhoneIcon
   }
   // else if(additionalColMeta.isForeignKey) {
   //   return FKIcon
   // }
-  else if (additionalColMeta.isURL) {
+  else if (additionalColMeta.isURL.value) {
     return WebIcon
-  } else if (additionalColMeta.isCurrency) {
+  } else if (additionalColMeta.isCurrency.value) {
     return CurrencyIcon
-  } else if (additionalColMeta.isPercent) {
+  } else if (additionalColMeta.isPercent.value) {
     return PercentIcon
-  } else if (additionalColMeta.isInt || additionalColMeta.isFloat) {
+  } else if (additionalColMeta.isInt.value || additionalColMeta.isFloat.value) {
     return NumericIcon
-  } else if (additionalColMeta.isString) {
+  } else if (additionalColMeta.isString.value) {
     return StringIcon
   } else {
     return GenericIcon

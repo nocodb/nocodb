@@ -1,9 +1,8 @@
 <script setup lang="ts">
 import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
-import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
-import { provide, toRef, useMetas, useProvideColumnCreateStore } from '#imports'
+import { provide, toRef, useMetas } from '#imports'
 
 const props = defineProps<{ column: ColumnType & { meta: any }; hideMenu?: boolean; required?: boolean }>()
 
@@ -90,8 +89,6 @@ function onVisibleChange() {
   // by clicking cancel button
   editColumnDropdown.value = true
 }
-
-useProvideColumnCreateStore(meta as Ref<TableType>, column)
 </script>
 
 <template>
@@ -126,12 +123,14 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     >
       <div />
       <template #overlay>
-        <SmartsheetColumnEditOrAdd
+        <SmartsheetColumnEditOrAddProvider
+          v-if="editColumnDropdown"
+          :column="column"
           class="w-full"
-          :edit-column-dropdown="editColumnDropdown"
+          @submit="editColumnDropdown = false"
+          @cancel="editColumnDropdown = false"
           @click.stop
           @keydown.stop
-          @cancel="editColumnDropdown = false"
         />
       </template>
     </a-dropdown>

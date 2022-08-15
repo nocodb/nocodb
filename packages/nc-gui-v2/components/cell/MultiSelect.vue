@@ -1,11 +1,12 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
 import type { SelectOptionType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject } from '#imports'
+import { ActiveCellInj, ColumnInj, computed, inject } from '#imports'
+import { EditModeInj } from '~/context'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue?: string | string[]
+  modelValue?: string | string[] | undefined
 }
 
 const { modelValue } = defineProps<Props>()
@@ -18,7 +19,7 @@ const column = inject(ColumnInj)
 
 // const isForm = inject<boolean>('isForm', false)
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const active = inject(ActiveCellInj, ref(false))
 

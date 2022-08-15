@@ -11,7 +11,6 @@ import {
   ref,
   useEventListener,
   useGridViewColumnWidth,
-  useProvideColumnCreateStore,
   useSmartsheetStoreOrThrow,
   useViewData,
   watch,
@@ -92,7 +91,7 @@ provide(PaginationDataInj, paginationData)
 
 provide(ChangePageInj, changePage)
 
-provide(ReadonlyInj, isUIAllowed('xcDatatableEditable'))
+provide(ReadonlyInj, !isUIAllowed('xcDatatableEditable'))
 
 reloadViewDataHook?.on(async () => {
   await loadData()
@@ -126,9 +125,6 @@ const onXcResizing = (cn: string, event: any) => {
 defineExpose({
   loadData,
 })
-
-// instantiate column create store
-if (meta) useProvideColumnCreateStore(meta)
 
 // reset context menu target on hide
 watch(contextMenu, () => {
@@ -298,9 +294,9 @@ const expandForm = (row: Row, state: Record<string, any>) => {
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
         <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
           <thead>
-            <tr class="nc-grid-header">
+            <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
               <th>
-                <div class="w-full h-full bg-gray-100 flex w-[80px] px-1 items-center">
+                <div class="w-full h-full bg-gray-100 flex min-w-[80px] pl-5 pr-1 items-center">
                   <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                   <div
                     :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
@@ -329,14 +325,20 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 </div>
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
-              <th v-if="isUIAllowed('add-column')" v-t="['c:column:add']" @click="addColumnDropdown = true">
+              <th v-if="isUIAllowed('add-column')" v-t="['c:column:add']" @click.stop="addColumnDropdown = true">
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlus class="text-sm" />
                   </div>
 
                   <template #overlay>
-                    <SmartsheetColumnEditOrAdd @click.stop @keydown.stop @cancel="addColumnDropdown = false" />
+                    <SmartsheetColumnEditOrAddProvider
+                      v-if="addColumnDropdown"
+                      @submit="addColumnDropdown = false"
+                      @cancel="addColumnDropdown = false"
+                      @click.stop
+                      @keydown.stop
+                    />
                   </template>
                 </a-dropdown>
               </th>
@@ -346,33 +348,30 @@ const expandForm = (row: Row, state: Record<string, any>) => {
             <SmartsheetRow v-for="(row, rowIndex) of data" :key="rowIndex" :row="row">
               <template #default="{ state }">
                 <tr class="nc-grid-row">
-                  <td key="row-index" class="caption nc-grid-cell">
-                    <div class="align-center flex w-[80px]">
+                  <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
+                    <div class="align-center flex min-w-[80px]">
                       <div class="nc-row-no" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
                       <div
                         :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
                         class="nc-row-expand-and-checkbox"
                       >
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
-                        <span class="flex-1" />
-                        <div class="nc-expand">
-                          <span
-                            v-if="row.rowMeta?.commentCount"
-                            class="py-1 px-3 rounded-full text-xs"
-                            :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                      </div>
+                      <span class="flex-1" />
+                      <div class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+                        <span
+                          v-if="row.rowMeta?.commentCount"
+                          class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
+                          :style="{ backgroundColor: enumColor.light[row.rowMeta.commentCount % enumColor.light.length] }"
+                          @click="expandForm(row, state)"
+                        >
+                          {{ row.rowMeta.commentCount }}
+                        </span>
+                        <div v-else class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10">
+                          <MdiArrowExpand
+                            class="select-none transform hover:(text-pink-500 scale-120) nc-row-expand"
                             @click="expandForm(row, state)"
-                          >
-                            {{ row.rowMeta.commentCount }}
-                          </span>
-                          <div
-                            v-else
-                            class="cursor-pointer flex items-center border-1 active:ring rounded p-1 hover:bg-primary/10"
-                          >
-                            <MdiArrowExpand
-                              class="select-none transform hover:(text-pink-500 scale-120)"
-                              @click="expandForm(row, state)"
-                            />
-                          </div>
+                          />
                         </div>
                       </div>
                     </div>
@@ -420,9 +419,9 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               </template>
             </SmartsheetRow>
 
-            <!-- 
+            <!--
               TODO: add relationType !== 'bt' ?
-              v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'"> 
+              v1: <tr v-if="!isView && !isLocked && !isPublicView && isEditable && relationType !== 'bt'">
             -->
             <tr v-if="!isView && !isLocked && !isPublicView && isUIAllowed('xcDatatableEditable')">
               <td
@@ -431,8 +430,8 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 class="text-left pointer nc-grid-add-new-cell"
                 @click="addEmptyRow()"
               >
-                <div class="px-2 w-full flex items-center">
-                  <MdiPlus class="text-pint-500 text-xs" />
+                <div class="px-2 w-full flex items-center text-gray-500">
+                  <MdiPlus class="text-pint-500 text-xs ml-2" />
 
                   <span class="ml-1">
                     {{ $t('activity.addRow') }}
@@ -482,7 +481,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
     position: relative;
   }
 
-  td > div {
+  td:not(:first-child) > div {
     overflow: hidden;
     @apply flex align-center h-auto px-1;
   }
@@ -532,10 +531,15 @@ const expandForm = (row: Row, state: Record<string, any>) => {
 
 .nc-grid-row {
   .nc-row-expand-and-checkbox {
-    @apply w-full items-center justify-between p-1;
+    @apply w-full items-center justify-between;
   }
   .nc-expand {
-    @apply hidden;
+    &:not(.nc-comment) {
+      @apply hidden;
+    }
+    &.nc-comment {
+      display: flex;
+    }
   }
 
   &:hover {
@@ -554,6 +558,11 @@ const expandForm = (row: Row, state: Record<string, any>) => {
 }
 
 .nc-grid-header {
+  position: sticky;
+  top: -1px;
+
+  @apply z-1;
+
   &:hover {
     .nc-no-label {
       @apply hidden;

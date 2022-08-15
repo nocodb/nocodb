@@ -30,8 +30,6 @@ const meta = inject(MetaInj)
 
 const view = inject(ActiveViewInj)
 
-if (meta) useProvideColumnCreateStore(meta)
-
 const { loadFormView, insertRow, formColumnData, formViewData, updateFormView } = useViewData(meta, view as any)
 
 const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, false, async () => {
@@ -46,8 +44,6 @@ const localColumns = ref<Record<string, any>>([])
 const hiddenColumns = ref<Record<string, any>>([])
 
 const draggableRef = ref()
-
-const editOrAddRef = ref()
 
 const systemFieldsIds = ref<Record<string, any>>([])
 
@@ -293,10 +289,6 @@ onClickOutside(draggableRef, () => {
   activeRow.value = ''
 })
 
-onClickOutside(editOrAddRef, () => {
-  showColumnDropdown.value = false
-})
-
 onMounted(async () => {
   await loadFormView()
   setFormData()
@@ -390,7 +382,7 @@ onMounted(async () => {
             {{ $t('msg.info.dragDropHide') }}
           </div>
           <a-dropdown v-model:visible="showColumnDropdown" :trigger="['click']">
-            <a-button type="link" class="w-full caption mt-2" size="large" @click="showColumnDropdown = true">
+            <a-button type="link" class="w-full caption mt-2" size="large" @click.stop="showColumnDropdown = true">
               <div class="flex items-center prose-sm justify-center text-gray-400">
                 <mdi-plus />
                 <!-- Add new field to this table -->
@@ -398,7 +390,13 @@ onMounted(async () => {
               </div>
             </a-button>
             <template #overlay>
-              <SmartsheetColumnEditOrAdd ref="editOrAddRef" @submit="submitCallback" @cancel="showColumnDropdown = false" />
+              <SmartsheetColumnEditOrAddProvider
+                v-if="showColumnDropdown"
+                @submit="submitCallback"
+                @cancel="showColumnDropdown = false"
+                @click.stop
+                @keydown.stop
+              />
             </template>
           </a-dropdown>
         </template>

@@ -1,9 +1,10 @@
 <script lang="ts" setup>
 import type { VNodeRef } from '@vue/runtime-core'
-import { ReadonlyInj, computed, inject, isEmail, useVModel } from '#imports'
+import { computed, inject, isEmail, useVModel } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string | null
+  modelValue: string | null | undefined
 }
 
 interface Emits {
@@ -14,7 +15,7 @@ const props = defineProps<Props>()
 
 const emits = defineEmits<Emits>()
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const vModel = useVModel(props, 'modelValue', emits)
 
@@ -24,8 +25,8 @@ const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
 </script>
 
 <template>
-  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none prose-sm" @blur="editEnabled = false" />
-  <a v-else-if="validEmail" class="prose-sm underline hover:opacity-75" :href="`mailto:${vModel}`" target="_blank">
+  <input v-if="editEnabled" :ref="focus" v-model="vModel" class="outline-none text-sm" @blur="editEnabled = false" />
+  <a v-else-if="validEmail" class="text-sm underline hover:opacity-75" :href="`mailto:${vModel}`" target="_blank">
     {{ vModel }}
   </a>
   <span v-else>{{ vModel }}</span>

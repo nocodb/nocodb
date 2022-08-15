@@ -1,17 +1,9 @@
 <script setup lang="ts">
-import {
-  ColumnInj,
-  ReadonlyInj,
-  computed,
-  convertDurationToSeconds,
-  convertMS2Duration,
-  durationOptions,
-  inject,
-  ref,
-} from '#imports'
+import { ColumnInj, computed, convertDurationToSeconds, convertMS2Duration, durationOptions, inject, ref } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: number | string | null
+  modelValue: number | string | null | undefined
 }
 
 const { modelValue } = defineProps<Props>()
@@ -20,7 +12,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const showWarningMessage = ref(false)
 

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import { ColumnInj, ReadonlyInj, computed, inject } from '#imports'
+import { ColumnInj, computed, inject } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue?: number | null
+  modelValue?: number | null | undefined
 }
 
 const { modelValue } = defineProps<Props>()
@@ -11,7 +12,7 @@ const emits = defineEmits(['update:modelValue'])
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const ratingMeta = computed(() => {
   return {

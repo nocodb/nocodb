@@ -1,15 +1,10 @@
 <script setup lang="ts">
-import type { ColumnType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import type { ColumnType } from 'nocodb-sdk'
 import { inject, toRef } from 'vue'
-import { ColumnInj, IsFormInj, MetaInj } from '~/context'
-import { useProvideColumnCreateStore } from '#imports'
-
+import { ColumnInj, IsFormInj } from '~/context'
 const props = defineProps<{ column: ColumnType & { meta: any }; required?: boolean; hideMenu?: boolean }>()
 
 const hideMenu = toRef(props, 'hideMenu')
-
-const meta = inject(MetaInj)
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -26,9 +21,6 @@ function onVisibleChange() {
   // by clicking cancel button
   editColumnDropdown.value = true
 }
-
-// instantiate column update store
-useProvideColumnCreateStore(meta as Ref<TableType>, column)
 </script>
 
 <template>
@@ -50,12 +42,14 @@ useProvideColumnCreateStore(meta as Ref<TableType>, column)
     >
       <div />
       <template #overlay>
-        <SmartsheetColumnEditOrAdd
+        <SmartsheetColumnEditOrAddProvider
+          v-if="editColumnDropdown"
+          :column="column"
           class="w-full"
-          :edit-column-dropdown="editColumnDropdown"
+          @submit="editColumnDropdown = false"
+          @cancel="editColumnDropdown = false"
           @click.stop
           @keydown.stop
-          @cancel="editColumnDropdown = false"
         />
       </template>
     </a-dropdown>

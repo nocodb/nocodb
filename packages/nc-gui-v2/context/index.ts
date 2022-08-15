@@ -22,6 +22,5 @@ export const ReadonlyInj: InjectionKey<any> = Symbol('readonly-injection')
 export const ReloadViewDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-view-data-injection')
 export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')
 export const ViewListInj: InjectionKey<Ref<ViewType[]>> = Symbol('view-list-injection')
-
 export const RightSidebarInj: InjectionKey<Ref<boolean>> = Symbol('right-sidebar-injection')
-export const EditModeInj: InjectionKey<ComputedRef<boolean>> = Symbol('edit-mode-injection')
+export const EditModeInj: InjectionKey<Ref<boolean>> = Symbol('edit-mode-injection')

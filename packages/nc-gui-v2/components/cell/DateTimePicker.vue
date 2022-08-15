@@ -1,9 +1,9 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ReadonlyInj } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string | null
+  modelValue: string | null | undefined
 }
 
 const { modelValue } = defineProps<Props>()
@@ -12,7 +12,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 let isDateInvalid = $ref(false)
 

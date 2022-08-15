@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { useColumnCreateStoreOrThrow, useProject } from '#imports'
+import { useProject } from '#imports'
 import { currencyCodes, currencyLocales, validateCurrencyCode, validateCurrencyLocale } from '@/utils'
+
+interface Props {
+  value: Record<string, any>
+}
+
+const props = defineProps<Props>()
+const emit = defineEmits(['update:value'])
+const vModel = useVModel(props, 'value', emit)
 
 interface Option {
   label: string
   value: string
 }
-
-const { formState, validateInfos, setAdditionalValidations } = useColumnCreateStoreOrThrow()
 
 const validators = {
   'meta.currency_locale': [
@@ -36,7 +42,8 @@ const validators = {
   ],
 }
 
-// set additional validations
+const { setAdditionalValidations, validateInfos } = useColumnCreateStoreOrThrow()
+
 setAdditionalValidations({
   ...validators,
 })
@@ -47,7 +54,7 @@ const currencyList = currencyCodes || []
 
 const currencyLocaleList = currencyLocales() || []
 
-const isMoney = computed(() => formState.value.dt === 'money')
+const isMoney = computed(() => vModel.value.dt === 'money')
 
 const message = computed(() => {
   if (isMoney.value && isPg) return "PostgreSQL 'money' type has own currency settings"
@@ -59,10 +66,10 @@ function filterOption(input: string, option: Option) {
 }
 
 // set default value
-formState.value.meta = {
+vModel.value.meta = {
   currency_locale: 'en-US',
   currency_code: 'USD',
-  ...formState.value.meta,
+  ...vModel.value.meta,
 }
 </script>
 
@@ -71,7 +78,7 @@ formState.value.meta = {
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.currency_locale']" label="Currency Locale">
         <a-select
-          v-model:value="formState.meta.currency_locale"
+          v-model:value="vModel.meta.currency_locale"
           class="w-52"
           show-search
           :filter-option="filterOption"
@@ -86,7 +93,7 @@ formState.value.meta = {
     <a-col :span="12">
       <a-form-item v-bind="validateInfos['meta.currency_code']" label="Currency Code">
         <a-select
-          v-model:value="formState.meta.currency_code"
+          v-model:value="vModel.meta.currency_code"
           class="w-52"
           show-search
           :filter-option="filterOption"

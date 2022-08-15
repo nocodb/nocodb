@@ -1,16 +1,17 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
-import { ReadonlyInj, inject } from '#imports'
+import { inject } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
-  modelValue: string | null
+  modelValue: string | null | undefined
 }
 
 const props = defineProps<Props>()
 
 const emits = defineEmits(['update:modelValue'])
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const vModel = useVModel(props, 'modelValue', emits)
 

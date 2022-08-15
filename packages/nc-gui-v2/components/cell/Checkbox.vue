@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { ColumnInj, IsFormInj, getMdiIcon, inject } from '#imports'
+import { EditModeInj } from '~/context'
 
 interface Props {
   modelValue?: boolean | undefined | number
@@ -19,7 +20,7 @@ const column = inject(ColumnInj)
 
 const isForm = inject(IsFormInj)
 
-const editEnabled = inject(ReadonlyInj)
+const editEnabled = inject(EditModeInj)
 
 const checkboxMeta = $computed(() => {
   return {

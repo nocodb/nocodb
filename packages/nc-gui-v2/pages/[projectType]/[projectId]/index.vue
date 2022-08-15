@@ -286,4 +286,8 @@ const isHovered = useElementHover(sidebar)
 :deep(.ant-dropdown-menu-item) {
   @apply !py-0 active:(ring ring-pink-500);
 }
+
+:deep(.ant-dropdown-trigger) {
+  @apply h-full;
+}
 </style>

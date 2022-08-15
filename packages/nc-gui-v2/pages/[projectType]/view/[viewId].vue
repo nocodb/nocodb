@@ -4,6 +4,7 @@ import { ReadonlyInj, ReloadViewDataHookInj } from '~/context'
 import { useRoute } from '#imports'
 definePageMeta({
   requiresAuth: false,
+  layout: 'shared-view',
 })
 
 const route = useRoute()
@@ -23,7 +24,7 @@ try {
 </script>
 
 <template>
-  <NuxtLayout id="content" class="flex">
+  <NuxtLayout id="content" class="flex" name="shared-view">
     <div v-if="showPassword">
       <SharedViewAskPassword v-model="showPassword" />
     </div>

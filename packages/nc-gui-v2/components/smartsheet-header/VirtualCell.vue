@@ -114,6 +114,7 @@ function onVisibleChange() {
     <span v-if="column.rqd || required" class="text-red-500">&nbsp;*</span>
 
     <template v-if="!hideMenu">
+      <div class="flex-1" />
       <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 

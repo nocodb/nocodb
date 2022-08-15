@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { substituteColumnIdWithAliasInFormula } from 'nocodb-sdk'
-import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType, TableType } from 'nocodb-sdk'
-import type { Ref } from 'vue'
+import type { ColumnType, FormulaType, LinkToAnotherRecordType, LookupType, RollupType } from 'nocodb-sdk'
 import { ColumnInj, IsFormInj, MetaInj } from '~/context'
 import { provide, toRef, useMetas } from '#imports'
 

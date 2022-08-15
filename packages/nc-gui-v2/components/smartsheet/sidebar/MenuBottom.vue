@@ -41,7 +41,11 @@ function onOpenModal(type: ViewTypes, title = '') {
         {{ $t('activity.createView') }}
       </h3>
 
-      <a-menu-item key="grid" class="group !flex !items-center !my-0 !h-[30px] nc-create-3-view" @click="onOpenModal(ViewTypes.GRID)">
+      <a-menu-item
+        key="grid"
+        class="group !flex !items-center !my-0 !h-[30px] nc-create-3-view"
+        @click="onOpenModal(ViewTypes.GRID)"
+      >
         <a-tooltip placement="left">
           <template #title>
             {{ $t('msg.info.addView.grid') }}
@@ -59,7 +63,11 @@ function onOpenModal(type: ViewTypes, title = '') {
         </a-tooltip>
       </a-menu-item>
 
-      <a-menu-item key="gallery" class="group !flex !items-center !-my0 !h-[30px] nc-create-2-view" @click="onOpenModal(ViewTypes.GALLERY)">
+      <a-menu-item
+        key="gallery"
+        class="group !flex !items-center !-my0 !h-[30px] nc-create-2-view"
+        @click="onOpenModal(ViewTypes.GALLERY)"
+      >
         <a-tooltip placement="left">
           <template #title>
             {{ $t('msg.info.addView.gallery') }}

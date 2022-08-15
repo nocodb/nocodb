@@ -61,7 +61,7 @@ const icon = (tab: TabItem) => {
               <a-sub-menu key="addORImport">
                 <template #title>
                   <div class="text-sm flex items-center gap-2 pt-[8px] pb-3">
-                    <MdiPlusBoxOutline/>
+                    <MdiPlusBoxOutline />
                     Add / Import
                   </div>
                 </template>

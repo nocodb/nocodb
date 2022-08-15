@@ -1,7 +1,17 @@
 <script setup lang="ts">
-import { navigateTo, onKeyStroke, provideSidebar, ref, useProject, useRoute, useTabs, useUIPermission } from '#imports'
+import {
+  navigateTo,
+  onKeyStroke,
+  openLink,
+  provideSidebar,
+  ref,
+  useElementHover,
+  useProject,
+  useRoute,
+  useTabs,
+  useUIPermission,
+} from '#imports'
 import { TabType } from '~/composables'
-import { openLink } from '~/utils'
 
 const route = useRoute()
 
@@ -19,6 +29,9 @@ const dialogOpen = ref(false)
 const openDialogKey = ref<string>()
 
 const dropdownOpen = ref(false)
+
+/** Sidebar ref */
+const sidebar = ref()
 
 onKeyStroke(
   'Escape',
@@ -42,12 +55,15 @@ function toggleDialog(value?: boolean, key?: string) {
 await loadProject()
 
 await loadTables()
+
+const isHovered = useElementHover(sidebar)
 </script>
 
 <template>
   <NuxtLayout id="content" class="flex">
     <template #sidebar>
       <a-layout-sider
+        ref="sidebar"
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
@@ -68,6 +84,7 @@ await loadTables()
           >
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
+
           <a
             v-if="isOpen && isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
@@ -81,6 +98,7 @@ await loadTables()
             <template v-if="isOpen">
               <div class="text-xl font-semibold truncate">{{ project.title }}</div>
             </template>
+
             <template v-else>
               <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
             </template>
@@ -115,6 +133,7 @@ await loadTables()
 
                         <div class="flex items-center gap-1">
                           <div class="group-hover:(!text-primary)">ID:</div>
+
                           <div class="text-xs group-hover:text-pink-500 truncate font-italic">{{ project.id }}</div>
                         </div>
                       </div>
@@ -216,24 +235,27 @@ await loadTables()
           </a-dropdown>
         </div>
 
-        <a-tooltip placement="right">
+        <a-tooltip mouse-enter-delay="1000" placement="right">
           <template #title> Toggle table list </template>
 
-          <div
-            class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"
-          >
-            <MaterialSymbolsChevronLeftRounded
-              v-if="isOpen"
-              class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-              @click="toggle(false)"
-            />
+          <Transition name="layout">
+            <div
+              v-show="isHovered"
+              class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"
+            >
+              <MaterialSymbolsChevronLeftRounded
+                v-if="isOpen"
+                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                @click="toggle(false)"
+              />
 
-            <MaterialSymbolsChevronRightRounded
-              v-else
-              class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-              @click="toggle(true)"
-            />
-          </div>
+              <MaterialSymbolsChevronRightRounded
+                v-else
+                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                @click="toggle(true)"
+              />
+            </div>
+          </Transition>
         </a-tooltip>
 
         <DashboardTreeView v-show="isOpen" />
@@ -241,6 +263,7 @@ await loadTables()
     </template>
 
     <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
+
     <NuxtPage />
 
     <GeneralPreviewAs float />

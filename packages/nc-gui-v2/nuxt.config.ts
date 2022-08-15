@@ -51,6 +51,9 @@ export default defineNuxtConfig({
     // todo: minifiy again
     build: {
       minify: false,
+      rollupOptions: {
+        external: 'httpsnippet',
+      },
     },
     css: {
       preprocessorOptions: {

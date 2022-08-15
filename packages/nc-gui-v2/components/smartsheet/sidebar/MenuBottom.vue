@@ -46,7 +46,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         class="group !flex !items-center !my-0 !h-[30px] nc-create-3-view"
         @click="onOpenModal(ViewTypes.GRID)"
       >
-        <a-tooltip placement="left">
+        <a-tooltip mouse-enter-delay="1000" placement="left">
           <template #title>
             {{ $t('msg.info.addView.grid') }}
           </template>
@@ -68,7 +68,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         class="group !flex !items-center !-my0 !h-[30px] nc-create-2-view"
         @click="onOpenModal(ViewTypes.GALLERY)"
       >
-        <a-tooltip placement="left">
+        <a-tooltip mouse-enter-delay="1000" placement="left">
           <template #title>
             {{ $t('msg.info.addView.gallery') }}
           </template>
@@ -91,7 +91,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         class="group !flex !items-center !my-0 !h-[30px] nc-create-1-view"
         @click="onOpenModal(ViewTypes.FORM)"
       >
-        <a-tooltip placement="left">
+        <a-tooltip mouse-enter-delay="1000" placement="left">
           <template #title>
             {{ $t('msg.info.addView.form') }}
           </template>
@@ -111,7 +111,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
     <SmartsheetSidebarMenuApiSnippet v-model="showApiSnippet" />
 
-    <div class="flex-auto justify-end flex flex-col gap-4 mt-4">
+    <div class="flex-auto justify-end flex flex-col gap-3 mt-3">
       <button
         v-if="isUIAllowed('virtualViewsCreateOrEdit')"
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs"

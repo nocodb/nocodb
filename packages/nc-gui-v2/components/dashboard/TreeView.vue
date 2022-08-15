@@ -137,7 +137,7 @@ const activeTable = computed(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <div class="px-6 py-[8.75px] border-b-1 nc-filter-input">
+    <div class="px-6 py-[9px] border-b-1 nc-filter-input">
       <div class="flex items-center bg-gray-50 rounded relative">
         <a-input
           v-model:value="filterQuery"

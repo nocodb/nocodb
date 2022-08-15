@@ -62,4 +62,8 @@ function onVisibleChange() {
   overflow: hidden;
   text-overflow: ellipsis;
 }
+
+:deep(.ant-dropdown-trigger) {
+  @apply h-full;
+}
 </style>

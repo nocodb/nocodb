@@ -20,8 +20,6 @@ const advancedOptions = ref(false)
 
 const { getMeta } = useMetas()
 
-const formulaOptionsRef = ref()
-
 const editOrAddRef = ref<HTMLElement>()
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]

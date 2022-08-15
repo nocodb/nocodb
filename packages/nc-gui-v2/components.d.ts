@@ -71,6 +71,8 @@ declare module '@vue/runtime-core' {
     IcRoundEdit: typeof import('~icons/ic/round-edit')['default']
     IcRoundKeyboardArrowDown: typeof import('~icons/ic/round-keyboard-arrow-down')['default']
     IcRoundSearch: typeof import('~icons/ic/round-search')['default']
+    MaterialSymbolsArrowCircleLeftRounded: typeof import('~icons/material-symbols/arrow-circle-left-rounded')['default']
+    MaterialSymbolsArrowCircleRightRounded: typeof import('~icons/material-symbols/arrow-circle-right-rounded')['default']
     MaterialSymbolsAttachFile: typeof import('~icons/material-symbols/attach-file')['default']
     MaterialSymbolsChevronLeftRounded: typeof import('~icons/material-symbols/chevron-left-rounded')['default']
     MaterialSymbolsChevronRightRounded: typeof import('~icons/material-symbols/chevron-right-rounded')['default']

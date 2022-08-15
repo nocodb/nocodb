@@ -49,7 +49,13 @@ const logout = () => {
 
           <div class="flex items-center mr-4">
             <a-button
-              v-if="isUIAllowed('newUser')"
+              v-if="
+                isUIAllowed('newUser') &&
+                route.name !== 'index' &&
+                route.name !== 'project-index-create' &&
+                route.name !== 'project-index-create-external' &&
+                route.name !== 'index-user-index'
+              "
               size="middle"
               type="primary"
               class="!bg-white !text-primary rounded"

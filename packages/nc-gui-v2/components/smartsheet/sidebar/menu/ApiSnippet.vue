@@ -172,5 +172,3 @@ const afterVisibleChange = (visible: boolean) => {
     </div>
   </a-drawer>
 </template>
-
-<style scoped></style>

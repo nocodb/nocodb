@@ -3,7 +3,7 @@ import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'noc
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
-import { computed, inject, provide, ref, useRoute, useRouter, useViews, watch } from '#imports'
+import { computed, inject, provide, ref, useElementHover, useRoute, useRouter, useViews, watch } from '#imports'
 import { ActiveViewInj, MetaInj, RightSidebarInj, ViewListInj } from '~/context'
 
 const meta = inject(MetaInj, ref())
@@ -25,6 +25,9 @@ const sidebarOpen = inject(RightSidebarInj, ref(true))
 
 const sidebarCollapsed = computed(() => !sidebarOpen.value)
 
+/** Sidebar ref */
+const sidebar = ref()
+
 /** View type to create from modal */
 let viewCreateType = $ref<ViewTypes>()
 
@@ -36,6 +39,8 @@ let selectedViewId = $ref('')
 
 /** is view creation modal open */
 let modalOpen = $ref(false)
+
+const isHovered = useElementHover(sidebar)
 
 /** Watch route param and change active view based on `viewTitle` */
 watch(
@@ -74,6 +79,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
 
 <template>
   <a-layout-sider
+    ref="sidebar"
     :collapsed="sidebarCollapsed"
     collapsiple
     collapsed-width="50"
@@ -81,24 +87,27 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     class="relative shadow-md h-full"
     theme="light"
   >
-    <a-tooltip placement="left">
+    <a-tooltip :mouse-enter-delay="1" placement="left">
       <template #title> Toggle sidebar </template>
 
-      <div
-        class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-1/2 left-[-1rem] shadow bg-gray-100 rounded-full"
-      >
-        <MaterialSymbolsChevronRightRounded
-          v-if="sidebarOpen"
-          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-          @click="sidebarOpen = false"
-        />
+      <Transition name="glow">
+        <div
+          v-show="sidebarCollapsed || isHovered"
+          class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-1/2 left-[-1rem] shadow bg-gray-100 rounded-full"
+        >
+          <MaterialSymbolsChevronRightRounded
+            v-if="sidebarOpen"
+            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+            @click="sidebarOpen = false"
+          />
 
-        <MaterialSymbolsChevronLeftRounded
-          v-else
-          class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-          @click="sidebarOpen = true"
-        />
-      </div>
+          <MaterialSymbolsChevronLeftRounded
+            v-else
+            class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+            @click="sidebarOpen = true"
+          />
+        </div>
+      </Transition>
     </a-tooltip>
 
     <Toolbar v-if="sidebarOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />

@@ -1,8 +1,17 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { computed, navigateTo, onMounted, ref, useApi, useNuxtApp, useSidebar } from '#imports'
-import { extractSdkResponseErrorMsg } from '~/utils'
+import {
+  computed,
+  extractSdkResponseErrorMsg,
+  navigateTo,
+  onMounted,
+  ref,
+  useApi,
+  useNuxtApp,
+  useSidebar,
+  useUIPermission,
+} from '#imports'
 
 const { $e } = useNuxtApp()
 
@@ -54,11 +63,14 @@ onMounted(() => {
 
 <template>
   <NuxtLayout>
-    <a-row>
-      <a-col :span="8"></a-col>
-      <a-col :span="8" class="!bg-red">
-        <a-card :loading="isLoading" class="mx-auto mt-10 !max-w-[600px] shadow-lg">
-          <h1 class="text-center text-4xl pa-2 nc-project-page-title flex align-center justify-center gap-2 text-gray-600">
+    <div class="flex flex-col md:flex-row flex-wrap gap-6 py-6 px-12">
+      <div class="hidden xl:(block)">
+        <GeneralSponsors />
+      </div>
+
+      <div class="min-w-2/4 flex-auto">
+        <a-card :loading="isLoading" class="!rounded-lg shadow">
+          <h1 class="text-center text-4xl p-2 nc-project-page-title flex items-center justify-center gap-2 text-gray-600">
             <!-- My Projects -->
             <b>{{ $t('title.myProject') }}</b>
 
@@ -66,16 +78,17 @@ onMounted(() => {
               v-t="['a:project:refresh']"
               class="text-sm text-gray-500 hover:text-primary mt-1 cursor-pointer"
               @click="loadProjects"
-            ></MdiRefresh>
+            />
           </h1>
 
-          <div class="flex mb-6">
+          <div class="order-1 flex mb-6">
             <a-input-search
               v-model:value="filterQuery"
               class="max-w-[200px] nc-project-page-search"
               :placeholder="$t('activity.searchProject')"
-            ></a-input-search>
-            <div class="flex-grow"></div>
+            />
+
+            <div class="flex-grow" />
 
             <a-dropdown v-if="isUIAllowed('projectCreate', true)" @click.stop>
               <a-button class="nc-new-project-menu !shadow">
@@ -93,14 +106,17 @@ onMounted(() => {
                     @click="navigateTo('/project/create')"
                   >
                     <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+
                     <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
                   </div>
+
                   <div
                     v-t="['c:project:create:extdb']"
                     class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-external-db-project"
                     @click="navigateTo('/project/create-external')"
                   >
                     <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
+
                     <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
                   </div>
                 </a-menu>
@@ -151,16 +167,16 @@ onMounted(() => {
             </a-table-column>
           </a-table>
         </a-card>
-      </a-col>
-      <a-col :span="8" class="">
-        <div class="justify-end flex">
+      </div>
+
+      <div class="flex gap-6 md:block">
+        <GeneralSocialCard />
+
+        <div class="block mt-0 md:(!mt-6) xl:hidden">
           <GeneralSponsors />
         </div>
-        <div class="justify-end flex">
-          <GeneralSocialCard />
-        </div>
-      </a-col>
-    </a-row>
+      </div>
+    </div>
   </NuxtLayout>
 </template>
 

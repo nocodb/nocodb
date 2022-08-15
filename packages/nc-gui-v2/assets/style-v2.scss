@@ -31,31 +31,6 @@ nav .v-list {
   @apply dark:bg-white
 }
 
-.page-enter-active,
-.page-leave-active,
-.layout-enter-active,
-.layout-leave-active {
-  @apply transition-opacity duration-300 ease-in-out;
-}
-
-.page-enter,
-.page-leave-active,
-.layout-enter,
-.layout-leave-active {
-  @apply opacity-0;
-}
-
-.slide-enter-active,
-.slide-leave-active {
-  @apply transition-all duration-200 ease-in-out;
-  transform: translate(100%, 0);
-}
-
-.slide-enter,
-.slide-leave-active {
-  transform: translate(-100%, 0);
-}
-
 a {
   @apply prose text-primary underline hover:opacity-75 dark:(text-secondary) hover:(opacity-75);
 }
@@ -152,4 +127,43 @@ html {
   100% {
     background-position: 0% 22%
   }
+}
+
+.page-enter-active,
+.page-leave-active,
+.layout-enter-active,
+.layout-leave-active {
+  @apply transition-opacity duration-300 ease-in-out;
+}
+
+.page-enter,
+.page-leave-active,
+.layout-enter,
+.layout-leave-active {
+  @apply opacity-0;
+}
+
+.slide-enter-active,
+.slide-leave-active {
+  @apply transition-all duration-200 ease-in-out;
+  transform: translate(100%, 0);
+}
+
+.slide-enter,
+.slide-leave-active {
+  transform: translate(-100%, 0);
+}
+
+.glow-enter-active,
+.glow-leave-active {
+  @apply transition-all duration-300 ease-in-out;
+}
+
+.glow-enter-active {
+  @apply ring ring-xl;
+}
+
+.glow-enter,
+.glow-leave-active {
+  @apply opacity-0;
 }

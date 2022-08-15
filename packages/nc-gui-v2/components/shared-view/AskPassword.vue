@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { notification } from 'ant-design-vue'
+import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg } from '~/utils'
 const props = defineProps<Props>()
 const emit = defineEmits(['update:modelValue'])
@@ -19,9 +19,7 @@ const onFinish = async () => {
     vModel.value = false
   } catch (e: any) {
     console.error(e)
-    notification.error({
-      message: await extractSdkResponseErrorMsg(e),
-    })
+    message.error(await extractSdkResponseErrorMsg(e))
   }
 }
 </script>

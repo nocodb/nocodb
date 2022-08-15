@@ -240,7 +240,7 @@ const isHovered = useElementHover(sidebar)
 
           <Transition name="layout">
             <div
-              v-show="isHovered"
+              v-show="!isOpen || isHovered"
               class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"
             >
               <MaterialSymbolsChevronLeftRounded

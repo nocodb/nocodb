@@ -113,7 +113,7 @@ const logout = () => {
         </Transition>
       </a-tooltip>
 
-      <div class="w-full h-full overflow-hidden">
+      <div style="height: calc(100% - var(--header-height))" class="w-full h-full overflow-hidden">
         <slot />
       </div>
     </a-layout>

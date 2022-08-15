@@ -48,6 +48,7 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    // todo: minifiy again
     build: {
       minify: false,
     },

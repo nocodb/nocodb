@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import HTTPSnippet from 'httpsnippet'
+// import HTTPSnippet from 'httpsnippet'
 import { useClipboard } from '@vueuse/core'
 import { message } from 'ant-design-vue'
 import { ActiveViewInj, MetaInj } from '~/context'
@@ -73,20 +73,7 @@ const apiUrl = $computed(
     new URL(`/api/v1/db/data/noco/${project.id}/${meta.title}/views/${view.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
 )
 
-const snippet = $computed(
-  () =>
-    new HTTPSnippet({
-      method: 'GET',
-      headers: [{ name: 'xc-auth', value: token as string, comment: 'JWT Auth token' }],
-      url: apiUrl,
-      queryString: Object.entries(queryParams || {}).map(([name, value]) => {
-        return {
-          name,
-          value: String(value),
-        }
-      }),
-    }),
-)
+const snippet = $computed(() => '')
 
 const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLangName))
 

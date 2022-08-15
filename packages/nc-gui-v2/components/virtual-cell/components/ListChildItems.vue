@@ -1,11 +1,22 @@
 <script lang="ts" setup>
 import { Empty, Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
-import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel, watch } from '#imports'
-import { ColumnInj, EditModeInj, IsFormInj } from '~/context'
+import {
+  ColumnInj,
+  EditModeInj,
+  IsFormInj,
+  computed,
+  useLTARStoreOrThrow,
+  useSmartsheetRowStoreOrThrow,
+  useVModel,
+  watch,
+} from '#imports'
 
 const props = defineProps<{ modelValue?: boolean }>()
+
 const emit = defineEmits(['update:modelValue', 'attachRecord'])
+
+const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/expanded-form/index.vue'))
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -120,14 +131,16 @@ const expandedFormRow = ref()
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
     </div>
 
-    <SmartsheetExpandedForm
-      v-if="expandedFormDlg && expandedFormRow"
-      v-model="expandedFormDlg"
-      :row="{ row: expandedFormRow }"
-      :meta="relatedTableMeta"
-      load-row
-      use-meta-fields
-    />
+    <Suspense>
+      <ExpandedForm
+        v-if="expandedFormRow"
+        v-model="expandedFormDlg"
+        :row="{ row: expandedFormRow }"
+        :meta="relatedTableMeta"
+        load-row
+        use-meta-fields
+      />
+    </Suspense>
   </component>
 </template>
 

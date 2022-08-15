@@ -73,7 +73,21 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     set: (val) => (storage.value.token = val),
   })
 
-  const appInfo = ref<AppInfo>({ ncSiteUrl: 'localhost:8080' })
+  const appInfo = ref<AppInfo>({
+    ncSiteUrl: 'localhost:8080',
+    authType: 'jwt',
+    connectToExternalDB: false,
+    defaultLimit: 0,
+    firstUser: true,
+    githubAuthEnabled: false,
+    googleAuthEnabled: true,
+    ncMin: false,
+    oneClick: false,
+    projectHasAdmin: false,
+    teleEnabled: true,
+    type: 'nocodb',
+    version: '0.0.0',
+  })
 
   /** reactive token payload */
   const { payload } = useJwt<JwtPayload & User>(token)

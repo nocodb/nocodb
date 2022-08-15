@@ -1,18 +1,24 @@
 <script lang="ts" setup>
 import * as XLSX from 'xlsx'
-import { ExportTypes } from 'nocodb-sdk'
+// todo: export types is missing EXCEL
+// import { ExportTypes } from 'nocodb-sdk'
 import FileSaver from 'file-saver'
 import { message } from 'ant-design-vue'
-import { useNuxtApp } from '#app'
-import { useProject } from '#imports'
-import { ActiveViewInj, MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg } from '~/utils'
-import MdiFlashIcon from '~icons/mdi/flash-outline'
-import MdiMenuDownIcon from '~icons/mdi/menu-down'
-import MdiDownloadIcon from '~icons/mdi/download-outline'
-import MdiUploadIcon from '~icons/mdi/upload-outline'
-import MdiHookIcon from '~icons/mdi/hook'
-import MdiViewListIcon from '~icons/mdi/view-list-outline'
+import {
+  ActiveViewInj,
+  MetaInj,
+  extractSdkResponseErrorMsg,
+  inject,
+  ref,
+  useNuxtApp,
+  useProject,
+  useUIPermission,
+} from '#imports'
+
+enum ExportTypes {
+  EXCEL = 'excel',
+  CSV = 'csv',
+}
 
 const sharedViewListDlg = ref(false)
 
@@ -21,14 +27,6 @@ const publicViewId = null
 const isView = false
 
 // TODO: pending for shared view
-
-// interface Props {
-//   publicViewId?: string
-//   queryParams?: Record<string, any>
-//   reqPayload?: Record<string, any>
-// }
-
-// const { publicViewId, queryParams, reqPayload } = defineProps<Props>()
 
 const { project } = useProject()
 
@@ -44,7 +42,7 @@ const quickImportDialog = ref(false)
 
 const { isUIAllowed } = useUIPermission()
 
-const exportFile = async (exportType: ExportTypes.EXCEL | ExportTypes.CSV) => {
+const exportFile = async (exportType: ExportTypes) => {
   let offset = 0
   let c = 1
   const responseType = exportType === ExportTypes.EXCEL ? 'base64' : 'blob'
@@ -114,52 +112,59 @@ const exportFile = async (exportType: ExportTypes.EXCEL | ExportTypes.CSV) => {
     <a-dropdown>
       <a-button v-t="['c:actions']" class="nc-actions-menu-btn nc-toolbar-btn">
         <div class="flex gap-1 align-center">
-          <MdiFlashIcon />
+          <MdiFlashOutline />
+
           <!-- More -->
           <span class="!text-sm font-weight-medium">{{ $t('general.more') }}</span>
-          <MdiMenuDownIcon class="text-grey" />
+
+          <MdiMenuDown class="text-grey" />
         </div>
       </a-button>
+
       <template #overlay>
         <div class="bg-white shadow-lg !border">
           <div>
             <div v-t="['a:actions:download-csv']" class="nc-menu-item" @click="exportFile(ExportTypes.CSV)">
-              <MdiDownloadIcon />
+              <MdiDownloadOutline />
               <!-- Download as CSV -->
               {{ $t('activity.downloadCSV') }}
             </div>
+
             <div v-t="['a:actions:download-excel']" class="nc-menu-item" @click="exportFile(ExportTypes.EXCEL)">
-              <MdiDownloadIcon />
+              <MdiDownloadOutline />
               <!-- Download as XLSX -->
               {{ $t('activity.downloadExcel') }}
             </div>
+
             <div
               v-if="isUIAllowed('csvImport') && !isView"
               v-t="['a:actions:upload-csv']"
               class="nc-menu-item"
               @click="quickImportDialog = true"
             >
-              <MdiUploadIcon />
+              <MdiUploadOutline />
               <!-- Upload CSV -->
               {{ $t('activity.uploadCSV') }}
             </div>
+
             <div
               v-if="isUIAllowed('SharedViewList') && !isView"
               v-t="['a:actions:shared-view-list']"
               class="nc-menu-item"
               @click="sharedViewListDlg = true"
             >
-              <MdiViewListIcon />
+              <MdiViewListOutline />
               <!-- Shared View List -->
               {{ $t('activity.listSharedView') }}
             </div>
+
             <div
               v-if="isUIAllowed('webhook') && !isView"
               v-t="['c:actions:webhook']"
               class="nc-menu-item"
               @click="showWebhookDrawer = true"
             >
-              <MdiHookIcon />
+              <MdiHook />
               {{ $t('objects.webhooks') }}
             </div>
           </div>
@@ -168,6 +173,7 @@ const exportFile = async (exportType: ExportTypes.EXCEL | ExportTypes.CSV) => {
     </a-dropdown>
 
     <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" import-type="csv" :import-only="true" />
+
     <WebhookDrawer v-if="showWebhookDrawer" v-model="showWebhookDrawer" />
 
     <a-modal v-model:visible="sharedViewListDlg" title="Shared view list" width="max(900px,60vw)" :footer="null">

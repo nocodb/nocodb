@@ -1,16 +1,14 @@
 <script setup lang="ts">
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType } from 'nocodb-sdk'
-import { provide, toRef } from 'vue'
-import { computed, useColumn, useDebounceFn, useVModel } from '#imports'
-import { ActiveCellInj, ColumnInj, EditModeInj } from '~/context'
+import { ActiveCellInj, ColumnInj, EditModeInj, computed, provide, toRef, useColumn, useDebounceFn, useVModel } from '#imports'
 import { NavigateDir } from '~/lib'
 
 interface Props {
   column: ColumnType
   modelValue: any
   editEnabled: boolean
-  rowIndex: number
+  rowIndex?: number
   active?: boolean
 }
 

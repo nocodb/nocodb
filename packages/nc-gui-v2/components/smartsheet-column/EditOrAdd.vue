@@ -17,9 +17,11 @@ const { formState, generateNewColumnMeta, addOrUpdate, onAlter, onUidtOrIdTypeCh
 const reloadDataTrigger = inject(ReloadViewDataHookInj)
 
 const advancedOptions = ref(false)
+
 const { getMeta } = useMetas()
 
 const formulaOptionsRef = ref()
+
 const editOrAddRef = ref<HTMLElement>()
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
@@ -74,20 +76,9 @@ onMounted(() => {
     generateNewColumnMeta()
   }
 
-  if (formState.value.uidt === UITypes.Formula) {
-    formulaOptionsRef.value.formulaSuggestionDrawer = true
-  }
-
   // for cases like formula
   if (formState.value && !formState.value.column_name) {
     formState.value.column_name = formState.value?.title
-  }
-})
-
-onUnmounted(() => {
-  if (formState.value.uidt === UITypes.Formula) {
-    // close formula drawer
-    formulaOptionsRef.value.formulaSuggestionDrawer = false
   }
 })
 
@@ -127,11 +118,7 @@ useEventListener(document, 'click', handleClose)
             </a-select-option>
           </a-select>
         </a-form-item>
-        <SmartsheetColumnFormulaOptions
-          v-if="formState.uidt === UITypes.Formula"
-          ref="formulaOptionsRef"
-          v-model:value="formState"
-        />
+        <SmartsheetColumnFormulaOptions v-if="formState.uidt === UITypes.Formula" v-model:value="formState" />
         <SmartsheetColumnCurrencyOptions v-if="formState.uidt === UITypes.Currency" v-model:value="formState" />
         <SmartsheetColumnDurationOptions v-if="formState.uidt === UITypes.Duration" v-model:value="formState" />
         <SmartsheetColumnRatingOptions v-if="formState.uidt === UITypes.Rating" v-model:value="formState" />

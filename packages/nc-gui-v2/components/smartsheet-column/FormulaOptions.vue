@@ -59,8 +59,6 @@ const validators = {
   ],
 }
 
-const formulaSuggestionDrawer = ref(true)
-
 const availableFunctions = formulaList
 
 const availableBinOps = ['+', '-', '*', '/', '>', '<', '==', '<=', '>=', '!=']
@@ -595,10 +593,6 @@ vModel.value.formula_raw = (column?.value?.colOptions as Record<string, any>)?.f
 // set additional validations
 setAdditionalValidations({
   ...validators,
-})
-
-defineExpose({
-  formulaSuggestionDrawer,
 })
 
 onMounted(() => {

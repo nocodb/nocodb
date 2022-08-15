@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
-import { inject, reactive, useApi, useNuxtApp, extractSdkResponseErrorMsg, fieldRequiredValidator, MetaInj } from '#imports'
+import { MetaInj, extractSdkResponseErrorMsg, fieldRequiredValidator, inject, reactive, useApi, useNuxtApp } from '#imports'
 
 const emit = defineEmits(['backToList', 'editOrAdd'])
 
@@ -44,7 +44,7 @@ const discordChannels = ref<Record<string, any>[]>([])
 
 const mattermostChannels = ref<Record<string, any>[]>([])
 
-const filters = ref([])
+const filterRef = ref()
 
 const formInput = ref({
   'Email': [
@@ -339,12 +339,7 @@ async function saveHooks() {
       hook.id = res.id
     }
 
-    // TODO: wait for filter implementation
-    // if ($refs.filter) {
-    //   await $refs.filter.applyChanges(false, {
-    //     hookId: hook.id,
-    //   });
-    // }
+    await filterRef.value.applyChanges(hook.id)
 
     message.success('Webhook details updated successfully')
   } catch (e: any) {
@@ -570,7 +565,7 @@ onMounted(async () => {
         <a-col :span="24">
           <a-card>
             <a-checkbox v-model:checked="hook.condition">On Condition</a-checkbox>
-            <SmartsheetToolbarColumnFilter v-if="hook.condition" />
+            <SmartsheetToolbarColumnFilter v-if="hook.condition" ref="filterRef" :auto-save="false" :hook-id="hook.id" />
           </a-card>
         </a-col>
       </a-row>
@@ -598,7 +593,6 @@ onMounted(async () => {
             ref="webhookTestRef"
             :hook="{
               ...hook,
-              filters,
               notification: {
                 ...hook.notification,
                 payload: hook.notification.payload,

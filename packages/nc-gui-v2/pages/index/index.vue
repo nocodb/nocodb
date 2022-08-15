@@ -54,8 +54,12 @@ onMounted(() => {
 
 <template>
   <NuxtLayout>
-    <div class="flex p-12">
-      <div class="w-2/3 flex-auto">
+    <div class="flex gap-6 py-6 px-12">
+      <div>
+        <GeneralSponsors />
+      </div>
+
+      <div class="min-w-2/4 flex-auto">
         <a-card :loading="isLoading" class="!rounded-lg shadow">
           <h1 class="text-center text-4xl p-2 nc-project-page-title flex items-center justify-center gap-2 text-gray-600">
             <!-- My Projects -->
@@ -152,9 +156,7 @@ onMounted(() => {
         </a-card>
       </div>
 
-      <div class="w-1/3 flex-auto flex flex-col justify-center items-center gap-4">
-        <GeneralSponsors />
-
+      <div>
         <GeneralSocialCard />
       </div>
     </div>

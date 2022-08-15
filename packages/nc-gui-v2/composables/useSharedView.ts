@@ -2,14 +2,17 @@ import type { ColumnType, ExportTypes, FilterType, PaginatedType, SortType, Tabl
 import { UITypes } from 'nocodb-sdk'
 import { useNuxtApp } from '#app'
 
-const nestedFilters = ref<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>([])
-const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
-const sharedView = ref<ViewType>()
-const sorts = ref<SortType[]>([])
-const password = ref<string | undefined>()
-const allowCSVDownload = ref<boolean>(false)
-
 export function useSharedView() {
+  const nestedFilters = useState<(FilterType & { status?: 'update' | 'delete' | 'create'; parentId?: string })[]>(
+    'nestedFilters',
+    () => [],
+  )
+  const paginationData = useState<PaginatedType>('paginationData', () => ({ page: 1, pageSize: 25 }))
+  const sharedView = useState<ViewType>('sharedView')
+  const sorts = useState<SortType[]>('sorts', () => [])
+  const password = useState<string | undefined>('password')
+  const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
+
   const meta = ref<TableType>(sharedView.value?.model)
   const columns = ref<ColumnType[]>(sharedView.value?.model?.columns)
   const formColumns = computed(

@@ -61,97 +61,113 @@ onMounted(() => {
 
 <template>
   <NuxtLayout>
-    <a-card class="mx-auto mt-10 !max-w-[600px] shadow-lg">
-      <h1 class="text-center text-4xl pa-2 nc-project-page-title flex align-center justify-center gap-2 text-gray-600">
-        <!-- My Projects -->
-        <b>{{ $t('title.myProject') }}</b>
+    <a-row>
+      <a-col :span="8"></a-col>
+      <a-col :span="8" class="!bg-red">
+        <a-card class="mx-auto mt-10 !max-w-[600px] shadow-lg">
+          <h1 class="text-center text-4xl pa-2 nc-project-page-title flex align-center justify-center gap-2 text-gray-600">
+            <!-- My Projects -->
+            <b>{{ $t('title.myProject') }}</b>
 
-        <MdiRefresh
-          v-t="['a:project:refresh']"
-          class="text-sm text-gray-500 hover:text-primary mt-1 cursor-pointer"
-          @click="loadProjects"
-        ></MdiRefresh>
-      </h1>
+            <MdiRefresh
+              v-t="['a:project:refresh']"
+              class="text-sm text-gray-500 hover:text-primary mt-1 cursor-pointer"
+              @click="loadProjects"
+            ></MdiRefresh>
+          </h1>
 
-      <div class="flex mb-6">
-        <a-input-search
-          v-model:value="filterQuery"
-          class="max-w-[200px] nc-project-page-search"
-          :placeholder="$t('activity.searchProject')"
-        ></a-input-search>
-        <div class="flex-grow"></div>
+          <div class="flex mb-6">
+            <a-input-search
+              v-model:value="filterQuery"
+              class="max-w-[200px] nc-project-page-search"
+              :placeholder="$t('activity.searchProject')"
+            ></a-input-search>
+            <div class="flex-grow"></div>
 
-        <a-dropdown v-if="isUIAllowed('projectCreate', true)" @click.stop>
-          <a-button class="nc-new-project-menu !shadow">
-            <div class="flex align-center">
-              {{ $t('title.newProj') }}
-              <MdiMenuDown class="menu-icon" />
-            </div>
-          </a-button>
+            <a-dropdown v-if="isUIAllowed('projectCreate', true)" @click.stop>
+              <a-button class="nc-new-project-menu !shadow">
+                <div class="flex align-center">
+                  {{ $t('title.newProj') }}
+                  <MdiMenuDown class="menu-icon" />
+                </div>
+              </a-button>
 
-          <template #overlay>
-            <a-menu>
-              <div
-                v-t="['c:project:create:xcdb']"
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-xc-db-project"
-                @click="navigateTo('/project/create')"
-              >
-                <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
-                <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
-              </div>
-              <div
-                v-t="['c:project:create:extdb']"
-                class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-external-db-project"
-                @click="navigateTo('/project/create-external')"
-              >
-                <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
-                <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
-              </div>
-            </a-menu>
-          </template>
-        </a-dropdown>
-      </div>
+              <template #overlay>
+                <a-menu>
+                  <div
+                    v-t="['c:project:create:xcdb']"
+                    class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-xc-db-project"
+                    @click="navigateTo('/project/create')"
+                  >
+                    <MdiPlus class="col-span-2 mr-1 mt-[1px] text-primary text-lg" />
+                    <div class="col-span-10 text-sm xl:text-md">{{ $t('activity.createProject') }}</div>
+                  </div>
+                  <div
+                    v-t="['c:project:create:extdb']"
+                    class="grid grid-cols-12 cursor-pointer hover:bg-gray-200 flex items-center p-2 nc-create-external-db-project"
+                    @click="navigateTo('/project/create-external')"
+                  >
+                    <MdiDatabaseOutline class="col-span-2 mr-1 mt-[1px] text-green-500 text-lg" />
+                    <div class="col-span-10 text-sm xl:text-md" v-html="$t('activity.createProjectExtended.extDB')" />
+                  </div>
+                </a-menu>
+              </template>
+            </a-dropdown>
+          </div>
 
-      <div v-if="isLoading">
-        <a-skeleton />
-      </div>
+          <div v-if="isLoading">
+            <a-skeleton />
+          </div>
 
-      <a-table
-        v-else
-        :custom-row="
-          (record) => ({
-            onClick: () => {
-              $e('a:project:open')
-              navigateTo(`/nc/${record.id}`)
-            },
-          })
-        "
-        :data-source="filteredProjects"
-        :pagination="{ position: ['bottomCenter'] }"
-      >
-        <!-- Title -->
-        <a-table-column key="title" :title="$t('general.title')" data-index="title">
-          <template #default="{ text }">
-            <div class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap nc-project-row" :title="text">
-              {{ text }}
-            </div>
-          </template>
-        </a-table-column>
-        <!-- Actions -->
-        <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
-          <template #default="{ text, record }">
-            <div class="flex align-center">
-              <MdiEditOutline
-                v-t="['c:project:edit:rename']"
-                class="nc-action-btn"
-                @click.stop="navigateTo(`/project/${text}`)"
-              />
-              <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
-            </div>
-          </template>
-        </a-table-column>
-      </a-table>
-    </a-card>
+          <a-table
+            v-else
+            :custom-row="
+              (record) => ({
+                onClick: () => {
+                  $e('a:project:open')
+                  navigateTo(`/nc/${record.id}`)
+                },
+              })
+            "
+            :data-source="filteredProjects"
+            :pagination="{ position: ['bottomCenter'] }"
+          >
+            <!-- Title -->
+            <a-table-column key="title" :title="$t('general.title')" data-index="title">
+              <template #default="{ text }">
+                <div
+                  class="capitalize !w-[400px] overflow-hidden overflow-ellipsis whitespace-nowrap nc-project-row"
+                  :title="text"
+                >
+                  {{ text }}
+                </div>
+              </template>
+            </a-table-column>
+            <!-- Actions -->
+            <a-table-column key="id" :title="$t('labels.actions')" data-index="id">
+              <template #default="{ text, record }">
+                <div class="flex align-center">
+                  <MdiEditOutline
+                    v-t="['c:project:edit:rename']"
+                    class="nc-action-btn"
+                    @click.stop="navigateTo(`/project/${text}`)"
+                  />
+                  <MdiDeleteOutline class="nc-action-btn" @click.stop="deleteProject(record)" />
+                </div>
+              </template>
+            </a-table-column>
+          </a-table>
+        </a-card>
+      </a-col>
+      <a-col :span="8" class="">
+        <div class="justify-end flex">
+          <GeneralSponsors />
+        </div>
+        <div class="justify-end flex">
+          <GeneralSocialCard />
+        </div>
+      </a-col>
+    </a-row>
   </NuxtLayout>
 </template>
 

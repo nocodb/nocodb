@@ -9,6 +9,7 @@ import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiDrag from '~icons/mdi/drag-vertical'
+import GithubStarButton from '~/components/dashboard/GithubStarButton.vue'
 
 const { addTab } = useTabs()
 
@@ -265,6 +266,12 @@ const activeTable = computed(() => {
         </a-menu>
       </template>
     </a-dropdown>
+
+    <a-divider class="mt-0 mb-2" />
+
+    <div class="items-center flex justify-center mb-1">
+      <GithubStarButton />
+    </div>
 
     <DlgTableCreate v-if="tableCreateDlg" v-model="tableCreateDlg" />
     <DlgTableRename v-if="renameTableMeta" v-model="renameTableDlg" :table-meta="renameTableMeta" />

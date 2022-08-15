@@ -183,7 +183,7 @@ function onStopEdit() {
                 {{ $t('activity.deleteView') }}
               </template>
 
-              <MdiTrashCan class="hidden group-hover:block text-red-500" @click.stop="onDelete" />
+              <MdiTrashCan class="hidden group-hover:block text-red-500 nc-view-delete-icon" @click.stop="onDelete" />
             </a-tooltip>
           </template>
         </div>

@@ -63,7 +63,7 @@ h1, h2, h3, h4, h5, h6, p, label, button, textarea, select {
 }
 
 .nc-sidebar-right-item {
-  @apply relative flex items-center;
+  @apply relative flex items-center cursor-pointer;
 
   &::after {
     @apply rounded-md absolute top-0 left-0 right-0 bottom-0 transition-all duration-150 ease-in-out;

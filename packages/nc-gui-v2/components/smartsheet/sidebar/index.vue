@@ -1,10 +1,26 @@
 <script setup lang="ts">
-import type { FormType, GalleryType, GridType, KanbanType, ViewTypes } from 'nocodb-sdk'
+import { ViewTypes } from 'nocodb-sdk'
+import type { FormType, GalleryType, GridType, KanbanType } from 'nocodb-sdk'
 import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
-import { computed, inject, provide, ref, useElementHover, useRoute, useRouter, useViews, watch } from '#imports'
-import { ActiveViewInj, MetaInj, RightSidebarInj, ViewListInj } from '~/context'
+import {
+  ActiveViewInj,
+  MetaInj,
+  RightSidebarInj,
+  ViewListInj,
+  computed,
+  inject,
+  provide,
+  ref,
+  useElementHover,
+  useRoute,
+  useRouter,
+  useUIPermission,
+  useViews,
+  viewIcons,
+  watch,
+} from '#imports'
 
 const meta = inject(MetaInj, ref())
 
@@ -61,11 +77,12 @@ watch(
 )
 
 /** Open view creation modal */
-function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title: string; copyViewId: string }) {
+function openModal({ type, title = '', copyViewId }: { type: ViewTypes; title?: string; copyViewId?: string }) {
   modalOpen = true
   viewCreateType = type
   viewCreateTitle = title
-  selectedViewId = copyViewId
+
+  if (copyViewId) selectedViewId = copyViewId
 }
 
 /** Handle view creation */
@@ -122,7 +139,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
           </div>
         </a-tooltip>
 
-        <div v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="dot" />
+        <div class="dot" />
 
         <a-tooltip placement="left">
           <template #title> Get API Snippet</template>
@@ -130,6 +147,58 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
           <div class="nc-sidebar-right-item group hover:after:bg-yellow-500">
             <MdiXml class="group-hover:(!text-white)" />
           </div>
+        </a-tooltip>
+
+        <div class="dot" />
+
+        <a-tooltip v-if="isUIAllowed('virtualViewsCreateOrEdit')" placement="left" :mouse-enter-delay="1">
+          <template #title> {{ $t('activity.createView') }}</template>
+
+          <a-dropdown placement="left" :trigger="['click']">
+            <div class="nc-sidebar-right-item group hover:after:bg-blue-500">
+              <MdiGridLarge class="group-hover:(!text-white)" />
+            </div>
+
+            <template #overlay>
+              <a-menu>
+                <a-menu-item title="" @click="openModal({ type: ViewTypes.GRID })">
+                  <div class="nc-project-menu-item group">
+                    <component :is="viewIcons[ViewTypes.GRID].icon" :class="`text-${viewIcons[ViewTypes.GRID].color}`" />
+
+                    <div>{{ $t('objects.viewType.grid') }}</div>
+
+                    <div class="flex-1" />
+
+                    <MdiPlus class="group-hover:text-pink-500" />
+                  </div>
+                </a-menu-item>
+
+                <a-menu-item title="" @click="openModal({ type: ViewTypes.GALLERY })">
+                  <div class="nc-project-menu-item group">
+                    <component :is="viewIcons[ViewTypes.GALLERY].icon" :class="`text-${viewIcons[ViewTypes.GALLERY].color}`" />
+
+                    <div>{{ $t('objects.viewType.gallery') }}</div>
+
+                    <div class="flex-1" />
+
+                    <MdiPlus class="group-hover:text-pink-500" />
+                  </div>
+                </a-menu-item>
+
+                <a-menu-item title="" @click="openModal({ type: ViewTypes.FORM })">
+                  <div class="nc-project-menu-item group">
+                    <component :is="viewIcons[ViewTypes.FORM].icon" :class="`text-${viewIcons[ViewTypes.FORM].color}`" />
+
+                    <div>{{ $t('objects.viewType.form') }}</div>
+
+                    <div class="flex-1" />
+
+                    <MdiPlus class="group-hover:text-pink-500" />
+                  </div>
+                </a-menu-item>
+              </a-menu>
+            </template>
+          </a-dropdown>
         </a-tooltip>
 
         <div class="dot" />

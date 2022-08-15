@@ -14,7 +14,7 @@ const clickCount = $ref(0)
 
 <template>
   <div
-    class="flex gap-2"
+    class="flex gap-3"
     @click="
       () => {
         clickCount = clickCount + 1

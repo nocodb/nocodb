@@ -1,7 +1,6 @@
 <script lang="ts" setup>
 import { ViewTypes } from 'nocodb-sdk'
-import { ref, useNuxtApp } from '#imports'
-import { viewIcons } from '~/utils'
+import { ref, useNuxtApp, useUIPermission, viewIcons } from '#imports'
 
 interface Emits {
   (event: 'openModal', data: { type: ViewTypes; title?: string }): void

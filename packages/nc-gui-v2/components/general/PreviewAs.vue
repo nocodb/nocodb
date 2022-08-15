@@ -7,6 +7,7 @@ import MdiEyeOutline from '~icons/mdi/eye-outline'
 import MdiCommentAccountOutline from '~icons/mdi/comment-account-outline'
 
 const { float } = defineProps<{ float?: boolean }>()
+
 const position = useState('preview-as-position', () => ({
   y: `${window.innerHeight - 100}px`,
   x: `${window.innerWidth / 2 - 250}px`,
@@ -98,10 +99,6 @@ watch(previewAs, () => window.location.reload())
 </template>
 
 <style scoped>
-.nc-project-menu-item {
-  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
-}
-
 .floating-reset-btn {
   @apply z-1000 index-100 fixed text-white
   @apply flex items-center overflow-hidden whitespace-nowrap gap-4 rounded shadow-md;

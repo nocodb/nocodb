@@ -271,10 +271,6 @@ const isHovered = useElementHover(sidebar)
 </template>
 
 <style lang="scss" scoped>
-.nc-project-menu-item {
-  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
-}
-
 :deep(.ant-dropdown-menu-item-group-title) {
   @apply border-b-1;
 }

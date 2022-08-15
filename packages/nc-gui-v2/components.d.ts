@@ -149,6 +149,7 @@ declare module '@vue/runtime-core' {
     MdiPlus: typeof import('~icons/mdi/plus')['default']
     MdiPlusBoxOutline: typeof import('~icons/mdi/plus-box-outline')['default']
     MdiPlusOutline: typeof import('~icons/mdi/plus-outline')['default']
+    MdiPlusRoundedOutline: typeof import('~icons/mdi/plus-rounded-outline')['default']
     MdiRefresh: typeof import('~icons/mdi/refresh')['default']
     MdiReload: typeof import('~icons/mdi/reload')['default']
     MdiSearch: typeof import('~icons/mdi/search')['default']

@@ -53,8 +53,8 @@ export function useTabs() {
       } else if ((route.name as string)?.startsWith('nc-projectId-index-index-auth')) {
         return tabs.value.findIndex((t) => t.type === 'auth')
       }
-
-      return -1
+      // by default, it's showing Team & Auth
+      return 0
     },
     set(index: number) {
       if (index === -1) {

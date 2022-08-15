@@ -1,15 +1,8 @@
 <script lang="ts" setup>
 import { Modal, message } from 'ant-design-vue'
 import type { ProjectType } from 'nocodb-sdk'
-import { navigateTo } from '#app'
-import { computed, onMounted, ref, useApi, useNuxtApp, useSidebar } from '#imports'
+import { computed, navigateTo, onMounted, ref, useApi, useNuxtApp, useSidebar } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import MdiDeleteOutline from '~icons/mdi/delete-outline'
-import MdiEditOutline from '~icons/mdi/edit-outline'
-import MdiRefresh from '~icons/mdi/refresh'
-import MdiMenuDown from '~icons/mdi/menu-down'
-import MdiPlus from '~icons/mdi/plus'
-import MdiDatabaseOutline from '~icons/mdi/database-outline'
 
 const { $e } = useNuxtApp()
 
@@ -64,7 +57,7 @@ onMounted(() => {
     <a-row>
       <a-col :span="8"></a-col>
       <a-col :span="8" class="!bg-red">
-        <a-card class="mx-auto mt-10 !max-w-[600px] shadow-lg">
+        <a-card :loading="isLoading" class="mx-auto mt-10 !max-w-[600px] shadow-lg">
           <h1 class="text-center text-4xl pa-2 nc-project-page-title flex align-center justify-center gap-2 text-gray-600">
             <!-- My Projects -->
             <b>{{ $t('title.myProject') }}</b>

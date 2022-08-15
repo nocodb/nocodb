@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { CellValueInj } from '~/context'
+import { CellValueInj, inject } from '#imports'
 
 const value = inject(CellValueInj)
 </script>

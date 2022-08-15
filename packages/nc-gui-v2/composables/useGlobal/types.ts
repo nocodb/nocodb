@@ -13,7 +13,7 @@ export interface FeedbackForm {
 
 export interface AppInfo {
   ncSiteUrl: string
-  authType: 'jwt' | 'masterKey' | 'none'
+  authType: 'jwt' | 'none'
   connectToExternalDB: boolean
   defaultLimit: number
   firstUser: boolean

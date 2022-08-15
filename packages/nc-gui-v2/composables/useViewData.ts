@@ -1,10 +1,7 @@
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { useNuxtApp } from '#app'
-import { useProject } from '#imports'
-import { NOCO } from '~/lib'
-import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
+import { NOCO, computed, extractPkFromRow, extractSdkResponseErrorMsg, ref, useNuxtApp, useProject } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -35,9 +32,10 @@ export function useViewData(
   const formattedData = ref<Row[]>([])
   const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
-  const galleryData = ref<GalleryType | undefined>(undefined)
-  const formColumnData = ref<FormType | undefined>(undefined)
-  const formViewData = ref<FormType | undefined>(undefined)
+  const galleryData = ref<GalleryType>()
+  const formColumnData = ref<FormType>()
+  // todo: missing properties on FormType (success_msg, show_blank_form,
+  const formViewData = ref<FormType & { success_msg?: string; show_blank_form?: boolean }>()
 
   const { project } = useProject()
   const { $api } = useNuxtApp()
@@ -102,7 +100,7 @@ export function useViewData(
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
 
-    loadAggCommentsCount()
+    await loadAggCommentsCount()
   }
 
   const loadGalleryData = async () => {
@@ -133,7 +131,8 @@ export function useViewData(
         rowMeta: {},
         oldRow: { ...insertedData },
       })
-      syncCount()
+
+      await syncCount()
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     }
@@ -241,8 +240,10 @@ export function useViewData(
           return
         }
       }
+
       formattedData.value.splice(rowIndex, 1)
-      syncCount()
+
+      await syncCount()
     } catch (e: any) {
       message.error(`Failed to delete row: ${await extractSdkResponseErrorMsg(e)}`)
     }
@@ -272,7 +273,8 @@ export function useViewData(
         return message.error(`Failed to delete row: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
-    syncCount()
+
+    await syncCount()
   }
 
   const loadFormView = async () => {

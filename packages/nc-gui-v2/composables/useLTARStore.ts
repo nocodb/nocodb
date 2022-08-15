@@ -1,10 +1,18 @@
 import type { ColumnType, LinkToAnotherRecordType, PaginatedType, TableType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { Modal, message } from 'ant-design-vue'
-import { useInjectionState, useMetas, useProject } from '#imports'
-import { NOCO } from '~/lib'
+import {
+  NOCO,
+  computed,
+  extractSdkResponseErrorMsg,
+  reactive,
+  ref,
+  useInjectionState,
+  useMetas,
+  useNuxtApp,
+  useProject,
+} from '#imports'
 import type { Row } from '~/composables'
-import { extractSdkResponseErrorMsg } from '~/utils'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -13,13 +21,13 @@ interface DataApiResponse {
 
 /** Store for managing Link to another cells */
 const [useProvideLTARStore, useLTARStore] = useInjectionState(
-  (column: Ref<Required<ColumnType>>, row?: Ref<Row>, isNewRow: ComputedRef<boolean> | Ref<boolean>, reloadData = () => {}) => {
+  (column: Ref<Required<ColumnType>>, row: Ref<Row>, isNewRow: ComputedRef<boolean> | Ref<boolean>, reloadData = () => {}) => {
     // state
     const { metas, getMeta } = useMetas()
     const { project } = useProject()
     const { $api } = useNuxtApp()
-    const childrenExcludedList: Ref<DataApiResponse | undefined> = ref()
-    const childrenList: Ref<DataApiResponse | undefined> = ref()
+    const childrenExcludedList = ref<DataApiResponse | undefined>()
+    const childrenList = ref<DataApiResponse | undefined>()
     const childrenExcludedListPagination = reactive({
       page: 1,
       query: '',
@@ -95,12 +103,13 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             colOptions.type as 'mm' | 'hm',
             column?.value?.title,
             {
-              limit: childrenExcludedListPagination.size,
-              offset: childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1),
+              limit: String(childrenExcludedListPagination.size),
+              offset: String(childrenExcludedListPagination.size * (childrenExcludedListPagination.page - 1)),
+              // todo: where clause is missing from type
               where:
                 childrenExcludedListPagination.query &&
                 `(${relatedTablePrimaryValueProp.value},like,${childrenExcludedListPagination.query})`,
-            },
+            } as any,
           )
         }
       } catch (e: any) {
@@ -120,10 +129,10 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           colOptions.type as 'mm' | 'hm',
           column?.value?.title,
           {
-            limit: childrenListPagination.size,
-            offset: childrenListPagination.size * (childrenListPagination.page - 1),
+            limit: String(childrenListPagination.size),
+            offset: String(childrenListPagination.size * (childrenListPagination.page - 1)),
             where: childrenListPagination.query && `(${relatedTablePrimaryValueProp.value},like,${childrenListPagination.query})`,
-          },
+          } as any,
         )
       } catch (e: any) {
         message.error(`Failed to load children list: ${await extractSdkResponseErrorMsg(e)}`)

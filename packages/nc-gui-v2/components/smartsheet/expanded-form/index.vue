@@ -1,25 +1,32 @@
 <script setup lang="ts">
-import type { ColumnType, TableType } from 'nocodb-sdk'
+import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { isVirtualCol } from 'nocodb-sdk'
+import type { Ref } from 'vue'
+import Cell from '../Cell.vue'
+import VirtualCell from '../VirtualCell.vue'
 import Comments from './Comments.vue'
 import Header from './Header.vue'
 import {
+  FieldsInj,
+  IsFormInj,
+  MetaInj,
+  NOCO,
   computedInject,
+  extractPkFromRow,
   provide,
+  ref,
   toRef,
   useNuxtApp,
+  useProject,
   useProvideExpandedFormStore,
   useProvideSmartsheetStore,
   useVModel,
   watch,
 } from '#imports'
-import { NOCO } from '~/lib'
-import { extractPkFromRow } from '~/utils'
 import type { Row } from '~/composables'
-import { FieldsInj, IsFormInj, MetaInj } from '~/context'
 
 interface Props {
-  modelValue: string | null
+  modelValue?: boolean
   row: Row
   state?: Record<string, any> | null
   meta: TableType
@@ -28,9 +35,13 @@ interface Props {
 }
 
 const props = defineProps<Props>()
+
 const emits = defineEmits(['update:modelValue'])
+
 const row = toRef(props, 'row')
+
 const state = toRef(props, 'state')
+
 const meta = toRef(props, 'meta')
 
 const fields = computedInject(FieldsInj, (_fields) => {
@@ -45,24 +56,25 @@ provide(MetaInj, meta)
 const { commentsDrawer, changedColumns, state: rowState } = useProvideExpandedFormStore(meta, row)
 
 const { $api } = useNuxtApp()
+
 if (props.loadRow) {
   const { project } = useProject()
+
   row.value.row = await $api.dbTableRow.read(
     NOCO,
     project.value.id as string,
     meta.value.title,
     extractPkFromRow(row.value.row, meta.value.columns as ColumnType[]),
   )
+
   row.value.oldRow = { ...row.value.row }
+
   row.value.rowMeta = {}
 }
 
-useProvideSmartsheetStore(ref({}) as any, meta)
+useProvideSmartsheetStore(ref({}) as Ref<ViewType>, meta)
 
 provide(IsFormInj, ref(true))
-
-// accept as a prop
-// const row: Row = { row: {}, rowMeta: {}, oldRow: {} }
 
 watch(
   state,
@@ -76,7 +88,15 @@ watch(
   { immediate: true },
 )
 
-const isExpanded = useVModel(props, 'modelValue', emits)
+const isExpanded = useVModel(props, 'modelValue', emits, {
+  defaultValue: false,
+})
+</script>
+
+<script lang="ts">
+export default {
+  name: 'ExpandedForm',
+}
 </script>
 
 <template>
@@ -86,13 +106,14 @@ const isExpanded = useVModel(props, 'modelValue', emits)
       <div class="flex h-full nc-form-wrapper items-stretch min-h-[70vh]">
         <div class="flex-grow overflow-auto scrollbar-thin-primary">
           <div class="w-[500px] mx-auto">
-            <div v-for="col in fields" :key="col.title" class="mt-2 py-2" :class="`nc-expand-col-${col.title}`">
+            <div v-for="col of fields" :key="col.title" class="mt-2 py-2" :class="`nc-expand-col-${col.title}`">
               <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
               <SmartsheetHeaderCell v-else :column="col" />
 
               <div class="!bg-white rounded px-1 min-h-[35px] flex align-center mt-2">
-                <SmartsheetVirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
-                <SmartsheetCell
+                <VirtualCell v-if="isVirtualCol(col)" v-model="row.row[col.title]" :row="row" :column="col" />
+
+                <Cell
                   v-else
                   v-model="row.row[col.title]"
                   :column="col"

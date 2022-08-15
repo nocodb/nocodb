@@ -1,17 +1,16 @@
 <script setup lang="ts">
-import { onClickOutside } from '@vueuse/core'
 import dayjs from 'dayjs'
-import { EditModeInj } from '~/context'
+import { EditModeInj, computed, inject, onClickOutside, ref, watch } from '#imports'
 
 interface Props {
-  modelValue: number | string | null | undefined
+  modelValue?: number | string | null
 }
 
 const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const editEnabled = inject(EditModeInj)
+const editEnabled = inject(EditModeInj)!
 
 let isYearInvalid = $ref(false)
 
@@ -41,7 +40,7 @@ const localState = $computed({
   },
 })
 
-const open = ref(false)
+const open = ref<boolean>(false)
 
 const randomClass = `picker_${Math.floor(Math.random() * 99999)}`
 watch(
@@ -53,6 +52,8 @@ watch(
   },
   { flush: 'post' },
 )
+
+const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : editEnabled.value ? 'Select year' : ''))
 </script>
 
 <template>
@@ -61,7 +62,7 @@ watch(
     picker="year"
     :bordered="false"
     class="!w-full px-1"
-    :placeholder="isYearInvalid ? 'Invalid year' : !readOnlyMode ? 'Select year' : ''"
+    :placeholder="placeholder"
     :allow-clear="!editEnabled"
     :input-read-only="true"
     :open="editEnabled ? false : open"
@@ -72,5 +73,3 @@ watch(
     <template #suffixIcon></template>
   </a-date-picker>
 </template>
-
-<style scoped></style>

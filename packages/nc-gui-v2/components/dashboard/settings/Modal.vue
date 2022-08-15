@@ -5,6 +5,7 @@ import AuditTab from './AuditTab.vue'
 import AppStore from './AppStore.vue'
 import Metadata from './Metadata.vue'
 import UIAcl from './UIAcl.vue'
+import Misc from './Misc.vue'
 import ApiTokenManagement from '~/components/tabs/auth/ApiTokenManagement.vue'
 import UserManagement from '~/components/tabs/auth/UserManagement.vue'
 import StoreFrontOutline from '~icons/mdi/storefront-outline'
@@ -85,6 +86,10 @@ const tabsInfo: TabGroup = {
       acl: {
         title: 'UI Access Control',
         body: UIAcl,
+      },
+      misc: {
+        title: 'Misc',
+        body: Misc,
       },
     },
   },

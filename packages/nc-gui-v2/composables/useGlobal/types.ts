@@ -35,6 +35,7 @@ export interface StoredState {
   feedbackForm: FeedbackForm
   filterAutoSave: boolean
   previewAs: string | null
+  includeM2M: boolean
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {

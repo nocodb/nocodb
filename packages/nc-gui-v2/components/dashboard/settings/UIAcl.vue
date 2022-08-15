@@ -7,6 +7,8 @@ const { $api, $e } = useNuxtApp()
 
 const { project } = useProject()
 
+const { includeM2M } = useGlobal()
+
 const roles = $ref<string[]>(['editor', 'commenter', 'viewer'])
 
 let isLoading = $ref(false)
@@ -28,9 +30,9 @@ async function loadTableList() {
     if (!project.value?.id) return
 
     isLoading = true
-    // TODO includeM2M
+
     tables = await $api.project.modelVisibilityList(project.value?.id, {
-      includeM2M: false,
+      includeM2M: includeM2M.value,
     })
   } catch (e) {
     console.error(e)

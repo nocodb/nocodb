@@ -12,6 +12,7 @@ export function useProject(projectId?: MaybeRef<string>) {
   const project = useState<ProjectType>('project')
   const tables = useState<TableType[]>('tables', () => [] as TableType[])
   const route = useRoute()
+  const { includeM2M } = useGlobal()
 
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
@@ -27,7 +28,9 @@ export function useProject(projectId?: MaybeRef<string>) {
 
   async function loadTables() {
     if (project.value.id) {
-      const tablesResponse = await $api.dbTable.list(project.value.id)
+      const tablesResponse = await $api.dbTable.list(project.value.id, {
+        includeM2M: includeM2M.value,
+      })
       if (tablesResponse.list) tables.value = tablesResponse.list
     }
   }

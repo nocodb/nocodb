@@ -1,5 +1,11 @@
 <script setup lang="ts">
 const { includeM2M } = useGlobal()
+const { loadTables } = useProject()
+
+watch(
+    includeM2M,
+    async () => await loadTables()
+)
 </script>
 
 <template>

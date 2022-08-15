@@ -29,7 +29,8 @@ export function useProject(projectId?: MaybeRef<string>) {
   async function loadTables() {
     if (project.value.id) {
       const tablesResponse = await $api.dbTable.list(project.value.id, {
-        includeM2M: includeM2M.value,
+        // FIXME: type
+        includeM2M: includeM2M.value || '',
       })
       if (tablesResponse.list) tables.value = tablesResponse.list
     }

@@ -16,15 +16,23 @@ export function useViewFilters(
   const { isUIAllowed } = useUIPermission()
   const { metas } = useMetas()
 
-  const loadFilters = async () => {
-    if (parentId) {
-      filters.value = await $api.dbTableFilter.childrenRead(parentId)
+  const loadFilters = async (hookId?: string) => {
+    if (hookId) {
+      if (parentId) {
+        filters.value = await $api.dbTableFilter.childrenRead(parentId)
+      } else {
+        filters.value = (await $api.dbTableWebhookFilter.read(hookId as string)) as any
+      }
     } else {
-      filters.value = await $api.dbTableFilter.read(view?.value?.id as string)
+      if (parentId) {
+        filters.value = await $api.dbTableFilter.childrenRead(parentId)
+      } else {
+        filters.value = await $api.dbTableFilter.read(view?.value?.id as string)
+      }
     }
   }
 
-  const sync = async (_nested = false) => {
+  const sync = async (hookId?: string, _nested = false) => {
     for (const [i, filter] of Object.entries(filters.value)) {
       if (filter.status === 'delete') {
         await $api.dbTableFilter.delete(filter.id as string)
@@ -34,10 +42,17 @@ export function useViewFilters(
           fk_parent_id: parentId,
         })
       } else if (filter.status === 'create') {
-        filters.value[+i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
-          ...filter,
-          fk_parent_id: parentId,
-        })) as any
+        if (hookId) {
+          filters.value[+i] = (await $api.dbTableWebhookFilter.create(hookId, {
+            ...filter,
+            fk_parent_id: parentId,
+          })) as any
+        } else {
+          filters.value[+i] = (await $api.dbTableFilter.create(view?.value?.id as string, {
+            ...filter,
+            fk_parent_id: parentId,
+          })) as any
+        }
       }
     }
     reloadData?.()

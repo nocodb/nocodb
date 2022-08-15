@@ -9,12 +9,19 @@ import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
 
-const { nested = false, parentId, autoSave = true } = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean }>()
+const {
+  nested = false,
+  parentId,
+  autoSave = true,
+  hookId = null,
+} = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean; hookId?: string }>()
 
 const emit = defineEmits(['update:filtersLength'])
 
 const meta = inject(MetaInj)
+
 const activeView = inject(ActiveViewInj)
+
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
 // todo: replace with inject or get from state
@@ -76,7 +83,7 @@ const types = computed(() => {
 watch(
   () => (activeView?.value as any)?.id,
   (n, o) => {
-    if (n !== o) loadFilters()
+    if (n !== o) loadFilters(hookId as string)
   },
   { immediate: true },
 )
@@ -95,11 +102,11 @@ watch(
   },
 )
 
-const applyChanges = async () => {
-  await sync()
+const applyChanges = async (hookId?: string) => {
+  await sync(hookId)
   for (const nestedFilter of nestedFilters?.value || []) {
     if (nestedFilter.parentId) {
-      await nestedFilter.applyChanges(true)
+      await nestedFilter.applyChanges(hookId, true)
     }
   }
 }

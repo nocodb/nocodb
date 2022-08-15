@@ -1,13 +1,6 @@
 <script setup lang="ts">
 import { Form, message } from 'ant-design-vue'
-import { MetaInj } from '~/context'
-import { extractSdkResponseErrorMsg, fieldRequiredValidator } from '~/utils'
-import { inject, reactive, useApi, useNuxtApp } from '#imports'
-
-interface Option {
-  label: string
-  value: string
-}
+import { MetaInj, extractSdkResponseErrorMsg, fieldRequiredValidator, inject, reactive, useApi, useNuxtApp } from '#imports'
 
 const emit = defineEmits(['backToList', 'editOrAdd'])
 
@@ -51,7 +44,7 @@ const discordChannels = ref<Record<string, any>[]>([])
 
 const mattermostChannels = ref<Record<string, any>[]>([])
 
-const filters = ref([])
+const filterRef = ref()
 
 const formInput = ref({
   'Email': [
@@ -205,31 +198,33 @@ const validators = computed(() => {
 })
 const { validate, validateInfos } = useForm(hook, validators)
 
-function onNotTypeChange() {
-  hook.notification.payload = {} as any
+function onNotTypeChange(reset = false) {
+  if (reset) {
+    hook.notification.payload = {} as Record<string, any>
+  }
 
   if (hook.notification.type === 'Slack') {
-    slackChannels.value = (apps && apps?.Slack && apps.Slack.parsedInput) || []
+    slackChannels.value = (apps.value && apps.value.Slack && apps.Slack.parsedInput) || []
   }
+
   if (hook.notification.type === 'Microsoft Teams') {
-    teamsChannels.value = (apps && apps['Microsoft Teams'] && apps['Microsoft Teams'].parsedInput) || []
+    teamsChannels.value = (apps.value && apps.value['Microsoft Teams'] && apps.value['Microsoft Teams'].parsedInput) || []
   }
+
   if (hook.notification.type === 'Discord') {
-    discordChannels.value = (apps && apps.Discord && apps.Discord.parsedInput) || []
+    discordChannels.value = (apps.value && apps.value.Discord && apps.value.Discord.parsedInput) || []
   }
+
   if (hook.notification.type === 'Mattermost') {
-    mattermostChannels.value = (apps && apps.Mattermost && apps.Mattermost.parsedInput) || []
+    mattermostChannels.value = (apps.value && apps.value.Mattermost && apps.value.Mattermost.parsedInput) || []
   }
+
   if (hook.notification.type === 'URL') {
     hook.notification.payload.body = '{{ json data }}'
     hook.notification.payload.parameters = [{}]
     hook.notification.payload.headers = [{}]
     hook.notification.payload.method = 'POST'
   }
-}
-
-function filterOption(input: string, option: Option) {
-  return option.value.toUpperCase().includes(input.toUpperCase())
 }
 
 function setHook(newHook: any) {
@@ -301,6 +296,8 @@ async function loadPluginList() {
     if (hook.event && hook.operation) {
       hook.eventOperation = `${hook.event} ${hook.operation}`
     }
+
+    onNotTypeChange()
   } catch (e: any) {
     message.error(await extractSdkResponseErrorMsg(e))
   }
@@ -342,12 +339,9 @@ async function saveHooks() {
       hook.id = res.id
     }
 
-    // TODO: wait for filter implementation
-    // if ($refs.filter) {
-    //   await $refs.filter.applyChanges(false, {
-    //     hookId: hook.id,
-    //   });
-    // }
+    if (filterRef.value) {
+      await filterRef.value.applyChanges(hook.id)
+    }
 
     message.success('Webhook details updated successfully')
   } catch (e: any) {
@@ -383,8 +377,8 @@ watch(
   },
 )
 
-onMounted(() => {
-  loadPluginList()
+onMounted(async () => {
+  await loadPluginList()
 })
 </script>
 
@@ -439,7 +433,7 @@ onMounted(() => {
               v-model:value="hook.notification.type"
               size="large"
               :placeholder="$t('general.notification')"
-              @change="onNotTypeChange"
+              @change="onNotTypeChange(true)"
             >
               <a-select-option v-for="(notificationOption, i) in notificationList" :key="i" :value="notificationOption.type">
                 <div class="flex items-center">
@@ -505,12 +499,12 @@ onMounted(() => {
       <a-row v-if="hook.notification.type === 'Slack'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
-            <a-auto-complete
-              v-model:value="hook.notification.payload.channels"
-              size="large"
-              :options="slackChannels"
+            <WebhookChannelMultiSelect
+              v-if="slackChannels.length > 0"
+              v-model="hook.notification.payload.channels"
+              :selected-channel-list="hook.notification.payload.channels"
+              :available-channel-list="slackChannels"
               placeholder="Select Slack channels"
-              :filter-option="filterOption"
             />
           </a-form-item>
         </a-col>
@@ -519,12 +513,12 @@ onMounted(() => {
       <a-row v-if="hook.notification.type === 'Microsoft Teams'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
-            <a-auto-complete
-              v-model:value="hook.notification.payload.channels"
-              size="large"
-              :options="teamsChannels"
+            <WebhookChannelMultiSelect
+              v-if="teamsChannels.length > 0"
+              v-model="hook.notification.payload.channels"
+              :selected-channel-list="hook.notification.payload.channels"
+              :available-channel-list="teamsChannels"
               placeholder="Select Microsoft Teams channels"
-              :filter-option="filterOption"
             />
           </a-form-item>
         </a-col>
@@ -533,12 +527,12 @@ onMounted(() => {
       <a-row v-if="hook.notification.type === 'Discord'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
-            <a-auto-complete
-              v-model:value="hook.notification.payload.channels"
-              size="large"
-              :options="discordChannels"
+            <WebhookChannelMultiSelect
+              v-if="discordChannels.length > 0"
+              v-model="hook.notification.payload.channels"
+              :selected-channel-list="hook.notification.payload.channels"
+              :available-channel-list="discordChannels"
               placeholder="Select Discord channels"
-              :filter-option="filterOption"
             />
           </a-form-item>
         </a-col>
@@ -547,12 +541,12 @@ onMounted(() => {
       <a-row v-if="hook.notification.type === 'Mattermost'" type="flex">
         <a-col :span="24">
           <a-form-item v-bind="validateInfos['notification.channels']">
-            <a-auto-complete
-              v-model:value="hook.notification.payload.channels"
-              size="large"
-              :options="mattermostChannels"
+            <WebhookChannelMultiSelect
+              v-if="mattermostChannels.length > 0"
+              v-model="hook.notification.payload.channels"
+              :selected-channel-list="hook.notification.payload.channels"
+              :available-channel-list="mattermostChannels"
               placeholder="Select Mattermost channels"
-              :filter-option="filterOption"
             />
           </a-form-item>
         </a-col>
@@ -573,7 +567,7 @@ onMounted(() => {
         <a-col :span="24">
           <a-card>
             <a-checkbox v-model:checked="hook.condition">On Condition</a-checkbox>
-            <SmartsheetToolbarColumnFilter v-if="hook.condition" />
+            <SmartsheetToolbarColumnFilter v-if="hook.condition" ref="filterRef" :auto-save="false" :hook-id="hook.id" />
           </a-card>
         </a-col>
       </a-row>
@@ -601,7 +595,6 @@ onMounted(() => {
             ref="webhookTestRef"
             :hook="{
               ...hook,
-              filters,
               notification: {
                 ...hook.notification,
                 payload: hook.notification.payload,

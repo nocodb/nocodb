@@ -1,9 +1,13 @@
 <script setup lang="ts">
-import { MetaInj } from '#imports'
-
 const editorOpen = ref(false)
 
-const meta = $(inject(MetaInj))
+const tabKey = ref()
+
+const { metas } = $(useMetas())
+
+const { tables } = useTable()
+
+const localTables = tables.value.filter((t) => metas[t.id as string])
 </script>
 
 <template>
@@ -14,7 +18,11 @@ const meta = $(inject(MetaInj))
     <mdi-bug-outline class="cursor-pointer" @click="editorOpen = true" />
   </a-tooltip>
 
-  <a-modal v-model:visible="editorOpen" :footer="null" width="80%" :title="meta.title">
-    <MonacoEditor ref="jsonEditorRef" v-model="meta" class="h-max-[70vh]" />
+  <a-modal v-model:visible="editorOpen" :footer="null" width="80%">
+    <a-tabs v-model:activeKey="tabKey" type="card" closeable="false" class="shadow-sm">
+      <a-tab-pane v-for="table in localTables" :key="table.id" :tab="table.title">
+        <MonacoEditor v-model="metas[table.id]" class="h-max-[70vh]" :read-only="true" />
+      </a-tab-pane>
+    </a-tabs>
   </a-modal>
 </template>

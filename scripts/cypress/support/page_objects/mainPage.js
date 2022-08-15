@@ -264,28 +264,32 @@ export class _mainPage {
     };
 
     shareView = () => {
-        cy.wait(3000);
         return cy.get(".nc-btn-share-view");
     };
 
     shareViewList = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(2);
+        return cy.getActiveMenu().find('.nc-menu-item').contains('Shared View List');
     };
 
     downloadCsv = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(0);
+        return cy.getActiveMenu().find('.nc-menu-item').contains('Download as CSV');
+    };
+
+    downloadExcel = () => {
+        cy.get(".nc-actions-menu-btn").click();
+        return cy.getActiveMenu().find('.nc-menu-item').contains('Download as XLSX');
     };
 
     uploadCsv = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(1);
+        return cy.getActiveMenu().find('.nc-menu-item').contains('Upload CSV');
     };
 
     automations = () => {
         cy.get(".nc-actions-menu-btn").click();
-        return cy.getActiveMenu().find('[role="menuitem"]').eq(3);
+        return cy.getActiveMenu().find('.nc-menu-item').contains('Webhooks');
     };
 
     hideField = (field) => {
@@ -353,24 +357,10 @@ export class _mainPage {
     // delete created views
     //
     deleteCreatedViews = () => {
-        // cy.get(".v-navigation-drawer__content > .container")
-        //   .find(".v-list > .v-list-item")
-        //   .contains("Share View")
-        //   .parent()
-        //   .find("button.mdi-dots-vertical")
-        //   .click();
-
-        // cy.getActiveMenu().find(".v-list-item").contains("Views List").click();
         this.shareViewList().click();
 
-        cy.snipActiveModal("Modal_ShareViewList");
-
-        cy.wait(1000);
-
-        // cy.get('.container').find('button.mdi-delete-outline')
-
         cy.get('th:contains("View Link")')
-            .should("exist")
+            .should("be.visible")
             .parent()
             .parent()
             .next()
@@ -379,17 +369,14 @@ export class _mainPage {
                 cy.log($tableRow[0].childElementCount);
 
                 // one of the row would contain seggregation header ('other views)
-                if (4 == $tableRow[0].childElementCount) {
-                    cy.wrap($tableRow).find("button").last().click();
+                if (5 == $tableRow[0].childElementCount) {
+                    cy.wrap($tableRow).find(".nc-icon").last().click();
                     cy.wait(1000);
                 }
             })
             .then(() => {
                 cy.toastWait("Deleted shared view successfully");
-                // close modal
-                cy.get(".v-overlay--active > .v-overlay__scrim").click({
-                    force: true,
-                });
+                cy.getActiveModal().find("button.ant-modal-close").should('exist').click();
             });
     };
 

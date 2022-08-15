@@ -339,7 +339,9 @@ async function saveHooks() {
       hook.id = res.id
     }
 
-    await filterRef.value.applyChanges(hook.id)
+    if (filterRef.value) {
+      await filterRef.value.applyChanges(hook.id)
+    }
 
     message.success('Webhook details updated successfully')
   } catch (e: any) {

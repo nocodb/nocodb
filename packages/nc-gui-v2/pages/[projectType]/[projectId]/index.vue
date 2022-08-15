@@ -56,7 +56,11 @@ await loadTables()
         collapsible
         theme="light"
       >
-        <div style="height: var(--header-height)" class="flex items-center !bg-primary text-white px-1 pl-5 gap-2">
+        <div
+          style="height: var(--header-height)"
+          :class="isOpen ? 'pl-6' : ''"
+          class="flex items-center !bg-primary text-white px-1 gap-2"
+        >
           <div
             v-if="isOpen && !isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"

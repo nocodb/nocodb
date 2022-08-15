@@ -24,7 +24,7 @@ function onVisibleChange() {
 </script>
 
 <template>
-  <div class="flex items-center w-full text-xs text-normal">
+  <div class="flex items-center w-full text-xs text-normal" :class="{ 'h-full': column }">
     <SmartsheetHeaderCellIcon v-if="column" />
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>

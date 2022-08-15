@@ -4,6 +4,7 @@ import LockMenu from './LockMenu.vue'
 import Reload from './Reload.vue'
 import ExportCache from './ExportCache.vue'
 import DeleteCache from './DeleteCache.vue'
+import DebugMeta from './DebugMeta.vue'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -33,8 +34,9 @@ const clickCount = $ref(0)
 
       <div class="dot" />
 
-      <!-- TODO: -->
-      <!-- <debug-metas v-if="debug" class="mr-3" /> -->
+      <DebugMeta />
+
+      <div class="dot" />
     </template>
 
     <LockMenu v-if="isUIAllowed('view-type')" />

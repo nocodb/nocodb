@@ -7,9 +7,9 @@ const { nav = false } = defineProps<Props>()
 </script>
 
 <template>
-  <a-card class="w-[300px] ma-10 shadow-lg rounded-lg">
+  <a-card class="w-[300px] shadow-sm rounded-lg">
     <template #cover>
-      <img class="max-h-[180px]" alt="cover" src="/ants-leaf-cutter.jpeg" />
+      <img class="max-h-[180px] rounded-t-lg" alt="cover" src="/ants-leaf-cutter.jpeg" />
     </template>
 
     <a-card-meta>
@@ -26,7 +26,7 @@ const { nav = false } = defineProps<Props>()
 
     <div class="flex justify-center">
       <nuxt-link href="https://github.com/sponsors/nocodb" target="_blank">
-        <a-button class="!shadow" size="large">
+        <a-button class="!shadow rounded" size="large">
           <div class="flex items-center">
             <mdi-cards-heart class="text-red-500 mr-2" />
             {{ $t('activity.sponsorUs') }}

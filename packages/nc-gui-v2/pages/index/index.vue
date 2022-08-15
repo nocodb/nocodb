@@ -54,11 +54,10 @@ onMounted(() => {
 
 <template>
   <NuxtLayout>
-    <a-row>
-      <a-col :span="8"></a-col>
-      <a-col :span="8" class="!bg-red">
-        <a-card :loading="isLoading" class="mx-auto mt-10 !max-w-[600px] shadow-lg">
-          <h1 class="text-center text-4xl pa-2 nc-project-page-title flex align-center justify-center gap-2 text-gray-600">
+    <div class="flex p-12">
+      <div class="w-2/3 flex-auto">
+        <a-card :loading="isLoading" class="!rounded-lg shadow">
+          <h1 class="text-center text-4xl p-2 nc-project-page-title flex items-center justify-center gap-2 text-gray-600">
             <!-- My Projects -->
             <b>{{ $t('title.myProject') }}</b>
 
@@ -151,16 +150,14 @@ onMounted(() => {
             </a-table-column>
           </a-table>
         </a-card>
-      </a-col>
-      <a-col :span="8" class="">
-        <div class="justify-end flex">
-          <GeneralSponsors />
-        </div>
-        <div class="justify-end flex">
-          <GeneralSocialCard />
-        </div>
-      </a-col>
-    </a-row>
+      </div>
+
+      <div class="w-1/3 flex-auto flex flex-col justify-center items-center gap-4">
+        <GeneralSponsors />
+
+        <GeneralSocialCard />
+      </div>
+    </div>
   </NuxtLayout>
 </template>
 

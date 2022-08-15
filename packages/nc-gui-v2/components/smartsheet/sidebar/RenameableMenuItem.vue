@@ -2,7 +2,7 @@
 import type { ViewTypes } from 'nocodb-sdk'
 import { message } from 'ant-design-vue'
 import { viewIcons } from '~/utils'
-import { onKeyStroke, useDebounceFn, useNuxtApp, useVModel } from '#imports'
+import { onKeyStroke, useDebounceFn, useNuxtApp, useUIPermission, useVModel } from '#imports'
 
 interface Props {
   view: Record<string, any>
@@ -163,6 +163,7 @@ function onStopEdit() {
       </div>
 
       <a-input v-if="isEditing" :ref="focusInput" v-model:value="vModel.title" @blur="onCancel" @keydown="onKeyDown($event)" />
+
       <div v-else>{{ vModel.alias || vModel.title }}</div>
 
       <div class="flex-1" />

@@ -87,10 +87,10 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
     class="relative shadow-md h-full"
     theme="light"
   >
-    <a-tooltip mouse-enter-delay="1000" placement="left">
+    <a-tooltip :mouse-enter-delay="1" placement="left">
       <template #title> Toggle sidebar </template>
 
-      <Transition name="layout">
+      <Transition name="glow">
         <div
           v-show="sidebarCollapsed || isHovered"
           class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-1/2 left-[-1rem] shadow bg-gray-100 rounded-full"

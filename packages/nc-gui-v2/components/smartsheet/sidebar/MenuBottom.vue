@@ -46,7 +46,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         class="group !flex !items-center !my-0 !h-[30px] nc-create-3-view"
         @click="onOpenModal(ViewTypes.GRID)"
       >
-        <a-tooltip mouse-enter-delay="1000" placement="left">
+        <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.grid') }}
           </template>
@@ -68,7 +68,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         class="group !flex !items-center !-my0 !h-[30px] nc-create-2-view"
         @click="onOpenModal(ViewTypes.GALLERY)"
       >
-        <a-tooltip mouse-enter-delay="1000" placement="left">
+        <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.gallery') }}
           </template>
@@ -91,7 +91,7 @@ function onOpenModal(type: ViewTypes, title = '') {
         class="group !flex !items-center !my-0 !h-[30px] nc-create-1-view"
         @click="onOpenModal(ViewTypes.FORM)"
       >
-        <a-tooltip mouse-enter-delay="1000" placement="left">
+        <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.form') }}
           </template>

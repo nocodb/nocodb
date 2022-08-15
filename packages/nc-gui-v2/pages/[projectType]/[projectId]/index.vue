@@ -235,10 +235,10 @@ const isHovered = useElementHover(sidebar)
           </a-dropdown>
         </div>
 
-        <a-tooltip mouse-enter-delay="1000" placement="right">
+        <a-tooltip :mouse-enter-delay="1" placement="right">
           <template #title> Toggle table list </template>
 
-          <Transition name="layout">
+          <Transition name="glow">
             <div
               v-show="!isOpen || isHovered"
               class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"

@@ -20,8 +20,6 @@ const advancedOptions = ref(false)
 
 const { getMeta } = useMetas()
 
-const formulaOptionsRef = ref()
-
 const editOrAddRef = ref<HTMLElement>()
 
 const columnToValidate = [UITypes.Email, UITypes.URL, UITypes.PhoneNumber]
@@ -83,17 +81,20 @@ onMounted(() => {
 })
 
 const handleClose = (e: MouseEvent) => {
+  const target = e.target as HTMLElement
+
   if (
-    e.target &&
+    target &&
     editOrAddRef?.value &&
-    !editOrAddRef.value.contains(e.target) &&
-    !e.target.closest('.ant-dropdown') &&
-    !e.target.closest('.ant-select') &&
-    !e.target.closest('.ant-select-item')
+    !editOrAddRef.value.contains(target) &&
+    !target.closest('.ant-dropdown') &&
+    !target.closest('.ant-select') &&
+    !target.closest('.ant-select-item')
   ) {
     emit('cancel')
   }
 }
+
 useEventListener(document, 'click', handleClose)
 </script>
 

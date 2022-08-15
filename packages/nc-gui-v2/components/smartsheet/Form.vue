@@ -337,7 +337,11 @@ onMounted(async () => {
     </a-col>
   </a-row>
   <a-row v-else class="h-full flex">
-    <a-col v-if="isEditable" :span="8" class="bg-[#f7f7f7] shadow-md pa-5 h-full overflow-auto scrollbar-thin-primary">
+    <a-col
+      v-if="isEditable"
+      :span="8"
+      class="bg-[#f7f7f7] shadow-md pa-5 h-full overflow-auto scrollbar-thin-primary nc-form-left-drawer"
+    >
       <div class="flex">
         <div class="flex flex-row flex-1 text-lg">
           <span>
@@ -349,7 +353,7 @@ onMounted(async () => {
           <div class="cursor-pointer mr-2">
             <span
               v-if="hiddenColumns.length"
-              class="mr-2"
+              class="mr-2 nc-form-add-all"
               style="border-bottom: 2px solid rgb(218, 218, 218)"
               @click="addAllColumns"
             >
@@ -358,7 +362,7 @@ onMounted(async () => {
             </span>
             <span
               v-if="localColumns.length"
-              class="ml-2"
+              class="ml-2 nc-form-remove-all"
               style="border-bottom: 2px solid rgb(218, 218, 218)"
               @click="removeAllColumns"
             >
@@ -400,7 +404,7 @@ onMounted(async () => {
           </a-card>
         </template>
         <template #footer>
-          <div class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center">
+          <div class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide">
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
           </div>
@@ -437,7 +441,7 @@ onMounted(async () => {
           marginTop: '-200px',
         }"
       >
-        <a-form ref="formRef" :model="formState">
+        <a-form ref="formRef" :model="formState" class="nc-form">
           <a-card class="rounded ma-2 py-10 px-5">
             <!-- Header -->
             <a-form-item v-if="isEditable" class="ma-0 gap-0 pa-0">
@@ -484,7 +488,11 @@ onMounted(async () => {
               @end="drag = false"
             >
               <template #item="{ element, index }">
-                <div class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3" @click="activeRow = element.title">
+                <div
+                  class="nc-editable item cursor-pointer hover:bg-primary/10 pa-3"
+                  :class="`nc-form-drag-${element.title.replaceAll(' ', '')}`"
+                  @click="activeRow = element.title"
+                >
                   <div class="flex">
                     <div class="flex flex-1">
                       <div class="flex flex-row">
@@ -514,7 +522,12 @@ onMounted(async () => {
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"
                   >
-                    <SmartsheetVirtualCell v-model="formState[element.title]" class="nc-input" :column="element" />
+                    <SmartsheetVirtualCell
+                      v-model="formState[element.title]"
+                      class="nc-input"
+                      :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                      :column="element"
+                    />
                   </a-form-item>
 
                   <a-form-item
@@ -523,7 +536,13 @@ onMounted(async () => {
                     :name="element.title"
                     :rules="[{ required: element.required, message: `${element.title} is required` }]"
                   >
-                    <SmartsheetCell v-model="formState[element.title]" class="nc-input" :column="element" :edit-enabled="true" />
+                    <SmartsheetCell
+                      v-model="formState[element.title]"
+                      class="nc-input"
+                      :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
+                      :column="element"
+                      :edit-enabled="true"
+                    />
                   </a-form-item>
 
                   <div v-if="activeRow === element.title">
@@ -531,7 +550,7 @@ onMounted(async () => {
                       <a-input
                         v-model:value="element.label"
                         size="small"
-                        class="form-meta-input !bg-[#dbdbdb]"
+                        class="form-meta-input !bg-[#dbdbdb] nc-form-input-label"
                         :placeholder="$t('msg.info.formInput')"
                         @change="updateColMeta(element)"
                       >
@@ -542,14 +561,14 @@ onMounted(async () => {
                       <a-input
                         v-model:value="element.description"
                         size="small"
-                        class="form-meta-input !bg-[#dbdbdb] text-sm"
+                        class="form-meta-input !bg-[#dbdbdb] text-sm nc-form-input-help-text"
                         :placeholder="$t('msg.info.formHelpText')"
                         @change="updateColMeta(element)"
                       />
                     </a-form-item>
 
                     <div class="items-center flex">
-                      <span class="text-sm text-gray-500 mr-2">{{ $t('general.required') }}</span>
+                      <span class="text-sm text-gray-500 mr-2 nc-form-input-required">{{ $t('general.required') }}</span>
 
                       <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
                     </div>
@@ -570,7 +589,11 @@ onMounted(async () => {
             </Draggable>
 
             <div class="justify-center flex mt-10">
-              <a-button class="flex items-center gap-2 !bg-primary text-white rounded" size="large" @click="submitForm">
+              <a-button
+                class="flex items-center gap-2 !bg-primary text-white rounded nc-form-submit"
+                size="large"
+                @click="submitForm"
+              >
                 <!-- Submit -->
                 {{ $t('general.submit') }}
               </a-button>
@@ -586,8 +609,13 @@ onMounted(async () => {
 
           <!-- Show this message -->
           <label class="text-gray-600 text-bold"> {{ $t('msg.info.showMessage') }}: </label>
-
-          <a-textarea v-model:value="formViewData.success_msg" :rows="3" hide-details @change="updateView" />
+          <a-textarea
+            v-model:value="formViewData.success_msg"
+            :rows="3"
+            hide-details
+            @change="updateView"
+            class="nc-form-after-submit-msg"
+          />
 
           <!-- Other options -->
           <div class="mt-4">
@@ -598,6 +626,7 @@ onMounted(async () => {
                 v-t="[`a:form-view:submit-another-form`]"
                 size="small"
                 @change="updateView"
+                class="nc-form-checkbox-submit-another-form"
               />
               <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
             </div>
@@ -609,12 +638,19 @@ onMounted(async () => {
                 v-t="[`a:form-view:show-blank-form`]"
                 size="small"
                 @change="updateView"
+                class="nc-form-checkbox-show-blank-form"
               />
               <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
             </div>
 
             <div class="my-4">
-              <a-switch v-model:checked="emailMe" v-t="[`a:form-view:email-me`]" size="small" @change="onEmailChange" />
+              <a-switch
+                v-model:checked="emailMe"
+                v-t="[`a:form-view:email-me`]"
+                size="small"
+                @change="onEmailChange"
+                class="nc-form-checkbox-send-email"
+              />
               <!-- Email me at <email> -->
               <span class="ml-4">
                 {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>

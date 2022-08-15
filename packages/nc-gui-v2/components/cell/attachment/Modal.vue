@@ -2,8 +2,7 @@
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
 import { useSortable } from './sort'
-import { ref, useDropZone, useUIPermission } from '#imports'
-import { isImage, openLink } from '~/utils'
+import { isImage, openLink, ref, useDropZone, useUIPermission, watch } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
 
@@ -39,6 +38,22 @@ onKeyDown('Escape', () => {
   modalVisible.value = false
   isOverDropZone.value = false
 })
+
+function onClick(item: Record<string, any>) {
+  selectedImage.value = item
+  modalVisible.value = false
+
+  const stopHandle = watch(selectedImage, (nextImage, _, onCleanup) => {
+    if (!nextImage) {
+      setTimeout(() => {
+        modalVisible.value = true
+      }, 50)
+      stopHandle?.()
+    }
+
+    onCleanup(() => stopHandle?.())
+  })
+}
 </script>
 
 <template>
@@ -103,7 +118,7 @@ onKeyDown('Escape', () => {
                 v-if="isImage(item.title, item.mimetype)"
                 :style="{ backgroundImage: `url('${item.url}')` }"
                 class="w-full h-full bg-contain bg-center bg-no-repeat"
-                @click.stop="() => (selectedImage = item) && (modalVisible = false)"
+                @click.stop="onClick(item)"
               />
 
               <component

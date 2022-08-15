@@ -325,7 +325,12 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 </div>
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
-              <th v-if="isUIAllowed('add-column')" v-t="['c:column:add']" @click.stop="addColumnDropdown = true">
+              <th
+                v-if="isUIAllowed('add-column')"
+                v-t="['c:column:add']"
+                class="cursor-pointer"
+                @click.stop="addColumnDropdown = true"
+              >
                 <a-dropdown v-model:visible="addColumnDropdown" :trigger="['click']">
                   <div class="h-full w-[60px] flex align-center justify-center">
                     <MdiPlus class="text-sm" />

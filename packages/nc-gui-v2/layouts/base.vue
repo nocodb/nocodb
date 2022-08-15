@@ -63,7 +63,7 @@ const logout = () => {
             <TabsAuthUserManagementUsersModal :key="showUserModal" :show="showUserModal" @closed="showUserModal = false" />
           </div>
 
-          <a-tooltip placement="left">
+          <a-tooltip placement="bottom">
             <template #title> Switch language </template>
 
             <div class="flex pr-4 items-center">
@@ -103,7 +103,7 @@ const logout = () => {
         </a-layout-header>
       </Transition>
 
-      <a-tooltip>
+      <a-tooltip placement="bottom">
         <template #title> Switch language </template>
 
         <Transition name="layout">

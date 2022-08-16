@@ -1,15 +1,30 @@
 <script setup lang="ts">
-import { navigateTo, onKeyStroke, provideSidebar, ref, useProject, useRoute, useTabs, useUIPermission } from '#imports'
+import { message } from 'ant-design-vue'
+import {
+  navigateTo,
+  onKeyStroke,
+  openLink,
+  provideSidebar,
+  ref,
+  useClipboard,
+  useElementHover,
+  useProject,
+  useRoute,
+  useTabs,
+  useUIPermission,
+} from '#imports'
 import { TabType } from '~/composables'
-import { openLink } from '~/utils'
-
 const route = useRoute()
 
-const { project, loadProject, loadTables, isSharedBase } = useProject()
+const { appInfo, token } = useGlobal()
+
+const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo } = useProject()
 
 const { addTab, clearTabs } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
+
+const { copy } = useClipboard()
 
 // create a new sidebar state
 const { isOpen, toggle } = provideSidebar({ isOpen: true })
@@ -19,6 +34,9 @@ const dialogOpen = ref(false)
 const openDialogKey = ref<string>()
 
 const dropdownOpen = ref(false)
+
+/** Sidebar ref */
+const sidebar = ref()
 
 onKeyStroke(
   'Escape',
@@ -42,12 +60,40 @@ function toggleDialog(value?: boolean, key?: string) {
 await loadProject()
 
 await loadTables()
+
+const isHovered = useElementHover(sidebar)
+
+const copyProjectInfo = async () => {
+  try {
+    await loadProjectMetaInfo()
+    copy(
+      Object.entries(projectMetaInfo.value!)
+        .map(([k, v]) => `${k}: **${v}**`)
+        .join('\n'),
+    )
+    message.info('Copied project info to clipboard')
+  } catch (e: any) {
+    console.log(e)
+    message.error(e.message)
+  }
+}
+
+const copyAuthToken = async () => {
+  try {
+    copy(token.value!)
+    message.info('Copied auth token to clipboard')
+  } catch (e: any) {
+    console.log(e)
+    message.error(e.message)
+  }
+}
 </script>
 
 <template>
   <NuxtLayout id="content" class="flex">
     <template #sidebar>
       <a-layout-sider
+        ref="sidebar"
         :collapsed="!isOpen"
         width="250"
         collapsed-width="50"
@@ -56,7 +102,11 @@ await loadTables()
         collapsible
         theme="light"
       >
-        <div style="height: var(--header-height)" class="flex items-center !bg-primary text-white px-1 pl-5 gap-2">
+        <div
+          style="height: var(--header-height)"
+          :class="isOpen ? 'pl-6' : ''"
+          class="flex items-center !bg-primary text-white px-1 gap-2"
+        >
           <div
             v-if="isOpen && !isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
@@ -64,6 +114,7 @@ await loadTables()
           >
             <img alt="NocoDB" src="~/assets/img/icons/512x512-trans.png" />
           </div>
+
           <a
             v-if="isOpen && isSharedBase"
             class="w-[40px] min-w-[40px] transition-all duration-200 p-1 cursor-pointer transform hover:scale-105"
@@ -77,6 +128,7 @@ await loadTables()
             <template v-if="isOpen">
               <div class="text-xl font-semibold truncate">{{ project.title }}</div>
             </template>
+
             <template v-else>
               <MdiFolder class="text-primary cursor-pointer transform hover:scale-105 text-2xl" />
             </template>
@@ -111,6 +163,7 @@ await loadTables()
 
                         <div class="flex items-center gap-1">
                           <div class="group-hover:(!text-primary)">ID:</div>
+
                           <div class="text-xs group-hover:text-pink-500 truncate font-italic">{{ project.id }}</div>
                         </div>
                       </div>
@@ -118,7 +171,7 @@ await loadTables()
                   </template>
 
                   <a-menu-item key="copy">
-                    <div class="nc-project-menu-item group">
+                    <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
                       <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
                       Copy Project Info
                     </div>
@@ -129,10 +182,17 @@ await loadTables()
                       v-if="isUIAllowed('apiDocs')"
                       v-t="['e:api-docs']"
                       class="nc-project-menu-item group"
-                      @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`)"
+                      @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                     >
                       <MdiApi class="group-hover:text-pink-500 nc-swagger-api-docs" />
                       Swagger: Rest APIs
+                    </div>
+                  </a-menu-item>
+
+                  <a-menu-item key="copy">
+                    <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                      <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
+                      Copy Auth Token
                     </div>
                   </a-menu-item>
 
@@ -212,24 +272,27 @@ await loadTables()
           </a-dropdown>
         </div>
 
-        <a-tooltip placement="right">
+        <a-tooltip :mouse-enter-delay="1" placement="right">
           <template #title> Toggle table list </template>
 
-          <div
-            class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"
-          >
-            <MaterialSymbolsChevronLeftRounded
-              v-if="isOpen"
-              class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-              @click="toggle(false)"
-            />
+          <Transition name="glow">
+            <div
+              v-show="!isOpen || isHovered"
+              class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center absolute top-1/2 right-[-0.75rem] shadow bg-gray-100 rounded-full"
+            >
+              <MaterialSymbolsChevronLeftRounded
+                v-if="isOpen"
+                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                @click="toggle(false)"
+              />
 
-            <MaterialSymbolsChevronRightRounded
-              v-else
-              class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-              @click="toggle(true)"
-            />
-          </div>
+              <MaterialSymbolsChevronRightRounded
+                v-else
+                class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
+                @click="toggle(true)"
+              />
+            </div>
+          </Transition>
         </a-tooltip>
 
         <DashboardTreeView v-show="isOpen" />
@@ -237,6 +300,7 @@ await loadTables()
     </template>
 
     <dashboard-settings-modal v-model="dialogOpen" :open-key="openDialogKey" />
+
     <NuxtPage />
 
     <GeneralPreviewAs float />

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-import HTTPSnippet from 'httpsnippet'
+// import HTTPSnippet from 'httpsnippet'
 import { useClipboard } from '@vueuse/core'
 import { message } from 'ant-design-vue'
 import { ActiveViewInj, MetaInj } from '~/context'
+import { inject, useGlobal, useProject, useSmartsheetStoreOrThrow, useVModel, useViewData } from '#imports'
 
 const props = defineProps<Props>()
 
@@ -13,11 +14,17 @@ interface Props {
 }
 
 const { project } = $(useProject())
+
 const { appInfo, token } = $(useGlobal())
-const meta = $(inject(MetaInj))
-const view = $(inject(ActiveViewInj))
+
+const meta = $(inject(MetaInj)!)
+
+const view = $(inject(ActiveViewInj)!)
+
 const { xWhere } = useSmartsheetStoreOrThrow()
-const { queryParams } = $(useViewData(meta, view as any, xWhere))
+
+const { queryParams } = $(useViewData($$(meta), view as any, xWhere))
+
 const { copy } = useClipboard()
 
 let vModel = $(useVModel(props, 'modelValue', emits))
@@ -66,20 +73,7 @@ const apiUrl = $computed(
     new URL(`/api/v1/db/data/noco/${project.id}/${meta.title}/views/${view.title}`, (appInfo && appInfo.ncSiteUrl) || '/').href,
 )
 
-const snippet = $computed(
-  () =>
-    new HTTPSnippet({
-      method: 'GET',
-      headers: [{ name: 'xc-auth', value: token as string, comment: 'JWT Auth token' }],
-      url: apiUrl,
-      queryString: Object.entries(queryParams || {}).map(([name, value]) => {
-        return {
-          name,
-          value: String(value),
-        }
-      }),
-    }),
-)
+const snippet = $computed(() => '')
 
 const activeLang = $computed(() => langs.find((lang) => lang.name === selectedLangName))
 
@@ -178,5 +172,3 @@ const afterVisibleChange = (visible: boolean) => {
     </div>
   </a-drawer>
 </template>
-
-<style scoped></style>

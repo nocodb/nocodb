@@ -2,6 +2,7 @@ import { SqlUiFactory } from 'nocodb-sdk'
 import type { OracleUi, ProjectType, TableType } from 'nocodb-sdk'
 import type { MaybeRef } from '@vueuse/core'
 import { useNuxtApp, useRoute, useState } from '#app'
+import type { ProjectMetaInfo } from '~/lib'
 import { USER_PROJECT_ROLES } from '~/lib'
 
 export function useProject(projectId?: MaybeRef<string>) {
@@ -12,9 +13,17 @@ export function useProject(projectId?: MaybeRef<string>) {
   const project = useState<ProjectType>('project')
   const tables = useState<TableType[]>('tables', () => [] as TableType[])
   const route = useRoute()
-
+  const { includeM2M } = useGlobal()
+  const projectMetaInfo = useState<ProjectMetaInfo | undefined>('projectMetaInfo')
   // todo: refactor path param name and variable name
   const projectType = $computed(() => route.params.projectType as string)
+
+  async function loadProjectMetaInfo(force?: boolean) {
+    if (!projectMetaInfo.value || force) {
+      const data = await $api.project.metaGet(project.value.id!, {}, {})
+      projectMetaInfo.value = data
+    }
+  }
 
   async function loadProjectRoles() {
     projectRoles.value = {}
@@ -27,7 +36,10 @@ export function useProject(projectId?: MaybeRef<string>) {
 
   async function loadTables() {
     if (project.value.id) {
-      const tablesResponse = await $api.dbTable.list(project.value.id)
+      const tablesResponse = await $api.dbTable.list(project.value.id, {
+        // FIXME: type
+        includeM2M: includeM2M.value || '',
+      })
       if (tablesResponse.list) tables.value = tablesResponse.list
     }
   }
@@ -56,5 +68,18 @@ export function useProject(projectId?: MaybeRef<string>) {
   )
   const isSharedBase = computed(() => projectType === 'base')
 
-  return { project, tables, loadProjectRoles, loadProject, loadTables, isMysql, isMssql, isPg, sqlUi, isSharedBase }
+  return {
+    project,
+    tables,
+    loadProjectRoles,
+    loadProject,
+    loadTables,
+    isMysql,
+    isMssql,
+    isPg,
+    sqlUi,
+    isSharedBase,
+    loadProjectMetaInfo,
+    projectMetaInfo,
+  }
 }

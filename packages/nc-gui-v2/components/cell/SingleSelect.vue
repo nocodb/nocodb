@@ -1,8 +1,7 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { SelectOptionType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, computed, inject } from '#imports'
-import { EditModeInj } from '~/context'
+import type { SelectOptionsType } from 'nocodb-sdk'
+import { ActiveCellInj, ColumnInj, ReadonlyInj, computed, inject, ref, useEventListener, watch } from '#imports'
 
 interface Props {
   modelValue?: string | undefined
@@ -12,11 +11,9 @@ const { modelValue } = defineProps<Props>()
 
 const emit = defineEmits(['update:modelValue'])
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj)!
 
-// const isForm = inject<boolean>('isForm', false)
-
-const editEnabled = inject(EditModeInj)
+const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -29,12 +26,13 @@ const vModel = computed({
   set: (val) => emit('update:modelValue', val || null),
 })
 
-const options = computed(() => {
+const options = computed<SelectOptionsType[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
-      ? column.value.colOptions.options.filter((el: SelectOptionType) => el.title !== '') || []
+      ? // todo: fix colOptions type, options does not exist as a property
+        (column.value.colOptions as any).options.filter((el: SelectOptionsType) => el.title !== '') || []
       : []
-    for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
+    for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
     }
     return opts
@@ -61,9 +59,7 @@ const handleClose = (e: MouseEvent) => {
 useEventListener(document, 'click', handleClose)
 
 watch(isOpen, (n, _o) => {
-  if (n === false) {
-    aselect.value.blur()
-  }
+  if (!n) aselect.value?.$el.blur()
 })
 </script>
 
@@ -73,11 +69,11 @@ watch(isOpen, (n, _o) => {
     v-model:value="vModel"
     class="w-full"
     :allow-clear="!column.rqd && active"
-    placeholder="Select an option"
+    :placeholder="!readOnly ? 'Select an option' : ''"
     :bordered="false"
     :open="isOpen"
-    :disabled="!editEnabled"
-    :show-arrow="active || vModel === null"
+    :disabled="readOnly"
+    :show-arrow="!readOnly && (active || vModel === null)"
     @select="isOpen = false"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"

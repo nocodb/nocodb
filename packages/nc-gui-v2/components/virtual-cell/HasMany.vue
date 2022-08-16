@@ -1,11 +1,26 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import ItemChip from './components/ItemChip.vue'
-import ListChildItems from './components/ListChildItems.vue'
-import ListItems from './components/ListItems.vue'
-import { computed, inject, ref, useProvideLTARStore, useSmartsheetRowStoreOrThrow } from '#imports'
-import { CellValueInj, ColumnInj, EditModeInj, IsFormInj, ReloadViewDataHookInj, RowInj } from '~/context'
+import {
+  CellValueInj,
+  ColumnInj,
+  EditModeInj,
+  IsFormInj,
+  ReloadViewDataHookInj,
+  RowInj,
+  computed,
+  defineAsyncComponent,
+  inject,
+  ref,
+  useProvideLTARStore,
+  useSmartsheetRowStoreOrThrow,
+} from '#imports'
+
+const ItemChip = defineAsyncComponent(() => import('./components/ItemChip.vue'))
+
+const ListItems = defineAsyncComponent(() => import('./components/ListItems.vue'))
+
+const ListChildItems = defineAsyncComponent(() => import('./components/ListChildItems.vue'))
 
 const column = inject(ColumnInj)!
 
@@ -85,7 +100,9 @@ const unlinkRef = async (rec: Record<string, any>) => {
         />
       </div>
     </template>
+
     <ListItems v-model="listItemsDlg" />
+
     <ListChildItems
       v-model="childListDlg"
       @attach-record="

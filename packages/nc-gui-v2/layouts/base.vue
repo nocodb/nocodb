@@ -43,7 +43,11 @@ const logout = () => {
 
           <div class="flex-1" />
 
-          <a-tooltip placement="left">
+          <GeneralReleaseInfo />
+
+          <GeneralShareBaseButton />
+
+          <a-tooltip placement="bottom">
             <template #title> Switch language </template>
 
             <div class="flex pr-4 items-center">
@@ -83,7 +87,7 @@ const logout = () => {
         </a-layout-header>
       </Transition>
 
-      <a-tooltip>
+      <a-tooltip placement="bottom">
         <template #title> Switch language </template>
 
         <Transition name="layout">

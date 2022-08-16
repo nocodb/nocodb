@@ -4,8 +4,7 @@ import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import Modal from './Modal.vue'
 import Carousel from './Carousel.vue'
-import { computed, ref, useDropZone, useSmartsheetStoreOrThrow, watch } from '#imports'
-import { isImage, openLink } from '~/utils'
+import { computed, isImage, openLink, ref, useDropZone, useSmartsheetStoreOrThrow, watch } from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any>[] | null

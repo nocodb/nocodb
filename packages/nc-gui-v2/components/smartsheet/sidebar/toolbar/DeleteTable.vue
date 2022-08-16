@@ -14,7 +14,7 @@ const sidebarOpen = inject(RightSidebarInj, ref(true))
     <template #title> {{ $t('activity.deleteTable') }} </template>
 
     <div class="nc-sidebar-right-item hover:after:bg-red-500 group">
-      <MdiDeleteOutline class="cursor-pointer group-hover:(!text-white)" @click="deleteTable(meta)" />
+      <MdiDeleteOutline class="cursor-pointer" @click="deleteTable(meta)" />
     </div>
   </a-tooltip>
 </template>

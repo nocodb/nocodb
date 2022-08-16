@@ -85,7 +85,6 @@ const saveUser = async () => {
         project_id: project.value.id,
         projectName: project.value.title,
       })
-      emit('reload')
       emit('closed')
     } else {
       const res = await $api.auth.projectUserAdd(project.value.id, {
@@ -96,6 +95,7 @@ const saveUser = async () => {
       })
       usersData.invitationToken = res.invite_token
     }
+    emit('reload')
     message.success('Successfully updated the user details')
   } catch (e: any) {
     console.error(e)

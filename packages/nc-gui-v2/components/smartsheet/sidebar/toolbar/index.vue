@@ -2,13 +2,42 @@
 import AddRow from './AddRow.vue'
 import LockMenu from './LockMenu.vue'
 import Reload from './Reload.vue'
+import ExportCache from './ExportCache.vue'
+import DeleteCache from './DeleteCache.vue'
+import DebugMeta from './DebugMeta.vue'
 
 const { isUIAllowed } = useUIPermission()
+
+const debug = $ref(false)
+
+const clickCount = $ref(0)
 </script>
 
 <template>
-  <div class="flex gap-2">
+  <div
+    class="flex gap-2"
+    @click="
+      () => {
+        clickCount = clickCount + 1
+        debug = clickCount >= 4
+      }
+    "
+  >
     <slot name="start" />
+
+    <template v-if="debug">
+      <ExportCache />
+
+      <div class="dot" />
+
+      <DeleteCache />
+
+      <div class="dot" />
+
+      <DebugMeta />
+
+      <div class="dot" />
+    </template>
 
     <LockMenu v-if="isUIAllowed('view-type')" />
 

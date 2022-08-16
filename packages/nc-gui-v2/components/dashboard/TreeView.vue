@@ -3,12 +3,13 @@ import type { TableType } from 'nocodb-sdk'
 import Sortable from 'sortablejs'
 import { Empty } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
-import { computed, useProject, useTable, useTabs, watchEffect } from '#imports'
+import { computed, useProject, useTable, useTabs, useUIPermission, watchEffect } from '#imports'
 import { TabType } from '~/composables'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiTableLarge from '~icons/mdi/table-large'
 import MdiMenuIcon from '~icons/mdi/dots-vertical'
 import MdiDrag from '~icons/mdi/drag-vertical'
+import GithubStarButton from '~/components/dashboard/GithubStarButton.vue'
 
 const { addTab } = useTabs()
 
@@ -136,7 +137,7 @@ const activeTable = computed(() => {
 
 <template>
   <div class="nc-treeview-container flex flex-col">
-    <div class="px-6 py-[8.75px] border-b-1 nc-filter-input">
+    <div class="px-6 py-[9px] border-b-1 nc-filter-input">
       <div class="flex items-center bg-gray-50 rounded relative">
         <a-input
           v-model:value="filterQuery"
@@ -265,6 +266,12 @@ const activeTable = computed(() => {
         </a-menu>
       </template>
     </a-dropdown>
+
+    <a-divider class="mt-0 mb-2" />
+
+    <div class="items-center flex justify-center mb-1">
+      <GithubStarButton />
+    </div>
 
     <DlgTableCreate v-if="tableCreateDlg" v-model="tableCreateDlg" />
     <DlgTableRename v-if="renameTableMeta" v-model="renameTableDlg" :table-meta="renameTableMeta" />

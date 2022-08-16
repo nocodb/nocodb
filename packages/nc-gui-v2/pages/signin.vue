@@ -84,10 +84,10 @@ function resetError() {
       ref="formValidator"
       :model="form"
       layout="vertical"
-      class="bg-primary/5 signin h-full min-h-[600px] flex justify-center items-center nc-form-signin"
+      class="bg-primary/5 signin h-full flex justify-center items-center nc-form-signin"
       @finish="signIn"
     >
-      <div class="h-full w-full flex flex-col flex-wrap items-center pt-[100px]">
+      <div class="h-full w-full flex flex-col items-center justify-center pt-[50px]">
         <div
           class="bg-white dark:(!bg-gray-900 !text-white) relative flex flex-col justify-center gap-2 w-full max-w-[500px] mx-auto p-8 md:(rounded-lg border-1 border-gray-200 shadow-xl)"
         >
@@ -102,7 +102,7 @@ function resetError() {
             <div v-if="error" class="self-center mb-4 bg-red-500 text-white rounded-lg w-3/4 mx-auto p-1">
               <div class="flex items-center gap-2 justify-center">
                 <MaterialSymbolsWarning />
-                <div style="flex: 0 0 auto" class="break-words">{{ error }}</div>
+                <div class="break-words">{{ error }}</div>
               </div>
             </div>
           </Transition>

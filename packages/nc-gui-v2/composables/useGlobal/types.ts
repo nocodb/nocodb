@@ -13,7 +13,7 @@ export interface FeedbackForm {
 
 export interface AppInfo {
   ncSiteUrl: string
-  authType: 'jwt' | 'masterKey' | 'none'
+  authType: 'jwt' | 'none'
   connectToExternalDB: boolean
   defaultLimit: number
   firstUser: boolean
@@ -35,6 +35,10 @@ export interface StoredState {
   feedbackForm: FeedbackForm
   filterAutoSave: boolean
   previewAs: string | null
+  includeM2M: boolean
+  currentVersion: string | null
+  latestRelease: string | null
+  hiddenRelease: string | null
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {

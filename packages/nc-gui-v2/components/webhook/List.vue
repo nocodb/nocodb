@@ -4,13 +4,13 @@ import { MetaInj } from '~/context'
 import { inject, onMounted, ref, useNuxtApp } from '#imports'
 import { extractSdkResponseErrorMsg } from '~/utils'
 
-const emit = defineEmits(['edit'])
+const emit = defineEmits(['edit', 'add'])
 
 const { $api, $e } = useNuxtApp()
 
 const hooks = ref<Record<string, any>[]>([])
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj)!
 
 async function loadHooksList() {
   try {
@@ -58,7 +58,11 @@ onMounted(() => {
     </div>
     <a-divider />
     <div v-if="hooks.length">
-      <a-list item-layout="horizontal" :data-source="hooks" class="cursor-pointer pl-5 pr-5 pt-2 pb-2">
+      <a-list
+        item-layout="horizontal"
+        :data-source="hooks"
+        class="cursor-pointer max-h-[75vh] overflow-y-auto scrollbar-thin-primary"
+      >
         <template #renderItem="{ item, index }">
           <a-list-item class="pa-2" @click="emit('edit', item)">
             <a-list-item-meta>

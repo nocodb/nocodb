@@ -4,9 +4,8 @@ import type { ListItem as AntListItem } from 'ant-design-vue'
 import jsep from 'jsep'
 import type { ColumnType } from 'nocodb-sdk'
 import { UITypes, jsepCurlyHook } from 'nocodb-sdk'
-import { onMounted, useDebounceFn } from '#imports'
-import { MetaInj } from '~/context'
 import {
+  MetaInj,
   NcAutocompleteTree,
   formulaList,
   formulaTypes,
@@ -14,8 +13,11 @@ import {
   getUIDTIcon,
   getWordUntilCaret,
   insertAtCursor,
+  onMounted,
+  useColumnCreateStoreOrThrow,
+  useDebounceFn,
   validateDateWithUnknownFormat,
-} from '@/utils'
+} from '#imports'
 
 interface Props {
   value: Record<string, any>
@@ -58,8 +60,6 @@ const validators = {
     },
   ],
 }
-
-const formulaSuggestionDrawer = ref(true)
 
 const availableFunctions = formulaList
 
@@ -597,10 +597,6 @@ setAdditionalValidations({
   ...validators,
 })
 
-defineExpose({
-  formulaSuggestionDrawer,
-})
-
 onMounted(() => {
   jsep.plugins.register(jsepCurlyHook)
 })
@@ -612,7 +608,7 @@ onMounted(() => {
       <a-textarea
         ref="formulaRef"
         v-model:value="vModel.formula_raw"
-        class="mb-2"
+        class="mb-2 nc-formula-input"
         @keydown.down.prevent="suggestionListDown"
         @keydown.up.prevent="suggestionListUp"
         @keydown.enter.prevent="selectText"
@@ -621,10 +617,11 @@ onMounted(() => {
     </a-form-item>
     <div class="text-gray-600 mt-2 mb-4 prose-sm">
       Hint: Use {} to reference columns, e.g: {column_name}. For more, please check out
-      <a class="prose-sm" href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank"
-        >Formulas</a
-      >.
+      <a class="prose-sm" href="https://docs.nocodb.com/setup-and-usages/formulas#available-formula-features" target="_blank">
+        Formulas.
+      </a>
     </div>
+
     <div class="h-[250px] overflow-auto scrollbar-thin-primary">
       <a-list ref="sugListRef" :data-source="suggestion" :locale="{ emptyText: 'No suggested formula was found' }">
         <template #renderItem="{ item, index }">

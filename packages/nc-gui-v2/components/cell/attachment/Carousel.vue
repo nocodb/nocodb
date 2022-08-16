@@ -1,11 +1,7 @@
 <script lang="ts" setup>
 import { onKeyDown } from '@vueuse/core'
 import { useAttachmentCell } from './utils'
-import { isImage } from '~/utils'
-import { computed, onClickOutside, ref } from '#imports'
-import MaterialSymbolsArrowCircleRightRounded from '~icons/material-symbols/arrow-circle-right-rounded'
-import MaterialSymbolsArrowCircleLeftRounded from '~icons/material-symbols/arrow-circle-left-rounded'
-import MdiCloseCircle from '~icons/mdi/close-circle'
+import { computed, isImage, onClickOutside, ref } from '#imports'
 
 const { selectedImage, visibleItems, downloadFile } = useAttachmentCell()!
 

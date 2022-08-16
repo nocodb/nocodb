@@ -41,8 +41,12 @@ function onOpenModal(type: ViewTypes, title = '') {
         {{ $t('activity.createView') }}
       </h3>
 
-      <a-menu-item key="grid" class="group !flex !items-center !my-0 !h-[30px]" @click="onOpenModal(ViewTypes.GRID)">
-        <a-tooltip placement="left">
+      <a-menu-item
+        key="grid"
+        class="group !flex !items-center !my-0 !h-[30px] nc-create-3-view"
+        @click="onOpenModal(ViewTypes.GRID)"
+      >
+        <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.grid') }}
           </template>
@@ -59,8 +63,12 @@ function onOpenModal(type: ViewTypes, title = '') {
         </a-tooltip>
       </a-menu-item>
 
-      <a-menu-item key="gallery" class="group !flex !items-center !-my0 !h-[30px]" @click="onOpenModal(ViewTypes.GALLERY)">
-        <a-tooltip placement="left">
+      <a-menu-item
+        key="gallery"
+        class="group !flex !items-center !-my0 !h-[30px] nc-create-2-view"
+        @click="onOpenModal(ViewTypes.GALLERY)"
+      >
+        <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.gallery') }}
           </template>
@@ -80,10 +88,10 @@ function onOpenModal(type: ViewTypes, title = '') {
       <a-menu-item
         v-if="!isView"
         key="form"
-        class="group !flex !items-center !my-0 !h-[30px]"
+        class="group !flex !items-center !my-0 !h-[30px] nc-create-1-view"
         @click="onOpenModal(ViewTypes.FORM)"
       >
-        <a-tooltip placement="left">
+        <a-tooltip :mouse-enter-delay="1" placement="left">
           <template #title>
             {{ $t('msg.info.addView.form') }}
           </template>
@@ -103,7 +111,7 @@ function onOpenModal(type: ViewTypes, title = '') {
 
     <SmartsheetSidebarMenuApiSnippet v-model="showApiSnippet" />
 
-    <div class="flex-auto justify-end flex flex-col gap-4 mt-4">
+    <div class="flex-auto justify-end flex flex-col gap-3 mt-3">
       <button
         v-if="isUIAllowed('virtualViewsCreateOrEdit')"
         class="flex items-center gap-2 w-full mx-3 px-4 py-3 rounded border transform translate-x-4 hover:(translate-x-0 shadow-lg) transition duration-150 ease !text-xs"

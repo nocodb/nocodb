@@ -1,12 +1,23 @@
 <script lang="ts" setup>
 import type { Select as AntSelect } from 'ant-design-vue'
-import type { SelectOptionType } from 'nocodb-sdk'
-import { ActiveCellInj, ColumnInj, computed, inject } from '#imports'
-import { EditModeInj } from '~/context'
+import type { SelectOptionsType } from 'nocodb-sdk'
+import {
+  ActiveCellInj,
+  ColumnInj,
+  ReadonlyInj,
+  computed,
+  h,
+  inject,
+  onMounted,
+  ref,
+  useEventListener,
+  useProject,
+  watch,
+} from '#imports'
 import MdiCloseCircle from '~icons/mdi/close-circle'
 
 interface Props {
-  modelValue?: string | string[] | undefined
+  modelValue?: string | string[]
 }
 
 const { modelValue } = defineProps<Props>()
@@ -15,11 +26,9 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
-const column = inject(ColumnInj)
+const column = inject(ColumnInj)!
 
-// const isForm = inject<boolean>('isForm', false)
-
-const editEnabled = inject(EditModeInj)
+const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -29,12 +38,12 @@ const aselect = ref<typeof AntSelect>()
 
 const isOpen = ref(false)
 
-const options = computed(() => {
+const options = computed<SelectOptionsType[]>(() => {
   if (column?.value.colOptions) {
     const opts = column.value.colOptions
-      ? column.value.colOptions.options.filter((el: SelectOptionType) => el.title !== '') || []
+      ? (column.value.colOptions as any).options.filter((el: any) => el.title !== '') || []
       : []
-    for (const op of opts.filter((el: SelectOptionType) => el.order === null)) {
+    for (const op of opts.filter((el: any) => el.order === null)) {
       op.title = op.title.replace(/^'/, '').replace(/'$/, '')
     }
     return opts
@@ -43,7 +52,7 @@ const options = computed(() => {
 })
 
 const vModel = computed({
-  get: () => selectedIds.value.map((el) => options.value.find((op: SelectOptionType) => op.id === el)?.title),
+  get: () => selectedIds.value.map((el) => options.value.find((op) => op.id === el)?.title),
   set: (val) => emit('update:modelValue', val.length === 0 ? null : val.join(',')),
 })
 
@@ -52,10 +61,10 @@ const selectedTitles = computed(() =>
     ? typeof modelValue === 'string'
       ? isMysql
         ? modelValue.split(',').sort((a, b) => {
-            const opa = options.value.find((el: SelectOptionType) => el.title === a)
-            const opb = options.value.find((el: SelectOptionType) => el.title === b)
+            const opa = options.value.find((el) => el.title === a)
+            const opb = options.value.find((el) => el.title === b)
             if (opa && opb) {
-              return opa.order - opb.order
+              return opa.order! - opb.order!
             }
             return 0
           })
@@ -83,8 +92,13 @@ const handleClose = (e: MouseEvent) => {
 }
 
 onMounted(() => {
-  selectedIds.value = selectedTitles.value.map((el) => {
-    return options.value.find((op: SelectOptionType) => op.title === el).id
+  selectedIds.value = selectedTitles.value.flatMap((el) => {
+    const item = options.value.find((op) => op.title === el)?.id
+    if (item) {
+      return [item]
+    }
+
+    return []
   })
 })
 
@@ -92,17 +106,20 @@ useEventListener(document, 'click', handleClose)
 
 watch(
   () => modelValue,
-  (_n, _o) => {
-    selectedIds.value = selectedTitles.value.map((el) => {
-      return options.value.find((op: SelectOptionType) => op.title === el).id
+  () => {
+    selectedIds.value = selectedIds.value = selectedTitles.value.flatMap((el) => {
+      const item = options.value.find((op) => op.title === el)?.id
+      if (item) {
+        return [item]
+      }
+
+      return []
     })
   },
 )
 
 watch(isOpen, (n, _o) => {
-  if (n === false) {
-    aselect.value.blur()
-  }
+  if (!n) aselect.value?.$el.blur()
 })
 </script>
 
@@ -112,12 +129,12 @@ watch(isOpen, (n, _o) => {
     v-model:value="vModel"
     mode="multiple"
     class="w-full"
-    placeholder="Select an option"
+    :placeholder="!readOnly ? 'Select an option' : ''"
     :bordered="false"
-    show-arrow
+    :show-arrow="!readOnly"
     :show-search="false"
     :open="isOpen"
-    :disabled="!editEnabled"
+    :disabled="readOnly"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >
@@ -128,10 +145,10 @@ watch(isOpen, (n, _o) => {
     </a-select-option>
     <template #tagRender="{ value: val, onClose }">
       <a-tag
-        v-if="options.find((el: SelectOptionType) => el.title === val)"
+        v-if="options.find((el) => el.title === val)"
         class="rounded-tag"
         :style="{ display: 'flex', alignItems: 'center' }"
-        :color="options.find((el: SelectOptionType) => el.title === val).color"
+        :color="options.find((el) => el.title === val).color"
         :closable="active && (vModel.length > 1 || !column?.rqd)"
         :close-icon="h(MdiCloseCircle, { class: ['ms-close-icon'] })"
         @close="onClose"

@@ -2,9 +2,7 @@ import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, 
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
 import { useNuxtApp } from '#app'
-import { useProject } from '#imports'
-import { NOCO } from '~/lib'
-import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
+import { IsPublicInj, NOCO, extractPkFromRow, extractSdkResponseErrorMsg, useProject } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({
@@ -32,15 +30,29 @@ export function useViewData(
     throw new Error('Table meta is not available')
   }
 
-  const formattedData = ref<Row[]>([])
-  const paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
+  const _paginationData = ref<PaginatedType>({ page: 1, pageSize: 25 })
   const aggCommentCount = ref<{ row_id: string; count: number }[]>([])
-  const galleryData = ref<GalleryType | undefined>(undefined)
-  const formColumnData = ref<FormType | undefined>(undefined)
-  const formViewData = ref<FormType | undefined>(undefined)
+  const galleryData = ref<GalleryType>()
+  const formColumnData = ref<FormType>()
+  // todo: missing properties on FormType (success_msg, show_blank_form,
+  const formViewData = ref<FormType & { success_msg?: string; show_blank_form?: boolean }>()
+  const formattedData = ref<Row[]>([])
 
+  const isPublic = inject(IsPublicInj, ref(false))
   const { project } = useProject()
+  const { fetchSharedViewData, paginationData: sharedPaginationData } = useSharedView()
   const { $api } = useNuxtApp()
+
+  const paginationData = computed({
+    get: () => (isPublic.value ? sharedPaginationData.value : _paginationData.value),
+    set: (value) => {
+      if (isPublic.value) {
+        sharedPaginationData.value = value
+      } else {
+        _paginationData.value = value
+      }
+    },
+  })
 
   const selectedAllRecords = computed({
     get() {
@@ -70,9 +82,7 @@ export function useViewData(
   /** load row comments count */
   const loadAggCommentsCount = async () => {
     // todo: handle in public api
-    // if (this.isPublicView) {
-    //   return;
-    // }
+    if (isPublic.value) return
 
     const ids = formattedData.value
       ?.filter(({ rowMeta: { new: isNew } }) => !isNew)
@@ -94,15 +104,18 @@ export function useViewData(
   }
 
   const loadData = async (params: Parameters<Api<any>['dbViewRow']['list']>[4] = {}) => {
-    if (!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) return
-    const response = await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, {
-      ...params,
-      where: where?.value,
-    })
+    if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
+
+    const response = !isPublic.value
+      ? await $api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
+          ...params,
+          where: where?.value,
+        })
+      : await fetchSharedViewData()
     formattedData.value = formatData(response.list)
     paginationData.value = response.pageInfo
 
-    loadAggCommentsCount()
+    await loadAggCommentsCount()
   }
 
   const loadGalleryData = async () => {
@@ -133,7 +146,8 @@ export function useViewData(
         rowMeta: {},
         oldRow: { ...insertedData },
       })
-      syncCount()
+
+      await syncCount()
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     }
@@ -241,8 +255,10 @@ export function useViewData(
           return
         }
       }
+
       formattedData.value.splice(rowIndex, 1)
-      syncCount()
+
+      await syncCount()
     } catch (e: any) {
       message.error(`Failed to delete row: ${await extractSdkResponseErrorMsg(e)}`)
     }
@@ -272,7 +288,8 @@ export function useViewData(
         return message.error(`Failed to delete row: ${await extractSdkResponseErrorMsg(e)}`)
       }
     }
-    syncCount()
+
+    await syncCount()
   }
 
   const loadFormView = async () => {

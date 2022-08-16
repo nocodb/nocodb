@@ -2,12 +2,23 @@
 import { RelationTypes, UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
 import { Empty } from 'ant-design-vue'
-import { computed, useLTARStoreOrThrow, useSmartsheetRowStoreOrThrow, useVModel } from '#imports'
-import { ColumnInj } from '~/context'
+import {
+  ColumnInj,
+  computed,
+  defineAsyncComponent,
+  inject,
+  ref,
+  useLTARStoreOrThrow,
+  useSmartsheetRowStoreOrThrow,
+  useVModel,
+  watch,
+} from '#imports'
 
 const props = defineProps<{ modelValue: boolean }>()
 
 const emit = defineEmits(['update:modelValue', 'addNewRecord'])
+
+const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/expanded-form/index.vue'))
 
 const vModel = useVModel(props, 'modelValue', emit)
 
@@ -118,14 +129,16 @@ const newRowState = computed(() => {
       </template>
       <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
 
-      <SmartsheetExpandedForm
-        v-if="expandedFormDlg"
-        v-model="expandedFormDlg"
-        :meta="relatedTableMeta"
-        :row="{ row: {}, oldRow: {}, rowMeta: { new: true } }"
-        :state="newRowState"
-        use-meta-fields
-      />
+      <Suspense>
+        <ExpandedForm
+          v-if="expandedFormDlg"
+          v-model="expandedFormDlg"
+          :meta="relatedTableMeta"
+          :row="{ row: {}, oldRow: {}, rowMeta: { new: true } }"
+          :state="newRowState"
+          use-meta-fields
+        />
+      </Suspense>
     </div>
   </a-modal>
 </template>

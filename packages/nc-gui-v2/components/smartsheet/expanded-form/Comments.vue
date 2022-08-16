@@ -1,7 +1,5 @@
 <script setup lang="ts">
-import { nextTick, useExpandedFormStoreOrThrow } from '#imports'
-import { enumColor, timeAgo } from '~/utils'
-import MdiAccountIcon from '~icons/mdi/account-circle'
+import { enumColor, nextTick, ref, timeAgo, useExpandedFormStoreOrThrow, watch } from '#imports'
 
 const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment } =
   useExpandedFormStoreOrThrow()
@@ -9,6 +7,8 @@ const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, s
 const commentsWrapperEl = ref<HTMLDivElement>()
 
 await loadCommentsAndLogs()
+
+const showborder = ref(false)
 
 watch(
   commentsAndLogs,
@@ -28,7 +28,7 @@ watch(
 
       <template v-else>
         <div v-for="log of commentsAndLogs" :key="log.id" class="flex gap-1 text-xs">
-          <MdiAccountIcon class="row-span-2" :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '" />
+          <MdiAccountCircle class="row-span-2" :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '" />
           <div class="flex-grow">
             <p class="mb-1 caption edited-text text-[10px] text-gray">
               {{ isYou(log.user) ? 'You' : log.user == null ? 'Shared base' : log.user }}

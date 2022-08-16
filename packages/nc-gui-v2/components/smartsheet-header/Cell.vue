@@ -1,12 +1,10 @@
 <script setup lang="ts">
 import type { ColumnType } from 'nocodb-sdk'
-import { inject, toRef } from 'vue'
-import { ColumnInj, IsFormInj } from '~/context'
+import { ColumnInj, IsFormInj, inject, provide, ref, toRef, useUIPermission } from '#imports'
+
 const props = defineProps<{ column: ColumnType & { meta: any }; required?: boolean; hideMenu?: boolean }>()
 
 const hideMenu = toRef(props, 'hideMenu')
-
-const meta = inject(MetaInj)
 
 const isForm = inject(IsFormInj, ref(false))
 
@@ -26,7 +24,7 @@ function onVisibleChange() {
 </script>
 
 <template>
-  <div class="flex align-center w-full text-xs font-weight-regular">
+  <div class="flex items-center w-full text-xs text-normal">
     <SmartsheetHeaderCellIcon v-if="column" />
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>

@@ -2,9 +2,8 @@ import { message } from 'ant-design-vue'
 import { UITypes } from 'nocodb-sdk'
 import type { ColumnType, LinkToAnotherRecordType, RelationTypes, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
-import { useNuxtApp } from '#app'
-import { useInjectionState, useMetas, useProject, useVirtualCell } from '#imports'
-import type { Row } from '~/composables/useViewData'
+import type { Row } from './useViewData'
+import { useInjectionState, useMetas, useNuxtApp, useProject, useVirtualCell } from '#imports'
 import { NOCO } from '~/lib'
 import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
 
@@ -47,7 +46,7 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
         project.value.title as string,
         meta.value.title as string,
         rowId,
-        type,
+        type as 'mm' | 'hm',
         column.title as string,
         relatedRowId,
       )
@@ -69,14 +68,19 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
       if (isHm || isMm) {
         const relatedRows = (state.value?.[column.title!] ?? []) as Record<string, any>[]
         for (const relatedRow of relatedRows) {
-          await linkRecord(id, extractPkFromRow(relatedRow, relatedTableMeta.columns as ColumnType[]), column, colOptions.type)
+          await linkRecord(
+            id,
+            extractPkFromRow(relatedRow, relatedTableMeta.columns as ColumnType[]),
+            column,
+            colOptions.type as RelationTypes,
+          )
         }
       } else if (isBt && state?.value?.[column.title!]) {
         await linkRecord(
           id,
           extractPkFromRow(state.value?.[column.title!] as Record<string, any>, relatedTableMeta.columns as ColumnType[]),
           column,
-          colOptions.type,
+          colOptions.type as RelationTypes,
         )
       }
     }

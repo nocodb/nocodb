@@ -1,15 +1,15 @@
 import type { Permission } from './rolePermissions'
 import rolePermissions from './rolePermissions'
-import { useState } from '#app'
-import { USER_PROJECT_ROLES } from '~/lib/constants'
+import { USER_PROJECT_ROLES, useGlobal, useState } from '#imports'
 
 export function useUIPermission() {
-  const { $state } = useNuxtApp()
+  const { user, previewAs } = useGlobal()
+
   const projectRoles = useState<Record<string, boolean>>(USER_PROJECT_ROLES, () => ({}))
 
-  const isUIAllowed = (permission: Permission, skipPreviewAs = false) => {
-    const user = $state.user
-    let userRoles = user?.value?.roles || {}
+  const getRoles = (skipPreviewAs = false) => {
+    let userRoles = user.value?.roles || {}
+
     // if string populate key-value paired object
     if (typeof userRoles === 'string') {
       userRoles = userRoles.split(',').reduce<Record<string, boolean>>((acc, role) => {
@@ -21,19 +21,23 @@ export function useUIPermission() {
     // merge user role and project specific user roles
     let roles = {
       ...userRoles,
-      ...(projectRoles?.value || {}),
+      ...projectRoles.value,
     }
 
-    if ($state.previewAs.value && !skipPreviewAs) {
+    if (previewAs.value && !skipPreviewAs) {
       roles = {
-        [$state.previewAs.value]: true,
+        [previewAs.value]: true,
       }
     }
 
-    return Object.entries<boolean>(roles).some(([role, hasRole]) => {
+    return roles
+  }
+
+  const isUIAllowed = (permission: Permission | string, skipPreviewAs = false) => {
+    return Object.entries<boolean>(getRoles(skipPreviewAs)).some(([role, hasRole]) => {
       const rolePermission = rolePermissions[role as keyof typeof rolePermissions] as '*' | Record<Permission, true>
 
-      return hasRole && (rolePermission === '*' || rolePermission?.[permission])
+      return hasRole && (rolePermission === '*' || rolePermission?.[permission as Permission])
     })
   }
 

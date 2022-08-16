@@ -48,6 +48,13 @@ export default defineNuxtConfig({
   },
 
   vite: {
+    // todo: minifiy again
+    build: {
+      minify: false,
+      rollupOptions: {
+        external: 'httpsnippet',
+      },
+    },
     css: {
       preprocessorOptions: {
         less: {
@@ -59,6 +66,7 @@ export default defineNuxtConfig({
     plugins: [
       vueI18n({
         include: path.resolve(__dirname, './lang'),
+        runtimeOnly: false,
       }),
       Icons({
         autoInstall: true,
@@ -81,7 +89,6 @@ export default defineNuxtConfig({
     ],
     define: {
       'process.env.DEBUG': 'false',
-      'global': {},
     },
     server: {
       watch: {
@@ -91,17 +98,6 @@ export default defineNuxtConfig({
   },
   experimental: {
     reactivityTransform: true,
-    viteNode: false,
-  },
-
-  typescript: {
-    typeCheck: true,
-    strict: true,
-    tsConfig: {
-      compilerOptions: {
-        types: ['@intlify/vite-plugin-vue-i18n/client', 'vue-i18n', 'unplugin-icons/types/vue', 'nuxt-windicss'],
-      },
-    },
   },
 
   image: {

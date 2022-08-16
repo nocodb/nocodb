@@ -1,15 +1,8 @@
 <script setup lang="ts">
 import type { TabItem } from '~/composables'
 import { TabType } from '~/composables'
-import { TabMetaInj } from '~/context'
-import { useTabs, useUIPermission } from '#imports'
-import MdiPlusIcon from '~icons/mdi/plus'
-import MdiTableIcon from '~icons/mdi/table'
-import MdiCsvIcon from '~icons/mdi/file-document-outline'
-import MdiExcelIcon from '~icons/mdi/file-excel'
-import MdiJSONIcon from '~icons/mdi/code-json'
+import { TabMetaInj, useTabs, useUIPermission } from '#imports'
 import MdiAirTableIcon from '~icons/mdi/table-large'
-import MdiRequestDataSourceIcon from '~icons/mdi/open-in-new'
 import MdiView from '~icons/mdi/eye-circle-outline'
 import MdiAccountGroup from '~icons/mdi/account-group'
 
@@ -46,7 +39,7 @@ const icon = (tab: TabItem) => {
   <div class="h-full w-full nc-container pt-[9px]">
     <div class="h-full w-full flex flex-col">
       <div>
-        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="closeTab">
+        <a-tabs v-model:activeKey="activeTabIndex" class="nc-root-tabs" type="editable-card" @edit="closeTab(activeTabIndex)">
           <a-tab-pane v-for="(tab, i) in tabs" :key="i">
             <template #tab>
               <div class="flex align-center gap-2">
@@ -61,19 +54,21 @@ const icon = (tab: TabItem) => {
               <a-sub-menu key="addORImport">
                 <template #title>
                   <div class="text-sm flex items-center gap-2 pt-[8px] pb-3">
-                    <MdiPlusIcon />
+                    <MdiPlusBoxOutline />
                     Add / Import
                   </div>
                 </template>
+
                 <a-menu-item-group v-if="isUIAllowed('addTable')">
                   <a-menu-item key="add-new-table" v-t="['a:actions:create-table']" @click="tableCreateDialog = true">
                     <span class="flex items-center gap-2">
-                      <MdiTableIcon class="text-primary" />
+                      <MdiTable class="text-primary" />
                       <!-- Add new table -->
                       {{ $t('tooltip.addTable') }}
                     </span>
                   </a-menu-item>
                 </a-menu-item-group>
+
                 <a-menu-item-group title="QUICK IMPORT FROM">
                   <a-menu-item
                     v-if="isUIAllowed('airtableImport')"
@@ -82,7 +77,7 @@ const icon = (tab: TabItem) => {
                     @click="airtableImportDialog = true"
                   >
                     <span class="flex items-center gap-2">
-                      <MdiAirTableIcon class="text-primary" />
+                      <MdiTableLarge class="text-primary" />
                       <!-- TODO: i18n -->
                       Airtable
                     </span>
@@ -94,11 +89,12 @@ const icon = (tab: TabItem) => {
                     @click="openQuickImportDialog('csv')"
                   >
                     <span class="flex items-center gap-2">
-                      <MdiCsvIcon class="text-primary" />
+                      <MdiFileDocumentOutline class="text-primary" />
                       <!-- TODO: i18n -->
                       CSV file
                     </span>
                   </a-menu-item>
+
                   <a-menu-item
                     v-if="isUIAllowed('jsonImport')"
                     key="quick-import-json"
@@ -106,11 +102,12 @@ const icon = (tab: TabItem) => {
                     @click="openQuickImportDialog('json')"
                   >
                     <span class="flex items-center gap-2">
-                      <MdiJSONIcon class="text-primary" />
+                      <MdiCodeJson class="text-primary" />
                       <!-- TODO: i18n -->
                       JSON file
                     </span>
                   </a-menu-item>
+
                   <a-menu-item
                     v-if="isUIAllowed('excelImport')"
                     key="quick-import-excel"
@@ -118,13 +115,15 @@ const icon = (tab: TabItem) => {
                     @click="openQuickImportDialog('excel')"
                   >
                     <span class="flex items-center gap-2">
-                      <MdiExcelIcon class="text-primary" />
+                      <MdiFileExcel class="text-primary" />
                       <!-- TODO: i18n -->
                       Microsoft Excel
                     </span>
                   </a-menu-item>
                 </a-menu-item-group>
-                <a-divider class="ma-0 mb-2" />
+
+                <a-menu-divider class="ma-0 mb-2" />
+
                 <a-menu-item
                   v-if="isUIAllowed('importRequest')"
                   key="add-new-table"
@@ -133,7 +132,7 @@ const icon = (tab: TabItem) => {
                 >
                   <a href="https://github.com/nocodb/nocodb/issues/2052" target="_blank" class="prose-sm pa-0">
                     <span class="flex items-center gap-2">
-                      <MdiRequestDataSourceIcon class="text-primary" />
+                      <MdiOpenInNew class="text-primary" />
                       <!-- TODO: i18n -->
                       Request a data source you need?
                     </span>
@@ -150,7 +149,9 @@ const icon = (tab: TabItem) => {
     </div>
 
     <DlgTableCreate v-if="tableCreateDialog" v-model="tableCreateDialog" />
+
     <DlgQuickImport v-if="quickImportDialog" v-model="quickImportDialog" :import-type="importType" />
+
     <DlgAirtableImport v-if="airtableImportDialog" v-model="airtableImportDialog" />
   </div>
 </template>

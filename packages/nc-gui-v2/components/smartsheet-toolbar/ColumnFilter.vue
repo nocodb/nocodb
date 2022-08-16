@@ -8,17 +8,25 @@ import { comparisonOpList } from '~/utils/filterUtils'
 import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
+import type { Filter } from '~/lib/types'
 
-const { nested = false, parentId, autoSave = true } = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean }>()
+const {
+  nested = false,
+  parentId,
+  autoSave = true,
+  hookId = null,
+  modelValue,
+} = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean; hookId?: string; modelValue?: Filter[] }>()
 
 const emit = defineEmits(['update:filtersLength'])
 
 const meta = inject(MetaInj)
+
 const activeView = inject(ActiveViewInj)
+
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
 // todo: replace with inject or get from state
-const shared = ref(false)
 
 const { $e } = useNuxtApp()
 
@@ -29,6 +37,7 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   () => {
     reloadDataHook?.trigger()
   },
+  modelValue,
 )
 
 const filterUpdateCondition = (filter: FilterType, i: number) => {
@@ -76,7 +85,7 @@ const types = computed(() => {
 watch(
   () => (activeView?.value as any)?.id,
   (n, o) => {
-    if (n !== o) loadFilters()
+    if (n !== o) loadFilters(hookId as string)
   },
   { immediate: true },
 )
@@ -95,11 +104,11 @@ watch(
   },
 )
 
-const applyChanges = async () => {
-  await sync()
+const applyChanges = async (hookId?: string) => {
+  await sync(hookId)
   for (const nestedFilter of nestedFilters?.value || []) {
     if (nestedFilter.parentId) {
-      await nestedFilter.applyChanges(true)
+      await nestedFilter.applyChanges(hookId, true)
     }
   }
 }
@@ -145,7 +154,7 @@ defineExpose({
             <span class="col-span-3" />
             <div class="col-span-5">
               <SmartsheetToolbarColumnFilter
-                v-if="filter.id || shared"
+                v-if="filter.id || filter.children"
                 ref="nestedFilters"
                 v-model="filter.children"
                 :parent-id="filter.id"

@@ -1,6 +1,5 @@
 <script lang="ts" setup>
-import { onUnmounted, useEventListener, useGlobal, watch } from '#imports'
-import { useState } from '#app'
+import { onUnmounted, useEventListener, useGlobal, useState, watch } from '#imports'
 import MdiAccountStar from '~icons/mdi/account-star'
 import MdiAccountHardHat from '~icons/mdi/account-hard-hat'
 import MdiAccountEdit from '~icons/mdi/account-edit'
@@ -54,13 +53,14 @@ watch(previewAs, () => window.location.reload())
     :style="{ top: position.y, left: position.x }"
   >
     <MdiDrag style="cursor: move" class="text-white" @mousedown="mouseDown" />
+
     <div class="divider" />
 
     <div class="pointer flex items-center gap-4">
       <span>Preview as :</span>
 
       <a-radio-group v-model:value="previewAs" name="radioGroup">
-        <a-radio v-for="role in roleList" :key="role.title" class="capitalize !text-white" :value="role.title"
+        <a-radio v-for="role of roleList" :key="role.title" class="capitalize !text-white" :value="role.title"
           >{{ role.title }}
         </a-radio>
       </a-radio-group>
@@ -77,8 +77,8 @@ watch(previewAs, () => window.location.reload())
   <template v-else>
     <template v-for="role of roleList" :key="role.title">
       <a-menu-item :class="`pointer nc-preview-${role.title}`" @click="previewAs = role.title">
-        <div class="p-1 flex gap-2 items-center">
-          <component :is="roleIcon[role.title]" />
+        <div class="nc-project-menu-item group">
+          <component :is="roleIcon[role.title]" class="group-hover:text-pink-500" />
 
           <span class="capitalize" :class="{ 'x-active--text': role.title === previewAs }">{{ role.title }}</span>
         </div>
@@ -87,8 +87,8 @@ watch(previewAs, () => window.location.reload())
 
     <template v-if="previewAs">
       <a-menu-item @click="previewAs = null">
-        <div class="p-1 flex gap-2 items-center">
-          <mdi-close />
+        <div class="nc-project-menu-item group">
+          <MdiClose class="group-hover:text-pink-500" />
           <!-- Reset Preview -->
           <span class="text-capitalize text-xs whitespace-nowrap">{{ $t('activity.resetReview') }}</span>
         </div>
@@ -98,6 +98,10 @@ watch(previewAs, () => window.location.reload())
 </template>
 
 <style scoped>
+.nc-project-menu-item {
+  @apply cursor-pointer flex items-center gap-2 py-2 hover:text-primary after:(content-[''] absolute top-0 left-0 bottom-0 right-0 w-full h-full bg-current opacity-0 transition transition-opactity duration-100) hover:(after:(opacity-5));
+}
+
 .floating-reset-btn {
   @apply z-1000 index-100 fixed text-white
   @apply flex items-center overflow-hidden whitespace-nowrap gap-4 rounded shadow-md;

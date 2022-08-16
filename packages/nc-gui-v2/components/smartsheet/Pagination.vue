@@ -1,15 +1,14 @@
 <script setup lang="ts">
-import { computed, inject } from 'vue'
+import { computed, inject } from '#imports'
 import { ChangePageInj, PaginationDataInj } from '~/context'
-import MdiKeyboardIcon from '~icons/mdi/keyboard-return'
 
-const paginatedData = inject(PaginationDataInj)
+const paginatedData = inject(PaginationDataInj)!
 
-const changePage = inject(ChangePageInj)
+const changePage = inject(ChangePageInj)!
 
-const count = computed(() => paginatedData?.value?.totalRows ?? Infinity)
+const count = computed(() => paginatedData.value?.totalRows ?? Infinity)
 
-const size = computed(() => paginatedData?.value?.pageSize ?? 25)
+const size = computed(() => paginatedData.value?.pageSize ?? 25)
 
 const page = computed({
   get: () => paginatedData?.value?.page ?? 1,
@@ -18,8 +17,8 @@ const page = computed({
 </script>
 
 <template>
-  <div class="flex items-center">
-    <span v-if="count !== null && count !== Infinity" class="caption ml-2 text-gray-500">
+  <div class="flex items-center mb-1">
+    <span v-if="count !== null && count !== Infinity" class="caption ml-5 text-gray-500">
       {{ count }} record{{ count !== 1 ? 's' : '' }}
     </span>
 
@@ -29,7 +28,7 @@ const page = computed({
       v-if="count !== Infinity"
       v-model:current="page"
       size="small"
-      class="!text-xs !m-1"
+      class="!text-xs !m-1 nc-pagination"
       :total="count"
       :page-size="size"
       show-less-items
@@ -39,7 +38,7 @@ const page = computed({
       <span class="text-xs" style="white-space: nowrap"> Change page:</span>
       <a-input :value="page" size="small" class="ml-1 !text-xs" type="number" @keydown.enter="changePage(page)">
         <template #suffix>
-          <MdiKeyboardIcon class="mt-1" @click="changePage(page)" />
+          <MdiKeyboardReturn class="mt-1" @click="changePage(page)" />
         </template>
       </a-input>
     </div>
@@ -50,8 +49,7 @@ const page = computed({
 
 <style scoped>
 :deep(.ant-pagination-item a) {
-  line-height: 21px !important;
-  @apply text-sm;
+  @apply text-sm !leading-[21px];
 }
 :deep(.ant-pagination-item:not(.ant-pagination-item-active) a) {
   line-height: 21px !important;

@@ -4,7 +4,7 @@ import MenuTop from './MenuTop.vue'
 import MenuBottom from './MenuBottom.vue'
 import Toolbar from './toolbar/index.vue'
 import { computed, inject, provide, ref, useElementHover, useRoute, useRouter, useViews, watch } from '#imports'
-import { ActiveViewInj, MetaInj, RightSidebarInj, ViewListInj } from '~/context'
+import { ActiveViewInj, MetaInj, ViewListInj } from '~/context'
 
 const meta = inject(MetaInj, ref())
 

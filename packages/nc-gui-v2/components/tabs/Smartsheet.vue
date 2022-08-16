@@ -3,7 +3,7 @@ import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import SmartsheetGrid from '../smartsheet/Grid.vue'
 import { computed, inject, provide, useMetas, useProvideSmartsheetStore, watch, watchEffect } from '#imports'
-import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, RightSidebarInj, TabMetaInj } from '~/context'
+import { ActiveViewInj, FieldsInj, IsLockedInj, MetaInj, ReloadViewDataHookInj, TabMetaInj } from '~/context'
 import type { TabItem } from '~/composables'
 
 const { getMeta, metas } = useMetas()
@@ -34,7 +34,6 @@ provide(ActiveViewInj, activeView)
 provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
-provide(RightSidebarInj, ref(false))
 
 const { isGallery, isGrid, isForm } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 

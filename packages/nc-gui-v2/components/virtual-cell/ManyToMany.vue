@@ -4,8 +4,8 @@ import type { Ref } from 'vue'
 import {
   CellValueInj,
   ColumnInj,
-  EditModeInj,
   IsFormInj,
+  ReadonlyInj,
   ReloadViewDataHookInj,
   RowInj,
   computed,
@@ -31,7 +31,7 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
-const editEnabled = inject(EditModeInj)
+const readonly = inject(ReadonlyInj, false)
 
 const listItemsDlg = ref(false)
 
@@ -92,7 +92,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
         <MdiArrowExpand class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
 
         <MdiPlus
-          v-if="editEnabled"
+          v-if="!readonly"
           class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
           @click="listItemsDlg = true"
         />

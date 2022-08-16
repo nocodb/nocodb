@@ -1,8 +1,6 @@
 import type { ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
-import { useNuxtApp, useUIPermission } from '#imports'
-import { useMetas } from '~/composables/useMetas'
-import { IsPublicInj, ReloadViewDataHookInj } from '~/context'
+import { IsPublicInj, ReloadViewDataHookInj, useMetas, useNuxtApp, useUIPermission } from '#imports'
 import type { Filter } from '~/lib'
 
 export function useViewFilters(

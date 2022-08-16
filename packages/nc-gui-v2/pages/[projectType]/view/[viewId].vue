@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { ReadonlyInj, ReloadViewDataHookInj } from '~/context'
+import { ReadonlyInj, ReloadViewDataHookInj, useRoute } from '#imports'
 
-import { useRoute } from '#imports'
 definePageMeta({
   requiresAuth: false,
   layout: 'shared-view',

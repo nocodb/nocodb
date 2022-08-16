@@ -1,10 +1,8 @@
 <script setup lang="ts">
 import type { Ref } from 'vue'
-import type { TableType } from 'nocodb-sdk/build/main'
+import type { TableType } from 'nocodb-sdk'
+import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReloadViewDataHookInj, useRoute } from '#imports'
 
-import { ActiveViewInj, FieldsInj, IsPublicInj, MetaInj, ReloadViewDataHookInj } from '~/context'
-
-import { useRoute } from '#imports'
 definePageMeta({
   requiresAuth: false,
 })
@@ -13,7 +11,7 @@ const route = useRoute()
 
 const reloadEventHook = createEventHook<void>()
 const { sharedView, loadSharedView, meta, formColumns } = useSharedView()
-console.log(sharedView)
+
 await loadSharedView(route.params.viewId as string)
 
 provide(ReloadViewDataHookInj, reloadEventHook)
@@ -23,7 +21,6 @@ provide(FieldsInj, formColumns)
 provide(IsPublicInj, ref(true))
 
 useProvideSmartsheetStore(sharedView as Ref<TableType>, meta)
-// useSmartsheetRowStore()
 </script>
 
 <template>

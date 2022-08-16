@@ -1,6 +1,5 @@
 <script setup lang="ts">
-import { useSmartsheetStoreOrThrow } from '~/composables'
-import { IsPublicInj } from '~/context'
+import { IsPublicInj, useSmartsheetStoreOrThrow } from '#imports'
 
 const { isGrid, isForm, isGallery } = useSmartsheetStoreOrThrow()
 const { allowCSVDownload } = useSharedView()

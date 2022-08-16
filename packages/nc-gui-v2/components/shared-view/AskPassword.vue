@@ -1,11 +1,12 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
 import { extractSdkResponseErrorMsg } from '~/utils'
-const props = defineProps<Props>()
-const emit = defineEmits(['update:modelValue'])
+
 interface Props {
   modelValue: boolean
 }
+const props = defineProps<Props>()
+const emit = defineEmits(['update:modelValue'])
 
 const route = useRoute()
 const { loadSharedView } = useSharedView()

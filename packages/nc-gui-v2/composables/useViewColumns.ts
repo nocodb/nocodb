@@ -3,7 +3,7 @@ import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
-import { IsPublicInj } from '~/context'
+import { IsPublicInj } from '#imports'
 
 export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRef<TableType>, reloadData?: () => void) {
   const isPublic = inject(IsPublicInj, ref(false))

@@ -1,7 +1,8 @@
 import type { Api, ColumnType, FormType, GalleryType, PaginatedType, TableType, ViewType } from 'nocodb-sdk'
 import type { ComputedRef, Ref } from 'vue'
 import { message } from 'ant-design-vue'
-import { IsPublicInj, NOCO, computed, extractPkFromRow, extractSdkResponseErrorMsg, ref, useNuxtApp, useProject } from '#imports'
+import { useNuxtApp } from '#app'
+import { IsPublicInj, NOCO, extractPkFromRow, extractSdkResponseErrorMsg, useProject } from '#imports'
 
 const formatData = (list: Record<string, any>[]) =>
   list.map((row) => ({

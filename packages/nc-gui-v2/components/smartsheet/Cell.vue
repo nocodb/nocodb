@@ -54,6 +54,10 @@ const isManualSaved = $computed(() => {
   return [UITypes.Currency, UITypes.Duration].includes(column?.value?.uidt as UITypes)
 })
 
+const isPrimary = computed(() => {
+  return column?.value?.pv
+})
+
 const vModel = computed({
   get: () => props.modelValue,
   set: (val) => {
@@ -108,6 +112,7 @@ const syncAndNavigate = (dir: NavigateDir) => {
 <template>
   <div
     class="nc-cell w-full h-full"
+    :class="{ 'text-blue-600': isPrimary }"
     @keydown.stop.left
     @keydown.stop.right
     @keydown.stop.up

@@ -1,6 +1,7 @@
 import useVuelidate from '@vuelidate/core'
 import { minLength, required } from '@vuelidate/validators'
 import { message } from 'ant-design-vue'
+import { formatMessages } from 'esbuild'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg } from '~/utils'
@@ -12,7 +13,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
   const showPasswordModal = ref(false)
   const submitted = ref(false)
   const password = ref(null)
-  const secondsRemain = ref(null)
+  const secondsRemain = ref(0)
 
   // todo: type
   const sharedView = ref<any>()
@@ -135,6 +136,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
 
       submitted.value = true
       progress.value = false
+
+      additionalState.value = {}
+      formState.value = {}
+
       await message.success(sharedView.value.success_msg || 'Saved successfully.')
     } catch (e: any) {
       console.log(e)
@@ -143,6 +148,19 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
     }
     progress.value = false
   }
+
+  /** reset form if show_blank_form is true */
+  watch(submitted, (nextVal:boolean) =>{
+    if (nextVal && sharedView.value.show_blank_form) {
+      secondsRemain.value = 5;
+      const intvl = setInterval(() => {
+        if (--secondsRemain.value < 0) {
+          submitted.value = false;
+          clearInterval(intvl);
+        }
+      }, 1000);
+    }
+  })
 
   return {
     sharedView,
@@ -158,6 +176,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
     notFound,
     password,
     submitted,
+    secondsRemain
   }
 }, 'expanded-form-store')
 

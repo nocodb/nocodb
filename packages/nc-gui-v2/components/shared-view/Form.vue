@@ -39,7 +39,7 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
             <div v-if="sharedView.submit_another_form" class="text-center">
-              <a-btn color="primary" @click="submitted = false"> Submit Another Form</a-btn>
+              <a-button color="primary" @click="submitted = false"> Submit Another Form</a-button>
             </div>
           </div>
         </div>

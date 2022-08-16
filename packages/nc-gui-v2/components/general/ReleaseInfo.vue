@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { message } from 'ant-design-vue'
-import { onMounted } from '@vue/runtime-core'
-import { extractSdkResponseErrorMsg } from '#imports'
+import { extractSdkResponseErrorMsg, onMounted } from '#imports'
 
 const { $api } = useNuxtApp()
 

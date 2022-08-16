@@ -134,12 +134,12 @@ const syncAndNavigate = (dir: NavigateDir) => {
     <CellEmail v-else-if="isEmail" v-model="vModel" />
     <CellUrl v-else-if="isURL" v-model="vModel" />
     <CellPhoneNumber v-else-if="isPhoneNumber" v-model="vModel" />
+    <CellPercent v-else-if="isPercent" v-model="vModel" />
     <CellCurrency v-else-if="isCurrency" v-model="vModel" />
     <CellDecimal v-else-if="isDecimal" v-model="vModel" />
     <CellInteger v-else-if="isInt" v-model="vModel" />
     <CellFloat v-else-if="isFloat" v-model="vModel" />
     <CellText v-else-if="isString" v-model="vModel" />
-    <CellPercent v-else-if="isPercent" v-model="vModel" />
     <CellJson v-else-if="isJSON" v-model="vModel" />
     <CellText v-else v-model="vModel" />
   </div>

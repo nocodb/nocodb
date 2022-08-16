@@ -161,51 +161,15 @@ const isHovered = useElementHover(sidebar)
 
                   <a-menu-divider />
 
-                  <a-menu-item key="teamAndAuth">
+                  <a-menu-item key="teamAndSettings">
                     <div
-                      v-if="isUIAllowed('teamAndAuth')"
-                      v-t="['c:navdraw:team-and-auth']"
+                      v-if="isUIAllowed('settings')"
+                      v-t="['c:navdraw:project-settings']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'teamAndAuth')"
                     >
-                      <MdiAccountGroup class="group-hover:text-pink-500 nc-team-and-auth" />
-                      Team & Auth
-                    </div>
-                  </a-menu-item>
-
-                  <a-menu-item key="appStore">
-                    <div
-                      v-if="isUIAllowed('appStore')"
-                      v-t="['c:navdraw:app-store']"
-                      class="nc-project-menu-item group"
-                      @click="toggleDialog(true, 'appStore')"
-                    >
-                      <MdiStore class="group-hover:text-pink-500 nc-app-store" />
-                      App Store
-                    </div>
-                  </a-menu-item>
-
-                  <a-menu-item key="metaData">
-                    <div
-                      v-if="isUIAllowed('projectMetadata')"
-                      v-t="['c:navdraw:project-metadata']"
-                      class="nc-project-menu-item group"
-                      @click="toggleDialog(true, 'metaData')"
-                    >
-                      <MdiTableBorder class="group-hover:text-pink-500 nc-meta-data" />
-                      Project Metadata
-                    </div>
-                  </a-menu-item>
-
-                  <a-menu-item key="audit">
-                    <div
-                      v-if="isUIAllowed('audit')"
-                      v-t="['c:navdraw:audit']"
-                      class="nc-project-menu-item group"
-                      @click="toggleDialog(true, 'audit')"
-                    >
-                      <MdiNotebookCheckOutline class="group-hover:text-pink-500 nc-audit" />
-                      Audit
+                      <MdiCog class="group-hover:text-pink-500 nc-team-settings" />
+                      Team & Settings
                     </div>
                   </a-menu-item>
 

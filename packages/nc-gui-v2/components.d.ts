@@ -105,6 +105,7 @@ declare module '@vue/runtime-core' {
     MdiCloseCircle: typeof import('~icons/mdi/close-circle')['default']
     MdiCloseThick: typeof import('~icons/mdi/close-thick')['default']
     MdiCodeJson: typeof import('~icons/mdi/code-json')['default']
+    MdiCog: typeof import('~icons/mdi/cog')['default']
     MdiContentCopy: typeof import('~icons/mdi/content-copy')['default']
     MdiContentSave: typeof import('~icons/mdi/content-save')['default']
     MdiDatabaseOutline: typeof import('~icons/mdi/database-outline')['default']

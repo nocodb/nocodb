@@ -410,7 +410,12 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                         v-else
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
-                        :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                        :edit-enabled="
+                          isUIAllowed('xcDatatableEditable') &&
+                          editEnabled &&
+                          selected.col === colIndex &&
+                          selected.row === rowIndex
+                        "
                         :row-index="rowIndex"
                         :active="selected.col === colIndex && selected.row === rowIndex"
                         @update:edit-enabled="editEnabled = false"

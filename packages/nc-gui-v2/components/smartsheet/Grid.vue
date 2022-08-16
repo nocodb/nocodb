@@ -292,7 +292,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
   <div class="flex flex-col h-100 min-h-0 w-100">
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
-        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
+        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault !h-auto" @contextmenu.prevent="contextMenu = true">
           <thead>
             <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
               <th>

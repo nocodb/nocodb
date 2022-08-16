@@ -540,6 +540,7 @@ onMounted(async () => {
                       class="nc-input"
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
+                      @click.stop.prevent
                     />
                   </a-form-item>
 
@@ -555,6 +556,7 @@ onMounted(async () => {
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
                       :edit-enabled="true"
+                      @click.stop.prevent
                     />
                   </a-form-item>
 

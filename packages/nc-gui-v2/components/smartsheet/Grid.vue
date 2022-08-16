@@ -356,15 +356,17 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
                     <div class="align-center flex min-w-[80px]">
-                      <div class="nc-row-no" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                      <div v-if="!readonly" class="nc-row-no" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                      <div v-else>{{ rowIndex + 1 }}</div>
                       <div
+                        v-if="!readonly"
                         :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
                         class="nc-row-expand-and-checkbox"
                       >
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
-                      <div class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+                      <div v-if="!readonly" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
                         <span
                           v-if="row.rowMeta?.commentCount"
                           class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"

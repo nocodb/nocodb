@@ -86,15 +86,11 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
                         </div>
                         <div v-if="isVirtualCol(field)" class="mt-0">
                           <SmartsheetVirtualCell class="mt-0 nc-input" :column="field" />
-                          <div
-                            v-if="
-                              v$.virtual?.$dirty &&
-                              (!v$.virtual?.[field.title]?.required || !v$.virtual?.[field.title]?.minLength)
-                            "
-                            class="text-xs text-red-500"
-                          >
-                            Field is required.
-                          </div>
+                          <template v-if="v$.virtual.$dirty && v$.virtual?.[field.title]">
+                            <div v-for="error of v$.virtual[field.title].$errors" :key="error" class="text-xs text-red-500">
+                              {{ error.$message }}
+                            </div>
+                          </template>
                         </div>
                         <div v-else class="mt-0">
                           <SmartsheetCell

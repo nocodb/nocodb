@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { enumColor, nextTick, ref, timeAgo, useExpandedFormStoreOrThrow, watch } from '#imports'
+import { enumColor, ref, timeAgo, useExpandedFormStoreOrThrow, watch } from '#imports'
 
 const { loadCommentsAndLogs, commentsAndLogs, isCommentsLoading, commentsOnly, saveComment, isYou, comment } =
   useExpandedFormStoreOrThrow()
@@ -13,52 +13,53 @@ const showborder = ref(false)
 watch(
   commentsAndLogs,
   () => {
-    nextTick(() => {
+    // todo: replace setTimeout
+    setTimeout(() => {
       if (commentsWrapperEl.value) commentsWrapperEl.value.scrollTop = commentsWrapperEl.value?.scrollHeight
-    })
+    }, 200)
   },
   { immediate: true },
 )
 </script>
 
 <template>
-  <div class="h-full d-flex flex-column w-full">
-    <div ref="commentsWrapperEl" class="flex-grow-1 min-h-[100px] overflow-y-auto scrollbar-thin-primary p-2">
+  <div class="h-full flex flex-col w-full bg-[#eceff1] p-2">
+    <div ref="commentsWrapperEl" class="flex-grow-1 min-h-[100px] overflow-y-auto scrollbar-thin-primary p-2 space-y-2">
       <v-skeleton-loader v-if="isCommentsLoading && !commentsAndLogs" type="list-item-avatar-two-line@8" />
 
       <template v-else>
         <div v-for="log of commentsAndLogs" :key="log.id" class="flex gap-1 text-xs">
           <MdiAccountCircle class="row-span-2" :class="isYou(log.user) ? 'text-pink-300' : 'text-blue-300 '" />
           <div class="flex-grow">
-            <p class="mb-1 caption edited-text text-[10px] text-gray">
+            <p class="mb-1 caption edited-text text-[10px] text-gray-500">
               {{ isYou(log.user) ? 'You' : log.user == null ? 'Shared base' : log.user }}
               {{ log.op_type === 'COMMENT' ? 'commented' : log.op_sub_type === 'INSERT' ? 'created' : 'edited' }}
             </p>
             <p
               v-if="log.op_type === 'COMMENT'"
-              class="caption mb-0 nc-chip w-full min-h-20px"
+              class="block caption my-2 nc-chip w-full min-h-20px p-2 rounded"
               :style="{ backgroundColor: enumColor.light[2] }"
             >
               {{ log.description }}
             </p>
 
-            <p v-else v-dompurify-html="log.details" class="caption mb-0" style="word-break: break-all" />
+            <p v-else v-dompurify-html="log.details" class="caption my-3" style="word-break: break-all" />
 
-            <p class="time text-right text-[10px] mb-0">
+            <p class="time text-right text-[10px] mb-0 mt-1 text-gray-500">
               {{ timeAgo(log.created_at) }}
             </p>
           </div>
         </div>
       </template>
     </div>
-    <div class="border-1 my-2 w-full ml-6" />
+    <div class="border-1 my-2 w-full" />
     <div class="p-0">
       <div class="flex justify-center">
         <a-checkbox v-model:checked="commentsOnly" @change="loadCommentsAndLogs"
           ><span class="text-[11px] text-gray-500">Comments only</span>
         </a-checkbox>
       </div>
-      <div class="flex-shrink-1 mt-2 d-flex pl-4">
+      <div class="flex-shrink-1 mt-2 d-flex">
         <a-input
           v-model:value="comment"
           class="!text-xs"
@@ -84,10 +85,10 @@ watch(
 
 <style scoped>
 :deep(.red.lighten-4) {
-  @apply bg-red-100;
+  @apply bg-red-100 p-1;
 }
 
 :deep(.green.lighten-4) {
-  @apply bg-green-100;
+  @apply bg-green-100 p-1;
 }
 </style>

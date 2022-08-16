@@ -96,7 +96,7 @@ const { state: additionalState } = useProvideSmartsheetRowStore(
                           />
                         </div>
                         <div v-if="isVirtualCol(field)" class="mt-0">
-                          <SmartsheetVirtualCell v-model="formState[field.title]" class="mt-0 nc-input" :column="field" />
+                          <SmartsheetVirtualCell  class="mt-0 nc-input" :column="field" />
                           <div
                             v-if="
                               v$.virtual?.$dirty && (!v$.virtual?.[col.title]?.required || !v$.virtual?.[col.title]?.minLength)

@@ -711,6 +711,7 @@ export default {
             switch (e.keyCode) {
               // copy - ctrl/cmd +c
               case 67:
+                this.$toast.info('Copied to clipboard').goAway(2000)
                 copyTextToClipboard(rowObj[columnObj.title] || '')
                 break
               // // paste ctrl/cmd + v

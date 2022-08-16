@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ActiveCellInj, IsFormInj, defineAsyncComponent, inject, ref, useLTARStoreOrThrow } from '#imports'
+import { ActiveCellInj, IsFormInj, ReadonlyInj, defineAsyncComponent, inject, ref, useLTARStoreOrThrow } from '#imports'
 
 interface Props {
   value?: string | number | boolean

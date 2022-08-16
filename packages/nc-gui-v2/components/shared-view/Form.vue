@@ -31,13 +31,13 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
 
       <template v-else-if="submitted">
         <div class="flex justify-center">
-          <div v-if="sharedView" style="min-width: 350px" class="mt-3">
-            <a-alert type="success" outlined :message="sharedView.success_msg || 'Successfully submitted form data'"> </a-alert>
-            <p v-if="sharedView.show_blank_form" class="text-xs text-gray-500 text-center">
+          <div v-if="sharedView.view" style="min-width: 350px" class="mt-3">
+            <a-alert type="success" outlined :message="sharedView.view.success_msg || 'Successfully submitted form data'"> </a-alert>
+            <p v-if="sharedView.view.show_blank_form" class="text-xs text-gray-500 text-center my-4">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
-            <div v-if="sharedView.submit_another_form" class="text-center">
-              <a-button color="primary" @click="submitted = false"> Submit Another Form</a-button>
+            <div v-if="sharedView.view.submit_another_form" class="text-center">
+              <a-button type="primary" @click="submitted = false"> Submit Another Form</a-button>
             </div>
           </div>
         </div>

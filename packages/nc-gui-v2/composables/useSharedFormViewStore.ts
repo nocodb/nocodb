@@ -137,8 +137,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
       submitted.value = true
       progress.value = false
 
-      additionalState.value = {}
-      formState.value = {}
 
       await message.success(sharedView.value.success_msg || 'Saved successfully.')
     } catch (e: any) {
@@ -151,14 +149,22 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
 
   /** reset form if show_blank_form is true */
   watch(submitted, (nextVal: boolean) => {
-    if (nextVal && sharedView.value.show_blank_form) {
+    if (nextVal && sharedView.value?.view?.show_blank_form) {
       secondsRemain.value = 5
       const intvl = setInterval(() => {
-        if (--secondsRemain.value < 0) {
+        secondsRemain.value = secondsRemain.value -1
+        if (secondsRemain.value < 0) {
           submitted.value = false
           clearInterval(intvl)
         }
       }, 1000)
+    }
+
+    /** reset form state and validation */
+    if(!nextVal){
+      additionalState.value = {}
+      formState.value = {}
+      v$.value?.$reset()
     }
   })
 

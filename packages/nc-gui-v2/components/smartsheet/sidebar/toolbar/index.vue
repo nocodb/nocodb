@@ -39,15 +39,15 @@ const clickCount = $ref(0)
       <div class="dot" />
     </template>
 
-    <LockMenu v-if="isUIAllowed('view-type')" />
+    <LockMenu v-if="isUIAllowed('view-type')" @click.stop />
 
     <div v-if="isUIAllowed('view-type')" class="dot" />
 
-    <Reload />
+    <Reload @click.stop />
 
     <div class="dot" />
 
-    <AddRow v-if="isUIAllowed('xcDatatableEditable')" />
+    <AddRow v-if="isUIAllowed('xcDatatableEditable')" @click.stop />
 
     <slot name="end" />
   </div>

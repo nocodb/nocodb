@@ -472,6 +472,10 @@ export class _mainPage {
         // cy.get("button.ant-tabs-tab-remove").click({ multiple: true });
         // cy.get('.ant-tabs-tab-remove').should('not.exist')
     }
+
+    toggleRightSidebar() {
+        cy.get(".nc-right-sidebar-toggle").should("exist").click();
+    }
 }
 
 export const mainPage = new _mainPage();

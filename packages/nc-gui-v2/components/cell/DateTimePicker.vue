@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
+import { ReadonlyInj } from '#imports'
 
 interface Props {
   modelValue: string | null | undefined
@@ -68,7 +69,7 @@ watch(
     :input-read-only="true"
     :dropdown-class-name="randomClass"
     :open="readOnly ? false : open"
-    :disabled="!editEnabled"
+    :disabled="readOnly"
     @click="open = !open"
     @ok="open = !open"
   >

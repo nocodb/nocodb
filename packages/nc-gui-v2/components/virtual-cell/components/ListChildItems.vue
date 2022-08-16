@@ -134,7 +134,12 @@ const expandedFormRow = ref()
           show-less-items
         />
       </template>
-      <a-empty v-else class="my-10" :image="Empty.PRESENTED_IMAGE_SIMPLE" />
+      <a-empty
+        v-else
+        :class="{ 'my-10': !isForm, 'my-1 !text-xs': isForm }"
+        :image="Empty.PRESENTED_IMAGE_SIMPLE"
+        :image-style="isForm ? { height: '20px' } : {}"
+      />
     </div>
 
     <Suspense>

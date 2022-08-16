@@ -15,6 +15,10 @@ export const genTest = (apiType, dbType) => {
             cy.openTableTab("Country", 25);
         });
 
+        beforeEach(() => {
+            cy.fileHook();
+        });
+
         after(() => {
             cy.closeTableTab("Country");
         });
@@ -26,42 +30,29 @@ export const genTest = (apiType, dbType) => {
 
                 // on menu, collaboration view appears first (at index 0)
                 // followed by Locked view (at index 1)
-                cy.get(".xc-toolbar")
-                    .find(".nc-view-lock-menu:enabled")
+                cy.get(".nc-sidebar-lock-menu")
                     .click();
-                cy.snipActiveMenu("Menu_Collaboration");
                 cy.getActiveMenu()
-                    .find('[role="menuitem"]')
+                    .find('.nc-menu-item:visible')
                     .eq(menuOption)
                     .click();
 
+                cy.toastWait('Successfully Switched to locked view')
+
                 // expected toolbar for Lock view: Only lock-view menu, reload, toggle-nav-drawer to be enabled
                 //
-                cy.get(".xc-toolbar")
-                    .find(".nc-view-lock-menu:enabled")
+                cy.get(".nc-sidebar-lock-menu:enabled")
                     .should("exist");
-                cy.get(".xc-toolbar")
-                    .find(".nc-table-reload-btn:enabled")
+                cy.get(".nc-sidebar-reload-btn:enabled")
                     .should("exist");
-                cy.get(".xc-toolbar")
-                    .find(".nc-add-new-row-btn:enabled")
+                cy.get("nc-sidebar-add-row-btn:enabled")
                     .should(`${vString}exist`);
-                // cy.get('.xc-toolbar').find('.nc-save-new-row-btn:disabled') .should('exist')
-                cy.get(".xc-toolbar")
-                    .find(".nc-fields-menu-btn:enabled")
+                cy.get(".nc-fields-menu-btn:enabled")
                     .should(`${vString}exist`);
-                cy.get(".xc-toolbar")
-                    .find(".nc-sort-menu-btn:enabled")
+                cy.get(".nc-sort-menu-btn:enabled")
                     .should(`${vString}exist`);
-                cy.get(".xc-toolbar")
-                    .find(".nc-filter-menu-btn:enabled")
+                cy.get(".nc-filter-menu-btn:enabled")
                     .should(`${vString}exist`);
-                cy.get(".xc-toolbar")
-                    .find(".nc-table-delete-btn:enabled")
-                    .should(`${vString}exist`);
-                cy.get(".xc-toolbar")
-                    .find(".nc-toggle-nav-drawer:enabled")
-                    .should("exist");
 
                 // dblClick on a cell & see if we can edit
                 mainPage.getCell("Country", 1).dblclick();
@@ -71,12 +62,17 @@ export const genTest = (apiType, dbType) => {
                     .should(`${vString}exist`);
 
                 // check if expand row option is available?
-                cy.get("td")
-                    .find(".nc-row-expand-icon")
-                    .should(`${vString}exist`);
-                // alt validation: mainPage.getRow(1).find('.nc-row-expand-icon').should(`${vString}exist`)
+                // cy.get("td")
+                //     .find(".nc-row-expand-icon")
+                //     .should(`${vString}exist`);
+                mainPage
+                  .getRow(1)
+                  .find('.nc-row-no').should('exist').eq(0).trigger('mouseover', { force: true })
+                cy.get(".nc-row-expand")
+                  .should(`${vString}exist`);
 
                 // check if add/ expand options available for 'has many' column type
+                // GUI-v2: TBD
                 mainPage
                     .getCell("City List", 1)
                     .click()
@@ -90,7 +86,7 @@ export const genTest = (apiType, dbType) => {
 
                 // update row option (right click) - should not be available for Lock view
                 mainPage.getCell("City List", 1).rightclick();
-                cy.get(".menuable__content__active").should(
+                cy.get(".ant-dropdown-content").should(
                     `${vString}be.visible`
                 );
             });

@@ -3,8 +3,8 @@ import { Empty, Modal } from 'ant-design-vue'
 import type { ColumnType } from 'nocodb-sdk'
 import {
   ColumnInj,
-  EditModeInj,
   IsFormInj,
+  ReadonlyInj,
   computed,
   useLTARStoreOrThrow,
   useSmartsheetRowStoreOrThrow,
@@ -24,7 +24,7 @@ const isForm = inject(IsFormInj, ref(false))
 
 const column = inject(ColumnInj)
 
-const editEnabled = inject(EditModeInj)
+const readonly = inject(ReadonlyInj, false)
 
 const {
   childrenList,
@@ -85,7 +85,7 @@ const expandedFormRow = ref()
 
         <MdiReload v-if="!isForm" class="cursor-pointer text-gray-500" @click="loadChildrenList" />
 
-        <a-button v-if="editEnabled" type="primary" ghost class="!text-xs" size="small" @click="emit('attachRecord')">
+        <a-button v-if="!readonly" type="primary" ghost class="!text-xs" size="small" @click="emit('attachRecord')">
           <div class="flex align-center gap-1">
             <MdiLinkVariantRemove class="text-xs" type="primary" @click="unlinkRow(row)" />
             Link to '{{ meta.title }}'
@@ -107,16 +107,17 @@ const expandedFormRow = ref()
           >
             <div class="flex align-center">
               <div class="flex-grow overflow-hidden min-w-0">
-                {{ row[relatedTablePrimaryValueProp]
-                }}<span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
+                {{ row[relatedTablePrimaryValueProp] }}
+                <span class="text-gray-400 text-[11px] ml-1">(Primary key : {{ getRelatedTableRowId(row) }})</span>
               </div>
               <div class="flex-1"></div>
-              <div v-if="editEnabled" class="flex gap-2">
+              <div v-if="!readonly" class="flex gap-2">
                 <MdiLinkVariantRemove
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
                   @click.stop="unlinkRow(row)"
                 />
                 <MdiDeleteOutline
+                  v-if="!readonly"
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
                   @click.stop="deleteRelatedRow(row, unlinkIfNewRow)"
                 />

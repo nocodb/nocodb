@@ -32,7 +32,7 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
-const readonly = inject(ReadonlyInj)
+const readonly = inject(ReadonlyInj, false)
 
 const listItemsDlg = ref(false)
 

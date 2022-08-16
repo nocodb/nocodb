@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { message } from 'ant-design-vue'
 import {
   navigateTo,
   onKeyStroke,
   openLink,
   provideSidebar,
   ref,
+  useClipboard,
   useElementHover,
   useProject,
   useRoute,
@@ -12,16 +14,17 @@ import {
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/composables'
-
 const route = useRoute()
 
 const { appInfo } = useGlobal()
 
-const { project, loadProject, loadTables, isSharedBase } = useProject()
+const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo } = useProject()
 
 const { addTab, clearTabs } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
+
+const { copy } = useClipboard()
 
 // create a new sidebar state
 const { isOpen, toggle } = provideSidebar({ isOpen: true })
@@ -59,6 +62,21 @@ await loadProject()
 await loadTables()
 
 const isHovered = useElementHover(sidebar)
+
+const copyProjectInfo = async () => {
+  try {
+    await loadProjectMetaInfo()
+    copy(
+      Object.entries(projectMetaInfo.value!)
+        .map(([k, v]) => `${k}: **${v}**`)
+        .join('\n'),
+    )
+    message.info('Copied project info to clipboard')
+  } catch (e: any) {
+    console.log(e)
+    message.error(e.message)
+  }
+}
 </script>
 
 <template>
@@ -143,7 +161,7 @@ const isHovered = useElementHover(sidebar)
                   </template>
 
                   <a-menu-item key="copy">
-                    <div class="nc-project-menu-item group">
+                    <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
                       <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
                       Copy Project Info
                     </div>

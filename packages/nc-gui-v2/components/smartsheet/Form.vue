@@ -5,6 +5,7 @@ import { message } from 'ant-design-vue'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import {
   ActiveViewInj,
+  EditModeInj,
   IsFormInj,
   MetaInj,
   computed,
@@ -22,7 +23,6 @@ import {
   useViewData,
   watch,
 } from '#imports'
-import { EditModeInj } from '~/context'
 
 provide(IsFormInj, ref(true))
 
@@ -45,7 +45,7 @@ const secondsRemain = ref(0)
 
 const isEditable = isUIAllowed('editFormView' as Permission)
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj)!
 
 const view = inject(ActiveViewInj)
 
@@ -56,12 +56,14 @@ const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, fal
   setFormData()
 })
 
-
-const { syncLTARRefs } = useProvideSmartsheetRowStore(meta!, ref({
-  row: formState,
-  oldRow: {},
-  rowMeta: { new: true },
-}))
+const { syncLTARRefs } = useProvideSmartsheetRowStore(
+  meta,
+  ref({
+    row: formState,
+    oldRow: {},
+    rowMeta: { new: true },
+  }),
+)
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -133,7 +135,10 @@ function isDbRequired(column: Record<string, any>) {
     // primary column
     (column.pk && !column.ai && !column.cdf)
   if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions.type === RelationTypes.BELONGS_TO) {
-    const col = columns.value.find((c: Record<string, any>) => c.id === column.colOptions.fk_child_column_id) as Record<string, any>
+    const col = columns.value.find((c: Record<string, any>) => c.id === column.colOptions.fk_child_column_id) as Record<
+      string,
+      any
+    >
     if (col.rqd && !col.default) {
       isRequired = true
     }
@@ -170,7 +175,7 @@ function onMove(event: any) {
 
 function hideColumn(idx: number) {
   if (isDbRequired(localColumns.value[idx]) || localColumns.value[idx].required) {
-    message.info('Required field can\'t be moved')
+    message.info("Required field can't be moved")
     return
   }
 
@@ -268,8 +273,10 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
     columnObj.colOptions &&
     columnObj.colOptions.type === RelationTypes.BELONGS_TO
   ) {
-    columnObj = columns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<string,
-      any>
+    columnObj = columns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<
+      string,
+      any
+    >
   }
 
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)
@@ -413,8 +420,7 @@ onMounted(async () => {
           </a-card>
         </template>
         <template #footer>
-          <div
-            class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide">
+          <div class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide">
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
           </div>
@@ -578,11 +584,9 @@ onMounted(async () => {
                     </a-form-item>
 
                     <div class="items-center flex">
-                      <span class="text-sm text-gray-500 mr-2 nc-form-input-required">{{ $t('general.required')
-                        }}</span>
+                      <span class="text-sm text-gray-500 mr-2 nc-form-input-required">{{ $t('general.required') }}</span>
 
-                      <a-switch v-model:checked="element.required" size="small" class="my-2"
-                                @change="updateColMeta(element)" />
+                      <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
                     </div>
                   </div>
 
@@ -625,8 +629,8 @@ onMounted(async () => {
             v-model:value="formViewData.success_msg"
             :rows="3"
             hide-details
-            @change="updateView"
             class="nc-form-after-submit-msg"
+            @change="updateView"
           />
 
           <!-- Other options -->
@@ -637,8 +641,8 @@ onMounted(async () => {
                 v-model:checked="formViewData.submit_another_form"
                 v-t="[`a:form-view:submit-another-form`]"
                 size="small"
-                @change="updateView"
                 class="nc-form-checkbox-submit-another-form"
+                @change="updateView"
               />
               <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
             </div>
@@ -649,8 +653,8 @@ onMounted(async () => {
                 v-model:checked="formViewData.show_blank_form"
                 v-t="[`a:form-view:show-blank-form`]"
                 size="small"
-                @change="updateView"
                 class="nc-form-checkbox-show-blank-form"
+                @change="updateView"
               />
               <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
             </div>
@@ -660,13 +664,12 @@ onMounted(async () => {
                 v-model:checked="emailMe"
                 v-t="[`a:form-view:email-me`]"
                 size="small"
-                @change="onEmailChange"
                 class="nc-form-checkbox-send-email"
+                @change="onEmailChange"
               />
               <!-- Email me at <email> -->
               <span class="ml-4">
-                {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email
-                }}</span>
+                {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>
               </span>
             </div>
           </div>

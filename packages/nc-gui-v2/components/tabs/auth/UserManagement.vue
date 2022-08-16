@@ -192,7 +192,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <div class="text-gray-500">Reload</div>
           </div>
         </a-button>
-        <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost @click="onInvite">
+        <a-button v-if="isUIAllowed('newUser')" size="middle" type="primary" ghost class="nc-invite-team" @click="onInvite">
           <div class="flex flex-row justify-center items-center caption capitalize space-x-1">
             <MdiAccountPlusOutline class="mr-1" />
             <div>{{ $t('activity.inviteTeam') }}</div>
@@ -217,13 +217,13 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
         </div>
       </div>
 
-      <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2">
-        <div class="flex w-4/6 flex-wrap">
+      <div v-for="(user, index) of users" :key="index" class="flex flex-row items-center border-b-1 py-2 px-2 nc-user-row">
+        <div class="flex w-4/6 flex-wrap nc-user-email">
           {{ user.email }}
         </div>
 
         <div class="flex w-1/6 justify-center flex-wrap ml-4">
-          <div class="rounded-full px-2 py-1" :style="{ backgroundColor: projectRoleTagColors[user.roles] }">
+          <div class="rounded-full px-2 py-1 nc-user-role" :style="{ backgroundColor: projectRoleTagColors[user.roles] }">
             {{ user.roles }}
           </div>
         </div>
@@ -232,7 +232,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <template #title>
               <span>{{ $t('activity.editUser') }}</span>
             </template>
-            <a-button type="text" class="!rounded-md" @click="onEdit(user)">
+            <a-button type="text" class="!rounded-md nc-user-edit" @click="onEdit(user)">
               <template #icon>
                 <IcRoundEdit class="flex mx-auto h-[1rem] text-gray-500" />
               </template>
@@ -242,7 +242,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <template #title>
               <span>Add user to the project</span>
             </template>
-            <a-button type="text" class="!rounded-md" @click="inviteUser(user)">
+            <a-button type="text" class="!rounded-md nc-user-invite" @click="inviteUser(user)">
               <template #icon>
                 <MdiPlus class="flex mx-auto h-[1.1rem] text-gray-500" />
               </template>
@@ -253,7 +253,7 @@ watchDebounced(searchText, () => loadUsers(), { debounce: 300, maxWait: 600 })
             <template #title>
               <span>Remove user from the project</span>
             </template>
-            <a-button type="text" class="!rounded-md" @click="onDelete(user)">
+            <a-button type="text" class="!rounded-md nc-user-delete" @click="onDelete(user)">
               <template #icon>
                 <MdiDeleteOutline class="flex mx-auto h-[1.1rem] text-gray-500" />
               </template>

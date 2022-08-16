@@ -4,6 +4,7 @@ import { message } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg } from '~/utils'
+import {useInjectionState} from '#imports'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => {
   const progress = ref(false)
@@ -11,6 +12,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
   const showPasswordModal = ref(false)
   const submitted = ref(false)
   const password = ref(null)
+  const secondsRemain = ref(null)
 
   // todo: type
   const sharedView = ref<any>()
@@ -20,6 +22,17 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
   const { $api } = useNuxtApp()
   const { metas, setMeta } = useMetas()
   const formState = ref({})
+
+
+
+  const { state: additionalState } = useProvideSmartsheetRowStore(
+    meta,
+    ref({
+      row: formState,
+      rowMeta: { new: true },
+      oldRow: {},
+    }),
+  )
 
   const formColumns = computed(
     () =>
@@ -86,18 +99,13 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
       }
     }
 
-    console.log(obj)
     return obj
   })
 
-  const v$ = useVuelidate(validators, { localState: formState, virtual: {} })
+  const v$ = useVuelidate(validators, computed(() => ({ localState: formState?.value, virtual: additionalState?.value })))
 
   const submitForm = async (formState: Record<string, any>, additionalState: Record<string, any>) => {
     try {
-      // if (this.$v.localState.$invalid || this.$v.virtual.$invalid) {
-      //   this.$toast.error('Provide values of all required field').goAway(3000);
-      //   return;
-      // }
       if (!(await v$.value?.$validate())) {
         return
       }
@@ -125,10 +133,12 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
         },
       )
 
+      submitted.value = true
       progress.value = false
       await message.success(sharedView.value.success_msg || 'Saved successfully.')
     } catch (e: any) {
       console.log(e)
+      throw e
       await message.error(await extractSdkResponseErrorMsg(e))
     }
     progress.value = false

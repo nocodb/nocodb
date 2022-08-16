@@ -10,7 +10,6 @@ import MdiFilePowerpointBox from '~icons/mdi/file-powerpoint-box'
 import MdiFileExcelOutline from '~icons/mdi/file-excel-outline'
 import IcOutlineInsertDriveFile from '~icons/ic/outline-insert-drive-file'
 
-
 interface AttachmentProps {
   data?: any
   file: File
@@ -172,7 +171,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       downloadFile,
       updateModelValue,
       selectedImage,
-      storedFilesRefs
+      storedFilesRefs,
     }
   },
   'useAttachmentCell',

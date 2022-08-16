@@ -4,7 +4,16 @@ import { useProvideAttachmentCell } from './utils'
 import { useSortable } from './sort'
 import Modal from './Modal.vue'
 import Carousel from './Carousel.vue'
-import { computed, isImage, openLink, ref, useDropZone, useSmartsheetStoreOrThrow, watch, useSmartsheetRowStoreOrThrow } from '#imports'
+import {
+  computed,
+  isImage,
+  openLink,
+  ref,
+  useDropZone,
+  useSmartsheetRowStoreOrThrow,
+  useSmartsheetStoreOrThrow,
+  watch,
+} from '#imports'
 
 interface Props {
   modelValue: string | Record<string, any>[] | null
@@ -23,8 +32,19 @@ const sortableRef = ref<HTMLDivElement>()
 
 const { cellRefs } = useSmartsheetStoreOrThrow()!
 
-const { column, modalVisible, attachments, visibleItems, onDrop, isLoading, open, FileIcon, selectedImage, isReadonly,   storedFilesRefs, } =
-  useProvideAttachmentCell(updateModelValue)
+const {
+  column,
+  modalVisible,
+  attachments,
+  visibleItems,
+  onDrop,
+  isLoading,
+  open,
+  FileIcon,
+  selectedImage,
+  isReadonly,
+  storedFilesRefs,
+} = useProvideAttachmentCell(updateModelValue)
 
 const currentCellRef = computed(() => cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`))
 

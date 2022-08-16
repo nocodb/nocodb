@@ -1,8 +1,8 @@
 <script setup lang="ts">
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import { ref, useProvideSmartsheetRowStore, useSharedFormStoreOrThrow } from '#imports'
+import { useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedView, submitForm, v$, formState, notFound, formColumns, meta } = useSharedFormStoreOrThrow()
+const { sharedView, submitForm, v$, formState, notFound, formColumns, meta, submitted, secondsRemain } = useSharedFormStoreOrThrow()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -20,14 +20,6 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)
 }
 
-const { state: additionalState } = useProvideSmartsheetRowStore(
-  meta,
-  ref({
-    row: formState,
-    rowMeta: { new: true },
-    oldRow: {},
-  }),
-)
 </script>
 
 <template>
@@ -38,22 +30,21 @@ const { state: additionalState } = useProvideSmartsheetRowStore(
     <div class="m-4 mt-2 bg-white rounded p-2 flex-1">
       <a-alert v-if="notFound" type="warning" class="mx-auto mt-10 max-w-[300px]" message="Not found"> </a-alert>
 
-      <template v-if="submitted">
-        <div class="lex justify-center">
-          <div v-if="sharedView" style="min-width: 350px">
-            <a-alert type="success" outlined>
-              <span class="title">{{ sharedView.success_msg || 'Successfully submitted form data' }}</span>
+      <template v-else-if="submitted">
+        <div class="flex justify-center">
+          <div v-if="sharedView" style="min-width: 350px" class="mt-3">
+            <a-alert type="success" outlined :message="sharedView.success_msg || 'Successfully submitted form data'">
             </a-alert>
             <p v-if="sharedView.show_blank_form" class="text-xs text-gray-500 text-center">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
             <div v-if="sharedView.submit_another_form" class="text-center">
-              <v-btn color="primary" @click="submitted = false"> Submit Another Form</v-btn>
+              <a-btn color="primary" @click="submitted = false"> Submit Another Form</a-btn>
             </div>
           </div>
         </div>
       </template>
-      <div v-if="sharedView" class="">
+      <div v-else-if="sharedView" class="">
         <a-row class="justify-center">
           <a-col :md="20">
             <div>
@@ -96,10 +87,10 @@ const { state: additionalState } = useProvideSmartsheetRowStore(
                           />
                         </div>
                         <div v-if="isVirtualCol(field)" class="mt-0">
-                          <SmartsheetVirtualCell  class="mt-0 nc-input" :column="field" />
+                          <SmartsheetVirtualCell class="mt-0 nc-input" :column="field" />
                           <div
                             v-if="
-                              v$.virtual?.$dirty && (!v$.virtual?.[col.title]?.required || !v$.virtual?.[col.title]?.minLength)
+                              v$.virtual?.$dirty && (!v$.virtual?.[field.title]?.required || !v$.virtual?.[field.title]?.minLength)
                             "
                             class="text-xs text-red-500"
                           >

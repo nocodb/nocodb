@@ -6,15 +6,14 @@ import { ActiveViewInj, FieldsInj, IsFormInj, IsPublicInj, MetaInj, ReloadViewDa
 import { createEventHook, definePageMeta, provide, ref, useProvideSmartsheetStore, useRoute } from '#imports'
 
 definePageMeta({
-  requiresAuth: false,
-  layout: 'false',
+  requiresAuth: false
 })
 
 const route = useRoute()
 
 const reloadEventHook = createEventHook<void>()
 
-const { loadSharedView, sharedView, meta, columns, notFound, formColumns } = useProvideSharedFormStore()
+const { loadSharedView, sharedView, meta, notFound, formColumns } = useProvideSharedFormStore()
 
 await loadSharedView(route.params.viewId as string)
 if (!notFound.value) {
@@ -25,7 +24,7 @@ if (!notFound.value) {
   provide(IsPublicInj, ref(true))
   provide(IsFormInj, ref(true))
 
-  useProvideSmartsheetStore(sharedView as Ref<TableType>, meta)
+  useProvideSmartsheetStore(sharedView as Ref<TableType>, meta as Ref<TableType>)
 }
 </script>
 

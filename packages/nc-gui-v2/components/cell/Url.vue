@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { VNodeRef } from '@vue/runtime-core'
+import { message } from 'ant-design-vue'
 import { ColumnInj, EditModeInj, computed, inject, isValidURL } from '#imports'
 
 interface Props {
@@ -14,9 +15,13 @@ const column = inject(ColumnInj)!
 
 const editEnabled = inject(EditModeInj)!
 
+// Used in the logic of when to display error since we are not storing the url if its not valid
+const localState = ref(value)
+
 const vModel = computed({
   get: () => value,
   set: (val) => {
+    localState.value = val
     if (!column.value.meta?.validate || (val && isValidURL(val))) {
       emit('update:modelValue', val)
     }
@@ -35,6 +40,16 @@ const url = computed(() => {
 })
 
 const focus: VNodeRef = (el) => (el as HTMLInputElement)?.focus()
+
+watch(
+  () => editEnabled.value,
+  () => {
+    if (!editEnabled.value && localState.value && !isValidURL(localState.value)) {
+      message.error('Invalid URL')
+    }
+    localState.value = value
+  },
+)
 </script>
 
 <template>

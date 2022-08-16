@@ -24,6 +24,7 @@ export const isValidURL = (str: string) => {
   return !!pattern.test(str)
 }
 
-export const openLink = (url: string, target = '_blank') => {
-  window.open(url, target)
+export const openLink = (path: string, baseURL: string, target = '_blank') => {
+  const url = new URL(path, baseURL)
+  window.open(url.href, target)
 }

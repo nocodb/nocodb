@@ -3,16 +3,19 @@ import { minLength, required } from '@vuelidate/validators'
 import { message } from 'ant-design-vue'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
+import { SharedViewPasswordInj } from '~/context'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import { useInjectionState } from '#imports'
+import { useInjectionState, useMetas } from '#imports'
 
-const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => {
+const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((sharedViewId: string) => {
   const progress = ref(false)
   const notFound = ref(false)
-  const showPasswordModal = ref(false)
   const submitted = ref(false)
+  const passwordDlg = ref(false)
   const password = ref(null)
   const secondsRemain = ref(0)
+
+  provide(SharedViewPasswordInj, password)
 
   // todo: type
   const sharedView = ref<any>()
@@ -45,10 +48,17 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
           required: !!(c.required || 0),
         })) ?? [],
   )
-  const loadSharedView = async (viewId: string) => {
+  const loadSharedView = async () => {
     try {
-      // todo: swagget type correction
-      const viewMeta: any = await $api.public.sharedViewMetaGet(viewId)
+      // todo: swagger type correction
+      const viewMeta: any = await $api.public.sharedViewMetaGet(sharedViewId, {
+        headers: {
+          'xc-password': password.value,
+        },
+      })
+
+      passwordDlg.value = false
+
       sharedView.value = viewMeta
       meta.value = viewMeta.model
       columns.value = viewMeta.model.columns
@@ -61,7 +71,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
       if (e.response && e.response.status === 404) {
         notFound.value = true
       } else if ((await extractSdkResponseErrorMsg(e)) === ErrorMessages.INVALID_SHARED_VIEW_PASSWORD) {
-        showPasswordModal.value = true
+        passwordDlg.value = true
       }
     }
   }
@@ -129,14 +139,14 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
           ...attachment,
         },
         {
-          // todo: add password support
-          // headers: { 'xc-password': password },
+          headers: {
+            'xc-password': password.value,
+          },
         },
       )
 
       submitted.value = true
       progress.value = false
-
 
       await message.success(sharedView.value.success_msg || 'Saved successfully.')
     } catch (e: any) {
@@ -152,7 +162,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
     if (nextVal && sharedView.value?.view?.show_blank_form) {
       secondsRemain.value = 5
       const intvl = setInterval(() => {
-        secondsRemain.value = secondsRemain.value -1
+        secondsRemain.value = secondsRemain.value - 1
         if (secondsRemain.value < 0) {
           submitted.value = false
           clearInterval(intvl)
@@ -161,7 +171,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
     }
 
     /** reset form state and validation */
-    if(!nextVal){
+    if (!nextVal) {
       additionalState.value = {}
       formState.value = {}
       v$.value?.$reset()
@@ -183,6 +193,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
     password,
     submitted,
     secondsRemain,
+    passwordDlg,
   }
 }, 'expanded-form-store')
 

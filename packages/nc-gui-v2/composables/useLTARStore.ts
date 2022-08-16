@@ -14,6 +14,7 @@ import {
   useProject,
 } from '#imports'
 import type { Row } from '~/composables'
+import { SharedViewPasswordInj } from '~/context'
 
 interface DataApiResponse {
   list: Record<string, any>
@@ -27,6 +28,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
     const { metas, getMeta } = useMetas()
     const { project } = useProject()
     const { $api } = useNuxtApp()
+    const sharedViewPassword = inject(SharedViewPasswordInj, ref(null))
     const childrenExcludedList = ref<DataApiResponse | undefined>()
     const childrenList = ref<DataApiResponse | undefined>()
     const childrenExcludedListPagination = reactive({
@@ -90,7 +92,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
             {},
             {
               headers: {
-                'xc-password': '',
+                'xc-password': sharedViewPassword.value,
               },
               query: {
                 limit: childrenExcludedListPagination.size,

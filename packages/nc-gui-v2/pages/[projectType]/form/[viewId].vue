@@ -13,9 +13,9 @@ const route = useRoute()
 
 const reloadEventHook = createEventHook<void>()
 
-const { loadSharedView, sharedView, meta, notFound, formColumns } = useProvideSharedFormStore()
+const { loadSharedView, sharedView, meta, notFound, formColumns } = useProvideSharedFormStore(route.params.viewId)
 
-await loadSharedView(route.params.viewId as string)
+await loadSharedView()
 if (!notFound.value) {
   provide(ReloadViewDataHookInj, reloadEventHook)
   provide(MetaInj, meta)

@@ -2,7 +2,19 @@
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { useSharedFormStoreOrThrow } from '#imports'
 
-const { sharedView, submitForm, v$, formState, notFound, formColumns, submitted, secondsRemain } = useSharedFormStoreOrThrow()
+const {
+  sharedView,
+  submitForm,
+  v$,
+  formState,
+  notFound,
+  formColumns,
+  submitted,
+  secondsRemain,
+  passwordDlg,
+  password,
+  loadSharedView,
+} = useSharedFormStoreOrThrow()
 
 function isRequired(_columnObj: Record<string, any>, required = false) {
   let columnObj = _columnObj
@@ -32,7 +44,8 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
       <template v-else-if="submitted">
         <div class="flex justify-center">
           <div v-if="sharedView.view" style="min-width: 350px" class="mt-3">
-            <a-alert type="success" outlined :message="sharedView.view.success_msg || 'Successfully submitted form data'"> </a-alert>
+            <a-alert type="success" outlined :message="sharedView.view.success_msg || 'Successfully submitted form data'">
+            </a-alert>
             <p v-if="sharedView.view.show_blank_form" class="text-xs text-gray-500 text-center my-4">
               New form will be loaded after {{ secondsRemain }} seconds
             </p>
@@ -119,6 +132,26 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
         </a-row>
       </div>
     </div>
+
+    <a-modal
+      v-model:visible="passwordDlg"
+      :closable="false"
+      width="28rem"
+      centered
+      :footer="null"
+      :mask-closable="false"
+      @close="passwordDlg = false"
+    >
+      <div class="w-full flex flex-col">
+        <a-typography-title :level="4">This shared view is protected</a-typography-title>
+        <a-form ref="formRef" :model="{ password }" class="mt-2" @finish="loadSharedView">
+          <a-form-item name="password" :rules="[{ required: true, message: 'Password is required' }]">
+            <a-input-password v-model:value="password" placeholder="Enter password" />
+          </a-form-item>
+          <a-button type="primary" html-type="submit">Unlock</a-button>
+        </a-form>
+      </div>
+    </a-modal>
   </div>
 </template>
 

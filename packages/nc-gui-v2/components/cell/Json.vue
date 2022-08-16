@@ -2,7 +2,7 @@
 import { Modal as AModal } from 'ant-design-vue'
 import Editor from '~/components/monaco/Editor.vue'
 import { ReadonlyInj, computed, inject, ref, useVModel, watch } from '#imports'
-import { EditModeInj } from '~/context'
+import { EditModeInj, IsFormInj } from '~/context'
 
 interface Props {
   modelValue: string | Record<string, any> | undefined
@@ -18,22 +18,29 @@ const emits = defineEmits<Emits>()
 
 const editEnabled = inject(EditModeInj, ref(false))
 
+const isForm = inject(IsFormInj, ref(false))
+
 const readonly = inject(ReadonlyInj)
 
 const vModel = useVModel(props, 'modelValue', emits)
 
 const localValueState = ref<string | undefined>()
 
+let error = $ref<string | undefined>()
+
+let isExpanded = $ref(false)
+
 const localValue = computed<string | Record<string, any> | undefined>({
   get: () => localValueState.value,
   set: (val: undefined | string | Record<string, any>) => {
     localValueState.value = typeof val === 'object' ? JSON.stringify(val, null, 2) : val
+    /** if form and not expanded then sync directly */
+    if (isForm.value && !isExpanded) {
+      vModel.value = val
+    }
   },
 })
 
-let error = $ref<string | undefined>()
-
-let isExpanded = $ref(false)
 
 const clear = () => {
   error = undefined
@@ -98,7 +105,7 @@ watch(editEnabled, () => {
           <CilFullscreen v-else class="h-2.5" />
         </a-button>
 
-        <div class="flex flex-row">
+        <div v-if="!isForm || isExpanded" class="flex flex-row">
           <a-button type="text" size="small" :onclick="clear"><div class="text-xs">Cancel</div></a-button>
 
           <a-button type="primary" size="small" :disabled="!!error || localValue === vModel">

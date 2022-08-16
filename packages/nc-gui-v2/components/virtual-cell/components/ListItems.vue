@@ -47,8 +47,10 @@ const linkRow = async (row: Record<string, any>) => {
   vModel.value = false
 }
 
-watch(vModel, () => {
-  if (vModel.value) {
+watch(vModel, (nextVal, prevVal) => {
+  if (nextVal && !prevVal) {
+    childrenExcludedListPagination.query = ''
+    childrenExcludedListPagination.page = 1
     loadChildrenExcludedList()
   }
 })

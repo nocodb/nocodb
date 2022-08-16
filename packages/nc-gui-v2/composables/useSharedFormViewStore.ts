@@ -25,9 +25,9 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
     () =>
       columns?.value
         ?.filter?.(
-        (f: Record<string, any>) =>
-          f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
-      )
+          (f: Record<string, any>) =>
+            f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
+        )
         .sort((a: Record<string, any>, b: Record<string, any>) => a.order - b.order)
         .map<ColumnType & { required: boolean }>((c: ColumnType & { required?: boolean }) => ({
           ...c,
@@ -147,7 +147,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
     formState,
     notFound,
     password,
-    submitted
+    submitted,
   }
 }, 'expanded-form-store')
 

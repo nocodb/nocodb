@@ -1,7 +1,6 @@
 <script setup lang="ts">
 import { RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
-import {  ref, useProvideSmartsheetRowStore } from '#imports'
-import { useSharedFormStoreOrThrow } from '#imports'
+import { ref, useProvideSmartsheetRowStore, useSharedFormStoreOrThrow } from '#imports'
 
 const { sharedView, submitForm, v$, formState, notFound, formColumns, meta } = useSharedFormStoreOrThrow()
 
@@ -12,7 +11,10 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
     columnObj.colOptions &&
     columnObj.colOptions.type === RelationTypes.BELONGS_TO
   ) {
-    columnObj = formColumns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<string,any>
+    columnObj = formColumns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<
+      string,
+      any
+    >
   }
 
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)

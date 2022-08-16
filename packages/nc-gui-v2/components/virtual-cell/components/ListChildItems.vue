@@ -59,6 +59,12 @@ const unlinkRow = async (row: Record<string, any>) => {
   }
 }
 
+const unlinkIfNewRow = async (row: Record<string, any>) => {
+  if (isNew.value) {
+    removeLTARRef(row, column?.value as ColumnType)
+  }
+}
+
 const container = computed(() =>
   isForm?.value
     ? h('div', {
@@ -112,7 +118,7 @@ const expandedFormRow = ref()
                 />
                 <MdiDeleteOutline
                   class="text-xs text-grey hover:(!text-red-500) cursor-pointer"
-                  @click.stop="deleteRelatedRow(row)"
+                  @click.stop="deleteRelatedRow(row, unlinkIfNewRow)"
                 />
               </div>
             </div>

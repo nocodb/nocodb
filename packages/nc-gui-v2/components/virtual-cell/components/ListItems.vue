@@ -47,8 +47,10 @@ const linkRow = async (row: Record<string, any>) => {
   vModel.value = false
 }
 
+/** reload list on modal open */
 watch(vModel, (nextVal, prevVal) => {
   if (nextVal && !prevVal) {
+    /** reset query and limit */
     childrenExcludedListPagination.query = ''
     childrenExcludedListPagination.page = 1
     loadChildrenExcludedList()

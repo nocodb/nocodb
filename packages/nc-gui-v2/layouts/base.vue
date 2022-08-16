@@ -43,6 +43,8 @@ const logout = () => {
 
           <div class="flex-1" />
 
+          <GeneralReleaseInfo />
+
           <GeneralShareBaseButton />
 
           <a-tooltip placement="bottom">

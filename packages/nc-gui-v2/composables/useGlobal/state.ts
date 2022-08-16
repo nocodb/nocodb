@@ -59,6 +59,9 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
     filterAutoSave: true,
     previewAs: null,
     includeM2M: false,
+    currentVersion: null,
+    latestRelease: null,
+    hiddenRelease: null,
   }
 
   /** saves a reactive state, any change to these values will write/delete to localStorage */

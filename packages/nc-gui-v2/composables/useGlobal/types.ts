@@ -36,6 +36,9 @@ export interface StoredState {
   filterAutoSave: boolean
   previewAs: string | null
   includeM2M: boolean
+  currentVersion: string | null
+  latestRelease: string | null
+  hiddenRelease: string | null
 }
 
 export type State = ToRefs<Omit<StoredState, 'token'>> & {

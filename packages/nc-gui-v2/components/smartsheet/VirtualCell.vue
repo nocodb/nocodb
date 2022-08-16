@@ -16,7 +16,7 @@ const BelongsTo = defineAsyncComponent(() => import('../virtual-cell/BelongsTo.v
 
 const Rollup = defineAsyncComponent(() => import('../virtual-cell/HasMany.vue'))
 
-const Formula = defineAsyncComponent(() => import('../virtual-cell/ManyToMany.vue'))
+const Formula = defineAsyncComponent(() => import('../virtual-cell/Formula.vue'))
 
 const Count = defineAsyncComponent(() => import('../virtual-cell/BelongsTo.vue'))
 

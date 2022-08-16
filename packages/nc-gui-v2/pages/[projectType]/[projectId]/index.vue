@@ -177,6 +177,8 @@ const copyAuthToken = async () => {
                     </div>
                   </a-menu-item>
 
+                  <a-menu-divider />
+
                   <a-menu-item key="api">
                     <div
                       v-if="isUIAllowed('apiDocs')"
@@ -191,7 +193,7 @@ const copyAuthToken = async () => {
 
                   <a-menu-item key="copy">
                     <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
-                      <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
+                      <MdiScriptTextKeyOutline class="group-hover:text-pink-500 nc-copy-project-info" />
                       Copy Auth Token
                     </div>
                   </a-menu-item>
@@ -215,7 +217,7 @@ const copyAuthToken = async () => {
                   <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
                     <template #title>
                       <div class="nc-project-menu-item group">
-                        <MdiContentCopy class="group-hover:text-pink-500 nc-project-preview" />
+                        <MdiFileEyeOutline class="group-hover:text-pink-500 nc-project-preview" />
                         Preview Project As
 
                         <div class="flex-1" />

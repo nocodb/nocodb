@@ -22,8 +22,11 @@ import {
   useViewData,
   watch,
 } from '#imports'
+import { EditModeInj } from '~/context'
 
 provide(IsFormInj, ref(true))
+
+provide(EditModeInj, ref(true))
 
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']
@@ -52,6 +55,13 @@ const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, fal
   await loadFormView()
   setFormData()
 })
+
+
+const { syncLTARRefs } = useProvideSmartsheetRowStore(meta!, ref({
+  row: formState,
+  oldRow: {},
+  rowMeta: { new: true },
+}))
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -92,7 +102,11 @@ async function submitForm() {
     return
   }
 
-  await insertRow(formState)
+  const insertedRowData = await insertRow(formState)
+
+  if (insertedRowData) {
+    await syncLTARRefs(insertedRowData)
+  }
 
   submitted.value = true
 }
@@ -119,10 +133,7 @@ function isDbRequired(column: Record<string, any>) {
     // primary column
     (column.pk && !column.ai && !column.cdf)
   if (column.uidt === UITypes.LinkToAnotherRecord && column.colOptions.type === RelationTypes.BELONGS_TO) {
-    const col = columns.value.find((c: Record<string, any>) => c.id === column.colOptions.fk_child_column_id) as Record<
-      string,
-      any
-    >
+    const col = columns.value.find((c: Record<string, any>) => c.id === column.colOptions.fk_child_column_id) as Record<string, any>
     if (col.rqd && !col.default) {
       isRequired = true
     }
@@ -159,7 +170,7 @@ function onMove(event: any) {
 
 function hideColumn(idx: number) {
   if (isDbRequired(localColumns.value[idx]) || localColumns.value[idx].required) {
-    message.info("Required field can't be moved")
+    message.info('Required field can\'t be moved')
     return
   }
 
@@ -257,10 +268,8 @@ function isRequired(_columnObj: Record<string, any>, required = false) {
     columnObj.colOptions &&
     columnObj.colOptions.type === RelationTypes.BELONGS_TO
   ) {
-    columnObj = columns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<
-      string,
-      any
-    >
+    columnObj = columns.value.find((c: Record<string, any>) => c.id === columnObj.colOptions.fk_child_column_id) as Record<string,
+      any>
   }
 
   return required || (columnObj && columnObj.rqd && !columnObj.cdf)
@@ -404,7 +413,8 @@ onMounted(async () => {
           </a-card>
         </template>
         <template #footer>
-          <div class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide">
+          <div
+            class="mt-4 border-dashed border-2 border-gray-400 py-3 text-gray-400 text-center nc-drag-n-drop-to-hide">
             <!-- Drag and drop fields here to hide -->
             {{ $t('msg.info.dragDropHide') }}
           </div>
@@ -568,9 +578,11 @@ onMounted(async () => {
                     </a-form-item>
 
                     <div class="items-center flex">
-                      <span class="text-sm text-gray-500 mr-2 nc-form-input-required">{{ $t('general.required') }}</span>
+                      <span class="text-sm text-gray-500 mr-2 nc-form-input-required">{{ $t('general.required')
+                        }}</span>
 
-                      <a-switch v-model:checked="element.required" size="small" class="my-2" @change="updateColMeta(element)" />
+                      <a-switch v-model:checked="element.required" size="small" class="my-2"
+                                @change="updateColMeta(element)" />
                     </div>
                   </div>
 
@@ -653,7 +665,8 @@ onMounted(async () => {
               />
               <!-- Email me at <email> -->
               <span class="ml-4">
-                {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email }}</span>
+                {{ $t('msg.info.emailForm') }} <span class="text-bold text-gray-600">{{ state.user.value?.email
+                }}</span>
               </span>
             </div>
           </div>

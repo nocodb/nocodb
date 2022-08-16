@@ -133,6 +133,7 @@ export function useViewData(
       })
 
       await syncCount()
+      return insertedData
     } catch (error: any) {
       message.error(await extractSdkResponseErrorMsg(error))
     }

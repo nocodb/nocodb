@@ -1,6 +1,5 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { EditModeInj } from '~/context'
 
 interface Props {
   modelValue: string | null | undefined
@@ -12,7 +11,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const { isMysql } = useProject()
 
-const editEnabled = inject(EditModeInj)
+const readOnly = inject(ReadonlyInj, false)
 
 let isDateInvalid = $ref(false)
 
@@ -64,11 +63,11 @@ watch(
     :bordered="false"
     class="!w-full px-1"
     format="YYYY-MM-DD HH:mm"
-    :placeholder="isDateInvalid ? 'Invalid date' : !editEnabled ? 'Select date and time' : ''"
-    :allow-clear="!editEnabled"
+    :placeholder="isDateInvalid ? 'Invalid date' : !readOnly ? 'Select date and time' : ''"
+    :allow-clear="!readOnly"
     :input-read-only="true"
     :dropdown-class-name="randomClass"
-    :open="editEnabled ? false : open"
+    :open="readOnly ? false : open"
     :disabled="!editEnabled"
     @click="open = !open"
     @ok="open = !open"

@@ -5,7 +5,6 @@ import { message } from 'ant-design-vue'
 import type { Permission } from '~/composables/useUIPermission/rolePermissions'
 import {
   ActiveViewInj,
-  EditModeInj,
   IsFormInj,
   MetaInj,
   computed,
@@ -25,8 +24,6 @@ import {
 } from '#imports'
 
 provide(IsFormInj, ref(true))
-
-provide(EditModeInj, ref(true))
 
 // todo: generate hideCols based on default values
 const hiddenCols = ['created_at', 'updated_at']

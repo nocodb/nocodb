@@ -75,7 +75,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
     <div v-if="!readonly" class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
       <component
         :is="addIcon"
-        class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500)"
+        class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 select-none group-hover:(text-gray-500) nc-plus"
         @click="listItemsDlg = true"
       />
     </div>

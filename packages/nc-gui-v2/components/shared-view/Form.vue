@@ -34,10 +34,10 @@ const formRef = ref()
   <div class="flex flex-col my-4 space-y-2 mx-32 items-center">
     <div class="flex w-2/3 flex-col mt-10">
       <div class="flex flex-col items-start px-14 py-8 bg-gray-50 rounded-md w-full">
-        <a-typography-title class="border-b-1 border-gray-100 w-full pb-3" :level="1">
+        <a-typography-title class="border-b-1 border-gray-100 w-full pb-3 nc-share-form-title" :level="1">
           {{ sharedView.view.heading }}
         </a-typography-title>
-        <a-typography class="pl-1 text-sm">{{ sharedView.view.subheading }}</a-typography>
+        <a-typography class="pl-1 text-sm nc-share-form-desc">{{ sharedView.view.subheading }}</a-typography>
       </div>
 
       <a-form ref="formRef" :model="formState" class="mt-8 pb-12 mb-8 px-3 bg-gray-50 rounded-md">
@@ -59,6 +59,7 @@ const formRef = ref()
           <a-form-item
             v-if="isVirtualCol(field)"
             class="ma-0 gap-0 pa-0"
+            :class="`nc-form-field-${field.title}`"
             :name="field.title"
             :rules="[{ required: field.required, message: `${field.title} is required` }]"
           >
@@ -67,6 +68,7 @@ const formRef = ref()
           <a-form-item
             v-else
             class="ma-0 gap-0 pa-0"
+            :class="`nc-form-field-${field.title}`"
             :name="field.title"
             :rules="[{ required: field.required, message: `${field.title} is required` }]"
           >

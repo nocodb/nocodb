@@ -104,7 +104,7 @@ const newRowState = computed(() => {
           size="small"
         ></a-input>
         <div class="flex-1" />
-        <MdiReload class="cursor-pointer text-gray-500" @click="loadChildrenExcludedList" />
+        <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
         <a-button type="primary" size="small" @click="expandedFormDlg = true">Add new record</a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">

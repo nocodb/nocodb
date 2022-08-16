@@ -85,10 +85,10 @@ watch(
 
 <style scoped>
 :deep(.red.lighten-4) {
-  @apply bg-red-100 p-1;
+  @apply bg-red-100;
 }
 
 :deep(.green.lighten-4) {
-  @apply bg-green-100 p-1;
+  @apply bg-green-100;
 }
 </style>

@@ -8,13 +8,15 @@ import { comparisonOpList } from '~/utils/filterUtils'
 import { ActiveViewInj, MetaInj, ReloadViewDataHookInj } from '~/context'
 import MdiDeleteIcon from '~icons/mdi/close-box'
 import MdiAddIcon from '~icons/mdi/plus'
+import type { Filter } from '~/lib/types'
 
 const {
   nested = false,
   parentId,
   autoSave = true,
   hookId = null,
-} = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean; hookId?: string }>()
+  modelValue,
+} = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean; hookId?: string; modelValue?: Filter[] }>()
 
 const emit = defineEmits(['update:filtersLength'])
 
@@ -25,7 +27,6 @@ const activeView = inject(ActiveViewInj)
 const reloadDataHook = inject(ReloadViewDataHookInj)
 
 // todo: replace with inject or get from state
-const shared = ref(false)
 
 const { $e } = useNuxtApp()
 
@@ -36,6 +37,7 @@ const { filters, deleteFilter, saveOrUpdate, loadFilters, addFilter, addFilterGr
   () => {
     reloadDataHook?.trigger()
   },
+  modelValue,
 )
 
 const filterUpdateCondition = (filter: FilterType, i: number) => {
@@ -152,7 +154,7 @@ defineExpose({
             <span class="col-span-3" />
             <div class="col-span-5">
               <SmartsheetToolbarColumnFilter
-                v-if="filter.id || shared"
+                v-if="filter.id || filter.children"
                 ref="nestedFilters"
                 v-model="filter.children"
                 :parent-id="filter.id"

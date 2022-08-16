@@ -3,13 +3,10 @@ import type { ColumnType, TableType, ViewType } from 'nocodb-sdk'
 import { watch } from 'vue'
 import type { ComputedRef, Ref } from 'vue'
 import { useNuxtApp } from '#app'
+import { IsPublicInj } from '#imports'
 
-export function useViewColumns(
-  view: Ref<ViewType> | undefined,
-  meta: ComputedRef<TableType>,
-  isPublic = false,
-  reloadData?: () => void,
-) {
+export function useViewColumns(view: Ref<ViewType> | undefined, meta: ComputedRef<TableType>, reloadData?: () => void) {
+  const isPublic = inject(IsPublicInj, ref(false))
   const fields = ref<
     {
       order: number
@@ -31,7 +28,7 @@ export function useViewColumns(
 
     let order = 1
     if (view.value?.id) {
-      const data = (await $api.dbViewColumn.list(view.value.id)) as any[]
+      const data = (isPublic.value ? meta.value?.columns : await $api.dbViewColumn.list(view.value.id)) as any[]
 
       const fieldById = data.reduce<Record<string, any>>((acc, curr) => {
         curr.show = !!curr.show
@@ -54,12 +51,19 @@ export function useViewColumns(
           }
         })
         .sort((a, b) => a.order - b.order)
-    } else if (isPublic) {
-      fields.value = meta.value.columns as any
     }
   }
 
   const showAll = async (ignoreIds?: any) => {
+    if (isPublic.value) {
+      fields.value = fields.value?.map((field) => ({
+        ...field,
+        show: true,
+      }))
+      reloadData?.()
+      return
+    }
+
     if (view?.value?.id) {
       if (ignoreIds) {
         await $api.dbView.showAllColumn(view.value.id, {
@@ -74,6 +78,14 @@ export function useViewColumns(
     reloadData?.()
   }
   const hideAll = async (ignoreIds?: any) => {
+    if (isPublic.value) {
+      fields.value = fields.value?.map((field) => ({
+        ...field,
+        show: false,
+      }))
+      reloadData?.()
+      return
+    }
     if (view?.value?.id) {
       if (ignoreIds) {
         await $api.dbView.hideAllColumn(view.value.id, {
@@ -89,6 +101,22 @@ export function useViewColumns(
   }
 
   const saveOrUpdate = async (field: any, index: number) => {
+    if (isPublic && fields.value) {
+      fields.value[index] = field
+      meta.value.columns = meta.value?.columns?.map((column) => {
+        if (column.id === field.fk_column_id) {
+          return {
+            ...column,
+            ...field,
+          }
+        }
+        return column
+      })
+
+      reloadData?.()
+      return
+    }
+
     if (isUIAllowed('fieldsSync')) {
       if (field.id && view?.value?.id) {
         await $api.dbViewColumn.update(view.value.id, field.id, field)
@@ -118,11 +146,13 @@ export function useViewColumns(
     },
     set(v: boolean) {
       if (view?.value?.id) {
-        $api.dbView
-          .update(view.value.id, {
-            show_system_fields: v,
-          })
-          .finally(() => reloadData?.())
+        if (!isPublic.value) {
+          $api.dbView
+            .update(view.value.id, {
+              show_system_fields: v,
+            })
+            .finally(() => reloadData?.())
+        }
         ;(view.value as any).show_system_fields = v
       }
     },

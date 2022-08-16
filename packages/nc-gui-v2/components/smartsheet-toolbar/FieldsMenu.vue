@@ -21,7 +21,7 @@ const {
   showAll,
   hideAll,
   saveOrUpdate,
-} = useViewColumns(activeView, meta, false, () => reloadDataHook.trigger())
+} = useViewColumns(activeView, meta, () => reloadDataHook.trigger())
 
 watch(
   () => (activeView.value as any)?.id,

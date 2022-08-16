@@ -4,7 +4,7 @@ import type { SelectOptionsType } from 'nocodb-sdk'
 import {
   ActiveCellInj,
   ColumnInj,
-  EditModeInj,
+  ReadonlyInj,
   computed,
   h,
   inject,
@@ -28,7 +28,7 @@ const { isMysql } = useProject()
 
 const column = inject(ColumnInj)!
 
-const editEnabled = inject(EditModeInj)!
+const readOnly = inject(ReadonlyInj)!
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -129,12 +129,12 @@ watch(isOpen, (n, _o) => {
     v-model:value="vModel"
     mode="multiple"
     class="w-full"
-    placeholder="Select an option"
+    :placeholder="!readOnly ? 'Select an option' : ''"
     :bordered="false"
-    show-arrow
+    :show-arrow="!readOnly"
     :show-search="false"
     :open="isOpen"
-    :disabled="!editEnabled"
+    :disabled="readOnly"
     @keydown="handleKeys"
     @click="isOpen = !isOpen"
   >

@@ -613,8 +613,8 @@ onMounted(async () => {
             v-model:value="formViewData.success_msg"
             :rows="3"
             hide-details
-            @change="updateView"
             class="nc-form-after-submit-msg"
+            @change="updateView"
           />
 
           <!-- Other options -->
@@ -625,8 +625,8 @@ onMounted(async () => {
                 v-model:checked="formViewData.submit_another_form"
                 v-t="[`a:form-view:submit-another-form`]"
                 size="small"
-                @change="updateView"
                 class="nc-form-checkbox-submit-another-form"
+                @change="updateView"
               />
               <span class="ml-4">{{ $t('msg.info.submitAnotherForm') }}</span>
             </div>
@@ -637,8 +637,8 @@ onMounted(async () => {
                 v-model:checked="formViewData.show_blank_form"
                 v-t="[`a:form-view:show-blank-form`]"
                 size="small"
-                @change="updateView"
                 class="nc-form-checkbox-show-blank-form"
+                @change="updateView"
               />
               <span class="ml-4">{{ $t('msg.info.showBlankForm') }}</span>
             </div>
@@ -648,8 +648,8 @@ onMounted(async () => {
                 v-model:checked="emailMe"
                 v-t="[`a:form-view:email-me`]"
                 size="small"
-                @change="onEmailChange"
                 class="nc-form-checkbox-send-email"
+                @change="onEmailChange"
               />
               <!-- Email me at <email> -->
               <span class="ml-4">

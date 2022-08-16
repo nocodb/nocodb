@@ -34,7 +34,9 @@ provide(ActiveViewInj, activeView)
 provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
-provide(RightSidebarInj, ref(false))
+
+// provide the sidebar injection state
+provideSidebar({ storageKey: 'nc-right-sidebar' })
 
 const { isGallery, isGrid, isForm } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 

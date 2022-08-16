@@ -292,11 +292,15 @@ const expandForm = (row: Row, state: Record<string, any>) => {
   <div class="flex flex-col h-100 min-h-0 w-100">
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
-        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault !h-auto" @contextmenu.prevent="contextMenu = true">
+        <table
+          ref="smartTable"
+          class="xc-row-table nc-grid backgroundColorDefault !h-auto"
+          @contextmenu.prevent="contextMenu = true"
+        >
           <thead>
             <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
               <th>
-                <div class="w-full h-full bg-gray-100 flex min-w-[80px] pl-5 pr-1 items-center">
+                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center">
                   <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                   <div
                     :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
@@ -354,8 +358,10 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               <template #default="{ state }">
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
-                    <div class="align-center flex min-w-[80px]">
-                      <div class="nc-row-no" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                    <div class="align-center flex gap-1 min-w-[55px]">
+                      <div class="nc-row-no text-xs text-gray-500" :class="{ hidden: row.rowMeta.selected }">
+                        {{ rowIndex + 1 }}
+                      </div>
                       <div
                         :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
                         class="nc-row-expand-and-checkbox"

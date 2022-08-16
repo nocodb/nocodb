@@ -15,6 +15,8 @@ import { TabType } from '~/composables'
 
 const route = useRoute()
 
+const { appInfo } = useGlobal()
+
 const { project, loadProject, loadTables, isSharedBase } = useProject()
 
 const { addTab, clearTabs } = useTabs()
@@ -152,7 +154,7 @@ const isHovered = useElementHover(sidebar)
                       v-if="isUIAllowed('apiDocs')"
                       v-t="['e:api-docs']"
                       class="nc-project-menu-item group"
-                      @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`)"
+                      @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                     >
                       <MdiApi class="group-hover:text-pink-500 nc-swagger-api-docs" />
                       Swagger: Rest APIs

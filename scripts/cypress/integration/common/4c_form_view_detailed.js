@@ -81,8 +81,7 @@ export const genTest = (apiType, dbType) => {
 
                 cy.toastWait("View created successfully");
 
-                // validate if view was creted && contains default name 'Country1'
-                mainPage.toggleRightSidebar();
+                // validate if view was creted && contains default name 'Form-1'
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
                     .contains("Form-1")
                     .should("exist");
@@ -212,7 +211,7 @@ export const genTest = (apiType, dbType) => {
                 //     .contains("Country")
                 //     .click();
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
-                    .contains("Country1")
+                    .contains("Form-1")
                     .click();
 
                 // fill up mandatory fields
@@ -238,7 +237,7 @@ export const genTest = (apiType, dbType) => {
                 //     .contains("Country")
                 //     .click();
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
-                    .contains("Country1")
+                    .contains("Form-1")
                     .click();
 
                 // fill up mandatory fields
@@ -293,7 +292,7 @@ export const genTest = (apiType, dbType) => {
             it(`Validate ${viewType}: Email me verification, without SMTP configuration`, () => {
                 // open formview & enable "email me" option
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
-                    .contains("Country1")
+                    .contains("Form-1")
                     .click();
 
                 // validate if form has appeared again
@@ -323,7 +322,7 @@ export const genTest = (apiType, dbType) => {
                 cy.wait(1000);
 
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
-                    .contains("Country1")
+                    .contains("Form-1")
                     .click();
 
                 // validate if form has appeared again
@@ -342,7 +341,7 @@ export const genTest = (apiType, dbType) => {
 
             it(`Validate ${viewType}: Add/ remove field verification"`, () => {
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
-                    .contains("Country1")
+                    .contains("Form-1")
                     .click();
 
                 cy.wait(3000);
@@ -372,7 +371,7 @@ export const genTest = (apiType, dbType) => {
 
             it(`Validate ${viewType}: URL verification`, () => {
                 cy.get(`.nc-view-item.nc-${viewType}-view-item`)
-                    .contains("Country1")
+                    .contains("Form-1")
                     .click();
 
                 // validate if form has appeared again

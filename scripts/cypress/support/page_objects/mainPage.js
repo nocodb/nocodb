@@ -388,10 +388,10 @@ export class _mainPage {
     //
     downloadAndVerifyCsv = (filename, verifyCsv) => {
         cy.get(".nc-actions-menu-btn").click();
-        cy.snipActiveMenu("Menu_ActionsMenu");
-        cy.get(
-            `.menuable__content__active .v-list-item span:contains("Download as CSV")`
-        ).click();
+        cy.getActiveMenu().find('.nc-menu-item').contains('Download as CSV').click();
+        // cy.get(
+        //     `.menuable__content__active .v-list-item span:contains("Download as CSV")`
+        // ).click();
 
         cy.toastWait("Successfully exported all table data").then(() => {
             // download folder path, read from config file

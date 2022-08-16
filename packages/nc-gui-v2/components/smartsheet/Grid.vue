@@ -360,7 +360,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
                     <div class="align-center flex gap-1 min-w-[55px]">
-                      <div  v-if="!readonly" class="nc-row-no text-xs text-gray-500" :class="{ hidden: row.rowMeta.selected }">
+                      <div v-if="!readonly" class="nc-row-no text-xs text-gray-500" :class="{ hidden: row.rowMeta.selected }">
                         {{ rowIndex + 1 }}
                       </div>
                       <div

@@ -49,9 +49,9 @@ await loadRelatedTableMeta()
 
 const localCellValue = computed(() => {
   if (cellValue?.value) {
-    return cellValue?.value
+    return cellValue?.value ?? []
   } else if (isNew.value) {
-    return state?.value?.[column?.value.title as string]
+    return state?.value?.[column?.value.title as string] ?? []
   }
   return []
 })

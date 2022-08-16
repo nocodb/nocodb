@@ -145,7 +145,7 @@ const expandedFormRow = ref()
 
     <Suspense>
       <ExpandedForm
-        v-if="expandedFormRow"
+        v-if="expandedFormRow && expandedFormDlg"
         v-model="expandedFormDlg"
         :row="{ row: expandedFormRow }"
         :meta="relatedTableMeta"

@@ -49,9 +49,9 @@ await loadRelatedTableMeta()
 
 const localCellValue = computed(() => {
   if (cellValue?.value) {
-    return cellValue?.value
+    return cellValue?.value ?? []
   } else if (isNew.value) {
-    return state?.value?.[column?.value.title as string]
+    return state?.value?.[column?.value.title as string] ?? []
   }
   return []
 })
@@ -83,8 +83,8 @@ const unlinkRef = async (rec: Record<string, any>) => {
       <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
           <ItemChip v-for="(cell, i) of cells" :key="i" :item="cell.item" :value="cell.value" @unlink="unlinkRef(cell.item)" />
-          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true"
-            >more...
+          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">
+            more...
           </span>
         </template>
       </div>

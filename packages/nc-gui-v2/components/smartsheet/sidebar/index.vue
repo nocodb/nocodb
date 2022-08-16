@@ -18,12 +18,11 @@ const router = useRouter()
 
 const route = useRoute()
 
+const { rightSidebarOpen } = useGlobal()
+
 provide(ViewListInj, views)
 
-/** Sidebar visible */
-const sidebarOpen = inject(RightSidebarInj, ref(true))
-
-const sidebarCollapsed = computed(() => !sidebarOpen.value)
+const sidebarCollapsed = computed(() => !rightSidebarOpen.value)
 
 /** Sidebar ref */
 const sidebar = ref()
@@ -96,21 +95,21 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
           class="group color-transition cursor-pointer hover:ring active:ring-pink-500 z-1 flex items-center p-[1px] absolute top-1/2 left-[-1rem] shadow bg-gray-100 rounded-full"
         >
           <MaterialSymbolsChevronRightRounded
-            v-if="sidebarOpen"
+            v-if="rightSidebarOpen"
             class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-            @click="sidebarOpen = false"
+            @click="rightSidebarOpen = false"
           />
 
           <MaterialSymbolsChevronLeftRounded
             v-else
             class="transform group-hover:(scale-115 text-pink-500) text-xl text-gray-400"
-            @click="sidebarOpen = true"
+            @click="rightSidebarOpen = true"
           />
         </div>
       </Transition>
     </a-tooltip>
 
-    <Toolbar v-if="sidebarOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />
+    <Toolbar v-if="rightSidebarOpen" class="flex items-center py-3 px-3 justify-between border-b-1" />
 
     <Toolbar v-else class="py-3 px-2 max-w-[50px] flex !flex-col-reverse gap-4 items-center mt-[-1px]">
       <template #start>
@@ -136,7 +135,7 @@ function onCreate(view: GridType | FormType | KanbanType | GalleryType) {
       </template>
     </Toolbar>
 
-    <div v-if="sidebarOpen" class="flex-1 flex flex-col">
+    <div v-if="rightSidebarOpen" class="flex-1 flex flex-col">
       <MenuTop @open-modal="openModal" @deleted="loadViews" @sorted="loadViews" />
 
       <a-divider v-if="isUIAllowed('virtualViewsCreateOrEdit')" class="my-2" />

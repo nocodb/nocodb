@@ -34,6 +34,7 @@ export interface StoredState {
   darkMode: boolean
   feedbackForm: FeedbackForm
   filterAutoSave: boolean
+  rightSidebarOpen: boolean
   previewAs: string | null
 }
 

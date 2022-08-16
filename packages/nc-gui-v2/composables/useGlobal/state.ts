@@ -57,6 +57,7 @@ export function useGlobalState(storageKey = 'nocodb-gui-v2'): State {
       isHidden: false,
     },
     filterAutoSave: true,
+    rightSidebarOpen: false,
     previewAs: null,
   }
 

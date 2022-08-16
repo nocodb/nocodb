@@ -162,7 +162,7 @@ function resetError() {
 
       <div class="prose-sm mt-4 text-gray-500">
         By signing up, you agree to the
-        <a class="prose-sm text-pink-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">Terms of Service</a>
+        <a class="prose-sm text-gray-500 underline" target="_blank" href="https://nocodb.com/policy-nocodb">Terms of Service</a>
       </div>
     </div>
   </NuxtLayout>

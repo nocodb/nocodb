@@ -1,6 +1,7 @@
 <script setup lang="ts">
-import type { ColumnType, LinkToAnotherRecordType } from 'nocodb-sdk'
+import type { ColumnType, LinkToAnotherRecordType, LookupType } from 'nocodb-sdk'
 import { RelationTypes, UITypes } from 'nocodb-sdk'
+import type { Ref } from 'vue'
 import { toRef } from 'vue'
 import { ColumnInj } from '~/context'
 import GenericIcon from '~icons/mdi/square-rounded'
@@ -16,35 +17,65 @@ import TableColumnPlusBefore from '~icons/mdi/table-column-plus-before'
 const props = defineProps<{ columnMeta?: ColumnType }>()
 const columnMeta = toRef(props, 'columnMeta')
 
-const column = inject(ColumnInj, ref(columnMeta))
+const column = inject(ColumnInj, ref(columnMeta)) as Ref<ColumnType & { colOptions: LookupType }>
+
+let relationColumn: ColumnType & { colOptions: LookupType }
+
+if (column) {
+  const { isLookup, isBt, isRollup, isMm, isHm } = useVirtualCell(column as Ref<ColumnType>)
+
+  if (isLookup || isBt || isRollup || isMm || isHm) {
+    const meta = inject(MetaInj)
+
+    relationColumn = meta?.value.columns?.find((c) => c.id === column.value?.colOptions?.fk_relation_column_id) as ColumnType & {
+      colOptions: LinkToAnotherRecordType
+    }
+  }
+}
 
 const icon = computed(() => {
   switch (column?.value?.uidt) {
     case UITypes.LinkToAnotherRecord:
       switch ((column?.value?.colOptions as LinkToAnotherRecordType)?.type) {
         case RelationTypes.MANY_TO_MANY:
-          return MMIcon
+          return { icon: MMIcon, color: 'text-pink-500' }
         case RelationTypes.HAS_MANY:
-          return HMIcon
+          return { icon: HMIcon, color: 'text-yellow-500' }
         case RelationTypes.BELONGS_TO:
-          return BTIcon
+          return { icon: BTIcon, color: 'text-sky-500' }
       }
       break
     case UITypes.SpecificDBType:
-      return SpecificDBTypeIcon
+      return { icon: SpecificDBTypeIcon, color: 'text-grey' }
     case UITypes.Formula:
-      return FormulaIcon
+      return { icon: FormulaIcon, color: 'text-grey' }
     case UITypes.Lookup:
-      return TableColumnPlusBefore
+      switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
+        case RelationTypes.MANY_TO_MANY:
+          return { icon: TableColumnPlusBefore, color: 'text-pink-500' }
+        case RelationTypes.HAS_MANY:
+          return { icon: TableColumnPlusBefore, color: 'text-yellow-500' }
+        case RelationTypes.BELONGS_TO:
+          return { icon: TableColumnPlusBefore, color: 'text-sky-500' }
+      }
+      return { icon: TableColumnPlusBefore, color: 'text-grey' }
     case UITypes.Rollup:
-      return RollupIcon
+      switch ((relationColumn?.colOptions as LinkToAnotherRecordType)?.type) {
+        case RelationTypes.MANY_TO_MANY:
+          return { icon: RollupIcon, color: 'text-pink-500' }
+        case RelationTypes.HAS_MANY:
+          return { icon: RollupIcon, color: 'text-yellow-500' }
+        case RelationTypes.BELONGS_TO:
+          return { icon: RollupIcon, color: 'text-sky-500' }
+      }
+      return { icon: RollupIcon, color: 'text-grey' }
     case UITypes.Count:
-      return CountIcon
+      return { icon: CountIcon, color: 'text-grey' }
   }
-  return GenericIcon
+  return { icon: GenericIcon, color: 'text-grey' }
 })
 </script>
 
 <template>
-  <component :is="icon" class="text-grey mx-1 !text-sm" />
+  <component :is="icon.icon" class="mx-1 !text-sm" :class="icon.color" />
 </template>

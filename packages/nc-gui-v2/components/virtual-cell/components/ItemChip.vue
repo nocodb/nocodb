@@ -31,7 +31,7 @@ export default {
 
 <template>
   <div
-    class="group py-1 px-2 flex align-center gap-1 bg-gray-200/50 hover:bg-gray-200 rounded-[20px]"
+    class="group py-1 px-2 mr-1 my-1 flex align-center bg-blue-100/60 hover:bg-blue-100/40 rounded-[2px]"
     :class="{ active }"
     @click="expandedFormDlg = true"
   >

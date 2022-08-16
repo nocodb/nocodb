@@ -150,7 +150,7 @@ const activeTable = computed(() => {
 
     <a-dropdown :trigger="['contextmenu']">
       <div
-        class="p-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull"
+        class="pt-2 pl-2 pb-2 flex-1 overflow-y-auto flex flex-column scrollbar-thin-dull"
         :class="{ 'mb-[20px]': isSharedBase }"
         style="direction: rtl"
       >
@@ -334,6 +334,7 @@ const activeTable = computed(() => {
 
 .nc-tree-item.active {
   @apply !text-primary font-weight-bold after:(!opacity-20);
+  @apply border-r-3 border-indigo-500;
 
   svg {
     @apply !text-primary;

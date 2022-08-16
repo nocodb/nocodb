@@ -1309,7 +1309,10 @@
               "schema": {
                 "type": "object",
                 "properties": {
-                  "title": {
+                  "table_name": {
+                    "type": "string"
+                  },
+                  "project_id": {
                     "type": "string"
                   }
                 }

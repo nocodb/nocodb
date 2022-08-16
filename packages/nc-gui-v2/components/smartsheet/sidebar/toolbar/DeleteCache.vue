@@ -13,7 +13,7 @@ async function deleteCache() {
 </script>
 
 <template>
-  <a-tooltip>
+  <a-tooltip placement="bottom">
     <template #title>
       <span> Delete Cache </span>
     </template>

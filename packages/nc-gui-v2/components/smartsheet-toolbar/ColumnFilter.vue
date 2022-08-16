@@ -15,8 +15,8 @@ const {
   parentId,
   autoSave = true,
   hookId = null,
-  modelValue: Filter[]
-} = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean; hookId?: string }>()
+  modelValue,
+} = defineProps<{ nested?: boolean; parentId?: string; autoSave: boolean; hookId?: string; modelValue?: Filter[] }>()
 
 const emit = defineEmits(['update:filtersLength'])
 

@@ -86,7 +86,7 @@ export function useViewFilters(
         }
       }
     }
-    }
+
     reloadData?.()
   }
 

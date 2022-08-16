@@ -107,7 +107,7 @@ export function useViewData(
     if ((!project?.value?.id || !meta?.value?.id || !viewMeta?.value?.id) && !isPublic.value) return
 
     const response = !isPublic.value
-      ? await $api.dbViewRow.list('noco', project.value.id, meta.value.id, viewMeta.value.id, {
+      ? await $api.dbViewRow.list('noco', project.value.id!, meta.value.id!, viewMeta!.value.id, {
           ...params,
           where: where?.value,
         })

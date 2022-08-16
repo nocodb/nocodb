@@ -68,17 +68,12 @@ export function useViewSorts(
   const deleteSort = async (sort: SortType, i: number) => {
     // TOOD:
     // if (!this.shared && sort.id && this._isUIAllowed('sortSync')) {
-    if (isPublic.value) {
-      sorts.value.splice(i, 1)
-      sorts.value = [...sorts.value]
-      return
-    }
 
-    if (isUIAllowed('sortSync') && sort.id) {
+    if (isUIAllowed('sortSync') && sort.id && !isPublic.value) {
       await $api.dbTableSort.delete(sort.id)
-    } else {
-      sorts.value.splice(i, 1)
     }
+    sorts.value.splice(i, 1)
+    sorts.value = [...sorts.value]
   }
   return { sorts, loadSorts, addSort, deleteSort, saveOrUpdate }
 }

@@ -134,7 +134,7 @@ const copyAuthToken = async () => {
             </template>
           </div>
 
-          <a-dropdown v-else :trigger="['click']" placement="bottom">
+          <a-dropdown v-else class="h-full" :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -286,9 +286,5 @@ const copyAuthToken = async () => {
 
 :deep(.ant-dropdown-menu-item) {
   @apply !py-0 active:(ring ring-pink-500);
-}
-
-:deep(.ant-dropdown-trigger) {
-  @apply h-full;
 }
 </style>

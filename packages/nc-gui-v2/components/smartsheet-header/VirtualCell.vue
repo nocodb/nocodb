@@ -120,6 +120,7 @@ function onVisibleChange() {
 
     <a-dropdown
       v-model:visible="editColumnDropdown"
+      class="h-full"
       :trigger="['click']"
       placement="bottomRight"
       @visible-change="onVisibleChange"
@@ -145,9 +146,5 @@ function onVisibleChange() {
   max-width: calc(100% - 40px);
   overflow: hidden;
   text-overflow: ellipsis;
-}
-
-:deep(.ant-dropdown-trigger) {
-  @apply h-full;
 }
 </style>

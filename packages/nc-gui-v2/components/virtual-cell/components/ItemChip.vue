@@ -43,7 +43,7 @@ export default {
 
     <Suspense>
       <ExpandedForm
-        v-if="!readonly"
+        v-if="!readonly && expandedFormDlg"
         v-model="expandedFormDlg"
         :row="{ row: item }"
         :meta="relatedTableMeta"

@@ -139,7 +139,7 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
       }
     }
 
-    const deleteRelatedRow = async (row: Record<string, any>) => {
+    const deleteRelatedRow = async (row: Record<string, any>, onSuccess?: (row: Record<string, any>) => void) => {
       Modal.confirm({
         title: 'Do you want to delete the record?',
         type: 'warning',
@@ -148,7 +148,12 @@ const [useProvideLTARStore, useLTARStore] = useInjectionState(
           try {
             $api.dbTableRow.delete(NOCO, project.value.id as string, relatedTableMeta.value.id as string, id as string)
             reloadData?.()
-            await loadChildrenList()
+
+            /** reload child list if not a new row */
+            if (!isNewRow?.value) {
+              await loadChildrenList()
+            }
+            onSuccess?.(row)
           } catch (e: any) {
             message.error(`Delete failed: ${await extractSdkResponseErrorMsg(e)}`)
           }

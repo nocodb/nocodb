@@ -6,6 +6,7 @@ import type { Row } from '~/composables'
 import type { TabItem } from '~/composables/useTabs'
 
 export const ActiveCellInj: InjectionKey<Ref<boolean>> = Symbol('active-cell')
+export const IsPublicInj: InjectionKey<Ref<boolean>> = Symbol('is-public')
 export const RowInj: InjectionKey<Ref<Row>> = Symbol('row')
 export const ColumnInj: InjectionKey<Ref<ColumnType & { meta: any }>> = Symbol('column-injection')
 export const MetaInj: InjectionKey<ComputedRef<TableType>> = Symbol('meta-injection')
@@ -18,7 +19,7 @@ export const IsGridInj: InjectionKey<boolean> = Symbol('is-grid-injection')
 export const IsLockedInj: InjectionKey<boolean> = Symbol('is-locked-injection')
 export const CellValueInj: InjectionKey<Ref<any>> = Symbol('cell-value-injection')
 export const ActiveViewInj: InjectionKey<Ref<ViewType>> = Symbol('active-view-injection')
-export const ReadonlyInj: InjectionKey<any> = Symbol('readonly-injection')
+export const ReadonlyInj: InjectionKey<boolean> = Symbol('readonly-injection')
 export const ReloadViewDataHookInj: InjectionKey<EventHook<void>> = Symbol('reload-view-data-injection')
 export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')
 export const ViewListInj: InjectionKey<Ref<ViewType[]>> = Symbol('view-list-injection')

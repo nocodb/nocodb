@@ -5,7 +5,7 @@ import type { Ref } from 'vue'
 import type { Row } from './useViewData'
 import { useInjectionState, useMetas, useNuxtApp, useProject, useVirtualCell } from '#imports'
 import { NOCO } from '~/lib'
-import { extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
+import { deepCompare, extractPkFromRow, extractSdkResponseErrorMsg } from '~/utils'
 
 const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState((meta: Ref<TableType>, row: Ref<Row>) => {
   const { $api } = useNuxtApp()
@@ -23,6 +23,11 @@ const [useProvideSmartsheetRowStore, useSmartsheetRowStore] = useInjectionState(
     const { isHm, isMm, isBt } = $(useVirtualCell(ref(column)))
     if (isHm || isMm) {
       state.value[column.title!] = state.value[column.title!] || []
+
+      if (state.value[column.title!]!.find((ln: Record<string, any>) => deepCompare(ln, value))) {
+        return message.info('This value is already in the list')
+      }
+
       state.value[column.title!]!.push(value)
     } else if (isBt) {
       state.value[column.title!] = value

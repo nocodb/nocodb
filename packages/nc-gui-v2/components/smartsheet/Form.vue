@@ -42,7 +42,7 @@ const secondsRemain = ref(0)
 
 const isEditable = isUIAllowed('editFormView' as Permission)
 
-const meta = inject(MetaInj)
+const meta = inject(MetaInj)!
 
 const view = inject(ActiveViewInj)
 
@@ -52,6 +52,15 @@ const { showAll, hideAll, saveOrUpdate } = useViewColumns(view, meta as any, fal
   await loadFormView()
   setFormData()
 })
+
+const { syncLTARRefs } = useProvideSmartsheetRowStore(
+  meta,
+  ref({
+    row: formState,
+    oldRow: {},
+    rowMeta: { new: true },
+  }),
+)
 
 const columns = computed(() => meta?.value?.columns || [])
 
@@ -92,7 +101,11 @@ async function submitForm() {
     return
   }
 
-  await insertRow(formState)
+  const insertedRowData = await insertRow(formState)
+
+  if (insertedRowData) {
+    await syncLTARRefs(insertedRowData)
+  }
 
   submitted.value = true
 }
@@ -527,6 +540,7 @@ onMounted(async () => {
                       class="nc-input"
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
+                      @click.stop.prevent
                     />
                   </a-form-item>
 
@@ -542,6 +556,7 @@ onMounted(async () => {
                       :class="`nc-form-input-${element.title.replaceAll(' ', '')}`"
                       :column="element"
                       :edit-enabled="true"
+                      @click.stop.prevent
                     />
                   </a-form-item>
 

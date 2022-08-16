@@ -24,7 +24,7 @@ async function exportCache() {
 
 <template>
   <!-- Export Cache -->
-  <a-tooltip>
+  <a-tooltip placement="bottom">
     <template #title>
       <span> Export Cache </span>
     </template>

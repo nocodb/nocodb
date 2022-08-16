@@ -11,7 +11,7 @@ const localTables = tables.value.filter((t) => metas[t.id as string])
 </script>
 
 <template>
-  <a-tooltip>
+  <a-tooltip placement="bottom">
     <template #title>
       <span> Debug Meta </span>
     </template>

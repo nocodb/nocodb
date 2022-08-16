@@ -6,7 +6,7 @@ import { ActiveViewInj, FieldsInj, IsFormInj, IsPublicInj, MetaInj, ReloadViewDa
 import { createEventHook, definePageMeta, provide, ref, useProvideSmartsheetStore, useRoute } from '#imports'
 
 definePageMeta({
-  requiresAuth: false
+  requiresAuth: false,
 })
 
 const route = useRoute()

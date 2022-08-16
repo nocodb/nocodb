@@ -1,11 +1,10 @@
 import useVuelidate from '@vuelidate/core'
 import { minLength, required } from '@vuelidate/validators'
 import { message } from 'ant-design-vue'
-import { formatMessages } from 'esbuild'
 import type { ColumnType, LinkToAnotherRecordType, TableType } from 'nocodb-sdk'
 import { ErrorMessages, RelationTypes, UITypes, isVirtualCol } from 'nocodb-sdk'
 import { extractSdkResponseErrorMsg } from '~/utils'
-import {useInjectionState} from '#imports'
+import { useInjectionState } from '#imports'
 
 const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => {
   const progress = ref(false)
@@ -23,8 +22,6 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
   const { $api } = useNuxtApp()
   const { metas, setMeta } = useMetas()
   const formState = ref({})
-
-
 
   const { state: additionalState } = useProvideSmartsheetRowStore(
     meta,
@@ -103,7 +100,10 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
     return obj
   })
 
-  const v$ = useVuelidate(validators, computed(() => ({ localState: formState?.value, virtual: additionalState?.value })))
+  const v$ = useVuelidate(
+    validators,
+    computed(() => ({ localState: formState?.value, virtual: additionalState?.value })),
+  )
 
   const submitForm = async (formState: Record<string, any>, additionalState: Record<string, any>) => {
     try {
@@ -150,15 +150,15 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
   }
 
   /** reset form if show_blank_form is true */
-  watch(submitted, (nextVal:boolean) =>{
+  watch(submitted, (nextVal: boolean) => {
     if (nextVal && sharedView.value.show_blank_form) {
-      secondsRemain.value = 5;
+      secondsRemain.value = 5
       const intvl = setInterval(() => {
         if (--secondsRemain.value < 0) {
-          submitted.value = false;
-          clearInterval(intvl);
+          submitted.value = false
+          clearInterval(intvl)
         }
-      }, 1000);
+      }, 1000)
     }
   })
 
@@ -176,7 +176,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState(() => 
     notFound,
     password,
     submitted,
-    secondsRemain
+    secondsRemain,
   }
 }, 'expanded-form-store')
 

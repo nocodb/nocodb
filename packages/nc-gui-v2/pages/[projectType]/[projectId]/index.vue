@@ -16,7 +16,7 @@ import {
 import { TabType } from '~/composables'
 const route = useRoute()
 
-const { appInfo } = useGlobal()
+const { appInfo, token } = useGlobal()
 
 const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo } = useProject()
 
@@ -72,6 +72,16 @@ const copyProjectInfo = async () => {
         .join('\n'),
     )
     message.info('Copied project info to clipboard')
+  } catch (e: any) {
+    console.log(e)
+    message.error(e.message)
+  }
+}
+
+const copyAuthToken = async () => {
+  try {
+    copy(token.value!)
+    message.info('Copied auth token to clipboard')
   } catch (e: any) {
     console.log(e)
     message.error(e.message)
@@ -176,6 +186,13 @@ const copyProjectInfo = async () => {
                     >
                       <MdiApi class="group-hover:text-pink-500 nc-swagger-api-docs" />
                       Swagger: Rest APIs
+                    </div>
+                  </a-menu-item>
+
+                  <a-menu-item key="copy">
+                    <div class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                      <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
+                      Copy Auth Token
                     </div>
                   </a-menu-item>
 

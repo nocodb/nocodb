@@ -13,10 +13,10 @@ async function deleteCache() {
 </script>
 
 <template>
-  <a-tooltip>
+  <a-tooltip placement="bottom">
     <template #title>
       <span> Delete Cache </span>
     </template>
-    <mdi-delete class="cursor-pointer mx-3" @click="deleteCache" />
+    <mdi-delete class="cursor-pointer" @click="deleteCache" />
   </a-tooltip>
 </template>

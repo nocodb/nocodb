@@ -23,11 +23,10 @@ async function exportCache() {
 </script>
 
 <template>
-  <!-- Export Cache -->
-  <a-tooltip>
+  <a-tooltip placement="bottom">
     <template #title>
       <span> Export Cache </span>
     </template>
-    <mdi-export class="cursor-pointer mx-3" @click="exportCache" />
+    <mdi-export class="cursor-pointer" @click="exportCache" />
   </a-tooltip>
 </template>

@@ -190,7 +190,7 @@ const copyAuthToken = async () => {
                   </a-menu-item>
 
                   <a-menu-item key="copy">
-                    <div class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                    <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
                       <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
                       Copy Auth Token
                     </div>

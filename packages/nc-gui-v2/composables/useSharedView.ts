@@ -13,11 +13,10 @@ export function useSharedView() {
   const password = useState<string | undefined>('password')
   const allowCSVDownload = useState<boolean>('allowCSVDownload', () => false)
 
-  const meta = ref<TableType>(sharedView.value?.model)
-  const columns = ref<ColumnType[]>(sharedView.value?.model?.columns)
+  const meta = useState<TableType>('meta')
   const formColumns = computed(
     () =>
-      columns.value
+      meta.value.columns
         .filter(
           (f: Record<string, any>) =>
             f.show && f.uidt !== UITypes.Rollup && f.uidt !== UITypes.Lookup && f.uidt !== UITypes.Formula,
@@ -39,10 +38,14 @@ export function useSharedView() {
     allowCSVDownload.value = JSON.parse(viewMeta.meta).allowCSVDownload
 
     if (localPassword) password.value = localPassword
-    sharedView.value = viewMeta
+    sharedView.value = { ...viewMeta }
+    meta.value = { ...viewMeta.model }
 
-    meta.value = viewMeta.model
-    columns.value = viewMeta.model.columns
+    let order = 1
+    meta.value.columns = [...viewMeta.model.columns]
+      .filter((c) => c.show)
+      .map((c) => ({ ...c, order: order++ }))
+      .sort((a, b) => a.order - b.order)
 
     setMeta(viewMeta.model)
 
@@ -96,7 +99,6 @@ export function useSharedView() {
     sharedView,
     loadSharedView,
     meta,
-    columns,
     nestedFilters,
     fetchSharedViewData,
     paginationData,

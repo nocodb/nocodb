@@ -53,7 +53,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : readOnly ? 'Select year' : ''))
+const placeholder = computed(() => (isYearInvalid ? 'Invalid year' : ''))
 </script>
 
 <template>

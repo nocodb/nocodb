@@ -5,6 +5,7 @@ import {
   CellValueInj,
   ColumnInj,
   IsFormInj,
+  IsLockedInj,
   ReadonlyInj,
   ReloadViewDataHookInj,
   RowInj,
@@ -33,6 +34,8 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 const isForm = inject(IsFormInj)
 
 const readonly = inject(ReadonlyInj, false)
+
+const isLocked = inject(IsLockedInj)
 
 const listItemsDlg = ref(false)
 
@@ -88,7 +91,7 @@ const unlinkRef = async (rec: Record<string, any>) => {
           </span>
         </template>
       </div>
-      <div class="flex-grow flex justify-end gap-1 min-h-[30px] align-center">
+      <div v-if="!isLocked" class="flex-grow flex justify-end gap-1 min-h-[30px] align-center">
         <MdiArrowExpand
           class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click="childListDlg = true"

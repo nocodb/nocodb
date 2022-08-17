@@ -2,17 +2,22 @@
 import type { ColumnType, TableType } from 'nocodb-sdk'
 import type { Ref } from 'vue'
 import SmartsheetGrid from '../smartsheet/Grid.vue'
-import { computed, inject, provide, useMetas, useProvideSmartsheetStore, watch, watchEffect } from '#imports'
 import {
   ActiveViewInj,
   FieldsInj,
-  IsFormInj,
   IsLockedInj,
   MetaInj,
   ReloadViewDataHookInj,
-  RightSidebarInj,
   TabMetaInj,
-} from '~/context'
+  computed,
+  inject,
+  provide,
+  useMetas,
+  useProvideSmartsheetStore,
+  watch,
+  watchEffect,
+} from '#imports'
+
 import type { TabItem } from '~/composables'
 
 const { getMeta, metas } = useMetas()
@@ -38,6 +43,9 @@ const reloadEventHook = createEventHook<void>()
 
 const { isGallery, isGrid, isForm } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
 
+// provide the sidebar injection state
+provideSidebar({ storageKey: 'nc-right-sidebar' })
+
 // todo: move to store
 provide(MetaInj, meta)
 provide(TabMetaInj, tabMeta)
@@ -45,7 +53,6 @@ provide(ActiveViewInj, activeView)
 provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
-provide(RightSidebarInj, ref(false))
 provide(IsFormInj, isForm)
 
 watch(tabMeta, async (newTabMeta, oldTabMeta) => {

@@ -1,14 +1,10 @@
 <script setup lang="ts">
-import { inject, ref } from '#imports'
-import { RightSidebarInj } from '~/context'
-
 const emits = defineEmits(['addRow'])
-
-const sidebarOpen = inject(RightSidebarInj, ref(true))
+const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
 </script>
 
 <template>
-  <a-tooltip :placement="sidebarOpen ? 'bottomRight' : 'left'">
+  <a-tooltip :placement="isOpen ? 'bottomRight' : 'left'">
     <template #title> {{ $t('activity.addRow') }} </template>
 
     <div class="nc-sidebar-right-item hover:after:bg-primary/75 group nc-sidebar-add-row">

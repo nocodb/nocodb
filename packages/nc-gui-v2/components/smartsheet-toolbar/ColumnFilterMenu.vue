@@ -1,12 +1,13 @@
 <script setup lang="ts">
 import { watchEffect } from '@vue/runtime-core'
 import type ColumnFilter from './ColumnFilter.vue'
-import { ActiveViewInj, IsLockedInj } from '~/context'
+import { ActiveViewInj, IsLockedInj, IsPublicInj } from '~/context'
 import MdiFilterIcon from '~icons/mdi/filter-outline'
 import MdiMenuDownIcon from '~icons/mdi/menu-down'
 
 const isLocked = inject(IsLockedInj)
 const activeView = inject(ActiveViewInj)
+const isPublic = inject(IsPublicInj)
 
 const { filterAutoSave } = useGlobal()
 
@@ -50,7 +51,7 @@ const applyChanges = async () => {
         :auto-save="filterAutoSave"
         @update:filters-length="filtersLength = $event"
       >
-        <div class="d-flex align-end mt-2 min-h-[30px]" @click.stop>
+        <div v-if="!isPublic" class="d-flex align-end mt-2 min-h-[30px]" @click.stop>
           <a-checkbox id="col-filter-checkbox" v-model:checked="filterAutoSave" class="col-filter-checkbox" hide-details dense>
             <span class="text-grey text-xs">
               {{ $t('msg.info.filterAutoApply') }}

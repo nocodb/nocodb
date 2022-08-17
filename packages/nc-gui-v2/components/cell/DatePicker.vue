@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import dayjs from 'dayjs'
-import { ColumnInj, EditModeInj, computed, inject, ref, watch } from '#imports'
+import { ColumnInj, ReadonlyInj, computed, inject, ref, watch } from '#imports'
 
 interface Props {
   modelValue?: string | null
@@ -12,7 +12,7 @@ const emit = defineEmits(['update:modelValue'])
 
 const columnMeta = inject(ColumnInj, null)!
 
-const editEnabled = inject(EditModeInj)!
+const readOnly = inject(ReadonlyInj, false)
 
 let isDateInvalid = $ref(false)
 
@@ -55,7 +55,7 @@ watch(
   { flush: 'post' },
 )
 
-const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : editEnabled.value ? 'Select date' : ''))
+const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : ''))
 </script>
 
 <template>
@@ -65,10 +65,10 @@ const placeholder = computed(() => (isDateInvalid ? 'Invalid date' : editEnabled
     class="!w-full px-1"
     :format="dateFormat"
     :placeholder="placeholder"
-    :allow-clear="!editEnabled"
+    :allow-clear="!readOnly"
     :input-read-only="true"
     :dropdown-class-name="randomClass"
-    :open="editEnabled ? false : open"
+    :open="readOnly ? false : open"
     @click="open = !open"
   >
     <template #suffixIcon></template>

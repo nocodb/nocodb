@@ -53,8 +53,8 @@ const setAsPrimaryValue = async () => {
 </script>
 
 <template>
-  <a-dropdown placement="bottomRight" :trigger="['hover']">
-    <MdiMenuDownIcon class="text-grey nc-ui-dt-dropdown" />
+  <a-dropdown placement="bottomRight" :trigger="['click']">
+    <MdiMenuDownIcon class="h-full text-grey nc-ui-dt-dropdown cursor-pointer outline-0" />
     <template #overlay>
       <a-menu class="shadow bg-white">
         <a-menu-item @click="emit('edit')">

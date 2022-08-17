@@ -5,8 +5,11 @@ import Reload from './Reload.vue'
 import ExportCache from './ExportCache.vue'
 import DeleteCache from './DeleteCache.vue'
 import DebugMeta from './DebugMeta.vue'
+import { IsFormInj } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
+
+const isForm = inject(IsFormInj)
 
 const debug = $ref(false)
 
@@ -15,6 +18,7 @@ const clickCount = $ref(0)
 
 <template>
   <div
+    v-if="!isForm"
     class="flex gap-2"
     @click="
       () => {
@@ -39,17 +43,20 @@ const clickCount = $ref(0)
       <div class="dot" />
     </template>
 
-    <LockMenu v-if="isUIAllowed('view-type')" />
+    <LockMenu v-if="isUIAllowed('view-type')" @click.stop />
 
     <div v-if="isUIAllowed('view-type')" class="dot" />
 
-    <Reload />
+    <Reload @click.stop />
 
     <div class="dot" />
 
-    <AddRow v-if="isUIAllowed('xcDatatableEditable')" />
+    <AddRow v-if="isUIAllowed('xcDatatableEditable')" @click.stop />
 
     <slot name="end" />
+  </div>
+  <div v-else>
+    <slot name="start" />
   </div>
 </template>
 

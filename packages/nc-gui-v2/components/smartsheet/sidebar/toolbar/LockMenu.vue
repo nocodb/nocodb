@@ -49,7 +49,7 @@ const Icon = computed(() => {
 
 <template>
   <a-dropdown max-width="350" :trigger="['click']">
-    <div class="nc-sidebar-right-item hover:after:bg-indigo-500 group">
+    <div class="nc-sidebar-right-item hover:after:bg-indigo-500 group nc-sidebar-lock-menu">
       <Icon class="cursor-pointer group-hover:(!text-white)" />
     </div>
 

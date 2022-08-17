@@ -1,10 +1,12 @@
 <script setup lang="ts">
+import { message } from 'ant-design-vue'
 import {
   navigateTo,
   onKeyStroke,
   openLink,
   provideSidebar,
   ref,
+  useClipboard,
   useElementHover,
   useProject,
   useRoute,
@@ -12,14 +14,17 @@ import {
   useUIPermission,
 } from '#imports'
 import { TabType } from '~/composables'
-
 const route = useRoute()
 
-const { project, loadProject, loadTables, isSharedBase } = useProject()
+const { appInfo, token } = useGlobal()
+
+const { project, loadProject, loadTables, isSharedBase, loadProjectMetaInfo, projectMetaInfo } = useProject()
 
 const { addTab, clearTabs } = useTabs()
 
 const { isUIAllowed } = useUIPermission()
+
+const { copy } = useClipboard()
 
 // create a new sidebar state
 const { isOpen, toggle } = provideSidebar({ isOpen: true })
@@ -57,6 +62,31 @@ await loadProject()
 await loadTables()
 
 const isHovered = useElementHover(sidebar)
+
+const copyProjectInfo = async () => {
+  try {
+    await loadProjectMetaInfo()
+    copy(
+      Object.entries(projectMetaInfo.value!)
+        .map(([k, v]) => `${k}: **${v}**`)
+        .join('\n'),
+    )
+    message.info('Copied project info to clipboard')
+  } catch (e: any) {
+    console.log(e)
+    message.error(e.message)
+  }
+}
+
+const copyAuthToken = async () => {
+  try {
+    copy(token.value!)
+    message.info('Copied auth token to clipboard')
+  } catch (e: any) {
+    console.log(e)
+    message.error(e.message)
+  }
+}
 </script>
 
 <template>
@@ -104,7 +134,7 @@ const isHovered = useElementHover(sidebar)
             </template>
           </div>
 
-          <a-dropdown v-else :trigger="['click']" placement="bottom">
+          <a-dropdown v-else class="h-full" :trigger="['click']" placement="bottom">
             <div
               :style="{ width: isOpen ? 'calc(100% - 40px) pr-2' : '100%' }"
               :class="[isOpen ? '' : 'justify-center']"
@@ -141,71 +171,44 @@ const isHovered = useElementHover(sidebar)
                   </template>
 
                   <a-menu-item key="copy">
-                    <div class="nc-project-menu-item group">
+                    <div class="nc-project-menu-item group" @click.stop="copyProjectInfo">
                       <MdiContentCopy class="group-hover:text-pink-500 nc-copy-project-info" />
                       Copy Project Info
                     </div>
                   </a-menu-item>
+
+                  <a-menu-divider />
 
                   <a-menu-item key="api">
                     <div
                       v-if="isUIAllowed('apiDocs')"
                       v-t="['e:api-docs']"
                       class="nc-project-menu-item group"
-                      @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`)"
+                      @click.stop="openLink(`/api/v1/db/meta/projects/${route.params.projectId}/swagger`, appInfo.ncSiteUrl)"
                     >
                       <MdiApi class="group-hover:text-pink-500 nc-swagger-api-docs" />
                       Swagger: Rest APIs
                     </div>
                   </a-menu-item>
 
+                  <a-menu-item key="copy">
+                    <div v-t="['a:navbar:user:copy-auth-token']" class="nc-project-menu-item group" @click.stop="copyAuthToken">
+                      <MdiScriptTextKeyOutline class="group-hover:text-pink-500 nc-copy-project-info" />
+                      Copy Auth Token
+                    </div>
+                  </a-menu-item>
+
                   <a-menu-divider />
 
-                  <a-menu-item key="teamAndAuth">
+                  <a-menu-item key="teamAndSettings">
                     <div
-                      v-if="isUIAllowed('teamAndAuth')"
-                      v-t="['c:navdraw:team-and-auth']"
+                      v-if="isUIAllowed('settings')"
+                      v-t="['c:navdraw:project-settings']"
                       class="nc-project-menu-item group"
                       @click="toggleDialog(true, 'teamAndAuth')"
                     >
-                      <MdiAccountGroup class="group-hover:text-pink-500 nc-team-and-auth" />
-                      Team & Auth
-                    </div>
-                  </a-menu-item>
-
-                  <a-menu-item key="appStore">
-                    <div
-                      v-if="isUIAllowed('appStore')"
-                      v-t="['c:navdraw:app-store']"
-                      class="nc-project-menu-item group"
-                      @click="toggleDialog(true, 'appStore')"
-                    >
-                      <MdiStore class="group-hover:text-pink-500 nc-app-store" />
-                      App Store
-                    </div>
-                  </a-menu-item>
-
-                  <a-menu-item key="metaData">
-                    <div
-                      v-if="isUIAllowed('projectMetadata')"
-                      v-t="['c:navdraw:project-metadata']"
-                      class="nc-project-menu-item group"
-                      @click="toggleDialog(true, 'metaData')"
-                    >
-                      <MdiTableBorder class="group-hover:text-pink-500 nc-meta-data" />
-                      Project Metadata
-                    </div>
-                  </a-menu-item>
-
-                  <a-menu-item key="audit">
-                    <div
-                      v-if="isUIAllowed('audit')"
-                      v-t="['c:navdraw:audit']"
-                      class="nc-project-menu-item group"
-                      @click="toggleDialog(true, 'audit')"
-                    >
-                      <MdiNotebookCheckOutline class="group-hover:text-pink-500 nc-audit" />
-                      Audit
+                      <MdiCog class="group-hover:text-pink-500 nc-team-settings" />
+                      Team & Settings
                     </div>
                   </a-menu-item>
 
@@ -214,7 +217,7 @@ const isHovered = useElementHover(sidebar)
                   <a-sub-menu v-if="isUIAllowed('previewAs')" key="preview-as" v-t="['c:navdraw:preview-as']">
                     <template #title>
                       <div class="nc-project-menu-item group">
-                        <MdiContentCopy class="group-hover:text-pink-500 nc-project-preview" />
+                        <MdiFileEyeOutline class="group-hover:text-pink-500 nc-project-preview" />
                         Preview Project As
 
                         <div class="flex-1" />

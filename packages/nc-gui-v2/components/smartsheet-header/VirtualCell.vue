@@ -101,7 +101,7 @@ function onVisibleChange() {
 </script>
 
 <template>
-  <div class="flex items-center w-full text-xs text-normal">
+  <div class="flex items-center w-full text-xs text-gray-500 font-weight-medium" :class="{ 'h-full': column }">
     <SmartsheetHeaderVirtualCellIcon v-if="column" />
 
     <a-tooltip placement="bottom">
@@ -114,11 +114,13 @@ function onVisibleChange() {
     <span v-if="column.rqd || required" class="text-red-500">&nbsp;*</span>
 
     <template v-if="!hideMenu">
+      <div class="flex-1" />
       <SmartsheetHeaderMenu v-if="!isForm && isUIAllowed('edit-column')" :virtual="true" @edit="editColumnDropdown = true" />
     </template>
 
     <a-dropdown
       v-model:visible="editColumnDropdown"
+      class="h-full"
       :trigger="['click']"
       placement="bottomRight"
       @visible-change="onVisibleChange"

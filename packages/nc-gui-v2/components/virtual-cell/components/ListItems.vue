@@ -47,8 +47,12 @@ const linkRow = async (row: Record<string, any>) => {
   vModel.value = false
 }
 
-watch(vModel, () => {
-  if (vModel.value) {
+/** reload list on modal open */
+watch(vModel, (nextVal, prevVal) => {
+  if (nextVal && !prevVal) {
+    /** reset query and limit */
+    childrenExcludedListPagination.query = ''
+    childrenExcludedListPagination.page = 1
     loadChildrenExcludedList()
   }
 })
@@ -100,7 +104,7 @@ const newRowState = computed(() => {
           size="small"
         ></a-input>
         <div class="flex-1" />
-        <MdiReload class="cursor-pointer text-gray-500" @click="loadChildrenExcludedList" />
+        <MdiReload class="cursor-pointer text-gray-500 nc-reload" @click="loadChildrenExcludedList" />
         <a-button type="primary" size="small" @click="expandedFormDlg = true">Add new record</a-button>
       </div>
       <template v-if="childrenExcludedList?.pageInfo?.totalRows">

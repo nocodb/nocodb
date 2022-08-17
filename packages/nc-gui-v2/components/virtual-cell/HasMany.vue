@@ -4,8 +4,8 @@ import type { Ref } from 'vue'
 import {
   CellValueInj,
   ColumnInj,
-  EditModeInj,
   IsFormInj,
+  ReadonlyInj,
   ReloadViewDataHookInj,
   RowInj,
   computed,
@@ -32,7 +32,7 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
-const editEnabled = inject(EditModeInj)
+const readonly = inject(ReadonlyInj, false)
 
 const listItemsDlg = ref(false)
 
@@ -49,9 +49,9 @@ await loadRelatedTableMeta()
 
 const localCellValue = computed(() => {
   if (cellValue?.value) {
-    return cellValue?.value
+    return cellValue?.value ?? []
   } else if (isNew.value) {
-    return state?.value?.[column?.value.title as string]
+    return state?.value?.[column?.value.title as string] ?? []
   }
   return []
 })
@@ -83,19 +83,19 @@ const unlinkRef = async (rec: Record<string, any>) => {
       <div class="chips flex align-center img-container flex-grow hm-items flex-nowrap min-w-0 overflow-hidden">
         <template v-if="cells">
           <ItemChip v-for="(cell, i) of cells" :key="i" :item="cell.item" :value="cell.value" @unlink="unlinkRef(cell.item)" />
-          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true"
-            >more...
+          <span v-if="cellValue?.length === 10" class="caption pointer ml-1 grey--text" @click="childListDlg = true">
+            more...
           </span>
         </template>
       </div>
       <div class="flex-grow flex justify-end gap-1 min-h-[30px] align-center">
         <MdiArrowExpand
-          class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
+          class="select-none transform text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
           @click="childListDlg = true"
         />
         <MdiPlus
-          v-if="editEnabled"
-          class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
+          v-if="!readonly"
+          class="select-none text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click="listItemsDlg = true"
         />
       </div>

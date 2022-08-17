@@ -23,8 +23,10 @@ import {
   IsFormInj,
   IsGridInj,
   IsLockedInj,
+  IsPublicInj,
   MetaInj,
   PaginationDataInj,
+  ReadonlyInj,
   ReloadViewDataHookInj,
 } from '~/context'
 import { NavigateDir } from '~/lib'
@@ -34,10 +36,12 @@ const meta = inject(MetaInj)
 
 const view = inject(ActiveViewInj)
 
+const isPublicView = inject(IsPublicInj, ref(false))
+
 // keep a root fields variable and will get modified from
 // fields menu and get used in grid and gallery
 const fields = inject(FieldsInj, ref([]))
-
+const readonly = inject(ReadonlyInj, ref(false))
 const isLocked = inject(IsLockedInj, false)
 
 const reloadViewDataHook = inject(ReloadViewDataHookInj)
@@ -45,8 +49,6 @@ const reloadViewDataHook = inject(ReloadViewDataHookInj)
 const { isUIAllowed } = useUIPermission()
 
 // todo: get from parent ( inject or use prop )
-const isPublicView = false
-
 const isView = false
 
 const selected = reactive<{ row: number | null; col: number | null }>({ row: null, col: null })
@@ -80,7 +82,6 @@ const {
 } = useViewData(meta, view as any, xWhere)
 
 const { loadGridViewColumns, updateWidth, resizingColWidth, resizingCol } = useGridViewColumnWidth(view as any)
-
 onMounted(loadGridViewColumns)
 
 provide(IsFormInj, ref(false))
@@ -149,7 +150,7 @@ const clearCell = async (ctx: { row: number; col: number }) => {
 const { copy } = useClipboard()
 
 const makeEditable = (row: Row, col: ColumnType) => {
-  if (isPublicView || editEnabled || isView) {
+  if (isPublicView.value || editEnabled || isView) {
     return
   }
   if (!isPkAvail.value && !row.rowMeta.new) {
@@ -292,11 +293,15 @@ const expandForm = (row: Row, state: Record<string, any>) => {
   <div class="flex flex-col h-100 min-h-0 w-100">
     <div class="nc-grid-wrapper min-h-0 flex-1 scrollbar-thin-dull">
       <a-dropdown v-model:visible="contextMenu" :trigger="['contextmenu']">
-        <table ref="smartTable" class="xc-row-table nc-grid backgroundColorDefault" @contextmenu.prevent="contextMenu = true">
+        <table
+          ref="smartTable"
+          class="xc-row-table nc-grid backgroundColorDefault !h-auto"
+          @contextmenu.prevent="contextMenu = true"
+        >
           <thead>
             <tr class="nc-grid-header border-1 bg-gray-100 sticky top[-1px]">
               <th>
-                <div class="w-full h-full bg-gray-100 flex min-w-[80px] pl-5 pr-1 items-center">
+                <div class="w-full h-full bg-gray-100 flex min-w-[70px] pl-5 pr-1 items-center">
                   <div class="nc-no-label text-gray-500" :class="{ hidden: selectedAllRecords }">#</div>
                   <div
                     :class="{ hidden: !selectedAllRecords, flex: selectedAllRecords }"
@@ -319,14 +324,14 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                 @xcresized="resizingCol = null"
               >
                 <div class="w-full h-full bg-gray-100 flex items-center">
-                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" />
+                  <SmartsheetHeaderVirtualCell v-if="isVirtualCol(col)" :column="col" :hide-menu="readonly" />
 
-                  <SmartsheetHeaderCell v-else :column="col" />
+                  <SmartsheetHeaderCell v-else :column="col" :hide-menu="readonly" />
                 </div>
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
               <th
-                v-if="isUIAllowed('add-column')"
+                v-if="!readonly && isUIAllowed('add-column')"
                 v-t="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"
@@ -354,16 +359,19 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               <template #default="{ state }">
                 <tr class="nc-grid-row">
                   <td key="row-index" class="caption nc-grid-cell pl-5 pr-1">
-                    <div class="align-center flex min-w-[80px]">
-                      <div class="nc-row-no" :class="{ hidden: row.rowMeta.selected }">{{ rowIndex + 1 }}</div>
+                    <div class="align-center flex gap-1 min-w-[55px]">
+                      <div v-if="!readonly" class="nc-row-no text-xs text-gray-500" :class="{ hidden: row.rowMeta.selected }">
+                        {{ rowIndex + 1 }}
+                      </div>
                       <div
+                        v-if="!readonly"
                         :class="{ hidden: !row.rowMeta.selected, flex: row.rowMeta.selected }"
                         class="nc-row-expand-and-checkbox"
                       >
                         <a-checkbox v-model:checked="row.rowMeta.selected" />
                       </div>
                       <span class="flex-1" />
-                      <div class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
+                      <div v-if="!readonly" class="nc-expand" :class="{ 'nc-comment': row.rowMeta?.commentCount }">
                         <span
                           v-if="row.rowMeta?.commentCount"
                           class="py-1 px-3 rounded-full text-xs cursor-pointer select-none transform hover:(scale-110)"
@@ -410,7 +418,12 @@ const expandForm = (row: Row, state: Record<string, any>) => {
                         v-else
                         v-model="row.row[columnObj.title]"
                         :column="columnObj"
-                        :edit-enabled="editEnabled && selected.col === colIndex && selected.row === rowIndex"
+                        :edit-enabled="
+                          isUIAllowed('xcDatatableEditable') &&
+                          editEnabled &&
+                          selected.col === colIndex &&
+                          selected.row === rowIndex
+                        "
                         :row-index="rowIndex"
                         :active="selected.col === colIndex && selected.row === rowIndex"
                         @update:edit-enabled="editEnabled = false"

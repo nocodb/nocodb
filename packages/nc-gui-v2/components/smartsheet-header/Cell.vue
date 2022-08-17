@@ -24,7 +24,7 @@ function onVisibleChange() {
 </script>
 
 <template>
-  <div class="flex items-center w-full text-xs text-normal">
+  <div class="flex items-center w-full text-xs text-normal text-gray-500 font-weight-medium" :class="{ 'h-full': column }">
     <SmartsheetHeaderCellIcon v-if="column" />
     <span v-if="column" class="name" style="white-space: nowrap" :title="column.title">{{ column.title }}</span>
     <span v-if="(column.rqd && !column.cdf) || required" class="text-red-500">&nbsp;*</span>
@@ -36,6 +36,7 @@ function onVisibleChange() {
 
     <a-dropdown
       v-model:visible="editColumnDropdown"
+      class="h-full"
       :trigger="['click']"
       placement="bottomRight"
       @visible-change="onVisibleChange"

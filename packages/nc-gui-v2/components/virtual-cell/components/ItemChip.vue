@@ -1,5 +1,5 @@
 <script lang="ts" setup>
-import { ActiveCellInj, EditModeInj, IsFormInj, defineAsyncComponent, inject, ref, useLTARStoreOrThrow } from '#imports'
+import { ActiveCellInj, IsFormInj, ReadonlyInj, defineAsyncComponent, inject, ref, useLTARStoreOrThrow } from '#imports'
 
 interface Props {
   value?: string | number | boolean
@@ -14,7 +14,7 @@ const ExpandedForm: any = defineAsyncComponent(() => import('../../smartsheet/ex
 
 const { relatedTableMeta } = useLTARStoreOrThrow()!
 
-const editEnabled = inject(EditModeInj)!
+const readonly = inject(ReadonlyInj, false)
 
 const active = inject(ActiveCellInj, ref(false))
 
@@ -31,19 +31,19 @@ export default {
 
 <template>
   <div
-    class="group py-1 px-2 flex align-center gap-1 bg-gray-200/50 hover:bg-gray-200 rounded-[20px]"
+    class="group py-1 px-2 mr-1 my-1 flex align-center bg-blue-100/60 hover:bg-blue-100/40 rounded-[2px]"
     :class="{ active }"
     @click="expandedFormDlg = true"
   >
     <span class="name">{{ value }}</span>
 
-    <div v-show="active || isForm" v-if="editEnabled" class="flex align-center">
+    <div v-show="active || isForm" v-if="!readonly" class="flex align-center">
       <MdiCloseThick class="unlink-icon text-xs text-gray-500/50 group-hover:text-gray-500" @click.stop="emit('unlink')" />
     </div>
 
     <Suspense>
       <ExpandedForm
-        v-if="editEnabled"
+        v-if="!readonly && expandedFormDlg"
         v-model="expandedFormDlg"
         :row="{ row: item }"
         :meta="relatedTableMeta"

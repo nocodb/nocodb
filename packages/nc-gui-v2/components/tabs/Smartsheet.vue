@@ -17,6 +17,7 @@ import {
   watch,
   watchEffect,
 } from '#imports'
+
 import type { TabItem } from '~/composables'
 
 const { getMeta, metas } = useMetas()
@@ -40,6 +41,11 @@ watchEffect(async () => {
 
 const reloadEventHook = createEventHook<void>()
 
+const { isGallery, isGrid, isForm } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
+
+// provide the sidebar injection state
+provideSidebar({ storageKey: 'nc-right-sidebar' })
+
 // todo: move to store
 provide(MetaInj, meta)
 provide(TabMetaInj, tabMeta)
@@ -47,11 +53,7 @@ provide(ActiveViewInj, activeView)
 provide(IsLockedInj, false)
 provide(ReloadViewDataHookInj, reloadEventHook)
 provide(FieldsInj, fields)
-
-// provide the sidebar injection state
-provideSidebar({ storageKey: 'nc-right-sidebar' })
-
-const { isGallery, isGrid, isForm } = useProvideSmartsheetStore(activeView as Ref<TableType>, meta)
+provide(IsFormInj, isForm)
 
 watch(tabMeta, async (newTabMeta, oldTabMeta) => {
   if (newTabMeta !== oldTabMeta && newTabMeta?.id) await getMeta(newTabMeta.id)

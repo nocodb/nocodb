@@ -4,8 +4,8 @@ import type { Ref } from 'vue'
 import {
   CellValueInj,
   ColumnInj,
-  EditModeInj,
   IsFormInj,
+  ReadonlyInj,
   ReloadViewDataHookInj,
   RowInj,
   computed,
@@ -31,7 +31,7 @@ const reloadTrigger = inject(ReloadViewDataHookInj)!
 
 const isForm = inject(IsFormInj)
 
-const editEnabled = inject(EditModeInj)
+const readonly = inject(ReadonlyInj, false)
 
 const listItemsDlg = ref(false)
 
@@ -49,9 +49,9 @@ await loadRelatedTableMeta()
 
 const localCellValue = computed(() => {
   if (cellValue?.value) {
-    return cellValue?.value
+    return cellValue?.value ?? []
   } else if (isNew.value) {
-    return state?.value?.[column?.value.title as string]
+    return state?.value?.[column?.value.title as string] ?? []
   }
   return []
 })
@@ -89,11 +89,11 @@ const unlinkRef = async (rec: Record<string, any>) => {
       </div>
 
       <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
-        <MdiArrowExpand class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500" @click="childListDlg = true" />
+        <MdiArrowExpand class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand" @click="childListDlg = true" />
 
         <MdiPlus
-          v-if="editEnabled"
-          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500"
+          v-if="!readonly"
+          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-plus"
           @click="listItemsDlg = true"
         />
       </div>

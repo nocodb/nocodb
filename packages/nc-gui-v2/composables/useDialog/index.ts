@@ -20,19 +20,13 @@ export function useDialog(
 
   const vNodeRef = ref<VNode>()
 
+  mountTarget = mountTarget ? ('$el' in mountTarget ? (mountTarget.$el as HTMLElement) : mountTarget) : document.body
+
   /** if specified, append vnode to mount target instead of document.body */
-  if (mountTarget) {
-    if ('$el' in mountTarget) {
-      mountTarget.$el.appendChild(domNode)
-    } else {
-      mountTarget.appendChild(domNode)
-    }
-  } else {
-    document.body.appendChild(domNode)
-  }
+  mountTarget.appendChild(domNode)
 
   /** When props change, we want to re-render the element with the new prop values */
-  watch(
+  const stop = watch(
     toReactive(props),
     (reactiveProps) => {
       const vNode = h(component, reactiveProps)
@@ -45,19 +39,24 @@ export function useDialog(
 
       if (!isMounted) mountedHook.trigger()
     },
-    { deep: true, immediate: true },
+    { deep: true, immediate: true, flush: 'post' },
   )
 
   /** When calling scope is disposed, destroy component */
-  tryOnScopeDispose(close)
+  tryOnScopeDispose(() => {
+    close()
+    stop()
+  })
 
   /** destroy component, can be debounced */
   function close(debounce = 0) {
     setTimeout(() => {
+      stop()
+
       render(null, domNode)
 
       setTimeout(() => {
-        document.body.removeChild(domNode)
+        ;(mountTarget as HTMLElement)!.removeChild(domNode)
       }, 100)
 
       closeHook.trigger()

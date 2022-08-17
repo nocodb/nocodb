@@ -39,6 +39,45 @@ const defaultConnectionConfig: any = {
   dateStrings: true,
 };
 
+const knownQueryParams = [
+  {
+    parameter: 'database',
+    aliases: ['d', 'db'],
+  },
+  {
+    parameter: 'password',
+    aliases: ['p'],
+  },
+  {
+    parameter: 'user',
+    aliases: ['u'],
+  },
+  {
+    parameter: 'title',
+    aliases: ['t'],
+  },
+  {
+    parameter: 'keyFilePath',
+    aliases: []
+  },
+  {
+    parameter: 'certFilePath',
+    aliases: []
+  },
+  {
+    parameter: 'caFilePath',
+    aliases: []
+  },
+  {
+    parameter: 'ssl',
+    aliases: []
+  },
+  {
+    parameter: 'options',
+    aliases: ['opt', 'opts']
+  },
+];
+
 export default class NcConfigFactory implements NcConfig {
   public static make(): NcConfig {
     this.jdbcToXcUrl();
@@ -155,17 +194,21 @@ export default class NcConfigFactory implements NcConfig {
         },
       } as any;
     } else {
+      const parsedQuery = {}
+      for (const [key, value] of url.searchParams.entries()) {
+        const fnd = knownQueryParams.find((param) => param.parameter === key || param.aliases.includes(key))
+        if (fnd) {
+          parsedQuery[fnd.parameter] = value;
+        } else {
+          parsedQuery[key] = value;
+        }
+      }
+
       dbConfig = {
         client: url.protocol.replace(':', ''),
         connection: {
           ...defaultConnectionConfig,
-          database:
-            url.searchParams.get('d') || url.searchParams.get('database'),
-          host: url.hostname,
-          password:
-            url.searchParams.get('p') || url.searchParams.get('password'),
-          port: +url.port,
-          user: url.searchParams.get('u') || url.searchParams.get('user'),
+          ...parsedQuery
         },
         // pool: {
         //   min: 1,
@@ -259,17 +302,21 @@ export default class NcConfigFactory implements NcConfig {
           : {}),
       };
     } else {
+      const parsedQuery = {}
+      for (const [key, value] of url.searchParams.entries()) {
+        const fnd = knownQueryParams.find((param) => param.parameter === key || param.aliases.includes(key))
+        if (fnd) {
+          parsedQuery[fnd.parameter] = value;
+        } else {
+          parsedQuery[key] = value;
+        }
+      }
+
       dbConfig = {
         client: url.protocol.replace(':', ''),
         connection: {
           ...defaultConnectionConfig,
-          database:
-            url.searchParams.get('d') || url.searchParams.get('database'),
-          host: url.hostname,
-          password:
-            url.searchParams.get('p') || url.searchParams.get('password'),
-          port: +url.port,
-          user: url.searchParams.get('u') || url.searchParams.get('user'),
+          ...parsedQuery
         },
         acquireConnectionTimeout: 600000,
         ...(url.searchParams.has('search_path')

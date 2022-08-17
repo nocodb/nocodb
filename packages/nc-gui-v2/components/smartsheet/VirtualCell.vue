@@ -14,13 +14,13 @@ const ManyToMany = defineAsyncComponent(() => import('../virtual-cell/ManyToMany
 
 const BelongsTo = defineAsyncComponent(() => import('../virtual-cell/BelongsTo.vue'))
 
-const Rollup = defineAsyncComponent(() => import('../virtual-cell/Rollup.vue'))
+const Rollup = defineAsyncComponent(() => import('../virtual-cell/Rollup.vue') as any)
 
 const Formula = defineAsyncComponent(() => import('../virtual-cell/Formula.vue'))
 
 const Count = defineAsyncComponent(() => import('../virtual-cell/Count.vue'))
 
-const Lookup = defineAsyncComponent(() => import('../virtual-cell/Lookup.vue'))
+const Lookup = defineAsyncComponent(() => import('../virtual-cell/Lookup.vue') as any)
 
 interface Props {
   column: ColumnType

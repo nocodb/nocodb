@@ -331,7 +331,7 @@ const expandForm = (row: Row, state: Record<string, any>) => {
               </th>
               <!-- v-if="!isLocked && !isVirtual && !isPublicView && _isUIAllowed('add-column')" -->
               <th
-                v-if="!readonly && isUIAllowed('add-column')"
+                v-if="!readonly && !isLocked && isUIAllowed('add-column')"
                 v-t="['c:column:add']"
                 class="cursor-pointer"
                 @click.stop="addColumnDropdown = true"

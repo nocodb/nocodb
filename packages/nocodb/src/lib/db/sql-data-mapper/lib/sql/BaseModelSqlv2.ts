@@ -1552,8 +1552,9 @@ class BaseModelSqlv2 {
           switch (colOptions.type) {
             case RelationTypes.BELONGS_TO:
               {
-                const parentCol = await colOptions.getChildColumn();
-                insertObj[parentCol.column_name] =
+                const childCol = await colOptions.getChildColumn();
+                const parentCol = await colOptions.getParentColumn();
+                insertObj[childCol.column_name] =
                   nestedData?.[parentCol.title];
               }
               break;

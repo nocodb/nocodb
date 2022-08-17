@@ -24,3 +24,4 @@ export const ReloadViewDataHookInj: InjectionKey<EventHook<void>> = Symbol('relo
 export const FieldsInj: InjectionKey<Ref<any[]>> = Symbol('fields-injection')
 export const ViewListInj: InjectionKey<Ref<ViewType[]>> = Symbol('view-list-injection')
 export const EditModeInj: InjectionKey<Ref<boolean>> = Symbol('edit-mode-injection')
+export const SharedViewPasswordInj: InjectionKey<Ref<string | null>> = Symbol('shared-view-password-injection')

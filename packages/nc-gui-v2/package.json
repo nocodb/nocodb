@@ -12,6 +12,8 @@
   },
   "dependencies": {
     "@ckpack/vue-color": "^1.2.0",
+    "@vuelidate/core": "^2.0.0-alpha.44",
+    "@vuelidate/validators": "^2.0.0-alpha.31",
     "@vueuse/core": "^9.0.2",
     "@vueuse/integrations": "^9.0.2",
     "ant-design-vue": "^3.2.10",

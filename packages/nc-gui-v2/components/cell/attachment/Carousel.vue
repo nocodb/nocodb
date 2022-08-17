@@ -92,7 +92,7 @@ onClickOutside(carouselRef, () => {
 
           <div v-for="item of imageItems" :key="item.url">
             <div
-              :style="{ backgroundImage: `url('${item.url}')` }"
+              :style="{ backgroundImage: `url('${item.url || item.data}')` }"
               class="min-w-70vw min-h-70vh w-full h-full bg-contain bg-center bg-no-repeat"
             />
           </div>

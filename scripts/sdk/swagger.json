@@ -4363,51 +4363,6 @@
         "description": ""
       }
     },
-    "/api/v1/db/public/shared-view/{sharedViewUuid}/meta": {
-      "parameters": [
-        {
-          "schema": {
-            "type": "string"
-          },
-          "name": "sharedViewUuid",
-          "in": "path",
-          "required": true
-        },
-        {
-          "schema": {
-            "type": "string"
-          },
-          "in": "header",
-          "name": "xc-password",
-          "description": "Shared view password"
-        }
-      ],
-      "get": {
-        "summary": "",
-        "operationId": "public-shared-view-meta-get",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "object",
-                  "properties": {}
-                }
-              },
-              "application/xml": {
-                "schema": {}
-              }
-            }
-          }
-        },
-        "tags": [
-          "Public"
-        ],
-        "description": "",
-        "parameters": []
-      }
-    },
     "/api/v1/db/public/shared-base/{sharedBaseUuid}/meta": {
       "parameters": [
         {
@@ -4444,6 +4399,104 @@
         "tags": [
           "Public"
         ]
+      }
+    },
+    "/api/v1/db/public/shared-view/{sharedViewUuid}/meta": {
+      "parameters": [
+        {
+          "schema": {
+            "type": "string"
+          },
+          "name": "sharedViewUuid",
+          "in": "path",
+          "required": true
+        },
+        {
+          "schema": {
+            "type": "string"
+          },
+          "in": "header",
+          "name": "xc-password",
+          "description": "Shared view password"
+        }
+      ],
+      "get": {
+        "summary": "",
+        "operationId": "public-shared-view-meta-get",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "allOf": [
+                    {
+                      "$ref": "#/components/schemas/View"
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "relatedMetas": {},
+                        "client": {
+                          "type": "string"
+                        },
+                        "columns": {
+                          "allOf": [
+                            {
+                              "oneOf": [
+                                {
+                                  "$ref": "#/components/schemas/GridColumn"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/FormColumn"
+                                },
+                                {
+                                  "$ref": "#/components/schemas/GalleryColumn"
+                                }
+                              ]
+                            },
+                            {
+                              "$ref": "#/components/schemas/Column"
+                            }
+                          ]
+                        },
+                        "model": {
+                          "$ref": "#/components/schemas/Table"
+                        }
+                      }
+                    },
+                    {
+                      "type": "object",
+                      "properties": {
+                        "view": {
+                          "oneOf": [
+                            {
+                              "$ref": "#/components/schemas/Form"
+                            },
+                            {
+                              "$ref": "#/components/schemas/Grid"
+                            },
+                            {
+                              "$ref": "#/components/schemas/Gallery"
+                            }
+                          ]
+                        }
+                      }
+                    }
+                  ]
+                }
+              },
+              "application/xml": {
+                "schema": {}
+              }
+            }
+          }
+        },
+        "tags": [
+          "Public"
+        ],
+        "description": "",
+        "parameters": []
       }
     },
     "/api/v1/db/meta/audits/comments": {
@@ -6091,6 +6144,9 @@
             "type": "string"
           },
           "slug": {
+            "type": "string"
+          },
+          "uuid": {
             "type": "string"
           },
           "show_system_fields": {

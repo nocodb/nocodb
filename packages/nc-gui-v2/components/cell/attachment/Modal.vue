@@ -116,7 +116,7 @@ function onClick(item: Record<string, any>) {
             >
               <div
                 v-if="isImage(item.title, item.mimetype)"
-                :style="{ backgroundImage: `url('${item.url}')` }"
+                :style="{ backgroundImage: `url('${item.url || item.data}')` }"
                 class="w-full h-full bg-contain bg-center bg-no-repeat"
                 @click.stop="onClick(item)"
               />

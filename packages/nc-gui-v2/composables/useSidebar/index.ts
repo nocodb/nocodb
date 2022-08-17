@@ -1,8 +1,10 @@
-import { useInjectionState, useToggle, watch } from '#imports'
+import { useStorage } from '@vueuse/core'
+import { useInjectionState, watch } from '#imports'
 
 interface UseSidebarProps {
   hasSidebar?: boolean
   isOpen?: boolean
+  storageKey?: string // if a storageKey is passed, use that key for localStorage
 }
 
 /**
@@ -14,8 +16,22 @@ interface UseSidebarProps {
  * If `provideSidebar` is not called explicitly, `useSidebar` will trigger the provider if no injection state can be found
  */
 const [setup, use] = useInjectionState((props: UseSidebarProps = {}) => {
-  const [isOpen, toggle] = useToggle(props.isOpen ?? false)
-  const [hasSidebar, toggleHasSidebar] = useToggle(props.hasSidebar ?? true)
+  let isOpen = ref(props.isOpen ?? false)
+  let hasSidebar = ref(props.hasSidebar ?? true)
+
+  function toggle(state?: boolean) {
+    isOpen.value = state ?? !isOpen.value
+  }
+
+  function toggleHasSidebar(state?: boolean) {
+    hasSidebar.value = state ?? !hasSidebar.value
+  }
+
+  if (props.storageKey) {
+    const storage = toRefs(useStorage(props.storageKey, { isOpen, hasSidebar }, localStorage, { mergeDefaults: true }).value)
+    isOpen = storage.isOpen
+    hasSidebar = storage.hasSidebar
+  }
 
   watch(
     hasSidebar,

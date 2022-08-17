@@ -1,16 +1,15 @@
 <script setup lang="ts">
-import { inject, ref, useTable } from '#imports'
-import { MetaInj, RightSidebarInj } from '~/context'
+import { MetaInj, inject, useTable } from '#imports'
 
 const meta = inject(MetaInj)!
 
 const { deleteTable } = useTable()
 
-const sidebarOpen = inject(RightSidebarInj, ref(true))
+const { isOpen } = useSidebar({ storageKey: 'nc-right-sidebar' })
 </script>
 
 <template>
-  <a-tooltip :placement="sidebarOpen ? 'bottomRight' : 'left'">
+  <a-tooltip :placement="isOpen ? 'bottomRight' : 'left'">
     <template #title> {{ $t('activity.deleteTable') }} </template>
 
     <div class="nc-sidebar-right-item hover:after:bg-red-500 group">

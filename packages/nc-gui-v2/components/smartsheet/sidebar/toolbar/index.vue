@@ -5,8 +5,11 @@ import Reload from './Reload.vue'
 import ExportCache from './ExportCache.vue'
 import DeleteCache from './DeleteCache.vue'
 import DebugMeta from './DebugMeta.vue'
+import { IsFormInj } from '#imports'
 
 const { isUIAllowed } = useUIPermission()
+
+const isForm = inject(IsFormInj)
 
 const debug = $ref(false)
 
@@ -15,6 +18,7 @@ const clickCount = $ref(0)
 
 <template>
   <div
+    v-if="!isForm"
     class="flex gap-2"
     @click="
       () => {
@@ -50,6 +54,9 @@ const clickCount = $ref(0)
     <AddRow v-if="isUIAllowed('xcDatatableEditable')" @click.stop />
 
     <slot name="end" />
+  </div>
+  <div v-else>
+    <slot name="start" />
   </div>
 </template>
 

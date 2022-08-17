@@ -89,7 +89,10 @@ const unlinkRef = async (rec: Record<string, any>) => {
       </div>
 
       <div class="flex-1 flex justify-end gap-1 min-h-[30px] align-center">
-        <MdiArrowExpand class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand" @click="childListDlg = true" />
+        <MdiArrowExpand
+          class="text-sm nc-action-icon text-gray-500/50 hover:text-gray-500 nc-arrow-expand"
+          @click="childListDlg = true"
+        />
 
         <MdiPlus
           v-if="!readonly"

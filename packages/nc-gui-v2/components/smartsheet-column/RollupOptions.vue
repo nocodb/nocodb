@@ -43,7 +43,7 @@ const aggrFunctionsList = [
 ]
 
 if (!vModel.value.fk_relation_column_id) vModel.value.fk_relation_column_id = null
-if (!vModel.value.fk_rollup_column_id) vModel.value.value.fk_rollup_column_id = null
+if (!vModel.value.fk_rollup_column_id) vModel.value.fk_rollup_column_id = null
 if (!vModel.value.rollup_function) vModel.value.rollup_function = null
 
 const refTables = $computed(() => {

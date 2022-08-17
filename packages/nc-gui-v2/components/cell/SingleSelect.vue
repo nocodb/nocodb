@@ -69,7 +69,6 @@ watch(isOpen, (n, _o) => {
     v-model:value="vModel"
     class="w-full"
     :allow-clear="!column.rqd && active"
-    :placeholder="!readOnly ? 'Select an option' : ''"
     :bordered="false"
     :open="isOpen"
     :disabled="readOnly"

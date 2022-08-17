@@ -13,6 +13,7 @@ import TeamFillIcon from '~icons/ri/team-fill'
 import MultipleTableIcon from '~icons/mdi/table-multiple'
 import NootbookOutline from '~icons/mdi/notebook-outline'
 import { useUIPermission, useVModel, watch } from '#imports'
+import MdiCloseIcon from '~icons/mdi/close'
 
 interface Props {
   modelValue: boolean
@@ -130,8 +131,21 @@ watch(
 </script>
 
 <template>
-  <a-modal v-model:visible="vModel" :footer="null" width="max(90vw, 600px)" @cancel="emits('update:modelValue', false)">
-    <a-typography-title class="ml-4 mb-2 select-none" type="secondary" :level="5">SETTINGS</a-typography-title>
+  <a-modal
+    v-model:visible="vModel"
+    :footer="null"
+    width="max(90vw, 600px)"
+    :closable="false"
+    @cancel="emits('update:modelValue', false)"
+  >
+    <div class="flex flex-row justify-between w-full items-center mb-1">
+      <a-typography-title class="ml-4 select-none" type="secondary" :level="5">SETTINGS</a-typography-title>
+      <a-button type="text" class="!rounded-md border-none -mt-1.5" @click="vModel = false">
+        <template #icon>
+          <MdiCloseIcon class="cursor-pointer mt-1" />
+        </template>
+      </a-button>
+    </div>
 
     <a-layout class="mt-3 modal-body flex">
       <!-- Side tabs -->

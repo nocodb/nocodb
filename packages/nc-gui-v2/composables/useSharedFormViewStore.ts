@@ -13,7 +13,7 @@ const [useProvideSharedFormStore, useSharedFormStore] = useInjectionState((share
   const notFound = ref(false)
   const submitted = ref(false)
   const passwordDlg = ref(false)
-  const password = ref('')
+  const password = ref<string | null>(null)
   const secondsRemain = ref(0)
 
   provide(SharedViewPasswordInj, password)

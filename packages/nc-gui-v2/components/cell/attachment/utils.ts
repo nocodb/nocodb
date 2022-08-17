@@ -33,10 +33,11 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
 
     const editEnabled = inject(EditModeInj, ref(false))
 
-    // todo: refactor name
-    const storedFiles = ref<{ title: string; file: File }[]>([])
+    /** keep user selected files data (in base encoded string format) and meta details */
+    const storedFilesData = ref<{ title: string; file: File }[]>([])
 
-    const storedFilesRefs = ref<File[]>([])
+    /** keep user selected File object */
+    const storedFiles = ref<File[]>([])
 
     const attachments = ref<File[]>([])
 
@@ -53,10 +54,10 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     /** remove a file from our stored attachments (either locally stored or saved ones) */
     function removeFile(i: number) {
       if (isPublic.value) {
+        storedFilesData.value.splice(i, 1)
         storedFiles.value.splice(i, 1)
-        storedFilesRefs.value.splice(i, 1)
 
-        updateModelValue(storedFiles.value.map((storedFile) => storedFile.file))
+        updateModelValue(storedFilesData.value.map((storedFile) => storedFile.file))
       } else {
         attachments.value.splice(i, 1)
         updateModelValue(attachments.value)
@@ -68,8 +69,8 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       if (!selectedFiles.length || isPublicGrid) return
 
       if (isPublic.value) {
-        storedFilesRefs.value.push(...selectedFiles)
-        storedFiles.value.push(
+        storedFiles.value.push(...selectedFiles)
+        storedFilesData.value.push(
           ...(await Promise.all<AttachmentProps>(
             Array.from(selectedFiles).map(
               (file) =>
@@ -91,7 +92,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
           )),
         )
 
-        return updateModelValue(storedFiles.value.map((storedFile) => storedFile.file))
+        return updateModelValue(storedFilesData.value.map((storedFile) => storedFile.file))
       }
 
       const newAttachments = []
@@ -146,13 +147,13 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
     }
 
     /** our currently visible items, either the locally stored or the ones from db, depending on isPublicForm status */
-    const visibleItems = computed<any[]>(() => (isPublic.value ? storedFiles.value : attachments.value) || ([] as any[]))
+    const visibleItems = computed<any[]>(() => (isPublic.value ? storedFilesData.value : attachments.value) || ([] as any[]))
 
     watch(files, (nextFiles) => nextFiles && onFileSelect(nextFiles))
 
     return {
       attachments,
-      storedFiles,
+      storedFilesData,
       visibleItems,
       isPublic,
       isForm,
@@ -171,7 +172,7 @@ export const [useProvideAttachmentCell, useAttachmentCell] = useInjectionState(
       downloadFile,
       updateModelValue,
       selectedImage,
-      storedFilesRefs,
+      storedFiles,
     }
   },
   'useAttachmentCell',

@@ -43,7 +43,7 @@ const {
   FileIcon,
   selectedImage,
   isReadonly,
-  storedFilesRefs,
+  storedFiles,
 } = useProvideAttachmentCell(updateModelValue)
 
 const currentCellRef = computed(() => cellRefs.value.find((cell) => cell.dataset.key === `${rowIndex}${column.value.id}`))
@@ -76,11 +76,11 @@ onKeyDown('Escape', () => {
   isOverDropZone.value = false
 })
 
-/** sync storedFilesRefs state with row state */
+/** sync storedFiles state with row state */
 watch(
-  () => storedFilesRefs?.value?.length || 0,
+  () => storedFiles.value.length || 0,
   () => {
-    rowState.value[column.value.title!] = storedFilesRefs?.value
+    rowState.value[column.value.title!] = storedFiles.value
   },
 )
 </script>
